@@ -79,6 +79,7 @@ function assertCommandOutputMatches(result, pattern) {
   const qwen2Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-2b-q4k-ehaf16') || null;
   const gemma4Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af32') || null;
   const gemma4Int4PleProfile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple') || null;
+  const gemma4Af16Int4PleProfile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple') || null;
   const gemma4Catalog = (Array.isArray(catalog.models) ? catalog.models : [])
     .find((entry) => entry?.modelId === 'gemma-4-e2b-it-q4k-ehf16-af32') || null;
 
@@ -1071,8 +1072,8 @@ function assertCommandOutputMatches(result, pattern) {
     qwen2Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
     'profiles/throughput'
   );
-  assert.equal(qwen2Profile.compareLane, 'capability_only');
-  assert.match(qwen2Profile.compareLaneReason, /correctness-clean fixture/i);
+  assert.equal(qwen2Profile.compareLane, 'performance_comparable');
+  assert.equal(qwen2Profile.compareLaneReason, null);
   assert.equal(qwen2Profile.defaultLoadMode, 'http');
   assert.match(qwen2Profile.defaultLoadModeReason, /strict offline/i);
 
@@ -1088,6 +1089,18 @@ function assertCommandOutputMatches(result, pattern) {
   assert.ok(gemma4Int4PleProfile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32-int4ple');
   assert.equal(
     gemma4Int4PleProfile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
+    'profiles/throughput'
+  );
+  assert.ok(gemma4Af16Int4PleProfile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af16-int4ple');
+  assert.equal(gemma4Af16Int4PleProfile.defaultDopplerSource, 'local');
+  assert.equal(gemma4Af16Int4PleProfile.defaultDopplerSurface, 'browser');
+  assert.equal(gemma4Af16Int4PleProfile.defaultLoadMode, 'http');
+  assert.match(gemma4Af16Int4PleProfile.defaultLoadModeReason, /weights-ref sibling/i);
+  assert.equal(gemma4Af16Int4PleProfile.defaultUseChatTemplate, true);
+  assert.equal(gemma4Af16Int4PleProfile.compareLane, 'performance_comparable');
+  assert.match(gemma4Af16Int4PleProfile.compareLaneReason, /local compute-throughput evidence/i);
+  assert.equal(
+    gemma4Af16Int4PleProfile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
     'profiles/throughput'
   );
   assert.ok(gemma4Catalog, 'models/catalog.json must include gemma-4-e2b-it-q4k-ehf16-af32');

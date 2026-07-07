@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-07-06T01:23:22.927Z
-Release: channel=main-snapshot, version=0.4.6, commit=dc6682e11f8369f869917aab730b2fbfe7089b3f, dirty=yes
+Generated: 2026-07-06T15:52:30.986Z
+Release: channel=main-snapshot, version=0.4.6, commit=d2e509c763c38f480aa4facdee06b8766b468631, dirty=yes
 
 ## Engine Matrix
 
@@ -36,12 +36,12 @@ Release: channel=main-snapshot, version=0.4.6, commit=dc6682e11f8369f869917aab73
 | `gemma-4-12b-it-text-w4a16-ct-ehf16-af16` | yes | run, translate |  | auto |  |  |  |
 | `gemma-4-31b-it-text-q4k-ehf16-af16` | yes | run, translate |  | auto |  |  |  |
 | `gemma-4-31b-it-text-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
-| `gemma-4-e2b-it-q4k-ehf16-af16-int4ple` | yes | run, translate |  | auto |  |  |  |
+| `gemma-4-e2b-it-q4k-ehf16-af16-int4ple` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight pack; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence. |
 | `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims. |
 | `gemma-4-e2b-it-q4k-ehf16-af32-int4ple` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful. |
 | `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` | auto | quickstart-registry | capability_only | Embedding models use a separate workload contract and are not part of the text-generation compare lane. |
 | `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` | browser | quickstart-registry | performance_comparable |  |
-| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` | browser | local | capability_only | Qwen 3.5 2B has no committed correctness-clean fixture for the claimable compare lane yet. |
+| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` | browser | local | performance_comparable |  |
 | `qwen-3-6-27b-q4k-eaf16` | yes | run, translate |  | auto |  |  |  |
 | `qwen-3-6-27b-q4k-ehaf16` | yes | run, translate |  | auto |  |  |  |
 | `qwen-3-embedding-0-6b-q4k-ehf16-af32` | yes | embedding |  | auto |  |  |  |
@@ -77,7 +77,7 @@ Release: channel=main-snapshot, version=0.4.6, commit=dc6682e11f8369f869917aab73
 | `gemma-4-e2b-it-q4k-rdrr (Gemma 4 E2B Instruct (Q4K/F32a))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
 | `qwen-3-5-0-8b-q4k-rdrr (Qwen 3.5 0.8B (Q4K))` | candidate | status candidate; missing workloads p512-d128-t0-k1; missing backend/workload chromium-webgpu:p512-d128-t0-k1 | chromium-webgpu | browser | p064-d064-t0-k1 | 75.87 tok/s / 41.57 tok/s | 184.6 tok/s / 9.525 tok/s | decode Doppler; prompt Doppler | readback map wait (submit-readback-wait) | [compare](../benchmarks/vendors/results/compare_20260705T160226.json) |
 | `qwen-3-5-0-8b-q4k-rdrr (Qwen 3.5 0.8B (Q4K))` | candidate | status candidate; missing workloads p512-d128-t0-k1; missing backend/workload chromium-webgpu:p512-d128-t0-k1 | chromium-webgpu | browser | p256-d128-t0-k1 | 73.74 tok/s / 43.17 tok/s | 432.9 tok/s / 9.784 tok/s | decode Doppler; prompt Doppler | readback map wait (submit-readback-wait) | [compare](../benchmarks/vendors/results/compare_20260705T161224.json) |
-| `qwen-3-5-2b-q4k-rdrr (Qwen 3.5 2B (Q4K))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
+| `qwen-3-5-2b-q4k-rdrr (Qwen 3.5 2B (Q4K))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p256-d128-t0-k1, p512-d128-t0-k1; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | browser | p064-d064-t0-k1 | 61.06 tok/s / 40.58 tok/s | 171.1 tok/s / 9.345 tok/s | decode Doppler; prompt Doppler | readback map wait (submit-readback-wait) | [compare](../benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json) |
 | `translategemma-4b-it-q4k-rdrr (TranslateGemma 4B Instruct (Q4K))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
 
 ## Latest Bottlenecks

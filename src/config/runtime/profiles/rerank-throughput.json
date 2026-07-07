@@ -1,0 +1,40 @@
+{
+  "id": "profiles/rerank-throughput",
+  "name": "rerank-throughput",
+  "description": "Rerank benchmark profile for repeated yes/no-logit scoring throughput runs.",
+  "intent": "calibrate",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-07-06T00:00:00Z",
+  "extends": "profiles/rerank-stability",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "calibrate"
+      },
+      "debug": {
+        "logOutput": {
+          "stdout": false
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 256
+      },
+      "sampling": {
+        "temperature": 0
+      },
+      "kvcache": {
+        "maxSeqLen": 256,
+        "kvDtype": "f16"
+      },
+      "session": {
+        "kvcache": {
+          "maxSeqLen": 256,
+          "kvDtype": "f16"
+        }
+      }
+    }
+  }
+}

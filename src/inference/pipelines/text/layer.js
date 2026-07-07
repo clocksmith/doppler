@@ -395,6 +395,7 @@ export async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens,
   let activatedTensor = null;
   let projectedTensor = null;
   let normalizedTensor = null;
+  let residualAddTensor = null;
   let outputTensor = null;
 
   try {
@@ -501,11 +502,19 @@ export async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens,
     releaseOrTrack(recorder, projectedTensor.buffer, decodeBuffers);
     projectedTensor = null;
 
-    outputTensor = await doResidualAdd(normalizedTensor, residualTensor, size, recorder, {
+    residualAddTensor = normalizedTensor;
+    if (residualAddTensor.dtype !== residualTensor.dtype) {
+      residualAddTensor = await doCast(residualAddTensor, residualTensor.dtype, recorder);
+    }
+    outputTensor = await doResidualAdd(residualAddTensor, residualTensor, size, recorder, {
       label: `L${layerIdx}.per_layer_input_residual`,
       layerIdx,
       executionPolicies: context.executionPolicies ?? null,
     });
+    if (residualAddTensor.buffer !== normalizedTensor.buffer) {
+      releaseOrTrack(recorder, residualAddTensor.buffer, decodeBuffers);
+    }
+    residualAddTensor = null;
     releaseOrTrack(recorder, normalizedTensor.buffer, decodeBuffers);
     normalizedTensor = null;
 
@@ -523,6 +532,9 @@ export async function applyPerLayerInputBlock(layerIdx, hiddenTensor, numTokens,
     return outputTensor;
   } catch (error) {
     if (outputTensor?.buffer) releaseOrTrack(recorder, outputTensor.buffer, decodeBuffers);
+    if (residualAddTensor?.buffer && residualAddTensor.buffer !== normalizedTensor?.buffer) {
+      releaseOrTrack(recorder, residualAddTensor.buffer, decodeBuffers);
+    }
     if (normalizedTensor?.buffer) releaseOrTrack(recorder, normalizedTensor.buffer, decodeBuffers);
     if (projectedTensor?.buffer) releaseOrTrack(recorder, projectedTensor.buffer, decodeBuffers);
     if (activatedTensor?.buffer) releaseOrTrack(recorder, activatedTensor.buffer, decodeBuffers);

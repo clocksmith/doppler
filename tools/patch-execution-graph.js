@@ -9,6 +9,7 @@
 //   - inference.normalization (rmsNormWeightOffset, rmsNormEps, etc.)
 //   - inference.attention (queryPreAttnScalar, queryKeyNorm, etc.)
 //   - inference.ffn (activation, gatedActivation, etc.)
+//   - inference.layerPattern (attention schedule and residual branch scale)
 //   - inference.rope (ropeTheta, partialRotaryFactor, etc.)
 //   - inference.output (finalLogitSoftcapping, tieWordEmbeddings, etc.)
 //
@@ -208,6 +209,7 @@ const INFERENCE_BEHAVIOR_KEYS = [
   'normalization',
   'attention',
   'ffn',
+  'layerPattern',
   'rope',
   'output',
 ];

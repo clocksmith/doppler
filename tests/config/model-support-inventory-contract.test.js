@@ -164,8 +164,9 @@ for (const sourceModel of inventory.sourceModels) {
     );
 
     const isEmbeddingCompare = variant.compare.profile?.kind === 'embedding';
+    const isRerankCompare = variant.compare.profile?.kind === 'rerank';
     const expectedCompareCommandCount = variant.compare.profile && variant.compare.benchmarkComparable
-      ? (isEmbeddingCompare ? 1 : policy.benchmarkCommands.workloads.length * policy.benchmarkCommands.decodeProfiles.length)
+      ? (isEmbeddingCompare || isRerankCompare ? 1 : policy.benchmarkCommands.workloads.length * policy.benchmarkCommands.decodeProfiles.length)
       : 0;
     assert.equal(
       variant.actions.compareCommands.length,
@@ -181,6 +182,9 @@ for (const sourceModel of inventory.sourceModels) {
       if (isEmbeddingCompare) {
         assertIncludes(command.command, 'node tools/compare-embeddings.js', `${variant.modelId}: embedding compare command`);
         assertIncludes(command.command, '--load-mode http', `${variant.modelId}: embedding compare command`);
+      } else if (isRerankCompare) {
+        assertIncludes(command.command, 'node tools/compare-rerankers.js', `${variant.modelId}: rerank compare command`);
+        assertIncludes(command.command, '--load-mode http', `${variant.modelId}: rerank compare command`);
       } else {
         assertIncludes(command.command, 'node tools/compare-engines.js', `${variant.modelId}: generation compare command`);
         assertIncludes(command.command, `--mode ${policy.benchmarkCommands.mode}`, `${variant.modelId}: compare command`);
@@ -194,6 +198,14 @@ for (const sourceModel of inventory.sourceModels) {
       assert.equal(variant.actions.primaryNextCommand, variant.actions.hfDryRunCommand);
     }
     if (['claim-lane', 'compare-result', 'summary-svg'].includes(variant.nextGate)) {
+      if (variant.nextGate === 'summary-svg' && (isEmbeddingCompare || isRerankCompare)) {
+        assert.equal(
+          variant.actions.primaryNextCommand,
+          null,
+          `${variant.modelId}: embedding/rerank summary SVG gates must not point at JSON-only compare commands`
+        );
+        continue;
+      }
       assert.equal(
         variant.actions.primaryNextCommand,
         variant.actions.compareCommands[0]?.command || null,
@@ -201,6 +213,8 @@ for (const sourceModel of inventory.sourceModels) {
       );
       if (isEmbeddingCompare) {
         assertIncludes(variant.actions.primaryNextCommand, 'node tools/compare-embeddings.js', `${variant.modelId}: compare gate command`);
+      } else if (isRerankCompare) {
+        assertIncludes(variant.actions.primaryNextCommand, 'node tools/compare-rerankers.js', `${variant.modelId}: compare gate command`);
       } else {
         assertIncludes(variant.actions.primaryNextCommand, 'node tools/compare-engines.js', `${variant.modelId}: compare gate command`);
         assertIncludes(variant.actions.primaryNextCommand, '--decode-profile parity', `${variant.modelId}: compare gate command`);
@@ -236,7 +250,41 @@ assertIncludes(
   'qwen embedding compare command'
 );
 assert.equal(qwenEmbedding.missing.includes('compare-profile'), false);
-assert.equal(qwenEmbedding.nextGate, 'compare-result');
+assert.equal(qwenEmbedding.missing.includes('compare-result'), false);
+assert.equal(qwenEmbedding.missing.includes('summary-svg'), true);
+assertIncludes(
+  qwenEmbedding.evidence.compareResult,
+  'benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_',
+  'qwen embedding compare evidence'
+);
+assert.equal(qwenEmbedding.evidence.compareResultExists, true);
+assert.equal(qwenEmbedding.nextGate, 'summary-svg');
+assert.equal(qwenEmbedding.actions.primaryNextCommand, null);
+
+const qwenReranker = inventory.sourceModels
+  .flatMap((sourceModel) => sourceModel.variants)
+  .find((variant) => variant.modelId === 'qwen-3-reranker-0-6b-q4k-ehf16-af32');
+assert.ok(qwenReranker, 'qwen-3-reranker-0-6b-q4k-ehf16-af32 must be present in support inventory');
+assert.equal(qwenReranker.compare.profile?.kind, 'rerank');
+assert.equal(qwenReranker.compare.profile?.lane, 'performance_comparable');
+assert.equal(qwenReranker.compare.profile?.tjsModelId, 'onnx-community/Qwen3-Reranker-0.6B-ONNX');
+assert.equal(qwenReranker.actions.compareCommands.length, 1);
+assertIncludes(
+  qwenReranker.actions.compareCommands[0].command,
+  'node tools/compare-rerankers.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32',
+  'qwen reranker compare command'
+);
+assert.equal(qwenReranker.missing.includes('compare-profile'), false);
+assert.equal(qwenReranker.missing.includes('compare-result'), false);
+assert.equal(qwenReranker.missing.includes('summary-svg'), true);
+assertIncludes(
+  qwenReranker.evidence.compareResult,
+  'benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_',
+  'qwen reranker compare evidence'
+);
+assert.equal(qwenReranker.evidence.compareResultExists, true);
+assert.equal(qwenReranker.nextGate, 'summary-svg');
+assert.equal(qwenReranker.actions.primaryNextCommand, null);
 
 const conversionOnlyIds = new Set(inventory.conversionOnly.map((entry) => entry.modelBaseId));
 for (const expected of ['gpt-oss-20b-f16-xmxfp4', 'janus-pro-1b-text-q4k-ehaf16']) {

@@ -618,6 +618,10 @@ export async function writeBackLocalCatalog(catalogFile, modelId, revision, opti
   await writeFile(catalogFile, serialized, 'utf8');
 }
 
+export function selectManifestOnlyValidationRevision(uploadPlan, repoHeadSha) {
+  return normalizeText(repoHeadSha) || normalizeText(uploadPlan?.sourceRevision) || 'main';
+}
+
 function getApprovedModelIds(catalog) {
   const entries = Array.isArray(catalog?.models) ? catalog.models : [];
   return entries
@@ -667,7 +671,10 @@ async function publishOne(args, modelId) {
 
   let uploadResult;
   if (args.manifestOnly) {
-    const validationRevision = uploadPlan.sourceRevision || 'main';
+    const validationRevision = selectManifestOnlyValidationRevision(
+      uploadPlan,
+      await fetchRepoHeadSha(uploadPlan.repoId)
+    );
     const validationBaseUrl = buildHfResolveUrl(uploadPlan.repoId, validationRevision, uploadPlan.targetPath);
     await verifyPublishedArtifactFiles(validationBaseUrl, uploadManifest);
   }

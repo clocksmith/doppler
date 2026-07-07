@@ -10,22 +10,22 @@
   "observedWith": "node WebGPU provider plus resolveManifestGpuResidentEmbeddingLimitError",
   "manifest": {
     "path": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
-    "sha256": "sha256:85c460793b8918660573aed4e260e54468240c29524541dda3651d4f754ef166"
+    "sha256": "sha256:512d6e16602071cccff4cbe576bf3b2c20bd43fd32aefc271db4bb95cc9c7f17"
   },
   "adapterInfo": {
-    "vendor": "apple",
-    "architecture": "metal-3",
-    "device": "apple-m3",
-    "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1"
   },
   "capabilities": {
     "hasF16": true,
     "hasSubgroups": true
   },
   "deviceLimits": {
-    "maxStorageBufferBindingSize": 4294967295,
-    "maxBufferSize": 4294967295,
-    "maxStorageBuffersPerShaderStage": 10
+    "maxStorageBufferBindingSize": 4294967292,
+    "maxBufferSize": 4294967292,
+    "maxStorageBuffersPerShaderStage": 16
   },
   "embedding": {
     "tensorName": "model.language_model.embed_tokens.weight",
@@ -48,7 +48,7 @@
     "maxSplitEmbeddingSections": 8,
     "requiredSplitSections": 1,
     "requiredStorageBuffers": 10,
-    "largeWeightMaxBytes": 3865470565,
+    "largeWeightMaxBytes": 3865470562,
     "rowsPerSplitSection": 1258291
   }
 }

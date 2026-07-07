@@ -46,7 +46,7 @@ const cdnUrl = tjsVersion === '4'
 
 console.log(`[tjs-bench] loading transformers.js from ${cdnUrl}`);
 const tjs = await import(cdnUrl);
-const { pipeline, env, AutoModel, AutoTokenizer, Qwen3_5ForConditionalGeneration } = tjs;
+const { pipeline, env, AutoModel, AutoModelForCausalLM, AutoTokenizer, Qwen3_5ForConditionalGeneration } = tjs;
 const TextStreamer = tjs.TextStreamer;
 const loadedVersion = typeof tjs?.VERSION === 'string' ? tjs.VERSION : null;
 
@@ -468,6 +468,183 @@ function normalizeEmbeddingStyle(style) {
     return normalized;
   }
   throw new Error(`Unsupported embedding semantic style: ${String(style)}`);
+}
+
+function normalizeRerankDtype(dtype) {
+  return normalizePreferredDtype(dtype || 'fp16');
+}
+
+function assertRerankText(value, label, preserve = false) {
+  if (typeof value !== 'string') {
+    throw new Error(`rerank scoring config requires non-empty ${label}`);
+  }
+  const text = value.trim();
+  if (!text) {
+    throw new Error(`rerank scoring config requires non-empty ${label}`);
+  }
+  return preserve ? value : text;
+}
+
+function assertRerankTokenId(value, label) {
+  const tokenId = Number(value);
+  if (!Number.isInteger(tokenId) || tokenId < 0) {
+    throw new Error(`rerank scoring config requires non-negative integer ${label}`);
+  }
+  return tokenId;
+}
+
+function normalizeRerankScoringConfig(config = {}) {
+  const format = assertRerankText(config.format, 'format');
+  if (format !== 'qwen3_yes_no_logit') {
+    throw new Error(`unsupported rerank scoring format: ${format}`);
+  }
+  const trueTokenId = assertRerankTokenId(config.trueTokenId, 'trueTokenId');
+  const falseTokenId = assertRerankTokenId(config.falseTokenId, 'falseTokenId');
+  if (trueTokenId === falseTokenId) {
+    throw new Error('rerank scoring config trueTokenId and falseTokenId must differ');
+  }
+  const score = assertRerankText(config.score, 'score');
+  if (score !== 'true_logit' && score !== 'logit_difference') {
+    throw new Error(`unsupported rerank score policy: ${score}`);
+  }
+  const probability = assertRerankText(config.probability, 'probability');
+  if (probability !== 'sigmoid') {
+    throw new Error(`unsupported rerank probability policy: ${probability}`);
+  }
+  return {
+    format,
+    instruction: assertRerankText(config.instruction, 'instruction'),
+    inputTemplate: assertRerankText(config.inputTemplate, 'inputTemplate', true),
+    prefix: assertRerankText(config.prefix, 'prefix', true),
+    suffix: assertRerankText(config.suffix, 'suffix', true),
+    trueToken: assertRerankText(config.trueToken, 'trueToken'),
+    trueTokenId,
+    falseToken: assertRerankText(config.falseToken, 'falseToken'),
+    falseTokenId,
+    score,
+    probability,
+  };
+}
+
+function replaceRerankTemplate(template, values) {
+  let output = template;
+  for (const [key, value] of Object.entries(values)) {
+    const placeholder = `{${key}}`;
+    if (!output.includes(placeholder)) {
+      throw new Error(`rerank inputTemplate is missing ${placeholder}`);
+    }
+    output = output.split(placeholder).join(value);
+  }
+  return output;
+}
+
+function formatRerankPrompt(query, document, scoringConfig) {
+  const instruction = assertRerankText(scoringConfig.instruction, 'instruction');
+  const normalizedQuery = assertRerankText(query, 'query');
+  const normalizedDocument = assertRerankText(document, 'document');
+  const input = replaceRerankTemplate(scoringConfig.inputTemplate, {
+    instruction,
+    query: normalizedQuery,
+    document: normalizedDocument,
+  });
+  return `${scoringConfig.prefix}${input}${scoringConfig.suffix}`;
+}
+
+function sigmoid(value) {
+  return 1 / (1 + Math.exp(-value));
+}
+
+function computeRerankScore(scoringConfig, trueLogit, falseLogit) {
+  if (scoringConfig.score === 'logit_difference') {
+    return trueLogit - falseLogit;
+  }
+  return trueLogit;
+}
+
+function lastTokenLogits(logits) {
+  const data = ArrayBuffer.isView(logits?.data) ? logits.data : null;
+  const dims = Array.isArray(logits?.dims) ? logits.dims.map((value) => Number(value)) : [];
+  if (!data || dims.length < 2) {
+    throw new Error('rerank model output must expose logits tensor data and dims');
+  }
+  const vocabSize = dims[dims.length - 1];
+  const seqLen = dims.length >= 3 ? dims[dims.length - 2] : 1;
+  if (!Number.isInteger(vocabSize) || vocabSize <= 0 || !Number.isInteger(seqLen) || seqLen <= 0) {
+    throw new Error(`invalid rerank logits dims: ${JSON.stringify(dims)}`);
+  }
+  const offset = (seqLen - 1) * vocabSize;
+  if (offset + vocabSize > data.length) {
+    throw new Error(`rerank logits dims exceed tensor data length: ${JSON.stringify(dims)} data=${data.length}`);
+  }
+  return data.subarray(offset, offset + vocabSize);
+}
+
+async function loadRerankRuntime(modelId, config = {}) {
+  if (!AutoTokenizer || typeof AutoTokenizer.from_pretrained !== 'function') {
+    throw new Error('Transformers.js rerank mode requires AutoTokenizer.');
+  }
+  if (!AutoModelForCausalLM || typeof AutoModelForCausalLM.from_pretrained !== 'function') {
+    throw new Error('Transformers.js rerank mode requires AutoModelForCausalLM.');
+  }
+  const dtype = normalizeRerankDtype(config.dtype);
+  const format = String(config.format || 'onnx').trim() || 'onnx';
+  const execution = buildStrictWebgpuExecution(dtype);
+  setOrtProxyMode(execution.effectiveOrtProxy);
+  const loadOptions = format === 'safetensors'
+    ? { dtype: execution.effectiveDtype }
+    : buildModelLoadOptions(false, execution.effectiveDtype, execution.executionProviderMode);
+  const [tokenizer, model] = await Promise.all([
+    AutoTokenizer.from_pretrained(modelId),
+    AutoModelForCausalLM.from_pretrained(modelId, loadOptions),
+  ]);
+  return {
+    tokenizer,
+    model,
+    dtype,
+    format,
+    ...execution,
+    async score(query, document, scoringConfig) {
+      const prompt = formatRerankPrompt(query, document, scoringConfig);
+      const inputs = tokenizer(prompt, {
+        add_special_tokens: false,
+        padding: false,
+        truncation: true,
+      });
+      const output = await model(inputs);
+      const logits = lastTokenLogits(output?.logits);
+      const trueLogit = Number(logits[scoringConfig.trueTokenId]);
+      const falseLogit = Number(logits[scoringConfig.falseTokenId]);
+      if (!Number.isFinite(trueLogit) || !Number.isFinite(falseLogit)) {
+        throw new Error(
+          `rerank logits missing finite yes/no scores at token IDs ${scoringConfig.trueTokenId}/${scoringConfig.falseTokenId}`
+        );
+      }
+      const score = computeRerankScore(scoringConfig, trueLogit, falseLogit);
+      return {
+        query,
+        document,
+        prompt,
+        tokenCount: countPromptTokensFromEncoded(inputs),
+        score,
+        probability: sigmoid(score),
+        trueLogit,
+        falseLogit,
+        trueTokenId: scoringConfig.trueTokenId,
+        falseTokenId: scoringConfig.falseTokenId,
+      };
+    },
+    async release() {
+      if (typeof model?.dispose === 'function') await model.dispose();
+      if (typeof tokenizer?.dispose === 'function') await tokenizer.dispose();
+    },
+  };
+}
+
+async function releaseRerankRuntime(runtime) {
+  if (!runtime || typeof runtime.release !== 'function') return;
+  try {
+    await runtime.release();
+  } catch { /* ignore */ }
 }
 
 function formatEmbeddingText(text, kind, style) {
@@ -935,6 +1112,314 @@ window.__primeEmbeddingModel = async (config = {}) => {
     fallbackUsed: false,
     runnerKind: runtime.mode,
   };
+};
+
+window.__primeRerankModel = async (config = {}) => {
+  const modelId = String(config?.modelId || '').trim();
+  if (!modelId) {
+    throw new Error('modelId is required for rerank cache priming');
+  }
+  const scoringConfig = normalizeRerankScoringConfig(config.scoringConfig || {});
+  const query = typeof config?.query === 'string' && config.query.length > 0
+    ? config.query
+    : 'What API exposes GPU hardware for browser compute workloads?';
+  const document = typeof config?.document === 'string' && config.document.length > 0
+    ? config.document
+    : 'WebGPU provides low-level access to graphics processors for compute workloads.';
+  const start = performance.now();
+  const runtime = await loadRerankRuntime(modelId, config);
+  let rerankPrimed = false;
+  try {
+    await runtime.score(query, document, scoringConfig);
+    rerankPrimed = true;
+  } finally {
+    await releaseRerankRuntime(runtime);
+  }
+  return {
+    ok: true,
+    modelId,
+    primeMs: Math.max(0, performance.now() - start),
+    primeMode: 'load-and-rerank',
+    rerankPrimed,
+    requestedDtype: runtime.requestedDtype,
+    effectiveDtype: runtime.effectiveDtype,
+    fallbackUsed: runtime.fallbackUsed === true,
+    ortProxyMode: runtime.effectiveOrtProxy ? 'on' : 'off',
+    ortProxyFallbackUsed: runtime.ortProxyFallbackUsed === true,
+    executionProviderMode: runtime.executionProviderMode || 'webgpu-only',
+    executionProviderFallbackUsed: runtime.executionProviderFallbackUsed === true,
+    runnerKind: 'causal_lm_yes_no_logit',
+  };
+};
+
+function summarizeRerankScores(scores) {
+  const sorted = [...scores].sort((a, b) => {
+    const scoreDelta = b.score - a.score;
+    return scoreDelta !== 0 ? scoreDelta : a.index - b.index;
+  });
+  return {
+    ranking: sorted.map((entry, rank) => ({
+      rank: rank + 1,
+      index: entry.index,
+      document: entry.document,
+      score: Number(entry.score.toFixed(6)),
+      probability: Number(entry.probability.toFixed(6)),
+      trueLogit: Number(entry.trueLogit.toFixed(6)),
+      falseLogit: Number(entry.falseLogit.toFixed(6)),
+      tokenCount: entry.tokenCount,
+    })),
+    top: sorted[0] ?? null,
+  };
+}
+
+async function runRerankOnce(runtime, scoringConfig, query, documents) {
+  const scores = [];
+  const start = performance.now();
+  for (let i = 0; i < documents.length; i += 1) {
+    const scored = await runtime.score(query, documents[i], scoringConfig);
+    scores.push({
+      index: i,
+      ...scored,
+    });
+  }
+  const summary = summarizeRerankScores(scores);
+  return {
+    query,
+    documents,
+    documentCount: documents.length,
+    scores,
+    ranking: summary.ranking,
+    topDocument: summary.top
+      ? {
+          index: summary.top.index,
+          document: summary.top.document,
+          score: summary.top.score,
+          probability: summary.top.probability,
+        }
+      : null,
+    durationMs: Math.max(1, performance.now() - start),
+  };
+}
+
+async function runRerankSemantic(runtime, scoringConfig, fixture) {
+  const defaults = fixture?.defaults;
+  if (!defaults || typeof defaults !== 'object') {
+    return null;
+  }
+  const cases = Array.isArray(defaults.cases) ? defaults.cases : [];
+  const minPairAcc = Number(defaults.minPairAcc);
+  const minScoreMargin = Number(defaults.minScoreMargin);
+  const start = performance.now();
+  const pairs = [];
+  let pairPassed = 0;
+  for (const testCase of cases) {
+    const query = String(testCase?.query ?? '').trim();
+    const positiveDocument = String(testCase?.positive ?? '').trim();
+    const negativeDocument = String(testCase?.negative ?? '').trim();
+    if (!query || !positiveDocument || !negativeDocument) continue;
+    const positive = await runtime.score(query, positiveDocument, scoringConfig);
+    const negative = await runtime.score(query, negativeDocument, scoringConfig);
+    const margin = positive.score - negative.score;
+    const passed = Number.isFinite(margin) && margin > minScoreMargin;
+    if (passed) pairPassed += 1;
+    pairs.push({
+      id: String(testCase.id ?? ''),
+      query,
+      positive: positiveDocument,
+      negative: negativeDocument,
+      passed,
+      positiveScore: Number(positive.score.toFixed(6)),
+      negativeScore: Number(negative.score.toFixed(6)),
+      positiveProbability: Number(positive.probability.toFixed(6)),
+      negativeProbability: Number(negative.probability.toFixed(6)),
+      margin: Number.isFinite(margin) ? Number(margin.toFixed(6)) : null,
+    });
+  }
+  const pairAcc = pairs.length > 0 ? pairPassed / pairs.length : 0;
+  return {
+    passed: pairAcc >= minPairAcc,
+    pairAcc,
+    pairPassed,
+    pairTotal: pairs.length,
+    minPairAcc,
+    minScoreMargin,
+    failedCaseIds: pairs.filter((entry) => !entry.passed).map((entry) => entry.id),
+    pairs,
+    durationMs: Math.max(1, performance.now() - start),
+  };
+}
+
+window.__runRerankBench = async (config = {}) => {
+  const {
+    modelId,
+    query,
+    documents,
+    warmupRuns,
+    timedRuns,
+    cacheMode = 'warm',
+    loadMode = null,
+    seed = 0,
+    dtype = 'fp16',
+    format = 'onnx',
+    semanticFixture = null,
+  } = config;
+  const normalizedQuery = String(query ?? '').trim();
+  const normalizedDocuments = Array.isArray(documents)
+    ? documents.map((entry) => String(entry ?? '').trim()).filter(Boolean)
+    : [];
+  if (!normalizedQuery || normalizedDocuments.length === 0) {
+    throw new Error('rerank benchmark requires non-empty query and documents');
+  }
+  const scoringConfig = normalizeRerankScoringConfig(config.scoringConfig || {});
+
+  let deviceInfo = null;
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (adapter) {
+      const info = adapter.info || (await adapter.requestAdapterInfo?.()) || {};
+      deviceInfo = {
+        vendor: info.vendor || null,
+        architecture: info.architecture || null,
+        device: info.device || null,
+        description: info.description || null,
+        hasF16: adapter.features.has('shader-f16'),
+        hasSubgroups: adapter.features.has('subgroups'),
+        hasTimestampQuery: adapter.features.has('timestamp-query'),
+      };
+    }
+  } catch { /* best effort */ }
+
+  const requestedDtype = normalizeRerankDtype(dtype);
+  const loadStart = performance.now();
+  const runtime = await loadRerankRuntime(modelId, {
+    dtype: requestedDtype,
+    format,
+  });
+  const modelLoadMs = performance.now() - loadStart;
+  const totalRuns = Number(warmupRuns) + Number(timedRuns);
+  const runs = [];
+  let lastRun = null;
+
+  try {
+    for (let i = 0; i < totalRuns; i += 1) {
+      const isWarmup = i < Number(warmupRuns);
+      const run = await runRerankOnce(runtime, scoringConfig, normalizedQuery, normalizedDocuments);
+      if (!isWarmup) {
+        runs.push({
+          rerankMs: run.durationMs,
+          documentCount: run.documentCount,
+          topDocumentIndex: run.topDocument?.index ?? null,
+          topDocumentScore: run.topDocument?.score ?? null,
+          topDocumentProbability: run.topDocument?.probability ?? null,
+          nonFiniteScores: run.scores.filter((entry) => !Number.isFinite(entry.score)).length,
+          ranking: run.ranking,
+        });
+        lastRun = run;
+      }
+    }
+
+    const semantic = semanticFixture
+      ? await runRerankSemantic(runtime, scoringConfig, semanticFixture)
+      : null;
+    const durations = runs.map((run) => run.rerankMs);
+    const stats = computeStats(durations);
+    const avgRerankMs = stats.mean;
+    const avgReranksPerSec = avgRerankMs > 0 ? 1000 / avgRerankMs : 0;
+    const firstRerankMs = durations[0] ?? null;
+    const nonFiniteScores = runs.reduce((sum, run) => sum + run.nonFiniteScores, 0);
+
+    return {
+      modelId,
+      seed,
+      task: 'rerank',
+      query: normalizedQuery,
+      documents: normalizedDocuments,
+      warmupRuns,
+      timedRuns,
+      cacheMode,
+      loadMode,
+      modelLoadMs,
+      timing: {
+        modelLoadMs,
+        firstTokenMs: null,
+        firstResponseMs: Number.isFinite(firstRerankMs) ? modelLoadMs + firstRerankMs : null,
+        prefillMs: null,
+        decodeMs: null,
+        totalRunMs: stats.median,
+        rerankMs: stats.median,
+        reranksPerSec: avgReranksPerSec,
+        cacheMode,
+        loadMode,
+      },
+      metrics: {
+        warmupRuns,
+        timedRuns,
+        validRuns: runs.length,
+        invalidRuns: runs.filter((run) => run.nonFiniteScores > 0).length,
+        nonFiniteScores,
+        firstRerankMs,
+        minRerankMs: stats.min,
+        medianRerankMs: stats.median,
+        p95RerankMs: stats.p95,
+        p99RerankMs: stats.p99,
+        maxRerankMs: stats.max,
+        avgRerankMs,
+        avgReranksPerSec,
+        documentCount: normalizedDocuments.length,
+        topDocumentIndex: lastRun?.topDocument?.index ?? null,
+        topDocumentScore: lastRun?.topDocument?.score == null ? null : Number(lastRun.topDocument.score.toFixed(6)),
+        topDocumentProbability: lastRun?.topDocument?.probability == null ? null : Number(lastRun.topDocument.probability.toFixed(6)),
+        semanticPassed: semantic?.passed ?? null,
+        semanticDurationMs: semantic ? Number(semantic.durationMs.toFixed(2)) : null,
+        semanticPairAcc: semantic ? Number(semantic.pairAcc.toFixed(4)) : null,
+        semanticPairPassed: semantic?.pairPassed ?? null,
+        semanticPairTotal: semantic?.pairTotal ?? null,
+        semanticMinPairAcc: semantic ? Number(semantic.minPairAcc.toFixed(4)) : null,
+        semanticMinScoreMargin: semantic ? Number(semantic.minScoreMargin.toFixed(4)) : null,
+        semanticFailedCases: semantic?.failedCaseIds ?? [],
+        semanticDetails: semantic ? { pairs: semantic.pairs } : null,
+        modelLoadMs,
+      },
+      output: {
+        mode: 'rerank',
+        query: lastRun?.query ?? normalizedQuery,
+        documentCount: normalizedDocuments.length,
+        topDocument: lastRun?.topDocument ?? null,
+        ranking: lastRun?.ranking ?? [],
+        semantic: semantic
+          ? {
+              passed: semantic.passed,
+              pairAcc: Number(semantic.pairAcc.toFixed(4)),
+              failedCaseIds: semantic.failedCaseIds,
+              details: {
+                pairs: semantic.pairs,
+              },
+            }
+          : null,
+      },
+      runs,
+      deviceInfo,
+      env: {
+        library: 'transformers.js',
+        version: loadedVersion || (tjsVersion === '4' ? '4.x' : '3.x'),
+        device: 'webgpu',
+        browserUserAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
+        browserPlatform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
+        browserLanguage: typeof navigator !== 'undefined' ? (navigator.language || null) : null,
+        browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
+        dtype: runtime.effectiveDtype,
+        requestedDtype,
+        dtypeFallbackUsed: runtime.fallbackUsed === true,
+        executionProviderMode: runtime.executionProviderMode || 'webgpu-only',
+        executionProviderFallbackUsed: runtime.executionProviderFallbackUsed === true,
+        ortProxyMode: runtime.effectiveOrtProxy ? 'on' : 'off',
+        ortProxyFallbackUsed: runtime.ortProxyFallbackUsed === true,
+        runnerKind: 'causal_lm_yes_no_logit',
+      },
+    };
+  } finally {
+    await releaseRerankRuntime(runtime);
+  }
 };
 
 async function runEmbeddingSemantic(runtime, fixture, style) {

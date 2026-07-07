@@ -12,6 +12,7 @@ Claim methodology and fairness policy are canonical in [docs/benchmark-methodolo
 - Target registry: [registry.json](./registry.json)
 - Capability matrix: [capabilities.json](./capabilities.json)
 - Local inference claim matrix: [local-inference-claim-matrix.json](./local-inference-claim-matrix.json)
+- Local GPU challenger matrix: [local-gpu-challenger-matrix.json](./local-gpu-challenger-matrix.json) and [docs/local-gpu-challenger-framework.md](../../docs/local-gpu-challenger-framework.md)
 - Support rollout policy: [support-rollout-policy.json](./support-rollout-policy.json)
 - Smallest-first support inventory: [model-support-inventory.json](./model-support-inventory.json) and [docs/model-support-inventory.md](../../docs/model-support-inventory.md)
 - Competition scoreboard: [model-competition-scoreboard.json](./model-competition-scoreboard.json) and [docs/model-competition-scoreboard.md](../../docs/model-competition-scoreboard.md)
@@ -97,6 +98,9 @@ Use these before turning a compare result into README copy, a chart, or a releas
   It pins local manifests, tokenizer hashes, shard-set identity, memory budgets, shared workloads, sampling, decode profiles, timing scope, and promotion gates.
   `sharedRunContract.requiredRuntimeBackends` declares the Doppler Chromium/browser, Node, and Bun WebGPU surfaces required before a lane can be promoted.
   Lanes stay `candidate` until competitor artifact hashes, compare JSON, and the summary SVG are present.
+- [local-gpu-challenger-matrix.json](./local-gpu-challenger-matrix.json): model-level, multi-platform plan for fair local GPU challengers beyond the Transformers.js anchor lanes.
+  It keeps shared benchmark contracts separate from engine overlays, records the allowed platform target set, and records which runner, artifact, or environment gate blocks each challenger.
+  The human overview is [docs/local-gpu-challenger-framework.md](../../docs/local-gpu-challenger-framework.md).
 - [support-rollout-policy.json](./support-rollout-policy.json): support-inventory gate order and artifact-size tiers.
   It is separate from [benchmark-policy.json](./benchmark-policy.json) so support queue edits do not invalidate saved compare artifact policy hashes.
 - [model-support-inventory.json](./model-support-inventory.json): generated smallest-first support queue from catalog lifecycle, conversion configs, HF publication fields, compare profiles, local claim lanes, release matrix rows, and release-claim receipts.
@@ -107,6 +111,7 @@ Use these before turning a compare result into README copy, a chart, or a releas
 - [schema/](./schema): schemas for registry, workloads, harness, capabilities, metric contract, and normalized result records.
 - [schema/compare-engines-config.schema.json](./schema/compare-engines-config.schema.json): schema for `compare-engines.config.json`.
 - [schema/local-inference-claim-matrix.schema.json](./schema/local-inference-claim-matrix.schema.json): schema for local medium inference claim-lane selection.
+- [schema/local-gpu-challenger-matrix.schema.json](./schema/local-gpu-challenger-matrix.schema.json): schema for local GPU challenger selection and fair harness planning.
 - [schema/release-matrix.schema.json](./schema/release-matrix.schema.json): schema for generated release/support matrix payload.
 - [results/](./results/): generated normalized outputs and committed chart snapshots. Some JSON compare artifacts may also be committed here when they are part of published evidence.
 - [fixtures/](./fixtures/): committed sample compare payloads for clean-checkout chart and matrix smoke checks.

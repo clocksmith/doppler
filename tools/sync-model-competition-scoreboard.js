@@ -12,7 +12,9 @@ const CATALOG_PATH = path.join(REPO_ROOT, 'models', 'catalog.json');
 const SUPPORT_INVENTORY_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'model-support-inventory.json');
 const RELEASE_MATRIX_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'release-matrix.json');
 const EMBEDDING_COMPARE_CONFIG_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'embedding-compare.config.json');
+const RERANK_COMPARE_CONFIG_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'rerank-compare.config.json');
 const EMBEDDING_RESULTS_DIR = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'results');
+const RERANK_RESULTS_DIR = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'results');
 const DEFAULT_JSON_OUTPUT_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'model-competition-scoreboard.json');
 const DEFAULT_MARKDOWN_OUTPUT_PATH = path.join(REPO_ROOT, 'docs', 'model-competition-scoreboard.md');
 const PLATFORM_IDS = Object.freeze(['browser', 'node', 'bun']);
@@ -21,7 +23,9 @@ const SOURCE_FILES = Object.freeze([
   'benchmarks/vendors/model-support-inventory.json',
   'benchmarks/vendors/release-matrix.json',
   'benchmarks/vendors/embedding-compare.config.json',
+  'benchmarks/vendors/rerank-compare.config.json',
   'benchmarks/vendors/results/embedding_compare_*.json',
+  'benchmarks/vendors/results/rerank_compare_*.json',
 ]);
 
 function normalizeText(value) {
@@ -236,6 +240,10 @@ function buildEmbeddingProfileIndex(config) {
   return mapByModelId(config?.modelProfiles, (entry) => entry?.dopplerModelId);
 }
 
+function buildRerankProfileIndex(config) {
+  return mapByModelId(config?.modelProfiles, (entry) => entry?.dopplerModelId);
+}
+
 function timestampScore(value) {
   const parsed = Date.parse(normalizeText(value));
   return Number.isNaN(parsed) ? 0 : parsed;
@@ -260,6 +268,38 @@ async function collectLatestEmbeddingResults() {
       path: repoRelative(fullPath),
       timestamp: normalizeText(payload?.timestamp) || null,
       isLatestAlias: entry.name === 'embedding_compare_latest.json',
+      payload,
+    };
+    const current = byModelId.get(modelId);
+    const newer = !current || timestampScore(record.timestamp) > timestampScore(current.timestamp);
+    const sameTimestampPreferred = current
+      && timestampScore(record.timestamp) === timestampScore(current.timestamp)
+      && current.isLatestAlias
+      && !record.isLatestAlias;
+    if (newer || sameTimestampPreferred) byModelId.set(modelId, record);
+  }
+  return byModelId;
+}
+
+async function collectLatestRerankResults() {
+  const byModelId = new Map();
+  let entries = [];
+  try {
+    entries = await fs.readdir(RERANK_RESULTS_DIR, { withFileTypes: true });
+  } catch {
+    return byModelId;
+  }
+  for (const entry of entries) {
+    if (!entry.isFile()) continue;
+    if (!entry.name.startsWith('rerank_compare_') || !entry.name.endsWith('.json')) continue;
+    const fullPath = path.join(RERANK_RESULTS_DIR, entry.name);
+    const payload = await readJson(fullPath);
+    const modelId = normalizeText(payload?.model?.dopplerModelId);
+    if (!modelId) continue;
+    const record = {
+      path: repoRelative(fullPath),
+      timestamp: normalizeText(payload?.timestamp) || null,
+      isLatestAlias: entry.name === 'rerank_compare_latest.json',
       payload,
     };
     const current = byModelId.get(modelId);
@@ -549,6 +589,50 @@ function embeddingMetrics(result) {
   };
 }
 
+function rerankMetrics(result) {
+  const summary = result?.payload?.summary;
+  const doppler = summary?.doppler?.speed || {};
+  const tjs = summary?.transformersjs?.speed || {};
+  const dopplerMedian = doppler.medianRerankMs;
+  const tjsMedian = tjs.medianRerankMs;
+  const dopplerThroughput = doppler.avgReranksPerSec;
+  const tjsThroughput = tjs.avgReranksPerSec;
+  const dopplerLoad = doppler.modelLoadMs;
+  const tjsLoad = tjs.modelLoadMs;
+  return {
+    doppler: {
+      medianRerankMs: roundNumber(dopplerMedian),
+      avgReranksPerSec: roundNumber(dopplerThroughput),
+      p95RerankMs: roundNumber(doppler.p95RerankMs),
+      modelLoadMs: roundNumber(dopplerLoad),
+      topDocumentIndex: hasFiniteNumber(doppler.topDocumentIndex) ? doppler.topDocumentIndex : null,
+    },
+    transformersjs: {
+      medianRerankMs: roundNumber(tjsMedian),
+      avgReranksPerSec: roundNumber(tjsThroughput),
+      p95RerankMs: roundNumber(tjs.p95RerankMs),
+      modelLoadMs: roundNumber(tjsLoad),
+      topDocumentIndex: hasFiniteNumber(tjs.topDocumentIndex) ? tjs.topDocumentIndex : null,
+    },
+    ratios: {
+      medianRerankMsDopplerOverTransformersjs: ratio(dopplerMedian, tjsMedian),
+      avgReranksPerSecDopplerOverTransformersjs: ratio(dopplerThroughput, tjsThroughput),
+      modelLoadMsDopplerOverTransformersjs: ratio(dopplerLoad, tjsLoad),
+    },
+    leader: {
+      rerankLatency: hasFiniteNumber(dopplerMedian) && hasFiniteNumber(tjsMedian)
+        ? (dopplerMedian <= tjsMedian ? 'doppler' : 'transformersjs')
+        : null,
+      rerankThroughput: hasFiniteNumber(dopplerThroughput) && hasFiniteNumber(tjsThroughput)
+        ? (dopplerThroughput >= tjsThroughput ? 'doppler' : 'transformersjs')
+        : null,
+      modelLoad: hasFiniteNumber(dopplerLoad) && hasFiniteNumber(tjsLoad)
+        ? (dopplerLoad <= tjsLoad ? 'doppler' : 'transformersjs')
+        : null,
+    },
+  };
+}
+
 function embeddingClaimStatus(result, profile) {
   const compareLane = result?.payload?.compareLane || {};
   if (compareLane.claimable === true || profile?.releaseClaimable === true) return 'claimable';
@@ -588,6 +672,81 @@ function embeddingClaimReason(result, profile, nextGate) {
     return 'Published Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline; promote the compare receipt before claiming release-level competitor performance.';
   }
   return normalizeText(result?.payload?.compareLane?.reason || profile?.compareLaneReason) || null;
+}
+
+function rerankClaimStatus(result, profile) {
+  const compareLane = result?.payload?.compareLane || {};
+  if (compareLane.claimable === true || compareLane.releaseClaimable === true) return 'claimable';
+  if (compareLane.localComparable === true) return 'local-comparable';
+  if (compareLane.correctnessOk === false) return 'correctness-failed';
+  return normalizeText(compareLane.lane || profile?.compareLane) || 'compare-missing';
+}
+
+function rerankNextGate(claimStatus, result, variant) {
+  if (claimStatus !== 'local-comparable') return null;
+  if (variant?.hf?.published !== true) return 'hf-publish';
+  if (normalizeText(result?.payload?.model?.dopplerSource) === 'local') {
+    return 'published-artifact-compare';
+  }
+  return 'release-claim-promotion';
+}
+
+function rerankNextCommand(modelId, nextGate, variant) {
+  if (!nextGate) return null;
+  if (nextGate === 'hf-publish') {
+    return normalizeText(variant?.actions?.hfDryRunCommand) || null;
+  }
+  if (nextGate === 'published-artifact-compare') {
+    return `node tools/compare-rerankers.js --model-id ${modelId} --doppler-source quickstart-registry --save --json`;
+  }
+  return normalizeText(variant?.actions?.primaryNextCommand) || null;
+}
+
+function rerankClaimReason(result, profile, nextGate) {
+  if (nextGate === 'hf-publish') {
+    return 'Comparable rerank evidence exists, but the catalog row is not marked as published on Hugging Face.';
+  }
+  if (nextGate === 'published-artifact-compare') {
+    return 'Local Doppler artifact compared against the browser WebGPU Transformers.js ONNX rerank baseline; rerun the compare against the hosted quickstart registry artifact.';
+  }
+  if (nextGate === 'release-claim-promotion') {
+    return 'Published Doppler artifact compared against the browser WebGPU Transformers.js ONNX rerank baseline; promote the compare receipt before claiming release-level competitor performance.';
+  }
+  return normalizeText(result?.payload?.compareLane?.reason || profile?.compareLaneReason) || null;
+}
+
+async function buildRerankRows(variantsByModelId, coverageByModelId, rerankProfilesByModelId, latestRerankResults) {
+  const rows = [];
+  for (const [modelId, result] of latestRerankResults) {
+    const variant = variantsByModelId.get(modelId);
+    if (!variant) continue;
+    const coverage = coverageByModelId.get(modelId) || null;
+    const profile = rerankProfilesByModelId.get(modelId) || null;
+    const correctnessOk = result?.payload?.summary?.correctnessOk === true;
+    const claimStatus = rerankClaimStatus(result, profile);
+    const nextGate = rerankNextGate(claimStatus, result, variant);
+    const evidencePath = normalizeText(result?.path);
+    rows.push(baseRow(variant, coverage, {
+      rowId: `${modelId}:rerank:${normalizeText(result?.timestamp) || 'latest'}`,
+      workloadMode: 'rerank',
+      surface: normalizeText(result?.payload?.model?.dopplerSurface) || normalizeText(profile?.defaultDopplerSurface) || 'browser',
+      workloadId: 'rerank',
+      competitor: buildCompetitor(variant, coverage, result),
+      correctness: correctnessOk ? 'semantic-pass' : 'failed',
+      metrics: rerankMetrics(result),
+      claimStatus,
+      claimReason: rerankClaimReason(result, profile, nextGate),
+      evidence: {
+        rerankCompareResult: evidencePath || null,
+        rerankCompareResultExists: evidencePath ? await pathExists(evidencePath) : false,
+        timestamp: normalizeText(result?.timestamp) || null,
+      },
+      missing: nextGate ? [nextGate] : [],
+      nextGate,
+      nextCommand: rerankNextCommand(modelId, nextGate, variant),
+    }));
+  }
+  return rows;
 }
 
 async function buildEmbeddingRows(variantsByModelId, coverageByModelId, embeddingProfilesByModelId, latestEmbeddingResults) {
@@ -664,6 +823,7 @@ function summarizeRows(catalog, variants, rows) {
   const generationBenchmarks = rows.filter((row) => row.workloadMode === 'generation' && row.metrics);
   const generationGaps = rows.filter((row) => row.workloadMode === 'generation' && !row.metrics);
   const embeddingRows = rows.filter((row) => row.workloadMode === 'embedding' && row.metrics);
+  const rerankRows = rows.filter((row) => row.workloadMode === 'rerank' && row.metrics);
   const supportRows = rows.filter((row) => !row.metrics && row.workloadMode !== 'generation');
   const runtimeVerified = variants.filter((variant) => normalizeText(variant?.lifecycle?.tested) === 'verified');
   const platformCounts = {};
@@ -681,11 +841,14 @@ function summarizeRows(catalog, variants, rows) {
     generationCompareRowCount: generationBenchmarks.length,
     generationCompareGapRowCount: generationGaps.length,
     embeddingCompareRowCount: embeddingRows.length,
+    rerankCompareRowCount: rerankRows.length,
     supportGapRowCount: supportRows.filter((row) => row.claimStatus !== 'benchmark-selected').length,
     dopplerDecodeLeaderRowCount: generationBenchmarks.filter((row) => row.metrics?.leader?.decode === 'doppler').length,
     transformersjsDecodeLeaderRowCount: generationBenchmarks.filter((row) => row.metrics?.leader?.decode === 'transformersjs').length,
     dopplerEmbeddingLatencyLeaderRowCount: embeddingRows.filter((row) => row.metrics?.leader?.embeddingLatency === 'doppler').length,
     transformersjsEmbeddingLatencyLeaderRowCount: embeddingRows.filter((row) => row.metrics?.leader?.embeddingLatency === 'transformersjs').length,
+    dopplerRerankLatencyLeaderRowCount: rerankRows.filter((row) => row.metrics?.leader?.rerankLatency === 'doppler').length,
+    transformersjsRerankLatencyLeaderRowCount: rerankRows.filter((row) => row.metrics?.leader?.rerankLatency === 'transformersjs').length,
     claimReadyRowCount: rows.filter((row) => row.claimStatus === 'claim-ready' || row.claimStatus === 'claimable').length,
     localComparableRowCount: rows.filter((row) => row.claimStatus === 'local-comparable').length,
     evidenceIncompleteRowCount: rows.filter((row) => Array.isArray(row.missing) && row.missing.length > 0).length,
@@ -711,19 +874,24 @@ async function buildScoreboard() {
     supportInventory,
     releaseMatrix,
     embeddingCompareConfig,
+    rerankCompareConfig,
     latestEmbeddingResults,
+    latestRerankResults,
   ] = await Promise.all([
     readJson(CATALOG_PATH),
     readJson(SUPPORT_INVENTORY_PATH),
     readJson(RELEASE_MATRIX_PATH),
     readJson(EMBEDDING_COMPARE_CONFIG_PATH),
+    readJson(RERANK_COMPARE_CONFIG_PATH),
     collectLatestEmbeddingResults(),
+    collectLatestRerankResults(),
   ]);
   const variants = flattenInventoryVariants(supportInventory, catalog);
   const variantsByModelId = mapByModelId(variants, (entry) => entry?.modelId);
   const coverageByModelId = mapByModelId(releaseMatrix?.modelCoverage, (entry) => entry?.dopplerModelId);
   const lanesByModelId = mapByModelId(releaseMatrix?.localClaimLanes, (entry) => entry?.dopplerModelId);
   const embeddingProfilesByModelId = buildEmbeddingProfileIndex(embeddingCompareConfig);
+  const rerankProfilesByModelId = buildRerankProfileIndex(rerankCompareConfig);
   const generationRows = await buildGenerationRows(variantsByModelId, coverageByModelId, lanesByModelId);
   const embeddingRows = await buildEmbeddingRows(
     variantsByModelId,
@@ -731,19 +899,27 @@ async function buildScoreboard() {
     embeddingProfilesByModelId,
     latestEmbeddingResults
   );
+  const rerankRows = await buildRerankRows(
+    variantsByModelId,
+    coverageByModelId,
+    rerankProfilesByModelId,
+    latestRerankResults
+  );
   const comparedModelIds = new Set([
     ...generationRows.map((row) => row.modelId),
     ...embeddingRows.map((row) => row.modelId),
+    ...rerankRows.map((row) => row.modelId),
   ]);
   const supportRows = buildSupportRows(variants, coverageByModelId, comparedModelIds);
-  const rows = sortRows([...generationRows, ...embeddingRows, ...supportRows]);
+  const rows = sortRows([...generationRows, ...embeddingRows, ...rerankRows, ...supportRows]);
   return {
     schemaVersion: 1,
     updatedAt: latestTimestamp(
       catalog?.updatedAt,
       supportInventory?.updated,
       releaseMatrix?.generatedAt,
-      [...latestEmbeddingResults.values()].map((entry) => entry.timestamp)
+      [...latestEmbeddingResults.values()].map((entry) => entry.timestamp),
+      [...latestRerankResults.values()].map((entry) => entry.timestamp)
     ),
     sources: SOURCE_FILES,
     summary: summarizeRows(catalog, variants, rows),
@@ -790,6 +966,7 @@ function evidenceSummary(evidence) {
     evidence?.compareResult,
     evidence?.summarySvg,
     evidence?.embeddingCompareResult,
+    evidence?.rerankCompareResult,
   ].filter(Boolean);
   return entries.length > 0 ? entries.join('<br>') : 'none';
 }
@@ -847,6 +1024,29 @@ function renderEmbeddingRows(lines, rows) {
   lines.push('');
 }
 
+function renderRerankRows(lines, rows) {
+  lines.push('## Rerank Competition Rows');
+  lines.push('');
+  lines.push('| Model | Correctness | Doppler median | TJS median | Latency leader | Doppler throughput | TJS throughput | Throughput leader | Load leader | Claim | Evidence |');
+  lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+  for (const row of rows) {
+    lines.push(renderTableRow([
+      row.modelId,
+      row.correctness || 'missing',
+      metricValue(row.metrics?.doppler?.medianRerankMs, ' ms'),
+      metricValue(row.metrics?.transformersjs?.medianRerankMs, ' ms'),
+      row.metrics?.leader?.rerankLatency || 'n/a',
+      metricValue(row.metrics?.doppler?.avgReranksPerSec, ' rerank/s'),
+      metricValue(row.metrics?.transformersjs?.avgReranksPerSec, ' rerank/s'),
+      row.metrics?.leader?.rerankThroughput || 'n/a',
+      row.metrics?.leader?.modelLoad || 'n/a',
+      row.claimStatus,
+      evidenceSummary(row.evidence),
+    ]));
+  }
+  lines.push('');
+}
+
 function renderGapRows(lines, rows) {
   lines.push('## Support And Competition Gaps');
   lines.push('');
@@ -896,11 +1096,12 @@ function renderNextCommands(lines, rows) {
 function renderMarkdown(scoreboard) {
   const generationRows = scoreboard.rows.filter((row) => row.workloadMode === 'generation' && row.metrics);
   const embeddingRows = scoreboard.rows.filter((row) => row.workloadMode === 'embedding' && row.metrics);
+  const rerankRows = scoreboard.rows.filter((row) => row.workloadMode === 'rerank' && row.metrics);
   const gapRows = scoreboard.rows.filter((row) => !row.metrics || row.missing.length > 0);
   const lines = [];
   lines.push('# Model Competition Scoreboard');
   lines.push('');
-  lines.push('Generated from the catalog, support inventory, release matrix, embedding compare config, and saved embedding compare receipts.');
+  lines.push('Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.');
   lines.push('This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.');
   lines.push('');
   lines.push(`Updated at: ${scoreboard.updatedAt || 'unknown'}`);
@@ -915,10 +1116,13 @@ function renderMarkdown(scoreboard) {
   lines.push(`- Generation compare rows: ${scoreboard.summary.generationCompareRowCount}`);
   lines.push(`- Generation compare gap rows: ${scoreboard.summary.generationCompareGapRowCount}`);
   lines.push(`- Embedding compare rows: ${scoreboard.summary.embeddingCompareRowCount}`);
+  lines.push(`- Rerank compare rows: ${scoreboard.summary.rerankCompareRowCount}`);
   lines.push(`- Doppler decode-leading generation rows: ${scoreboard.summary.dopplerDecodeLeaderRowCount}`);
   lines.push(`- Transformers.js decode-leading generation rows: ${scoreboard.summary.transformersjsDecodeLeaderRowCount}`);
   lines.push(`- Doppler embedding latency-leading rows: ${scoreboard.summary.dopplerEmbeddingLatencyLeaderRowCount}`);
   lines.push(`- Transformers.js embedding latency-leading rows: ${scoreboard.summary.transformersjsEmbeddingLatencyLeaderRowCount}`);
+  lines.push(`- Doppler rerank latency-leading rows: ${scoreboard.summary.dopplerRerankLatencyLeaderRowCount}`);
+  lines.push(`- Transformers.js rerank latency-leading rows: ${scoreboard.summary.transformersjsRerankLatencyLeaderRowCount}`);
   lines.push(`- Evidence-incomplete rows: ${scoreboard.summary.evidenceIncompleteRowCount}`);
   lines.push('');
   lines.push('## Claim Status Rules');
@@ -929,6 +1133,7 @@ function renderMarkdown(scoreboard) {
   lines.push('');
   renderGenerationRows(lines, generationRows);
   renderEmbeddingRows(lines, embeddingRows);
+  renderRerankRows(lines, rerankRows);
   renderGapRows(lines, gapRows);
   renderNextCommands(lines, scoreboard.rows);
   lines.push('## Source Files');

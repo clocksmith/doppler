@@ -8,6 +8,7 @@ import {
   buildArtifactUploadPlan,
   main,
   parseArgs,
+  selectManifestOnlyValidationRevision,
   writeBackLocalCatalog,
 } from '../../tools/publish-hf-registry-model.js';
 
@@ -156,6 +157,19 @@ async function writeCatalog(root, entries) {
     }),
     /hf\.path is required to publish/
   );
+}
+
+{
+  assert.equal(
+    selectManifestOnlyValidationRevision({ sourceRevision: 'stale-sibling-revision' }, 'fresh-repo-head'),
+    'fresh-repo-head',
+    'manifest-only weightsRef validation should prefer repo head over stale sibling revision'
+  );
+  assert.equal(
+    selectManifestOnlyValidationRevision({ sourceRevision: 'stale-sibling-revision' }, ''),
+    'stale-sibling-revision'
+  );
+  assert.equal(selectManifestOnlyValidationRevision({}, ''), 'main');
 }
 
 {

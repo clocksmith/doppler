@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-06T01:23:22.927Z",
+  "generatedAt": "2026-07-06T15:52:30.986Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.6",
-    "commitSha": "dc6682e11f8369f869917aab730b2fbfe7089b3f",
+    "commitSha": "d2e509c763c38f480aa4facdee06b8766b468631",
     "dirty": true
   },
   "sources": {
@@ -28,8 +28,8 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "f83f9d65ff1abc8248460d4e54a1fe3d0dd342ed9071561a2429e3b43176630a",
-      "bytes": 6110,
+      "sha256": "20505960da7916ae63e754c5403870a9dcbf66fa1178c43af955f2bfec15b4dc",
+      "bytes": 6979,
       "updated": "2026-06-15"
     },
     "compareMetricContract": {
@@ -46,14 +46,14 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "7c56cc6953c9751c27993714a70d8f1fc7c376142f26dea98e6b021e3b4dcb23",
-      "bytes": 24169,
+      "sha256": "487d710a8bf0d53bea63eed2056906b1569303d393af9b72c38aaafe56e1bf55",
+      "bytes": 24234,
       "updated": "2026-06-27"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "85d9a88dccf3d9c78062d902efc314a62c9fc044867d069b695804883f57843a",
-      "bytes": 37406,
+      "sha256": "cefcf740dd4dabe0ba32642e08807485eafe7ee421ea5c3ef6148349ee8d2496",
+      "bytes": 37824,
       "updated": "2026-07-05"
     },
     "harness:doppler": {
@@ -156,7 +156,7 @@
   "summary": {
     "targetCount": 16,
     "modelCoverageCount": 20,
-    "compareProfileCount": 12,
+    "compareProfileCount": 13,
     "catalogModelCount": 23,
     "workloadCount": 5,
     "committedChartCount": 14,
@@ -1223,12 +1223,12 @@
     },
     {
       "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
-      "dopplerModelBaseDir": null,
-      "dopplerSource": null,
-      "defaultTjsModelId": null,
-      "defaultDopplerSurface": "auto",
-      "compareLane": null,
-      "compareLaneReason": null,
+      "dopplerModelBaseDir": "local",
+      "dopplerSource": "local",
+      "defaultTjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
+      "defaultDopplerSurface": "browser",
+      "compareLane": "performance_comparable",
+      "compareLaneReason": "Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight pack; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence.",
       "inCatalog": true,
       "catalogLabel": "Gemma 4 E2B Instruct (Q4K/F16a/INT4 PLE)",
       "catalogModes": [
@@ -1311,8 +1311,8 @@
       "dopplerSource": "local",
       "defaultTjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
       "defaultDopplerSurface": "browser",
-      "compareLane": "capability_only",
-      "compareLaneReason": "Qwen 3.5 2B has no committed correctness-clean fixture for the claimable compare lane yet.",
+      "compareLane": "performance_comparable",
+      "compareLaneReason": null,
       "inCatalog": true,
       "catalogLabel": "Qwen 3.5 2B (Q4K)",
       "catalogModes": [
@@ -1832,14 +1832,10 @@
         "chromium-webgpu"
       ],
       "missingWorkloadIds": [
-        "p064-d064-t0-k1",
         "p256-d128-t0-k1",
         "p512-d128-t0-k1"
       ],
-      "missingDecodeProfileIds": [
-        "parity",
-        "throughput"
-      ],
+      "missingDecodeProfileIds": [],
       "missingSurfaceWorkloads": [
         "chromium-webgpu:p064-d064-t0-k1",
         "chromium-webgpu:p256-d128-t0-k1",
@@ -1847,7 +1843,29 @@
       ],
       "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
       "modelLabel": "Qwen 3.5 2B (Q4K)",
-      "surfaces": []
+      "surfaces": [
+        {
+          "backendId": null,
+          "surface": "browser",
+          "compareResult": "benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json",
+          "summarySvg": null,
+          "workloadId": "p064-d064-t0-k1",
+          "decodeProfile": "parity",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 61.06,
+          "transformersjsDecodeTokensPerSec": 40.57827258763207,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 171.08,
+          "transformersjsPromptTokensPerSecToFirstToken": 9.345009728236077,
+          "promptLeader": "doppler",
+          "bottleneck": "readback map wait",
+          "bottleneckClass": "submit-readback-wait",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        }
+      ]
     },
     {
       "laneId": "translategemma-4b-it-q4k-rdrr",
