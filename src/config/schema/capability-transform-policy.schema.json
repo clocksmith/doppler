@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/capability-transform-policy-v1.schema.json",
+  "title": "Doppler Capability Transform Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "capabilityTransforms"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "source": {
+      "const": "doppler"
+    },
+    "capabilityTransforms": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/capabilityTransform"
+      }
+    }
+  },
+  "$defs": {
+    "capabilityTransform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "dtypeEffect",
+        "match",
+        "transforms",
+        "reason",
+        "evidence"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "hardware-compatibility",
+            "runtime-session-compatibility",
+            "explicit-lane",
+            "platform-workaround",
+            "lane-mismatch-guard",
+            "capability-optimization",
+            "default-noop"
+          ]
+        },
+        "dtypeEffect": {
+          "enum": [
+            "none",
+            "widen-to-f32",
+            "full-f32",
+            "narrow-to-f16",
+            "selective-f16",
+            "fail-closed"
+          ]
+        },
+        "match": {
+          "type": "object"
+        },
+        "transforms": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/repoRelativePath"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "repoRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "^/"
+          },
+          {
+            "pattern": "\\\\"
+          },
+          {
+            "pattern": "(^|/)\\.\\.(/|$)"
+          }
+        ]
+      }
+    }
+  }
+}

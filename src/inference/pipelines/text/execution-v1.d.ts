@@ -21,6 +21,12 @@ export interface ExecutionV1LaneIntegrity {
   };
   status: 'matches' | 'transformed';
   transforms: string[];
+  policy?: {
+    kind: string | null;
+    dtypeEffect: string | null;
+    reason: string | null;
+    evidence: string[];
+  } | null;
 }
 
 export interface ExecutionV1CompiledState {

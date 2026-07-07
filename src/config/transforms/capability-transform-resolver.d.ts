@@ -14,6 +14,9 @@ export interface ResolvedTransforms {
   transforms: ExecutionGraphTransform[];
   names: string[];
   reason: string;
+  kind: string;
+  dtypeEffect: string;
+  evidence: string[];
 }
 
 /**

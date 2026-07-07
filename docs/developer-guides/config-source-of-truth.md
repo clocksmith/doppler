@@ -17,7 +17,7 @@ same behavior in multiple places. This is the front door for answering:
 | command request | user intent, workload, surface support | `src/tooling/command-api.js`, `src/rules/tooling/command-runtime.rules.json` | CLI/help/browser command checks |
 | conversion policy | model-owned inference behavior, quantization, execution graph | `src/config/conversion/**` | stamped `manifest.json` |
 | runtime policy | session, storage, debug, benchmark, capability policy | `src/config/schema/*.schema.js`, `src/config/runtime/**` | resolved runtime config |
-| rule policy | dtype, kernel, capability, and compatibility selection | `src/rules/**/*.rules.json` | `npm run config:single-source:check` |
+| rule policy | dtype, kernel, capability, and compatibility selection | `src/rules/**/*.rules.json` | `npm run config:single-source:check`, `npm run capability-policy:check` |
 | kernel identity | WGSL operation IDs, variant IDs, files, entry points, features, bindings, uniforms, metadata | `src/config/kernels/registry.json` | `src/config/kernels/kernel-ref-digests.js`, reachability reports |
 | model registry | supported model metadata, lifecycle, HF coordinates, artifact identity | `models/catalog.json` | quickstart registry, support matrix, support inventory, HF registry |
 | benchmark evidence | fairness contract, engine overlays, claim lanes, reports | `benchmarks/vendors/*.json`, `tools/policies/*claim*.json` | generated compare reports and SVG receipts |
@@ -132,13 +132,18 @@ Capability adaptation is explicit policy, not fallback behavior.
 - Primary execution identity belongs in the conversion config and manifest
   execution graph.
 - Hardware adaptation belongs in
-  `src/rules/inference/capability-transforms.rules.json` and must match exact
-  manifest fields or explicit variant IDs.
+  `src/rules/inference/capability-transforms.rules.json`. Each row must declare
+  `kind`, `dtypeEffect`, `reason`, and `evidence`.
 - Runtime profiles may request an experimental lane, but unsupported
   capabilities must fail closed or apply a named transform that is visible in
   resolved execution state.
 - JS may inspect device capabilities only to feed rule selection or validate a
   resolved contract. It may not silently choose a different model behavior.
+- Hardware compatibility rules match missing device features only; they must
+  not match model or platform identity.
+- Explicit f16 lanes are requested lanes, not fallbacks. Platform workarounds
+  require exact platform plus exact model/list and evidence.
+- Validate capability policy with `npm run capability-policy:check`.
 
 ## Rules
 

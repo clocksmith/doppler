@@ -1,14 +1,25 @@
 {
+  "$schema": "../../config/schema/capability-transform-policy.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
   "capabilityTransforms": [
     {
+      "kind": "lane-mismatch-guard",
+      "dtypeEffect": "fail-closed",
       "match": {
         "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
         "platformVendor": "apple"
       },
       "transforms": ["failClosedLaneMismatch"],
-      "reason": "af16-int4ple lane requires retainQ4KMaterialization=true to dispatch the fused-q4k+f16 widetile pool, which produces intermittent NaN at L1.attn_core_out on Apple Metal — load the af32 manifest variant instead. Bug is INTERMITTENT (some runs succeed) and depends on buffer-pool aliasing patterns; confirmed re-emerged 2026-05-07 after e5c9a6a tightened bucket defaults."
+      "reason": "af16-int4ple lane requires retainQ4KMaterialization=true to dispatch the fused-q4k+f16 widetile pool, which produces intermittent NaN at L1.attn_core_out on Apple Metal - load the af32 manifest variant instead. Bug is intermittent and depends on buffer-pool aliasing patterns; confirmed re-emerged 2026-05-07 after e5c9a6a tightened bucket defaults.",
+      "evidence": [
+        "tests/demo/demo-models.test.js",
+        "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js"
+      ]
     },
     {
+      "kind": "platform-workaround",
+      "dtypeEffect": "none",
       "match": {
         "modelId": {
           "in": [
@@ -21,9 +32,16 @@
         "retainQ4KMaterialization": true
       },
       "transforms": ["disableRetainQ4KMaterialization"],
-      "reason": "Fused-q4k FFN kernels under retain=mixed corrupt subsequent-layer attention compute on Apple Metal (intermittent NaN at L1.attn_core_out and beyond). Standalone-q4k projection kernels are clean; only the fused gate+up+down dispatch is the perturbation source."
+      "reason": "Fused-q4k FFN kernels under retain=mixed corrupt subsequent-layer attention compute on Apple Metal (intermittent NaN at L1.attn_core_out and beyond). Standalone-q4k projection kernels are clean; only the fused gate+up+down dispatch is the perturbation source.",
+      "evidence": [
+        "tests/config/capability-retain-q4k-policy.test.js",
+        "tests/config/gemma4-e2b-conversion-config-contract.test.js",
+        "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js"
+      ]
     },
     {
+      "kind": "explicit-lane",
+      "dtypeEffect": "selective-f16",
       "match": {
         "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
         "activationDtype": "f16",
@@ -31,9 +49,15 @@
         "hasF16": true
       },
       "transforms": ["useQwenF16PrimaryMatmuls"],
-      "reason": "Runtime requested the promoted f16 primary lane for Qwen 3.5 0.8B"
+      "reason": "Runtime requested the promoted f16 primary lane for Qwen 3.5 0.8B.",
+      "evidence": [
+        "tests/integration/qwen-execution-v1-linear-decode-f16.test.js",
+        "tests/integration/execution-graph-transforms.test.js"
+      ]
     },
     {
+      "kind": "explicit-lane",
+      "dtypeEffect": "narrow-to-f16",
       "match": {
         "modelId": "qwen-3-6-27b-q4k-eaf16",
         "activationDtype": "f16",
@@ -43,9 +67,15 @@
         "hasF16": true
       },
       "transforms": ["useQwen36F16Activations"],
-      "reason": "Runtime requested the experimental all-f16 lane for Qwen 3.6 27B"
+      "reason": "Runtime requested the experimental all-f16 lane for Qwen 3.6 27B.",
+      "evidence": [
+        "tests/config/qwen36-f16-variant-identity.test.js",
+        "tests/integration/execution-graph-transforms.test.js"
+      ]
     },
     {
+      "kind": "explicit-lane",
+      "dtypeEffect": "selective-f16",
       "match": {
         "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
         "activationDtype": "f16",
@@ -53,9 +83,15 @@
         "hasF16": true
       },
       "transforms": ["useGemma4Int4PleSelectiveF16Decode"],
-      "reason": "Runtime requested the experimental selective f16 decode lane for Gemma 4 E2B INT4 PLE"
+      "reason": "Runtime requested the experimental selective f16 decode lane for Gemma 4 E2B INT4 PLE.",
+      "evidence": [
+        "docs/perf-investigations/gemma-4-int4ple-loop.md",
+        "tests/config/gemma4-e2b-conversion-config-contract.test.js"
+      ]
     },
     {
+      "kind": "explicit-lane",
+      "dtypeEffect": "narrow-to-f16",
       "match": {
         "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
         "activationDtype": "f16",
@@ -65,9 +101,15 @@
         "hasF16": true
       },
       "transforms": ["useGemma412BTextF16Activations"],
-      "reason": "af16 manifest variant on shader-f16 GPU — dispatch the Gemma 4 12B text f16-residual lane with stable f32-Q/f16-KV prefill/decode attention boundaries and stable post-layer tail"
+      "reason": "af16 manifest variant on shader-f16 GPU - dispatch the Gemma 4 12B text f16-residual lane with stable f32-Q/f16-KV prefill/decode attention boundaries and stable post-layer tail.",
+      "evidence": [
+        "tests/integration/gemma4-12b-f16-activations.test.js",
+        "tests/integration/execution-graph-transforms.test.js"
+      ]
     },
     {
+      "kind": "lane-mismatch-guard",
+      "dtypeEffect": "fail-closed",
       "match": {
         "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
         "activationDtype": "f16",
@@ -77,9 +119,15 @@
         "hasF16": true
       },
       "transforms": ["failClosedLaneMismatch"],
-      "reason": "af32 manifest cannot dispatch f16 activations — load the af16 manifest variant or pick an f32 runtime profile"
+      "reason": "af32 manifest cannot dispatch f16 activations - load the af16 manifest variant or pick an f32 runtime profile.",
+      "evidence": [
+        "tests/integration/gemma4-12b-f16-activations.test.js",
+        "tests/integration/execution-graph-transforms.test.js"
+      ]
     },
     {
+      "kind": "explicit-lane",
+      "dtypeEffect": "narrow-to-f16",
       "match": {
         "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
         "activationDtype": "f16",
@@ -89,9 +137,15 @@
         "hasF16": true
       },
       "transforms": ["useGemma431BTextF16Activations"],
-      "reason": "af16 manifest variant on shader-f16 GPU — dispatch the all-f16 lane"
+      "reason": "af16 manifest variant on shader-f16 GPU - dispatch the all-f16 lane.",
+      "evidence": [
+        "tests/integration/gemma4-31b-f16-activations.test.js",
+        "tests/integration/execution-graph-transforms.test.js"
+      ]
     },
     {
+      "kind": "explicit-lane",
+      "dtypeEffect": "narrow-to-f16",
       "match": {
         "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
         "activationDtype": "f16",
@@ -101,9 +155,15 @@
         "hasF16": true
       },
       "transforms": ["useGemma4Int4PleAf16Activations"],
-      "reason": "af16-int4ple manifest variant on shader-f16 GPU — dispatch the all-f16 lane (q4_widetile_f16a + decode multicol_f16a + lm_head_gemv_subgroup_f16a)"
+      "reason": "af16-int4ple manifest variant on shader-f16 GPU - dispatch the all-f16 lane (q4_widetile_f16a + decode multicol_f16a + lm_head_gemv_subgroup_f16a).",
+      "evidence": [
+        "tests/config/gemma4-e2b-int4ple-f16-variant-identity.test.js",
+        "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js"
+      ]
     },
     {
+      "kind": "lane-mismatch-guard",
+      "dtypeEffect": "fail-closed",
       "match": {
         "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
         "activationDtype": "f16",
@@ -113,9 +173,15 @@
         "hasF16": true
       },
       "transforms": ["failClosedLaneMismatch"],
-      "reason": "af32 manifest cannot dispatch f16 activations — load the af16 manifest variant or pick an f32 runtime profile"
+      "reason": "af32 manifest cannot dispatch f16 activations - load the af16 manifest variant or pick an f32 runtime profile.",
+      "evidence": [
+        "tests/integration/gemma4-31b-f16-activations.test.js",
+        "tests/integration/execution-graph-transforms.test.js"
+      ]
     },
     {
+      "kind": "capability-optimization",
+      "dtypeEffect": "none",
       "match": {
         "modelId": {
           "in": [
@@ -131,9 +197,15 @@
         "maxWorkgroupStorageSize": { "gte": 16384 }
       },
       "transforms": ["useHead256SmallPrefillAttention"],
-      "reason": "Gemma 4 E2B promotes only small-tile prefill attention onto the head256 kernel on capable GPUs"
+      "reason": "Gemma 4 E2B promotes only small-tile prefill attention onto the head256 kernel on capable GPUs.",
+      "evidence": [
+        "tests/config/gemma4-e2b-conversion-config-contract.test.js",
+        "tests/integration/execution-graph-transforms.test.js"
+      ]
     },
     {
+      "kind": "explicit-lane",
+      "dtypeEffect": "narrow-to-f16",
       "match": {
         "activationDtype": "f16",
         "hasSubgroups": false,
@@ -141,9 +213,15 @@
         "requiresF16ActivationNarrowing": true
       },
       "transforms": ["narrowToF16Activations", "removeSubgroups"],
-      "reason": "Runtime requested f16 activations on a non-subgroup shader-f16 GPU"
+      "reason": "Runtime requested f16 activations on a non-subgroup shader-f16 GPU.",
+      "evidence": [
+        "tests/integration/execution-graph-transforms.test.js",
+        "tests/integration/execution-v1-capability-policy.test.js"
+      ]
     },
     {
+      "kind": "explicit-lane",
+      "dtypeEffect": "narrow-to-f16",
       "match": {
         "activationDtype": "f16",
         "hasSubgroups": true,
@@ -151,37 +229,69 @@
         "requiresF16ActivationNarrowing": true
       },
       "transforms": ["narrowToF16Activations"],
-      "reason": "Runtime requested f16 activations on a shader-f16 GPU"
+      "reason": "Runtime requested f16 activations on a shader-f16 GPU.",
+      "evidence": [
+        "tests/integration/execution-graph-transforms.test.js",
+        "tests/integration/execution-v1-capability-policy.test.js"
+      ]
     },
     {
+      "kind": "runtime-session-compatibility",
+      "dtypeEffect": "full-f32",
       "match": { "kvDtype": "f32", "hasSubgroups": false, "hasF16": true },
       "transforms": ["removeSubgroups", "widenToF32Activations"],
-      "reason": "Runtime KV cache resolved f32 on a non-subgroup shader-f16 GPU"
+      "reason": "Runtime KV cache resolved f32 on a non-subgroup shader-f16 GPU.",
+      "evidence": [
+        "tests/integration/execution-v1-capability-policy.test.js"
+      ]
     },
     {
+      "kind": "runtime-session-compatibility",
+      "dtypeEffect": "full-f32",
       "match": { "kvDtype": "f32", "hasSubgroups": true, "hasF16": true },
       "transforms": ["widenToF32Activations"],
-      "reason": "Runtime KV cache resolved f32"
+      "reason": "Runtime KV cache resolved f32.",
+      "evidence": [
+        "tests/integration/execution-v1-capability-policy.test.js"
+      ]
     },
     {
+      "kind": "hardware-compatibility",
+      "dtypeEffect": "full-f32",
       "match": { "hasSubgroups": false, "hasF16": false },
       "transforms": ["removeSubgroups", "widenToF32Activations"],
-      "reason": "GPU lacks subgroups and shader-f16"
+      "reason": "GPU lacks subgroups and shader-f16.",
+      "evidence": [
+        "tests/integration/execution-v1-capability-policy.test.js"
+      ]
     },
     {
+      "kind": "hardware-compatibility",
+      "dtypeEffect": "none",
       "match": { "hasSubgroups": false, "hasF16": true },
       "transforms": ["removeSubgroups"],
-      "reason": "GPU lacks subgroups"
+      "reason": "GPU lacks subgroups.",
+      "evidence": [
+        "tests/integration/execution-v1-capability-policy.test.js"
+      ]
     },
     {
+      "kind": "hardware-compatibility",
+      "dtypeEffect": "full-f32",
       "match": { "hasSubgroups": true, "hasF16": false },
       "transforms": ["widenToF32Activations"],
-      "reason": "GPU lacks shader-f16"
+      "reason": "GPU lacks shader-f16.",
+      "evidence": [
+        "tests/integration/execution-v1-capability-policy.test.js"
+      ]
     },
     {
+      "kind": "default-noop",
+      "dtypeEffect": "none",
       "match": {},
       "transforms": [],
-      "reason": "GPU supports all required features"
+      "reason": "GPU supports all required features.",
+      "evidence": []
     }
   ]
 }

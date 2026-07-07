@@ -16,6 +16,7 @@ Rules that cause bugs when violated. Each has a fuller section below with ration
 - **Runtime Reads the Manifest, Never Infers** — converter embeds all model-specific inference params in `manifest.json`. Runtime never detects model family in pipeline code. See [Runtime Reads the Manifest, Never Infers](#runtime-reads-the-manifest-never-infers).
 - **Kernel Selection** — fully explicit in the manifest execution graph. Each step pins exact WGSL file, entry point, and content digest. `defaultKernelPath` does not exist in v1 manifests. See [Kernel Selection](#kernel-selection).
 - **Performance Invariants (F32 Policy)** — F32 is a correctness fallback, not a performance default. When `shader-f16` is available, prefer `f16` for activations/KV cache/intermediates. Any `f32` path must be explicitly configured and logged once per session.
+- **Capability Transform Classification** — every execution-v1 capability transform is a typed policy row with `kind`, `dtypeEffect`, and evidence. Hardware compatibility, explicit lanes, platform workarounds, session compatibility, and no-op rules are different categories. See [Capability Transform Classification](#capability-transform-classification).
 - **No Ad-Hoc Debug Logging** — no temporary log statements. Use existing trace categories, config-driven probes, or permanent trace extensions. Use the debug module (`src/debug/index.js`), not raw `console.*` in runtime code. See [Logging](#logging).
 - **Single Source of Truth** — when the same metadata appears in multiple files, exactly one must be canonical. Mirrors are generated from that source and covered by a sync check. See [Core Principles](#core-principles).
 - **Failure-Path Regression Requirement** — any fix for buffer lifecycle, readback cleanup, or failure-path-only behavior must include a regression test exercising the failing path. See [Failure-Path Regression Requirement](#failure-path-regression-requirement).
@@ -288,6 +289,33 @@ When a manifest-based runtime error occurs (dtype mismatch, missing field, kerne
   - preserve an equivalent non-fused baseline graph.
   - benchmark fused candidates against non-fused and accuracy checks.
   - only promote fused variants after both perf and correctness are green.
+
+### Capability Transform Classification
+
+Capability transforms are explicit policy rows in
+`src/rules/inference/capability-transforms.rules.json`. Each row must declare
+`kind`, `dtypeEffect`, `match`, `transforms`, `reason`, and `evidence`.
+
+Allowed categories:
+
+- `hardware-compatibility`: adapts to missing device features only, such as no
+  `shader-f16` or no subgroups. It must not match model or platform identity.
+- `runtime-session-compatibility`: adapts an already-resolved runtime session,
+  such as `kvDtype=f32`, without model identity matching.
+- `explicit-lane`: dispatches a requested dtype lane, such as a promoted or
+  experimental f16 runtime profile. It is not a fallback.
+- `platform-workaround`: disables or remaps behavior for an exact platform and
+  exact model/list with evidence. It must not silently change dtype.
+- `lane-mismatch-guard`: fails closed when a runtime profile requests a lane the
+  selected manifest variant cannot dispatch.
+- `capability-optimization`: uses a positive capability for a model-scoped
+  optimization without changing dtype.
+- `default-noop`: the final no-transform rule.
+
+Any dtype-changing row must expose the effect through `dtypeEffect`. Execution
+receipts must preserve the matched policy metadata so transformed lanes are
+visible. Run `npm run capability-policy:check` after changing capability
+transform policy, execution-v1 dtype lanes, or capability fallback behavior.
 
 ### Config-Only Overrides (Harness)
 
