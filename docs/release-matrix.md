@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-07-07T18:36:34.752Z
-Release: channel=main-snapshot, version=0.4.8, commit=a5b72ec11959ca34e6df5324a9781a01a427b616, dirty=yes
+Generated: 2026-07-07T22:32:18.334Z
+Release: channel=main-snapshot, version=0.4.8, commit=9c46d005848f90d7319d0c7d0b7c545d60e5506a, dirty=yes
 
 ## Engine Matrix
 
@@ -22,6 +22,7 @@ Release: channel=main-snapshot, version=0.4.8, commit=a5b72ec11959ca34e6df5324a9
 | Candle (`candle`) | experimental | no | no | no | no | 4/21 | 0/8 |
 | Burn (`burn`) | experimental | no | no | no | no | 4/21 | 0/8 |
 | MediaPipe LLM Inference (`mediapipe-llm`) | active | yes | no | no | no | 5/21 | 0/8 |
+| llama.cpp Vulkan GGUF (`llamacpp-vulkan-gguf`) | experimental | no | no | no | no | 9/21 | 0/8 |
 | Wllama (`wllama`) | active | no | no | no | no | 4/21 | 0/8 |
 
 ## Model Coverage

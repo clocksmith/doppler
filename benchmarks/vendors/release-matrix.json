@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-07T18:36:34.752Z",
+  "generatedAt": "2026-07-07T22:32:18.334Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.8",
-    "commitSha": "a5b72ec11959ca34e6df5324a9781a01a427b616",
+    "commitSha": "9c46d005848f90d7319d0c7d0b7c545d60e5506a",
     "dirty": true
   },
   "sources": {
     "registry": {
       "path": "benchmarks/vendors/registry.json",
-      "sha256": "d6e327b35c54cecd54434dab833aa683d28d2ca45ee21970a763050e8dcc9536",
-      "bytes": 3389,
-      "updated": "2026-03-19"
+      "sha256": "ea72106cee697f394129c8dbf06cdedd7bc17457975d866c38dcf635577e9915",
+      "bytes": 3607,
+      "updated": "2026-07-07"
     },
     "workloads": {
       "path": "benchmarks/vendors/workloads.json",
@@ -22,9 +22,9 @@
     },
     "capabilities": {
       "path": "benchmarks/vendors/capabilities.json",
-      "sha256": "6e741b4fceea5f3fa9848efdf111f584a62f7ce7eb646bc35ef0697fe9cd99d5",
-      "bytes": 21784,
-      "updated": "2026-03-19"
+      "sha256": "1635c255d3494cd8ed0ddbaddf01826598f2baf215977ba47b89f8da47da7ece",
+      "bytes": 23164,
+      "updated": "2026-07-07"
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
@@ -146,6 +146,12 @@
       "bytes": 719,
       "updated": null
     },
+    "harness:llamacpp-vulkan-gguf": {
+      "path": "benchmarks/vendors/harnesses/llamacpp-vulkan-gguf.json",
+      "sha256": "f73551ae8f3a2c620ed7ed0d9f0f4b5a7f3b046a937a7bea512bd256f9540758",
+      "bytes": 1240,
+      "updated": null
+    },
     "harness:wllama": {
       "path": "benchmarks/vendors/harnesses/wllama.json",
       "sha256": "7b579214a6414136df29f1e5ddab50353841c6e6c8b5e3c68d45bbb2546548db",
@@ -154,7 +160,7 @@
     }
   },
   "summary": {
-    "targetCount": 16,
+    "targetCount": 17,
     "modelCoverageCount": 20,
     "compareProfileCount": 13,
     "catalogModelCount": 23,
@@ -1024,6 +1030,64 @@
       },
       "evidence": [
         "benchmarks/vendors/harnesses/mediapipe-llm.json"
+      ]
+    },
+    {
+      "id": "llamacpp-vulkan-gguf",
+      "name": "llama.cpp Vulkan GGUF",
+      "status": "experimental",
+      "category": "native-vulkan-runtime",
+      "website": "https://github.com/ggml-org/llama.cpp",
+      "platformSupport": {
+        "browserWebgpu": "unsupported",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unsupported",
+        "cacheModeControl": "unsupported"
+      },
+      "bench": {
+        "enabledFeatures": 9,
+        "totalFeatures": 21,
+        "features": {
+          "browser_webgpu": "unsupported",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unsupported",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unsupported",
+          "decodeTokensPerSec": "supported",
+          "prefillTokensPerSec": "supported",
+          "promptTokensPerSecToFirstToken": "unsupported",
+          "firstTokenMs": "unsupported",
+          "modelLoadMs": "unsupported",
+          "decodeMsPerTokenP50": "supported",
+          "decodeMsPerTokenP95": "supported",
+          "decodeMsPerTokenP99": "supported",
+          "js_heap_memory_metrics": "unsupported",
+          "gpu_memory_metrics": "unsupported",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "supported",
+          "decodeMs": "supported",
+          "totalRunMs": "supported"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unsupported",
+          "top_ops_summary": "unsupported",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unsupported",
+          "cache_events": "unsupported",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/runners/llamacpp-bench.js",
+        "benchmarks/vendors/harnesses/llamacpp-vulkan-gguf.json"
       ]
     },
     {

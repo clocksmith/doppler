@@ -17,13 +17,13 @@ The matrix keeps three things separate:
 | Tier | Model | Anchor | Local challengers |
 | --- | --- | --- | --- |
 | 0 | Gemma 3 270M | Transformers.js WebGPU ONNX | ONNX Runtime WebGPU direct; llama.cpp Vulkan GGUF |
-| 0 | EmbeddingGemma 300M | Transformers.js WebGPU ONNX | ONNX Runtime WebGPU direct; HF Transformers PyTorch ROCm blocked until ROCm torch is installed |
+| 0 | EmbeddingGemma 300M | Transformers.js WebGPU ONNX | ONNX Runtime WebGPU direct; HF Transformers PyTorch ROCm runtime smoke failed |
 | 0 | Gemma 3 1B | Transformers.js WebGPU ONNX | ONNX Runtime WebGPU direct; llama.cpp Vulkan GGUF |
 | 1 | Qwen 3.5 0.8B | Transformers.js WebGPU ONNX | ONNX Runtime WebGPU direct; llama.cpp Vulkan GGUF |
-| 1 | Qwen 3 Embedding 0.6B | Transformers.js WebGPU ONNX | ONNX Runtime WebGPU direct; HF Transformers PyTorch ROCm blocked until ROCm torch is installed |
-| 1 | Qwen 3 Reranker 0.6B | Transformers.js WebGPU ONNX configured artifact, not a performance claim | HF Transformers PyTorch ROCm blocked until ROCm torch is installed; ONNX Runtime WebGPU direct |
-| 2 | Qwen 3.5 2B | Transformers.js WebGPU ONNX | ONNX Runtime WebGPU direct; llama.cpp Vulkan GGUF |
-| 2 | Gemma 4 E2B INT4 PLE | Transformers.js WebGPU ONNX | LiteRT GPU; HF Transformers PyTorch ROCm blocked until ROCm torch is installed |
+| 1 | Qwen 3 Embedding 0.6B | Transformers.js WebGPU ONNX | ONNX Runtime WebGPU direct; HF Transformers PyTorch ROCm runtime smoke failed |
+| 1 | Qwen 3 Reranker 0.6B | Transformers.js WebGPU ONNX configured artifact, not a performance claim | HF Transformers PyTorch ROCm runtime smoke failed; ONNX Runtime WebGPU direct |
+| 2 | Qwen 3.5 2B | Transformers.js WebGPU ONNX | ONNX Runtime WebGPU direct; llama.cpp Vulkan GGUF diagnostic on Unsloth Q4_K_M |
+| 2 | Gemma 4 E2B INT4 PLE | Transformers.js WebGPU ONNX | LiteRT GPU; HF Transformers PyTorch ROCm runtime smoke failed |
 
 Gemma 4 E2B is tracked as one model-level target. The selected Doppler artifact
 for this framework is `gemma-4-e2b-it-q4k-ehf16-af16-int4ple`; the AF32 sibling
@@ -52,13 +52,26 @@ wins there; it is only an allowed lane for fair, gated evidence.
 
 This host has AMD Strix Halo exposed through Vulkan/RADV and ROCm/HSA tooling.
 Doppler WebGPU/Vulkan and Transformers.js WebGPU are usable local GPU stacks.
-ONNX Runtime WebGPU direct is the next runner to add because the ONNX package is
-installed and the Qwen ONNX artifacts exist.
+The llama.cpp Vulkan GGUF runner is configured through an explicit `llama-bench`
+path and has Qwen 3.5 2B phase-throughput diagnostic receipts under
+`benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-*.json`.
+Those receipts show the native Vulkan baseline winning decode throughput, but
+they do not yet measure text-output parity, so they are not claim-grade
+comparison evidence. ONNX Runtime WebGPU direct is the next runner to add because
+the ONNX package is installed and the Qwen ONNX artifacts exist.
 
-PyTorch GPU is not currently usable for challenger claims on this host: the
-installed torch build is CUDA, `torch.cuda.is_available()` is false, and
-`torch.version.hip` is unset. HF Transformers PyTorch is therefore CPU-only for
-diagnostics until a ROCm-enabled torch build is installed.
+The default `python3` PyTorch environment is not currently usable for challenger
+claims on this host: the installed torch build is CUDA,
+`torch.cuda.is_available()` is false, and `torch.version.hip` is unset. Two
+ROCm-enabled interpreters are present: `/home/x/.cache/columbo/rocm-py314/bin/python`
+reports torch `2.10.0+rocm7.0`, HIP `7.0.51831`, and `AMD Radeon 8060S`;
+`/home/x/.venvs/columbo-rocm/bin/python` reports torch `2.9.1+rocm6.4`, HIP
+`6.4.43484-123eb5128`, and the same GPU. The ROCm 7 interpreter supports the
+newer Qwen architecture but segfaulted with exit 139 in both Qwen 3.5 2B
+generation and Qwen 3 Reranker HF smoke runs. The ROCm 6.4 interpreter sees the
+GPU but its Transformers build does not recognize `qwen3_5`. HF Transformers
+ROCm is therefore a runtime-smoke blocker until a working interpreter stack is
+pinned.
 
 ## Claim Gates
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-03-19",
+  "updated": "2026-07-07",
   "products": [
     {
       "id": "doppler",
@@ -129,6 +129,14 @@
       "website": "https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference",
       "harness": "harnesses/mediapipe-llm.json",
       "status": "active"
+    },
+    {
+      "id": "llamacpp-vulkan-gguf",
+      "name": "llama.cpp Vulkan GGUF",
+      "category": "native-vulkan-runtime",
+      "website": "https://github.com/ggml-org/llama.cpp",
+      "harness": "harnesses/llamacpp-vulkan-gguf.json",
+      "status": "experimental"
     },
     {
       "id": "wllama",

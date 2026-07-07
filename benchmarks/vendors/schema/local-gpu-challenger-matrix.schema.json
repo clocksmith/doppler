@@ -201,9 +201,11 @@
             "type": "string",
             "enum": [
               "configured",
+              "artifact-needed",
               "runner-needed",
               "artifact-and-runner-needed",
               "environment-needed",
+              "runtime-smoke-failed",
               "blocked-pytorch-rocm-unavailable"
             ]
           },
@@ -623,15 +625,144 @@
                 "status": {
                   "type": "string",
                   "enum": [
+                    "diagnostic",
                     "runner-needed",
+                    "artifact-needed",
                     "artifact-and-runner-needed",
                     "environment-needed",
+                    "runtime-smoke-failed",
                     "blocked-pytorch-rocm-unavailable",
                     "configured"
                   ]
                 },
                 "nextGate": {
                   "$ref": "#/$defs/kebabId"
+                },
+                "latestEvidence": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "required": [
+                    "receiptPaths",
+                    "timestamp",
+                    "platformTargetId",
+                    "harnessId",
+                    "claimGrade",
+                    "correctness",
+                    "winner",
+                    "summary",
+                    "wins",
+                    "losses",
+                    "blockedReasons",
+                    "metrics"
+                  ],
+                  "properties": {
+                    "receiptPaths": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "platformTargetId": {
+                      "$ref": "#/$defs/kebabId"
+                    },
+                    "harnessId": {
+                      "$ref": "#/$defs/kebabId"
+                    },
+                    "claimGrade": {
+                      "type": "string",
+                      "enum": [
+                        "release-claimable",
+                        "local-gpu-comparable",
+                        "diagnostic",
+                        "not-claim-grade"
+                      ]
+                    },
+                    "correctness": {
+                      "type": "string",
+                      "enum": [
+                        "exact-match",
+                        "semantic-pass",
+                        "mismatch",
+                        "not-measured"
+                      ]
+                    },
+                    "winner": {
+                      "type": "string",
+                      "enum": [
+                        "doppler",
+                        "local-challenger",
+                        "mixed",
+                        "blocked"
+                      ]
+                    },
+                    "summary": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "wins": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "losses": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "blockedReasons": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "metrics": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "doppler",
+                          "competitor",
+                          "ratio",
+                          "higherBetter"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "doppler": {
+                            "type": "number"
+                          },
+                          "competitor": {
+                            "type": "number"
+                          },
+                          "ratio": {
+                            "type": "number"
+                          },
+                          "higherBetter": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "additionalProperties": false
