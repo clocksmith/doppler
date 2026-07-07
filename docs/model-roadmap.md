@@ -35,8 +35,17 @@ Goal: next small and medium models that can become clean benchmark stories.
 
 | Model | Status | Current state |
 | --- | --- | --- |
-| Qwen 3.5 2B | benchmark-needed | Browser and Node runtime verification exist. The current compare lane is capability-only until a correctness-clean benchmark lane is promoted. |
-| Gemma 4 E2B | benchmark-needed | Node runtime verification exists. Doppler will keep only the best-performing E2B implementation in the public story; browser and benchmark receipts remain open. |
+| Qwen 3.5 2B | publish-story | Browser and Node runtime verification exist. Fresh browser/Vulkan local comparisons cover p064, p256, and p512 with exact output match and promotable throughput cadence; hosted release-grade promotion remains open. |
+| Gemma 4 E2B | benchmark-needed | Node runtime verification exists. INT4-PLE has fresh browser/Vulkan diagnostic evidence, but output parity mismatches block benchmark promotion. The plain Q4K local artifact needs a refreshed manifest before fair compare work resumes. |
+
+## P4 Supported Legacy Tier
+
+Goal: preserve older supported models with strong receipts without letting them
+compete with the current Tier 1 and Tier 2 publish work.
+
+| Model | Status | Current state |
+| --- | --- | --- |
+| Gemma 3 270M | verified | Browser, Node, and Bun local compare receipts exist with exact output match across p064, p256, and p512. Keep this as supported legacy evidence unless it becomes part of a new publish story. |
 
 ## Tier 3A: Large Dense
 

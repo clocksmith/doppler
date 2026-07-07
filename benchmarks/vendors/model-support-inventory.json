@@ -440,7 +440,7 @@
           "evidence": {
             "runtimeReport": "reports/release-claims/google-embeddinggemma-300m-q4k-ehf16-af32/2026-06-24T01-42-03.814Z.json",
             "runtimeReportExists": true,
-            "compareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json",
+            "compareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260706T164532.json",
             "compareResultExists": true,
             "summarySvg": null,
             "summarySvgExists": false,
@@ -1313,7 +1313,7 @@
           "evidence": {
             "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
             "runtimeReportExists": true,
-            "compareResult": "benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json",
+            "compareResult": "benchmarks/vendors/results/compare_20260707T161623.json",
             "compareResultExists": true,
             "summarySvg": null,
             "summarySvgExists": false,

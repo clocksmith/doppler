@@ -167,21 +167,21 @@ within a row.
 
 ### Current comparison evidence
 
-| Lane | Claim state | Primary metric | Doppler | Transformers.js | Result | Receipt |
-| --- | --- | --- | ---: | ---: | --- | --- |
-| Gemma 3 270M text | Local comparable, exact output match | decode tok/s | 156.51 | 96.08 | 1.63x Doppler | [compare_20260627T200811.json](./benchmarks/vendors/results/compare_20260627T200811.json) |
-| Gemma 4 E2B text | Local comparable, correctness gate passed | parity decode tok/s | 13.98 | 9.77 | 1.43x Doppler | [compare_20260417T104731.json](./benchmarks/vendors/results/compare_20260417T104731.json) |
-| Qwen 3.5 0.8B text | Local comparable, exact output match | decode tok/s | 75.87 | 41.57 | 1.83x Doppler | [compare_20260705T160226.json](./benchmarks/vendors/results/compare_20260705T160226.json) |
-| Qwen 3.5 2B text | Local comparable, exact output match | decode tok/s | 61.06 | 40.58 | 1.50x Doppler | [qwen3-5-2b-p064-d064-t0-k1.compare.json](./benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json) |
-| Qwen Embedding 0.6B | Release claimable, semantic check passed | embeddings/s | 15.28 | 6.77 | 2.26x Doppler | [embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json](./benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json) |
-| Qwen Reranker 0.6B | Release claimable, semantic check passed | reranks/s | 0.64 | 2.07 | 0.31x, TJS leads | [rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json](./benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json) |
+| Tier | Lane | Claim state | Workload | Primary metric | Doppler | Transformers.js | Result | Receipt |
+| --- | --- | --- | --- | --- | ---: | ---: | --- | --- |
+| 1 | Qwen 3.5 0.8B text | Release claimable, exact output match | p512-d128-t0-k1 | decode tok/s | 69.07 | 41.79 | 1.65x Doppler | [compare_20260707T153509.json](./benchmarks/vendors/results/compare_20260707T153509.json) |
+| 1 | Qwen Embedding 0.6B | Release claimable, semantic check passed | embedding compare | embeddings/s | 15.28 | 6.77 | 2.26x Doppler | [embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json](./benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json) |
+| 1 | Qwen Reranker 0.6B | Release claimable, semantic check passed | rerank compare | reranks/s | 0.64 | 2.07 | 0.31x, TJS leads | [rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json](./benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json) |
+| 2 | Qwen 3.5 2B text | Local comparable, exact output match | p512-d128-t0-k1 | decode tok/s | 56.50 | 41.50 | 1.36x Doppler | [compare_20260707T161623.json](./benchmarks/vendors/results/compare_20260707T161623.json) |
+| 2 | Gemma 4 E2B INT4-PLE text | Diagnostic only, output parity mismatch | p064-d064-t0-k1 | decode tok/s | 16.23 | 9.24 | not promoted | [compare_20260707T154345.json](./benchmarks/vendors/results/compare_20260707T154345.json) |
 
 Text-generation rows are browser WebGPU product-format comparisons
 (`Doppler/RDRR` versus `Transformers.js/ONNX`) and are local-comparable until
-the release evidence lane is promoted. The Gemma 4 row cites the claim-grade
-parity section because its throughput-cadence section is not promoted in that
-receipt. Full latency breakdowns, p50/p95 decode timings, environment, and
-fairness gates are in the linked receipts.
+the release evidence lane is promoted. Gemma 4 INT4-PLE is measured but not
+claimable until output parity is fixed; the plain Gemma 4 Q4K local artifact also
+needs a fresh manifest before it can enter this table. Full latency breakdowns,
+p50/p95 decode timings, environment, and fairness gates are in the linked
+receipts.
 
 ## Model roadmap
 
@@ -201,6 +201,10 @@ Current tiers:
 - Tier 3A: Qwen 3.6 27B, Gemma 4 12B.
 - Tier 3B: DiffusionGemma 26B A4B, Gemma 4 MoE after a concrete catalog target exists.
 - Stretch: Gemma 4 31B and larger Qwen 3.6/3.7-class dense targets after a real catalog/HF target exists.
+
+Older supported models that still perform well, such as Gemma 3 270M, should be
+kept in a separate P4 supported-legacy evidence tier instead of competing with
+the current Tier 1 and Tier 2 roadmap.
 
 For exact runtime evidence, supported registry IDs, and benchmark claims, use
 the [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md),

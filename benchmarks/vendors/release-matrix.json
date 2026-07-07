@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-06T15:52:30.986Z",
+  "generatedAt": "2026-07-07T16:26:14.896Z",
   "release": {
     "channel": "main-snapshot",
-    "version": "0.4.6",
-    "commitSha": "d2e509c763c38f480aa4facdee06b8766b468631",
+    "version": "0.4.8",
+    "commitSha": "9bddf0502ded2aceb066cb8e3923469cc0b61887",
     "dirty": true
   },
   "sources": {
@@ -46,14 +46,14 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "487d710a8bf0d53bea63eed2056906b1569303d393af9b72c38aaafe56e1bf55",
-      "bytes": 24234,
+      "sha256": "64aad9b78584b9e1275031207904e4e3b9d1d5c2b8be7e1617eb970a12b29605",
+      "bytes": 24703,
       "updated": "2026-06-27"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "cefcf740dd4dabe0ba32642e08807485eafe7ee421ea5c3ef6148349ee8d2496",
-      "bytes": 37824,
+      "sha256": "243b8a1edf0895aca03727bc263af8355648970bb2d190bcbe7d16431c349520",
+      "bytes": 37885,
       "updated": "2026-07-05"
     },
     "harness:doppler": {
@@ -1767,7 +1767,7 @@
       "laneId": "qwen-3-5-0-8b-q4k-rdrr",
       "status": "candidate",
       "claimReady": false,
-      "statusReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 contract run is not claimable because the Transformers.js side failed, so the lane remains candidate and missing the p512 competitor receipt.",
+      "statusReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 local claim-lane receipt remains pending; the separate hosted quickstart p512 receipt is tracked outside this local artifact lane.",
       "missingBackendIds": [],
       "missingWorkloadIds": [
         "p512-d128-t0-k1"
@@ -1828,35 +1828,68 @@
       "status": "candidate",
       "claimReady": false,
       "statusReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
-      "missingBackendIds": [
-        "chromium-webgpu"
-      ],
-      "missingWorkloadIds": [
-        "p256-d128-t0-k1",
-        "p512-d128-t0-k1"
-      ],
+      "missingBackendIds": [],
+      "missingWorkloadIds": [],
       "missingDecodeProfileIds": [],
-      "missingSurfaceWorkloads": [
-        "chromium-webgpu:p064-d064-t0-k1",
-        "chromium-webgpu:p256-d128-t0-k1",
-        "chromium-webgpu:p512-d128-t0-k1"
-      ],
+      "missingSurfaceWorkloads": [],
       "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
       "modelLabel": "Qwen 3.5 2B (Q4K)",
       "surfaces": [
         {
-          "backendId": null,
+          "backendId": "chromium-webgpu",
           "surface": "browser",
-          "compareResult": "benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json",
+          "compareResult": "benchmarks/vendors/results/compare_20260707T154847.json",
           "summarySvg": null,
           "workloadId": "p064-d064-t0-k1",
-          "decodeProfile": "parity",
+          "decodeProfile": "throughput",
           "correctness": "exact",
-          "dopplerDecodeTokensPerSec": 61.06,
-          "transformersjsDecodeTokensPerSec": 40.57827258763207,
+          "dopplerDecodeTokensPerSec": 60.95,
+          "transformersjsDecodeTokensPerSec": 40.103249954637526,
           "decodeLeader": "doppler",
-          "dopplerPromptTokensPerSecToFirstToken": 171.08,
-          "transformersjsPromptTokensPerSecToFirstToken": 9.345009728236077,
+          "dopplerPromptTokensPerSecToFirstToken": 168.47,
+          "transformersjsPromptTokensPerSecToFirstToken": 9.901756014543205,
+          "promptLeader": "doppler",
+          "bottleneck": "readback map wait",
+          "bottleneckClass": "submit-readback-wait",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "chromium-webgpu",
+          "surface": "browser",
+          "compareResult": "benchmarks/vendors/results/compare_20260707T155858.json",
+          "summarySvg": null,
+          "workloadId": "p256-d128-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 58.98,
+          "transformersjsDecodeTokensPerSec": 40.63746422222866,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 372.61,
+          "transformersjsPromptTokensPerSecToFirstToken": 9.592087127624806,
+          "promptLeader": "doppler",
+          "bottleneck": "readback map wait",
+          "bottleneckClass": "submit-readback-wait",
+          "computeSectionIds": [
+            "parity",
+            "throughput"
+          ]
+        },
+        {
+          "backendId": "chromium-webgpu",
+          "surface": "browser",
+          "compareResult": "benchmarks/vendors/results/compare_20260707T161623.json",
+          "summarySvg": null,
+          "workloadId": "p512-d128-t0-k1",
+          "decodeProfile": "throughput",
+          "correctness": "exact",
+          "dopplerDecodeTokensPerSec": 56.5,
+          "transformersjsDecodeTokensPerSec": 41.496080744193925,
+          "decodeLeader": "doppler",
+          "dopplerPromptTokensPerSecToFirstToken": 446.83,
+          "transformersjsPromptTokensPerSecToFirstToken": 9.607950579104008,
           "promptLeader": "doppler",
           "bottleneck": "readback map wait",
           "bottleneckClass": "submit-readback-wait",
@@ -1912,8 +1945,8 @@
       "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-p512-d128-t0-k1-strix-halo-20260626.svg"
     ],
     "latestCompareResult": {
-      "path": "benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json",
-      "timestamp": "2026-06-27T01:12:47.007Z",
+      "path": "benchmarks/vendors/results/compare_20260707T153509.json",
+      "timestamp": "2026-07-07T15:18:34.821Z",
       "mode": "compute",
       "section": "compute/throughput",
       "cacheMode": "warm",
@@ -1932,9 +1965,9 @@
         "cliExecutor": "node",
         "commandSurfaceReason": "matches-requested-surface"
       },
-      "dopplerModelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "dopplerModelSource": "quickstart-registry",
-      "tjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
+      "tjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
       "compareLane": "performance_comparable",
       "compareLaneReason": null,
       "fairness": {
@@ -1951,13 +1984,13 @@
         "status": "match",
         "exactMatch": true,
         "normalizedMatch": true,
-        "matchingPrefixTokens": 64,
+        "matchingPrefixTokens": 128,
         "firstMismatchTokenIndex": -1
       },
-      "workloadId": "p064-d064-t0-k1",
+      "workloadId": "p512-d128-t0-k1",
       "workload": {
-        "prefillTokenTarget": 64,
-        "decodeTokenTarget": 64
+        "prefillTokenTarget": 512,
+        "decodeTokenTarget": 128
       },
       "environment": {
         "host": {
@@ -2043,44 +2076,44 @@
       },
       "metrics": {
         "decodeTokensPerSec": {
-          "doppler": 119.65,
-          "transformersjs": 106.59177044005392
+          "doppler": 69.07,
+          "transformersjs": 41.79095637122156
         },
         "promptTokensPerSecToFirstToken": {
-          "doppler": 616.57,
-          "transformersjs": 1511.930072765746
+          "doppler": 553.21,
+          "transformersjs": 10.309534718817888
         },
         "firstTokenMs": {
-          "doppler": 103.8,
-          "transformersjs": 42.33000001311302
+          "doppler": 925.5,
+          "transformersjs": 49662.765000000596
         },
         "firstResponseMs": {
-          "doppler": 1237.4,
-          "transformersjs": 820.7900000214577
+          "doppler": 2615.3,
+          "transformersjs": 50856.68500000052
         },
         "decodeMs": {
-          "doppler": 534.9,
-          "transformersjs": 591.0399999916553
+          "doppler": 1853.1,
+          "transformersjs": 3038.9350000005215
         },
         "totalRunMs": {
-          "doppler": 640.2,
-          "transformersjs": 633.3700000047684
+          "doppler": 2769.95,
+          "transformersjs": 52659.28000000026
         },
         "modelLoadMs": {
-          "doppler": 1133.6,
-          "transformersjs": 778.4600000083447
+          "doppler": 1689.8,
+          "transformersjs": 1193.9199999999255
         },
         "decodeMsPerTokenP50": {
-          "doppler": 8.36,
-          "transformersjs": 8.344999998807907
+          "doppler": 14.48,
+          "transformersjs": 22.485000000335276
         },
         "decodeMsPerTokenP95": {
-          "doppler": 9.38,
-          "transformersjs": 12.255000013113017
+          "doppler": 14.54,
+          "transformersjs": 29.436000000312916
         },
         "decodeMsPerTokenP99": {
-          "doppler": 9.47,
-          "transformersjs": 58.8052000141144
+          "doppler": 14.55,
+          "transformersjs": 59.412199999690074
         }
       },
       "dopplerBottleneck": {
@@ -2089,143 +2122,47 @@
         "dominant": {
           "id": "readback_map_wait",
           "label": "readback map wait",
-          "ms": 291.533,
-          "shareOfDecode": 0.545
+          "ms": 1239.614,
+          "shareOfDecode": 0.669
         },
-        "decodeWallMs": 534.9,
+        "decodeWallMs": 1853.1,
         "componentsMs": {
-          "commandRecordMs": 261.867,
-          "submitWaitMs": 291.6,
-          "readbackWaitMs": 296.333,
-          "effectiveSubmitReadbackWaitMs": 296.333,
-          "readbackMapWaitMs": 291.533,
-          "readbackCleanupMs": 4.733,
-          "readbackCopyMs": 0.033,
+          "commandRecordMs": 591.483,
+          "submitWaitMs": 1239.857,
+          "readbackWaitMs": 1257.157,
+          "effectiveSubmitReadbackWaitMs": 1257.157,
+          "readbackMapWaitMs": 1239.614,
+          "readbackCleanupMs": 17.25,
+          "readbackCopyMs": 0.147,
           "gpuTimestampMs": null,
-          "orchestrationMs": 0.867,
-          "residualMs": 0
+          "orchestrationMs": 1.5,
+          "residualMs": 2.96
         },
         "recording": {
-          "opCount": 15120,
-          "passCount": 189,
-          "uniqueOpLabels": 70,
-          "msPerOp": 0.017,
-          "msPerPass": 1.386,
-          "opsPerExecutedBatchToken": 240,
-          "passesPerExecutedBatchToken": 3,
-          "topOps": [
-            {
-              "label": "attention",
-              "count": 1134,
-              "shareOfOps": 0.075
-            },
-            {
-              "label": "fused_ffn",
-              "count": 1134,
-              "shareOfOps": 0.075
-            },
-            {
-              "label": "kv_cache_write:f32_to_f16",
-              "count": 1134,
-              "shareOfOps": 0.075
-            },
-            {
-              "label": "rmsnorm_qk",
-              "count": 1134,
-              "shareOfOps": 0.075
-            },
-            {
-              "label": "rmsnorm:input_norm",
-              "count": 1134,
-              "shareOfOps": 0.075
-            },
-            {
-              "label": "rmsnorm:post_attn_norm",
-              "count": 1134,
-              "shareOfOps": 0.075
-            },
-            {
-              "label": "rmsnorm:post_ffn_norm",
-              "count": 1134,
-              "shareOfOps": 0.075
-            },
-            {
-              "label": "rmsnorm:pre_ffn_norm",
-              "count": 1134,
-              "shareOfOps": 0.075
-            }
-          ]
+          "opCount": 39497,
+          "passCount": 4,
+          "uniqueOpLabels": null,
+          "msPerOp": 0.015,
+          "msPerPass": 147.871,
+          "opsPerExecutedBatchToken": 311,
+          "passesPerExecutedBatchToken": 0.031,
+          "topOps": []
         }
       },
       "bottlenecks": [
-        {
-          "metricId": "promptTokensPerSecToFirstToken",
-          "label": "prompt tok/s to first token",
-          "unit": "tok/s",
-          "higherBetter": true,
-          "leader": "transformersjs",
-          "doppler": 616.57,
-          "transformersjs": 1511.930072765746,
-          "gapRatio": 1.452163,
-          "gapPercent": 145.216289
-        },
-        {
-          "metricId": "firstTokenMs",
-          "label": "first token (TTFT)",
-          "unit": "ms",
-          "higherBetter": false,
-          "leader": "transformersjs",
-          "doppler": 103.8,
-          "transformersjs": 42.33000001311302,
-          "gapRatio": 1.452162,
-          "gapPercent": 145.216159
-        },
-        {
-          "metricId": "firstResponseMs",
-          "label": "first response (first token + load)",
-          "unit": "ms",
-          "higherBetter": false,
-          "leader": "transformersjs",
-          "doppler": 1237.4,
-          "transformersjs": 820.7900000214577,
-          "gapRatio": 0.507572,
-          "gapPercent": 50.757197
-        },
         {
           "metricId": "modelLoadMs",
           "label": "model load",
           "unit": "ms",
           "higherBetter": false,
           "leader": "transformersjs",
-          "doppler": 1133.6,
-          "transformersjs": 778.4600000083447,
-          "gapRatio": 0.456208,
-          "gapPercent": 45.620841
-        },
-        {
-          "metricId": "totalRunMs",
-          "label": "total run ms",
-          "unit": "ms",
-          "higherBetter": false,
-          "leader": "transformersjs",
-          "doppler": 640.2,
-          "transformersjs": 633.3700000047684,
-          "gapRatio": 0.010784,
-          "gapPercent": 1.078359
-        },
-        {
-          "metricId": "decodeMsPerTokenP50",
-          "label": "decode p50 ms/token",
-          "unit": "ms",
-          "higherBetter": false,
-          "leader": "transformersjs",
-          "doppler": 8.36,
-          "transformersjs": 8.344999998807907,
-          "gapRatio": 0.001797,
-          "gapPercent": 0.179748
+          "doppler": 1689.8,
+          "transformersjs": 1193.9199999999255,
+          "gapRatio": 0.415338,
+          "gapPercent": 41.533771
         }
       ],
-      "origin": "fixture"
+      "origin": "local"
     }
   }
 }
