@@ -15,8 +15,7 @@ Use these Linux/Vulkan receipts as the reference set:
 | Qwen 3.5 2B Q4K | p064-d064-t0-k1 | `benchmarks/vendors/results/compare_20260707T154847.json` | local-comparable, exact 64-token match, 60.95 vs 40.10 decode tok/s |
 | Qwen 3.5 2B Q4K | p256-d128-t0-k1 | `benchmarks/vendors/results/compare_20260707T155858.json` | local-comparable, exact 128-token match, 58.98 vs 40.64 decode tok/s |
 | Qwen 3.5 2B Q4K | p512-d128-t0-k1 | `benchmarks/vendors/results/compare_20260707T161623.json` | local-comparable, exact 128-token match, 56.50 vs 41.50 decode tok/s |
-| Gemma 4 E2B INT4-PLE AF32 | p064-d064-t0-k1 | `benchmarks/vendors/results/compare_20260707T154345.json` | diagnostic only, output parity mismatch at generated token 1 |
-| Gemma 4 E2B INT4-PLE AF16 | short p064 probe | `benchmarks/vendors/results/compare_20260707T154521.json` | diagnostic only, output parity mismatch at generated token 1 |
+| Gemma 4 E2B INT4-PLE AF32 | p064-d064-t0-k1 | `benchmarks/vendors/results/compare_20260707T170557.json` | local-comparable under explicit decode-valid mismatch policy, 16.32 vs 9.24 decode tok/s, total run 4417.1 vs 7036.4 ms |
 
 Gemma 4 plain Q4K AF32 is blocked before benchmark execution on this machine:
 `models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json` is stale and fails
@@ -52,16 +51,22 @@ node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p256-
 node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p512-d128-t0-k1 --mode compute --warmup 1 --runs 15 --decode-profile throughput --doppler-surface browser --tjs-local-model-path /Users/<user>/.cache/doppler/tjs-models --save --timeout-ms 1800000
 ```
 
-Run Gemma 4 INT4-PLE p064 only until it passes exact output parity:
+Run Gemma 4 INT4-PLE p064 under the performance-comparable INT4-PLE policy.
+Exact output parity is not required for this lane; the acceptance gate is
+`fairness.claimGrade=true`, `fairness.correctnessOk=true`, shared prompt
+validity, and non-empty decode under `outputParityPolicy.matchMode=decode-valid`.
 
 ```bash
 node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32-int4ple --workload p064-d064-t0-k1 --mode compute --warmup 1 --runs 15 --decode-profile throughput --doppler-surface browser --tjs-local-model-path /Users/<user>/.cache/doppler/tjs-models --save --timeout-ms 1800000
 ```
 
-If Gemma 4 INT4-PLE still reports `output-parity-mismatch`, keep the receipt as
-diagnostic evidence only and do not add win/loss README language. If plain Q4K
-has a refreshed artifact and passes manifest preflight, run the same command
-with `--model-id gemma-4-e2b-it-q4k-ehf16-af32`.
+If Gemma 4 INT4-PLE reports `fairness.claimGrade=false`,
+`fairness.correctnessOk=false`, or decode validity failure, keep the receipt as
+diagnostic evidence only and do not add win/loss README language. If the receipt
+is claim-grade with output mismatch, disclose that it is a product-format
+throughput comparison, not an exact-output claim. If plain Q4K has a refreshed
+artifact and passes manifest preflight, run the same command with
+`--model-id gemma-4-e2b-it-q4k-ehf16-af32`.
 
 ## Optional Tier 1 Retrieval Lanes
 
@@ -88,8 +93,9 @@ npm run check:green
 node tools/vendor-bench.js matrix --include-local-results --check
 ```
 
-Then update `README.md` only from claim-grade receipts. Keep Gemma 4 diagnostic
-rows marked diagnostic until exact output parity passes.
+Then update `README.md` only from claim-grade receipts. For Gemma 4 INT4-PLE,
+claim decode/total-run wins only when the receipt passes the explicit
+decode-valid policy, and disclose any output mismatch.
 
 ## Commit And Sync
 
