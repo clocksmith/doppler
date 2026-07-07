@@ -189,6 +189,11 @@
       "dopplerRuntimeProfileByDecodeProfile": {
         "throughput": "profiles/throughput"
       },
+      "dopplerRuntimeProfileByDecodeProfileByPlatform": {
+        "darwin": {
+          "throughput": "profiles/qwen-3-5-2b-metal-throughput"
+        }
+      },
       "compareLane": "performance_comparable",
       "compareLaneReason": null
     },

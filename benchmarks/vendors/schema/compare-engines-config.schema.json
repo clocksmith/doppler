@@ -137,6 +137,27 @@
               }
             },
             "additionalProperties": false
+          },
+          "dopplerRuntimeProfileByDecodeProfileByPlatform": {
+            "type": ["object", "null"],
+            "additionalProperties": {
+              "type": ["object", "null"],
+              "properties": {
+                "parity": {
+                  "type": ["string", "null"],
+                  "minLength": 1
+                },
+                "throughput": {
+                  "type": ["string", "null"],
+                  "minLength": 1
+                },
+                "custom": {
+                  "type": ["string", "null"],
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            }
           }
         },
         "additionalProperties": false

@@ -21,6 +21,7 @@ export interface StaticExecutionPlan {
   defaultMaxTokens: number;
   readbackInterval: number | null;
   readbackMode: 'sequential' | 'overlapped' | 'auto';
+  maxBatchDecodeTokens?: number | null;
   ringTokens: number | null;
   ringStop: number | null;
   ringStaging: number | null;
@@ -53,6 +54,7 @@ export interface ExecutionSessionPlan {
   maxTokens: number;
   readbackInterval: number | null;
   readbackMode: 'sequential' | 'overlapped' | 'auto';
+  maxBatchDecodeTokens?: number | null;
   ringTokens: number | null;
   ringStop: number | null;
   ringStaging: number | null;

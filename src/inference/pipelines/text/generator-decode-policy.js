@@ -151,6 +151,7 @@ export function summarizeExecutionPlan(plan) {
     activationDtype: plan.activationDtype,
     readbackInterval: plan.readbackInterval ?? null,
     readbackMode: plan.readbackMode ?? null,
+    maxBatchDecodeTokens: plan.maxBatchDecodeTokens ?? null,
     batchSize: plan.defaultBatchSize,
     stopCheckMode: plan.defaultStopCheckMode,
     disableCommandBatching: plan.defaultDisableCommandBatching === true,

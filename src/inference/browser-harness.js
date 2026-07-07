@@ -184,9 +184,13 @@ function resolveDecodeCadence(runtimeConfig, executionPlan = null) {
   const executionPlanCadence = resolveExecutionPlanCadence(executionPlan);
   const batchSize = executionPlanCadence?.batchSize ?? decodeLoop.batchSize ?? batching.batchSize ?? null;
   const readbackInterval = executionPlanCadence?.readbackInterval ?? decodeLoop.readbackInterval ?? batching.readbackInterval ?? null;
+  const maxBatchDecodeTokens = executionPlanCadence?.maxBatchDecodeTokens
+    ?? decodeLoop.maxBatchDecodeTokens
+    ?? null;
   return {
     batchSize,
     readbackInterval,
+    maxBatchDecodeTokens,
     stopCheckMode: executionPlanCadence?.stopCheckMode ?? decodeLoop.stopCheckMode ?? batching.stopCheckMode ?? null,
     readbackMode: executionPlanCadence?.readbackMode ?? decodeLoop.readbackMode ?? batching.readbackMode ?? null,
     disableCommandBatching: executionPlanCadence?.disableCommandBatching ?? decodeLoop.disableCommandBatching ?? null,
@@ -205,6 +209,7 @@ function resolveDecodeCadence(runtimeConfig, executionPlan = null) {
       decodeLoop: {
         batchSize: decodeLoop.batchSize ?? null,
         readbackInterval: decodeLoop.readbackInterval ?? null,
+        maxBatchDecodeTokens: decodeLoop.maxBatchDecodeTokens ?? null,
         stopCheckMode: decodeLoop.stopCheckMode ?? null,
         readbackMode: decodeLoop.readbackMode ?? null,
         ringTokens: decodeLoop.ringTokens ?? null,
@@ -217,6 +222,7 @@ function resolveDecodeCadence(runtimeConfig, executionPlan = null) {
         id: executionPlanCadence.id ?? null,
         batchSize: executionPlanCadence.batchSize ?? null,
         readbackInterval: executionPlanCadence.readbackInterval ?? null,
+        maxBatchDecodeTokens: executionPlanCadence.maxBatchDecodeTokens ?? null,
         stopCheckMode: executionPlanCadence.stopCheckMode ?? null,
         readbackMode: executionPlanCadence.readbackMode ?? null,
         disableCommandBatching: executionPlanCadence.disableCommandBatching ?? null,

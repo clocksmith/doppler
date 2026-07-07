@@ -29,6 +29,7 @@ import {
   resolveCompareOwnedPromptRenderer,
   resolveCatalogTransformersjsBenchmarkTarget,
   resolveCompareProfile,
+  resolveCompareRuntimeProfileMap,
   resolveCompareLoadModes,
   resolveDopplerBenchmarkKvCachePlan,
   resolveDopplerExecutionIdentity,
@@ -120,6 +121,7 @@ function assertCommandOutputMatches(result, pattern) {
     const customCadence = {
       batchSize: 8,
       readbackInterval: 6,
+      maxBatchDecodeTokens: null,
       stopCheckMode: 'batch',
       readbackMode: 'overlapped',
       disableMultiTokenDecode: false,
@@ -199,6 +201,7 @@ function assertCommandOutputMatches(result, pattern) {
     assert.deepEqual(cadenceSection.dopplerDecodeCadence, {
       batchSize: 8,
       readbackInterval: 6,
+      maxBatchDecodeTokens: null,
       stopCheckMode: 'batch',
       readbackMode: 'overlapped',
       disableCommandBatching: false,
@@ -215,6 +218,7 @@ function assertCommandOutputMatches(result, pattern) {
         decodeLoop: {
           batchSize: 8,
           readbackInterval: 6,
+          maxBatchDecodeTokens: null,
           stopCheckMode: 'batch',
           readbackMode: 'overlapped',
         },
@@ -251,6 +255,7 @@ function assertCommandOutputMatches(result, pattern) {
             decodeCadence: {
               batchSize: 4,
               readbackInterval: 4,
+              maxBatchDecodeTokens: null,
               stopCheckMode: 'batch',
               readbackMode: 'sequential',
               disableCommandBatching: false,
@@ -1086,6 +1091,18 @@ function assertCommandOutputMatches(result, pattern) {
   assert.equal(
     qwen2Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
     'profiles/throughput'
+  );
+  assert.equal(
+    qwen2Profile?.dopplerRuntimeProfileByDecodeProfileByPlatform?.darwin?.throughput,
+    'profiles/qwen-3-5-2b-metal-throughput'
+  );
+  assert.equal(
+    resolveCompareRuntimeProfileMap(qwen2Profile, 'linux').throughput,
+    'profiles/throughput'
+  );
+  assert.equal(
+    resolveCompareRuntimeProfileMap(qwen2Profile, 'darwin').throughput,
+    'profiles/qwen-3-5-2b-metal-throughput'
   );
   assert.equal(qwen2Profile.compareLane, 'performance_comparable');
   assert.equal(qwen2Profile.compareLaneReason, null);
@@ -2476,6 +2493,43 @@ function assertCommandOutputMatches(result, pattern) {
   assert.notEqual(result.status, 0);
   assertCommandOutputMatches(result, /dopplerRuntimeProfileByDecodeProfile/i);
   assertCommandOutputMatches(result, /string\s+\|\s+null/i);
+}
+
+{
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-compare-config-'));
+  const badConfigPath = path.join(tempDir, 'bad-compare-config-platform-runtime-profile.json');
+  const badConfig = {
+    schemaVersion: 1,
+    updated: '2026-07-07',
+    defaults: {
+      warmLoadMode: 'opfs',
+      coldLoadMode: 'http',
+    },
+    modelProfiles: [
+      {
+        dopplerModelId: 'qwen-3-5-2b-q4k-ehaf16',
+        defaultTjsModelId: 'onnx-community/Qwen3.5-2B-ONNX',
+        defaultDopplerSource: 'local',
+        modelBaseDir: 'local',
+        defaultDopplerSurface: 'browser',
+        compareLane: 'performance_comparable',
+        dopplerRuntimeProfileByDecodeProfileByPlatform: {
+          darwin: {
+            throughput: true,
+          },
+        },
+      },
+    ],
+  };
+  await fs.writeFile(badConfigPath, `${JSON.stringify(badConfig, null, 2)}\n`, 'utf8');
+  const result = runCompareEngines([
+    '--compare-config', badConfigPath,
+    '--model-id', 'qwen-3-5-2b-q4k-ehaf16',
+    '--json',
+  ]);
+  assert.notEqual(result.status, 0);
+  assertCommandOutputMatches(result, /dopplerRuntimeProfileByDecodeProfileByPlatform/i);
+  assertCommandOutputMatches(result, /non-empty string or null/i);
 }
 
 {

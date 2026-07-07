@@ -640,6 +640,7 @@ export interface PipelineStats {
       activationDtype: string;
       readbackInterval: number | null;
       readbackMode: string | null;
+      maxBatchDecodeTokens?: number | null;
       batchSize: number;
       stopCheckMode: string;
       disableCommandBatching?: boolean;
@@ -654,6 +655,7 @@ export interface PipelineStats {
       activationDtype: string;
       readbackInterval: number | null;
       readbackMode: string | null;
+      maxBatchDecodeTokens?: number | null;
       batchSize: number;
       stopCheckMode: string;
       disableCommandBatching?: boolean;

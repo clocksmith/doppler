@@ -29,6 +29,13 @@ function assertOptionalPositiveInt(value, label) {
   return value;
 }
 
+function assertOptionalNullablePositiveInt(value, label) {
+  if (value === undefined || value === null) {
+    return value;
+  }
+  return assertOptionalPositiveInt(value, label);
+}
+
 function assertRequiredPositiveInt(value, label) {
   if (!Number.isInteger(value) || value < 1) {
     throw new Error(`[ExecutionPlan] ${label} must be a positive integer; got ${JSON.stringify(value)}.`);
@@ -139,6 +146,7 @@ function createStaticExecutionPlan({
     defaultMaxTokens: batchingConfig.maxTokens,
     readbackInterval: batchingConfig.readbackInterval,
     readbackMode: batchingConfig.readbackMode,
+    maxBatchDecodeTokens: batchingConfig.maxBatchDecodeTokens,
     ringTokens: batchingConfig.ringTokens,
     ringStop: batchingConfig.ringStop,
     ringStaging: batchingConfig.ringStaging,
@@ -224,6 +232,10 @@ export function compileExecutionPlanState(options) {
     maxTokens: assertRequiredPositiveInt(generationConfig.maxTokens, 'runtime.inference.generation.maxTokens'),
     readbackInterval: decodeLoopConfig.readbackInterval,
     readbackMode: assertReadbackMode(decodeLoopConfig.readbackMode),
+    maxBatchDecodeTokens: assertOptionalNullablePositiveInt(
+      decodeLoopConfig.maxBatchDecodeTokens,
+      'runtimeConfig.inference.session.decodeLoop.maxBatchDecodeTokens'
+    ),
     ringTokens: decodeLoopConfig.ringTokens,
     ringStop: decodeLoopConfig.ringStop,
     ringStaging: decodeLoopConfig.ringStaging,
@@ -406,6 +418,7 @@ export function resolveExecutionSessionPlan(container, options = {}) {
     maxTokens: overrides.maxTokens ?? activePlan.defaultMaxTokens,
     readbackInterval: overrides.readbackInterval ?? activePlan.readbackInterval,
     readbackMode: activePlan.readbackMode,
+    maxBatchDecodeTokens: activePlan.maxBatchDecodeTokens,
     ringTokens: overrides.ringTokens ?? activePlan.ringTokens,
     ringStop: overrides.ringStop ?? activePlan.ringStop,
     ringStaging: overrides.ringStaging ?? activePlan.ringStaging,
@@ -434,6 +447,18 @@ export function isBatchDecodeEnabled(config) {
 }
 
 export function resolveMaxBatchDecodeTokens(config) {
+  if (config.configuredMaxBatchDecodeTokens !== undefined) {
+    const value = config.configuredMaxBatchDecodeTokens;
+    if (value === null) {
+      return null;
+    }
+    if (!Number.isInteger(value) || value < 1) {
+      throw new Error(
+        `[ExecutionPlan] configured maxBatchDecodeTokens must be null or a positive integer; got ${JSON.stringify(value)}.`
+      );
+    }
+    return value;
+  }
   const value = selectRuleValue('inference', 'execution', 'maxBatchDecodeTokens', {
     hasHotVocabularyBatchDecode: config.hasHotVocabularyBatchDecode === true,
     hasGpuSplitPerLayerInputs: config.hasGpuSplitPerLayerInputs === true,

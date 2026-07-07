@@ -105,6 +105,8 @@ export interface ExecutionV1DecodeLoopSchema {
    * Set to `null` to disable auto (treat as sequential).
    */
   submitLatencyThresholdMs: number | null;
+  /** Explicit cap for one multi-token decode submission. Absent uses rule policy. */
+  maxBatchDecodeTokens?: number | null;
   ringTokens: number | null;
   ringStop: number | null;
   ringStaging: number | null;

@@ -197,8 +197,12 @@ function validateKind(rule, index, errors) {
       }
       break;
     case 'explicit-lane':
-      if (match.activationDtype !== 'f16') {
-        errors.push(`${label}: explicit-lane must match activationDtype=f16`);
+      if (
+        rule.dtypeEffect === 'selective-f16'
+          ? (match.activationDtype !== 'f16' && match.requestedActivationDtype !== 'f16')
+          : match.activationDtype !== 'f16'
+      ) {
+        errors.push(`${label}: explicit-lane must match activationDtype=f16 or selective requestedActivationDtype=f16`);
       }
       if (match.hasF16 !== true) {
         errors.push(`${label}: explicit-lane must require hasF16=true`);

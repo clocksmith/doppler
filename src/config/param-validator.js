@@ -117,6 +117,12 @@ export function validateRuntimeConfig(runtimeConfig) {
   if (session?.prefillTokenChunkSize !== undefined) {
     assertNullablePositiveInt('runtime.inference.session.prefillTokenChunkSize', session.prefillTokenChunkSize);
   }
+  if (session?.decodeLoop?.maxBatchDecodeTokens !== undefined) {
+    assertNullablePositiveInt(
+      'runtime.inference.session.decodeLoop.maxBatchDecodeTokens',
+      session.decodeLoop.maxBatchDecodeTokens
+    );
+  }
   if (kernelPathPolicy) {
     validateKernelPathPolicy('runtime.inference.kernelPathPolicy', kernelPathPolicy);
   }

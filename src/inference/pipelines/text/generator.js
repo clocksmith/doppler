@@ -2412,6 +2412,7 @@ export class PipelineGenerator {
           maxDecodeTokens: opts.maxTokens,
           numLayers: this.#state.modelConfig.numLayers,
           hiddenSize: this.#state.modelConfig.hiddenSize,
+          configuredMaxBatchDecodeTokens: executionPlan.maxBatchDecodeTokens,
         });
         const requestedBatchTokens = executionPlan.batchSize * intervalBatches;
         const boundedBatchTokens = maxBatchDecodeTokens == null

@@ -39,6 +39,16 @@ assert.equal(byTransform.get('disableRetainQ4KMaterialization')?.kind, 'platform
 assert.equal(byTransform.get('disableRetainQ4KMaterialization')?.dtypeEffect, 'none');
 assert.equal(byTransform.get('useQwenF16PrimaryMatmuls')?.kind, 'explicit-lane');
 assert.equal(byTransform.get('useQwenF16PrimaryMatmuls')?.dtypeEffect, 'selective-f16');
+assert.deepEqual(byTransform.get('useQwenF16PrimaryMatmuls')?.match?.modelId, {
+  in: [
+    'qwen-3-5-0-8b-q4k-ehaf16',
+    'qwen-3-5-2b-q4k-ehaf16',
+  ],
+});
+assert.equal(
+  byTransform.get('useQwenF16PrimaryMatmuls')?.match?.requestedActivationDtype,
+  'f16'
+);
 
 const runtimeF32KvRule = policy.capabilityTransforms.find((rule) => {
   return rule.kind === 'runtime-session-compatibility'

@@ -19,6 +19,9 @@ const {
   resolveMaxBatchDecodeTokens,
   resolvePrefillRecorderChunkLayers,
 } = await import('../../src/inference/pipelines/text/execution-plan.js');
+const {
+  summarizeExecutionPlan,
+} = await import('../../src/inference/pipelines/text/generator-decode-policy.js');
 
 const minimalKernelPath = {
   id: 'gemma3-f16-fused-f16a-online',
@@ -256,6 +259,18 @@ const container = { executionPlanState: planState };
   assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true }), 8);
   assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true, currentSeqLen: 133, maxDecodeTokens: 32 }), 16);
   assert.equal(resolveMaxBatchDecodeTokens({ hasGpuSplitPerLayerInputs: true, currentSeqLen: 283, maxDecodeTokens: 16 }), 2);
+  assert.equal(
+    resolveMaxBatchDecodeTokens({ hasLinearAttentionLayers: true, configuredMaxBatchDecodeTokens: 64 }),
+    64
+  );
+  assert.equal(
+    resolveMaxBatchDecodeTokens({ hasLinearAttentionLayers: true, configuredMaxBatchDecodeTokens: null }),
+    null
+  );
+  assert.throws(
+    () => resolveMaxBatchDecodeTokens({ hasLinearAttentionLayers: true, configuredMaxBatchDecodeTokens: 0 }),
+    /configured maxBatchDecodeTokens must be null or a positive integer/
+  );
   assert.equal(resolveMaxBatchDecodeTokens({
     modelId: 'gemma-4-12b-it-text-q4k-ehf16-af16',
     activationDtype: 'f16',
@@ -276,6 +291,28 @@ const container = { executionPlanState: planState };
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 32 }), 8);
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 33 }), 4);
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: false, numTokens: 15 }), 4);
+}
+
+{
+  const runtimeConfigExplicitBatchCap = createRuntimeConfig('f16');
+  runtimeConfigExplicitBatchCap.inference.session.decodeLoop.maxBatchDecodeTokens = 64;
+
+  const explicitBatchCapPlanState = compileExecutionPlanState({
+    runtimeConfig: runtimeConfigExplicitBatchCap,
+    resolvedKernelPath: minimalKernelPath,
+    kernelPathSource: 'model',
+    fallbackKernelPath: minimalFallbackKernelPath,
+  });
+
+  assert.equal(explicitBatchCapPlanState.primaryPlan.maxBatchDecodeTokens, 64);
+  assert.equal(
+    resolveExecutionSessionPlan(explicitBatchCapPlanState).maxBatchDecodeTokens,
+    64
+  );
+  assert.equal(
+    summarizeExecutionPlan(explicitBatchCapPlanState.primaryPlan).maxBatchDecodeTokens,
+    64
+  );
 }
 
 {

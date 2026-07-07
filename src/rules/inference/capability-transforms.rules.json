@@ -43,13 +43,18 @@
       "kind": "explicit-lane",
       "dtypeEffect": "selective-f16",
       "match": {
-        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-        "activationDtype": "f16",
+        "modelId": {
+          "in": [
+            "qwen-3-5-0-8b-q4k-ehaf16",
+            "qwen-3-5-2b-q4k-ehaf16"
+          ]
+        },
+        "requestedActivationDtype": "f16",
         "hasSubgroups": true,
         "hasF16": true
       },
       "transforms": ["useQwenF16PrimaryMatmuls"],
-      "reason": "Runtime requested the promoted f16 primary lane for Qwen 3.5 0.8B.",
+      "reason": "Runtime requested the promoted f16 primary lane for Qwen 3.5 small execution-v1 Q4K models with the shared linear/full attention graph.",
       "evidence": [
         "tests/integration/qwen-execution-v1-linear-decode-f16.test.js",
         "tests/integration/execution-graph-transforms.test.js"
@@ -78,7 +83,7 @@
       "dtypeEffect": "selective-f16",
       "match": {
         "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-        "activationDtype": "f16",
+        "requestedActivationDtype": "f16",
         "hasSubgroups": true,
         "hasF16": true
       },
