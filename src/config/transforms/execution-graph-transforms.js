@@ -805,10 +805,10 @@ export function widenToF32Activations(graph, ctx) {
   // When the GPU cannot compile any f16 WGSL (hasF16=false), use the full f32
   // map that also covers f16-weight and f16-KV kernels. Otherwise use the
   // activation-only map that preserves f16 weights/KV for precision fallback.
-  const shaderMap = ctx.capabilities?.hasF16 === false
+  const shaderMap = ctx.capabilities?.hasF16 === false || ctx.kvDtype === 'f32'
     ? FULL_F32_SHADER_MAP
     : F16_TO_F32_ACTIVATION_MAP;
-  const fullF32 = ctx.capabilities?.hasF16 === false;
+  const fullF32 = ctx.capabilities?.hasF16 === false || ctx.kvDtype === 'f32';
 
   const hasTargetShader = Object.values(graph.kernels).some(
     (entry) => shaderMap.has(entry.kernel)

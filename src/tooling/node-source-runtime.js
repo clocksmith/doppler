@@ -304,7 +304,11 @@ function applyPackageTokenizerAssets(parsedArtifact, tokenizerAssets) {
   const next = {
     ...parsedArtifact,
   };
-  if (tokenizerAssets.tokenizerJson && next.tokenizerJson == null) {
+  const hasPackageTokenizer = next.tokenizerJson != null
+    || next.tokenizerJsonPath != null
+    || next.tokenizerModelName != null
+    || next.tokenizerModelPath != null;
+  if (tokenizerAssets.tokenizerJson && !hasPackageTokenizer) {
     next.tokenizerJson = tokenizerAssets.tokenizerJson;
     next.tokenizerJsonPath = 'tokenizer.json';
   }

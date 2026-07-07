@@ -22,8 +22,8 @@
     },
     "generationCompareRowCount": 11,
     "generationCompareGapRowCount": 5,
-    "embeddingCompareRowCount": 2,
-    "supportGapRowCount": 14,
+    "embeddingCompareRowCount": 1,
+    "supportGapRowCount": 15,
     "dopplerDecodeLeaderRowCount": 9,
     "transformersjsDecodeLeaderRowCount": 2,
     "dopplerEmbeddingLatencyLeaderRowCount": 1,
@@ -89,7 +89,7 @@
       "nextCommand": "node tools/run-registry-verify.js diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --surface auto"
     },
     {
-      "rowId": "google-embeddinggemma-300m-q4k-ehf16-af32:embedding:2026-07-04T15:45:00.000Z",
+      "rowId": "google-embeddinggemma-300m-q4k-ehf16-af32:support",
       "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "label": "EmbeddingGemma 300M (Q4K)",
       "family": "embeddinggemma",
@@ -98,8 +98,8 @@
       ],
       "sourceCheckpointId": "google/embeddinggemma-300m",
       "workloadMode": "embedding",
-      "surface": "auto",
-      "workloadId": "embedding",
+      "surface": null,
+      "workloadId": null,
       "decodeProfile": null,
       "artifact": {
         "format": "rdrr",
@@ -124,43 +124,22 @@
         "format": "onnx",
         "dtype": "q4"
       },
-      "correctness": "semantic-pass",
-      "metrics": {
-        "doppler": {
-          "medianEmbeddingMs": 60.04,
-          "avgEmbeddingsPerSec": 16.74,
-          "p95EmbeddingMs": 60.24,
-          "modelLoadMs": 1037.58,
-          "embeddingDim": 768
-        },
-        "transformersjs": {
-          "medianEmbeddingMs": 25.42,
-          "avgEmbeddingsPerSec": 35.13,
-          "p95EmbeddingMs": 34.64,
-          "modelLoadMs": 11378.89,
-          "embeddingDim": 768
-        },
-        "ratios": {
-          "medianEmbeddingMsDopplerOverTransformersjs": 2.3615,
-          "avgEmbeddingsPerSecDopplerOverTransformersjs": 0.4765,
-          "modelLoadMsDopplerOverTransformersjs": 0.0912
-        },
-        "leader": {
-          "embeddingLatency": "transformersjs",
-          "embeddingThroughput": "transformersjs",
-          "modelLoad": "doppler"
-        }
-      },
-      "claimStatus": "claimable",
-      "claimReason": "Embedding-specific lane using shared prompt, semantic fixture, and browser WebGPU Transformers.js ONNX baseline.",
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "compare-missing",
+      "claimReason": "Run compare/bench receipts for google-embeddinggemma-300m-q4k-ehf16-af32.",
       "evidence": {
-        "embeddingCompareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json",
-        "embeddingCompareResultExists": true,
-        "timestamp": "2026-07-04T15:45:00.000Z"
+        "runtimeReport": "reports/release-claims/google-embeddinggemma-300m-q4k-ehf16-af32/2026-06-24T01-42-03.814Z.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
       },
-      "missing": [],
-      "nextGate": null,
-      "nextCommand": null
+      "missing": [
+        "compare-result",
+        "summary-svg"
+      ],
+      "nextGate": "compare-result",
+      "nextCommand": "node tools/compare-embeddings.js --model-id google-embeddinggemma-300m-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source quickstart-registry --doppler-surface auto --cache-mode warm --load-mode http --save --json"
     },
     {
       "rowId": "gemma-3-1b-it-q4k-ehf16-af32:generation:pending",

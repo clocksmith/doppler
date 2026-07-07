@@ -1,6 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="700" viewBox="0 0 1400 700" role="img" aria-labelledby="title desc">
-  <title id="title">Doppler execution map</title>
-  <desc id="desc">Doppler model, WebGPU, Metal, and Vulkan execution lanes.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="700" viewBox="0 0 1400 700">
   <defs>
     <linearGradient id="spectrum" x1="92" y1="92" x2="1308" y2="608" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#ff6b7a"/>

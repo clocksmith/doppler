@@ -400,6 +400,7 @@ export class InferencePipeline extends PipelineState {
         numLayers: Number(manifest.architecture?.numLayers ?? 0),
         capabilities,
         platform,
+        useGPU: this.useGPU === true,
       });
       if (executionV1Runtime.executionV1State) {
         this.runtimeConfig = executionV1Runtime.runtimeConfig;

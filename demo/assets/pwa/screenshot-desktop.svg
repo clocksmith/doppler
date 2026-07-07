@@ -1,6 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
-  <title id="title">Doppler desktop mockup</title>
-  <desc id="desc">A high contrast Doppler interface mockup with Metal and Vulkan backend chips.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900">
   <defs>
     <linearGradient id="spectrum" x1="110" y1="88" x2="1328" y2="812" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#ff6b7a"/>

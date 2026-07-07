@@ -1,6 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="956" viewBox="0 0 1200 956" role="img" aria-labelledby="chart-title-1 chart-desc-1">
-  <title id="chart-title-1">AMD Vulkan p512 inference compare</title>
-  <desc id="chart-desc-1">Gemma 3 270m, warm cache, 512 prompt / 128 decode, greedy</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="956" viewBox="0 0 1200 956">
   <defs><style>
   text { fill: #111111; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; }
 </style></defs>
