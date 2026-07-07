@@ -31,7 +31,7 @@
   </form>
 
   <script type="module">
-    import { doppler } from 'doppler-gpu';
+    import { dr } from 'doppler-gpu';
 
     const MODEL_ID = 'qwen3-0.8b';
 
@@ -50,7 +50,7 @@
     }
 
     status.textContent = 'Loading model (first run downloads to OPFS)...';
-    const model = await doppler.load(MODEL_ID, {
+    const model = await dr.load(MODEL_ID, {
       onProgress(progress) {
         if (progress.percent != null) {
           status.textContent = `${progress.stage}: ${Math.round(progress.percent)}%`;

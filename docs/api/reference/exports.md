@@ -16,6 +16,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `createDopplerProvider`
   - `doppler`
   - `DOPPLER_VERSION`
+  - `dr`
 
 ## `doppler-gpu/provider`
 

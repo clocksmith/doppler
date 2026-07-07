@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { doppler } from '../../src/index.js';
+import { doppler, dr } from '../../src/index.js';
 import { resolveLoadProgressHandlers } from '../../src/client/doppler-api.js';
 import { getLogLevel, setLogLevel } from '../../src/debug/config.js';
 import {
@@ -16,6 +16,7 @@ assert.equal(typeof doppler.text, 'function');
 assert.equal(typeof doppler.chat, 'function');
 assert.equal(typeof doppler.chatText, 'function');
 assert.equal(typeof doppler.evict, 'function');
+assert.equal(dr, doppler);
 
 {
   const models = await listQuickstartModels();

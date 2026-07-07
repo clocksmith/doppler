@@ -77,18 +77,19 @@ npx doppler-gpu --list-models
 
 ### Root API
 
-The `doppler` facade is the primary app-facing API.
-The root package intentionally stays small: it exports `doppler` and `DOPPLER_VERSION`.
+The `dr` facade is the primary app-facing API. `doppler` remains a compatibility
+alias for existing consumers.
+The root package intentionally stays small: it exports `dr`, `doppler`, and `DOPPLER_VERSION`.
 Advanced surfaces now live on explicit subpaths such as `doppler-gpu/loaders`,
 `doppler-gpu/generation`, `doppler-gpu/tooling`, and `doppler-gpu/orchestration`.
 Support tiers for those subpaths are tracked in the subsystem support matrix rather
 than assumed from export shape alone.
 
 ```js
-import { doppler } from 'doppler-gpu';
+import { dr } from 'doppler-gpu';
 
 // Stream tokens
-const model = await doppler.load('qwen3-0.8b');
+const model = await dr.load('qwen3-0.8b');
 for await (const token of model.generate('Describe WebGPU briefly')) {
   process.stdout.write(token);
 }
@@ -127,7 +128,7 @@ Doppler keeps model support and subsystem support separate:
 - [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md): which models are verified right now
 - [subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md): which runtime and API surfaces are `tier1`, `experimental`, or `internal-only`
 
-The tier1 proof surface is the hosted browser demo, the root `doppler` API,
+The tier1 proof surface is the hosted browser demo, the root `dr` API,
 the quickstart CLI, the OpenAI-compatible localhost server, and the verified
 Qwen text, embedding, and rerank paths behind them.
 
@@ -164,14 +165,23 @@ within a row.
 - Backend evidence summary:
   [benchmarks/vendors/results/doppler-backend-evidence-summary.svg](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/doppler-backend-evidence-summary.svg)
 
-### Current Qwen evidence
+### Current comparison evidence
 
-| Model | Current evidence state | Receipt |
-| --- | --- | --- |
-| `qwen-3-5-0-8b-q4k-ehaf16` | Browser local-artifact compare is fair and exact-match against `onnx-community/Qwen3.5-0.8B-ONNX`; Doppler measured 75.87 decode tok/s in the throughput profile versus 41.57 decode tok/s for Transformers.js. Summary SVG evidence is still missing, so this remains local comparable rather than release-clean. | [compare_20260705T160226.json](./benchmarks/vendors/results/compare_20260705T160226.json) |
-| `qwen-3-embedding-0-6b-q4k-ehf16-af32` | Hosted compare is release-claimable; shared semantic correctness passed, with Doppler at 15.28 embeddings/s versus 6.77 embeddings/s for Transformers.js. | [embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json](./benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json) |
-| `qwen-3-reranker-0-6b-q4k-ehf16-af32` | Hosted compare is release-claimable and semantic correctness passed. Transformers.js leads latency and throughput on the current receipt: 2.07 reranks/s versus Doppler at 0.64 reranks/s. | [rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json](./benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json) |
-| `qwen-3-5-2b-q4k-ehaf16` | Browser local-artifact parity compare is exact against `onnx-community/Qwen3.5-2B-ONNX`; Doppler measured 61.06 decode tok/s versus 40.58 decode tok/s for Transformers.js. Summary SVG evidence is still missing. | [qwen3-5-2b-p064-d064-t0-k1.compare.json](./benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json) |
+| Lane | Claim state | Primary metric | Doppler | Transformers.js | Result | Receipt |
+| --- | --- | --- | ---: | ---: | --- | --- |
+| Gemma 3 270M text | Local comparable, exact output match | decode tok/s | 156.51 | 96.08 | 1.63x Doppler | [compare_20260627T200811.json](./benchmarks/vendors/results/compare_20260627T200811.json) |
+| Gemma 4 E2B text | Local comparable, correctness gate passed | parity decode tok/s | 13.98 | 9.77 | 1.43x Doppler | [compare_20260417T104731.json](./benchmarks/vendors/results/compare_20260417T104731.json) |
+| Qwen 3.5 0.8B text | Local comparable, exact output match | decode tok/s | 75.87 | 41.57 | 1.83x Doppler | [compare_20260705T160226.json](./benchmarks/vendors/results/compare_20260705T160226.json) |
+| Qwen 3.5 2B text | Local comparable, exact output match | decode tok/s | 61.06 | 40.58 | 1.50x Doppler | [qwen3-5-2b-p064-d064-t0-k1.compare.json](./benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json) |
+| Qwen Embedding 0.6B | Release claimable, semantic check passed | embeddings/s | 15.28 | 6.77 | 2.26x Doppler | [embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json](./benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json) |
+| Qwen Reranker 0.6B | Release claimable, semantic check passed | reranks/s | 0.64 | 2.07 | 0.31x, TJS leads | [rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json](./benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json) |
+
+Text-generation rows are browser WebGPU product-format comparisons
+(`Doppler/RDRR` versus `Transformers.js/ONNX`) and are local-comparable until
+the release evidence lane is promoted. The Gemma 4 row cites the claim-grade
+parity section because its throughput-cadence section is not promoted in that
+receipt. Full latency breakdowns, p50/p95 decode timings, environment, and
+fairness gates are in the linked receipts.
 
 ## Model roadmap
 

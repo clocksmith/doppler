@@ -7,7 +7,7 @@ Map the older broad root surface to the current dedicated advanced subpaths.
 ## Current Shape
 
 ```js
-import { doppler } from 'doppler-gpu';
+import { dr } from 'doppler-gpu';
 import { DopplerLoader } from 'doppler-gpu/loaders';
 import { KVCache } from 'doppler-gpu/orchestration';
 import { createPipeline } from 'doppler-gpu/generation';
@@ -96,7 +96,7 @@ Subpath support tiers are defined in [Subsystem Support Matrix](../subsystem-sup
 
 ## Migration Rule
 
-- Application code should import `doppler` from `doppler-gpu`.
+- Application code should import `dr` from `doppler-gpu`.
 - Explicit loader work should import from `doppler-gpu/loaders`.
 - KV cache, routers, adapters, and logit-merge helpers should import from `doppler-gpu/orchestration`.
 - Direct pipeline construction should import from `doppler-gpu/generation`.
