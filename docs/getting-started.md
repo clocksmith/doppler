@@ -83,7 +83,7 @@ Useful URLs:
 Use this when a model is already in the hosted registry.
 
 ```bash
-HF_REVISION=95a01447eecbf13fc5964986f507b08ded0cd40f
+HF_REVISION=f58f1d0b58641c84e7ea50d13fea0dd4dc91389a
 MODEL_ID=qwen-3-5-0-8b-q4k-ehaf16
 MODEL_URL="https://huggingface.co/Clocksmith/rdrr/resolve/${HF_REVISION}/models/qwen-3-5-0-8b-q4k-ehaf16"
 ```

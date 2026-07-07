@@ -1,6 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620" role="img" aria-labelledby="title desc">
-  <title id="title">Doppler backend evidence summary</title>
-  <desc id="desc">Backend evidence table for Doppler README reporting. Rows show backend, surface, comparison, metric direction, result, claim state, and evidence path for Apple Metal and AMD Vulkan.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620">
   <defs>
     <style>
       text { fill: #111111; font-family: Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }

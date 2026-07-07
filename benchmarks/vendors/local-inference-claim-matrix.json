@@ -853,7 +853,7 @@
         "compression": "q4k-ehf16-af32-int4ple",
         "quantization": "Q4_K_M",
         "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
-        "manifestSha256": "9d6d08271f126f7a64fddb5ff0a2a30261e1676d9369baa1039b215cf8fd32d9",
+        "manifestSha256": "85c460793b8918660573aed4e260e54468240c29524541dda3651d4f754ef166",
         "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
         "weightPackHash": null,
         "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",

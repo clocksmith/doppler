@@ -58,6 +58,10 @@ async function resolveNodeArtifactStorageContext(loadSource) {
 }
 
 function resolveArtifactStorageContext(loadSource) {
+  const providedStorageContext = loadSource?.storageContext ?? loadSource?.storage;
+  if (providedStorageContext && typeof providedStorageContext === 'object') {
+    return providedStorageContext;
+  }
   const baseUrl = loadSource?.storageBaseUrl ?? loadSource?.baseUrl;
   const manifest = loadSource?.storageManifest ?? loadSource?.manifest;
   if (!baseUrl || !manifest) {

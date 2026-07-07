@@ -10,22 +10,22 @@
   "observedWith": "node WebGPU provider plus resolveManifestGpuResidentEmbeddingLimitError",
   "manifest": {
     "path": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
-    "sha256": "sha256:3d7ecaef5a18565e6cc62507f32887c670872898eb0a15214be97df62cdc45a5"
+    "sha256": "sha256:2cc1055986e2c21eb2e5b387f0c38eb15a24b4daa3ee009d9bd68db3e7211327"
   },
   "adapterInfo": {
-    "vendor": "mesa",
-    "architecture": "software",
-    "device": "llvmpipe-llvm-21-1-8-256-bits-",
-    "description": "llvmpipe: Mesa 26.0.3-1ubuntu1 (LLVM 21.1.8)"
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3",
+    "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
   },
   "capabilities": {
     "hasF16": true,
     "hasSubgroups": true
   },
   "deviceLimits": {
-    "maxStorageBufferBindingSize": 134217728,
+    "maxStorageBufferBindingSize": 4294967295,
     "maxBufferSize": 4294967295,
-    "maxStorageBuffersPerShaderStage": 16
+    "maxStorageBuffersPerShaderStage": 10
   },
   "embedding": {
     "tensorName": "model.language_model.embed_tokens.weight",
@@ -46,9 +46,9 @@
     "splitKernelExpected": true,
     "activeSplitKernelMaxSections": 8,
     "maxSplitEmbeddingSections": 8,
-    "requiredSplitSections": 7,
+    "requiredSplitSections": 1,
     "requiredStorageBuffers": 10,
-    "largeWeightMaxBytes": 120795955,
-    "rowsPerSplitSection": 39321
+    "largeWeightMaxBytes": 3865470565,
+    "rowsPerSplitSection": 1258291
   }
 }

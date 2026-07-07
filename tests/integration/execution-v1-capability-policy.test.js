@@ -221,6 +221,57 @@ assertNoShaderF16KernelSteps(
   'Qwen 0.8B no-f16 compile must not emit shader-f16 kernel path steps'
 );
 
+const qwenRerankerConfig = JSON.parse(
+  readFileSync('src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json', 'utf8')
+);
+
+const qwenRerankerNoF16Proof = compileExecutionV1({
+  manifestInference: {
+    ...qwenRerankerConfig.inference,
+    schema: 'doppler.execution/v1',
+    session: qwenRerankerConfig.session,
+    execution: qwenRerankerConfig.execution,
+  },
+  modelId: 'qwen-3-reranker-0-6b-q4k-ehf16-af32',
+  numLayers: 28,
+  headDim: 128,
+  useGPU: true,
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest', 'model'],
+    onIncompatible: 'remap',
+  },
+});
+const qwenRerankerNoF16ProofPath = qwenRerankerNoF16Proof.runtimeInferencePatch.kernelPath;
+const qwenRerankerAttentionSteps = collectKernelPathSteps(qwenRerankerNoF16ProofPath)
+  .filter((step) => String(step.kernel ?? '').startsWith('attention'));
+assert.equal(
+  qwenRerankerNoF16Proof.session.kvcache.kvDtype,
+  'f32',
+  'Qwen reranker GPU compile without f16 proof must resolve execution-v1 session KV to f32'
+);
+assert.equal(
+  qwenRerankerNoF16Proof.runtimeInferencePatch.session.kvcache.kvDtype,
+  'f32',
+  'Qwen reranker runtime patch must carry the f32 KV session'
+);
+assert.equal(
+  qwenRerankerNoF16ProofPath.kvDtype,
+  'f32',
+  'Qwen reranker inline kernel path must carry the same f32 KV dtype as the live cache'
+);
+assert.ok(
+  qwenRerankerNoF16Proof.appliedTransforms.includes('widenToF32Activations'),
+  'Qwen reranker GPU compile without f16 proof must widen f16-KV attention to f32'
+);
+assert.ok(qwenRerankerAttentionSteps.length > 0, 'Qwen reranker compile must emit attention steps');
+for (const step of qwenRerankerAttentionSteps) {
+  assert.doesNotMatch(step.kernel, /_f16/,
+    'Qwen reranker f32 KV compile must not emit f16 attention kernels');
+  assert.equal(step.precision?.activationDtype, 'f32');
+  assert.equal(step.precision?.kvDtype, 'f32');
+}
+
 {
   const qwen08Manifest = {
     modelId: qwen08Config.output.modelBaseId,

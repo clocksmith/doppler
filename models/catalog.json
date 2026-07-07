@@ -1086,7 +1086,7 @@
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Release evidence: reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json. Semantic pair accuracy 1.0 (5/5), WebGPU query topDocumentIndex 0, rerankMs 4057.56 for the three-document smoke request. Speed evidence: reports/benchmarks/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-15-00.000Z.json (medianRerankMs 3977.72 for the same three-document request)."
+          "notes": "Release evidence: reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json. Semantic pair accuracy 1.0 (5/5), WebGPU query topDocumentIndex 0, rerankMs 4057.56 for the three-document smoke request. No separate benchmark receipt is promoted for this f16 reranker lane."
         }
       },
       "verify": {
@@ -1158,7 +1158,7 @@
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Failure evidence: reports/release-claims/minicpm4-0-5b-f16-af32/2026-07-04T01-07-00.000Z.failed.json and reports/debug/minicpm4-0-5b-f16-af32/2026-07-04T02-25-00.000Z.json. The prompt \"Q: What color is the sky on a clear day? A:\" produced \"This problem question: When是我国 an an\", so the artifact remains local-only until tokenizer/template/config correctness is fixed."
+          "notes": "Failure evidence: reports/release-claims/minicpm4-0-5b-f16-af32/2026-07-04T01-07-00.000Z.failed.json. The prompt \"Q: What color is the sky on a clear day? A:\" produced \"This problem question: When是我国 an an\", so the artifact remains local-only until tokenizer/template/config correctness is fixed."
         }
       },
       "vendorBenchmark": null,
@@ -1188,7 +1188,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "95a01447eecbf13fc5964986f507b08ded0cd40f",
+        "revision": "f58f1d0b58641c84e7ea50d13fea0dd4dc91389a",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -1227,6 +1227,24 @@
         "transformersjs": {
           "repoId": "onnx-community/Qwen3.5-0.8B-ONNX",
           "dtype": "q4f16"
+        }
+      },
+      "verify": {
+        "workload": "inference",
+        "runtimeConfig": {
+          "inference": {
+            "prompt": "The color of the sky is",
+            "generation": {
+              "maxTokens": 8
+            },
+            "sampling": {
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "repetitionPenalty": 1,
+              "greedyThreshold": 0
+            }
+          }
         }
       },
       "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",

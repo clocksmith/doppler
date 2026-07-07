@@ -14,7 +14,7 @@ Updated at: 2026-07-06T01:23:22.927Z
 - Verification-needed models: 2
 - Generation compare rows: 11
 - Generation compare gap rows: 5
-- Embedding compare rows: 2
+- Embedding compare rows: 1
 - Doppler decode-leading generation rows: 9
 - Transformers.js decode-leading generation rows: 2
 - Doppler embedding latency-leading rows: 1
@@ -55,6 +55,7 @@ Updated at: 2026-07-06T01:23:22.927Z
 | Model | Mode | HF | Platforms | Competitor | Claim/gate | Missing | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | diffusiongemma-26b-a4b-it-q4k-ehf16-af16 | support | missing | browser:missing<br>node:missing<br>bun:missing | transformersjs | verification-needed<br>runtime-verify | runtime-verify<br>hf-publish<br>compare-profile | none |
+| google-embeddinggemma-300m-q4k-ehf16-af32 | embedding | Clocksmith/rdrr@95f0b29ec73dea70394c6bcfa8407bc6796df6c9<br>models/google-embeddinggemma-300m-q4k-ehf16-af32 | browser:missing<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/embeddinggemma-300m-ONNX<br>onnx/q4 | compare-missing<br>compare-result | compare-result<br>summary-svg | reports/release-claims/google-embeddinggemma-300m-q4k-ehf16-af32/2026-06-24T01-42-03.814Z.json |
 | gemma-3-1b-it-q4k-ehf16-af32 | generation | Clocksmith/rdrr@7c3d30e300bcb02cbd68fb0db3eee64fbf738f99<br>models/gemma-3-1b-it-q4k-ehf16-af32 | browser:missing<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/gemma-3-1b-it-ONNX-GQA<br>onnx/q4f16 | candidate<br>compare-result | chromium-webgpu<br>p064-d064-t0-k1<br>p256-d128-t0-k1<br>p512-d128-t0-k1<br>parity<br>throughput<br>chromium-webgpu:p064-d064-t0-k1<br>chromium-webgpu:p256-d128-t0-k1<br>chromium-webgpu:p512-d128-t0-k1 | reports/release-claims/gemma-3-1b-it-q4k-ehf16-af32/2026-06-24T01-23-10.494Z.json |
 | gemma-3-270m-it-f16-af32 | support | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/gemma-3-270m-it-ONNX<br>onnx | compare-missing<br>hf-publish | hf-publish<br>claim-lane<br>compare-result<br>summary-svg | reports/release-claims/gemma-3-270m-it-f16-af32/2026-06-29T22-02-14.821Z.json |
 | gemma-3-270m-it-q4k-ehf16-af32 | generation | Clocksmith/rdrr@7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129<br>models/gemma-3-270m-it-q4k-ehf16-af32 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/gemma-3-270m-it-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json<br>benchmarks/vendors/results/compare_20260627T202837.json |
@@ -89,6 +90,7 @@ These commands are gates, not evidence. A row becomes evidence only after its sa
 | Model | Gate | Command |
 | --- | --- | --- |
 | diffusiongemma-26b-a4b-it-q4k-ehf16-af16 | runtime-verify | `node tools/run-registry-verify.js diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --surface auto` |
+| google-embeddinggemma-300m-q4k-ehf16-af32 | compare-result | `node tools/compare-embeddings.js --model-id google-embeddinggemma-300m-q4k-ehf16-af32 --warmup 1 --runs 3 --doppler-source quickstart-registry --doppler-surface auto --cache-mode warm --load-mode http --save --json` |
 | gemma-3-1b-it-q4k-ehf16-af32 | compare-result | `node tools/compare-engines.js --model-id gemma-3-1b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | gemma-3-270m-it-f16-af32 | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-3-270m-it-f16-af32 --dry-run --bootstrap` |
 | gemma-3-270m-it-q4k-ehf16-af32 | summary-svg | `node tools/compare-engines.js --model-id gemma-3-270m-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
@@ -111,4 +113,3 @@ These commands are gates, not evidence. A row becomes evidence only after its sa
 - benchmarks/vendors/release-matrix.json
 - benchmarks/vendors/embedding-compare.config.json
 - benchmarks/vendors/results/embedding_compare_*.json
-

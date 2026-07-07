@@ -9,6 +9,7 @@ import {
 } from './execution-runtime-builders.js';
 import { mergeKernelPathPolicy } from '../../../config/merge-helpers.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { buildOpIdFromExecutionStep } from './operator-identity.js';
 import {
   resolveCapabilityTransforms,
@@ -30,6 +31,56 @@ export function hasExecutionV1(manifestInference) {
 
 function isSessionCapabilityTransform(name) {
   return SESSION_CAPABILITY_TRANSFORMS.has(name);
+}
+
+function resolveExecutionCapabilities(capabilities) {
+  if (capabilities && typeof capabilities === 'object') {
+    return capabilities;
+  }
+  return {
+    hasSubgroups: false,
+    hasSubgroupsF16: false,
+    hasF16: false,
+    hasTimestampQuery: false,
+    maxBufferSize: 0,
+    maxWorkgroupSize: 0,
+    maxWorkgroupStorageSize: 0,
+    adapterInfo: {
+      vendor: 'unknown',
+      architecture: 'unknown',
+      device: 'unknown',
+      description: 'execution-v1-no-f16-proof',
+    },
+  };
+}
+
+function resolveExecutionSessionKVDtype(session, manifestInference, capabilities, useGPU) {
+  const runtimeKV = session?.kvcache ?? null;
+  if (!runtimeKV) {
+    return session;
+  }
+  if (useGPU == null && !capabilities) {
+    return session;
+  }
+  const attnSoftcap = manifestInference?.attention?.attnLogitSoftcapping;
+  const forceF32Softcap = runtimeKV.forceF32Softcap === true;
+  const forceF32KV = attnSoftcap != null && attnSoftcap > 0 && forceF32Softcap;
+  const kvDtype = selectRuleValue('inference', 'dtype', 'kvCacheDtype', {
+    requested: runtimeKV.kvDtype,
+    useGPU: useGPU === true,
+    hasF16: capabilities?.hasF16 === true,
+    forceF32: forceF32KV,
+  });
+  if (kvDtype === runtimeKV.kvDtype) {
+    return session;
+  }
+  return {
+    ...session,
+    kvcache: {
+      ...runtimeKV,
+      kvDtype,
+    },
+  };
 }
 
 function mergeExecutionV1Session(manifestSession, runtimeSession) {
@@ -651,7 +702,16 @@ export function compileExecutionV1(options = {}) {
   const modelId = options.modelId ?? 'model';
   const numLayers = options.numLayers ?? 0;
   const headDim = Number.isFinite(options.headDim) ? Math.floor(options.headDim) : null;
-  const capabilities = options.capabilities ?? null;
+  const hasCapabilityProof = options.capabilities && typeof options.capabilities === 'object';
+  const hasUseGPUOption = hasOwnProperty(options, 'useGPU');
+  const useGPU = hasUseGPUOption
+    ? options.useGPU === true
+    : hasCapabilityProof
+      ? true
+      : null;
+  const capabilities = hasCapabilityProof || hasUseGPUOption
+    ? resolveExecutionCapabilities(options.capabilities ?? null)
+    : null;
   const platform = options.platform ?? null;
   const runtimeSession = options.runtimeSession ?? null;
   const runtimeCompute = options.runtimeCompute ?? null;
@@ -669,7 +729,13 @@ export function compileExecutionV1(options = {}) {
     manifestInference.session ?? {},
     runtimeSession ?? {}
   );
-  const session = mergedSession;
+  const declaredSession = mergedSession;
+  const session = resolveExecutionSessionKVDtype(
+    mergedSession,
+    manifestInference,
+    capabilities,
+    useGPU
+  );
 
   if (!session?.compute?.defaults?.activationDtype) {
     throw new Error('[ExecutionV1] session.compute.defaults.activationDtype is required.');
@@ -679,6 +745,10 @@ export function compileExecutionV1(options = {}) {
   const mathDtype = session.compute.defaults.mathDtype ?? null;
   const accumDtype = session.compute.defaults.accumDtype ?? null;
   const kvDtype = requireSessionKVDtype(session);
+  const declaredActivationDtype = declaredSession.compute?.defaults?.activationDtype ?? activationDtype;
+  const declaredMathDtype = declaredSession.compute?.defaults?.mathDtype ?? mathDtype;
+  const declaredAccumDtype = declaredSession.compute?.defaults?.accumDtype ?? accumDtype;
+  const declaredKvDtype = declaredSession.kvcache?.kvDtype ?? kvDtype;
   const layerTypes = manifestInference?.layerPattern?.layerTypes ?? null;
 
   if (execution !== manifestExecution) {
@@ -845,10 +915,10 @@ export function compileExecutionV1(options = {}) {
   // any drift here is owned by capability transforms (e.g., widenToF32Activations
   // on hasF16=false GPUs).
   const declaredLane = {
-    activationDtype,
-    mathDtype,
-    accumDtype,
-    kvDtype,
+    activationDtype: declaredActivationDtype,
+    mathDtype: declaredMathDtype,
+    accumDtype: declaredAccumDtype,
+    kvDtype: declaredKvDtype,
   };
   const executedLane = {
     activationDtype: effectiveSession.compute?.defaults?.activationDtype ?? null,

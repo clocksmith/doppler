@@ -127,7 +127,21 @@ Doppler keeps model support and subsystem support separate:
 - [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md): which models are verified right now
 - [subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md): which runtime and API surfaces are `tier1`, `experimental`, or `internal-only`
 
-The tier1 proof surface is the hosted browser demo, the root `doppler` API, the quickstart CLI, the OpenAI-compatible localhost server, and the verified text-inference path behind them.
+The tier1 proof surface is the hosted browser demo, the root `doppler` API,
+the quickstart CLI, the OpenAI-compatible localhost server, and the verified
+Qwen text, embedding, and rerank paths behind them.
+
+## Tier 1 Qwen registry lanes
+
+The hosted `Clocksmith/rdrr` registry carries the current Tier 1 Qwen lanes:
+
+- `qwen3-0.8b` / `qwen-3-5-0-8b-q4k-ehaf16`: text generation.
+- `qwen3-embedding-0.6b` / `qwen-3-embedding-0-6b-q4k-ehf16-af32`: sentence embeddings.
+- `qwen3-reranker-0.6b-q4k` / `qwen-3-reranker-0-6b-q4k-ehf16-af32`: document reranking.
+
+Each lane has a catalog-owned hosted artifact pointer and explicit verify
+contract. The model support matrix is the source of truth for current receipts,
+runtime surfaces, and benchmark evidence.
 
 Defaults and policy choices must be represented in schema, manifest, config,
 profile, or rule assets. Runtime code must not invent hidden fallbacks or

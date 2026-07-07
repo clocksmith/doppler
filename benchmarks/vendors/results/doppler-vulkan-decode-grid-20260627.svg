@@ -1,6 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850" role="img" aria-labelledby="title desc">
-<title id="title">Doppler AMD Vulkan decode throughput grid</title>
-<desc id="desc">Gemma 3 270M Q4K throughput receipts on AMD Vulkan across p064, p256, p512 and Chromium, Node, Bun, with Doppler-leading and TJS-leading cells marked.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850">
 <defs><style>
 text{font-family:Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;letter-spacing:0}.mono{font-family:SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace}
 </style></defs>

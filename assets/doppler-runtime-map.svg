@@ -1,6 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="420" viewBox="0 0 1100 420" role="img" aria-labelledby="title desc">
-  <title id="title">Doppler runtime contract map</title>
-  <desc id="desc">A diagram of the Doppler path from manifest and shards through loader, JavaScript orchestration, WGSL kernels, output, and evidence.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="420" viewBox="0 0 1100 420">
   <defs>
     <linearGradient id="map-bg" x1="40" y1="30" x2="1060" y2="390" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#ffffff"/>

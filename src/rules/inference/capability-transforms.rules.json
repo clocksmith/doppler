@@ -154,6 +154,16 @@
       "reason": "Runtime requested f16 activations on a shader-f16 GPU"
     },
     {
+      "match": { "kvDtype": "f32", "hasSubgroups": false, "hasF16": true },
+      "transforms": ["removeSubgroups", "widenToF32Activations"],
+      "reason": "Runtime KV cache resolved f32 on a non-subgroup shader-f16 GPU"
+    },
+    {
+      "match": { "kvDtype": "f32", "hasSubgroups": true, "hasF16": true },
+      "transforms": ["widenToF32Activations"],
+      "reason": "Runtime KV cache resolved f32"
+    },
+    {
       "match": { "hasSubgroups": false, "hasF16": false },
       "transforms": ["removeSubgroups", "widenToF32Activations"],
       "reason": "GPU lacks subgroups and shader-f16"
