@@ -1094,15 +1094,16 @@
             "receiptPaths": [
               "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-35-40Z.json",
               "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-36-00Z.json",
-              "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-36-21Z.json"
+              "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-36-21Z.json",
+              "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T23-23-41Z.json"
             ],
-            "timestamp": "2026-07-07T22:36:21Z",
+            "timestamp": "2026-07-07T23:23:41Z",
             "platformTargetId": "linux-amd-vulkan-rocm",
             "harnessId": "generation-local-gpu-v1",
             "claimGrade": "diagnostic",
             "correctness": "not-measured",
             "winner": "local-challenger",
-            "summary": "llama.cpp Vulkan GGUF is faster than Doppler on Qwen 3.5 2B decode throughput across p064, p256, and p512 phase-throughput receipts, but the runner does not yet measure text-output parity, so this remains diagnostic native evidence.",
+            "summary": "llama.cpp Vulkan GGUF is faster than Doppler on Qwen 3.5 2B decode throughput across p064, p256, and p512 phase-throughput receipts. The latest p064 receipt also captures resource telemetry. The runner does not yet measure text-output parity, so this remains diagnostic native evidence.",
             "wins": [
               "native-vulkan-decode-throughput"
             ],

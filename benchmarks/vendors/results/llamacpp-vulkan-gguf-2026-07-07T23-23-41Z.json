@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2026-07-07T23:23:41.973Z",
+  "target": {
+    "id": "llamacpp-vulkan-gguf",
+    "name": "llama.cpp Vulkan GGUF",
+    "category": "native-vulkan-runtime",
+    "website": "https://github.com/ggml-org/llama.cpp"
+  },
+  "harness": {
+    "id": "llamacpp-vulkan-gguf",
+    "name": "llama.cpp Vulkan GGUF Harness",
+    "version": "f48842938+8017"
+  },
+  "workload": {
+    "id": "p064-d064-t0-k1",
+    "name": "Prompt 64 / Decode 64 Greedy"
+  },
+  "model": {
+    "id": "qwen-3-5-2b-q4-k-m-gguf",
+    "name": null
+  },
+  "metrics": {
+    "decodeTokensPerSec": 108.028036,
+    "prefillTokensPerSec": 2101.87778,
+    "prefillMs": 30.451154,
+    "decodeMs": 592.443816,
+    "totalRunMs": 622.89497,
+    "decodeMsPerTokenP50": 9.254974548819991,
+    "decodeMsPerTokenP95": 9.304749143963079,
+    "decodeMsPerTokenP99": 9.304749143963079
+  },
+  "source": {
+    "mode": "run",
+    "inputPath": null,
+    "command": [
+      "node",
+      "benchmarks/runners/llamacpp-bench.js",
+      "--model",
+      "/home/x/models/gguf/qwen-3-5-2b-unsloth/Qwen3.5-2B-Q4_K_M.gguf",
+      "--model-id",
+      "qwen-3-5-2b-q4-k-m-gguf",
+      "--workload",
+      "p064-d064-t0-k1",
+      "--llama-bench",
+      "/home/x/src/llama.cpp/build-vulkan/bin/llama-bench",
+      "--runs",
+      "15",
+      "--json"
+    ],
+    "commandTimeoutMs": 600000,
+    "rawSha256": "087381bfb35da45d9ab727a5dd502424a325200792dc38e746b21401d8e54eb3",
+    "rawBytes": 4104,
+    "host": {
+      "platform": "linux",
+      "arch": "x64",
+      "nodeVersion": "v22.22.1",
+      "osRelease": "7.0.0-22-generic",
+      "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+    }
+  },
+  "environment": {
+    "host": {
+      "platform": "linux",
+      "arch": "x64",
+      "nodeVersion": "v22.22.1",
+      "osRelease": "7.0.0-22-generic",
+      "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+    },
+    "browser": {
+      "userAgent": null,
+      "platform": null,
+      "language": null,
+      "vendor": null,
+      "executable": null,
+      "channel": null
+    },
+    "gpu": {
+      "api": "vulkan",
+      "backend": "vulkan",
+      "vendor": "amd",
+      "architecture": null,
+      "device": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+      "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+      "hasF16": null,
+      "hasSubgroups": null,
+      "hasTimestampQuery": null
+    },
+    "runtime": {
+      "library": "llama.cpp",
+      "version": "f48842938+8017",
+      "surface": "native-vulkan",
+      "device": "Vulkan",
+      "dtype": "qwen35 2B Q4_K - Medium",
+      "requestedDtype": null,
+      "executionProviderMode": "vulkan",
+      "cacheMode": null,
+      "loadMode": "local-gguf"
+    }
+  },
+  "notes": null,
+  "metadata": {
+    "version": "f48842938+8017",
+    "model": "qwen-3-5-2b-q4-k-m-gguf",
+    "modelType": "qwen35 2B Q4_K - Medium",
+    "backend": "vulkan",
+    "runtimeSurface": "native-vulkan"
+  },
+  "resourceTelemetry": {
+    "schemaVersion": 1,
+    "enabled": true,
+    "label": "llamacpp-vulkan-gguf",
+    "startedAt": "2026-07-07T23:23:31.172Z",
+    "endedAt": "2026-07-07T23:23:41.969Z",
+    "durationMs": 10797,
+    "sampling": {
+      "intervalMs": 250,
+      "sampleCount": 44,
+      "includeSamples": false,
+      "sources": {
+        "procfs": true,
+        "meminfo": true,
+        "rocmSmi": true
+      },
+      "unavailableReasons": []
+    },
+    "process": {
+      "pid": 2218987,
+      "processCount": {
+        "min": 0,
+        "max": 2,
+        "mean": 2,
+        "last": 0
+      },
+      "rssBytes": {
+        "min": 18505728,
+        "max": 1480671232,
+        "mean": 655871238,
+        "last": 61595648
+      },
+      "hwmBytes": {
+        "min": 18505728,
+        "max": 1453457408,
+        "mean": 1335209889,
+        "last": 61595648
+      },
+      "cpuUserMs": {
+        "min": 0,
+        "max": 4690,
+        "mean": 2303.721,
+        "last": 4690
+      },
+      "cpuSystemMs": {
+        "min": 0,
+        "max": 450,
+        "mean": 307.209,
+        "last": 450
+      },
+      "cpuTotalMs": {
+        "min": 0,
+        "max": 5140,
+        "mean": 2610.93,
+        "last": 5140
+      },
+      "cpuPercent": {
+        "min": 16,
+        "max": 96.317,
+        "mean": 48.008,
+        "last": 60
+      }
+    },
+    "system": {
+      "ramTotalBytes": 131891228672,
+      "ramAvailableBytes": {
+        "min": 124305645568,
+        "max": 126303379456,
+        "mean": 124599502010,
+        "last": 126250303488
+      },
+      "ramFreeBytes": {
+        "min": 58977685504,
+        "max": 62232186880,
+        "mean": 59349557527,
+        "last": 60921090048
+      },
+      "ramUsedBytes": {
+        "min": 5587849216,
+        "max": 7585583104,
+        "mean": 7291726662,
+        "last": 5640925184
+      }
+    },
+    "gpu": {
+      "provider": "rocm-smi",
+      "deviceCount": 1,
+      "utilizationPercent": {
+        "min": 0,
+        "max": 96,
+        "mean": 77.25,
+        "last": 77
+      },
+      "memoryUsedBytes": {
+        "min": 447135744,
+        "max": 475807744,
+        "mean": 470823843,
+        "last": 447135744
+      },
+      "memoryTotalBytes": 536870912,
+      "memoryUsedPercent": {
+        "min": 83,
+        "max": 88,
+        "mean": 87.318,
+        "last": 83
+      },
+      "powerWatts": {
+        "min": 13.015,
+        "max": 87.041,
+        "mean": 72.278,
+        "last": 73.041
+      }
+    }
+  }
+}
