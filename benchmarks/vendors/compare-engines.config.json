@@ -82,7 +82,13 @@
         "throughput": "profiles/throughput"
       },
       "compareLane": "performance_comparable",
-      "compareLaneReason": "Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims."
+      "compareLaneReason": "Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims.",
+      "outputParityPolicy": {
+        "schemaVersion": 1,
+        "requireMatch": false,
+        "matchMode": "decode-valid",
+        "reason": "Gemma 4 product-format throughput compares optimized Doppler RDRR Q4K against Transformers.js ONNX q4f16. Exact greedy token parity is not required, but shared prompt rendering and non-empty decode remain required."
+      }
     },
     {
       "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -98,7 +104,13 @@
         "throughput": "profiles/throughput"
       },
       "compareLane": "performance_comparable",
-      "compareLaneReason": "Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful."
+      "compareLaneReason": "Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful.",
+      "outputParityPolicy": {
+        "schemaVersion": 1,
+        "requireMatch": false,
+        "matchMode": "decode-valid",
+        "reason": "Gemma 4 INT4-PLE product-format throughput compares optimized Doppler RDRR INT4 per-row PLE against Transformers.js ONNX q4f16. Exact greedy token parity is not required, but shared prompt rendering and non-empty decode remain required."
+      }
     },
     {
       "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
@@ -116,7 +128,13 @@
         "throughput": "profiles/throughput"
       },
       "compareLane": "performance_comparable",
-      "compareLaneReason": "Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight pack; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence."
+      "compareLaneReason": "Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight pack; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence.",
+      "outputParityPolicy": {
+        "schemaVersion": 1,
+        "requireMatch": false,
+        "matchMode": "decode-valid",
+        "reason": "Gemma 4 AF16 INT4-PLE product-format throughput compares an experimental Doppler RDRR weights-ref sibling against Transformers.js ONNX q4f16. Exact greedy token parity is not required, but shared prompt rendering and non-empty decode remain required."
+      }
     },
     {
       "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",

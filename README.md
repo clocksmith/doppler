@@ -173,13 +173,14 @@ within a row.
 | 1 | Qwen Embedding 0.6B | Release claimable, semantic check passed | embedding compare | embeddings/s | 15.28 | 6.77 | 2.26x Doppler | [embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json](./benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json) |
 | 1 | Qwen Reranker 0.6B | Release claimable, semantic check passed | rerank compare | reranks/s | 0.64 | 2.07 | 0.31x, TJS leads | [rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json](./benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json) |
 | 2 | Qwen 3.5 2B text | Local comparable, exact output match | p512-d128-t0-k1 | decode tok/s | 56.50 | 41.50 | 1.36x Doppler | [compare_20260707T161623.json](./benchmarks/vendors/results/compare_20260707T161623.json) |
-| 2 | Gemma 4 E2B INT4-PLE text | Diagnostic only, output parity mismatch | p064-d064-t0-k1 | decode tok/s | 16.23 | 9.24 | not promoted | [compare_20260707T154345.json](./benchmarks/vendors/results/compare_20260707T154345.json) |
+| 2 | Gemma 4 E2B INT4-PLE text | Local comparable, product-format output policy | p064-d064-t0-k1 | decode tok/s | 16.32 | 9.24 | 1.77x Doppler | [compare_20260707T170557.json](./benchmarks/vendors/results/compare_20260707T170557.json) |
 
 Text-generation rows are browser WebGPU product-format comparisons
 (`Doppler/RDRR` versus `Transformers.js/ONNX`) and are local-comparable until
-the release evidence lane is promoted. Gemma 4 INT4-PLE is measured but not
-claimable until output parity is fixed; the plain Gemma 4 Q4K local artifact also
-needs a fresh manifest before it can enter this table. Full latency breakdowns,
+the release evidence lane is promoted. Gemma 4 INT4-PLE is local-comparable for
+product-format throughput under its checked-in `outputParityPolicy`; exact token
+parity is not claimed, and the throughput-cadence section remains tuning
+evidence until its batch-accounting gate passes. Full latency breakdowns,
 p50/p95 decode timings, environment, and fairness gates are in the linked
 receipts.
 

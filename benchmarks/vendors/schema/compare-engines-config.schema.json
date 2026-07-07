@@ -98,6 +98,28 @@
             "type": ["string", "null"],
             "minLength": 1
           },
+          "outputParityPolicy": {
+            "type": ["object", "null"],
+            "required": ["requireMatch", "matchMode", "reason"],
+            "properties": {
+              "schemaVersion": {
+                "type": "integer",
+                "const": 1
+              },
+              "requireMatch": {
+                "type": "boolean"
+              },
+              "matchMode": {
+                "type": "string",
+                "enum": ["exact-or-normalized", "decode-valid"]
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          },
           "dopplerRuntimeProfileByDecodeProfile": {
             "type": ["object", "null"],
             "properties": {

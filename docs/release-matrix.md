@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-07-07T16:26:14.896Z
-Release: channel=main-snapshot, version=0.4.8, commit=9bddf0502ded2aceb066cb8e3923469cc0b61887, dirty=yes
+Generated: 2026-07-07T17:13:34.366Z
+Release: channel=main-snapshot, version=0.4.8, commit=57045f85e82edb7a4f7f83e101edebe1d0838a13, dirty=yes
 
 ## Engine Matrix
 
@@ -54,10 +54,9 @@ Release: channel=main-snapshot, version=0.4.8, commit=9bddf0502ded2aceb066cb8e39
 | Workload ID | Model | Prefill | Decode | Sampling | Correctness | Runtime (GPU/Backend/OS/Browser) | Date |
 |---|---|---:|---:|---|---|---|---|
 | [`p064-d064-t0-k1`](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json) | Gemma 3 270M Instruct (Q4K/F32a) (399.1 MiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-06-27 |
-| [`p064-d064-t0-k1`](../benchmarks/vendors/results/compare_20260706T165528.json) | Qwen 3.5 0.8B (Q4K) (1.08 GiB) | 64 | 64 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-07-06 |
 | `p064-d064-t1-k32` | not captured | 64 | 64 | t=1, k=32, p=1 | not captured | not captured | not captured |
 | `p256-d128-t0-k1` | not captured | 256 | 128 | greedy (t=0) | not captured | not captured | not captured |
-| [`p512-d128-t0-k1`](../benchmarks/vendors/results/compare_20260707T153509.json) | Qwen 3.5 0.8B (Q4K) (1.08 GiB) | 512 | 128 | greedy (t=0) | exact | amd 0x1586; vulkan; linux; chromium; doppler browser | 2026-07-07 |
+| `p512-d128-t0-k1` | not captured | 512 | 128 | greedy (t=0) | not captured | not captured | not captured |
 | `p256-d128-t1-k32` | not captured | 256 | 128 | t=1, k=32, p=1 | not captured | not captured | not captured |
 
 ## Local Claim Lanes
@@ -74,7 +73,7 @@ Release: channel=main-snapshot, version=0.4.8, commit=9bddf0502ded2aceb066cb8e39
 | `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | node-webgpu | node | p064-d064-t0-k1 | 112.5 tok/s / 108.2 tok/s | 1106 tok/s / 831.9 tok/s | decode Doppler; prompt Doppler | command recording (command-recording) | [compare](../benchmarks/vendors/results/compare_20260627T202549.json) |
 | `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | node-webgpu | node | p256-d128-t0-k1 | 106 tok/s / 109.2 tok/s | 2156.3 tok/s / 1008.4 tok/s | decode TJS; prompt Doppler | command recording (command-recording) | [compare](../benchmarks/vendors/results/compare_20260627T203031.json) |
 | `gemma-3-270m-it-q4k-rdrr (Gemma 3 270M Instruct (Q4K/F32a))` | candidate | status candidate | node-webgpu | node | p512-d128-t0-k1 | 103 tok/s / 97.15 tok/s | 2453.3 tok/s / 1021.5 tok/s | decode Doppler; prompt Doppler | command recording (command-recording) | [compare](../benchmarks/vendors/results/compare_20260627T200323.json) / [svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg) |
-| `gemma-4-e2b-it-int4ple-rdrr (Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
+| `gemma-4-e2b-it-int4ple-rdrr (Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p256-d128-t0-k1, p512-d128-t0-k1; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | browser | p064-d064-t0-k1 | 16.32 tok/s / 9.237 tok/s | 125.1 tok/s / 299.5 tok/s | decode Doppler; prompt TJS | decode orchestration (orchestration) | [compare](../benchmarks/vendors/results/compare_20260707T170557.json) |
 | `gemma-4-e2b-it-q4k-rdrr (Gemma 4 E2B Instruct (Q4K/F32a))` | candidate | status candidate; missing backends chromium-webgpu; missing workloads p064-d064-t0-k1, p256-d128-t0-k1, p512-d128-t0-k1; missing decode profiles parity, throughput; missing backend/workload chromium-webgpu:p064-d064-t0-k1, chromium-webgpu:p256-d128-t0-k1, chromium-webgpu:p512-d128-t0-k1 | not captured | not captured | not captured |  |  |  |  | missing |
 | `qwen-3-5-0-8b-q4k-rdrr (Qwen 3.5 0.8B (Q4K))` | candidate | status candidate; missing workloads p512-d128-t0-k1; missing backend/workload chromium-webgpu:p512-d128-t0-k1 | chromium-webgpu | browser | p064-d064-t0-k1 | 75.87 tok/s / 41.57 tok/s | 184.6 tok/s / 9.525 tok/s | decode Doppler; prompt Doppler | readback map wait (submit-readback-wait) | [compare](../benchmarks/vendors/results/compare_20260705T160226.json) |
 | `qwen-3-5-0-8b-q4k-rdrr (Qwen 3.5 0.8B (Q4K))` | candidate | status candidate; missing workloads p512-d128-t0-k1; missing backend/workload chromium-webgpu:p512-d128-t0-k1 | chromium-webgpu | browser | p256-d128-t0-k1 | 73.74 tok/s / 43.17 tok/s | 432.9 tok/s / 9.784 tok/s | decode Doppler; prompt Doppler | readback map wait (submit-readback-wait) | [compare](../benchmarks/vendors/results/compare_20260705T161224.json) |
@@ -85,13 +84,18 @@ Release: channel=main-snapshot, version=0.4.8, commit=9bddf0502ded2aceb066cb8e39
 
 ## Latest Bottlenecks
 
-Source: [compare_20260707T153509.json](../benchmarks/vendors/results/compare_20260707T153509.json)
+Source: [gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json](../benchmarks/vendors/fixtures/gemma-3-270m-it-q4k-rdrr-p064-d064-t0-k1-strix-halo-20260627.compare.json)
 
-Doppler internal: readback map wait 1239.6 ms; 66.9% of decode; command recording 591.5 ms; 39497 ops / 4 passes
+Doppler internal: readback map wait 291.5 ms; 54.5% of decode; command recording 261.9 ms; 15120 ops / 189 passes
 
 | Metric | Leader | Gap | Doppler | Transformers.js |
 |---|---|---:|---:|---:|
-| model load | transformersjs | 41.53% | 1689.8 ms | 1193.9 ms |
+| prompt tok/s to first token | transformersjs | 145.2% | 616.6 tok/s | 1511.9 tok/s |
+| first token (TTFT) | transformersjs | 145.2% | 103.8 ms | 42.33 ms |
+| first response (first token + load) | transformersjs | 50.76% | 1237.4 ms | 820.8 ms |
+| model load | transformersjs | 45.62% | 1133.6 ms | 778.5 ms |
+| total run ms | transformersjs | 1.078% | 640.2 ms | 633.4 ms |
+| decode p50 ms/token | transformersjs | 0.18% | 8.36 ms | 8.345 ms |
 
 ## Charts
 

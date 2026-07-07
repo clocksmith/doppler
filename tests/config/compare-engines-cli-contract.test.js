@@ -31,6 +31,7 @@ import {
   resolveDopplerBenchmarkKvCachePlan,
   resolveDopplerExecutionIdentity,
   resolveDopplerModelSource,
+  resolveOutputParityPolicy,
   resolveDopplerThroughputCadenceGate,
   summarizeDopplerDecodeProfileSteps,
 } from '../../tools/compare-engines.js';
@@ -1086,11 +1087,17 @@ function assertCommandOutputMatches(result, pattern) {
   );
   assert.equal(gemma4Profile.compareLane, 'performance_comparable');
   assert.match(gemma4Profile.compareLaneReason, /not exact-match/i);
+  assert.equal(gemma4Profile.outputParityPolicy?.requireMatch, false);
+  assert.equal(gemma4Profile.outputParityPolicy?.matchMode, 'decode-valid');
+  assert.match(gemma4Profile.outputParityPolicy?.reason || '', /product-format throughput/i);
   assert.ok(gemma4Int4PleProfile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32-int4ple');
   assert.equal(
     gemma4Int4PleProfile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
     'profiles/throughput'
   );
+  assert.equal(gemma4Int4PleProfile.outputParityPolicy?.requireMatch, false);
+  assert.equal(gemma4Int4PleProfile.outputParityPolicy?.matchMode, 'decode-valid');
+  assert.match(gemma4Int4PleProfile.outputParityPolicy?.reason || '', /INT4-PLE product-format throughput/i);
   assert.ok(gemma4Af16Int4PleProfile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af16-int4ple');
   assert.equal(gemma4Af16Int4PleProfile.defaultDopplerSource, 'local');
   assert.equal(gemma4Af16Int4PleProfile.defaultDopplerSurface, 'browser');
@@ -1103,6 +1110,9 @@ function assertCommandOutputMatches(result, pattern) {
     gemma4Af16Int4PleProfile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
     'profiles/throughput'
   );
+  assert.equal(gemma4Af16Int4PleProfile.outputParityPolicy?.requireMatch, false);
+  assert.equal(gemma4Af16Int4PleProfile.outputParityPolicy?.matchMode, 'decode-valid');
+  assert.match(gemma4Af16Int4PleProfile.outputParityPolicy?.reason || '', /AF16 INT4-PLE product-format throughput/i);
   assert.ok(gemma4Catalog, 'models/catalog.json must include gemma-4-e2b-it-q4k-ehf16-af32');
   assert.equal(gemma4Catalog?.vendorBenchmark?.transformersjs?.repoId, gemma4Profile.defaultTjsModelId);
   assert.equal(gemma4Catalog?.vendorBenchmark?.transformersjs?.dtype, 'q4f16');
@@ -1626,6 +1636,62 @@ function assertCommandOutputMatches(result, pattern) {
 }
 
 {
+  const promptContract = renderComparePrompt({
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    prompt: 'policy is clear',
+    useChatTemplate: true,
+  });
+  const section = buildCompareSection({
+    cacheMode: 'warm',
+    loadMode: 'opfs',
+    maxTokens: 8,
+    promptContract,
+    prefillTokenTarget: 64,
+    outputParityPolicy: {
+      schemaVersion: 1,
+      requireMatch: false,
+      matchMode: 'decode-valid',
+      reason: 'unit Gemma 4 product-format throughput policy',
+      source: 'compare-profile',
+      deterministicGreedy: true,
+    },
+    doppler: {
+      result: {
+        result: {
+          metrics: {
+            avgPrefillTokens: 64,
+            avgDecodeTokens: 8,
+            generatedText: 'The question seems to be asking about the',
+            referenceTranscript: {
+              tokens: {
+                ids: [818, 2934, 5072, 531, 577, 10980, 1003, 506],
+              },
+            },
+          },
+        },
+      },
+    },
+    transformersjs: {
+      generatedText: 'The most appropriate answer, based on the',
+      generatedTokenIds: [818, 1346, 5061, 235269, 235261, 749, 573, 506],
+      runs: [
+        {
+          prefillTokens: 64,
+          decodeTokens: 8,
+        },
+      ],
+    },
+  });
+  assert.equal(section.pairedComparable, true);
+  assert.equal(section.invalidReason, null);
+  assert.equal(section.outputParity.status, 'mismatch');
+  assert.equal(section.outputParityPolicy.requireMatch, false);
+  assert.equal(section.outputParityPolicy.matchMode, 'decode-valid');
+  assert.equal(section.outputParityPolicy.source, 'compare-profile');
+  assert.equal(section.outputParityPolicy.deterministicGreedy, true);
+}
+
+{
   const section = buildCompareSection({
     cacheMode: 'warm',
     loadMode: 'opfs',
@@ -1827,6 +1893,23 @@ function assertCommandOutputMatches(result, pattern) {
   assert.equal(compareProfile.defaultLoadMode, 'http');
   assert.equal(compareProfile.defaultLoadModeReason, 'unit load-mode reason');
   assert.equal(sharedContract.useChatTemplate, true);
+  const defaultOutputParityPolicy = resolveOutputParityPolicy(sharedContract, {});
+  assert.equal(defaultOutputParityPolicy.requireMatch, true);
+  assert.equal(defaultOutputParityPolicy.matchMode, 'exact-or-normalized');
+  assert.equal(defaultOutputParityPolicy.source, 'sampling-default');
+  assert.equal(defaultOutputParityPolicy.deterministicGreedy, true);
+  const profileOutputParityPolicy = resolveOutputParityPolicy(sharedContract, {
+    outputParityPolicy: {
+      schemaVersion: 1,
+      requireMatch: false,
+      matchMode: 'decode-valid',
+      reason: 'unit Gemma 4 product-format throughput policy',
+    },
+  });
+  assert.equal(profileOutputParityPolicy.requireMatch, false);
+  assert.equal(profileOutputParityPolicy.matchMode, 'decode-valid');
+  assert.equal(profileOutputParityPolicy.source, 'compare-profile');
+  assert.equal(profileOutputParityPolicy.deterministicGreedy, true);
 }
 
 {

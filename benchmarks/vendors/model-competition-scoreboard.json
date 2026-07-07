@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-07T16:25:15.625Z",
+  "updatedAt": "2026-07-07T17:13:34.366Z",
   "sources": [
     "models/catalog.json",
     "benchmarks/vendors/model-support-inventory.json",
@@ -22,12 +22,12 @@
       "node": 20,
       "bun": 0
     },
-    "generationCompareRowCount": 14,
-    "generationCompareGapRowCount": 4,
+    "generationCompareRowCount": 15,
+    "generationCompareGapRowCount": 3,
     "embeddingCompareRowCount": 2,
     "rerankCompareRowCount": 1,
     "supportGapRowCount": 13,
-    "dopplerDecodeLeaderRowCount": 12,
+    "dopplerDecodeLeaderRowCount": 13,
     "transformersjsDecodeLeaderRowCount": 2,
     "dopplerEmbeddingLatencyLeaderRowCount": 1,
     "transformersjsEmbeddingLatencyLeaderRowCount": 1,
@@ -1326,7 +1326,7 @@
       "nextCommand": "node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
-      "rowId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple:generation:pending",
+      "rowId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple:generation:browser:p064-d064-t0-k1:parity",
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
       "label": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
       "family": "gemma4",
@@ -1336,9 +1336,9 @@
       ],
       "sourceCheckpointId": "google/gemma-4-E2B-it",
       "workloadMode": "generation",
-      "surface": null,
-      "workloadId": null,
-      "decodeProfile": null,
+      "surface": "browser",
+      "workloadId": "p064-d064-t0-k1",
+      "decodeProfile": "parity",
       "artifact": {
         "format": "rdrr",
         "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
@@ -1352,7 +1352,7 @@
         }
       },
       "platforms": {
-        "browser": "missing",
+        "browser": "benchmarked",
         "node": "verified",
         "bun": "missing"
       },
@@ -1362,28 +1362,41 @@
         "format": "onnx",
         "dtype": "q4f16"
       },
-      "correctness": "pass",
-      "metrics": null,
-      "claimStatus": "candidate",
-      "claimReason": "Local reference execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "correctness": "mismatch",
+      "metrics": {
+        "doppler": {
+          "decodeTokensPerSec": 16.32,
+          "promptTokensPerSecToFirstToken": 125.1
+        },
+        "transformersjs": {
+          "decodeTokensPerSec": 9.24,
+          "promptTokensPerSecToFirstToken": 299.55
+        },
+        "ratios": {
+          "decodeDopplerOverTransformersjs": 1.7669,
+          "promptDopplerOverTransformersjs": 0.4176
+        },
+        "leader": {
+          "decode": "doppler",
+          "prompt": "transformersjs"
+        },
+        "bottleneck": "decode orchestration",
+        "bottleneckClass": "orchestration"
+      },
+      "claimStatus": "summary-svg-missing",
+      "claimReason": "Local reference execution is verified and p064 parity compare evidence is local-comparable under the explicit Gemma 4 product-format output policy; promotion still requires pinned competitor artifact hash, summary SVG, and broader workload/backend coverage.",
       "evidence": {
         "runtimeReport": "reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json",
-        "compareResult": null,
+        "compareResult": "benchmarks/vendors/results/compare_20260707T170557.json",
+        "compareResultExists": true,
         "summarySvg": null,
+        "summarySvgExists": false,
         "localClaimLaneId": "gemma-4-e2b-it-int4ple-rdrr"
       },
       "missing": [
-        "chromium-webgpu",
-        "p064-d064-t0-k1",
-        "p256-d128-t0-k1",
-        "p512-d128-t0-k1",
-        "parity",
-        "throughput",
-        "chromium-webgpu:p064-d064-t0-k1",
-        "chromium-webgpu:p256-d128-t0-k1",
-        "chromium-webgpu:p512-d128-t0-k1"
+        "summary-svg"
       ],
-      "nextGate": "compare-result",
+      "nextGate": "summary-svg",
       "nextCommand": "node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {

@@ -3,7 +3,7 @@
 Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.
 This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.
 
-Updated at: 2026-07-07T16:25:15.625Z
+Updated at: 2026-07-07T17:13:34.366Z
 
 ## Summary
 
@@ -12,11 +12,11 @@ Updated at: 2026-07-07T16:25:15.625Z
 - HF-published models: 14
 - Failed models: 1
 - Verification-needed models: 2
-- Generation compare rows: 14
-- Generation compare gap rows: 4
+- Generation compare rows: 15
+- Generation compare gap rows: 3
 - Embedding compare rows: 2
 - Rerank compare rows: 1
-- Doppler decode-leading generation rows: 12
+- Doppler decode-leading generation rows: 13
 - Transformers.js decode-leading generation rows: 2
 - Doppler embedding latency-leading rows: 1
 - Transformers.js embedding latency-leading rows: 1
@@ -43,6 +43,7 @@ Updated at: 2026-07-07T16:25:15.625Z
 | gemma-3-270m-it-q4k-ehf16-af32 | node | p064-d064-t0-k1<br>throughput | exact | 112.49 tok/s | 108.16 tok/s | doppler | 1105.97 tok/s | 831.87 tok/s | doppler | command recording | summary-svg-missing | reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json<br>benchmarks/vendors/results/compare_20260627T202549.json |
 | gemma-3-270m-it-q4k-ehf16-af32 | node | p256-d128-t0-k1<br>throughput | exact | 105.99 tok/s | 109.18 tok/s | transformersjs | 2156.26 tok/s | 1008.41 tok/s | doppler | command recording | summary-svg-missing | reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json<br>benchmarks/vendors/results/compare_20260627T203031.json |
 | gemma-3-270m-it-q4k-ehf16-af32 | node | p512-d128-t0-k1<br>throughput | exact | 103 tok/s | 97.15 tok/s | doppler | 2453.29 tok/s | 1021.53 tok/s | doppler | command recording | candidate | reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json<br>benchmarks/vendors/results/compare_20260627T200323.json<br>benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg |
+| gemma-4-e2b-it-q4k-ehf16-af32-int4ple | browser | p064-d064-t0-k1<br>parity | mismatch | 16.32 tok/s | 9.24 tok/s | doppler | 125.1 tok/s | 299.55 tok/s | transformersjs | decode orchestration | summary-svg-missing | reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json<br>benchmarks/vendors/results/compare_20260707T170557.json |
 | qwen-3-5-0-8b-q4k-ehaf16 | browser | p064-d064-t0-k1<br>throughput | exact | 75.87 tok/s | 41.57 tok/s | doppler | 184.6 tok/s | 9.52 tok/s | doppler | readback map wait | summary-svg-missing | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json<br>benchmarks/vendors/results/compare_20260705T160226.json |
 | qwen-3-5-0-8b-q4k-ehaf16 | browser | p256-d128-t0-k1<br>throughput | exact | 73.74 tok/s | 43.17 tok/s | doppler | 432.94 tok/s | 9.78 tok/s | doppler | readback map wait | summary-svg-missing | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json<br>benchmarks/vendors/results/compare_20260705T161224.json |
 | qwen-3-5-2b-q4k-ehaf16 | browser | p064-d064-t0-k1<br>throughput | exact | 60.95 tok/s | 40.1 tok/s | doppler | 168.47 tok/s | 9.9 tok/s | doppler | readback map wait | summary-svg-missing | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json<br>benchmarks/vendors/results/compare_20260707T154847.json |
@@ -82,7 +83,7 @@ Updated at: 2026-07-07T16:25:15.625Z
 | gemma-4-31b-it-text-q4k-ehf16-af32 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>hf-publish | hf-publish<br>compare-profile | reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af32/2026-06-29T22-07-45.149Z.json |
 | gemma-4-e2b-it-q4k-ehf16-af16-int4ple | support | Clocksmith/rdrr@2d326649ae3d04b83323de0e6247e1e42fb1d9af<br>models/gemma-4-e2b-it-q4k-ehf16-af16-int4ple | browser:missing<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/gemma-4-E2B-it-ONNX<br>onnx/q4f16 | compare-missing<br>claim-lane | claim-lane<br>compare-result<br>summary-svg | reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-15-34.710Z.json |
 | gemma-4-e2b-it-q4k-ehf16-af32 | generation | Clocksmith/rdrr@2070777c77047d54e6eae105f6dcb1891cf6f21a<br>models/gemma-4-e2b-it-q4k-ehf16-af32 | browser:missing<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/gemma-4-E2B-it-ONNX<br>onnx/q4f16 | candidate<br>compare-result | chromium-webgpu<br>p064-d064-t0-k1<br>p256-d128-t0-k1<br>p512-d128-t0-k1<br>parity<br>throughput<br>chromium-webgpu:p064-d064-t0-k1<br>chromium-webgpu:p256-d128-t0-k1<br>chromium-webgpu:p512-d128-t0-k1 | reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json |
-| gemma-4-e2b-it-q4k-ehf16-af32-int4ple | generation | Clocksmith/rdrr@16256bf16dc8f92b8fe5105b07628cef91587f0a<br>models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple | browser:missing<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/gemma-4-E2B-it-ONNX<br>onnx/q4f16 | candidate<br>compare-result | chromium-webgpu<br>p064-d064-t0-k1<br>p256-d128-t0-k1<br>p512-d128-t0-k1<br>parity<br>throughput<br>chromium-webgpu:p064-d064-t0-k1<br>chromium-webgpu:p256-d128-t0-k1<br>chromium-webgpu:p512-d128-t0-k1 | reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json |
+| gemma-4-e2b-it-q4k-ehf16-af32-int4ple | generation | Clocksmith/rdrr@16256bf16dc8f92b8fe5105b07628cef91587f0a<br>models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/gemma-4-E2B-it-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json<br>benchmarks/vendors/results/compare_20260707T170557.json |
 | lfm2-5-1-2b-instruct-q4k-ehf16-af32 | text | missing | browser:missing<br>node:missing<br>bun:missing | transformersjs<br>LiquidAI/LFM2.5-1.2B-Instruct-ONNX<br>onnx | verification-needed<br>manifest-weights | manifest-weights<br>runtime-verify<br>hf-publish<br>claim-lane<br>compare-result<br>summary-svg | none |
 | minicpm4-0-5b-f16-af32 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | failed<br>runtime-verify | runtime-verify<br>hf-publish<br>compare-profile | none |
 | qwen-3-5-0-8b-q4k-ehaf16 | generation | Clocksmith/rdrr@f58f1d0b58641c84e7ea50d13fea0dd4dc91389a<br>models/qwen-3-5-0-8b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-0.8B-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json<br>benchmarks/vendors/results/compare_20260705T160226.json |
@@ -112,7 +113,7 @@ These commands are gates, not evidence. A row becomes evidence only after its sa
 | gemma-4-31b-it-text-q4k-ehf16-af32 | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af32 --dry-run --bootstrap` |
 | gemma-4-e2b-it-q4k-ehf16-af16-int4ple | claim-lane | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | gemma-4-e2b-it-q4k-ehf16-af32 | compare-result | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| gemma-4-e2b-it-q4k-ehf16-af32-int4ple | compare-result | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
+| gemma-4-e2b-it-q4k-ehf16-af32-int4ple | summary-svg | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | minicpm4-0-5b-f16-af32 | runtime-verify | `node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto` |
 | qwen-3-5-0-8b-q4k-ehaf16 | summary-svg | `node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | qwen-3-5-2b-q4k-ehaf16 | summary-svg | `node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |

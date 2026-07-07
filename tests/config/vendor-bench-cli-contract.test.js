@@ -162,6 +162,27 @@ async function readExpectedReleaseClaimableModelIds() {
       claimMatrix.promotionGates.throughputCadence[field]
     );
   }
+
+  const gemma4Int4PleLane = claimMatrix.lanes.find((lane) => lane.id === 'gemma-4-e2b-it-int4ple-rdrr');
+  assert.ok(gemma4Int4PleLane, 'claim matrix must include the Gemma 4 INT4-PLE lane');
+  assert.deepEqual(gemma4Int4PleLane.run.decodeProfiles, ['parity']);
+  assert.equal(
+    gemma4Int4PleLane.evidence.compareResult,
+    'benchmarks/vendors/results/compare_20260707T170557.json'
+  );
+  const gemma4ComparePath = path.join(repoRoot, ...gemma4Int4PleLane.evidence.compareResult.split('/'));
+  const gemma4Compare = JSON.parse(await fs.readFile(gemma4ComparePath, 'utf8'));
+  assert.equal(gemma4Compare.dopplerModelId, gemma4Int4PleLane.model.dopplerModelId);
+  assert.equal(gemma4Compare.tjsModelId, gemma4Int4PleLane.compare.competitors[0].modelId);
+  assert.equal(gemma4Compare.fairness.claimGrade, true);
+  assert.equal(gemma4Compare.fairness.localComparable, true);
+  assert.equal(gemma4Compare.fairness.correctnessOk, true);
+  assert.equal(gemma4Compare.methodology.outputParity.requireMatch, false);
+  assert.equal(gemma4Compare.methodology.outputParity.matchMode, 'decode-valid');
+  assert.equal(gemma4Compare.correctness.status, 'mismatch');
+  assert.equal(gemma4Compare.sections.compute.parity.pairedComparable, true);
+  assert.equal(gemma4Compare.sections.compute.parity.outputParityPolicy.requireMatch, false);
+  assert.equal(gemma4Compare.sections.compute.throughputCadenceGate.ok, false);
 }
 
 {
@@ -258,24 +279,26 @@ async function readExpectedReleaseClaimableModelIds() {
   );
   assert.ok(qwenClaimLane, 'release matrix must include the Qwen 2B local claim lane');
   assert.equal(qwenClaimLane.claimReady, false);
-  assert.deepEqual(qwenClaimLane.missingBackendIds, ['chromium-webgpu']);
-  assert.deepEqual(
-    qwenClaimLane.missingWorkloadIds,
-    ['p256-d128-t0-k1', 'p512-d128-t0-k1']
-  );
+  assert.deepEqual(qwenClaimLane.missingBackendIds, []);
+  assert.deepEqual(qwenClaimLane.missingWorkloadIds, []);
   assert.deepEqual(qwenClaimLane.missingDecodeProfileIds, []);
-  assert.deepEqual(
-    qwenClaimLane.missingSurfaceWorkloads,
-    [
-      'chromium-webgpu:p064-d064-t0-k1',
-      'chromium-webgpu:p256-d128-t0-k1',
-      'chromium-webgpu:p512-d128-t0-k1',
-    ]
+  assert.deepEqual(qwenClaimLane.missingSurfaceWorkloads, []);
+  assert.equal(qwenClaimLane.surfaces.length, 3);
+  assert.equal(qwenClaimLane.surfaces[0]?.compareResult, 'benchmarks/vendors/results/compare_20260707T154847.json');
+  assert.equal(qwenClaimLane.surfaces[1]?.compareResult, 'benchmarks/vendors/results/compare_20260707T155858.json');
+  assert.equal(qwenClaimLane.surfaces[2]?.compareResult, 'benchmarks/vendors/results/compare_20260707T161623.json');
+  assert.ok(qwenClaimLane.surfaces.every((surface) => surface.correctness === 'exact'));
+  assert.ok(qwenClaimLane.surfaces.every((surface) => surface.decodeLeader === 'doppler'));
+  const gemma4ClaimLane = matrixPayload.localClaimLanes.find(
+    (entry) => entry.laneId === 'gemma-4-e2b-it-int4ple-rdrr'
   );
-  assert.equal(qwenClaimLane.surfaces.length, 1);
-  assert.equal(qwenClaimLane.surfaces[0]?.compareResult, 'benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json');
-  assert.equal(qwenClaimLane.surfaces[0]?.correctness, 'exact');
-  assert.equal(qwenClaimLane.surfaces[0]?.decodeLeader, 'doppler');
+  assert.ok(gemma4ClaimLane, 'release matrix must include the Gemma 4 INT4-PLE local claim lane');
+  assert.equal(gemma4ClaimLane.claimReady, false);
+  assert.equal(gemma4ClaimLane.surfaces[0]?.compareResult, 'benchmarks/vendors/results/compare_20260707T170557.json');
+  assert.equal(gemma4ClaimLane.surfaces[0]?.decodeProfile, 'parity');
+  assert.equal(gemma4ClaimLane.surfaces[0]?.correctness, 'mismatch');
+  assert.equal(gemma4ClaimLane.surfaces[0]?.decodeLeader, 'doppler');
+  assert.equal(gemma4ClaimLane.surfaces[0]?.dopplerDecodeTokensPerSec, 16.32);
   assert.match(markdownPayload, /^# Release Matrix/m);
   assert.match(markdownPayload, /Generated: 2026-03-05T00:00:00.000Z/);
   assert.match(markdownPayload, /\| Doppler Model \| In Catalog \| Catalog Modes \| TJS Mapping \| Surface \| Source \| Compare Lane \| Notes \|/);

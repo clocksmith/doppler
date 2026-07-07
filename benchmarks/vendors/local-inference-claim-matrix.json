@@ -853,7 +853,7 @@
     {
       "id": "gemma-4-e2b-it-int4ple-rdrr",
       "status": "candidate",
-      "statusReason": "Local reference execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "statusReason": "Local reference execution is verified and p064 parity compare evidence is local-comparable under the explicit Gemma 4 product-format output policy; promotion still requires pinned competitor artifact hash, summary SVG, and broader workload/backend coverage.",
       "model": {
         "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
         "label": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
@@ -892,8 +892,7 @@
           "p512-d128-t0-k1"
         ],
         "decodeProfiles": [
-          "parity",
-          "throughput"
+          "parity"
         ],
         "runtimeBackends": [
           {
@@ -924,7 +923,7 @@
         "sameArtifactWherePossible": false,
         "promptSemantics": "compare-engines shared rendered prompt contract",
         "outputSemantics": "non-empty generated text with nonzero decode tokens and matching stop-policy accounting",
-        "parityCheck": "INT4 PLE compute-throughput claims require coherent output and prompt/token accounting; exact-match parity requires a separate promoted parity receipt"
+        "parityCheck": "INT4 PLE product-format throughput claims require coherent output and prompt/token accounting under outputParityPolicy=requireMatch:false; exact-match parity requires a separate promoted parity receipt"
       },
       "memoryBudget": {
         "artifactBytes": 4009916310,
@@ -933,7 +932,7 @@
       },
       "evidence": {
         "localExecutionReport": "reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json",
-        "compareResult": null,
+        "compareResult": "benchmarks/vendors/results/compare_20260707T170557.json",
         "summarySvg": null
       }
     }

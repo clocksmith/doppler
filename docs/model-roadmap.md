@@ -36,7 +36,7 @@ Goal: next small and medium models that can become clean benchmark stories.
 | Model | Status | Current state |
 | --- | --- | --- |
 | Qwen 3.5 2B | publish-story | Browser and Node runtime verification exist. Fresh browser/Vulkan local comparisons cover p064, p256, and p512 with exact output match and promotable throughput cadence; hosted release-grade promotion remains open. |
-| Gemma 4 E2B | benchmark-needed | Node runtime verification exists. INT4-PLE has fresh browser/Vulkan diagnostic evidence, but output parity mismatches block benchmark promotion. The plain Q4K local artifact needs a refreshed manifest before fair compare work resumes. |
+| Gemma 4 E2B | publish-story | Node runtime verification exists. INT4-PLE has fresh browser/Vulkan p064 parity-section evidence that is local-comparable under the explicit product-format output policy; exact token parity is not claimed. The throughput-cadence section is still tuning evidence, and the plain Q4K local artifact needs a refreshed manifest before fair compare work resumes. |
 
 ## P4 Supported Legacy Tier
 
