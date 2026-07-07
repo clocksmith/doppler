@@ -17,6 +17,11 @@ import {
   buildEntryRemoteBaseUrl,
 } from '../src/tooling/hf-registry-utils.js';
 import { resolveSyntheticPromptForModel } from '../benchmarks/vendors/workload-prompt.js';
+import {
+  DEFAULT_RESOURCE_TELEMETRY_INTERVAL_MS,
+  createResourceTelemetrySampler,
+  parseResourceTelemetryMode,
+} from './resource-telemetry.js';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -880,6 +885,8 @@ function usage() {
   '  --browser-executable <path>      Browser executable for both benchmark runners',
   '  --runtime-config-json <json>      Engine-only JSON overlay merged into Doppler runtime config (fairness axes protected)',
   '  --doppler-bottleneck-profile <on|off> Run a Doppler debug-profiler pass as a diagnostic artifact',
+  `  --resource-telemetry <on|off> Capture process-tree RAM/CPU, system RAM, and optional ROCm GPU telemetry for child benchmark runs (default: off; interval default: ${DEFAULT_RESOURCE_TELEMETRY_INTERVAL_MS}ms)`,
+  '  --resource-telemetry-samples Include raw telemetry samples in saved JSON (default: summary only)',
   '  --timestamp <iso|ms>               Report timestamp override (ISO-8601 or epoch milliseconds)',
     '  --tjs-profile-ops <on|off>       TJS ORT op profiling',
   '  --timeout-ms <ms>                 Shared benchmark timeout',
@@ -2050,12 +2057,82 @@ function appendBoundedTail(previous, chunk, maxChars = CHILD_PROCESS_TAIL_CHARS)
   return text.slice(text.length - maxChars);
 }
 
-async function execFileForSavedDopplerBench(command, args, options) {
+async function execFileCaptureStdout(command, args, options) {
   return new Promise((resolve, reject) => {
+    const telemetry = createResourceTelemetrySampler(options.resourceTelemetry);
     const child = spawn(command, args, {
       cwd: options.cwd,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
+    telemetry.start(child.pid);
+    const stdoutChunks = [];
+    const stderrChunks = [];
+    let stdoutBytes = 0;
+    let stderrTail = '';
+    let settled = false;
+    let timedOut = false;
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      child.kill('SIGTERM');
+    }, options.timeout);
+
+    child.stdout.on('data', (chunk) => {
+      stdoutBytes += chunk.length;
+      if (Number.isFinite(options.maxBuffer) && stdoutBytes > options.maxBuffer) {
+        child.kill('SIGTERM');
+        return;
+      }
+      stdoutChunks.push(chunk);
+    });
+
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (chunk) => {
+      stderrChunks.push(Buffer.from(chunk));
+      stderrTail = appendBoundedTail(stderrTail, chunk);
+    });
+
+    child.on('error', (error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      telemetry.stop();
+      reject(error);
+    });
+
+    child.on('close', (code, signal) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      const resourceTelemetry = telemetry.stop();
+      if (timedOut) {
+        reject(new Error(`Child process timed out after ${options.timeout}ms. Stderr tail:\n${clipTail(stderrTail, 2000)}`));
+        return;
+      }
+      if (Number.isFinite(options.maxBuffer) && stdoutBytes > options.maxBuffer) {
+        reject(new Error(`Child process stdout exceeded ${options.maxBuffer} bytes. Stderr tail:\n${clipTail(stderrTail, 2000)}`));
+        return;
+      }
+      if (code !== 0) {
+        reject(new Error(`Child process exited with code ${code ?? 'null'} signal ${signal ?? 'null'}. Stderr tail:\n${clipTail(stderrTail, 2000)}`));
+        return;
+      }
+      resolve({
+        stdout: Buffer.concat(stdoutChunks).toString('utf8'),
+        stderr: Buffer.concat(stderrChunks).toString('utf8'),
+        resourceTelemetry,
+      });
+    });
+  });
+}
+
+async function execFileForSavedDopplerBench(command, args, options) {
+  return new Promise((resolve, reject) => {
+    const telemetry = createResourceTelemetrySampler(options.resourceTelemetry);
+    const child = spawn(command, args, {
+      cwd: options.cwd,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    telemetry.start(child.pid);
     let stdoutTail = '';
     let stderrTail = '';
     let settled = false;
@@ -2079,6 +2156,7 @@ async function execFileForSavedDopplerBench(command, args, options) {
       if (settled) return;
       settled = true;
       clearTimeout(timeoutId);
+      telemetry.stop();
       reject(error);
     });
 
@@ -2086,6 +2164,7 @@ async function execFileForSavedDopplerBench(command, args, options) {
       if (settled) return;
       settled = true;
       clearTimeout(timeoutId);
+      const resourceTelemetry = telemetry.stop();
       if (timedOut) {
         reject(new Error(
           `Doppler bench child timed out after ${options.timeout}ms. ` +
@@ -2100,7 +2179,7 @@ async function execFileForSavedDopplerBench(command, args, options) {
         ));
         return;
       }
-      resolve({ stdout: stdoutTail, stderr: stderrTail });
+      resolve({ stdout: stdoutTail, stderr: stderrTail, resourceTelemetry });
     });
   });
 }
@@ -2684,6 +2763,8 @@ function parseArgs(argv) {
       || key === 'tjs-browser-console'
       || key === 'skip-matrix-update'
       || key === 'allow-non-comparable-lane'
+      || key === 'resource-telemetry'
+      || key === 'resource-telemetry-samples'
       || key === 'help'
       || key === 'h'
     ) {
@@ -2998,6 +3079,12 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
   });
   const stableBrowserArgs = appendBrowserArgs([], STABLE_BROWSER_ARGS);
   const cliExecutor = dopplerExecution.cliExecutor;
+  const resourceTelemetryOptions = options.resourceTelemetry?.enabled === true
+    ? {
+        ...options.resourceTelemetry,
+        label: options.resourceTelemetry.label ?? `doppler-${cacheMode}`,
+      }
+    : { enabled: false };
 
   const buildCliConfig = (benchCaptureDir = null) => {
     const resolvedModelUrl = isSafetensorsFormat && options.safetensorsSourcePath
@@ -3053,18 +3140,26 @@ async function runDoppler(modelId, modelUrl, sharedContract, cacheMode, options 
       ];
       let parsed;
       if (benchCaptureDir) {
-        await execFileForSavedDopplerBench(cliExecutor, args, {
+        const childResult = await execFileForSavedDopplerBench(cliExecutor, args, {
           cwd: DOPPLER_ROOT,
           timeout: resolvedTimeoutMs,
+          resourceTelemetry: resourceTelemetryOptions,
         });
         parsed = await readDopplerBenchCaptureResult(benchCaptureDir, `Doppler ${resolvedCommand} (${cacheMode})`);
+        if (childResult.resourceTelemetry != null) {
+          parsed.resourceTelemetry = childResult.resourceTelemetry;
+        }
       } else {
-        const { stdout } = await execFileAsync(cliExecutor, args, {
+        const { stdout, resourceTelemetry } = await execFileCaptureStdout(cliExecutor, args, {
           cwd: DOPPLER_ROOT,
           timeout: resolvedTimeoutMs,
           maxBuffer: resolvedMaxBufferBytes,
+          resourceTelemetry: resourceTelemetryOptions,
         });
         parsed = parseJsonBlock(stdout, `Doppler ${resolvedCommand} (${cacheMode})`);
+        if (resourceTelemetry != null) {
+          parsed.resourceTelemetry = resourceTelemetry;
+        }
       }
       return {
         ...parsed,
@@ -3130,15 +3225,26 @@ async function runTjs(modelId, sharedContract, cacheMode, tjsVersion, localModel
   if (resolvedBrowserBaseUrl) args.push('--browser-base-url', String(resolvedBrowserBaseUrl));
   if (resolvedBrowserExecutable) args.push('--browser-executable', String(resolvedBrowserExecutable));
   if (options.browserConsole === true) args.push('--browser-console');
+  const resourceTelemetryOptions = options.resourceTelemetry?.enabled === true
+    ? {
+        ...options.resourceTelemetry,
+        label: options.resourceTelemetry.label ?? `transformersjs-${cacheMode}`,
+      }
+    : { enabled: false };
 
   console.error(`[compare] running TJS v${tjsVersion} (${cacheMode})...`);
   const runOnce = async () => {
-    const { stdout } = await execFileAsync('node', args, {
+    const { stdout, resourceTelemetry } = await execFileCaptureStdout('node', args, {
       cwd: DOPPLER_ROOT,
       timeout: resolvedTimeoutMs,
       maxBuffer: 10 * 1024 * 1024,
+      resourceTelemetry: resourceTelemetryOptions,
     });
-    return parseJsonBlock(stdout, `TJS ${modelId} (${cacheMode})`);
+    const parsed = parseJsonBlock(stdout, `TJS ${modelId} (${cacheMode})`);
+    if (resourceTelemetry != null) {
+      parsed.resourceTelemetry = resourceTelemetry;
+    }
+    return parsed;
   };
   try {
     return await runOnce();
@@ -3468,6 +3574,134 @@ function buildMemoryAccounting(doppler, transformersjs) {
       reason: dopplerMemory?.gpuMemoryComparable === true && transformersjsMemory?.gpuMemoryComparable !== true
         ? 'Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency.'
         : null,
+    },
+  };
+}
+
+function resolveResourceTelemetryFromResult(result) {
+  if (result?.failed) {
+    return null;
+  }
+  const candidates = [
+    result?.resourceTelemetry,
+    result?.result?.resourceTelemetry,
+    result?.result?.result?.resourceTelemetry,
+  ];
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function resolvePeakRssBytes(resourceTelemetry) {
+  return finiteStatNumber(resourceTelemetry?.process?.rssBytes?.max)
+    ?? finiteStatNumber(resourceTelemetry?.process?.rssBytes);
+}
+
+function resolvePeakGpuMemoryBytes(resourceTelemetry) {
+  return finiteStatNumber(resourceTelemetry?.gpu?.memoryUsedBytes?.max)
+    ?? finiteStatNumber(resourceTelemetry?.gpu?.memoryUsedBytes);
+}
+
+function resolveMeanCpuPercent(resourceTelemetry) {
+  return finiteStatNumber(resourceTelemetry?.process?.cpuPercent?.mean)
+    ?? finiteStatNumber(resourceTelemetry?.process?.cpuPercent);
+}
+
+function resolveMeanGpuUtilizationPercent(resourceTelemetry) {
+  return finiteStatNumber(resourceTelemetry?.gpu?.utilizationPercent?.mean)
+    ?? finiteStatNumber(resourceTelemetry?.gpu?.utilizationPercent);
+}
+
+function resolveMeanPowerWatts(resourceTelemetry) {
+  return finiteStatNumber(resourceTelemetry?.gpu?.powerWatts?.mean)
+    ?? finiteStatNumber(resourceTelemetry?.gpu?.powerWatts);
+}
+
+function resolveDecodeTokensPerSecFromResult(result) {
+  return firstFiniteStatNumber(result, [
+    'result.timing.decodeTokensPerSec',
+    'timing.decodeTokensPerSec',
+    'result.metrics.decodeTokensPerSec',
+    'metrics.decodeTokensPerSec',
+    'result.result.timing.decodeTokensPerSec',
+    'result.result.metrics.decodeTokensPerSec',
+  ]);
+}
+
+function tokensPerSecPerGiB(tokensPerSec, bytes) {
+  if (!Number.isFinite(tokensPerSec) || !Number.isFinite(bytes) || bytes <= 0) {
+    return null;
+  }
+  return roundBottleneckNumber(tokensPerSec / (bytes / (1024 ** 3)));
+}
+
+function buildResourceEfficiencyMetrics(doppler, transformersjs) {
+  const dopplerTelemetry = resolveResourceTelemetryFromResult(doppler);
+  const tjsTelemetry = resolveResourceTelemetryFromResult(transformersjs);
+  if (!dopplerTelemetry && !tjsTelemetry) {
+    return null;
+  }
+  const dopplerDecode = resolveDecodeTokensPerSecFromResult(doppler);
+  const tjsDecode = resolveDecodeTokensPerSecFromResult(transformersjs);
+  const dopplerPeakRss = resolvePeakRssBytes(dopplerTelemetry);
+  const tjsPeakRss = resolvePeakRssBytes(tjsTelemetry);
+  const dopplerPeakGpuMemory = resolvePeakGpuMemoryBytes(dopplerTelemetry);
+  const tjsPeakGpuMemory = resolvePeakGpuMemoryBytes(tjsTelemetry);
+  return {
+    schemaVersion: 1,
+    units: {
+      decodeTokensPerSecPerPeakRssGiB: 'tok/s/GiB RSS',
+      decodeTokensPerSecPerPeakGpuGiB: 'tok/s/GiB GPU memory',
+    },
+    doppler: dopplerTelemetry
+      ? {
+          peakRssBytes: Number.isFinite(dopplerPeakRss) ? dopplerPeakRss : null,
+          peakGpuMemoryBytes: Number.isFinite(dopplerPeakGpuMemory) ? dopplerPeakGpuMemory : null,
+          meanCpuPercent: resolveMeanCpuPercent(dopplerTelemetry),
+          meanGpuUtilizationPercent: resolveMeanGpuUtilizationPercent(dopplerTelemetry),
+          meanPowerWatts: resolveMeanPowerWatts(dopplerTelemetry),
+          decodeTokensPerSecPerPeakRssGiB: tokensPerSecPerGiB(dopplerDecode, dopplerPeakRss),
+          decodeTokensPerSecPerPeakGpuGiB: tokensPerSecPerGiB(dopplerDecode, dopplerPeakGpuMemory),
+        }
+      : null,
+    transformersjs: tjsTelemetry
+      ? {
+          peakRssBytes: Number.isFinite(tjsPeakRss) ? tjsPeakRss : null,
+          peakGpuMemoryBytes: Number.isFinite(tjsPeakGpuMemory) ? tjsPeakGpuMemory : null,
+          meanCpuPercent: resolveMeanCpuPercent(tjsTelemetry),
+          meanGpuUtilizationPercent: resolveMeanGpuUtilizationPercent(tjsTelemetry),
+          meanPowerWatts: resolveMeanPowerWatts(tjsTelemetry),
+          decodeTokensPerSecPerPeakRssGiB: tokensPerSecPerGiB(tjsDecode, tjsPeakRss),
+          decodeTokensPerSecPerPeakGpuGiB: tokensPerSecPerGiB(tjsDecode, tjsPeakGpuMemory),
+        }
+      : null,
+    comparability: {
+      processTree: dopplerTelemetry != null && tjsTelemetry != null,
+      gpuTelemetry: dopplerTelemetry?.gpu != null && tjsTelemetry?.gpu != null,
+      reason: dopplerTelemetry != null && tjsTelemetry != null
+        ? 'Host process-tree RSS/CPU and system/GPU telemetry are sampled by the same parent benchmark tool; GPU memory is device-global when sourced from rocm-smi.'
+        : 'Resource telemetry was not captured for both engines.',
+    },
+  };
+}
+
+function buildResourceTelemetryAccounting(doppler, transformersjs) {
+  const dopplerTelemetry = resolveResourceTelemetryFromResult(doppler);
+  const transformersjsTelemetry = resolveResourceTelemetryFromResult(transformersjs);
+  if (!dopplerTelemetry && !transformersjsTelemetry) {
+    return null;
+  }
+  return {
+    schemaVersion: 1,
+    doppler: dopplerTelemetry,
+    transformersjs: transformersjsTelemetry,
+    comparability: {
+      processTree: dopplerTelemetry != null && transformersjsTelemetry != null,
+      gpuTelemetry: dopplerTelemetry?.gpu != null && transformersjsTelemetry?.gpu != null,
+      reason: 'Process-tree RSS/CPU and system RAM are comparable host-side samples. ROCm GPU utilization/memory is device-global and should be treated as run-context evidence, not strict per-process GPU residency.',
     },
   };
 }
@@ -4619,6 +4853,12 @@ function formatVal(v, unit) {
     if (v >= 1000) return `${(v / 1000).toFixed(1)}s`;
     return `${v.toFixed(0)}ms`;
   }
+  if (unit === 'bytes') {
+    if (v >= 1024 ** 3) return `${(v / (1024 ** 3)).toFixed(2)}GiB`;
+    if (v >= 1024 ** 2) return `${(v / (1024 ** 2)).toFixed(1)}MiB`;
+    if (v >= 1024) return `${(v / 1024).toFixed(1)}KiB`;
+    return `${v}B`;
+  }
   if (unit === 'tok/s') return `${v.toFixed(1)}`;
   return String(v);
 }
@@ -4961,6 +5201,8 @@ function buildCompareSection({
     dopplerBottleneck: resolveDopplerBottleneckFromResult(doppler),
     dopplerBatchAccounting: resolveDopplerBatchAccountingFromResult(doppler),
     memoryAccounting: buildMemoryAccounting(doppler, transformersjs),
+    resourceTelemetry: buildResourceTelemetryAccounting(doppler, transformersjs),
+    efficiencyMetrics: buildResourceEfficiencyMetrics(doppler, transformersjs),
     doppler: doppler ?? null,
     transformersjs: transformersjs ?? null,
   };
@@ -5334,6 +5576,16 @@ function printSection(title, section, rows) {
       `  Doppler batch work: executed=${formatNumber(accounting.executedBatchTokens)} `
       + `resolved=${formatNumber(accounting.resolvedBatchTokens)} `
       + `output=${formatNumber(accounting.outputDecodeTokens)}`
+    );
+  }
+  if (section?.efficiencyMetrics) {
+    const dopplerEfficiency = section.efficiencyMetrics.doppler || {};
+    const tjsEfficiency = section.efficiencyMetrics.transformersjs || {};
+    console.log(
+      `  Resource efficiency: RSS tok/s/GiB Doppler=${formatNumber(dopplerEfficiency.decodeTokensPerSecPerPeakRssGiB)} `
+      + `TJS=${formatNumber(tjsEfficiency.decodeTokensPerSecPerPeakRssGiB)}, `
+      + `peak RSS Doppler=${formatVal(dopplerEfficiency.peakRssBytes, 'bytes')} `
+      + `TJS=${formatVal(tjsEfficiency.peakRssBytes, 'bytes')}`
     );
   }
   console.log(`  ${''.padEnd(20)} ${'Doppler'.padStart(14)} ${'TJS'.padStart(14)} ${'delta'.padStart(18)}`);
@@ -5736,6 +5988,18 @@ async function main() {
   const compareTjsTimeoutMs = compareTjsTimeoutMsRequested
     ?? compareSharedTimeoutMs
     ?? DEFAULT_TJS_TIMEOUT_MS;
+  const resourceTelemetryOptions = {
+    enabled: parseResourceTelemetryMode(flags['resource-telemetry'], false, '--resource-telemetry'),
+    intervalMs: parsePositiveInt(
+      flags['resource-telemetry-interval-ms'],
+      DEFAULT_RESOURCE_TELEMETRY_INTERVAL_MS,
+      '--resource-telemetry-interval-ms'
+    ),
+    includeSamples: flags['resource-telemetry-samples'] === true,
+  };
+  const buildRunResourceTelemetryOptions = (label) => resourceTelemetryOptions.enabled === true
+    ? { ...resourceTelemetryOptions, label }
+    : resourceTelemetryOptions;
   const tjsServerPort = parseNonNegativeInt(flags['tjs-server-port'], DEFAULT_TJS_SERVER_PORT, '--tjs-server-port');
   const tjsBrowserConsole = flags['tjs-browser-console'] === true;
   const browserBaseUrl = flags['browser-base-url'] || null;
@@ -6046,6 +6310,16 @@ async function main() {
         streamerCallbackGranularityTokens: 1,
         readbackControl: 'runtime-internal',
       },
+      resourceTelemetry: {
+        enabled: resourceTelemetryOptions.enabled,
+        intervalMs: resourceTelemetryOptions.intervalMs,
+        includeSamples: resourceTelemetryOptions.includeSamples,
+        sources: {
+          processTree: 'linux procfs process tree',
+          systemRam: 'linux /proc/meminfo',
+          gpu: 'optional rocm-smi device-global telemetry when available',
+        },
+      },
       comparabilityWarnings: buildComparabilityWarnings({ dopplerSurface }),
     },
     sections: {},
@@ -6100,6 +6374,7 @@ async function main() {
         browserConsole: tjsBrowserConsole,
         browserBaseUrl,
         loadMode: resolvedLoadModes.warm,
+        resourceTelemetry: buildRunResourceTelemetryOptions('transformersjs-compute'),
       }
     );
     dopplerComputeParity = await runDoppler(
@@ -6128,6 +6403,7 @@ async function main() {
         format: dopplerFormat,
         safetensorsSourcePath,
         loadMode: resolvedLoadModes.warm,
+        resourceTelemetry: buildRunResourceTelemetryOptions('doppler-compute-parity'),
       }
     );
     assertDopplerDecodeCadence(dopplerComputeParity, computeParityCadence, 'compute/parity');
@@ -6172,6 +6448,7 @@ async function main() {
         format: dopplerFormat,
         safetensorsSourcePath,
         loadMode: resolvedLoadModes.warm,
+        resourceTelemetry: buildRunResourceTelemetryOptions('doppler-compute-throughput'),
       }
     );
     assertDopplerDecodeCadence(dopplerComputeThroughput, computeThroughputCadence, 'compute/throughput');
@@ -6244,6 +6521,7 @@ async function main() {
           format: dopplerFormat,
           safetensorsSourcePath,
           loadMode: resolvedLoadModes.warm,
+          resourceTelemetry: buildRunResourceTelemetryOptions('doppler-diagnostic-bottleneck'),
         }
       );
       assertDopplerDecodeCadence(
@@ -6290,6 +6568,7 @@ async function main() {
         format: dopplerFormat,
         safetensorsSourcePath,
         loadMode: resolvedLoadModes.warm,
+        resourceTelemetry: buildRunResourceTelemetryOptions('doppler-warm'),
       }
     );
     assertDopplerDecodeCadence(dopplerWarm, selectedDopplerDecodeCadence, 'warm');
@@ -6316,6 +6595,7 @@ async function main() {
         browserConsole: tjsBrowserConsole,
         browserBaseUrl,
         loadMode: resolvedLoadModes.warm,
+        resourceTelemetry: buildRunResourceTelemetryOptions('transformersjs-warm'),
       }
     );
     assertDeterministicParityContract(sharedContract, tjsWarm, 'warm');
@@ -6365,6 +6645,7 @@ async function main() {
         format: dopplerFormat,
         safetensorsSourcePath,
         loadMode: resolvedLoadModes.cold,
+        resourceTelemetry: buildRunResourceTelemetryOptions('doppler-cold'),
       }
     );
     assertDopplerDecodeCadence(dopplerCold, selectedDopplerDecodeCadence, 'cold');
@@ -6391,6 +6672,7 @@ async function main() {
         browserConsole: tjsBrowserConsole,
         browserBaseUrl,
         loadMode: resolvedLoadModes.cold,
+        resourceTelemetry: buildRunResourceTelemetryOptions('transformersjs-cold'),
       }
     );
     assertDeterministicParityContract(sharedContract, tjsCold, 'cold');

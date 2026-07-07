@@ -352,6 +352,8 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - Compare sections are invalid when prompt-token counts are missing, differ between engines, or miss the shared `prefillTokens` target.
 - `cacheMode` and `loadMode` are required under each run's `timing` object (`cacheMode`: `cold|warm`, `loadMode`: `opfs|http|memory`).
 - Normalized result records now require a canonical `environment` block (`host`, `browser`, `gpu`, `runtime`) so platform/hardware context is always captured in benchmark JSON.
+- Resource telemetry is explicit opt-in evidence, not a required fairness gate. Use `--resource-telemetry on` on `tools/vendor-bench.js run` or `tools/compare-engines.js` to sample process-tree RSS/CPU via Linux procfs, system RAM via `/proc/meminfo`, and optional AMD GPU utilization/memory/power via `rocm-smi`. Main receipts store compact summaries by default; add `--resource-telemetry-samples` only when a raw time series is needed.
+- Compare artifacts with resource telemetry add per-engine `resourceTelemetry` payloads and section-level `efficiencyMetrics` such as decode tok/s per peak RSS GiB. ROCm GPU memory/utilization fields are device-global run-context evidence, not strict per-process GPU residency.
 - For `vendor-bench run`, missing core environment capture fields fail normalization (`host`, browser identity, GPU identity, backend, runtime device/library).
 - Harness mappings allow ordered fallback path arrays (`normalization.metricPaths` / `metadataPaths`).
 - Path order is canonicalized in harness files and validated before comparison.

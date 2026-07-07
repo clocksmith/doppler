@@ -7,6 +7,11 @@ import path from 'node:path';
 import process from 'node:process';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import {
+  DEFAULT_RESOURCE_TELEMETRY_INTERVAL_MS,
+  createResourceTelemetrySampler,
+  parseResourceTelemetryMode,
+} from './resource-telemetry.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,9 +52,11 @@ function usage() {
     '  node tools/vendor-bench.js matrix [--compare-result <path>] [--output <path>] [--markdown-output <path>] [--timestamp <iso|ms>] [--include-local-results] [--strict-compare-artifacts]',
     '  node tools/vendor-bench.js show --target <id>',
     '  node tools/vendor-bench.js import --target <id> --input <raw.json> [--output <result.json>] [--timestamp <iso|ms>] [--workload <id>] [--model <id>] [--notes <text>]',
-    '  node tools/vendor-bench.js run --target <id> [--timeout-ms <ms>] [--timestamp <iso|ms>] [--output <result.json>] [--workload <id>] [--model <id>] [--notes <text>] -- <command ...>',
+    '  node tools/vendor-bench.js run --target <id> [--timeout-ms <ms>] [--resource-telemetry on|off] [--resource-telemetry-interval-ms <ms>] [--resource-telemetry-samples] [--timestamp <iso|ms>] [--output <result.json>] [--workload <id>] [--model <id>] [--notes <text>] -- <command ...>',
     '  node tools/vendor-bench.js fixtures-restamp [--check] [--fixture <path>]',
     '  --timeout-ms <ms>           Command timeout in milliseconds (default: 600000)',
+    `  --resource-telemetry on|off Capture process-tree RAM/CPU, system RAM, and optional ROCm GPU telemetry for run mode (default: off; interval default: ${DEFAULT_RESOURCE_TELEMETRY_INTERVAL_MS}ms)`,
+    '  --resource-telemetry-samples Include raw telemetry samples in the result JSON (default: summary only)',
     '  --timestamp <iso|ms>         Override deterministic timestamp for generated record/matrix timestamps',
     '  --include-local-results      Include benchmarks/vendors/results/*.json in matrix discovery (default: fixtures only)',
     '  --strict-compare-artifacts   Fail matrix generation on any auto-discovered compare artifact parse error',
@@ -63,7 +70,15 @@ function usage() {
 }
 
 function parseArgs(argv) {
-  const booleanFlags = new Set(['help', 'h', 'include-local-results', 'strict-compare-artifacts', 'check']);
+  const booleanFlags = new Set([
+    'help',
+    'h',
+    'include-local-results',
+    'strict-compare-artifacts',
+    'check',
+    'resource-telemetry',
+    'resource-telemetry-samples',
+  ]);
   const asCommandValue = (value) => {
     if (typeof value !== 'string') return null;
     const normalized = value.trim();
@@ -1113,6 +1128,7 @@ function assertResultRecordShape(record) {
     'environment',
     'notes',
     'metadata',
+    'resourceTelemetry',
   ]);
   for (const key of Object.keys(record)) {
     if (!allowedTopLevelKeys.has(key)) {
@@ -1195,6 +1211,7 @@ async function normalizeRecord(options) {
     modelId,
     notes,
     source,
+    resourceTelemetry,
     timestamp,
   } = options;
 
@@ -1257,6 +1274,9 @@ async function normalizeRecord(options) {
     notes: notes ?? null,
     metadata,
   };
+  if (resourceTelemetry != null) {
+    record.resourceTelemetry = resourceTelemetry;
+  }
   if (source?.mode === 'run') {
     assertRunEnvironmentCompleteness(environment, {
       requireGpu: String(product?.category || '').toLowerCase().includes('webgpu'),
@@ -4338,12 +4358,14 @@ async function runCommandCaptureJson(commandParts, options = {}) {
   }
   const [command, ...args] = commandParts;
   const timeoutMs = parsePositiveInteger(options.timeoutMs, DEFAULT_COMMAND_TIMEOUT_MS, '--timeout-ms');
+  const telemetry = createResourceTelemetrySampler(options.resourceTelemetry);
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: ROOT_DIR,
       stdio: ['ignore', 'pipe', 'pipe'],
       env: process.env,
     });
+    telemetry.start(child.pid);
 
     const timeoutLabel = `${command} ${args.join(' ')}`.trim();
     let killedByTimeout = false;
@@ -4361,10 +4383,12 @@ async function runCommandCaptureJson(commandParts, options = {}) {
     child.stderr.on('data', (chunk) => stderrChunks.push(chunk));
     child.on('error', (error) => {
       if (timeoutHandle) clearTimeout(timeoutHandle);
+      telemetry.stop();
       reject(error);
     });
     child.on('close', (code) => {
       if (timeoutHandle) clearTimeout(timeoutHandle);
+      const resourceTelemetry = telemetry.stop();
       if (killedByTimeout) {
         reject(new Error(`Command timed out after ${timeoutMs}ms: ${timeoutLabel}`));
         return;
@@ -4377,7 +4401,7 @@ async function runCommandCaptureJson(commandParts, options = {}) {
       }
       try {
         const payload = parseJsonFromStdout(stdout, timeoutLabel);
-        resolve(payload);
+        resolve({ payload, resourceTelemetry });
       } catch (error) {
         reject(new Error(`Command stdout was not valid JSON: ${error.message}`));
       }
@@ -4566,6 +4590,16 @@ async function doRun(flags, passthrough, timestamp = null) {
     throw new Error('run requires --target <id>');
   }
   const commandTimeoutMs = parsePositiveInteger(flags['timeout-ms'], DEFAULT_COMMAND_TIMEOUT_MS, '--timeout-ms');
+  const resourceTelemetry = {
+    enabled: parseResourceTelemetryMode(flags['resource-telemetry'], false, '--resource-telemetry'),
+    intervalMs: parsePositiveInteger(
+      flags['resource-telemetry-interval-ms'],
+      DEFAULT_RESOURCE_TELEMETRY_INTERVAL_MS,
+      '--resource-telemetry-interval-ms'
+    ),
+    includeSamples: parseBooleanFlag(flags['resource-telemetry-samples'], false, '--resource-telemetry-samples'),
+    label: targetId,
+  };
 
   const { registry, workloads } = await loadRegistryBundle();
   const { product, harness } = await loadTargetBundle(targetId, registry);
@@ -4579,7 +4613,11 @@ async function doRun(flags, passthrough, timestamp = null) {
     throw new Error(`No run command provided for target "${targetId}".`);
   }
 
-  const rawResult = await runCommandCaptureJson(commandParts, { timeoutMs: commandTimeoutMs });
+  const runResult = await runCommandCaptureJson(commandParts, {
+    timeoutMs: commandTimeoutMs,
+    resourceTelemetry,
+  });
+  const rawResult = runResult.payload;
   const rawInfo = await hashJsonBytes(rawResult);
   const workloadsById = new Map(workloads.workloads.map((item) => [item.id, item]));
 
@@ -4592,6 +4630,7 @@ async function doRun(flags, passthrough, timestamp = null) {
     modelId: flags.model ?? null,
     notes: flags.notes ?? null,
     timestamp,
+    resourceTelemetry: runResult.resourceTelemetry,
     source: {
       mode: 'run',
       inputPath: null,

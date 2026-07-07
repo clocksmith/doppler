@@ -411,4 +411,88 @@ async function readExpectedReleaseClaimableModelIds() {
   assertCommandOutputMatches(result, /stale (benchmarkPolicy|compareConfig|metricContract|dopplerHarness|transformersjsHarness) hash/);
 }
 
+{
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-vendor-bench-telemetry-'));
+  const outputPath = path.join(tempDir, 'llamacpp-resource-telemetry.json');
+  const payload = {
+    schemaVersion: 1,
+    kind: 'llamacpp-bench',
+    metrics: {
+      decodeTokensPerSec: 10,
+      prefillTokensPerSec: 20,
+      prefillMs: 100,
+      decodeMs: 200,
+      totalRunMs: 300,
+      decodeMsPerTokenP50: 3,
+      decodeMsPerTokenP95: 4,
+      decodeMsPerTokenP99: 5,
+    },
+    environment: {
+      host: {
+        platform: process.platform,
+        arch: process.arch,
+        nodeVersion: process.version,
+        osRelease: os.release(),
+        cpuModel: os.cpus()[0]?.model ?? null,
+      },
+      browser: {
+        userAgent: null,
+        platform: null,
+        language: null,
+        vendor: null,
+        executable: null,
+        channel: null,
+      },
+      gpu: {
+        api: 'vulkan',
+        backend: 'vulkan',
+        vendor: 'amd',
+        architecture: null,
+        device: 'unit',
+        description: 'unit',
+        hasF16: null,
+        hasSubgroups: null,
+        hasTimestampQuery: null,
+      },
+      runtime: {
+        library: 'llama.cpp',
+        version: 'unit',
+        surface: 'native-vulkan',
+        device: 'Vulkan',
+        dtype: 'Q4_K_M',
+        requestedDtype: null,
+        executionProviderMode: 'vulkan',
+        cacheMode: null,
+        loadMode: 'local-gguf',
+      },
+    },
+    metadata: {
+      version: 'unit',
+      model: 'unit-model',
+    },
+  };
+  const script = `console.log(${JSON.stringify(JSON.stringify(payload))})`;
+  const result = runVendorBench([
+    'run',
+    '--target', 'llamacpp-vulkan-gguf',
+    '--workload', 'p064-d064-t0-k1',
+    '--model', 'unit-model',
+    '--resource-telemetry', 'on',
+    '--resource-telemetry-interval-ms', '50',
+    '--output', outputPath,
+    '--',
+    process.execPath,
+    '--input-type=module',
+    '-e',
+    script,
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+  const record = JSON.parse(await fs.readFile(outputPath, 'utf8'));
+  assert.equal(record.resourceTelemetry.schemaVersion, 1);
+  assert.equal(record.resourceTelemetry.enabled, true);
+  assert.equal(record.resourceTelemetry.sampling.intervalMs, 50);
+  assert.equal(record.resourceTelemetry.label, 'llamacpp-vulkan-gguf');
+  assert.equal(typeof record.resourceTelemetry.sampling.sampleCount, 'number');
+}
+
 console.log('vendor-bench-cli-contract.test: ok');
