@@ -14,6 +14,7 @@ import {
   buildDopplerBottleneckDiagnosticRuntimeOverlay,
   buildDopplerRuntimeConfig,
   buildSharedBenchmarkContract,
+  applyDopplerBenchCaptureRunConfig,
   assertDopplerDecodeCadence,
   loadModelCatalogBundle,
   normalizeCompareLoadModeDefaults,
@@ -21,6 +22,7 @@ import {
   parseJsonBlock,
   parseOnOff as parseCompareOnOff,
   redactSecrets,
+  readDopplerBenchCaptureResult,
   resolveComputeDecodeCadence,
   usage as renderCompareUsage,
   renderComparePrompt,
@@ -175,6 +177,18 @@ function assertCommandOutputMatches(result, pattern) {
     };
     assert.doesNotThrow(() => {
       assertDopplerDecodeCadence(matchingDopplerResult, customCadence, 'unit/custom');
+    });
+    assert.doesNotThrow(() => {
+      assertDopplerDecodeCadence(
+        {
+          suite: 'bench',
+          result: {
+            request: matchingDopplerResult.request,
+          },
+        },
+        customCadence,
+        'unit/saved-bench'
+      );
     });
     const cadenceSection = buildCompareSection({
       cacheMode: 'warm',
@@ -1340,6 +1354,38 @@ function assertCommandOutputMatches(result, pattern) {
 {
   const parsed = parseJsonBlock('[info] noisy line\n{\n  "ok": true,\n  "value": 3\n}\n', 'unit-json');
   assert.deepEqual(parsed, { ok: true, value: 3 });
+}
+
+{
+  const runConfig = applyDopplerBenchCaptureRunConfig(
+    {
+      surface: 'browser',
+      browser: { channel: 'chromium' },
+      bench: { compare: 'last' },
+    },
+    '/tmp/doppler-capture-test'
+  );
+  assert.equal(runConfig.surface, 'browser');
+  assert.deepEqual(runConfig.browser, { channel: 'chromium' });
+  assert.equal(runConfig.bench.compare, 'last');
+  assert.equal(runConfig.bench.save, true);
+  assert.equal(runConfig.bench.saveDir, '/tmp/doppler-capture-test');
+}
+
+{
+  const captureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-capture-contract-'));
+  const largePayload = {
+    ok: true,
+    value: 'x'.repeat(1024 * 1024),
+  };
+  try {
+    await fs.writeFile(path.join(captureDir, 'latest.json'), JSON.stringify(largePayload, null, 2), 'utf8');
+    const parsed = await readDopplerBenchCaptureResult(captureDir, 'unit-capture');
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.result.value.length, largePayload.value.length);
+  } finally {
+    await fs.rm(captureDir, { recursive: true, force: true });
+  }
 }
 
 {

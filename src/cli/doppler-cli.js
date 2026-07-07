@@ -1487,7 +1487,7 @@ export function createCliToolingErrorEnvelope(error, context = {}) {
 }
 
 export function finalizeCliCommandResponse(response, request) {
-  if (!isPlainObject(response) || !Object.prototype.hasOwnProperty.call(response, 'request')) {
+  if (!isPlainObject(response)) {
     return response;
   }
   return {
