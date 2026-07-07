@@ -122,8 +122,8 @@ for (const platformId of [
 
 assert.equal(
   byCompetitorId.get('hf-transformers-rocm')?.availability,
-  'blocked-pytorch-rocm-unavailable',
-  'HF Transformers ROCm must stay blocked until the local torch build is ROCm-enabled'
+  'runtime-smoke-failed',
+  'HF Transformers ROCm must stay blocked until the local runtime smoke passes'
 );
 
 for (const row of report.rows) {
@@ -178,8 +178,12 @@ for (const modelId of [
   const challenger = byModelId
     .get(modelId)
     .localChallengers.find((entry) => entry.competitorId === 'hf-transformers-rocm');
-  assert.equal(challenger.status, 'blocked-pytorch-rocm-unavailable', `${modelId}: ROCm torch status`);
-  assert.equal(challenger.nextGate, 'install-rocm-enabled-torch', `${modelId}: ROCm torch next gate`);
+  assert.equal(challenger.status, 'runtime-smoke-failed', `${modelId}: ROCm runtime status`);
+  assert.equal(
+    challenger.nextGate,
+    'pin-working-rocm-transformers-runtime',
+    `${modelId}: ROCm runtime next gate`
+  );
 }
 
 const gemmaE2b = byModelId.get('gemma-4-e2b-it-q4k-ehf16-af16-int4ple');
@@ -188,7 +192,11 @@ assert.deepEqual(gemmaE2b.localChallengers.map((entry) => entry.competitorId), [
 assert.deepEqual(gemmaE2b.alternateDopplerArtifactIds, ['gemma-4-e2b-it-q4k-ehf16-af32-int4ple']);
 assert.equal(byModelId.has('gemma-4-e2b-it-q4k-ehf16-af32-int4ple'), false);
 const gemmaRocmChallenger = gemmaE2b.localChallengers.find((entry) => entry.competitorId === 'hf-transformers-rocm');
-assert.equal(gemmaRocmChallenger.status, 'blocked-pytorch-rocm-unavailable', 'Gemma E2B ROCm torch status');
-assert.equal(gemmaRocmChallenger.nextGate, 'install-rocm-enabled-torch', 'Gemma E2B ROCm torch next gate');
+assert.equal(gemmaRocmChallenger.status, 'runtime-smoke-failed', 'Gemma E2B ROCm runtime status');
+assert.equal(
+  gemmaRocmChallenger.nextGate,
+  'pin-working-rocm-transformers-runtime',
+  'Gemma E2B ROCm runtime next gate'
+);
 
 console.log('local-gpu-challenger-matrix-contract.test: ok');

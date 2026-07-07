@@ -155,6 +155,11 @@ function buildResolvedDecodeLoopRuntimePatch(
     );
   }
   const submitLatencyThresholdMs = decodeLoop.submitLatencyThresholdMs ?? null;
+  const maxBatchDecodeTokens = parseSessionDecodeLoopOptionalPositiveInt(
+    decodeLoop.maxBatchDecodeTokens,
+    'maxBatchDecodeTokens',
+    modelId
+  );
 
   const batchingPatch = {
     batchSize,
@@ -196,6 +201,7 @@ function buildResolvedDecodeLoopRuntimePatch(
         readbackInterval,
         readbackMode,
         submitLatencyThresholdMs,
+        ...(maxBatchDecodeTokens !== undefined ? { maxBatchDecodeTokens } : {}),
         ...(ringTokens !== undefined ? { ringTokens } : {}),
         ...(ringStop !== undefined ? { ringStop } : {}),
         ...(ringStaging !== undefined ? { ringStaging } : {}),

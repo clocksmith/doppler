@@ -5,6 +5,7 @@ export interface ExecutionPlanSummary {
   activationDtype: string;
   readbackInterval: number | null;
   readbackMode: string | null;
+  maxBatchDecodeTokens: number | null;
   batchSize: number | undefined;
   stopCheckMode: string | undefined;
   ringTokens: number | null;

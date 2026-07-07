@@ -53,6 +53,13 @@ const qwenConversionConfig = JSON.parse(
   )
 );
 
+const qwen2ConversionConfig = JSON.parse(
+  readFileSync(
+    path.resolve(__dirname, '../../src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json'),
+    'utf-8'
+  )
+);
+
 const qwen36ConversionConfig = JSON.parse(
   readFileSync(
     path.resolve(__dirname, '../../src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json'),
@@ -91,6 +98,7 @@ const gemma412BAf16ConversionConfig = JSON.parse(
 /** The real execution graph from the gemma3-1b-q4k conversion config. */
 const REAL_GRAPH = conversionConfig.execution;
 const QWEN_REAL_GRAPH = qwenConversionConfig.execution;
+const QWEN2_REAL_GRAPH = qwen2ConversionConfig.execution;
 const QWEN36_REAL_GRAPH = qwen36ConversionConfig.execution;
 const GEMMA4_REAL_GRAPH = gemma4ConversionConfig.execution;
 const GEMMA4_31B_REAL_GRAPH = gemma431BConversionConfig.execution;
@@ -781,7 +789,37 @@ function buildF16WeightProjectionGraph() {
 }
 
 // ===========================================================================
-// Test 10d: useQwen36F16Activations — experimental Qwen 3.6 27B all-f16 lane
+// Test 10d: useQwenF16PrimaryMatmuls — Qwen 2B selective f16 primary lane
+// ===========================================================================
+{
+  const graph = structuredClone(QWEN2_REAL_GRAPH);
+  const frozen = structuredClone(graph);
+  const result = useQwenF16PrimaryMatmuls(graph, {
+    ...CTX_F16,
+    modelId: 'qwen-3-5-2b-q4k-ehaf16',
+    capabilities: { hasF16: true },
+    layerTypes: qwen2ConversionConfig.inference.layerPattern.layerTypes,
+  });
+
+  ok(result, 'useQwenF16PrimaryMatmuls should derive the Qwen 2B f16 primary graph');
+
+  const decodeFiles = collectKernelFilesForPhase(result, 'decode');
+  ok(decodeFiles.has('fused_matmul_q4_multicol_f16a.wgsl'),
+    'Qwen 2B f16 primary graph should use fused_matmul_q4_multicol_f16a.wgsl in decode');
+
+  const decodeOProj = result.decode.find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
+  ok(decodeOProj, 'Qwen 2B f16 primary graph should keep the decode o_proj step');
+  deepEqual(
+    result.kernels[decodeOProj[1]].precision,
+    { inputDtype: 'f32', outputDtype: 'f32' },
+    'Qwen 2B f16 primary graph should keep decode o_proj as an explicit f32 boundary'
+  );
+
+  deepEqual(graph, frozen, 'useQwenF16PrimaryMatmuls must not mutate the Qwen 2B input graph');
+}
+
+// ===========================================================================
+// Test 10e: useQwen36F16Activations — experimental Qwen 3.6 27B all-f16 lane
 // ===========================================================================
 {
   const graph = structuredClone(QWEN36_REAL_GRAPH);
@@ -1274,7 +1312,8 @@ function buildF16WeightProjectionGraph() {
       },
       { id: 'apple-m3', vendor: 'apple', architecture: 'm-series' },
       {
-        activationDtype: 'f16',
+        requestedActivationDtype: 'f16',
+        activationDtype: 'f32',
         kvDtype: 'f16',
         modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
         requiresF16ActivationNarrowing: true,
@@ -1288,6 +1327,33 @@ function buildF16WeightProjectionGraph() {
     equal(r.transforms.length, 1, 'Qwen 3.5 0.8B runtime f16 request: one transform function');
     equal(r.transforms[0], useQwenF16PrimaryMatmuls,
       'Qwen 3.5 0.8B runtime f16 request: transform is useQwenF16PrimaryMatmuls');
+  }
+
+  {
+    const r = resolveCapabilityTransforms(
+      {
+        hasSubgroups: true,
+        hasF16: true,
+        maxWorkgroupStorageSize: 32768,
+        adapterInfo: { vendor: 'apple', architecture: 'metal-3' },
+      },
+      { id: 'apple-m3', vendor: 'apple', architecture: 'm-series' },
+      {
+        requestedActivationDtype: 'f16',
+        activationDtype: 'f32',
+        kvDtype: 'f16',
+        modelId: 'qwen-3-5-2b-q4k-ehaf16',
+        requiresF16ActivationNarrowing: true,
+      }
+    );
+    deepEqual(
+      r.names,
+      ['useQwenF16PrimaryMatmuls'],
+      'Qwen 3.5 2B on capable GPU with runtime f16 request: should resolve promoted f16 transforms'
+    );
+    equal(r.transforms.length, 1, 'Qwen 3.5 2B runtime f16 request: one transform function');
+    equal(r.transforms[0], useQwenF16PrimaryMatmuls,
+      'Qwen 3.5 2B runtime f16 request: transform is useQwenF16PrimaryMatmuls');
   }
 
   {

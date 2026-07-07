@@ -94,6 +94,33 @@ const modelProfiles = new Map(KNOWN_MODELS.map((entry) => [entry.modelId, entry.
 assert.equal(modelProfiles.get('qwen-3-5-0-8b-q4k-ehaf16'), 'profiles/throughput');
 assert.equal(modelProfiles.get('qwen-3-5-2b-q4k-ehaf16'), 'profiles/throughput');
 
+const qwen2F16PrimaryProfile = await readJson(
+  'src/config/runtime/profiles/qwen-3-5-2b-f16-primary-throughput.json'
+);
+const qwen2MetalThroughputProfile = await readJson(
+  'src/config/runtime/profiles/qwen-3-5-2b-metal-throughput.json'
+);
+assert.equal(qwen2F16PrimaryProfile.extends, 'profiles/throughput');
+assert.equal(qwen2F16PrimaryProfile.model, 'qwen-3-5-2b-q4k-ehaf16');
+assert.equal(qwen2F16PrimaryProfile.runtime.inference.compute.activationDtype, 'f16');
+assert.equal(
+  qwen2F16PrimaryProfile.runtime.inference.session,
+  undefined,
+  'Qwen 2B selective f16 profile must not override manifest compute-lane defaults'
+);
+assert.equal(qwen2MetalThroughputProfile.extends, 'profiles/throughput');
+assert.equal(qwen2MetalThroughputProfile.model, 'qwen-3-5-2b-q4k-ehaf16');
+assert.equal(
+  qwen2MetalThroughputProfile.runtime.inference.compute,
+  undefined,
+  'Qwen 2B Metal throughput profile must not change compute precision'
+);
+assert.equal(qwen2MetalThroughputProfile.runtime.inference.batching.batchSize, 8);
+assert.equal(qwen2MetalThroughputProfile.runtime.inference.batching.readbackInterval, 8);
+assert.equal(qwen2MetalThroughputProfile.runtime.inference.session.decodeLoop.batchSize, 8);
+assert.equal(qwen2MetalThroughputProfile.runtime.inference.session.decodeLoop.readbackInterval, 8);
+assert.equal(qwen2MetalThroughputProfile.runtime.inference.session.decodeLoop.maxBatchDecodeTokens, 64);
+
 const qwen08ConfigDecodeLoop = Object.freeze({
   batchSize: 4,
   stopCheckMode: 'batch',

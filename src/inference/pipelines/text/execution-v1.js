@@ -744,6 +744,7 @@ export function compileExecutionV1(options = {}) {
   const activationDtype = session.compute.defaults.activationDtype;
   const mathDtype = session.compute.defaults.mathDtype ?? null;
   const accumDtype = session.compute.defaults.accumDtype ?? null;
+  const requestedActivationDtype = runtimeCompute?.activationDtype ?? activationDtype;
   const kvDtype = requireSessionKVDtype(session);
   const declaredActivationDtype = declaredSession.compute?.defaults?.activationDtype ?? activationDtype;
   const declaredMathDtype = declaredSession.compute?.defaults?.mathDtype ?? mathDtype;
@@ -762,6 +763,7 @@ export function compileExecutionV1(options = {}) {
   let graphWasTransformed = false;
   let capabilityTransformPolicy = null;
   const graphContext = {
+    requestedActivationDtype,
     activationDtype,
     mathDtype,
     accumDtype,

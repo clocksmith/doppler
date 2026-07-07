@@ -4,175 +4,185 @@ import fs from 'node:fs';
 const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
 const { getLayerSteps } = await import('../../src/config/kernel-path-loader.js');
 
-const conversionConfig = JSON.parse(
-  fs.readFileSync(
-    new URL('../../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json', import.meta.url),
-    'utf8'
-  )
+function loadConversionConfig(relativePath) {
+  return JSON.parse(
+    fs.readFileSync(
+      new URL(relativePath, import.meta.url),
+      'utf8'
+    )
+  );
+}
+
+function compileQwenF16Primary(conversionConfig) {
+  const manifestInference = {
+    schema: 'doppler.execution/v1',
+    session: conversionConfig.session,
+    layerPattern: conversionConfig.inference.layerPattern,
+    execution: conversionConfig.execution,
+  };
+  return compileExecutionV1({
+    manifestInference,
+    modelId: conversionConfig.output.modelBaseId,
+    numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
+    runtimeCompute: {
+      activationDtype: 'f16',
+    },
+    kernelPathPolicy: {
+      mode: 'capability-aware',
+      sourceScope: ['model', 'manifest', 'config'],
+      allowSources: ['model', 'manifest', 'config'],
+      onIncompatible: 'remap',
+    },
+    capabilities: {
+      hasSubgroups: true,
+      hasF16: true,
+      maxWorkgroupStorageSize: 32768,
+    },
+    platform: {
+      id: 'metal',
+      vendor: 'apple',
+      architecture: 'metal-3',
+    },
+  });
+}
+
+function assertQwenF16PrimaryCompile(conversionConfig, compiled) {
+  const expectsOProjGemvConstants = conversionConfig.output.modelBaseId === 'qwen-3-5-0-8b-q4k-ehaf16';
+  const expectedOProjConstants = expectsOProjGemvConstants
+    ? {
+        COLS_PER_WG: 64,
+        THREADS_PER_COL_GEMV: 4,
+      }
+    : undefined;
+
+  assert.deepEqual(
+    compiled.appliedTransforms,
+    ['useQwenF16PrimaryMatmuls']
+  );
+
+  const kernelPath = compiled.runtimeInferencePatch.kernelPath;
+  assert.ok(kernelPath, 'execution-v1 compile should build an inline kernel path');
+  assert.equal(compiled.runtimeInferencePatch.compute?.activationDtype, 'f32');
+  assert.equal(kernelPath.activationDtype, 'f32');
+  assert.equal(kernelPath.kvDtype, 'f16');
+
+  assert.equal(
+    kernelPath.decode.steps.find((step) => step.op === 'q_proj')?.kernel,
+    'fused_matmul_q4_multicol_f16a.wgsl'
+  );
+  assert.equal(
+    kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.kernel,
+    'fused_matmul_q4_multicol_f16a.wgsl'
+  );
+  assert.equal(
+    kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.precision?.inputDtype,
+    'f16'
+  );
+  assert.equal(
+    kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.precision?.outputDtype,
+    'f16'
+  );
+  assert.equal(
+    kernelPath.decode.steps.find((step) => step.op === 'down_proj')?.kernel,
+    'fused_matmul_q4.wgsl'
+  );
+  assert.equal(
+    kernelPath.prefill.steps.find((step) => step.op === 'q_proj')?.kernel,
+    'fused_matmul_q4_widetile.wgsl'
+  );
+  assert.equal(
+    kernelPath.prefill.steps.find((step) => step.op === 'attention')?.kernel,
+    'attention_head256_f16kv.wgsl'
+  );
+  assert.equal(
+    kernelPath.prefill.steps.find((step) => step.op === 'attention')?.precision?.activationDtype,
+    undefined
+  );
+  assert.equal(
+    kernelPath.prefill.steps.find((step) => step.op === 'attention')?.precision?.kvDtype,
+    'f16'
+  );
+  assert.equal(
+    kernelPath.postLayer.find((step) => step.op === 'lm_head')?.kernel,
+    'fused_matmul_q4.wgsl'
+  );
+  assert.equal(
+    kernelPath.postLayer.find((step) => step.op === 'lm_head')?.entry,
+    'main_gemv'
+  );
+  assert.deepEqual(
+    kernelPath.postLayer.find((step) => step.op === 'lm_head')?.constants,
+    {
+      COLS_PER_WG: 64,
+      THREADS_PER_COL_GEMV: 4,
+    }
+  );
+  assert.equal(
+    kernelPath.postLayer.find((step) => step.op === 'lm_head_prefill')?.kernel,
+    'fused_matmul_q4_batched_multicol_shared.wgsl'
+  );
+  assert.equal(
+    kernelPath.postLayer.find((step) => step.op === 'lm_head_prefill')?.entry,
+    'main'
+  );
+
+  const linearDecodeSteps = getLayerSteps(kernelPath, 0, 'decode');
+  const linearDecodeOProj = linearDecodeSteps.find((step) => step.op === 'o_proj');
+  assert.equal(linearDecodeOProj?.kernel, 'fused_matmul_q4.wgsl');
+  assert.equal(linearDecodeOProj?.entry, 'main_gemv');
+  assert.deepEqual(
+    linearDecodeOProj?.constants,
+    expectedOProjConstants
+  );
+  assert.equal(linearDecodeOProj?.precision?.inputDtype, 'f32');
+  assert.equal(linearDecodeOProj?.precision?.outputDtype, 'f32');
+
+  const fullDecodeSteps = getLayerSteps(kernelPath, 3, 'decode');
+  const fullDecodeOProj = fullDecodeSteps.find((step) => step.op === 'o_proj');
+  assert.equal(fullDecodeOProj?.kernel, 'fused_matmul_q4.wgsl');
+  assert.equal(fullDecodeOProj?.precision?.inputDtype, 'f32');
+  assert.equal(fullDecodeOProj?.precision?.outputDtype, 'f32');
+
+  const linearPrefillSteps = getLayerSteps(kernelPath, 0, 'prefill');
+  const linearPrefillOProj = linearPrefillSteps.find((step) => step.op === 'o_proj');
+  assert.equal(linearPrefillOProj?.kernel, 'fused_matmul_q4_widetile.wgsl');
+  assert.equal(linearPrefillOProj?.precision?.inputDtype, 'f32');
+  assert.equal(linearPrefillOProj?.precision?.outputDtype, 'f32');
+
+  const fullPrefillSteps = getLayerSteps(kernelPath, 3, 'prefill');
+  const fullPrefillOProj = fullPrefillSteps.find((step) => step.op === 'o_proj');
+  assert.equal(fullPrefillOProj?.kernel, 'fused_matmul_q4_widetile.wgsl');
+  assert.equal(fullPrefillOProj?.precision?.inputDtype, 'f32');
+  assert.equal(fullPrefillOProj?.precision?.outputDtype, 'f32');
+}
+
+const qwen08ConversionConfig = loadConversionConfig(
+  '../../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'
 );
+const qwen2ConversionConfig = loadConversionConfig(
+  '../../src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json'
+);
+
+const compiled = compileQwenF16Primary(qwen08ConversionConfig);
+assertQwenF16PrimaryCompile(qwen08ConversionConfig, compiled);
+
+const compiledQwen2 = compileQwenF16Primary(qwen2ConversionConfig);
+assertQwenF16PrimaryCompile(qwen2ConversionConfig, compiledQwen2);
 
 const manifestInference = {
   schema: 'doppler.execution/v1',
-  session: conversionConfig.session,
-  layerPattern: conversionConfig.inference.layerPattern,
-  execution: conversionConfig.execution,
+  session: qwen08ConversionConfig.session,
+  layerPattern: qwen08ConversionConfig.inference.layerPattern,
+  execution: qwen08ConversionConfig.execution,
 };
-
-const compiled = compileExecutionV1({
-  manifestInference,
-  modelId: conversionConfig.output.modelBaseId,
-  numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
-  runtimeSession: {
-    ...conversionConfig.session,
-    compute: {
-      ...conversionConfig.session.compute,
-      defaults: {
-        ...conversionConfig.session.compute.defaults,
-        activationDtype: 'f16',
-        mathDtype: 'f16',
-        accumDtype: 'f16',
-        outputDtype: 'f16',
-      },
-    },
-  },
-  kernelPathPolicy: {
-    mode: 'capability-aware',
-    sourceScope: ['model', 'manifest', 'config'],
-    allowSources: ['model', 'manifest', 'config'],
-    onIncompatible: 'remap',
-  },
-  capabilities: {
-    hasSubgroups: true,
-    hasF16: true,
-    maxWorkgroupStorageSize: 32768,
-  },
-  platform: {
-    id: 'metal',
-    vendor: 'apple',
-    architecture: 'metal-3',
-  },
-});
-
-assert.deepEqual(
-  compiled.appliedTransforms,
-  ['useQwenF16PrimaryMatmuls']
-);
-
-const kernelPath = compiled.runtimeInferencePatch.kernelPath;
-assert.ok(kernelPath, 'execution-v1 compile should build an inline kernel path');
-assert.equal(compiled.runtimeInferencePatch.compute?.activationDtype, 'f32');
-assert.equal(kernelPath.activationDtype, 'f32');
-assert.equal(kernelPath.kvDtype, 'f16');
-
-assert.equal(
-  kernelPath.decode.steps.find((step) => step.op === 'q_proj')?.kernel,
-  'fused_matmul_q4_multicol_f16a.wgsl'
-);
-assert.equal(
-  kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.kernel,
-  'fused_matmul_q4_multicol_f16a.wgsl'
-);
-assert.equal(
-  kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.precision?.inputDtype,
-  'f16'
-);
-assert.equal(
-  kernelPath.decode.steps.find((step) => step.op === 'gate_proj')?.precision?.outputDtype,
-  'f16'
-);
-assert.equal(
-  kernelPath.decode.steps.find((step) => step.op === 'down_proj')?.kernel,
-  'fused_matmul_q4.wgsl'
-);
-assert.equal(
-  kernelPath.prefill.steps.find((step) => step.op === 'q_proj')?.kernel,
-  'fused_matmul_q4_widetile.wgsl'
-);
-assert.equal(
-  kernelPath.prefill.steps.find((step) => step.op === 'attention')?.kernel,
-  'attention_head256_f16kv.wgsl'
-);
-assert.equal(
-  kernelPath.prefill.steps.find((step) => step.op === 'attention')?.precision?.activationDtype,
-  undefined
-);
-assert.equal(
-  kernelPath.prefill.steps.find((step) => step.op === 'attention')?.precision?.kvDtype,
-  'f16'
-);
-assert.equal(
-  kernelPath.postLayer.find((step) => step.op === 'lm_head')?.kernel,
-  'fused_matmul_q4.wgsl'
-);
-assert.equal(
-  kernelPath.postLayer.find((step) => step.op === 'lm_head')?.entry,
-  'main_gemv'
-);
-assert.deepEqual(
-  kernelPath.postLayer.find((step) => step.op === 'lm_head')?.constants,
-  {
-    COLS_PER_WG: 64,
-    THREADS_PER_COL_GEMV: 4,
-  }
-);
-assert.equal(
-  kernelPath.postLayer.find((step) => step.op === 'lm_head_prefill')?.kernel,
-  'fused_matmul_q4_batched_multicol_shared.wgsl'
-);
-assert.equal(
-  kernelPath.postLayer.find((step) => step.op === 'lm_head_prefill')?.entry,
-  'main'
-);
-
-const linearDecodeSteps = getLayerSteps(kernelPath, 0, 'decode');
-const linearDecodeOProj = linearDecodeSteps.find((step) => step.op === 'o_proj');
-assert.equal(linearDecodeOProj?.kernel, 'fused_matmul_q4.wgsl');
-assert.equal(linearDecodeOProj?.entry, 'main_gemv');
-assert.deepEqual(
-  linearDecodeOProj?.constants,
-  {
-    COLS_PER_WG: 64,
-    THREADS_PER_COL_GEMV: 4,
-  }
-);
-assert.equal(linearDecodeOProj?.precision?.inputDtype, 'f32');
-assert.equal(linearDecodeOProj?.precision?.outputDtype, 'f32');
-
-const fullDecodeSteps = getLayerSteps(kernelPath, 3, 'decode');
-const fullDecodeOProj = fullDecodeSteps.find((step) => step.op === 'o_proj');
-assert.equal(fullDecodeOProj?.kernel, 'fused_matmul_q4.wgsl');
-assert.equal(fullDecodeOProj?.precision?.inputDtype, 'f32');
-assert.equal(fullDecodeOProj?.precision?.outputDtype, 'f32');
-
-const linearPrefillSteps = getLayerSteps(kernelPath, 0, 'prefill');
-const linearPrefillOProj = linearPrefillSteps.find((step) => step.op === 'o_proj');
-assert.equal(linearPrefillOProj?.kernel, 'fused_matmul_q4_widetile.wgsl');
-assert.equal(linearPrefillOProj?.precision?.inputDtype, 'f32');
-assert.equal(linearPrefillOProj?.precision?.outputDtype, 'f32');
-
-const fullPrefillSteps = getLayerSteps(kernelPath, 3, 'prefill');
-const fullPrefillOProj = fullPrefillSteps.find((step) => step.op === 'o_proj');
-assert.equal(fullPrefillOProj?.kernel, 'fused_matmul_q4_widetile.wgsl');
-assert.equal(fullPrefillOProj?.precision?.inputDtype, 'f32');
-assert.equal(fullPrefillOProj?.precision?.outputDtype, 'f32');
 
 const compiledWithFallbackPlan = compileExecutionV1({
   manifestInference,
-  modelId: conversionConfig.output.modelBaseId,
-  numLayers: conversionConfig.inference.layerPattern.layerTypes.length,
-  runtimeSession: {
-    ...conversionConfig.session,
-    compute: {
-      ...conversionConfig.session.compute,
-      defaults: {
-        ...conversionConfig.session.compute.defaults,
-        activationDtype: 'f16',
-        mathDtype: 'f16',
-        accumDtype: 'f16',
-        outputDtype: 'f16',
-      },
+  modelId: qwen08ConversionConfig.output.modelBaseId,
+  numLayers: qwen08ConversionConfig.inference.layerPattern.layerTypes.length,
+    runtimeCompute: {
+      activationDtype: 'f16',
     },
-  },
   kernelPathPolicy: {
     mode: 'capability-aware',
     sourceScope: ['model', 'manifest', 'config'],

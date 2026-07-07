@@ -27,6 +27,9 @@ export function resolveCapabilityTransforms(capabilities, platform, graphContext
   const matchContext = {
     ...capabilities,
     ...normalizedGraphContext,
+    requestedActivationDtype: normalizedGraphContext.requestedActivationDtype
+      ?? normalizedGraphContext.activationDtype
+      ?? null,
     activationDtype: normalizedGraphContext.activationDtype ?? null,
     mathDtype: normalizedGraphContext.mathDtype ?? null,
     accumDtype: normalizedGraphContext.accumDtype ?? null,

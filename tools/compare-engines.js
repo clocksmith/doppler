@@ -1383,6 +1383,27 @@ async function loadCompareEnginesConfig(rawPath) {
     return Object.freeze(normalized);
   };
 
+  const normalizeDopplerRuntimeProfileByDecodeProfileByPlatform = (value, label) => {
+    if (value == null) {
+      return Object.freeze({});
+    }
+    if (typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error(`${label} must be an object or null`);
+    }
+    const normalized = {};
+    for (const [platform, profileMap] of Object.entries(value)) {
+      const normalizedPlatform = String(platform ?? '').trim();
+      if (!normalizedPlatform) {
+        throw new Error(`${label} contains an invalid platform key`);
+      }
+      normalized[normalizedPlatform] = normalizeDopplerRuntimeProfileByDecodeProfile(
+        profileMap,
+        `${label}.${normalizedPlatform}`
+      );
+    }
+    return Object.freeze(normalized);
+  };
+
   const normalizeOutputParityPolicy = (value, label) => {
     if (value == null) {
       return null;
@@ -1492,6 +1513,10 @@ async function loadCompareEnginesConfig(rawPath) {
       row.dopplerRuntimeProfileByDecodeProfile ?? null,
       `compare-engines.config.json dopplerRuntimeProfileByDecodeProfile for ${row.dopplerModelId}`
     );
+    row.dopplerRuntimeProfileByDecodeProfileByPlatform = normalizeDopplerRuntimeProfileByDecodeProfileByPlatform(
+      row.dopplerRuntimeProfileByDecodeProfileByPlatform ?? null,
+      `compare-engines.config.json dopplerRuntimeProfileByDecodeProfileByPlatform for ${row.dopplerModelId}`
+    );
     row.outputParityPolicy = normalizeOutputParityPolicy(
       row.outputParityPolicy ?? null,
       `compare-engines.config.json outputParityPolicy for ${row.dopplerModelId}`
@@ -1531,6 +1556,7 @@ function resolveCompareProfile(compareConfig, modelId) {
     defaultLoadModeReason: profile?.defaultLoadModeReason || null,
     safetensorsSourceId: profile?.safetensorsSourceId || null,
     dopplerRuntimeProfileByDecodeProfile: profile?.dopplerRuntimeProfileByDecodeProfile || Object.freeze({}),
+    dopplerRuntimeProfileByDecodeProfileByPlatform: profile?.dopplerRuntimeProfileByDecodeProfileByPlatform || Object.freeze({}),
     compareLane: profile?.compareLane || DEFAULT_COMPARE_LANE,
     compareLaneReason: profile?.compareLaneReason || null,
     outputParityPolicy: profile?.outputParityPolicy || null,
@@ -1578,8 +1604,18 @@ async function loadResolvedRuntimeProfileBundle(profileId, stack = []) {
   };
 }
 
-async function loadCompareProfileRuntimeBundles(compareProfile) {
-  const entries = Object.entries(compareProfile?.dopplerRuntimeProfileByDecodeProfile || {});
+function resolveCompareRuntimeProfileMap(compareProfile, platform = process.platform) {
+  const baseProfiles = compareProfile?.dopplerRuntimeProfileByDecodeProfile || Object.freeze({});
+  const platformProfiles = compareProfile?.dopplerRuntimeProfileByDecodeProfileByPlatform?.[platform]
+    || Object.freeze({});
+  return Object.freeze({
+    ...baseProfiles,
+    ...platformProfiles,
+  });
+}
+
+async function loadCompareProfileRuntimeBundles(compareProfile, platform = process.platform) {
+  const entries = Object.entries(resolveCompareRuntimeProfileMap(compareProfile, platform));
   if (entries.length === 0) {
     return new Map();
   }
@@ -2018,8 +2054,9 @@ async function execFileForSavedDopplerBench(command, args, options) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: options.cwd,
-      stdio: ['ignore', 'ignore', 'pipe'],
+      stdio: ['ignore', 'pipe', 'pipe'],
     });
+    let stdoutTail = '';
     let stderrTail = '';
     let settled = false;
     let timedOut = false;
@@ -2027,6 +2064,11 @@ async function execFileForSavedDopplerBench(command, args, options) {
       timedOut = true;
       child.kill('SIGTERM');
     }, options.timeout);
+
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => {
+      stdoutTail = appendBoundedTail(stdoutTail, chunk);
+    });
 
     child.stderr.setEncoding('utf8');
     child.stderr.on('data', (chunk) => {
@@ -2045,14 +2087,20 @@ async function execFileForSavedDopplerBench(command, args, options) {
       settled = true;
       clearTimeout(timeoutId);
       if (timedOut) {
-        reject(new Error(`Doppler bench child timed out after ${options.timeout}ms. Stderr tail:\n${clipTail(stderrTail, 2000)}`));
+        reject(new Error(
+          `Doppler bench child timed out after ${options.timeout}ms. ` +
+          `Stderr tail:\n${clipTail(stderrTail, 2000)}\nStdout tail:\n${clipTail(stdoutTail, 2000)}`
+        ));
         return;
       }
       if (code !== 0) {
-        reject(new Error(`Doppler bench child exited with code ${code ?? 'null'} signal ${signal ?? 'null'}. Stderr tail:\n${clipTail(stderrTail, 2000)}`));
+        reject(new Error(
+          `Doppler bench child exited with code ${code ?? 'null'} signal ${signal ?? 'null'}. ` +
+          `Stderr tail:\n${clipTail(stderrTail, 2000)}\nStdout tail:\n${clipTail(stdoutTail, 2000)}`
+        ));
         return;
       }
-      resolve({ stderr: stderrTail });
+      resolve({ stdout: stdoutTail, stderr: stderrTail });
     });
   });
 }
@@ -3179,6 +3227,7 @@ function resolveDopplerDecodeCadenceFromRuntimeConfig(runtimeConfig) {
   return {
     batchSize: decodeLoop.batchSize,
     readbackInterval: decodeLoop.readbackInterval,
+    maxBatchDecodeTokens: decodeLoop.maxBatchDecodeTokens ?? null,
     stopCheckMode: decodeLoop.stopCheckMode,
     readbackMode: decodeLoop.readbackMode ?? batching.readbackMode ?? null,
     disableCommandBatching: decodeLoop.disableCommandBatching,
@@ -3197,6 +3246,7 @@ function resolveDopplerDecodeCadenceFromRuntimeConfig(runtimeConfig) {
       decodeLoop: {
         batchSize: decodeLoop.batchSize,
         readbackInterval: decodeLoop.readbackInterval,
+        maxBatchDecodeTokens: decodeLoop.maxBatchDecodeTokens ?? null,
         stopCheckMode: decodeLoop.stopCheckMode,
         readbackMode: decodeLoop.readbackMode ?? null,
       },
@@ -3214,6 +3264,7 @@ function mergeDopplerDecodeCadence(runtimeCadence, metricsCadence) {
   return {
     batchSize: metricsCadence.batchSize ?? runtimeCadence.batchSize,
     readbackInterval: metricsCadence.readbackInterval ?? runtimeCadence.readbackInterval,
+    maxBatchDecodeTokens: metricsCadence.maxBatchDecodeTokens ?? runtimeCadence.maxBatchDecodeTokens,
     stopCheckMode: metricsCadence.stopCheckMode ?? runtimeCadence.stopCheckMode,
     readbackMode: metricsCadence.readbackMode ?? runtimeCadence.readbackMode,
     disableCommandBatching: metricsCadence.disableCommandBatching ?? runtimeCadence.disableCommandBatching,
@@ -4187,6 +4238,13 @@ function assertDopplerDecodeCadence(result, expectedCadence, phaseLabel) {
       decodeLoop.readbackMode,
       expectedCadence.readbackMode,
       `Doppler declared cadence mismatch during ${phaseLabel}: inference.session.decodeLoop.readbackMode`
+    );
+  }
+  if (expectedCadence.maxBatchDecodeTokens !== undefined) {
+    assertCadenceField(
+      decodeLoop.maxBatchDecodeTokens ?? null,
+      expectedCadence.maxBatchDecodeTokens,
+      `Doppler declared cadence mismatch during ${phaseLabel}: inference.session.decodeLoop.maxBatchDecodeTokens`
     );
   }
   assertCadenceField(
@@ -6483,6 +6541,7 @@ export {
   renderComparePrompt,
   resolveCompareOwnedPromptRenderer,
   resolveCompareProfile,
+  resolveCompareRuntimeProfileMap,
   resolveCompareLoadModes,
   resolveDopplerBenchmarkKvCachePlan,
   resolveDopplerExecutionIdentity,
