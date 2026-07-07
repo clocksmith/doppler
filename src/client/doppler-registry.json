@@ -143,7 +143,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "dbb354acb00108965c5324ca7b6fecc198d12501",
+        "revision": "16256bf16dc8f92b8fe5105b07628cef91587f0a",
         "path": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       },
       "vendorBenchmark": {
@@ -201,7 +201,7 @@
       ],
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "a8c45dd885a789042d3b82c95b471d66ca8d5152",
+        "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "vendorBenchmark": {

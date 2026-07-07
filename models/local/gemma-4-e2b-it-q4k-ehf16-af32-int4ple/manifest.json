@@ -89,7 +89,7 @@
       "tieWordEmbeddings": true,
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
-      "embeddingVocabSize": 262144,
+      "embeddingVocabSize": null,
       "embeddingPostprocessor": null,
       "embeddingScale": null,
       "logitInputScale": 1
@@ -555,7 +555,8 @@
         "dtypeTransition": "require_cast_step",
         "unresolvedKernel": "error"
       }
-    }
+    },
+    "sessionDefaults": null
   },
   "shards": [
     {
@@ -25248,7 +25249,11 @@
   "metadata": {
     "source": "convert-core",
     "convertedAt": "2026-04-16T22:35:24.693Z",
-    "hasTokenizer": true
+    "hasTokenizer": true,
+    "executionGraphPatch": {
+      "at": "2026-07-06T01:48:36.643Z",
+      "config": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json"
+    }
   },
   "tokenizer": {
     "type": "bundled",

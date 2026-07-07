@@ -77,7 +77,13 @@ compare_*.json
 benchmarks/vendors/results/*.json
 !benchmarks/vendors/results/compare_20260705T160226.json
 !benchmarks/vendors/results/compare_20260705T161224.json
+!benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json
 !benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260705T152659.json
+!benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json
+!benchmarks/vendors/results/compare_20260706T165528.json
+!benchmarks/vendors/results/compare_20260706T170010.json
+!benchmarks/vendors/results/compare_20260706T170734.json
+!benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json
 .tjs-bench-profile/
 benchmarks/.tjs-bench-profile/
 

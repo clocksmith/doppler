@@ -13,11 +13,13 @@ const CATALOG_PATH = path.join(REPO_ROOT, 'models', 'catalog.json');
 const SUPPORT_ROLLOUT_POLICY_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'support-rollout-policy.json');
 const COMPARE_CONFIG_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'compare-engines.config.json');
 const EMBEDDING_COMPARE_CONFIG_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'embedding-compare.config.json');
+const RERANK_COMPARE_CONFIG_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'rerank-compare.config.json');
 const CLAIM_MATRIX_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'local-inference-claim-matrix.json');
 const RELEASE_MATRIX_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'release-matrix.json');
 const RELEASE_CLAIM_POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'release-claim-policy.json');
 const WORKLOADS_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'workloads.json');
 const BENCHMARK_POLICY_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'benchmark-policy.json');
+const COMPARE_RESULTS_DIR = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'results');
 const DEFAULT_JSON_OUTPUT_PATH = path.join(REPO_ROOT, 'benchmarks', 'vendors', 'model-support-inventory.json');
 const DEFAULT_MARKDOWN_OUTPUT_PATH = path.join(REPO_ROOT, 'docs', 'model-support-inventory.md');
 
@@ -52,6 +54,11 @@ function hasText(value) {
 
 function hasFiniteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function timestampScore(value) {
+  const parsed = Date.parse(normalizeText(value));
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 function repoRelative(filePath) {
@@ -308,6 +315,38 @@ async function collectConversionConfigs() {
   return records;
 }
 
+async function collectLatestCompareResults(prefix) {
+  const byModelId = new Map();
+  let entries = [];
+  try {
+    entries = await fs.readdir(COMPARE_RESULTS_DIR, { withFileTypes: true });
+  } catch {
+    return byModelId;
+  }
+  for (const entry of entries) {
+    if (!entry.isFile()) continue;
+    if (!entry.name.startsWith(prefix) || !entry.name.endsWith('.json')) continue;
+    const fullPath = path.join(COMPARE_RESULTS_DIR, entry.name);
+    const payload = await readJson(fullPath);
+    if (payload?.summary?.correctnessOk !== true) continue;
+    const modelId = normalizeText(payload?.model?.dopplerModelId);
+    if (!modelId) continue;
+    const record = {
+      path: repoRelative(fullPath),
+      timestamp: normalizeText(payload?.timestamp) || null,
+      isLatestAlias: entry.name === `${prefix}latest.json`,
+    };
+    const current = byModelId.get(modelId);
+    const newer = !current || timestampScore(record.timestamp) > timestampScore(current.timestamp);
+    const sameTimestampPreferred = current
+      && timestampScore(record.timestamp) === timestampScore(current.timestamp)
+      && current.isLatestAlias
+      && !record.isLatestAlias;
+    if (newer || sameTimestampPreferred) byModelId.set(modelId, record);
+  }
+  return byModelId;
+}
+
 function buildConversionIndex(conversionRecords) {
   const index = new Map();
   for (const record of conversionRecords) {
@@ -350,7 +389,7 @@ function mapByModelId(entries, getModelId) {
   return out;
 }
 
-function buildCompareProfileIndex(catalog, compareConfig, embeddingCompareConfig) {
+function buildCompareProfileIndex(catalog, compareConfig, embeddingCompareConfig, rerankCompareConfig) {
   const index = new Map();
   const catalogByModelId = mapByModelId(catalog?.models, (entry) => entry?.modelId);
   for (const entry of Array.isArray(compareConfig?.modelProfiles) ? compareConfig.modelProfiles : []) {
@@ -376,6 +415,23 @@ function buildCompareProfileIndex(catalog, compareConfig, embeddingCompareConfig
         || normalizeText(catalogEntry?.vendorBenchmark?.transformersjs?.dtype)
         || null,
       profileKind: 'embedding',
+    });
+  }
+  for (const entry of Array.isArray(rerankCompareConfig?.modelProfiles) ? rerankCompareConfig.modelProfiles : []) {
+    const modelId = normalizeText(entry?.dopplerModelId);
+    if (!modelId) continue;
+    const catalogEntry = catalogByModelId.get(modelId);
+    const modes = Array.isArray(catalogEntry?.modes) ? catalogEntry.modes.map(normalizeText) : [];
+    if (!modes.includes('rerank')) continue;
+    index.set(modelId, {
+      ...entry,
+      defaultTjsModelId: normalizeText(entry?.defaultTjsModelId)
+        || normalizeText(catalogEntry?.vendorBenchmark?.transformersjs?.repoId)
+        || null,
+      defaultTjsDtype: normalizeText(entry?.defaultTjsDtype)
+        || normalizeText(catalogEntry?.vendorBenchmark?.transformersjs?.dtype)
+        || null,
+      profileKind: 'rerank',
     });
   }
   return index;
@@ -495,9 +551,47 @@ function buildEmbeddingCompareCommands(modelId, compareProfile, embeddingDefault
   }];
 }
 
-function buildCompareCommandsForProfile(modelId, compareProfile, supportRollout, embeddingDefaults) {
+function buildRerankCompareCommands(modelId, compareProfile, rerankDefaults) {
+  const args = [
+    'node',
+    'tools/compare-rerankers.js',
+    '--model-id',
+    modelId,
+    '--warmup',
+    String(compareProfile.warmupRuns ?? rerankDefaults.warmupRuns ?? 1),
+    '--runs',
+    String(compareProfile.timedRuns ?? rerankDefaults.timedRuns ?? 3),
+  ];
+  const dopplerSource = normalizeText(compareProfile.defaultDopplerSource);
+  if (dopplerSource) {
+    args.push('--doppler-source', dopplerSource);
+  }
+  const dopplerSurface = normalizeText(compareProfile.defaultDopplerSurface || rerankDefaults.dopplerSurface);
+  if (dopplerSurface) {
+    args.push('--doppler-surface', dopplerSurface);
+  }
+  const cacheMode = normalizeText(compareProfile.cacheMode || rerankDefaults.cacheMode);
+  if (cacheMode) {
+    args.push('--cache-mode', cacheMode);
+  }
+  const loadMode = normalizeText(compareProfile.loadMode || rerankDefaults.loadMode);
+  if (loadMode) {
+    args.push('--load-mode', loadMode);
+  }
+  args.push('--save', '--json');
+  return [{
+    workloadId: 'rerank',
+    decodeProfile: null,
+    command: args.join(' '),
+  }];
+}
+
+function buildCompareCommandsForProfile(modelId, compareProfile, supportRollout, embeddingDefaults, rerankDefaults) {
   if (compareProfile?.profileKind === 'embedding') {
     return buildEmbeddingCompareCommands(modelId, compareProfile, embeddingDefaults);
+  }
+  if (compareProfile?.profileKind === 'rerank') {
+    return buildRerankCompareCommands(modelId, compareProfile, rerankDefaults);
   }
   return buildCompareCommands(modelId, supportRollout.benchmarkCommands);
 }
@@ -508,15 +602,27 @@ function buildActions(modelId, compareProfile, benchmarkComparable, supportRollo
     verifyCommand: `node tools/run-registry-verify.js ${modelId} --surface auto`,
     hfDryRunCommand: `node tools/publish-hf-registry-model.js --model-id ${modelId} --dry-run${bootstrapFlag}`,
     compareCommands: compareProfile && benchmarkComparable
-      ? buildCompareCommandsForProfile(modelId, compareProfile, supportRollout, options.embeddingDefaults || {})
+      ? buildCompareCommandsForProfile(
+        modelId,
+        compareProfile,
+        supportRollout,
+        options.embeddingDefaults || {},
+        options.rerankDefaults || {}
+      )
       : [],
     primaryNextCommand: null,
   };
 }
 
-function resolvePrimaryNextCommand(nextGate, actions) {
+function resolvePrimaryNextCommand(nextGate, actions, compareProfile = null) {
   if (nextGate === 'runtime-verify') return actions.verifyCommand;
   if (nextGate === 'hf-publish') return actions.hfDryRunCommand;
+  if (
+    nextGate === 'summary-svg'
+    && ['embedding', 'rerank'].includes(normalizeText(compareProfile?.profileKind))
+  ) {
+    return null;
+  }
   if (
     nextGate === 'claim-lane'
     || nextGate === 'compare-result'
@@ -539,9 +645,12 @@ async function buildVariant(model, context) {
   const releaseCoverage = context.releaseCoverageByModelId.get(modelId) || null;
   const claimLane = context.claimLaneByModelId.get(modelId) || null;
   const runtimeReport = normalizeText(claimLane?.evidence?.localExecutionReport) || resolveReleaseClaimPath(modelId, context.releaseClaimByModelId);
-  const compareResult = normalizeText(claimLane?.evidence?.compareResult);
-  const summarySvg = normalizeText(claimLane?.evidence?.summarySvg);
   const profileKind = normalizeText(compareProfile?.profileKind) || null;
+  const specialtyCompareResult = profileKind === 'embedding'
+    ? context.latestEmbeddingCompareResultByModelId.get(modelId)
+    : (profileKind === 'rerank' ? context.latestRerankCompareResultByModelId.get(modelId) : null);
+  const compareResult = normalizeText(claimLane?.evidence?.compareResult) || normalizeText(specialtyCompareResult?.path);
+  const summarySvg = normalizeText(claimLane?.evidence?.summarySvg);
   const hfPublished = model?.lifecycle?.availability?.hf === true;
   const tested = normalizeText(model?.lifecycle?.status?.tested);
   const artifactCompleteness = normalizeText(model?.artifactCompleteness);
@@ -565,7 +674,7 @@ async function buildVariant(model, context) {
     missing.push('compare-profile');
   }
   if (benchmarkComparable) {
-    if (!claimLane && profileKind !== 'embedding') missing.push('claim-lane');
+    if (!claimLane && profileKind !== 'embedding' && profileKind !== 'rerank') missing.push('claim-lane');
     if (!hasText(compareResult)) missing.push('compare-result');
     if (!hasText(summarySvg)) missing.push('summary-svg');
   } else if (compareProfile) {
@@ -589,8 +698,9 @@ async function buildVariant(model, context) {
   const actions = buildActions(modelId, compareProfile, benchmarkComparable, context.supportRollout, {
     hfPublished,
     embeddingDefaults: context.embeddingCompareDefaults,
+    rerankDefaults: context.rerankCompareDefaults,
   });
-  actions.primaryNextCommand = resolvePrimaryNextCommand(nextGate, actions);
+  actions.primaryNextCommand = resolvePrimaryNextCommand(nextGate, actions, compareProfile);
   return {
     modelId,
     label: normalizeText(model.label) || modelId,
@@ -763,6 +873,11 @@ function sourceNextAction(sourceModel) {
   if (smallest.missing.includes('claim-lane')) {
     return `Add a local inference claim lane for ${smallest.modelId}.`;
   }
+  if (smallest.missing.includes('summary-svg') && !smallest.missing.includes('compare-result')) {
+    if (['embedding', 'rerank'].includes(normalizeText(smallest.compare?.profile?.kind))) {
+      return `Add summary SVG evidence for ${smallest.modelId}.`;
+    }
+  }
   if (smallest.missing.includes('compare-result') || smallest.missing.includes('summary-svg')) {
     return `Run compare/bench receipts for ${smallest.modelId}.`;
   }
@@ -785,28 +900,34 @@ async function buildInventory() {
     supportRolloutPolicy,
     compareConfig,
     embeddingCompareConfig,
+    rerankCompareConfig,
     claimMatrix,
     releaseMatrix,
     releaseClaimPolicy,
     workloads,
     benchmarkPolicy,
     conversionRecords,
+    latestEmbeddingCompareResultByModelId,
+    latestRerankCompareResultByModelId,
   ] = await Promise.all([
     readJson(CATALOG_PATH),
     readJson(SUPPORT_ROLLOUT_POLICY_PATH),
     readJson(COMPARE_CONFIG_PATH),
     readJson(EMBEDDING_COMPARE_CONFIG_PATH),
+    readJson(RERANK_COMPARE_CONFIG_PATH),
     readJson(CLAIM_MATRIX_PATH),
     readJson(RELEASE_MATRIX_PATH),
     readJson(RELEASE_CLAIM_POLICY_PATH),
     readJson(WORKLOADS_PATH),
     readJson(BENCHMARK_POLICY_PATH),
     collectConversionConfigs(),
+    collectLatestCompareResults('embedding_compare_'),
+    collectLatestCompareResults('rerank_compare_'),
   ]);
   const supportRollout = validateSupportRolloutPolicy(supportRolloutPolicy);
   validateBenchmarkCommandReferences(supportRollout, workloads, benchmarkPolicy);
   const conversionIndex = buildConversionIndex(conversionRecords);
-  const compareProfileByModelId = buildCompareProfileIndex(catalog, compareConfig, embeddingCompareConfig);
+  const compareProfileByModelId = buildCompareProfileIndex(catalog, compareConfig, embeddingCompareConfig, rerankCompareConfig);
   const claimLaneByModelId = mapByModelId(claimMatrix.lanes, (entry) => entry?.model?.dopplerModelId);
   const releaseCoverageByModelId = mapByModelId(releaseMatrix.modelCoverage, (entry) => entry?.dopplerModelId);
   const releaseClaimByModelId = mapByModelId(releaseClaimPolicy.claims, (entry) => entry?.modelId);
@@ -815,9 +936,12 @@ async function buildInventory() {
     conversionIndex,
     compareProfileByModelId,
     embeddingCompareDefaults: embeddingCompareConfig.defaults || {},
+    rerankCompareDefaults: rerankCompareConfig.defaults || {},
     claimLaneByModelId,
     releaseCoverageByModelId,
     releaseClaimByModelId,
+    latestEmbeddingCompareResultByModelId,
+    latestRerankCompareResultByModelId,
   };
   const variants = [];
   const assignedConversionPaths = new Set();
@@ -892,6 +1016,9 @@ async function buildInventory() {
       'benchmarks/vendors/workloads.json',
       'benchmarks/vendors/compare-engines.config.json',
       'benchmarks/vendors/embedding-compare.config.json',
+      'benchmarks/vendors/rerank-compare.config.json',
+      'benchmarks/vendors/results/embedding_compare_*.json',
+      'benchmarks/vendors/results/rerank_compare_*.json',
       'benchmarks/vendors/local-inference-claim-matrix.json',
       'benchmarks/vendors/release-matrix.json',
       'tools/policies/release-claim-policy.json',
@@ -949,7 +1076,7 @@ function renderMarkdown(inventory) {
   const lines = [];
   lines.push('# Model Support Inventory');
   lines.push('');
-  lines.push('Generated from model catalog, conversion configs, support rollout policy, compare profiles, release matrix, claim lanes, and release-claim receipts.');
+  lines.push('Generated from model catalog, conversion configs, support rollout policy, compare profiles, saved compare receipts, release matrix, claim lanes, and release-claim receipts.');
   lines.push('');
   lines.push(`Updated at: ${inventory.updated}`);
   lines.push('');

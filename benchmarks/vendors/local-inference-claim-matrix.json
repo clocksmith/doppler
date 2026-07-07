@@ -652,7 +652,7 @@
       },
       "evidence": {
         "localExecutionReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
-        "compareResult": null,
+        "compareResult": "benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json",
         "summarySvg": null
       }
     },
@@ -853,7 +853,7 @@
         "compression": "q4k-ehf16-af32-int4ple",
         "quantization": "Q4_K_M",
         "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
-        "manifestSha256": "85c460793b8918660573aed4e260e54468240c29524541dda3651d4f754ef166",
+        "manifestSha256": "512d6e16602071cccff4cbe576bf3b2c20bd43fd32aefc271db4bb95cc9c7f17",
         "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
         "weightPackHash": null,
         "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",

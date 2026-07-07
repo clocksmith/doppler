@@ -355,7 +355,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "path": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-        "revision": "dbb354acb00108965c5324ca7b6fecc198d12501"
+        "revision": "16256bf16dc8f92b8fe5105b07628cef91587f0a"
       },
       "baseUrl": null,
       "quickstart": true,
@@ -422,7 +422,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": null,
+        "revision": "2d326649ae3d04b83323de0e6247e1e42fb1d9af",
         "path": "models/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
       },
       "baseUrl": null,
@@ -435,7 +435,7 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
           "runtime": "active",
@@ -457,7 +457,12 @@
           }
         }
       },
-      "vendorBenchmark": null,
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-4-E2B-it-ONNX",
+          "dtype": "q4f16"
+        }
+      },
       "sourceCheckpointId": "google/gemma-4-E2B-it",
       "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
       "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-mv-f16-activations-v1",
@@ -962,7 +967,7 @@
       "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
       "family": "qwen3",
       "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
-      "description": "Qwen3 0.6B SentenceTransformers CrossEncoder reranker target with Q4K attention, F16 MLP projections, and manifest-owned true-logit scoring. The local lane passes semantic rerank verification and benchmark checks; HF publication remains disabled until explicit promotion.",
+      "description": "Qwen3 0.6B SentenceTransformers CrossEncoder reranker target with Q4K attention, F16 MLP projections, and manifest-owned true-logit scoring. The hosted registry lane passes semantic rerank verification and has an external Transformers.js ONNX compare profile for fair rerank receipts.",
       "modes": [
         "rerank"
       ],
@@ -1009,11 +1014,12 @@
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Fresh hosted registry verify receipts pass on node (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json) and browser (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-30-58.312Z.browser.json). Semantic pair accuracy 1.0 (5/5) on both receipts, WebGPU query topDocumentIndex 0, rerankMs 1665.34 on node and 1797.80 in browser for the three-document smoke request. Speed evidence: reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-43-20.530Z.bench.json (medianRerankMs 1546.27 for the same request). No external reranker competitor compare is claimed yet."
+          "notes": "Fresh hosted registry verify receipts pass on node (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json) and browser (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-30-58.312Z.browser.json). Semantic pair accuracy 1.0 (5/5) on both receipts, WebGPU query topDocumentIndex 0, rerankMs 1665.34 on node and 1797.80 in browser for the three-document smoke request. Speed evidence: reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-43-20.530Z.bench.json (medianRerankMs 1546.27 for the same request). External reranker receipts compare against onnx-community/Qwen3-Reranker-0.6B-ONNX using the q4 ONNX artifact and must not be summarized as a Doppler speed win unless the saved receipt says Doppler leads."
         }
       },
       "verify": {
         "workload": "rerank",
+        "runtimeProfile": "profiles/rerank-stability",
         "runtimeConfig": {
           "inference": {
             "rerank": {
@@ -1027,7 +1033,13 @@
           }
         }
       },
-      "vendorBenchmark": null,
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/Qwen3-Reranker-0.6B-ONNX",
+          "dtype": "q4",
+          "format": "onnx"
+        }
+      },
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
       "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
       "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
@@ -1273,7 +1285,7 @@
       },
       "hf": {
         "repoId": "Clocksmith/rdrr",
-        "revision": "a8c45dd885a789042d3b82c95b471d66ca8d5152",
+        "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,

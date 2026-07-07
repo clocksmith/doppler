@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -11,12 +12,24 @@ const QWEN_08_EVIDENCE_PATH = path.join(
   'fixtures',
   'qwen3-5-0-8b-p064-d064-t0-k1.compare.json'
 );
+const QWEN_2B_EVIDENCE_PATH = path.join(
+  REPO_ROOT,
+  'benchmarks',
+  'vendors',
+  'fixtures',
+  'qwen3-5-2b-p064-d064-t0-k1.compare.json'
+);
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function sha256File(filePath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
 const compareConfig = readJson(COMPARE_CONFIG_PATH);
+const compareConfigSha256 = sha256File(COMPARE_CONFIG_PATH);
 const qwenProfiles = (Array.isArray(compareConfig.modelProfiles) ? compareConfig.modelProfiles : [])
   .filter((entry) => String(entry?.dopplerModelId ?? '').startsWith('qwen-3-5-'));
 
@@ -24,6 +37,7 @@ assert.ok(qwenProfiles.length >= 2, 'compare config must include the Qwen 3.5 co
 
 const evidenceByModelId = new Map([
   ['qwen-3-5-0-8b-q4k-ehaf16', QWEN_08_EVIDENCE_PATH],
+  ['qwen-3-5-2b-q4k-ehaf16', QWEN_2B_EVIDENCE_PATH],
 ]);
 
 for (const profile of qwenProfiles) {
@@ -70,12 +84,28 @@ for (const profile of qwenProfiles) {
 {
   const profile = qwenProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-2b-q4k-ehaf16') || null;
   assert.ok(profile, 'compare config must include qwen-3-5-2b-q4k-ehaf16');
-  assert.equal(profile.compareLane, 'capability_only');
-  assert.match(
-    String(profile.compareLaneReason ?? ''),
-    /claimable compare lane/i,
-    'Qwen 2B promotion must keep an explicit non-claimable reason until compare evidence exists'
-  );
+  assert.equal(profile.compareLane, 'performance_comparable');
+  assert.equal(profile.compareLaneReason, null);
+
+  const evidence = readJson(QWEN_2B_EVIDENCE_PATH);
+  assert.equal(evidence.compareConfig?.sourceSha256, compareConfigSha256);
+  assert.equal(evidence.compareLane?.declared, 'performance_comparable');
+  assert.equal(evidence.dopplerModelId, profile.dopplerModelId);
+  assert.equal(evidence.compareLane?.reason ?? null, null);
+  assert.equal(evidence.workload?.id, 'p064-d064-t0-k1');
+  assert.equal(evidence.dopplerSurface, 'browser');
+  assert.equal(evidence.decodeProfile, 'parity');
+  assert.equal(evidence.mode, 'compute');
+  assert.ok(evidence.runs >= 15, 'Qwen 2B compare fixture must satisfy claim-matrix sample count');
+  assert.equal(evidence.dopplerModelSource?.source, 'local');
+  assert.equal(evidence.correctness?.status, 'match');
+  assert.equal(evidence.correctness?.exactMatch, true);
+  assert.equal(evidence.correctness?.normalizedMatch, true);
+  assert.equal(evidence.correctness?.tokenMatch?.firstMismatchTokenIndex, -1);
+  assert.equal(evidence.fairness?.claimGrade, true);
+  assert.equal(evidence.fairness?.localComparable, true);
+  assert.equal(evidence.fairness?.releaseClaimable, false);
+  assert.equal(evidence.sections?.compute?.throughputCadenceGate?.ok, true);
 }
 
 console.log('qwen-compare-lane-promotion-contract.test: ok');

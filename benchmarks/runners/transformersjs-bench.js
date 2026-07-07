@@ -28,11 +28,15 @@
 //   --tjs-version <3|4>  Transformers.js major track (default: 4)
 //   --dtype <dtype>      Transformers.js dtype. Text: fp16|q4|q4f16. Embedding: fp32|fp16|q8|q4|q4f16
 //   --format <fmt>       Model format: onnx|safetensors (default: onnx)
-//   --task <task>        text-generation|embedding (default: text-generation)
+//   --task <task>        text-generation|embedding|rerank (default: text-generation)
 //   --embedding-mode <mode> sentence-embedding|feature-extraction
 //   --embedding-pooling <mode> mean|last_token|none
 //   --embedding-normalize <on|off>
 //   --embedding-style <style> default|embeddinggemma|qwen3_embedding
+//   --rerank-query <text> Rerank query
+//   --rerank-document <text> Repeatable rerank document
+//   --rerank-documents-json <json-array> Rerank documents
+//   --rerank-config <json-object> Rerank scoring config
 //   --semantic-fixture <path> Embedding semantic fixture JSON
 //   --browser-base-url <url>  Reuse an existing static base URL
 //   --use-chat-template   Apply model chat template before generation
@@ -78,7 +82,7 @@ const DEFAULT_PROFILE_TOP_N = 20;
 const DEFAULT_PROFILE_DIR = path.join(BENCHMARKS_ROOT, '.tjs-bench-profile');
 const DEFAULT_SEED = 0;
 const DEFAULT_TASK = 'text-generation';
-const BENCH_TASKS = Object.freeze(['text-generation', 'embedding']);
+const BENCH_TASKS = Object.freeze(['text-generation', 'embedding', 'rerank']);
 const TJS_TEXT_DTYPES = Object.freeze(['fp16', 'q4', 'q4f16']);
 const TJS_EMBEDDING_DTYPES = Object.freeze(['fp32', 'fp16', 'q8', 'q4', 'q4f16']);
 const TJS_EMBEDDING_MODES = Object.freeze(['feature-extraction', 'sentence-embedding']);
@@ -349,7 +353,7 @@ function parseArgs(argv) {
       flags[key] = true;
       continue;
     }
-    if (key === 'browser-arg') {
+    if (key === 'browser-arg' || key === 'rerank-document') {
       if (flags[key] == null) {
         flags[key] = [];
       } else if (!Array.isArray(flags[key])) {
@@ -436,6 +440,24 @@ function parseChoice(value, flag, allowed, fallback) {
   const normalized = String(value).trim().toLowerCase();
   if (allowed.includes(normalized)) return normalized;
   throw new Error(`${flag} must be one of: ${allowed.join(', ')}`);
+}
+
+function parseJsonFlag(value, fallback, label) {
+  if (value == null || value === '') return fallback;
+  try {
+    return JSON.parse(String(value));
+  } catch (error) {
+    throw new Error(`${label} must be valid JSON: ${error.message}`);
+  }
+}
+
+function normalizeStringList(value, label) {
+  const source = Array.isArray(value) ? value : (value == null ? [] : [value]);
+  const out = source.map((entry) => String(entry ?? '').trim()).filter(Boolean);
+  if (out.length === 0) {
+    throw new Error(`${label} must include at least one non-empty string`);
+  }
+  return out;
 }
 
 function parseTjsDtype(value, flag, fallback = 'fp16', allowed = TJS_TEXT_DTYPES) {
@@ -800,11 +822,14 @@ async function main() {
   const profileTopN = parsePositiveInteger(flags['profile-top'], DEFAULT_PROFILE_TOP_N, '--profile-top');
   const useChatTemplate = flags['use-chat-template'] === true;
   const task = parseChoice(flags.task, '--task', BENCH_TASKS, DEFAULT_TASK);
+  const isEmbeddingTask = task === 'embedding';
+  const isRerankTask = task === 'rerank';
+  const isGenerationTask = task === 'text-generation';
   const tjsDtype = parseTjsDtype(
     flags.dtype,
     '--dtype',
-    task === 'embedding' ? 'fp32' : 'fp16',
-    task === 'embedding' ? TJS_EMBEDDING_DTYPES : TJS_TEXT_DTYPES
+    isEmbeddingTask ? 'fp32' : 'fp16',
+    isEmbeddingTask ? TJS_EMBEDDING_DTYPES : TJS_TEXT_DTYPES
   );
   const embeddingMode = parseChoice(
     flags['embedding-mode'],
@@ -862,6 +887,20 @@ async function main() {
     throw new Error(
       '--local-model-path cannot be combined with --browser-base-url because the benchmark server cannot mount local files on an external base URL.'
     );
+  }
+  const rerankQuery = String(flags['rerank-query'] || prompt || '').trim();
+  const rerankDocuments = flags['rerank-documents-json'] != null
+    ? normalizeStringList(parseJsonFlag(flags['rerank-documents-json'], [], '--rerank-documents-json'), '--rerank-documents-json')
+    : (Array.isArray(flags['rerank-document']) || flags['rerank-document'] != null
+      ? normalizeStringList(flags['rerank-document'], '--rerank-document')
+      : [
+          'WebGPU provides low-level access to graphics processors for compute workloads.',
+          'WebSocket provides full-duplex communication over TCP.',
+          'CSS grid arranges page layout rows and columns.',
+        ]);
+  const rerankScoringConfig = parseJsonFlag(flags['rerank-config'], null, '--rerank-config');
+  if (isRerankTask && !rerankScoringConfig) {
+    throw new Error('--rerank-config is required when --task rerank');
   }
   // Auto-read HF token from flags or the cached credential file (for gated models).
   let hfToken = flags['hf-token'] || null;
@@ -1074,7 +1113,7 @@ async function main() {
     };
 
     if (cachePrimeEnabled) {
-      const primeResult = task === 'embedding'
+      const primeResult = isEmbeddingTask
         ? await page.evaluate(async (primeConfig) => {
             if (typeof window.__primeEmbeddingModel !== 'function') {
               throw new Error('__primeEmbeddingModel is not available in runner page');
@@ -1089,6 +1128,20 @@ async function main() {
             embeddingPooling,
             embeddingNormalize,
           })
+        : isRerankTask
+          ? await page.evaluate(async (primeConfig) => {
+              if (typeof window.__primeRerankModel !== 'function') {
+                throw new Error('__primeRerankModel is not available in runner page');
+              }
+              return window.__primeRerankModel(primeConfig);
+            }, {
+              modelId,
+              dtype: tjsDtype,
+              format: tjsFormat,
+              query: rerankQuery,
+              document: rerankDocuments[0],
+              scoringConfig: rerankScoringConfig,
+            })
         : await page.evaluate(async (primeConfig) => {
             if (typeof window.__primeBenchModel !== 'function') {
               throw new Error('__primeBenchModel is not available in runner page');
@@ -1119,7 +1172,7 @@ async function main() {
 
     const benchStart = performance.now();
 
-    const result = task === 'embedding'
+    const result = isEmbeddingTask
       ? await page.evaluate(
           async (config) => {
             if (typeof window.__runEmbeddingBench !== 'function') {
@@ -1144,6 +1197,29 @@ async function main() {
             semanticFixture,
           },
         )
+      : isRerankTask
+        ? await page.evaluate(
+            async (config) => {
+              if (typeof window.__runRerankBench !== 'function') {
+                throw new Error('__runRerankBench is not available in runner page');
+              }
+              return window.__runRerankBench(config);
+            },
+            {
+              modelId,
+              query: rerankQuery,
+              documents: rerankDocuments,
+              warmupRuns,
+              timedRuns,
+              cacheMode,
+              loadMode,
+              seed,
+              dtype: tjsDtype,
+              format: tjsFormat,
+              scoringConfig: rerankScoringConfig,
+              semanticFixture,
+            },
+          )
       : await page.evaluate(
           async (config) => window.__runBench(config),
           {
@@ -1187,20 +1263,28 @@ async function main() {
     };
     result.determinism = {
       seed,
-      decoding: task === 'embedding'
-        ? null
-        : {
+      decoding: isGenerationTask
+        ? {
             do_sample: temperature > 0,
             temperature,
             topK,
             topP,
-          },
-      embedding: task === 'embedding'
+          }
+        : null,
+      embedding: isEmbeddingTask
         ? {
             mode: embeddingMode,
             pooling: embeddingPooling,
             normalize: embeddingNormalize,
             style: embeddingStyle,
+          }
+        : null,
+      rerank: isRerankTask
+        ? {
+            documentCount: rerankDocuments.length,
+            scoringFormat: rerankScoringConfig?.format || null,
+            trueTokenId: rerankScoringConfig?.trueTokenId ?? null,
+            falseTokenId: rerankScoringConfig?.falseTokenId ?? null,
           }
         : null,
     };

@@ -261,9 +261,9 @@ async function readExpectedReleaseClaimableModelIds() {
   assert.deepEqual(qwenClaimLane.missingBackendIds, ['chromium-webgpu']);
   assert.deepEqual(
     qwenClaimLane.missingWorkloadIds,
-    ['p064-d064-t0-k1', 'p256-d128-t0-k1', 'p512-d128-t0-k1']
+    ['p256-d128-t0-k1', 'p512-d128-t0-k1']
   );
-  assert.deepEqual(qwenClaimLane.missingDecodeProfileIds, ['parity', 'throughput']);
+  assert.deepEqual(qwenClaimLane.missingDecodeProfileIds, []);
   assert.deepEqual(
     qwenClaimLane.missingSurfaceWorkloads,
     [
@@ -272,6 +272,10 @@ async function readExpectedReleaseClaimableModelIds() {
       'chromium-webgpu:p512-d128-t0-k1',
     ]
   );
+  assert.equal(qwenClaimLane.surfaces.length, 1);
+  assert.equal(qwenClaimLane.surfaces[0]?.compareResult, 'benchmarks/vendors/fixtures/qwen3-5-2b-p064-d064-t0-k1.compare.json');
+  assert.equal(qwenClaimLane.surfaces[0]?.correctness, 'exact');
+  assert.equal(qwenClaimLane.surfaces[0]?.decodeLeader, 'doppler');
   assert.match(markdownPayload, /^# Release Matrix/m);
   assert.match(markdownPayload, /Generated: 2026-03-05T00:00:00.000Z/);
   assert.match(markdownPayload, /\| Doppler Model \| In Catalog \| Catalog Modes \| TJS Mapping \| Surface \| Source \| Compare Lane \| Notes \|/);

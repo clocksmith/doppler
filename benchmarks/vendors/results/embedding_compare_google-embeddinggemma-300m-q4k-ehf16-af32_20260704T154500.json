@@ -1,0 +1,4323 @@
+{
+  "schemaVersion": 1,
+  "kind": "embedding-engine-compare",
+  "timestamp": "2026-07-04T15:45:00.000Z",
+  "model": {
+    "dopplerModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+    "sourceCheckpointId": "google/embeddinggemma-300m",
+    "dopplerSource": "local",
+    "dopplerLocator": "models/local/google-embeddinggemma-300m-q4k-ehf16-af32",
+    "transformersjsModelId": "onnx-community/embeddinggemma-300m-ONNX",
+    "transformersjsDtype": "q4",
+    "transformersjsFormat": "onnx"
+  },
+  "workload": {
+    "prompt": "A small red cube rests on a wooden table beside a blue sphere.",
+    "warmupRuns": 1,
+    "timedRuns": 3,
+    "cacheMode": "warm",
+    "loadMode": "http",
+    "semanticFixture": "src/inference/fixtures/embedding-semantic-fixtures.json",
+    "embeddingMode": "sentence-embedding",
+    "embeddingPooling": "none",
+    "embeddingNormalize": true,
+    "embeddingStyle": "embeddinggemma"
+  },
+  "compareLane": {
+    "lane": "performance_comparable",
+    "reason": "Embedding-specific lane using shared prompt, semantic fixture, and browser WebGPU Transformers.js ONNX baseline.",
+    "correctnessOk": true,
+    "localComparable": true,
+    "releaseClaimable": true,
+    "claimable": true
+  },
+  "sources": {
+    "config": {
+      "source": "benchmarks/vendors/embedding-compare.config.json",
+      "sourceSha256": "ebe67e7a752587b1df107bf7e277baf26ccba9e7218480980b449209dd2af625"
+    },
+    "catalog": {
+      "source": "models/catalog.json",
+      "sourceSha256": "de2a5fbe5beba5225b1d02b6a4d10f41f93b595ffe2c4a9592ff1af7803d168f"
+    }
+  },
+  "commands": {
+    "dopplerBench": [
+      "/usr/bin/node",
+      "/home/x/deco/doppler/src/cli/doppler-cli.js",
+      "bench",
+      "--config",
+      "{\"request\":{\"workload\":\"embedding\",\"modelId\":\"google-embeddinggemma-300m-q4k-ehf16-af32\",\"modelUrl\":\"file:///home/x/deco/doppler/models/local/google-embeddinggemma-300m-q4k-ehf16-af32\",\"runtimeConfig\":{\"shared\":{\"benchmark\":{\"run\":{\"customPrompt\":\"A small red cube rests on a wooden table beside a blue sphere.\",\"warmupRuns\":1,\"timedRuns\":3,\"loadMode\":\"http\"}}},\"inference\":{\"prompt\":\"A small red cube rests on a wooden table beside a blue sphere.\"}},\"runtimeProfile\":\"profiles/vector-throughput\"},\"run\":{\"surface\":\"auto\",\"timestamp\":\"2026-07-04T15:45:00.000Z\"}}",
+      "--json"
+    ],
+    "dopplerVerify": [
+      "/usr/bin/node",
+      "/home/x/deco/doppler/src/cli/doppler-cli.js",
+      "verify",
+      "--config",
+      "{\"request\":{\"workload\":\"embedding\",\"modelId\":\"google-embeddinggemma-300m-q4k-ehf16-af32\",\"modelUrl\":\"file:///home/x/deco/doppler/models/local/google-embeddinggemma-300m-q4k-ehf16-af32\",\"runtimeConfig\":{\"shared\":{\"benchmark\":{\"run\":{\"customPrompt\":\"A small red cube rests on a wooden table beside a blue sphere.\",\"warmupRuns\":0,\"timedRuns\":1,\"loadMode\":\"http\"}}},\"inference\":{\"prompt\":\"A small red cube rests on a wooden table beside a blue sphere.\"}},\"runtimeProfile\":\"profiles/vector-stability\"},\"run\":{\"surface\":\"auto\",\"timestamp\":\"2026-07-04T15:45:00.000Z\"}}",
+      "--json"
+    ],
+    "transformersjsBench": [
+      "/usr/bin/node",
+      "/home/x/deco/doppler/benchmarks/runners/transformersjs-bench.js",
+      "--task",
+      "embedding",
+      "--model",
+      "onnx-community/embeddinggemma-300m-ONNX",
+      "--prompt",
+      "A small red cube rests on a wooden table beside a blue sphere.",
+      "--warmup",
+      "1",
+      "--runs",
+      "3",
+      "--cache-mode",
+      "warm",
+      "--load-mode",
+      "http",
+      "--dtype",
+      "q4",
+      "--format",
+      "onnx",
+      "--embedding-mode",
+      "sentence-embedding",
+      "--embedding-pooling",
+      "none",
+      "--embedding-normalize",
+      "on",
+      "--embedding-style",
+      "embeddinggemma",
+      "--semantic-fixture",
+      "/home/x/deco/doppler/src/inference/fixtures/embedding-semantic-fixtures.json",
+      "--profile-ops",
+      "off",
+      "--timeout",
+      "900000",
+      "--timestamp",
+      "2026-07-04T15:45:00.000Z",
+      "--json"
+    ]
+  },
+  "summary": {
+    "correctnessOk": true,
+    "doppler": {
+      "speed": {
+        "embeddingDim": 768,
+        "medianEmbeddingMs": 60.04,
+        "avgEmbeddingMs": 59.73,
+        "avgEmbeddingsPerSec": 16.74,
+        "p95EmbeddingMs": 60.24,
+        "modelLoadMs": 1037.58,
+        "nonFiniteValues": 0,
+        "avgEmbeddingL2Norm": 1
+      },
+      "correctness": {
+        "semanticPassed": true,
+        "semanticRetrievalTop1Acc": 0.95,
+        "semanticPairAcc": 0.6429,
+        "finiteRatio": 1,
+        "nonFiniteValues": 0,
+        "embeddingDim": 768,
+        "embeddingL2Norm": 1
+      }
+    },
+    "transformersjs": {
+      "speed": {
+        "embeddingDim": 768,
+        "medianEmbeddingMs": 25.424999952316284,
+        "avgEmbeddingMs": 28.46666665871938,
+        "avgEmbeddingsPerSec": 35.12880563041611,
+        "p95EmbeddingMs": 34.64099996089935,
+        "modelLoadMs": 11378.894999980927,
+        "nonFiniteValues": 0,
+        "avgEmbeddingL2Norm": 0.9999999579165094
+      },
+      "correctness": {
+        "semanticPassed": true,
+        "semanticRetrievalTop1Acc": 0.95,
+        "semanticPairAcc": 0.6428571428571429,
+        "finiteRatio": 1,
+        "nonFiniteValues": 0,
+        "embeddingDim": 768,
+        "embeddingL2Norm": 0.9999999579165094
+      }
+    },
+    "ratios": {
+      "medianEmbeddingMsDopplerOverTjs": 2.3615,
+      "avgEmbeddingsPerSecDopplerOverTjs": 0.4765,
+      "modelLoadMsDopplerOverTjs": 0.0912
+    }
+  },
+  "raw": {
+    "dopplerBench": {
+      "suite": "bench",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 1344.3525710000001,
+      "results": [
+        {
+          "name": "benchmark-embedding",
+          "passed": true,
+          "duration": 179.19374000000016
+        }
+      ],
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "cacheMode": "warm",
+      "loadMode": "file",
+      "env": {
+        "library": "doppler",
+        "runtime": "browser",
+        "device": "webgpu",
+        "browserUserAgent": "Node.js/22",
+        "browserPlatform": "Linux x86_64",
+        "browserLanguage": "en-US",
+        "browserVendor": null
+      },
+      "timing": {
+        "modelLoadMs": 1037.58,
+        "firstTokenMs": null,
+        "firstResponseMs": 1097.85,
+        "prefillMs": 0,
+        "decodeMs": 0,
+        "decodeMsPerTokenP50": null,
+        "decodeMsPerTokenP95": null,
+        "decodeMsPerTokenP99": null,
+        "decodeTokensPerSec": null,
+        "prefillTokensPerSec": null,
+        "totalRunMs": 60.04,
+        "cacheMode": "warm",
+        "loadMode": "file"
+      },
+      "timingDiagnostics": {
+        "schemaVersion": 1,
+        "source": "doppler",
+        "semantics": {
+          "modelLoadMs": "model initialization/load before generation",
+          "firstTokenMs": "ttft from generation start",
+          "firstResponseMs": "modelLoadMs + firstTokenMs",
+          "prefillMs": "internal_prefill_phase",
+          "decodeMs": "time after first token",
+          "totalRunMs": "prefillMs + decodeMs"
+        },
+        "componentsMs": {
+          "modelLoadMs": 1037.58,
+          "firstTokenMs": null,
+          "firstResponseMs": 1097.85,
+          "prefillMs": 0,
+          "decodeMs": 0,
+          "totalRunMs": 60.04
+        },
+        "sumsMs": {
+          "firstResponseFromLoadAndFirstTokenMs": null,
+          "runFromPrefillAndDecodeMs": 0
+        },
+        "residualsMs": {
+          "firstResponseResidualMs": null,
+          "runResidualMs": 60.04
+        },
+        "consistent": {
+          "firstResponse": null,
+          "totalRun": false
+        },
+        "load": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "semantics": {
+            "modelLoadMs": "suite initialization time before generation",
+            "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+            "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+            "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+            "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+            "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+          },
+          "modelLoadMs": 1037.58,
+          "loader": {
+            "schemaVersion": 1,
+            "source": "doppler-loader",
+            "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "status": "complete",
+            "customShardLoader": true,
+            "byteAccountingMode": "custom-loader-progress-unavailable",
+            "totalBytes": 470830080,
+            "totalShards": 8,
+            "bytesLoaded": 0,
+            "shardsLoaded": 0,
+            "bytesPerSecond": 0,
+            "phasesMs": {
+              "preflight": 1.29,
+              "tensorLocations": 1.47,
+              "embeddings": 100.15,
+              "layers": 78.6,
+              "finalWeights": 176.49,
+              "cleanup": 0.15
+            },
+            "layers": {
+              "count": 24,
+              "totalMs": 63.14,
+              "meanMs": 2.63,
+              "maxMs": 10.79,
+              "maxLayer": 0
+            },
+            "totalMs": 358.68,
+            "failedPhase": null,
+            "error": null
+          },
+          "pipeline": {
+            "schemaVersion": 1,
+            "source": "doppler-pipeline",
+            "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "status": "complete",
+            "phasesMs": {
+              "reset": 0.1,
+              "configResolution": 8.91,
+              "kernelWarmup": 0.07,
+              "tokenizer": 559.9,
+              "executionSetup": 2.64,
+              "loadWeights": 432.79,
+              "rope": 12.16,
+              "convStates": 0.28
+            },
+            "details": {
+              "tokenizer": {
+                "schemaVersion": 1,
+                "source": "doppler-tokenizer",
+                "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+                "status": "complete",
+                "tokenizerType": "bundled",
+                "tokenizerFile": "tokenizer.json",
+                "backend": "bundled",
+                "assetSource": "custom-loader",
+                "cacheHit": false,
+                "phasesMs": {
+                  "configResolution": 0.06,
+                  "cacheLookup": 0.06,
+                  "backendCreate": 0.1,
+                  "assetLoad": 302.72,
+                  "assetParse": 0.21,
+                  "backendLoad": 256.14,
+                  "cacheStore": 0.01
+                },
+                "totalMs": 559.51,
+                "error": null
+              }
+            },
+            "totalMs": 1017.09
+          },
+          "residualsMs": {
+            "modelLoadMinusLoaderMs": 678.9,
+            "modelLoadMinusPipelineMs": 20.49,
+            "pipelineMinusLoaderMs": 658.41
+          },
+          "consistent": {
+            "loaderWithinModelLoad": true,
+            "pipelineWithinModelLoad": true,
+            "loaderWithinPipeline": true
+          }
+        }
+      },
+      "firstLoad": {
+        "schemaVersion": 1,
+        "semantics": {
+          "browserLaunchMs": "node launch request -> browser/context ready",
+          "pageReadyMs": "runner navigation + startup",
+          "cachePrimeMs": "untimed warm-opfs prefetch/load pass",
+          "modelLoadMs": "model initialization/load before generation",
+          "firstTokenMs": "ttft from generation start",
+          "firstResponseMs": "modelLoadMs + firstTokenMs",
+          "harnessWarmStartToFirstResponseMs": "pageReadyMs + cachePrimeMs + firstResponseMs",
+          "endToEndFirstResponseMs": "browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs"
+        },
+        "componentsMs": {
+          "browserLaunchMs": null,
+          "pageReadyMs": null,
+          "cachePrimeMs": null,
+          "modelLoadMs": 1037.58,
+          "firstTokenMs": null,
+          "firstResponseMs": 1097.85
+        },
+        "sumsMs": {
+          "firstResponseFromLoadAndFirstTokenMs": null,
+          "harnessWarmStartToFirstResponseMs": null,
+          "endToEndFirstResponseMs": null
+        },
+        "residualsMs": {
+          "firstResponseResidualMs": null
+        },
+        "consistent": {
+          "firstResponse": null
+        }
+      },
+      "output": null,
+      "metrics": {
+        "warmupRuns": 1,
+        "timedRuns": 3,
+        "validRuns": 3,
+        "invalidRuns": 0,
+        "invalidRatePct": 0,
+        "prompt": "A small red cube rests on a wooden table beside a blue sphere.",
+        "embeddingDim": 768,
+        "nonFiniteValues": 0,
+        "firstTimedEmbeddingMs": 60.27,
+        "minEmbeddingMs": 58.89,
+        "medianEmbeddingMs": 60.04,
+        "p95EmbeddingMs": 60.24,
+        "p99EmbeddingMs": 60.26,
+        "maxEmbeddingMs": 60.27,
+        "stdDevEmbeddingMs": 0.74,
+        "ci95EmbeddingMs": 1.28,
+        "avgEmbeddingMs": 59.73,
+        "avgEmbeddingsPerSec": 16.74,
+        "avgEmbeddingTokens": 16,
+        "avgEmbeddingL2Norm": 1,
+        "modelLoadMs": 1037.58,
+        "latency": {
+          "timedEmbeddingMs": {
+            "mean": 59.73124666666672,
+            "median": 60.03527600000007,
+            "min": 58.890198000000055,
+            "max": 60.26826600000004,
+            "p95": 60.244967000000045,
+            "p99": 60.26360620000004,
+            "stdDev": 0.7376267550742238,
+            "ci95": 1.27760701681072,
+            "samples": 3,
+            "samplesAfterOutlierRemoval": 3,
+            "outliersRemoved": 0
+          },
+          "embeddingMs": {
+            "mean": 59.73124666666672,
+            "median": 60.03527600000007,
+            "min": 58.890198000000055,
+            "max": 60.26826600000004,
+            "p95": 60.244967000000045,
+            "p99": 60.26360620000004,
+            "stdDev": 0.7376267550742238,
+            "ci95": 1.27760701681072,
+            "samples": 3,
+            "samplesAfterOutlierRemoval": 3,
+            "outliersRemoved": 0
+          }
+        },
+        "dimensions": {
+          "embedding": {
+            "mean": 768,
+            "median": 768,
+            "min": 768,
+            "max": 768,
+            "p95": 768,
+            "p99": 768,
+            "stdDev": 0,
+            "ci95": 0,
+            "samples": 3,
+            "samplesAfterOutlierRemoval": 3,
+            "outliersRemoved": 0
+          }
+        },
+        "embedding": {
+          "tokens": {
+            "mean": 16,
+            "median": 16,
+            "min": 16,
+            "max": 16,
+            "p95": 16,
+            "p99": 16,
+            "stdDev": 0,
+            "ci95": 0,
+            "samples": 3,
+            "samplesAfterOutlierRemoval": 3,
+            "outliersRemoved": 0
+          },
+          "l2Norm": {
+            "mean": 0.9999999994948565,
+            "median": 0.9999999994948565,
+            "min": 0.9999999994948565,
+            "max": 0.9999999994948565,
+            "p95": 0.9999999994948565,
+            "p99": 0.9999999994948565,
+            "stdDev": 0,
+            "ci95": 0,
+            "samples": 3,
+            "samplesAfterOutlierRemoval": 3,
+            "outliersRemoved": 0
+          }
+        },
+        "load": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "semantics": {
+            "modelLoadMs": "suite initialization time before generation",
+            "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+            "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+            "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+            "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+            "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+          },
+          "modelLoadMs": 1037.58,
+          "loader": {
+            "schemaVersion": 1,
+            "source": "doppler-loader",
+            "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "status": "complete",
+            "customShardLoader": true,
+            "byteAccountingMode": "custom-loader-progress-unavailable",
+            "totalBytes": 470830080,
+            "totalShards": 8,
+            "bytesLoaded": 0,
+            "shardsLoaded": 0,
+            "bytesPerSecond": 0,
+            "phasesMs": {
+              "preflight": 1.29,
+              "tensorLocations": 1.47,
+              "embeddings": 100.15,
+              "layers": 78.6,
+              "finalWeights": 176.49,
+              "cleanup": 0.15
+            },
+            "layers": {
+              "count": 24,
+              "totalMs": 63.14,
+              "meanMs": 2.63,
+              "maxMs": 10.79,
+              "maxLayer": 0
+            },
+            "totalMs": 358.68,
+            "failedPhase": null,
+            "error": null
+          },
+          "pipeline": {
+            "schemaVersion": 1,
+            "source": "doppler-pipeline",
+            "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "status": "complete",
+            "phasesMs": {
+              "reset": 0.1,
+              "configResolution": 8.91,
+              "kernelWarmup": 0.07,
+              "tokenizer": 559.9,
+              "executionSetup": 2.64,
+              "loadWeights": 432.79,
+              "rope": 12.16,
+              "convStates": 0.28
+            },
+            "details": {
+              "tokenizer": {
+                "schemaVersion": 1,
+                "source": "doppler-tokenizer",
+                "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+                "status": "complete",
+                "tokenizerType": "bundled",
+                "tokenizerFile": "tokenizer.json",
+                "backend": "bundled",
+                "assetSource": "custom-loader",
+                "cacheHit": false,
+                "phasesMs": {
+                  "configResolution": 0.06,
+                  "cacheLookup": 0.06,
+                  "backendCreate": 0.1,
+                  "assetLoad": 302.72,
+                  "assetParse": 0.21,
+                  "backendLoad": 256.14,
+                  "cacheStore": 0.01
+                },
+                "totalMs": 559.51,
+                "error": null
+              }
+            },
+            "totalMs": 1017.09
+          },
+          "residualsMs": {
+            "modelLoadMinusLoaderMs": 678.9,
+            "modelLoadMinusPipelineMs": 20.49,
+            "pipelineMinusLoaderMs": 658.41
+          },
+          "consistent": {
+            "loaderWithinModelLoad": true,
+            "pipelineWithinModelLoad": true,
+            "loaderWithinPipeline": true
+          }
+        },
+        "schemaVersion": 1,
+        "source": "doppler",
+        "suite": "bench",
+        "layerPatternContractArtifact": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "inference.layerPattern.patternKind.shape",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.patternKind.semantics",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.layerType.shape",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.layerType.semantics",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.even",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.odd",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "patternKindRules": 4,
+            "layerTypeRules": 6,
+            "patternKindContexts": 16,
+            "layerTypeContexts": 12
+          }
+        },
+        "requiredInferenceFieldsArtifact": null
+      },
+      "memoryStats": {
+        "used": 664331008,
+        "pool": {
+          "allocations": 1343,
+          "reuses": 1111,
+          "totalBytesAllocated": 686875392,
+          "peakBytesAllocated": 617145088,
+          "currentBytesAllocated": 613999360,
+          "totalBytesRequested": 662805248,
+          "peakBytesRequested": 613934336,
+          "currentBytesRequested": 610591744,
+          "activeBuffers": 319,
+          "pooledBuffers": 32,
+          "budgetMaxBytes": 0,
+          "budgetUtilization": 0,
+          "hitRate": "45.3%"
+        },
+        "kvCache": {
+          "theoretical": 50331648,
+          "allocated": 50331648,
+          "used": 786432,
+          "efficiency": 0.015625,
+          "seqLen": 16,
+          "maxSeqLen": 1024,
+          "layout": "contiguous",
+          "kvDtype": "f32",
+          "counters": {
+            "updateCalls": 0,
+            "gpuUpdateCalls": 0,
+            "recordedGpuUpdateCalls": 96,
+            "tokensWritten": 1536
+          }
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 65536,
+        "adapterInfo": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "radeon-8060s-graphics-radv-strix-halo-",
+          "description": "radv: Mesa 26.0.3-1ubuntu1"
+        },
+        "submitProbeMs": 0.6335939999999596
+      },
+      "pipeline": null,
+      "mode": "bench",
+      "workload": "embedding",
+      "debugSnapshot": {
+        "timestamp": "2026-07-04T15:16:59.035Z",
+        "logLevel": "INFO",
+        "traceCategories": [],
+        "enabledModules": [],
+        "disabledModules": [],
+        "recentLogs": [
+          {
+            "time": "958.0",
+            "level": "INFO",
+            "module": "Loader",
+            "message": "[0.0s] Memory (start): | RSS=331.13 MB (heap=88.93 MB/170.08 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+          },
+          {
+            "time": "958.5",
+            "level": "WARN",
+            "module": "Loader",
+            "message": "Dense model on discrete GPU - performance limited. Consider MoE model."
+          },
+          {
+            "time": "959.3",
+            "level": "DEBUG",
+            "module": "Loader",
+            "message": "Tensor map resolved via inline manifest"
+          },
+          {
+            "time": "960.1",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "manifest: 5% - Parsing manifest..."
+          },
+          {
+            "time": "960.6",
+            "level": "INFO",
+            "module": "Loader",
+            "message": "Embedding \"embed_tokens.weight\" GPU-resident: shouldStreamLargeWeight returned false."
+          },
+          {
+            "time": "1060.0",
+            "level": "INFO",
+            "module": "Loader",
+            "message": "Embeddings tensor loaded: name=embed_tokens.weight, hasShape=true, shape=[262144,768], isWeightBuffer=true"
+          },
+          {
+            "time": "1060.3",
+            "level": "INFO",
+            "module": "Loader",
+            "message": "Layers: 0-23"
+          },
+          {
+            "time": "1071.1",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 0: 0.01s"
+          },
+          {
+            "time": "1075.1",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 1: 0.00s"
+          },
+          {
+            "time": "1078.0",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 2: 0.00s"
+          },
+          {
+            "time": "1081.0",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 3: 0.00s"
+          },
+          {
+            "time": "1085.0",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 4: 0.00s"
+          },
+          {
+            "time": "1087.9",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 5: 0.00s"
+          },
+          {
+            "time": "1090.8",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 6: 0.00s"
+          },
+          {
+            "time": "1093.3",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 7: 0.00s"
+          },
+          {
+            "time": "1096.3",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 8: 0.00s"
+          },
+          {
+            "time": "1100.3",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 9: 0.00s"
+          },
+          {
+            "time": "1104.1",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 10: 0.00s"
+          },
+          {
+            "time": "1106.8",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 11: 0.00s"
+          },
+          {
+            "time": "1109.2",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 12: 0.00s"
+          },
+          {
+            "time": "1111.8",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 13: 0.00s"
+          },
+          {
+            "time": "1114.1",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 14: 0.00s"
+          },
+          {
+            "time": "1116.7",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 15: 0.00s"
+          },
+          {
+            "time": "1118.7",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 16: 0.00s"
+          },
+          {
+            "time": "1122.5",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 17: 0.00s"
+          },
+          {
+            "time": "1125.0",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 18: 0.00s"
+          },
+          {
+            "time": "1127.9",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 19: 0.00s"
+          },
+          {
+            "time": "1131.0",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 20: 0.00s"
+          },
+          {
+            "time": "1133.7",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 21: 0.00s"
+          },
+          {
+            "time": "1136.0",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 22: 0.00s"
+          },
+          {
+            "time": "1138.7",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "  Layer 23: 0.00s"
+          },
+          {
+            "time": "1138.9",
+            "level": "INFO",
+            "module": "Loader",
+            "message": "Layers: 24 complete (0.08s)"
+          },
+          {
+            "time": "1139.0",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "gpu_transfer: 85% - Loading final weights..."
+          },
+          {
+            "time": "1143.8",
+            "level": "INFO",
+            "module": "Loader",
+            "message": "[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest."
+          },
+          {
+            "time": "1315.6",
+            "level": "VERBOSE",
+            "module": "Loader",
+            "message": "complete: 100%"
+          },
+          {
+            "time": "1315.7",
+            "level": "INFO",
+            "module": "Loader",
+            "message": "Complete: 0 B in 0.36s (0 B/s)"
+          },
+          {
+            "time": "1316.2",
+            "level": "INFO",
+            "module": "Loader",
+            "message": "[0.4s] Memory (complete): | RSS=395.82 MB (heap=108.30 MB/131.08 MB, external=1.03 GB, arrayBuffers=1.03 GB) | GPU=580.11 MB (315 active, 5 pooled, peak=580.11 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=314"
+          },
+          {
+            "time": "1316.6",
+            "level": "DEBUG",
+            "module": "QKV Fusion",
+            "message": "Fusing Q/K/V weights for 24 layers (768+256+256=1280)"
+          },
+          {
+            "time": "1321.2",
+            "level": "DEBUG",
+            "module": "QKV Fusion",
+            "message": "Fused 24/24 layers"
+          },
+          {
+            "time": "1332.7",
+            "level": "DEBUG",
+            "module": "Pipeline",
+            "message": "Dual RoPE: local theta=10000, global theta=1000000, localRotaryDim=256, globalRotaryDim=256, localFrequencyBaseDim=256, globalFrequencyBaseDim=256, localScaling=none:1, globalScaling=none:1"
+          },
+          {
+            "time": "1333.5",
+            "level": "DEBUG",
+            "module": "Pipeline",
+            "message": "RoPE frequencies initialized (GPU): 2048 positions, dim=128, headDim=256, rotaryDim=256, theta=1000000, localTheta=10000, scaling=none:1, interleaved=false"
+          },
+          {
+            "time": "1333.9",
+            "level": "INFO",
+            "module": "Pipeline",
+            "message": "Model loaded successfully (1017ms)"
+          },
+          {
+            "time": "1333.9",
+            "level": "INFO",
+            "module": "TestHarness",
+            "message": "Pipeline ready"
+          },
+          {
+            "time": "1344.7",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "1350.4",
+            "level": "INFO",
+            "module": "KernelSelect",
+            "message": "matmul variant=f16w_f32a reason=path_override"
+          },
+          {
+            "time": "1361.6",
+            "level": "INFO",
+            "module": "KernelSelect",
+            "message": "attention variant=prefill_small reason=path_override:tiled_small"
+          },
+          {
+            "time": "1458.1",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "1518.0",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "1578.1",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "1640.5",
+            "level": "INFO",
+            "module": "Pipeline",
+            "message": "Unloaded"
+          }
+        ],
+        "errorCount": 0,
+        "warnCount": 1
+      },
+      "reportInfo": {
+        "backend": "node-fs",
+        "path": "reports/google-embeddinggemma-300m-q4k-ehf16-af32/2026-07-04T15-16-57.689Z.json"
+      }
+    },
+    "dopplerVerify": {
+      "suite": "embedding",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "duration": 12539.452714,
+      "results": [
+        {
+          "name": "embedding",
+          "passed": true,
+          "duration": 118.29499600000008
+        },
+        {
+          "name": "embedding-semantic",
+          "passed": true,
+          "duration": 11489.871264
+        }
+      ],
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "cacheMode": "warm",
+      "loadMode": "file",
+      "env": {
+        "library": "doppler",
+        "runtime": "browser",
+        "device": "webgpu",
+        "browserUserAgent": "Node.js/22",
+        "browserPlatform": "Linux x86_64",
+        "browserLanguage": "en-US",
+        "browserVendor": null
+      },
+      "timing": {
+        "modelLoadMs": 927.45,
+        "firstTokenMs": null,
+        "firstResponseMs": 927.45,
+        "prefillMs": 0,
+        "decodeMs": 0,
+        "decodeMsPerTokenP50": null,
+        "decodeMsPerTokenP95": null,
+        "decodeMsPerTokenP99": null,
+        "decodeTokensPerSec": null,
+        "prefillTokensPerSec": null,
+        "totalRunMs": 0,
+        "cacheMode": "warm",
+        "loadMode": "file"
+      },
+      "timingDiagnostics": {
+        "schemaVersion": 1,
+        "source": "doppler",
+        "semantics": {
+          "modelLoadMs": "model initialization/load before generation",
+          "firstTokenMs": "ttft from generation start",
+          "firstResponseMs": "modelLoadMs + firstTokenMs",
+          "prefillMs": "internal_prefill_phase",
+          "decodeMs": "time after first token",
+          "totalRunMs": "prefillMs + decodeMs"
+        },
+        "componentsMs": {
+          "modelLoadMs": 927.45,
+          "firstTokenMs": null,
+          "firstResponseMs": 927.45,
+          "prefillMs": 0,
+          "decodeMs": 0,
+          "totalRunMs": 0
+        },
+        "sumsMs": {
+          "firstResponseFromLoadAndFirstTokenMs": null,
+          "runFromPrefillAndDecodeMs": 0
+        },
+        "residualsMs": {
+          "firstResponseResidualMs": null,
+          "runResidualMs": 0
+        },
+        "consistent": {
+          "firstResponse": null,
+          "totalRun": true
+        },
+        "load": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "semantics": {
+            "modelLoadMs": "suite initialization time before generation",
+            "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+            "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+            "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+            "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+            "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+          },
+          "modelLoadMs": 927.45,
+          "loader": {
+            "schemaVersion": 1,
+            "source": "doppler-loader",
+            "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "status": "complete",
+            "customShardLoader": true,
+            "byteAccountingMode": "custom-loader-progress-unavailable",
+            "totalBytes": 470830080,
+            "totalShards": 8,
+            "bytesLoaded": 0,
+            "shardsLoaded": 0,
+            "bytesPerSecond": 0,
+            "phasesMs": {
+              "preflight": 1.22,
+              "tensorLocations": 1.37,
+              "embeddings": 107.91,
+              "layers": 81.19,
+              "finalWeights": 176.1,
+              "cleanup": 0.14
+            },
+            "layers": {
+              "count": 24,
+              "totalMs": 65.25,
+              "meanMs": 2.72,
+              "maxMs": 11.33,
+              "maxLayer": 0
+            },
+            "totalMs": 368.41,
+            "failedPhase": null,
+            "error": null
+          },
+          "pipeline": {
+            "schemaVersion": 1,
+            "source": "doppler-pipeline",
+            "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "status": "complete",
+            "phasesMs": {
+              "reset": 0.09,
+              "configResolution": 8.87,
+              "kernelWarmup": 0.08,
+              "tokenizer": 451.26,
+              "executionSetup": 2.57,
+              "loadWeights": 432.66,
+              "rope": 12.32,
+              "convStates": 0.25
+            },
+            "details": {
+              "tokenizer": {
+                "schemaVersion": 1,
+                "source": "doppler-tokenizer",
+                "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+                "status": "complete",
+                "tokenizerType": "bundled",
+                "tokenizerFile": "tokenizer.json",
+                "backend": "bundled",
+                "assetSource": "custom-loader",
+                "cacheHit": false,
+                "phasesMs": {
+                  "configResolution": 0.06,
+                  "cacheLookup": 0.06,
+                  "backendCreate": 0.1,
+                  "assetLoad": 187.07,
+                  "assetParse": 0.21,
+                  "backendLoad": 263.17,
+                  "cacheStore": 0.01
+                },
+                "totalMs": 450.88,
+                "error": null
+              }
+            },
+            "totalMs": 908.31
+          },
+          "residualsMs": {
+            "modelLoadMinusLoaderMs": 559.04,
+            "modelLoadMinusPipelineMs": 19.14,
+            "pipelineMinusLoaderMs": 539.9
+          },
+          "consistent": {
+            "loaderWithinModelLoad": true,
+            "pipelineWithinModelLoad": true,
+            "loaderWithinPipeline": true
+          }
+        }
+      },
+      "firstLoad": {
+        "schemaVersion": 1,
+        "semantics": {
+          "browserLaunchMs": "node launch request -> browser/context ready",
+          "pageReadyMs": "runner navigation + startup",
+          "cachePrimeMs": "untimed warm-opfs prefetch/load pass",
+          "modelLoadMs": "model initialization/load before generation",
+          "firstTokenMs": "ttft from generation start",
+          "firstResponseMs": "modelLoadMs + firstTokenMs",
+          "harnessWarmStartToFirstResponseMs": "pageReadyMs + cachePrimeMs + firstResponseMs",
+          "endToEndFirstResponseMs": "browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs"
+        },
+        "componentsMs": {
+          "browserLaunchMs": null,
+          "pageReadyMs": null,
+          "cachePrimeMs": null,
+          "modelLoadMs": 927.45,
+          "firstTokenMs": null,
+          "firstResponseMs": 927.45
+        },
+        "sumsMs": {
+          "firstResponseFromLoadAndFirstTokenMs": null,
+          "harnessWarmStartToFirstResponseMs": null,
+          "endToEndFirstResponseMs": null
+        },
+        "residualsMs": {
+          "firstResponseResidualMs": null
+        },
+        "consistent": {
+          "firstResponse": null
+        }
+      },
+      "output": {
+        "mode": "embedding",
+        "tokens": 16,
+        "embeddingDim": 768,
+        "finiteValues": 768,
+        "nonFiniteValues": 0,
+        "finiteRatio": 1,
+        "min": -0.120604,
+        "max": 0.131343,
+        "maxAbs": 0.131343,
+        "mean": -0.000744,
+        "stdDev": 0.036077,
+        "l2Norm": 1,
+        "preview": [
+          -0.089222,
+          0.045035,
+          0.022695,
+          0.023674,
+          -0.04232,
+          0.008824,
+          -0.011396,
+          0.021822,
+          0.049305,
+          -0.079508,
+          -0.041897,
+          0.012297,
+          -0.000642,
+          -0.0564,
+          0.019514,
+          0.016795
+        ],
+        "semantic": {
+          "passed": true,
+          "style": "default",
+          "retrievalTop1Acc": 0.95,
+          "pairAcc": 0.6429,
+          "failedCaseIds": [
+            "retrieval:hard_civil_vs_criminal",
+            "pair:adversarial_negation_loan",
+            "pair:adversarial_negation_test",
+            "pair:adversarial_entity_swap",
+            "pair:adversarial_tense_flip",
+            "pair:adversarial_quantity",
+            "length:climate_change_short_medium_long",
+            "length:photosynthesis_short_medium_long",
+            "length:encryption_short_medium_long"
+          ],
+          "details": {
+            "retrieval": [
+              {
+                "id": "library_search",
+                "query": "Where can I borrow books and study quietly?",
+                "formattedQuery": "Where can I borrow books and study quietly?",
+                "docs": [
+                  {
+                    "text": "The city library lends books, provides study rooms, and offers free Wi-Fi.",
+                    "formattedText": "The city library lends books, provides study rooms, and offers free Wi-Fi."
+                  },
+                  {
+                    "text": "The cafe serves coffee, pastries, and sandwiches all day.",
+                    "formattedText": "The cafe serves coffee, pastries, and sandwiches all day."
+                  },
+                  {
+                    "text": "The bike repair shop fixes flat tires and broken chains.",
+                    "formattedText": "The bike repair shop fixes flat tires and broken chains."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.502767,
+                  0.272615,
+                  0.300796
+                ]
+              },
+              {
+                "id": "password_reset",
+                "query": "How do I reset my account password?",
+                "formattedQuery": "How do I reset my account password?",
+                "docs": [
+                  {
+                    "text": "To reset your password, open account settings and choose the forgot-password flow.",
+                    "formattedText": "To reset your password, open account settings and choose the forgot-password flow."
+                  },
+                  {
+                    "text": "Our shipping policy explains delivery timelines and tracking updates.",
+                    "formattedText": "Our shipping policy explains delivery timelines and tracking updates."
+                  },
+                  {
+                    "text": "The recipe combines tomatoes, basil, and olive oil.",
+                    "formattedText": "The recipe combines tomatoes, basil, and olive oil."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.815491,
+                  0.281484,
+                  0.153993
+                ]
+              },
+              {
+                "id": "damaged_package",
+                "query": "What should I do if my package arrives damaged?",
+                "formattedQuery": "What should I do if my package arrives damaged?",
+                "docs": [
+                  {
+                    "text": "Contact support within seven days with photos to request a replacement for damaged items.",
+                    "formattedText": "Contact support within seven days with photos to request a replacement for damaged items."
+                  },
+                  {
+                    "text": "The concert starts at 8 PM at the downtown arena.",
+                    "formattedText": "The concert starts at 8 PM at the downtown arena."
+                  },
+                  {
+                    "text": "Plant roses in spring and water them twice a week.",
+                    "formattedText": "Plant roses in spring and water them twice a week."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.625076,
+                  0.144468,
+                  0.236625
+                ]
+              },
+              {
+                "id": "flight_change_policy",
+                "query": "Can I change my flight after booking?",
+                "formattedQuery": "Can I change my flight after booking?",
+                "docs": [
+                  {
+                    "text": "The museum opens daily at 10 AM and offers guided tours on weekends.",
+                    "formattedText": "The museum opens daily at 10 AM and offers guided tours on weekends."
+                  },
+                  {
+                    "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                    "formattedText": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+                  },
+                  {
+                    "text": "Our gym membership includes group classes and access to the pool.",
+                    "formattedText": "Our gym membership includes group classes and access to the pool."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.218897,
+                  0.739642,
+                  0.226839
+                ]
+              },
+              {
+                "id": "wifi_troubleshoot",
+                "query": "Why does my home Wi-Fi keep disconnecting?",
+                "formattedQuery": "Why does my home Wi-Fi keep disconnecting?",
+                "docs": [
+                  {
+                    "text": "The dessert menu includes cheesecake, brownies, and fruit tart.",
+                    "formattedText": "The dessert menu includes cheesecake, brownies, and fruit tart."
+                  },
+                  {
+                    "text": "You can review your recent orders in your account purchase history.",
+                    "formattedText": "You can review your recent orders in your account purchase history."
+                  },
+                  {
+                    "text": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel.",
+                    "formattedText": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 2,
+                "topDoc": 2,
+                "sims": [
+                  0.192467,
+                  0.259086,
+                  0.652792
+                ]
+              },
+              {
+                "id": "refund_deadline",
+                "query": "How long do I have to request a refund?",
+                "formattedQuery": "How long do I have to request a refund?",
+                "docs": [
+                  {
+                    "text": "Refund requests are accepted within 30 days of purchase when the item is in original condition.",
+                    "formattedText": "Refund requests are accepted within 30 days of purchase when the item is in original condition."
+                  },
+                  {
+                    "text": "The conference keynote starts at 9 AM in the main hall.",
+                    "formattedText": "The conference keynote starts at 9 AM in the main hall."
+                  },
+                  {
+                    "text": "Use a medium grind when brewing coffee with a drip machine.",
+                    "formattedText": "Use a medium grind when brewing coffee with a drip machine."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.726931,
+                  0.192203,
+                  0.205983
+                ]
+              },
+              {
+                "id": "passport_renewal_docs",
+                "query": "What documents do I need to renew a passport?",
+                "formattedQuery": "What documents do I need to renew a passport?",
+                "docs": [
+                  {
+                    "text": "To care for houseplants, water only when the top soil is dry.",
+                    "formattedText": "To care for houseplants, water only when the top soil is dry."
+                  },
+                  {
+                    "text": "Passport renewal usually requires the application form, current passport, compliant photo, and payment.",
+                    "formattedText": "Passport renewal usually requires the application form, current passport, compliant photo, and payment."
+                  },
+                  {
+                    "text": "The train to downtown runs every 20 minutes during peak hours.",
+                    "formattedText": "The train to downtown runs every 20 minutes during peak hours."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.198902,
+                  0.825206,
+                  0.201255
+                ]
+              },
+              {
+                "id": "hard_flight_cancel_vs_change",
+                "query": "How do I cancel my flight reservation?",
+                "formattedQuery": "How do I cancel my flight reservation?",
+                "docs": [
+                  {
+                    "text": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund.",
+                    "formattedText": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund."
+                  },
+                  {
+                    "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                    "formattedText": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+                  },
+                  {
+                    "text": "Flight status updates are available in the airline app under trip notifications.",
+                    "formattedText": "Flight status updates are available in the airline app under trip notifications."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.749106,
+                  0.567194,
+                  0.447942
+                ]
+              },
+              {
+                "id": "hard_return_vs_exchange",
+                "query": "Can I exchange a product instead of returning it?",
+                "formattedQuery": "Can I exchange a product instead of returning it?",
+                "docs": [
+                  {
+                    "text": "To return an item, ship it back within 30 days in its original packaging for a refund.",
+                    "formattedText": "To return an item, ship it back within 30 days in its original packaging for a refund."
+                  },
+                  {
+                    "text": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days.",
+                    "formattedText": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days."
+                  },
+                  {
+                    "text": "Gift cards can be purchased in any denomination and never expire.",
+                    "formattedText": "Gift cards can be purchased in any denomination and never expire."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.575848,
+                  0.668563,
+                  0.412255
+                ]
+              },
+              {
+                "id": "hard_savings_vs_checking",
+                "query": "What is the interest rate on a savings account?",
+                "formattedQuery": "What is the interest rate on a savings account?",
+                "docs": [
+                  {
+                    "text": "Checking accounts offer unlimited transactions with no minimum balance and a debit card.",
+                    "formattedText": "Checking accounts offer unlimited transactions with no minimum balance and a debit card."
+                  },
+                  {
+                    "text": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly.",
+                    "formattedText": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly."
+                  },
+                  {
+                    "text": "Credit card rewards include cashback, travel points, and purchase protection.",
+                    "formattedText": "Credit card rewards include cashback, travel points, and purchase protection."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.362533,
+                  0.695799,
+                  0.268953
+                ]
+              },
+              {
+                "id": "hard_migraine_vs_tension",
+                "query": "What triggers a migraine headache?",
+                "formattedQuery": "What triggers a migraine headache?",
+                "docs": [
+                  {
+                    "text": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers.",
+                    "formattedText": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers."
+                  },
+                  {
+                    "text": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea.",
+                    "formattedText": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea."
+                  },
+                  {
+                    "text": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye.",
+                    "formattedText": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.591868,
+                  0.7397,
+                  0.600531
+                ]
+              },
+              {
+                "id": "hard_python_sort_vs_filter",
+                "query": "How do I sort a list in Python?",
+                "formattedQuery": "How do I sort a list in Python?",
+                "docs": [
+                  {
+                    "text": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering.",
+                    "formattedText": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering."
+                  },
+                  {
+                    "text": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition.",
+                    "formattedText": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition."
+                  },
+                  {
+                    "text": "The map() function applies a transformation to every element in an iterable and returns a new iterator.",
+                    "formattedText": "The map() function applies a transformation to every element in an iterable and returns a new iterator."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.738188,
+                  0.558754,
+                  0.35505
+                ]
+              },
+              {
+                "id": "hard_civil_vs_criminal",
+                "query": "What is the difference between civil and criminal law?",
+                "formattedQuery": "What is the difference between civil and criminal law?",
+                "docs": [
+                  {
+                    "text": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions.",
+                    "formattedText": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions."
+                  },
+                  {
+                    "text": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment.",
+                    "formattedText": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment."
+                  },
+                  {
+                    "text": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters.",
+                    "formattedText": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters."
+                  }
+                ],
+                "passed": false,
+                "expectedDoc": 0,
+                "topDoc": 1,
+                "sims": [
+                  0.525707,
+                  0.551057,
+                  0.411434
+                ]
+              },
+              {
+                "id": "cross_medical",
+                "query": "What are the symptoms of type 2 diabetes?",
+                "formattedQuery": "What are the symptoms of type 2 diabetes?",
+                "docs": [
+                  {
+                    "text": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds.",
+                    "formattedText": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds."
+                  },
+                  {
+                    "text": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services.",
+                    "formattedText": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services."
+                  },
+                  {
+                    "text": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation.",
+                    "formattedText": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.7506,
+                  0.082811,
+                  0.198125
+                ]
+              },
+              {
+                "id": "cross_finance",
+                "query": "How does compound interest work?",
+                "formattedQuery": "How does compound interest work?",
+                "docs": [
+                  {
+                    "text": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy.",
+                    "formattedText": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy."
+                  },
+                  {
+                    "text": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time.",
+                    "formattedText": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time."
+                  },
+                  {
+                    "text": "The novel follows three generations of a family through war, migration, and reconciliation.",
+                    "formattedText": "The novel follows three generations of a family through war, migration, and reconciliation."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 1,
+                "topDoc": 1,
+                "sims": [
+                  0.315997,
+                  0.654406,
+                  0.189458
+                ]
+              },
+              {
+                "id": "cross_legal",
+                "query": "When does a contract become legally binding?",
+                "formattedQuery": "When does a contract become legally binding?",
+                "docs": [
+                  {
+                    "text": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose.",
+                    "formattedText": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose."
+                  },
+                  {
+                    "text": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU.",
+                    "formattedText": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU."
+                  },
+                  {
+                    "text": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice.",
+                    "formattedText": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.769312,
+                  0.171679,
+                  0.07841
+                ]
+              },
+              {
+                "id": "cross_science",
+                "query": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+                "formattedQuery": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+                "docs": [
+                  {
+                    "text": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance.",
+                    "formattedText": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance."
+                  },
+                  {
+                    "text": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture.",
+                    "formattedText": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture."
+                  },
+                  {
+                    "text": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil.",
+                    "formattedText": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.686759,
+                  0.176711,
+                  0.204357
+                ]
+              },
+              {
+                "id": "cross_code",
+                "query": "What is a race condition in concurrent programming?",
+                "formattedQuery": "What is a race condition in concurrent programming?",
+                "docs": [
+                  {
+                    "text": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior.",
+                    "formattedText": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior."
+                  },
+                  {
+                    "text": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests.",
+                    "formattedText": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests."
+                  },
+                  {
+                    "text": "The yoga class starts with sun salutations and ends with a five-minute guided meditation.",
+                    "formattedText": "The yoga class starts with sun salutations and ends with a five-minute guided meditation."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.698605,
+                  0.194591,
+                  0.220059
+                ]
+              },
+              {
+                "id": "cross_cooking",
+                "query": "What temperature should I roast a chicken at?",
+                "formattedQuery": "What temperature should I roast a chicken at?",
+                "docs": [
+                  {
+                    "text": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh.",
+                    "formattedText": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh."
+                  },
+                  {
+                    "text": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments.",
+                    "formattedText": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments."
+                  },
+                  {
+                    "text": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations.",
+                    "formattedText": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.698768,
+                  0.151379,
+                  0.052132
+                ]
+              },
+              {
+                "id": "pool_ten_docs",
+                "query": "How do vaccines work?",
+                "formattedQuery": "How do vaccines work?",
+                "docs": [
+                  {
+                    "text": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease.",
+                    "formattedText": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease."
+                  },
+                  {
+                    "text": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions.",
+                    "formattedText": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions."
+                  },
+                  {
+                    "text": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces.",
+                    "formattedText": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces."
+                  },
+                  {
+                    "text": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings.",
+                    "formattedText": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings."
+                  },
+                  {
+                    "text": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation.",
+                    "formattedText": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation."
+                  },
+                  {
+                    "text": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity.",
+                    "formattedText": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity."
+                  },
+                  {
+                    "text": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion.",
+                    "formattedText": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion."
+                  },
+                  {
+                    "text": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats.",
+                    "formattedText": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats."
+                  },
+                  {
+                    "text": "Probate is the legal process of validating a will and distributing the deceased person's assets.",
+                    "formattedText": "Probate is the legal process of validating a will and distributing the deceased person's assets."
+                  },
+                  {
+                    "text": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders.",
+                    "formattedText": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders."
+                  }
+                ],
+                "passed": true,
+                "expectedDoc": 0,
+                "topDoc": 0,
+                "sims": [
+                  0.594394,
+                  0.179045,
+                  0.235646,
+                  0.245845,
+                  0.225485,
+                  0.20761,
+                  0.20538,
+                  0.250435,
+                  0.149137,
+                  0.392337
+                ]
+              }
+            ],
+            "pairs": [
+              {
+                "id": "bike_paraphrase",
+                "anchor": "The child is riding a bicycle through the park.",
+                "formattedAnchor": "The child is riding a bicycle through the park.",
+                "positive": "A kid bikes along a path in the park.",
+                "formattedPositive": "A kid bikes along a path in the park.",
+                "negative": "The stock market closed lower after interest-rate news.",
+                "formattedNegative": "The stock market closed lower after interest-rate news.",
+                "passed": true,
+                "simPos": 0.820569,
+                "simNeg": 0.164166,
+                "margin": 0.656403
+              },
+              {
+                "id": "cancel_subscription",
+                "anchor": "Please cancel my subscription before renewal.",
+                "formattedAnchor": "Please cancel my subscription before renewal.",
+                "positive": "I want to stop the plan so it does not renew.",
+                "formattedPositive": "I want to stop the plan so it does not renew.",
+                "negative": "The mountain trail is closed after heavy snow.",
+                "formattedNegative": "The mountain trail is closed after heavy snow.",
+                "passed": true,
+                "simPos": 0.700462,
+                "simNeg": 0.242153,
+                "margin": 0.458309
+              },
+              {
+                "id": "battery_drain",
+                "anchor": "The laptop battery drains very quickly.",
+                "formattedAnchor": "The laptop battery drains very quickly.",
+                "positive": "My notebook loses charge fast.",
+                "formattedPositive": "My notebook loses charge fast.",
+                "negative": "This pasta sauce tastes sweet and spicy.",
+                "formattedNegative": "This pasta sauce tastes sweet and spicy.",
+                "passed": true,
+                "simPos": 0.745416,
+                "simNeg": 0.19588,
+                "margin": 0.549536
+              },
+              {
+                "id": "order_tracking",
+                "anchor": "I need to track where my order is.",
+                "formattedAnchor": "I need to track where my order is.",
+                "positive": "How can I check my package delivery status?",
+                "formattedPositive": "How can I check my package delivery status?",
+                "negative": "The violin concerto was composed in the 1800s.",
+                "formattedNegative": "The violin concerto was composed in the 1800s.",
+                "passed": true,
+                "simPos": 0.593202,
+                "simNeg": 0.109338,
+                "margin": 0.483865
+              },
+              {
+                "id": "account_lockout",
+                "anchor": "My account is locked after too many login attempts.",
+                "formattedAnchor": "My account is locked after too many login attempts.",
+                "positive": "I cannot sign in because the system temporarily blocked my account.",
+                "formattedPositive": "I cannot sign in because the system temporarily blocked my account.",
+                "negative": "Bake the cake at 350 degrees for thirty minutes.",
+                "formattedNegative": "Bake the cake at 350 degrees for thirty minutes.",
+                "passed": true,
+                "simPos": 0.705538,
+                "simNeg": 0.233661,
+                "margin": 0.471878
+              },
+              {
+                "id": "invoice_request",
+                "anchor": "Please send me the invoice for last month.",
+                "formattedAnchor": "Please send me the invoice for last month.",
+                "positive": "Can you provide the billing statement for the previous month?",
+                "formattedPositive": "Can you provide the billing statement for the previous month?",
+                "negative": "The hiking trail follows the river for five miles.",
+                "formattedNegative": "The hiking trail follows the river for five miles.",
+                "passed": true,
+                "simPos": 0.787855,
+                "simNeg": 0.158493,
+                "margin": 0.629362
+              },
+              {
+                "id": "slow_internet",
+                "anchor": "The internet speed is much slower tonight.",
+                "formattedAnchor": "The internet speed is much slower tonight.",
+                "positive": "My connection is unusually slow this evening.",
+                "formattedPositive": "My connection is unusually slow this evening.",
+                "negative": "The novel explores themes of memory and loss.",
+                "formattedNegative": "The novel explores themes of memory and loss.",
+                "passed": true,
+                "simPos": 0.751893,
+                "simNeg": 0.304077,
+                "margin": 0.447816
+              },
+              {
+                "id": "adversarial_negation_loan",
+                "anchor": "The bank approved the loan application.",
+                "formattedAnchor": "The bank approved the loan application.",
+                "positive": "The lending institution accepted the borrower's request for funds.",
+                "formattedPositive": "The lending institution accepted the borrower's request for funds.",
+                "negative": "The bank rejected the loan application.",
+                "formattedNegative": "The bank rejected the loan application.",
+                "passed": false,
+                "simPos": 0.740762,
+                "simNeg": 0.761748,
+                "margin": -0.020986
+              },
+              {
+                "id": "adversarial_negation_test",
+                "anchor": "The patient tested positive for the infection.",
+                "formattedAnchor": "The patient tested positive for the infection.",
+                "positive": "Lab results confirmed the presence of the pathogen.",
+                "formattedPositive": "Lab results confirmed the presence of the pathogen.",
+                "negative": "The patient tested negative for the infection.",
+                "formattedNegative": "The patient tested negative for the infection.",
+                "passed": false,
+                "simPos": 0.667299,
+                "simNeg": 0.693008,
+                "margin": -0.025709
+              },
+              {
+                "id": "adversarial_entity_swap",
+                "anchor": "France exported wine to Germany last quarter.",
+                "formattedAnchor": "France exported wine to Germany last quarter.",
+                "positive": "French wine shipments to Germany increased in the recent period.",
+                "formattedPositive": "French wine shipments to Germany increased in the recent period.",
+                "negative": "Germany exported wine to France last quarter.",
+                "formattedNegative": "Germany exported wine to France last quarter.",
+                "passed": false,
+                "simPos": 0.738131,
+                "simNeg": 0.974128,
+                "margin": -0.235997
+              },
+              {
+                "id": "adversarial_tense_flip",
+                "anchor": "The company plans to open a new office in Tokyo.",
+                "formattedAnchor": "The company plans to open a new office in Tokyo.",
+                "positive": "A new Tokyo branch is scheduled to launch soon.",
+                "formattedPositive": "A new Tokyo branch is scheduled to launch soon.",
+                "negative": "The company closed its Tokyo office last year.",
+                "formattedNegative": "The company closed its Tokyo office last year.",
+                "passed": false,
+                "simPos": 0.696744,
+                "simNeg": 0.699233,
+                "margin": -0.00249
+              },
+              {
+                "id": "adversarial_quantity",
+                "anchor": "The recipe calls for two tablespoons of sugar.",
+                "formattedAnchor": "The recipe calls for two tablespoons of sugar.",
+                "positive": "Add a couple of spoonfuls of sugar to the mixture.",
+                "formattedPositive": "Add a couple of spoonfuls of sugar to the mixture.",
+                "negative": "The recipe calls for two cups of sugar.",
+                "formattedNegative": "The recipe calls for two cups of sugar.",
+                "passed": false,
+                "simPos": 0.737478,
+                "simNeg": 0.941984,
+                "margin": -0.204505
+              },
+              {
+                "id": "technical_paraphrase_gpu",
+                "anchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+                "formattedAnchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+                "positive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+                "formattedPositive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+                "negative": "WebSocket provides full-duplex communication channels over a single TCP connection.",
+                "formattedNegative": "WebSocket provides full-duplex communication channels over a single TCP connection.",
+                "passed": true,
+                "simPos": 0.763196,
+                "simNeg": 0.458539,
+                "margin": 0.304657
+              },
+              {
+                "id": "technical_paraphrase_ml",
+                "anchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+                "formattedAnchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+                "positive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+                "formattedPositive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+                "negative": "The garbage collector reclaims memory by tracing reachable objects from root references.",
+                "formattedNegative": "The garbage collector reclaims memory by tracing reachable objects from root references.",
+                "passed": true,
+                "simPos": 0.633296,
+                "simNeg": 0.371644,
+                "margin": 0.261652
+              }
+            ]
+          }
+        }
+      },
+      "metrics": {
+        "prompt": "A small red cube rests on a wooden table beside a blue sphere.",
+        "embeddingTokens": 16,
+        "embeddingDim": 768,
+        "finiteValues": 768,
+        "finiteRatio": 1,
+        "nonFiniteValues": 0,
+        "embeddingMin": -0.120604,
+        "embeddingMax": 0.131343,
+        "embeddingMaxAbs": 0.131343,
+        "embeddingMean": -0.000744,
+        "embeddingStdDev": 0.036077,
+        "embeddingL2Norm": 1,
+        "embeddingMs": 118.29,
+        "semanticPassed": true,
+        "semanticDurationMs": 11489.87,
+        "semanticRetrievalTop1Acc": 0.95,
+        "semanticPairAcc": 0.6429,
+        "semanticRetrievalPassed": 19,
+        "semanticRetrievalTotal": 20,
+        "semanticPairPassed": 9,
+        "semanticPairTotal": 14,
+        "semanticMinRetrievalTop1Acc": 0.75,
+        "semanticMinPairAcc": 0.64,
+        "semanticPairMarginThreshold": 0.02,
+        "semanticStyle": "default",
+        "semanticFailedCases": [
+          "retrieval:hard_civil_vs_criminal",
+          "pair:adversarial_negation_loan",
+          "pair:adversarial_negation_test",
+          "pair:adversarial_entity_swap",
+          "pair:adversarial_tense_flip",
+          "pair:adversarial_quantity",
+          "length:climate_change_short_medium_long",
+          "length:photosynthesis_short_medium_long",
+          "length:encryption_short_medium_long"
+        ],
+        "semanticDetails": {
+          "retrieval": [
+            {
+              "id": "library_search",
+              "query": "Where can I borrow books and study quietly?",
+              "formattedQuery": "Where can I borrow books and study quietly?",
+              "docs": [
+                {
+                  "text": "The city library lends books, provides study rooms, and offers free Wi-Fi.",
+                  "formattedText": "The city library lends books, provides study rooms, and offers free Wi-Fi."
+                },
+                {
+                  "text": "The cafe serves coffee, pastries, and sandwiches all day.",
+                  "formattedText": "The cafe serves coffee, pastries, and sandwiches all day."
+                },
+                {
+                  "text": "The bike repair shop fixes flat tires and broken chains.",
+                  "formattedText": "The bike repair shop fixes flat tires and broken chains."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.502767,
+                0.272615,
+                0.300796
+              ]
+            },
+            {
+              "id": "password_reset",
+              "query": "How do I reset my account password?",
+              "formattedQuery": "How do I reset my account password?",
+              "docs": [
+                {
+                  "text": "To reset your password, open account settings and choose the forgot-password flow.",
+                  "formattedText": "To reset your password, open account settings and choose the forgot-password flow."
+                },
+                {
+                  "text": "Our shipping policy explains delivery timelines and tracking updates.",
+                  "formattedText": "Our shipping policy explains delivery timelines and tracking updates."
+                },
+                {
+                  "text": "The recipe combines tomatoes, basil, and olive oil.",
+                  "formattedText": "The recipe combines tomatoes, basil, and olive oil."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.815491,
+                0.281484,
+                0.153993
+              ]
+            },
+            {
+              "id": "damaged_package",
+              "query": "What should I do if my package arrives damaged?",
+              "formattedQuery": "What should I do if my package arrives damaged?",
+              "docs": [
+                {
+                  "text": "Contact support within seven days with photos to request a replacement for damaged items.",
+                  "formattedText": "Contact support within seven days with photos to request a replacement for damaged items."
+                },
+                {
+                  "text": "The concert starts at 8 PM at the downtown arena.",
+                  "formattedText": "The concert starts at 8 PM at the downtown arena."
+                },
+                {
+                  "text": "Plant roses in spring and water them twice a week.",
+                  "formattedText": "Plant roses in spring and water them twice a week."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.625076,
+                0.144468,
+                0.236625
+              ]
+            },
+            {
+              "id": "flight_change_policy",
+              "query": "Can I change my flight after booking?",
+              "formattedQuery": "Can I change my flight after booking?",
+              "docs": [
+                {
+                  "text": "The museum opens daily at 10 AM and offers guided tours on weekends.",
+                  "formattedText": "The museum opens daily at 10 AM and offers guided tours on weekends."
+                },
+                {
+                  "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                  "formattedText": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+                },
+                {
+                  "text": "Our gym membership includes group classes and access to the pool.",
+                  "formattedText": "Our gym membership includes group classes and access to the pool."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.218897,
+                0.739642,
+                0.226839
+              ]
+            },
+            {
+              "id": "wifi_troubleshoot",
+              "query": "Why does my home Wi-Fi keep disconnecting?",
+              "formattedQuery": "Why does my home Wi-Fi keep disconnecting?",
+              "docs": [
+                {
+                  "text": "The dessert menu includes cheesecake, brownies, and fruit tart.",
+                  "formattedText": "The dessert menu includes cheesecake, brownies, and fruit tart."
+                },
+                {
+                  "text": "You can review your recent orders in your account purchase history.",
+                  "formattedText": "You can review your recent orders in your account purchase history."
+                },
+                {
+                  "text": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel.",
+                  "formattedText": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 2,
+              "topDoc": 2,
+              "sims": [
+                0.192467,
+                0.259086,
+                0.652792
+              ]
+            },
+            {
+              "id": "refund_deadline",
+              "query": "How long do I have to request a refund?",
+              "formattedQuery": "How long do I have to request a refund?",
+              "docs": [
+                {
+                  "text": "Refund requests are accepted within 30 days of purchase when the item is in original condition.",
+                  "formattedText": "Refund requests are accepted within 30 days of purchase when the item is in original condition."
+                },
+                {
+                  "text": "The conference keynote starts at 9 AM in the main hall.",
+                  "formattedText": "The conference keynote starts at 9 AM in the main hall."
+                },
+                {
+                  "text": "Use a medium grind when brewing coffee with a drip machine.",
+                  "formattedText": "Use a medium grind when brewing coffee with a drip machine."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.726931,
+                0.192203,
+                0.205983
+              ]
+            },
+            {
+              "id": "passport_renewal_docs",
+              "query": "What documents do I need to renew a passport?",
+              "formattedQuery": "What documents do I need to renew a passport?",
+              "docs": [
+                {
+                  "text": "To care for houseplants, water only when the top soil is dry.",
+                  "formattedText": "To care for houseplants, water only when the top soil is dry."
+                },
+                {
+                  "text": "Passport renewal usually requires the application form, current passport, compliant photo, and payment.",
+                  "formattedText": "Passport renewal usually requires the application form, current passport, compliant photo, and payment."
+                },
+                {
+                  "text": "The train to downtown runs every 20 minutes during peak hours.",
+                  "formattedText": "The train to downtown runs every 20 minutes during peak hours."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.198902,
+                0.825206,
+                0.201255
+              ]
+            },
+            {
+              "id": "hard_flight_cancel_vs_change",
+              "query": "How do I cancel my flight reservation?",
+              "formattedQuery": "How do I cancel my flight reservation?",
+              "docs": [
+                {
+                  "text": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund.",
+                  "formattedText": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund."
+                },
+                {
+                  "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                  "formattedText": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+                },
+                {
+                  "text": "Flight status updates are available in the airline app under trip notifications.",
+                  "formattedText": "Flight status updates are available in the airline app under trip notifications."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.749106,
+                0.567194,
+                0.447942
+              ]
+            },
+            {
+              "id": "hard_return_vs_exchange",
+              "query": "Can I exchange a product instead of returning it?",
+              "formattedQuery": "Can I exchange a product instead of returning it?",
+              "docs": [
+                {
+                  "text": "To return an item, ship it back within 30 days in its original packaging for a refund.",
+                  "formattedText": "To return an item, ship it back within 30 days in its original packaging for a refund."
+                },
+                {
+                  "text": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days.",
+                  "formattedText": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days."
+                },
+                {
+                  "text": "Gift cards can be purchased in any denomination and never expire.",
+                  "formattedText": "Gift cards can be purchased in any denomination and never expire."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.575848,
+                0.668563,
+                0.412255
+              ]
+            },
+            {
+              "id": "hard_savings_vs_checking",
+              "query": "What is the interest rate on a savings account?",
+              "formattedQuery": "What is the interest rate on a savings account?",
+              "docs": [
+                {
+                  "text": "Checking accounts offer unlimited transactions with no minimum balance and a debit card.",
+                  "formattedText": "Checking accounts offer unlimited transactions with no minimum balance and a debit card."
+                },
+                {
+                  "text": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly.",
+                  "formattedText": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly."
+                },
+                {
+                  "text": "Credit card rewards include cashback, travel points, and purchase protection.",
+                  "formattedText": "Credit card rewards include cashback, travel points, and purchase protection."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.362533,
+                0.695799,
+                0.268953
+              ]
+            },
+            {
+              "id": "hard_migraine_vs_tension",
+              "query": "What triggers a migraine headache?",
+              "formattedQuery": "What triggers a migraine headache?",
+              "docs": [
+                {
+                  "text": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers.",
+                  "formattedText": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers."
+                },
+                {
+                  "text": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea.",
+                  "formattedText": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea."
+                },
+                {
+                  "text": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye.",
+                  "formattedText": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.591868,
+                0.7397,
+                0.600531
+              ]
+            },
+            {
+              "id": "hard_python_sort_vs_filter",
+              "query": "How do I sort a list in Python?",
+              "formattedQuery": "How do I sort a list in Python?",
+              "docs": [
+                {
+                  "text": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering.",
+                  "formattedText": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering."
+                },
+                {
+                  "text": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition.",
+                  "formattedText": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition."
+                },
+                {
+                  "text": "The map() function applies a transformation to every element in an iterable and returns a new iterator.",
+                  "formattedText": "The map() function applies a transformation to every element in an iterable and returns a new iterator."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.738188,
+                0.558754,
+                0.35505
+              ]
+            },
+            {
+              "id": "hard_civil_vs_criminal",
+              "query": "What is the difference between civil and criminal law?",
+              "formattedQuery": "What is the difference between civil and criminal law?",
+              "docs": [
+                {
+                  "text": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions.",
+                  "formattedText": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions."
+                },
+                {
+                  "text": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment.",
+                  "formattedText": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment."
+                },
+                {
+                  "text": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters.",
+                  "formattedText": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters."
+                }
+              ],
+              "passed": false,
+              "expectedDoc": 0,
+              "topDoc": 1,
+              "sims": [
+                0.525707,
+                0.551057,
+                0.411434
+              ]
+            },
+            {
+              "id": "cross_medical",
+              "query": "What are the symptoms of type 2 diabetes?",
+              "formattedQuery": "What are the symptoms of type 2 diabetes?",
+              "docs": [
+                {
+                  "text": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds.",
+                  "formattedText": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds."
+                },
+                {
+                  "text": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services.",
+                  "formattedText": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services."
+                },
+                {
+                  "text": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation.",
+                  "formattedText": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.7506,
+                0.082811,
+                0.198125
+              ]
+            },
+            {
+              "id": "cross_finance",
+              "query": "How does compound interest work?",
+              "formattedQuery": "How does compound interest work?",
+              "docs": [
+                {
+                  "text": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy.",
+                  "formattedText": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy."
+                },
+                {
+                  "text": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time.",
+                  "formattedText": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time."
+                },
+                {
+                  "text": "The novel follows three generations of a family through war, migration, and reconciliation.",
+                  "formattedText": "The novel follows three generations of a family through war, migration, and reconciliation."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 1,
+              "topDoc": 1,
+              "sims": [
+                0.315997,
+                0.654406,
+                0.189458
+              ]
+            },
+            {
+              "id": "cross_legal",
+              "query": "When does a contract become legally binding?",
+              "formattedQuery": "When does a contract become legally binding?",
+              "docs": [
+                {
+                  "text": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose.",
+                  "formattedText": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose."
+                },
+                {
+                  "text": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU.",
+                  "formattedText": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU."
+                },
+                {
+                  "text": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice.",
+                  "formattedText": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.769312,
+                0.171679,
+                0.07841
+              ]
+            },
+            {
+              "id": "cross_science",
+              "query": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+              "formattedQuery": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+              "docs": [
+                {
+                  "text": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance.",
+                  "formattedText": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance."
+                },
+                {
+                  "text": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture.",
+                  "formattedText": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture."
+                },
+                {
+                  "text": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil.",
+                  "formattedText": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.686759,
+                0.176711,
+                0.204357
+              ]
+            },
+            {
+              "id": "cross_code",
+              "query": "What is a race condition in concurrent programming?",
+              "formattedQuery": "What is a race condition in concurrent programming?",
+              "docs": [
+                {
+                  "text": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior.",
+                  "formattedText": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior."
+                },
+                {
+                  "text": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests.",
+                  "formattedText": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests."
+                },
+                {
+                  "text": "The yoga class starts with sun salutations and ends with a five-minute guided meditation.",
+                  "formattedText": "The yoga class starts with sun salutations and ends with a five-minute guided meditation."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.698605,
+                0.194591,
+                0.220059
+              ]
+            },
+            {
+              "id": "cross_cooking",
+              "query": "What temperature should I roast a chicken at?",
+              "formattedQuery": "What temperature should I roast a chicken at?",
+              "docs": [
+                {
+                  "text": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh.",
+                  "formattedText": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh."
+                },
+                {
+                  "text": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments.",
+                  "formattedText": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments."
+                },
+                {
+                  "text": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations.",
+                  "formattedText": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.698768,
+                0.151379,
+                0.052132
+              ]
+            },
+            {
+              "id": "pool_ten_docs",
+              "query": "How do vaccines work?",
+              "formattedQuery": "How do vaccines work?",
+              "docs": [
+                {
+                  "text": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease.",
+                  "formattedText": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease."
+                },
+                {
+                  "text": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions.",
+                  "formattedText": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions."
+                },
+                {
+                  "text": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces.",
+                  "formattedText": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces."
+                },
+                {
+                  "text": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings.",
+                  "formattedText": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings."
+                },
+                {
+                  "text": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation.",
+                  "formattedText": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation."
+                },
+                {
+                  "text": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity.",
+                  "formattedText": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity."
+                },
+                {
+                  "text": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion.",
+                  "formattedText": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion."
+                },
+                {
+                  "text": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats.",
+                  "formattedText": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats."
+                },
+                {
+                  "text": "Probate is the legal process of validating a will and distributing the deceased person's assets.",
+                  "formattedText": "Probate is the legal process of validating a will and distributing the deceased person's assets."
+                },
+                {
+                  "text": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders.",
+                  "formattedText": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders."
+                }
+              ],
+              "passed": true,
+              "expectedDoc": 0,
+              "topDoc": 0,
+              "sims": [
+                0.594394,
+                0.179045,
+                0.235646,
+                0.245845,
+                0.225485,
+                0.20761,
+                0.20538,
+                0.250435,
+                0.149137,
+                0.392337
+              ]
+            }
+          ],
+          "pairs": [
+            {
+              "id": "bike_paraphrase",
+              "anchor": "The child is riding a bicycle through the park.",
+              "formattedAnchor": "The child is riding a bicycle through the park.",
+              "positive": "A kid bikes along a path in the park.",
+              "formattedPositive": "A kid bikes along a path in the park.",
+              "negative": "The stock market closed lower after interest-rate news.",
+              "formattedNegative": "The stock market closed lower after interest-rate news.",
+              "passed": true,
+              "simPos": 0.820569,
+              "simNeg": 0.164166,
+              "margin": 0.656403
+            },
+            {
+              "id": "cancel_subscription",
+              "anchor": "Please cancel my subscription before renewal.",
+              "formattedAnchor": "Please cancel my subscription before renewal.",
+              "positive": "I want to stop the plan so it does not renew.",
+              "formattedPositive": "I want to stop the plan so it does not renew.",
+              "negative": "The mountain trail is closed after heavy snow.",
+              "formattedNegative": "The mountain trail is closed after heavy snow.",
+              "passed": true,
+              "simPos": 0.700462,
+              "simNeg": 0.242153,
+              "margin": 0.458309
+            },
+            {
+              "id": "battery_drain",
+              "anchor": "The laptop battery drains very quickly.",
+              "formattedAnchor": "The laptop battery drains very quickly.",
+              "positive": "My notebook loses charge fast.",
+              "formattedPositive": "My notebook loses charge fast.",
+              "negative": "This pasta sauce tastes sweet and spicy.",
+              "formattedNegative": "This pasta sauce tastes sweet and spicy.",
+              "passed": true,
+              "simPos": 0.745416,
+              "simNeg": 0.19588,
+              "margin": 0.549536
+            },
+            {
+              "id": "order_tracking",
+              "anchor": "I need to track where my order is.",
+              "formattedAnchor": "I need to track where my order is.",
+              "positive": "How can I check my package delivery status?",
+              "formattedPositive": "How can I check my package delivery status?",
+              "negative": "The violin concerto was composed in the 1800s.",
+              "formattedNegative": "The violin concerto was composed in the 1800s.",
+              "passed": true,
+              "simPos": 0.593202,
+              "simNeg": 0.109338,
+              "margin": 0.483865
+            },
+            {
+              "id": "account_lockout",
+              "anchor": "My account is locked after too many login attempts.",
+              "formattedAnchor": "My account is locked after too many login attempts.",
+              "positive": "I cannot sign in because the system temporarily blocked my account.",
+              "formattedPositive": "I cannot sign in because the system temporarily blocked my account.",
+              "negative": "Bake the cake at 350 degrees for thirty minutes.",
+              "formattedNegative": "Bake the cake at 350 degrees for thirty minutes.",
+              "passed": true,
+              "simPos": 0.705538,
+              "simNeg": 0.233661,
+              "margin": 0.471878
+            },
+            {
+              "id": "invoice_request",
+              "anchor": "Please send me the invoice for last month.",
+              "formattedAnchor": "Please send me the invoice for last month.",
+              "positive": "Can you provide the billing statement for the previous month?",
+              "formattedPositive": "Can you provide the billing statement for the previous month?",
+              "negative": "The hiking trail follows the river for five miles.",
+              "formattedNegative": "The hiking trail follows the river for five miles.",
+              "passed": true,
+              "simPos": 0.787855,
+              "simNeg": 0.158493,
+              "margin": 0.629362
+            },
+            {
+              "id": "slow_internet",
+              "anchor": "The internet speed is much slower tonight.",
+              "formattedAnchor": "The internet speed is much slower tonight.",
+              "positive": "My connection is unusually slow this evening.",
+              "formattedPositive": "My connection is unusually slow this evening.",
+              "negative": "The novel explores themes of memory and loss.",
+              "formattedNegative": "The novel explores themes of memory and loss.",
+              "passed": true,
+              "simPos": 0.751893,
+              "simNeg": 0.304077,
+              "margin": 0.447816
+            },
+            {
+              "id": "adversarial_negation_loan",
+              "anchor": "The bank approved the loan application.",
+              "formattedAnchor": "The bank approved the loan application.",
+              "positive": "The lending institution accepted the borrower's request for funds.",
+              "formattedPositive": "The lending institution accepted the borrower's request for funds.",
+              "negative": "The bank rejected the loan application.",
+              "formattedNegative": "The bank rejected the loan application.",
+              "passed": false,
+              "simPos": 0.740762,
+              "simNeg": 0.761748,
+              "margin": -0.020986
+            },
+            {
+              "id": "adversarial_negation_test",
+              "anchor": "The patient tested positive for the infection.",
+              "formattedAnchor": "The patient tested positive for the infection.",
+              "positive": "Lab results confirmed the presence of the pathogen.",
+              "formattedPositive": "Lab results confirmed the presence of the pathogen.",
+              "negative": "The patient tested negative for the infection.",
+              "formattedNegative": "The patient tested negative for the infection.",
+              "passed": false,
+              "simPos": 0.667299,
+              "simNeg": 0.693008,
+              "margin": -0.025709
+            },
+            {
+              "id": "adversarial_entity_swap",
+              "anchor": "France exported wine to Germany last quarter.",
+              "formattedAnchor": "France exported wine to Germany last quarter.",
+              "positive": "French wine shipments to Germany increased in the recent period.",
+              "formattedPositive": "French wine shipments to Germany increased in the recent period.",
+              "negative": "Germany exported wine to France last quarter.",
+              "formattedNegative": "Germany exported wine to France last quarter.",
+              "passed": false,
+              "simPos": 0.738131,
+              "simNeg": 0.974128,
+              "margin": -0.235997
+            },
+            {
+              "id": "adversarial_tense_flip",
+              "anchor": "The company plans to open a new office in Tokyo.",
+              "formattedAnchor": "The company plans to open a new office in Tokyo.",
+              "positive": "A new Tokyo branch is scheduled to launch soon.",
+              "formattedPositive": "A new Tokyo branch is scheduled to launch soon.",
+              "negative": "The company closed its Tokyo office last year.",
+              "formattedNegative": "The company closed its Tokyo office last year.",
+              "passed": false,
+              "simPos": 0.696744,
+              "simNeg": 0.699233,
+              "margin": -0.00249
+            },
+            {
+              "id": "adversarial_quantity",
+              "anchor": "The recipe calls for two tablespoons of sugar.",
+              "formattedAnchor": "The recipe calls for two tablespoons of sugar.",
+              "positive": "Add a couple of spoonfuls of sugar to the mixture.",
+              "formattedPositive": "Add a couple of spoonfuls of sugar to the mixture.",
+              "negative": "The recipe calls for two cups of sugar.",
+              "formattedNegative": "The recipe calls for two cups of sugar.",
+              "passed": false,
+              "simPos": 0.737478,
+              "simNeg": 0.941984,
+              "margin": -0.204505
+            },
+            {
+              "id": "technical_paraphrase_gpu",
+              "anchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+              "formattedAnchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+              "positive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+              "formattedPositive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+              "negative": "WebSocket provides full-duplex communication channels over a single TCP connection.",
+              "formattedNegative": "WebSocket provides full-duplex communication channels over a single TCP connection.",
+              "passed": true,
+              "simPos": 0.763196,
+              "simNeg": 0.458539,
+              "margin": 0.304657
+            },
+            {
+              "id": "technical_paraphrase_ml",
+              "anchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+              "formattedAnchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+              "positive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+              "formattedPositive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+              "negative": "The garbage collector reclaims memory by tracing reachable objects from root references.",
+              "formattedNegative": "The garbage collector reclaims memory by tracing reachable objects from root references.",
+              "passed": true,
+              "simPos": 0.633296,
+              "simNeg": 0.371644,
+              "margin": 0.261652
+            }
+          ]
+        },
+        "modelLoadMs": 927.45,
+        "endToEndMs": 1045.74,
+        "embeddingPreview": [
+          -0.089222,
+          0.045035,
+          0.022695,
+          0.023674,
+          -0.04232,
+          0.008824,
+          -0.011396,
+          0.021822,
+          0.049305,
+          -0.079508,
+          -0.041897,
+          0.012297,
+          -0.000642,
+          -0.0564,
+          0.019514,
+          0.016795
+        ],
+        "load": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "semantics": {
+            "modelLoadMs": "suite initialization time before generation",
+            "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+            "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+            "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+            "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+            "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+          },
+          "modelLoadMs": 927.45,
+          "loader": {
+            "schemaVersion": 1,
+            "source": "doppler-loader",
+            "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "status": "complete",
+            "customShardLoader": true,
+            "byteAccountingMode": "custom-loader-progress-unavailable",
+            "totalBytes": 470830080,
+            "totalShards": 8,
+            "bytesLoaded": 0,
+            "shardsLoaded": 0,
+            "bytesPerSecond": 0,
+            "phasesMs": {
+              "preflight": 1.22,
+              "tensorLocations": 1.37,
+              "embeddings": 107.91,
+              "layers": 81.19,
+              "finalWeights": 176.1,
+              "cleanup": 0.14
+            },
+            "layers": {
+              "count": 24,
+              "totalMs": 65.25,
+              "meanMs": 2.72,
+              "maxMs": 11.33,
+              "maxLayer": 0
+            },
+            "totalMs": 368.41,
+            "failedPhase": null,
+            "error": null
+          },
+          "pipeline": {
+            "schemaVersion": 1,
+            "source": "doppler-pipeline",
+            "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+            "status": "complete",
+            "phasesMs": {
+              "reset": 0.09,
+              "configResolution": 8.87,
+              "kernelWarmup": 0.08,
+              "tokenizer": 451.26,
+              "executionSetup": 2.57,
+              "loadWeights": 432.66,
+              "rope": 12.32,
+              "convStates": 0.25
+            },
+            "details": {
+              "tokenizer": {
+                "schemaVersion": 1,
+                "source": "doppler-tokenizer",
+                "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+                "status": "complete",
+                "tokenizerType": "bundled",
+                "tokenizerFile": "tokenizer.json",
+                "backend": "bundled",
+                "assetSource": "custom-loader",
+                "cacheHit": false,
+                "phasesMs": {
+                  "configResolution": 0.06,
+                  "cacheLookup": 0.06,
+                  "backendCreate": 0.1,
+                  "assetLoad": 187.07,
+                  "assetParse": 0.21,
+                  "backendLoad": 263.17,
+                  "cacheStore": 0.01
+                },
+                "totalMs": 450.88,
+                "error": null
+              }
+            },
+            "totalMs": 908.31
+          },
+          "residualsMs": {
+            "modelLoadMinusLoaderMs": 559.04,
+            "modelLoadMinusPipelineMs": 19.14,
+            "pipelineMinusLoaderMs": 539.9
+          },
+          "consistent": {
+            "loaderWithinModelLoad": true,
+            "pipelineWithinModelLoad": true,
+            "loaderWithinPipeline": true
+          }
+        },
+        "schemaVersion": 1,
+        "source": "doppler",
+        "suite": "embedding",
+        "layerPatternContractArtifact": {
+          "schemaVersion": 1,
+          "source": "doppler",
+          "ok": true,
+          "checks": [
+            {
+              "id": "inference.layerPattern.patternKind.shape",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.patternKind.semantics",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.layerType.shape",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.layerType.semantics",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.even",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.odd",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+              "ok": true
+            },
+            {
+              "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+              "ok": true
+            }
+          ],
+          "errors": [],
+          "stats": {
+            "patternKindRules": 4,
+            "layerTypeRules": 6,
+            "patternKindContexts": 16,
+            "layerTypeContexts": 12
+          }
+        },
+        "requiredInferenceFieldsArtifact": null
+      },
+      "memoryStats": {
+        "used": 671230208,
+        "pool": {
+          "allocations": 52812,
+          "reuses": 40662,
+          "totalBytesAllocated": 5310253312,
+          "peakBytesAllocated": 649603328,
+          "currentBytesAllocated": 620898560,
+          "totalBytesRequested": 4112842752,
+          "peakBytesRequested": 640952064,
+          "currentBytesRequested": 610591744,
+          "activeBuffers": 319,
+          "pooledBuffers": 64,
+          "budgetMaxBytes": 0,
+          "budgetUtilization": 0,
+          "hitRate": "43.5%"
+        },
+        "kvCache": {
+          "theoretical": 50331648,
+          "allocated": 50331648,
+          "used": 933888,
+          "efficiency": 0.0185546875,
+          "seqLen": 19,
+          "maxSeqLen": 1024,
+          "layout": "contiguous",
+          "kvDtype": "f32",
+          "counters": {
+            "updateCalls": 0,
+            "gpuUpdateCalls": 0,
+            "recordedGpuUpdateCalls": 4536,
+            "tokensWritten": 90360
+          }
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 65536,
+        "adapterInfo": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "radeon-8060s-graphics-radv-strix-halo-",
+          "description": "radv: Mesa 26.0.3-1ubuntu1"
+        },
+        "submitProbeMs": 0.5632120000000214
+      },
+      "pipeline": null,
+      "mode": "verify",
+      "workload": "embedding",
+      "debugSnapshot": {
+        "timestamp": "2026-07-04T15:17:11.881Z",
+        "logLevel": "INFO",
+        "traceCategories": [],
+        "enabledModules": [],
+        "disabledModules": [],
+        "recentLogs": [
+          {
+            "time": "9629.6",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "9685.1",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "9738.2",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "9789.7",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "9842.4",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "9897.7",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "9955.6",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10215.5",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10272.1",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10323.3",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10375.9",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10432.5",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10487.4",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10543.4",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10605.7",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10662.8",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10717.9",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10770.8",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10825.3",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10882.3",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10938.3",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "10990.7",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11049.2",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11101.9",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11156.3",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11211.3",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11267.6",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11321.0",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11378.0",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11431.2",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11489.5",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11542.0",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11598.2",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11657.1",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11713.1",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11765.7",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11819.3",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11875.1",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11930.3",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "11988.8",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "12045.1",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "12099.1",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "12403.0",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "12458.5",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "12513.3",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "12565.0",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "12621.2",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "12676.1",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "12735.6",
+            "level": "DEBUG",
+            "module": "Weights",
+            "message": "getNormWeightBuffer: weight is GPUBuffer=true, label=input_norm"
+          },
+          {
+            "time": "12790.2",
+            "level": "INFO",
+            "module": "Pipeline",
+            "message": "Unloaded"
+          }
+        ],
+        "errorCount": 0,
+        "warnCount": 1
+      },
+      "reportInfo": {
+        "backend": "node-fs",
+        "path": "reports/google-embeddinggemma-300m-q4k-ehf16-af32/2026-07-04T15-16-59.340Z.json"
+      }
+    },
+    "transformersjsBench": {
+      "modelId": "onnx-community/embeddinggemma-300m-ONNX",
+      "seed": 0,
+      "task": "embedding",
+      "prompt": "A small red cube rests on a wooden table beside a blue sphere.",
+      "promptRendered": "task: search result | query: A small red cube rests on a wooden table beside a blue sphere.",
+      "embeddingStyle": "embeddinggemma",
+      "embeddingMode": "sentence-embedding",
+      "embeddingPooling": "none",
+      "embeddingNormalize": true,
+      "warmupRuns": 1,
+      "timedRuns": 3,
+      "cacheMode": "warm",
+      "loadMode": "http",
+      "modelLoadMs": 11378.894999980927,
+      "timing": {
+        "modelLoadMs": 11378.894999980927,
+        "firstTokenMs": null,
+        "firstResponseMs": 11414.55999994278,
+        "prefillMs": null,
+        "decodeMs": null,
+        "totalRunMs": 25.424999952316284,
+        "embeddingMs": 25.424999952316284,
+        "embeddingsPerSec": 35.12880563041611,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "metrics": {
+        "embeddingDim": 768,
+        "nonFiniteValues": 0,
+        "firstEmbeddingMs": 35.66499996185303,
+        "minEmbeddingMs": 24.31000006198883,
+        "medianEmbeddingMs": 25.424999952316284,
+        "p95EmbeddingMs": 34.64099996089935,
+        "p99EmbeddingMs": 35.46019996166229,
+        "maxEmbeddingMs": 35.66499996185303,
+        "avgEmbeddingMs": 28.46666665871938,
+        "avgEmbeddingsPerSec": 35.12880563041611,
+        "avgEmbeddingTokens": 23,
+        "avgEmbeddingL2Norm": 0.9999999579165094,
+        "modelLoadMs": 11378.894999980927,
+        "ort_profiled_total_ms": 0,
+        "ort_profiled_event_count": 0,
+        "ort_top_op_total_ms": null
+      },
+      "semantic": {
+        "passed": true,
+        "style": "embeddinggemma",
+        "retrievalTop1Acc": 0.95,
+        "pairAcc": 0.6428571428571429,
+        "retrievalPassed": 19,
+        "retrievalTotal": 20,
+        "pairPassed": 9,
+        "pairTotal": 14,
+        "minRetrievalTop1Acc": 0.75,
+        "minPairAcc": 0.64,
+        "pairMarginThreshold": 0.02,
+        "failedCaseIds": [
+          "retrieval:hard_civil_vs_criminal",
+          "pair:adversarial_negation_loan",
+          "pair:adversarial_negation_test",
+          "pair:adversarial_entity_swap",
+          "pair:adversarial_tense_flip",
+          "pair:adversarial_quantity"
+        ],
+        "retrieval": [
+          {
+            "id": "library_search",
+            "query": "Where can I borrow books and study quietly?",
+            "formattedQuery": "task: search result | query: Where can I borrow books and study quietly?",
+            "docs": [
+              {
+                "text": "The city library lends books, provides study rooms, and offers free Wi-Fi.",
+                "formattedText": "title: None | text: The city library lends books, provides study rooms, and offers free Wi-Fi."
+              },
+              {
+                "text": "The cafe serves coffee, pastries, and sandwiches all day.",
+                "formattedText": "title: None | text: The cafe serves coffee, pastries, and sandwiches all day."
+              },
+              {
+                "text": "The bike repair shop fixes flat tires and broken chains.",
+                "formattedText": "title: None | text: The bike repair shop fixes flat tires and broken chains."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.451085,
+              0.1585,
+              0.154575
+            ]
+          },
+          {
+            "id": "password_reset",
+            "query": "How do I reset my account password?",
+            "formattedQuery": "task: search result | query: How do I reset my account password?",
+            "docs": [
+              {
+                "text": "To reset your password, open account settings and choose the forgot-password flow.",
+                "formattedText": "title: None | text: To reset your password, open account settings and choose the forgot-password flow."
+              },
+              {
+                "text": "Our shipping policy explains delivery timelines and tracking updates.",
+                "formattedText": "title: None | text: Our shipping policy explains delivery timelines and tracking updates."
+              },
+              {
+                "text": "The recipe combines tomatoes, basil, and olive oil.",
+                "formattedText": "title: None | text: The recipe combines tomatoes, basil, and olive oil."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.653219,
+              0.067598,
+              0.059278
+            ]
+          },
+          {
+            "id": "damaged_package",
+            "query": "What should I do if my package arrives damaged?",
+            "formattedQuery": "task: search result | query: What should I do if my package arrives damaged?",
+            "docs": [
+              {
+                "text": "Contact support within seven days with photos to request a replacement for damaged items.",
+                "formattedText": "title: None | text: Contact support within seven days with photos to request a replacement for damaged items."
+              },
+              {
+                "text": "The concert starts at 8 PM at the downtown arena.",
+                "formattedText": "title: None | text: The concert starts at 8 PM at the downtown arena."
+              },
+              {
+                "text": "Plant roses in spring and water them twice a week.",
+                "formattedText": "title: None | text: Plant roses in spring and water them twice a week."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.557326,
+              0.071889,
+              0.097966
+            ]
+          },
+          {
+            "id": "flight_change_policy",
+            "query": "Can I change my flight after booking?",
+            "formattedQuery": "task: search result | query: Can I change my flight after booking?",
+            "docs": [
+              {
+                "text": "The museum opens daily at 10 AM and offers guided tours on weekends.",
+                "formattedText": "title: None | text: The museum opens daily at 10 AM and offers guided tours on weekends."
+              },
+              {
+                "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                "formattedText": "title: None | text: You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+              },
+              {
+                "text": "Our gym membership includes group classes and access to the pool.",
+                "formattedText": "title: None | text: Our gym membership includes group classes and access to the pool."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.060174,
+              0.658587,
+              0.022351
+            ]
+          },
+          {
+            "id": "wifi_troubleshoot",
+            "query": "Why does my home Wi-Fi keep disconnecting?",
+            "formattedQuery": "task: search result | query: Why does my home Wi-Fi keep disconnecting?",
+            "docs": [
+              {
+                "text": "The dessert menu includes cheesecake, brownies, and fruit tart.",
+                "formattedText": "title: None | text: The dessert menu includes cheesecake, brownies, and fruit tart."
+              },
+              {
+                "text": "You can review your recent orders in your account purchase history.",
+                "formattedText": "title: None | text: You can review your recent orders in your account purchase history."
+              },
+              {
+                "text": "Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel.",
+                "formattedText": "title: None | text: Frequent Wi-Fi drops can be fixed by restarting the router, updating firmware, and changing the wireless channel."
+              }
+            ],
+            "expectedDoc": 2,
+            "topDoc": 2,
+            "passed": true,
+            "sims": [
+              0.059637,
+              0.095416,
+              0.574368
+            ]
+          },
+          {
+            "id": "refund_deadline",
+            "query": "How long do I have to request a refund?",
+            "formattedQuery": "task: search result | query: How long do I have to request a refund?",
+            "docs": [
+              {
+                "text": "Refund requests are accepted within 30 days of purchase when the item is in original condition.",
+                "formattedText": "title: None | text: Refund requests are accepted within 30 days of purchase when the item is in original condition."
+              },
+              {
+                "text": "The conference keynote starts at 9 AM in the main hall.",
+                "formattedText": "title: None | text: The conference keynote starts at 9 AM in the main hall."
+              },
+              {
+                "text": "Use a medium grind when brewing coffee with a drip machine.",
+                "formattedText": "title: None | text: Use a medium grind when brewing coffee with a drip machine."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.6194,
+              0.142856,
+              0.097132
+            ]
+          },
+          {
+            "id": "passport_renewal_docs",
+            "query": "What documents do I need to renew a passport?",
+            "formattedQuery": "task: search result | query: What documents do I need to renew a passport?",
+            "docs": [
+              {
+                "text": "To care for houseplants, water only when the top soil is dry.",
+                "formattedText": "title: None | text: To care for houseplants, water only when the top soil is dry."
+              },
+              {
+                "text": "Passport renewal usually requires the application form, current passport, compliant photo, and payment.",
+                "formattedText": "title: None | text: Passport renewal usually requires the application form, current passport, compliant photo, and payment."
+              },
+              {
+                "text": "The train to downtown runs every 20 minutes during peak hours.",
+                "formattedText": "title: None | text: The train to downtown runs every 20 minutes during peak hours."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.049067,
+              0.687791,
+              0.037819
+            ]
+          },
+          {
+            "id": "hard_flight_cancel_vs_change",
+            "query": "How do I cancel my flight reservation?",
+            "formattedQuery": "task: search result | query: How do I cancel my flight reservation?",
+            "docs": [
+              {
+                "text": "To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund.",
+                "formattedText": "title: None | text: To cancel a flight, go to Manage Booking and select the cancellation option within 24 hours for a full refund."
+              },
+              {
+                "text": "You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied.",
+                "formattedText": "title: None | text: You can change your flight in Manage Booking up to 24 hours before departure, with any fare difference applied."
+              },
+              {
+                "text": "Flight status updates are available in the airline app under trip notifications.",
+                "formattedText": "title: None | text: Flight status updates are available in the airline app under trip notifications."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.635666,
+              0.470297,
+              0.332908
+            ]
+          },
+          {
+            "id": "hard_return_vs_exchange",
+            "query": "Can I exchange a product instead of returning it?",
+            "formattedQuery": "task: search result | query: Can I exchange a product instead of returning it?",
+            "docs": [
+              {
+                "text": "To return an item, ship it back within 30 days in its original packaging for a refund.",
+                "formattedText": "title: None | text: To return an item, ship it back within 30 days in its original packaging for a refund."
+              },
+              {
+                "text": "Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days.",
+                "formattedText": "title: None | text: Exchanges are available in-store or online; select the replacement item and ship the original back within 14 days."
+              },
+              {
+                "text": "Gift cards can be purchased in any denomination and never expire.",
+                "formattedText": "title: None | text: Gift cards can be purchased in any denomination and never expire."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.514437,
+              0.626337,
+              0.303784
+            ]
+          },
+          {
+            "id": "hard_savings_vs_checking",
+            "query": "What is the interest rate on a savings account?",
+            "formattedQuery": "task: search result | query: What is the interest rate on a savings account?",
+            "docs": [
+              {
+                "text": "Checking accounts offer unlimited transactions with no minimum balance and a debit card.",
+                "formattedText": "title: None | text: Checking accounts offer unlimited transactions with no minimum balance and a debit card."
+              },
+              {
+                "text": "Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly.",
+                "formattedText": "title: None | text: Savings accounts currently earn 4.5% APY with interest compounded daily and paid monthly."
+              },
+              {
+                "text": "Credit card rewards include cashback, travel points, and purchase protection.",
+                "formattedText": "title: None | text: Credit card rewards include cashback, travel points, and purchase protection."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.252042,
+              0.587936,
+              0.129715
+            ]
+          },
+          {
+            "id": "hard_migraine_vs_tension",
+            "query": "What triggers a migraine headache?",
+            "formattedQuery": "task: search result | query: What triggers a migraine headache?",
+            "docs": [
+              {
+                "text": "Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers.",
+                "formattedText": "title: None | text: Tension headaches are caused by muscle contraction in the head and neck and respond well to over-the-counter painkillers."
+              },
+              {
+                "text": "Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea.",
+                "formattedText": "title: None | text: Migraines can be triggered by stress, certain foods, hormonal changes, and bright lights, often presenting with aura and nausea."
+              },
+              {
+                "text": "Cluster headaches occur in cyclical patterns and cause severe pain around one eye.",
+                "formattedText": "title: None | text: Cluster headaches occur in cyclical patterns and cause severe pain around one eye."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.544654,
+              0.679931,
+              0.525591
+            ]
+          },
+          {
+            "id": "hard_python_sort_vs_filter",
+            "query": "How do I sort a list in Python?",
+            "formattedQuery": "task: search result | query: How do I sort a list in Python?",
+            "docs": [
+              {
+                "text": "Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering.",
+                "formattedText": "title: None | text: Use the built-in sorted() function or list.sort() method to sort a list; both accept a key argument for custom ordering."
+              },
+              {
+                "text": "Use list comprehensions or the filter() built-in to select elements from a list that match a condition.",
+                "formattedText": "title: None | text: Use list comprehensions or the filter() built-in to select elements from a list that match a condition."
+              },
+              {
+                "text": "The map() function applies a transformation to every element in an iterable and returns a new iterator.",
+                "formattedText": "title: None | text: The map() function applies a transformation to every element in an iterable and returns a new iterator."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.624842,
+              0.425983,
+              0.216244
+            ]
+          },
+          {
+            "id": "hard_civil_vs_criminal",
+            "query": "What is the difference between civil and criminal law?",
+            "formattedQuery": "task: search result | query: What is the difference between civil and criminal law?",
+            "docs": [
+              {
+                "text": "Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions.",
+                "formattedText": "title: None | text: Civil law handles disputes between individuals or organizations, such as contracts, property, and family matters, with remedies like damages or injunctions."
+              },
+              {
+                "text": "Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment.",
+                "formattedText": "title: None | text: Criminal law addresses offenses against the state, where the government prosecutes the accused, and penalties include fines, probation, or imprisonment."
+              },
+              {
+                "text": "Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters.",
+                "formattedText": "title: None | text: Administrative law governs the actions of government agencies, including rulemaking, enforcement, and adjudication of regulatory matters."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 1,
+            "passed": false,
+            "sims": [
+              0.49508,
+              0.526678,
+              0.279072
+            ]
+          },
+          {
+            "id": "cross_medical",
+            "query": "What are the symptoms of type 2 diabetes?",
+            "formattedQuery": "task: search result | query: What are the symptoms of type 2 diabetes?",
+            "docs": [
+              {
+                "text": "Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds.",
+                "formattedText": "title: None | text: Type 2 diabetes symptoms include increased thirst, frequent urination, fatigue, blurred vision, and slow-healing wounds."
+              },
+              {
+                "text": "The quarterly earnings report showed a 12% increase in revenue driven by cloud services.",
+                "formattedText": "title: None | text: The quarterly earnings report showed a 12% increase in revenue driven by cloud services."
+              },
+              {
+                "text": "Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation.",
+                "formattedText": "title: None | text: Sourdough bread requires a mature starter, strong flour, water, and salt with a 12-hour bulk fermentation."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.682712,
+              0.025471,
+              0.104665
+            ]
+          },
+          {
+            "id": "cross_finance",
+            "query": "How does compound interest work?",
+            "formattedQuery": "task: search result | query: How does compound interest work?",
+            "docs": [
+              {
+                "text": "Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy.",
+                "formattedText": "title: None | text: Photosynthesis converts carbon dioxide and water into glucose and oxygen using sunlight energy."
+              },
+              {
+                "text": "Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time.",
+                "formattedText": "title: None | text: Compound interest calculates interest on both the initial principal and the accumulated interest from previous periods, causing exponential growth over time."
+              },
+              {
+                "text": "The novel follows three generations of a family through war, migration, and reconciliation.",
+                "formattedText": "title: None | text: The novel follows three generations of a family through war, migration, and reconciliation."
+              }
+            ],
+            "expectedDoc": 1,
+            "topDoc": 1,
+            "passed": true,
+            "sims": [
+              0.172984,
+              0.65956,
+              0.041854
+            ]
+          },
+          {
+            "id": "cross_legal",
+            "query": "When does a contract become legally binding?",
+            "formattedQuery": "task: search result | query: When does a contract become legally binding?",
+            "docs": [
+              {
+                "text": "A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose.",
+                "formattedText": "title: None | text: A contract becomes legally binding when there is an offer, acceptance, consideration, and mutual intent to be bound, with capacity and lawful purpose."
+              },
+              {
+                "text": "The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU.",
+                "formattedText": "title: None | text: The CPU executes instructions by fetching them from memory, decoding the opcode, and performing the operation in the ALU."
+              },
+              {
+                "text": "Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice.",
+                "formattedText": "title: None | text: Grilled salmon pairs well with lemon butter sauce, roasted asparagus, and wild rice."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.655217,
+              0.038468,
+              -0.022746
+            ]
+          },
+          {
+            "id": "cross_science",
+            "query": "Why do heavy objects fall at the same rate as light ones in a vacuum?",
+            "formattedQuery": "task: search result | query: Why do heavy objects fall at the same rate as light ones in a vacuum?",
+            "docs": [
+              {
+                "text": "In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance.",
+                "formattedText": "title: None | text: In a vacuum, gravitational acceleration is constant regardless of mass, so all objects fall at the same rate because there is no air resistance."
+              },
+              {
+                "text": "The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture.",
+                "formattedText": "title: None | text: The museum collection includes Impressionist paintings, Ancient Greek pottery, and contemporary sculpture."
+              },
+              {
+                "text": "To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil.",
+                "formattedText": "title: None | text: To propagate succulents, remove a healthy leaf, let it callus for two days, then place it on moist soil."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.660463,
+              0.025727,
+              0.037772
+            ]
+          },
+          {
+            "id": "cross_code",
+            "query": "What is a race condition in concurrent programming?",
+            "formattedQuery": "task: search result | query: What is a race condition in concurrent programming?",
+            "docs": [
+              {
+                "text": "A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior.",
+                "formattedText": "title: None | text: A race condition occurs when two or more threads access shared data simultaneously and the outcome depends on the order of execution, leading to unpredictable behavior."
+              },
+              {
+                "text": "Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests.",
+                "formattedText": "title: None | text: Annual rainfall in the Pacific Northwest averages 150 centimeters, supporting dense temperate rainforests."
+              },
+              {
+                "text": "The yoga class starts with sun salutations and ends with a five-minute guided meditation.",
+                "formattedText": "title: None | text: The yoga class starts with sun salutations and ends with a five-minute guided meditation."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.672905,
+              0.048572,
+              0.07811
+            ]
+          },
+          {
+            "id": "cross_cooking",
+            "query": "What temperature should I roast a chicken at?",
+            "formattedQuery": "task: search result | query: What temperature should I roast a chicken at?",
+            "docs": [
+              {
+                "text": "Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh.",
+                "formattedText": "title: None | text: Roast a whole chicken at 425°F (220°C) for about 20 minutes per pound until the internal temperature reaches 165°F (74°C) in the thickest part of the thigh."
+              },
+              {
+                "text": "Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments.",
+                "formattedText": "title: None | text: Kubernetes orchestrates container workloads across a cluster using pods, services, and deployments."
+              },
+              {
+                "text": "The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations.",
+                "formattedText": "title: None | text: The treaty established trade agreements, mutual defense obligations, and cultural exchange programs between the two nations."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.71563,
+              0.005585,
+              -0.100294
+            ]
+          },
+          {
+            "id": "pool_ten_docs",
+            "query": "How do vaccines work?",
+            "formattedQuery": "task: search result | query: How do vaccines work?",
+            "docs": [
+              {
+                "text": "Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease.",
+                "formattedText": "title: None | text: Vaccines introduce a weakened or inactivated pathogen to train the immune system to recognize and fight future infections without causing disease."
+              },
+              {
+                "text": "The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions.",
+                "formattedText": "title: None | text: The impressionist movement emerged in Paris during the 1860s as artists rejected academic conventions."
+              },
+              {
+                "text": "Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces.",
+                "formattedText": "title: None | text: Reinforced concrete uses steel rebar embedded in concrete to resist both compression and tension forces."
+              },
+              {
+                "text": "Dividends are periodic payments made by corporations to shareholders from profits or retained earnings.",
+                "formattedText": "title: None | text: Dividends are periodic payments made by corporations to shareholders from profits or retained earnings."
+              },
+              {
+                "text": "The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation.",
+                "formattedText": "title: None | text: The alpine ecosystem supports specialized plants and animals adapted to cold temperatures, thin air, and intense UV radiation."
+              },
+              {
+                "text": "Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity.",
+                "formattedText": "title: None | text: Merge sort divides the array recursively and merges sorted halves, achieving O(n log n) time complexity."
+              },
+              {
+                "text": "The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion.",
+                "formattedText": "title: None | text: The symphony orchestra consists of four instrument families: strings, woodwinds, brass, and percussion."
+              },
+              {
+                "text": "Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats.",
+                "formattedText": "title: None | text: Glacial erosion carves U-shaped valleys and deposits moraines as the ice retreats."
+              },
+              {
+                "text": "Probate is the legal process of validating a will and distributing the deceased person's assets.",
+                "formattedText": "title: None | text: Probate is the legal process of validating a will and distributing the deceased person's assets."
+              },
+              {
+                "text": "The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders.",
+                "formattedText": "title: None | text: The combustion engine converts chemical energy from fuel into mechanical energy through controlled explosions in cylinders."
+              }
+            ],
+            "expectedDoc": 0,
+            "topDoc": 0,
+            "passed": true,
+            "sims": [
+              0.581851,
+              0.041296,
+              0.129648,
+              0.087299,
+              0.083945,
+              0.049305,
+              0.03427,
+              0.077276,
+              0.113696,
+              0.221775
+            ]
+          }
+        ],
+        "pairs": [
+          {
+            "id": "bike_paraphrase",
+            "anchor": "The child is riding a bicycle through the park.",
+            "formattedAnchor": "task: search result | query: The child is riding a bicycle through the park.",
+            "positive": "A kid bikes along a path in the park.",
+            "formattedPositive": "task: search result | query: A kid bikes along a path in the park.",
+            "negative": "The stock market closed lower after interest-rate news.",
+            "formattedNegative": "task: search result | query: The stock market closed lower after interest-rate news.",
+            "passed": true,
+            "simPos": 0.840157,
+            "simNeg": 0.08658,
+            "margin": 0.753577
+          },
+          {
+            "id": "cancel_subscription",
+            "anchor": "Please cancel my subscription before renewal.",
+            "formattedAnchor": "task: search result | query: Please cancel my subscription before renewal.",
+            "positive": "I want to stop the plan so it does not renew.",
+            "formattedPositive": "task: search result | query: I want to stop the plan so it does not renew.",
+            "negative": "The mountain trail is closed after heavy snow.",
+            "formattedNegative": "task: search result | query: The mountain trail is closed after heavy snow.",
+            "passed": true,
+            "simPos": 0.663779,
+            "simNeg": 0.136131,
+            "margin": 0.527648
+          },
+          {
+            "id": "battery_drain",
+            "anchor": "The laptop battery drains very quickly.",
+            "formattedAnchor": "task: search result | query: The laptop battery drains very quickly.",
+            "positive": "My notebook loses charge fast.",
+            "formattedPositive": "task: search result | query: My notebook loses charge fast.",
+            "negative": "This pasta sauce tastes sweet and spicy.",
+            "formattedNegative": "task: search result | query: This pasta sauce tastes sweet and spicy.",
+            "passed": true,
+            "simPos": 0.790977,
+            "simNeg": 0.08442,
+            "margin": 0.706557
+          },
+          {
+            "id": "order_tracking",
+            "anchor": "I need to track where my order is.",
+            "formattedAnchor": "task: search result | query: I need to track where my order is.",
+            "positive": "How can I check my package delivery status?",
+            "formattedPositive": "task: search result | query: How can I check my package delivery status?",
+            "negative": "The violin concerto was composed in the 1800s.",
+            "formattedNegative": "task: search result | query: The violin concerto was composed in the 1800s.",
+            "passed": true,
+            "simPos": 0.573925,
+            "simNeg": 0.055602,
+            "margin": 0.518323
+          },
+          {
+            "id": "account_lockout",
+            "anchor": "My account is locked after too many login attempts.",
+            "formattedAnchor": "task: search result | query: My account is locked after too many login attempts.",
+            "positive": "I cannot sign in because the system temporarily blocked my account.",
+            "formattedPositive": "task: search result | query: I cannot sign in because the system temporarily blocked my account.",
+            "negative": "Bake the cake at 350 degrees for thirty minutes.",
+            "formattedNegative": "task: search result | query: Bake the cake at 350 degrees for thirty minutes.",
+            "passed": true,
+            "simPos": 0.673226,
+            "simNeg": 0.139706,
+            "margin": 0.53352
+          },
+          {
+            "id": "invoice_request",
+            "anchor": "Please send me the invoice for last month.",
+            "formattedAnchor": "task: search result | query: Please send me the invoice for last month.",
+            "positive": "Can you provide the billing statement for the previous month?",
+            "formattedPositive": "task: search result | query: Can you provide the billing statement for the previous month?",
+            "negative": "The hiking trail follows the river for five miles.",
+            "formattedNegative": "task: search result | query: The hiking trail follows the river for five miles.",
+            "passed": true,
+            "simPos": 0.721841,
+            "simNeg": 0.071866,
+            "margin": 0.649975
+          },
+          {
+            "id": "slow_internet",
+            "anchor": "The internet speed is much slower tonight.",
+            "formattedAnchor": "task: search result | query: The internet speed is much slower tonight.",
+            "positive": "My connection is unusually slow this evening.",
+            "formattedPositive": "task: search result | query: My connection is unusually slow this evening.",
+            "negative": "The novel explores themes of memory and loss.",
+            "formattedNegative": "task: search result | query: The novel explores themes of memory and loss.",
+            "passed": true,
+            "simPos": 0.833969,
+            "simNeg": 0.178942,
+            "margin": 0.655028
+          },
+          {
+            "id": "adversarial_negation_loan",
+            "anchor": "The bank approved the loan application.",
+            "formattedAnchor": "task: search result | query: The bank approved the loan application.",
+            "positive": "The lending institution accepted the borrower's request for funds.",
+            "formattedPositive": "task: search result | query: The lending institution accepted the borrower's request for funds.",
+            "negative": "The bank rejected the loan application.",
+            "formattedNegative": "task: search result | query: The bank rejected the loan application.",
+            "passed": false,
+            "simPos": 0.773873,
+            "simNeg": 0.813103,
+            "margin": -0.039231
+          },
+          {
+            "id": "adversarial_negation_test",
+            "anchor": "The patient tested positive for the infection.",
+            "formattedAnchor": "task: search result | query: The patient tested positive for the infection.",
+            "positive": "Lab results confirmed the presence of the pathogen.",
+            "formattedPositive": "task: search result | query: Lab results confirmed the presence of the pathogen.",
+            "negative": "The patient tested negative for the infection.",
+            "formattedNegative": "task: search result | query: The patient tested negative for the infection.",
+            "passed": false,
+            "simPos": 0.681721,
+            "simNeg": 0.813798,
+            "margin": -0.132077
+          },
+          {
+            "id": "adversarial_entity_swap",
+            "anchor": "France exported wine to Germany last quarter.",
+            "formattedAnchor": "task: search result | query: France exported wine to Germany last quarter.",
+            "positive": "French wine shipments to Germany increased in the recent period.",
+            "formattedPositive": "task: search result | query: French wine shipments to Germany increased in the recent period.",
+            "negative": "Germany exported wine to France last quarter.",
+            "formattedNegative": "task: search result | query: Germany exported wine to France last quarter.",
+            "passed": false,
+            "simPos": 0.802178,
+            "simNeg": 0.982321,
+            "margin": -0.180143
+          },
+          {
+            "id": "adversarial_tense_flip",
+            "anchor": "The company plans to open a new office in Tokyo.",
+            "formattedAnchor": "task: search result | query: The company plans to open a new office in Tokyo.",
+            "positive": "A new Tokyo branch is scheduled to launch soon.",
+            "formattedPositive": "task: search result | query: A new Tokyo branch is scheduled to launch soon.",
+            "negative": "The company closed its Tokyo office last year.",
+            "formattedNegative": "task: search result | query: The company closed its Tokyo office last year.",
+            "passed": false,
+            "simPos": 0.752117,
+            "simNeg": 0.768766,
+            "margin": -0.016649
+          },
+          {
+            "id": "adversarial_quantity",
+            "anchor": "The recipe calls for two tablespoons of sugar.",
+            "formattedAnchor": "task: search result | query: The recipe calls for two tablespoons of sugar.",
+            "positive": "Add a couple of spoonfuls of sugar to the mixture.",
+            "formattedPositive": "task: search result | query: Add a couple of spoonfuls of sugar to the mixture.",
+            "negative": "The recipe calls for two cups of sugar.",
+            "formattedNegative": "task: search result | query: The recipe calls for two cups of sugar.",
+            "passed": false,
+            "simPos": 0.794896,
+            "simNeg": 0.904294,
+            "margin": -0.109398
+          },
+          {
+            "id": "technical_paraphrase_gpu",
+            "anchor": "WebGPU provides low-level access to the graphics processor for compute workloads.",
+            "formattedAnchor": "task: search result | query: WebGPU provides low-level access to the graphics processor for compute workloads.",
+            "positive": "The WebGPU API exposes GPU hardware for parallel computation tasks.",
+            "formattedPositive": "task: search result | query: The WebGPU API exposes GPU hardware for parallel computation tasks.",
+            "negative": "WebSocket provides full-duplex communication channels over a single TCP connection.",
+            "formattedNegative": "task: search result | query: WebSocket provides full-duplex communication channels over a single TCP connection.",
+            "passed": true,
+            "simPos": 0.785858,
+            "simNeg": 0.347726,
+            "margin": 0.438132
+          },
+          {
+            "id": "technical_paraphrase_ml",
+            "anchor": "Gradient descent minimizes the loss function by iteratively updating model parameters.",
+            "formattedAnchor": "task: search result | query: Gradient descent minimizes the loss function by iteratively updating model parameters.",
+            "positive": "The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+            "formattedPositive": "task: search result | query: The optimizer reduces error by adjusting weights in the direction of steepest descent.",
+            "negative": "The garbage collector reclaims memory by tracing reachable objects from root references.",
+            "formattedNegative": "task: search result | query: The garbage collector reclaims memory by tracing reachable objects from root references.",
+            "passed": true,
+            "simPos": 0.611095,
+            "simNeg": 0.271197,
+            "margin": 0.339898
+          }
+        ],
+        "durationMs": 3628.914999961853
+      },
+      "runs": [
+        {
+          "embeddingMs": 35.66499996185303,
+          "tokenCount": 23,
+          "embeddingDim": 768,
+          "finiteRatio": 1,
+          "nonFiniteCount": 0,
+          "l2Norm": 0.9999999579165094,
+          "min": -0.11985442787408829,
+          "max": 0.09775733947753906
+        },
+        {
+          "embeddingMs": 25.424999952316284,
+          "tokenCount": 23,
+          "embeddingDim": 768,
+          "finiteRatio": 1,
+          "nonFiniteCount": 0,
+          "l2Norm": 0.9999999579165094,
+          "min": -0.11985442787408829,
+          "max": 0.09775733947753906
+        },
+        {
+          "embeddingMs": 24.31000006198883,
+          "tokenCount": 23,
+          "embeddingDim": 768,
+          "finiteRatio": 1,
+          "nonFiniteCount": 0,
+          "l2Norm": 0.9999999579165094,
+          "min": -0.11985442787408829,
+          "max": 0.09775733947753906
+        }
+      ],
+      "embeddingPreview": [
+        -0.092252,
+        0.058776,
+        0.022142,
+        0.009202,
+        -0.036999,
+        0.009328,
+        -0.001611,
+        0.005122
+      ],
+      "deviceInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      },
+      "env": {
+        "library": "transformers.js",
+        "version": "4.x",
+        "device": "webgpu",
+        "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+        "browserPlatform": "Linux x86_64",
+        "browserLanguage": "en-US",
+        "browserVendor": "Google Inc.",
+        "dtype": "q4",
+        "requestedDtype": "q4",
+        "dtypeFallbackUsed": false,
+        "executionProviderMode": "webgpu-only",
+        "executionProviderFallbackUsed": false,
+        "ortProxyMode": "off",
+        "ortProxyFallbackUsed": false,
+        "runnerKind": "sentence-embedding",
+        "webgpuBackend": "vulkan",
+        "browserExecutable": null
+      },
+      "benchmarkPolicy": {
+        "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+        "schemaVersion": 1,
+        "updated": "2026-03-29"
+      },
+      "determinism": {
+        "seed": 0,
+        "decoding": null,
+        "embedding": {
+          "mode": "sentence-embedding",
+          "pooling": "none",
+          "normalize": true,
+          "style": "embeddinggemma"
+        }
+      },
+      "profiling": {
+        "ortConsole": {
+          "eventCount": 0,
+          "durationEventCount": 0,
+          "totalDurationMs": 0,
+          "topOperations": [],
+          "categories": [],
+          "parseErrorCount": 0,
+          "rawLogCount": 0,
+          "enabled": false,
+          "topN": 20
+        }
+      },
+      "cachePrime": {
+        "enabled": false,
+        "primed": false,
+        "primeMs": 0
+      },
+      "firstLoad": {
+        "schemaVersion": 1,
+        "semantics": {
+          "browserLaunchMs": "node launch request -> browser/context ready",
+          "pageReadyMs": "runner navigation + startup",
+          "cachePrimeMs": "untimed warm-opfs prefetch/load pass",
+          "modelLoadMs": "model initialization/load before generation",
+          "firstTokenMs": "ttft from generation start",
+          "firstResponseMs": "modelLoadMs + firstTokenMs",
+          "harnessWarmStartToFirstResponseMs": "pageReadyMs + cachePrimeMs + firstResponseMs",
+          "endToEndFirstResponseMs": "browserLaunchMs + pageReadyMs + cachePrimeMs + firstResponseMs"
+        },
+        "componentsMs": {
+          "browserLaunchMs": 61.26,
+          "pageReadyMs": 78.24,
+          "cachePrimeMs": 0,
+          "modelLoadMs": 11378.89,
+          "firstTokenMs": 0,
+          "firstResponseMs": 11414.56
+        },
+        "sumsMs": {
+          "firstResponseFromLoadAndFirstTokenMs": 11378.89,
+          "harnessWarmStartToFirstResponseMs": 11492.8,
+          "endToEndFirstResponseMs": 11554.06
+        },
+        "residualsMs": {
+          "firstResponseResidualMs": 35.67
+        },
+        "consistent": {
+          "firstResponse": false
+        },
+        "mode": {
+          "cachePrimeEnabled": false,
+          "cachePrimePrimed": false,
+          "strictWarmOpfs": false
+        }
+      },
+      "environment": {
+        "host": {
+          "platform": "linux",
+          "arch": "x64",
+          "nodeVersion": "v22.22.1",
+          "osRelease": "7.0.0-22-generic",
+          "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+        },
+        "browser": {
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+          "platform": "Linux x86_64",
+          "language": "en-US",
+          "vendor": "Google Inc.",
+          "executable": null,
+          "channel": null
+        },
+        "gpu": {
+          "api": "webgpu",
+          "backend": "vulkan",
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "0x1586",
+          "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+          "hasF16": true,
+          "hasSubgroups": true,
+          "hasTimestampQuery": true
+        },
+        "runtime": {
+          "library": "transformers.js",
+          "version": "4.x",
+          "surface": "browser",
+          "device": "webgpu",
+          "dtype": "q4",
+          "requestedDtype": "q4",
+          "executionProviderMode": "webgpu-only",
+          "cacheMode": "warm",
+          "loadMode": "http",
+          "persistentContextRequired": true,
+          "persistentContextUsed": true,
+          "crashRecoveryArgsUsed": false
+        }
+      }
+    }
+  }
+}

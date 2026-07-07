@@ -67,7 +67,7 @@
     "weightsRef": {
       "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
       "artifactRoot": "../gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-      "manifestDigest": "sha256:9d6d08271f126f7a64fddb5ff0a2a30261e1676d9369baa1039b215cf8fd32d9",
+      "manifestDigest": "sha256:512d6e16602071cccff4cbe576bf3b2c20bd43fd32aefc271db4bb95cc9c7f17",
       "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea"
     }
   },

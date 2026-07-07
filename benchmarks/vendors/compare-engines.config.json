@@ -101,6 +101,24 @@
       "compareLaneReason": "Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful."
     },
     {
+      "dopplerModelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "defaultTjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
+      "defaultDopplerSource": "local",
+      "modelBaseDir": "local",
+      "defaultDopplerSurface": "browser",
+      "defaultLoadMode": "http",
+      "defaultLoadModeReason": "The local AF16 INT4-PLE weights-ref sibling must run through HTTP load mode in browser compares; OPFS cache priming treats the sibling shard paths as remote cache entries and returns 404 for the unpublished shard URLs.",
+      "defaultUseChatTemplate": true,
+      "defaultDopplerFormat": "rdrr",
+      "defaultTjsFormat": "onnx",
+      "safetensorsSourceId": "google/gemma-4-e2b-it",
+      "dopplerRuntimeProfileByDecodeProfile": {
+        "throughput": "profiles/throughput"
+      },
+      "compareLane": "performance_comparable",
+      "compareLaneReason": "Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight pack; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence."
+    },
+    {
       "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
       "defaultTjsModelId": "onnx-community/translategemma-text-4b-it-ONNX",
       "defaultDopplerSource": "local",
@@ -153,8 +171,8 @@
       "dopplerRuntimeProfileByDecodeProfile": {
         "throughput": "profiles/throughput"
       },
-      "compareLane": "capability_only",
-      "compareLaneReason": "Qwen 3.5 2B has no committed correctness-clean fixture for the claimable compare lane yet."
+      "compareLane": "performance_comparable",
+      "compareLaneReason": null
     },
     {
       "dopplerModelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",

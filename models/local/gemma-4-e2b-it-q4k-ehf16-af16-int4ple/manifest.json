@@ -92,7 +92,7 @@
       "tieWordEmbeddings": true,
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
-      "embeddingVocabSize": 262144,
+      "embeddingVocabSize": null,
       "embeddingPostprocessor": null,
       "embeddingScale": null,
       "logitInputScale": 1
@@ -214,6 +214,15 @@
           "entry": "main_vec4",
           "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
         },
+        "q4_decode_gemv": {
+          "kernel": "fused_matmul_q4.wgsl",
+          "entry": "main_gemv",
+          "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+          "precision": {
+            "inputDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
@@ -244,6 +253,15 @@
           "kernel": "matmul_f16w_f32a.wgsl",
           "entry": "main",
           "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+        },
+        "q4_widetile": {
+          "kernel": "fused_matmul_q4_widetile.wgsl",
+          "entry": "main",
+          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+          "precision": {
+            "inputDtype": "f32",
+            "outputDtype": "f32"
+          }
         },
         "q4_prefill_shared": {
           "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
@@ -317,42 +335,6 @@
           "kernel": "sample.wgsl",
           "entry": "sample_single_pass",
           "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
-        },
-        "ffn_widetile": {
-          "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
-          "entry": "main",
-          "digest": "sha256:fd0fb3e0a5aeb8189674cfdf450181ca132e4a2db899a122ef93ec0b4abf9b1d",
-          "precision": {
-            "inputDtype": "f16",
-            "outputDtype": "f16"
-          }
-        },
-        "ffn_gemv": {
-          "kernel": "matmul_gemv_subgroup_f16a.wgsl",
-          "entry": "main_multicol",
-          "digest": "sha256:8f62e404087d4e6a7b786f15951b7f817d6ecf71625786a16ad8d744e3dd9eb3",
-          "precision": {
-            "inputDtype": "f16",
-            "outputDtype": "f16"
-          }
-        },
-        "q4_widetile": {
-          "kernel": "fused_matmul_q4_widetile.wgsl",
-          "entry": "main",
-          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
-          "precision": {
-            "inputDtype": "f32",
-            "outputDtype": "f32"
-          }
-        },
-        "q4_decode_gemv": {
-          "kernel": "fused_matmul_q4.wgsl",
-          "entry": "main_gemv",
-          "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
-          "precision": {
-            "inputDtype": "f32",
-            "outputDtype": "f32"
-          }
         }
       },
       "preLayer": [
@@ -494,23 +476,8 @@
               "rmsnorm"
             ],
             [
-              "gate_proj",
-              "ffn_widetile",
-              "layer.{L}.mlp.gate_proj"
-            ],
-            [
-              "up_proj",
-              "ffn_widetile",
-              "layer.{L}.mlp.up_proj"
-            ],
-            [
-              "activation",
+              "ffn",
               "gelu"
-            ],
-            [
-              "down_proj",
-              "ffn_widetile",
-              "layer.{L}.mlp.down_proj"
             ],
             [
               "ffn_residual",
@@ -574,23 +541,8 @@
               "rmsnorm"
             ],
             [
-              "gate_proj",
-              "ffn_widetile",
-              "layer.{L}.mlp.gate_proj"
-            ],
-            [
-              "up_proj",
-              "ffn_widetile",
-              "layer.{L}.mlp.up_proj"
-            ],
-            [
-              "activation",
+              "ffn",
               "gelu"
-            ],
-            [
-              "down_proj",
-              "ffn_widetile",
-              "layer.{L}.mlp.down_proj"
             ],
             [
               "ffn_residual",
@@ -621,10 +573,11 @@
       ],
       "policies": {
         "unsupportedPrecision": "error",
-        "dtypeTransition": "allow_implicit_widening",
+        "dtypeTransition": "require_cast_step",
         "unresolvedKernel": "error"
       }
-    }
+    },
+    "sessionDefaults": null
   },
   "shards": [
     {
@@ -25375,7 +25328,7 @@
   },
   "conversion": {
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
-    "conversionConfigDigest": "sha256:dd3df4dbaae0de5f725f84f968162ee0df18cc38bb6e0edc55db0ab81d8796ae",
+    "conversionConfigDigest": "sha256:0dd695ced1c1cab5d5d4fef5b6bd5c5eb0f0d2e7d416778d0f13b99623528887",
     "sourceManifestId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
     "siblingMode": "weights-ref"
   },
@@ -25386,6 +25339,10 @@
     "integrityRefresh": {
       "at": "2026-04-23T22:49:04.638Z",
       "blockSize": 1048576
+    },
+    "executionGraphPatch": {
+      "at": "2026-07-06T01:46:16.710Z",
+      "config": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json"
     }
   },
   "tokenizer": {
@@ -25400,7 +25357,7 @@
     "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea",
     "artifactCompleteness": "weights-ref",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
-    "conversionConfigDigest": "sha256:dd3df4dbaae0de5f725f84f968162ee0df18cc38bb6e0edc55db0ab81d8796ae"
+    "conversionConfigDigest": "sha256:0dd695ced1c1cab5d5d4fef5b6bd5c5eb0f0d2e7d416778d0f13b99623528887"
   },
   "integrityExtensions": {
     "contractVersion": 1,
@@ -27424,7 +27381,7 @@
   "weightsRef": {
     "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
     "artifactRoot": "../gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-    "manifestDigest": "sha256:85c460793b8918660573aed4e260e54468240c29524541dda3651d4f754ef166",
+    "manifestDigest": "sha256:512d6e16602071cccff4cbe576bf3b2c20bd43fd32aefc271db4bb95cc9c7f17",
     "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea"
   }
 }
