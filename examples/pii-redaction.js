@@ -6,7 +6,7 @@
  * All inference runs locally — no data leaves the browser.
  */
 
-import { doppler } from 'doppler-gpu';
+import { dr } from 'doppler-gpu';
 
 const MODEL_ID = 'qwen3-0.8b';
 
@@ -36,7 +36,7 @@ async function redact(model, text) {
 
 async function main() {
   console.log('Loading model (cached after first download)...');
-  const model = await doppler.load(MODEL_ID, {
+  const model = await dr.load(MODEL_ID, {
     onProgress(progress) {
       if (progress.percent != null) {
         console.log(`  ${progress.stage}: ${Math.round(progress.percent)}%`);

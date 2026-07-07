@@ -2,12 +2,13 @@
 
 ## Purpose
 
-Primary application-facing API for loading models and generating text with the `doppler` facade.
+Primary application-facing API for loading models and generating text with the `dr` facade.
+The older `doppler` name remains a compatibility alias.
 
 ## Import Path
 
 ```js
-import { doppler } from 'doppler-gpu';
+import { dr } from 'doppler-gpu';
 ```
 
 ## Audience
@@ -22,14 +23,15 @@ instance features such as LoRA loading relate to the tier1 contract.
 
 ## Primary Exports
 
-- `doppler`
-- `doppler.load(model, options)`
-- `doppler.text(prompt, options)`
-- `doppler.chat(messages, options)`
-- `doppler.chatText(messages, options)`
-- `doppler.evict(model)`
-- `doppler.evictAll()`
-- `doppler.listModels()`
+- `dr`
+- `doppler` (compatibility alias)
+- `dr.load(model, options)`
+- `dr.text(prompt, options)`
+- `dr.chat(messages, options)`
+- `dr.chatText(messages, options)`
+- `dr.evict(model)`
+- `dr.evictAll()`
+- `dr.listModels()`
 
 Advanced runtime helpers now live on dedicated subpaths such as
 `doppler-gpu/loaders`, `doppler-gpu/orchestration`, `doppler-gpu/generation`,
@@ -37,7 +39,7 @@ and `doppler-gpu/tooling`.
 
 ## Model Inputs
 
-`doppler.load()` accepts:
+`dr.load()` accepts:
 
 - registry ID string, for example `'qwen3-0.8b'`
 - `{ url }`
@@ -49,28 +51,28 @@ A bare string is treated as a bundled/known registry ID, not a path heuristic.
 
 ### Loading
 
-- `doppler.load()` creates an explicit model instance
+- `dr.load()` creates an explicit model instance
 - instance ownership is explicit; call `model.unload()` when done
 - Node quick-start runs emit basic progress logs by default
 
 ### Convenience calls
 
-- `doppler(prompt, { model })` reuses a convenience cache
-- `doppler.text(...)` requires `options.model` and returns the final string
-- `doppler.chat(...)` requires `options.model` and returns an `AsyncGenerator<string>`
-- `doppler.chatText(...)` requires `options.model` and returns `{ content, usage }`
-- `doppler.evict(model)` and `doppler.evictAll()` clear the convenience cache
+- `dr(prompt, { model })` reuses a convenience cache
+- `dr.text(...)` requires `options.model` and returns the final string
+- `dr.chat(...)` requires `options.model` and returns an `AsyncGenerator<string>`
+- `dr.chatText(...)` requires `options.model` and returns `{ content, usage }`
+- `dr.evict(model)` and `dr.evictAll()` clear the convenience cache
 
 ### Fail-fast rules
 
-- `doppler()`, `doppler.text()`, `doppler.chat()`, and `doppler.chatText()` all require `options.model`
-- load-affecting options belong on `doppler.load()`, not the convenience call
+- `dr()`, `dr.text()`, `dr.chat()`, and `dr.chatText()` all require `options.model`
+- load-affecting options belong on `dr.load()`, not the convenience call
 - `runtimeConfig`, `runtimeProfile`, and `runtimeConfigUrl` are rejected on the convenience-call surface
 - unsupported resolution inputs fail fast rather than silently falling back
 
 ## Primary Symbol Notes
 
-### `doppler.load(model, options)`
+### `dr.load(model, options)`
 
 Returns a `DopplerModel` instance with:
 
@@ -90,32 +92,32 @@ The text generation and `advanced.*` telemetry helpers are part of the promoted
 root-facade story. LoRA instance methods are available on the same model object,
 but remain outside the tier1 proof contract.
 
-### `doppler(prompt, options)`
+### `dr(prompt, options)`
 
 Returns an `AsyncGenerator<string>` and caches the loaded model by resolved model key.
 
-### `doppler.text(prompt, options)`
+### `dr.text(prompt, options)`
 
 Convenience wrapper that consumes the stream and returns a final string.
 
-### `doppler.chat(messages, options)`
+### `dr.chat(messages, options)`
 
 Formats chat input and returns an `AsyncGenerator<string>`.
 
-### `doppler.chatText(messages, options)`
+### `dr.chatText(messages, options)`
 
 Formats chat input and returns a final `{ content, usage }` object.
 
-### `doppler.listModels()`
+### `dr.listModels()`
 
 Returns canonical quick-start `modelId` values known to the root facade.
 
 ## Minimal Example
 
 ```js
-import { doppler } from 'doppler-gpu';
+import { dr } from 'doppler-gpu';
 
-const model = await doppler.load('qwen3-0.8b');
+const model = await dr.load('qwen3-0.8b');
 
 for await (const token of model.generate('Describe WebGPU briefly')) {
   process.stdout.write(token);
@@ -125,10 +127,10 @@ for await (const token of model.generate('Describe WebGPU briefly')) {
 ## Advanced Example
 
 ```js
-import { doppler } from 'doppler-gpu';
+import { dr } from 'doppler-gpu';
 
-const model = await doppler.load('qwen3-0.8b', {
-  onProgress: ({ message }) => console.log(`[doppler] ${message}`),
+const model = await dr.load('qwen3-0.8b', {
+  onProgress: ({ message }) => console.log(`[dr] ${message}`),
 });
 
 const reply = await model.chatText([
@@ -145,9 +147,9 @@ Use the `advanced` handle when you need logits-backed instrumentation instead of
 the standard generation surface.
 
 ```js
-import { doppler } from 'doppler-gpu';
+import { dr } from 'doppler-gpu';
 
-const model = await doppler.load('qwen3-0.8b');
+const model = await dr.load('qwen3-0.8b');
 
 const prefill = await model.advanced.prefillWithLogits('Write one word for GPU.');
 const topLogit = prefill.logits[0];

@@ -991,9 +991,9 @@ remain the primary interactive diagnostics surfaces.
 Primary application-facing API for model loading and generation via the root facade:
 
 ```javascript
-import { doppler } from 'doppler-gpu';
+import { dr } from 'doppler-gpu';
 
-const model = await doppler.load('qwen3-0.8b');
+const model = await dr.load('qwen3-0.8b');
 
 for await (const token of model.generate('Hello')) {
   console.log(token);

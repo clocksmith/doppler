@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Explicit loader and manifest/bootstrap helpers for advanced consumers who want more control than `doppler.load(...)`.
+Explicit loader and manifest/bootstrap helpers for advanced consumers who want more control than `dr.load(...)`.
 
 ## Import Path
 

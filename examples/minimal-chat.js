@@ -5,12 +5,12 @@
  * local or CDN build, or bundle with any ESM-aware toolchain.
  */
 
-import { doppler } from 'doppler-gpu';
+import { dr } from 'doppler-gpu';
 
 const MODEL_ID = 'qwen3-0.8b';
 
 async function main() {
-  const model = await doppler.load(MODEL_ID, {
+  const model = await dr.load(MODEL_ID, {
     onProgress(progress) {
       console.log(`[${progress.stage}] ${progress.message}`);
     },
