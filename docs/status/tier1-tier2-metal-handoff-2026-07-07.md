@@ -5,6 +5,11 @@ then regenerate the README/support/release docs from saved receipts. Keep older
 supported models such as Gemma 3 270M in the supported-legacy tier unless the
 roadmap changes.
 
+Priority: close Tier 1 macOS evidence first. That means Qwen 3.5 0.8B
+generation plus Qwen embedding and reranker retrieval receipts on
+`darwin`/Metal browser WebGPU. Tier 2 rows are useful follow-up evidence, but
+they do not close the Tier 1 Mac gap.
+
 ## Current Vulkan Receipts
 
 Use these Linux/Vulkan receipts as the reference set:
@@ -24,6 +29,24 @@ required inference preflight. Missing fields include `output.embeddingScale`,
 nullable fields. Refresh or reconvert the artifact; do not patch runtime
 fallbacks or hand-edit the manifest as a benchmark fix.
 
+## Mac Preflight
+
+Check space and capture the local hardware/runtime probe before pulling staged
+TJS artifacts or starting browser runs:
+
+```bash
+df -h . "$HOME" /tmp
+node tools/local-gpu-challengers.js --probe-local --json > benchmarks/vendors/results/local-gpu-probe-mac-$(date -u +%Y%m%dT%H%M%SZ).json
+```
+
+The saved probe must include `localProbe.host.platform === "darwin"` and
+`localProbe.host.inferredPlatformTargetId === "apple-metal"`.
+
+If free space is low enough that OPFS/report artifacts may fail, clear or move
+non-source caches before running compare commands. A browser report-storage,
+OPFS, or temp-space error is infrastructure evidence, not model correctness
+evidence.
+
 ## Stage TJS Models On Mac
 
 ```bash
@@ -35,15 +58,42 @@ node tools/stage-tjs-model.js --model-id onnx-community/gemma-4-E2B-it-ONNX --pr
 Use the staged root as `--tjs-local-model-path`, for example
 `/Users/<user>/.cache/doppler/tjs-models`.
 
-## Run Tier 1/Tier 2 Text Lanes
+## Run Tier 1 Text Lane
 
 Run Qwen 0.8B p512 first because it is the hosted quickstart release-claim lane:
 
 ```bash
-node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p512-d128-t0-k1 --mode compute --warmup 1 --runs 15 --decode-profile throughput --doppler-surface browser --tjs-local-model-path /Users/<user>/.cache/doppler/tjs-models --save --timeout-ms 1800000
+node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p512-d128-t0-k1 --mode compute --warmup 1 --runs 15 --decode-profile throughput --doppler-surface browser --tjs-local-model-path /Users/<user>/.cache/doppler/tjs-models --save --json --timeout-ms 1800000
 ```
 
-Run Qwen 2B p064/p256/p512:
+Acceptance checks for this row:
+
+- `environment.host.platform === "darwin"`
+- Metal/WebGPU backend evidence is present
+- `dopplerSurface === "browser"`
+- `fairness.claimGrade === true`
+- `fairness.correctnessOk === true`
+- Qwen output is an exact match
+- `sections.compute.throughputCadenceGate.ok === true` before promoting a
+  throughput claim
+
+## Run Tier 1 Retrieval Lanes
+
+Run these in the same Mac evidence pass. They are Tier 1, not optional, when the
+goal is complete macOS Tier 1 coverage:
+
+```bash
+node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 15 --doppler-source quickstart-registry --doppler-surface browser --cache-mode warm --load-mode http --save --json
+node tools/compare-rerankers.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --warmup 1 --runs 15 --doppler-source quickstart-registry --doppler-surface browser --cache-mode warm --load-mode http --save --json
+```
+
+Report retrieval rows independently: latency/throughput winner, semantic
+accuracy winner, model-load winner, and any diagnostic blockers. Do not turn a
+reranker semantic correctness win into a speed win.
+
+## Run Tier 2 Text Lanes
+
+After Tier 1 has saved receipts, run Qwen 2B p064/p256/p512:
 
 ```bash
 node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --warmup 1 --runs 15 --decode-profile throughput --doppler-surface browser --tjs-local-model-path /Users/<user>/.cache/doppler/tjs-models --save --timeout-ms 1800000
@@ -67,15 +117,6 @@ is claim-grade with output mismatch, disclose that it is a product-format
 throughput comparison, not an exact-output claim. If plain Q4K has a refreshed
 artifact and passes manifest preflight, run the same command with
 `--model-id gemma-4-e2b-it-q4k-ehf16-af32`.
-
-## Optional Tier 1 Retrieval Lanes
-
-Run these if Mac Metal retrieval receipts are needed in the same commit:
-
-```bash
-node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 15 --doppler-source quickstart-registry --doppler-surface browser --cache-mode warm --load-mode http --save --json
-node tools/compare-rerankers.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --warmup 1 --runs 15 --doppler-source quickstart-registry --doppler-surface browser --cache-mode warm --load-mode http --save --json
-```
 
 ## Regenerate And Check
 

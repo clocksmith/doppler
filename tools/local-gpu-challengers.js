@@ -560,24 +560,48 @@ function probePythonTorch() {
   };
 }
 
+function inferLocalProbePlatformTarget(hostPlatform, commands, pythonTorch) {
+  if (hostPlatform === 'darwin') return 'apple-metal';
+  if (hostPlatform === 'linux') {
+    if (commands.rocminfo?.available === true || commands.rocmSmi?.available === true || pythonTorch?.backend === 'rocm') {
+      return 'linux-amd-vulkan-rocm';
+    }
+    if (commands.nvidiaSmi?.available === true || pythonTorch?.backend === 'cuda') {
+      return 'linux-nvidia-vulkan-cuda';
+    }
+    return null;
+  }
+  if (hostPlatform === 'win32') return null;
+  return null;
+}
+
 export function probeLocalHost() {
+  const commands = {
+    node: probeCommand(process.execPath, ['--version']),
+    vulkaninfo: probeCommand('vulkaninfo', ['--summary']),
+    rocminfo: probeCommand('rocminfo'),
+    rocmSmi: probeCommand('rocm-smi'),
+    nvidiaSmi: probeCommand('nvidia-smi', ['-L']),
+    llamaBench: probeCommand('llama-bench', ['--help']),
+    llamaCli: probeCommand('llama-cli', ['--help']),
+    ollama: probeCommand('ollama', ['--version']),
+  };
+  const pythonTorch = probePythonTorch();
   return {
-    commands: {
-      node: probeCommand(process.execPath, ['--version']),
-      vulkaninfo: probeCommand('vulkaninfo', ['--summary']),
-      rocminfo: probeCommand('rocminfo'),
-      rocmSmi: probeCommand('rocm-smi'),
-      llamaBench: probeCommand('llama-bench', ['--help']),
-      llamaCli: probeCommand('llama-cli', ['--help']),
-      ollama: probeCommand('ollama', ['--version']),
+    host: {
+      platform: process.platform,
+      arch: process.arch,
+      nodeVersion: process.version,
+      inferredPlatformTargetId: inferLocalProbePlatformTarget(process.platform, commands, pythonTorch),
     },
+    commands,
     nodePackages: {
       transformersjs: probeNodeImport('@huggingface/transformers'),
       onnxruntimeWeb: probeNodeImport('onnxruntime-web'),
       onnxruntimeNode: probeNodeImport('onnxruntime-node'),
     },
     python: {
-      torch: probePythonTorch(),
+      torch: pythonTorch,
     },
   };
 }
@@ -621,6 +645,13 @@ function formatReport(report) {
   if (report.localProbe) {
     lines.push('');
     lines.push('Local Probe:');
+    if (report.localProbe.host) {
+      lines.push([
+        `- host: platform=${formatOptional(report.localProbe.host.platform)}`,
+        `arch=${formatOptional(report.localProbe.host.arch)}`,
+        `target=${formatOptional(report.localProbe.host.inferredPlatformTargetId)}`,
+      ].join('; '));
+    }
     for (const [id, probe] of Object.entries(report.localProbe.commands)) {
       lines.push(`- ${id}: ${probe.available ? 'available' : 'unavailable'}`);
     }

@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 
 import {
   buildLocalGpuChallengerReport,
+  probeLocalHost,
   validateLocalGpuChallengerSchema,
   validateLocalGpuChallengerMatrix,
 } from '../../tools/local-gpu-challengers.js';
@@ -46,6 +47,14 @@ assert.equal(report.summary.platformTargets, 8);
 assert.equal(report.summary.tierCounts['tier-0'], 3);
 assert.equal(report.summary.tierCounts['tier-1'], 3);
 assert.equal(report.summary.tierCounts['tier-2'], 2);
+
+const localProbe = probeLocalHost();
+assert.equal(localProbe.host.platform, process.platform);
+assert.equal(localProbe.host.arch, process.arch);
+assert.equal(localProbe.host.nodeVersion, process.version);
+if (process.platform === 'darwin') {
+  assert.equal(localProbe.host.inferredPlatformTargetId, 'apple-metal');
+}
 
 const expectedModelIds = [
   'gemma-3-1b-it-q4k-ehf16-af32',
