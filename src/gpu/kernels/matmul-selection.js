@@ -151,11 +151,15 @@ export function selectMatmulKernel(options = {}) {
     && useF16Matmul
     && transposeB === true
     && prefillRows >= tiledPrefillMinRows;
+  const useF16wF32aTiled = isPrefill
+    && useF16wF32a
+    && transposeB === true
+    && prefillRows >= tiledPrefillMinRows;
 
   return selectKernelRuleValue(
     'matmul',
     'matmulKernel',
-    { useF16Matmul, useF16wF32a, useVec4, useTiled }
+    { useF16Matmul, useF16wF32a, useF16wF32aTiled, useVec4, useTiled }
   );
 }
 

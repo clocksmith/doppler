@@ -10,6 +10,7 @@ const {
   resolveDenseFFNMatmulStepDtype,
   resolveDenseFFNFusedPathDtypes,
   canUseNativeF16FusedGateUp,
+  canFuseSplitPrefillF16GateUpPath,
 } = await import('../../src/inference/pipelines/text/ffn/dense.js');
 
 {
@@ -275,6 +276,66 @@ const {
     }),
     'split',
     'explicit FFN step precision should force the split gate/up path'
+  );
+}
+
+{
+  const qwenRerankerPrefillPath = {
+    id: 'qwen-reranker-f16w-af32-prefill',
+    decode: {
+      steps: [],
+    },
+    prefill: {
+      steps: [
+        {
+          op: 'gate_proj',
+          kernel: 'matmul_f16w_f32a.wgsl',
+          entry: 'main',
+        },
+        {
+          op: 'up_proj',
+          kernel: 'matmul_f16w_f32a.wgsl',
+          entry: 'main',
+        },
+        {
+          op: 'down_proj',
+          kernel: 'matmul_f16w_f32a.wgsl',
+          entry: 'main',
+        },
+      ],
+    },
+  };
+
+  assert.equal(
+    resolveGateUpPathMode({
+      phase: 'prefill',
+      layerIdx: 0,
+      kernelPath: qwenRerankerPrefillPath,
+    }),
+    'split',
+    'split prefill matmul declarations should still be visible in the path mode'
+  );
+  assert.equal(
+    canFuseSplitPrefillF16GateUpPath({
+      phase: 'prefill',
+      layerIdx: 0,
+      kernelPath: qwenRerankerPrefillPath,
+      gateDtype: 'f16',
+      upDtype: 'f16',
+    }),
+    true,
+    'equivalent f16 gate/up split prefill paths should be eligible for fused AF32 gate/up dispatch'
+  );
+  assert.equal(
+    canFuseSplitPrefillF16GateUpPath({
+      phase: 'prefill',
+      layerIdx: 0,
+      kernelPath: qwenRerankerPrefillPath,
+      gateDtype: 'q4k',
+      upDtype: 'q4k',
+    }),
+    false,
+    'split prefill paths must not silently switch to Q4K materializations'
   );
 }
 

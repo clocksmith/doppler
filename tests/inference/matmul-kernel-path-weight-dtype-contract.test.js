@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 const {
   resolveMatmulConstants,
   resolveMatmulPhase,
+  selectMatmulKernel,
   selectMatmulVariantAndFlags,
 } = await import('../../src/gpu/kernels/matmul-selection.js');
 const { setDevice } = await import('../../src/gpu/device.js');
@@ -198,6 +199,32 @@ try {
     }
   );
   assert.equal(selected.variant, 'f16w_f32a');
+
+  assert.equal(
+    selectMatmulKernel({
+      aDtype: 'f32',
+      bDtype: 'f16',
+      outputDtype: 'f32',
+      isPrefill: true,
+      prefillRows: 8,
+      transposeB: true,
+    }),
+    'f16w_f32a',
+    'small f16-weight/f32-activation prefill should keep the base f16w_f32a matmul'
+  );
+
+  assert.equal(
+    selectMatmulKernel({
+      aDtype: 'f32',
+      bDtype: 'f16',
+      outputDtype: 'f32',
+      isPrefill: true,
+      prefillRows: 64,
+      transposeB: true,
+    }),
+    'f16w_f32a_tiled',
+    'large f16-weight/f32-activation prefill should use the register-tiled matmul'
+  );
 
   // Q4K weights are valid here because this kernel path is a dequant-before-dispatch path.
   const selectedQ4KPrefill = selectMatmulVariantAndFlags(

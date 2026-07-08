@@ -690,17 +690,7 @@ function assertLogitsVector(value) {
   return value;
 }
 
-export async function scoreRerankDocument(pipeline, query, document, scoringConfig = null) {
-  if (!pipeline || typeof pipeline.prefillWithLogits !== 'function') {
-    throw new Error('Rerank workload requires pipeline.prefillWithLogits().');
-  }
-  const config = scoringConfig ?? resolveRerankScoringConfig(pipeline);
-  const prompt = formatRerankPrompt(query, document, config);
-  pipeline.reset?.();
-  const result = await pipeline.prefillWithLogits(prompt, { useChatTemplate: false });
-  const logits = assertLogitsVector(result?.logits);
-  const trueLogit = Number(logits[config.trueTokenId]);
-  const falseLogit = Number(logits[config.falseTokenId]);
+function buildRerankScoreRecord(query, document, prompt, tokenCount, trueLogit, falseLogit, config, scoringPath) {
   if (!Number.isFinite(trueLogit) || !Number.isFinite(falseLogit)) {
     throw new Error(
       `Rerank logits missing finite yes/no scores at token IDs ${config.trueTokenId}/${config.falseTokenId}.`
@@ -712,14 +702,47 @@ export async function scoreRerankDocument(pipeline, query, document, scoringConf
     query,
     document,
     prompt,
-    tokenCount: Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0,
+    tokenCount,
     score,
     probability,
     trueLogit,
     falseLogit,
     trueTokenId: config.trueTokenId,
     falseTokenId: config.falseTokenId,
+    scoringPath,
   };
+}
+
+export async function scoreRerankDocument(pipeline, query, document, scoringConfig = null) {
+  if (!pipeline || (typeof pipeline.prefillWithTokenLogits !== 'function' && typeof pipeline.prefillWithLogits !== 'function')) {
+    throw new Error('Rerank workload requires pipeline.prefillWithTokenLogits() or pipeline.prefillWithLogits().');
+  }
+  const config = scoringConfig ?? resolveRerankScoringConfig(pipeline);
+  const prompt = formatRerankPrompt(query, document, config);
+  pipeline.reset?.();
+  let trueLogit;
+  let falseLogit;
+  let tokenCount = 0;
+  let scoringPath = 'full-logits';
+  if (typeof pipeline.prefillWithTokenLogits === 'function') {
+    const result = await pipeline.prefillWithTokenLogits(
+      prompt,
+      [config.trueTokenId, config.falseTokenId],
+      { useChatTemplate: false }
+    );
+    const logits = assertLogitsVector(result?.logits);
+    trueLogit = Number(logits[0]);
+    falseLogit = Number(logits[1]);
+    tokenCount = Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0;
+    scoringPath = 'selected-token-logits';
+  } else {
+    const result = await pipeline.prefillWithLogits(prompt, { useChatTemplate: false });
+    const logits = assertLogitsVector(result?.logits);
+    trueLogit = Number(logits[config.trueTokenId]);
+    falseLogit = Number(logits[config.falseTokenId]);
+    tokenCount = Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0;
+  }
+  return buildRerankScoreRecord(query, document, prompt, tokenCount, trueLogit, falseLogit, config, scoringPath);
 }
 
 function resolveRerankInput(runtimeConfig, runOverrides = null) {
@@ -757,9 +780,103 @@ function summarizeRerankScores(scores) {
       trueLogit: Number(entry.trueLogit.toFixed(6)),
       falseLogit: Number(entry.falseLogit.toFixed(6)),
       tokenCount: entry.tokenCount,
+      scoringPath: entry.scoringPath,
     })),
     top: sorted[0] ?? null,
   };
+}
+
+function getPipelineTokenizer(pipeline) {
+  const tokenizer = pipeline?.tokenizer;
+  return tokenizer && typeof tokenizer.encode === 'function' ? tokenizer : null;
+}
+
+function longestCommonTokenPrefixLength(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return 0;
+  }
+  const first = rows[0];
+  let length = Array.isArray(first) ? first.length : 0;
+  for (let rowIndex = 1; rowIndex < rows.length; rowIndex += 1) {
+    const row = rows[rowIndex];
+    if (!Array.isArray(row)) {
+      return 0;
+    }
+    length = Math.min(length, row.length);
+    for (let index = 0; index < length; index += 1) {
+      if (row[index] !== first[index]) {
+        length = index;
+        break;
+      }
+    }
+  }
+  return length;
+}
+
+async function createRerankPrefixContext(pipeline, query, documents, config) {
+  if (
+    typeof pipeline?.prefillKVOnly !== 'function'
+    || typeof pipeline?.prefillWithTokenLogits !== 'function'
+    || typeof pipeline?.resetToSeqLen !== 'function'
+  ) {
+    return null;
+  }
+  const tokenizer = getPipelineTokenizer(pipeline);
+  if (!tokenizer) {
+    return null;
+  }
+  const prompts = documents.map((document) => formatRerankPrompt(query, document, config));
+  const tokenRows = prompts.map((prompt, index) => normalizeTokenIdArray(
+    tokenizer.encode(prompt),
+    `rerank.prompt[${index}].tokenIds`
+  ));
+  const prefixLength = longestCommonTokenPrefixLength(tokenRows);
+  if (prefixLength <= 0 || tokenRows.some((row) => row.length <= prefixLength)) {
+    return null;
+  }
+  const prefixTokens = tokenRows[0].slice(0, prefixLength);
+  pipeline.reset?.();
+  const prefix = await pipeline.prefillKVOnly('', {
+    useChatTemplate: false,
+    inputIds: prefixTokens,
+  });
+  return {
+    prefix,
+    seqLen: prefix.seqLen,
+    prefixTokens,
+    prompts,
+    tokenRows,
+    suffixRows: tokenRows.map((row) => row.slice(prefixLength)),
+  };
+}
+
+async function scoreRerankDocumentFromPrefix(pipeline, query, document, config, prefixContext, index) {
+  const suffixTokens = prefixContext.suffixRows[index];
+  try {
+    const result = await pipeline.prefillWithTokenLogits(
+      '',
+      [config.trueTokenId, config.falseTokenId],
+      {
+        useChatTemplate: false,
+        inputIds: suffixTokens,
+      }
+    );
+    const logits = assertLogitsVector(result?.logits);
+    const trueLogit = Number(logits[0]);
+    const falseLogit = Number(logits[1]);
+    return buildRerankScoreRecord(
+      query,
+      document,
+      prefixContext.prompts[index],
+      prefixContext.prefixTokens.length + suffixTokens.length,
+      trueLogit,
+      falseLogit,
+      config,
+      'prefix-selected-token-logits'
+    );
+  } finally {
+    pipeline.resetToSeqLen(prefixContext.seqLen);
+  }
 }
 
 export async function runRerank(pipeline, runtimeConfig, runOverrides = null) {
@@ -767,13 +884,16 @@ export async function runRerank(pipeline, runtimeConfig, runOverrides = null) {
   const config = resolveRerankScoringConfig(pipeline);
   const start = performance.now();
   const scores = [];
+  const prefixContext = await createRerankPrefixContext(pipeline, input.query, input.documents, config);
   for (let i = 0; i < input.documents.length; i++) {
-    const scored = await scoreRerankDocument(
-      pipeline,
-      input.query,
-      input.documents[i],
-      config
-    );
+    const scored = prefixContext
+      ? await scoreRerankDocumentFromPrefix(pipeline, input.query, input.documents[i], config, prefixContext, i)
+      : await scoreRerankDocument(
+        pipeline,
+        input.query,
+        input.documents[i],
+        config
+      );
     scores.push({
       index: i,
       ...scored,

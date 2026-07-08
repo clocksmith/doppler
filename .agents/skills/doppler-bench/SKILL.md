@@ -51,21 +51,39 @@ node tools/compare-engines.js --mode warm --warmup 1 --runs 3 --decode-profile p
 ```
 
 Notes:
-- `--decode-profile parity` maps Doppler to `batchSize=1`, `readbackInterval=1` for closer TJS cadence parity.
-- `--decode-profile throughput` maps Doppler to `batchSize=4`, `readbackInterval=4`.
+- `--decode-profile parity` and `--decode-profile throughput` are policy-managed lane names, not fixed shorthand for one batch/readback tuple.
+- Resolve the actual Doppler cadence from the compare artifact's runtime mirror and resolved execution cadence. Model/platform profiles may set fields such as `batchSize`, `readbackInterval`, `maxBatchDecodeTokens`, ring buffers, or platform overrides.
+- A throughput lane is publishable only when the compare artifact's throughput-cadence gate is true. If the gate is false, keep it as tuning evidence.
 - Prefill is normalized as `prompt_tokens / ttft_ms` in compare output.
+
+## Challenger Matrix And Claim Rules
+
+Use `benchmarks/vendors/local-gpu-challenger-matrix.json` as the source of truth for local-GPU challenger scope. Read the matrix before interpreting non-TJS rows:
+- `platformTargets` defines allowed lanes such as `linux-amd-vulkan-rocm` and `apple-metal`. A listed platform is only an allowed evidence lane, not a win.
+- `competitors` distinguishes the Transformers.js WebGPU anchor from native challengers such as `llamacpp-vulkan-gguf`, `hf-transformers-rocm`, and `litert-gpu`.
+- `fairnessGates` defines the minimum receipt fields: artifact identity, format disclosure, runtime surface, hardware identity, fallback status, cache mode, timing scope, correctness, work accounting, sample statistics, and claim grade.
+
+Claim interpretation:
+- TJS rows are the anchor lanes for current public comparisons when the compare artifact is paired, locally comparable, and passes the relevant claim gate.
+- Native llama.cpp Vulkan rows are diagnostic until the runner measures text/token parity or another approved correctness gate for the same prompt, sampling, and token budget. Faster phase throughput alone is not a Doppler-vs-llama.cpp release claim.
+- Metal rows must be read by platform target. Do not merge Apple Metal evidence with AMD Vulkan/ROCm evidence in one claim.
+- ROCm PyTorch and LiteRT GPU rows need runner receipts with fallback status. A framework reporting a GPU backend is not enough if CPU, dtype, or execution-provider fallback is possible.
+- Format differences must be disclosed. RDRR, ONNX, GGUF, SafeTensors, and LiteRT lanes can be locally comparable only when the matrix fairness gates and correctness policy say so.
 
 ## Doppler Benchmark (Primary)
 
 ```bash
+# Discover checked-in runtime profiles before selecting a calibration profile
+npm run cli -- profiles --json
+
 # Warm-cache benchmark (recommended baseline)
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/throughput","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --runtime-profile profiles/throughput --json
 
 # Cold-cache benchmark (cache disabled per run)
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/throughput","cacheMode":"cold"},"run":{"surface":"browser","bench":{"save":true}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"cold"},"run":{"surface":"browser","bench":{"save":true}}}' --runtime-profile profiles/throughput --json
 
 # Compare against last saved run
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/throughput","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true,"compare":"last"}}}' --json
+npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true,"compare":"last"}}}' --runtime-profile profiles/throughput --json
 ```
 
 Notes:

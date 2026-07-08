@@ -127,7 +127,22 @@ npm run bench -- \
   --json
 ```
 
-### 3) Run Profiling/Tracing for Bottlenecks
+### 3b) Metal Cadence And Orchestration Checks
+
+On Apple Metal lanes, do not assume the same cadence that wins on AMD Vulkan is valid. Start from the resolved compare artifact and runtime profile:
+- Check the model/platform profile selected by `dopplerRuntimeProfileByDecodeProfile` or the explicit runtime profile.
+- Read the resolved decode cadence, not just the requested mirror: `batchSize`, `readbackInterval`, `maxBatchDecodeTokens`, `readbackMode`, ring-buffer fields, and `disableCommandBatching`.
+- Inspect `effectiveBatchTokens`, `gpuSubmissions`, and per-token submit/readback timing before changing kernels.
+- If `gpuSubmissions` is high or `effectiveBatchTokens` stays near 1 on a throughput lane, tune cadence/profile policy first.
+- If `decodeSubmitWaitMs`, `decodeReadbackWaitMs`, or `singleTokenReadbackWaitMs` dominates, treat it as orchestration/readback work before math-kernel work.
+- Keep Metal overrides platform-scoped in runtime profiles or compare policy. Do not bake Metal-specific behavior into shared runtime code or AMD Vulkan profiles.
+
+For Metal compare claims, keep three labels separate:
+- parity lane: closest fair cadence for TJS-style comparison
+- throughput lane: Doppler-tuned cadence, publishable only when the throughput-cadence gate passes
+- investigate lane: debug/profiler evidence, not comparable to calibrate receipts
+
+### 4) Run Profiling/Tracing for Bottlenecks
 
 ```bash
 # Trace-heavy debug run
@@ -142,7 +157,7 @@ Rules:
 - `debug` is the investigate surface for traces, layer probes, and diagnostics.
 - Do not compare investigate-mode numbers against calibrate-mode baselines without labeling them.
 
-### 4) Form Hypotheses and Patch
+### 5) Form Hypotheses and Patch
 
 **Correctness gate:** If a performance change (kernel swap, transform, materialization path) produces incorrect output — garbled text, numerical divergence, repeated tokens — stop the perf workflow and invoke `doppler-debug` immediately. Do not continue tuning a path that produces wrong answers. The debug ladder must confirm correctness before perf measurement resumes.
 
@@ -166,7 +181,7 @@ Priority code hotspots:
 - `src/inference/browser-harness.js`
 - `src/memory/buffer-pool.js`
 
-### 5) Re-Measure and Gate
+### 6) Re-Measure and Gate
 
 ```bash
 # Re-run the clean benchmark baseline after each material change

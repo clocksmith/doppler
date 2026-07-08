@@ -75,6 +75,21 @@ export declare class PipelineGenerator {
   ): Promise<DiffusionGemmaCanvasStepResult>;
   prefillWithEmbedding(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
   prefillWithLogits(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillResult>;
+  prefillWithTokenLogits(prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
+    seqLen: number;
+    tokens: number[];
+    tokenIds: number[];
+    logits: Float32Array;
+    logitsByTokenId: Record<number, number>;
+  }>;
+  prefillWithTokenLogitsFromKV(prefix: KVCacheSnapshot, prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
+    seqLen: number;
+    prefixTokens: number[];
+    tokens: number[];
+    tokenIds: number[];
+    logits: Float32Array;
+    logitsByTokenId: Record<number, number>;
+  }>;
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
   advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;
   advanceWithTokenAndEmbedding(tokenId: number, options?: GenerateOptions): Promise<AdvanceEmbeddingResult>;

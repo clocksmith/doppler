@@ -1747,6 +1747,14 @@ export class InferencePipeline extends PipelineState {
     return this.generator.prefillWithLogits(prompt, options);
   }
 
+  prefillWithTokenLogits(prompt, tokenIds, options = {}) {
+    return this.generator.prefillWithTokenLogits(prompt, tokenIds, options);
+  }
+
+  prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options = {}) {
+    return this.generator.prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options);
+  }
+
 
   applyKVCacheSnapshot(snapshot) {
     this.kvCache = snapshot.cache.clone();

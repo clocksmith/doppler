@@ -38,6 +38,22 @@
         "hasLoRA": false,
         "dtypeMatches": true,
         "dtypeSupported": true,
+        "weightDtype": "f16",
+        "activationDtype": "f32",
+        "batchSize": { "lte": 4 }
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
         "weightDtype": "q4k",
         "activationDtype": "f16",
         "hiddenSizeAligned32": true,

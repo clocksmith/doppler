@@ -131,6 +131,23 @@ export declare class InferencePipeline extends PipelineState {
 
   prefillWithLogits(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillResult>;
 
+  prefillWithTokenLogits(prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
+    seqLen: number;
+    tokens: number[];
+    tokenIds: number[];
+    logits: Float32Array;
+    logitsByTokenId: Record<number, number>;
+  }>;
+
+  prefillWithTokenLogitsFromKV(prefix: KVCacheSnapshot, prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
+    seqLen: number;
+    prefixTokens: number[];
+    tokens: number[];
+    tokenIds: number[];
+    logits: Float32Array;
+    logitsByTokenId: Record<number, number>;
+  }>;
+
   applyKVCacheSnapshot(snapshot: KVCacheSnapshot): void;
 
   generateWithPrefixKV(

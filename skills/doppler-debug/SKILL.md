@@ -46,6 +46,22 @@ Investigation and diagnosis should consume no more than 30% of available context
 
 Exhaustive static code tracing across an entire pipeline (kernel dispatch → selection → config → shader) without running a diagnostic is an anti-pattern. Each file read should either confirm or refute a specific hypothesis. If it does neither, the hypothesis is too vague — sharpen it before continuing.
 
+## Infra vs Model Failure Triage
+
+Classify infrastructure failures before entering the model-correctness ladder. A run that cannot write reports, persist cache state, allocate temp files, or open browser storage has not produced model evidence.
+
+Treat these as infra failures until fixed:
+- `ENOSPC`, quota, permission, or path errors under report output, temp directories, OPFS, IndexedDB, or browser profile storage.
+- Browser report relay failures where generation completed but `result.reportInfo` is missing, incomplete, or points to an unwritten artifact.
+- Cache/load setup failures before the first deterministic token or logits slice is captured.
+- Vendor runner failures before the backend identity and fallback status are recorded.
+
+Infra triage steps:
+1. Preserve the failing command and stderr/stdout.
+2. Check disk/quota and the configured report/temp/cache paths.
+3. Retry with an explicit writable report location or a cleared browser/cache profile when the failure is storage-scoped.
+4. Only enter the model debug ladder after the run can save a valid report artifact or emit the equivalent JSON receipt.
+
 ## Required Debug Ladder
 
 Use this order for inference failures that load successfully but generate bad output:

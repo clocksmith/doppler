@@ -32,6 +32,7 @@ class FusedFFNKernel extends KernelBase {
 const SHARED_INPUT_SIZE_VARIANTS = new Set([
   'default',
   'batched',
+  'f16_batched',
   'f16',
   'multi',
   'f16_native',
@@ -121,7 +122,7 @@ function calculateFFNDispatch(variant, batchSize, intermediateSize) {
   ) {
     workgroupsX = Math.ceil(intermediateSize / FFN_DISPATCH.Q4K_COLS_PER_WG);
     workgroupsY = (variant === 'q4k_batched' || variant === 'q4k_batched_f16a') ? batchSize : 1;
-  } else if (variant === 'batched' || variant === 'f16_native_batched') {
+  } else if (variant === 'batched' || variant === 'f16_batched' || variant === 'f16_native_batched') {
     workgroupsX = intermediateSize;
     workgroupsY = batchSize;
   } else {

@@ -219,6 +219,26 @@ function resolveSuppressedSamplingTokenIds(state, samplingConfig) {
   return [...suppressed];
 }
 
+function normalizeSelectedLogitTokenIds(value, vocabSize, label) {
+  if (value == null) {
+    return null;
+  }
+  if (!Array.isArray(value) && !ArrayBuffer.isView(value)) {
+    throw new Error(`${label} must be an array or typed array.`);
+  }
+  const tokenIds = Array.from(value, (entry, index) => {
+    const tokenId = Number(entry);
+    if (!Number.isInteger(tokenId) || tokenId < 0 || tokenId >= vocabSize) {
+      throw new Error(`${label}[${index}] must be an integer in [0, ${vocabSize}), got "${String(entry)}".`);
+    }
+    return tokenId;
+  });
+  if (tokenIds.length === 0) {
+    throw new Error(`${label} must not be empty.`);
+  }
+  return tokenIds;
+}
+
 async function traceActivationHealth(label, buffer, dtype, elementCount) {
   if (!isTraceEnabled('logits') || !isGpuBufferInstance(buffer)) {
     return;
@@ -2165,6 +2185,107 @@ export class PipelineGenerator {
     }
   }
 
+  async prefillWithTokenLogits(prompt, tokenIds, options = {}) {
+    if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    if (this.#state.isGenerating && options.__internalGenerate !== true) {
+      throw new Error('Generation already in progress');
+    }
+    assertIncrementalDecodeSupport(this.#state, 'prefillWithTokenLogits');
+    const selectedTokenIds = normalizeSelectedLogitTokenIds(
+      tokenIds,
+      this.#state.modelConfig.vocabSize,
+      'prefillWithTokenLogits.tokenIds'
+    );
+    this._resetDecodeRuntimeState();
+    this.#state.stats.gpuTimePrefillMs = undefined;
+    this.#state.stats.prefillProfileSteps = [];
+    const opts = resolvePrefillOptions(this.#state, options);
+    opts._selectedLogitTokenIds = selectedTokenIds;
+    try {
+      const { inputIds, logits } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithTokenLogits');
+      const logitsByTokenId = {};
+      for (let index = 0; index < selectedTokenIds.length; index += 1) {
+        logitsByTokenId[selectedTokenIds[index]] = logits[index];
+      }
+      return {
+        seqLen: this.#state.currentSeqLen,
+        tokens: inputIds,
+        tokenIds: selectedTokenIds,
+        logits,
+        logitsByTokenId,
+      };
+    } finally {
+      this._closeFinitenessFallbackWindow(opts);
+    }
+  }
+
+  async prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options = {}) {
+    if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    if (this.#state.isGenerating && options.__internalGenerate !== true) {
+      throw new Error('Generation already in progress');
+    }
+    assertIncrementalDecodeSupport(this.#state, 'prefillWithTokenLogitsFromKV');
+    if (!prefix || typeof prefix !== 'object' || !prefix.cache) {
+      throw new Error('prefillWithTokenLogitsFromKV.prefix must be a KV cache snapshot.');
+    }
+    if (!Number.isInteger(prefix.seqLen) || prefix.seqLen < 0) {
+      throw new Error('prefillWithTokenLogitsFromKV.prefix.seqLen must be a non-negative integer.');
+    }
+    if (!Array.isArray(prefix.tokens)) {
+      throw new Error('prefillWithTokenLogitsFromKV.prefix.tokens must be an array.');
+    }
+    const selectedTokenIds = normalizeSelectedLogitTokenIds(
+      tokenIds,
+      this.#state.modelConfig.vocabSize,
+      'prefillWithTokenLogitsFromKV.tokenIds'
+    );
+
+    this.#state.kvCache = prefix.cache.clone();
+    if (this.#state.useGPU && this.#state.kvCache) {
+      const device = getDevice();
+      if (device) {
+        this.#state.kvCache.setGPUContext({ device });
+      }
+    }
+    if (
+      hasLinearAttentionLayers(this.#state.modelConfig.layerTypes)
+      && prefix.linearAttention == null
+    ) {
+      throw new Error(
+        'Prefix snapshot is missing linear_attention recurrent state. ' +
+        'Regenerate the prefix snapshot using the current runtime.'
+      );
+    }
+    this.#state.linearAttentionRuntime = restoreLinearAttentionRuntime(
+      this.#state.linearAttentionRuntime,
+      prefix.linearAttention ?? null
+    );
+    this.#state.currentSeqLen = prefix.seqLen;
+    this.#state.stats.gpuTimePrefillMs = undefined;
+    this.#state.stats.prefillProfileSteps = [];
+    this.#state.decodeRing?.reset();
+
+    const opts = resolvePrefillOptions(this.#state, options);
+    opts._selectedLogitTokenIds = selectedTokenIds;
+    try {
+      const { inputIds, logits } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithTokenLogitsFromKV');
+      const logitsByTokenId = {};
+      for (let index = 0; index < selectedTokenIds.length; index += 1) {
+        logitsByTokenId[selectedTokenIds[index]] = logits[index];
+      }
+      return {
+        seqLen: this.#state.currentSeqLen,
+        prefixTokens: prefix.tokens,
+        tokens: inputIds,
+        tokenIds: selectedTokenIds,
+        logits,
+        logitsByTokenId,
+      };
+    } finally {
+      this._closeFinitenessFallbackWindow(opts);
+    }
+  }
+
 
   async *generateWithPrefixKV(prefix, prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
@@ -2726,6 +2847,11 @@ export class PipelineGenerator {
   async _prefill(inputIds, opts) {
     const numTokens = inputIds.length;
     const config = this.#state.modelConfig;
+    const selectedLogitTokenIds = normalizeSelectedLogitTokenIds(
+      opts?._selectedLogitTokenIds,
+      config.vocabSize,
+      '_prefill.selectedLogitTokenIds'
+    );
     const startPos = this.#state.currentSeqLen;
     const tracePrefillEnabled = isTraceEnabled('perf');
     const prefillTraceStart = tracePrefillEnabled ? performance.now() : 0;
@@ -3252,6 +3378,7 @@ export class PipelineGenerator {
     let usedRecordedLogits = false;
     const lmHead = this.#state.weights.get('lm_head');
     const canRecordLogits = !!currentRecorder
+      && selectedLogitTokenIds === null
       && !!lmHead
       && !isCpuWeightBuffer(lmHead)
       && !this.#state.disableRecordedLogits
@@ -3343,13 +3470,17 @@ export class PipelineGenerator {
         undefined,
         debugCheckBuffer,
         this.#state.runtimeConfig.shared.debug.probes,
-        { lastPositionOnly: true },
+        { lastPositionOnly: true, selectedTokenIds: selectedLogitTokenIds },
         this.#state.operatorDiagnostics
       );
 
-      lastLogits = logits.length === logitsVocabSize
-        ? logits
-        : extractLastPositionLogits(logits, numTokens, logitsVocabSize);
+      if (selectedLogitTokenIds !== null) {
+        lastLogits = logits;
+      } else {
+        lastLogits = logits.length === logitsVocabSize
+          ? logits
+          : extractLastPositionLogits(logits, numTokens, logitsVocabSize);
+      }
       releaseBuffer(currentHiddenBuffer);
       if (tracePrefillEnabled) {
         trace.perf('Prefill logits complete', {
@@ -3374,11 +3505,11 @@ export class PipelineGenerator {
       }
     }
 
-    if (opts.debug) {
+    if (opts.debug && selectedLogitTokenIds === null) {
       logitsSanity(lastLogits, 'Prefill', (tokens) => resolveTokenText(this.#state.tokenizer, tokens));
     }
     if (isTraceEnabled('logits')) {
-      trace.logits('PREFILL_LOGITS_HEALTH', getLogitsHealth(lastLogits));
+      trace.logits(selectedLogitTokenIds === null ? 'PREFILL_LOGITS_HEALTH' : 'PREFILL_SELECTED_LOGITS_HEALTH', getLogitsHealth(lastLogits));
     }
 
     if (opts.debug) {

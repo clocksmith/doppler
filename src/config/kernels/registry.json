@@ -157,10 +157,13 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "matmul.rules.json#matmulKernel"
@@ -196,7 +199,9 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
             ],
-            "ruleChains": [],
+            "ruleChains": [
+              "matmul.rules.json#matmulKernel"
+            ],
             "wgslOnDisk": true
           }
         },
@@ -341,7 +346,10 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
-              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "matmul.rules.json#gemvVariant"
@@ -467,9 +475,12 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "matmul.rules.json#gemvPathVariant",
@@ -843,7 +854,8 @@
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -910,7 +922,9 @@
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -1183,7 +1197,9 @@
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -1375,6 +1391,27 @@
           "requires": [
             "subgroups"
           ],
+          "reachability": {
+            "status": "model-selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "fused-ffn.rules.json#variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "f16_batched": {
+          "wgsl": "fused_ffn_f16w_f32a_batched.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "subgroups"
+          ],
+          "description": "Packed f16 gate/up weights with f32 activations and f32 output for prefill",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
@@ -2364,7 +2401,8 @@
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2402,7 +2440,8 @@
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+              "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2596,10 +2635,14 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2637,10 +2680,14 @@
               "gemma4/gemma-4-moe-q4k-ehf16-af32",
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
@@ -2714,10 +2761,14 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "attention.rules.json#optimizedVariant"
@@ -3737,6 +3788,103 @@
         }
       }
     },
+    "lm_head_select_logits": {
+      "description": "Selected-token LM-head f16-weight GEMV for rerank yes/no logits",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "hidden",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "weights",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "token_ids",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "vocab_size",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "token_count",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "hidden_offset",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "transpose_b",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "logit_softcap",
+            "type": "f32",
+            "offset": 20
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "f16w_f32a": {
+          "wgsl": "lm_head_select_logits.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "weightDtype": "f16",
+          "inputDtype": "f32",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "rmsnorm": {
       "description": "RMS normalization kernels",
       "baseBindings": [
@@ -3846,10 +3994,14 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "rmsnorm.rules.json#variant"
@@ -5062,10 +5214,14 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "rope.rules.json#variant"
@@ -5400,10 +5556,14 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "silu.rules.json#variant"
@@ -6505,10 +6665,14 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "gather.rules.json#variant"
@@ -7079,10 +7243,14 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [
               "residual.rules.json#biasAddVariant",
@@ -9375,10 +9543,13 @@
               "gpt-oss-20b-f16-xmxfp4",
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+              "minicpm/minicpm4-0-5b-f16-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-6-27b-q4k-eaf16",
-              "qwen3/qwen-3-6-27b-q4k-ehaf16"
+              "qwen3/qwen-3-6-27b-q4k-ehaf16",
+              "qwen3/qwen-3-reranker-0-6b-f16-af32",
+              "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
             "ruleChains": [],
             "wgslOnDisk": true
