@@ -42,6 +42,8 @@ export {
   getLargeWeightConfig,
   getLargeWeightMaxBytes,
   estimateMatmulWeightBytes,
+  resolveMatmulWeightDtype,
+  requiresCpuF16ToF32MatmulMaterialization,
   resolveWeightLayout,
   shouldStreamLargeWeight,
   isMoEModel,

@@ -67,19 +67,27 @@ export function estimateMatmulWeightBytes(location, gpuCapabilities, keepF32Weig
   const numElements = location.shape.reduce((a, b) => a * b, 1);
   if (!Number.isFinite(numElements) || numElements <= 0) return null;
 
+  const dtype = resolveMatmulWeightDtype(location, gpuCapabilities, keepF32Weights);
+  const bytesPerElement = DTYPE_SIZES[selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype })];
+  return { bytes: numElements * bytesPerElement, dtype };
+}
+
+export function resolveMatmulWeightDtype(location, gpuCapabilities, keepF32Weights) {
   const caps = gpuCapabilities || getKernelCapabilities();
   const hasF16 = caps?.hasF16 ?? false;
   const isMatmulWeight = shouldDequantizeToF16(location);
 
-  const dtype = selectRuleValue('loader', 'weights', 'matmulWeightDtype', {
+  return selectRuleValue('loader', 'weights', 'matmulWeightDtype', {
     locationDtype: location.dtype,
     hasF16,
     isMatmulWeight,
     keepF32Weights: Boolean(keepF32Weights),
   });
+}
 
-  const bytesPerElement = DTYPE_SIZES[selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype })];
-  return { bytes: numElements * bytesPerElement, dtype };
+export function requiresCpuF16ToF32MatmulMaterialization(location, gpuCapabilities, keepF32Weights) {
+  if (location?.dtype !== 'F16' || !location?.role) return false;
+  return resolveMatmulWeightDtype(location, gpuCapabilities, keepF32Weights) === 'f32';
 }
 
 export function resolveWeightLayout(location) {

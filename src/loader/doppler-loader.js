@@ -35,6 +35,7 @@ import { buildTensorLocations } from './shard-resolver.js';
 import {
   needsNormWeightOffset,
   resolveWeightLayout,
+  requiresCpuF16ToF32MatmulMaterialization,
   shouldStreamLargeWeight,
 } from './manifest-config.js';
 import { MemoryMonitor } from './memory-monitor.js';
@@ -1157,6 +1158,7 @@ export class DopplerLoader {
     if (!location?.size || location.size <= 0) return false;
     if (hasSourceTransform(location)) return false;
     if (Array.isArray(location?.storage?.companions) && location.storage.companions.length > 0) return false;
+    if (requiresCpuF16ToF32MatmulMaterialization(location, this.gpuCapabilities, this.keepF32Weights)) return false;
     if (this.shardCache.hasCustomLoader && !this.shardCache.canStreamRanges) return false;
     const chunkBytes = this.#loadingConfig?.storage?.backend?.streaming?.readChunkBytes ?? 0;
     if (!Number.isFinite(chunkBytes) || chunkBytes <= 0) return false;
