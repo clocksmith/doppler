@@ -36,6 +36,7 @@ See also: `docs/style/general-style-guide.md#invariants-quick-reference` (execut
 - JS wrappers own orchestration (validation, binding/pipeline setup, dispatch lifecycle).
 - WGSL owns deterministic arithmetic and memory transforms only.
 - A review must flag any ad-hoc, implicit behavior branching in JS or WGSL that bypasses rule assets/config resolution.
+- Kernel speed claims are invalid when cadence, readback, submit, or dispatch receipts show orchestration is the wall. Review the benchmark/debug receipt before attributing a win or loss to WGSL math.
 
 ## Workflows
 

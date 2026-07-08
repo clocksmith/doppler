@@ -12,7 +12,7 @@ export { extractLastPositionLogits, finalizeLogits, readBufferWithCleanup } from
 // Imports for computeLogits orchestrator
 import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
-import { runMatmul, runRMSNorm, runScale, castF16ToF32, castF32ToF16 } from '../../../../gpu/kernel-selector.js';
+import { runMatmul, runRMSNorm, runScale, castF16ToF32, castF32ToF16, runLmHeadSelectLogitsF16 } from '../../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from '../kernel-trace.js';
@@ -48,6 +48,28 @@ function resolvePostLayerStepDtype(op, phase, kernelPath, fallback, field) {
 
 function resolveLmHeadMatmulRole(phase) {
   return phase === 'prefill' ? 'lm_head_prefill' : 'lm_head';
+}
+
+function normalizeSelectedLogitTokenIds(value, vocabSize) {
+  if (value == null) {
+    return null;
+  }
+  if (!Array.isArray(value) && !ArrayBuffer.isView(value)) {
+    throw new Error('[Logits] selectedTokenIds must be an array or typed array.');
+  }
+  const tokenIds = Array.from(value, (entry, index) => {
+    const tokenId = Number(entry);
+    if (!Number.isInteger(tokenId) || tokenId < 0 || tokenId >= vocabSize) {
+      throw new Error(
+        `[Logits] selectedTokenIds[${index}] must be an integer in [0, ${vocabSize}), got "${String(entry)}".`
+      );
+    }
+    return tokenId;
+  });
+  if (tokenIds.length === 0) {
+    throw new Error('[Logits] selectedTokenIds must not be empty.');
+  }
+  return tokenIds;
 }
 
 async function coerceTensorDtype(tensor, targetDtype, options = {}) {
@@ -196,6 +218,7 @@ export async function computeLogits(
       matmulVocabSize = dims.vocabSize;
     }
   }
+  const selectedTokenIds = normalizeSelectedLogitTokenIds(options?.selectedTokenIds, matmulVocabSize);
 
   // Check if input is GPU buffer
   const inputIsGPU = isGpuBufferInstance(hiddenStates);
@@ -203,6 +226,12 @@ export async function computeLogits(
   // CPU fallback path
   if (isTraceEnabled('logits')) {
     trace.logits(`LOGITS_PATH: device=${!!device}, useGPU=${useGPU}, taking ${(!device || !useGPU) ? 'CPU' : 'GPU'} path`);
+  }
+  if (selectedTokenIds && (!device || !useGPU)) {
+    throw new Error('[Logits] selectedTokenIds requires the GPU logits path.');
+  }
+  if (selectedTokenIds && (isCpuWeightBuffer(lmHead) || isSplitWeightBuffer(lmHead))) {
+    throw new Error('[Logits] selectedTokenIds requires a single GPU-resident LM head weight buffer.');
   }
   if (!device || !useGPU) {
     
@@ -479,6 +508,38 @@ export async function computeLogits(
     }
     matmulInputTensor = coercedInput;
     matmulInputOwned = true;
+  }
+
+  if (selectedTokenIds) {
+    if (lastPositionOnly !== true) {
+      throw new Error('[Logits] selectedTokenIds requires lastPositionOnly=true.');
+    }
+    const selected = await runLmHeadSelectLogitsF16(matmulInputTensor, lmHeadBuffer, {
+      device,
+      hiddenSize,
+      vocabSize: matmulVocabSize,
+      tokenIds: selectedTokenIds,
+      hiddenOffset: 0,
+      logitSoftcap: config.finalLogitSoftcapping == null ? 0 : Number(config.finalLogitSoftcapping),
+    });
+    const selectedBytes = selectedTokenIds.length * Float32Array.BYTES_PER_ELEMENT;
+    const selectedData = await readBufferWithCleanup(selected.outputBuffer, selectedBytes, () => {
+      releaseBuffer(selected.outputBuffer);
+      releaseBuffer(selected.tokenIdBuffer);
+      if (inputBufferOwned) releaseBuffer(inputBuffer);
+      releaseBuffer(finalNormTensor.buffer);
+      if (matmulInputOwned) releaseBuffer(matmulInputTensor.buffer);
+      if (normWeightBufferOwned) releaseBuffer(normWeightBuffer);
+      if (lmHeadBufferOwned) releaseBuffer(lmHeadGPU);
+    });
+    const selectedLogits = new Float32Array(selectedData);
+    await runProbes('logits_final', selectedLogits, {
+      numTokens: 1,
+      hiddenSize: selectedTokenIds.length,
+      probes: debugProbes,
+      operatorDiagnostics,
+    });
+    return selectedLogits;
   }
 
   // HuggingFace models store lm_head as [vocabSize, hiddenSize], so transposeB=true

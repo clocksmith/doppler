@@ -349,6 +349,14 @@
           "kvDtype": "f16"
         }
       },
+      "attn_small": {
+        "kernel": "attention_small_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
       "residual": {
         "kernel": "residual.wgsl",
         "entry": "main",
@@ -476,7 +484,7 @@
       ],
       [
         "attention",
-        "attn_stream"
+        "attn_small"
       ],
       [
         "o_proj",

@@ -30,6 +30,9 @@ export {
 export {
   recordLmHeadArgmaxF16,
 } from './lm-head-argmax.js';
+export {
+  runLmHeadSelectLogitsF16,
+} from './lm-head-select-logits.js';
 
 // Dequantization
 export {

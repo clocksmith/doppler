@@ -265,6 +265,31 @@ export function resolveGateUpPathMode(options = {}) {
   return 'implicit';
 }
 
+export function canFuseSplitPrefillF16GateUpPath(options = {}) {
+  const kernelPath = options.kernelPath ?? null;
+  const phase = options.phase ?? null;
+  const layerIdx = Number.isFinite(options.layerIdx) ? options.layerIdx : 0;
+  if (!kernelPath || phase !== 'prefill') {
+    return false;
+  }
+  if (options.gateDtype !== 'f16' || options.upDtype !== 'f16') {
+    return false;
+  }
+  if (
+    hasExplicitMatmulPrecision('ffn_gate', phase, layerIdx, kernelPath)
+    || hasExplicitMatmulPrecision('ffn_up', phase, layerIdx, kernelPath)
+    || hasExplicitMatmulPrecision('ffn_down', phase, layerIdx, kernelPath)
+  ) {
+    return false;
+  }
+
+  const gateVariant = getKernelPathMatmulVariant('ffn_gate', phase, layerIdx, kernelPath);
+  const upVariant = getKernelPathMatmulVariant('ffn_up', phase, layerIdx, kernelPath);
+  return gateVariant != null
+    && gateVariant === upVariant
+    && !isQ4KMatmulVariant(gateVariant);
+}
+
 export function resolveFusedGateUpWeights(layerWeights, options = {}) {
   const gate = layerWeights?.gate ?? null;
   const up = layerWeights?.up ?? null;
@@ -625,12 +650,21 @@ export async function runDenseFFNGPU(
     hiddenSizeAligned32,
     useDoubleWideMlp: Boolean(useDoubleWideMlp),
   });
-  const useFusedGateUp = gateUpPathMode === 'split'
+  const splitPrefillF16FusionAllowed = gateUpPathMode === 'split'
+    && canFuseSplitPrefillF16GateUpPath({
+      kernelPath,
+      phase,
+      layerIdx,
+      gateDtype,
+      upDtype,
+    });
+  const useFusedGateUp = gateUpPathMode === 'split' && !splitPrefillF16FusionAllowed
     ? false
     : useFusedGateUpByRule;
   trace.ffn(
     layerIdx,
-    `useFusedGateUp=${useFusedGateUp} gateUpPathMode=${gateUpPathMode} inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
+    `useFusedGateUp=${useFusedGateUp} gateUpPathMode=${gateUpPathMode} splitPrefillF16FusionAllowed=${splitPrefillF16FusionAllowed} ` +
+    `inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
     `gateDtype=${gateDtype} upDtype=${upDtype} hasQ4KMaterialization=${fusedGateUpWeights.hasQ4KMaterialization} ` +
     `dtypeMatches=${dtypeMatches} dtypeSupported=${dtypeSupported} hiddenSizeAligned32=${hiddenSizeAligned32} batchSize=${numTokens}`
   );
@@ -1344,12 +1378,21 @@ export async function runDenseFFNWithFusedPostNormGPU(
       hiddenSizeAligned32,
       useDoubleWideMlp: Boolean(useDoubleWideMlp),
     });
-    const canUseFusedGateUp = gateUpPathMode === 'split'
+    const splitPrefillF16FusionAllowed = gateUpPathMode === 'split'
+      && canFuseSplitPrefillF16GateUpPath({
+        kernelPath,
+        phase,
+        layerIdx,
+        gateDtype,
+        upDtype,
+      });
+    const canUseFusedGateUp = gateUpPathMode === 'split' && !splitPrefillF16FusionAllowed
       ? false
       : canUseFusedGateUpByRule;
     trace.ffn(
       layerIdx,
-      `useFusedGateUpWithPostNorm=${canUseFusedGateUp} gateUpPathMode=${gateUpPathMode} inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
+      `useFusedGateUpWithPostNorm=${canUseFusedGateUp} gateUpPathMode=${gateUpPathMode} splitPrefillF16FusionAllowed=${splitPrefillF16FusionAllowed} ` +
+      `inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
       `gateDtype=${gateDtype} upDtype=${upDtype} hasQ4KMaterialization=${fusedGateUpWeights.hasQ4KMaterialization} ` +
       `dtypeMatches=${dtypeMatches} dtypeSupported=${dtypeSupported} hiddenSizeAligned32=${hiddenSizeAligned32} batchSize=${numTokens}`
     );

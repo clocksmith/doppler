@@ -45,6 +45,11 @@ export {
   recordLmHeadArgmaxF16,
   type LmHeadArgmaxF16Options,
 } from './lm-head-argmax.js';
+export {
+  runLmHeadSelectLogitsF16,
+  type LmHeadSelectLogitsF16Options,
+  type LmHeadSelectLogitsF16Result,
+} from './lm-head-select-logits.js';
 
 // Dequantization
 export {

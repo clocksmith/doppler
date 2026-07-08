@@ -101,12 +101,26 @@ ls /tmp/OUTPUT_ID-rebuild/shard_*.bin | wc -l
 cp -a /tmp/OUTPUT_ID-rebuild/. "$RDRR_ROOT/OUTPUT_ID/"
 
 # 5) Sanity-run inference
-npm run debug -- --config '{"request":{"modelId":"OUTPUT_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
+npm run cli -- profiles --json
+npm run debug -- --config '{"request":{"modelId":"OUTPUT_ID"},"run":{"surface":"auto"}}' --runtime-profile profiles/verbose-trace --json
 ```
 
 Notes:
 - For execution-v1 artifacts, `inference.schema`, `inference.session`, and `inference.execution` are the important contract checks.
 - Do not use `inference.defaultKernelPath` as a required success criterion for v1 manifests.
+
+## Conversion Format vs Benchmark Parity
+
+Conversion success is not benchmark parity. RDRR, GGUF, ONNX, SafeTensors, and
+LiteRT artifacts can differ in tokenizer packaging, quantization layout, dtype
+materialization, chat template handling, and runtime cache behavior. Treat
+format differences as disclosed benchmark metadata, not as proof that two
+engines are doing identical work.
+
+Before using a converted artifact in benchmark claims, hand off to
+`doppler-bench` and require the relevant fairness gates: artifact identity,
+format disclosure, runtime surface, fallback status, timing scope, work
+accounting, and correctness policy.
 
 For publication candidates, the verification bar is higher:
 
@@ -119,7 +133,7 @@ For publication candidates, the verification bar is higher:
 
 ```bash
 npm run debug -- \
-  --config '{"request":{"modelId":"OUTPUT_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' \
+  --config '{"request":{"modelId":"OUTPUT_ID"},"run":{"surface":"auto"}}' \
   --runtime-config '{"shared":{"tooling":{"intent":"verify"}},"inference":{"prompt":"Explain what this model is in one short sentence.","sampling":{"temperature":0,"topK":1}}}' \
   --json
 ```

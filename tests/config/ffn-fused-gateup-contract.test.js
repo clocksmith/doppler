@@ -42,8 +42,19 @@ assert.equal(
     weightDtype: 'f16',
     activationDtype: 'f32',
   }),
+  true,
+  'Dense f16 FFN weights should enable the widened f32 fused gate/up path for decode-sized batches'
+);
+
+assert.equal(
+  selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
+    ...BASE_FUSED_GATE_UP_CONTEXT,
+    weightDtype: 'f16',
+    activationDtype: 'f32',
+    batchSize: 64,
+  }),
   false,
-  'Dense f16 FFN weights must not enable the widened f32 fused gate/up path'
+  'Dense f16 FFN weights should use split tiled matmuls for widened f32 prompt prefill'
 );
 
 assert.equal(
@@ -88,6 +99,21 @@ assert.equal(
   }),
   false,
   'Q4K FFN fused gate/up must stay disabled when hidden size is not 32-aligned'
+);
+
+assert.equal(
+  selectRuleValue('kernels', 'fusedFfn', 'variant', {
+    isQ4K: false,
+    fusedAllowed: true,
+    hiddenSubblockAligned: true,
+    batchSize: 4,
+    weightDtype: 'f16',
+    useMultiOutput: false,
+    hasF16: true,
+    useF16Input: false,
+  }),
+  'f16_batched',
+  'F16 FFN weights with f32 activations should use the packed-f16 batched prefill variant'
 );
 
 assert.equal(

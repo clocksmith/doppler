@@ -37,6 +37,31 @@ Common routes:
 - WGSL executes resolved kernels; any policy branch belongs to config/rule selection before dispatch.
 - For parity checks, command intent must match: unknown/mismatched intent is a failure, not an alternate path.
 
+## Context Budget Discipline
+
+Investigation and diagnosis should consume no more than 30% of available context. If you have not formed a testable hypothesis after reading 5–8 files, stop reading code and do one of:
+- Write a minimal reproduction script that isolates the failing path.
+- Run a `doppler-debug` probe to capture per-layer numerical readback at the suspected divergence point.
+- Narrow scope by diffing the execution graph before/after the suspected change.
+
+Exhaustive static code tracing across an entire pipeline (kernel dispatch → selection → config → shader) without running a diagnostic is an anti-pattern. Each file read should either confirm or refute a specific hypothesis. If it does neither, the hypothesis is too vague — sharpen it before continuing.
+
+## Infra vs Model Failure Triage
+
+Classify infrastructure failures before entering the model-correctness ladder. A run that cannot write reports, persist cache state, allocate temp files, or open browser storage has not produced model evidence.
+
+Treat these as infra failures until fixed:
+- `ENOSPC`, quota, permission, or path errors under report output, temp directories, OPFS, IndexedDB, or browser profile storage.
+- Browser report relay failures where generation completed but `result.reportInfo` is missing, incomplete, or points to an unwritten artifact.
+- Cache/load setup failures before the first deterministic token or logits slice is captured.
+- Vendor runner failures before the backend identity and fallback status are recorded.
+
+Infra triage steps:
+1. Preserve the failing command and stderr/stdout.
+2. Check disk/quota and the configured report/temp/cache paths.
+3. Retry with an explicit writable report location or a cleared browser/cache profile when the failure is storage-scoped.
+4. Only enter the model debug ladder after the run can save a valid report artifact or emit the equivalent JSON receipt.
+
 ## Required Debug Ladder
 
 Use this order for inference failures that load successfully but generate bad output:
@@ -54,7 +79,14 @@ Use this order for inference failures that load successfully but generate bad ou
 - one early activation slice
 - one output/logits slice
 
-3. Compare boundary-by-boundary and stop at first divergence:
+3. Dump the phase-specific execution contract:
+- resolved prefill kernel path
+- resolved decode kernel path
+- active `decodeMode` and `batchGuardReason`
+- speculation / multi-token decode state
+- actual loaded weight/materialization dtype for the hot ops
+
+4. Compare boundary-by-boundary and stop at first divergence:
 - embeddings
 - post input norm
 - Q/K/V pre-RoPE
@@ -63,13 +95,18 @@ Use this order for inference failures that load successfully but generate bad ou
 - FFN output
 - final logits
 
-4. Once token IDs or embeddings match, stop changing prompt wrappers or harness formatting until later evidence requires it.
+5. Once token IDs or embeddings match, stop changing prompt wrappers or harness formatting until later evidence requires it.
 
-5. For quantized failures, run one F16 or source-precision control before changing quantized kernels.
+6. For quantized failures, run one F16 or source-precision control before changing quantized kernels.
 - F16/source-precision good + quantized bad => quantized path issue
 - F16/source-precision bad + quantized bad => shared conversion/layout/runtime issue
 
-6. Prefer one config-driven probe over one new theory.
+7. Prefer one config-driven probe over one new theory.
+
+For decode performance regressions, classify the wall before editing kernels:
+- `decodeRecordMs` high => GPU compute or recording path
+- `decodeSubmitWaitMs` / `decodeReadbackWaitMs` high => orchestration or readback path
+- `singleTokenReadbackWaitMs` high on a fair parity lane => likely not a phase-math problem first
 
 Reference workflow: `docs/debug-playbook.md`
 Reusable report template: `docs/debug-investigation-template.md`
@@ -90,14 +127,20 @@ If shards exist without a manifest, classify the output as interrupted/incomplet
 ## Fast Triage
 
 ```bash
+# Discover checked-in runtime profiles and trace/probe signals
+npm run cli -- profiles --json
+
 # Primary debug run (auto surface = node-first transport; browser fallback only when node transport is unavailable)
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID"},"run":{"surface":"auto"}}' --runtime-profile profiles/verbose-trace --json
 
 # Verify pass/fail with inference suite
-npm run verify:model -- --config '{"request":{"workload":"inference","modelId":"MODEL_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
+npm run verify:model -- --config '{"request":{"workload":"inference","modelId":"MODEL_ID"},"run":{"surface":"auto"}}' --runtime-profile profiles/verbose-trace --json
 
 # Force browser relay for mobile/WebGPU parity checks
 npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json
+
+# Experimental Gemma 4 31B all-f16 lane; use only for transcript/parity proof
+npm run debug -- --config '{"request":{"workload":"inference","modelId":"gemma-4-31b-it-text-q4k-ehf16-af16"},"run":{"surface":"browser","browser":{"channel":"chrome","headless":true,"console":true}}}' --runtime-profile profiles/gemma4-31b-f16-activations-probe --json
 ```
 
 ## Runtime Overrides (Config-First)
@@ -119,7 +162,7 @@ Notes:
 
 ```bash
 # Broad trace-heavy debug run
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"profiles/verbose-trace"},"run":{"surface":"auto"}}' --json
+npm run debug -- --config '{"request":{"modelId":"MODEL_ID"},"run":{"surface":"auto"}}' --runtime-profile profiles/verbose-trace --json
 
 # Logit-focused browser relay run
 npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json

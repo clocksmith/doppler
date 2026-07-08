@@ -893,6 +893,46 @@ export class KVCache {
       return cloned;
     }
 
+    if (this.useGPU) {
+      const device = getDevice();
+      if (!device) {
+        throw new Error('GPU device not initialized');
+      }
+      const cloned = new KVCache({
+        numLayers: this.numLayers,
+        numHeads: this.numHeads,
+        headDim: this.headDim,
+        maxSeqLen: this.maxSeqLen,
+        useGPU: true,
+        layout: 'contiguous',
+        pageSize: this.pageSize,
+        kvDtype: this.kvDtype
+      });
+
+      cloned.currentSeqLen = this.currentSeqLen;
+      cloned.totalTokensSeen = this.totalTokensSeen;
+
+      for (let l = 0; l < this.numLayers; l++) {
+        const src = this.layers[l];
+        const dst = cloned.layers[l];
+        dst.seqLen = src.seqLen;
+
+        if (!src.keysGPU || !src.valuesGPU || !dst.keysGPU || !dst.valuesGPU) {
+          throw new Error(`KVCache GPU clone requires contiguous GPU buffers for layer ${l}.`);
+        }
+
+        const usedBytes = src.seqLen * this.kvSize * this.bytesPerElem;
+        if (usedBytes > 0) {
+          const encoder = device.createCommandEncoder({ label: `kv_cache_clone_contiguous_${l}` });
+          encoder.copyBufferToBuffer(src.keysGPU, 0, dst.keysGPU, 0, usedBytes);
+          encoder.copyBufferToBuffer(src.valuesGPU, 0, dst.valuesGPU, 0, usedBytes);
+          device.queue.submit([encoder.finish()]);
+        }
+      }
+
+      return cloned;
+    }
+
     const cloned = new KVCache({
       numLayers: this.numLayers,
       numHeads: this.numHeads,
@@ -905,6 +945,7 @@ export class KVCache {
     });
 
     cloned.currentSeqLen = this.currentSeqLen;
+    cloned.totalTokensSeen = this.totalTokensSeen;
 
     for (let l = 0; l < this.numLayers; l++) {
       const { keys, values } = this.get(l);
@@ -956,7 +997,7 @@ export class KVCache {
     this.gpuContext = gpuContext;
 
     // Migrate existing cache to GPU if we have data
-    if (this.currentSeqLen > 0 && gpuContext?.device) {
+    if (this.currentSeqLen > 0 && gpuContext?.device && !this.hasGPUCache()) {
       this._migrateToGPU(gpuContext.device);
     }
   }
