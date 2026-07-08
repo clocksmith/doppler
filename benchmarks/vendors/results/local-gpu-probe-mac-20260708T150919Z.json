@@ -1,0 +1,1012 @@
+{
+  "ok": true,
+  "matrixPath": "benchmarks/vendors/local-gpu-challenger-matrix.json",
+  "schemaPath": "benchmarks/vendors/schema/local-gpu-challenger-matrix.schema.json",
+  "catalogPath": "models/catalog.json",
+  "schemaVersion": 1,
+  "updated": "2026-07-07",
+  "hostClass": "multi-platform-local-gpu",
+  "probeHostClass": "linux-amd-vulkan-rocm-local",
+  "summary": {
+    "models": 8,
+    "competitors": 5,
+    "harnesses": 4,
+    "fairnessGates": 11,
+    "platformTargets": 8,
+    "gaps": 16,
+    "tierCounts": {
+      "tier-0": 3,
+      "tier-1": 3,
+      "tier-2": 2
+    }
+  },
+  "platformTargets": [
+    {
+      "id": "apple-metal",
+      "label": "Apple Metal",
+      "os": [
+        "macos"
+      ],
+      "accelerators": [
+        "apple-silicon"
+      ],
+      "runtimeSurfaces": [
+        "browser-webgpu",
+        "node-webgpu",
+        "native-metal"
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "linux-amd-vulkan-rocm",
+      "label": "Linux AMD Vulkan/ROCm",
+      "os": [
+        "linux"
+      ],
+      "accelerators": [
+        "amd"
+      ],
+      "runtimeSurfaces": [
+        "browser-webgpu",
+        "node-webgpu",
+        "native-vulkan",
+        "python-pytorch-rocm"
+      ],
+      "status": "local-probe-supported"
+    },
+    {
+      "id": "linux-nvidia-vulkan-cuda",
+      "label": "Linux NVIDIA Vulkan/CUDA",
+      "os": [
+        "linux"
+      ],
+      "accelerators": [
+        "nvidia"
+      ],
+      "runtimeSurfaces": [
+        "browser-webgpu",
+        "node-webgpu",
+        "native-vulkan",
+        "python-pytorch-cuda"
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "linux-intel-vulkan",
+      "label": "Linux Intel Vulkan",
+      "os": [
+        "linux"
+      ],
+      "accelerators": [
+        "intel"
+      ],
+      "runtimeSurfaces": [
+        "browser-webgpu",
+        "node-webgpu",
+        "native-vulkan"
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "windows-amd-webgpu-directml",
+      "label": "Windows AMD WebGPU/DirectML",
+      "os": [
+        "windows"
+      ],
+      "accelerators": [
+        "amd"
+      ],
+      "runtimeSurfaces": [
+        "browser-webgpu",
+        "node-webgpu",
+        "onnxruntime-directml"
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "windows-nvidia-webgpu-cuda",
+      "label": "Windows NVIDIA WebGPU/CUDA",
+      "os": [
+        "windows"
+      ],
+      "accelerators": [
+        "nvidia"
+      ],
+      "runtimeSurfaces": [
+        "browser-webgpu",
+        "node-webgpu",
+        "onnxruntime-directml",
+        "python-pytorch-cuda"
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "windows-intel-webgpu",
+      "label": "Windows Intel WebGPU",
+      "os": [
+        "windows"
+      ],
+      "accelerators": [
+        "intel"
+      ],
+      "runtimeSurfaces": [
+        "browser-webgpu",
+        "node-webgpu",
+        "onnxruntime-directml"
+      ],
+      "status": "planned"
+    },
+    {
+      "id": "nvidia-orin-spark-linux",
+      "label": "NVIDIA Orin/Spark Linux",
+      "os": [
+        "linux"
+      ],
+      "accelerators": [
+        "nvidia-embedded"
+      ],
+      "runtimeSurfaces": [
+        "browser-webgpu",
+        "node-webgpu",
+        "native-vulkan",
+        "python-pytorch-cuda"
+      ],
+      "status": "planned"
+    }
+  ],
+  "rows": [
+    {
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "publicModelName": "Gemma 3 270M",
+      "tier": "tier-0",
+      "modelRole": "generation",
+      "sourceCheckpoint": "google/gemma-3-270m-it",
+      "dopplerArtifactId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "alternateDopplerArtifactIds": [],
+      "anchorComparator": {
+        "competitorId": "transformersjs-webgpu",
+        "modelId": "onnx-community/gemma-3-270m-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16",
+        "status": "configured"
+      },
+      "latestAnchorEvidence": null,
+      "localChallengers": [
+        {
+          "competitorId": "onnxruntime-webgpu-direct",
+          "label": "ONNX Runtime WebGPU direct",
+          "status": "runner-needed",
+          "nextGate": "direct-ort-runner",
+          "candidateArtifact": "onnx-community/gemma-3-270m-it-ONNX",
+          "latestEvidence": null
+        },
+        {
+          "competitorId": "llamacpp-vulkan-gguf",
+          "label": "llama.cpp Vulkan GGUF",
+          "status": "artifact-needed",
+          "nextGate": "pin-matching-q4k-gguf",
+          "candidateArtifact": null,
+          "latestEvidence": null
+        }
+      ],
+      "recommendedHarnesses": [
+        "generation-local-gpu-v1"
+      ],
+      "minimumClaimGrade": "local-gpu-comparable"
+    },
+    {
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "publicModelName": "EmbeddingGemma 300M",
+      "tier": "tier-0",
+      "modelRole": "embedding",
+      "sourceCheckpoint": "google/embeddinggemma-300m",
+      "dopplerArtifactId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "alternateDopplerArtifactIds": [],
+      "anchorComparator": {
+        "competitorId": "transformersjs-webgpu",
+        "modelId": "onnx-community/embeddinggemma-300m-ONNX",
+        "format": "onnx",
+        "dtype": "q4",
+        "status": "configured"
+      },
+      "latestAnchorEvidence": null,
+      "localChallengers": [
+        {
+          "competitorId": "onnxruntime-webgpu-direct",
+          "label": "ONNX Runtime WebGPU direct",
+          "status": "runner-needed",
+          "nextGate": "direct-ort-embedding-runner",
+          "candidateArtifact": "onnx-community/embeddinggemma-300m-ONNX",
+          "latestEvidence": null
+        },
+        {
+          "competitorId": "hf-transformers-rocm",
+          "label": "Hugging Face Transformers PyTorch ROCm",
+          "status": "runtime-smoke-failed",
+          "nextGate": "pin-working-rocm-transformers-runtime",
+          "candidateArtifact": "google/embeddinggemma-300m",
+          "latestEvidence": null
+        }
+      ],
+      "recommendedHarnesses": [
+        "embedding-local-gpu-v1"
+      ],
+      "minimumClaimGrade": "local-gpu-comparable"
+    },
+    {
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "publicModelName": "Gemma 3 1B",
+      "tier": "tier-0",
+      "modelRole": "generation",
+      "sourceCheckpoint": "google/gemma-3-1b-it",
+      "dopplerArtifactId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "alternateDopplerArtifactIds": [],
+      "anchorComparator": {
+        "competitorId": "transformersjs-webgpu",
+        "modelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+        "format": "onnx",
+        "dtype": "q4f16",
+        "status": "configured"
+      },
+      "latestAnchorEvidence": null,
+      "localChallengers": [
+        {
+          "competitorId": "onnxruntime-webgpu-direct",
+          "label": "ONNX Runtime WebGPU direct",
+          "status": "runner-needed",
+          "nextGate": "direct-ort-runner",
+          "candidateArtifact": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+          "latestEvidence": null
+        },
+        {
+          "competitorId": "llamacpp-vulkan-gguf",
+          "label": "llama.cpp Vulkan GGUF",
+          "status": "artifact-needed",
+          "nextGate": "pin-matching-q4k-gguf",
+          "candidateArtifact": null,
+          "latestEvidence": null
+        }
+      ],
+      "recommendedHarnesses": [
+        "generation-local-gpu-v1"
+      ],
+      "minimumClaimGrade": "local-gpu-comparable"
+    },
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "publicModelName": "Qwen 3.5 0.8B",
+      "tier": "tier-1",
+      "modelRole": "generation",
+      "sourceCheckpoint": "Qwen/Qwen3.5-0.8B",
+      "dopplerArtifactId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "alternateDopplerArtifactIds": [],
+      "anchorComparator": {
+        "competitorId": "transformersjs-webgpu",
+        "modelId": "onnx-community/Qwen3.5-0.8B-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16",
+        "status": "configured"
+      },
+      "latestAnchorEvidence": {
+        "receiptPath": "benchmarks/vendors/results/compare_20260706T165528.json",
+        "timestamp": "2026-07-06T16:52:07.666Z",
+        "platformTargetId": "linux-amd-vulkan-rocm",
+        "harnessId": "generation-local-gpu-v1",
+        "workloadId": "p064-d064-t0-k1",
+        "warmupRuns": 1,
+        "timedRuns": 15,
+        "claimGrade": "release-claimable",
+        "correctness": "exact-match",
+        "winner": "doppler",
+        "summary": "Hosted Doppler wins Qwen 3.5 0.8B steady-state generation against Transformers.js WebGPU ONNX with exact token match; TJS still loads faster.",
+        "wins": [
+          "decode-throughput",
+          "first-token-ms",
+          "total-run-ms"
+        ],
+        "losses": [
+          "model-load-ms"
+        ],
+        "blockedReasons": [],
+        "metrics": [
+          {
+            "id": "decodeTokensPerSec",
+            "doppler": 77.89,
+            "competitor": 41.6799,
+            "ratio": 1.8688,
+            "higherBetter": true
+          },
+          {
+            "id": "firstTokenMs",
+            "doppler": 347.6,
+            "competitor": 6337.62,
+            "ratio": 0.0548,
+            "higherBetter": false
+          },
+          {
+            "id": "totalRunMs",
+            "doppler": 1167.7,
+            "competitor": 7877.83,
+            "ratio": 0.1482,
+            "higherBetter": false
+          },
+          {
+            "id": "modelLoadMs",
+            "doppler": 1674.5,
+            "competitor": 1262.865,
+            "ratio": 1.3259,
+            "higherBetter": false
+          }
+        ]
+      },
+      "localChallengers": [
+        {
+          "competitorId": "onnxruntime-webgpu-direct",
+          "label": "ONNX Runtime WebGPU direct",
+          "status": "runner-needed",
+          "nextGate": "direct-ort-runner",
+          "candidateArtifact": "onnx-community/Qwen3.5-0.8B-ONNX",
+          "latestEvidence": null
+        },
+        {
+          "competitorId": "llamacpp-vulkan-gguf",
+          "label": "llama.cpp Vulkan GGUF",
+          "status": "artifact-needed",
+          "nextGate": "pin-matching-q4k-gguf",
+          "candidateArtifact": null,
+          "latestEvidence": null
+        }
+      ],
+      "recommendedHarnesses": [
+        "generation-local-gpu-v1"
+      ],
+      "minimumClaimGrade": "local-gpu-comparable"
+    },
+    {
+      "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "publicModelName": "Qwen 3 Embedding 0.6B",
+      "tier": "tier-1",
+      "modelRole": "embedding",
+      "sourceCheckpoint": "Qwen/Qwen3-Embedding-0.6B",
+      "dopplerArtifactId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "alternateDopplerArtifactIds": [],
+      "anchorComparator": {
+        "competitorId": "transformersjs-webgpu",
+        "modelId": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16",
+        "status": "configured"
+      },
+      "latestAnchorEvidence": {
+        "receiptPath": "benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json",
+        "timestamp": "2026-07-06T17:12:50.494Z",
+        "platformTargetId": "linux-amd-vulkan-rocm",
+        "harnessId": "embedding-local-gpu-v1",
+        "workloadId": "embedding-default-doc15",
+        "warmupRuns": 3,
+        "timedRuns": 15,
+        "claimGrade": "release-claimable",
+        "correctness": "semantic-pass",
+        "winner": "doppler",
+        "summary": "Hosted Doppler wins Qwen 3 Embedding steady-state latency and throughput against Transformers.js WebGPU ONNX; TJS wins model load and retrieval top-1 on this fixture.",
+        "wins": [
+          "median-embedding-ms",
+          "embeddings-per-sec",
+          "semantic-pair-accuracy"
+        ],
+        "losses": [
+          "model-load-ms",
+          "semantic-retrieval-top1-accuracy"
+        ],
+        "blockedReasons": [],
+        "metrics": [
+          {
+            "id": "medianEmbeddingMs",
+            "doppler": 65.05,
+            "competitor": 146.455,
+            "ratio": 0.4442,
+            "higherBetter": false
+          },
+          {
+            "id": "avgEmbeddingsPerSec",
+            "doppler": 15.28,
+            "competitor": 6.7696,
+            "ratio": 2.2572,
+            "higherBetter": true
+          },
+          {
+            "id": "modelLoadMs",
+            "doppler": 117117.44,
+            "competitor": 45368.75,
+            "ratio": 2.5815,
+            "higherBetter": false
+          },
+          {
+            "id": "semanticPairAcc",
+            "doppler": 0.7143,
+            "competitor": 0.6429,
+            "ratio": 1.1111,
+            "higherBetter": true
+          },
+          {
+            "id": "semanticRetrievalTop1Acc",
+            "doppler": 0.9,
+            "competitor": 1,
+            "ratio": 0.9,
+            "higherBetter": true
+          }
+        ]
+      },
+      "localChallengers": [
+        {
+          "competitorId": "onnxruntime-webgpu-direct",
+          "label": "ONNX Runtime WebGPU direct",
+          "status": "runner-needed",
+          "nextGate": "direct-ort-embedding-runner",
+          "candidateArtifact": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+          "latestEvidence": null
+        },
+        {
+          "competitorId": "hf-transformers-rocm",
+          "label": "Hugging Face Transformers PyTorch ROCm",
+          "status": "runtime-smoke-failed",
+          "nextGate": "pin-working-rocm-transformers-runtime",
+          "candidateArtifact": "Qwen/Qwen3-Embedding-0.6B",
+          "latestEvidence": null
+        }
+      ],
+      "recommendedHarnesses": [
+        "embedding-local-gpu-v1"
+      ],
+      "minimumClaimGrade": "local-gpu-comparable"
+    },
+    {
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "publicModelName": "Qwen 3 Reranker 0.6B",
+      "tier": "tier-1",
+      "modelRole": "rerank",
+      "sourceCheckpoint": "Qwen/Qwen3-Reranker-0.6B",
+      "dopplerArtifactId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "alternateDopplerArtifactIds": [],
+      "anchorComparator": {
+        "competitorId": "transformersjs-webgpu",
+        "modelId": "onnx-community/Qwen3-Reranker-0.6B-ONNX",
+        "format": "onnx",
+        "dtype": "q4",
+        "status": "configured-artifact"
+      },
+      "latestAnchorEvidence": {
+        "receiptPath": "benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json",
+        "timestamp": "2026-07-06T15:45:39.226Z",
+        "platformTargetId": "linux-amd-vulkan-rocm",
+        "harnessId": "rerank-local-gpu-v1",
+        "workloadId": "rerank-q1-d003-webgpu",
+        "warmupRuns": 1,
+        "timedRuns": 3,
+        "claimGrade": "diagnostic",
+        "correctness": "semantic-pass",
+        "winner": "transformersjs",
+        "summary": "Hosted Doppler reranker passes correctness and has stronger semantic pair accuracy, but Transformers.js WebGPU wins latency and throughput on the current 3-document receipt.",
+        "wins": [
+          "semantic-pair-accuracy"
+        ],
+        "losses": [
+          "median-rerank-ms",
+          "reranks-per-sec",
+          "model-load-ms"
+        ],
+        "blockedReasons": [
+          "needs-15-run-rerank-matrix-profile",
+          "needs-10-50-100-document-rerank-workloads"
+        ],
+        "metrics": [
+          {
+            "id": "medianRerankMs",
+            "doppler": 1556.2,
+            "competitor": 483.2,
+            "ratio": 3.2206,
+            "higherBetter": false
+          },
+          {
+            "id": "avgReranksPerSec",
+            "doppler": 0.64,
+            "competitor": 2.0698,
+            "ratio": 0.3092,
+            "higherBetter": true
+          },
+          {
+            "id": "modelLoadMs",
+            "doppler": 127995.6,
+            "competitor": 66532.885,
+            "ratio": 1.9238,
+            "higherBetter": false
+          },
+          {
+            "id": "semanticPairAcc",
+            "doppler": 1,
+            "competitor": 0.8,
+            "ratio": 1.25,
+            "higherBetter": true
+          }
+        ]
+      },
+      "localChallengers": [
+        {
+          "competitorId": "hf-transformers-rocm",
+          "label": "Hugging Face Transformers PyTorch ROCm",
+          "status": "runtime-smoke-failed",
+          "nextGate": "pin-working-rocm-transformers-runtime",
+          "candidateArtifact": "Qwen/Qwen3-Reranker-0.6B",
+          "latestEvidence": null
+        },
+        {
+          "competitorId": "onnxruntime-webgpu-direct",
+          "label": "ONNX Runtime WebGPU direct",
+          "status": "runner-needed",
+          "nextGate": "direct-ort-rerank-runner",
+          "candidateArtifact": "onnx-community/Qwen3-Reranker-0.6B-ONNX",
+          "latestEvidence": null
+        }
+      ],
+      "recommendedHarnesses": [
+        "rerank-local-gpu-v1"
+      ],
+      "minimumClaimGrade": "local-gpu-comparable"
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "publicModelName": "Qwen 3.5 2B",
+      "tier": "tier-2",
+      "modelRole": "generation",
+      "sourceCheckpoint": "Qwen/Qwen3.5-2B",
+      "dopplerArtifactId": "qwen-3-5-2b-q4k-ehaf16",
+      "alternateDopplerArtifactIds": [],
+      "anchorComparator": {
+        "competitorId": "transformersjs-webgpu",
+        "modelId": "onnx-community/Qwen3.5-2B-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16",
+        "status": "configured"
+      },
+      "latestAnchorEvidence": {
+        "receiptPath": "benchmarks/vendors/results/compare_20260706T170010.json",
+        "timestamp": "2026-07-06T16:56:10.355Z",
+        "platformTargetId": "linux-amd-vulkan-rocm",
+        "harnessId": "generation-local-gpu-v1",
+        "workloadId": "p064-d064-t0-k1",
+        "warmupRuns": 1,
+        "timedRuns": 15,
+        "claimGrade": "local-gpu-comparable",
+        "correctness": "exact-match",
+        "winner": "doppler",
+        "summary": "Local Doppler wins Qwen 3.5 2B generation against Transformers.js WebGPU ONNX with exact token match; release claim is blocked until the Doppler artifact is hosted.",
+        "wins": [
+          "decode-throughput",
+          "first-token-ms",
+          "total-run-ms",
+          "model-load-ms"
+        ],
+        "losses": [],
+        "blockedReasons": [
+          "hosted-doppler-artifact-needed-for-release-claim"
+        ],
+        "metrics": [
+          {
+            "id": "decodeTokensPerSec",
+            "doppler": 61.05,
+            "competitor": 40.2842,
+            "ratio": 1.5155,
+            "higherBetter": true
+          },
+          {
+            "id": "firstTokenMs",
+            "doppler": 372.6,
+            "competitor": 6448.815,
+            "ratio": 0.0578,
+            "higherBetter": false
+          },
+          {
+            "id": "totalRunMs",
+            "doppler": 1419.7,
+            "competitor": 8001.1,
+            "ratio": 0.1774,
+            "higherBetter": false
+          },
+          {
+            "id": "modelLoadMs",
+            "doppler": 5856.3,
+            "competitor": 48727.7,
+            "ratio": 0.1202,
+            "higherBetter": false
+          }
+        ]
+      },
+      "localChallengers": [
+        {
+          "competitorId": "onnxruntime-webgpu-direct",
+          "label": "ONNX Runtime WebGPU direct",
+          "status": "runner-needed",
+          "nextGate": "direct-ort-runner",
+          "candidateArtifact": "onnx-community/Qwen3.5-2B-ONNX",
+          "latestEvidence": null
+        },
+        {
+          "competitorId": "llamacpp-vulkan-gguf",
+          "label": "llama.cpp Vulkan GGUF",
+          "status": "diagnostic",
+          "nextGate": "text-output-parity-runner",
+          "candidateArtifact": "unsloth/Qwen3.5-2B-GGUF/Qwen3.5-2B-Q4_K_M.gguf",
+          "latestEvidence": {
+            "receiptPaths": [
+              "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-35-40Z.json",
+              "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-36-00Z.json",
+              "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T22-36-21Z.json",
+              "benchmarks/vendors/results/llamacpp-vulkan-gguf-2026-07-07T23-23-41Z.json"
+            ],
+            "timestamp": "2026-07-07T23:23:41Z",
+            "platformTargetId": "linux-amd-vulkan-rocm",
+            "harnessId": "generation-local-gpu-v1",
+            "claimGrade": "diagnostic",
+            "correctness": "not-measured",
+            "winner": "local-challenger",
+            "summary": "llama.cpp Vulkan GGUF is faster than Doppler on Qwen 3.5 2B decode throughput across p064, p256, and p512 phase-throughput receipts. The latest p064 receipt also captures resource telemetry. The runner does not yet measure text-output parity, so this remains diagnostic native evidence.",
+            "wins": [
+              "native-vulkan-decode-throughput"
+            ],
+            "losses": [
+              "text-output-parity-not-measured"
+            ],
+            "blockedReasons": [
+              "native-runner-needs-text-output-parity",
+              "gguf-quantization-differs-from-doppler-artifact"
+            ],
+            "metrics": [
+              {
+                "id": "p064DecodeTokensPerSec",
+                "doppler": 58.28,
+                "competitor": 108.009623,
+                "ratio": 0.5396,
+                "higherBetter": true
+              },
+              {
+                "id": "p256DecodeTokensPerSec",
+                "doppler": 58.37,
+                "competitor": 108.594655,
+                "ratio": 0.5375,
+                "higherBetter": true
+              },
+              {
+                "id": "p512DecodeTokensPerSec",
+                "doppler": 55.76,
+                "competitor": 108.967997,
+                "ratio": 0.5117,
+                "higherBetter": true
+              }
+            ]
+          }
+        }
+      ],
+      "recommendedHarnesses": [
+        "generation-local-gpu-v1"
+      ],
+      "minimumClaimGrade": "local-gpu-comparable"
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "publicModelName": "Gemma 4 E2B INT4 PLE",
+      "tier": "tier-2",
+      "modelRole": "generation",
+      "sourceCheckpoint": "google/gemma-4-E2B-it",
+      "dopplerArtifactId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "alternateDopplerArtifactIds": [
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+      ],
+      "anchorComparator": {
+        "competitorId": "transformersjs-webgpu",
+        "modelId": "onnx-community/gemma-4-E2B-it-ONNX",
+        "format": "onnx",
+        "dtype": "q4f16",
+        "status": "configured"
+      },
+      "latestAnchorEvidence": {
+        "receiptPath": "benchmarks/vendors/results/compare_20260707T170557.json",
+        "timestamp": "2026-07-07T17:01:24.502Z",
+        "platformTargetId": "linux-amd-vulkan-rocm",
+        "harnessId": "gemma-e2b-local-gpu-v1",
+        "workloadId": "p064-d064-t0-k1",
+        "warmupRuns": 1,
+        "timedRuns": 15,
+        "claimGrade": "local-gpu-comparable",
+        "correctness": "mismatch",
+        "winner": "doppler",
+        "summary": "Fresh local Gemma 4 E2B AF32 INT4-PLE evidence is claim-grade under the explicit mismatch-allowed decode-valid policy: Doppler wins decode throughput and total run time against Transformers.js WebGPU ONNX, but this is not an exact-output claim and first-token/model-load latency still favor TJS.",
+        "wins": [
+          "decode-throughput",
+          "total-run-ms"
+        ],
+        "losses": [
+          "exact-output-match",
+          "first-token-ms",
+          "model-load-ms"
+        ],
+        "blockedReasons": [
+          "exact-output-mismatch-disclosed-by-policy",
+          "hosted-doppler-artifact-needed-for-release-claim",
+          "throughput-cadence-not-promotable"
+        ],
+        "metrics": [
+          {
+            "id": "decodeTokensPerSec",
+            "doppler": 16.32,
+            "competitor": 9.2366,
+            "ratio": 1.7669,
+            "higherBetter": true
+          },
+          {
+            "id": "firstTokenMs",
+            "doppler": 511.6,
+            "competitor": 213.655,
+            "ratio": 2.3945,
+            "higherBetter": false
+          },
+          {
+            "id": "totalRunMs",
+            "doppler": 4417.1,
+            "competitor": 7036.405,
+            "ratio": 0.6278,
+            "higherBetter": false
+          },
+          {
+            "id": "modelLoadMs",
+            "doppler": 3457.4,
+            "competitor": 2311.735,
+            "ratio": 1.4956,
+            "higherBetter": false
+          }
+        ]
+      },
+      "localChallengers": [
+        {
+          "competitorId": "litert-gpu",
+          "label": "LiteRT GPU",
+          "status": "runner-needed",
+          "nextGate": "litert-gpu-runner",
+          "candidateArtifact": "models/source/litert/gemma-4-E2B-it",
+          "latestEvidence": null
+        },
+        {
+          "competitorId": "hf-transformers-rocm",
+          "label": "Hugging Face Transformers PyTorch ROCm",
+          "status": "runtime-smoke-failed",
+          "nextGate": "pin-working-rocm-transformers-runtime",
+          "candidateArtifact": "google/gemma-4-E2B-it",
+          "latestEvidence": null
+        }
+      ],
+      "recommendedHarnesses": [
+        "gemma-e2b-local-gpu-v1"
+      ],
+      "minimumClaimGrade": "local-gpu-comparable"
+    }
+  ],
+  "gaps": [
+    {
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "publicModelName": "Gemma 3 270M",
+      "competitorId": "onnxruntime-webgpu-direct",
+      "status": "runner-needed",
+      "nextGate": "direct-ort-runner"
+    },
+    {
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "publicModelName": "Gemma 3 270M",
+      "competitorId": "llamacpp-vulkan-gguf",
+      "status": "artifact-needed",
+      "nextGate": "pin-matching-q4k-gguf"
+    },
+    {
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "publicModelName": "EmbeddingGemma 300M",
+      "competitorId": "onnxruntime-webgpu-direct",
+      "status": "runner-needed",
+      "nextGate": "direct-ort-embedding-runner"
+    },
+    {
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "publicModelName": "EmbeddingGemma 300M",
+      "competitorId": "hf-transformers-rocm",
+      "status": "runtime-smoke-failed",
+      "nextGate": "pin-working-rocm-transformers-runtime"
+    },
+    {
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "publicModelName": "Gemma 3 1B",
+      "competitorId": "onnxruntime-webgpu-direct",
+      "status": "runner-needed",
+      "nextGate": "direct-ort-runner"
+    },
+    {
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "publicModelName": "Gemma 3 1B",
+      "competitorId": "llamacpp-vulkan-gguf",
+      "status": "artifact-needed",
+      "nextGate": "pin-matching-q4k-gguf"
+    },
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "publicModelName": "Qwen 3.5 0.8B",
+      "competitorId": "onnxruntime-webgpu-direct",
+      "status": "runner-needed",
+      "nextGate": "direct-ort-runner"
+    },
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "publicModelName": "Qwen 3.5 0.8B",
+      "competitorId": "llamacpp-vulkan-gguf",
+      "status": "artifact-needed",
+      "nextGate": "pin-matching-q4k-gguf"
+    },
+    {
+      "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "publicModelName": "Qwen 3 Embedding 0.6B",
+      "competitorId": "onnxruntime-webgpu-direct",
+      "status": "runner-needed",
+      "nextGate": "direct-ort-embedding-runner"
+    },
+    {
+      "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "publicModelName": "Qwen 3 Embedding 0.6B",
+      "competitorId": "hf-transformers-rocm",
+      "status": "runtime-smoke-failed",
+      "nextGate": "pin-working-rocm-transformers-runtime"
+    },
+    {
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "publicModelName": "Qwen 3 Reranker 0.6B",
+      "competitorId": "hf-transformers-rocm",
+      "status": "runtime-smoke-failed",
+      "nextGate": "pin-working-rocm-transformers-runtime"
+    },
+    {
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "publicModelName": "Qwen 3 Reranker 0.6B",
+      "competitorId": "onnxruntime-webgpu-direct",
+      "status": "runner-needed",
+      "nextGate": "direct-ort-rerank-runner"
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "publicModelName": "Qwen 3.5 2B",
+      "competitorId": "onnxruntime-webgpu-direct",
+      "status": "runner-needed",
+      "nextGate": "direct-ort-runner"
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "publicModelName": "Qwen 3.5 2B",
+      "competitorId": "llamacpp-vulkan-gguf",
+      "status": "diagnostic",
+      "nextGate": "text-output-parity-runner"
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "publicModelName": "Gemma 4 E2B INT4 PLE",
+      "competitorId": "litert-gpu",
+      "status": "runner-needed",
+      "nextGate": "litert-gpu-runner"
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "publicModelName": "Gemma 4 E2B INT4 PLE",
+      "competitorId": "hf-transformers-rocm",
+      "status": "runtime-smoke-failed",
+      "nextGate": "pin-working-rocm-transformers-runtime"
+    }
+  ],
+  "errors": [],
+  "localProbe": {
+    "host": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "nodeVersion": "v22.20.0",
+      "inferredPlatformTargetId": "apple-metal"
+    },
+    "commands": {
+      "node": {
+        "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node --version",
+        "available": true,
+        "status": 0,
+        "output": "v22.20.0",
+        "error": null
+      },
+      "vulkaninfo": {
+        "command": "vulkaninfo --summary",
+        "available": false,
+        "status": null,
+        "output": "",
+        "error": "ENOENT"
+      },
+      "rocminfo": {
+        "command": "rocminfo",
+        "available": false,
+        "status": null,
+        "output": "",
+        "error": "ENOENT"
+      },
+      "rocmSmi": {
+        "command": "rocm-smi",
+        "available": false,
+        "status": null,
+        "output": "",
+        "error": "ENOENT"
+      },
+      "nvidiaSmi": {
+        "command": "nvidia-smi -L",
+        "available": false,
+        "status": null,
+        "output": "",
+        "error": "ENOENT"
+      },
+      "llamaBench": {
+        "command": "llama-bench --help",
+        "available": false,
+        "status": null,
+        "output": "",
+        "error": "ENOENT"
+      },
+      "llamaCli": {
+        "command": "llama-cli --help",
+        "available": false,
+        "status": null,
+        "output": "",
+        "error": "ENOENT"
+      },
+      "ollama": {
+        "command": "ollama --version",
+        "available": false,
+        "status": null,
+        "output": "",
+        "error": "ENOENT"
+      }
+    },
+    "nodePackages": {
+      "transformersjs": {
+        "specifier": "@huggingface/transformers",
+        "available": true,
+        "status": 0,
+        "output": "ok",
+        "error": null
+      },
+      "onnxruntimeWeb": {
+        "specifier": "onnxruntime-web",
+        "available": true,
+        "status": 0,
+        "output": "ok",
+        "error": null
+      },
+      "onnxruntimeNode": {
+        "specifier": "onnxruntime-node",
+        "available": true,
+        "status": 0,
+        "output": "ok",
+        "error": null
+      }
+    },
+    "python": {
+      "torch": {
+        "command": "python3 -c <torch probe>",
+        "available": true,
+        "status": 0,
+        "output": "{\"available\": true, \"backend\": \"cpu-only\", \"cudaAvailable\": false, \"cudaVersion\": null, \"gpuUsable\": false, \"hipVersion\": null, \"importError\": null, \"version\": \"2.9.1\"}",
+        "error": null,
+        "version": "2.9.1",
+        "cudaAvailable": false,
+        "cudaVersion": null,
+        "hipVersion": null,
+        "backend": "cpu-only",
+        "gpuUsable": false,
+        "importError": null
+      }
+    }
+  }
+}
