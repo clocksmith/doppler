@@ -60,6 +60,24 @@ export declare function estimateMatmulWeightBytes(
 ): { bytes: number; dtype: WeightDtype } | null;
 
 /**
+ * Resolve the materialized dtype for a weight-like tensor.
+ */
+export declare function resolveMatmulWeightDtype(
+  location: TensorLocation,
+  gpuCapabilities: KernelCapabilities | null,
+  keepF32Weights: boolean
+): WeightDtype;
+
+/**
+ * Check whether an F16 tensor must be widened on CPU before GPU upload.
+ */
+export declare function requiresCpuF16ToF32MatmulMaterialization(
+  location: TensorLocation,
+  gpuCapabilities: KernelCapabilities | null,
+  keepF32Weights: boolean
+): boolean;
+
+/**
  * Resolve weight layout from tensor location.
  *
  * Column layout is used for:
