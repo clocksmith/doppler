@@ -70,6 +70,68 @@ Claim interpretation:
 - ROCm PyTorch and LiteRT GPU rows need runner receipts with fallback status. A framework reporting a GPU backend is not enough if CPU, dtype, or execution-provider fallback is possible.
 - Format differences must be disclosed. RDRR, ONNX, GGUF, SafeTensors, and LiteRT lanes can be locally comparable only when the matrix fairness gates and correctness policy say so.
 
+## Mac Tier 1 Evidence
+
+Use this path when the goal is Apple Metal evidence for Tier 1 models. Do not infer Mac coverage from Linux AMD/Vulkan receipts.
+
+Preflight:
+
+```bash
+df -h . "$HOME" /tmp
+node tools/local-gpu-challengers.js --probe-local --json > benchmarks/vendors/results/local-gpu-probe-mac-$(date -u +%Y%m%dT%H%M%SZ).json
+```
+
+Stage the Tier 1 TJS anchor if a local cache root is used:
+
+```bash
+node tools/stage-tjs-model.js --model-id onnx-community/Qwen3.5-0.8B-ONNX --preset full --dtype q4f16
+```
+
+Generation anchor:
+
+```bash
+node tools/compare-engines.js \
+  --model-id qwen-3-5-0-8b-q4k-ehaf16 \
+  --workload p512-d128-t0-k1 \
+  --mode compute \
+  --warmup 1 \
+  --runs 15 \
+  --decode-profile throughput \
+  --doppler-surface browser \
+  --tjs-local-model-path "$HOME/.cache/doppler/tjs-models" \
+  --save \
+  --json \
+  --timeout-ms 1800000
+```
+
+Retrieval anchors:
+
+```bash
+node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 15 --doppler-source quickstart-registry --doppler-surface browser --cache-mode warm --load-mode http --save --json
+node tools/compare-rerankers.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --warmup 1 --runs 15 --doppler-source quickstart-registry --doppler-surface browser --cache-mode warm --load-mode http --save --json
+```
+
+Acceptance checks:
+- The saved local probe should include `localProbe.host.platform === "darwin"` and `localProbe.host.inferredPlatformTargetId === "apple-metal"`.
+- Generation receipt must show `environment.host.platform === "darwin"`, Metal/WebGPU backend evidence, `dopplerSurface === "browser"`, `fairness.claimGrade === true`, `fairness.correctnessOk === true`, and exact output match for Qwen.
+- Promote a throughput claim only when `sections.compute.throughputCadenceGate.ok === true`.
+- Embedding and reranker receipts are separate Tier 1 lanes. Report latency/throughput, semantic accuracy, and model-load winners independently; do not turn a reranker correctness win into a speed win.
+- If the browser report path fails with OPFS/report-storage/temp-space errors, classify it as infrastructure failure and rerun after clearing space; do not treat it as model correctness evidence.
+
+After saving receipts:
+
+```bash
+node tools/vendor-bench.js matrix --include-local-results
+npm run support:inventory:sync
+npm run support:competition:sync
+npm run bench:vendors:validate
+npm run claims:evidence:check
+npm run support:inventory:check
+npm run support:competition:check
+npm run check:green
+node tools/vendor-bench.js matrix --include-local-results --check
+```
+
 ## Doppler Benchmark (Primary)
 
 ```bash
@@ -161,7 +223,11 @@ node tools/vendor-bench.js gap --base doppler --target transformersjs
 - `benchmarks/runners/transformersjs-runner.html`
 - `benchmarks/vendors/registry.json`
 - `benchmarks/vendors/capabilities.json`
+- `benchmarks/vendors/compare-engines.config.json`
+- `benchmarks/vendors/local-gpu-challenger-matrix.json`
+- `benchmarks/vendors/model-competition-scoreboard.json`
 - `benchmarks/vendors/results/`
+- `tools/local-gpu-challengers.js`
 - `src/config/runtime/profiles/throughput.json`
 - `docs/developer-guides/README.md`
 
