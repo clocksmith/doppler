@@ -1,12 +1,38 @@
 #!/usr/bin/env node
 
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync } from 'node:fs';
 import fs from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { assertPackageSourceClosure } from './package-source-closure.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
+const PACKAGE_CONTENT_LIMITS = Object.freeze({
+  maxEntryCount: 1350,
+  maxPackedSize: 1_775_000,
+  maxUnpackedSize: 9_300_000,
+});
+const REQUIRED_PACKAGE_FILES = Object.freeze([
+  'README.md',
+  'CHANGELOG.md',
+  'LICENSE',
+  'NOTICE',
+  'assets/doppler.svg',
+  'assets/doppler-tier-evidence.svg',
+  'models/catalog.json',
+  'src/tooling/command-runner.html',
+  'tools/convert-safetensors-node.js',
+]);
+const FORBIDDEN_PACKAGE_PREFIXES = Object.freeze([
+  'src/debug/reference/',
+  'src/gpu/kernels/codegen/',
+]);
+const FORBIDDEN_PACKAGE_FILES = Object.freeze(['assets/doppler-runtime-map.svg']);
+const FORBIDDEN_PACKAGE_SUFFIXES = Object.freeze(['.diff', '.py']);
 
 const FILE_RULES = [
   {
@@ -233,6 +259,119 @@ async function validatePackageBinTargets(packageJson) {
   }
 }
 
+function collectPackageTargets(target, output) {
+  if (typeof target === 'string') {
+    output.add(normalizePackageTarget(target));
+    return;
+  }
+  if (Array.isArray(target)) {
+    for (const entry of target) collectPackageTargets(entry, output);
+    return;
+  }
+  if (!target || typeof target !== 'object') return;
+  for (const value of Object.values(target)) collectPackageTargets(value, output);
+}
+
+function collectRequiredPackageFiles(packageJson) {
+  const required = new Set(REQUIRED_PACKAGE_FILES);
+  collectPackageTargets(packageJson.exports, required);
+  collectPackageTargets(packageJson.bin, required);
+  if (typeof packageJson.main === 'string') required.add(normalizePackageTarget(packageJson.main));
+  if (typeof packageJson.types === 'string') required.add(normalizePackageTarget(packageJson.types));
+  return required;
+}
+
+function validatePackedClosure(packedPaths, closure) {
+  const requiredPaths = new Set([
+    ...closure.runtimeFiles,
+    ...closure.typeFiles,
+    ...closure.packageResourceFiles,
+  ]);
+  const missingPaths = [...requiredPaths].filter((requiredPath) => !packedPaths.has(requiredPath));
+  assert(
+    missingPaths.length === 0,
+    `npm package is missing source-closure files:\n${missingPaths.map((file) => `- ${file}`).join('\n')}`
+  );
+
+  const extraPaths = [...packedPaths].filter((packedPath) => {
+    if (packedPath === 'package.json') return false;
+    if (packedPath.endsWith('.js')) return !closure.runtimeFiles.has(packedPath);
+    if (packedPath.endsWith('.d.ts')) return !closure.typeFiles.has(packedPath);
+    if (
+      packedPath.endsWith('.json')
+      || packedPath.endsWith('.wgsl')
+      || packedPath.endsWith('.html')
+    ) {
+      return !closure.packageResourceFiles.has(packedPath);
+    }
+    return false;
+  });
+  assert(
+    extraPaths.length === 0,
+    `npm package contains files outside the public source closure:\n${extraPaths.map((file) => `- ${file}`).join('\n')}`
+  );
+}
+
+function inspectPackedPackage(packageJson, closure) {
+  const cacheDir = mkdtempSync(path.join(tmpdir(), 'doppler-npm-pack-cache-'));
+  try {
+    const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    const result = spawnSync(
+      npmCommand,
+      ['pack', '--dry-run', '--json', '--ignore-scripts', '--cache', cacheDir],
+      {
+        cwd: ROOT_DIR,
+        encoding: 'utf8',
+        maxBuffer: 64 * 1024 * 1024,
+      }
+    );
+    assert(
+      result.status === 0,
+      `npm pack --dry-run failed:\n${result.stderr || result.stdout || `exit code ${result.status ?? 1}`}`
+    );
+
+    let payload;
+    try {
+      payload = JSON.parse(result.stdout);
+    } catch (error) {
+      throw new Error(`npm pack --dry-run returned invalid JSON: ${error.message}`);
+    }
+    assert(Array.isArray(payload) && payload.length === 1, 'npm pack --dry-run must return one package.');
+
+    const packed = payload[0];
+    const packedPaths = new Set((packed.files || []).map((entry) => entry.path));
+    for (const requiredPath of collectRequiredPackageFiles(packageJson)) {
+      assert(packedPaths.has(requiredPath), `npm package is missing required file: ${requiredPath}`);
+    }
+    validatePackedClosure(packedPaths, closure);
+
+    const forbiddenPaths = [...packedPaths].filter((packedPath) =>
+      FORBIDDEN_PACKAGE_FILES.includes(packedPath)
+      || FORBIDDEN_PACKAGE_PREFIXES.some((prefix) => packedPath.startsWith(prefix))
+      || FORBIDDEN_PACKAGE_SUFFIXES.some((suffix) => packedPath.endsWith(suffix))
+    );
+    assert(
+      forbiddenPaths.length === 0,
+      `npm package contains repository-only files:\n${forbiddenPaths.map((file) => `- ${file}`).join('\n')}`
+    );
+    assert(
+      packed.entryCount <= PACKAGE_CONTENT_LIMITS.maxEntryCount,
+      `npm package file budget exceeded: ${packed.entryCount} > ${PACKAGE_CONTENT_LIMITS.maxEntryCount}`
+    );
+    assert(
+      packed.size <= PACKAGE_CONTENT_LIMITS.maxPackedSize,
+      `npm package packed-size budget exceeded: ${packed.size} > ${PACKAGE_CONTENT_LIMITS.maxPackedSize}`
+    );
+    assert(
+      packed.unpackedSize <= PACKAGE_CONTENT_LIMITS.maxUnpackedSize,
+      `npm package unpacked-size budget exceeded: ${packed.unpackedSize} > ${PACKAGE_CONTENT_LIMITS.maxUnpackedSize}`
+    );
+    return packed;
+  } finally {
+    rmSync(cacheDir, { recursive: true, force: true });
+  }
+}
+
 async function validatePackageExports() {
   const packageJson = JSON.parse(await readText('package.json'));
   const exportsField = packageJson.exports || {};
@@ -260,17 +399,23 @@ async function validatePackageExports() {
 
   await validatePackageExportTargets(exportsField);
   await validatePackageBinTargets(packageJson);
+  return packageJson;
 }
 
 async function main() {
-  await validatePackageExports();
+  const packageJson = await validatePackageExports();
+  const packageClosure = await assertPackageSourceClosure(packageJson);
 
   for (const rule of FILE_RULES) {
     const source = await readText(rule.file);
     validateFile(rule.file, rule, source);
   }
 
-  console.log('public boundary check passed');
+  const packed = inspectPackedPackage(packageJson, packageClosure);
+  console.log(
+    `public boundary check passed (npm package: ${packed.entryCount} files, `
+    + `${packed.size} bytes packed, ${packed.unpackedSize} bytes unpacked)`
+  );
 }
 
 try {

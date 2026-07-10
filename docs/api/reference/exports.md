@@ -282,6 +282,14 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `*`
   - `buildConservativeMultimodalGenerationOptions`
+  - `DecodingStats`
+  - `DraftModel`
+  - `MainModel`
+  - `SpeculativeConfig`
+  - `SpeculativeDecoder`
+  - `StatsWithSpeedup`
+  - `StepResult`
+  - `VerificationResult`
 
 ## `doppler-gpu/generation`
 

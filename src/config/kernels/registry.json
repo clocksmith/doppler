@@ -2467,8 +2467,11 @@
             "requiredShared": 8192
           },
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "runtime/profiles/qwen-3-reranker-0-6b-metal-stability",
+              "runtime/profiles/qwen-3-reranker-0-6b-metal-throughput"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2851,8 +2854,11 @@
           },
           "description": "Online decode kernel specialized for head_dim=256 with f32 Q, f16 KV, subgroup reductions, and fused f32 output-gate sigmoid",
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "runtime/profiles/qwen-3-5-0-8b-metal-parity",
+              "runtime/profiles/qwen-3-5-0-8b-metal-throughput"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }

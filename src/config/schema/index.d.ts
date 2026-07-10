@@ -96,6 +96,8 @@ export {
   type NormalizationSchema,
   type FFNSchema,
   type LayerPipelineOp,
+  type LayerPipelinePhase,
+  type LayerPipelineDtype,
   type LayerPipelineNormWeight,
   type LayerPipelineStepSchema,
   type LayerPipelineOverrideSchema,
@@ -902,7 +904,7 @@ export {
 // =============================================================================
 // Tuner Limits
 // =============================================================================
-export { DEFAULT_TUNER_LIMITS } from './tuner.schema.js';
+export { DEFAULT_TUNER_LIMITS } from './kernel-thresholds.schema.js';
 
 // =============================================================================
 // Self-Speculation Schema

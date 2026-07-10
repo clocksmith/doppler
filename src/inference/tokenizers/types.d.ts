@@ -4,9 +4,13 @@
  * @module inference/tokenizers/types
  */
 
-import type { SpecialTokens } from '../../types/inference.js';
-
-export type { SpecialTokens };
+export interface SpecialTokens {
+  bos?: number;
+  eos?: number;
+  pad?: number;
+  unk?: number;
+  mask?: number;
+}
 
 /** Tokenizer Configuration */
 export interface TokenizerConfig {
@@ -144,4 +148,3 @@ export interface BundledTokenizerJson {
   addEosToken?: boolean;
   addSpacePrefix?: boolean;
 }
-

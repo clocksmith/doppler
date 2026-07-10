@@ -19,6 +19,9 @@ const qwenRerankerMetalStabilityProfile = JSON.parse(
     'utf8'
   )
 );
+const kernelRegistry = JSON.parse(
+  await fs.readFile(new URL('../../src/config/kernels/registry.json', import.meta.url), 'utf8')
+);
 
 const catalogByModelId = new Map(
   (Array.isArray(catalog?.models) ? catalog.models : [])
@@ -141,5 +144,14 @@ assert.equal(qwenReranker.dopplerRuntimeProfile, 'profiles/qwen-3-reranker-0-6b-
 assert.equal(qwenReranker.dopplerVerifyRuntimeProfile, 'profiles/qwen-3-reranker-0-6b-metal-stability');
 assertQwenRerankerMetalProfile(qwenRerankerMetalThroughputProfile, 'Qwen reranker Metal throughput profile');
 assertQwenRerankerMetalProfile(qwenRerankerMetalStabilityProfile, 'Qwen reranker Metal stability profile');
+const head128Reachability = kernelRegistry.operations.attention.variants.prefill_head128_f16kv.reachability;
+assert.equal(head128Reachability.status, 'pinned');
+assert.deepEqual(
+  head128Reachability.inlineConfigs,
+  [
+    'runtime/profiles/qwen-3-reranker-0-6b-metal-stability',
+    'runtime/profiles/qwen-3-reranker-0-6b-metal-throughput',
+  ]
+);
 
 console.log('rerank-compare-contract.test: ok');
