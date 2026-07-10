@@ -3,7 +3,7 @@
 Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.
 This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.
 
-Updated at: 2026-07-09T19:35:08.657Z
+Updated at: 2026-07-10T01:44:50.047Z
 
 ## Summary
 
@@ -54,14 +54,14 @@ Updated at: 2026-07-09T19:35:08.657Z
 
 | Model | Correctness | Doppler median | TJS median | Latency leader | Doppler throughput | TJS throughput | Throughput leader | Load leader | Claim | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| google-embeddinggemma-300m-q4k-ehf16-af32 | semantic-pass | 60.04 ms | 25.42 ms | transformersjs | 16.74 emb/s | 35.13 emb/s | transformersjs | doppler | claimable | benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json |
-| qwen-3-embedding-0-6b-q4k-ehf16-af32 | semantic-pass | 43.7 ms | 51.55 ms | doppler | 22.83 emb/s | 19.38 emb/s | doppler | transformersjs | claimable | benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json |
+| google-embeddinggemma-300m-q4k-ehf16-af32 | semantic-pass | 60.62 ms | 28.16 ms | transformersjs | 16.26 emb/s | 35.2 emb/s | transformersjs | doppler | claimable | benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260706T164532.json |
+| qwen-3-embedding-0-6b-q4k-ehf16-af32 | semantic-pass | 29.4 ms | 145.89 ms | doppler | 33.88 emb/s | 6.69 emb/s | doppler | transformersjs | claimable | benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json |
 
 ## Rerank Competition Rows
 
 | Model | Correctness | Doppler median | TJS median | Latency leader | Doppler throughput | TJS throughput | Throughput leader | Load leader | Claim | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| qwen-3-reranker-0-6b-q4k-ehf16-af32 | semantic-pass | 476.6 ms | 486.16 ms | doppler | 2.14 rerank/s | 2.05 rerank/s | doppler | transformersjs | claimable | benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json |
+| qwen-3-reranker-0-6b-q4k-ehf16-af32 | semantic-pass | 277.6 ms | 469.25 ms | doppler | 3.59 rerank/s | 2.12 rerank/s | doppler | transformersjs | claimable | benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json |
 
 ## Support And Competition Gaps
 
