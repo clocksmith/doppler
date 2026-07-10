@@ -1,0 +1,18 @@
+{
+  "id": "profiles/qwen-3-5-0-8b-metal-normed-ffn-candidate",
+  "name": "qwen-3-5-0-8b-metal-normed-ffn-candidate",
+  "description": "Qwen 3.5 0.8B browser/Metal diagnostic profile copied from the Metal throughput profile with only the post-attention-norm fused gate/up prelude enabled. This is tuning evidence only unless receipts prove exact parity and faster decode.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-07-08T00:00:00Z",
+  "extends": "profiles/qwen-3-5-0-8b-metal-throughput",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "session": {
+        "usePostAttnNormFusedGateUp": true
+      }
+    }
+  }
+}

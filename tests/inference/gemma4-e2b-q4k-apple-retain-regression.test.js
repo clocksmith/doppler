@@ -18,6 +18,7 @@ const MODELS = [
         session: { retainQ4KMaterialization: true },
       },
     },
+    expectedAppleError: /platform unsupported|non-finite decode logits|non-finite logits/i,
   },
   {
     id: 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
@@ -114,5 +115,7 @@ for (const model of MODELS) {
 
   console.log(`gemma4-e2b-q4k-apple-retain-regression: ${model.id} ok (${tokensGenerated} tok, sample=${JSON.stringify(output.slice(0, 60))})`);
 }
+
+destroyDevice();
 
 console.log('gemma4-e2b-q4k-apple-retain-regression.test: ok');

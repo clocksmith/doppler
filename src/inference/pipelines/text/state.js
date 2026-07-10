@@ -75,6 +75,7 @@ export class PipelineState {
     // DopplerLoader instance
 
     this.dopplerLoader = null;
+    this.ownsDopplerLoader = false;
 
     // GPU context
 
@@ -111,6 +112,9 @@ export class PipelineState {
       decodeReadbackCleanupMs: 0,
       decodeReadbackCopyMs: 0,
       prefillRecordMs: 0,
+      prefillRecordOps: 0,
+      prefillRecordPasses: 0,
+      prefillRecordOpLabels: {},
       prefillSubmitWaitMs: 0,
       prefillProfileSteps: [],
       decodeProfileSteps: [],

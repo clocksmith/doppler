@@ -9,7 +9,7 @@
 
 import type { CommandRecorder, ProfileTimings } from '../../../gpu/command-recorder.js';
 import type { PipelineState } from './state.js';
-import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerContext } from './types.js';
+import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerContext, WorkloadPhaseTiming } from './types.js';
 import type { LogitsConfig, LogitsWeights } from './logits/index.js';
 import type { WeightBufferConfig } from './weights.js';
 import type { ChatMessage } from './chat-format.js';
@@ -81,6 +81,7 @@ export declare class PipelineGenerator {
     tokenIds: number[];
     logits: Float32Array;
     logitsByTokenId: Record<number, number>;
+    phase?: WorkloadPhaseTiming | null;
   }>;
   prefillWithTokenLogitsFromKV(prefix: KVCacheSnapshot, prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
     seqLen: number;
@@ -89,6 +90,7 @@ export declare class PipelineGenerator {
     tokenIds: number[];
     logits: Float32Array;
     logitsByTokenId: Record<number, number>;
+    phase?: WorkloadPhaseTiming | null;
   }>;
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
   advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;

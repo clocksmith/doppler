@@ -73,6 +73,7 @@ export interface RunLinearAttentionLayerOptions {
     weight: GPUBuffer | Float32Array | ArrayBuffer,
     label: string
   ) => GPUBuffer;
+  precomputedInputNorm?: Tensor | null;
   debugProbes?: ProbeConfigSchema[] | null;
   recorder?: CommandRecorder | null;
 }

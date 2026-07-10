@@ -89,6 +89,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // memory-conservative; profiles with known-safe memory can raise it.
       prefillChunkLayers: 4,
       prefillTokenChunkSize: null,
+      skipEmbeddingKVCacheWrites: false,
       // Opt into the flash-attention prefill kernel (head_dim=256, f16 KV,
       // contiguous layout). Two-pass dispatch raises RDNA3 workgroup
       // occupancy by KV-axis splitting. The kernel itself enforces head_dim
@@ -101,6 +102,10 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // activation + no LoRA on gate/up. Default false until parity is
       // validated on target hardware.
       useFusedGateUpGelu: false,
+      // Opt into large-batch f16-weight/f32-activation fused gate/up prefill.
+      // This keeps the AF32 lane while replacing split gate/up/activation
+      // dispatches for explicitly profiled browser/Metal rerank profiles.
+      useLargeBatchF16F32FusedGateUp: false,
       // Opt into the register-tiled Q4_K prefill matmul kernel (64x64 outputs
       // per workgroup via 4x4 register tile per thread). Amortizes Q4_K
       // dequantization across 16x the outputs of q4_fused_batched_f16a,
@@ -139,6 +144,29 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // its normal observation point. Default false until correctness + perf
       // validated.
       usePostFfnNextInputRMSNormPairFusion: false,
+      // Opt into a decode-only post-attention norm stats prelude consumed by
+      // Q4_K fused gate/up. It materializes the pre-norm residual sum and one
+      // inverse-RMS scalar instead of a full normalized FFN input tensor.
+      // Default false until correctness + perf validated on target hardware.
+      usePostAttnNormFusedGateUp: false,
+      // Optional Q4_K fused FFN pipeline constants keyed by phase. Profiles can
+      // tune the gate/up workgroup shape per platform without changing the
+      // global kernel default or manifest math contract.
+      fusedFfnQ4K: null,
+      lmHeadArgmaxQ4K: null,
+      attentionDecodeOnline: null,
+      // Opt into a decode-only linear-attention A+B input projection fusion.
+      // Requires dense f16 row weights for linear_attn.in_proj_a/b and falls
+      // back to separate projections when the weight contract is not met.
+      useLinearAttentionABProjectionFusion: false,
+      // Opt into a decode-only linear-attention QKV+Z projection fusion.
+      // Requires row-wise Q4_K linear_attn.in_proj_qkv/z weights with matching
+      // input width and falls back to separate projections otherwise.
+      useLinearAttentionQKVZProjectionFusion: false,
+      // Opt into a decode-only linear-attention core fusion. Combines the
+      // conv1d state update and recurrent scan when qRep=1 and head dims fit
+      // one workgroup, eliminating the conv_out intermediate dispatch.
+      useLinearAttentionFusedDecodeCore: false,
       // Opt into the single-pass flash attention prefill kernel adapted from
       // ORT's flash_attention.wgsl.template. 64 threads = 64 queries per WG;
       // private Q/O tiles, shared K/V tiles, online softmax, no reduce pass.
@@ -279,12 +307,19 @@ function normalizeSessionContracts(inference, base, overrides) {
   }
 
   const overrideSessionCompute = overrideSession.compute;
-  if (isPlainObject(overrideSessionCompute) && hasOwn(overrideSessionCompute, 'kernelProfiles')) {
+  if (isPlainObject(overrideSessionCompute)) {
     const compute = isPlainObject(inference.session.compute) ? inference.session.compute : {};
-    inference.session.compute = {
-      ...compute,
-      kernelProfiles: overrideSessionCompute.kernelProfiles,
-    };
+    const nextCompute = { ...compute };
+    if (hasOwn(overrideSessionCompute, 'defaults')) {
+      nextCompute.defaults = replaceSubtree(
+        overrideSessionCompute.defaults,
+        baseSession.compute?.defaults
+      );
+    }
+    if (hasOwn(overrideSessionCompute, 'kernelProfiles')) {
+      nextCompute.kernelProfiles = overrideSessionCompute.kernelProfiles;
+    }
+    inference.session.compute = nextCompute;
   }
 }
 

@@ -1,0 +1,85 @@
+{
+  "id": "profiles/qwen-3-5-0-8b-metal-parity",
+  "name": "qwen-3-5-0-8b-metal-parity",
+  "description": "Qwen 3.5 0.8B browser/Metal parity profile. Preserves the release 4x4 decode cadence while enabling exact-safe decode fusions and overlapped readback on Apple Metal.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-07-08T00:00:00Z",
+  "extends": "profiles/throughput",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "attn_decode_head256",
+            "kernel": {
+              "kernel": "attention_decode_online_head256_f16kv_output_gate.wgsl",
+              "entry": "main",
+              "digest": "sha256:275a1f7cfdd40ab95c467bb4744a1509dd6eadb39ec8fdd0d1e1ba80eb34f9c5",
+              "precision": {
+                "kvDtype": "f16"
+              }
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "decode",
+            "op": "attention",
+            "kernelKey": "attn_decode_head256"
+          }
+        ]
+      },
+      "batching": {
+        "batchSize": 4,
+        "readbackInterval": 4,
+        "stopCheckMode": "batch",
+        "readbackMode": "overlapped",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 2
+      },
+      "session": {
+        "usePostFfnNextInputRMSNormPairFusion": true,
+        "useGreedyLmHeadArgmaxFusion": true,
+        "lmHeadArgmaxQ4K": {
+          "useFullBlockFastPath": true,
+          "colsPerWorkgroup": 128,
+          "threadsPerCol": 2
+        },
+        "attentionDecodeOnline": {
+          "useDirectContiguousKVLayout": true,
+          "useOutputGateFusion": true
+        },
+        "useFusedQKVSplitQKNormRoPE": true,
+        "useLinearAttentionABProjectionFusion": true,
+        "useLinearAttentionQKVZProjectionFusion": false,
+        "useLinearAttentionFusedDecodeCore": true,
+        "decodeLoop": {
+          "batchSize": 4,
+          "stopCheckMode": "batch",
+          "readbackInterval": 4,
+          "readbackMode": "overlapped",
+          "submitLatencyThresholdMs": null,
+          "maxBatchDecodeTokens": null,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 2,
+          "disableCommandBatching": false
+        }
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "manifest"
+        ],
+        "allowSources": [
+          "manifest"
+        ],
+        "onIncompatible": "remap"
+      }
+    }
+  }
+}

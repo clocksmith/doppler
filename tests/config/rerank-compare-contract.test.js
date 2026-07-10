@@ -7,12 +7,75 @@ const config = JSON.parse(
 const catalog = JSON.parse(
   await fs.readFile(new URL('../../models/catalog.json', import.meta.url), 'utf8')
 );
+const qwenRerankerMetalThroughputProfile = JSON.parse(
+  await fs.readFile(
+    new URL('../../src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-throughput.json', import.meta.url),
+    'utf8'
+  )
+);
+const qwenRerankerMetalStabilityProfile = JSON.parse(
+  await fs.readFile(
+    new URL('../../src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-stability.json', import.meta.url),
+    'utf8'
+  )
+);
 
 const catalogByModelId = new Map(
   (Array.isArray(catalog?.models) ? catalog.models : [])
     .filter((entry) => typeof entry?.modelId === 'string' && entry.modelId.length > 0)
     .map((entry) => [entry.modelId, entry])
 );
+
+function assertQwenRerankerMetalProfile(profile, label) {
+  const inference = profile.runtime.inference;
+  const session = inference.session;
+  const patch = inference.executionPatch;
+  assert.equal(
+    inference.compute,
+    undefined,
+    `${label} must not change manifest compute precision`
+  );
+  assert.equal(
+    session.useLargeBatchF16F32FusedGateUp,
+    undefined,
+    `${label} must not enable the measured-losing large-batch f16/f32 fused gate/up path`
+  );
+  assert.equal(
+    session.prefillChunkLayers,
+    28,
+    `${label} must record the measured one-recorder prefill chunk policy`
+  );
+  assert.equal(
+    session.retainQ4KMaterialization,
+    true,
+    `${label} must retain Q4K materialization for the measured Metal rerank path`
+  );
+  assert.equal(
+    session.useWideTileQ4KPrefill,
+    true,
+    `${label} must use the measured wide-tile Q4K prefill path`
+  );
+  assert.equal(
+    patch?.addKernels?.[0]?.key,
+    'attn_head128',
+    `${label} must add the fixed head_dim=128 prefill attention kernel`
+  );
+  assert.equal(
+    patch.addKernels[0].kernel?.kernel,
+    'attention_head128_f16kv.wgsl',
+    `${label} must pin the fixed head_dim=128 f16-KV WGSL kernel`
+  );
+  assert.equal(
+    patch.addKernels[0].kernel?.digest,
+    'sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b',
+    `${label} must pin the measured head128 kernel digest`
+  );
+  assert.deepEqual(
+    patch?.set,
+    [{ section: 'prefill', op: 'attention', kernelKey: 'attn_head128' }],
+    `${label} must route prefill attention through the head128 kernel`
+  );
+}
 
 assert.equal(config.schemaVersion, 1);
 assert.ok(Array.isArray(config.modelProfiles) && config.modelProfiles.length > 0);
@@ -74,5 +137,9 @@ assert.ok(qwenReranker, 'qwen-3-reranker-0-6b-q4k-ehf16-af32 must have a rerank 
 assert.equal(qwenReranker.releaseClaimable, true);
 assert.equal(qwenReranker.defaultDopplerSource, 'quickstart-registry');
 assert.equal(qwenReranker.defaultTjsDtype, 'q4');
+assert.equal(qwenReranker.dopplerRuntimeProfile, 'profiles/qwen-3-reranker-0-6b-metal-throughput');
+assert.equal(qwenReranker.dopplerVerifyRuntimeProfile, 'profiles/qwen-3-reranker-0-6b-metal-stability');
+assertQwenRerankerMetalProfile(qwenRerankerMetalThroughputProfile, 'Qwen reranker Metal throughput profile');
+assertQwenRerankerMetalProfile(qwenRerankerMetalStabilityProfile, 'Qwen reranker Metal stability profile');
 
 console.log('rerank-compare-contract.test: ok');

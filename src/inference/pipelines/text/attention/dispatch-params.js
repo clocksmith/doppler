@@ -26,7 +26,7 @@ export function isSlidingLayerType(layerType) {
 // KV Cache State Resolution
 // ============================================================================
 
-export function resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSeqLen, numTokens) {
+export function resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSeqLen, numTokens, options = {}) {
   const kvState = {
     cachedK: undefined,
     cachedV: undefined,
@@ -61,7 +61,10 @@ export function resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSe
     totalSeqLen: currentSeqLen + numTokens,
   };
 
-  kvState.hasCache = !!state.kvCache?.hasGPUCache?.();
+  kvState.forceCurrentTensors = options.forceCurrentTensors === true;
+  kvState.hasCache = kvState.forceCurrentTensors
+    ? false
+    : !!state.kvCache?.hasGPUCache?.();
 
   if (!kvState.hasCache) {
     kvState.cachedK = kTensor.buffer;
@@ -318,7 +321,9 @@ export function buildAttentionDispatchParams(config, state, kTensor, vTensor, kv
   const {
     numTokens, slidingWindow, layerType, headDim, queryPreAttnScalar, numKVHeads,
   } = config;
-  const resolvedKvCacheDtype = config.kvCacheDtype ?? state.kvCache?.kvDtype ?? null;
+  const resolvedKvCacheDtype = kvState.forceCurrentTensors === true
+    ? null
+    : (config.kvCacheDtype ?? state.kvCache?.kvDtype ?? null);
 
   // Tiered prefill fallback: tiered layout does not support prefill (numTokens > 1)
   let prefillFallbackNeedsCast = false;

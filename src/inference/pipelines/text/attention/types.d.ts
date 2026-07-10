@@ -81,6 +81,7 @@ export interface AttentionState {
   kvCache: KVCacheInterface;
   linearRuntime?: LinearAttentionRuntime | null;
   executionPolicies?: ExecutionV1PoliciesSchema | null;
+  skipKVCacheWrites?: boolean;
 }
 
 /**

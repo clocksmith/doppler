@@ -297,8 +297,34 @@ const greedyLmHeadFusionConfig = createDopplerConfig({
         useWideTileQ4KDecode: true,
         useSandwichRMSNormPairFusion: true,
         usePostFfnNextInputRMSNormPairFusion: true,
+        usePostAttnNormFusedGateUp: true,
+        fusedFfnQ4K: {
+          decode: {
+            pipelineConstants: {
+              COLS_PER_WG: 64,
+              THREADS_PER_COL: 4,
+            },
+          },
+        },
+        lmHeadArgmaxQ4K: {
+          useFullBlockFastPath: true,
+          colsPerWorkgroup: 128,
+          threadsPerCol: 2,
+        },
+        attentionDecodeOnline: {
+          workgroupSize: 128,
+          useDirectContiguousKVLayout: true,
+          useOutputGateFusion: true,
+        },
+        useLinearAttentionABProjectionFusion: true,
+        useLinearAttentionQKVZProjectionFusion: true,
+        useLinearAttentionFusedDecodeCore: true,
+        useWideTileResidualFusion: true,
+        useFusedRmsnormWideTile: true,
         useFusedQKVSplitQKNorm: true,
         useFusedQKVSplitQKNormRoPE: true,
+        useLargeBatchF16F32FusedGateUp: true,
+        skipEmbeddingKVCacheWrites: true,
       },
     },
   },
@@ -327,6 +353,72 @@ if (createDopplerConfig().runtime.inference.session.usePostFfnNextInputRMSNormPa
 if (greedyLmHeadFusionConfig.runtime.inference.session.usePostFfnNextInputRMSNormPairFusion !== true) {
   throw new Error('runtime session override must enable usePostFfnNextInputRMSNormPairFusion');
 }
+if (createDopplerConfig().runtime.inference.session.usePostAttnNormFusedGateUp !== false) {
+  throw new Error('usePostAttnNormFusedGateUp must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.usePostAttnNormFusedGateUp !== true) {
+  throw new Error('runtime session override must enable usePostAttnNormFusedGateUp');
+}
+if (createDopplerConfig().runtime.inference.session.fusedFfnQ4K !== null) {
+  throw new Error('fusedFfnQ4K must default null');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.fusedFfnQ4K.decode.pipelineConstants.COLS_PER_WG !== 64) {
+  throw new Error('runtime session override must enable fusedFfnQ4K decode constants');
+}
+if (createDopplerConfig().runtime.inference.session.lmHeadArgmaxQ4K !== null) {
+  throw new Error('lmHeadArgmaxQ4K must default null');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.lmHeadArgmaxQ4K.useFullBlockFastPath !== true) {
+  throw new Error('runtime session override must enable lmHeadArgmaxQ4K full-block fast path');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.lmHeadArgmaxQ4K.colsPerWorkgroup !== 128) {
+  throw new Error('runtime session override must enable lmHeadArgmaxQ4K column grouping');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.lmHeadArgmaxQ4K.threadsPerCol !== 2) {
+  throw new Error('runtime session override must enable lmHeadArgmaxQ4K threads-per-column');
+}
+if (createDopplerConfig().runtime.inference.session.attentionDecodeOnline !== null) {
+  throw new Error('attentionDecodeOnline must default null');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.attentionDecodeOnline.workgroupSize !== 128) {
+  throw new Error('runtime session override must enable attentionDecodeOnline workgroup sizing');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.attentionDecodeOnline.useDirectContiguousKVLayout !== true) {
+  throw new Error('runtime session override must enable attentionDecodeOnline direct contiguous KV layout');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.attentionDecodeOnline.useOutputGateFusion !== true) {
+  throw new Error('runtime session override must enable attentionDecodeOnline output gate fusion');
+}
+if (createDopplerConfig().runtime.inference.session.useLinearAttentionABProjectionFusion !== false) {
+  throw new Error('useLinearAttentionABProjectionFusion must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useLinearAttentionABProjectionFusion !== true) {
+  throw new Error('runtime session override must enable useLinearAttentionABProjectionFusion');
+}
+if (createDopplerConfig().runtime.inference.session.useLinearAttentionQKVZProjectionFusion !== false) {
+  throw new Error('useLinearAttentionQKVZProjectionFusion must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useLinearAttentionQKVZProjectionFusion !== true) {
+  throw new Error('runtime session override must enable useLinearAttentionQKVZProjectionFusion');
+}
+if (createDopplerConfig().runtime.inference.session.useLinearAttentionFusedDecodeCore !== false) {
+  throw new Error('useLinearAttentionFusedDecodeCore must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useLinearAttentionFusedDecodeCore !== true) {
+  throw new Error('runtime session override must enable useLinearAttentionFusedDecodeCore');
+}
+if (createDopplerConfig().runtime.inference.session.useWideTileResidualFusion !== false) {
+  throw new Error('useWideTileResidualFusion must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useWideTileResidualFusion !== true) {
+  throw new Error('runtime session override must enable useWideTileResidualFusion');
+}
+if (createDopplerConfig().runtime.inference.session.useFusedRmsnormWideTile !== false) {
+  throw new Error('useFusedRmsnormWideTile must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useFusedRmsnormWideTile !== true) {
+  throw new Error('runtime session override must enable useFusedRmsnormWideTile');
+}
 if (createDopplerConfig().runtime.inference.session.useFusedQKVSplitQKNorm !== false) {
   throw new Error('useFusedQKVSplitQKNorm must default false');
 }
@@ -338,6 +430,18 @@ if (createDopplerConfig().runtime.inference.session.useFusedQKVSplitQKNormRoPE !
 }
 if (greedyLmHeadFusionConfig.runtime.inference.session.useFusedQKVSplitQKNormRoPE !== true) {
   throw new Error('runtime session override must enable useFusedQKVSplitQKNormRoPE');
+}
+if (createDopplerConfig().runtime.inference.session.useLargeBatchF16F32FusedGateUp !== false) {
+  throw new Error('useLargeBatchF16F32FusedGateUp must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.useLargeBatchF16F32FusedGateUp !== true) {
+  throw new Error('runtime session override must enable useLargeBatchF16F32FusedGateUp');
+}
+if (createDopplerConfig().runtime.inference.session.skipEmbeddingKVCacheWrites !== false) {
+  throw new Error('skipEmbeddingKVCacheWrites must default false');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.skipEmbeddingKVCacheWrites !== true) {
+  throw new Error('runtime session override must enable skipEmbeddingKVCacheWrites');
 }
 const patchedRuntimeConfig = applyExecutionV1RuntimeConfig({
   runtimeConfig: createDopplerConfig({

@@ -179,8 +179,12 @@ export interface ExecutionV1SessionSchema {
   prefillChunkSubmitMode: 'sync' | 'async';
   /** Nullable token count for streaming prompt prefill before final logits. */
   prefillTokenChunkSize: number | null;
+  /** Skip KV-cache writes for embedding-only hidden-state prefill routes. */
+  skipEmbeddingKVCacheWrites: boolean;
   /** Opt into flash-attention prefill kernel. Requires head_dim=256, f16 KV, contiguous layout. */
   useFlashPrefillAttention: boolean;
+  /** Opt into large-batch f16-weight/f32-activation fused gate/up prefill. */
+  useLargeBatchF16F32FusedGateUp: boolean;
   /** Opt into WideTile Q4_K prefill matmul. Requires f32 activations + Q4_K weights + shader-f16 + M>=TILE_M. */
   useWideTileQ4KPrefill: boolean;
   /** Opt into WideTile Q4_K decode matmul. Requires f32 activations + Q4_K weights + shader-f16 + M=1. */
@@ -189,6 +193,30 @@ export interface ExecutionV1SessionSchema {
   useSandwichRMSNormPairFusion: boolean;
   /** Opt into post-FFN plus next-layer input RMSNorm decode fusion. Requires f32 activations + M=1. */
   usePostFfnNextInputRMSNormPairFusion: boolean;
+  /** Opt into post-attention RMSNorm stats consumed by Q4_K fused gate/up. */
+  usePostAttnNormFusedGateUp: boolean;
+  /** Optional Q4_K LM-head argmax tuning policy. */
+  lmHeadArgmaxQ4K: {
+    useFullBlockFastPath?: boolean;
+    colsPerWorkgroup?: number;
+    threadsPerCol?: number;
+  } | null;
+  /** Optional online decode attention pipeline constants. */
+  attentionDecodeOnline: {
+    workgroupSize?: 128 | 256;
+    useDirectContiguousKVLayout?: boolean;
+    useOutputGateFusion?: boolean;
+  } | null;
+  /** Opt into linear-attention A+B projection decode fusion. Requires dense f16 row A/B weights + M=1. */
+  useLinearAttentionABProjectionFusion: boolean;
+  /** Opt into linear-attention QKV+Z projection decode fusion. Requires row-wise Q4_K QKV/Z weights + M=1. */
+  useLinearAttentionQKVZProjectionFusion: boolean;
+  /** Opt into linear-attention decode core fusion. Requires qRep=1 and head dims fitting one workgroup. */
+  useLinearAttentionFusedDecodeCore: boolean;
+  /** Opt into WideTile Q4_K matmul + residual epilogue fusion. */
+  useWideTileResidualFusion: boolean;
+  /** Opt into RMSNorm + WideTile Q4_K matmul prologue fusion. */
+  useFusedRmsnormWideTile: boolean;
   /** Opt into fused packed-QKV split plus weighted Q/K RMSNorm. Requires f32 QKV output and weighted Q/K norm. */
   useFusedQKVSplitQKNorm: boolean;
   /** Opt into fused packed-QKV split plus weighted Q/K RMSNorm and full-head non-interleaved RoPE. */

@@ -482,6 +482,18 @@ export function resolveMaxBatchDecodeTokens(config) {
 }
 
 export function resolvePrefillRecorderChunkLayers(config) {
+  if (config.configuredPrefillChunkLayers !== undefined) {
+    const configured = config.configuredPrefillChunkLayers;
+    if (configured === null) {
+      throw new Error('[ExecutionPlan] configured prefillChunkLayers cannot be null.');
+    }
+    if (!Number.isInteger(configured) || configured < 1) {
+      throw new Error(
+        `[ExecutionPlan] configured prefillChunkLayers must be a positive integer; got ${JSON.stringify(configured)}.`
+      );
+    }
+    return configured;
+  }
   const value = selectRuleValue('inference', 'execution', 'prefillRecorderChunkLayers', {
     hasGpuSplitPerLayerInputs: config.hasGpuSplitPerLayerInputs === true,
     numTokens: config.numTokens,

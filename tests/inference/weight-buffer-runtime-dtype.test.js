@@ -19,7 +19,8 @@ globalThis.GPUBuffer = class GPUBuffer {
 };
 
 const { setDevice } = await import('../../src/gpu/device.js');
-const { getWeightDtype, tagBufferDtype } = await import('../../src/gpu/weight-buffer.js');
+const { Q4K_BLOCK_BYTES, q4kBlockCount } = await import('../../src/config/schema/index.js');
+const { createWeightBuffer, getWeightDtype, tagBufferDtype } = await import('../../src/gpu/weight-buffer.js');
 const { fuseQKVWeights } = await import('../../src/inference/pipelines/text/init.js');
 
 function createFakeDevice() {
@@ -92,12 +93,28 @@ try {
   assert.deepEqual(Array.from(fused.shape), [12, 4]);
   assert.equal(fused.buffer.size, 12 * 4 * 2);
 
-  const qProjQ4 = new GPUBuffer({ size: 80, usage: GPUBufferUsage.STORAGE, label: 'q_proj_q4_dense' });
-  const kProjQ4 = new GPUBuffer({ size: 80, usage: GPUBufferUsage.STORAGE, label: 'k_proj_q4_dense' });
-  const vProjQ4 = new GPUBuffer({ size: 80, usage: GPUBufferUsage.STORAGE, label: 'v_proj_q4_dense' });
-  tagBufferDtype(qProjQ4, 'f16');
-  tagBufferDtype(kProjQ4, 'f16');
-  tagBufferDtype(vProjQ4, 'f16');
+  const q4RowBytes = q4kBlockCount(4) * Q4K_BLOCK_BYTES;
+  const qProjQ4 = createWeightBuffer(
+    new GPUBuffer({ size: 4 * q4RowBytes, usage: GPUBufferUsage.STORAGE, label: 'q_proj_q4' }),
+    'q4k',
+    'row',
+    [4, 4],
+    'q_proj_q4'
+  );
+  const kProjQ4 = createWeightBuffer(
+    new GPUBuffer({ size: 4 * q4RowBytes, usage: GPUBufferUsage.STORAGE, label: 'k_proj_q4' }),
+    'q4k',
+    'row',
+    [4, 4],
+    'k_proj_q4'
+  );
+  const vProjQ4 = createWeightBuffer(
+    new GPUBuffer({ size: 4 * q4RowBytes, usage: GPUBufferUsage.STORAGE, label: 'v_proj_q4' }),
+    'q4k',
+    'row',
+    [4, 4],
+    'v_proj_q4'
+  );
 
   const q4KernelPath = {
     id: 'test_q4_prefill',
@@ -134,8 +151,58 @@ try {
   assert.equal(
     q4LayerWeights.get('layer_0').qkvProj,
     null,
-    'QKV fusion must skip when the active kernel path requires q4k weights for qkv_proj'
+    'Q4K QKV fusion must require explicit opt-in'
   );
+
+  const q4AllowedLayerWeights = new Map();
+  q4AllowedLayerWeights.set('layer_0', {
+    qProj: qProjQ4,
+    kProj: kProjQ4,
+    vProj: vProjQ4,
+    qkvProj: null,
+  });
+
+  fuseQKVWeights(q4AllowedLayerWeights, {
+    numLayers: 1,
+    numHeads: 1,
+    numKVHeads: 1,
+    headDim: 4,
+    hiddenSize: 4,
+  }, q4KernelPath, { allowQ4K: true });
+
+  const q4Fused = q4AllowedLayerWeights.get('layer_0').qkvProj;
+  assert.ok(q4Fused, 'expected explicit Q4K fused QKV weight');
+  assert.equal(q4Fused.dtype, 'q4k');
+  assert.equal(q4Fused.layout, 'row');
+  assert.deepEqual(Array.from(q4Fused.shape), [12, 4]);
+  assert.equal(q4Fused.buffer.size, 12 * q4RowBytes);
+
+  const gatedLayerWeights = new Map();
+  const gatedQProj = new GPUBuffer({ size: 8 * 4 * 2, usage: GPUBufferUsage.STORAGE, label: 'q_gate_proj_raw' });
+  tagBufferDtype(gatedQProj, 'f16');
+  gatedLayerWeights.set('layer_0', {
+    qProj: gatedQProj,
+    kProj,
+    vProj,
+    qkvProj: null,
+  });
+  fuseQKVWeights(gatedLayerWeights, {
+    numLayers: 1,
+    numHeads: 1,
+    numKVHeads: 1,
+    headDim: 4,
+    hiddenSize: 4,
+    attentionOutputGate: true,
+  }, null, { allowQ4K: true });
+  const gatedFused = gatedLayerWeights.get('layer_0').qkvProj;
+  const gatedGate = gatedLayerWeights.get('layer_0').qGateProj;
+  assert.ok(gatedFused, 'expected gated QKV fusion to preserve Q projection rows');
+  assert.ok(gatedGate, 'expected gated QKV fusion to emit a separate gate projection');
+  assert.equal(gatedFused.dtype, 'f16');
+  assert.equal(gatedGate.dtype, 'f16');
+  assert.deepEqual(Array.from(gatedFused.shape), [12, 4]);
+  assert.deepEqual(Array.from(gatedGate.shape), [4, 4]);
+  assert.deepEqual(Array.from(gatedLayerWeights.get('layer_0').qkvSizes), [4, 4, 4]);
 } finally {
   setDevice(null, { platformConfig: null });
 }

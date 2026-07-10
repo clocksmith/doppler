@@ -1,0 +1,41 @@
+{
+  "id": "profiles/qwen-3-reranker-0-6b-metal-stability",
+  "name": "qwen-3-reranker-0-6b-metal-stability",
+  "description": "Qwen 3 Reranker 0.6B browser/Metal validation profile preserving manifest compute precision while exercising the fixed head_dim=128 f16-KV prefill attention path.",
+  "intent": "verify",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-07-09T00:00:00Z",
+  "extends": "profiles/rerank-stability",
+  "runtime": {
+    "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "attn_head128",
+            "kernel": {
+              "kernel": "attention_head128_f16kv.wgsl",
+              "entry": "main",
+              "digest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
+              "precision": {
+                "kvDtype": "f16"
+              }
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "prefill",
+            "op": "attention",
+            "kernelKey": "attn_head128"
+          }
+        ]
+      },
+      "session": {
+        "prefillChunkLayers": 28,
+        "retainQ4KMaterialization": true,
+        "useWideTileQ4KPrefill": true
+      }
+    }
+  }
+}

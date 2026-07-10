@@ -62,6 +62,7 @@ import {
   isAttentionKvDtypeExplicit,
 } from './precision-contract.js';
 import { canUseRmsNormWideTileProjectionFusion } from './rmsnorm-fusion-gate.js';
+import { canUseAttentionOutputGateFusion } from './output-gate-fusion.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
@@ -390,20 +391,23 @@ export async function recordLayerAttentionGPU(
   const runtimeSession = getRuntimeConfig()?.inference?.session;
   const qkNormFusionFlag = runtimeSession?.useFusedQKVSplitQKNorm === true;
   const qkNormRoPEFusionFlag = runtimeSession?.useFusedQKVSplitQKNormRoPE === true;
-  const directF16KVCacheWrite = resolveDirectF16KVCacheWrite({
-    state,
-    layerIdx,
-    currentSeqLen,
-    numTokens,
-    numKVHeads,
-    headDim,
-    reusesSharedKV,
-    storeSharedKV,
-    diffusionGemmaDecoder,
-    valueNorm: config.valueNorm === true,
-    diagnosticsEnabled: qkNormRoPEDiagnostics,
-    disableRoPE,
-  });
+  const skipKVCacheWrites = state.skipKVCacheWrites === true;
+  const directF16KVCacheWrite = skipKVCacheWrites
+    ? null
+    : resolveDirectF16KVCacheWrite({
+      state,
+      layerIdx,
+      currentSeqLen,
+      numTokens,
+      numKVHeads,
+      headDim,
+      reusesSharedKV,
+      storeSharedKV,
+      diffusionGemmaDecoder,
+      valueNorm: config.valueNorm === true,
+      diagnosticsEnabled: qkNormRoPEDiagnostics,
+      disableRoPE,
+    });
   let kvCacheWriteFused = false;
   ({ qTensor, qGateTensor, kTensor, vTensor, usedFusedQKV, valueAliasesKey, qkNormApplied, ropeApplied, kvCacheWriteFused } = await projectAttentionQKV({
     recorder,
@@ -649,7 +653,7 @@ export async function recordLayerAttentionGPU(
   }
 
   // 4. Update KV cache (cache stores raw GPUBuffers for memory efficiency)
-  if (!diffusionGemmaDecoder && state.kvCache?.hasGPUCache?.()) {
+  if (!skipKVCacheWrites && !diffusionGemmaDecoder && state.kvCache?.hasGPUCache?.()) {
     if (kvCacheWriteFused) {
       state.kvCache.recordF16UpdateAlreadyWrittenFromGPU(layerIdx, currentSeqLen, numTokens, tokenIds);
     } else if (state.kvCache.kvDtype === 'f16') {
@@ -741,7 +745,9 @@ export async function recordLayerAttentionGPU(
     }
     decoderKVState = kvState;
   } else {
-    kvState = resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSeqLen, numTokens);
+    kvState = resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSeqLen, numTokens, {
+      forceCurrentTensors: skipKVCacheWrites,
+    });
   }
   const dispatchConfig = {
     layerIdx, numTokens, isPrefill, numHeads, numKVHeads, headDim, hiddenSize,
@@ -758,6 +764,7 @@ export async function recordLayerAttentionGPU(
     cachedKDtype, cachedVDtype, cachedKTensor, cachedVTensor,
     prefillFallbackNeedsCast, causalForAttention,
   } = dispatchParams;
+  const attentionKernelPath = skipKVCacheWrites ? null : kernelPath;
 
   // 5. Attention
 
@@ -767,6 +774,7 @@ export async function recordLayerAttentionGPU(
     usedFusedQKV, qTensor, kTensor, vTensor,
   ));
   const mergedSessionRec = getRuntimeConfig()?.inference?.session;
+  let attentionOutputGateFused = false;
 
   const attentionKernelRunners = {
     bdpa: async () => {
@@ -923,7 +931,18 @@ export async function recordLayerAttentionGPU(
       // path in ./run.js.
       const useFlashPrefillRec = !diffusionGemmaDecoder && mergedSessionRec?.useFlashPrefillAttention === true && numTokens > 1;
       const useOrtFlashPrefillRec = !diffusionGemmaDecoder && mergedSessionRec?.useOrtFlashPrefillAttention === true && numTokens > 1;
-      return recordAttention(recorder, qTensor, kForAttn, vForAttn, null, numHeads, headDim, {
+      const useOutputGateFusion = canUseAttentionOutputGateFusion({
+        session: mergedSessionRec,
+        qGateTensor,
+        numTokens,
+        numHeads,
+        headDim,
+        cachedKDtype,
+        cachedVDtype,
+        kernelPath: attentionKernelPath,
+        diffusionGemmaDecoder,
+      });
+      const result = await recordAttention(recorder, qTensor, kForAttn, vForAttn, null, numHeads, headDim, {
         seqLen: numTokens,
         kvLen: kvState.kvLenForAttention,
         numKVHeads,
@@ -939,10 +958,13 @@ export async function recordLayerAttentionGPU(
         kvLayout: kvState.kvLayout,
         kvPageTable: kvState.kvPageTable,
         kvPageSize: kvState.kvPageSize,
-        kernelPath,
-        useFlashPrefill: useFlashPrefillRec,
-        useOrtFlashPrefill: useOrtFlashPrefillRec,
+        kernelPath: attentionKernelPath,
+        useFlashPrefill: skipKVCacheWrites ? false : useFlashPrefillRec,
+        useOrtFlashPrefill: skipKVCacheWrites ? false : useOrtFlashPrefillRec,
+        outputGate: useOutputGateFusion ? qGateTensor : null,
       });
+      attentionOutputGateFused = result?.outputGateFused === true;
+      return result;
     },
   };
   const runAttentionKernel = attentionKernelRunners[attentionKernelVariant];
@@ -980,13 +1002,14 @@ export async function recordLayerAttentionGPU(
   }
 
   attnForProjection = attnOutput;
-  if (qGateTensor) {
+  if (qGateTensor && !attentionOutputGateFused) {
     // Mirror run.js gate dispatch. Qwen3_5/Qwen 3.6 full attention applies
     // sigmoid(gate) even when the HF config surfaces `output_gate_type=swish`.
     const gateActivation = 'sigmoid';
     attnForProjection = await recordSiLU(recorder, attnOutput, {
       size: numTokens * numHeads * headDim,
       gate: qGateTensor,
+      useVec4: (numTokens * numHeads * headDim) % 4 === 0,
       gateActivation,
       inputActivation: 'identity',
       swigluLimit: null,

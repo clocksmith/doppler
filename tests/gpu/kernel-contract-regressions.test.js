@@ -35,6 +35,7 @@ const { runSiLU } = await import('../../src/gpu/kernels/silu.js');
 const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
 const { runScale, selectScaleKernel } = await import('../../src/gpu/kernels/scale.js');
 const { destroyBufferPool, getBufferPool, releaseBuffer } = await import('../../src/memory/buffer-pool.js');
+const { clearPipelineCaches } = await import('../../src/gpu/kernels/pipeline-cache.js');
 
 class FakeBuffer {
   constructor({ size, usage }) {
@@ -51,12 +52,14 @@ class FakeBuffer {
 const ORIGINAL_GPU_BUFFER = globalThis.GPUBuffer;
 globalThis.GPUBuffer = FakeBuffer;
 
-function createFakeDevice({ createBindGroupThrowAt = null, features = [] } = {}) {
+function createFakeDevice({ createBindGroupThrowAt = null, features = [], trackPipelineDescriptors = false } = {}) {
   const createdBuffers = [];
+  const pipelineDescriptors = [];
   let createBindGroupCount = 0;
 
   return {
     createdBuffers,
+    pipelineDescriptors,
     lost: new Promise(() => {}),
     queue: {
       submit() {},
@@ -103,7 +106,10 @@ function createFakeDevice({ createBindGroupThrowAt = null, features = [] } = {})
         },
       };
     },
-    async createComputePipelineAsync() {
+    async createComputePipelineAsync(descriptor) {
+      if (trackPipelineDescriptors) {
+        pipelineDescriptors.push(descriptor);
+      }
       return {
         getBindGroupLayout() {
           return {};
@@ -131,6 +137,7 @@ function createFakeDevice({ createBindGroupThrowAt = null, features = [] } = {})
 
 function resetRuntime(device = null) {
   destroyBufferPool();
+  clearPipelineCaches();
   setDevice(device, { platformConfig: null });
   if (device) {
     getBufferPool().configure({ enablePooling: false });
@@ -237,9 +244,9 @@ try {
         'qk_rows',
         'total_v',
         'start_pos',
-        'half_dim',
+        'rotary_dim',
         'eps',
-        '_pad0',
+        'interleaved',
         '_pad1',
         '_pad2',
       ]
@@ -261,10 +268,10 @@ try {
         'qk_rows',
         'total_v',
         'start_pos',
-        'half_dim',
+        'rotary_dim',
         'eps',
         'kv_dst_offset',
-        '_pad1',
+        'interleaved',
         '_pad2',
       ]
     );
@@ -379,8 +386,9 @@ try {
       interleaved: false,
     };
     assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, options), true);
-    assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, { ...options, interleaved: true }), false);
-    assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, { ...options, rotaryDim: 2 }), false);
+    assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, { ...options, interleaved: true }), true);
+    assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, { ...options, rotaryDim: 2, pairSpanDim: 2, interleaved: true }), true);
+    assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, { ...options, rotaryDim: 2, pairSpanDim: 4 }), false);
     assert.equal(canUseSplitQKVRMSNormRoPEQK(qkvTensor, { ...options, reusesSharedKV: true }), false);
     const result = await runSplitQKVRMSNormRoPEQK(qkvTensor, qWeight, kWeight, freqsCos, freqsSin, 1e-6, options);
     assert.deepEqual(result.Q.shape, [2, 4]);
@@ -572,6 +580,28 @@ try {
     const uniformBuffer = device.createdBuffers.find((buffer) => (buffer.usage & GPUBufferUsage.UNIFORM) !== 0);
     assert.ok(uniformBuffer);
     assert.equal(uniformBuffer.destroyed, true);
+    releaseBuffer(result.buffer);
+    resetRuntime();
+  }
+
+  {
+    const device = createFakeDevice({ trackPipelineDescriptors: true });
+    resetRuntime(device);
+    const input = createExternalTensor(4, 'f32', 'silu_gated_vec4_input');
+    const gate = createExternalTensor(4, 'f32', 'silu_gated_vec4_gate');
+    const result = await runSiLU(input, {
+      size: 4,
+      gate,
+      useVec4: true,
+      gateActivation: 'sigmoid',
+      inputActivation: 'identity',
+      swigluLimit: null,
+    });
+    const constants = device.pipelineDescriptors[0]?.compute?.constants;
+    assert.equal(constants?.HAS_GATE, 1);
+    assert.equal(constants?.USE_VEC4, 1);
+    assert.equal(constants?.GATE_USE_SIGMOID, 1);
+    assert.equal(constants?.INPUT_USE_IDENTITY, 1);
     releaseBuffer(result.buffer);
     resetRuntime();
   }

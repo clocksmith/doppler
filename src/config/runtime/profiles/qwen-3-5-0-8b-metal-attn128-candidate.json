@@ -1,0 +1,20 @@
+{
+  "id": "profiles/qwen-3-5-0-8b-metal-attn128-candidate",
+  "name": "qwen-3-5-0-8b-metal-attn128-candidate",
+  "description": "Investigation candidate for Qwen 3.5 0.8B browser/Metal parity. Copies the Metal parity profile and changes only online decode attention WORKGROUP_SIZE from the shader default 256 to 128.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-07-08T00:00:00Z",
+  "extends": "profiles/qwen-3-5-0-8b-metal-parity",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "session": {
+        "attentionDecodeOnline": {
+          "workgroupSize": 128
+        }
+      }
+    }
+  }
+}

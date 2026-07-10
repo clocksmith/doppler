@@ -79,6 +79,7 @@ const CLAIMED_TEXT_MODEL_IDS = catalog.models
   .map((entry) => entry.modelId);
 
 const APPLE_REJECTED_VERIFIED_LANES = new Set([
+  'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
   'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
 ]);
 
@@ -134,8 +135,8 @@ for (const modelId of CLAIMED_TEXT_MODEL_IDS) {
     );
     assert.match(
       error.message,
-      /lane mismatch/,
-      `${modelId}: Apple rejected lane must fail closed with lane mismatch guidance`
+      /lane mismatch|platform unsupported/,
+      `${modelId}: Apple rejected lane must fail closed with explicit capability guidance`
     );
     continue;
   }

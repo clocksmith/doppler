@@ -1,4 +1,5 @@
 import { getDevice } from '../../../gpu/device.js';
+import { Q4K_BLOCK_BYTES, q4kBlockCount } from '../../../config/schema/index.js';
 import { getKernelConfig } from '../../../gpu/kernels/kernel-configs.js';
 import { getKernelPathMatmulVariant } from '../../../config/kernel-path-loader.js';
 import { createWeightBuffer, getWeightDtype, isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
@@ -24,7 +25,7 @@ function kernelPathVariantRequiresQ4KWeights(variant) {
   return shaderFile.startsWith('fused_matmul_q4');
 }
 
-function shouldSkipQKVFusionForLayer(layerIdx, kernelPath) {
+function qkvProjectionRequiresQ4KWeights(layerIdx, kernelPath) {
   if (!kernelPath) {
     return false;
   }
@@ -36,7 +37,82 @@ function shouldSkipQKVFusionForLayer(layerIdx, kernelPath) {
   return kernelPathVariantRequiresQ4KWeights(decodeVariant);
 }
 
-export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null) {
+function normalizeProjectionDtype(weight) {
+  const dtype = typeof weight?.dtype === 'string'
+    ? weight.dtype.toLowerCase()
+    : null;
+  if (dtype === 'bf16') return 'f16';
+  if (dtype === 'f16' || dtype === 'f32' || dtype === 'q4k') return dtype;
+  return null;
+}
+
+function resolveProjectionStorageFormat(weight, expectedRows, hiddenSize) {
+  const dtype = normalizeProjectionDtype(weight);
+  if (dtype === 'q4k') {
+    const layout = String(weight?.layout ?? 'row').toLowerCase();
+    if (layout !== 'row') {
+      return null;
+    }
+    const bytesPerRow = q4kBlockCount(hiddenSize) * Q4K_BLOCK_BYTES;
+    const byteLength = expectedRows * bytesPerRow;
+    if (weight?.buffer?.size < byteLength) {
+      return null;
+    }
+    return {
+      dtype,
+      layout,
+      byteLength,
+      bytesPerElement: null,
+      bytesPerRow,
+    };
+  }
+
+  if (dtype === 'f16' || dtype === 'f32') {
+    const bytesPerElement = dtype === 'f16' ? 2 : 4;
+    const byteLength = expectedRows * hiddenSize * bytesPerElement;
+    if (weight?.buffer?.size < byteLength) {
+      return null;
+    }
+    return {
+      dtype,
+      layout: weight?.layout ?? null,
+      byteLength,
+      bytesPerElement,
+      bytesPerRow: hiddenSize * bytesPerElement,
+    };
+  }
+
+  const minF16Bytes = expectedRows * hiddenSize * 2;
+  const minF32Bytes = expectedRows * hiddenSize * 4;
+  if (weight?.buffer?.size >= minF32Bytes) {
+    return {
+      dtype: 'f32',
+      layout: weight?.layout ?? null,
+      byteLength: minF32Bytes,
+      bytesPerElement: 4,
+      bytesPerRow: hiddenSize * 4,
+    };
+  }
+  if (weight?.buffer?.size >= minF16Bytes) {
+    return {
+      dtype: 'f16',
+      layout: weight?.layout ?? null,
+      byteLength: minF16Bytes,
+      bytesPerElement: 2,
+      bytesPerRow: hiddenSize * 2,
+    };
+  }
+  return null;
+}
+
+function formatsMatch(a, b) {
+  return a?.dtype === b?.dtype
+    && a?.layout === b?.layout
+    && a?.bytesPerElement === b?.bytesPerElement
+    && a?.bytesPerRow === b?.bytesPerRow;
+}
+
+export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, options = {}) {
   const device = getDevice();
   if (!device) {
     log.debug('QKV Fusion', 'No GPU device, skipping fusion');
@@ -52,12 +128,14 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null) {
     );
     return;
   }
-
   const { numLayers, numHeads, numKVHeads, headDim, hiddenSize } = modelConfig;
   const qSize = numHeads * headDim;
+  const hasAttentionOutputGate = modelConfig?.attentionOutputGate === true;
+  const qProjSize = hasAttentionOutputGate ? qSize * 2 : qSize;
   const kSize = numKVHeads * headDim;
   const vSize = numKVHeads * headDim;
   const qkvSize = qSize + kSize + vSize;
+  const allowQ4K = options.allowQ4K === true;
 
   const resolveWeight = (value) => {
     if (isWeightBuffer(value)) {
@@ -81,19 +159,6 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null) {
 
   log.debug('QKV Fusion', `Fusing Q/K/V weights for ${numLayers} layers (${qSize}+${kSize}+${vSize}=${qkvSize})`);
 
-  const resolveBytesPerElement = (weight, expectedElements) => {
-    const dtype = typeof weight?.dtype === 'string'
-      ? weight.dtype.toLowerCase()
-      : null;
-    if (dtype === 'f16' || dtype === 'bf16') return 2;
-    if (dtype === 'f32') return 4;
-    const minF16Bytes = expectedElements * 2;
-    const minF32Bytes = expectedElements * 4;
-    if (weight?.buffer?.size >= minF32Bytes) return 4;
-    if (weight?.buffer?.size >= minF16Bytes) return 2;
-    return 0;
-  };
-
   let fusedCount = 0;
   for (let l = 0; l < numLayers; l++) {
     const weights = layerWeights.get(`layer_${l}`);
@@ -101,13 +166,7 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null) {
 
     // Skip if already fused or if weights are not GPUBuffers
     if (weights.qkvProj) continue;
-    if (shouldSkipQKVFusionForLayer(l, kernelPath)) {
-      log.debug(
-        'QKV Fusion',
-        `Layer ${l}: skipped because active kernel path requires Q4K weights for qkv_proj`
-      );
-      continue;
-    }
+    const requiresQ4K = qkvProjectionRequiresQ4KWeights(l, kernelPath);
     const qProj = resolveWeight(weights.qProj);
     const kProj = resolveWeight(weights.kProj);
     const vProj = resolveWeight(weights.vProj);
@@ -115,72 +174,97 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null) {
       continue;
     }
 
-    const qExpectedElements = qSize * hiddenSize;
-    const kExpectedElements = kSize * hiddenSize;
-    const vExpectedElements = vSize * hiddenSize;
-    const bytesPerElement = resolveBytesPerElement(qProj, qExpectedElements);
-    const kBytesPerElement = resolveBytesPerElement(kProj, kExpectedElements);
-    const vBytesPerElement = resolveBytesPerElement(vProj, vExpectedElements);
+    const qFormat = resolveProjectionStorageFormat(qProj, qProjSize, hiddenSize);
+    const kFormat = resolveProjectionStorageFormat(kProj, kSize, hiddenSize);
+    const vFormat = resolveProjectionStorageFormat(vProj, vSize, hiddenSize);
 
     // Pool allocation can round GPUBuffer.size up, so infer logical dtype first and
     // only use buffer size as a minimum-size inference.
-    if ((bytesPerElement !== 2 && bytesPerElement !== 4)
-      || kBytesPerElement !== bytesPerElement
-      || vBytesPerElement !== bytesPerElement) {
+    if (!qFormat || !formatsMatch(qFormat, kFormat) || !formatsMatch(qFormat, vFormat)) {
       log.debug(
         'QKV Fusion',
-        `Layer ${l}: inconsistent projection dtypes (q=${bytesPerElement}, k=${kBytesPerElement}, v=${vBytesPerElement}), skipping`
+        `Layer ${l}: inconsistent projection storage formats, skipping`
       );
       continue;
     }
 
-    const normalizedDtype = typeof qProj.dtype === 'string'
-      ? qProj.dtype.toLowerCase()
-      : null;
-    const dtype = normalizedDtype === 'bf16'
-      ? 'f16'
-      : (
-        normalizedDtype === 'f16' || normalizedDtype === 'f32'
-          ? normalizedDtype
-          : selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement })
-      );
+    if (requiresQ4K && qFormat.dtype !== 'q4k') {
+      log.debug('QKV Fusion', `Layer ${l}: qkv_proj requires Q4K weights, skipping ${qFormat.dtype} pack`);
+      continue;
+    }
+    if (qFormat.dtype === 'q4k' && !allowQ4K) {
+      log.debug('QKV Fusion', `Layer ${l}: Q4K QKV fusion requires explicit runtime opt-in`);
+      continue;
+    }
+
+    const dtype = qFormat.dtype ?? selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', {
+      bytesPerElement: qFormat.bytesPerElement,
+    });
     const layout = qProj.layout ?? kProj.layout ?? vProj.layout ?? 'row';
     let fusedShape = [qkvSize, hiddenSize];
-    if (Array.isArray(qProj.shape) && qProj.shape.length === 2) {
-      if (qProj.shape[0] === qSize && qProj.shape[1] === hiddenSize) {
+    if (qFormat.dtype !== 'q4k' && Array.isArray(qProj.shape) && qProj.shape.length === 2) {
+      if (qProj.shape[0] === qProjSize && qProj.shape[1] === hiddenSize) {
         fusedShape = [qkvSize, hiddenSize];
-      } else if (qProj.shape[1] === qSize && qProj.shape[0] === hiddenSize) {
+      } else if (qProj.shape[1] === qProjSize && qProj.shape[0] === hiddenSize) {
         fusedShape = [hiddenSize, qkvSize];
       }
     }
 
-    // Create fused QKV buffer: [qkvSize, hiddenSize] row-major
-    // Each row is concatenated: [q_row, k_row, v_row]
+    const qBytes = qSize * qFormat.bytesPerRow;
+    const qGateBytes = hasAttentionOutputGate ? qBytes : 0;
+
+    // Create fused QKV buffer: [qkvSize, hiddenSize] row-major.
+    // attentionOutputGate models keep Q rows in qkvProj and gate rows in qGateProj.
     const qkvBuffer = device.createBuffer({
       label: `layer_${l}_qkv_proj`,
-      size: qkvSize * hiddenSize * bytesPerElement,
+      size: qBytes + kFormat.byteLength + vFormat.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
+    const qGateBuffer = hasAttentionOutputGate
+      ? device.createBuffer({
+        label: `layer_${l}_q_gate_proj`,
+        size: qGateBytes,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      })
+      : null;
 
-    // Copy Q, K, V weights into fused buffer
-    // Q: [qSize, hiddenSize] -> offset 0
-    // K: [kSize, hiddenSize] -> offset qSize * hiddenSize * bytesPerElement
-    // V: [vSize, hiddenSize] -> offset (qSize + kSize) * hiddenSize * bytesPerElement
     const encoder = device.createCommandEncoder({ label: 'qkv_fusion' });
-    encoder.copyBufferToBuffer(
-      qProj.buffer, 0,
-      qkvBuffer, 0,
-      qSize * hiddenSize * bytesPerElement
-    );
+    if (hasAttentionOutputGate) {
+      for (let head = 0; head < numHeads; head++) {
+        const srcHeadOffset = head * headDim * 2 * qFormat.bytesPerRow;
+        const dstHeadOffset = head * headDim * qFormat.bytesPerRow;
+        const headBytes = headDim * qFormat.bytesPerRow;
+        encoder.copyBufferToBuffer(
+          qProj.buffer,
+          srcHeadOffset,
+          qkvBuffer,
+          dstHeadOffset,
+          headBytes
+        );
+        encoder.copyBufferToBuffer(
+          qProj.buffer,
+          srcHeadOffset + headBytes,
+          qGateBuffer,
+          dstHeadOffset,
+          headBytes
+        );
+      }
+    } else {
+      encoder.copyBufferToBuffer(
+        qProj.buffer, 0,
+        qkvBuffer, 0,
+        qBytes
+      );
+    }
     encoder.copyBufferToBuffer(
       kProj.buffer, 0,
-      qkvBuffer, qSize * hiddenSize * bytesPerElement,
-      kSize * hiddenSize * bytesPerElement
+      qkvBuffer, qBytes,
+      kFormat.byteLength
     );
     encoder.copyBufferToBuffer(
       vProj.buffer, 0,
-      qkvBuffer, (qSize + kSize) * hiddenSize * bytesPerElement,
-      vSize * hiddenSize * bytesPerElement
+      qkvBuffer, qBytes + kFormat.byteLength,
+      vFormat.byteLength
     );
     device.queue.submit([encoder.finish()]);
 
@@ -194,6 +278,15 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null) {
     );
     weights.qkvSizes = [qSize, kSize, vSize];
     weights.qkvDtype = dtype;
+    if (qGateBuffer) {
+      weights.qGateProj = createWeightBuffer(
+        qGateBuffer,
+        dtype,
+        layout,
+        [qSize, hiddenSize],
+        `layer_${l}_q_gate_proj`
+      );
+    }
     fusedCount++;
   }
 

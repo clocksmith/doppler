@@ -1,0 +1,85 @@
+{
+  "id": "profiles/qwen-3-5-0-8b-metal-throughput",
+  "name": "qwen-3-5-0-8b-metal-throughput",
+  "description": "Qwen 3.5 0.8B browser/Metal throughput profile. Keeps the shared Qwen Q4K execution graph and uses overlapped decode readback on Apple Metal so submit/readback-bound decode can reuse ring staging without changing Vulkan cadence.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-07-08T00:00:00Z",
+  "extends": "profiles/throughput",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "attn_decode_head256",
+            "kernel": {
+              "kernel": "attention_decode_online_head256_f16kv_output_gate.wgsl",
+              "entry": "main",
+              "digest": "sha256:275a1f7cfdd40ab95c467bb4744a1509dd6eadb39ec8fdd0d1e1ba80eb34f9c5",
+              "precision": {
+                "kvDtype": "f16"
+              }
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "decode",
+            "op": "attention",
+            "kernelKey": "attn_decode_head256"
+          }
+        ]
+      },
+      "batching": {
+        "batchSize": 8,
+        "readbackInterval": 8,
+        "stopCheckMode": "batch",
+        "readbackMode": "overlapped",
+        "ringTokens": 2,
+        "ringStop": 1,
+        "ringStaging": 2
+      },
+      "session": {
+        "usePostFfnNextInputRMSNormPairFusion": true,
+        "useGreedyLmHeadArgmaxFusion": true,
+        "lmHeadArgmaxQ4K": {
+          "useFullBlockFastPath": true,
+          "colsPerWorkgroup": 128,
+          "threadsPerCol": 2
+        },
+        "attentionDecodeOnline": {
+          "useDirectContiguousKVLayout": true,
+          "useOutputGateFusion": true
+        },
+        "useFusedQKVSplitQKNormRoPE": true,
+        "useLinearAttentionABProjectionFusion": true,
+        "useLinearAttentionQKVZProjectionFusion": false,
+        "useLinearAttentionFusedDecodeCore": true,
+        "decodeLoop": {
+          "batchSize": 8,
+          "stopCheckMode": "batch",
+          "readbackInterval": 8,
+          "readbackMode": "overlapped",
+          "submitLatencyThresholdMs": null,
+          "maxBatchDecodeTokens": 128,
+          "ringTokens": 2,
+          "ringStop": 1,
+          "ringStaging": 2,
+          "disableCommandBatching": false
+        }
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "manifest"
+        ],
+        "allowSources": [
+          "manifest"
+        ],
+        "onIncompatible": "remap"
+      }
+    }
+  }
+}

@@ -223,9 +223,21 @@ function resolveSessionSettings(inferenceConfig, modelId) {
       `"${String(tokenChunk)}"; expected null or a positive integer.`
     );
   }
+  const skipEmbeddingKVCacheWrites = session?.skipEmbeddingKVCacheWrites;
+  if (
+    skipEmbeddingKVCacheWrites !== undefined
+    && skipEmbeddingKVCacheWrites !== null
+    && typeof skipEmbeddingKVCacheWrites !== 'boolean'
+  ) {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.skipEmbeddingKVCacheWrites "${String(skipEmbeddingKVCacheWrites)}"; expected boolean.`);
+  }
   const flash = session?.useFlashPrefillAttention;
   if (flash !== undefined && flash !== null && typeof flash !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.useFlashPrefillAttention "${String(flash)}"; expected boolean.`);
+  }
+  const largeBatchF16F32FusedGateUp = session?.useLargeBatchF16F32FusedGateUp;
+  if (largeBatchF16F32FusedGateUp !== undefined && largeBatchF16F32FusedGateUp !== null && typeof largeBatchF16F32FusedGateUp !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useLargeBatchF16F32FusedGateUp "${String(largeBatchF16F32FusedGateUp)}"; expected boolean.`);
   }
   const wide = session?.useWideTileQ4KPrefill;
   if (wide !== undefined && wide !== null && typeof wide !== 'boolean') {
@@ -243,6 +255,30 @@ function resolveSessionSettings(inferenceConfig, modelId) {
   if (postFfnNextInputRmsNormPair !== undefined && postFfnNextInputRmsNormPair !== null && typeof postFfnNextInputRmsNormPair !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.usePostFfnNextInputRMSNormPairFusion "${String(postFfnNextInputRmsNormPair)}"; expected boolean.`);
   }
+  const postAttnNormFusedGateUp = session?.usePostAttnNormFusedGateUp;
+  if (postAttnNormFusedGateUp !== undefined && postAttnNormFusedGateUp !== null && typeof postAttnNormFusedGateUp !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.usePostAttnNormFusedGateUp "${String(postAttnNormFusedGateUp)}"; expected boolean.`);
+  }
+  const linearAttentionABProjectionFusion = session?.useLinearAttentionABProjectionFusion;
+  if (linearAttentionABProjectionFusion !== undefined && linearAttentionABProjectionFusion !== null && typeof linearAttentionABProjectionFusion !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useLinearAttentionABProjectionFusion "${String(linearAttentionABProjectionFusion)}"; expected boolean.`);
+  }
+  const linearAttentionQKVZProjectionFusion = session?.useLinearAttentionQKVZProjectionFusion;
+  if (linearAttentionQKVZProjectionFusion !== undefined && linearAttentionQKVZProjectionFusion !== null && typeof linearAttentionQKVZProjectionFusion !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useLinearAttentionQKVZProjectionFusion "${String(linearAttentionQKVZProjectionFusion)}"; expected boolean.`);
+  }
+  const linearAttentionFusedDecodeCore = session?.useLinearAttentionFusedDecodeCore;
+  if (linearAttentionFusedDecodeCore !== undefined && linearAttentionFusedDecodeCore !== null && typeof linearAttentionFusedDecodeCore !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useLinearAttentionFusedDecodeCore "${String(linearAttentionFusedDecodeCore)}"; expected boolean.`);
+  }
+  const wideTileResidualFusion = session?.useWideTileResidualFusion;
+  if (wideTileResidualFusion !== undefined && wideTileResidualFusion !== null && typeof wideTileResidualFusion !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useWideTileResidualFusion "${String(wideTileResidualFusion)}"; expected boolean.`);
+  }
+  const fusedRmsnormWideTile = session?.useFusedRmsnormWideTile;
+  if (fusedRmsnormWideTile !== undefined && fusedRmsnormWideTile !== null && typeof fusedRmsnormWideTile !== 'boolean') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.useFusedRmsnormWideTile "${String(fusedRmsnormWideTile)}"; expected boolean.`);
+  }
   const fusedQKVSplitQKNorm = session?.useFusedQKVSplitQKNorm;
   if (fusedQKVSplitQKNorm !== undefined && fusedQKVSplitQKNorm !== null && typeof fusedQKVSplitQKNorm !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.useFusedQKVSplitQKNorm "${String(fusedQKVSplitQKNorm)}"; expected boolean.`);
@@ -255,17 +291,81 @@ function resolveSessionSettings(inferenceConfig, modelId) {
   if (retain !== undefined && retain !== null && typeof retain !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.retainQ4KMaterialization "${String(retain)}"; expected boolean.`);
   }
+  const lmHeadArgmaxQ4K = session?.lmHeadArgmaxQ4K;
+  if (lmHeadArgmaxQ4K !== undefined && lmHeadArgmaxQ4K !== null) {
+    if (typeof lmHeadArgmaxQ4K !== 'object' || Array.isArray(lmHeadArgmaxQ4K)) {
+      throw new Error(`Manifest "${modelId}" has invalid inference.session.lmHeadArgmaxQ4K; expected object or null.`);
+    }
+    const fullBlockFastPath = lmHeadArgmaxQ4K.useFullBlockFastPath;
+    if (fullBlockFastPath !== undefined && typeof fullBlockFastPath !== 'boolean') {
+      throw new Error(
+        `Manifest "${modelId}" has invalid inference.session.lmHeadArgmaxQ4K.useFullBlockFastPath ` +
+        `"${String(fullBlockFastPath)}"; expected boolean.`
+      );
+    }
+    const colsPerWorkgroup = lmHeadArgmaxQ4K.colsPerWorkgroup;
+    if (colsPerWorkgroup !== undefined && (!Number.isInteger(colsPerWorkgroup) || colsPerWorkgroup <= 0)) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid inference.session.lmHeadArgmaxQ4K.colsPerWorkgroup ` +
+        `"${String(colsPerWorkgroup)}"; expected positive integer.`
+      );
+    }
+    const threadsPerCol = lmHeadArgmaxQ4K.threadsPerCol;
+    if (threadsPerCol !== undefined && (!Number.isInteger(threadsPerCol) || threadsPerCol <= 0)) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid inference.session.lmHeadArgmaxQ4K.threadsPerCol ` +
+        `"${String(threadsPerCol)}"; expected positive integer.`
+      );
+    }
+  }
+  const attentionDecodeOnline = session?.attentionDecodeOnline;
+  if (attentionDecodeOnline !== undefined && attentionDecodeOnline !== null) {
+    if (typeof attentionDecodeOnline !== 'object' || Array.isArray(attentionDecodeOnline)) {
+      throw new Error(`Manifest "${modelId}" has invalid inference.session.attentionDecodeOnline; expected object or null.`);
+    }
+    const workgroupSize = attentionDecodeOnline.workgroupSize;
+    if (workgroupSize !== undefined && workgroupSize !== 128 && workgroupSize !== 256) {
+      throw new Error(
+        `Manifest "${modelId}" has invalid inference.session.attentionDecodeOnline.workgroupSize ` +
+        `"${String(workgroupSize)}"; expected 128 or 256.`
+      );
+    }
+    const directKv = attentionDecodeOnline.useDirectContiguousKVLayout;
+    if (directKv !== undefined && typeof directKv !== 'boolean') {
+      throw new Error(
+        `Manifest "${modelId}" has invalid inference.session.attentionDecodeOnline.useDirectContiguousKVLayout ` +
+        `"${String(directKv)}"; expected boolean.`
+      );
+    }
+    const outputGateFusion = attentionDecodeOnline.useOutputGateFusion;
+    if (outputGateFusion !== undefined && typeof outputGateFusion !== 'boolean') {
+      throw new Error(
+        `Manifest "${modelId}" has invalid inference.session.attentionDecodeOnline.useOutputGateFusion ` +
+        `"${String(outputGateFusion)}"; expected boolean.`
+      );
+    }
+  }
   return {
     prefillChunkSubmitMode: submit ?? null,
     prefillTokenChunkSize: tokenChunk ?? null,
+    skipEmbeddingKVCacheWrites: skipEmbeddingKVCacheWrites ?? null,
     useFlashPrefillAttention: flash ?? null,
+    useLargeBatchF16F32FusedGateUp: largeBatchF16F32FusedGateUp ?? null,
     useWideTileQ4KPrefill: wide ?? null,
     useWideTileQ4KDecode: wideDecode ?? null,
     useSandwichRMSNormPairFusion: sandwichRmsNormPair ?? null,
     usePostFfnNextInputRMSNormPairFusion: postFfnNextInputRmsNormPair ?? null,
+    usePostAttnNormFusedGateUp: postAttnNormFusedGateUp ?? null,
+    useLinearAttentionABProjectionFusion: linearAttentionABProjectionFusion ?? null,
+    useLinearAttentionQKVZProjectionFusion: linearAttentionQKVZProjectionFusion ?? null,
+    useLinearAttentionFusedDecodeCore: linearAttentionFusedDecodeCore ?? null,
+    useWideTileResidualFusion: wideTileResidualFusion ?? null,
+    useFusedRmsnormWideTile: fusedRmsnormWideTile ?? null,
     useFusedQKVSplitQKNorm: fusedQKVSplitQKNorm ?? null,
     useFusedQKVSplitQKNormRoPE: fusedQKVSplitQKNormRoPE ?? null,
     retainQ4KMaterialization: retain ?? null,
+    lmHeadArgmaxQ4K: lmHeadArgmaxQ4K ?? null,
+    attentionDecodeOnline: attentionDecodeOnline ?? null,
   };
 }
 

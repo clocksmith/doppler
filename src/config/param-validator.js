@@ -117,6 +117,18 @@ export function validateRuntimeConfig(runtimeConfig) {
   if (session?.prefillTokenChunkSize !== undefined) {
     assertNullablePositiveInt('runtime.inference.session.prefillTokenChunkSize', session.prefillTokenChunkSize);
   }
+  if (session?.skipEmbeddingKVCacheWrites !== undefined) {
+    assertNullableBoolean(
+      'runtime.inference.session.skipEmbeddingKVCacheWrites',
+      session.skipEmbeddingKVCacheWrites
+    );
+  }
+  if (session?.useLargeBatchF16F32FusedGateUp !== undefined) {
+    assertNullableBoolean(
+      'runtime.inference.session.useLargeBatchF16F32FusedGateUp',
+      session.useLargeBatchF16F32FusedGateUp
+    );
+  }
   if (session?.decodeLoop?.maxBatchDecodeTokens !== undefined) {
     assertNullablePositiveInt(
       'runtime.inference.session.decodeLoop.maxBatchDecodeTokens',
@@ -263,6 +275,13 @@ function assertPositiveInt(label, value, { nullable = false } = {}) {
 
 function assertNullablePositiveInt(label, value) {
   assertPositiveInt(label, value, { nullable: true });
+}
+
+function assertNullableBoolean(label, value) {
+  if (value === null) return;
+  if (typeof value !== 'boolean') {
+    throw new Error(`DopplerConfigError: ${label} must be boolean or null.`);
+  }
 }
 
 function assertEmbeddingMode(label, value) {

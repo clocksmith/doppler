@@ -17,6 +17,8 @@ import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buf
 import {
   runFusedFFN,
   recordFusedFFN,
+  runFusedFFNFromRMSNormStats,
+  recordFusedFFNFromRMSNormStats,
   castF16ToF32,
   castF32ToF16,
   recordCastF16ToF32,
@@ -31,6 +33,7 @@ import { getWeightBuffer, getNormWeightBuffer } from '../weights.js';
 import { runProbes } from '../probes.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import {
+  getKernelPathMatmulConstants,
   getKernelPathMatmulPrecision,
   getKernelPathMatmulVariant,
 } from '../../../../config/kernel-path-loader.js';
@@ -52,6 +55,70 @@ function hasQ4KMaterialization(weight) {
 
 function isQ4KMatmulVariant(variant) {
   return typeof variant === 'string' && variant.startsWith('q4_');
+}
+
+function normalizeFusedGateUpPipelineConstants(constants) {
+  if (!constants || typeof constants !== 'object') {
+    return null;
+  }
+  const colsPerWorkgroup = constants.COLS_PER_WG;
+  const threadsPerCol = constants.THREADS_PER_COL ?? constants.THREADS_PER_COL_GEMV;
+  const workgroupSize = constants.WORKGROUP_SIZE;
+  if (colsPerWorkgroup === undefined && threadsPerCol === undefined && workgroupSize === undefined) {
+    return null;
+  }
+  return {
+    ...(workgroupSize !== undefined ? { WORKGROUP_SIZE: workgroupSize } : {}),
+    ...(colsPerWorkgroup !== undefined ? { COLS_PER_WG: colsPerWorkgroup } : {}),
+    ...(threadsPerCol !== undefined ? { THREADS_PER_COL: threadsPerCol } : {}),
+  };
+}
+
+function constantsEqual(a, b) {
+  const aKeys = Object.keys(a).sort();
+  const bKeys = Object.keys(b).sort();
+  if (aKeys.length !== bKeys.length) return false;
+  for (let i = 0; i < aKeys.length; i++) {
+    if (aKeys[i] !== bKeys[i] || a[aKeys[i]] !== b[bKeys[i]]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function resolveFusedGateUpPipelineConstants(options = {}) {
+  const phase = options.phase ?? null;
+  const layerIdx = Number.isFinite(options.layerIdx) ? options.layerIdx : 0;
+  const kernelPath = options.kernelPath ?? null;
+  if (!phase) {
+    return null;
+  }
+  if (kernelPath) {
+    const fusedConstants = normalizeFusedGateUpPipelineConstants(
+      getKernelPathMatmulConstants('ffn_gate_up', phase, layerIdx, kernelPath)
+    );
+    if (fusedConstants) {
+      return fusedConstants;
+    }
+    const gateConstants = normalizeFusedGateUpPipelineConstants(
+      getKernelPathMatmulConstants('ffn_gate', phase, layerIdx, kernelPath)
+    );
+    const upConstants = normalizeFusedGateUpPipelineConstants(
+      getKernelPathMatmulConstants('ffn_up', phase, layerIdx, kernelPath)
+    );
+    if (gateConstants || upConstants) {
+      if (!gateConstants || !upConstants || !constantsEqual(gateConstants, upConstants)) {
+        throw new Error(
+          `[FFN] Fused gate/up requires matching gate and up kernel constants; ` +
+          `got gate=${JSON.stringify(gateConstants)} up=${JSON.stringify(upConstants)}.`
+        );
+      }
+      return gateConstants;
+    }
+  }
+  const sessionConstants = getRuntimeConfig()
+    .inference?.session?.fusedFfnQ4K?.[phase]?.pipelineConstants;
+  return normalizeFusedGateUpPipelineConstants(sessionConstants);
 }
 
 function enqueueRecordedDenseHealth(context, layerIdx, label, tensor, elementCount) {
@@ -344,6 +411,8 @@ async function dispatchFusedGateUp({
   swigluLimit,
   recorder,
   executionPolicies = null,
+  normStats = null,
+  pipelineConstants = null,
 }) {
   const useNativeF16Fused = canUseNativeF16FusedGateUp({
     inputDtype: inputTensor.dtype,
@@ -369,16 +438,59 @@ async function dispatchFusedGateUp({
   }
 
   const activation = resolveActivationOp(hiddenActivation);
+  if (normStats) {
+    if (inputTensor.dtype !== 'f32' || gateDtype !== 'q4k' || numTokens !== 1) {
+      throw new Error(
+        `Fused post-attention norm gate/up requires f32 Q4_K decode input; ` +
+        `got input=${inputTensor.dtype}, gate=${gateDtype}, tokens=${numTokens}.`
+      );
+    }
+    const fusedNormedOutput = recorder
+      ? await recordFusedFFNFromRMSNormStats(
+        recorder,
+        inputTensor,
+        normStats.invRmsBuffer,
+        normStats.normWeight,
+        gateWeight,
+        upWeight,
+        hiddenSize,
+        intermediateSize,
+        {
+          batchSize: numTokens,
+          activation,
+          swigluLimit,
+          rmsNormWeightOffset: normStats.rmsNormWeightOffset === true,
+          pipelineConstants,
+        }
+      )
+      : await runFusedFFNFromRMSNormStats(
+        inputTensor,
+        normStats.invRmsBuffer,
+        normStats.normWeight,
+        gateWeight,
+        upWeight,
+        hiddenSize,
+        intermediateSize,
+        {
+          batchSize: numTokens,
+          activation,
+          swigluLimit,
+          rmsNormWeightOffset: normStats.rmsNormWeightOffset === true,
+          pipelineConstants,
+        }
+      );
+    return fusedNormedOutput;
+  }
   const fusedOutput = recorder
     ? await recordFusedFFN(
       recorder, fusedInput, gateWeight, upWeight,
       hiddenSize, intermediateSize,
-      { batchSize: numTokens, activation, swigluLimit }
+      { batchSize: numTokens, activation, swigluLimit, pipelineConstants }
     )
     : await runFusedFFN(
       fusedInput, gateWeight, upWeight,
       hiddenSize, intermediateSize,
-      { batchSize: numTokens, activation, swigluLimit }
+      { batchSize: numTokens, activation, swigluLimit, pipelineConstants }
     );
 
   if (!recorder && fusedInput !== inputTensor) {
@@ -646,6 +758,7 @@ export async function runDenseFFNGPU(
     hasQ4KMaterialization: fusedGateUpWeights.hasQ4KMaterialization,
     activationDtype,
     f16BatchSupported,
+    useLargeBatchF16F32FusedGateUp: context.useLargeBatchF16F32FusedGateUp === true,
     batchSize: numTokens,
     hiddenSizeAligned32,
     useDoubleWideMlp: Boolean(useDoubleWideMlp),
@@ -666,7 +779,8 @@ export async function runDenseFFNGPU(
     `useFusedGateUp=${useFusedGateUp} gateUpPathMode=${gateUpPathMode} splitPrefillF16FusionAllowed=${splitPrefillF16FusionAllowed} ` +
     `inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
     `gateDtype=${gateDtype} upDtype=${upDtype} hasQ4KMaterialization=${fusedGateUpWeights.hasQ4KMaterialization} ` +
-    `dtypeMatches=${dtypeMatches} dtypeSupported=${dtypeSupported} hiddenSizeAligned32=${hiddenSizeAligned32} batchSize=${numTokens}`
+    `dtypeMatches=${dtypeMatches} dtypeSupported=${dtypeSupported} hiddenSizeAligned32=${hiddenSizeAligned32} ` +
+    `largeBatchF16F32FusedGateUp=${context.useLargeBatchF16F32FusedGateUp === true} batchSize=${numTokens}`
   );
 
   if (useFusedGateUp) {
@@ -684,6 +798,11 @@ export async function runDenseFFNGPU(
     const gateWeight = getWeightBuffer(fusedGateUpWeights.gate ?? layerWeights.gate, 'ffn_gate');
     const upWeight = getWeightBuffer(fusedGateUpWeights.up ?? layerWeights.up, 'ffn_up');
     const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+    const fusedGateUpPipelineConstants = resolveFusedGateUpPipelineConstants({
+      kernelPath,
+      phase,
+      layerIdx,
+    });
     const fusedDownOutputDtype = resolveMatmulStepDtype(
       'ffn_down',
       phase,
@@ -708,6 +827,8 @@ export async function runDenseFFNGPU(
       hiddenSize, intermediateSize, numTokens,
       hiddenActivation, swigluLimit, recorder,
       executionPolicies: context.executionPolicies ?? null,
+      normStats: context.__pendingFfnInputNormStats ?? null,
+      pipelineConstants: fusedGateUpPipelineConstants,
     });
     enqueueRecordedDenseHealth(context, layerIdx, 'ffn_fused_gate_up', fusedOutput, numTokens * intermediateSize);
 
@@ -810,6 +931,12 @@ export async function runDenseFFNGPU(
     }
 
     return output;
+  }
+
+  if (context.__pendingFfnInputNormStats) {
+    throw new Error(
+      `Layer ${layerIdx} has precomputed FFN input norm stats, but fused gate/up was not selected.`
+    );
   }
 
   if (!layerWeights?.gate || !layerWeights?.up || !layerWeights?.down) {
@@ -1374,6 +1501,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
       hasQ4KMaterialization: fusedGateUpWeights.hasQ4KMaterialization,
       activationDtype,
       f16BatchSupported: getKernelCapabilities().hasF16,
+      useLargeBatchF16F32FusedGateUp: context.useLargeBatchF16F32FusedGateUp === true,
       batchSize: numTokens,
       hiddenSizeAligned32,
       useDoubleWideMlp: Boolean(useDoubleWideMlp),
@@ -1394,19 +1522,25 @@ export async function runDenseFFNWithFusedPostNormGPU(
       `useFusedGateUpWithPostNorm=${canUseFusedGateUp} gateUpPathMode=${gateUpPathMode} splitPrefillF16FusionAllowed=${splitPrefillF16FusionAllowed} ` +
       `inputDtype=${inputTensor.dtype} activationDtype=${activationDtype} ` +
       `gateDtype=${gateDtype} upDtype=${upDtype} hasQ4KMaterialization=${fusedGateUpWeights.hasQ4KMaterialization} ` +
-      `dtypeMatches=${dtypeMatches} dtypeSupported=${dtypeSupported} hiddenSizeAligned32=${hiddenSizeAligned32} batchSize=${numTokens}`
+      `dtypeMatches=${dtypeMatches} dtypeSupported=${dtypeSupported} hiddenSizeAligned32=${hiddenSizeAligned32} ` +
+      `largeBatchF16F32FusedGateUp=${context.useLargeBatchF16F32FusedGateUp === true} batchSize=${numTokens}`
     );
     const gateWeight = canUseFusedGateUp
       ? fusedGateWeight
       : getWeightBuffer(layerWeights.gate, 'ffn_gate');
-    const upWeight = canUseFusedGateUp
-      ? fusedUpWeight
-      : getWeightBuffer(layerWeights.up, 'ffn_up');
+	    const upWeight = canUseFusedGateUp
+	      ? fusedUpWeight
+	      : getWeightBuffer(layerWeights.up, 'ffn_up');
 
-    if (canUseFusedGateUp) {
-      const {
-        fusedGateUpInputDtype,
-      } = resolveDenseFFNFusedPathDtypes({
+	    if (canUseFusedGateUp) {
+	      const fusedGateUpPipelineConstants = resolveFusedGateUpPipelineConstants({
+	        kernelPath,
+	        phase,
+	        layerIdx,
+	      });
+	      const {
+	        fusedGateUpInputDtype,
+	      } = resolveDenseFFNFusedPathDtypes({
         phase,
         layerIdx,
         kernelPath,
@@ -1425,11 +1559,12 @@ export async function runDenseFFNWithFusedPostNormGPU(
         fusedInputOwned = fusedInput !== inputTensor;
       }
       activatedOutput = await dispatchFusedGateUp({
-        inputTensor: fusedInput, gateWeight, upWeight, gateDtype,
-        hiddenSize, intermediateSize, numTokens,
-        hiddenActivation, swigluLimit, recorder,
-        executionPolicies: context.executionPolicies ?? null,
-      });
+	        inputTensor: fusedInput, gateWeight, upWeight, gateDtype,
+	        hiddenSize, intermediateSize, numTokens,
+	        hiddenActivation, swigluLimit, recorder,
+	        executionPolicies: context.executionPolicies ?? null,
+	        pipelineConstants: fusedGateUpPipelineConstants,
+	      });
       if (fusedInputOwned) {
         if (recorder) {
           recorder.trackTemporaryBuffer(fusedInput.buffer);

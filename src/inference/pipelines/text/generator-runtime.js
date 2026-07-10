@@ -275,6 +275,7 @@ export function resolvePrefillOptions(state, options = {}) {
     debug: resolveConfiguredValue(options.debug, state.debug, 'options.debug', (value) => typeof value === 'boolean'),
     debugLayers: options.debugLayers,
     profile: resolveConfiguredValue(options.profile, generationDefaults.profile, 'options.profile'),
+    benchmark: resolveConfiguredValue(options.benchmark, generationDefaults.benchmark, 'options.benchmark'),
     disableCommandBatching: executionPlan.disableCommandBatching,
     disableMultiTokenDecode: executionPlan.disableMultiTokenDecode,
     executionPlan,

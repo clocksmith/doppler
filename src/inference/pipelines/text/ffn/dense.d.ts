@@ -65,10 +65,24 @@ export declare function resolveDenseFFNFusedPathDtypes(options?: {
   downInputDtype: 'f16' | 'f32' | null;
 };
 
+export declare function resolveFusedGateUpPipelineConstants(options?: {
+  phase?: 'prefill' | 'decode' | null;
+  layerIdx?: number;
+  kernelPath?: Record<string, unknown> | null;
+}): Record<string, number | boolean> | null;
+
 export declare function canUseNativeF16FusedGateUp(options?: {
   inputDtype?: 'f16' | 'f32' | null;
   gateDtype?: string | null;
   hasF16?: boolean;
+}): boolean;
+
+export declare function canFuseSplitPrefillF16GateUpPath(options?: {
+  kernelPath?: Record<string, unknown> | null;
+  phase?: 'prefill' | 'decode' | null;
+  layerIdx?: number;
+  gateDtype?: string | null;
+  upDtype?: string | null;
 }): boolean;
 
 /**

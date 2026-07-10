@@ -7,6 +7,18 @@ const config = JSON.parse(
 const catalog = JSON.parse(
   await fs.readFile(new URL('../../models/catalog.json', import.meta.url), 'utf8')
 );
+const qwenEmbeddingMetalThroughputProfile = JSON.parse(
+  await fs.readFile(
+    new URL('../../src/config/runtime/profiles/qwen-3-embedding-0-6b-metal-throughput.json', import.meta.url),
+    'utf8'
+  )
+);
+const qwenEmbeddingMetalStabilityProfile = JSON.parse(
+  await fs.readFile(
+    new URL('../../src/config/runtime/profiles/qwen-3-embedding-0-6b-metal-stability.json', import.meta.url),
+    'utf8'
+  )
+);
 
 const catalogByModelId = new Map(
   (Array.isArray(catalog?.models) ? catalog.models : [])
@@ -66,5 +78,27 @@ const qwenEmbedding = config.modelProfiles.find(
 assert.ok(qwenEmbedding, 'qwen-3-embedding-0-6b-q4k-ehf16-af32 must have an embedding compare profile');
 assert.equal(qwenEmbedding.releaseClaimable, true);
 assert.equal(qwenEmbedding.defaultDopplerSource, 'quickstart-registry');
+assert.equal(qwenEmbedding.dopplerRuntimeProfile, 'profiles/qwen-3-embedding-0-6b-metal-throughput');
+assert.equal(qwenEmbedding.dopplerVerifyRuntimeProfile, 'profiles/qwen-3-embedding-0-6b-metal-stability');
+assert.equal(
+  qwenEmbeddingMetalThroughputProfile.runtime.inference.compute,
+  undefined,
+  'Qwen embedding Metal throughput profile must not change manifest compute precision'
+);
+assert.equal(
+  qwenEmbeddingMetalStabilityProfile.runtime.inference.compute,
+  undefined,
+  'Qwen embedding Metal stability profile must not change manifest compute precision'
+);
+assert.equal(
+  qwenEmbeddingMetalThroughputProfile.runtime.inference.session.skipEmbeddingKVCacheWrites,
+  true,
+  'Qwen embedding Metal throughput profile must skip dead embedding KV cache writes'
+);
+assert.equal(
+  qwenEmbeddingMetalStabilityProfile.runtime.inference.session.skipEmbeddingKVCacheWrites,
+  true,
+  'Qwen embedding Metal stability profile must skip dead embedding KV cache writes'
+);
 
 console.log('embedding-compare-contract.test: ok');

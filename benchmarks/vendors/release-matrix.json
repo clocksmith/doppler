@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-08T00:40:06.089Z",
+  "generatedAt": "2026-07-09T19:35:08.657Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.8",
-    "commitSha": "5f35a84beec20aeb6970ff2ede419c95aa00d55c",
+    "commitSha": "69c495a2723ceef79f9dfa64ef88c8ff2ce40139",
     "dirty": true
   },
   "sources": {
@@ -28,8 +28,8 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "2674668220d027f472a9c8af9c8a47cdd291ffc27fa7b1bf13a39f96d47e467e",
-      "bytes": 8097,
+      "sha256": "67866eecb805418a4069b0c6f96a2d233624c381c73a2720fc40909826abeba1",
+      "bytes": 8312,
       "updated": "2026-06-15"
     },
     "compareMetricContract": {

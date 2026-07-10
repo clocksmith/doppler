@@ -47,6 +47,7 @@ export interface KVCacheDispatchState {
   bdpaIndex: GPUBuffer | null;
   bdpaBasisCount: number;
   hasCache: boolean;
+  forceCurrentTensors?: boolean;
   totalSeqLen: number;
   diffusionGemmaDecoder?: boolean;
   ownedBuffers?: GPUBuffer[] | null;
@@ -116,7 +117,10 @@ export function resolveKVCacheState(
   kTensor: Tensor | null,
   vTensor: Tensor | null,
   currentSeqLen: number,
-  numTokens: number
+  numTokens: number,
+  options?: {
+    forceCurrentTensors?: boolean;
+  }
 ): KVCacheDispatchState;
 
 export interface DiffusionGemmaDecoderKVStateInput {

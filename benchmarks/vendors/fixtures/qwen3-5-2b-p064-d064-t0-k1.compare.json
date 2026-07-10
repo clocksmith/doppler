@@ -18,7 +18,7 @@
   "compareConfig": {
     "source": "benchmarks/vendors/compare-engines.config.json",
     "schemaVersion": 1,
-    "sourceSha256": "cde941df0dce6fc672a1460649335cc99aba65e79bacbc9161df9a9f681a3936",
+    "sourceSha256": "53e108f76c8381d2c0b6376e017b7fa34fe388fdca6a581cc2a114404b15ef98",
     "profileSource": "config",
     "updated": "2026-06-15",
     "defaults": {

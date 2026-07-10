@@ -2,6 +2,7 @@ import { getDevice, getDeviceEpoch } from '../device.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
 import { castF32ToF16, recordCastF32ToF16 } from './cast.js';
 import {
   createUniformBufferFromData,
@@ -35,8 +36,8 @@ struct LinearAttentionParams {
   _pad_u32_0: u32,
   rms_norm_eps: f32,
   qk_l2norm_eps: f32,
-  _pad_f32_0: f32,
-  _pad_f32_1: f32,
+  packed_flags: u32,
+  b_proj_offset_elements: u32,
 }
 
 @group(0) @binding(0) var<uniform> params: LinearAttentionParams;
@@ -60,12 +61,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   if (channel >= params.conv_dim) {
     return;
   }
+  let qkvz_packed = (params.packed_flags & 2u) != 0u;
+  let qkv_stride = select(params.conv_dim, params.conv_dim + params.value_dim, qkvz_packed);
 
   let kernel_size = params.conv_kernel_size;
   let state_base = channel * kernel_size;
 
   for (var token_idx: u32 = 0u; token_idx < params.num_tokens; token_idx = token_idx + 1u) {
-    let qkv_idx = token_idx * params.conv_dim + channel;
+    let qkv_idx = token_idx * qkv_stride + channel;
     let newest = f32(qkv[qkv_idx]);
 
     for (var k: u32 = 0u; k + 1u < kernel_size; k = k + 1u) {
@@ -104,8 +107,8 @@ struct LinearAttentionParams {
   norm_mode: u32,
   rms_norm_eps: f32,
   qk_l2norm_eps: f32,
-  _pad_f32_0: f32,
-  _pad_f32_1: f32,
+  packed_flags: u32,
+  b_proj_offset_elements: u32,
 }
 
 @group(0) @binding(0) var<uniform> params: LinearAttentionParams;
@@ -163,6 +166,7 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
   for (var token_idx: u32 = 0u; token_idx < params.num_tokens; token_idx = token_idx + 1u) {
     let conv_row_base = token_idx * params.conv_dim;
     let z_row_base = token_idx * params.value_dim + head * head_v_dim;
+    let z_packed_base = token_idx * (params.conv_dim + params.value_dim) + params.conv_dim + head * head_v_dim;
     let ab_row_base = token_idx * params.num_v_heads + head;
     let out_row_base = token_idx * params.value_dim + head * head_v_dim;
 
@@ -195,7 +199,8 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
       workgroupBarrier();
     }
     let k_norm_scale = inverseSqrt(shared_sq[0] + params.qk_l2norm_eps);
-    let beta = 1.0 / (1.0 + exp(-f32(b_proj[ab_row_base])));
+    let b_index = select(ab_row_base, params.b_proj_offset_elements + ab_row_base, (params.packed_flags & 1u) != 0u);
+    let beta = 1.0 / (1.0 + exp(-f32(b_proj[b_index])));
     let g = a_neg_exp[head] * softplus(f32(a_proj[ab_row_base]) + dt_bias[head]);
     let g_exp = exp(g);
 
@@ -243,10 +248,190 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     let inv_rms = inverseSqrt(shared_sq[0] / f32(head_v_dim) + params.rms_norm_eps);
 
     if (is_active) {
-      let gate = silu(f32(z_proj[z_row_base + vd]));
+      let z_index = select(z_row_base + vd, z_packed_base + vd, (params.packed_flags & 2u) != 0u);
+      let gate = silu(f32(z_proj[z_index]));
       let norm_index = select(vd, head * head_v_dim + vd, params.norm_mode == 1u);
       output[out_row_base + vd] = (output[out_row_base + vd] * inv_rms) * norm_weight[norm_index] * gate;
     }
+  }
+}
+`;
+}
+
+function buildLinearAttentionFusedDecodeShader(inputDtype) {
+  const inputScalar = selectRuleValue('shared', 'dtype', 'f16OrF32', { useF16: inputDtype === 'f16' });
+  const enableF16 = inputScalar === 'f16' ? 'enable f16;\n\n' : '';
+  return /* wgsl */ `${enableF16}override WORKGROUP_SIZE: u32 = 128u;
+
+struct LinearAttentionParams {
+  num_tokens: u32,
+  conv_dim: u32,
+  conv_kernel_size: u32,
+  num_v_heads: u32,
+  num_k_heads: u32,
+  head_k_dim: u32,
+  head_v_dim: u32,
+  q_size: u32,
+  k_size: u32,
+  value_dim: u32,
+  q_rep: u32,
+  norm_mode: u32,
+  rms_norm_eps: f32,
+  qk_l2norm_eps: f32,
+  packed_flags: u32,
+  b_proj_offset_elements: u32,
+}
+
+@group(0) @binding(0) var<uniform> params: LinearAttentionParams;
+@group(0) @binding(1) var<storage, read> qkv: array<${inputScalar}>;
+@group(0) @binding(2) var<storage, read> z_proj: array<${inputScalar}>;
+@group(0) @binding(3) var<storage, read> ab_proj: array<${inputScalar}>;
+@group(0) @binding(4) var<storage, read> conv_weight: array<f32>;
+@group(0) @binding(5) var<storage, read_write> conv_state: array<f32>;
+@group(0) @binding(6) var<storage, read> dt_bias: array<f32>;
+@group(0) @binding(7) var<storage, read> a_neg_exp: array<f32>;
+@group(0) @binding(8) var<storage, read> norm_weight: array<f32>;
+@group(0) @binding(9) var<storage, read_write> recurrent_state: array<f32>;
+@group(0) @binding(10) var<storage, read_write> output: array<f32>;
+
+var<workgroup> shared_q: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_k: array<f32, WORKGROUP_SIZE>;
+var<workgroup> shared_reduce: array<f32, WORKGROUP_SIZE>;
+
+fn softplus(x: f32) -> f32 {
+  if (x > 20.0) {
+    return x;
+  }
+  if (x < -20.0) {
+    return exp(x);
+  }
+  return log(1.0 + exp(x));
+}
+
+fn silu(x: f32) -> f32 {
+  if (x >= 0.0) {
+    let z = exp(-x);
+    return x / (1.0 + z);
+  }
+  let z = exp(x);
+  return x * z / (1.0 + z);
+}
+
+fn update_conv_channel(channel: u32) -> f32 {
+  let kernel_size = params.conv_kernel_size;
+  let state_base = channel * kernel_size;
+  let newest = f32(qkv[channel]);
+
+  for (var k: u32 = 0u; k + 1u < kernel_size; k = k + 1u) {
+    conv_state[state_base + k] = conv_state[state_base + k + 1u];
+  }
+  conv_state[state_base + kernel_size - 1u] = newest;
+
+  var mixed: f32 = 0.0;
+  for (var k: u32 = 0u; k < kernel_size; k = k + 1u) {
+    mixed = mixed + conv_state[state_base + k] * conv_weight[state_base + k];
+  }
+  return silu(mixed);
+}
+
+fn reduce_sum(value: f32, lid: u32) -> f32 {
+  shared_reduce[lid] = value;
+  workgroupBarrier();
+  for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride / 2u) {
+    if (lid < stride) {
+      shared_reduce[lid] = shared_reduce[lid] + shared_reduce[lid + stride];
+    }
+    workgroupBarrier();
+  }
+  return shared_reduce[0];
+}
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main(@builtin(workgroup_id) wid: vec3<u32>,
+        @builtin(local_invocation_id) lid: vec3<u32>) {
+  let head = wid.x;
+  let lane = lid.x;
+  if (head >= params.num_v_heads || params.num_tokens != 1u || params.q_rep != 1u) {
+    return;
+  }
+
+  let head_k_dim = params.head_k_dim;
+  let head_v_dim = params.head_v_dim;
+  let q_base = head * head_k_dim;
+  let k_base = params.q_size + head * head_k_dim;
+  let v_base = params.q_size + params.k_size + head * head_v_dim;
+  let out_row_base = head * head_v_dim;
+  let recurrent_head_base = head * head_k_dim * head_v_dim;
+  let is_k_active = lane < head_k_dim;
+  let is_v_active = lane < head_v_dim;
+
+  var q_val = 0.0;
+  var k_val = 0.0;
+  var v_val = 0.0;
+  if (is_k_active) {
+    q_val = update_conv_channel(q_base + lane);
+    k_val = update_conv_channel(k_base + lane);
+  }
+  if (is_v_active) {
+    v_val = update_conv_channel(v_base + lane);
+  }
+  shared_q[lane] = select(0.0, q_val, is_k_active);
+  shared_k[lane] = select(0.0, k_val, is_k_active);
+  workgroupBarrier();
+
+  let q_norm_sq = reduce_sum(select(0.0, q_val * q_val, is_k_active), lane);
+  let head_scale = inverseSqrt(f32(head_k_dim));
+  let q_norm_scale = head_scale / sqrt(q_norm_sq + params.qk_l2norm_eps);
+  let k_norm_sq = reduce_sum(select(0.0, k_val * k_val, is_k_active), lane);
+  let k_norm_scale = inverseSqrt(k_norm_sq + params.qk_l2norm_eps);
+
+  let ab_row_base = head;
+  let b_index = params.b_proj_offset_elements + ab_row_base;
+  let beta = 1.0 / (1.0 + exp(-f32(ab_proj[b_index])));
+  let g = a_neg_exp[head] * softplus(f32(ab_proj[ab_row_base]) + dt_bias[head]);
+  let g_exp = exp(g);
+
+  if (is_v_active) {
+    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+      let state_idx = recurrent_head_base + kd * head_v_dim + lane;
+      recurrent_state[state_idx] = recurrent_state[state_idx] * g_exp;
+    }
+  }
+
+  var kv_mem = 0.0;
+  if (is_v_active) {
+    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+      let k_normed = shared_k[kd] * k_norm_scale;
+      let state_idx = recurrent_head_base + kd * head_v_dim + lane;
+      kv_mem = kv_mem + recurrent_state[state_idx] * k_normed;
+    }
+    let delta = (v_val - kv_mem) * beta;
+    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+      let k_normed = shared_k[kd] * k_norm_scale;
+      let state_idx = recurrent_head_base + kd * head_v_dim + lane;
+      recurrent_state[state_idx] = recurrent_state[state_idx] + k_normed * delta;
+    }
+  }
+
+  var out_value = 0.0;
+  if (is_v_active) {
+    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+      let q_normed = shared_q[kd] * q_norm_scale;
+      let state_idx = recurrent_head_base + kd * head_v_dim + lane;
+      out_value = out_value + recurrent_state[state_idx] * q_normed;
+    }
+  }
+
+  let out_sum_sq = reduce_sum(select(0.0, out_value * out_value, is_v_active), lane);
+  let inv_rms = inverseSqrt(out_sum_sq / f32(head_v_dim) + params.rms_norm_eps);
+
+  if (is_v_active) {
+    let z_row_base = head * head_v_dim;
+    let z_packed_base = params.conv_dim + z_row_base;
+    let z_index = select(z_row_base + lane, z_packed_base + lane, (params.packed_flags & 2u) != 0u);
+    let gate = silu(f32(z_proj[z_index]));
+    let norm_index = select(lane, head * head_v_dim + lane, params.norm_mode == 1u);
+    output[out_row_base + lane] = (out_value * inv_rms) * norm_weight[norm_index] * gate;
   }
 }
 `;
@@ -256,6 +441,7 @@ let cachedEpoch = -1;
 const pipelineCache = new Map();
 let convBindGroupLayout = null;
 let recurrentBindGroupLayout = null;
+let fusedDecodeBindGroupLayout = null;
 
 function createBindGroupLayouts(device) {
   convBindGroupLayout = getOrCreateBindGroupLayout(
@@ -285,6 +471,23 @@ function createBindGroupLayouts(device) {
     ],
     device
   );
+  fusedDecodeBindGroupLayout = getOrCreateBindGroupLayout(
+    'linear_attention_fused_decode_layout',
+    [
+      { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+      { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+      { binding: 6, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 7, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 8, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      { binding: 9, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+      { binding: 10, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+    ],
+    device
+  );
 }
 
 function createPipelines(device, inputDtype) {
@@ -297,6 +500,10 @@ function createPipelines(device, inputDtype) {
   const recurrentModule = device.createShaderModule({
     label: `linear_attention_recurrent_${variant}`,
     code: buildLinearAttentionRecurrentShader(variant),
+  });
+  const fusedDecodeModule = device.createShaderModule({
+    label: `linear_attention_fused_decode_${variant}`,
+    code: buildLinearAttentionFusedDecodeShader(variant),
   });
 
   const convPipeline = device.createComputePipeline({
@@ -321,8 +528,23 @@ function createPipelines(device, inputDtype) {
       },
     },
   });
+  const fusedDecodePipeline = device.createComputePipeline({
+    label: `linear_attention_fused_decode_pipeline_${variant}`,
+    layout: getOrCreatePipelineLayout(
+      'linear_attention_fused_decode_pipeline_layout',
+      [fusedDecodeBindGroupLayout],
+      device
+    ),
+    compute: {
+      module: fusedDecodeModule,
+      entryPoint: 'main',
+      constants: {
+        WORKGROUP_SIZE: HEAD_WORKGROUP_SIZE,
+      },
+    },
+  });
 
-  pipelineCache.set(variant, { convPipeline, recurrentPipeline });
+  pipelineCache.set(variant, { convPipeline, recurrentPipeline, fusedDecodePipeline });
 }
 
 function normalizeInputDtype(dtype) {
@@ -332,10 +554,11 @@ function normalizeInputDtype(dtype) {
 function ensurePipelines(device, inputDtype) {
   const epoch = getDeviceEpoch();
   if (epoch !== cachedEpoch) {
-    pipelineCache.clear();
-    convBindGroupLayout = null;
-    recurrentBindGroupLayout = null;
-    cachedEpoch = epoch;
+      pipelineCache.clear();
+      convBindGroupLayout = null;
+      recurrentBindGroupLayout = null;
+      fusedDecodeBindGroupLayout = null;
+      cachedEpoch = epoch;
   }
   const variant = normalizeInputDtype(inputDtype);
   if (!pipelineCache.has(variant)) {
@@ -362,8 +585,9 @@ function buildParamsData(params) {
   view.setUint32(44, params.normMode, true);
   view.setFloat32(48, params.rmsNormEps, true);
   view.setFloat32(52, params.qkL2NormEps, true);
-  view.setFloat32(56, 0, true);
-  view.setFloat32(60, 0, true);
+  const packedFlags = (params.abPacked ? 1 : 0) | (params.qkvzPacked ? 2 : 0);
+  view.setUint32(56, packedFlags, true);
+  view.setUint32(60, params.bProjOffsetElements ?? 0, true);
   return data;
 }
 
@@ -379,6 +603,24 @@ function resolveOutputDtype(outputDtype) {
     return normalized;
   }
   throw new Error(`linear_attention core output dtype "${outputDtype}" is invalid.`);
+}
+
+function canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor) {
+  const session = getRuntimeConfig()?.inference?.session;
+  return session?.useLinearAttentionFusedDecodeCore === true
+    && numTokens === 1
+    && options?.abPacked === true
+    && Number.isFinite(options?.bProjOffsetElements)
+    && options.bProjOffsetElements > 0
+    && aTensor?.buffer === bTensor?.buffer
+    && layerState.qRep === 1
+    && layerState.numKHeads === layerState.numVHeads
+    && layerState.headKDim <= HEAD_WORKGROUP_SIZE
+    && layerState.headVDim <= HEAD_WORKGROUP_SIZE
+    && layerState.qSize === layerState.numKHeads * layerState.headKDim
+    && layerState.kSize === layerState.numKHeads * layerState.headKDim
+    && layerState.vSize === layerState.numVHeads * layerState.headVDim
+    && layerState.convDim === layerState.qSize + layerState.kSize + layerState.vSize;
 }
 
 export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTensor, layerState, options = {}) {
@@ -431,10 +673,160 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
 
   const convOutSize = numTokens * layerState.convDim * Float32Array.BYTES_PER_ELEMENT;
   const outputSize = numTokens * layerState.valueDim * Float32Array.BYTES_PER_ELEMENT;
-  const convOutBuffer = acquireBuffer(convOutSize, undefined, `L${options.layerIdx ?? 0}.linear_conv_out`);
+  let convOutBuffer = null;
   const outputBuffer = acquireBuffer(outputSize, undefined, `L${options.layerIdx ?? 0}.linear_attention_core_out`);
   const outputDtype = resolveOutputDtype(options.outputDtype);
   const outputShape = [numTokens, layerState.valueDim];
+  const paramsPayload = {
+    numTokens,
+    convDim: layerState.convDim,
+    convKernelSize: layerState.convKernelSize,
+    numVHeads: layerState.numVHeads,
+    numKHeads: layerState.numKHeads,
+    headKDim: layerState.headKDim,
+    headVDim: layerState.headVDim,
+    qSize: layerState.qSize,
+    kSize: layerState.kSize,
+    valueDim: layerState.valueDim,
+    qRep: layerState.qRep,
+    normMode: layerState.normMode === 'per_head' ? 1 : 0,
+    rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
+    qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
+    abPacked: options.abPacked === true,
+    qkvzPacked: options.qkvzPacked === true,
+    bProjOffsetElements: options.bProjOffsetElements,
+  };
+  const useFusedDecodeCore = canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor);
+  if (useFusedDecodeCore) {
+    if (useRecorder) {
+      const paramsBuffer = createUniformBufferFromData(
+        'linear_attention_params',
+        buildParamsData(paramsPayload),
+        recorder
+      );
+      try {
+        const fusedBindGroup = device.createBindGroup({
+          label: 'linear_attention_fused_decode_bind_group',
+          layout: fusedDecodeBindGroupLayout,
+          entries: [
+            { binding: 0, resource: { buffer: paramsBuffer } },
+            { binding: 1, resource: { buffer: qkvTensor.buffer } },
+            { binding: 2, resource: { buffer: zTensor.buffer } },
+            { binding: 3, resource: { buffer: aTensor.buffer } },
+            { binding: 4, resource: { buffer: layerState.convWeightGPU } },
+            { binding: 5, resource: { buffer: layerState.convStateGPU } },
+            { binding: 6, resource: { buffer: layerState.dtBiasGPU } },
+            { binding: 7, resource: { buffer: layerState.aNegExpGPU } },
+            { binding: 8, resource: { buffer: layerState.normWeightGPU } },
+            { binding: 9, resource: { buffer: layerState.recurrentStateGPU } },
+            { binding: 10, resource: { buffer: outputBuffer } },
+          ],
+        });
+        recordDispatch(
+          recorder,
+          pipelines.fusedDecodePipeline,
+          fusedBindGroup,
+          [layerState.numVHeads, 1, 1],
+          'linear_attention_fused_decode_core'
+        );
+        const output = createTensor(
+          outputBuffer,
+          'f32',
+          outputShape,
+          `L${options.layerIdx ?? 0}.linear_attention_core`
+        );
+        if (outputDtype === 'f16') {
+          assertImplicitDtypeTransitionAllowed({
+            executionPolicies: options.executionPolicies ?? null,
+            fromDtype: output.dtype,
+            toDtype: 'f16',
+            op: 'linear_attention_core',
+            detail: 'Linear attention core would narrow activations implicitly.',
+          });
+          const casted = await recordCastF32ToF16(recorder, output);
+          recorder.trackTemporaryBuffer(outputBuffer);
+          return casted;
+        }
+        return output;
+      } catch (error) {
+        releaseBuffer(outputBuffer);
+        throw error;
+      }
+    }
+
+    const paramsBuffer = createUniformBufferFromData(
+      'linear_attention_params',
+      buildParamsData(paramsPayload),
+      null,
+      device,
+      { useCache: false }
+    );
+    let submitted = false;
+    try {
+      const fusedBindGroup = device.createBindGroup({
+        label: 'linear_attention_fused_decode_bind_group',
+        layout: fusedDecodeBindGroupLayout,
+        entries: [
+          { binding: 0, resource: { buffer: paramsBuffer } },
+          { binding: 1, resource: { buffer: qkvTensor.buffer } },
+          { binding: 2, resource: { buffer: zTensor.buffer } },
+          { binding: 3, resource: { buffer: aTensor.buffer } },
+          { binding: 4, resource: { buffer: layerState.convWeightGPU } },
+          { binding: 5, resource: { buffer: layerState.convStateGPU } },
+          { binding: 6, resource: { buffer: layerState.dtBiasGPU } },
+          { binding: 7, resource: { buffer: layerState.aNegExpGPU } },
+          { binding: 8, resource: { buffer: layerState.normWeightGPU } },
+          { binding: 9, resource: { buffer: layerState.recurrentStateGPU } },
+          { binding: 10, resource: { buffer: outputBuffer } },
+        ],
+      });
+      const encoder = device.createCommandEncoder({ label: 'linear_attention_fused_decode_core' });
+      const pass = encoder.beginComputePass({ label: 'linear_attention_fused_decode_core_pass' });
+      pass.setPipeline(pipelines.fusedDecodePipeline);
+      pass.setBindGroup(0, fusedBindGroup);
+      pass.dispatchWorkgroups(layerState.numVHeads, 1, 1);
+      pass.end();
+      device.queue.submit([encoder.finish()]);
+      submitted = true;
+
+      const output = createTensor(
+        outputBuffer,
+        'f32',
+        outputShape,
+        `L${options.layerIdx ?? 0}.linear_attention_core`
+      );
+      if (outputDtype === 'f16') {
+        assertImplicitDtypeTransitionAllowed({
+          executionPolicies: options.executionPolicies ?? null,
+          fromDtype: output.dtype,
+          toDtype: 'f16',
+          op: 'linear_attention_core',
+          detail: 'Linear attention core would narrow activations implicitly.',
+        });
+        const casted = await castF32ToF16(output);
+        releaseBuffer(outputBuffer);
+        return casted;
+      }
+      return output;
+    } catch (error) {
+      releaseBuffer(outputBuffer);
+      throw error;
+    } finally {
+      if (submitted) {
+        device.queue.onSubmittedWorkDone()
+          .then(() => {
+            paramsBuffer.destroy();
+          })
+          .catch(() => {
+            paramsBuffer.destroy();
+          });
+      } else {
+        paramsBuffer.destroy();
+      }
+    }
+  }
+
+  convOutBuffer = acquireBuffer(convOutSize, undefined, `L${options.layerIdx ?? 0}.linear_conv_out`);
   if (useRecorder) {
     const paramsBuffer = createUniformBufferFromData(
       'linear_attention_params',
@@ -453,6 +845,9 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         normMode: layerState.normMode === 'per_head' ? 1 : 0,
         rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
         qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
+        abPacked: options.abPacked === true,
+        qkvzPacked: options.qkvzPacked === true,
+        bProjOffsetElements: options.bProjOffsetElements,
       }),
       recorder
     );
@@ -546,6 +941,9 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       normMode: layerState.normMode === 'per_head' ? 1 : 0,
       rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
       qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
+      abPacked: options.abPacked === true,
+      qkvzPacked: options.qkvzPacked === true,
+      bProjOffsetElements: options.bProjOffsetElements,
     }),
     null,
     device,

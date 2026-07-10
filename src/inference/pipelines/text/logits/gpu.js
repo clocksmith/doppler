@@ -5,7 +5,7 @@ import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js'
 import { runMatmul, runRMSNorm, runScale, recordScale } from '../../../../gpu/kernel-selector.js';
 import { recordMatmul } from '../../../../gpu/kernels/matmul.js';
 import { recordRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
-import { recordLmHeadArgmaxF16 } from '../../../../gpu/kernels/lm-head-argmax.js';
+import { recordLmHeadArgmax } from '../../../../gpu/kernels/lm-head-argmax.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import {
   castF16ToF32,
@@ -1176,7 +1176,7 @@ export async function recordGreedyLmHeadArgmaxGPU(
     config,
     operatorDiagnostics
   );
-  const outputBuffer = await recordLmHeadArgmaxF16(recorder, tail.lmHeadInputTensor, tail.lmHeadBuffer, {
+  const outputBuffer = await recordLmHeadArgmax(recorder, tail.lmHeadInputTensor, tail.lmHeadBuffer, {
     vocabSize: tail.matmulVocabSize,
     hiddenSize: tail.hiddenSize,
     padTokenId: options.padTokenId,

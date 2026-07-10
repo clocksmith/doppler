@@ -19,6 +19,19 @@
     },
     {
       "kind": "platform-workaround",
+      "dtypeEffect": "fail-closed",
+      "match": {
+        "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "platformVendor": "apple"
+      },
+      "transforms": ["failClosedPlatformUnsupported"],
+      "reason": "Gemma 4 E2B af32 INT4-PLE currently produces non-finite decode logits on Apple Metal even after the retainQ4KMaterialization workaround disables the retained-Q4K fused FFN path. Fail closed instead of sampling NaN logits.",
+      "evidence": [
+        "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js"
+      ]
+    },
+    {
+      "kind": "platform-workaround",
       "dtypeEffect": "none",
       "match": {
         "modelId": {

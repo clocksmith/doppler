@@ -45,6 +45,8 @@ export interface LayerWeights {
   qkvProj?: GPUBuffer | WeightBuffer | Float32Array | null;
   qkvSizes?: [number, number, number] | null;
   qkvDtype?: 'f16' | 'f32' | null;
+  linearABProj?: WeightBuffer | null;
+  linearQKVZProj?: WeightBuffer | null;
   linearInProjZ?: GPUBuffer | WeightBuffer | Float32Array | null;
   linearInProjA?: GPUBuffer | WeightBuffer | Float32Array | null;
   linearInProjB?: GPUBuffer | WeightBuffer | Float32Array | null;

@@ -1172,6 +1172,18 @@ function assertCommandOutputMatches(result, pattern) {
     qwen08Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
     'profiles/throughput'
   );
+  assert.equal(
+    qwen08Profile?.dopplerRuntimeProfileByDecodeProfileByPlatform?.darwin?.throughput,
+    'profiles/qwen-3-5-0-8b-metal-throughput'
+  );
+  assert.equal(
+    resolveCompareRuntimeProfileMap(qwen08Profile, 'linux').throughput,
+    'profiles/throughput'
+  );
+  assert.equal(
+    resolveCompareRuntimeProfileMap(qwen08Profile, 'darwin').throughput,
+    'profiles/qwen-3-5-0-8b-metal-throughput'
+  );
   assert.equal(qwen08Profile.compareLane, 'performance_comparable');
   assert.equal(qwen08Profile.compareLaneReason, null);
 

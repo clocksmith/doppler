@@ -134,6 +134,36 @@ const FINITENESS_RESET_WORDS = new Uint32Array(4);
 const tokenizerSuppressionCache = new WeakMap();
 const PREFILL_CHUNK_SUBMIT_MODES = new Set(['sync', 'async']);
 
+function mergeRecordOpLabelCounts(target, source) {
+  const merged = target && typeof target === 'object' && !Array.isArray(target)
+    ? target
+    : {};
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    return merged;
+  }
+  for (const [label, rawCount] of Object.entries(source)) {
+    const count = Number(rawCount);
+    if (typeof label !== 'string' || label.length === 0 || !Number.isFinite(count) || count <= 0) {
+      continue;
+    }
+    merged[label] = (Number.isFinite(merged[label]) ? merged[label] : 0) + count;
+  }
+  return merged;
+}
+
+function recordPrefillRecorderStats(state, recorder) {
+  if (!recorder || typeof recorder.getStats !== 'function') {
+    return;
+  }
+  const recordStats = recorder.getStats();
+  state.stats.prefillRecordOps = (state.stats.prefillRecordOps ?? 0) + recordStats.opCount;
+  state.stats.prefillRecordPasses = (state.stats.prefillRecordPasses ?? 0) + recordStats.computePassCount;
+  state.stats.prefillRecordOpLabels = mergeRecordOpLabelCounts(
+    state.stats.prefillRecordOpLabels,
+    recordStats.opLabelCounts
+  );
+}
+
 export function resolvePrefillChunkSubmitMode(runtimeConfig, modelConfig) {
   const runtimeSubmit = runtimeConfig?.inference?.session?.prefillChunkSubmitMode;
   const manifestSubmit = modelConfig?.sessionSettings?.prefillChunkSubmitMode;
@@ -555,6 +585,11 @@ export class PipelineGenerator {
     this.#state.stats.decodeProfileSteps = [];
     this.#state.stats.ttftMs = 0;
     this.#state.stats.decodeTimeMs = 0;
+    this.#state.stats.prefillRecordMs = 0;
+    this.#state.stats.prefillRecordOps = 0;
+    this.#state.stats.prefillRecordPasses = 0;
+    this.#state.stats.prefillRecordOpLabels = {};
+    this.#state.stats.prefillSubmitWaitMs = 0;
     this.#state.stats.decodeRecordMs = 0;
     this.#state.stats.decodeRecordOps = 0;
     this.#state.stats.decodeRecordPasses = 0;
@@ -687,6 +722,7 @@ export class PipelineGenerator {
 
     try {
       if (currentRecorder) {
+        recordPrefillRecorderStats(this.#state, currentRecorder);
         await currentRecorder.submitAndWait();
         await recordProfile(currentRecorder);
       } else {
@@ -723,12 +759,15 @@ export class PipelineGenerator {
 
   async _prefillPromptToLogits(prompt, opts, contextLabel) {
     const prefillStartSeqLen = this.#state.currentSeqLen;
+    const inputStart = performance.now();
     const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, contextLabel, opts.inputIds);
+    const inputMs = performance.now() - inputStart;
     if (opts.debug) {
       log.debug('Pipeline', `${contextLabel}: ${inputIds.length} tokens`);
     }
 
     let logits;
+    const prefillStart = performance.now();
     const runPrefill = () => this._prefillInputIdsToLogits(inputIds, opts);
     try {
       logits = await runPrefill();
@@ -746,7 +785,21 @@ export class PipelineGenerator {
       );
     }
 
-    return { inputIds, logits };
+    return {
+      inputIds,
+      logits,
+      phase: {
+        inputMs,
+        prefillMs: performance.now() - prefillStart,
+        tokens: inputIds.length,
+        prefillRecordMs: this.#state.stats.prefillRecordMs ?? null,
+        prefillRecordOps: this.#state.stats.prefillRecordOps ?? null,
+        prefillRecordPasses: this.#state.stats.prefillRecordPasses ?? null,
+        prefillRecordOpLabels: this.#state.stats.prefillRecordOpLabels ?? null,
+        prefillSubmitWaitMs: this.#state.stats.prefillSubmitWaitMs ?? null,
+        gpuPrefillMs: this.#state.stats.gpuTimePrefillMs ?? null,
+      },
+    };
   }
 
   async _decodeStepToLogits(currentIds, opts) {
@@ -805,6 +858,9 @@ export class PipelineGenerator {
     this.#state.stats.decodeReadbackCleanupMs = 0;
     this.#state.stats.decodeReadbackCopyMs = 0;
     this.#state.stats.prefillRecordMs = 0;
+    this.#state.stats.prefillRecordOps = 0;
+    this.#state.stats.prefillRecordPasses = 0;
+    this.#state.stats.prefillRecordOpLabels = {};
     this.#state.stats.prefillSubmitWaitMs = 0;
     this.#state.stats.singleTokenSubmitWaitMs = 0;
     this.#state.stats.singleTokenReadbackWaitMs = 0;
@@ -1611,6 +1667,7 @@ export class PipelineGenerator {
       } = prefillResult;
       currentHiddenBuffer = prefillResult.currentHiddenBuffer;
       if (currentRecorder) {
+        recordPrefillRecorderStats(this.#state, currentRecorder);
         await currentRecorder.submitAndWait();
         await recordProfile(currentRecorder);
       } else {
@@ -1698,6 +1755,7 @@ export class PipelineGenerator {
       } = prefillResult;
       currentHiddenBuffer = prefillResult.currentHiddenBuffer;
       if (currentRecorder) {
+        recordPrefillRecorderStats(this.#state, currentRecorder);
         await currentRecorder.submitAndWait();
         await recordProfile(currentRecorder);
       } else {
@@ -1830,6 +1888,9 @@ export class PipelineGenerator {
     this.#state.stats.decodeReadbackCleanupMs = 0;
     this.#state.stats.decodeReadbackCopyMs = 0;
     this.#state.stats.prefillRecordMs = 0;
+    this.#state.stats.prefillRecordOps = 0;
+    this.#state.stats.prefillRecordPasses = 0;
+    this.#state.stats.prefillRecordOpLabels = {};
     this.#state.stats.prefillSubmitWaitMs = 0;
     this.#state.stats.singleTokenSubmitWaitMs = 0;
     this.#state.stats.singleTokenReadbackWaitMs = 0;
@@ -2011,6 +2072,7 @@ export class PipelineGenerator {
 
       // Ensure prefill work completes before returning a usable snapshot.
       if (currentRecorder) {
+        recordPrefillRecorderStats(this.#state, currentRecorder);
         await currentRecorder.submitAndWait();
         await recordProfile(currentRecorder);
       } else {
@@ -2045,20 +2107,27 @@ export class PipelineGenerator {
       throw new Error('Generation already in progress');
     }
     assertIncrementalDecodeSupport(this.#state, 'prefillWithEmbedding');
+    const totalStart = performance.now();
     this._resetDecodeRuntimeState();
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillEmbeddingOptions(this.#state, options);
     const prefillStartSeqLen = this.#state.currentSeqLen;
+    const inputStart = performance.now();
     const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, 'prefillWithEmbedding', opts.inputIds);
+    const inputMs = performance.now() - inputStart;
     if (opts.debug) {
       log.debug('Pipeline', `PrefillWithEmbedding: ${inputIds.length} tokens (mode=${opts.embeddingMode})`);
     }
 
     try {
       let prefillResult;
+      const prefillStart = performance.now();
       try {
-        prefillResult = await this._prefillToHidden(inputIds, opts);
+        prefillResult = await this._prefillToHidden(inputIds, {
+          ...opts,
+          _embeddingOnly: options.__skipStateSnapshot === true,
+        });
       } catch (error) {
         if (shouldRetryWithFinitenessFallback(error)) {
           log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillWithEmbedding. Retrying with F32 precision.`);
@@ -2066,13 +2135,17 @@ export class PipelineGenerator {
             opts,
             'prefillWithEmbedding',
             1,
-            () => this._prefillToHidden(inputIds, opts),
+            () => this._prefillToHidden(inputIds, {
+              ...opts,
+              _embeddingOnly: options.__skipStateSnapshot === true,
+            }),
             prefillStartSeqLen
           );
         } else {
           throw error;
         }
       }
+      const prefillMs = performance.now() - prefillStart;
 
       const {
         numTokens,
@@ -2086,7 +2159,10 @@ export class PipelineGenerator {
       } = prefillResult;
 
       // Ensure prefill work completes before readback.
+      let submitWaitMs = 0;
+      const submitWaitStart = performance.now();
       if (currentRecorder) {
+        recordPrefillRecorderStats(this.#state, currentRecorder);
         await currentRecorder.submitAndWait();
         await recordProfile(currentRecorder);
       } else {
@@ -2095,21 +2171,34 @@ export class PipelineGenerator {
           await device.queue.onSubmittedWorkDone();
         }
       }
+      submitWaitMs = performance.now() - submitWaitStart;
 
       if (!allowReadback('pipeline.prefill.embedding')) {
         throw new Error('GPU readback disabled; cannot return embedding');
       }
 
       let embedding;
+      let hiddenBytes = 0;
+      let readbackMs = 0;
+      let decodeHiddenMs = 0;
+      let finalNormMs = 0;
+      let extractMs = 0;
       try {
         const hiddenSize = config.hiddenSize;
-        const hiddenBytes = numTokens * hiddenSize * activationBytes;
+        hiddenBytes = numTokens * hiddenSize * activationBytes;
+        const readbackStart = performance.now();
         const hiddenData = await readBuffer(currentHiddenBuffer, hiddenBytes);
+        readbackMs = performance.now() - readbackStart;
         if (hiddenData.byteLength === 0) {
           throw new Error('GPU readback disabled; cannot return embedding');
         }
+        const decodeStart = performance.now();
         const hiddenStates = decodeReadback(hiddenData, activationDtype);
+        decodeHiddenMs = performance.now() - decodeStart;
+        const finalNormStart = performance.now();
         const finalNormWeights = await this._getFinalNormWeights();
+        finalNormMs = performance.now() - finalNormStart;
+        const extractStart = performance.now();
         embedding = this._extractEmbeddingFromHidden(
           hiddenStates,
           numTokens,
@@ -2118,11 +2207,31 @@ export class PipelineGenerator {
           finalNormWeights,
           config
         );
+        extractMs = performance.now() - extractStart;
       } finally {
         releaseBuffer(currentHiddenBuffer);
       }
 
       this.#state.currentSeqLen = startPos + numTokens;
+      const phase = {
+        totalMs: performance.now() - totalStart,
+        inputMs,
+        prefillMs,
+        submitWaitMs,
+        readbackMs,
+        decodeHiddenMs,
+        finalNormMs,
+        extractMs,
+        hiddenBytes,
+        tokens: numTokens,
+        activationDtype,
+        prefillRecordMs: this.#state.stats.prefillRecordMs ?? null,
+        prefillRecordOps: this.#state.stats.prefillRecordOps ?? null,
+        prefillRecordPasses: this.#state.stats.prefillRecordPasses ?? null,
+        prefillRecordOpLabels: this.#state.stats.prefillRecordOpLabels ?? null,
+        prefillSubmitWaitMs: this.#state.stats.prefillSubmitWaitMs ?? null,
+        gpuPrefillMs: this.#state.stats.gpuTimePrefillMs ?? null,
+      };
 
       // Batch embedding skips expensive KV cache clone and linear attention clone
       // since the caller will reset immediately after extracting the embedding.
@@ -2133,6 +2242,7 @@ export class PipelineGenerator {
           tokens: inputIds,
           embedding,
           embeddingMode: opts.embeddingMode,
+          phase,
           linearAttention: null,
         };
       }
@@ -2148,6 +2258,7 @@ export class PipelineGenerator {
         tokens: inputIds,
         embedding,
         embeddingMode: opts.embeddingMode,
+        phase,
         linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
       };
     } finally {
@@ -2161,12 +2272,13 @@ export class PipelineGenerator {
       throw new Error('Generation already in progress');
     }
     assertIncrementalDecodeSupport(this.#state, 'prefillWithLogits');
+    const totalStart = performance.now();
     this._resetDecodeRuntimeState();
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillOptions(this.#state, options);
     try {
-      const { inputIds, logits } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithLogits');
+      const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithLogits');
 
       const snapshot = this.#state.kvCache?.clone();
       if (!snapshot) {
@@ -2178,6 +2290,10 @@ export class PipelineGenerator {
         seqLen: this.#state.currentSeqLen,
         tokens: inputIds,
         logits,
+        phase: {
+          ...(prefillPhase ?? {}),
+          totalMs: performance.now() - totalStart,
+        },
         linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
       };
     } finally {
@@ -2191,6 +2307,7 @@ export class PipelineGenerator {
       throw new Error('Generation already in progress');
     }
     assertIncrementalDecodeSupport(this.#state, 'prefillWithTokenLogits');
+    const totalStart = performance.now();
     const selectedTokenIds = normalizeSelectedLogitTokenIds(
       tokenIds,
       this.#state.modelConfig.vocabSize,
@@ -2202,7 +2319,7 @@ export class PipelineGenerator {
     const opts = resolvePrefillOptions(this.#state, options);
     opts._selectedLogitTokenIds = selectedTokenIds;
     try {
-      const { inputIds, logits } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithTokenLogits');
+      const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithTokenLogits');
       const logitsByTokenId = {};
       for (let index = 0; index < selectedTokenIds.length; index += 1) {
         logitsByTokenId[selectedTokenIds[index]] = logits[index];
@@ -2213,6 +2330,11 @@ export class PipelineGenerator {
         tokenIds: selectedTokenIds,
         logits,
         logitsByTokenId,
+        phase: {
+          ...(prefillPhase ?? {}),
+          totalMs: performance.now() - totalStart,
+          selectedTokenCount: selectedTokenIds.length,
+        },
       };
     } finally {
       this._closeFinitenessFallbackWindow(opts);
@@ -2225,6 +2347,7 @@ export class PipelineGenerator {
       throw new Error('Generation already in progress');
     }
     assertIncrementalDecodeSupport(this.#state, 'prefillWithTokenLogitsFromKV');
+    const totalStart = performance.now();
     if (!prefix || typeof prefix !== 'object' || !prefix.cache) {
       throw new Error('prefillWithTokenLogitsFromKV.prefix must be a KV cache snapshot.');
     }
@@ -2268,7 +2391,7 @@ export class PipelineGenerator {
     const opts = resolvePrefillOptions(this.#state, options);
     opts._selectedLogitTokenIds = selectedTokenIds;
     try {
-      const { inputIds, logits } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithTokenLogitsFromKV');
+      const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithTokenLogitsFromKV');
       const logitsByTokenId = {};
       for (let index = 0; index < selectedTokenIds.length; index += 1) {
         logitsByTokenId[selectedTokenIds[index]] = logits[index];
@@ -2280,6 +2403,12 @@ export class PipelineGenerator {
         tokenIds: selectedTokenIds,
         logits,
         logitsByTokenId,
+        phase: {
+          ...(prefillPhase ?? {}),
+          totalMs: performance.now() - totalStart,
+          selectedTokenCount: selectedTokenIds.length,
+          prefixTokens: prefix.tokens.length,
+        },
       };
     } finally {
       this._closeFinitenessFallbackWindow(opts);
@@ -2333,6 +2462,11 @@ export class PipelineGenerator {
     this.#state.stats.decodeReadbackMapWaitMs = 0;
     this.#state.stats.decodeReadbackCleanupMs = 0;
     this.#state.stats.decodeReadbackCopyMs = 0;
+    this.#state.stats.prefillRecordMs = 0;
+    this.#state.stats.prefillRecordOps = 0;
+    this.#state.stats.prefillRecordPasses = 0;
+    this.#state.stats.prefillRecordOpLabels = {};
+    this.#state.stats.prefillSubmitWaitMs = 0;
     this.#state.stats.ttftMs = 0;
     const startTime = performance.now();
 
@@ -2914,7 +3048,7 @@ export class PipelineGenerator {
       if (!device || disableCommandBatching) return undefined;
       return opts.profile
         ? createProfilingRecorder(label, device)
-        : createCommandRecorder(label, { recordLabels: opts.debug === true }, device);
+        : createCommandRecorder(label, { recordLabels: opts.debug === true || opts.benchmark === true }, device);
     };
     const recorder = createRecorder('prefill');
     const debugCheckBuffer = this.#state.debug
@@ -2931,6 +3065,9 @@ export class PipelineGenerator {
     );
     context.currentTokenIds = inputIds;
     context.diffusionGemmaDecoder = opts?._diffusionGemmaDecoder === true;
+    context.skipKVCacheWrites = returnHidden
+      && opts?._embeddingOnly === true
+      && this.#state.runtimeConfig?.inference?.session?.skipEmbeddingKVCacheWrites === true;
     context.multimodalBidirectionalSpan = multimodalBidirectionalSpan == null
       ? null
       : {
@@ -3065,6 +3202,7 @@ export class PipelineGenerator {
           hiddenStates.shape,
           hiddenStates.label
         );
+        recordPrefillRecorderStats(this.#state, recorder);
         await recorder.submitAndWait();
         await recordProfile(recorder);
       }
@@ -3099,6 +3237,7 @@ export class PipelineGenerator {
     // buffers, preventing unbounded memory growth during large prefills. Critical for
     // replay_prefill models where each decode step re-runs a prefill-style layer pass.
     const prefillRecorderChunkLayers = resolvePrefillRecorderChunkLayers({
+      configuredPrefillChunkLayers: this.#state.runtimeConfig?.inference?.session?.prefillChunkLayers,
       hasGpuSplitPerLayerInputs: context.perLayerInputsSession?.materialization === 'gpu_split_tables',
       numTokens,
     });
@@ -3155,6 +3294,7 @@ export class PipelineGenerator {
             currentRecorder,
             'prefill_checkpoint_carry'
           );
+          recordPrefillRecorderStats(this.#state, currentRecorder);
           await currentRecorder.submitAndWait();
           await recordProfile(currentRecorder);
           currentRecorder = undefined;
@@ -3167,6 +3307,7 @@ export class PipelineGenerator {
             'prefill_trace_layer_health_carry'
           );
           const traceSubmitStart = performance.now();
+          recordPrefillRecorderStats(this.#state, currentRecorder);
           await currentRecorder.submitAndWait();
           await recordProfile(currentRecorder);
           prefillSubmitWaitMs += performance.now() - traceSubmitStart;
@@ -3240,6 +3381,7 @@ export class PipelineGenerator {
             this.#state.modelConfig
           );
           const chunkSubmitStart = performance.now();
+          recordPrefillRecorderStats(this.#state, currentRecorder);
           if (chunkSubmitMode === 'async' && !opts.profile) {
             currentRecorder.submit({ cleanup: 'deferred' });
           } else {
@@ -3298,6 +3440,7 @@ export class PipelineGenerator {
             currentRecorder,
             'prefill_tsir_drain_carry'
           );
+          recordPrefillRecorderStats(this.#state, currentRecorder);
           await currentRecorder.submitAndWait();
           await recordProfile(currentRecorder);
           currentRecorder = undefined;
@@ -3308,13 +3451,14 @@ export class PipelineGenerator {
     if (this.#state.finitenessBuffer) {
       if (currentRecorder) {
         currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-          currentHiddenBuffer,
-          currentRecorder,
-          'prefill_finiteness_carry'
-        );
-        await currentRecorder.submitAndWait();
-        await recordProfile(currentRecorder);
-        currentRecorder = undefined;
+            currentHiddenBuffer,
+            currentRecorder,
+            'prefill_finiteness_carry'
+          );
+          recordPrefillRecorderStats(this.#state, currentRecorder);
+          await currentRecorder.submitAndWait();
+          await recordProfile(currentRecorder);
+          currentRecorder = undefined;
       }
       const isInfiniteData = await readBuffer(this.#state.finitenessBuffer, 16);
       const u32 = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 4);
@@ -3396,6 +3540,7 @@ export class PipelineGenerator {
       logitsVocabSize = recorded.vocabSize;
       usedRecordedLogits = true;
 
+      recordPrefillRecorderStats(this.#state, currentRecorder);
       await currentRecorder.submitAndWait();
       await recordProfile(currentRecorder);
 
@@ -3457,6 +3602,7 @@ export class PipelineGenerator {
           currentRecorder,
           'prefill_logits_carry'
         );
+        recordPrefillRecorderStats(this.#state, currentRecorder);
         await currentRecorder.submitAndWait();
         await recordProfile(currentRecorder);
       }

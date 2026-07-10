@@ -173,6 +173,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
     },
   }).runtime);
   let result;
+  const benchGenerateBenchmarkFlags = [];
   try {
     result = await runBrowserSuite({
       suite: 'bench',
@@ -205,6 +206,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
         },
         pipeline: {
           async *generate(_promptInput, options = {}) {
+            benchGenerateBenchmarkFlags.push(options.benchmark);
             options.onToken?.(1, 'Blue');
             yield 'Blue';
           },
@@ -363,6 +365,8 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
   }
 
   assert.equal(result.results[0]?.passed, true);
+  assert.ok(benchGenerateBenchmarkFlags.length > 0);
+  assert.equal(benchGenerateBenchmarkFlags.every((value) => value === true), true);
   assert.equal(result.metrics.decodeMode, 'batched_gpu_stepwise_ple');
   assert.deepEqual(result.metrics.decodeCadence, {
     batchSize: 8,

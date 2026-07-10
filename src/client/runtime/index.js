@@ -15,6 +15,7 @@ import {
 } from '../../storage/artifact-storage-context.js';
 import { isNodeRuntime } from '../../utils/runtime-env.js';
 import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
+import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { initDevice } from '../../gpu/device.js';
 
 function emitLoadProgress(callback, phase, percent, message) {
@@ -124,11 +125,16 @@ export function createDopplerRuntimeService({
     await storageContext?.preflight?.();
 
     const effectiveBaseUrl = loadSource.storageBaseUrl ?? loadSource.baseUrl;
+    const isolatedLoader = options.isolatedLoader === true
+      ? createDopplerLoader(options.runtimeConfig?.loading)
+      : null;
     emitLoadProgress(userProgress, 'load', 25, 'Loading weights');
     const pipeline = await createPipeline(loadSource.manifest, {
       baseUrl: effectiveBaseUrl ?? undefined,
       storage: storageContext ?? undefined,
       runtimeConfig: options.runtimeConfig,
+      loader: isolatedLoader ?? undefined,
+      ownsLoader: Boolean(isolatedLoader),
       onProgress: pipelineProgress
         ? (progress) => emitLoadProgress(
           pipelineProgress,

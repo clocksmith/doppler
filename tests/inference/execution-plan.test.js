@@ -291,6 +291,27 @@ const container = { executionPlanState: planState };
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 32 }), 8);
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: true, numTokens: 33 }), 4);
   assert.equal(resolvePrefillRecorderChunkLayers({ hasGpuSplitPerLayerInputs: false, numTokens: 15 }), 4);
+  assert.equal(resolvePrefillRecorderChunkLayers({
+    configuredPrefillChunkLayers: 28,
+    hasGpuSplitPerLayerInputs: true,
+    numTokens: 15,
+  }), 28);
+  assert.throws(
+    () => resolvePrefillRecorderChunkLayers({
+      configuredPrefillChunkLayers: 0,
+      hasGpuSplitPerLayerInputs: true,
+      numTokens: 15,
+    }),
+    /configured prefillChunkLayers must be a positive integer/
+  );
+  assert.throws(
+    () => resolvePrefillRecorderChunkLayers({
+      configuredPrefillChunkLayers: null,
+      hasGpuSplitPerLayerInputs: true,
+      numTokens: 15,
+    }),
+    /configured prefillChunkLayers cannot be null/
+  );
 }
 
 {

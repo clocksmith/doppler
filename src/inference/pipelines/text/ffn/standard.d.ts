@@ -8,7 +8,13 @@
  */
 
 import type { Tensor } from '../../../../gpu/tensor.js';
+import type { WeightBuffer, CpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import type { LayerContext, LayerWeights } from '../types.js';
+
+export interface NextInputNormFusion {
+  layerIdx: number;
+  weight: GPUBuffer | WeightBuffer | CpuWeightBuffer;
+}
 
 /**
  * Process FFN with standard architecture (LLaMA-style).
@@ -22,5 +28,6 @@ export declare function processFFNStandard(
   layerWeights: LayerWeights | undefined,
   fusedResidualInput?: Tensor | null,
   finalOutputScale?: number | null,
-  residualBranchScale?: number | null
+  residualBranchScale?: number | null,
+  nextInputNormFusion?: NextInputNormFusion | null
 ): Promise<Tensor>;

@@ -87,6 +87,66 @@ function resolvePipelineLoadTimings(pipeline) {
   }
 }
 
+function getNestedSampleValue(sample, key) {
+  if (!sample || typeof sample !== 'object' || typeof key !== 'string' || key.length === 0) {
+    return null;
+  }
+  let current = sample;
+  for (const part of key.split('.')) {
+    if (!current || typeof current !== 'object') {
+      return null;
+    }
+    current = current[part];
+  }
+  return current;
+}
+
+function getNestedPhaseValue(sample, key) {
+  const value = getNestedSampleValue(sample, key);
+  return Number.isFinite(value) ? value : null;
+}
+
+function summarizeTimingPhaseSamples(samples, keys) {
+  const rows = Array.isArray(samples) ? samples.filter((sample) => sample && typeof sample === 'object') : [];
+  const summary = {};
+  for (const key of keys) {
+    const values = rows
+      .map((sample) => getNestedPhaseValue(sample, key))
+      .filter((value) => Number.isFinite(value));
+    summary[key] = computeSampleStats(values);
+  }
+  return summary;
+}
+
+function summarizePrefillRecordOps(samples) {
+  const rows = Array.isArray(samples) ? samples.filter((sample) => sample && typeof sample === 'object') : [];
+  const labelSums = {};
+  let labelSampleCount = 0;
+  for (const sample of rows) {
+    const labelCounts = normalizeDecodeRecordOpLabels(getNestedSampleValue(sample, 'prefillRecordOpLabels'));
+    if (!labelCounts) {
+      continue;
+    }
+    labelSampleCount += 1;
+    for (const [label, count] of Object.entries(labelCounts)) {
+      labelSums[label] = (labelSums[label] ?? 0) + count;
+    }
+  }
+  if (labelSampleCount === 0) {
+    return {};
+  }
+  const meanLabels = {};
+  for (const [label, count] of Object.entries(labelSums)) {
+    meanLabels[label] = count / labelSampleCount;
+  }
+  const prefillRecordOps = summarizeTimingPhaseSamples(rows, ['prefillRecordOps']).prefillRecordOps;
+  return {
+    prefillRecordUniqueOpLabels: Object.keys(meanLabels).length,
+    prefillRecordTopOps: buildDecodeRecordTopOps(meanLabels, prefillRecordOps?.mean),
+    prefillRecordTopOpGroups: buildDecodeRecordTopOpGroups(meanLabels, prefillRecordOps?.mean),
+  };
+}
+
 async function loadTrainingSuiteModule() {
   if (!trainingSuiteModulePromise) {
     trainingSuiteModulePromise = import(TRAINING_SUITE_MODULE_PATH);
@@ -1016,13 +1076,18 @@ async function runBenchSuite(options = {}) {
     const documentCounts = [];
     const topDocumentScores = [];
     const topDocumentProbabilities = [];
+    const rerankPhases = [];
+    const rerankDocumentPhases = [];
     let invalidRuns = 0;
     let nonFiniteScores = 0;
     let lastRun = null;
 
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
-      const run = await runRerank(harness.pipeline, runtimeConfig, benchRun);
+      const run = await runRerank(harness.pipeline, runtimeConfig, {
+        ...benchRun,
+        benchmark: true,
+      });
       if (i >= warmupRuns) {
         timedDurations.push(run.durationMs);
         const finiteScores = run.scores.filter((entry) => (
@@ -1035,6 +1100,16 @@ async function runBenchSuite(options = {}) {
         const hasRanking = Array.isArray(run.ranking) && run.ranking.length === run.documentCount;
         if (finiteScores.length === run.scores.length && hasRanking && run.documentCount > 0) {
           durations.push(run.durationMs);
+          if (run.phase && typeof run.phase === 'object') {
+            rerankPhases.push(run.phase);
+            if (Array.isArray(run.phase.documents)) {
+              for (const documentPhase of run.phase.documents) {
+                if (documentPhase?.phase && typeof documentPhase.phase === 'object') {
+                  rerankDocumentPhases.push(documentPhase.phase);
+                }
+              }
+            }
+          }
           documentCounts.push(run.documentCount);
           if (Number.isFinite(run.topDocument?.score)) {
             topDocumentScores.push(run.topDocument.score);
@@ -1057,6 +1132,9 @@ async function runBenchSuite(options = {}) {
     const topProbabilityStats = computeSampleStats(topDocumentProbabilities);
     const avgMs = rerankMsStats.mean;
     const semanticPassed = semantic.passed;
+    const rerankPrefixPhases = rerankPhases
+      .map((phase) => phase?.prefix)
+      .filter((phase) => phase && typeof phase === 'object');
 
     results = [
       {
@@ -1141,6 +1219,53 @@ async function runBenchSuite(options = {}) {
         timedRerankMs: timedRerankMsStats,
         rerankMs: rerankMsStats,
       },
+      phase: summarizeTimingPhaseSamples(rerankPhases, [
+        'totalMs',
+        'prefixMs',
+        'prefixTokens',
+        'documentCount',
+        'documentTotalMs',
+        'maxDocumentMs',
+        'avgDocumentMs',
+        'prefix.totalMs',
+        'prefix.prefillMs',
+        'prefix.prefillRecordMs',
+        'prefix.prefillRecordOps',
+        'prefix.prefillRecordPasses',
+        'prefix.prefillSubmitWaitMs',
+      ]),
+      prefixPhase: {
+        ...summarizeTimingPhaseSamples(rerankPrefixPhases, [
+          'totalMs',
+          'prefillMs',
+          'prefillRecordMs',
+          'prefillRecordOps',
+          'prefillRecordPasses',
+          'prefillSubmitWaitMs',
+          'gpuPrefillMs',
+          'tokens',
+        ]),
+        ...summarizePrefillRecordOps(rerankPrefixPhases),
+      },
+      documentPhase: {
+        ...summarizeTimingPhaseSamples(rerankDocumentPhases, [
+          'totalMs',
+          'prefillCallMs',
+          'inputMs',
+          'prefillMs',
+          'prefillRecordMs',
+          'prefillRecordOps',
+          'prefillRecordPasses',
+          'prefillSubmitWaitMs',
+          'gpuPrefillMs',
+          'tokens',
+          'selectedTokenCount',
+          'prefixTokens',
+          'suffixTokens',
+          'promptChars',
+        ]),
+        ...summarizePrefillRecordOps(rerankDocumentPhases),
+      },
       documents: {
         count: documentCountStats,
       },
@@ -1164,12 +1289,16 @@ async function runBenchSuite(options = {}) {
     const embeddingDims = [];
     const embeddingTokenCounts = [];
     const embeddingNorms = [];
+    const embeddingPhases = [];
     let firstTimedEmbeddingMs = null;
     let invalidRuns = 0;
     let totalNonFiniteValues = 0;
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
-      const run = await runEmbedding(harness.pipeline, runtimeConfig, benchRun);
+      const run = await runEmbedding(harness.pipeline, runtimeConfig, {
+        ...benchRun,
+        benchmark: true,
+      });
       if (i >= warmupRuns) {
         timedDurations.push(run.durationMs);
         if (firstTimedEmbeddingMs == null) {
@@ -1185,6 +1314,9 @@ async function runBenchSuite(options = {}) {
         if (run.embeddingDim > 0 && run.nonFiniteCount === 0) {
           durations.push(run.durationMs);
           embeddingDims.push(run.embeddingDim);
+          if (run.phase && typeof run.phase === 'object') {
+            embeddingPhases.push(run.phase);
+          }
         } else {
           invalidRuns++;
         }
@@ -1238,6 +1370,26 @@ async function runBenchSuite(options = {}) {
       latency: {
         timedEmbeddingMs: timedEmbeddingMsStats,
         embeddingMs: embeddingMsStats,
+      },
+      phase: {
+        ...summarizeTimingPhaseSamples(embeddingPhases, [
+          'totalMs',
+          'inputMs',
+          'prefillMs',
+          'submitWaitMs',
+          'readbackMs',
+          'decodeHiddenMs',
+          'finalNormMs',
+          'extractMs',
+          'hiddenBytes',
+          'tokens',
+          'prefillRecordMs',
+          'prefillRecordOps',
+          'prefillRecordPasses',
+          'prefillSubmitWaitMs',
+          'gpuPrefillMs',
+        ]),
+        ...summarizePrefillRecordOps(embeddingPhases),
       },
       dimensions: {
         embedding: embeddingDimStats,
@@ -1295,6 +1447,10 @@ async function runBenchSuite(options = {}) {
     const gpuDecodeReadbackCopyMs = [];
     const gpuDecodeOrchestrationMs = [];
     const gpuPrefillRecordMs = [];
+    const gpuPrefillRecordOps = [];
+    const gpuPrefillRecordPasses = [];
+    const gpuPrefillRecordOpLabels = {};
+    let hasGpuPrefillRecordOpLabels = false;
     const gpuPrefillSubmitWaitMs = [];
     const singleTokenSubmitWaitMs = [];
     const singleTokenReadbackWaitMs = [];
@@ -1340,6 +1496,7 @@ async function runBenchSuite(options = {}) {
         },
         () => runTextInference(harness.pipeline, runtimeConfig, {
           ...benchRun,
+          benchmark: true,
           ...(options.inferenceInput ?? {}),
         })
       );
@@ -1417,6 +1574,15 @@ async function runBenchSuite(options = {}) {
         if (Number.isFinite(phaseGpu?.decodeReadbackCleanupMs)) gpuDecodeReadbackCleanupMs.push(phaseGpu.decodeReadbackCleanupMs);
         if (Number.isFinite(phaseGpu?.decodeReadbackCopyMs)) gpuDecodeReadbackCopyMs.push(phaseGpu.decodeReadbackCopyMs);
         if (Number.isFinite(phaseGpu?.prefillRecordMs)) gpuPrefillRecordMs.push(phaseGpu.prefillRecordMs);
+        if (Number.isFinite(phaseGpu?.prefillRecordOps)) gpuPrefillRecordOps.push(phaseGpu.prefillRecordOps);
+        if (Number.isFinite(phaseGpu?.prefillRecordPasses)) gpuPrefillRecordPasses.push(phaseGpu.prefillRecordPasses);
+        const phasePrefillRecordOpLabels = normalizeDecodeRecordOpLabels(phaseGpu?.prefillRecordOpLabels);
+        if (phasePrefillRecordOpLabels) {
+          hasGpuPrefillRecordOpLabels = true;
+          for (const [label, count] of Object.entries(phasePrefillRecordOpLabels)) {
+            gpuPrefillRecordOpLabels[label] = (gpuPrefillRecordOpLabels[label] ?? 0) + count;
+          }
+        }
         if (Number.isFinite(phaseGpu?.prefillSubmitWaitMs)) gpuPrefillSubmitWaitMs.push(phaseGpu.prefillSubmitWaitMs);
         if (Number.isFinite(phaseGpu?.decodeOrchestrationMs)) {
           gpuDecodeOrchestrationMs.push(phaseGpu.decodeOrchestrationMs);
@@ -1460,6 +1626,8 @@ async function runBenchSuite(options = {}) {
     const decodeTokensStats = computeSampleStats(decodeTokens);
     const gpuDecodeRecordOpsStats = computeSampleStats(gpuDecodeRecordOps);
     const gpuDecodeRecordPassesStats = computeSampleStats(gpuDecodeRecordPasses);
+    const gpuPrefillRecordOpsStats = computeSampleStats(gpuPrefillRecordOps);
+    const gpuPrefillRecordPassesStats = computeSampleStats(gpuPrefillRecordPasses);
     const gpuDecodeRecordOpLabelSampleCount = gpuDecodeRecordOps.length > 0
       ? gpuDecodeRecordOps.length
       : 1;
@@ -1469,14 +1637,25 @@ async function runBenchSuite(options = {}) {
         gpuDecodeRecordMeanOpLabels[label] = count / gpuDecodeRecordOpLabelSampleCount;
       }
     }
+    const gpuPrefillRecordOpLabelSampleCount = gpuPrefillRecordOps.length > 0
+      ? gpuPrefillRecordOps.length
+      : 1;
+    const gpuPrefillRecordMeanOpLabels = {};
+    if (hasGpuPrefillRecordOpLabels) {
+      for (const [label, count] of Object.entries(gpuPrefillRecordOpLabels)) {
+        gpuPrefillRecordMeanOpLabels[label] = count / gpuPrefillRecordOpLabelSampleCount;
+      }
+    }
     const hasGpuStats = gpuPrefillMs.length > 0 || gpuDecodeMs.length > 0 || gpuDecodeRecordMs.length > 0
       || gpuDecodeRecordOps.length > 0 || gpuDecodeRecordPasses.length > 0
+      || gpuPrefillRecordOps.length > 0 || gpuPrefillRecordPasses.length > 0
       || gpuDecodeRecordMsPerOp.length > 0 || gpuDecodeRecordMsPerPass.length > 0
       || gpuDecodeRecordPassesPerOp.length > 0
       || gpuDecodeRecordMsPerExecutedBatchToken.length > 0
       || gpuDecodeRecordOpsPerExecutedBatchToken.length > 0
       || gpuDecodeRecordPassesPerExecutedBatchToken.length > 0
       || hasGpuDecodeRecordOpLabels
+      || hasGpuPrefillRecordOpLabels
       || gpuDecodeSubmitWaitMs.length > 0 || gpuDecodeReadbackWaitMs.length > 0
       || gpuDecodeReadbackMapWaitMs.length > 0 || gpuDecodeReadbackCleanupMs.length > 0
       || gpuDecodeReadbackCopyMs.length > 0
@@ -1519,6 +1698,21 @@ async function runBenchSuite(options = {}) {
         decodeReadbackCopyMs: computeSampleStats(gpuDecodeReadbackCopyMs),
         decodeOrchestrationMs: computeSampleStats(gpuDecodeOrchestrationMs),
         prefillRecordMs: computeSampleStats(gpuPrefillRecordMs),
+        prefillRecordOps: gpuPrefillRecordOpsStats,
+        prefillRecordPasses: gpuPrefillRecordPassesStats,
+        prefillRecordUniqueOpLabels: hasGpuPrefillRecordOpLabels ? Object.keys(gpuPrefillRecordOpLabels).length : null,
+        prefillRecordTopOps: hasGpuPrefillRecordOpLabels
+          ? buildDecodeRecordTopOps(
+            gpuPrefillRecordMeanOpLabels,
+            gpuPrefillRecordOpsStats?.mean
+          )
+          : [],
+        prefillRecordTopOpGroups: hasGpuPrefillRecordOpLabels
+          ? buildDecodeRecordTopOpGroups(
+            gpuPrefillRecordMeanOpLabels,
+            gpuPrefillRecordOpsStats?.mean
+          )
+          : [],
         prefillSubmitWaitMs: computeSampleStats(gpuPrefillSubmitWaitMs),
         uniformCache: lastGpuUniformCache,
         singleTokenSubmitWaitMs: computeSampleStats(singleTokenSubmitWaitMs),

@@ -19,10 +19,10 @@ struct Uniforms {
     qk_rows: u32,
     total_v: u32,
     start_pos: u32,
-    half_dim: u32,
+    rotary_dim: u32,
     eps: f32,
     kv_dst_offset: u32,
-    _pad1: u32,
+    interleaved: u32,
     _pad2: u32,
 }
 
@@ -115,11 +115,29 @@ fn rotate_pair(x0: f32, x1: f32, cos_val: f32, sin_val: f32) -> vec2<f32> {
     );
 }
 
+fn rotary_half_dim() -> u32 {
+    return u.rotary_dim / 2u;
+}
+
+fn get_first_rotary_idx(pair_idx: u32) -> u32 {
+    if (u.interleaved == 1u) {
+        return pair_idx * 2u;
+    }
+    return pair_idx;
+}
+
+fn get_second_rotary_idx(pair_idx: u32) -> u32 {
+    if (u.interleaved == 1u) {
+        return pair_idx * 2u + 1u;
+    }
+    return pair_idx + rotary_half_dim();
+}
+
 fn store_rotated_qk_pair(row: u32, pair_idx: u32, inv_rms: f32) {
-    let first_idx = pair_idx;
-    let second_idx = pair_idx + u.half_dim;
+    let first_idx = get_first_rotary_idx(pair_idx);
+    let second_idx = get_second_rotary_idx(pair_idx);
     let token = token_for_row(row);
-    let freq_idx = (u.start_pos + token) * u.half_dim + pair_idx;
+    let freq_idx = (u.start_pos + token) * rotary_half_dim() + pair_idx;
     let rotated = rotate_pair(
         normalized_value(row, first_idx, inv_rms),
         normalized_value(row, second_idx, inv_rms),
@@ -128,6 +146,12 @@ fn store_rotated_qk_pair(row: u32, pair_idx: u32, inv_rms: f32) {
     );
     store_qk_value(row, first_idx, rotated.x);
     store_qk_value(row, second_idx, rotated.y);
+}
+
+fn copy_non_rotary_qk_value(row: u32, idx: u32, inv_rms: f32) {
+    if (idx >= u.rotary_dim && idx < u.head_dim) {
+        store_qk_value(row, idx, normalized_value(row, idx, inv_rms));
+    }
 }
 
 fn copy_v(v_group: u32, thread_idx: u32) {
@@ -177,10 +201,16 @@ fn main(
     let inv_rms = 1.0 / sqrt(shared_sum[0] / f32(u.head_dim) + u.eps);
     workgroupBarrier();
 
-    let pairs_per_thread = (u.half_dim + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        copy_non_rotary_qk_value(group_idx, idx, inv_rms);
+    }
+
+    let half_dim = rotary_half_dim();
+    let pairs_per_thread = (half_dim + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
     for (var i: u32 = 0u; i < pairs_per_thread; i = i + 1u) {
         let pair_idx = thread_idx * pairs_per_thread + i;
-        if (pair_idx < u.half_dim) {
+        if (pair_idx < half_dim) {
             store_rotated_qk_pair(group_idx, pair_idx, inv_rms);
         }
     }

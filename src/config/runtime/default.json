@@ -85,7 +85,9 @@
           "layout": "contiguous",
           "kvDtype": "f16",
           "pageSize": 256
-        }
+        },
+        "useLargeBatchF16F32FusedGateUp": false,
+        "skipEmbeddingKVCacheWrites": false
       },
       "kernelPathPolicy": {
         "mode": "capability-aware",
