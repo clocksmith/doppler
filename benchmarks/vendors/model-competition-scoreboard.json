@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-09T19:35:08.657Z",
+  "updatedAt": "2026-07-10T01:44:50.047Z",
   "sources": [
     "models/catalog.json",
     "benchmarks/vendors/model-support-inventory.json",
@@ -94,7 +94,7 @@
       "nextCommand": "node tools/run-registry-verify.js diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --surface auto"
     },
     {
-      "rowId": "google-embeddinggemma-300m-q4k-ehf16-af32:embedding:2026-07-04T15:45:00.000Z",
+      "rowId": "google-embeddinggemma-300m-q4k-ehf16-af32:embedding:2026-07-06T16:45:32.687Z",
       "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "label": "EmbeddingGemma 300M (Q4K)",
       "family": "embeddinggemma",
@@ -132,23 +132,23 @@
       "correctness": "semantic-pass",
       "metrics": {
         "doppler": {
-          "medianEmbeddingMs": 60.04,
-          "avgEmbeddingsPerSec": 16.74,
-          "p95EmbeddingMs": 60.24,
-          "modelLoadMs": 1037.58,
+          "medianEmbeddingMs": 60.62,
+          "avgEmbeddingsPerSec": 16.26,
+          "p95EmbeddingMs": 63.72,
+          "modelLoadMs": 1157.7,
           "embeddingDim": 768
         },
         "transformersjs": {
-          "medianEmbeddingMs": 25.42,
-          "avgEmbeddingsPerSec": 35.13,
-          "p95EmbeddingMs": 34.64,
-          "modelLoadMs": 11378.89,
+          "medianEmbeddingMs": 28.16,
+          "avgEmbeddingsPerSec": 35.2,
+          "p95EmbeddingMs": 28.98,
+          "modelLoadMs": 7157.88,
           "embeddingDim": 768
         },
         "ratios": {
-          "medianEmbeddingMsDopplerOverTransformersjs": 2.3615,
-          "avgEmbeddingsPerSecDopplerOverTransformersjs": 0.4765,
-          "modelLoadMsDopplerOverTransformersjs": 0.0912
+          "medianEmbeddingMsDopplerOverTransformersjs": 2.1527,
+          "avgEmbeddingsPerSecDopplerOverTransformersjs": 0.4619,
+          "modelLoadMsDopplerOverTransformersjs": 0.1617
         },
         "leader": {
           "embeddingLatency": "transformersjs",
@@ -159,9 +159,9 @@
       "claimStatus": "claimable",
       "claimReason": "Embedding-specific lane using shared prompt, semantic fixture, and browser WebGPU Transformers.js ONNX baseline.",
       "evidence": {
-        "embeddingCompareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json",
+        "embeddingCompareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260706T164532.json",
         "embeddingCompareResultExists": true,
-        "timestamp": "2026-07-04T15:45:00.000Z"
+        "timestamp": "2026-07-06T16:45:32.687Z"
       },
       "missing": [],
       "nextGate": null,
@@ -1980,7 +1980,7 @@
       "nextCommand": null
     },
     {
-      "rowId": "qwen-3-embedding-0-6b-q4k-ehf16-af32:embedding:2026-07-09T18:08:53.800Z",
+      "rowId": "qwen-3-embedding-0-6b-q4k-ehf16-af32:embedding:2026-07-10T01:14:55.731Z",
       "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
       "label": "Qwen3 Embedding 0.6B (Q4K/F32a)",
       "family": "qwen3",
@@ -2018,23 +2018,23 @@
       "correctness": "semantic-pass",
       "metrics": {
         "doppler": {
-          "medianEmbeddingMs": 43.7,
-          "avgEmbeddingsPerSec": 22.83,
-          "p95EmbeddingMs": 44.5,
-          "modelLoadMs": 90180.5,
+          "medianEmbeddingMs": 29.4,
+          "avgEmbeddingsPerSec": 33.88,
+          "p95EmbeddingMs": 30.61,
+          "modelLoadMs": 128787.3,
           "embeddingDim": 1024
         },
         "transformersjs": {
-          "medianEmbeddingMs": 51.55,
-          "avgEmbeddingsPerSec": 19.38,
-          "p95EmbeddingMs": 52.64,
-          "modelLoadMs": 31412.56,
+          "medianEmbeddingMs": 145.89,
+          "avgEmbeddingsPerSec": 6.69,
+          "p95EmbeddingMs": 165.69,
+          "modelLoadMs": 19821.02,
           "embeddingDim": 1024
         },
         "ratios": {
-          "medianEmbeddingMsDopplerOverTransformersjs": 0.8477,
-          "avgEmbeddingsPerSecDopplerOverTransformersjs": 1.1783,
-          "modelLoadMsDopplerOverTransformersjs": 2.8708
+          "medianEmbeddingMsDopplerOverTransformersjs": 0.2015,
+          "avgEmbeddingsPerSecDopplerOverTransformersjs": 5.063,
+          "modelLoadMsDopplerOverTransformersjs": 6.4975
         },
         "leader": {
           "embeddingLatency": "doppler",
@@ -2045,9 +2045,9 @@
       "claimStatus": "claimable",
       "claimReason": "Hosted Clocksmith/rdrr Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline with the shared semantic fixture.",
       "evidence": {
-        "embeddingCompareResult": "benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json",
+        "embeddingCompareResult": "benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json",
         "embeddingCompareResultExists": true,
-        "timestamp": "2026-07-09T18:08:53.800Z"
+        "timestamp": "2026-07-10T01:14:55.731Z"
       },
       "missing": [],
       "nextGate": null,
@@ -2106,7 +2106,7 @@
       "nextCommand": null
     },
     {
-      "rowId": "qwen-3-reranker-0-6b-q4k-ehf16-af32:rerank:2026-07-09T19:28:30.640Z",
+      "rowId": "qwen-3-reranker-0-6b-q4k-ehf16-af32:rerank:2026-07-10T01:44:50.047Z",
       "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
       "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
       "family": "qwen3",
@@ -2144,23 +2144,23 @@
       "correctness": "semantic-pass",
       "metrics": {
         "doppler": {
-          "medianRerankMs": 476.6,
-          "avgReranksPerSec": 2.14,
-          "p95RerankMs": 478.04,
-          "modelLoadMs": 118925.9,
+          "medianRerankMs": 277.6,
+          "avgReranksPerSec": 3.59,
+          "p95RerankMs": 288.66,
+          "modelLoadMs": 97316,
           "topDocumentIndex": 0
         },
         "transformersjs": {
-          "medianRerankMs": 486.16,
-          "avgReranksPerSec": 2.05,
-          "p95RerankMs": 494.36,
-          "modelLoadMs": 114517.17,
+          "medianRerankMs": 469.25,
+          "avgReranksPerSec": 2.12,
+          "p95RerankMs": 488.06,
+          "modelLoadMs": 65145.15,
           "topDocumentIndex": 0
         },
         "ratios": {
-          "medianRerankMsDopplerOverTransformersjs": 0.9803,
-          "avgReranksPerSecDopplerOverTransformersjs": 1.0462,
-          "modelLoadMsDopplerOverTransformersjs": 1.0385
+          "medianRerankMsDopplerOverTransformersjs": 0.5916,
+          "avgReranksPerSecDopplerOverTransformersjs": 1.6902,
+          "modelLoadMsDopplerOverTransformersjs": 1.4938
         },
         "leader": {
           "rerankLatency": "doppler",
@@ -2171,9 +2171,9 @@
       "claimStatus": "claimable",
       "claimReason": "Hosted Clocksmith/rdrr Doppler reranker artifact compared against the browser WebGPU Transformers.js ONNX Qwen3 reranker baseline with identical Qwen yes/no-logit scoring prompts.",
       "evidence": {
-        "rerankCompareResult": "benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json",
+        "rerankCompareResult": "benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json",
         "rerankCompareResultExists": true,
-        "timestamp": "2026-07-09T19:28:30.640Z"
+        "timestamp": "2026-07-10T01:44:50.047Z"
       },
       "missing": [],
       "nextGate": null,

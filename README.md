@@ -167,22 +167,25 @@ within a row.
 
 ### Current comparison evidence
 
+All rows below are browser WebGPU receipts captured on a Radeon 8060S
+(`RADV STRIX_HALO`) through Linux/Vulkan.
+
 | Tier | Lane | Claim state | Workload | Primary metric | Doppler | Transformers.js | Result | Receipt |
 | --- | --- | --- | --- | --- | ---: | ---: | --- | --- |
 | 1 | Qwen 3.5 0.8B text | Release claimable, exact output match | p512-d128-t0-k1 | decode tok/s | 69.07 | 41.79 | 1.65x Doppler | [compare_20260707T153509.json](./benchmarks/vendors/results/compare_20260707T153509.json) |
-| 1 | Qwen Embedding 0.6B | Release claimable, semantic check passed | embedding compare | embeddings/s | 15.28 | 6.77 | 2.26x Doppler | [embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json](./benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json) |
-| 1 | Qwen Reranker 0.6B | Release claimable, semantic check passed | rerank compare | reranks/s | 0.64 | 2.07 | 0.31x, TJS leads | [rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json](./benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json) |
+| 1 | Qwen Embedding 0.6B | Release claimable, semantic check passed | embedding compare | embeddings/s | 33.88 | 6.69 | 5.06x Doppler | [embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json](./benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json) |
+| 1 | Qwen Reranker 0.6B | Release claimable, semantic check passed | rerank compare | reranks/s | 3.59 | 2.12 | 1.69x Doppler | [rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json](./benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json) |
 | 2 | Qwen 3.5 2B text | Local comparable, exact output match | p512-d128-t0-k1 | decode tok/s | 56.50 | 41.50 | 1.36x Doppler | [compare_20260707T161623.json](./benchmarks/vendors/results/compare_20260707T161623.json) |
 | 2 | Gemma 4 E2B INT4-PLE text | Local comparable, product-format output policy | p064-d064-t0-k1 | decode tok/s | 16.32 | 9.24 | 1.77x Doppler | [compare_20260707T170557.json](./benchmarks/vendors/results/compare_20260707T170557.json) |
 
 Text-generation rows are browser WebGPU product-format comparisons
-(`Doppler/RDRR` versus `Transformers.js/ONNX`) and are local-comparable until
-the release evidence lane is promoted. Gemma 4 INT4-PLE is local-comparable for
-product-format throughput under its checked-in `outputParityPolicy`; exact token
-parity is not claimed, and the throughput-cadence section remains tuning
-evidence until its batch-accounting gate passes. Full latency breakdowns,
-p50/p95 decode timings, environment, and fairness gates are in the linked
-receipts.
+(`Doppler/RDRR` versus `Transformers.js/ONNX`). Tier 2 generation rows remain
+local-comparable until their release evidence lanes are promoted. Gemma 4
+INT4-PLE is local-comparable for product-format throughput under its checked-in
+`outputParityPolicy`; exact token parity is not claimed, and the
+throughput-cadence section remains tuning evidence until its batch-accounting
+gate passes. Full latency breakdowns, p50/p95 decode timings, environment, and
+fairness gates are in the linked receipts.
 
 ## Model roadmap
 
