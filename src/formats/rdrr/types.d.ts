@@ -20,7 +20,7 @@ import type {
   ManifestWeightsRefSchema,
   KernelPathRef,
   ManifestInferenceSchema,
-  type TensorRole as SchemaTensorRole,
+  TensorRole as SchemaTensorRole,
 } from '../../config/schema/index.js';
 import type { FunctionalDescriptorManifest } from './functional-descriptor.js';
 

@@ -1,7 +1,5 @@
 import type { IntegrityExtensions, RDRRManifest, TensorMap, TensorLocation } from './types.js';
 
-export declare const DEFAULT_MERKLE_BLOCK_SIZE: number;
-
 export interface TensorBlockMerkleRoot {
   tensorId: string;
   blockSize: number;

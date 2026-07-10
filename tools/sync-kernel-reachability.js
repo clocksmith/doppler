@@ -6,6 +6,7 @@
  *
  * For every variant the tool resolves:
  *   - Which conversion configs inline it (via execution.kernels)
+ *   - Which runtime profiles pin it (via execution patches)
  *   - Which rule chains can select it (via src/rules/kernels/*.rules.json)
  *   - Whether the WGSL file exists on disk
  *   - A status classification: pinned, model-selectable, selectable, unused, missing-wgsl
@@ -25,6 +26,7 @@ const registryPath = path.join(repoRoot, 'src/config/kernels/registry.json');
 const kernelsDir = path.join(repoRoot, 'src/gpu/kernels');
 const rulesDir = path.join(repoRoot, 'src/rules/kernels');
 const conversionRoot = path.join(repoRoot, 'src/config/conversion');
+const runtimeRoot = path.join(repoRoot, 'src/config/runtime');
 
 const checkMode = process.argv.includes('--check');
 const ID_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*$/u;
@@ -34,22 +36,33 @@ const WGSL_SEGMENT_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*(?:\.wgsl)?$/u;
 // Pass 1: Collect inline references from conversion configs
 // ---------------------------------------------------------------------------
 
+function collectKernelRefs(value, refs, sourceId) {
+  if (Array.isArray(value)) {
+    for (const entry of value) collectKernelRefs(entry, refs, sourceId);
+    return;
+  }
+  if (!value || typeof value !== 'object') return;
+  if (typeof value.kernel === 'string' && value.kernel.endsWith('.wgsl')) {
+    const key = `${value.kernel}#${value.entry ?? 'main'}`;
+    if (!refs.has(key)) refs.set(key, new Set());
+    refs.get(key).add(sourceId);
+  }
+  for (const entry of Object.values(value)) {
+    collectKernelRefs(entry, refs, sourceId);
+  }
+}
+
 async function collectInlineRefs() {
   const refs = new Map(); // key = "wgsl#entry" -> Set<configId>
-  const entries = await walkJsonFiles(conversionRoot);
-  for (const filePath of entries) {
+  for (const filePath of await walkJsonFiles(conversionRoot)) {
     const config = JSON.parse(await fs.readFile(filePath, 'utf8'));
-    const kernels = config?.execution?.kernels;
-    if (!kernels || typeof kernels !== 'object') continue;
     const configId = path.relative(conversionRoot, filePath).replace(/\.json$/, '');
-    for (const kDef of Object.values(kernels)) {
-      const wgsl = kDef?.kernel;
-      const entry = kDef?.entry ?? 'main';
-      if (typeof wgsl !== 'string') continue;
-      const key = `${wgsl}#${entry}`;
-      if (!refs.has(key)) refs.set(key, new Set());
-      refs.get(key).add(configId);
-    }
+    collectKernelRefs(config?.execution?.kernels, refs, configId);
+  }
+  for (const filePath of await walkJsonFiles(runtimeRoot)) {
+    const config = JSON.parse(await fs.readFile(filePath, 'utf8'));
+    const configId = `runtime/${path.relative(runtimeRoot, filePath).replace(/\.json$/, '')}`;
+    collectKernelRefs(config, refs, configId);
   }
   return refs;
 }

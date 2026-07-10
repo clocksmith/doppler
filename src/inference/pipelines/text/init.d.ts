@@ -68,6 +68,15 @@ export interface PipelineStorageContext {
   close?: () => Promise<void>;
 }
 
+export interface EmulationContext {
+  config: {
+    topology: { gpuCount: number };
+    timingMode: string;
+  };
+  getStats(): unknown;
+  destroy(): void | Promise<void>;
+}
+
 export function createNodeFileShardStorageContext(
   baseUrl: string | null | undefined,
   manifest: Manifest
@@ -359,7 +368,7 @@ export function fuseQKVWeights(
  */
 export function initEmulation(
   runtimeConfig: RuntimeConfigSchema
-): Promise<import('/proto/simulator/index.js').EmulationContext | null>;
+): Promise<EmulationContext | null>;
 
 /**
  * Destroy emulation context and clean up resources.
@@ -367,5 +376,5 @@ export function initEmulation(
  * @param emulation - Emulation context to destroy
  */
 export function destroyEmulation(
-  emulation: import('/proto/simulator/index.js').EmulationContext | null
+  emulation: EmulationContext | null
 ): Promise<void>;

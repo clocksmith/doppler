@@ -1,6 +1,15 @@
 export * from '../../inference/tokenizer.js';
 export * from '../../inference/kv-cache.js';
-export * from '../../inference/speculative.js';
+export { SpeculativeDecoder } from '../../inference/speculative.js';
+export type {
+  DraftModel,
+  MainModel,
+  SpeculativeConfig,
+  VerificationResult,
+  StepResult,
+  DecodingStats,
+  StatsWithSpeedup,
+} from '../../inference/speculative.js';
 export * from '../../inference/expert-router.js';
 export * from '../../inference/moe-router.js';
 export * from '../../inference/multi-model-network.js';

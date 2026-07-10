@@ -48,7 +48,7 @@ export {
   shouldStreamLargeWeight,
   isMoEModel,
 } from './manifest-config.js';
-export type { LargeWeightConfig } from './manifest-config.js';
+export type { LargeWeightConfigSchema as LargeWeightConfig } from '../config/schema/doppler.schema.js';
 
 export { buildTensorLocations } from './shard-resolver.js';
 export type { BuildTensorLocationsOptions } from './shard-resolver.js';

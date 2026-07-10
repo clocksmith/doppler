@@ -41,6 +41,10 @@ export interface LogHistoryEntry {
   data?: unknown;
 }
 
+export type LogLevel = LogLevelName;
+export type LogLevelValue = LogLevels[keyof LogLevels];
+export type LogEntry = LogHistoryEntry;
+
 export const LOG_LEVELS: LogLevels;
 export const TRACE_CATEGORIES: readonly TraceCategory[];
 

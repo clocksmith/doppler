@@ -1,8 +1,6 @@
 import { computeNamespacedCanonicalSha256, hashBytesSha256 } from '../../utils/canonical-hash.js';
 import { buildMerkleTreeFromLeafHashes, DEFAULT_MERKLE_BLOCK_SIZE } from './merkle.js';
 
-export { DEFAULT_MERKLE_BLOCK_SIZE } from './merkle.js';
-
 function asPositiveInteger(value, label) {
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed <= 0) {
