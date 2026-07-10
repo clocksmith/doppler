@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { listTrackedFilesInDirectory } from './git-file-inventory.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -317,16 +318,10 @@ async function collectConversionConfigs() {
 
 async function collectLatestCompareResults(prefix) {
   const byModelId = new Map();
-  let entries = [];
-  try {
-    entries = await fs.readdir(COMPARE_RESULTS_DIR, { withFileTypes: true });
-  } catch {
-    return byModelId;
-  }
-  for (const entry of entries) {
-    if (!entry.isFile()) continue;
-    if (!entry.name.startsWith(prefix) || !entry.name.endsWith('.json')) continue;
-    const fullPath = path.join(COMPARE_RESULTS_DIR, entry.name);
+  const files = listTrackedFilesInDirectory(REPO_ROOT, COMPARE_RESULTS_DIR);
+  for (const fullPath of files) {
+    const fileName = path.basename(fullPath);
+    if (!fileName.startsWith(prefix) || !fileName.endsWith('.json')) continue;
     const payload = await readJson(fullPath);
     if (payload?.summary?.correctnessOk !== true) continue;
     const modelId = normalizeText(payload?.model?.dopplerModelId);
@@ -334,7 +329,7 @@ async function collectLatestCompareResults(prefix) {
     const record = {
       path: repoRelative(fullPath),
       timestamp: normalizeText(payload?.timestamp) || null,
-      isLatestAlias: entry.name === `${prefix}latest.json`,
+      isLatestAlias: fileName === `${prefix}latest.json`,
     };
     const current = byModelId.get(modelId);
     const newer = !current || timestampScore(record.timestamp) > timestampScore(current.timestamp);
