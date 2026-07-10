@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { listTrackedFilesInDirectory } from './git-file-inventory.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -251,23 +252,17 @@ function timestampScore(value) {
 
 async function collectLatestEmbeddingResults() {
   const byModelId = new Map();
-  let entries = [];
-  try {
-    entries = await fs.readdir(EMBEDDING_RESULTS_DIR, { withFileTypes: true });
-  } catch {
-    return byModelId;
-  }
-  for (const entry of entries) {
-    if (!entry.isFile()) continue;
-    if (!entry.name.startsWith('embedding_compare_') || !entry.name.endsWith('.json')) continue;
-    const fullPath = path.join(EMBEDDING_RESULTS_DIR, entry.name);
+  const files = listTrackedFilesInDirectory(REPO_ROOT, EMBEDDING_RESULTS_DIR);
+  for (const fullPath of files) {
+    const fileName = path.basename(fullPath);
+    if (!fileName.startsWith('embedding_compare_') || !fileName.endsWith('.json')) continue;
     const payload = await readJson(fullPath);
     const modelId = normalizeText(payload?.model?.dopplerModelId);
     if (!modelId) continue;
     const record = {
       path: repoRelative(fullPath),
       timestamp: normalizeText(payload?.timestamp) || null,
-      isLatestAlias: entry.name === 'embedding_compare_latest.json',
+      isLatestAlias: fileName === 'embedding_compare_latest.json',
       payload,
     };
     const current = byModelId.get(modelId);
@@ -283,23 +278,17 @@ async function collectLatestEmbeddingResults() {
 
 async function collectLatestRerankResults() {
   const byModelId = new Map();
-  let entries = [];
-  try {
-    entries = await fs.readdir(RERANK_RESULTS_DIR, { withFileTypes: true });
-  } catch {
-    return byModelId;
-  }
-  for (const entry of entries) {
-    if (!entry.isFile()) continue;
-    if (!entry.name.startsWith('rerank_compare_') || !entry.name.endsWith('.json')) continue;
-    const fullPath = path.join(RERANK_RESULTS_DIR, entry.name);
+  const files = listTrackedFilesInDirectory(REPO_ROOT, RERANK_RESULTS_DIR);
+  for (const fullPath of files) {
+    const fileName = path.basename(fullPath);
+    if (!fileName.startsWith('rerank_compare_') || !fileName.endsWith('.json')) continue;
     const payload = await readJson(fullPath);
     const modelId = normalizeText(payload?.model?.dopplerModelId);
     if (!modelId) continue;
     const record = {
       path: repoRelative(fullPath),
       timestamp: normalizeText(payload?.timestamp) || null,
-      isLatestAlias: entry.name === 'rerank_compare_latest.json',
+      isLatestAlias: fileName === 'rerank_compare_latest.json',
       payload,
     };
     const current = byModelId.get(modelId);

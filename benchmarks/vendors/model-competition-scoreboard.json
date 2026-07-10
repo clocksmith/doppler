@@ -94,7 +94,7 @@
       "nextCommand": "node tools/run-registry-verify.js diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --surface auto"
     },
     {
-      "rowId": "google-embeddinggemma-300m-q4k-ehf16-af32:embedding:2026-07-06T16:45:32.687Z",
+      "rowId": "google-embeddinggemma-300m-q4k-ehf16-af32:embedding:2026-07-04T15:45:00.000Z",
       "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "label": "EmbeddingGemma 300M (Q4K)",
       "family": "embeddinggemma",
@@ -132,23 +132,23 @@
       "correctness": "semantic-pass",
       "metrics": {
         "doppler": {
-          "medianEmbeddingMs": 60.62,
-          "avgEmbeddingsPerSec": 16.26,
-          "p95EmbeddingMs": 63.72,
-          "modelLoadMs": 1157.7,
+          "medianEmbeddingMs": 60.04,
+          "avgEmbeddingsPerSec": 16.74,
+          "p95EmbeddingMs": 60.24,
+          "modelLoadMs": 1037.58,
           "embeddingDim": 768
         },
         "transformersjs": {
-          "medianEmbeddingMs": 28.16,
-          "avgEmbeddingsPerSec": 35.2,
-          "p95EmbeddingMs": 28.98,
-          "modelLoadMs": 7157.88,
+          "medianEmbeddingMs": 25.42,
+          "avgEmbeddingsPerSec": 35.13,
+          "p95EmbeddingMs": 34.64,
+          "modelLoadMs": 11378.89,
           "embeddingDim": 768
         },
         "ratios": {
-          "medianEmbeddingMsDopplerOverTransformersjs": 2.1527,
-          "avgEmbeddingsPerSecDopplerOverTransformersjs": 0.4619,
-          "modelLoadMsDopplerOverTransformersjs": 0.1617
+          "medianEmbeddingMsDopplerOverTransformersjs": 2.3615,
+          "avgEmbeddingsPerSecDopplerOverTransformersjs": 0.4765,
+          "modelLoadMsDopplerOverTransformersjs": 0.0912
         },
         "leader": {
           "embeddingLatency": "transformersjs",
@@ -159,9 +159,9 @@
       "claimStatus": "claimable",
       "claimReason": "Embedding-specific lane using shared prompt, semantic fixture, and browser WebGPU Transformers.js ONNX baseline.",
       "evidence": {
-        "embeddingCompareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260706T164532.json",
+        "embeddingCompareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json",
         "embeddingCompareResultExists": true,
-        "timestamp": "2026-07-06T16:45:32.687Z"
+        "timestamp": "2026-07-04T15:45:00.000Z"
       },
       "missing": [],
       "nextGate": null,

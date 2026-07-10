@@ -54,7 +54,7 @@ Updated at: 2026-07-10T01:44:50.047Z
 
 | Model | Correctness | Doppler median | TJS median | Latency leader | Doppler throughput | TJS throughput | Throughput leader | Load leader | Claim | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| google-embeddinggemma-300m-q4k-ehf16-af32 | semantic-pass | 60.62 ms | 28.16 ms | transformersjs | 16.26 emb/s | 35.2 emb/s | transformersjs | doppler | claimable | benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260706T164532.json |
+| google-embeddinggemma-300m-q4k-ehf16-af32 | semantic-pass | 60.04 ms | 25.42 ms | transformersjs | 16.74 emb/s | 35.13 emb/s | transformersjs | doppler | claimable | benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json |
 | qwen-3-embedding-0-6b-q4k-ehf16-af32 | semantic-pass | 29.4 ms | 145.89 ms | doppler | 33.88 emb/s | 6.69 emb/s | doppler | transformersjs | claimable | benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json |
 
 ## Rerank Competition Rows
