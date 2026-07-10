@@ -25,9 +25,9 @@ Goal: one clean story across small generation, retrieval embeddings, and rerank.
 
 | Model | Status | Current state |
 | --- | --- | --- |
-| Qwen 3.5 0.8B | publish-story | Browser and Node runtime verification exist. Fair local generation comparisons exist; release-grade benchmark promotion is still the open claim gap. |
-| Qwen 3 Embedding 0.6B | publish-story | Browser and Node runtime verification exist. Local comparable embedding evidence exists; release-claim promotion remains open. |
-| Qwen 3 Reranker 0.6B | publish-story | Browser and Node runtime verification exist. External reranker competitor comparison is still missing. |
+| Qwen 3.5 0.8B | publish-story | Browser and Node runtime verification exist. The hosted browser/Vulkan p512 comparison is release-claimable with exact output and promotable throughput cadence. |
+| Qwen 3 Embedding 0.6B | publish-story | Browser and Node runtime verification exist. Fresh hosted browser/Vulkan evidence is release-claimable and Doppler leads steady-state embedding latency and throughput. |
+| Qwen 3 Reranker 0.6B | publish-story | Browser and Node runtime verification exist. Fresh 15-run hosted browser/Vulkan evidence is release-claimable and Doppler leads rerank latency, throughput, and semantic pair accuracy. |
 
 ## Tier 2: Next Practical Wins
 

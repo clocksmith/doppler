@@ -2,7 +2,7 @@
   "$schema": "schema/local-gpu-challenger-matrix.schema.json",
   "schemaVersion": 1,
   "matrixId": "local-gpu-challenger-matrix",
-  "updated": "2026-07-07",
+  "updated": "2026-07-10",
   "purpose": "Canonical plan for fair local-GPU challenger benchmarks beyond the Transformers.js anchor lanes across platform targets.",
   "selectionPolicy": {
     "hostClass": "multi-platform-local-gpu",
@@ -837,12 +837,12 @@
         "status": "configured"
       },
       "latestAnchorEvidence": {
-        "receiptPath": "benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json",
-        "timestamp": "2026-07-06T17:12:50.494Z",
+        "receiptPath": "benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json",
+        "timestamp": "2026-07-10T01:14:55.731Z",
         "platformTargetId": "linux-amd-vulkan-rocm",
         "harnessId": "embedding-local-gpu-v1",
         "workloadId": "embedding-default-doc15",
-        "warmupRuns": 3,
+        "warmupRuns": 1,
         "timedRuns": 15,
         "claimGrade": "release-claimable",
         "correctness": "semantic-pass",
@@ -861,23 +861,23 @@
         "metrics": [
           {
             "id": "medianEmbeddingMs",
-            "doppler": 65.05,
-            "competitor": 146.455,
-            "ratio": 0.4442,
+            "doppler": 29.4,
+            "competitor": 145.895,
+            "ratio": 0.2015,
             "higherBetter": false
           },
           {
             "id": "avgEmbeddingsPerSec",
-            "doppler": 15.28,
-            "competitor": 6.7696,
-            "ratio": 2.2572,
+            "doppler": 33.88,
+            "competitor": 6.6917,
+            "ratio": 5.063,
             "higherBetter": true
           },
           {
             "id": "modelLoadMs",
-            "doppler": 117117.44,
-            "competitor": 45368.75,
-            "ratio": 2.5815,
+            "doppler": 128787.3,
+            "competitor": 19821.015,
+            "ratio": 6.4975,
             "higherBetter": false
           },
           {
@@ -934,49 +934,48 @@
         "status": "configured-artifact"
       },
       "latestAnchorEvidence": {
-        "receiptPath": "benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json",
-        "timestamp": "2026-07-06T15:45:39.226Z",
+        "receiptPath": "benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json",
+        "timestamp": "2026-07-10T01:44:50.047Z",
         "platformTargetId": "linux-amd-vulkan-rocm",
         "harnessId": "rerank-local-gpu-v1",
         "workloadId": "rerank-q1-d003-webgpu",
         "warmupRuns": 1,
-        "timedRuns": 3,
-        "claimGrade": "diagnostic",
+        "timedRuns": 15,
+        "claimGrade": "release-claimable",
         "correctness": "semantic-pass",
-        "winner": "transformersjs",
-        "summary": "Hosted Doppler reranker passes correctness and has stronger semantic pair accuracy, but Transformers.js WebGPU wins latency and throughput on the current 3-document receipt.",
+        "winner": "doppler",
+        "summary": "Hosted Doppler wins Qwen 3 Reranker steady-state latency and throughput against Transformers.js WebGPU ONNX while also leading semantic pair accuracy; TJS still loads faster.",
         "wins": [
+          "median-rerank-ms",
+          "reranks-per-sec",
           "semantic-pair-accuracy"
         ],
         "losses": [
-          "median-rerank-ms",
-          "reranks-per-sec",
           "model-load-ms"
         ],
         "blockedReasons": [
-          "needs-15-run-rerank-matrix-profile",
           "needs-10-50-100-document-rerank-workloads"
         ],
         "metrics": [
           {
             "id": "medianRerankMs",
-            "doppler": 1556.2,
-            "competitor": 483.2,
-            "ratio": 3.2206,
+            "doppler": 277.6,
+            "competitor": 469.255,
+            "ratio": 0.5916,
             "higherBetter": false
           },
           {
             "id": "avgReranksPerSec",
-            "doppler": 0.64,
-            "competitor": 2.0698,
-            "ratio": 0.3092,
+            "doppler": 3.59,
+            "competitor": 2.124,
+            "ratio": 1.6902,
             "higherBetter": true
           },
           {
             "id": "modelLoadMs",
-            "doppler": 127995.6,
-            "competitor": 66532.885,
-            "ratio": 1.9238,
+            "doppler": 97316,
+            "competitor": 65145.155,
+            "ratio": 1.4938,
             "higherBetter": false
           },
           {
