@@ -66,7 +66,10 @@
       "ropeLocalYarnOriginalMaxPos": null,
       "ropeLocalPartialRotaryFactor": null,
       "ropeFrequencyBaseDim": null,
-      "ropeLocalFrequencyBaseDim": null
+      "ropeLocalFrequencyBaseDim": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": null,
@@ -74,19 +77,28 @@
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
       "embeddingVocabSize": null,
-      "embeddingPostprocessor": null
+      "embeddingPostprocessor": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "layerPattern": {
       "type": "every_n",
       "globalPattern": null,
       "period": 6,
       "offset": 5,
-      "layerTypes": null
+      "layerTypes": null,
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": "translategemma",
       "enabled": true
     },
+    "supportsEmbedding": false,
+    "supportsRerank": false,
+    "supportsTranscription": false,
+    "supportsVision": false,
+    "rerank": null,
+    "diffusionGemma": null,
     "pipeline": null,
     "session": {
       "compute": {
@@ -186,7 +198,10 @@
         "attn_decode": {
           "kernel": "attention_decode_online_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1"
+          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+          "precision": {
+            "kvDtype": "f16"
+          }
         },
         "residual": {
           "kernel": "residual.wgsl",
@@ -209,7 +224,10 @@
         "attn_stream": {
           "kernel": "attention_streaming_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f"
+          "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+          "precision": {
+            "kvDtype": "f16"
+          }
         },
         "lm_head_gemv": {
           "kernel": "matmul_gemv_subgroup.wgsl",
@@ -219,6 +237,11 @@
             "MULTICOL_COLS_PER_WG": 64,
             "MULTICOL_THREADS_PER_COL": 4
           }
+        },
+        "lm_head_tiled": {
+          "kernel": "matmul_f16w_f32a.wgsl",
+          "entry": "main",
+          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
         },
         "sample": {
           "kernel": "sample.wgsl",
@@ -383,7 +406,7 @@
         ],
         [
           "lm_head_prefill",
-          "tiled",
+          "lm_head_tiled",
           "lm_head"
         ],
         [
@@ -396,9 +419,6 @@
         "dtypeTransition": "require_cast_step",
         "unresolvedKernel": "error"
       }
-    },
-    "largeWeights": {
-      "gpuResidentOverrides": null
     }
   },
   "shards": [
@@ -6518,7 +6538,7 @@
     "convertedAt": "2026-03-15T21:32:57.224Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-04-04T21:40:22.605Z",
+      "at": "2026-07-10T15:20:49.395Z",
       "config": "translategemma-4b-it-q4k-ehf16-af32.json"
     },
     "integrityRefresh": {
@@ -6533,11 +6553,12 @@
     "addBosToken": true
   },
   "artifactIdentity": {
-    "sourceCheckpointId": "google/translategemma-4b-it",
-    "weightPackId": "translategemma-4b-it-q4k-ehf16-af32-wp-catalog-v1",
-    "manifestVariantId": "translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1",
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:fffe18e93fdadf9c9ac4ee55f245c946f8926c265b00c5789db5a8ceb017a4fb"
+    "conversionConfigDigest": "sha256:948bcab5806c24105b963729725c79d21936d6b7e58e885418ecb43538233f5a",
+    "conversionConfigPath": "src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json",
+    "manifestVariantId": "translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1",
+    "sourceCheckpointId": "google/translategemma-4b-it",
+    "weightPackId": "translategemma-4b-it-q4k-ehf16-af32-wp-catalog-v1"
   },
   "integrityExtensions": {
     "contractVersion": 1,

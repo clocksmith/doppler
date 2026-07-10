@@ -9,6 +9,12 @@ const converterConfig = JSON.parse(
     'utf8'
   )
 );
+const studentConfig = JSON.parse(
+  fs.readFileSync(
+    'src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json',
+    'utf8'
+  )
+);
 
 // === V1 config structure ===
 
@@ -30,6 +36,8 @@ assert.equal(converterConfig.session?.kvcache?.kvDtype, 'f16');
 
 const expanded = expandExecutionV1(converterConfig.execution);
 assert.ok(expanded.length > 0, 'execution must expand to steps');
+const lmHeadPrefill = expanded.find((step) => step.op === 'lm_head_prefill');
+assert.equal(lmHeadPrefill?.kernel, 'matmul_f16w_f32a.wgsl');
 
 const decodeSteps = expanded.filter((s) => s.phase === 'decode');
 const prefillSteps = expanded.filter((s) => s.phase === 'prefill');
@@ -41,5 +49,16 @@ assert.ok(prefillSteps.length > 0, 'must have prefill steps');
 assert.equal(converterConfig.inference.normalization.rmsNormWeightOffset, true);
 assert.equal(converterConfig.inference.normalization.rmsNormEps, 1e-6);
 assert.equal(converterConfig.inference.ffn.activation, 'gelu');
+
+// === Gamma student contract ===
+
+assert.equal(studentConfig.modelType, 'transformer');
+assert.equal(studentConfig.output.textOnly, true);
+assert.equal(studentConfig.inference.chatTemplate.type, 'gemma');
+assert.equal(studentConfig.inference.attention.valueNorm, false);
+assert.equal(studentConfig.inference.ffn.useDoubleWideMlp, false);
+assert.equal(studentConfig.inference.rope.ropeLocalPartialRotaryFactor, null);
+assert.equal(studentConfig.inference.rope.ropeFrequencyBaseDim, null);
+assert.equal(studentConfig.inference.rope.ropeLocalFrequencyBaseDim, null);
 
 console.log('translategemma-conversion-config.test: ok');

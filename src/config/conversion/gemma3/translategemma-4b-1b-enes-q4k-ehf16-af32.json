@@ -1,7 +1,8 @@
 {
   "output": {
     "baseDir": "models/local",
-    "modelBaseId": "translategemma-4b-1b-enes-q4k-ehf16-af32"
+    "modelBaseId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+    "textOnly": true
   },
   "quantization": {
     "weights": "q4k",
@@ -18,7 +19,8 @@
       "queryKeyNorm": true,
       "causal": true,
       "attentionBias": false,
-      "attentionOutputGate": false
+      "attentionOutputGate": false,
+      "valueNorm": false
     },
     "normalization": {
       "rmsNormEps": 0.000001,
@@ -31,7 +33,8 @@
       "activation": "gelu",
       "gatedActivation": true,
       "branchMode": "auto",
-      "swigluLimit": null
+      "swigluLimit": null,
+      "useDoubleWideMlp": false
     },
     "rope": {
       "ropeTheta": 1000000,
@@ -49,6 +52,9 @@
       "ropeLocalYarnBetaFast": null,
       "ropeLocalYarnBetaSlow": null,
       "ropeLocalYarnOriginalMaxPos": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null,
       "longropeShortFactor": null,
       "longropeLongFactor": null,
       "longropeOriginalMaxPos": null
@@ -72,7 +78,7 @@
       "residualBranchScale": 1
     },
     "chatTemplate": {
-      "type": "translategemma",
+      "type": "gemma",
       "enabled": true
     }
   },
@@ -393,5 +399,6 @@
   },
   "largeWeights": {
     "gpuResidentOverrides": null
-  }
+  },
+  "modelType": "transformer"
 }
