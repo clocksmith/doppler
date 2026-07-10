@@ -440,7 +440,7 @@
           "evidence": {
             "runtimeReport": "reports/release-claims/google-embeddinggemma-300m-q4k-ehf16-af32/2026-06-24T01-42-03.814Z.json",
             "runtimeReportExists": true,
-            "compareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260706T164532.json",
+            "compareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json",
             "compareResultExists": true,
             "summarySvg": null,
             "summarySvgExists": false,

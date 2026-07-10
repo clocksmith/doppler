@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="860" viewBox="0 0 1280 860" role="img" aria-labelledby="title desc">
+  <title id="title">Doppler Metal and Vulkan Tier 1 and Tier 2 benchmark wins</title>
+  <desc id="desc">Browser WebGPU product-format comparisons showing Doppler ahead of Transformers.js in every tracked primary Tier 1 lane on Apple M3 Metal and Radeon 8060S Vulkan, plus both tracked Tier 2 lanes on Vulkan.</desc>
+  <defs>
+    <style>
+      text { fill: #111111; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; }
+      .mono { font-family: SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+      .eyebrow { font-size: 12px; font-weight: 800; fill: #0f766e; }
+      .title { font-size: 32px; font-weight: 800; }
+      .subtitle { font-size: 14px; font-weight: 600; fill: #495057; }
+      .section { font-size: 16px; font-weight: 800; }
+      .section-detail { font-size: 11.5px; font-weight: 700; fill: #495057; }
+      .model { font-size: 15px; font-weight: 800; }
+      .detail { font-size: 10.5px; font-weight: 650; fill: #495057; }
+      .bar-value { font-size: 12px; font-weight: 800; fill: #ffffff; }
+      .ratio { font-size: 21px; font-weight: 800; fill: #0f766e; }
+      .win { font-size: 10.5px; font-weight: 800; fill: #0f766e; }
+      .badge { font-size: 11px; font-weight: 800; }
+      .legend { font-size: 11.5px; font-weight: 700; fill: #495057; }
+      .footer { font-size: 10.5px; font-weight: 650; fill: #495057; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="860" fill="#ffffff" />
+  <rect x="18" y="18" width="1244" height="824" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.4" />
+
+  <text x="42" y="54" class="eyebrow">DOPPLER VS TRANSFORMERS.JS</text>
+  <text x="42" y="90" class="title">Doppler wins every tracked primary lane</text>
+  <text x="42" y="118" class="subtitle">Browser WebGPU · Apple M3 Metal · Radeon 8060S Vulkan · pinned comparators</text>
+
+  <rect x="936" y="40" width="132" height="58" rx="4" fill="#eaf7f4" stroke="#0f766e" stroke-width="1.3" />
+  <text x="1002" y="65" text-anchor="middle" class="badge" fill="#0f766e">TIER 1</text>
+  <text x="1002" y="86" text-anchor="middle" class="badge" fill="#0f766e">6 / 6 WINS</text>
+  <rect x="1080" y="40" width="140" height="58" rx="4" fill="#fff5e8" stroke="#9a6700" stroke-width="1.3" />
+  <text x="1150" y="65" text-anchor="middle" class="badge" fill="#9a6700">TIER 2</text>
+  <text x="1150" y="86" text-anchor="middle" class="badge" fill="#9a6700">2 / 2 WINS</text>
+
+  <rect x="42" y="139" width="14" height="14" rx="2" fill="#0f766e" />
+  <text x="65" y="151" class="legend">Doppler</text>
+  <rect x="142" y="139" width="14" height="14" rx="2" fill="#5c6fff" />
+  <text x="165" y="151" class="legend">Transformers.js</text>
+  <text x="1198" y="151" text-anchor="end" class="legend">HIGHER IS BETTER · EACH ROW HAS ITS OWN SCALE</text>
+  <line x1="42" y1="166" x2="1238" y2="166" stroke="#111111" stroke-width="1" />
+
+  <text x="42" y="192" class="section">Apple M3 / Metal</text>
+  <text x="1188" y="192" text-anchor="end" class="section-detail">TIER 1 · RELEASE-CLAIMABLE · 3 / 3</text>
+
+  <rect x="42" y="205" width="1196" height="58" rx="4" fill="#f3fbf8" stroke="#b7ded1" />
+  <rect x="42" y="215" width="4" height="38" fill="#0f766e" />
+  <text x="62" y="229" class="model">Qwen 3.5 0.8B text</text>
+  <text x="62" y="249" class="detail">p512 / d128 · exact output</text>
+  <rect x="390" y="215" width="560" height="16" rx="2" fill="#e4ebe9" />
+  <rect x="390" y="215" width="560" height="16" rx="2" fill="#0f766e" />
+  <text x="400" y="227" class="bar-value mono">38.42 tok/s</text>
+  <rect x="390" y="238" width="560" height="16" rx="2" fill="#e6e8f4" />
+  <rect x="390" y="238" width="387" height="16" rx="2" fill="#5c6fff" />
+  <text x="400" y="250" class="bar-value mono">26.54 tok/s</text>
+  <line x1="980" y1="215" x2="980" y2="253" stroke="#b7ded1" />
+  <text x="1004" y="237" class="ratio">1.45x</text>
+  <text x="1090" y="237" class="win">DOPPLER WIN</text>
+
+  <rect x="42" y="270" width="1196" height="58" rx="4" fill="#f6f7ff" stroke="#d8ddf0" />
+  <rect x="42" y="280" width="4" height="38" fill="#5c6fff" />
+  <text x="62" y="294" class="model">Qwen 3 Embedding 0.6B</text>
+  <text x="62" y="314" class="detail">semantic pass</text>
+  <rect x="390" y="280" width="560" height="16" rx="2" fill="#e4ebe9" />
+  <rect x="390" y="280" width="560" height="16" rx="2" fill="#0f766e" />
+  <text x="400" y="292" class="bar-value mono">22.83 emb/s</text>
+  <rect x="390" y="303" width="560" height="16" rx="2" fill="#e6e8f4" />
+  <rect x="390" y="303" width="475" height="16" rx="2" fill="#5c6fff" />
+  <text x="400" y="315" class="bar-value mono">19.38 emb/s</text>
+  <line x1="980" y1="280" x2="980" y2="318" stroke="#d8ddf0" />
+  <text x="1004" y="302" class="ratio">1.18x</text>
+  <text x="1090" y="302" class="win">DOPPLER WIN</text>
+
+  <rect x="42" y="335" width="1196" height="58" rx="4" fill="#fff9f3" stroke="#ead8bf" />
+  <rect x="42" y="345" width="4" height="38" fill="#f2a93b" />
+  <text x="62" y="359" class="model">Qwen 3 Reranker 0.6B</text>
+  <text x="62" y="379" class="detail">semantic pass · expected top document</text>
+  <rect x="390" y="345" width="560" height="16" rx="2" fill="#e4ebe9" />
+  <rect x="390" y="345" width="560" height="16" rx="2" fill="#0f766e" />
+  <text x="400" y="357" class="bar-value mono">2.14 reranks/s</text>
+  <rect x="390" y="368" width="560" height="16" rx="2" fill="#e6e8f4" />
+  <rect x="390" y="368" width="535" height="16" rx="2" fill="#5c6fff" />
+  <text x="400" y="380" class="bar-value mono">2.05 reranks/s</text>
+  <line x1="980" y1="345" x2="980" y2="383" stroke="#ead8bf" />
+  <text x="1004" y="367" class="ratio">1.05x</text>
+  <text x="1090" y="367" class="win">DOPPLER WIN</text>
+
+  <line x1="42" y1="411" x2="1238" y2="411" stroke="#111111" stroke-width="1" />
+  <text x="42" y="432" class="section">Radeon 8060S / Vulkan</text>
+  <text x="1188" y="432" text-anchor="end" class="section-detail">TIER 1 RELEASE-CLAIMABLE · TIER 2 LOCAL-COMPARABLE · 5 / 5</text>
+
+  <rect x="42" y="440" width="1196" height="58" rx="4" fill="#f3fbf8" stroke="#b7ded1" />
+  <rect x="42" y="450" width="4" height="38" fill="#0f766e" />
+  <text x="62" y="464" class="model">T1 · Qwen 3.5 0.8B text</text>
+  <text x="62" y="484" class="detail">p512 / d128 · exact output</text>
+  <rect x="390" y="450" width="560" height="16" rx="2" fill="#e4ebe9" />
+  <rect x="390" y="450" width="560" height="16" rx="2" fill="#0f766e" />
+  <text x="400" y="462" class="bar-value mono">69.07 tok/s</text>
+  <rect x="390" y="473" width="560" height="16" rx="2" fill="#e6e8f4" />
+  <rect x="390" y="473" width="339" height="16" rx="2" fill="#5c6fff" />
+  <text x="400" y="485" class="bar-value mono">41.79 tok/s</text>
+  <line x1="980" y1="450" x2="980" y2="488" stroke="#b7ded1" />
+  <text x="1004" y="472" class="ratio">1.65x</text>
+  <text x="1090" y="472" class="win">DOPPLER WIN</text>
+
+  <rect x="42" y="505" width="1196" height="58" rx="4" fill="#f6f7ff" stroke="#d8ddf0" />
+  <rect x="42" y="515" width="4" height="38" fill="#5c6fff" />
+  <text x="62" y="529" class="model">T1 · Qwen 3 Embedding 0.6B</text>
+  <text x="62" y="549" class="detail">15 runs · semantic pass</text>
+  <rect x="390" y="515" width="560" height="16" rx="2" fill="#e4ebe9" />
+  <rect x="390" y="515" width="560" height="16" rx="2" fill="#0f766e" />
+  <text x="400" y="527" class="bar-value mono">33.88 emb/s</text>
+  <rect x="390" y="538" width="560" height="16" rx="2" fill="#e6e8f4" />
+  <rect x="390" y="538" width="111" height="16" rx="2" fill="#5c6fff" />
+  <text x="400" y="550" class="bar-value mono">6.69 emb/s</text>
+  <line x1="980" y1="515" x2="980" y2="553" stroke="#d8ddf0" />
+  <text x="1004" y="537" class="ratio">5.06x</text>
+  <text x="1090" y="537" class="win">DOPPLER WIN</text>
+
+  <rect x="42" y="570" width="1196" height="58" rx="4" fill="#fff9f3" stroke="#ead8bf" />
+  <rect x="42" y="580" width="4" height="38" fill="#f2a93b" />
+  <text x="62" y="594" class="model">T1 · Qwen 3 Reranker 0.6B</text>
+  <text x="62" y="614" class="detail">15 runs · semantic pass</text>
+  <rect x="390" y="580" width="560" height="16" rx="2" fill="#e4ebe9" />
+  <rect x="390" y="580" width="560" height="16" rx="2" fill="#0f766e" />
+  <text x="400" y="592" class="bar-value mono">3.59 reranks/s</text>
+  <rect x="390" y="603" width="560" height="16" rx="2" fill="#e6e8f4" />
+  <rect x="390" y="603" width="331" height="16" rx="2" fill="#5c6fff" />
+  <text x="400" y="615" class="bar-value mono">2.12 reranks/s</text>
+  <line x1="980" y1="580" x2="980" y2="618" stroke="#ead8bf" />
+  <text x="1004" y="602" class="ratio">1.69x</text>
+  <text x="1090" y="602" class="win">DOPPLER WIN</text>
+
+  <rect x="42" y="635" width="1196" height="58" rx="4" fill="#f8fafc" stroke="#d9dee5" />
+  <rect x="42" y="645" width="4" height="38" fill="#9a6700" />
+  <text x="62" y="659" class="model">T2 · Qwen 3.5 2B text</text>
+  <text x="62" y="679" class="detail">p512 / d128 · exact output · local</text>
+  <rect x="390" y="645" width="560" height="16" rx="2" fill="#e4ebe9" />
+  <rect x="390" y="645" width="560" height="16" rx="2" fill="#0f766e" />
+  <text x="400" y="657" class="bar-value mono">56.50 tok/s</text>
+  <rect x="390" y="668" width="560" height="16" rx="2" fill="#e6e8f4" />
+  <rect x="390" y="668" width="411" height="16" rx="2" fill="#5c6fff" />
+  <text x="400" y="680" class="bar-value mono">41.50 tok/s</text>
+  <line x1="980" y1="645" x2="980" y2="683" stroke="#d9dee5" />
+  <text x="1004" y="667" class="ratio">1.36x</text>
+  <text x="1090" y="667" class="win">DOPPLER WIN</text>
+
+  <rect x="42" y="700" width="1196" height="58" rx="4" fill="#fff5e8" stroke="#ead8bf" />
+  <rect x="42" y="710" width="4" height="38" fill="#9a6700" />
+  <text x="62" y="724" class="model">T2 · Gemma 4 E2B INT4-PLE</text>
+  <text x="62" y="744" class="detail">p064 / d064 · product-format policy · local</text>
+  <rect x="390" y="710" width="560" height="16" rx="2" fill="#e4ebe9" />
+  <rect x="390" y="710" width="560" height="16" rx="2" fill="#0f766e" />
+  <text x="400" y="722" class="bar-value mono">16.32 tok/s</text>
+  <rect x="390" y="733" width="560" height="16" rx="2" fill="#e6e8f4" />
+  <rect x="390" y="733" width="317" height="16" rx="2" fill="#5c6fff" />
+  <text x="400" y="745" class="bar-value mono">9.24 tok/s</text>
+  <line x1="980" y1="710" x2="980" y2="748" stroke="#ead8bf" />
+  <text x="1004" y="732" class="ratio">1.77x</text>
+  <text x="1090" y="732" class="win">DOPPLER WIN</text>
+
+  <line x1="42" y1="780" x2="1238" y2="780" stroke="#111111" stroke-width="1" />
+  <text x="42" y="806" class="footer">Tier 1 rows are release-claimable. Vulkan Tier 2 rows are local-comparable; Gemma uses its product-format parity policy.</text>
+  <text x="42" y="828" class="footer">TJS loads the Vulkan embedding and reranker models faster. Backend lanes and bar scales remain separate.</text>
+  <text x="1238" y="828" text-anchor="end" class="footer mono">8 RECEIPTS LINKED BELOW</text>
+</svg>
