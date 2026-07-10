@@ -9,19 +9,28 @@ and reranking. Bun WebGPU support is experimental.
 
 ## Current evidence
 
-The current Tier 1 receipts are claim-grade, release-claimable browser WebGPU
-comparisons against Transformers.js on Apple M3 Metal. Each receipt passes its
-correctness, comparable-surface, pinned-comparator, and hosted-artifact gates.
+Across the tracked primary browser WebGPU comparisons, Doppler leads every
+Tier 1 lane on Apple M3 Metal and Radeon 8060S Vulkan, plus both tracked Tier 2
+lanes on Vulkan. Tier 1 receipts are claim-grade and release-claimable; Tier 2
+receipts are local-comparable.
 
-| Lane | Correctness | Workload | Doppler | Transformers.js | Result | Receipt |
-| --- | --- | --- | ---: | ---: | ---: | --- |
-| Qwen 3.5 0.8B text | Exact output match | p512-d128-t0-k1 | 38.42 tok/s | 26.54 tok/s | Doppler wins, 1.45x | [receipt](./benchmarks/vendors/results/compare_20260709T154633.json) |
-| Qwen 3 Embedding 0.6B | Semantic pass | Embedding fixture | 22.83 emb/s | 19.38 emb/s | Doppler wins, 1.18x | [receipt](./benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json) |
-| Qwen 3 Reranker 0.6B | Semantic pass, expected top document | 3-document rerank | 2.14 reranks/s | 2.05 reranks/s | Doppler wins, 1.05x | [receipt](./benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json) |
+![Metal and Vulkan comparison showing Doppler wins every tracked primary Tier 1 and Tier 2 lane](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-tier-evidence.svg)
+
+Metal receipts: [text](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json) ·
+[embedding](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json) ·
+[reranking](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json)
+
+Vulkan receipts: [0.8B text](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T153509.json) ·
+[embedding](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json) ·
+[reranking](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json) ·
+[2B text](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T161623.json) ·
+[Gemma 4](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T170557.json)
 
 These are disclosed product-format comparisons: Doppler runs RDRR artifacts and
-Transformers.js runs ONNX artifacts. AMD Vulkan, Tier 2, latency, load-time, and
-additional hardware results remain separate in the
+Transformers.js runs ONNX artifacts. Metal and Vulkan are separate evidence
+lanes. TJS still loads the Vulkan embedding and reranker models faster, and the
+Gemma 4 row uses its checked product-format parity policy rather than exact-token
+parity. Detailed latency, load-time, and hardware results remain in the
 [release matrix](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md).
 See the
 [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
@@ -29,15 +38,34 @@ for metric and fairness contracts.
 
 ## How it works
 
-![Doppler runtime contract map](./assets/doppler-runtime-map.svg)
+```text
+registry ID / model URL
+          |
+          v
++----------------------+    +----------------------+
+| RDRR manifest        |--->| verified shards      |
+| model + tokenizer    |    | OPFS / disk cache    |
+| session + execution  |    +----------+-----------+
++----------------------+               |
+                                       |
+prompt / documents                     v
+        +--------------------->+----------------------+
+                               | JavaScript runtime   |
+                               | prefill / decode / KV|
+                               +----------+-----------+
+                                          |
+                                          v
+                               +----------------------+
+                               | WGSL / WebGPU        |
+                               | selected kernels     |
+                               +----------+-----------+
+                                          |
+                                          v
+                              text / embeddings / scores
+```
 
-1. A registry ID or model URL resolves to an RDRR manifest and weight shards.
-2. The manifest owns model parameters, tokenizer metadata, session policy, and
-   execution graph.
-3. The loader caches shards in OPFS or disk and uploads weights to WebGPU
-   buffers.
-4. JavaScript orchestrates prefill, decode, KV cache, and streaming.
-5. WGSL kernels run the tensor work selected by the manifest and runtime config.
+The manifest and runtime config select dtype and kernel paths before execution.
+Unsupported paths fail closed.
 
 ## Quick start
 

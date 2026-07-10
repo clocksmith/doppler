@@ -8,10 +8,32 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
-## [0.4.8] - 2026-07-07
+## [0.4.8] - 2026-07-09
+
+### Added
+
+- Claim-grade, release-claimable Apple M3 Metal evidence for the current Tier 1
+  Qwen text-generation, embedding, and reranking lanes.
+- Claim-grade, release-claimable Radeon 8060S Vulkan evidence for the current
+  Tier 1 Qwen lanes, including fresh 15-run embedding and reranking receipts.
+- Local-comparable Radeon 8060S Vulkan evidence for the Tier 2 Qwen 3.5 2B and
+  Gemma 4 E2B INT4-PLE generation lanes.
+- A receipt-linked README comparison chart that keeps Metal, Vulkan, Tier 1,
+  Tier 2, and claim state explicit.
+
+### Changed
+
+- Refreshed the competition scoreboard, model support inventory, local GPU
+  challenger matrix, and model roadmap from the promoted Vulkan receipts.
+- Added Metal runtime profiles and optimized WebGPU paths for Qwen 3.5 text,
+  embedding, and reranking, including fixed `head_dim=128` f16-KV prefill
+  attention for the reranker lane.
 
 ### Fixed
 
+- Replaced the stale Vulkan reranker loss with the current 15-run,
+  release-claimable Doppler throughput win while preserving the TJS model-load
+  advantage in the evidence ledger.
 - Published the browser runtime capability rules, model-source resolver,
   execution-v1 runtime, and schema updates required by downstream static
   consumers such as Simulatte without patching installed package files.
