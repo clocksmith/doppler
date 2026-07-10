@@ -1,5 +1,10 @@
 # doppler-gpu
 
+[![Build](https://img.shields.io/github/actions/workflow/status/clocksmith/doppler/check-green.yml?branch=main&label=build)](https://github.com/clocksmith/doppler/actions/workflows/check-green.yml)
+[![npm version](https://img.shields.io/npm/v/doppler-gpu.svg?label=version)](https://www.npmjs.com/package/doppler-gpu)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/clocksmith/doppler/blob/main/LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/clocksmith/doppler/pulls)
+
 JavaScript and WGSL WebGPU inference for browser and Node, with CLI and
 OpenAI-compatible local server entry points. Doppler loads sharded
 [RDRR model artifacts](./docs/rdrr-format.md) for text generation, embeddings,
