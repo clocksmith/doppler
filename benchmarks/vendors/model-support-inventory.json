@@ -440,7 +440,7 @@
           "evidence": {
             "runtimeReport": "reports/release-claims/google-embeddinggemma-300m-q4k-ehf16-af32/2026-06-24T01-42-03.814Z.json",
             "runtimeReportExists": true,
-            "compareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json",
+            "compareResult": "benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260706T164532.json",
             "compareResultExists": true,
             "summarySvg": null,
             "summarySvgExists": false,
@@ -771,7 +771,7 @@
           "evidence": {
             "runtimeReport": "reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json",
             "runtimeReportExists": true,
-            "compareResult": "benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json",
+            "compareResult": "benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json",
             "compareResultExists": true,
             "summarySvg": null,
             "summarySvgExists": false,
@@ -1207,7 +1207,7 @@
           "evidence": {
             "runtimeReport": "reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json",
             "runtimeReportExists": true,
-            "compareResult": "benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json",
+            "compareResult": "benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json",
             "compareResultExists": true,
             "summarySvg": null,
             "summarySvgExists": false,
