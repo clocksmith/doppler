@@ -17,11 +17,12 @@ import {
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_RUNNER_PATH = '/src/tooling/command-runner.html';
 const DEFAULT_TIMEOUT_MS = 180_000;
+const DEFAULT_CLEANUP_TIMEOUT_MS = 5_000;
 const DEFAULT_OPFS_CACHE_DIR = path.join(os.homedir(), '.cache', 'doppler', 'chromium-profile');
 const DEFAULT_OPFS_CACHE_PORT = 19836;
 const SERVER_HOSTS = Object.freeze(['127.0.0.1', 'localhost', '0.0.0.0']);
 const DEFAULT_CHANNEL_ORDER = Object.freeze({
-  darwin: ['chrome', 'chromium'],
+  darwin: ['chromium', 'chrome'],
   linux: ['chromium', 'chrome'],
   win32: ['chromium', 'chrome'],
 });
@@ -650,6 +651,36 @@ export async function runBrowserCommandEvaluationWithTimeout(operation, timeoutM
   }
 }
 
+async function runBrowserCleanupWithTimeout(operation, timeoutMs) {
+  let timeoutId = null;
+  const cleanupPromise = Promise.resolve()
+    .then(operation)
+    .then(() => true, () => true);
+  const timeoutPromise = new Promise((resolve) => {
+    timeoutId = setTimeout(() => resolve(false), timeoutMs);
+    timeoutId.unref?.();
+  });
+  try {
+    return await Promise.race([
+      cleanupPromise,
+      timeoutPromise,
+    ]);
+  } finally {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
+function terminateBrowserProcess(browser) {
+  const childProcess = typeof browser?.process === 'function'
+    ? browser.process()
+    : null;
+  if (childProcess && typeof childProcess.kill === 'function' && childProcess.killed !== true) {
+    childProcess.kill('SIGKILL');
+  }
+}
+
 function browserLaunchArgs(extraArgs = []) {
   const platformArgs = PLATFORM_WEBGPU_ARGS[process.platform] ?? [];
   return uniqueArgs([...DEFAULT_WEBGPU_BROWSER_ARGS, ...platformArgs, ...extraArgs]);
@@ -853,9 +884,11 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
         );
       });
 
+    const timeoutMs = normalizeTimeoutMs(options.timeoutMs);
     const launchOptions = {
       headless: normalizeHeadless(options.headless),
       args: browserLaunchArgs(normalizeBrowserArgs(options.browserArgs)),
+      timeout: timeoutMs,
     };
 
     if (options.channel) {
@@ -865,7 +898,6 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
       launchOptions.executablePath = String(options.executablePath);
     }
 
-    const timeoutMs = normalizeTimeoutMs(options.timeoutMs);
     const runnerPath = normalizeRunnerPath(options.runnerPath);
     const resolvedBaseUrl = baseUrl || server.baseUrl;
     const requestedLoadMode = sourceRequest.loadMode;
@@ -1054,14 +1086,17 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
         request: sourceRequest,
       });
     } finally {
-      if (context) {
-        await context.close().catch(() => {});
-      }
+      const cleanupTimeoutMs = Math.min(timeoutMs, DEFAULT_CLEANUP_TIMEOUT_MS);
       if (browser) {
-        await browser.close().catch(() => {});
+        const browserClosed = await runBrowserCleanupWithTimeout(() => browser.close(), cleanupTimeoutMs);
+        if (!browserClosed) {
+          terminateBrowserProcess(browser);
+        }
+      } else if (context) {
+        await runBrowserCleanupWithTimeout(() => context.close(), cleanupTimeoutMs);
       }
       if (server) {
-        await server.close().catch(() => {});
+        await runBrowserCleanupWithTimeout(() => server.close(), cleanupTimeoutMs);
       }
     }
   } catch (error) {

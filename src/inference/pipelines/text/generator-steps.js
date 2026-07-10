@@ -540,7 +540,7 @@ function createDecodeRecorder(state, opts) {
   if (recorderEnabled) {
     recorder = opts.profile
       ? createProfilingRecorder('decode', device)
-      : createCommandRecorder('decode', { recordLabels: opts.debug === true }, device);
+      : createCommandRecorder('decode', { recordLabels: opts.debug === true || opts.benchmark === true }, device);
   }
   if (state.decodeStepCount === 1) {
     const path = selectRuleValue('inference', 'config', 'tracePath', { useRecorder: Boolean(recorder) });
@@ -1323,7 +1323,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
   const tokensPerInterval = batchSize * readbackInterval;
   const recorder = opts.profile
     ? createProfilingRecorder('batch_decode', device)
-    : createCommandRecorder('batch_decode', { recordLabels: opts.debug === true }, device);
+    : createCommandRecorder('batch_decode', { recordLabels: opts.debug === true || opts.benchmark === true }, device);
   const lmHead = state.weights.get('lm_head');
   if (lmHead && isCpuWeightBuffer(lmHead)) {
     throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident LM head.');

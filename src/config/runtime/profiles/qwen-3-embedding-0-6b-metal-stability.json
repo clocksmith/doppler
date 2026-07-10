@@ -1,0 +1,37 @@
+{
+  "id": "profiles/qwen-3-embedding-0-6b-metal-stability",
+  "name": "qwen-3-embedding-0-6b-metal-stability",
+  "description": "Qwen 3 Embedding 0.6B Metal validation profile preserving manifest compute precision.",
+  "intent": "verify",
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-07-09T00:00:00Z",
+  "extends": "profiles/default",
+  "runtime": {
+    "shared": {
+      "tooling": {
+        "intent": "verify"
+      },
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "silent"
+        },
+        "trace": {
+          "enabled": false
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 1
+      },
+      "sampling": {
+        "temperature": 0
+      },
+      "session": {
+        "prefillChunkSubmitMode": "async",
+        "skipEmbeddingKVCacheWrites": true
+      }
+    }
+  }
+}

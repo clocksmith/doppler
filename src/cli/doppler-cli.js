@@ -1839,11 +1839,32 @@ function isMainModule(metaUrl) {
   return path.resolve(fileURLToPath(metaUrl)) === path.resolve(entryPath);
 }
 
-if (isMainModule(import.meta.url)) {
-  main().then(() => {
-    process.exit(process.exitCode ?? 0);
-  }).catch((error) => {
-    console.error(`[error] ${error?.message || String(error)}`);
-    process.exit(1);
+function flushStream(stream) {
+  if (!stream || stream.destroyed) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    stream.write('', () => resolve());
   });
+}
+
+async function flushCliStreams() {
+  await Promise.all([
+    flushStream(process.stdout),
+    flushStream(process.stderr),
+  ]);
+}
+
+if (isMainModule(import.meta.url)) {
+  main()
+    .then(async () => {
+      const exitCode = process.exitCode ?? 0;
+      await flushCliStreams();
+      process.exit(exitCode);
+    })
+    .catch(async (error) => {
+      console.error(`[error] ${error?.message || String(error)}`);
+      await flushCliStreams();
+      process.exit(1);
+    });
 }

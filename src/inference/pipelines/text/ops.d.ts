@@ -12,6 +12,10 @@ import type {
   CommandRecorder,
   SandwichRMSNormPairOptions,
   SandwichRMSNormPairResult,
+  ResidualNextRMSNormPairOptions,
+  ResidualNextRMSNormPairResult,
+  RMSNormStatsOptions,
+  RMSNormStatsResult,
 } from '../../../gpu/kernel-selector.js';
 import type { Tensor } from '../../../gpu/tensor.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
@@ -55,6 +59,14 @@ export function doRMSNorm(
   recorder?: CommandRecorder
 ): Promise<Tensor>;
 
+export function doRMSNormStats(
+  input: Tensor,
+  residual: Tensor,
+  eps: number,
+  options: RMSNormStatsOptions,
+  recorder?: CommandRecorder
+): Promise<RMSNormStatsResult>;
+
 export function doSandwichRMSNormPair(
   input: Tensor,
   residual: Tensor | null,
@@ -64,6 +76,15 @@ export function doSandwichRMSNormPair(
   options?: SandwichRMSNormPairOptions,
   recorder?: CommandRecorder
 ): Promise<SandwichRMSNormPairResult>;
+
+export function doResidualNextRMSNormPair(
+  input: Tensor,
+  residual: Tensor,
+  normWeight: GPUBuffer | WeightBuffer | CpuWeightBuffer,
+  eps: number,
+  options?: ResidualNextRMSNormPairOptions,
+  recorder?: CommandRecorder
+): Promise<ResidualNextRMSNormPairResult>;
 
 /**
  * ResidualAdd that uses record variant when recorder is provided.

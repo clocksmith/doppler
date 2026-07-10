@@ -3,7 +3,7 @@
 Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.
 This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.
 
-Updated at: 2026-07-07T18:36:34.752Z
+Updated at: 2026-07-09T19:35:08.657Z
 
 ## Summary
 
@@ -20,8 +20,8 @@ Updated at: 2026-07-07T18:36:34.752Z
 - Transformers.js decode-leading generation rows: 2
 - Doppler embedding latency-leading rows: 1
 - Transformers.js embedding latency-leading rows: 1
-- Doppler rerank latency-leading rows: 0
-- Transformers.js rerank latency-leading rows: 1
+- Doppler rerank latency-leading rows: 1
+- Transformers.js rerank latency-leading rows: 0
 - Evidence-incomplete rows: 28
 
 ## Claim Status Rules
@@ -55,13 +55,13 @@ Updated at: 2026-07-07T18:36:34.752Z
 | Model | Correctness | Doppler median | TJS median | Latency leader | Doppler throughput | TJS throughput | Throughput leader | Load leader | Claim | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | google-embeddinggemma-300m-q4k-ehf16-af32 | semantic-pass | 60.04 ms | 25.42 ms | transformersjs | 16.74 emb/s | 35.13 emb/s | transformersjs | doppler | claimable | benchmarks/vendors/results/embedding_compare_google-embeddinggemma-300m-q4k-ehf16-af32_20260704T154500.json |
-| qwen-3-embedding-0-6b-q4k-ehf16-af32 | semantic-pass | 65.05 ms | 146.46 ms | doppler | 15.28 emb/s | 6.77 emb/s | doppler | transformersjs | claimable | benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260706T171250.json |
+| qwen-3-embedding-0-6b-q4k-ehf16-af32 | semantic-pass | 43.7 ms | 51.55 ms | doppler | 22.83 emb/s | 19.38 emb/s | doppler | transformersjs | claimable | benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json |
 
 ## Rerank Competition Rows
 
 | Model | Correctness | Doppler median | TJS median | Latency leader | Doppler throughput | TJS throughput | Throughput leader | Load leader | Claim | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| qwen-3-reranker-0-6b-q4k-ehf16-af32 | semantic-pass | 1556.2 ms | 483.2 ms | transformersjs | 0.64 rerank/s | 2.07 rerank/s | transformersjs | transformersjs | claimable | benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260706T154539.json |
+| qwen-3-reranker-0-6b-q4k-ehf16-af32 | semantic-pass | 476.6 ms | 486.16 ms | doppler | 2.14 rerank/s | 2.05 rerank/s | doppler | transformersjs | claimable | benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json |
 
 ## Support And Competition Gaps
 

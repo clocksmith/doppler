@@ -17,6 +17,7 @@ export interface Tensor {
   readonly dtype: TensorDtype;
   readonly shape: readonly number[];
   readonly label?: string;
+  outputGateFused?: boolean;
 }
 
 /**

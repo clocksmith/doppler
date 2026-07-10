@@ -33,6 +33,7 @@ const {
 const {
   runFusedFFN,
   recordFusedFFN,
+  runFusedFFNFromRMSNormStats,
 } = await import('../../src/gpu/kernels/fused_ffn.js');
 const {
   runMatmulResidualFused,
@@ -95,10 +96,12 @@ function createFakeDevice({
   createBindGroupThrowAt = null,
   trackCreatedBuffers = false,
   trackPipelineDescriptors = false,
+  trackDispatches = false,
 } = {}) {
   let createBindGroupCount = 0;
   const createdBuffers = trackCreatedBuffers ? [] : null;
   const pipelineDescriptors = trackPipelineDescriptors ? [] : null;
+  const dispatches = trackDispatches ? [] : null;
 
   return {
     queue: {
@@ -157,6 +160,16 @@ function createFakeDevice({
         },
       };
     },
+    createComputePipeline(descriptor) {
+      if (pipelineDescriptors) {
+        pipelineDescriptors.push(descriptor);
+      }
+      return {
+        getBindGroupLayout() {
+          return {};
+        },
+      };
+    },
     createBuffer({ size, usage, label }) {
       const buffer = new FakeBuffer({ size, usage, label });
       if (createdBuffers) {
@@ -170,7 +183,11 @@ function createFakeDevice({
           return {
             setPipeline() {},
             setBindGroup() {},
-            dispatchWorkgroups() {},
+            dispatchWorkgroups(x, y, z) {
+              if (dispatches) {
+                dispatches.push({ x, y, z });
+              }
+            },
             end() {},
           };
         },
@@ -181,6 +198,7 @@ function createFakeDevice({
     },
     ...(createdBuffers ? { createdBuffers } : {}),
     ...(pipelineDescriptors ? { pipelineDescriptors } : {}),
+    ...(dispatches ? { dispatches } : {}),
   };
 }
 
@@ -285,6 +303,83 @@ function assertCreatedBufferDestroyed(device, label) {
     undefined,
     'Q4K fused FFN must not pass SHARED_INPUT_SIZE constants to fused_ffn_q4k.wgsl.'
   );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ trackPipelineDescriptors: true, trackDispatches: true });
+  resetRuntimeState(device);
+  const input = createExternalTensor(new Float32Array(1152), [1, 1152], 'ffn_q4k_input');
+  const gate = createWeightLike(144 * 5, 'q4k');
+  const up = createWeightLike(144 * 5, 'q4k');
+  const output = await runFusedFFN(input, gate, up, 1152, 128, {
+    swigluLimit: null,
+    pipelineConstants: {
+      COLS_PER_WG: 64,
+      THREADS_PER_COL: 4,
+      USE_FULL_BLOCK_FAST_PATH: true,
+    },
+  });
+  assert.deepEqual(
+    device.pipelineDescriptors[0].compute.constants,
+    {
+      COLS_PER_WG: 64,
+      THREADS_PER_COL: 4,
+      USE_FULL_BLOCK_FAST_PATH: 1,
+    },
+    'Q4K fused FFN should pass explicit pipeline constants to fused_ffn_q4k.wgsl.'
+  );
+  assert.deepEqual(
+    device.dispatches,
+    [{ x: 2, y: 1, z: 1 }],
+    'Q4K fused FFN dispatch width should follow explicit COLS_PER_WG.'
+  );
+  releaseBuffer(output.buffer);
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice({ trackPipelineDescriptors: true, trackDispatches: true });
+  resetRuntimeState(device);
+  const input = createExternalTensor(new Float32Array(1152), [1, 1152], 'normed_ffn_q4k_input');
+  const invRms = new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE });
+  const normWeight = createWeightLike(1152 * 4);
+  const gate = createWeightLike(144 * 5, 'q4k');
+  const up = createWeightLike(144 * 5, 'q4k');
+  const output = await runFusedFFNFromRMSNormStats(
+    input,
+    invRms,
+    normWeight,
+    gate,
+    up,
+    1152,
+    128,
+    {
+      swigluLimit: null,
+      pipelineConstants: {
+        COLS_PER_WG: 64,
+        THREADS_PER_COL: 4,
+        USE_FULL_BLOCK_FAST_PATH: true,
+      },
+    }
+  );
+  assert.deepEqual(
+    device.pipelineDescriptors[0].compute.constants,
+    {
+      COLS_PER_WG: 64,
+      THREADS_PER_COL: 4,
+      USE_FULL_BLOCK_FAST_PATH: 1,
+    },
+    'Q4K fused normed FFN should pass explicit pipeline constants to fused_normed_ffn_q4k.'
+  );
+  assert.deepEqual(
+    device.dispatches,
+    [{ x: 2, y: 1, z: 1 }],
+    'Q4K fused normed FFN dispatch width should follow explicit COLS_PER_WG.'
+  );
+  releaseBuffer(output.buffer);
   assertPoolIsClean();
   resetRuntimeState();
 }

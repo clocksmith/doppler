@@ -19,6 +19,22 @@ export interface SandwichRMSNormPairResult {
   ffnInput: Tensor;
 }
 
+export interface ResidualNextRMSNormPairOptions {
+  batchSize?: number;
+  hiddenSize?: number | null;
+  rmsNormWeightOffset?: boolean;
+  label?: string | null;
+  layerIdx?: number;
+  residualOutputBuffer?: GPUBuffer | null;
+  normOutputBuffer?: GPUBuffer | null;
+  outputScale?: number | null;
+}
+
+export interface ResidualNextRMSNormPairResult {
+  residual: Tensor;
+  nextInput: Tensor;
+}
+
 export declare function runSandwichRMSNormPair(
   input: Tensor,
   residual: Tensor | null,
@@ -37,3 +53,20 @@ export declare function recordSandwichRMSNormPair(
   eps: number,
   options?: SandwichRMSNormPairOptions
 ): Promise<SandwichRMSNormPairResult>;
+
+export declare function runResidualNextRMSNormPair(
+  input: Tensor,
+  residual: Tensor,
+  normWeight: GPUBuffer | WeightBuffer | TensorLike,
+  eps: number,
+  options?: ResidualNextRMSNormPairOptions
+): Promise<ResidualNextRMSNormPairResult>;
+
+export declare function recordResidualNextRMSNormPair(
+  recorder: CommandRecorder,
+  input: Tensor,
+  residual: Tensor,
+  normWeight: GPUBuffer | WeightBuffer | TensorLike,
+  eps: number,
+  options?: ResidualNextRMSNormPairOptions
+): Promise<ResidualNextRMSNormPairResult>;

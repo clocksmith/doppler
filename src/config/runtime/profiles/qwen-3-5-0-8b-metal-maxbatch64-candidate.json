@@ -1,0 +1,52 @@
+{
+  "id": "profiles/qwen-3-5-0-8b-metal-maxbatch64-candidate",
+  "name": "qwen-3-5-0-8b-metal-maxbatch64-candidate",
+  "description": "Investigation candidate for Qwen 3.5 0.8B browser/Metal throughput. Copies the baseline Metal profile and changes only maxBatchDecodeTokens from 128 to 64.",
+  "intent": "investigate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-07-08T00:00:00Z",
+  "extends": "profiles/throughput",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "batching": {
+        "batchSize": 8,
+        "readbackInterval": 8,
+        "stopCheckMode": "batch",
+        "readbackMode": "overlapped",
+        "ringTokens": 2,
+        "ringStop": 1,
+        "ringStaging": 2
+      },
+      "session": {
+        "usePostFfnNextInputRMSNormPairFusion": true,
+        "useLinearAttentionABProjectionFusion": true,
+        "useLinearAttentionQKVZProjectionFusion": false,
+        "useLinearAttentionFusedDecodeCore": true,
+        "decodeLoop": {
+          "batchSize": 8,
+          "stopCheckMode": "batch",
+          "readbackInterval": 8,
+          "readbackMode": "overlapped",
+          "submitLatencyThresholdMs": null,
+          "maxBatchDecodeTokens": 64,
+          "ringTokens": 2,
+          "ringStop": 1,
+          "ringStaging": 2,
+          "disableCommandBatching": false
+        }
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "manifest"
+        ],
+        "allowSources": [
+          "manifest"
+        ],
+        "onIncompatible": "remap"
+      }
+    }
+  }
+}

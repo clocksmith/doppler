@@ -1,0 +1,10 @@
+{
+  "phase1Variant": [
+    { "match": { "weightDtype": "q4k" }, "value": "phase1_q4k_f32a" },
+    { "match": { "weightDtype": "f16" }, "value": "phase1_f16w_f32a" }
+  ],
+  "phase2Variant": [
+    { "match": { "weightDtype": "q4k" }, "value": "phase2_q4k" },
+    { "match": {}, "value": "phase2" }
+  ]
+}

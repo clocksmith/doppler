@@ -31,6 +31,7 @@ export type DopplerModelSource =
 export interface DopplerLoadOptions {
   onProgress?: (event: DopplerLoadProgress) => void;
   runtimeConfig?: Record<string, unknown>;
+  isolatedLoader?: boolean;
 }
 
 export declare function createDefaultNodeLoadProgressLogger(): (event: DopplerLoadProgress) => void;

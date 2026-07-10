@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 import { KNOWN_MODELS } from '../../src/models/qwen3.js';
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
@@ -85,6 +86,50 @@ function assertQwen35TwoBTunedGraph(execution, label) {
   assert.equal(prefillAttention?.[1], 'attn_head256', `${label}: prefill attention must use head256`);
 }
 
+function assertQwen08MetalHead256DecodePatch(profile, label) {
+  const patch = profile.runtime?.inference?.executionPatch;
+  const addition = patch?.addKernels?.find((entry) => entry.key === 'attn_decode_head256');
+  assert.equal(
+    addition?.kernel?.kernel,
+    'attention_decode_online_head256_f16kv_output_gate.wgsl',
+    `${label}: Metal profile must add head256 decode attention kernel`
+  );
+  assert.equal(
+    addition?.kernel?.digest,
+    qwen08MetalHead256DecodeDigest,
+    `${label}: head256 decode attention digest must match WGSL`
+  );
+  assert.deepEqual(
+    addition?.kernel?.precision,
+    { kvDtype: 'f16' },
+    `${label}: head256 decode attention must preserve f16 KV precision`
+  );
+  assert.deepEqual(
+    patch?.set,
+    [{ section: 'decode', op: 'attention', kernelKey: 'attn_decode_head256' }],
+    `${label}: Metal profile must patch only decode attention`
+  );
+  assert.equal(
+    profile.runtime?.inference?.session?.attentionDecodeOnline?.useDirectContiguousKVLayout,
+    true,
+    `${label}: Metal profile must enable guarded direct contiguous KV specialization`
+  );
+  assert.equal(
+    profile.runtime?.inference?.session?.attentionDecodeOnline?.useOutputGateFusion,
+    true,
+    `${label}: Metal profile must enable guarded attention output gate fusion`
+  );
+  assert.deepEqual(
+    profile.runtime?.inference?.session?.lmHeadArgmaxQ4K,
+    {
+      useFullBlockFastPath: true,
+      colsPerWorkgroup: 128,
+      threadsPerCol: 2,
+    },
+    `${label}: Metal profile must use the tuned Q4K LM-head argmax shape`
+  );
+}
+
 const qwen08Config = await readJson('src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json');
 const qwen2Config = await readJson('src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json');
 const qwen08Manifest = await readJson('models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json');
@@ -97,6 +142,14 @@ assert.equal(modelProfiles.get('qwen-3-5-2b-q4k-ehaf16'), 'profiles/throughput')
 const qwen2F16PrimaryProfile = await readJson(
   'src/config/runtime/profiles/qwen-3-5-2b-f16-primary-throughput.json'
 );
+const qwen08MetalThroughputProfile = await readJson(
+  'src/config/runtime/profiles/qwen-3-5-0-8b-metal-throughput.json'
+);
+const qwen08MetalParityProfile = await readJson(
+  'src/config/runtime/profiles/qwen-3-5-0-8b-metal-parity.json'
+);
+const qwen08MetalHead256DecodeDigest =
+  `sha256:${KERNEL_REF_CONTENT_DIGESTS['attention_decode_online_head256_f16kv_output_gate.wgsl#main']}`;
 const qwen2MetalThroughputProfile = await readJson(
   'src/config/runtime/profiles/qwen-3-5-2b-metal-throughput.json'
 );
@@ -108,6 +161,38 @@ assert.equal(
   undefined,
   'Qwen 2B selective f16 profile must not override manifest compute-lane defaults'
 );
+assert.equal(qwen08MetalThroughputProfile.extends, 'profiles/throughput');
+assert.equal(qwen08MetalThroughputProfile.model, 'qwen-3-5-0-8b-q4k-ehaf16');
+assert.equal(
+  qwen08MetalThroughputProfile.runtime.inference.compute,
+  undefined,
+  'Qwen 0.8B Metal throughput profile must not change compute precision'
+);
+assert.equal(qwen08MetalThroughputProfile.runtime.inference.batching.batchSize, 8);
+assert.equal(qwen08MetalThroughputProfile.runtime.inference.batching.readbackInterval, 8);
+assert.equal(qwen08MetalThroughputProfile.runtime.inference.session.decodeLoop.batchSize, 8);
+assert.equal(qwen08MetalThroughputProfile.runtime.inference.session.decodeLoop.readbackInterval, 8);
+assert.equal(qwen08MetalThroughputProfile.runtime.inference.session.decodeLoop.maxBatchDecodeTokens, 128);
+assert.equal(qwen08MetalThroughputProfile.runtime.inference.session.useGreedyLmHeadArgmaxFusion, true);
+assert.equal(qwen08MetalThroughputProfile.runtime.inference.session.lmHeadArgmaxQ4K.useFullBlockFastPath, true);
+assertQwen08MetalHead256DecodePatch(qwen08MetalThroughputProfile, 'Qwen 0.8B Metal throughput profile');
+assert.equal(qwen08MetalThroughputProfile.runtime.inference.session.useFusedQKVSplitQKNormRoPE, true);
+assert.equal(qwen08MetalParityProfile.extends, 'profiles/throughput');
+assert.equal(qwen08MetalParityProfile.model, 'qwen-3-5-0-8b-q4k-ehaf16');
+assert.equal(qwen08MetalParityProfile.runtime.inference.batching.batchSize, 4);
+assert.equal(qwen08MetalParityProfile.runtime.inference.batching.readbackInterval, 4);
+assert.equal(qwen08MetalParityProfile.runtime.inference.batching.readbackMode, 'overlapped');
+assert.equal(qwen08MetalParityProfile.runtime.inference.batching.ringTokens, 1);
+assert.equal(qwen08MetalParityProfile.runtime.inference.batching.ringStaging, 2);
+assert.equal(qwen08MetalParityProfile.runtime.inference.session.decodeLoop.batchSize, 4);
+assert.equal(qwen08MetalParityProfile.runtime.inference.session.decodeLoop.readbackInterval, 4);
+assert.equal(qwen08MetalParityProfile.runtime.inference.session.decodeLoop.maxBatchDecodeTokens, null);
+assert.equal(qwen08MetalParityProfile.runtime.inference.session.decodeLoop.ringTokens, 1);
+assert.equal(qwen08MetalParityProfile.runtime.inference.session.decodeLoop.ringStaging, 2);
+assert.equal(qwen08MetalParityProfile.runtime.inference.session.useGreedyLmHeadArgmaxFusion, true);
+assert.equal(qwen08MetalParityProfile.runtime.inference.session.lmHeadArgmaxQ4K.useFullBlockFastPath, true);
+assertQwen08MetalHead256DecodePatch(qwen08MetalParityProfile, 'Qwen 0.8B Metal parity profile');
+assert.equal(qwen08MetalParityProfile.runtime.inference.session.useFusedQKVSplitQKNormRoPE, true);
 assert.equal(qwen2MetalThroughputProfile.extends, 'profiles/throughput');
 assert.equal(qwen2MetalThroughputProfile.model, 'qwen-3-5-2b-q4k-ehaf16');
 assert.equal(

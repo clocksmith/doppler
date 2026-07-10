@@ -46,6 +46,10 @@ export interface KVCacheSnapshot {
   linearAttention?: LinearAttentionRuntime | null;
 }
 
+export interface WorkloadPhaseTiming {
+  [key: string]: number | string | boolean | null | Record<string, number> | WorkloadPhaseTiming | WorkloadPhaseTiming[];
+}
+
 export interface AdvanceEmbeddingResult {
   embedding: Float32Array;
   embeddingMode: 'last' | 'mean';
@@ -175,6 +179,12 @@ export interface LayerContext {
     };
     captureConfig?: Record<string, unknown>;
   } | null;
+  /** Opt into fused gate/up GeGLU prefill path when runtime profile enables it. */
+  useFusedGateUpGelu?: boolean;
+  /** Opt into large-batch f16-weight/f32-activation fused gate/up prefill. */
+  useLargeBatchF16F32FusedGateUp?: boolean;
+  /** Skip KV cache writes for hidden-state-only prefill routes. */
+  skipKVCacheWrites?: boolean;
 }
 
 /**
@@ -408,6 +418,8 @@ export interface LogitsStepResult {
 export interface PrefillResult extends KVCacheSnapshot {
   /** Finalized logits for the next token after prefill */
   logits: Float32Array;
+
+  phase?: WorkloadPhaseTiming | null;
 }
 
 /**
@@ -425,6 +437,8 @@ export interface PrefillEmbeddingResult extends KVCacheSnapshot {
 
   /** Pooling mode used to construct embedding */
   embeddingMode: 'last' | 'mean';
+
+  phase?: WorkloadPhaseTiming | null;
 }
 
 /**
@@ -485,6 +499,7 @@ export interface LayerWeights {
   kProj: LayerWeightBuffer;
   vProj?: LayerWeightBuffer;
   oProj: LayerWeightBuffer;
+  qGateProj?: LayerWeightBuffer | null;
   convInProj?: LayerWeightBuffer;
   convKernel?: LayerWeightBuffer;
   convOutProj?: LayerWeightBuffer;
@@ -492,8 +507,12 @@ export interface LayerWeights {
   qkvProj?: GPUBuffer | WeightBuffer | null;
   /** Sizes for splitting fused QKV output: [qSize, kSize, vSize] in elements */
   qkvSizes?: [number, number, number];
-  /** Data type of fused QKV weights (f16 or f32) */
-  qkvDtype?: 'f16' | 'f32';
+  /** Data type of fused QKV weights (f16, f32, or q4k) */
+  qkvDtype?: 'f16' | 'f32' | 'q4k';
+  /** Fused linear-attention A/B projection weight for decode-only A+B projection fusion. */
+  linearABProj?: WeightBuffer | null;
+  /** Fused linear-attention QKV/Z projection weight for decode-only QKV+Z projection fusion. */
+  linearQKVZProj?: WeightBuffer | null;
 
   // FFN (dense layers)
   postAttentionNorm?: GPUBuffer | Float32Array;
@@ -610,6 +629,10 @@ export interface PipelineStats {
   decodeRecordOps?: number;
   decodeRecordPasses?: number;
   decodeRecordOpLabels?: Record<string, number>;
+  prefillRecordMs?: number;
+  prefillRecordOps?: number;
+  prefillRecordPasses?: number;
+  prefillRecordOpLabels?: Record<string, number>;
   uniformCache?: UniformCacheStats | null;
   decodeSubmitWaitMs?: number;
   decodeReadbackWaitMs?: number;

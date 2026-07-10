@@ -61,7 +61,13 @@ fn main(
         let remaining = min(4u, u.size - base_idx);
         for (var i: u32 = 0u; i < remaining; i = i + 1u) {
             let x = input[base_idx + i];
-            output[base_idx + i] = apply_input_activation(x);
+            if (HAS_GATE) {
+                let g = gate[base_idx + i];
+                let gateAct = select(silu(g), sigmoid(g), GATE_USE_SIGMOID);
+                output[base_idx + i] = clamp_swiglu(gateAct * apply_input_activation(x));
+            } else {
+                output[base_idx + i] = apply_input_activation(x);
+            }
         }
         return;
     }

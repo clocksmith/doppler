@@ -114,6 +114,7 @@ fn get_q4(qs: array<u32, 32>, idx: u32) -> u32 {
 // Workgroup layout: 256 threads = 8 threads per column × 32 columns
 override COLS_PER_WG: u32 = 32u;
 override THREADS_PER_COL_GEMV: u32 = 8u;  // 256 / 32 = 8
+override USE_FULL_BLOCK_FAST_PATH: bool = false;
 
 // Shared memory for reduction (one slot per thread)
 var<workgroup> multicol_sums: array<f32, MAX_WORKGROUP_SIZE>;
@@ -142,8 +143,12 @@ fn main_multicol(
 
     if (is_valid) {
         let num_blocks = u.num_blocks_per_row;
-        let tail_size = u.K & 255u;
-        let full_blocks = num_blocks - select(0u, 1u, tail_size > 0u);
+        let tail_size = select(u.K & 255u, 0u, USE_FULL_BLOCK_FAST_PATH);
+        let full_blocks = select(
+            num_blocks - select(0u, 1u, tail_size > 0u),
+            num_blocks,
+            USE_FULL_BLOCK_FAST_PATH
+        );
 
         // B_q4k layout: row-major [N, K/256] - block b for column col is at col * num_blocks + b
         // Each of the 8 threads processes every 8th block
@@ -187,7 +192,7 @@ fn main_multicol(
             }
         }
 
-        if (tail_size > 0u) {
+        if (!USE_FULL_BLOCK_FAST_PATH && tail_size > 0u) {
             let tail_block = full_blocks;
             if (tail_block % THREADS_PER_COL_GEMV == tid_in_col) {
                 let block = B_q4k[col * num_blocks + tail_block];
@@ -295,8 +300,12 @@ fn main_gemv(
 
     if (is_valid) {
         let num_blocks = u.num_blocks_per_row;
-        let tail_size = u.K & 255u;
-        let full_blocks = num_blocks - select(0u, 1u, tail_size > 0u);
+        let tail_size = select(u.K & 255u, 0u, USE_FULL_BLOCK_FAST_PATH);
+        let full_blocks = select(
+            num_blocks - select(0u, 1u, tail_size > 0u),
+            num_blocks,
+            USE_FULL_BLOCK_FAST_PATH
+        );
 
         for (var b: u32 = tid_in_col; b < full_blocks; b = b + THREADS_PER_COL_GEMV) {
             let block = B_q4k[col * num_blocks + b];
@@ -340,7 +349,7 @@ fn main_gemv(
             }
         }
 
-        if (tail_size > 0u) {
+        if (!USE_FULL_BLOCK_FAST_PATH && tail_size > 0u) {
             let tail_block = full_blocks;
             if (tail_block % THREADS_PER_COL_GEMV == tid_in_col) {
                 let block = B_q4k[col * num_blocks + tail_block];

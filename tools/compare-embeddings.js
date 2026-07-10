@@ -261,6 +261,7 @@ function buildDopplerConfig({
   loadMode,
   surface,
   timestamp,
+  timeoutMs,
 }) {
   const request = {
     workload: 'embedding',
@@ -294,13 +295,10 @@ function buildDopplerConfig({
     run: {
       surface,
       timestamp,
-      ...(loadMode === 'http'
-        ? {
-            browser: {
-              opfsCache: false,
-            },
-          }
-        : {}),
+      browser: {
+        timeoutMs,
+        ...(loadMode === 'http' ? { opfsCache: false } : {}),
+      },
     },
   };
 }
@@ -520,6 +518,7 @@ async function runOne({ modelId, flags, configBundle, catalogBundle, timestamp }
     loadMode,
     surface: dopplerSurface,
     timestamp,
+    timeoutMs,
   });
   const dopplerVerifyConfig = buildDopplerConfig({
     modelId,
@@ -532,6 +531,7 @@ async function runOne({ modelId, flags, configBundle, catalogBundle, timestamp }
     loadMode,
     surface: dopplerSurface,
     timestamp,
+    timeoutMs,
   });
 
   const dopplerBenchArgs = [

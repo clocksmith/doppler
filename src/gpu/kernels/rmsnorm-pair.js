@@ -26,12 +26,28 @@ function resolveVariant() {
   return caps?.hasSubgroups ? 'subgroup' : 'default';
 }
 
+function resolveResidualVariant() {
+  const caps = getKernelCapabilities();
+  if (caps?.hasSubgroups === true) {
+    return 'subgroup';
+  }
+  throw new Error('residual_rmsnorm_pair requires subgroup support; disable usePostFfnNextInputRMSNormPairFusion for this adapter.');
+}
+
 function resolveDispatchLabel(label) {
   if (typeof label !== 'string' || label.length === 0) {
     return 'rmsnorm_pair';
   }
   const normalized = label.replace(/^L\d+\./, '').replace(/\s+/g, '_');
   return `rmsnorm_pair:${normalized}`;
+}
+
+function resolveResidualDispatchLabel(label) {
+  if (typeof label !== 'string' || label.length === 0) {
+    return 'residual_rmsnorm_pair';
+  }
+  const normalized = label.replace(/^L\d+\./, '').replace(/\s+/g, '_');
+  return `residual_rmsnorm_pair:${normalized}`;
 }
 
 function assertRMSNormPairInputs(input, residual, hiddenSize) {
@@ -149,4 +165,101 @@ export async function recordSandwichRMSNormPair(
   options = {}
 ) {
   return runRMSNormPairImpl(recorder, input, residual, postWeight, preWeight, eps, options);
+}
+
+async function runResidualRMSNormPairImpl(
+  target,
+  input,
+  residual,
+  normWeight,
+  eps,
+  options = {}
+) {
+  const {
+    batchSize = 1,
+    hiddenSize = null,
+    rmsNormWeightOffset = false,
+    label = null,
+    residualOutputBuffer = null,
+    normOutputBuffer = null,
+    outputScale = 1,
+  } = options;
+  const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
+  assertRMSNormPairInputs(input, residual, inferredHiddenSize);
+
+  const normWeightBuffer = getBuffer(normWeight);
+  assertRMSNormWeightBuffer(normWeight, normWeightBuffer, inferredHiddenSize);
+  const normWeightDtype = resolveNormWeightDtype(normWeight, inferredHiddenSize);
+  const residualScale = Number(outputScale);
+  if (!Number.isFinite(residualScale)) {
+    throw new Error(`[residual_rmsnorm_pair] outputScale must be finite; got "${String(outputScale)}".`);
+  }
+
+  const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
+  const outputSize = batchSize * paddedHiddenSize * 4;
+  const ownsResidualOutput = residualOutputBuffer == null;
+  const ownsNormOutput = normOutputBuffer == null;
+  const residualOutput = residualOutputBuffer ?? acquireBuffer(outputSize, undefined, 'residual_rmsnorm_pair_residual_output');
+  const normOutput = normOutputBuffer ?? acquireBuffer(outputSize, undefined, 'residual_rmsnorm_pair_norm_output');
+  const dispatchPlan = planRMSNormDispatch(target, batchSize);
+  const variant = resolveResidualVariant();
+  let completed = false;
+
+  try {
+    await unifiedKernelWrapper(
+      'residual_rmsnorm_pair',
+      target,
+      variant,
+      [input, residual, normWeightBuffer, residualOutput, normOutput],
+      {
+        hidden_size: inferredHiddenSize,
+        num_tokens: batchSize,
+        eps,
+        output_scale: residualScale,
+        token_stride: dispatchPlan.tokenStride,
+        _pad0: 0,
+        _pad1: 0,
+        _pad2: 0,
+      },
+      dispatchPlan.workgroups,
+      {
+        RMS_NORM_OFFSET: rmsNormWeightOffset,
+        NORM_WEIGHT_IS_F16: normWeightDtype === 'f16',
+      },
+      null,
+      resolveResidualDispatchLabel(label)
+    );
+
+    completed = true;
+    return {
+      residual: createTensor(residualOutput, 'f32', [batchSize, inferredHiddenSize], 'residual_rmsnorm_pair_residual_output'),
+      nextInput: createTensor(normOutput, 'f32', [batchSize, inferredHiddenSize], 'residual_rmsnorm_pair_norm_output'),
+    };
+  } finally {
+    if (!completed) {
+      if (ownsResidualOutput) releaseBuffer(residualOutput);
+      if (ownsNormOutput) releaseBuffer(normOutput);
+    }
+  }
+}
+
+export async function runResidualNextRMSNormPair(
+  input,
+  residual,
+  normWeight,
+  eps,
+  options = {}
+) {
+  return runResidualRMSNormPairImpl(null, input, residual, normWeight, eps, options);
+}
+
+export async function recordResidualNextRMSNormPair(
+  recorder,
+  input,
+  residual,
+  normWeight,
+  eps,
+  options = {}
+) {
+  return runResidualRMSNormPairImpl(recorder, input, residual, normWeight, eps, options);
 }

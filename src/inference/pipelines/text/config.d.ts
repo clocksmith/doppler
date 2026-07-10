@@ -114,14 +114,32 @@ export interface TensorInfo {
 export interface ParsedSessionSettings {
   prefillChunkSubmitMode: 'sync' | 'async' | null;
   prefillTokenChunkSize: number | null;
+  skipEmbeddingKVCacheWrites: boolean | null;
   useFlashPrefillAttention: boolean | null;
+  useLargeBatchF16F32FusedGateUp: boolean | null;
   useWideTileQ4KPrefill: boolean | null;
   useWideTileQ4KDecode: boolean | null;
   useSandwichRMSNormPairFusion: boolean | null;
   usePostFfnNextInputRMSNormPairFusion: boolean | null;
+  usePostAttnNormFusedGateUp: boolean | null;
+  useLinearAttentionABProjectionFusion: boolean | null;
+  useLinearAttentionQKVZProjectionFusion: boolean | null;
+  useLinearAttentionFusedDecodeCore: boolean | null;
+  useWideTileResidualFusion: boolean | null;
+  useFusedRmsnormWideTile: boolean | null;
   useFusedQKVSplitQKNorm: boolean | null;
   useFusedQKVSplitQKNormRoPE: boolean | null;
   retainQ4KMaterialization: boolean | null;
+  lmHeadArgmaxQ4K: {
+    useFullBlockFastPath?: boolean;
+    colsPerWorkgroup?: number;
+    threadsPerCol?: number;
+  } | null;
+  attentionDecodeOnline: {
+    workgroupSize?: 128 | 256;
+    useDirectContiguousKVLayout?: boolean;
+    useOutputGateFusion?: boolean;
+  } | null;
 }
 
 export type Manifest = RuntimeModelContract;

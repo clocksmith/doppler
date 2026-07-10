@@ -55,7 +55,7 @@ function assertBufferCapacity(buffer, requiredBytes, label) {
   }
 }
 
-function supportsFullHeadNonInterleavedRoPE(options) {
+function supportsFusedRoPEGeometry(options) {
   const {
     headDim,
     rotaryDim = headDim,
@@ -65,9 +65,12 @@ function supportsFullHeadNonInterleavedRoPE(options) {
   return Number.isInteger(headDim)
     && headDim > 0
     && (headDim % 2) === 0
-    && rotaryDim === headDim
-    && pairSpanDim === headDim
-    && interleaved === false;
+    && Number.isInteger(rotaryDim)
+    && rotaryDim > 0
+    && (rotaryDim % 2) === 0
+    && rotaryDim <= headDim
+    && pairSpanDim === rotaryDim
+    && typeof interleaved === 'boolean';
 }
 
 function assertSupportedRoPE(options) {
@@ -77,9 +80,9 @@ function assertSupportedRoPE(options) {
     pairSpanDim = rotaryDim,
     interleaved = false,
   } = options;
-  if (!supportsFullHeadNonInterleavedRoPE({ headDim, rotaryDim, pairSpanDim, interleaved })) {
+  if (!supportsFusedRoPEGeometry({ headDim, rotaryDim, pairSpanDim, interleaved })) {
     throw new Error(
-      'split_qkv_rmsnorm_rope_qk supports only full-head non-interleaved RoPE ' +
+      'split_qkv_rmsnorm_rope_qk supports partial/full RoPE only when pairSpanDim equals rotaryDim ' +
       `(headDim=${headDim}, rotaryDim=${rotaryDim}, pairSpanDim=${pairSpanDim}, interleaved=${interleaved}).`
     );
   }
@@ -92,7 +95,7 @@ export function canUseSplitQKVRMSNormRoPEQK(qkvTensor, options = {}) {
   if (options.reusesSharedKV === true || options.skipKNorm === true || options.allowUnitQKNorm === true) {
     return false;
   }
-  return supportsFullHeadNonInterleavedRoPE(options);
+  return supportsFusedRoPEGeometry(options);
 }
 
 async function splitQKVRMSNormRoPEQK(target, qkvTensor, qWeight, kWeight, freqsCos, freqsSin, eps, options = {}) {
@@ -105,6 +108,8 @@ async function splitQKVRMSNormRoPEQK(target, qkvTensor, qWeight, kWeight, freqsC
     kSize,
     vSize,
     startPos = 0,
+    rotaryDim = headDim,
+    interleaved = false,
     rmsNormWeightOffset = false,
     f16KVCacheWrite = null,
   } = options;
@@ -144,7 +149,7 @@ async function splitQKVRMSNormRoPEQK(target, qkvTensor, qWeight, kWeight, freqsC
   const qOutputSize = qRows * paddedHeadDim * bytesPerElement;
   const kOutputSize = kRows * paddedHeadDim * bytesPerElement;
   const vOutputSize = totalV * bytesPerElement;
-  const halfDim = headDim / 2;
+  const halfDim = rotaryDim / 2;
   const freqElementCount = (startPos + numTokens) * halfDim;
   const writesF16KVCache = f16KVCacheWrite != null;
   assertBufferCapacity(qkvTensor.buffer, numTokens * (qSize + kSize + vSize) * bytesPerElement, 'QKV input');
@@ -198,10 +203,10 @@ async function splitQKVRMSNormRoPEQK(target, qkvTensor, qWeight, kWeight, freqsC
         qk_rows: qkRows,
         total_v: totalV,
         start_pos: startPos,
-        half_dim: halfDim,
+        rotary_dim: rotaryDim,
         eps,
+        interleaved: interleaved ? 1 : 0,
         kv_dst_offset: writesF16KVCache ? f16KVCacheWrite.dstOffset : 0,
-        _pad1: 0,
         _pad2: 0,
       },
       dispatchPlan.workgroups,

@@ -20,6 +20,7 @@ import groupedPointwiseConv2dRules from './kernels/grouped-pointwise-conv2d.rule
 import groupnormRules from './kernels/groupnorm.rules.json' with { type: 'json' };
 import kvQuantizeRules from './kernels/kv_quantize.rules.json' with { type: 'json' };
 import layernormRules from './kernels/layernorm.rules.json' with { type: 'json' };
+import lmHeadArgmaxRules from './kernels/lm-head-argmax.rules.json' with { type: 'json' };
 import matmulRules from './kernels/matmul.rules.json' with { type: 'json' };
 import kernelMoeRules from './kernels/moe.rules.json' with { type: 'json' };
 import kernelMoeGptOssRules from './kernels/moe.rules.gptoss.json' with { type: 'json' };
@@ -110,6 +111,7 @@ const RULE_SETS = {
     groupnorm: groupnormRules,
     kv_quantize: kvQuantizeRules,
     layernorm: layernormRules,
+    lmHeadArgmax: lmHeadArgmaxRules,
     matmul: matmulRules,
     moe: kernelMoeRules,
     moeGptoss: kernelMoeGptOssRules,

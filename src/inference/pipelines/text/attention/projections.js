@@ -104,6 +104,39 @@ function getSplitQKVRMSNormRoPEQKRunner(recorder) {
   );
 }
 
+async function projectFusedQGate({
+  runMatmulForMode,
+  projectionInput,
+  layerWeights,
+  numTokens,
+  qSize,
+  hiddenSize,
+  layerIdx,
+  kernelPath,
+  projectionOutputDtype,
+  matmulDebug,
+  executionPolicies,
+  fusedNormWeight,
+  fusedNormEps,
+  fusedNormOffset,
+}) {
+  if (!layerWeights?.qGateProj) {
+    return null;
+  }
+  return runMatmulForMode(projectionInput, layerWeights.qGateProj, numTokens, qSize, hiddenSize, {
+    transposeB: 'auto',
+    role: 'q_proj',
+    layerIdx,
+    kernelPath,
+    outputDtype: projectionOutputDtype,
+    matmulDebug,
+    executionPolicies,
+    normWeight: fusedNormWeight,
+    rmsNormEps: fusedNormEps,
+    rmsNormOffset: fusedNormOffset,
+  });
+}
+
 function releaseOwnedWeightBuffer(layerWeight, resolvedWeightBuffer, releaseTemporary) {
   if (isGpuBufferInstance(layerWeight) || isWeightBuffer(layerWeight)) {
     return;
@@ -564,6 +597,7 @@ export async function projectAttentionQKV({
 }) {
   const runMatmulForMode = getMatmulRunner(recorder);
   const runSplitForMode = getSplitRunner(recorder);
+  const runSplitQGForMode = getSplitQGRunner(recorder);
   const runSplitQKVRMSNormQKForMode = getSplitQKVRMSNormQKRunner(recorder);
   const runSplitQKVRMSNormRoPEQKForMode = getSplitQKVRMSNormRoPEQKRunner(recorder);
   const reuseSharedKV = sharedKTensor != null || sharedVTensor != null;
@@ -605,6 +639,21 @@ export async function projectAttentionQKV({
   if (useFusedQKV && layerWeights.qkvProj && layerWeights.qkvSizes) {
     const [qSizeFused, kSizeFused, vSizeFused] = layerWeights.qkvSizes;
     const qkvSizeTotal = qSizeFused + kSizeFused + vSizeFused;
+    const qProjectionSize = numHeads * headDim;
+    const qProjectionContainsGate = attentionOutputGate === true;
+    const hasSeparateGateProjection = qProjectionContainsGate && layerWeights.qGateProj;
+    if (hasSeparateGateProjection && qSizeFused !== qProjectionSize) {
+      throw new Error(
+        `Fused QKV for attention-output-gate layer ${layerIdx} with qGateProj must store ` +
+        `Q-only first slice with ${qProjectionSize} columns; got ${qSizeFused}.`
+      );
+    }
+    if (qProjectionContainsGate && !hasSeparateGateProjection && qSizeFused !== qProjectionSize * 2) {
+      throw new Error(
+        `Fused QKV for attention-output-gate layer ${layerIdx} must store Q+gate first slice ` +
+        `with ${qProjectionSize * 2} columns; got ${qSizeFused}.`
+      );
+    }
     let qkvTensor = null;
     let qNormBuf = null;
     let kNormBuf = null;
@@ -629,6 +678,7 @@ export async function projectAttentionQKV({
         ? { ...qkNormRoPEFusion, headDim }
         : null;
       const canFuseSplitQKNormAndRoPE = qkNormRoPEFusion?.enabled === true
+        && (!qProjectionContainsGate || hasSeparateGateProjection)
         && qkNormRoPEFusion.projectionDiagnosticsEnabled !== true
         && qkNormRoPEFusion.skipKNorm !== true
         && qkNormRoPEFusion.allowUnitQKNorm !== true
@@ -669,12 +719,44 @@ export async function projectAttentionQKV({
           );
           releaseTemporary(qkvTensor.buffer);
           qkvTensor = null;
+          let qGateTensor = null;
+          if (hasSeparateGateProjection) {
+            try {
+              qGateTensor = await projectFusedQGate({
+                runMatmulForMode,
+                projectionInput,
+                layerWeights,
+                numTokens,
+                qSize: qProjectionSize,
+                hiddenSize,
+                layerIdx,
+                kernelPath,
+                projectionOutputDtype,
+                matmulDebug,
+                executionPolicies,
+                fusedNormWeight,
+                fusedNormEps,
+                fusedNormOffset,
+              });
+            } catch (error) {
+              if (fused.Q?.buffer) {
+                releaseTemporary(fused.Q.buffer);
+              }
+              if (fused.K?.buffer) {
+                releaseTemporary(fused.K.buffer);
+              }
+              if (fused.V?.buffer) {
+                releaseTemporary(fused.V.buffer);
+              }
+              throw error;
+            }
+          }
           if (onFusedQKV) {
             onFusedQKV({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize: qkvSizeTotal });
           }
           return {
             qTensor: fused.Q,
-            qGateTensor: null,
+            qGateTensor,
             kTensor: fused.K,
             vTensor: fused.V,
             usedFusedQKV: true,
@@ -686,6 +768,7 @@ export async function projectAttentionQKV({
         }
       }
       const canFuseSplitAndQKNorm = qkNormFusion?.enabled === true
+        && (!qProjectionContainsGate || hasSeparateGateProjection)
         && qkNormFusion.projectionDiagnosticsEnabled !== true
         && qkNormFusion.skipKNorm !== true
         && qkNormFusion.allowUnitQKNorm !== true
@@ -717,12 +800,44 @@ export async function projectAttentionQKV({
           );
           releaseTemporary(qkvTensor.buffer);
           qkvTensor = null;
+          let qGateTensor = null;
+          if (hasSeparateGateProjection) {
+            try {
+              qGateTensor = await projectFusedQGate({
+                runMatmulForMode,
+                projectionInput,
+                layerWeights,
+                numTokens,
+                qSize: qProjectionSize,
+                hiddenSize,
+                layerIdx,
+                kernelPath,
+                projectionOutputDtype,
+                matmulDebug,
+                executionPolicies,
+                fusedNormWeight,
+                fusedNormEps,
+                fusedNormOffset,
+              });
+            } catch (error) {
+              if (fused.Q?.buffer) {
+                releaseTemporary(fused.Q.buffer);
+              }
+              if (fused.K?.buffer) {
+                releaseTemporary(fused.K.buffer);
+              }
+              if (fused.V?.buffer) {
+                releaseTemporary(fused.V.buffer);
+              }
+              throw error;
+            }
+          }
           if (onFusedQKV) {
             onFusedQKV({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize: qkvSizeTotal });
           }
           return {
             qTensor: fused.Q,
-            qGateTensor: null,
+            qGateTensor,
             kTensor: fused.K,
             vTensor: fused.V,
             usedFusedQKV: true,
@@ -740,12 +855,67 @@ export async function projectAttentionQKV({
         vSize: vSizeFused,
       });
       releaseTemporary(qkvTensor.buffer);
+      qkvTensor = null;
+      let qTensor = split.Q;
+      let qGateTensor = null;
+      if (hasSeparateGateProjection) {
+        try {
+          qGateTensor = await projectFusedQGate({
+            runMatmulForMode,
+            projectionInput,
+            layerWeights,
+            numTokens,
+            qSize: qProjectionSize,
+            hiddenSize,
+            layerIdx,
+            kernelPath,
+            projectionOutputDtype,
+            matmulDebug,
+            executionPolicies,
+            fusedNormWeight,
+            fusedNormEps,
+            fusedNormOffset,
+          });
+        } catch (error) {
+          if (split.Q?.buffer) {
+            releaseTemporary(split.Q.buffer);
+          }
+          if (split.K?.buffer) {
+            releaseTemporary(split.K.buffer);
+          }
+          if (split.V?.buffer) {
+            releaseTemporary(split.V.buffer);
+          }
+          throw error;
+        }
+      } else if (qProjectionContainsGate) {
+        const qgTensor = split.Q;
+        try {
+          const qg = await runSplitQGForMode(qgTensor, {
+            numTokens,
+            numHeads,
+            headDim,
+          });
+          qTensor = qg.Q;
+          qGateTensor = qg.G;
+          releaseTemporary(qgTensor.buffer);
+        } catch (error) {
+          releaseTemporary(qgTensor.buffer);
+          if (split.K?.buffer) {
+            releaseTemporary(split.K.buffer);
+          }
+          if (split.V?.buffer) {
+            releaseTemporary(split.V.buffer);
+          }
+          throw error;
+        }
+      }
       if (onFusedQKV) {
         onFusedQKV({ qSize: qSizeFused, kSize: kSizeFused, vSize: vSizeFused, totalSize: qkvSizeTotal });
       }
       return {
-        qTensor: split.Q,
-        qGateTensor: null,
+        qTensor,
+        qGateTensor,
         kTensor: split.K,
         vTensor: split.V,
         usedFusedQKV: true,

@@ -19,6 +19,7 @@ import { getKernelPathAttentionVariant, getKernelPathStrict } from '../../config
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 import { logKernelSelectionOnce } from '../kernel-selection-log.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
 
 // Track if we've logged the attention tier selection (avoid spam)
 let loggedAttentionTier = false;
@@ -60,6 +61,7 @@ function getContiguousQuantMaxKVLen() {
 let kvLenFallbackBuffer = null;
 let kvLenFallbackBufferEpoch = -1;
 const U32_BYTES = Uint32Array.BYTES_PER_ELEMENT;
+const F32_BYTES = Float32Array.BYTES_PER_ELEMENT;
 
 
 function getKvLenFallbackBuffer(device) {
@@ -93,13 +95,10 @@ function getPageTableFallbackBuffer(device) {
   return pageTableFallbackBuffer;
 }
 
-
-
-
 class AttentionKernel extends KernelBase {
 
-  async getPipeline(variant) {
-    return this.getPipelineFor('attention', variant);
+  async getPipeline(variant, constants = null) {
+    return this.getPipelineFor('attention', variant, null, constants);
   }
 
 
@@ -120,6 +119,36 @@ class AttentionKernel extends KernelBase {
   ) {
     this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'attention');
   }
+}
+
+function resolveOnlineDecodePipelineConstants(variant, headDim, options = {}) {
+  if (!variant?.startsWith('decode_online')) {
+    return null;
+  }
+  const policy = getRuntimeConfig()?.inference?.session?.attentionDecodeOnline;
+  const workgroupSize = policy?.workgroupSize;
+  const constants = {};
+  if (workgroupSize != null) {
+    if (workgroupSize !== 128 && workgroupSize !== 256) {
+      throw new Error(`attentionDecodeOnline.workgroupSize must be 128 or 256, got ${workgroupSize}.`);
+    }
+    if (headDim > workgroupSize * 2) {
+      throw new Error(
+        `attentionDecodeOnline.workgroupSize=${workgroupSize} cannot cover headDim=${headDim}; ` +
+        `requires headDim <= ${workgroupSize * 2}.`
+      );
+    }
+    constants.WORKGROUP_SIZE = workgroupSize;
+  }
+  if (
+    variant === 'decode_online_head256_f16kv_output_gate'
+    && policy?.useDirectContiguousKVLayout === true
+    && options.kvLayout === 'contiguous'
+    && options.slidingWindow === 0
+  ) {
+    constants.USE_DIRECT_KV_LAYOUT = true;
+  }
+  return Object.keys(constants).length > 0 ? constants : null;
 }
 
 class AttentionTieredKernel extends KernelBase {
@@ -1047,6 +1076,7 @@ async function executeAttention(
     kvPageTable = null,
     kvPageSize = 0,
     kernelPath = null,
+    outputGate = null,
   } = options;
   if (!Number.isFinite(bidirectionalSpanStart) || Math.floor(bidirectionalSpanStart) !== bidirectionalSpanStart || bidirectionalSpanStart < 0) {
     throw new Error(`Attention bidirectionalSpanStart must be a non-negative integer, got ${bidirectionalSpanStart}.`);
@@ -1160,7 +1190,12 @@ async function executeAttention(
   }
 
   const kernel = new AttentionKernel(execution.device);
-  const pipeline = await kernel.getPipeline(plan.variant);
+  const pipelineConstants = resolveOnlineDecodePipelineConstants(plan.variant, headDim, {
+    kvLayout,
+    slidingWindow,
+  });
+  const usesOutputGateFusion = plan.variant === 'decode_online_head256_f16kv_output_gate';
+  const pipeline = await kernel.getPipeline(plan.variant, pipelineConstants);
 
   const outputConfig = getKernelConfig('attention', plan.variant);
   const outputDtype = outputConfig.outputDtype;
@@ -1196,6 +1231,19 @@ async function executeAttention(
 
   const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(execution.device);
   const pageTableBinding = kvPageTable || getPageTableFallbackBuffer(execution.device);
+  const outputGateBinding = usesOutputGateFusion ? outputGate?.buffer : null;
+  if (usesOutputGateFusion) {
+    if (outputGate?.dtype !== 'f32') {
+      throw new Error(`[Attention] outputGate fusion requires f32 gate tensor; got ${String(outputGate?.dtype)}.`);
+    }
+    const requiredGateBytes = numHeads * headDim * F32_BYTES;
+    const actualGateBytes = outputGate?.buffer?.size;
+    if (Number.isFinite(actualGateBytes) && actualGateBytes < requiredGateBytes) {
+      throw new Error(
+        `[Attention] outputGate fusion requires at least ${requiredGateBytes} gate bytes; got ${actualGateBytes}.`
+      );
+    }
+  }
   assertAttentionBindGroupBuffer('attention', plan.variant, 0, 'uniforms', uniformBuffer);
   assertAttentionBindGroupBuffer('attention', plan.variant, 1, 'Q', Q?.buffer, [
     `QLabel=${Q?.label ?? 'unknown'}`,
@@ -1214,18 +1262,27 @@ async function executeAttention(
   assertAttentionBindGroupBuffer('attention', plan.variant, 6, 'pageTable', pageTableBinding, [
     `kvLayout=${kvLayout}`,
   ]);
+  if (usesOutputGateFusion) {
+    assertAttentionBindGroupBuffer('attention', plan.variant, 7, 'outputGate', outputGateBinding, [
+      `useOutputGateFusion=${usesOutputGateFusion}`,
+    ]);
+  }
+  const bindGroupEntries = [
+    { binding: 0, resource: { buffer: uniformBuffer } },
+    { binding: 1, resource: { buffer: Q.buffer } },
+    { binding: 2, resource: { buffer: K.buffer } },
+    { binding: 3, resource: { buffer: V.buffer } },
+    { binding: 4, resource: { buffer: outputBuf } },
+    { binding: 5, resource: { buffer: kvLenBinding } },
+    { binding: 6, resource: { buffer: pageTableBinding } },
+  ];
+  if (usesOutputGateFusion) {
+    bindGroupEntries.push({ binding: 7, resource: { buffer: outputGateBinding } });
+  }
   const bindGroup = execution.device.createBindGroup({
     label: 'attention_bind_group',
     layout: getPipelineBindGroupLayout(pipeline, 0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: Q.buffer } },
-      { binding: 2, resource: { buffer: K.buffer } },
-      { binding: 3, resource: { buffer: V.buffer } },
-      { binding: 4, resource: { buffer: outputBuf } },
-      { binding: 5, resource: { buffer: kvLenBinding } },
-      { binding: 6, resource: { buffer: pageTableBinding } },
-    ],
+    entries: bindGroupEntries,
   });
 
   if (!indirectBuffer && limits && plan.workgroups > limits.maxComputeWorkgroupsPerDimension) {
@@ -1247,7 +1304,9 @@ async function executeAttention(
 
   releaseAttentionUniform(execution, uniformBuffer);
 
-  return createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_output');
+  const outputTensor = createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_output');
+  outputTensor.outputGateFused = usesOutputGateFusion;
+  return outputTensor;
 }
 
 // -----------------------------------------------------------------------------

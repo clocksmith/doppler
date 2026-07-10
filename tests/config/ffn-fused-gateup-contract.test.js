@@ -11,6 +11,7 @@ const BASE_FUSED_GATE_UP_CONTEXT = Object.freeze({
   dtypeMatches: true,
   dtypeSupported: true,
   f16BatchSupported: true,
+  useLargeBatchF16F32FusedGateUp: false,
   batchSize: 1,
   hiddenSizeAligned32: true,
   useDoubleWideMlp: false,
@@ -55,6 +56,18 @@ assert.equal(
   }),
   false,
   'Dense f16 FFN weights should use split tiled matmuls for widened f32 prompt prefill'
+);
+
+assert.equal(
+  selectRuleValue('inference', 'ffn', 'useFusedGateUp', {
+    ...BASE_FUSED_GATE_UP_CONTEXT,
+    weightDtype: 'f16',
+    activationDtype: 'f32',
+    useLargeBatchF16F32FusedGateUp: true,
+    batchSize: 64,
+  }),
+  true,
+  'Profile-owned large-batch f16/f32 FFN prefill should enable the fused gate/up kernel'
 );
 
 assert.equal(

@@ -6,6 +6,7 @@
   "overrides": [
     { "match": { "useRowsplit": true }, "value": { "USE_ROWSPLIT": true } },
     { "match": { "useSplit": true }, "value": { "USE_SPLIT": true } },
+    { "match": { "hasGate": true, "useVec4": true }, "value": { "HAS_GATE": true, "USE_VEC4": true } },
     { "match": { "hasGate": true }, "value": { "HAS_GATE": true } },
     { "match": { "useVec4": true }, "value": { "USE_VEC4": true } },
     { "match": {}, "value": {} }

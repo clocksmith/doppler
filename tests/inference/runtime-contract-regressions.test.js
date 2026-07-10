@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 const originalFetch = globalThis.fetch;
+const linearAttentionSource = readFileSync(
+  new URL('../../src/inference/pipelines/text/linear-attention.js', import.meta.url),
+  'utf8'
+);
 
 const { StructuredJsonHeadPipeline } = await import('../../src/inference/pipelines/structured/json-head-pipeline.js');
 const { SpeculativeDecoder } = await import('../../src/inference/speculative.js');
@@ -909,6 +914,31 @@ try {
         randomGenome: () => ({ topology: { type: 'chain' }, nodes: [], edges: [] }),
       }),
       /requires an explicit random\(\) source/
+    );
+  }
+
+  {
+    assert.ok(
+      linearAttentionSource.includes('const coreInputDtype = qkvTensor.dtype;'),
+      'linear_attention core must settle z/a/b to qkv dtype before dispatch'
+    );
+    for (const [role, tensorName, coreName] of [
+      ['linear_z_proj', 'zTensor', 'coreZTensor'],
+      ['linear_a_proj', 'aTensor', 'coreATensor'],
+      ['linear_b_proj', 'bTensor', 'coreBTensor'],
+    ]) {
+      assert.ok(
+        linearAttentionSource.includes(`${coreName} = await settleLinearAttentionCoreInputDtype(${tensorName}, coreInputDtype, {`),
+        `linear_attention must settle ${role} core input dtype`
+      );
+      assert.ok(
+        linearAttentionSource.includes(`role: '${role}',`),
+        `linear_attention ${role} settlement must preserve policy receipt role`
+      );
+    }
+    assert.ok(
+      linearAttentionSource.includes('return await settleProjectionOutputDtype(result);'),
+      'linear_attention projections must settle returned kernel dtype to declared output dtype'
     );
   }
 

@@ -15,7 +15,7 @@ import { PipelineState } from './text/state.js';
 import { PipelineGenerator } from './text/generator.js';
 import type { Manifest } from './text/config.js';
 import type { WeightLoadResult, PipelineContexts } from './text/init.js';
-import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats } from './text/types.js';
+import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats, WorkloadPhaseTiming } from './text/types.js';
 import type { ChatMessage } from './text/chat-format.js';
 import type { LoRAAdapter } from './text/lora.js';
 import type { DiffusionPipeline } from './diffusion/pipeline.js';
@@ -120,6 +120,7 @@ export declare class InferencePipeline extends PipelineState {
     tokens: number[];
     seqLen: number;
     embeddingMode: string;
+    phase?: WorkloadPhaseTiming | null;
   }>;
 
   embedBatch(prompts: string[], options?: GenerateOptions): Promise<Array<{
@@ -137,6 +138,7 @@ export declare class InferencePipeline extends PipelineState {
     tokenIds: number[];
     logits: Float32Array;
     logitsByTokenId: Record<number, number>;
+    phase?: WorkloadPhaseTiming | null;
   }>;
 
   prefillWithTokenLogitsFromKV(prefix: KVCacheSnapshot, prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
@@ -146,6 +148,7 @@ export declare class InferencePipeline extends PipelineState {
     tokenIds: number[];
     logits: Float32Array;
     logitsByTokenId: Record<number, number>;
+    phase?: WorkloadPhaseTiming | null;
   }>;
 
   applyKVCacheSnapshot(snapshot: KVCacheSnapshot): void;

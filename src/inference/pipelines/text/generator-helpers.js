@@ -162,6 +162,8 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     phase: isDecodeMode ? 'decode' : 'prefill',
     operatorDiagnostics: state.operatorDiagnostics,
     useFusedGateUpGelu: state.runtimeConfig?.inference?.session?.useFusedGateUpGelu === true,
+    useLargeBatchF16F32FusedGateUp: state.runtimeConfig?.inference?.session?.useLargeBatchF16F32FusedGateUp === true,
+    skipKVCacheWrites: false,
   };
 }
 

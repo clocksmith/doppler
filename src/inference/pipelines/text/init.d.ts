@@ -44,6 +44,7 @@ import type {
 import type { LoaderDebugConfigSchema } from '../../../config/schema/debug.schema.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
+import type { DopplerLoader } from '../../../loader/doppler-loader.js';
 
 export interface PipelineStorageContext {
   preflight?: () => Promise<void>;
@@ -90,6 +91,10 @@ export interface PipelineContexts {
   runtimeConfig?: Partial<RuntimeConfigSchema> | RuntimeConfigSchema;
   /** Progress callback for weight loading */
   onProgress?: (progress: { percent: number; message?: string }) => void;
+  /** Optional caller-owned loader instance for isolated model residency */
+  loader?: DopplerLoader;
+  /** True when the pipeline should release the injected loader on unload */
+  ownsLoader?: boolean;
 }
 
 /**
@@ -219,6 +224,7 @@ export function initTokenizer(
  * Weight loading result.
  */
 export interface WeightLoadResult {
+  loader: DopplerLoader;
   layerWeights: Map<string, LayerWeights>;
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
@@ -250,6 +256,7 @@ export interface LoadWeightsOptions {
   keepF32Weights?: boolean;
   loaderDebug?: LoaderDebugConfigSchema | null;
   perLayerInputSession?: ExecutionV1PerLayerInputsSessionSchema | null;
+  loader?: DopplerLoader;
 }
 
 /**
@@ -334,7 +341,10 @@ export function initSpeculativeDecoder(
 export function fuseQKVWeights(
   layerWeights: Map<string, LayerWeights>,
   modelConfig: ParsedModelConfig,
-  kernelPath?: KernelPathSchema | null
+  kernelPath?: KernelPathSchema | null,
+  options?: {
+    allowQ4K?: boolean;
+  }
 ): void;
 
 /**

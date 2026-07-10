@@ -2447,6 +2447,32 @@
             "wgslOnDisk": true
           }
         },
+        "prefill_head128_f16kv": {
+          "wgsl": "attention_head128_f16kv.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            32,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "tiled_small",
+            "queryBlockSize": 32,
+            "exactHeadDim": 128,
+            "maxHeadDim": 128,
+            "requiredShared": 8192
+          },
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
         "prefill_head256_f16kv": {
           "wgsl": "attention_head256_f16kv.wgsl",
           "entryPoint": "main",
@@ -2801,6 +2827,32 @@
               "gemma3/gemma-3-270m-it-f16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32"
             ],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "decode_online_head256_f16kv_output_gate": {
+          "wgsl": "attention_decode_online_head256_f16kv_output_gate.wgsl",
+          "entryPoint": "main",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "shader-f16",
+            "subgroups"
+          ],
+          "outputDtype": "f32",
+          "variantMetadata": {
+            "tier": "subgroup",
+            "exactHeadDim": 256,
+            "maxHeadDim": 256
+          },
+          "description": "Online decode kernel specialized for head_dim=256 with f32 Q, f16 KV, subgroup reductions, and fused f32 output-gate sigmoid",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -3666,7 +3718,7 @@
       }
     },
     "lm_head_argmax": {
-      "description": "Fused LM-head f16-weight GEMV plus greedy argmax",
+      "description": "Fused LM-head GEMV plus greedy argmax",
       "baseBindings": [
         {
           "index": 0,
@@ -3762,9 +3814,33 @@
             "threadsPerCol": 4
           },
           "reachability": {
-            "status": "unused",
+            "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [],
+            "ruleChains": [
+              "lm-head-argmax.rules.json#phase1Variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "phase1_q4k_f32a": {
+          "wgsl": "lm_head_argmax_q4k.wgsl",
+          "entryPoint": "phase1",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "weightDtype": "q4k",
+          "variantMetadata": {
+            "colsPerWg": 64,
+            "threadsPerCol": 4
+          },
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "lm-head-argmax.rules.json#phase1Variant"
+            ],
             "wgslOnDisk": true
           }
         },
@@ -3780,9 +3856,28 @@
             "shader-f16"
           ],
           "reachability": {
-            "status": "unused",
+            "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [],
+            "ruleChains": [
+              "lm-head-argmax.rules.json#phase2Variant"
+            ],
+            "wgslOnDisk": true
+          }
+        },
+        "phase2_q4k": {
+          "wgsl": "lm_head_argmax_q4k.wgsl",
+          "entryPoint": "phase2",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "reachability": {
+            "status": "selectable",
+            "inlineConfigs": [],
+            "ruleChains": [
+              "lm-head-argmax.rules.json#phase2Variant"
+            ],
             "wgslOnDisk": true
           }
         }
@@ -4233,6 +4328,106 @@
         "subgroup": {
           "wgsl": "rmsnorm_pair.wgsl",
           "entryPoint": "main_subgroup",
+          "workgroup": [
+            256,
+            1,
+            1
+          ],
+          "requires": [
+            "subgroups"
+          ],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "residual_rmsnorm_pair": {
+      "description": "Two-output decode kernel: residual add plus next-layer input RMSNorm",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "residual",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "norm_weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "residual_output",
+          "type": "storage"
+        },
+        {
+          "index": 5,
+          "name": "norm_output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "hidden_size",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 8
+          },
+          {
+            "name": "output_scale",
+            "type": "f32",
+            "offset": 12
+          },
+          {
+            "name": "token_stride",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "subgroup": {
+          "wgsl": "residual_rmsnorm_pair.wgsl",
+          "entryPoint": "main",
           "workgroup": [
             256,
             1,
@@ -8798,7 +8993,7 @@
       }
     },
     "split_qkv_rmsnorm_rope_qk": {
-      "description": "Split fused QKV output and apply weighted RMSNorm plus full-head RoPE to Q and K buffers",
+      "description": "Split fused QKV output and apply weighted RMSNorm plus partial/full RoPE to Q and K buffers",
       "baseBindings": [
         {
           "index": 0,
@@ -8905,7 +9100,7 @@
             "offset": 40
           },
           {
-            "name": "half_dim",
+            "name": "rotary_dim",
             "type": "u32",
             "offset": 44
           },
@@ -8915,7 +9110,7 @@
             "offset": 48
           },
           {
-            "name": "_pad0",
+            "name": "interleaved",
             "type": "u32",
             "offset": 52
           },
@@ -8951,7 +9146,7 @@
       }
     },
     "split_qkv_rmsnorm_rope_qk_f16kv_cache": {
-      "description": "Split fused QKV output, apply weighted RMSNorm plus full-head RoPE to Q/K, and write K/V directly to contiguous f16 KV cache",
+      "description": "Split fused QKV output, apply weighted RMSNorm plus partial/full RoPE to Q/K, and write K/V directly to contiguous f16 KV cache",
       "baseBindings": [
         {
           "index": 0,
@@ -9058,7 +9253,7 @@
             "offset": 40
           },
           {
-            "name": "half_dim",
+            "name": "rotary_dim",
             "type": "u32",
             "offset": 44
           },
@@ -9073,7 +9268,7 @@
             "offset": 52
           },
           {
-            "name": "_pad1",
+            "name": "interleaved",
             "type": "u32",
             "offset": 56
           },

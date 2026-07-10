@@ -28,6 +28,7 @@ export {
   isFusedQ4KDisabled,
 } from './matmul.js';
 export {
+  recordLmHeadArgmax,
   recordLmHeadArgmaxF16,
 } from './lm-head-argmax.js';
 export {
@@ -83,6 +84,8 @@ export {
   RMSNORM_PAIR_CACHE_LIMIT,
   runSandwichRMSNormPair,
   recordSandwichRMSNormPair,
+  runResidualNextRMSNormPair,
+  recordResidualNextRMSNormPair,
 } from './rmsnorm-pair.js';
 
 // LayerNorm
@@ -300,8 +303,15 @@ export {
 export {
   runFusedFFN,
   recordFusedFFN,
+  runFusedFFNFromRMSNormStats,
+  recordFusedFFNFromRMSNormStats,
   calculateFusedFFNSavings,
 } from './fused_ffn.js';
+
+export {
+  runRMSNormStats,
+  recordRMSNormStats,
+} from './rmsnorm-stats.js';
 
 // Fused Matmul + RMSNorm (P0 - 1.2-1.5x decode speedup)
 export {

@@ -66,6 +66,7 @@ import {
   isAttentionKvDtypeExplicit,
 } from './precision-contract.js';
 import { canUseRmsNormWideTileProjectionFusion } from './rmsnorm-fusion-gate.js';
+import { canUseAttentionOutputGateFusion } from './output-gate-fusion.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
@@ -793,6 +794,8 @@ export async function runLayerAttentionGPU(
     cachedKDtype, cachedVDtype, cachedKTensor, cachedVTensor,
     prefillFallbackNeedsCast, causalForAttention,
   } = dispatchParams;
+  const mergedSession = getRuntimeConfig()?.inference?.session;
+  let attentionOutputGateFused = false;
 
   // 5. Attention (uses raw GPUBuffers)
 
@@ -991,9 +994,19 @@ export async function runLayerAttentionGPU(
       // session (state.runtimeConfig.inference.session is a stale snapshot —
       // see comment above at the rmsNorm fusion check). The kernel itself
       // enforces remaining preconditions (head_dim=256, etc.).
-      const mergedSession = getRuntimeConfig()?.inference?.session;
       const useFlashPrefill = !diffusionGemmaDecoder && mergedSession?.useFlashPrefillAttention === true && numTokens > 1;
       const useOrtFlashPrefill = !diffusionGemmaDecoder && mergedSession?.useOrtFlashPrefillAttention === true && numTokens > 1;
+      const useOutputGateFusion = canUseAttentionOutputGateFusion({
+        session: mergedSession,
+        qGateTensor,
+        numTokens,
+        numHeads,
+        headDim,
+        cachedKDtype,
+        cachedVDtype,
+        kernelPath,
+        diffusionGemmaDecoder,
+      });
       const result = await runAttention(qTensor, kForAttn, vForAttn, null, numHeads, headDim, {
         seqLen: numTokens,
         kvLen: kvState.kvLenForAttention,
@@ -1013,7 +1026,9 @@ export async function runLayerAttentionGPU(
         kernelPath,
         useFlashPrefill,
         useOrtFlashPrefill,
+        outputGate: useOutputGateFusion ? qGateTensor : null,
       });
+      attentionOutputGateFused = result?.outputGateFused === true;
       if (prefillFallbackNeedsCast) {
         if (kTensor.dtype !== 'f16') releaseBuffer(kForAttn.buffer);
         if (vTensor.dtype !== 'f16') releaseBuffer(vForAttn.buffer);
@@ -1068,7 +1083,7 @@ export async function runLayerAttentionGPU(
   }
 
   attnForProjection = attnOutput;
-  if (qGateTensor) {
+  if (qGateTensor && !attentionOutputGateFused) {
     // The Qwen3_5 reference (HF transformers) full-attention path
     // applies sigmoid(gate) — NOT silu(gate) — to the attention
     // output regardless of how the architecture's gate label is
@@ -1089,6 +1104,7 @@ export async function runLayerAttentionGPU(
     attnForProjection = await runSiLU(attnOutput, {
       size: numTokens * numHeads * headDim,
       gate: qGateTensor,
+      useVec4: (numTokens * numHeads * headDim) % 4 === 0,
       gateActivation,
       inputActivation: 'identity',
       swigluLimit: null,
@@ -1125,7 +1141,6 @@ export async function runLayerAttentionGPU(
     // Use fused o_proj + residual for decode when possible
     // Note: dtype from WeightBuffer metadata (buffer-dtypes WeakMap removed)
     const oProjDtype = getWeightDtype(oProjBuf);
-    const mergedSession = getRuntimeConfig()?.inference?.session;
     const canUseFused = selectRuleValue('inference', 'attention', 'useFusedOProjResidual', {
       allowFusedResidual: shouldUseFusedMatmulResidual(numTokens),
       hasResidual: Boolean(residualTensor),

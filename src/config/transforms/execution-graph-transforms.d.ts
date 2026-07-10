@@ -101,6 +101,13 @@ export declare function widenToF32Activations(graph: ExecutionGraph, ctx: Transf
 export declare function failClosedLaneMismatch(graph: ExecutionGraph, ctx: TransformContext): never;
 
 /**
+ * Fail-closed sentinel transform installed by capability rules when a model
+ * lane is explicitly unsupported on the resolved platform.
+ * Throws when invoked.
+ */
+export declare function failClosedPlatformUnsupported(graph: ExecutionGraph, ctx: TransformContext): never;
+
+/**
  * Swap prefill attention kernel between streaming and small-tile variants.
  */
 export declare function swapPrefillAttention(

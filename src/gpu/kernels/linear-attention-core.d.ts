@@ -30,6 +30,9 @@ export interface RunLinearAttentionCoreGPUOptions {
   recorder?: CommandRecorder | null;
   outputDtype?: 'f16' | 'f32';
   executionPolicies?: ExecutionV1PoliciesSchema | null;
+  abPacked?: boolean;
+  qkvzPacked?: boolean;
+  bProjOffsetElements?: number;
 }
 
 export declare function runLinearAttentionCoreGPU(

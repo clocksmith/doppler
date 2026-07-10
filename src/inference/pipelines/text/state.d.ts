@@ -79,6 +79,7 @@ export class PipelineState {
 
   // DopplerLoader instance
   dopplerLoader: DopplerLoader | null;
+  ownsDopplerLoader: boolean;
 
   // GPU context
   gpuContext: { device?: GPUDevice } | null;

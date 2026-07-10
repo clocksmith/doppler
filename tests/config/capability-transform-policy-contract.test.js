@@ -13,7 +13,7 @@ assert.equal(report.ok, true, report.errors.join('\n'));
 assert.equal(report.rules, policy.capabilityTransforms.length);
 assert.deepEqual(report.kinds, {
   'lane-mismatch-guard': 3,
-  'platform-workaround': 1,
+  'platform-workaround': 2,
   'explicit-lane': 8,
   'capability-optimization': 1,
   'runtime-session-compatibility': 2,
@@ -37,6 +37,8 @@ for (const rule of policy.capabilityTransforms) {
 
 assert.equal(byTransform.get('disableRetainQ4KMaterialization')?.kind, 'platform-workaround');
 assert.equal(byTransform.get('disableRetainQ4KMaterialization')?.dtypeEffect, 'none');
+assert.equal(byTransform.get('failClosedPlatformUnsupported')?.kind, 'platform-workaround');
+assert.equal(byTransform.get('failClosedPlatformUnsupported')?.dtypeEffect, 'fail-closed');
 assert.equal(byTransform.get('useQwenF16PrimaryMatmuls')?.kind, 'explicit-lane');
 assert.equal(byTransform.get('useQwenF16PrimaryMatmuls')?.dtypeEffect, 'selective-f16');
 assert.deepEqual(byTransform.get('useQwenF16PrimaryMatmuls')?.match?.modelId, {

@@ -67,12 +67,12 @@ function createStagingBuffer(words, options = {}) {
 
 {
   assert.ok(
-    generatorStepsSource.includes("createCommandRecorder('decode', { recordLabels: opts.debug === true }, device)"),
-    'single-token decode recorder must skip label collection outside debug runs'
+    generatorStepsSource.includes("createCommandRecorder('decode', { recordLabels: opts.debug === true || opts.benchmark === true }, device)"),
+    'single-token decode recorder must collect labels only for debug and benchmark runs'
   );
   assert.ok(
-    generatorStepsSource.includes("createCommandRecorder('batch_decode', { recordLabels: opts.debug === true }, device)"),
-    'batch decode recorder must skip label collection outside debug runs'
+    generatorStepsSource.includes("createCommandRecorder('batch_decode', { recordLabels: opts.debug === true || opts.benchmark === true }, device)"),
+    'batch decode recorder must collect labels only for debug and benchmark runs'
   );
   assert.equal(
     generatorStepsSource.includes("createProfilingRecorder('batch_decode', device)"),

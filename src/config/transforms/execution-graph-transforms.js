@@ -2359,6 +2359,17 @@ export function failClosedLaneMismatch(_graph, ctx) {
   );
 }
 
+export function failClosedPlatformUnsupported(_graph, ctx) {
+  const modelId = ctx?.modelId ?? 'unknown';
+  const platform = ctx?.platform ?? {};
+  const vendor = platform.vendor ?? platform.detection?.vendor ?? 'unknown';
+  const architecture = platform.architecture ?? platform.detection?.architecture ?? 'unknown';
+  throw new Error(
+    `Capability resolver: platform unsupported for "${modelId}" on ${vendor}/${architecture}. ` +
+    'This lane is blocked by capability policy because it produces non-finite logits on this platform.'
+  );
+}
+
 // =============================================================================
 // Registry
 // =============================================================================
@@ -2389,5 +2400,6 @@ export const TRANSFORMS = Object.freeze({
   useGemma431BTextF16Activations,
   useGemma4Int4PleAf16Activations,
   failClosedLaneMismatch,
+  failClosedPlatformUnsupported,
   composeTransforms,
 });

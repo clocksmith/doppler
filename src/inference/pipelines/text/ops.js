@@ -5,7 +5,9 @@ import {
   recordRMSNorm, recordResidualAdd, recordMatmul, recordSiLU, recordGeLU,
   runSiLURowSplit, recordSiLURowSplit,
   runMatmulRMSNormFused, recordMatmulRMSNormFused,
+  runRMSNormStats, recordRMSNormStats,
   runSandwichRMSNormPair, recordSandwichRMSNormPair,
+  runResidualNextRMSNormPair, recordResidualNextRMSNormPair,
   runConv2D, recordConv2D,
 } from '../../../gpu/kernel-selector.js';
 import {
@@ -58,6 +60,12 @@ export async function doRMSNorm(input, weight, eps, options, recorder) {
   return result;
 }
 
+export async function doRMSNormStats(input, residual, eps, options, recorder) {
+  return recorder
+    ? await recordRMSNormStats(recorder, input, residual, eps, options)
+    : await runRMSNormStats(input, residual, eps, options);
+}
+
 export async function doSandwichRMSNormPair(input, residual, postWeight, preWeight, eps, options, recorder) {
   const result = recorder
     ? await recordSandwichRMSNormPair(recorder, input, residual, postWeight, preWeight, eps, options)
@@ -73,6 +81,20 @@ export async function doSandwichRMSNormPair(input, residual, postWeight, preWeig
   return result;
 }
 
+export async function doResidualNextRMSNormPair(input, residual, normWeight, eps, options = {}, recorder) {
+  const result = recorder
+    ? await recordResidualNextRMSNormPair(recorder, input, residual, normWeight, eps, options)
+    : await runResidualNextRMSNormPair(input, residual, normWeight, eps, options);
+
+  if (kernelTrace.enabled && !recorder) {
+    const layer = options.layerIdx ?? -1;
+    const label = options.label ?? 'residual_rmsnorm_pair';
+    await traceStep('residual_rmsnorm_pair.residual', label, layer, result.residual.buffer, [options.batchSize, options.hiddenSize]);
+    await traceStep('residual_rmsnorm_pair.next_input', label, layer, result.nextInput.buffer, [options.batchSize, options.hiddenSize]);
+  }
+
+  return result;
+}
 
 export async function doResidualAdd(a, b, size, recorder, traceOptions) {
   const options = {};

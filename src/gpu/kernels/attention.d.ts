@@ -45,6 +45,8 @@ export interface AttentionOptions extends OutputBufferOptions {
   indirectBuffer?: GPUBuffer | null;
   /** Byte offset into indirect dispatch buffer (default: 0). */
   indirectOffset?: number;
+  /** Optional f32 attention output gate tensor for profile-enabled decode epilogue fusion. */
+  outputGate?: Tensor | null;
 }
 
 export interface TieredAttentionOptions extends OutputBufferOptions {

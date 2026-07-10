@@ -9,6 +9,7 @@ const {
   resolveGateUpPathMode,
   resolveDenseFFNMatmulStepDtype,
   resolveDenseFFNFusedPathDtypes,
+  resolveFusedGateUpPipelineConstants,
   canUseNativeF16FusedGateUp,
   canFuseSplitPrefillF16GateUpPath,
 } = await import('../../src/inference/pipelines/text/ffn/dense.js');
@@ -276,6 +277,85 @@ const {
     }),
     'split',
     'explicit FFN step precision should force the split gate/up path'
+  );
+}
+
+{
+  const qwenDecodePath = {
+    id: 'qwen-q4k-decode',
+    decode: {
+      steps: [
+        {
+          op: 'gate_proj',
+          kernel: 'fused_matmul_q4.wgsl',
+          entry: 'main_gemv',
+          constants: {
+            COLS_PER_WG: 64,
+            THREADS_PER_COL_GEMV: 4,
+          },
+        },
+        {
+          op: 'up_proj',
+          kernel: 'fused_matmul_q4.wgsl',
+          entry: 'main_gemv',
+          constants: {
+            COLS_PER_WG: 64,
+            THREADS_PER_COL_GEMV: 4,
+          },
+        },
+      ],
+    },
+  };
+
+  assert.deepEqual(
+    resolveFusedGateUpPipelineConstants({
+      phase: 'decode',
+      layerIdx: 0,
+      kernelPath: qwenDecodePath,
+    }),
+    {
+      COLS_PER_WG: 64,
+      THREADS_PER_COL: 4,
+    },
+    'fused gate/up should inherit equivalent Q4K tiling constants from matching split gate/up steps'
+  );
+}
+
+{
+  const mismatchedDecodePath = {
+    id: 'mismatched-q4k-decode',
+    decode: {
+      steps: [
+        {
+          op: 'gate_proj',
+          kernel: 'fused_matmul_q4.wgsl',
+          entry: 'main_gemv',
+          constants: {
+            COLS_PER_WG: 64,
+            THREADS_PER_COL_GEMV: 4,
+          },
+        },
+        {
+          op: 'up_proj',
+          kernel: 'fused_matmul_q4.wgsl',
+          entry: 'main_gemv',
+          constants: {
+            COLS_PER_WG: 32,
+            THREADS_PER_COL_GEMV: 8,
+          },
+        },
+      ],
+    },
+  };
+
+  assert.throws(
+    () => resolveFusedGateUpPipelineConstants({
+      phase: 'decode',
+      layerIdx: 0,
+      kernelPath: mismatchedDecodePath,
+    }),
+    /requires matching gate and up kernel constants/,
+    'fused gate/up should fail closed when split gate/up constants disagree'
   );
 }
 

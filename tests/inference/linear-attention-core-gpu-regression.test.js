@@ -3,8 +3,11 @@ import assert from 'node:assert/strict';
 const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 const { acquireBuffer, uploadData, readBuffer, releaseBuffer } = await import('../../src/memory/buffer-pool.js');
 const { createTensor } = await import('../../src/gpu/tensor.js');
+const { destroyDevice } = await import('../../src/gpu/device.js');
 const { runLinearAttentionCoreGPU } = await import('../../src/gpu/kernels/linear-attention-core.js');
+const { CommandRecorder } = await import('../../src/gpu/command-recorder.js');
 const { float16ToFloat32, float32ToFloat16 } = await import('../../src/converter/quantizer.js');
+const { setRuntimeConfig, resetRuntimeConfig } = await import('../../src/config/runtime.js');
 
 function silu(x) {
   return x / (1 + Math.exp(-x));
@@ -254,4 +257,212 @@ async function runCase(inputDtype) {
 await runCase('f32');
 await runCase('f16');
 
+const fusedDecodeQkv = new Float32Array([
+  0.2, -0.1, 0.4, 0.3,
+  0.5, -0.2, 0.1, 0.7,
+  -0.3, 0.6, -0.5, 0.2,
+]);
+const fusedDecodeZ = new Float32Array([0.3, -0.2, 0.5, 0.1]);
+const fusedDecodeA = new Float32Array([0.1, -0.2]);
+const fusedDecodeB = new Float32Array([0.2, -0.1]);
+const fusedDecodeLayerState = {
+  layerIdx: 0,
+  convKernelSize: 1,
+  convDim: 12,
+  keyDim: 4,
+  valueDim: 4,
+  numKHeads: 2,
+  numVHeads: 2,
+  headKDim: 2,
+  headVDim: 2,
+  qSize: 4,
+  kSize: 4,
+  vSize: 4,
+  qRep: 1,
+  normMode: 'shared',
+  rmsNormEps: 1e-6,
+  convWeight: new Float32Array(12).fill(1),
+  dtBias: new Float32Array([0.2, -0.1]),
+  aNegExp: new Float32Array([-0.6, -0.4]),
+  normWeight: new Float32Array([1.1, 0.9]),
+  convState: new Float32Array(12),
+  recurrentState: new Float32Array(8),
+};
+
+async function runFusedDecodeCase(inputDtype) {
+  const fusedDecodeAB = new Float32Array([...fusedDecodeA, ...fusedDecodeB]);
+  const qkvInput = inputDtype === 'f16' ? createF16View(fusedDecodeQkv) : null;
+  const zInput = inputDtype === 'f16' ? createF16View(fusedDecodeZ) : null;
+  const abInput = inputDtype === 'f16' ? createF16View(fusedDecodeAB) : null;
+  const reference = buildReferenceOutput({
+    qkv: qkvInput?.rounded ?? fusedDecodeQkv,
+    z: zInput?.rounded ?? fusedDecodeZ,
+    a: abInput ? abInput.rounded.slice(0, fusedDecodeA.length) : fusedDecodeA,
+    b: abInput ? abInput.rounded.slice(fusedDecodeA.length) : fusedDecodeB,
+    layerState: fusedDecodeLayerState,
+    numTokens: 1,
+    qkL2NormEps,
+  });
+  const gpuLayerState = {
+    ...fusedDecodeLayerState,
+    convWeightGPU: createGpuBuffer(fusedDecodeLayerState.convWeight, `linear_fused_conv_weight_${inputDtype}`),
+    dtBiasGPU: createGpuBuffer(fusedDecodeLayerState.dtBias, `linear_fused_dt_bias_${inputDtype}`),
+    aNegExpGPU: createGpuBuffer(fusedDecodeLayerState.aNegExp, `linear_fused_a_neg_exp_${inputDtype}`),
+    normWeightGPU: createGpuBuffer(fusedDecodeLayerState.normWeight, `linear_fused_norm_weight_${inputDtype}`),
+    convStateGPU: createGpuBuffer(fusedDecodeLayerState.convState, `linear_fused_conv_state_${inputDtype}`),
+    recurrentStateGPU: createGpuBuffer(fusedDecodeLayerState.recurrentState, `linear_fused_recurrent_state_${inputDtype}`),
+  };
+  const qkvBuffer = createGpuBuffer(qkvInput?.encoded ?? fusedDecodeQkv, `linear_fused_qkv_${inputDtype}`);
+  const zBuffer = createGpuBuffer(zInput?.encoded ?? fusedDecodeZ, `linear_fused_z_${inputDtype}`);
+  const abBuffer = createGpuBuffer(abInput?.encoded ?? fusedDecodeAB, `linear_fused_ab_${inputDtype}`);
+
+  let outputTensor = null;
+  try {
+    setRuntimeConfig({
+      inference: {
+        session: {
+          useLinearAttentionFusedDecodeCore: true,
+        },
+      },
+    });
+    outputTensor = await runLinearAttentionCoreGPU(
+      createTensor(qkvBuffer, inputDtype, [1, fusedDecodeLayerState.convDim], `linear_fused_qkv_${inputDtype}`),
+      createTensor(zBuffer, inputDtype, [1, fusedDecodeLayerState.valueDim], `linear_fused_z_${inputDtype}`),
+      createTensor(abBuffer, inputDtype, [1, fusedDecodeLayerState.numVHeads * 2], `linear_fused_ab_${inputDtype}`),
+      createTensor(abBuffer, inputDtype, [1, fusedDecodeLayerState.numVHeads * 2], `linear_fused_ab_${inputDtype}`),
+      gpuLayerState,
+      {
+        numTokens: 1,
+        qkL2NormEps,
+        outputDtype: 'f32',
+        abPacked: true,
+        bProjOffsetElements: fusedDecodeLayerState.numVHeads,
+      }
+    );
+
+    const gpuOutput = new Float32Array(await readBuffer(outputTensor.buffer, reference.output.byteLength));
+    const gpuState = new Float32Array(
+      await readBuffer(gpuLayerState.recurrentStateGPU, reference.recurrentState.byteLength)
+    );
+    const tolerance = inputDtype === 'f16' ? 7e-4 : 1e-5;
+    assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} fused output`);
+    assertArraysClose(gpuState, reference.recurrentState, tolerance, `${inputDtype} fused recurrent_state`);
+  } finally {
+    resetRuntimeConfig();
+    if (outputTensor?.buffer) {
+      releaseBuffer(outputTensor.buffer);
+    }
+    for (const buffer of [
+      qkvBuffer,
+      zBuffer,
+      abBuffer,
+      gpuLayerState.convWeightGPU,
+      gpuLayerState.dtBiasGPU,
+      gpuLayerState.aNegExpGPU,
+      gpuLayerState.normWeightGPU,
+      gpuLayerState.convStateGPU,
+      gpuLayerState.recurrentStateGPU,
+    ]) {
+      releaseBuffer(buffer);
+    }
+  }
+}
+
+await runFusedDecodeCase('f32');
+await runFusedDecodeCase('f16');
+
+async function runFusedDecodePackedQkvzCase(inputDtype) {
+  const fusedDecodeQkvz = new Float32Array([...fusedDecodeQkv, ...fusedDecodeZ]);
+  const fusedDecodeAB = new Float32Array([...fusedDecodeA, ...fusedDecodeB]);
+  const qkvzInput = inputDtype === 'f16' ? createF16View(fusedDecodeQkvz) : null;
+  const abInput = inputDtype === 'f16' ? createF16View(fusedDecodeAB) : null;
+  const qkvzReference = qkvzInput?.rounded ?? fusedDecodeQkvz;
+  const reference = buildReferenceOutput({
+    qkv: qkvzReference.slice(0, fusedDecodeLayerState.convDim),
+    z: qkvzReference.slice(fusedDecodeLayerState.convDim),
+    a: abInput ? abInput.rounded.slice(0, fusedDecodeA.length) : fusedDecodeA,
+    b: abInput ? abInput.rounded.slice(fusedDecodeA.length) : fusedDecodeB,
+    layerState: fusedDecodeLayerState,
+    numTokens: 1,
+    qkL2NormEps,
+  });
+  const gpuLayerState = {
+    ...fusedDecodeLayerState,
+    convWeightGPU: createGpuBuffer(fusedDecodeLayerState.convWeight, `linear_fused_qkvz_conv_weight_${inputDtype}`),
+    dtBiasGPU: createGpuBuffer(fusedDecodeLayerState.dtBias, `linear_fused_qkvz_dt_bias_${inputDtype}`),
+    aNegExpGPU: createGpuBuffer(fusedDecodeLayerState.aNegExp, `linear_fused_qkvz_a_neg_exp_${inputDtype}`),
+    normWeightGPU: createGpuBuffer(fusedDecodeLayerState.normWeight, `linear_fused_qkvz_norm_weight_${inputDtype}`),
+    convStateGPU: createGpuBuffer(fusedDecodeLayerState.convState, `linear_fused_qkvz_conv_state_${inputDtype}`),
+    recurrentStateGPU: createGpuBuffer(fusedDecodeLayerState.recurrentState, `linear_fused_qkvz_recurrent_state_${inputDtype}`),
+  };
+  const qkvzBuffer = createGpuBuffer(qkvzInput?.encoded ?? fusedDecodeQkvz, `linear_fused_qkvz_${inputDtype}`);
+  const abBuffer = createGpuBuffer(abInput?.encoded ?? fusedDecodeAB, `linear_fused_qkvz_ab_${inputDtype}`);
+  const recorder = new CommandRecorder(null, `linear_fused_qkvz_${inputDtype}`, { recordLabels: true });
+
+  let outputTensor = null;
+  try {
+    setRuntimeConfig({
+      inference: {
+        session: {
+          useLinearAttentionFusedDecodeCore: true,
+        },
+      },
+    });
+    outputTensor = await runLinearAttentionCoreGPU(
+      createTensor(qkvzBuffer, inputDtype, [1, fusedDecodeLayerState.convDim + fusedDecodeLayerState.valueDim], `linear_fused_qkvz_${inputDtype}`),
+      createTensor(qkvzBuffer, inputDtype, [1, fusedDecodeLayerState.convDim + fusedDecodeLayerState.valueDim], `linear_fused_qkvz_${inputDtype}`),
+      createTensor(abBuffer, inputDtype, [1, fusedDecodeLayerState.numVHeads * 2], `linear_fused_qkvz_ab_${inputDtype}`),
+      createTensor(abBuffer, inputDtype, [1, fusedDecodeLayerState.numVHeads * 2], `linear_fused_qkvz_ab_${inputDtype}`),
+      gpuLayerState,
+      {
+        numTokens: 1,
+        qkL2NormEps,
+        outputDtype: 'f32',
+        recorder,
+        abPacked: true,
+        qkvzPacked: true,
+        bProjOffsetElements: fusedDecodeLayerState.numVHeads,
+      }
+    );
+    await recorder.submitAndWait();
+
+    const stats = recorder.getStats();
+    assert.equal(stats.opLabelCounts.linear_attention_fused_decode_core, 1, `${inputDtype} packed QKVZ must use fused decode core`);
+    assert.equal(stats.opLabelCounts.linear_attention_conv ?? 0, 0, `${inputDtype} packed QKVZ must not use split conv`);
+    assert.equal(stats.opLabelCounts.linear_attention_recurrent ?? 0, 0, `${inputDtype} packed QKVZ must not use split recurrent`);
+
+    const gpuOutput = new Float32Array(await readBuffer(outputTensor.buffer, reference.output.byteLength));
+    const gpuState = new Float32Array(
+      await readBuffer(gpuLayerState.recurrentStateGPU, reference.recurrentState.byteLength)
+    );
+    const tolerance = inputDtype === 'f16' ? 7e-4 : 1e-5;
+    assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} packed QKVZ fused output`);
+    assertArraysClose(gpuState, reference.recurrentState, tolerance, `${inputDtype} packed QKVZ fused recurrent_state`);
+  } finally {
+    resetRuntimeConfig();
+    if (!recorder.getStats().submitted) {
+      recorder.abort();
+    }
+    if (outputTensor?.buffer) {
+      releaseBuffer(outputTensor.buffer);
+    }
+    for (const buffer of [
+      qkvzBuffer,
+      abBuffer,
+      gpuLayerState.convWeightGPU,
+      gpuLayerState.dtBiasGPU,
+      gpuLayerState.aNegExpGPU,
+      gpuLayerState.normWeightGPU,
+      gpuLayerState.convStateGPU,
+      gpuLayerState.recurrentStateGPU,
+    ]) {
+      releaseBuffer(buffer);
+    }
+  }
+}
+
+await runFusedDecodePackedQkvzCase('f32');
+await runFusedDecodePackedQkvzCase('f16');
+
+destroyDevice();
 console.log('linear-attention-core-gpu-regression.test: ok');

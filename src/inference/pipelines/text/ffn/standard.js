@@ -1,6 +1,6 @@
 
 
-import { doCast, doRMSNorm, doResidualAdd, releaseOrTrack } from '../ops.js';
+import { doCast, doRMSNorm, doRMSNormStats, doResidualAdd, doResidualNextRMSNormPair, releaseOrTrack } from '../ops.js';
 import { getNormWeightBuffer } from '../weights.js';
 import { runProbes } from '../probes.js';
 import { isMoELayerLocal } from './types.js';
@@ -12,6 +12,17 @@ import { isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buff
 import { shouldDebugLayerOutput, decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
 import { trace, isTraceEnabled } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
+import { getRuntimeConfig } from '../../../../config/runtime.js';
+
+function shouldUsePostAttnNormFusedGateUpPrelude({ session, postAttn, fusedResidualInput, numTokens, context }) {
+  if (session?.usePostAttnNormFusedGateUp !== true) return false;
+  if (numTokens !== 1) return false;
+  if (postAttn?.dtype !== 'f32' || fusedResidualInput?.dtype !== 'f32') return false;
+  if (context.debugProbes?.length) return false;
+  if (context.debugCheckBuffer) return false;
+  if (isTraceEnabled('logits')) return false;
+  return true;
+}
 
 async function debugFFNBuffer(context, layerIdx, label, tensor, numTokens, hiddenSize) {
   if (!context.debugCheckBuffer) return;
@@ -46,7 +57,8 @@ export async function processFFNStandard(
   layerWeights,
   fusedResidualInput,
   finalOutputScale = 1,
-  residualBranchScale = 1
+  residualBranchScale = 1,
+  nextInputNormFusion = null
 ) {
   const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
   const { hiddenSize, rmsNormEps } = config;
@@ -70,22 +82,39 @@ export async function processFFNStandard(
   // 1. Post-attention norm (optionally fuses upstream residual add via PRE_RESIDUAL)
   let normedTensor = postAttn;
   let prenormSumBuffer = null;
+  let postAttnNormStats = null;
+  let postAttnNormWeightBuf = null;
+  let releasePostAttnNormWeight = false;
+  let usedPostAttnNormStatsPrelude = false;
   if (layerWeights?.postAttnNorm) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.postAttnNorm, 'post_attn_norm', weightConfig, debugFlags);
+    postAttnNormWeightBuf = normWeightBuf;
+    releasePostAttnNormWeight = !isGpuBufferInstance(layerWeights.postAttnNorm) && !isWeightBuffer(layerWeights.postAttnNorm);
+    const session = getRuntimeConfig().inference?.session;
 
     if (fusedResidualInput) {
-      // Fused path: rmsnorm(postAttn + fusedResidualInput) and write pre-norm sum
       const bytesPerElement = postAttn.dtype === 'f16' ? 2 : 4;
       prenormSumBuffer = acquireBuffer(size * bytesPerElement, undefined, 'fused_prenorm_sum');
-      normedTensor = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
-        batchSize: numTokens,
-        hiddenSize,
-        preResidual: fusedResidualInput,
-        residualSumOutput: prenormSumBuffer,
-        label: `L${layerIdx}.post_attn_norm`,
-        layerIdx,
-        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
-      }, recorder);
+      if (shouldUsePostAttnNormFusedGateUpPrelude({ session, postAttn, fusedResidualInput, numTokens, context })) {
+        postAttnNormStats = await doRMSNormStats(postAttn, fusedResidualInput, rmsNormEps, {
+          batchSize: numTokens,
+          hiddenSize,
+          outputBuffer: prenormSumBuffer,
+          label: `L${layerIdx}.post_attn_norm_stats`,
+        }, recorder);
+        normedTensor = postAttnNormStats.prenormSum;
+        usedPostAttnNormStatsPrelude = true;
+      } else {
+        normedTensor = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
+          batchSize: numTokens,
+          hiddenSize,
+          preResidual: fusedResidualInput,
+          residualSumOutput: prenormSumBuffer,
+          label: `L${layerIdx}.post_attn_norm`,
+          layerIdx,
+          rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+        }, recorder);
+      }
     } else {
       normedTensor = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
         batchSize: numTokens,
@@ -95,20 +124,20 @@ export async function processFFNStandard(
         rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
       }, recorder);
     }
-
-    if (!isGpuBufferInstance(layerWeights.postAttnNorm) && !isWeightBuffer(layerWeights.postAttnNorm)) releaseOrTrack(recorder, normWeightBuf);
   }
-  await runProbes('ffn_in', normedTensor.buffer, {
-    layerIdx,
-    numTokens,
-    hiddenSize,
-    probes: context.debugProbes,
-    recorder,
-    operatorDiagnostics: context.operatorDiagnostics,
-    dtype: normedTensor.dtype,
-  });
-  await debugFFNBuffer(context, layerIdx, 'FFN input', normedTensor, numTokens, hiddenSize);
-  enqueueRecordedFFNHealth(context, layerIdx, 'ffn_in', normedTensor, numTokens * hiddenSize);
+  if (!usedPostAttnNormStatsPrelude) {
+    await runProbes('ffn_in', normedTensor.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize,
+      probes: context.debugProbes,
+      recorder,
+      operatorDiagnostics: context.operatorDiagnostics,
+      dtype: normedTensor.dtype,
+    });
+    await debugFFNBuffer(context, layerIdx, 'FFN input', normedTensor, numTokens, hiddenSize);
+    enqueueRecordedFFNHealth(context, layerIdx, 'ffn_in', normedTensor, numTokens * hiddenSize);
+  }
 
   // 2. FFN
   // Stage the residual tensor so that runDenseFFNGPU's ffn_down matmul can
@@ -124,6 +153,13 @@ export async function processFFNStandard(
   context.__pendingFfnResidualTensor = requestedResidualBranchScale === 1
     ? pendingResidualForFfn
     : null;
+  context.__pendingFfnInputNormStats = postAttnNormStats
+    ? {
+      invRmsBuffer: postAttnNormStats.invRmsBuffer,
+      normWeight: postAttnNormWeightBuf,
+      rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+    }
+    : null;
   context.__ffnResidualFusedFired = false;
 
   let ffnOutput;
@@ -131,13 +167,17 @@ export async function processFFNStandard(
     && config.ffnBranchMode !== 'dense_plus_moe'
     && config.useMoE
     && isMoELayerLocal(layerIdx, config, layerWeights);
-  if (useLegacyMoeOnlyFFN) {
-    ffnOutput = await runMoEFFNGPU(layerIdx, normedTensor, numTokens, context);
-  } else {
-    ffnOutput = await runDenseFFNGPU(layerIdx, normedTensor, numTokens, context, layerWeights);
+  try {
+    if (useLegacyMoeOnlyFFN) {
+      ffnOutput = await runMoEFFNGPU(layerIdx, normedTensor, numTokens, context);
+    } else {
+      ffnOutput = await runDenseFFNGPU(layerIdx, normedTensor, numTokens, context, layerWeights);
+    }
+  } finally {
+    context.__pendingFfnResidualTensor = null;
+    context.__pendingFfnInputNormStats = null;
   }
   const ffnResidualFused = context.__ffnResidualFusedFired === true;
-  context.__pendingFfnResidualTensor = null;
   context.__ffnResidualFusedFired = false;
   await runProbes('ffn_out', ffnOutput.buffer, {
     layerIdx,
@@ -184,13 +224,50 @@ export async function processFFNStandard(
       && !context.debugProbes?.length
       ? requestedFinalOutputScale
       : 1;
-    output = await doResidualAdd(residualInput, residualTensor, size, recorder, {
-      label: `L${layerIdx}.ffn_residual`,
-      layerIdx,
-      outputBuffer: decodeOutputBuffer,
-      outputScale: residualOutputScale,
-      executionPolicies: context.executionPolicies ?? null,
-    });
+    if (
+      nextInputNormFusion
+      && residualInput.dtype === 'f32'
+      && residualTensor.dtype === 'f32'
+    ) {
+      const normWeightBuf = getNormWeightBuffer(
+        nextInputNormFusion.weight,
+        'next_input_norm',
+        weightConfig,
+        debugFlags
+      );
+      const pair = await doResidualNextRMSNormPair(
+        residualInput,
+        residualTensor,
+        normWeightBuf,
+        rmsNormEps,
+        {
+          batchSize: numTokens,
+          hiddenSize,
+          residualOutputBuffer: decodeOutputBuffer,
+          outputScale: residualOutputScale,
+          label: `L${layerIdx}.ffn_residual_next_input_norm`,
+          layerIdx,
+          rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+        },
+        recorder
+      );
+      output = pair.residual;
+      context.__precomputedInputNorm = {
+        layerIdx: nextInputNormFusion.layerIdx,
+        tensor: pair.nextInput,
+      };
+      if (!isGpuBufferInstance(nextInputNormFusion.weight) && !isWeightBuffer(nextInputNormFusion.weight)) {
+        releaseOrTrack(recorder, normWeightBuf);
+      }
+    } else {
+      output = await doResidualAdd(residualInput, residualTensor, size, recorder, {
+        label: `L${layerIdx}.ffn_residual`,
+        layerIdx,
+        outputBuffer: decodeOutputBuffer,
+        outputScale: residualOutputScale,
+        executionPolicies: context.executionPolicies ?? null,
+      });
+    }
     if (residualOutputScale !== 1) {
       context.__layerScalarFusedFired = true;
     }
@@ -207,8 +284,14 @@ export async function processFFNStandard(
   await debugFFNBuffer(context, layerIdx, 'layer output', output, numTokens, hiddenSize);
   enqueueRecordedFFNHealth(context, layerIdx, 'layer_out', output, numTokens * hiddenSize);
 
-  if (normedTensor !== postAttn) {
+  if (normedTensor !== postAttn && !usedPostAttnNormStatsPrelude) {
     releaseOrTrack(recorder, normedTensor.buffer, decodeBuffers);
+  }
+  if (postAttnNormStats?.invRmsBuffer) {
+    releaseOrTrack(recorder, postAttnNormStats.invRmsBuffer, decodeBuffers);
+  }
+  if (releasePostAttnNormWeight && postAttnNormWeightBuf) {
+    releaseOrTrack(recorder, postAttnNormWeightBuf, decodeBuffers);
   }
   releaseOrTrack(recorder, postAttn.buffer, decodeBuffers);
   if (prenormSumBuffer) {

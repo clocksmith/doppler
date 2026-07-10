@@ -174,6 +174,16 @@ try {
     1024,
     'Default runtime config must own profiler label history length.'
   );
+  assert.equal(
+    runtimeConfig.inference.session.skipEmbeddingKVCacheWrites,
+    false,
+    'Default runtime config must not skip embedding KV cache writes.'
+  );
+  assert.equal(
+    runtimeConfig.inference.session.useLargeBatchF16F32FusedGateUp,
+    false,
+    'Default runtime config must not enable large-batch f16/f32 fused gate/up.'
+  );
   assert.deepEqual(
     runtimeConfig.inference.kernelPathPolicy,
     {
@@ -214,6 +224,20 @@ try {
   assert.throws(
     () => validateRuntimeConfig(invalidMultimodalMaxTokensRuntime),
     /runtime\.inference\.generation\.multimodalMaxTokens/
+  );
+
+  const invalidEmbeddingKVSkipRuntime = createDopplerConfig().runtime;
+  invalidEmbeddingKVSkipRuntime.inference.session.skipEmbeddingKVCacheWrites = 'yes';
+  assert.throws(
+    () => validateRuntimeConfig(invalidEmbeddingKVSkipRuntime),
+    /runtime\.inference\.session\.skipEmbeddingKVCacheWrites/
+  );
+
+  const invalidLargeBatchFusedGateUpRuntime = createDopplerConfig().runtime;
+  invalidLargeBatchFusedGateUpRuntime.inference.session.useLargeBatchF16F32FusedGateUp = 'yes';
+  assert.throws(
+    () => validateRuntimeConfig(invalidLargeBatchFusedGateUpRuntime),
+    /runtime\.inference\.session\.useLargeBatchF16F32FusedGateUp/
   );
 
   const updatedRuntime = setRuntimeConfig({
@@ -271,6 +295,35 @@ try {
     },
   });
   assert.equal(nullSessionSubtreeConfig.runtime.inference.session.kvcache, null);
+
+  const sessionComputeDefaultsConfig = createDopplerConfig({
+    runtime: {
+      inference: {
+        session: {
+          compute: {
+            defaults: {
+              activationDtype: 'f16',
+              mathDtype: 'f16',
+              accumDtype: 'f32',
+              outputDtype: 'f16',
+            },
+            kernelProfiles: {
+              prefill: 'metal-retrieval-f16',
+            },
+          },
+        },
+      },
+    },
+  });
+  assert.deepEqual(sessionComputeDefaultsConfig.runtime.inference.session.compute.defaults, {
+    activationDtype: 'f16',
+    mathDtype: 'f16',
+    accumDtype: 'f32',
+    outputDtype: 'f16',
+  });
+  assert.deepEqual(sessionComputeDefaultsConfig.runtime.inference.session.compute.kernelProfiles, {
+    prefill: 'metal-retrieval-f16',
+  });
 
   const resetRuntime = setRuntimeConfig(null);
   assert.deepEqual(resetRuntime, createDopplerConfig().runtime);

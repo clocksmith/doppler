@@ -2,7 +2,7 @@
 
 import { log, trace } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
-import { getDevice } from '../../../gpu/device.js';
+import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { createTensor } from '../../../gpu/tensor.js';
@@ -144,7 +144,7 @@ function shouldUsePostFfnNextInputRMSNormPairFusion({
     return false;
   }
   const nextLayerType = config.layerTypes?.[nextLayerIdx];
-  if (isConvLayerType(nextLayerType) || isLinearLayerType(nextLayerType)) {
+  if (isConvLayerType(nextLayerType)) {
     return false;
   }
   if (!sandwichNorm.useSandwichNorm || !sandwichNorm.hasPostFeedforwardNorm) {
@@ -154,6 +154,56 @@ function shouldUsePostFfnNextInputRMSNormPairFusion({
     return false;
   }
   if (config.useMoE && isMoELayer(layerIdx, config)) {
+    return false;
+  }
+  if (!Number.isInteger(hiddenSize) || hiddenSize <= 0 || hiddenSize > RMSNORM_PAIR_CACHE_LIMIT) {
+    throw new Error(
+      `usePostFfnNextInputRMSNormPairFusion requires hiddenSize in 1..${RMSNORM_PAIR_CACHE_LIMIT}; got ${String(hiddenSize)}.`
+    );
+  }
+  return true;
+}
+
+function shouldUseStandardPostFfnNextInputRMSNormPairFusion({
+  context,
+  config,
+  sandwichNorm,
+  layerIdx,
+  nextLayerWeights,
+  numTokens,
+  hiddenSize,
+  activationDtype,
+  layerScalar,
+  residualBranchScale,
+}) {
+  const mergedSession = getRuntimeConfig()?.inference?.session;
+  if (mergedSession?.usePostFfnNextInputRMSNormPairFusion !== true) {
+    return false;
+  }
+  if (numTokens !== 1 || context.phase !== 'decode' || context.diffusionGemmaDecoder === true) {
+    return false;
+  }
+  if (context.debug === true || context.debugProbes?.length || context.operatorDiagnostics?.enabled === true) {
+    return false;
+  }
+  if (!context.decodeBuffers || context.pipelinePlan || hasPerLayerInputBlock(config)) {
+    return false;
+  }
+  if (sandwichNorm.useSandwichNorm || layerScalar !== 1 || residualBranchScale !== 1 || activationDtype !== 'f32') {
+    return false;
+  }
+  if (getKernelCapabilities()?.hasSubgroups !== true) {
+    return false;
+  }
+  const nextLayerIdx = layerIdx + 1;
+  if (nextLayerIdx >= config.numLayers) {
+    return false;
+  }
+  const nextLayerType = config.layerTypes?.[nextLayerIdx];
+  if (isConvLayerType(nextLayerType)) {
+    return false;
+  }
+  if (!nextLayerWeights?.inputNorm) {
     return false;
   }
   if (!Number.isInteger(hiddenSize) || hiddenSize <= 0 || hiddenSize > RMSNORM_PAIR_CACHE_LIMIT) {
@@ -765,6 +815,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       linearRuntime: context.linearAttentionRuntime ?? null,
       getWeightBuffer: (weight, label) => getWeightBuffer(weight, label),
       getNormWeightBuffer: (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
+      precomputedInputNorm: takePrecomputedInputNorm(context, layerIdx, recorder),
       debugProbes: context.debugProbes,
       operatorDiagnostics: context.operatorDiagnostics,
       recorder: recorder ?? null,
@@ -838,6 +889,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       operatorDiagnostics: context.operatorDiagnostics,
       linearRuntime: context.linearAttentionRuntime ?? null,
       executionPolicies: context.executionPolicies ?? null,
+      skipKVCacheWrites: context.skipKVCacheWrites === true,
     };
 
     const attnResult = await doAttention(
@@ -1070,6 +1122,18 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     activationDtype,
     layerScalar,
   });
+  const useStandardPostFfnNextInputNormPair = shouldUseStandardPostFfnNextInputRMSNormPairFusion({
+    context,
+    config,
+    sandwichNorm,
+    layerIdx,
+    nextLayerWeights,
+    numTokens,
+    hiddenSize,
+    activationDtype,
+    layerScalar,
+    residualBranchScale,
+  });
   let layerScalarFused = false;
   if (sandwichNorm.useSandwichNorm) {
     context.__postFfnNextInputNorm = usePostFfnNextInputNormPair
@@ -1099,11 +1163,14 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       numTokens,
       size,
       context,
-	      layerWeights,
-	      fusedResidualForFFN,
-	      requestFfnLayerScalarFusion ? layerScalar : 1,
-	      residualBranchScale
-	    );
+      layerWeights,
+      fusedResidualForFFN,
+      requestFfnLayerScalarFusion ? layerScalar : 1,
+      residualBranchScale,
+      useStandardPostFfnNextInputNormPair
+        ? { layerIdx: nextLayerIdx, weight: nextLayerWeights.inputNorm }
+        : null
+    );
     layerScalarFused = context.__layerScalarFusedFired === true;
     context.__layerScalarFusedFired = false;
   }
