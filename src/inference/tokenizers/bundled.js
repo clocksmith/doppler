@@ -118,6 +118,28 @@ function parseByteTokenValue(token) {
   return hi >= 0 && lo >= 0 ? (hi << 4) | lo : null;
 }
 
+function decodeByteFallbackTokens(tokens) {
+  const parts = [];
+  let bytes = [];
+  const flushBytes = () => {
+    if (bytes.length === 0) return;
+    parts.push(new TextDecoder('utf-8', { fatal: false }).decode(Uint8Array.from(bytes)));
+    bytes = [];
+  };
+
+  for (const token of tokens) {
+    const byteValue = parseByteTokenValue(token);
+    if (byteValue !== null) {
+      bytes.push(byteValue);
+      continue;
+    }
+    flushBytes();
+    parts.push(token);
+  }
+  flushBytes();
+  return parts.join('');
+}
+
 function appendVocabEntry(token, id, vocab, reverseVocab, byteTokens) {
   const numId = typeof id === 'number' ? id : parseInt( (id), 10);
   vocab.set(token, numId);
@@ -469,9 +491,6 @@ export class BundledTokenizer extends BaseTokenizer {
     }
     log.info('Tokenizer', `HuggingFace model.type="${model.type}", using type="${this.#type}"`);
     this.#byteDecoder = null;
-    if (this.#type === 'bpe') {
-      this.#initializeByteDecoder();
-    }
     let maxId = -1;
 
     // Handle vocab based on type
@@ -586,6 +605,9 @@ export class BundledTokenizer extends BaseTokenizer {
     const decoderPrepend = hf.decoder?.prepend_scheme === 'always' || hf.decoder?.add_prefix_space === true;
     const normalizerPrepend = hf.normalizer?.prepend_scheme === 'always' || hf.normalizer?.add_prefix_space === true;
     this.#useByteLevelEncoding = byteLevelPretokenizer.useByteLevel;
+    if (this.#type === 'bpe' && this.#useByteLevelEncoding) {
+      this.#initializeByteDecoder();
+    }
     const runtimeSpacePrefix = runtimeDefaults.addSpacePrefix;
     // Use explicit runtime config if set (non-null), otherwise auto-detect from tokenizer.json
     this.#addSpacePrefix = runtimeSpacePrefix
@@ -646,9 +668,6 @@ export class BundledTokenizer extends BaseTokenizer {
       throw new Error(`[Tokenizer] Unsupported tokenizer type: ${tokenizerJson.type}`);
     }
     this.#byteDecoder = null;
-    if (this.#type === 'bpe') {
-      this.#initializeByteDecoder();
-    }
 
     // Build vocab maps
     let maxId = loadObjectVocab(tokenizerJson.vocab, this.#vocab, this.#reverseVocab, this.#byteTokens);
@@ -744,6 +763,9 @@ export class BundledTokenizer extends BaseTokenizer {
       throw new Error('[Tokenizer] addEosToken is enabled but eos token is missing.');
     }
     this.#useByteLevelEncoding = byteLevelPretokenizer.useByteLevel;
+    if (this.#type === 'bpe' && this.#useByteLevelEncoding) {
+      this.#initializeByteDecoder();
+    }
     // NOTE: Default to FALSE - first word shouldn't get space prefix
     // Space prefixes are only for words that follow a space in original text
     this.#addSpacePrefix = tokenizerJson.addSpacePrefix === true
@@ -1073,29 +1095,29 @@ export class BundledTokenizer extends BaseTokenizer {
 
       const token = this.#reverseVocab.get(id);
       if (token !== undefined) {
-        // Handle byte tokens
-        if (token.match(/^<0x[0-9A-Fa-f]{2}>$/)) {
-          const byteVal = parseInt(token.slice(3, 5), 16);
-          tokens.push(String.fromCharCode(byteVal));
-        } else {
-          tokens.push(token);
-        }
+        tokens.push(token);
       }
     }
 
     let result;
-    if (this.#type === 'bpe' && this.#byteDecoder instanceof Map && this.#byteDecoder.size > 0) {
-      const merged = tokens.join('');
+    if (this.#type === 'bpe' && this.#useByteLevelEncoding) {
       const bytes = [];
-      for (const ch of merged) {
-        const mapped = this.#byteDecoder.get(ch);
-        if (mapped != null) {
-          bytes.push(mapped);
+      for (const token of tokens) {
+        const byteValue = parseByteTokenValue(token);
+        if (byteValue !== null) {
+          bytes.push(byteValue);
           continue;
         }
-        const fallbackBytes = new TextEncoder().encode(ch);
-        for (const byte of fallbackBytes) {
-          bytes.push(byte);
+        for (const ch of token) {
+          const mapped = this.#byteDecoder.get(ch);
+          if (mapped != null) {
+            bytes.push(mapped);
+            continue;
+          }
+          const fallbackBytes = new TextEncoder().encode(ch);
+          for (const byte of fallbackBytes) {
+            bytes.push(byte);
+          }
         }
       }
       result = new TextDecoder('utf-8', { fatal: false }).decode(Uint8Array.from(bytes));
@@ -1103,7 +1125,7 @@ export class BundledTokenizer extends BaseTokenizer {
       result = result.replace(/▁/g, ' ');
     } else {
       // Join and convert ▁ back to spaces, handle GPT-style markers
-      result = tokens.join('')
+      result = decodeByteFallbackTokens(tokens)
         .replace(/▁/g, ' ')
         .replace(/Ġ/g, ' ')
         .replace(/Ċ/g, '\n');
