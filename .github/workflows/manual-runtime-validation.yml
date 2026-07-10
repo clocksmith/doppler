@@ -1,0 +1,111 @@
+name: Manual Runtime Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: Runtime lane to validate
+        required: true
+        type: choice
+        options:
+          - node-kernels
+          - browser-kernels
+          - opfs-text
+          - opfs-embedding
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-runtime-${{ inputs.lane }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: ${{ inputs.lane }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        if: inputs.lane != 'node-kernels'
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve OPFS model metadata
+        if: startsWith(inputs.lane, 'opfs-')
+        id: model
+        env:
+          VALIDATION_LANE: ${{ inputs.lane }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+
+          const modelIds = {
+            'opfs-text': 'gemma-3-270m-it-q4k-ehf16-af32',
+            'opfs-embedding': 'google-embeddinggemma-300m-q4k-ehf16-af32',
+          };
+          const modelId = modelIds[process.env.VALIDATION_LANE];
+          const payload = JSON.parse(fs.readFileSync('models/catalog.json', 'utf8'));
+          const entry = (payload.models || []).find((model) => model?.modelId === modelId);
+          if (!entry?.hf?.revision) {
+            throw new Error(`Missing pinned hf.revision for ${modelId}`);
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `model_id=${modelId}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `revision=${entry.hf.revision}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `cache_root=${process.env.HOME}/.cache/doppler/ci-rdrr\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `profile_dir=${process.env.HOME}/.cache/doppler/ci-opfs/${modelId}\n`);
+          NODE
+
+      - name: Restore pinned model cache
+        if: startsWith(inputs.lane, 'opfs-')
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.model.outputs.cache_root }}/${{ steps.model.outputs.model_id }}/${{ steps.model.outputs.revision }}
+          key: browser-opfs-rdrr-${{ runner.os }}-${{ steps.model.outputs.model_id }}-${{ steps.model.outputs.revision }}-v1
+
+      - name: Run Node kernel tests
+        if: inputs.lane == 'node-kernels'
+        run: npm run test:gpu
+
+      - name: Run browser kernel tests
+        if: inputs.lane == 'browser-kernels'
+        run: npm run test:gpu:browser
+
+      - name: Run browser OPFS text smoke
+        if: inputs.lane == 'opfs-text'
+        run: >
+          node tools/ci-browser-opfs-registry-smoke.js
+          --model-id "${{ steps.model.outputs.model_id }}"
+          --cache-root "${{ steps.model.outputs.cache_root }}"
+          --profile-dir "${{ steps.model.outputs.profile_dir }}"
+          --kernel-path "gemma3-q4k-dequant-f16a-online"
+          --activation-dtype "f16"
+          --kv-dtype "f16"
+          --output-dtype "f16"
+          --allow-capability-skip
+          --timeout-ms 300000
+
+      - name: Run browser OPFS embedding smoke
+        if: inputs.lane == 'opfs-embedding'
+        run: >
+          node tools/ci-browser-opfs-registry-smoke.js
+          --model-id "${{ steps.model.outputs.model_id }}"
+          --cache-root "${{ steps.model.outputs.cache_root }}"
+          --profile-dir "${{ steps.model.outputs.profile_dir }}"
+          --expect-mode "embedding"
+          --runtime-profile "kernels/embeddinggemma-q4k-dequant-f32a"
+          --expected-embedding-dim "768"
+          --expected-semantic-style "embeddinggemma"
+          --allow-capability-skip
+          --timeout-ms 300000

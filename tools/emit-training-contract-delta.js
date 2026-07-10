@@ -92,7 +92,7 @@ function buildPayload(args) {
       trainingSchemaVersion: 1,
     },
     releaseGates: {
-      workflow: '.github/workflows/training-contract-release-gate.yml',
+      workflow: '.github/workflows/check-green.yml',
       script: 'tools/ci-training-contract-gates.js',
       lanes: [
         'command_surface_contract',

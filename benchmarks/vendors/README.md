@@ -291,8 +291,8 @@ That claim is valid only if the artifact shows:
 
 - Gemma 3 Q4K `f32a` now auto-selects `gemma3-q4k-dequant-f32a-online` on subgroup-capable devices ([src/rules/inference/kernel-path.rules.json](../../src/rules/inference/kernel-path.rules.json)).
 - Kernel path registry marks `gemma3-q4k-dequant-f32a-online` as canonical/default ([src/config/kernel-paths/registry.json](../../src/config/kernel-paths/registry.json)).
-- Structural CI sweep for Gemma 3 1b kernel-path invariants is enforced by [tests/inference/gemma3-1b-kernel-sweep.test.js](../../tests/inference/gemma3-1b-kernel-sweep.test.js).
-- Inference guard workflow now triggers on inference rule changes and executes the sweep gate ([.github/workflows/inference-guard.yml](../../.github/workflows/inference-guard.yml)).
+- Claimed text-model execution paths are checked by [tests/config/claimed-text-models-failfast-contract.test.js](../../tests/config/claimed-text-models-failfast-contract.test.js).
+- The deterministic CI contract runs those checks on every pull request and main-branch push ([.github/workflows/check-green.yml](../../.github/workflows/check-green.yml)).
 - Historical local performance numbers are stale after kernel-path routing updates; re-run apples-to-apples benchmark suites before publishing comparative claims.
 
 Execution tracking now lives in:
@@ -300,7 +300,7 @@ Execution tracking now lives in:
 - generated normalized artifacts under [results/](./results/)
 - committed compare fixtures under [fixtures/](./fixtures/)
 - harness + workload contracts in this folder
-- CI gates in [.github/workflows/inference-guard.yml](../../.github/workflows/inference-guard.yml)
+- deterministic CI gates in [.github/workflows/check-green.yml](../../.github/workflows/check-green.yml)
 
 ## CLI
 

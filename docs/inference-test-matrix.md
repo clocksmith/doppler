@@ -91,8 +91,8 @@ This covers the risk surface (layout × attention mode, layout × batch size) wi
 
 | Tier | Runs when | What |
 | --- | --- | --- |
-| PR-fast | every PR | Layer 1 + Layer 4 structural (`npm run test:unit`) |
-| PR-GPU | manual/label | Layer 2 (`npm run test:gpu:browser`) |
+| PR-fast | every PR | Layer 1 + Layer 4 structural (`npm run test:ci`) |
+| PR-GPU | manual dispatch | Layer 2 (`Manual Runtime Validation` workflow) |
 | Verify | model change | Layer 3 (`npm run verify:model`) |
 | Nightly | scheduled | Layer 5 + broader profile sweeps |
 | Adhoc | investigation | `bench-text-decode-paths.js`, `vendor-bench.js`, `compare-engines.js` |

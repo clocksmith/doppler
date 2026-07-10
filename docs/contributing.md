@@ -26,9 +26,11 @@ Run parity verification before and after agent instruction updates:
 npm run agents:verify
 ```
 
-## Default green chain
+## Default CI contract
 
-`npm run check:green` runs the read-only contract checks that should pass before a PR lands:
+`npm run ci:check` is the same deterministic contract used by GitHub Actions. It combines generated-artifact checks, kernel registry validation, source typechecking, diffusion/training contract gates, and the curated CPU test suite.
+
+`npm run check:green` remains the fast read-only contract subset:
 
 ```
 agents:verify              # AGENTS.md / CLAUDE.md / GEMINI.md / skills parity
@@ -39,7 +41,7 @@ pending:check              # *.pending.test.js files have owned policy entries
 exports:parity:check       # sibling .js / .d.ts export name sets agree
 ```
 
-Parity currently fails with known drift tracked in `docs/cleanup/parity-drift-classification-2026-04-19.json`. Classify each entry (runtime fix, declaration fix, stale removal, pending feature) and either fix it or quarantine via `tools/policies/exports-parity-allowlist.json` with an owner and expiry/issue.
+GPU, browser, and model-download validation is explicit rather than part of automatic CI. Run the `Manual Runtime Validation` workflow for `node-kernels`, `browser-kernels`, `opfs-text`, or `opfs-embedding` when a change touches those surfaces.
 
 ## Repo touch policy reminder
 
@@ -69,7 +71,7 @@ The repo is code-first and instruction-first. Prefer linking to canonical docs o
 
 ## Pre-merge checklist
 
-- [ ] `npm run agents:verify`
-- [ ] `npm run test:unit` and at least one runtime-targeted suite (`test:gpu` or browser harness) where applicable
+- [ ] `npm run ci:check`
+- [ ] Run at least one manual runtime lane (`test:gpu` or browser harness) when the change touches GPU execution
 - [ ] Any behavior change has a regression test under `tests/` and artifact trail
 - [ ] Public API changes reflected in the correct entry surface (`src/index.js`, `src/index-browser.js`, or subpath exports)
