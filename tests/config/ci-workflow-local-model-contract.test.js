@@ -13,7 +13,7 @@ for (const fileName of workflowFiles) {
   assert.equal(
     source.includes('models/local/'),
     false,
-    `${fileName}: CI workflows must not depend on gitignored models/local artifacts`
+    `${fileName}: workflows must not depend on gitignored models/local artifacts`
   );
 }
 

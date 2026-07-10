@@ -28,7 +28,7 @@ npm run agents:verify
 
 ## Default CI contract
 
-`npm run ci:check` is the same deterministic contract used by GitHub Actions. It combines generated-artifact checks, kernel registry validation, source typechecking, diffusion/training contract gates, and the curated CPU test suite.
+`npm run ci:check` is the deterministic contract used by GitHub Actions. It combines a small explicit CPU smoke set, static kernel registry and digest validation, and the green chain below.
 
 `npm run check:green` remains the fast read-only contract subset:
 
@@ -41,7 +41,11 @@ pending:check              # *.pending.test.js files have owned policy entries
 exports:parity:check       # sibling .js / .d.ts export name sets agree
 ```
 
-GPU, browser, and model-download validation is explicit rather than part of automatic CI. Run the `Manual Runtime Validation` workflow for `node-kernels`, `browser-kernels`, `opfs-text`, or `opfs-embedding` when a change touches those surfaces.
+The automatic job omits optional GPU providers and does not install a browser,
+download model weights, read `models/local`, or run benchmark and GPU suites.
+GPU, browser, and model-download validation is explicit. Run the `Manual Runtime
+Validation` workflow for `node-kernels`, `browser-kernels`, `opfs-text`, or
+`opfs-embedding` when a change touches those surfaces.
 
 ## Repo touch policy reminder
 

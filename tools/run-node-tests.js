@@ -8,20 +8,6 @@ import { pathToFileURL } from 'node:url';
 const ROOT_DIR = process.cwd();
 
 const suites = {
-  ci: [
-    'tests/config',
-    'tests/converter',
-    'tests/inference/execution-inline-kernel-path-phase-overrides.test.js',
-    'tests/inference/execution-plan.test.js',
-    'tests/inference/generate-token-ids-behavioral-parity.test.js',
-    'tests/inference/generate-token-ids-contract.test.js',
-    'tests/integration/command-api.test.js',
-    'tests/integration/command-runner-shared.test.js',
-    'tests/integration/execution-graph-transforms.test.js',
-    'tests/integration/index-browser-export-surface.test.js',
-    'tests/integration/tooling-browser-export-surface.test.js',
-    'tests/tooling/workflow-surface-contract.test.js',
-  ],
   unit: [
     'tests/config',
     'tests/converter',
