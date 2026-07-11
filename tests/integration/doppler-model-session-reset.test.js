@@ -58,6 +58,9 @@ function makePipeline(overrides = {}) {
       calls.push(['prefillKVOnly', prompt, options]);
       return prefix;
     },
+    resetToSeqLen(seqLen) {
+      calls.push(['resetToSeqLen', seqLen]);
+    },
     prefillWithTokenLogits(prompt, tokenIds, options) {
       calls.push(['prefillWithTokenLogits', prompt, tokenIds, options]);
       return { logits: Float32Array.from([1, -1]) };
@@ -70,10 +73,12 @@ function makePipeline(overrides = {}) {
 
   assert.deepEqual(handle.advanced.tokenizeText('rank this'), [4, 5, 6]);
   assert.equal(await handle.advanced.prefillKV('', { inputIds: [4, 5] }), prefix);
+  handle.advanced.resetToSeqLen(2);
   await handle.advanced.prefillWithTokenLogits('rank this', [1, 0], { useChatTemplate: false });
   await handle.advanced.prefillWithTokenLogitsFromKV(prefix, '', [1, 0], { inputIds: [6] });
   assert.deepEqual(calls, [
     ['prefillKVOnly', '', { inputIds: [4, 5] }],
+    ['resetToSeqLen', 2],
     ['prefillWithTokenLogits', 'rank this', [1, 0], { useChatTemplate: false }],
     ['prefillWithTokenLogitsFromKV', prefix, '', [1, 0], { inputIds: [6] }],
   ]);
