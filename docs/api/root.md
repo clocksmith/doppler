@@ -83,6 +83,7 @@ Returns a `DopplerModel` instance with:
 - experimental `loadLoRA(...)`
 - experimental `unloadLoRA()`
 - `unload()`
+- `manifestHash`
 - `advanced.tokenizeText(...)`
 - `advanced.prefillKV(...)`
 - `advanced.prefillWithLogits(...)`

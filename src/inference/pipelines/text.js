@@ -1585,18 +1585,23 @@ export class InferencePipeline extends PipelineState {
 
   async embed(prompt, options = {}) {
     assertNotAborted(options?.signal);
-    const result = await this.prefillWithEmbedding(prompt, {
-      ...options,
-      __skipStateSnapshot: true,
-    });
-    assertNotAborted(options?.signal);
-    return {
-      embedding: result.embedding,
-      tokens: result.tokens,
-      seqLen: result.seqLen,
-      embeddingMode: result.embeddingMode,
-      phase: result.phase ?? null,
-    };
+    this.resetForBatch();
+    try {
+      const result = await this.prefillWithEmbedding(prompt, {
+        ...options,
+        __skipStateSnapshot: true,
+      });
+      assertNotAborted(options?.signal);
+      return {
+        embedding: result.embedding,
+        tokens: result.tokens,
+        seqLen: result.seqLen,
+        embeddingMode: result.embeddingMode,
+        phase: result.phase ?? null,
+      };
+    } finally {
+      this.resetForBatch();
+    }
   }
 
   async embedBatch(prompts, options = {}) {
@@ -1610,7 +1615,6 @@ export class InferencePipeline extends PipelineState {
       // Check between every prompt so a superseded revision drops the rest.
       assertNotAborted(options?.signal);
       outputs.push(await this.embed(prompt, batchOptions));
-      this.resetForBatch();
     }
     return outputs;
   }
