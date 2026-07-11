@@ -53,6 +53,7 @@ export interface DopplerModelHandle {
   readonly advanced: {
     tokenizeText(text: string): number[];
     prefillKV(prompt: string, options?: DopplerGenerateOptions): Promise<KVCacheSnapshot>;
+    resetToSeqLen(seqLen: number): void;
     prefillWithLogits(
       prompt: string | ChatMessage[] | { messages: ChatMessage[] },
       options?: DopplerGenerateOptions

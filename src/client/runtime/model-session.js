@@ -167,6 +167,9 @@ export function createModelHandle(pipeline, resolved) {
         assertSupportedGenerationOptions(options);
         return pipeline.prefillKVOnly(prompt, options);
       },
+      resetToSeqLen(seqLen) {
+        return pipeline.resetToSeqLen(seqLen);
+      },
       prefillWithLogits(prompt, options = {}) {
         assertSupportedGenerationOptions(options);
         return pipeline.prefillWithLogits(prompt, options);

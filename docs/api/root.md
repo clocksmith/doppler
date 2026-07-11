@@ -86,6 +86,7 @@ Returns a `DopplerModel` instance with:
 - `manifestHash`
 - `advanced.tokenizeText(...)`
 - `advanced.prefillKV(...)`
+- `advanced.resetToSeqLen(...)`
 - `advanced.prefillWithLogits(...)`
 - `advanced.prefillWithTokenLogits(...)`
 - `advanced.prefillWithTokenLogitsFromKV(...)`
