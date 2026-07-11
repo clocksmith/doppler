@@ -913,7 +913,7 @@
     },
     "commands": {
       "node": {
-        "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node --version",
+        "command": "/workspace/.nvm/versions/node/v22.20.0/bin/node --version",
         "available": true,
         "status": 0,
         "output": "v22.20.0",
