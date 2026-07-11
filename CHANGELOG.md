@@ -20,6 +20,10 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
   the 1B EN/ES translation student, with frozen Q4K metrics and explicit
   language, platform, and cross-runtime evidence boundaries, plus a pinned
   hosted browser/WebGPU benchmark receipt.
+- Machine-qualified host teacher selection for Doppler JavaScript and WGSL,
+  including disjoint qualification/label/student-holdout tasks, disposable
+  pinned source snapshots, exact repair replay, command and path audits, and
+  receipt-linked training-row export for accepted labels.
 
 ### Changed
 

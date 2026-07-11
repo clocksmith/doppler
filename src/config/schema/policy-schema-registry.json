@@ -13,6 +13,11 @@
       "schemaPath": "src/config/schema/command-surface-contract.schema.json"
     },
     {
+      "id": "host-teacher-qualification-policy",
+      "policyPath": "tools/policies/host-teacher-qualification-policy.json",
+      "schemaPath": "src/config/schema/host-teacher-qualification-policy.schema.json"
+    },
+    {
       "id": "model-artifact-contract",
       "policyPath": "tools/policies/model-artifact-contract.json",
       "schemaPath": "src/config/schema/model-artifact-contract.schema.json"

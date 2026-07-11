@@ -35,6 +35,10 @@ config/schema/capability-transform-policy.schema.json
 config/schema/claim-evidence-contract.schema.json
 config/schema/command-surface-contract.schema.json
 config/schema/goal-completion-matrix.schema.json
+config/schema/host-teacher-output.schema.json
+config/schema/host-teacher-qualification-policy.schema.json
+config/schema/host-teacher-qualification-receipt.schema.json
+config/schema/host-teacher-task-bank.schema.json
 config/schema/model-artifact-contract.schema.json
 config/schema/platform.schema.js
 config/schema/policy-schema-registry.json
