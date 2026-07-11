@@ -77,7 +77,10 @@ Each entry supports:
 - `sizeBytes` (number, optional)
 - `recommended` (boolean, optional)
 - `sortOrder` (number, optional)
-- `demoVisible` (boolean, optional): `true` surfaces a hosted model in the web demo without adding it to quickstart; `false` hides a quickstart model from the web demo.
+- `demoVisible` (boolean, optional): only `true` surfaces a hosted model in the web demo. Quickstart eligibility does not imply demo visibility.
+- `demoLabel` (string, optional): short user-facing label for a demo model card. The canonical `label` remains unchanged.
+- `demoRole` (string, optional): one-line reason the model is in the demo selector.
+- `demoSortOrder` (number, optional): demo-only card order. Falls back to `sortOrder` when omitted.
 - `demoWarningBadges` (string array, optional): compact warning badges for demo model cards.
 - `demoWarningText` (string, optional): short warning text for demo model cards.
 - `hf` (object, optional): `repoId`, `revision`, `path` for Hugging Face hosted artifacts

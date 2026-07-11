@@ -7,6 +7,70 @@ function setText(id, text) {
   if (el) el.textContent = text;
 }
 
+function createChatMessage(message) {
+  const article = document.createElement('article');
+  const role = message?.role === 'user' ? 'user' : 'assistant';
+  article.className = `chat-message chat-message--${role}`;
+
+  const label = document.createElement('div');
+  label.className = 'chat-role';
+  label.textContent = role === 'user' ? 'You' : 'Doppler';
+  article.appendChild(label);
+
+  const body = document.createElement('div');
+  body.className = 'chat-message-text';
+  body.textContent = typeof message?.content === 'string' ? message.content : '';
+  article.appendChild(body);
+  return article;
+}
+
+function resetLiveAssistant() {
+  const liveMessage = $('live-assistant-message');
+  const output = $('output-text');
+  if (output) output.textContent = '';
+  if (liveMessage) liveMessage.hidden = true;
+  showTokenPress(false);
+}
+
+export function renderChatMessages(messages) {
+  resetLiveAssistant();
+  const thread = $('chat-thread');
+  if (!thread) return;
+  thread.innerHTML = '';
+  const visibleMessages = Array.isArray(messages) ? messages : [];
+  if (visibleMessages.length === 0) {
+    const empty = document.createElement('p');
+    empty.id = 'chat-empty';
+    empty.className = 'chat-empty';
+    empty.textContent = 'Start a conversation.';
+    thread.appendChild(empty);
+    return;
+  }
+  for (const message of visibleMessages) {
+    thread.appendChild(createChatMessage(message));
+  }
+}
+
+export function beginChatTurn(messages) {
+  renderChatMessages(messages);
+  const liveMessage = $('live-assistant-message');
+  const output = $('output-text');
+  if (output) output.textContent = '';
+  if (liveMessage) liveMessage.hidden = false;
+}
+
+export function renderImportedChat(output, prompt = null) {
+  const messages = [];
+  if (typeof prompt === 'string' && prompt.trim()) {
+    messages.push({ role: 'user', content: prompt.trim() });
+  }
+  if (typeof output === 'string' && output) {
+    messages.push({ role: 'assistant', content: output });
+  }
+  resetLiveAssistant();
+  renderChatMessages(messages);
+}
+
 export function setPhase(label) {
   setText('output-phase', label);
 }
@@ -27,12 +91,14 @@ export function setPrefillProgress(percent) {
 
 export function appendToken(text) {
   const el = $('output-text');
+  const liveMessage = $('live-assistant-message');
+  if (liveMessage) liveMessage.hidden = false;
   if (el) el.textContent += text;
 }
 
 export function clearOutput() {
-  const el = $('output-text');
-  if (el) el.textContent = '';
+  resetLiveAssistant();
+  renderChatMessages([]);
   setPrefillProgress(0);
   setPhase('');
   clearTokSec();
@@ -42,6 +108,8 @@ export function showTokenPress(show) {
   const plain = $('output-text');
   const tpOut = $('token-press-output');
   const tpCtrl = $('token-press-controls');
+  const liveMessage = $('live-assistant-message');
+  if (liveMessage && show) liveMessage.hidden = false;
   if (plain) plain.hidden = show;
   if (tpOut) tpOut.hidden = !show;
   if (tpCtrl) tpCtrl.hidden = !show;

@@ -1,4 +1,12 @@
 import { state } from './ui/state.js';
+import {
+  appendConversationTurn,
+  countConversationTurns,
+  createConversationRequest,
+  normalizeHistoryTurnLimit,
+  trimConversationHistory,
+} from './conversation.js';
+import { renderChatMessages } from './output.js';
 
 let examples = null;
 let shuffleIndex = -1;
@@ -6,6 +14,41 @@ let imageData = null;
 let onRun = null;
 
 function $(id) { return document.getElementById(id); }
+
+function syncConversationControls() {
+  const historyToggle = $('history-toggle');
+  const historyLimit = $('history-limit');
+  const historyStatus = $('history-status');
+  const clearButton = $('clear-history-btn');
+  const turnCount = countConversationTurns(state.conversationHistory);
+  const activeTurns = Math.min(turnCount, state.historyTurnLimit);
+
+  if (historyToggle) historyToggle.checked = state.historyEnabled === true;
+  if (historyLimit) historyLimit.value = String(state.historyTurnLimit);
+  if (historyStatus) {
+    if (turnCount === 0) {
+      historyStatus.textContent = '0 turns';
+    } else if (state.historyEnabled) {
+      historyStatus.textContent = `${turnCount} saved · using ${activeTurns}`;
+    } else {
+      historyStatus.textContent = `${turnCount} saved · paused`;
+    }
+  }
+  if (clearButton) clearButton.disabled = turnCount === 0;
+}
+
+function setupConversationControls() {
+  $('history-toggle')?.addEventListener('change', (event) => {
+    state.historyEnabled = event.target.checked === true;
+    syncConversationControls();
+  });
+  $('history-limit')?.addEventListener('change', (event) => {
+    state.historyTurnLimit = normalizeHistoryTurnLimit(event.target.value);
+    syncConversationControls();
+  });
+  $('clear-history-btn')?.addEventListener('click', clearConversationHistory);
+  syncConversationControls();
+}
 
 async function loadExamples() {
   try {
@@ -97,8 +140,59 @@ export function setPromptValue(value) {
   promptEl.focus();
 }
 
+export function clearPrompt() {
+  const promptEl = $('prompt-input');
+  if (promptEl) promptEl.value = '';
+}
+
 export function getImage() {
   return imageData;
+}
+
+export function buildConversationRequest(prompt, options = {}) {
+  return createConversationRequest(state.conversationHistory, prompt, {
+    historyEnabled: state.historyEnabled,
+    turnLimit: state.historyTurnLimit,
+    templateType: options.templateType ?? null,
+    translation: options.translation,
+  });
+}
+
+export function recordConversationTurn(request, output) {
+  state.conversationHistory = appendConversationTurn(state.conversationHistory, request, output);
+  const visibleMessages = request?.historyEnabled === true
+    ? state.conversationHistory
+    : [
+      { role: 'user', content: request?.currentPrompt ?? '' },
+      { role: 'assistant', content: output ?? '' },
+    ];
+  renderChatMessages(visibleMessages);
+  syncConversationControls();
+}
+
+export function clearConversationHistory() {
+  state.conversationHistory = [];
+  renderChatMessages([]);
+  syncConversationControls();
+}
+
+export function restoreConversationHistory(messages, options = {}) {
+  state.conversationHistory = trimConversationHistory(messages);
+  if (typeof options.historyEnabled === 'boolean') {
+    state.historyEnabled = options.historyEnabled;
+  }
+  if (options.turnLimit != null) {
+    state.historyTurnLimit = normalizeHistoryTurnLimit(options.turnLimit);
+  }
+  renderChatMessages(state.conversationHistory);
+  syncConversationControls();
+}
+
+export function resetConversationForModel(modelId) {
+  const nextModelId = typeof modelId === 'string' && modelId.trim() ? modelId : null;
+  if (state.conversationModelId === nextModelId) return;
+  state.conversationModelId = nextModelId;
+  syncConversationControls();
 }
 
 export function setRunHandler(handler) {
@@ -122,6 +216,7 @@ export async function initInput() {
   });
 
   setupImageDrop();
+  setupConversationControls();
 
   // Start with a random example
   if (examples?.text?.length) {

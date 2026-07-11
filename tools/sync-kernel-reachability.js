@@ -29,6 +29,7 @@ const conversionRoot = path.join(repoRoot, 'src/config/conversion');
 const runtimeRoot = path.join(repoRoot, 'src/config/runtime');
 
 const checkMode = process.argv.includes('--check');
+const INLINE_PRIMITIVE_ARRAY_MAX_CHARS = 80;
 const ID_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*$/u;
 const WGSL_SEGMENT_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*(?:\.wgsl)?$/u;
 
@@ -39,6 +40,35 @@ const WGSL_SEGMENT_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*(?:\.wgsl)?$/u;
 function addRef(refs, key, sourceId) {
   if (!refs.has(key)) refs.set(key, new Set());
   refs.get(key).add(sourceId);
+}
+
+function stringifyRegistry(registry) {
+  const replacements = [];
+  let replacementId = 0;
+  let content = JSON.stringify(registry, (key, value) => {
+    if (
+      Array.isArray(value)
+      && value.every((entry) => (
+        entry === null
+        || typeof entry === 'string'
+        || typeof entry === 'number'
+        || typeof entry === 'boolean'
+      ))
+    ) {
+      const inline = JSON.stringify(value);
+      if (inline.length <= INLINE_PRIMITIVE_ARRAY_MAX_CHARS) {
+        const token = `__DOPPLER_INLINE_ARRAY_${replacementId}__`;
+        replacementId += 1;
+        replacements.push({ token, inline });
+        return token;
+      }
+    }
+    return value;
+  }, 2);
+  for (const { token, inline } of replacements) {
+    content = content.replace(JSON.stringify(token), inline);
+  }
+  return content + '\n';
 }
 
 function collectKernelRefs(value, refs, sourceId) {
@@ -345,7 +375,7 @@ for (const opSchema of Object.values(registry.operations ?? {})) {
 const unregistered = [...wgslOnDisk].filter((f) => !registeredWgsl.has(f)).sort();
 const inventoryIssues = collectInventoryIssues(registry, wgslOnDisk, unregistered);
 
-const content = JSON.stringify(registry, null, 2) + '\n';
+const content = stringifyRegistry(registry);
 
 if (checkMode) {
   const existing = await fs.readFile(registryPath, 'utf8');

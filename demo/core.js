@@ -6,11 +6,20 @@ import {
   captureKvCacheByteProof,
   digestLogitsForTranscript,
 } from 'doppler-gpu/tooling';
+import { resolvePromptInput } from '../src/inference/pipelines/text/generator-prefill-helpers.js';
 import { state } from './ui/state.js';
 import { getSettings } from './settings.js';
-import { getPrompt, setGenerating, setRunEnabled } from './input.js';
 import {
-  clearOutput,
+  buildConversationRequest,
+  clearPrompt,
+  getPrompt,
+  recordConversationTurn,
+  resetConversationForModel,
+  setGenerating,
+  setRunEnabled,
+} from './input.js';
+import {
+  beginChatTurn,
   clearTokSec,
   setPhase,
   setTokSec,
@@ -47,6 +56,7 @@ function setStatus(text, busy) {
 
 function resetGenerationTelemetry() {
   state.lastRun = null;
+  state.lastImportedReport = null;
   state.lastInferenceStats = null;
   state.lastMemoryStats = null;
   state.lastReferenceTranscript = null;
@@ -55,12 +65,18 @@ function resetGenerationTelemetry() {
   }
 }
 
-function resolvePromptTokenIdsFromPipeline(pipeline, prompt) {
+function resolvePromptTokenIdsFromPipeline(pipeline, promptInput) {
   if (!pipeline?.tokenizer || typeof pipeline.tokenizer.encode !== 'function') {
     return null;
   }
   try {
-    const ids = pipeline.tokenizer.encode(prompt);
+    const processedPrompt = resolvePromptInput(
+      { modelConfig: pipeline.modelConfig ?? {} },
+      promptInput,
+      true,
+      'demo.referenceTranscript'
+    );
+    const ids = pipeline.tokenizer.encode(processedPrompt);
     if (!Array.isArray(ids)) return null;
     return ids.map((value) => Number(value)).filter((value) => Number.isInteger(value));
   } catch {
@@ -81,6 +97,7 @@ function updateTelemetry(pipeline, overrides = {}) {
 }
 
 export function onModelLoaded(pipeline, modelId) {
+  resetConversationForModel(modelId);
   setRunEnabled(true);
   setStatus('Ready', false);
 }
@@ -92,12 +109,20 @@ export async function runGeneration() {
   const prompt = getPrompt();
   if (!prompt) return;
 
+  const conversationRequest = buildConversationRequest(prompt, {
+    templateType: pipeline.modelConfig?.chatTemplateType ?? null,
+  });
+  const promptInput = conversationRequest.promptInput;
+
   const settings = getSettings();
   // settings.js applies the selected runtime profile. Editable generation
   // fields are passed as call-time options when present.
 
   // Reset UI
-  clearOutput();
+  beginChatTurn(conversationRequest.messages);
+  clearPrompt();
+  setPrefillProgress(0);
+  setPhase('');
   setGenerating(true);
   setStatus('Running...', true);
   setExportEnabled(false);
@@ -114,9 +139,33 @@ export async function runGeneration() {
 
   try {
     if (useTokenPress) {
-      await runWithTokenPress(pipeline, prompt, settings, tokens);
+      await runWithTokenPress(pipeline, promptInput, settings, tokens);
     } else {
-      await runPlainGeneration(pipeline, prompt, settings, tokens);
+      await runPlainGeneration(
+        pipeline,
+        promptInput,
+        settings,
+        tokens,
+        conversationRequest.currentPrompt
+      );
+    }
+    if (!state.abortController?.signal?.aborted && state.lastRun?.output) {
+      state.lastRun.prompt = conversationRequest.currentPrompt;
+      state.lastRun.promptInput = promptInput;
+      state.lastRun.conversation = {
+        historyEnabled: conversationRequest.historyEnabled,
+        turnLimit: conversationRequest.turnLimit,
+        priorTurnCount: conversationRequest.priorTurnCount,
+        messages: [
+          ...conversationRequest.messages,
+          { role: 'assistant', content: state.lastRun.output },
+        ],
+      };
+      recordConversationTurn(conversationRequest, state.lastRun.output);
+      if (useTokenPress) {
+        beginChatTurn(conversationRequest.messages);
+        showTokenPress(true);
+      }
     }
   } catch (err) {
     if (err.name !== 'AbortError') {
@@ -146,7 +195,7 @@ export async function runGeneration() {
   }
 }
 
-async function runPlainGeneration(pipeline, prompt, settings, tokens) {
+async function runPlainGeneration(pipeline, promptInput, settings, tokens, promptText) {
   setPhase('Prefill');
   setPrefillProgress(10);
   const runStart = performance.now();
@@ -178,7 +227,7 @@ async function runPlainGeneration(pipeline, prompt, settings, tokens) {
   }
   let firstTokenAt = 0;
   let stepCount = 0;
-  for await (const text of pipeline.generate(prompt, generationOptions)) {
+  for await (const text of pipeline.generate(promptInput, generationOptions)) {
     if (state.abortController?.signal?.aborted) break;
     const now = performance.now();
     if (!firstTokenAt) {
@@ -234,6 +283,7 @@ async function runPlainGeneration(pipeline, prompt, settings, tokens) {
     totalTokens,
     tokPerSec,
     tokens,
+    output: tokens.map((token) => token.text).join(''),
     config: { ...settings },
     kernelPath: getRuntimeConfig()?.kernelPath ?? null,
     memorySnapshot: captureMemorySnapshot(),
@@ -247,7 +297,8 @@ async function runPlainGeneration(pipeline, prompt, settings, tokens) {
 
   if (captureEnabled) {
     await finalizeReferenceTranscript(pipeline, {
-      prompt,
+      prompt: promptText,
+      promptInput,
       tokenIds: captureTokenIds,
       logitsDigests: captureLogitsDigests,
       output: tokens.map((t) => t.text).join(''),
@@ -263,10 +314,10 @@ async function finalizeReferenceTranscript(pipeline, run) {
     const manifest = pipeline?.manifest ?? pipeline?.modelConfig?.manifest ?? null;
     const executionGraphHash = resolveExecutionGraphHash(manifest);
     const kvCacheByteProof = await captureKvCacheByteProof(pipeline, true);
-    const promptTokenIds = resolvePromptTokenIdsFromPipeline(pipeline, run.prompt);
+    const promptTokenIds = resolvePromptTokenIdsFromPipeline(pipeline, run.promptInput);
     const seedRun = {
       prompt: run.prompt,
-      promptInput: run.prompt,
+      promptInput: run.promptInput,
       promptTokenIds,
       tokenIds: run.tokenIds,
       tokenDiagnostics: null,
@@ -296,7 +347,7 @@ async function finalizeReferenceTranscript(pipeline, run) {
   }
 }
 
-async function runWithTokenPress(pipeline, prompt, settings, tokens) {
+async function runWithTokenPress(pipeline, promptInput, settings, tokens) {
   const outputEl = $('token-press-output');
   const controlsEl = $('token-press-controls');
   if (!outputEl || !controlsEl) return;
@@ -310,7 +361,7 @@ async function runWithTokenPress(pipeline, prompt, settings, tokens) {
     topKSize: 10,
   });
 
-  tokenPressSession = createTokenPressSession(pipeline, tokenPress, prompt, {
+  tokenPressSession = createTokenPressSession(pipeline, tokenPress, promptInput, {
     temperature: settings.temperature,
     topK: settings.topK,
     topP: settings.topP,
@@ -391,6 +442,7 @@ async function runWithTokenPress(pipeline, prompt, settings, tokens) {
     totalTokens,
     tokPerSec,
     tokens: tokenTrace,
+    output: tokenTrace.map((token) => token.text).join(''),
     config: { ...settings },
     kernelPath: getRuntimeConfig()?.kernelPath ?? null,
     memorySnapshot: captureMemorySnapshot(),

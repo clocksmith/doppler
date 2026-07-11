@@ -44,8 +44,7 @@ export function findRegisteredSiblingsOf(primaryEntry, catalogEntries, storedMod
 }
 
 function defaultIsVisibleEntry(entry) {
-  if (entry?.demoVisible === false) return false;
-  return entry?.quickstart === true || entry?.demoVisible === true;
+  return entry?.demoVisible === true;
 }
 
 function hasHfSource(entry) {
@@ -81,7 +80,17 @@ function hasSupportedMode(entry, supportedModes) {
 
 function buildSurfacedWeightsRefEntry(weightsRefEntry, primary, localBaseUrls) {
   const merged = { ...weightsRefEntry };
-  for (const key of ['demoWarningBadges', 'demoWarningText', 'recommended', 'sortOrder', 'sizeBytes', 'quickstart']) {
+  for (const key of [
+    'demoLabel',
+    'demoRole',
+    'demoSortOrder',
+    'demoWarningBadges',
+    'demoWarningText',
+    'recommended',
+    'sortOrder',
+    'sizeBytes',
+    'quickstart',
+  ]) {
     if (merged[key] == null) {
       merged[key] = primary[key];
     }
@@ -176,8 +185,10 @@ export function selectCatalogModelLanes(catalogEntries, options = {}) {
     if (a.recommended !== b.recommended) {
       return a.recommended ? -1 : 1;
     }
-    if ((a.sortOrder ?? 999) !== (b.sortOrder ?? 999)) {
-      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
+    const aSortOrder = a.demoSortOrder ?? a.sortOrder ?? 999;
+    const bSortOrder = b.demoSortOrder ?? b.sortOrder ?? 999;
+    if (aSortOrder !== bSortOrder) {
+      return aSortOrder - bSortOrder;
     }
     return String(a.label || a.modelId || '').localeCompare(String(b.label || b.modelId || ''));
   });

@@ -55,36 +55,22 @@
         "f16": {
           "wgsl": "matmul_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            16,
-            16,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [16,16,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#matmulKernel"
-            ],
+            "ruleChains": ["matmul.rules.json#matmulKernel"],
             "wgslOnDisk": true
           }
         },
         "f16_vec4": {
           "wgsl": "matmul_f16.wgsl",
           "entryPoint": "main_vec4",
-          "workgroup": [
-            16,
-            16,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [16,16,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -93,23 +79,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#matmulKernel"
-            ],
+            "ruleChains": ["matmul.rules.json#matmulKernel"],
             "wgslOnDisk": true
           }
         },
         "f16_tiled": {
           "wgsl": "matmul_f16_tiled.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            16,
-            16,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [16,16,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -120,23 +98,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#matmulKernel"
-            ],
+            "ruleChains": ["matmul.rules.json#matmulKernel"],
             "wgslOnDisk": true
           }
         },
         "f16w_f32a": {
           "wgsl": "matmul_f16w_f32a.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            16,
-            16,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [16,16,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "weightDtype": "f16",
           "reachability": {
@@ -166,23 +136,15 @@
               "qwen3/qwen-3-reranker-0-6b-f16-af32",
               "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "matmul.rules.json#matmulKernel"
-            ],
+            "ruleChains": ["matmul.rules.json#matmulKernel"],
             "wgslOnDisk": true
           }
         },
         "f16w_f32a_tiled": {
           "wgsl": "matmul_f16w_f32a_tiled.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            16,
-            16,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [16,16,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -200,70 +162,45 @@
               "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "matmul.rules.json#matmulKernel"
-            ],
+            "ruleChains": ["matmul.rules.json#matmulKernel"],
             "wgslOnDisk": true
           }
         },
         "gemv": {
           "wgsl": "matmul_gemv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "weightDtype": "f16",
           "description": "Optimized GEMV for M=1 decode: uses shared memory for A vector",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#gemvVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#gemvVariant"],
             "wgslOnDisk": true
           }
         },
         "gemv_f16a": {
           "wgsl": "matmul_gemv_f16a.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "description": "Optimized GEMV for M=1 decode with f16 activations + f16 output",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#gemvVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#gemvVariant"],
             "wgslOnDisk": true
           }
         },
         "gemv_subgroup": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f32",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -273,25 +210,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#gemvPathVariant",
-              "matmul.rules.json#gemvVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
             "wgslOnDisk": true
           }
         },
         "gemv_subgroup_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -301,25 +228,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#gemvPathVariant",
-              "matmul.rules.json#gemvVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
             "wgslOnDisk": true
           }
         },
         "gemv_subgroup_vec4": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
           "entryPoint": "main_vec4",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f32",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -352,24 +269,15 @@
               "qwen3/qwen-3-reranker-0-6b-f16-af32",
               "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "matmul.rules.json#gemvVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#gemvVariant"],
             "wgslOnDisk": true
           }
         },
         "gemv_subgroup_vec4_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
           "entryPoint": "main_vec4",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -378,24 +286,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#gemvVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#gemvVariant"],
             "wgslOnDisk": true
           }
         },
         "gemv_subgroup_cols8_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
           "entryPoint": "main_cols8",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -412,15 +311,8 @@
         "gemv_subgroup_vec4_cols8_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
           "entryPoint": "main_vec4_cols8",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -437,15 +329,8 @@
         "gemv_subgroup_multicol": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
           "entryPoint": "main_multicol",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f32",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -483,25 +368,15 @@
               "qwen3/qwen-3-reranker-0-6b-f16-af32",
               "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "matmul.rules.json#gemvPathVariant",
-              "matmul.rules.json#gemvVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
             "wgslOnDisk": true
           }
         },
         "gemv_subgroup_multicol_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
           "entryPoint": "main_multicol",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -510,28 +385,16 @@
           "description": "Multi-column GEMV for large vocab (LM head F16) - f16 activations/output",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "qwen3/qwen-3-5-0-8b-q4k-ehaf16"
-            ],
-            "ruleChains": [
-              "matmul.rules.json#gemvPathVariant",
-              "matmul.rules.json#gemvVariant"
-            ],
+            "inlineConfigs": ["qwen3/qwen-3-5-0-8b-q4k-ehaf16"],
+            "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
             "wgslOnDisk": true
           }
         },
         "gemv_subgroup_cols64": {
           "wgsl": "matmul_gemv_subgroup.wgsl",
           "entryPoint": "main_cols64",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f32",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -548,15 +411,8 @@
         "gemv_subgroup_cols64_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
           "entryPoint": "main_cols64",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -573,15 +429,8 @@
         "gemv_subgroup_vec4_cols64_f16a": {
           "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
           "entryPoint": "main_vec4_cols64",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "f16",
           "variantMetadata": {
@@ -598,15 +447,8 @@
         "q4_fused_f16a": {
           "wgsl": "fused_matmul_q4_f16a.wgsl",
           "entryPoint": "main_f16a",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "q4k",
           "reachability": {
@@ -619,14 +461,8 @@
         "litert_int4_multicol_f16a": {
           "wgsl": "fused_matmul_litert_int4_f16a.wgsl",
           "entryPoint": "main_multicol_f16a",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "weightDtype": "litert_int4",
           "variantMetadata": {
@@ -636,23 +472,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#litertInt4FusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#litertInt4FusedVariant"],
             "wgslOnDisk": true
           }
         },
         "litert_int4_multicol_f16a_f32out": {
           "wgsl": "fused_matmul_litert_int4_f16a_f32out.wgsl",
           "entryPoint": "main_multicol_f16a_f32out",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "weightDtype": "litert_int4",
           "variantMetadata": {
@@ -662,20 +490,14 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#litertInt4FusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#litertInt4FusedVariant"],
             "wgslOnDisk": true
           }
         },
         "litert_int4_multicol_f32a_f32out": {
           "wgsl": "fused_matmul_litert_int4_f32a_f32out.wgsl",
           "entryPoint": "main_multicol_f32a_f32out",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "weightDtype": "litert_int4",
@@ -686,23 +508,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#litertInt4FusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#litertInt4FusedVariant"],
             "wgslOnDisk": true
           }
         },
         "w4a16_multicol_f16a": {
           "wgsl": "fused_matmul_w4a16_f16a.wgsl",
           "entryPoint": "main_multicol_f16a",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "weightDtype": "w4a16",
           "variantMetadata": {
@@ -712,23 +526,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#w4a16FusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#w4a16FusedVariant"],
             "wgslOnDisk": true
           }
         },
         "w4a16_multicol_f16a_f32out": {
           "wgsl": "fused_matmul_w4a16_f16a_f32out.wgsl",
           "entryPoint": "main_multicol_f16a_f32out",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "weightDtype": "w4a16",
           "variantMetadata": {
@@ -738,23 +544,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#w4a16FusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#w4a16FusedVariant"],
             "wgslOnDisk": true
           }
         },
         "w4a16_batched_f16a": {
           "wgsl": "fused_matmul_w4a16_batched_f16a.wgsl",
           "entryPoint": "main_batched_f16a",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "weightDtype": "w4a16",
           "variantMetadata": {
@@ -765,23 +563,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#w4a16FusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#w4a16FusedVariant"],
             "wgslOnDisk": true
           }
         },
         "w4a16_batched_f16a_f32out": {
           "wgsl": "fused_matmul_w4a16_batched_f16a_f32out.wgsl",
           "entryPoint": "main_batched_f16a_f32out",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "weightDtype": "w4a16",
           "variantMetadata": {
@@ -792,23 +582,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#w4a16FusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#w4a16FusedVariant"],
             "wgslOnDisk": true
           }
         },
         "q4_fused_batched": {
           "wgsl": "fused_matmul_q4_batched.wgsl",
           "entryPoint": "main_batched",
-          "workgroup": [
-            64,
-            4,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [64,4,1],
+          "requires": ["subgroups"],
           "outputDtype": "f32",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -817,20 +599,14 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#q4kFusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
             "wgslOnDisk": true
           }
         },
         "q4_fused_batched_multicol_shared": {
           "wgsl": "fused_matmul_q4_batched_multicol_shared.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            4,
-            1
-          ],
+          "workgroup": [32,4,1],
           "requires": [],
           "outputDtype": "f32",
           "weightDtype": "q4k",
@@ -865,14 +641,8 @@
         "q4_fused_multicol": {
           "wgsl": "fused_matmul_q4.wgsl",
           "entryPoint": "main_multicol",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "outputDtype": "f32",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -887,23 +657,15 @@
               "qwen3/qwen-3-6-27b-q4k-eaf16",
               "qwen3/qwen-3-6-27b-q4k-ehaf16"
             ],
-            "ruleChains": [
-              "matmul.rules.json#q4kFusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
             "wgslOnDisk": true
           }
         },
         "q4_fused_gemv": {
           "wgsl": "fused_matmul_q4.wgsl",
           "entryPoint": "main_gemv",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "outputDtype": "f32",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -934,15 +696,8 @@
         "q4_fused_multicol_f16": {
           "wgsl": "fused_matmul_q4_multicol_f16.wgsl",
           "entryPoint": "main_multicol_f16",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -952,24 +707,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#q4kFusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
             "wgslOnDisk": true
           }
         },
         "q4_fused_multicol_f16a": {
           "wgsl": "fused_matmul_q4_multicol_f16a.wgsl",
           "entryPoint": "main_multicol_f16a",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -978,27 +724,16 @@
           "description": "Multi-column GEMV for large vocab (LM head) - F16 input/output",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"
-            ],
-            "ruleChains": [
-              "matmul.rules.json#q4kFusedVariant"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"],
+            "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
             "wgslOnDisk": true
           }
         },
         "q4_fused_multicol_f16a_f32acc": {
           "wgsl": "fused_matmul_q4_multicol_f16a_f32acc.wgsl",
           "entryPoint": "main_multicol_f16a_f32acc",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1015,14 +750,8 @@
         "q4_fused_metal_simd16": {
           "wgsl": "fused_matmul_q4_metal_simd16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "outputDtype": "f32",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1031,9 +760,7 @@
           "description": "Metal Q4_K GEMV with one 16-lane subgroup partition per output row.",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "runtime/profiles/qwen-3-5-2b-metal-throughput"
-            ],
+            "inlineConfigs": ["runtime/profiles/qwen-3-5-2b-metal-throughput"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -1041,15 +768,8 @@
         "q4_fused_batched_f16": {
           "wgsl": "fused_matmul_q4_batched_f16.wgsl",
           "entryPoint": "main_batched_f16",
-          "workgroup": [
-            64,
-            4,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [64,4,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1058,24 +778,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#q4kFusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
             "wgslOnDisk": true
           }
         },
         "q4_fused_batched_f16a": {
           "wgsl": "fused_matmul_q4_batched_f16a.wgsl",
           "entryPoint": "main_batched_f16a",
-          "workgroup": [
-            64,
-            4,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [64,4,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1084,24 +795,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "matmul.rules.json#q4kFusedVariant"
-            ],
+            "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
             "wgslOnDisk": true
           }
         },
         "q4_fused_batched_f16acc_f16a": {
           "wgsl": "fused_matmul_q4_batched_f16acc_f16a.wgsl",
           "entryPoint": "main_batched_f16acc_f16a",
-          "workgroup": [
-            256,
-            4,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,4,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1119,14 +821,8 @@
         "q4_fused_prefill_tiled_f16": {
           "wgsl": "fused_matmul_q4_prefill_tiled_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            16,
-            16,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [16,16,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1144,14 +840,8 @@
         "q4_fused_widetile_f16": {
           "wgsl": "fused_matmul_q4_widetile_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1169,14 +859,8 @@
         "q4_fused_widetile_f16a": {
           "wgsl": "fused_matmul_q4_widetile_f16a.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1197,14 +881,8 @@
         "q4_fused_widetile": {
           "wgsl": "fused_matmul_q4_widetile.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1235,14 +913,8 @@
         "q4_fused_rmsnorm_widetile": {
           "wgsl": "fused_rmsnorm_q4_widetile.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1260,14 +932,8 @@
         "q4_fused_widetile_residual": {
           "wgsl": "fused_matmul_q4_widetile_residual.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "weightDtype": "q4k",
           "variantMetadata": {
@@ -1285,23 +951,14 @@
         "f32": {
           "wgsl": "matmul_f32.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            16,
-            16,
-            1
-          ],
+          "workgroup": [16,16,1],
           "requires": [],
           "outputDtype": "f32",
           "weightDtype": "f32",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma3/translategemma-4b-it-q4k-ehf16-af32"
-            ],
-            "ruleChains": [
-              "matmul.rules.json#gemvVariant",
-              "matmul.rules.json#matmulKernel"
-            ],
+            "inlineConfigs": ["gemma3/translategemma-4b-it-q4k-ehf16-af32"],
+            "ruleChains": ["matmul.rules.json#gemvVariant","matmul.rules.json#matmulKernel"],
             "wgslOnDisk": true
           }
         }
@@ -1370,185 +1027,111 @@
         "default": {
           "wgsl": "fused_ffn.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "multi": {
           "wgsl": "fused_ffn.wgsl",
           "entryPoint": "main_multi",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16": {
           "wgsl": "fused_ffn.wgsl",
           "entryPoint": "main_f16",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16_batched": {
           "wgsl": "fused_ffn_f16w_f32a_batched.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "description": "Packed f16 gate/up weights with f32 activations and f32 output for prefill",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16_native": {
           "wgsl": "fused_ffn_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "description": "Native f16 weight reads via array<f16> bindings (no unpack2x16float)",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16_native_batched": {
           "wgsl": "fused_ffn_f16.wgsl",
           "entryPoint": "main_batched",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "description": "Native f16 batched variant for prefill",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "batched": {
           "wgsl": "fused_ffn.wgsl",
           "entryPoint": "main_batched",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "q4k": {
           "wgsl": "fused_ffn_q4k.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "q4k_metal_simd16": {
           "wgsl": "fused_ffn_q4k_metal_simd16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "description": "Metal Q4_K fused gate/up GEMV with one 16-lane subgroup partition per output row.",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "runtime/profiles/qwen-3-5-2b-metal-throughput"
-            ],
+            "inlineConfigs": ["runtime/profiles/qwen-3-5-2b-metal-throughput"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -1556,80 +1139,46 @@
         "q4k_f16a": {
           "wgsl": "fused_ffn_q4k_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "description": "Q4K fused FFN with f16 activation reads and f32 output",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"
-            ],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "q4k_batched": {
           "wgsl": "fused_ffn_q4k.wgsl",
           "entryPoint": "main_batched",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "q4k_batched_f16a": {
           "wgsl": "fused_ffn_q4k_f16.wgsl",
           "entryPoint": "main_batched",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "description": "Q4K fused FFN batched path with f16 activation reads and f32 output",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-ffn.rules.json#variant"
-            ],
+            "ruleChains": ["fused-ffn.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "gate_up_gelu_gated_tiled_f16": {
           "wgsl": "fused_gate_up_gelu_gated_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            128,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [128,1,1],
+          "requires": ["shader-f16"],
           "description": "Fused gate + up FFN projections + GeGLU activation (F16 weights, per-layer intermediate_size uniform)",
           "reachability": {
             "status": "unused",
@@ -1678,103 +1227,67 @@
         "subgroup": {
           "wgsl": "dequant_subgroup.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [32,1,1],
+          "requires": ["subgroups"],
           "variantMetadata": {
             "dispatchMode": "per_block"
           },
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "dequant.rules.json#variant"
-            ],
+            "ruleChains": ["dequant.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "subgroup_vec4": {
           "wgsl": "dequant_subgroup.wgsl",
           "entryPoint": "main_vec4",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["subgroups"],
           "variantMetadata": {
             "dispatchMode": "per_block"
           },
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "dequant.rules.json#variant"
-            ],
+            "ruleChains": ["dequant.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "subgroup_f16out": {
           "wgsl": "dequant_f16_out.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "variantMetadata": {
             "dispatchMode": "per_block"
           },
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "dequant.rules.json#variant"
-            ],
+            "ruleChains": ["dequant.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "subgroup_vec4_f16out": {
           "wgsl": "dequant_f16_out_vec4.wgsl",
           "entryPoint": "main_vec4",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "variantMetadata": {
             "dispatchMode": "per_block"
           },
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "dequant.rules.json#variant"
-            ],
+            "ruleChains": ["dequant.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "shared": {
           "wgsl": "dequant_shared.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "variantMetadata": {
             "dispatchMode": "per_block"
@@ -1782,20 +1295,14 @@
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "dequant.rules.json#variant"
-            ],
+            "ruleChains": ["dequant.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "mxfp4": {
           "wgsl": "dequant_mxfp4.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "description": "MXFP4 dequantization (GPT-OSS)",
           "reachability": {
@@ -1808,52 +1315,32 @@
         "mxfp4_expert": {
           "wgsl": "dequant_mxfp4_expert.wgsl",
           "entryPoint": "main_expert",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "dequant.rules.json#mxfp4ExpertVariant"
-            ],
+            "ruleChains": ["dequant.rules.json#mxfp4ExpertVariant"],
             "wgslOnDisk": true
           }
         },
         "mxfp4_expert_f16": {
           "wgsl": "dequant_mxfp4_expert_f16.wgsl",
           "entryPoint": "main_expert",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "dequant.rules.json#mxfp4ExpertVariant"
-            ],
+            "ruleChains": ["dequant.rules.json#mxfp4ExpertVariant"],
             "wgslOnDisk": true
           }
         },
         "q6k_f16out": {
           "wgsl": "dequant_q6k.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "description": "Q6_K dequantization (GGUF 6-bit quantization)",
           "reachability": {
             "status": "unused",
@@ -1865,11 +1352,7 @@
         "f32_rowwise": {
           "wgsl": "dequant_f32_rowwise.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "description": "Q4_K dequantization with row-wise layout (f32 output)",
           "uniformsOverride": {
@@ -1900,23 +1383,15 @@
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "dequant.rules.json#rowwiseVariant"
-            ],
+            "ruleChains": ["dequant.rules.json#rowwiseVariant"],
             "wgslOnDisk": true
           }
         },
         "f16_rowwise": {
           "wgsl": "dequant_f16_rowwise.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "description": "Q4_K dequantization with row-wise matrix layout for non-256-aligned K",
           "uniformsOverride": {
             "size": 16,
@@ -1946,24 +1421,15 @@
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "dequant.rules.json#rowwiseVariant"
-            ],
+            "ruleChains": ["dequant.rules.json#rowwiseVariant"],
             "wgslOnDisk": true
           }
         },
         "mxfp4_expert_fused_f16": {
           "wgsl": "gptoss_mxfp4_expert_fused.wgsl",
           "entryPoint": "main_expert",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "variantMetadata": {
             "modelType": "gpt-oss",
@@ -1975,9 +1441,7 @@
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "dequant.rules.json#mxfp4ExpertVariant"
-            ],
+            "ruleChains": ["dequant.rules.json#mxfp4ExpertVariant"],
             "wgslOnDisk": true
           }
         }
@@ -2106,11 +1570,7 @@
         "prefill": {
           "wgsl": "attention.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
+          "workgroup": [64,1,1],
           "requires": [],
           "outputDtype": "f32",
           "variantMetadata": {
@@ -2119,20 +1579,14 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#phase"
-            ],
+            "ruleChains": ["attention.rules.json#phase"],
             "wgslOnDisk": true
           }
         },
         "decode": {
           "wgsl": "attention_decode.wgsl",
           "entryPoint": "attention_decode",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "variantMetadata": {
@@ -2141,20 +1595,14 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#phase"
-            ],
+            "ruleChains": ["attention.rules.json#phase"],
             "wgslOnDisk": true
           }
         },
         "prefill_small": {
           "wgsl": "attention_small.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
+          "workgroup": [32,1,1],
           "requires": [],
           "outputDtype": "f32",
           "variantMetadata": {
@@ -2162,9 +1610,7 @@
           },
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32"
-            ],
+            "inlineConfigs": ["embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2172,11 +1618,7 @@
         "decode_small": {
           "wgsl": "attention_small.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
+          "workgroup": [32,1,1],
           "requires": [],
           "outputDtype": "f32",
           "variantMetadata": {
@@ -2184,9 +1626,7 @@
           },
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32"
-            ],
+            "inlineConfigs": ["embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2194,11 +1634,7 @@
         "prefill_streaming": {
           "wgsl": "attention_streaming.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            1,
-            1,
-            1
-          ],
+          "workgroup": [1,1,1],
           "requires": [],
           "outputDtype": "f32",
           "variantMetadata": {
@@ -2207,20 +1643,14 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#variant"
-            ],
+            "ruleChains": ["attention.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "decode_streaming": {
           "wgsl": "attention_streaming.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            1,
-            1,
-            1
-          ],
+          "workgroup": [1,1,1],
           "requires": [],
           "outputDtype": "f32",
           "variantMetadata": {
@@ -2236,14 +1666,8 @@
         "prefill_f16": {
           "wgsl": "attention_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "tier": "tiled_large"
@@ -2258,14 +1682,8 @@
         "decode_f16": {
           "wgsl": "attention_decode_f16.wgsl",
           "entryPoint": "attention_decode",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "tier": "tiled_large"
@@ -2280,23 +1698,15 @@
         "prefill_small_f16": {
           "wgsl": "attention_small_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [32,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "tier": "tiled_small"
           },
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2304,23 +1714,15 @@
         "decode_small_f16": {
           "wgsl": "attention_small_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [32,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "tier": "tiled_small"
           },
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2328,23 +1730,15 @@
         "prefill_streaming_f16": {
           "wgsl": "attention_streaming_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            1,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [1,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "tier": "streaming"
           },
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2352,23 +1746,15 @@
         "decode_streaming_f16": {
           "wgsl": "attention_streaming_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            1,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [1,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "tier": "streaming"
           },
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2376,14 +1762,8 @@
         "prefill_f16kv": {
           "wgsl": "attention_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "tiled_large"
@@ -2398,14 +1778,8 @@
         "decode_f16kv": {
           "wgsl": "attention_decode_f16kv.wgsl",
           "entryPoint": "attention_decode",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "tiled_large"
@@ -2420,14 +1794,8 @@
         "prefill_small_f16kv": {
           "wgsl": "attention_small_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [32,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "tiled_small"
@@ -2459,14 +1827,8 @@
         "decode_small_f16kv": {
           "wgsl": "attention_small_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [32,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "tiled_small"
@@ -2498,14 +1860,8 @@
         "prefill_head128_f16kv": {
           "wgsl": "attention_head128_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [32,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "tiled_small",
@@ -2527,14 +1883,8 @@
         "prefill_head256_f16kv": {
           "wgsl": "attention_head256_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [32,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "tiled_small",
@@ -2572,14 +1922,8 @@
         "prefill_head512_f16kv": {
           "wgsl": "attention_head512_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            16,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [16,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "tiled_small",
@@ -2608,14 +1952,8 @@
         "prefill_head512_f16": {
           "wgsl": "attention_head512_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            16,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [16,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "tier": "tiled_small",
@@ -2638,14 +1976,8 @@
         "prefill_flash_head256_f16kv": {
           "wgsl": "attention_prefill_flash_head256_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [32,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "flash_prefill",
@@ -2663,11 +1995,7 @@
         "prefill_flash_reduce": {
           "wgsl": "attention_prefill_flash_reduce.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
+          "workgroup": [64,1,1],
           "requires": [],
           "outputDtype": "f32",
           "variantMetadata": {
@@ -2683,14 +2011,8 @@
         "prefill_streaming_f16kv": {
           "wgsl": "attention_streaming_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            1,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [1,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "streaming"
@@ -2728,14 +2050,8 @@
         "decode_streaming_f16kv": {
           "wgsl": "attention_streaming_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            1,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [1,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "streaming"
@@ -2773,15 +2089,8 @@
         "decode_online_f16": {
           "wgsl": "attention_decode_online_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "variantMetadata": {
             "tier": "subgroup",
@@ -2790,27 +2099,16 @@
           "description": "Online decode kernel - f16 QKV with subgroup reductions",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
-            ],
-            "ruleChains": [
-              "attention.rules.json#optimizedVariant"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
+            "ruleChains": ["attention.rules.json#optimizedVariant"],
             "wgslOnDisk": true
           }
         },
         "decode_online_f16kv": {
           "wgsl": "attention_decode_online_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "subgroup",
@@ -2847,24 +2145,15 @@
               "qwen3/qwen-3-reranker-0-6b-f16-af32",
               "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "attention.rules.json#optimizedVariant"
-            ],
+            "ruleChains": ["attention.rules.json#optimizedVariant"],
             "wgslOnDisk": true
           }
         },
         "decode_online_head256_f16kv": {
           "wgsl": "attention_decode_online_head256_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "subgroup",
@@ -2874,10 +2163,7 @@
           "description": "Online decode kernel specialized for head_dim=256 with f32 Q, f16 KV, and subgroup reductions",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma3/gemma-3-270m-it-f16-af32",
-              "gemma3/gemma-3-270m-it-q4k-ehf16-af32"
-            ],
+            "inlineConfigs": ["gemma3/gemma-3-270m-it-f16-af32","gemma3/gemma-3-270m-it-q4k-ehf16-af32"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -2885,15 +2171,8 @@
         "decode_online_head256_f16kv_output_gate": {
           "wgsl": "attention_decode_online_head256_f16kv_output_gate.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "subgroup",
@@ -2915,14 +2194,8 @@
         "decode_chunked_f16": {
           "wgsl": "attention_decode_chunked_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "tier": "streaming",
@@ -2932,23 +2205,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#chunkedVariant"
-            ],
+            "ruleChains": ["attention.rules.json#chunkedVariant"],
             "wgslOnDisk": true
           }
         },
         "decode_chunked_f16kv": {
           "wgsl": "attention_decode_chunked_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "streaming",
@@ -2958,23 +2223,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#chunkedVariant"
-            ],
+            "ruleChains": ["attention.rules.json#chunkedVariant"],
             "wgslOnDisk": true
           }
         },
         "decode_paged_f16": {
           "wgsl": "attention_decode_paged_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "tier": "tiled_large"
@@ -2983,23 +2240,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#pagedVariant"
-            ],
+            "ruleChains": ["attention.rules.json#pagedVariant"],
             "wgslOnDisk": true
           }
         },
         "decode_paged_f16kv": {
           "wgsl": "attention_decode_paged_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "tiled_large"
@@ -3008,23 +2257,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#pagedVariant"
-            ],
+            "ruleChains": ["attention.rules.json#pagedVariant"],
             "wgslOnDisk": true
           }
         },
         "decode_subgroup": {
           "wgsl": "attention_decode_subgroup.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "outputDtype": "f32",
           "variantMetadata": {
             "tier": "subgroup"
@@ -3033,9 +2274,7 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "attention.rules.json#variant"
-            ],
+            "ruleChains": ["attention.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -3179,14 +2418,8 @@
         "decode_tiered_f16": {
           "wgsl": "attention_decode_tiered_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "maxKVLen": 2048
@@ -3202,14 +2435,8 @@
         "decode_tiered_f16kv": {
           "wgsl": "attention_decode_tiered_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "maxKVLen": 2048
@@ -3357,14 +2584,8 @@
         "decode_tiered_int8_f16kv": {
           "wgsl": "attention_decode_tiered_int8_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "maxKVLen": 2048
@@ -3380,14 +2601,8 @@
         "decode_tiered_int4_f16kv": {
           "wgsl": "attention_decode_tiered_int4_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "maxKVLen": 2048
@@ -3403,14 +2618,8 @@
         "decode_tiered_turboquant_f16kv": {
           "wgsl": "attention_decode_tiered_turboquant_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "maxKVLen": 2048
@@ -3426,14 +2635,8 @@
         "decode_tiered_turboquant_prod_f16kv": {
           "wgsl": "attention_decode_tiered_turboquant_prod_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "maxKVLen": 2048
@@ -3566,14 +2769,8 @@
         "decode_contiguous_turboquant_f16kv": {
           "wgsl": "attention_decode_contiguous_turboquant_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "maxKVLen": 2048
@@ -3589,14 +2786,8 @@
         "decode_contiguous_turboquant_prod_f16kv": {
           "wgsl": "attention_decode_contiguous_turboquant_prod_f16kv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "variantMetadata": {
             "maxKVLen": 2048
@@ -3689,84 +2880,52 @@
         "int8": {
           "wgsl": "kv_quantize_int8.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "description": "Quantize KV to int8 (packed u32) with per-head scale",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "kv_quantize.rules.json#variant"
-            ],
+            "ruleChains": ["kv_quantize.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "int4": {
           "wgsl": "kv_quantize_int4.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "description": "Quantize KV to int4 (packed u32) with per-head scale",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "kv_quantize.rules.json#variant"
-            ],
+            "ruleChains": ["kv_quantize.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "turboquant": {
           "wgsl": "kv_quantize_turboquant.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "description": "TurboQuant MSE: rotation + codebook quantize with per-head norm",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "kv_quantize.rules.json#variant"
-            ],
+            "ruleChains": ["kv_quantize.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "turboquant_prod": {
           "wgsl": "kv_quantize_turboquant_prod.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "description": "TurboQuant prod: MSE at (b-1) bits + 1-bit QJL residual for unbiased inner products",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "kv_quantize.rules.json#variant"
-            ],
+            "ruleChains": ["kv_quantize.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -3855,14 +3014,8 @@
         "phase1_f16w_f32a": {
           "wgsl": "lm_head_argmax_f16.wgsl",
           "entryPoint": "phase1",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "weightDtype": "f16",
           "variantMetadata": {
             "colsPerWg": 64,
@@ -3871,20 +3024,14 @@
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "lm-head-argmax.rules.json#phase1Variant"
-            ],
+            "ruleChains": ["lm-head-argmax.rules.json#phase1Variant"],
             "wgslOnDisk": true
           }
         },
         "phase1_q4k_f32a": {
           "wgsl": "lm_head_argmax_q4k.wgsl",
           "entryPoint": "phase1",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "weightDtype": "q4k",
           "variantMetadata": {
             "colsPerWg": 64,
@@ -3893,46 +3040,30 @@
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "lm-head-argmax.rules.json#phase1Variant"
-            ],
+            "ruleChains": ["lm-head-argmax.rules.json#phase1Variant"],
             "wgslOnDisk": true
           }
         },
         "phase2": {
           "wgsl": "lm_head_argmax_f16.wgsl",
           "entryPoint": "phase2",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "lm-head-argmax.rules.json#phase2Variant"
-            ],
+            "ruleChains": ["lm-head-argmax.rules.json#phase2Variant"],
             "wgslOnDisk": true
           }
         },
         "phase2_q4k": {
           "wgsl": "lm_head_argmax_q4k.wgsl",
           "entryPoint": "phase2",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "lm-head-argmax.rules.json#phase2Variant"
-            ],
+            "ruleChains": ["lm-head-argmax.rules.json#phase2Variant"],
             "wgslOnDisk": true
           }
         }
@@ -4016,14 +3147,8 @@
         "f16w_f32a": {
           "wgsl": "lm_head_select_logits.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "weightDtype": "f16",
           "inputDtype": "f32",
           "reachability": {
@@ -4113,11 +3238,7 @@
         "default": {
           "wgsl": "rmsnorm.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "pinned",
@@ -4153,127 +3274,79 @@
               "qwen3/qwen-3-reranker-0-6b-f16-af32",
               "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "rmsnorm.rules.json#variant"
-            ],
+            "ruleChains": ["rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "small": {
           "wgsl": "rmsnorm.wgsl",
           "entryPoint": "main_small",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rmsnorm.rules.json#variant"
-            ],
+            "ruleChains": ["rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "residual": {
           "wgsl": "rmsnorm.wgsl",
           "entryPoint": "main_cached",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rmsnorm.rules.json#variant"
-            ],
+            "ruleChains": ["rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "subgroup": {
           "wgsl": "rmsnorm.wgsl",
           "entryPoint": "main_subgroup",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rmsnorm.rules.json#variant"
-            ],
+            "ruleChains": ["rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "small_subgroup": {
           "wgsl": "rmsnorm.wgsl",
           "entryPoint": "main_small_subgroup",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rmsnorm.rules.json#variant"
-            ],
+            "ruleChains": ["rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "rmsnorm_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"
-            ],
-            "ruleChains": [
-              "rmsnorm.rules.json#variant"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"],
+            "ruleChains": ["rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "small_f16": {
           "wgsl": "rmsnorm_f16.wgsl",
           "entryPoint": "rmsnorm_small_f16",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rmsnorm.rules.json#variant"
-            ],
+            "ruleChains": ["rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -4367,11 +3440,7 @@
         "default": {
           "wgsl": "rmsnorm_pair.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -4383,14 +3452,8 @@
         "subgroup": {
           "wgsl": "rmsnorm_pair.wgsl",
           "entryPoint": "main_subgroup",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -4483,14 +3546,8 @@
         "subgroup": {
           "wgsl": "residual_rmsnorm_pair.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -4588,38 +3645,24 @@
         "default": {
           "wgsl": "rmsnorm_qk.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rmsnorm-qk.rules.json#variant"
-            ],
+            "ruleChains": ["rmsnorm-qk.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "rmsnorm_qk_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rmsnorm-qk.rules.json#variant"
-            ],
+            "ruleChains": ["rmsnorm-qk.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -4683,38 +3726,24 @@
         "default": {
           "wgsl": "layernorm.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "layernorm.rules.json#variant"
-            ],
+            "ruleChains": ["layernorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "layernorm_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "layernorm.rules.json#variant"
-            ],
+            "ruleChains": ["layernorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -4778,48 +3807,32 @@
         "small": {
           "wgsl": "fused_matmul_rmsnorm.wgsl",
           "entryPoint": "gemv_rmsnorm_small",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-matmul-rmsnorm.rules.json#variant"
-            ],
+            "ruleChains": ["fused-matmul-rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "medium": {
           "wgsl": "fused_matmul_rmsnorm.wgsl",
           "entryPoint": "gemv_rmsnorm_medium",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "description": "Medium variant for N up to ~4096 (covers Gemma 3's hiddenSize=1152)",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-matmul-rmsnorm.rules.json#variant"
-            ],
+            "ruleChains": ["fused-matmul-rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "phase1": {
           "wgsl": "fused_matmul_rmsnorm.wgsl",
           "entryPoint": "gemv_rmsnorm_phase1",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -4831,42 +3844,26 @@
         "small_f16": {
           "wgsl": "fused_matmul_rmsnorm_f16.wgsl",
           "entryPoint": "gemv_rmsnorm_small",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "description": "F16 small variant for N <= 256",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-matmul-rmsnorm.rules.json#variant"
-            ],
+            "ruleChains": ["fused-matmul-rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "medium_f16": {
           "wgsl": "fused_matmul_rmsnorm_f16.wgsl",
           "entryPoint": "gemv_rmsnorm_medium",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "description": "F16 medium variant for N up to ~4096 (covers Gemma's hiddenSize=2304)",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-matmul-rmsnorm.rules.json#variant"
-            ],
+            "ruleChains": ["fused-matmul-rmsnorm.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -4925,40 +3922,24 @@
         "default": {
           "wgsl": "matmul_gemv_residual.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-matmul-residual.rules.json#variant"
-            ],
+            "ruleChains": ["fused-matmul-residual.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16": {
           "wgsl": "matmul_gemv_residual_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "fused-matmul-residual.rules.json#variant"
-            ],
+            "ruleChains": ["fused-matmul-residual.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -5012,76 +3993,48 @@
         "default": {
           "wgsl": "softmax.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "softmax.rules.json#variant"
-            ],
+            "ruleChains": ["softmax.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "small": {
           "wgsl": "softmax.wgsl",
           "entryPoint": "softmax_small",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "softmax.rules.json#variant"
-            ],
+            "ruleChains": ["softmax.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "small_subgroup": {
           "wgsl": "softmax_subgroup.wgsl",
           "entryPoint": "softmax_small_subgroup",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "softmax.rules.json#variant"
-            ],
+            "ruleChains": ["softmax.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "subgroup": {
           "wgsl": "softmax_subgroup.wgsl",
           "entryPoint": "main_subgroup",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["subgroups"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "softmax.rules.json#variant"
-            ],
+            "ruleChains": ["softmax.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -5160,14 +4113,8 @@
         "split_f16": {
           "wgsl": "soft_embedding_split_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            8,
-            8,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [8,8,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -5178,14 +4125,8 @@
         "logits_norm_stats": {
           "wgsl": "soft_embedding_logits_f16.wgsl",
           "entryPoint": "logits_norm_stats",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "bindingsOverride": [
             {
               "index": 1,
@@ -5213,14 +4154,8 @@
         "logits_probability_chunk": {
           "wgsl": "soft_embedding_logits_f16.wgsl",
           "entryPoint": "logits_probability_chunk",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "bindingsOverride": [
             {
               "index": 1,
@@ -5325,11 +4260,7 @@
         "entropy_stats": {
           "wgsl": "diffusion_gemma_sampling.wgsl",
           "entryPoint": "entropy_stats",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -5433,11 +4364,7 @@
         "default": {
           "wgsl": "rope.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "pinned",
@@ -5473,42 +4400,26 @@
               "qwen3/qwen-3-reranker-0-6b-f16-af32",
               "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "rope.rules.json#variant"
-            ],
+            "ruleChains": ["rope.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "rope_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"
-            ],
-            "ruleChains": [
-              "rope.rules.json#variant"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"],
+            "ruleChains": ["rope.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "compute_freqs": {
           "wgsl": "rope.wgsl",
           "entryPoint": "rope_compute_freqs",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -5520,14 +4431,8 @@
         "compute_freqs_f16": {
           "wgsl": "rope_f16.wgsl",
           "entryPoint": "rope_compute_freqs",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -5538,11 +4443,7 @@
         "qk": {
           "wgsl": "rope.wgsl",
           "entryPoint": "rope_qk",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -5554,14 +4455,8 @@
         "qk_f16": {
           "wgsl": "rope_f16.wgsl",
           "entryPoint": "rope_qk",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -5572,11 +4467,7 @@
         "ntk": {
           "wgsl": "rope.wgsl",
           "entryPoint": "rope_ntk_scaled",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -5588,14 +4479,8 @@
         "ntk_f16": {
           "wgsl": "rope_f16.wgsl",
           "entryPoint": "rope_ntk_scaled",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -5606,11 +4491,7 @@
         "yarn": {
           "wgsl": "rope.wgsl",
           "entryPoint": "rope_yarn",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -5622,14 +4503,8 @@
         "yarn_f16": {
           "wgsl": "rope_f16.wgsl",
           "entryPoint": "rope_yarn",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -5717,38 +4592,24 @@
         "default": {
           "wgsl": "rope_qk.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rope-qk.rules.json#variant"
-            ],
+            "ruleChains": ["rope-qk.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "rope_qk_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rope-qk.rules.json#variant"
-            ],
+            "ruleChains": ["rope-qk.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -5797,11 +4658,7 @@
         "default": {
           "wgsl": "silu.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "pinned",
@@ -5815,29 +4672,19 @@
               "qwen3/qwen-3-reranker-0-6b-f16-af32",
               "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "silu.rules.json#variant"
-            ],
+            "ruleChains": ["silu.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "silu_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "silu.rules.json#variant"
-            ],
+            "ruleChains": ["silu.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -5886,11 +4733,7 @@
         "gelu": {
           "wgsl": "gelu.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "pinned",
@@ -5917,31 +4760,19 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "gelu.rules.json#variant"
-            ],
+            "ruleChains": ["gelu.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "gelu_f16": {
           "wgsl": "gelu_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"
-            ],
-            "ruleChains": [
-              "gelu.rules.json#variant"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"],
+            "ruleChains": ["gelu.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -5985,76 +4816,48 @@
         "default": {
           "wgsl": "scale.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "scale.rules.json#variant"
-            ],
+            "ruleChains": ["scale.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "scale_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "scale.rules.json#variant"
-            ],
+            "ruleChains": ["scale.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "inplace": {
           "wgsl": "scale.wgsl",
           "entryPoint": "main_inplace",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "scale.rules.json#variant"
-            ],
+            "ruleChains": ["scale.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "inplace_f16": {
           "wgsl": "scale_f16.wgsl",
           "entryPoint": "main_inplace",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "scale.rules.json#variant"
-            ],
+            "ruleChains": ["scale.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -6103,11 +4906,7 @@
         "default": {
           "wgsl": "clamp.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -6176,11 +4975,7 @@
         "default": {
           "wgsl": "activation_static_qdq.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -6234,40 +5029,26 @@
         "eval": {
           "wgsl": "energy_eval.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "energy.rules.json#evalVariant"
-            ],
+            "ruleChains": ["energy.rules.json#evalVariant"],
             "wgslOnDisk": true
           }
         },
         "eval_f16": {
           "wgsl": "energy_eval_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "energy.rules.json#evalVariant"
-            ],
+            "ruleChains": ["energy.rules.json#evalVariant"],
             "wgslOnDisk": true
           }
         }
@@ -6316,38 +5097,24 @@
         "update": {
           "wgsl": "energy_update.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "energy.rules.json#updateVariant"
-            ],
+            "ruleChains": ["energy.rules.json#updateVariant"],
             "wgslOnDisk": true
           }
         },
         "update_f16": {
           "wgsl": "energy_update_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "energy.rules.json#updateVariant"
-            ],
+            "ruleChains": ["energy.rules.json#updateVariant"],
             "wgslOnDisk": true
           }
         }
@@ -6456,38 +5223,24 @@
         "quintel_update": {
           "wgsl": "energy_quintel_update.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "energy.rules.json#quintelUpdateVariant"
-            ],
+            "ruleChains": ["energy.rules.json#quintelUpdateVariant"],
             "wgslOnDisk": true
           }
         },
         "quintel_update_f16": {
           "wgsl": "energy_quintel_update_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "energy.rules.json#quintelUpdateVariant"
-            ],
+            "ruleChains": ["energy.rules.json#quintelUpdateVariant"],
             "wgslOnDisk": true
           }
         }
@@ -6601,40 +5354,26 @@
         "quintel_grad": {
           "wgsl": "energy_quintel_grad.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "energy.rules.json#quintelGradVariant"
-            ],
+            "ruleChains": ["energy.rules.json#quintelGradVariant"],
             "wgslOnDisk": true
           }
         },
         "quintel_grad_f16": {
           "wgsl": "energy_quintel_grad_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "energy.rules.json#quintelGradVariant"
-            ],
+            "ruleChains": ["energy.rules.json#quintelGradVariant"],
             "wgslOnDisk": true
           }
         }
@@ -6728,40 +5467,26 @@
         "quintel_reduce": {
           "wgsl": "energy_quintel_reduce.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "energy.rules.json#quintelReduceVariant"
-            ],
+            "ruleChains": ["energy.rules.json#quintelReduceVariant"],
             "wgslOnDisk": true
           }
         },
         "quintel_reduce_f16": {
           "wgsl": "energy_quintel_reduce_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "energy.rules.json#quintelReduceVariant"
-            ],
+            "ruleChains": ["energy.rules.json#quintelReduceVariant"],
             "wgslOnDisk": true
           }
         }
@@ -6845,11 +5570,7 @@
         "default": {
           "wgsl": "gather.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
@@ -6867,42 +5588,28 @@
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "gather.rules.json#variant"
-            ],
+            "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "vec4": {
           "wgsl": "gather_vec4.wgsl",
           "entryPoint": "gather_vec4",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
+          "workgroup": [64,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "gather.rules.json#variant"
-            ],
+            "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16": {
           "wgsl": "gather_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "description": "F16 embeddings -> F32 output (for weight-tied lm_head optimization)",
           "reachability": {
@@ -6924,44 +5631,28 @@
               "qwen3/qwen-3-reranker-0-6b-f16-af32",
               "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "gather.rules.json#variant"
-            ],
+            "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16_vec4": {
           "wgsl": "gather_f16_vec4.wgsl",
           "entryPoint": "gather_vec4",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "gather.rules.json#variant"
-            ],
+            "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16_out": {
           "wgsl": "gather_f16_out.wgsl",
           "entryPoint": "gather_f16_out",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "outputBinding": 4
@@ -6970,23 +5661,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "gather.rules.json#variant"
-            ],
+            "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "vec4_f16_out": {
           "wgsl": "gather_vec4_f16_out.wgsl",
           "entryPoint": "gather_vec4_f16_out",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "outputBinding": 4
@@ -6994,23 +5677,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "gather.rules.json#variant"
-            ],
+            "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16_f16_out": {
           "wgsl": "gather_f16_f16_out.wgsl",
           "entryPoint": "gather_f16_out",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "outputBinding": 4
@@ -7019,23 +5694,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "gather.rules.json#variant"
-            ],
+            "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16_vec4_f16_out": {
           "wgsl": "gather_f16_vec4_f16_out.wgsl",
           "entryPoint": "gather_vec4_f16_out",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "outputBinding": 4
@@ -7043,23 +5710,15 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "gather.rules.json#variant"
-            ],
+            "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "litert_int4_vec4_f16_out": {
           "wgsl": "gather_litert_int4_vec4_f16_out.wgsl",
           "entryPoint": "gather_litert_int4_vec4_f16_out",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "outputBinding": 4
@@ -7068,20 +5727,14 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "gather.rules.json#variant"
-            ],
+            "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "litert_int4_vec4_f32_out": {
           "wgsl": "gather_litert_int4_vec4_f32_out.wgsl",
           "entryPoint": "gather_litert_int4_vec4_f32_out",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
+          "workgroup": [64,1,1],
           "requires": [],
           "outputDtype": "f32",
           "variantMetadata": {
@@ -7091,9 +5744,7 @@
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "gather.rules.json#variant"
-            ],
+            "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -7207,21 +5858,13 @@
         "f16_vec4_f16_out": {
           "wgsl": "gather_split4_f16_vec4_f16_out.wgsl",
           "entryPoint": "gather_vec4_f16_out",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "description": "F16 split embeddings -> F16 output",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -7376,21 +6019,13 @@
         "f16_vec4_f16_out": {
           "wgsl": "gather_split8_f16_vec4_f16_out.wgsl",
           "entryPoint": "gather_vec4_f16_out",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "description": "F16 split8 embeddings -> F16 output",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -7398,14 +6033,8 @@
         "f16_vec4_f32_out": {
           "wgsl": "gather_split8_f16_vec4_f32_out.wgsl",
           "entryPoint": "gather_vec4_f32_out",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "description": "F16 split8 embeddings -> F32 output",
           "reachability": {
@@ -7463,11 +6092,7 @@
         "default": {
           "wgsl": "residual.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "pinned",
@@ -7502,72 +6127,45 @@
               "qwen3/qwen-3-reranker-0-6b-f16-af32",
               "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
             ],
-            "ruleChains": [
-              "residual.rules.json#biasAddVariant",
-              "residual.rules.json#residualVariant"
-            ],
+            "ruleChains": ["residual.rules.json#biasAddVariant","residual.rules.json#residualVariant"],
             "wgslOnDisk": true
           }
         },
         "vec4": {
           "wgsl": "residual_vec4.wgsl",
           "entryPoint": "add_vec4",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
+          "workgroup": [64,1,1],
           "requires": [],
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "residual.rules.json#residualVariant"
-            ],
+            "ruleChains": ["residual.rules.json#residualVariant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "residual_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"
-            ],
-            "ruleChains": [
-              "residual.rules.json#residualVariant"
-            ],
+            "inlineConfigs": ["gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"],
+            "ruleChains": ["residual.rules.json#residualVariant"],
             "wgslOnDisk": true
           }
         },
         "vec4_f16": {
           "wgsl": "residual_f16_vec4.wgsl",
           "entryPoint": "add_vec4",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [64,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "model-selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "residual.rules.json#residualVariant"
-            ],
+            "ruleChains": ["residual.rules.json#residualVariant"],
             "wgslOnDisk": true
           }
         }
@@ -7616,11 +6214,7 @@
         "default": {
           "wgsl": "topk.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
+          "workgroup": [32,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -7632,11 +6226,7 @@
         "small": {
           "wgsl": "topk.wgsl",
           "entryPoint": "topk_2_small",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -7648,11 +6238,7 @@
         "fused": {
           "wgsl": "topk.wgsl",
           "entryPoint": "softmax_topk",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
+          "workgroup": [32,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -7664,14 +6250,8 @@
         "fused_f16": {
           "wgsl": "topk_f16.wgsl",
           "entryPoint": "softmax_topk",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [32,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -7682,14 +6262,8 @@
         "fused_f16_w16": {
           "wgsl": "topk_f16_weights.wgsl",
           "entryPoint": "softmax_topk",
-          "workgroup": [
-            32,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [32,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -7700,15 +6274,8 @@
         "gptoss_router_topk": {
           "wgsl": "gptoss_router_topk.wgsl",
           "entryPoint": "softmax_topk",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16","subgroups"],
           "outputDtype": "f16",
           "variantMetadata": {
             "modelType": "gpt-oss",
@@ -7785,11 +6352,7 @@
         "default": {
           "wgsl": "scatter_add.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -7801,11 +6364,7 @@
         "vec4": {
           "wgsl": "scatter_add_vec4.wgsl",
           "entryPoint": "scatter_add_vec4",
-          "workgroup": [
-            64,
-            1,
-            1
-          ],
+          "workgroup": [64,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -7817,11 +6376,7 @@
         "dynamic": {
           "wgsl": "scatter_add_dynamic.wgsl",
           "entryPoint": "scatter_add_dynamic",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "bindingsOverride": [
             {
@@ -7855,11 +6410,7 @@
         "dynamic_expert_scale": {
           "wgsl": "scatter_add_dynamic_expert_scale.wgsl",
           "entryPoint": "scatter_add_dynamic",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "bindingsOverride": [
             {
@@ -7898,14 +6449,8 @@
         "dynamic_f16": {
           "wgsl": "scatter_add_dynamic_f16.wgsl",
           "entryPoint": "scatter_add_dynamic",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "bindingsOverride": [
             {
               "index": 2,
@@ -7938,14 +6483,8 @@
         "dynamic_f16_expert_scale": {
           "wgsl": "scatter_add_dynamic_f16_expert_scale.wgsl",
           "entryPoint": "scatter_add_dynamic",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "bindingsOverride": [
             {
               "index": 2,
@@ -7983,14 +6522,8 @@
         "dynamic_f16_w16": {
           "wgsl": "scatter_add_dynamic_f16_weights.wgsl",
           "entryPoint": "scatter_add_dynamic",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "bindingsOverride": [
             {
               "index": 2,
@@ -8023,14 +6556,8 @@
         "dynamic_f16_w16_expert_scale": {
           "wgsl": "scatter_add_dynamic_f16_weights_expert_scale.wgsl",
           "entryPoint": "scatter_add_dynamic",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "bindingsOverride": [
             {
               "index": 2,
@@ -8068,11 +6595,7 @@
         "accumulate": {
           "wgsl": "scatter_add.wgsl",
           "entryPoint": "scatter_add_accumulate",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -8161,15 +6684,8 @@
         "f16a": {
           "wgsl": "gemma4_route_q4_matmul_f16a.wgsl",
           "entryPoint": "route_matmul_f16a",
-          "workgroup": [
-            64,
-            4,
-            1
-          ],
-          "requires": [
-            "shader-f16",
-            "subgroups"
-          ],
+          "workgroup": [64,4,1],
+          "requires": ["shader-f16","subgroups"],
           "wgslOverrides": {
             "TILE_M": 4,
             "THREADS_PER_COL": 64
@@ -8246,14 +6762,8 @@
         "f16_w16_expert_scale": {
           "wgsl": "scatter_add_routes_f16_weights_expert_scale.wgsl",
           "entryPoint": "scatter_add_routes",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -8336,11 +6846,7 @@
         "count": {
           "wgsl": "moe_gather.wgsl",
           "entryPoint": "count_and_map",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -8352,14 +6858,8 @@
         "count_f16": {
           "wgsl": "moe_gather_f16.wgsl",
           "entryPoint": "count_and_map",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -8370,11 +6870,7 @@
         "gather": {
           "wgsl": "moe_gather.wgsl",
           "entryPoint": "gather_tokens",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -8386,14 +6882,8 @@
         "gather_f16": {
           "wgsl": "moe_gather_f16.wgsl",
           "entryPoint": "gather_tokens",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -8404,11 +6894,7 @@
         "single_pass": {
           "wgsl": "moe_gather.wgsl",
           "entryPoint": "gather_single_pass",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -8492,11 +6978,7 @@
         "default": {
           "wgsl": "moe_offsets.wgsl",
           "entryPoint": "build_offsets",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -8550,11 +7032,7 @@
         "rowsplit_bias": {
           "wgsl": "fused_swiglu.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -8566,14 +7044,8 @@
         "rowsplit_bias_f16": {
           "wgsl": "fused_swiglu_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -8651,11 +7123,7 @@
         "default": {
           "wgsl": "bias_add.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -8667,14 +7135,8 @@
         "f16": {
           "wgsl": "bias_add_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -8717,19 +7179,11 @@
         "f32_to_f16": {
           "wgsl": "cast_f32_to_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": [
-              "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16"
-            ],
+            "inlineConfigs": ["diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16"],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -8737,14 +7191,8 @@
         "f16_to_f32": {
           "wgsl": "cast_f16_to_f32.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -8812,14 +7260,8 @@
         "f32_to_f16": {
           "wgsl": "kv_cache_write_f32_to_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -8887,38 +7329,24 @@
         "default": {
           "wgsl": "split_qkv.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "split-qkv.rules.json#variant"
-            ],
+            "ruleChains": ["split-qkv.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16": {
           "wgsl": "split_qkv_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "split-qkv.rules.json#variant"
-            ],
+            "ruleChains": ["split-qkv.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -9032,11 +7460,7 @@
         "default": {
           "wgsl": "split_qkv_rmsnorm_qk.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -9185,11 +7609,7 @@
         "default": {
           "wgsl": "split_qkv_rmsnorm_rope_qk.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -9338,14 +7758,8 @@
         "default": {
           "wgsl": "split_qkv_rmsnorm_rope_qk_f16kv_cache.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -9408,38 +7822,24 @@
         "default": {
           "wgsl": "split_qg.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "split-qg.rules.json#variant"
-            ],
+            "ruleChains": ["split-qg.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16": {
           "wgsl": "split_qg_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "split-qg.rules.json#variant"
-            ],
+            "ruleChains": ["split-qg.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -9503,38 +7903,24 @@
         "default": {
           "wgsl": "rep_penalty.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rep-penalty.rules.json#variant"
-            ],
+            "ruleChains": ["rep-penalty.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "rep_penalty_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "rep-penalty.rules.json#variant"
-            ],
+            "ruleChains": ["rep-penalty.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -9593,11 +7979,7 @@
         "argmax": {
           "wgsl": "sample.wgsl",
           "entryPoint": "argmax",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -9609,14 +7991,8 @@
         "argmax_f16": {
           "wgsl": "sample_f16.wgsl",
           "entryPoint": "argmax",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -9627,11 +8003,7 @@
         "argmax_reduce": {
           "wgsl": "sample.wgsl",
           "entryPoint": "argmax_reduce",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -9643,14 +8015,8 @@
         "argmax_reduce_f16": {
           "wgsl": "sample_f16.wgsl",
           "entryPoint": "argmax_reduce",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -9661,11 +8027,7 @@
         "find_topk_phase1": {
           "wgsl": "sample.wgsl",
           "entryPoint": "find_topk_phase1",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -9677,14 +8039,8 @@
         "find_topk_phase1_f16": {
           "wgsl": "sample_f16.wgsl",
           "entryPoint": "find_topk_phase1",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -9695,11 +8051,7 @@
         "find_topk_phase2": {
           "wgsl": "sample.wgsl",
           "entryPoint": "find_topk_phase2",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -9711,14 +8063,8 @@
         "find_topk_phase2_f16": {
           "wgsl": "sample_f16.wgsl",
           "entryPoint": "find_topk_phase2",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -9729,11 +8075,7 @@
         "softmax_and_sample": {
           "wgsl": "sample.wgsl",
           "entryPoint": "softmax_and_sample",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -9745,14 +8087,8 @@
         "softmax_and_sample_f16": {
           "wgsl": "sample_f16.wgsl",
           "entryPoint": "softmax_and_sample",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -9763,11 +8099,7 @@
         "single_pass": {
           "wgsl": "sample.wgsl",
           "entryPoint": "sample_single_pass",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "pinned",
@@ -9808,14 +8140,8 @@
         "single_pass_f16": {
           "wgsl": "sample_f16.wgsl",
           "entryPoint": "sample_single_pass",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -9858,11 +8184,7 @@
         "default": {
           "wgsl": "bf16_to_f32.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -9906,14 +8228,8 @@
         "default": {
           "wgsl": "bf16_to_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],
@@ -9971,11 +8287,7 @@
         "default": {
           "wgsl": "transpose.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10044,11 +8356,7 @@
         "default": {
           "wgsl": "backward/matmul_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            16,
-            16,
-            1
-          ],
+          "workgroup": [16,16,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10112,11 +8420,7 @@
         "default": {
           "wgsl": "backward/matmul_transpose_a.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            16,
-            16,
-            1
-          ],
+          "workgroup": [16,16,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10175,11 +8479,7 @@
         "default": {
           "wgsl": "backward/silu_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10263,11 +8563,7 @@
         "default": {
           "wgsl": "backward/embed_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10331,11 +8627,7 @@
         "default": {
           "wgsl": "backward/gelu_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10399,11 +8691,7 @@
         "default": {
           "wgsl": "backward/scale_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10467,11 +8755,7 @@
         "default": {
           "wgsl": "backward/softmax_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10535,11 +8819,7 @@
         "default": {
           "wgsl": "backward/attention_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10608,11 +8888,7 @@
         "default": {
           "wgsl": "backward/rmsnorm_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10691,11 +8967,7 @@
         "default": {
           "wgsl": "backward/layernorm_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10784,11 +9056,7 @@
         "default": {
           "wgsl": "backward/rope_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10852,11 +9120,7 @@
         "default": {
           "wgsl": "cross_entropy_loss.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -10965,40 +9229,26 @@
         "default": {
           "wgsl": "conv2d.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "conv2d.rules.json#variant"
-            ],
+            "ruleChains": ["conv2d.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "conv2d_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "conv2d.rules.json#variant"
-            ],
+            "ruleChains": ["conv2d.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -11102,40 +9352,26 @@
         "default": {
           "wgsl": "depthwise_conv2d.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "depthwise-conv2d.rules.json#variant"
-            ],
+            "ruleChains": ["depthwise-conv2d.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "depthwise_conv2d_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "depthwise-conv2d.rules.json#variant"
-            ],
+            "ruleChains": ["depthwise-conv2d.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -11194,11 +9430,7 @@
         "depthwise_conv1d": {
           "wgsl": "depthwise_conv1d.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
@@ -11288,40 +9520,26 @@
         "default": {
           "wgsl": "grouped_pointwise_conv2d.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "grouped-pointwise-conv2d.rules.json#variant"
-            ],
+            "ruleChains": ["grouped-pointwise-conv2d.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "grouped_pointwise_conv2d_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "grouped-pointwise-conv2d.rules.json#variant"
-            ],
+            "ruleChains": ["grouped-pointwise-conv2d.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -11395,40 +9613,26 @@
         "stats": {
           "wgsl": "groupnorm_stats.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "groupnorm.rules.json#statsVariant"
-            ],
+            "ruleChains": ["groupnorm.rules.json#statsVariant"],
             "wgslOnDisk": true
           }
         },
         "stats_f16": {
           "wgsl": "groupnorm_stats_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "groupnorm.rules.json#statsVariant"
-            ],
+            "ruleChains": ["groupnorm.rules.json#statsVariant"],
             "wgslOnDisk": true
           }
         }
@@ -11517,40 +9721,26 @@
         "apply": {
           "wgsl": "groupnorm_apply.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "groupnorm.rules.json#applyVariant"
-            ],
+            "ruleChains": ["groupnorm.rules.json#applyVariant"],
             "wgslOnDisk": true
           }
         },
         "apply_f16": {
           "wgsl": "groupnorm_apply_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "groupnorm.rules.json#applyVariant"
-            ],
+            "ruleChains": ["groupnorm.rules.json#applyVariant"],
             "wgslOnDisk": true
           }
         }
@@ -11624,40 +9814,26 @@
         "default": {
           "wgsl": "upsample2d.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "upsample2d.rules.json#variant"
-            ],
+            "ruleChains": ["upsample2d.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "upsample2d_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "upsample2d.rules.json#variant"
-            ],
+            "ruleChains": ["upsample2d.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -11736,40 +9912,26 @@
         "default": {
           "wgsl": "modulate.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "modulate.rules.json#variant"
-            ],
+            "ruleChains": ["modulate.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16": {
           "wgsl": "modulate_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "modulate.rules.json#variant"
-            ],
+            "ruleChains": ["modulate.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -11843,40 +10005,26 @@
         "default": {
           "wgsl": "pixel_shuffle.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "pixel_shuffle.rules.json#variant"
-            ],
+            "ruleChains": ["pixel_shuffle.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "f16": {
           "wgsl": "pixel_shuffle_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "pixel_shuffle.rules.json#variant"
-            ],
+            "ruleChains": ["pixel_shuffle.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -11940,11 +10088,7 @@
         "default": {
           "wgsl": "backward/cross_entropy_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -12033,11 +10177,7 @@
         "default": {
           "wgsl": "backward/adam.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -12086,11 +10226,7 @@
         "default": {
           "wgsl": "backward/bias_add_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -12159,11 +10295,7 @@
         "default": {
           "wgsl": "backward/upsample2d_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -12237,11 +10369,7 @@
         "default": {
           "wgsl": "backward/pixel_shuffle_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -12315,11 +10443,7 @@
         "default": {
           "wgsl": "backward/groupnorm_backward.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -12398,40 +10522,26 @@
         "default": {
           "wgsl": "linear_attention_summary.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "linear-attention.rules.json#variant"
-            ],
+            "ruleChains": ["linear-attention.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "linear_attention_summary_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "linear-attention.rules.json#variant"
-            ],
+            "ruleChains": ["linear-attention.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -12510,40 +10620,26 @@
         "default": {
           "wgsl": "linear_attention_apply.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "linear-attention.rules.json#variant"
-            ],
+            "ruleChains": ["linear-attention.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "linear_attention_apply_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "linear-attention.rules.json#variant"
-            ],
+            "ruleChains": ["linear-attention.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -12602,40 +10698,26 @@
         "default": {
           "wgsl": "repeat_channels.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "repeat-channels.rules.json#variant"
-            ],
+            "ruleChains": ["repeat-channels.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "repeat_channels_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "repeat-channels.rules.json#variant"
-            ],
+            "ruleChains": ["repeat-channels.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -12689,40 +10771,26 @@
         "default": {
           "wgsl": "relu.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "outputDtype": "f32",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "relu.rules.json#variant"
-            ],
+            "ruleChains": ["relu.rules.json#variant"],
             "wgslOnDisk": true
           }
         },
         "default_f16": {
           "wgsl": "relu_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "reachability": {
             "status": "selectable",
             "inlineConfigs": [],
-            "ruleChains": [
-              "relu.rules.json#variant"
-            ],
+            "ruleChains": ["relu.rules.json#variant"],
             "wgslOnDisk": true
           }
         }
@@ -12811,11 +10879,7 @@
         "default": {
           "wgsl": "backward/conv2d_backward_input.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -12909,11 +10973,7 @@
         "default": {
           "wgsl": "backward/conv2d_backward_weight.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
+          "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
             "status": "unused",
@@ -13067,14 +11127,8 @@
         "decode_bdpa_f16": {
           "wgsl": "attention_bdpa_decode_f16.wgsl",
           "entryPoint": "main",
-          "workgroup": [
-            256,
-            1,
-            1
-          ],
-          "requires": [
-            "shader-f16"
-          ],
+          "workgroup": [256,1,1],
+          "requires": ["shader-f16"],
           "outputDtype": "f16",
           "variantMetadata": {
             "maxKVLen": 2048

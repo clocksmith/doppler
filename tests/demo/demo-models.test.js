@@ -119,6 +119,7 @@ function readManifest(modelId) {
       ...DEMO_READY,
       modelId: 'gemma-3-1b-it-q4k-ehf16-af32',
       quickstart: true,
+      demoVisible: true,
       modes: ['text'],
       hf: {
         repoId: 'Clocksmith/rdrr',
@@ -169,12 +170,32 @@ function readManifest(modelId) {
   assert.deepEqual(
     selected.map((entry) => entry.modelId),
     ['gemma-3-1b-it-q4k-ehf16-af32', 'qwen-3-6-27b-q4k-ehaf16'],
-    'demo catalog should include quickstart text models and explicitly demo-visible text models'
+    'demo catalog should include only explicitly demo-visible text models'
   );
   assert.equal(
     selected[1].localBaseUrl,
     'http://localhost:8080/models/local/qwen-3-6-27b-q4k-ehaf16'
   );
+}
+
+{
+  const catalog = JSON.parse(readFileSync('models/catalog.json', 'utf8'));
+  const selected = selectDemoCatalogEntries(catalog.models);
+  assert.deepEqual(
+    selected.map((entry) => entry.modelId),
+    [
+      'gemma-3-270m-it-q4k-ehf16-af32',
+      'qwen-3-5-0-8b-q4k-ehaf16',
+      'qwen-3-5-2b-q4k-ehaf16',
+      'translategemma-4b-1b-enes-q4k-ehf16-af32',
+    ],
+    'public demo selector should stay limited to the curated browser model set'
+  );
+  for (const entry of selected) {
+    assert.ok(entry.lifecycle?.tested?.surface?.includes('browser'), `${entry.modelId} must have browser evidence`);
+    assert.ok(entry.demoLabel, `${entry.modelId} must have a compact demo label`);
+    assert.ok(entry.demoRole, `${entry.modelId} must explain its demo role`);
+  }
 }
 
 {
@@ -217,6 +238,7 @@ function readManifest(modelId) {
       weightPackId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1',
       demoPreferredVariantId: 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
       quickstart: true,
+      demoVisible: true,
       modes: ['text', 'vision'],
       sortOrder: 14,
     },
@@ -255,6 +277,7 @@ function readManifest(modelId) {
       ...DEMO_READY,
       modelId: 'missing-source-text-model',
       quickstart: true,
+      demoVisible: true,
       modes: ['text'],
       sortOrder: 20,
     },
@@ -262,6 +285,7 @@ function readManifest(modelId) {
       ...DEMO_READY,
       modelId: 'hf-backed-text-model',
       quickstart: true,
+      demoVisible: true,
       modes: ['text'],
       hf: {
         repoId: 'Clocksmith/rdrr',

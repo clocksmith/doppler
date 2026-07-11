@@ -67,10 +67,7 @@ function sizeLabel(bytes) {
 }
 
 function isDemoVisibleEntry(entry) {
-  if (entry?.demoVisible === false) {
-    return false;
-  }
-  return entry?.quickstart === true || entry?.demoVisible === true;
+  return entry?.demoVisible === true;
 }
 
 function getDemoWarningBadges(entry) {
@@ -623,13 +620,23 @@ export function renderModelCards() {
 
     const name = document.createElement('div');
     name.className = 'model-card-name';
-    name.textContent = entry.label;
+    name.textContent = typeof entry.demoLabel === 'string' && entry.demoLabel.trim()
+      ? entry.demoLabel.trim()
+      : entry.label;
+
+    const roleText = typeof entry.demoRole === 'string' ? entry.demoRole.trim() : '';
+    if (roleText) {
+      const role = document.createElement('div');
+      role.className = 'model-card-role';
+      role.textContent = roleText;
+      copy.appendChild(role);
+    }
 
     const detail = document.createElement('div');
     detail.className = 'model-card-detail';
     detail.textContent = buildModelCardDetail(entry, status);
 
-    copy.appendChild(name);
+    copy.prepend(name);
     copy.appendChild(detail);
 
     const warningBadges = getDemoWarningBadges(entry);
@@ -647,11 +654,8 @@ export function renderModelCards() {
 
     const warningText = getDemoWarningText(entry);
     if (warningText) {
-      const warning = document.createElement('div');
-      warning.className = 'model-card-warning';
-      warning.textContent = warningText;
-      copy.appendChild(warning);
       card.title = warningText;
+      card.setAttribute('aria-description', warningText);
     }
     top.appendChild(copy);
 

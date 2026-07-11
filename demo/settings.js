@@ -4,6 +4,8 @@ import { state } from './ui/state.js';
 
 function $(id) { return document.getElementById(id); }
 
+const DEMO_DEFAULT_MAX_TOKENS = 1024;
+
 const GENERATION_FIELDS = [
   { key: 'temperature', id: 'set-temperature', path: ['inference', 'sampling', 'temperature'], parse: parseFiniteNumber },
   { key: 'topK', id: 'set-top-k', path: ['inference', 'sampling', 'topK'], parse: parsePositiveInteger },
@@ -137,7 +139,10 @@ export async function initSettings({ requireDefaultProfile = false } = {}) {
   const toggle = $('settings-toggle');
   const panel = $('settings-panel');
   if (toggle && panel) {
-    toggle.addEventListener('click', () => panel.classList.toggle('is-open'));
+    toggle.addEventListener('click', () => {
+      const isOpen = panel.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', String(isOpen));
+    });
   }
 
   $('set-profile')?.addEventListener('change', (e) => {
@@ -152,5 +157,10 @@ export async function initSettings({ requireDefaultProfile = false } = {}) {
   }
 
   const defaultProfile = $('set-profile')?.value || 'profiles/default';
-  return applyProfile(defaultProfile, { required: requireDefaultProfile });
+  const applied = await applyProfile(defaultProfile, { required: requireDefaultProfile });
+  if (applied) {
+    writeField($('set-max-tokens'), DEMO_DEFAULT_MAX_TOKENS);
+    state.settings.maxTokens = DEMO_DEFAULT_MAX_TOKENS;
+  }
+  return applied;
 }

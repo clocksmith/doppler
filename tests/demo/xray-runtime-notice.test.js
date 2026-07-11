@@ -8,7 +8,7 @@ assert.equal(
     profilingEnabled: true,
     traceEnabled: false,
   }),
-  'Token Press is active. Decode, Kernel, and GPU X-Ray panels add per-step profiling; Batch stays unavailable.'
+  'Token logits runs stepwise; X-Ray profiling is on. Batch view is unavailable.'
 );
 
 assert.equal(
@@ -17,7 +17,7 @@ assert.equal(
     profilingEnabled: false,
     traceEnabled: false,
   }),
-  'Token Press is a separate generation mode. It runs step-by-step decode, so Batch stats stay unavailable.'
+  'Token logits runs stepwise. Batch view is unavailable.'
 );
 
 assert.equal(
@@ -26,7 +26,7 @@ assert.equal(
     profilingEnabled: true,
     traceEnabled: true,
   }),
-  'Decode, Kernel, and GPU X-Ray panels request extra profiling. Trace logging is separate.'
+  'X-Ray profiling is on. Trace logging is separate.'
 );
 
 assert.equal(
@@ -35,7 +35,7 @@ assert.equal(
     profilingEnabled: false,
     traceEnabled: true,
   }),
-  'Trace logging is active. It affects runtime logs, not X-Ray panel selection.'
+  'Trace logging is on; X-Ray selection is unchanged.'
 );
 
 assert.equal(

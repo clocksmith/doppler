@@ -164,7 +164,16 @@
   <div id="app" class="app-shell" hidden>
     <!-- Header -->
     <header class="app-header">
-      <h1 class="type-h2">Doppler</h1>
+      <div class="app-brand">
+        <div class="app-brand-line">
+          <h1 class="type-h2">Doppler</h1>
+          <nav class="app-links" aria-label="Doppler project links">
+            <a href="https://github.com/clocksmith/doppler">GitHub</a>
+            <a href="https://www.npmjs.com/package/doppler-gpu">npm</a>
+          </nav>
+        </div>
+        <p>Local WebGPU inference, inspected in your browser.</p>
+      </div>
       <div class="app-header-end">
         <button id="install-btn" class="btn btn-ghost" hidden>Install</button>
         <div id="status" class="status-chip">
@@ -177,38 +186,34 @@
     <!-- Model picker -->
     <section id="model-picker" class="model-picker">
       <div class="type-label">Model</div>
+      <p class="model-picker-help">Choose a model to run in your browser. Note the download size.</p>
       <div id="model-cards" class="model-cards"></div>
     </section>
 
-    <!-- Input -->
-    <section id="input-area" class="input-area">
-      <div class="input-row">
-        <textarea id="prompt-input" placeholder="Ask anything..." rows="3"></textarea>
-        <div class="input-actions">
-          <button id="shuffle-btn" class="btn btn-ghost" title="Random example">&#x21BB;</button>
-          <button id="run-btn" class="btn btn-primary" disabled>Run</button>
-          <button id="stop-btn" class="btn" hidden>Stop</button>
-        </div>
+    <!-- Primary inspection controls -->
+    <section class="primary-controls" aria-label="Primary inspection settings">
+      <div class="primary-control-list">
+        <label class="primary-control" title="Show every inference-internals panel.">
+          <input id="xray-toggle-all" type="checkbox">
+          <span>
+            <strong>X-Ray</strong>
+            <small>all internals</small>
+          </span>
+        </label>
+        <label class="primary-control" title="Run stepwise generation with token choices and confidence underlines.">
+          <input id="set-token-press" type="checkbox">
+          <span>
+            <strong>Token logits</strong>
+            <small>choices + confidence</small>
+          </span>
+        </label>
       </div>
-      <div id="image-drop" class="image-drop-zone">Drop image here</div>
-    </section>
-
-    <!-- Output -->
-    <section id="output-area" class="output-area">
-      <div class="output-header">
-        <span id="output-phase" class="output-phase"></span>
-        <span id="output-toks" class="output-toks"></span>
-      </div>
-      <div id="output-prefill-bar" class="output-prefill-bar" style="width: 0%"></div>
-      <div id="output-text" class="output-text"></div>
-      <!-- Token press container (optional) -->
-      <div id="token-press-output" hidden></div>
-      <div id="token-press-controls" hidden></div>
+      <div id="runtime-notice" class="runtime-notice" hidden></div>
     </section>
 
     <!-- Settings -->
     <section class="settings-area">
-      <button id="settings-toggle" class="btn btn-ghost">Settings</button>
+      <button id="settings-toggle" class="btn btn-ghost" type="button" aria-expanded="false" aria-controls="settings-panel">More settings</button>
       <div id="settings-panel" class="settings-panel">
         <!-- Profile — loads a full runtime config, populates fields below -->
         <div class="setting-field">
@@ -239,7 +244,7 @@
           </div>
           <div class="setting-field">
             <label for="set-max-tokens" title="inference.generation.maxTokens — Stop after N tokens. Also stops on EOS.">Max Tokens</label>
-            <input id="set-max-tokens" type="number" min="1" step="1" value="256">
+            <input id="set-max-tokens" type="number" min="1" step="1" value="1024">
           </div>
           <div class="setting-field">
             <label for="set-batch-max-tokens" title="inference.batching.maxTokens — Tokens per GPU dispatch. Higher = throughput, more VRAM.">Batch Size</label>
@@ -275,9 +280,6 @@
           <label class="checkbox-label checkbox-label--inline" title="Capture per-kernel and per-layer timing. Required for X-Ray decode/kernel panels. Adds overhead.">
             <input id="set-trace" type="checkbox"> Trace
           </label>
-          <label class="checkbox-label checkbox-label--inline" title="Step-by-step token visualization with top-K candidates and confidence underline.">
-            <input id="set-token-press" type="checkbox"> Token Press
-          </label>
           <label class="checkbox-label checkbox-label--inline" title="Show tokens-per-second during decode. Needs Readback > 0 for real-time updates.">
             <input id="set-live-toks" type="checkbox"> Live tok/s
           </label>
@@ -285,34 +287,76 @@
       </div>
     </section>
 
-    <!-- Xray -->
-    <section class="xray-area">
-      <div class="xray-toggle-row">
-        <span class="type-label" title="Debug visualization panels for inference internals.">X-Ray</span>
-        <div class="xray-toggle-list">
-          <label class="checkbox-label checkbox-label--inline" title="Decode waterfall: per-step timing breakdown."><input id="xray-toggle-decode" type="checkbox"> Decode</label>
-          <label class="checkbox-label checkbox-label--inline" title="KV cache occupancy, layout, and eviction stats."><input id="xray-toggle-kv" type="checkbox"> KV Cache</label>
-          <label class="checkbox-label checkbox-label--inline" title="Per-kernel dispatch timing and workgroup counts."><input id="xray-toggle-kernel" type="checkbox"> Kernel</label>
-          <label class="checkbox-label checkbox-label--inline" title="GPU pipeline state, submit latency, and device info."><input id="xray-toggle-gpu" type="checkbox"> GPU</label>
-          <label class="checkbox-label checkbox-label--inline" title="Execution plan: resolved op graph and step order."><input id="xray-toggle-exec" type="checkbox"> Exec</label>
-          <label class="checkbox-label checkbox-label--inline" title="Memory breakdown: buffer pool, heap, and tensor sizes."><input id="xray-toggle-mem" type="checkbox"> Memory</label>
-          <label class="checkbox-label checkbox-label--inline" title="Batching stats: batch sizes, guard reasons, and throughput."><input id="xray-toggle-batch" type="checkbox"> Batch</label>
+    <!-- Output -->
+    <section id="output-area" class="output-area">
+      <div class="output-header">
+        <span id="output-phase" class="output-phase"></span>
+        <span id="output-toks" class="output-toks"></span>
+      </div>
+      <div class="context-bar" aria-label="Chat context controls">
+        <label class="checkbox-label checkbox-label--inline" title="Include saved turns in the next prompt without deleting them when disabled.">
+          <input id="history-toggle" type="checkbox" checked> Chat history
+        </label>
+        <label class="context-limit-label" for="history-limit">
+          Send
+          <select id="history-limit" aria-label="Chat history turn limit">
+            <option value="4">4 turns</option>
+            <option value="8" selected>8 turns</option>
+            <option value="16">16 turns</option>
+          </select>
+        </label>
+        <span id="history-status" class="context-status" aria-live="polite">0 turns</span>
+        <button id="clear-history-btn" class="btn btn-ghost btn-small" type="button" disabled>Clear chat</button>
+      </div>
+      <div id="output-prefill-bar" class="output-prefill-bar" style="width: 0%"></div>
+      <div class="chat-surface">
+        <div id="chat-thread" class="chat-thread" aria-live="polite">
+          <p id="chat-empty" class="chat-empty">Start a conversation.</p>
+        </div>
+        <article id="live-assistant-message" class="chat-message chat-message--assistant" hidden>
+          <div class="chat-role">Doppler</div>
+          <div id="output-text" class="output-text"></div>
+          <!-- Token logits container (optional) -->
+          <div id="token-press-output" hidden></div>
+          <div id="token-press-controls" hidden></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Chat composer -->
+    <section id="input-area" class="input-area">
+      <div class="input-row">
+        <textarea id="prompt-input" placeholder="Message Doppler..." rows="3"></textarea>
+        <div class="input-actions">
+          <button id="shuffle-btn" class="btn btn-ghost" title="Random example">&#x21BB; Shuffle</button>
+          <button id="run-btn" class="btn btn-primary run-btn" disabled><span aria-hidden="true">&#x25B8;</span> Run</button>
+          <button id="stop-btn" class="btn" hidden>Stop</button>
         </div>
       </div>
-      <div id="runtime-notice" class="runtime-notice" hidden></div>
+      <div id="image-drop" class="image-drop-zone">Drop image here</div>
     </section>
+
     <div id="xray-container" hidden></div>
 
-    <section class="precision-replay-area">
-      <div class="precision-replay-toggle-row">
-        <span class="type-label" title="Checked-in Gemma 3 270M slice replay showing how accumulator precision changes the final token ranking.">Precision replay</span>
-        <label class="checkbox-label" title="Show the precision-collapse replay panel.">
-          <input id="precision-replay-toggle" type="checkbox"> Demo
-        </label>
-        <span id="precision-replay-status" class="precision-replay-status">Loading checked-in evidence...</span>
+    <!-- Report -->
+    <div class="report-bar">
+      <div class="report-actions">
+        <button id="export-btn" class="btn btn-ghost" disabled>Export JSON</button>
+        <button id="import-btn" class="btn btn-ghost" type="button">Import JSON</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden>
+        <button id="export-transcript-btn" class="btn btn-ghost" disabled title="Export a doppler.reference-transcript/v1 receipt for the last run. Capture must be enabled before running.">Export transcript</button>
+        <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Expand checked-in precision evidence.">Precision replay</button>
+        <span id="precision-replay-status" class="precision-replay-status">Loading evidence...</span>
       </div>
+      <label class="report-bar-toggle">
+        <input id="capture-transcript-toggle" type="checkbox" />
+        <span>Capture reference transcript</span>
+      </label>
+    </div>
+
+    <section class="precision-replay-area">
       <div id="precision-replay-panel" class="precision-replay-panel" hidden>
-        <p class="precision-replay-note">This panel replays checked-in Gemma 3 270M slices from the stable Doppler report. It does not need a live model load to reproduce the accumulator cliff.</p>
+        <p class="precision-replay-note">Checked-in Gemma 3 270M scores; no model load.</p>
         <div id="precision-replay-stats" class="precision-replay-stats"></div>
         <div class="precision-replay-controls">
           <div class="setting-field">
@@ -358,16 +402,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Report -->
-    <div class="report-bar">
-      <button id="export-btn" class="btn btn-ghost" disabled>Export JSON</button>
-      <button id="export-transcript-btn" class="btn btn-ghost" disabled title="Export a doppler.reference-transcript/v1 receipt for the last run. Capture must be enabled before running.">Export Reference Transcript</button>
-      <label class="report-bar-toggle">
-        <input id="capture-transcript-toggle" type="checkbox" />
-        <span>Capture reference transcript (per-step logits + KV bytes)</span>
-      </label>
-    </div>
 
     <section id="translate-compare-shell" hidden>
       <div id="translate-compare-layout"></div>

@@ -42,7 +42,7 @@ async function init() {
   setRunHandler(runGeneration);
   $('stop-btn')?.addEventListener('click', stopGeneration);
 
-  // Init xray (reads URL ?xray= flags, wires per-panel checkboxes)
+  // Init xray (reads URL ?xray= flags, wires the all-panels checkbox)
   try {
     initXray({ onChange: refreshRuntimeNotice });
   } catch {
