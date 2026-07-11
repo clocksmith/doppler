@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const PROFILE_PATH = new URL(
-  '../../src/config/runtime/profiles/translategemma-1b-savant-q4k-rdna3-throughput-probe.json',
+  '../../src/config/runtime/profiles/translategemma-1b-nativekd2-q4k-rdna3-throughput-probe.json',
   import.meta.url
 );
 
@@ -11,7 +11,7 @@ const session = profile.runtime?.inference?.session;
 
 assert.equal(
   profile.id,
-  'profiles/translategemma-1b-savant-q4k-rdna3-throughput-probe'
+  'profiles/translategemma-1b-nativekd2-q4k-rdna3-throughput-probe'
 );
 assert.equal(profile.intent, 'calibrate');
 assert.equal(profile.stability, 'experimental');
@@ -25,4 +25,4 @@ assert.equal(session?.useFusedQKVSplitQKNormRoPE, true);
 assert.equal(profile.runtime?.inference?.batching, undefined);
 assert.equal(session?.decodeLoop, undefined);
 
-console.log('translategemma-savant-runtime-profile-contract.test: ok');
+console.log('translategemma-nativekd2-runtime-profile-contract.test: ok');

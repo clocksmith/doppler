@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-07-05",
+  "updatedAt": "2026-07-11",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -821,6 +821,73 @@
       "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": true
+    },
+    {
+      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "family": "translategemma",
+      "label": "TranslateGemma 1B EN/ES Student (NativeKD2 Q4K)",
+      "description": "Experimental-tier English/Spanish translation specialist distilled from TranslateGemma 4B into Gemma 3 1B. The hosted Q4K artifact has deterministic WMT13 and browser/WebGPU evidence; quality and performance claims remain limited to the recorded EN/ES and Radeon/Vulkan receipts.",
+      "modes": [
+        "translate"
+      ],
+      "aliases": [
+        "translategemma-enes-1b",
+        "translategemma-nativekd2-enes-1b",
+        "translategemma-1b-translation-student"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32",
+        "revision": "1e2c047357f07dfe45a8effc2fa915acd73999ee"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": true,
+      "demoWarningBadges": [
+        "Experimental",
+        "EN ↔ ES only"
+      ],
+      "demoWarningText": "Experimental translation specialist. Public evidence is limited to EN/ES and does not establish general multilingual quality.",
+      "sizeBytes": 1025493248,
+      "recommended": false,
+      "sortOrder": 14.9,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "compare",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "translation-quality",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-11",
+          "source": "runtime-verify",
+          "notes": "The exact Q4K artifact passed shard integrity, deterministic EN/ES smoke outputs, 8/8 repeated-token checks, and a 128-row WMT13 evaluation at 31.9149 BLEU / 58.2124 chrF. Baseline and optimized Doppler outputs match 128/128. The pinned hosted revision also passed browser/WebGPU verification and a 2+3-run optimized benchmark with exact expected output. Experimental visibility preserves the measured 2.2748 BLEU / 1.7264 chrF Q4K gap to the source BF16 checkpoint and does not imply Apple Metal evidence.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
+      "weightPackId": "translategemma-4b-1b-enes-q4k-ehf16-af32-wp-16acf07340bd",
+      "manifestVariantId": "translategemma-4b-1b-enes-q4k-ehf16-af32-mv-b3c719ee90e7",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
     },
     {
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",

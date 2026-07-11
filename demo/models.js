@@ -407,6 +407,7 @@ function resolveEntrySource(entry, localBaseUrls) {
 export function selectDemoCatalogEntries(models, options = {}) {
   return selectCatalogModelLanes(models, {
     ...options,
+    supportedModes: ['text', 'translate'],
     isVisibleEntry: isDemoVisibleEntry,
     hasSource: (entry) => Boolean(resolveEntrySource(
       entry,

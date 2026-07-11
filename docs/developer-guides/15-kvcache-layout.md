@@ -57,5 +57,5 @@ Add a new KV-cache layout or inference memory-management strategy.
 - `src/config/schema/kvcache.schema.js`
 - `src/inference/pipelines/text/init.js`
 - `src/inference/kv-cache/index.js`
-- `src/inference/README.md`
+- `src/inference/GUIDE.md`
 - [../architecture.md](../architecture.md)

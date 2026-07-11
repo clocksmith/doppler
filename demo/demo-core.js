@@ -431,24 +431,38 @@ const TRANSLATE_COMPARE_SMOKE_SAMPLES = Object.freeze([
   }),
 ]);
 const TRANSLATE_COMPARE_EVIDENCE_FALLBACK = Object.freeze({
-  updatedAt: null,
-  summary: 'Awaiting frozen Gamma evidence bundle.',
-  caution: 'Student metrics and receipts are intentionally blank until the selected checkpoint is frozen.',
+  schemaVersion: 1,
+  updatedAt: '2026-07-11',
+  summary: 'The experimental 1B EN/ES student is 67.6% smaller than the 4B teacher while preserving deterministic browser-ready translation behavior.',
+  caution: 'Experimental EN/ES-only evidence. Student and teacher scores use the same fixed 128-row WMT13 corpus but separate deterministic runtime receipts; the Q4K student trails the teacher on BLEU and chrF.',
   teacher: Object.freeze({
-    label: 'Teacher',
+    label: 'Teacher (TranslateGemma 4B)',
     modelId: TRANSLATE_COMPARE_DEFAULT_BASELINE_MODEL_ID,
-    bleu: null,
-    chrf: null,
-    sizeBytes: 3167327178,
+    bleu: 33.69725818764181,
+    chrf: 60.80110939124903,
+    sizeBytes: 3167500395,
   }),
   student: Object.freeze({
-    label: 'Student',
-    modelId: null,
-    bleu: null,
-    chrf: null,
-    sizeBytes: null,
+    label: 'Experimental EN/ES 1B student',
+    modelId: TRANSLATE_COMPARE_DEFAULT_STUDENT_MODEL_ID,
+    bleu: 31.914861871372885,
+    chrf: 58.21235700409009,
+    sizeBytes: 1025493248,
   }),
-  receipts: Object.freeze([]),
+  receipts: Object.freeze([
+    Object.freeze({
+      label: 'Doppler Q4K WMT13 receipt',
+      href: 'https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/translategemma-nativekd2/quality-wmt13/translategemma-nativekd2-wmt13-enes-128_20260711T012704Z.receipt.json',
+    }),
+    Object.freeze({
+      label: 'Hosted browser/WebGPU benchmark',
+      href: 'https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json',
+    }),
+    Object.freeze({
+      label: 'Translation promotion receipt',
+      href: 'https://github.com/clocksmith/doppler/blob/main/docs/status/translategemma-nativekd2-doppler-2026-07-11.md',
+    }),
+  ]),
 });
 const TRANSFORMERSJS_IMPORT_CANDIDATES = Object.freeze([
   '/node_modules/@huggingface/transformers/dist/transformers.web.min.js',

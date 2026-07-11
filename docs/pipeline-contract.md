@@ -78,5 +78,5 @@ Any unresolved selection path is a contract error before dispatch.
 ## Related
 
 - System model: [architecture.md](architecture.md)
-- Inference implementation details: [../src/inference/README.md](../src/inference/README.md)
+- Inference implementation details: [../src/inference/GUIDE.md](../src/inference/GUIDE.md)
 - Format contracts: [rdrr-format.md](rdrr-format.md)

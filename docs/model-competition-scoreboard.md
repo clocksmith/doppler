@@ -3,13 +3,13 @@
 Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.
 This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.
 
-Updated at: 2026-07-10T01:44:50.047Z
+Updated at: 2026-07-11T00:00:00.000Z
 
 ## Summary
 
-- Catalog models: 23
-- Runtime-verified models: 20
-- HF-published models: 14
+- Catalog models: 24
+- Runtime-verified models: 21
+- HF-published models: 15
 - Failed models: 1
 - Verification-needed models: 2
 - Generation compare rows: 15
@@ -22,7 +22,7 @@ Updated at: 2026-07-10T01:44:50.047Z
 - Transformers.js embedding latency-leading rows: 1
 - Doppler rerank latency-leading rows: 1
 - Transformers.js rerank latency-leading rows: 0
-- Evidence-incomplete rows: 28
+- Evidence-incomplete rows: 29
 
 ## Claim Status Rules
 
@@ -94,6 +94,7 @@ Updated at: 2026-07-10T01:44:50.047Z
 | qwen-3-6-27b-q4k-eaf16 | text | Clocksmith/rdrr@3dee21b3b12d65ac7fef9b24cbf759cacc953a67<br>models/qwen-3-6-27b-q4k-eaf16 | browser:verified<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json |
 | qwen-3-6-27b-q4k-ehaf16 | text | Clocksmith/rdrr@b402f6f27837857d51636da5f78c12bcd47e2a03<br>models/qwen-3-6-27b-q4k-ehaf16 | browser:verified<br>node:missing<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json |
 | qwen-3-reranker-0-6b-f16-af32 | rerank | Clocksmith/rdrr@cc1fafff8cda609372b608cd92e487f6a2c32bc8<br>models/qwen-3-reranker-0-6b-f16-af32 | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json |
+| translategemma-4b-1b-enes-q4k-ehf16-af32 | translate | Clocksmith/rdrr@1e2c047357f07dfe45a8effc2fa915acd73999ee<br>models/translategemma-4b-1b-enes-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs | capability-only<br>benchmark-lane-capability-only | benchmark-lane-capability-only | benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json |
 | translategemma-4b-it-q4k-ehf16-af32 | generation | Clocksmith/rdrr@6fc46049882e961a57d1690ba1ffde21677d001a<br>models/translategemma-4b-it-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/translategemma-text-4b-it-ONNX<br>onnx/q4f16 | candidate<br>compare-result | chromium-webgpu<br>p064-d064-t0-k1<br>p256-d128-t0-k1<br>p512-d128-t0-k1<br>parity<br>throughput<br>chromium-webgpu:p064-d064-t0-k1<br>chromium-webgpu:p256-d128-t0-k1<br>chromium-webgpu:p512-d128-t0-k1 | reports/release-claims/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json |
 
 ## Next Commands

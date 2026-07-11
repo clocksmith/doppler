@@ -12,7 +12,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:14f4e1dde8e438b97a2c5ba2ad495616d0abae647f1882523990d5e9ea88e1f6",
+    "conversionConfigDigest": "sha256:e1a07175c0b34d9a746c4c6613f5a8557249d5755a25ecbdda2004ba2fb2343d",
     "conversionConfigPath": "src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json",
     "manifestVariantId": "translategemma-4b-1b-enes-q4k-ehf16-af32-mv-b3c719ee90e7",
     "materializationProfile": "auto",
@@ -20,7 +20,7 @@
       "text"
     ],
     "shardSetHash": "sha256:916693349fb4528e3a188db1dc484ac0c794cbb2d858c50a659ceb0df61e2001",
-    "sourceCheckpointId": "file:///home/x/deco/gamma/projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed/checkpoint-000025",
+    "sourceCheckpointId": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
     "sourceFormat": "safetensors",
     "weightPackHash": "sha256:16acf07340bdea908fc4096d03c21a473135739b292bae1a22ee641703e46fc4",
     "weightPackId": "translategemma-4b-1b-enes-q4k-ehf16-af32-wp-16acf07340bd"
@@ -100,7 +100,7 @@
       "tieWordEmbeddings": true,
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
-      "embeddingVocabSize": 262144,
+      "embeddingVocabSize": null,
       "embeddingPostprocessor": null,
       "embeddingScale": null,
       "logitInputScale": 1
@@ -446,6 +446,7 @@
       "filename": "shard_00000.bin",
       "size": 67108864,
       "hash": "d131d7f6c16207e77a1d192e7064c7576c35d68add8bda7d25ab84ce91c8835e",
+      "blake3": "d131d7f6c16207e77a1d192e7064c7576c35d68add8bda7d25ab84ce91c8835e",
       "offset": 0
     },
     {
@@ -453,6 +454,7 @@
       "filename": "shard_00001.bin",
       "size": 67108864,
       "hash": "29b3602ce153e3f0042b41c5ed95da88c30c5daea38d0a5315df2ed8d19e9277",
+      "blake3": "29b3602ce153e3f0042b41c5ed95da88c30c5daea38d0a5315df2ed8d19e9277",
       "offset": 67108864
     },
     {
@@ -460,6 +462,7 @@
       "filename": "shard_00002.bin",
       "size": 67108864,
       "hash": "7550100a833d58db59f9b6d37751a2853b9ef0910680a2615e7ae6626ca7e52d",
+      "blake3": "7550100a833d58db59f9b6d37751a2853b9ef0910680a2615e7ae6626ca7e52d",
       "offset": 134217728
     },
     {
@@ -467,6 +470,7 @@
       "filename": "shard_00003.bin",
       "size": 67108864,
       "hash": "93eada898b0833122e1f654eeefcf548f14b77f6542634d6cb28aba883b24ce5",
+      "blake3": "93eada898b0833122e1f654eeefcf548f14b77f6542634d6cb28aba883b24ce5",
       "offset": 201326592
     },
     {
@@ -474,6 +478,7 @@
       "filename": "shard_00004.bin",
       "size": 67108864,
       "hash": "133c80ac9119302ca1f5fa0087ea8d8adcd0e27602bd362e23894ac88b88ca9e",
+      "blake3": "133c80ac9119302ca1f5fa0087ea8d8adcd0e27602bd362e23894ac88b88ca9e",
       "offset": 268435456
     },
     {
@@ -481,6 +486,7 @@
       "filename": "shard_00005.bin",
       "size": 67108864,
       "hash": "dddbe9dac42493b004cb5c00fb1813106b1376d7eede45d5fd460e61c03e7e63",
+      "blake3": "dddbe9dac42493b004cb5c00fb1813106b1376d7eede45d5fd460e61c03e7e63",
       "offset": 335544320
     },
     {
@@ -488,6 +494,7 @@
       "filename": "shard_00006.bin",
       "size": 67108864,
       "hash": "0518b0f45a4ee502d7ac7de55ff1d65fac94953adfb00f8f8adefc43cc736926",
+      "blake3": "0518b0f45a4ee502d7ac7de55ff1d65fac94953adfb00f8f8adefc43cc736926",
       "offset": 402653184
     },
     {
@@ -495,6 +502,7 @@
       "filename": "shard_00007.bin",
       "size": 67108864,
       "hash": "fd8112f0840b225d009ac889df884df4e4e6f592e68f6af7fe8b8ed0b1d94529",
+      "blake3": "fd8112f0840b225d009ac889df884df4e4e6f592e68f6af7fe8b8ed0b1d94529",
       "offset": 469762048
     },
     {
@@ -502,6 +510,7 @@
       "filename": "shard_00008.bin",
       "size": 67108864,
       "hash": "5671d65845227d36853e6778749cc021d78baef447d95b6c5fd2ff1bbdad10a9",
+      "blake3": "5671d65845227d36853e6778749cc021d78baef447d95b6c5fd2ff1bbdad10a9",
       "offset": 536870912
     },
     {
@@ -509,6 +518,7 @@
       "filename": "shard_00009.bin",
       "size": 67108864,
       "hash": "9cdcbd75b78e6807414e4feb62de18d29b4c9fc96eba50de5950162b3f2e7558",
+      "blake3": "9cdcbd75b78e6807414e4feb62de18d29b4c9fc96eba50de5950162b3f2e7558",
       "offset": 603979776
     },
     {
@@ -516,6 +526,7 @@
       "filename": "shard_00010.bin",
       "size": 67108864,
       "hash": "cb54da5bd1180b66f77c15c40d943ad88332abf0dd24e30e9eca61beeb4055d6",
+      "blake3": "cb54da5bd1180b66f77c15c40d943ad88332abf0dd24e30e9eca61beeb4055d6",
       "offset": 671088640
     },
     {
@@ -523,6 +534,7 @@
       "filename": "shard_00011.bin",
       "size": 67108864,
       "hash": "3192759dad85e38c9cbfa84d67949d8efe0e3a2d9c1a180fa3cccbf92f415c4b",
+      "blake3": "3192759dad85e38c9cbfa84d67949d8efe0e3a2d9c1a180fa3cccbf92f415c4b",
       "offset": 738197504
     },
     {
@@ -530,6 +542,7 @@
       "filename": "shard_00012.bin",
       "size": 67108864,
       "hash": "ca573de37d2ae350dff4cc2ca0d017ba27115b2858f463214eeaae7525039ce6",
+      "blake3": "ca573de37d2ae350dff4cc2ca0d017ba27115b2858f463214eeaae7525039ce6",
       "offset": 805306368
     },
     {
@@ -537,6 +550,7 @@
       "filename": "shard_00013.bin",
       "size": 67108864,
       "hash": "4abeed2a2cac6d819bce6f3333602f97d639dd806d7b4ca93cf2956286487a4a",
+      "blake3": "4abeed2a2cac6d819bce6f3333602f97d639dd806d7b4ca93cf2956286487a4a",
       "offset": 872415232
     },
     {
@@ -544,6 +558,7 @@
       "filename": "shard_00014.bin",
       "size": 67108864,
       "hash": "59ed5c76c9a7320182d16c80db8469186e5bcc696c17397df498af7a42f53fdb",
+      "blake3": "59ed5c76c9a7320182d16c80db8469186e5bcc696c17397df498af7a42f53fdb",
       "offset": 939524096
     },
     {
@@ -551,6 +566,7 @@
       "filename": "shard_00015.bin",
       "size": 18860288,
       "hash": "671b5387c2ba7ab7fb3dce7f90ee8e808bb42a6f21b5d809f26d39c3a2801d91",
+      "blake3": "671b5387c2ba7ab7fb3dce7f90ee8e808bb42a6f21b5d809f26d39c3a2801d91",
       "offset": 1006632960
     }
   ],
@@ -4774,9 +4790,13 @@
   ],
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/deco/gamma/projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed/checkpoint-000025",
+    "source": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
     "convertedAt": "2026-07-11T00:54:07.571Z",
-    "hasTokenizer": true
+    "hasTokenizer": true,
+    "manifestRefresh": {
+      "at": "2026-07-11T11:41:37.184Z",
+      "config": "translategemma-4b-1b-enes-q4k-ehf16-af32.json"
+    }
   },
   "tokenizer": {
     "type": "bundled",

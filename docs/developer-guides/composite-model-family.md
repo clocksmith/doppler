@@ -64,6 +64,6 @@ Onboard a new model family that still fits an existing Doppler pipeline family.
 
 ## Canonical References
 
-- `src/inference/README.md`
+- `src/inference/GUIDE.md`
 - [../style/general-style-guide.md](../style/general-style-guide.md)
 - [../model-promotion-playbook.md](../model-promotion-playbook.md)

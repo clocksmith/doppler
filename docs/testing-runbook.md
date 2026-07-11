@@ -61,8 +61,8 @@ Canonical guide for running Doppler tests.
 
 - Debug workflow and boundary-diff protocol: [debug-playbook.md](debug-playbook.md)
 - Debug report template: [debug-investigation-template.md](debug-investigation-template.md)
-- Test harness details: [../tests/README.md](../tests/README.md)
-- Kernel coverage details: [../tests/kernels/README.md](../tests/kernels/README.md)
+- Test harness details: [../tests/GUIDE.md](../tests/GUIDE.md)
+- Kernel coverage details: [../tests/kernels/GUIDE.md](../tests/kernels/GUIDE.md)
 - Kernel benchmark baselines: [../tests/kernels/benchmarks.md](../tests/kernels/benchmarks.md)
 - Kernel test design guidance: [kernel-testing-design.md](kernel-testing-design.md)
 - Kernel override policy (canonical): [operations.md#kernel-overrides--compatibility](operations.md#kernel-overrides--compatibility)

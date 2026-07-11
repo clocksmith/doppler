@@ -13,10 +13,13 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 - Advanced model-handle APIs for deterministic downstream scoring and prefix
   reuse: `tokenizeText()`, `prefillWithTokenLogits()`,
   `prefillWithTokenLogitsFromKV()`, and stateful `resetToSeqLen()` truncation.
-- Local Savant NativeKD2 English/Spanish translation evidence, including the
+- NativeKD2 English/Spanish translation-student evidence, including the
   converted Q4K artifact, WMT13 quality receipts, translation benchmark
-  tooling, and an experimental Radeon/RDNA3 throughput profile. This is local
-  evidence, not a hosted model or public cross-engine claim.
+  tooling, and an experimental Radeon/RDNA3 throughput profile.
+- Experimental-tier catalog, hosted-artifact, and demo compare promotion for
+  the 1B EN/ES translation student, with frozen Q4K metrics and explicit
+  language, platform, and cross-runtime evidence boundaries, plus a pinned
+  hosted browser/WebGPU benchmark receipt.
 
 ### Changed
 
@@ -24,6 +27,8 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
   model-download, and GPU validation remain explicit hardware workflows.
 - Kept the receipt-linked README evidence chart in GitHub without duplicating
   that documentation asset in the npm tarball.
+- Renamed nested repository guides so npm no longer force-includes them,
+  preserving the 1,349-file package boundary without removing runtime code.
 
 ### Fixed
 

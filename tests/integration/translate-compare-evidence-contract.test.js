@@ -15,5 +15,8 @@ assert.match(doc, /student\.modelId/);
 assert.match(doc, /If a metric is not frozen yet, send `null`/);
 
 assert.match(demoSource, /Baseline parity is currently unsupported in public TJS ONNX exports/);
+assert.match(demoSource, /Experimental EN\/ES 1B student/);
+assert.match(demoSource, /31\.914861871372885/);
+assert.match(demoSource, /Hosted browser\/WebGPU benchmark/);
 
 console.log('translate-compare-evidence-contract.test: ok');

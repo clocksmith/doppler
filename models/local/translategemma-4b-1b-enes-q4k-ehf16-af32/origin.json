@@ -1,0 +1,9 @@
+{
+  "sourceModel": "TranslateGemma 4B to Gemma 3 1B EN/ES NativeKD2 checkpoint 25",
+  "sourceRepo": "clocksmith/gamma",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
+  "sourceCheckpointId": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
+  "variant": "nativekd2-enes-q4k-ehf16-af32",
+  "convertedAt": "2026-07-11T00:54:07.571Z"
+}

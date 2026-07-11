@@ -65,6 +65,20 @@ function defaultHasSource(entry, localBaseUrls) {
   return hasHfSource(entry);
 }
 
+function normalizeSupportedModes(value) {
+  const modes = Array.isArray(value) ? value : ['text'];
+  return new Set(
+    modes
+      .map((mode) => (typeof mode === 'string' ? mode.trim() : ''))
+      .filter((mode) => mode.length > 0)
+  );
+}
+
+function hasSupportedMode(entry, supportedModes) {
+  return Array.isArray(entry?.modes)
+    && entry.modes.some((mode) => supportedModes.has(mode));
+}
+
 function buildSurfacedWeightsRefEntry(weightsRefEntry, primary, localBaseUrls) {
   const merged = { ...weightsRefEntry };
   for (const key of ['demoWarningBadges', 'demoWarningText', 'recommended', 'sortOrder', 'sizeBytes', 'quickstart']) {
@@ -94,6 +108,7 @@ function buildSurfacedWeightsRefEntry(weightsRefEntry, primary, localBaseUrls) {
 export function selectCatalogModelLanes(catalogEntries, options = {}) {
   const entries = Array.isArray(catalogEntries) ? catalogEntries : [];
   const localBaseUrls = options.localBaseUrls instanceof Map ? options.localBaseUrls : new Map();
+  const supportedModes = normalizeSupportedModes(options.supportedModes);
   const isVisibleEntry = typeof options.isVisibleEntry === 'function'
     ? options.isVisibleEntry
     : defaultIsVisibleEntry;
@@ -103,7 +118,7 @@ export function selectCatalogModelLanes(catalogEntries, options = {}) {
 
   const primaryByWeightPackId = new Map();
   for (const entry of entries) {
-    if (!entry?.modes?.includes('text')) continue;
+    if (!hasSupportedMode(entry, supportedModes)) continue;
     if (!isVisibleEntry(entry)) continue;
     if (!isManifestOwnedLane(entry)) continue;
     if (!isPrimaryWeightPackLane(entry, entry?.weightPackId)) continue;
@@ -115,7 +130,7 @@ export function selectCatalogModelLanes(catalogEntries, options = {}) {
 
   const preferredByPrimaryId = new Map();
   for (const entry of entries) {
-    if (!entry?.modes?.includes('text')) continue;
+    if (!hasSupportedMode(entry, supportedModes)) continue;
     if (!isWeightsRefLane(entry)) continue;
     if (entry?.weightsRefAllowed !== true) continue;
     if (!isVerifiedManifestOwnedLane(entry)) continue;
@@ -131,7 +146,7 @@ export function selectCatalogModelLanes(catalogEntries, options = {}) {
 
   const selected = [];
   for (const entry of entries) {
-    if (!entry?.modes?.includes('text')) continue;
+    if (!hasSupportedMode(entry, supportedModes)) continue;
     if (!isVisibleEntry(entry)) continue;
     if (!isManifestOwnedLane(entry)) continue;
     if (!isPrimaryWeightPackLane(entry, entry?.weightPackId)) continue;

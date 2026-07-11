@@ -145,7 +145,7 @@
         "Benchmark Config Split (Required)",
         "Profile Registry Metadata (Required)"
       ],
-      "mergeProposal": "Keep standalone. Heavily referenced by src/config/README.md, docs/config.md, and every skill. No collapse target.",
+      "mergeProposal": "Keep standalone. Heavily referenced by src/config/GUIDE.md, docs/config.md, and every skill. No collapse target.",
       "risk": "low"
     },
     {
@@ -250,7 +250,7 @@
       ]
     },
     "code": {
-      "paths": ["src/config/README.md (→ config-style-guide.md)"]
+      "paths": ["src/config/GUIDE.md (→ config-style-guide.md)"]
     }
   },
   "recommendedMergeOrder": [

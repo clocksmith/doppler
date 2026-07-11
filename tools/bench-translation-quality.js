@@ -169,11 +169,7 @@ async function loadConfig(configPath) {
     model: {
       modelId: requireString(model.modelId, 'model.modelId'),
       modelDir: resolveConfigPath(configDir, model.modelDir, 'model.modelDir'),
-      sourceCheckpoint: resolveConfigPath(
-        configDir,
-        model.sourceCheckpoint,
-        'model.sourceCheckpoint'
-      ),
+      sourceCheckpointId: requireString(model.sourceCheckpointId, 'model.sourceCheckpointId'),
     },
     sharedContract: {
       datasetPath: resolveConfigPath(
@@ -592,7 +588,7 @@ async function writeArtifacts(config, datasetRaw, baselineRaw, datasetRows, base
       modelId: config.model.modelId,
       modelDir: config.model.modelDir,
       manifestSha256: sha256(manifestRaw),
-      sourceCheckpoint: config.model.sourceCheckpoint,
+      sourceCheckpointId: config.model.sourceCheckpointId,
     },
     dataset: {
       path: config.sharedContract.datasetPath,

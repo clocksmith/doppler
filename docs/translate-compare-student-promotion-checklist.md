@@ -39,8 +39,9 @@ Need from Gamma:
    - Use deterministic translation settings.
    - Record the prompt and output you reviewed.
 
-3. Add or sync the canonical support-registry entry first.
-   - Do not treat `models/catalog.json` as the primary source of truth.
+3. Add or sync the canonical catalog entry first.
+   - `models/catalog.json` owns repo-visible lifecycle, identity, visibility,
+     and hosted coordinates; the external artifact root owns model bytes.
 
 4. Sync the repo mirror and derived docs.
    - `models/catalog.json`

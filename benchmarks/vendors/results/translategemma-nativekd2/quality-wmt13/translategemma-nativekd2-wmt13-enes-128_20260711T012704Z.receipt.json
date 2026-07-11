@@ -2,20 +2,26 @@
   "schemaVersion": 1,
   "artifactKind": "doppler.translation-quality-benchmark/v1",
   "evidenceClass": "local-constructive",
-  "suiteId": "savant-nativekd2-wmt13-enes-128",
+  "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+  "output": "Y eso no es todo.",
+  "executionContractArtifact": {
+    "ok": true,
+    "source": "manifest-execution-v1"
+  },
+  "suiteId": "translategemma-nativekd2-wmt13-enes-128",
   "createdAtUtc": "2026-07-11T01:27:04.033Z",
   "config": {
-    "path": "/home/x/deco/doppler/benchmarks/translation/savant-nativekd2-wmt13.json",
-    "sha256": "sha256:f174a7e2dc7855ac2d864d91b101ac4bdfdeb69e1eea903e56a38705f7e981e3"
+    "path": "benchmarks/translation/translategemma-nativekd2-wmt13.json",
+    "sha256": "sha256:39a1d8f8f31e083430bbceca1792537bf2557f082bf58d9f7a629c22ab910c85"
   },
   "model": {
     "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
-    "modelDir": "/home/x/deco/doppler/models/local/translategemma-4b-1b-enes-q4k-ehf16-af32",
-    "manifestSha256": "sha256:023e81b5addad0654f3c9f6ed21db9932152f100c9bbb600007d57f297498b16",
-    "sourceCheckpoint": "/home/x/deco/gamma/projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed/checkpoint-000025"
+    "modelDir": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32",
+    "manifestSha256": "sha256:72d51b42a51b6b429032db5edd9f89322d108c75b21ca62a2844b35c3a7123ee",
+    "sourceCheckpointId": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87"
   },
   "dataset": {
-    "path": "/home/x/deco/gamma/projects/distillation/translation/training_data/translate_distill_pairs.eval2_wmt13_enes_128.jsonl",
+    "path": "gamma/projects/distillation/translation/training_data/translate_distill_pairs.eval2_wmt13_enes_128.jsonl",
     "sha256": "sha256:8454f014eee7ba862c3d4cc4a80169c99e47de2ec39cc5baa176424859db6c47",
     "rows": 128,
     "pairs": {
@@ -24,8 +30,8 @@
     }
   },
   "sharedContract": {
-    "datasetPath": "/home/x/deco/gamma/projects/distillation/translation/training_data/translate_distill_pairs.eval2_wmt13_enes_128.jsonl",
-    "baselinePredictionsPath": "/home/x/deco/gamma/projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed_checkpoint_sweep_greedy_studentonly_external/eval2_external__checkpoint-000025__greedy/student_predictions.jsonl",
+    "datasetPath": "gamma/projects/distillation/translation/training_data/translate_distill_pairs.eval2_wmt13_enes_128.jsonl",
+    "baselinePredictionsPath": "benchmarks/vendors/results/translategemma-nativekd2/quality-wmt13/translategemma-nativekd2-wmt13-enes-128_20260711T012704Z.source-bf16.predictions.jsonl",
     "sampleLimit": 128,
     "maxTokens": 128,
     "warmupRuns": 1,
@@ -45,9 +51,23 @@
   "runtimeProfile": "profiles/production",
   "sourceBaseline": {
     "id": "source-bf16",
-    "path": "/home/x/deco/gamma/projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed_checkpoint_sweep_greedy_studentonly_external/eval2_external__checkpoint-000025__greedy/student_predictions.jsonl",
+    "path": "benchmarks/vendors/results/translategemma-nativekd2/quality-wmt13/translategemma-nativekd2-wmt13-enes-128_20260711T012704Z.source-bf16.predictions.jsonl",
     "sha256": "sha256:aac81561cb0ac4c5a62b30c2a411852396a89ad69ae1284907f2cc7bb962096f",
     "rows": 128
+  },
+  "teacherReference": {
+    "modelId": "translategemma-4b-it-q4k-ehf16-af32",
+    "evidenceClass": "fixed-corpus-cross-runtime",
+    "datasetSha256": "sha256:8454f014eee7ba862c3d4cc4a80169c99e47de2ec39cc5baa176424859db6c47",
+    "sourceReceiptSha256": "sha256:57148774d6f6622956f9fde6074203665a470e7b50ce84b1c0334b4f772fc7e2",
+    "sourceIndex": "https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/runs/results_bundle/leaderboard.md",
+    "metrics": {
+      "bleu": 33.69725818764181,
+      "chrf": 60.80110939124903,
+      "rows": 128
+    },
+    "sizeBytes": 3167500395,
+    "note": "Teacher and Doppler student metrics use the same fixed 128-row WMT13 corpus and deterministic greedy decoding, but were captured in separate runtime receipts."
   },
   "environment": {
     "node": "v22.22.1",
@@ -68,6 +88,14 @@
         "description": "radv: Mesa 26.0.3-1ubuntu1"
       },
       "submitProbeMs": 0.6029960000000187
+    }
+  },
+  "deviceInfo": {
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
     }
   },
   "metrics": {
@@ -548,7 +576,7 @@
         "count": 128
       },
       "predictionsArtifact": {
-        "filename": "savant-nativekd2-wmt13-enes-128_20260711T012704Z.baseline.predictions.jsonl",
+        "filename": "translategemma-nativekd2-wmt13-enes-128_20260711T012704Z.baseline.predictions.jsonl",
         "sha256": "sha256:d702611c8f00e4219f4a4007aa5f1406d29e05e26eff7d7adfe8ec90563a209b",
         "rows": 128
       }
@@ -819,7 +847,7 @@
         "count": 128
       },
       "predictionsArtifact": {
-        "filename": "savant-nativekd2-wmt13-enes-128_20260711T012704Z.optimized.predictions.jsonl",
+        "filename": "translategemma-nativekd2-wmt13-enes-128_20260711T012704Z.optimized.predictions.jsonl",
         "sha256": "sha256:69d27c7f154c62175a191b9f17eef68750178ffa23ae2e632a8e126b30a07601",
         "rows": 128
       }

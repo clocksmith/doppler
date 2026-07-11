@@ -84,4 +84,4 @@ Capture:
 ## Related
 
 - Runbook: [testing-runbook.md](testing-runbook.md)
-- Kernel tests: [../tests/kernels/README.md](../tests/kernels/README.md)
+- Kernel tests: [../tests/kernels/GUIDE.md](../tests/kernels/GUIDE.md)
