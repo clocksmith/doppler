@@ -39,6 +39,8 @@ export class ShardCache {
   get hasCustomRangeLoader(): boolean;
   get hasCustomStreamLoader(): boolean;
   get canStreamRanges(): boolean;
+  resetCustomReadStats(): void;
+  get customReadStats(): { bytesRead: number; shardsRead: number };
   has(shardIndex: number): boolean;
   get size(): number;
   get totalBytes(): number;

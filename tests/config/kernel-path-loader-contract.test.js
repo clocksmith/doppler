@@ -213,6 +213,7 @@ try {
           op: 'linear_qkv_proj',
           kernel: 'fused_matmul_q4.wgsl',
           entry: 'main_multicol',
+          constants: { COLS_PER_WG: 64, THREADS_PER_COL_GEMV: 4 },
           precision: { inputDtype: 'f32', outputDtype: 'f32' },
         },
         {
@@ -390,6 +391,14 @@ try {
   assert.equal(
     getKernelPathMatmulVariant('linear_qkv_proj', 'decode', 0, qwenExplicitLinearPath),
     'q4_fused_multicol'
+  );
+  assert.equal(
+    getKernelPathMatmulVariant('linear_qkvz_proj', 'decode', 0, qwenExplicitLinearPath),
+    'q4_fused_multicol'
+  );
+  assert.deepEqual(
+    getKernelPathMatmulConstants('linear_qkvz_proj', 'decode', 0, qwenExplicitLinearPath),
+    { COLS_PER_WG: 64, THREADS_PER_COL_GEMV: 4 }
   );
   assert.equal(
     getKernelPathMatmulVariant('linear_z_proj', 'decode', 0, qwenExplicitLinearPath),

@@ -43,6 +43,14 @@ export interface CreateHttpArtifactStorageContextOptions {
   rangeCacheMinBytes?: number;
 }
 
+export interface CreateOpfsArtifactStorageContextOptions {
+  opfsRootDir: string;
+  useSyncAccessHandle: boolean;
+  maxConcurrentHandles: number;
+  verifyHashes?: boolean;
+  hashesTrusted?: boolean;
+}
+
 export declare function getArtifactFormat(
   manifest: RDRRManifest | Record<string, unknown> | null | undefined
 ): ArtifactFormat | null;
@@ -55,6 +63,12 @@ export declare function createNodeFileArtifactStorageContext(
   baseUrl: string | null | undefined,
   manifest: RDRRManifest
 ): ArtifactStorageContext | null;
+
+export declare function createOpfsArtifactStorageContext(
+  modelId: string,
+  manifest: RDRRManifest,
+  options: CreateOpfsArtifactStorageContextOptions
+): Promise<ArtifactStorageContext>;
 
 export declare function createHttpArtifactStorageContext(
   baseUrl: string | null | undefined,

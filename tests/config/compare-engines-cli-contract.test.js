@@ -17,6 +17,7 @@ import {
   applyDopplerBenchCaptureRunConfig,
   assertDopplerDecodeCadence,
   loadModelCatalogBundle,
+  loadResolvedRuntimeProfileBundle,
   normalizeCompareLoadModeDefaults,
   parseArgs as parseCompareArgs,
   parseJsonBlock,
@@ -1198,6 +1199,10 @@ function assertCommandOutputMatches(result, pattern) {
     'profiles/qwen-3-5-2b-metal-throughput'
   );
   assert.equal(
+    qwen2Profile?.dopplerRuntimeProfileByDecodeProfileByPlatform?.darwin?.parity,
+    'profiles/qwen-3-5-2b-metal-parity'
+  );
+  assert.equal(
     resolveCompareRuntimeProfileMap(qwen2Profile, 'linux').throughput,
     'profiles/throughput'
   );
@@ -1205,10 +1210,34 @@ function assertCommandOutputMatches(result, pattern) {
     resolveCompareRuntimeProfileMap(qwen2Profile, 'darwin').throughput,
     'profiles/qwen-3-5-2b-metal-throughput'
   );
+  assert.equal(
+    resolveCompareRuntimeProfileMap(qwen2Profile, 'darwin').parity,
+    'profiles/qwen-3-5-2b-metal-parity'
+  );
   assert.equal(qwen2Profile.compareLane, 'performance_comparable');
   assert.equal(qwen2Profile.compareLaneReason, null);
   assert.equal(qwen2Profile.defaultLoadMode, 'http');
   assert.match(qwen2Profile.defaultLoadModeReason, /strict offline/i);
+
+  const qwen2MetalParityBundle = await loadResolvedRuntimeProfileBundle(
+    'profiles/qwen-3-5-2b-metal-parity'
+  );
+  assert.equal(
+    qwen2MetalParityBundle.resolvedRuntime.inference.executionPatch.addKernels
+      .some((entry) => entry.key === 'q4_decode_metal_simd16'),
+    true,
+    'derived compare profiles must inherit parent execution patches'
+  );
+  assert.equal(
+    qwen2MetalParityBundle.resolvedRuntime.inference.session.useGreedyLmHeadArgmaxFusion,
+    true,
+    'derived compare profiles must inherit parent session fusions'
+  );
+  assert.equal(
+    qwen2MetalParityBundle.resolvedRuntime.inference.session.decodeLoop.batchSize,
+    4,
+    'derived compare profiles must retain their own cadence override'
+  );
 
   assert.ok(gemma4Profile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32');
   assert.equal(gemma4Profile.defaultDopplerSurface, 'browser');

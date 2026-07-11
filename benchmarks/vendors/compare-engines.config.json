@@ -198,6 +198,7 @@
       },
       "dopplerRuntimeProfileByDecodeProfileByPlatform": {
         "darwin": {
+          "parity": "profiles/qwen-3-5-2b-metal-parity",
           "throughput": "profiles/qwen-3-5-2b-metal-throughput"
         }
       },

@@ -52,6 +52,7 @@ Every guide in this directory should answer the same four questions:
 | Add a new attention mechanism | [13-attention-variant.md](13-attention-variant.md) | Existing transformer pipeline only |
 | Add a new quantization format | [14-quantization-format.md](14-quantization-format.md) | Converter + loader + kernels |
 | Add a new KV-cache layout | [15-kvcache-layout.md](15-kvcache-layout.md) | Deep cache and attention integration |
+| Optimize a correct GPU kernel path | [16-kernel-performance-optimization.md](16-kernel-performance-optimization.md) | Profile by phase, preserve parity, and close with paired evidence |
 | Add a new model family that still fits an existing pipeline | [composite-model-family.md](composite-model-family.md) | Composes several atomic guides |
 | Add a new pipeline family or new `modelType` ecosystem | [composite-pipeline-family.md](composite-pipeline-family.md) | Largest extension path |
 
@@ -76,6 +77,7 @@ Every guide in this directory should answer the same four questions:
 | [13-attention-variant.md](13-attention-variant.md) | atomic | deep pipeline + kernels + tests |
 | [14-quantization-format.md](14-quantization-format.md) | atomic | converter + loader + kernels + tests |
 | [15-kvcache-layout.md](15-kvcache-layout.md) | atomic | cache internals + attention integration |
+| [16-kernel-performance-optimization.md](16-kernel-performance-optimization.md) | atomic | WGSL + runtime profile + GPU tests + benchmark evidence |
 | [composite-model-family.md](composite-model-family.md) | composite | cross-cutting within an existing pipeline family |
 | [composite-pipeline-family.md](composite-pipeline-family.md) | composite | full vertical slice across a new pipeline family |
 
@@ -113,6 +115,8 @@ These are the numbered guides. Each should describe one extension point.
     Add a new quantization format end to end.
 15. [15-kvcache-layout.md](15-kvcache-layout.md)
     Add a new KV-cache layout or inference memory-management strategy.
+16. [16-kernel-performance-optimization.md](16-kernel-performance-optimization.md)
+    Optimize an already-correct GPU kernel path with parity and statistical gates.
 
 ## Composite Guides
 
@@ -209,5 +213,6 @@ Then add:
 - `13-attention-variant.md`
 - `14-quantization-format.md`
 - `15-kvcache-layout.md`
+- `16-kernel-performance-optimization.md`
 
 Composite guides should come last, once the atomic guides exist.

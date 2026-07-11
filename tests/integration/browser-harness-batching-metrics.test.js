@@ -219,7 +219,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
                 modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
                 status: 'complete',
                 customShardLoader: true,
-                byteAccountingMode: 'custom-loader-progress-unavailable',
+                byteAccountingMode: 'custom-loader-read-progress',
                 totalBytes: 1024,
                 totalShards: 2,
                 bytesLoaded: 1024,
@@ -421,7 +421,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
   assert.equal(result.metrics.batching?.batchClampCount?.median, 1);
   assert.equal(result.metrics.load?.modelLoadMs, 1);
   assert.equal(result.metrics.load?.loader?.totalMs, 0.9);
-  assert.equal(result.metrics.load?.loader?.byteAccountingMode, 'custom-loader-progress-unavailable');
+  assert.equal(result.metrics.load?.loader?.byteAccountingMode, 'custom-loader-read-progress');
   assert.equal(result.metrics.load?.loader?.phasesMs?.layers, 0.4);
   assert.equal(result.metrics.load?.loader?.layers?.maxLayer, 1);
   assert.equal(result.metrics.load?.pipeline?.totalMs, 0.95);

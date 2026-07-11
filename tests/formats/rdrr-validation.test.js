@@ -65,6 +65,7 @@ function createDescriptorManifest() {
   assert.equal(classifyTensor('lm_head.weight', 'transformer'), 'head');
   assert.equal(classifyTensor('output.weight', 'transformer'), 'head');
   assert.equal(classifyTensor('model.norm.weight', 'transformer'), 'head');
+  assert.equal(classifyTensor('norm.weight', 'transformer'), 'head');
   assert.equal(classifyTensor('model.final_norm.weight', 'transformer'), 'head');
   assert.equal(classifyTensor('norm_f.weight', 'transformer'), 'head');
 }

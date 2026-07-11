@@ -19,11 +19,22 @@ Tier 1 lane on Apple M3 Metal and Radeon 8060S Vulkan, plus both tracked Tier 2
 lanes on Vulkan. Tier 1 receipts are claim-grade and release-claimable; Tier 2
 receipts are local-comparable.
 
-![Metal and Vulkan comparison showing Doppler wins every tracked primary Tier 1 and Tier 2 lane](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-tier-evidence.svg)
+![Metal and Vulkan comparison showing Doppler wins all published Tier 1 rows and both published Vulkan Tier 2 rows](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-tier-evidence.svg)
+
+A 20-pair Metal check also closes the Qwen 3.5 2B Tier 2 decode gap. Doppler's
+median was 33.86 tok/s versus 32.75 for Transformers.js, with exact 512-token
+parity in every pair and a paired 95% confidence interval of -1.70 to -0.71
+ms/token. This result is local-comparable because Doppler used a local RDRR
+artifact.
+
+![Qwen 3.5 2B Apple M3 Metal 20-pair statistical decode evidence](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/qwen35-2b-metal-paired-evidence.svg)
 
 Metal receipts: [text](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json) ·
 [embedding](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json) ·
 [reranking](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json)
+
+Metal Tier 2: [Qwen 3.5 2B paired evidence](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/qwen35-2b-metal-paired-p256-d512-20260710.json) ·
+[runtime profile](https://github.com/clocksmith/doppler/blob/main/src/config/runtime/profiles/qwen-3-5-2b-metal-parity.json)
 
 Vulkan receipts: [0.8B text](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T153509.json) ·
 [embedding](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json) ·

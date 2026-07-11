@@ -348,6 +348,34 @@ function preserveRuntimeDecodeLoop(updatedInference, runtimeConfig) {
   };
 }
 
+function preserveConfiguredKernelPath(updatedInference, runtimeConfig) {
+  const configuredInference = runtimeConfig?.inference;
+  const configuredKernelPath = configuredInference?.kernelPath;
+  if (configuredKernelPath == null) {
+    return updatedInference;
+  }
+  const configuredSession = configuredInference?.session;
+  const hasConfiguredSessionCompute = hasOwnProperty(configuredSession, 'compute');
+  const hasConfiguredSessionKVCache = hasOwnProperty(configuredSession, 'kvcache');
+  return {
+    ...updatedInference,
+    kernelPath: configuredKernelPath,
+    kernelPathSource: 'config',
+    ...(hasOwnProperty(configuredInference, 'compute')
+      ? { compute: configuredInference.compute }
+      : {}),
+    ...(hasConfiguredSessionCompute || hasConfiguredSessionKVCache
+      ? {
+          session: {
+            ...updatedInference.session,
+            ...(hasConfiguredSessionCompute ? { compute: configuredSession.compute } : {}),
+            ...(hasConfiguredSessionKVCache ? { kvcache: configuredSession.kvcache } : {}),
+          },
+        }
+      : {}),
+  };
+}
+
 const EXECUTION_V1_PROJECTION_OPS = new Set([
   'q_proj', 'k_proj', 'v_proj', 'o_proj',
   'gate_proj', 'up_proj', 'down_proj',
@@ -994,6 +1022,9 @@ export function compileExecutionV1(options = {}) {
 //      until applyModelBatchingRuntimeDefaults in phase 2. If runtime batching was
 //      already explicitly configured, manifest decodeLoop is skipped and runtime
 //      values take precedence.
+//   3. preserveConfiguredKernelPath — restores a non-null runtime kernelPath and
+//      its dtype-bearing config after compilation so explicit runtime config
+//      remains the highest-precedence path contract.
 //
 // This function must be called exactly once per model load. Calling it again with
 // an already-patched runtimeConfig would double-apply the execution-v1 merge and
@@ -1034,8 +1065,11 @@ export function applyExecutionV1RuntimeConfig(options = {}) {
   });
 
   const runtimeInferencePatch = executionV1State.runtimeInferencePatch;
-  const updatedInference = preserveRuntimeDecodeLoop(
-    mergeRuntimeValues(runtimeConfig.inference ?? {}, runtimeInferencePatch),
+  const updatedInference = preserveConfiguredKernelPath(
+    preserveRuntimeDecodeLoop(
+      mergeRuntimeValues(runtimeConfig.inference ?? {}, runtimeInferencePatch),
+      runtimeConfig
+    ),
     runtimeConfig
   );
 

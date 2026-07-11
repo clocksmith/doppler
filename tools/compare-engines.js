@@ -1596,8 +1596,8 @@ async function loadResolvedRuntimeProfileBundle(profileId, stack = []) {
   for (const ref of extendsRefs) {
     const baseBundle = await loadResolvedRuntimeProfileBundle(ref, [...stack, resolvedPath]);
     mergedRuntime = mergedRuntime == null
-      ? baseBundle.runtime
-      : mergeRuntimeValues(mergedRuntime, baseBundle.runtime);
+      ? baseBundle.resolvedRuntime
+      : mergeRuntimeValues(mergedRuntime, baseBundle.resolvedRuntime);
   }
   const resolvedRuntime = mergedRuntime == null
     ? runtime
@@ -6812,6 +6812,7 @@ export {
   buildSharedBenchmarkContract,
   assertDopplerDecodeCadence,
   loadModelCatalogBundle,
+  loadResolvedRuntimeProfileBundle,
   normalizeCompareLoadModeDefaults,
   parseArgs,
   parseJsonBlock,

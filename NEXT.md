@@ -2,6 +2,24 @@
 
 Status note: this file has been corrected to reference only modules, functions, and rules that currently exist in the repository. It is documentation-only and does not change runtime behavior.
 
+## Active Metal Decode Work
+
+- Close the Qwen 3.5 2B Metal comparison with at least 20 interleaved 512-token
+  or longer Doppler/Transformers.js pairs and a paired 95% confidence interval.
+  If the interval crosses zero and the median difference is below 0.5%, record
+  parity within measurement noise and stop projection tuning.
+- For a statistically supported residual, compare encoded dispatches per token
+  before adding another math kernel. Pursue decoder-operation fusion only when
+  the reference path proves a lower launch count.
+- Profile the untouched attention share: RoPE, softmax, KV-cache reads, and
+  attention output assembly. Inspect cache layout and access contiguity when its
+  decode share exceeds the reference engine.
+
+The Q4_K decomposition, dtype, workgroup geometry, shared-memory, submission
+cadence, and fused LM-head experiments are durable findings in
+`docs/developer-guides/16-kernel-performance-optimization.md`, not open work in
+this file.
+
 ## 200-Word Execution Goal
 
 Build and execute an implementation pass that removes speculative roadmap entries and replaces them with verifiable work on existing codepaths only, then makes the minimum safe edits required for parity and traceability. This work must stay grounded in:

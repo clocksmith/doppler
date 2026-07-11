@@ -36,6 +36,11 @@ const WGSL_SEGMENT_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*(?:\.wgsl)?$/u;
 // Pass 1: Collect inline references from conversion configs
 // ---------------------------------------------------------------------------
 
+function addRef(refs, key, sourceId) {
+  if (!refs.has(key)) refs.set(key, new Set());
+  refs.get(key).add(sourceId);
+}
+
 function collectKernelRefs(value, refs, sourceId) {
   if (Array.isArray(value)) {
     for (const entry of value) collectKernelRefs(entry, refs, sourceId);
@@ -44,15 +49,33 @@ function collectKernelRefs(value, refs, sourceId) {
   if (!value || typeof value !== 'object') return;
   if (typeof value.kernel === 'string' && value.kernel.endsWith('.wgsl')) {
     const key = `${value.kernel}#${value.entry ?? 'main'}`;
-    if (!refs.has(key)) refs.set(key, new Set());
-    refs.get(key).add(sourceId);
+    addRef(refs, key, sourceId);
   }
   for (const entry of Object.values(value)) {
     collectKernelRefs(entry, refs, sourceId);
   }
 }
 
-async function collectInlineRefs() {
+function collectConfiguredVariantRefs(value, refs, sourceId) {
+  if (Array.isArray(value)) {
+    for (const entry of value) collectConfiguredVariantRefs(entry, refs, sourceId);
+    return;
+  }
+  if (!value || typeof value !== 'object') return;
+  const fusedFfnQ4K = value.fusedFfnQ4K;
+  if (fusedFfnQ4K && typeof fusedFfnQ4K === 'object') {
+    for (const phaseConfig of Object.values(fusedFfnQ4K)) {
+      if (typeof phaseConfig?.variant === 'string' && phaseConfig.variant.length > 0) {
+        addRef(refs, `fused_ffn:${phaseConfig.variant}`, sourceId);
+      }
+    }
+  }
+  for (const entry of Object.values(value)) {
+    collectConfiguredVariantRefs(entry, refs, sourceId);
+  }
+}
+
+async function collectInlineRefs(configuredVariantRefs) {
   const refs = new Map(); // key = "wgsl#entry" -> Set<configId>
   for (const filePath of await walkJsonFiles(conversionRoot)) {
     const config = JSON.parse(await fs.readFile(filePath, 'utf8'));
@@ -63,6 +86,7 @@ async function collectInlineRefs() {
     const config = JSON.parse(await fs.readFile(filePath, 'utf8'));
     const configId = `runtime/${path.relative(runtimeRoot, filePath).replace(/\.json$/, '')}`;
     collectKernelRefs(config, refs, configId);
+    collectConfiguredVariantRefs(config, configuredVariantRefs, configId);
   }
   return refs;
 }
@@ -259,7 +283,8 @@ function collectModelExercisedOps(inlineRefs, reverseIndex) {
 
 const registry = JSON.parse(await fs.readFile(registryPath, 'utf8'));
 const registryOpNames = new Set(Object.keys(registry.operations ?? {}));
-const inlineRefs = await collectInlineRefs();
+const configuredVariantRefs = new Map();
+const inlineRefs = await collectInlineRefs(configuredVariantRefs);
 const ruleRefs = await collectRuleRefs(registryOpNames);
 const wgslOnDisk = await collectWgslOnDisk();
 const reverseIndex = buildReverseIndex(registry);
@@ -288,7 +313,8 @@ for (const [opName, opSchema] of Object.entries(registry.operations ?? {})) {
     // Rule references (scoped by operation:variant)
     const ruleRefSet = ruleRefs.get(`${opName}:${varName}`) ?? new Set();
 
-    const inlineConfigs = [...inlineConfigSet].sort();
+    const configuredVariantSet = configuredVariantRefs.get(`${opName}:${varName}`) ?? new Set();
+    const inlineConfigs = [...new Set([...inlineConfigSet, ...configuredVariantSet])].sort();
     const ruleChains = [...ruleRefSet].sort();
 
     let status;

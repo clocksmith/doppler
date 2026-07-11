@@ -92,6 +92,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `deleteModel`
   - `deleteStorageEntry`
   - `ensureModelCached`
+  - `ensureModelCachedSource`
   - `exportModelToDirectory`
   - `formatBytes`
   - `getQuotaInfo`

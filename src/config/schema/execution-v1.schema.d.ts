@@ -195,6 +195,17 @@ export interface ExecutionV1SessionSchema {
   usePostFfnNextInputRMSNormPairFusion: boolean;
   /** Opt into post-attention RMSNorm stats consumed by Q4_K fused gate/up. */
   usePostAttnNormFusedGateUp: boolean;
+  /** Optional Q4_K fused gate/up variant and pipeline constants keyed by phase. */
+  fusedFfnQ4K: {
+    decode?: {
+      variant?: 'q4k_metal_simd16' | null;
+      pipelineConstants?: Record<string, number | boolean> | null;
+    };
+    prefill?: {
+      variant?: null;
+      pipelineConstants?: Record<string, number | boolean> | null;
+    };
+  } | null;
   /** Optional Q4_K LM-head argmax tuning policy. */
   lmHeadArgmaxQ4K: {
     useFullBlockFastPath?: boolean;

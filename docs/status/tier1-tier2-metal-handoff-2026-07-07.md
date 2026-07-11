@@ -50,8 +50,8 @@ evidence.
 ## Stage TJS Models On Mac
 
 ```bash
-node tools/stage-tjs-model.js --model-id onnx-community/Qwen3.5-0.8B-ONNX --preset full --dtype q4f16
-node tools/stage-tjs-model.js --model-id onnx-community/Qwen3.5-2B-ONNX --preset full --dtype q4f16
+node tools/stage-tjs-model.js --model-id onnx-community/Qwen3.5-0.8B-ONNX --preset text-generation --dtype q4f16
+node tools/stage-tjs-model.js --model-id onnx-community/Qwen3.5-2B-ONNX --preset text-generation --dtype q4f16
 node tools/stage-tjs-model.js --model-id onnx-community/gemma-4-E2B-it-ONNX --preset text-generation --dtype q4f16
 ```
 

@@ -158,6 +158,7 @@ export {
   getArtifactFormat,
   createArtifactStorageContext,
   createNodeFileArtifactStorageContext,
+  createOpfsArtifactStorageContext,
   createHttpArtifactStorageContext,
 } from './artifact-storage-context.js';
 export type {

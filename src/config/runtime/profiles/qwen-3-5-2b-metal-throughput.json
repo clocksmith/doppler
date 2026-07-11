@@ -1,7 +1,7 @@
 {
   "id": "profiles/qwen-3-5-2b-metal-throughput",
   "name": "qwen-3-5-2b-metal-throughput",
-  "description": "Qwen 3.5 2B browser/Metal throughput profile. Keeps the manifest f32 compute lane and raises the explicit decode submission cap so p064/d064 throughput can resolve in one batch submission instead of two.",
+  "description": "Qwen 3.5 2B browser/Metal throughput profile. Uses 16-lane Q4_K decode projections, fused gate/up, and exact linear-attention fusions while preserving the manifest f32 compute lane.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "doppler-core",
@@ -10,6 +10,77 @@
   "model": "qwen-3-5-2b-q4k-ehaf16",
   "runtime": {
     "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "attn_decode_head256",
+            "kernel": {
+              "kernel": "attention_decode_online_head256_f16kv_output_gate.wgsl",
+              "entry": "main",
+              "digest": "sha256:275a1f7cfdd40ab95c467bb4744a1509dd6eadb39ec8fdd0d1e1ba80eb34f9c5",
+              "precision": {
+                "kvDtype": "f16"
+              }
+            }
+          },
+          {
+            "key": "q4_decode_metal_simd16",
+            "kernel": {
+              "kernel": "fused_matmul_q4_metal_simd16.wgsl",
+              "entry": "main",
+              "digest": "sha256:f3570460a332b211885baeabe7ccaf142f7234fff8f55973344157096206f4c4",
+              "constants": {
+                "WORKGROUP_SIZE": 256,
+                "COLS_PER_WG": 16,
+                "THREADS_PER_COL_GEMV": 16,
+                "USE_FULL_BLOCK_FAST_PATH": true
+              }
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "decode",
+            "op": "attention",
+            "kernelKey": "attn_decode_head256"
+          },
+          {
+            "section": "decode",
+            "op": "q_proj",
+            "kernelKey": "q4_decode_metal_simd16"
+          },
+          {
+            "section": "decode",
+            "op": "k_proj",
+            "kernelKey": "q4_decode_metal_simd16"
+          },
+          {
+            "section": "decode",
+            "op": "v_proj",
+            "kernelKey": "q4_decode_metal_simd16"
+          },
+          {
+            "section": "decode",
+            "op": "o_proj",
+            "kernelKey": "q4_decode_metal_simd16"
+          },
+          {
+            "section": "decode",
+            "op": "gate_proj",
+            "kernelKey": "q4_decode_metal_simd16"
+          },
+          {
+            "section": "decode",
+            "op": "up_proj",
+            "kernelKey": "q4_decode_metal_simd16"
+          },
+          {
+            "section": "decode",
+            "op": "down_proj",
+            "kernelKey": "q4_decode_metal_simd16"
+          }
+        ]
+      },
       "batching": {
         "batchSize": 8,
         "readbackInterval": 8,
@@ -20,6 +91,32 @@
         "ringStaging": 1
       },
       "session": {
+        "usePostFfnNextInputRMSNormPairFusion": true,
+        "fusedFfnQ4K": {
+          "decode": {
+            "variant": "q4k_metal_simd16",
+            "pipelineConstants": {
+              "WORKGROUP_SIZE": 256,
+              "COLS_PER_WG": 16,
+              "THREADS_PER_COL": 16,
+              "USE_FULL_BLOCK_FAST_PATH": true
+            }
+          }
+        },
+        "useGreedyLmHeadArgmaxFusion": true,
+        "lmHeadArgmaxQ4K": {
+          "useFullBlockFastPath": true,
+          "colsPerWorkgroup": 128,
+          "threadsPerCol": 2
+        },
+        "attentionDecodeOnline": {
+          "useDirectContiguousKVLayout": true,
+          "useOutputGateFusion": true
+        },
+        "useLinearAttentionABProjectionFusion": true,
+        "useLinearAttentionQKVZProjectionFusion": true,
+        "useLinearAttentionFusedDecodeCore": true,
+        "useFusedQKVSplitQKNormRoPE": true,
         "decodeLoop": {
           "batchSize": 8,
           "stopCheckMode": "batch",

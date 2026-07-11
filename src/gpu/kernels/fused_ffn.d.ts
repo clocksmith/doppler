@@ -25,6 +25,8 @@ export interface FusedFFNOptions extends OutputBufferOptions {
   swigluLimit: number | null;
   /** WGSL override constants resolved from the active kernel path. */
   pipelineConstants?: Record<string, number | boolean> | null;
+  /** Explicit config-owned Q4_K decode kernel variant. */
+  variant?: 'q4k_metal_simd16' | null;
 }
 
 export interface FusedNormedFFNOptions extends FusedFFNOptions {

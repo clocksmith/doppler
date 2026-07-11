@@ -414,6 +414,12 @@ For MoE storage research, the first clean target is expert paging:
    - treat debug or investigation profiles as non-claimable
    - measure prefill and decode separately
 
+   If a correctness-clean candidate is behind its reference engine, follow the
+   [correct-but-behind performance trigger](../model-failure-action-plan.md#correct-but-behind-performance-trigger)
+   and [kernel performance guide](16-kernel-performance-optimization.md). Close
+   near-parity results with interleaved paired evidence before changing another
+   kernel.
+
    Do not change kernels to chase a benchmark number if the model has not passed
    deterministic text verification.
 
@@ -545,6 +551,8 @@ depends on browser WebGPU behavior.
 - [13-attention-variant.md](13-attention-variant.md)
 - [14-quantization-format.md](14-quantization-format.md)
 - [15-kvcache-layout.md](15-kvcache-layout.md)
+- [16-kernel-performance-optimization.md](16-kernel-performance-optimization.md)
+- [../model-failure-action-plan.md](../model-failure-action-plan.md)
 - [../agents/conversion-protocol.md](../agents/conversion-protocol.md)
 - [../agents/debug-protocol.md](../agents/debug-protocol.md)
 - [../agents/benchmark-protocol.md](../agents/benchmark-protocol.md)

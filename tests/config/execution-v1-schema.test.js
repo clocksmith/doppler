@@ -289,6 +289,94 @@ if (compiled.runtimeInferencePatch.batching) {
   throw new Error('Execution-v1 runtime patch must not pre-apply decodeLoop batching defaults');
 }
 
+const configuredKernelPath = {
+  ...structuredClone(compiled.runtimeInferencePatch.kernelPath),
+  id: 'runtime-configured-kernel-path',
+};
+const configuredKernelPathOverrides = {
+  inference: {
+    kernelPath: configuredKernelPath,
+    compute: {
+      activationDtype: 'f16',
+    },
+    session: {
+      compute: {
+        defaults: {
+          activationDtype: 'f16',
+          mathDtype: 'f32',
+          accumDtype: 'f32',
+          outputDtype: 'f16',
+        },
+      },
+      kvcache: {
+        kvDtype: 'f16',
+      },
+    },
+  },
+};
+const appliedConfiguredKernelPath = applyExecutionV1RuntimeConfig({
+  runtimeConfig: createDopplerConfig({ runtime: configuredKernelPathOverrides }).runtime,
+  runtimeOverrides: configuredKernelPathOverrides,
+  manifest: {
+    modelId: 'qwen-3-5-2b-q4k-ehaf16',
+    architecture: {
+      numLayers: 26,
+      headDim: 256,
+    },
+    inference: {
+      schema: EXECUTION_V1_SCHEMA_ID,
+      execution: makeGraph(),
+      layerPattern: {
+        layerTypes: Array(26).fill('full_attention'),
+      },
+      session: {
+        compute: {
+          defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' },
+        },
+        kvcache: { kvDtype: 'f16' },
+        decodeLoop: null,
+      },
+    },
+  },
+  modelId: 'qwen-3-5-2b-q4k-ehaf16',
+  numLayers: 26,
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: true,
+    maxWorkgroupStorageSize: 32768,
+  },
+  platform: {
+    id: 'metal',
+    vendor: 'apple',
+    architecture: 'metal-3',
+  },
+});
+assert.equal(
+  appliedConfiguredKernelPath.runtimeConfig.inference.kernelPath,
+  configuredKernelPath,
+  'explicit runtime kernelPath must retain precedence over the execution-v1 compiled path'
+);
+assert.equal(
+  appliedConfiguredKernelPath.runtimeConfig.inference.kernelPathSource,
+  'config',
+  'explicit runtime kernelPath must be identified as config-owned'
+);
+assert.equal(
+  appliedConfiguredKernelPath.runtimeConfig.inference.compute.activationDtype,
+  'f16',
+  'config-owned kernelPath activation dtype must not be rewritten by execution-v1 compilation'
+);
+assert.equal(
+  appliedConfiguredKernelPath.runtimeConfig.inference.session.compute.defaults.outputDtype,
+  'f16',
+  'config-owned kernelPath output dtype must not be rewritten by execution-v1 compilation'
+);
+assert.notEqual(
+  appliedConfiguredKernelPath.executionV1State.runtimeInferencePatch.kernelPath.id,
+  configuredKernelPath.id,
+  'execution-v1 state must retain its separately compiled manifest path'
+);
+
 const greedyLmHeadFusionConfig = createDopplerConfig({
   runtime: {
     inference: {
@@ -300,6 +388,7 @@ const greedyLmHeadFusionConfig = createDopplerConfig({
         usePostAttnNormFusedGateUp: true,
         fusedFfnQ4K: {
           decode: {
+            variant: 'q4k_metal_simd16',
             pipelineConstants: {
               COLS_PER_WG: 64,
               THREADS_PER_COL: 4,
@@ -364,6 +453,9 @@ if (createDopplerConfig().runtime.inference.session.fusedFfnQ4K !== null) {
 }
 if (greedyLmHeadFusionConfig.runtime.inference.session.fusedFfnQ4K.decode.pipelineConstants.COLS_PER_WG !== 64) {
   throw new Error('runtime session override must enable fusedFfnQ4K decode constants');
+}
+if (greedyLmHeadFusionConfig.runtime.inference.session.fusedFfnQ4K.decode.variant !== 'q4k_metal_simd16') {
+  throw new Error('runtime session override must enable the explicit fusedFfnQ4K decode variant');
 }
 if (createDopplerConfig().runtime.inference.session.lmHeadArgmaxQ4K !== null) {
   throw new Error('lmHeadArgmaxQ4K must default null');

@@ -55,12 +55,13 @@ const F16_OUTPUT_VARIANTS = new Set([
 
 const Q4K_VARIANTS = new Set([
   'q4k',
+  'q4k_metal_simd16',
   'q4k_batched',
   'q4k_f16a',
   'q4k_batched_f16a',
 ]);
 
-function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize, inputDtype) {
+function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize, inputDtype, variantOverride = null) {
   const { multiOutputThreshold } = getKernelThresholds().ffn;
   const capabilities = getKernelCapabilities();
   const isQ4K = weightDtype === 'q4k';
@@ -70,7 +71,7 @@ function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize, 
   const hasF16 = capabilities.hasF16;
   const useF16Input = inputDtype === 'f16';
 
-  return selectRuleValue(
+  const selected = selectRuleValue(
     'fusedFfn',
     'variant',
     {
@@ -84,6 +85,19 @@ function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize, 
       useF16Input,
     }
   );
+  if (variantOverride == null) {
+    return selected;
+  }
+  if (variantOverride !== 'q4k_metal_simd16') {
+    throw new Error(`Fused FFN does not support explicit variant "${String(variantOverride)}".`);
+  }
+  if (selected !== 'q4k') {
+    throw new Error(
+      `Fused FFN variant "${variantOverride}" requires single-token Q4_K decode with f32 activations; ` +
+      `the resolved base variant is "${selected}".`
+    );
+  }
+  return variantOverride;
 }
 
 
@@ -249,7 +263,8 @@ fn silu(x: f32) -> f32 {
 
 fn gelu(x: f32) -> f32 {
   let c = 0.7978845608;
-  return 0.5 * x * (1.0 + tanh(c * (x + 0.044715 * x * x * x)));
+  let inner = c * (x + 0.044715 * x * x * x);
+  return 0.5 * x * (1.0 + tanh(clamp(inner, -15.0, 15.0)));
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -498,6 +513,7 @@ export async function runFusedFFN(
     alpha = 1.0,
     outputBuffer = null,
     pipelineConstants = null,
+    variant: variantOverride = null,
     swigluLimit,
   } = options;
   resolveSwigluLimit(swigluLimit, 'FusedFFN');
@@ -515,7 +531,14 @@ export async function runFusedFFN(
   }
 
   const isQ4K = gateDtype === 'q4k';
-  const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize, hiddenSize, input.dtype);
+  const variant = selectFFNVariant(
+    batchSize,
+    gateDtype,
+    intermediateSize,
+    hiddenSize,
+    input.dtype,
+    variantOverride
+  );
   const requiresF16Input = F16_INPUT_VARIANTS.has(variant);
   const usesF16Output = F16_OUTPUT_VARIANTS.has(variant);
 
@@ -595,6 +618,7 @@ export async function recordFusedFFN(
     alpha = 1.0,
     outputBuffer = null,
     pipelineConstants = null,
+    variant: variantOverride = null,
     swigluLimit,
   } = options;
   resolveSwigluLimit(swigluLimit, 'FusedFFN');
@@ -612,7 +636,14 @@ export async function recordFusedFFN(
   }
 
   const isQ4K = gateDtype === 'q4k';
-  const variant = selectFFNVariant(batchSize, gateDtype, intermediateSize, hiddenSize, input.dtype);
+  const variant = selectFFNVariant(
+    batchSize,
+    gateDtype,
+    intermediateSize,
+    hiddenSize,
+    input.dtype,
+    variantOverride
+  );
   const requiresF16Input = F16_INPUT_VARIANTS.has(variant);
   const usesF16Output = F16_OUTPUT_VARIANTS.has(variant);
 

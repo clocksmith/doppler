@@ -160,7 +160,7 @@ export interface LoaderLoadTiming {
   modelId: string | null;
   status: 'running' | 'complete' | 'failed';
   customShardLoader: boolean;
-  byteAccountingMode: 'full-shard-progress' | 'custom-loader-progress-unavailable';
+  byteAccountingMode: 'full-shard-progress' | 'custom-loader-read-progress';
   totalBytes: number | null;
   totalShards: number | null;
   bytesLoaded: number;

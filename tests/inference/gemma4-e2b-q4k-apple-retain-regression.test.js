@@ -11,14 +11,13 @@ const PROMPT = 'The color of the sky is clear because sunlight scatters through 
 const MODELS = [
   {
     id: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
-    description: 'af32-int4ple with retain=true forced on (formerly broken on Apple Metal pre-2026-05-07)',
+    description: 'af32-int4ple with retain=true requested and remapped by Apple capability policy',
     runtimeConfigOverrides: {
       inference: {
         compute: { activationDtype: 'f32' },
         session: { retainQ4KMaterialization: true },
       },
     },
-    expectedAppleError: /platform unsupported|non-finite decode logits|non-finite logits/i,
   },
   {
     id: 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',

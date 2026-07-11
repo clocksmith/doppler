@@ -128,9 +128,7 @@ function buildDownloadArgs(cli, modelId, outputDir, revision, forceDownload, inc
     args.push('--force-download');
   }
   if (Array.isArray(includePatterns) && includePatterns.length > 0) {
-    for (const pattern of includePatterns) {
-      args.push('--include', pattern);
-    }
+    args.push('--include', ...includePatterns);
   }
   return args;
 }

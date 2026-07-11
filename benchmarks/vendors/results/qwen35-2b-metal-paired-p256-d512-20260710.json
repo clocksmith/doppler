@@ -1,0 +1,465 @@
+{
+  "schemaVersion": 1,
+  "id": "qwen35-2b-metal-paired-p256-d512-20260710",
+  "kind": "interleaved-paired-compare-summary",
+  "generatedAt": "2026-07-10T23:56:20.201Z",
+  "status": "statistical-doppler-win",
+  "evidenceGrade": "local-gpu-comparable",
+  "claimGrade": true,
+  "releaseClaimable": false,
+  "releaseClaimableReason": "Doppler used a complete local RDRR artifact rather than the hosted quickstart-registry artifact.",
+  "title": "Qwen 3.5 2B Apple M3 Metal paired decode comparison",
+  "workload": {
+    "model": "Qwen 3.5 2B",
+    "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
+    "transformersjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
+    "dopplerFormat": "rdrr",
+    "transformersjsFormat": "onnx",
+    "transformersjsDtype": "q4f16",
+    "promptTokens": 256,
+    "decodeTokens": 512,
+    "sampling": {
+      "seed": 0,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1
+    },
+    "decodeProfile": "parity",
+    "loadMode": "http"
+  },
+  "environment": {
+    "host": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "nodeVersion": "v22.20.0"
+    },
+    "dopplerDevice": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "0x0000",
+      "description": "Apple M3"
+    },
+    "transformersjsDevice": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "0x0000",
+      "description": "Apple M3",
+      "hasF16": true,
+      "hasSubgroups": true,
+      "hasTimestampQuery": true
+    }
+  },
+  "evidenceIdentity": {
+    "compareConfigSha256": "7d2caf1fc30b7a64af5982577b8de17f00ae2eb972ecaa27bde66514cbe43eb0",
+    "parityProfileSha256": "1e94bf1ebeb7a29792da5da5d6e0989f4fd2870fe9d67a474e22d9d02a02df93",
+    "parityResolvedRuntimeSha256": "c0dca6b3c34a635299ecd1772b71548fd0049574b9e9c84b91f27ddc106e3621",
+    "promptRenderedSha256": "c5c91a00729a946b86566a9430d1aaa23f30becc0220ff3a8fc324dc1c65f8ba",
+    "dopplerArtifactIdentity": {
+      "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+      "weightPackId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+      "shardSetHash": null,
+      "artifactCompleteness": "complete"
+    },
+    "comparatorStack": {
+      "transformersjs": {
+        "requestedMajor": "4",
+        "runner": {
+          "source": "benchmarks/runners/transformersjs-runner.html",
+          "sourceSha256": "3d1bfe39188d19e0ae37ebce1008d38a522b022adef0cd112e17fcc0669b5226"
+        },
+        "library": {
+          "packageName": "@huggingface/transformers",
+          "version": "4.0.1",
+          "source": "node_modules/@huggingface/transformers/package.json",
+          "sourceSha256": "09376637271b647f70c2c7115fd8066b93619663ed3529af2f87034816b7deeb"
+        },
+        "onnxruntime": {
+          "web": {
+            "version": "1.25.0-dev.20260327-722743c0e2",
+            "dependencyOnCommon": "1.24.0-dev.20251116-b39e144322",
+            "source": "node_modules/@huggingface/transformers/node_modules/onnxruntime-web/package.json",
+            "sourceSha256": "ce0d5c5019f48e407af3bf52eabb1eb61a6b82b7b7e7fe3467efafe88411a694",
+            "importPath": "/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs"
+          },
+          "common": {
+            "version": "1.24.0-dev.20251116-b39e144322",
+            "source": "node_modules/@huggingface/transformers/node_modules/onnxruntime-common/package.json",
+            "sourceSha256": "0b2e5d9ae190f993bb898c752ca0168a97124d980fa66e77738944bc37989106",
+            "importPath": "/node_modules/@huggingface/transformers/node_modules/onnxruntime-common/dist/esm/index.js"
+          }
+        }
+      }
+    }
+  },
+  "protocol": {
+    "enginesInterleaved": true,
+    "engineOrder": "doppler-then-transformersjs",
+    "promptTokens": 256,
+    "decodeTokens": 512,
+    "deterministicGreedy": true,
+    "targetPairs": 20,
+    "validPairs": 20,
+    "targetMet": true,
+    "originalValidPairs": 7,
+    "backfilledValidPairs": 13,
+    "invalidNetworkAttemptsExcluded": true,
+    "collectionNotes": [
+      "Pairs 1-7 are the original valid samples.",
+      "Pairs 8-20 backfill only the missing samples using a fixed TJS browser origin and persistent asset cache.",
+      "All 20 receipts have identical hardware, prompt, comparator, compare-config, artifact, and resolved-runtime identities."
+    ]
+  },
+  "correctness": {
+    "exactTokenParityAllPairs": true,
+    "matchedTokensPerPair": 512,
+    "pairedComparableAllPairs": true
+  },
+  "results": {
+    "doppler": {
+      "medianTokensPerSec": 33.855,
+      "minTokensPerSec": 25.1,
+      "maxTokensPerSec": 39.47,
+      "medianMsPerToken": 29.654566996021707,
+      "minMsPerToken": 25.33569799847986
+    },
+    "transformersjs": {
+      "medianTokensPerSec": 32.75225684322329,
+      "minTokensPerSec": 23.996412278193485,
+      "maxTokensPerSec": 37.91249780742779,
+      "medianMsPerToken": 30.548243640220328,
+      "minMsPerToken": 26.37652641826413
+    },
+    "comparison": {
+      "dopplerPairWins": 17,
+      "transformersjsPairWins": 3,
+      "ties": 0,
+      "medianRateRatio": 1.0466269490120697,
+      "medianRateLeadPercent": 4.662694901206965,
+      "meanPairedDifferenceMsPerToken": -1.2071441603601234,
+      "pairedDifferenceSampleSd": 1.0542426657644015,
+      "pairedDifferenceCi95MsPerToken": [
+        -1.7005449157041506,
+        -0.7137434050160963
+      ],
+      "ciDefinition": "Doppler ms/token - Transformers.js ms/token; negative favors Doppler",
+      "degreesOfFreedom": 19,
+      "tCritical95": 2.093024054
+    }
+  },
+  "analysisContract": {
+    "pairedMetric": "Doppler ms/token - Transformers.js ms/token",
+    "confidenceLevel": 0.95,
+    "method": "two-sided paired Student t interval over 20 adjacent engine pairs",
+    "degreesOfFreedom": 19,
+    "tCritical": 2.093024054,
+    "decision": "The interval is entirely below zero, so the paired result supports a Doppler decode win."
+  },
+  "reproduction": {
+    "compareCommand": "node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --mode warm --prefill-tokens 256 --max-tokens 512 --temperature 0 --top-k 1 --top-p 1 --warmup 0 --runs 1 --decode-profile parity --load-mode http --tjs-server-port 52117 --skip-matrix-update --json",
+    "pairCount": 20,
+    "engineOrder": "doppler-then-transformersjs"
+  },
+  "pairs": [
+    {
+      "pair": 1,
+      "timestamp": "2026-07-10T21:42:19.969Z",
+      "receiptSha256": "dcf0fa174ed8dfa0eed0782b91a66bb216085d20c601fc5971eea72fb2b63870",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 39.13,
+      "transformersjsTokensPerSec": 37.59469024718602,
+      "dopplerMsPerToken": 25.55583950932788,
+      "transformersjsMsPerToken": 26.599500978062995,
+      "pairedDifferenceMsPerToken": -1.0436614687351167,
+      "rateRatio": 1.0408384732716052,
+      "winner": "doppler"
+    },
+    {
+      "pair": 2,
+      "timestamp": "2026-07-10T21:43:59.838Z",
+      "receiptSha256": "aeb5975e4f5faa10268de03706d169fa89b8797bb9353a3d62ee87ac6967bc83",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 39.18,
+      "transformersjsTokensPerSec": 37.60442863818184,
+      "dopplerMsPerToken": 25.523226135783563,
+      "transformersjsMsPerToken": 26.592612525021725,
+      "pairedDifferenceMsPerToken": -1.0693863892381614,
+      "rateRatio": 1.0418985587303513,
+      "winner": "doppler"
+    },
+    {
+      "pair": 3,
+      "timestamp": "2026-07-10T21:45:31.370Z",
+      "receiptSha256": "c100751f65a027c4330004e02839ddf30ff160f2abfad4c83e46297d362ad570",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 39.47,
+      "transformersjsTokensPerSec": 37.81055432450461,
+      "dopplerMsPerToken": 25.33569799847986,
+      "transformersjsMsPerToken": 26.447641878445324,
+      "pairedDifferenceMsPerToken": -1.111943879965466,
+      "rateRatio": 1.0438884249422369,
+      "winner": "doppler"
+    },
+    {
+      "pair": 4,
+      "timestamp": "2026-07-10T21:47:14.462Z",
+      "receiptSha256": "447a503a0b5f63639c86d1f3ff1f921da91938b37d11ee93e48f27470c3b2e8b",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 39.23,
+      "transformersjsTokensPerSec": 37.060540677750986,
+      "dopplerMsPerToken": 25.490695895997963,
+      "transformersjsMsPerToken": 26.982876712328764,
+      "pairedDifferenceMsPerToken": -1.4921808163308015,
+      "rateRatio": 1.0585382534246575,
+      "winner": "doppler"
+    },
+    {
+      "pair": 5,
+      "timestamp": "2026-07-10T21:48:51.276Z",
+      "receiptSha256": "d46a36030158fe3764e1e64dde70a889364418027381f450d42ff8242f853230",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 39.34,
+      "transformersjsTokensPerSec": 37.45112481684079,
+      "dopplerMsPerToken": 25.41942043721403,
+      "transformersjsMsPerToken": 26.701467709998557,
+      "pairedDifferenceMsPerToken": -1.2820472727845278,
+      "rateRatio": 1.0504357397113433,
+      "winner": "doppler"
+    },
+    {
+      "pair": 6,
+      "timestamp": "2026-07-10T21:50:26.624Z",
+      "receiptSha256": "4b277518f832414dc1fa7b6cfeeac0d78b97db58c36c1e9138017ab00f5eebac",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 38.96,
+      "transformersjsTokensPerSec": 37.77280875205588,
+      "dopplerMsPerToken": 25.66735112936345,
+      "transformersjsMsPerToken": 26.474070450097848,
+      "pairedDifferenceMsPerToken": -0.8067193207343983,
+      "rateRatio": 1.0314297847358123,
+      "winner": "doppler"
+    },
+    {
+      "pair": 7,
+      "timestamp": "2026-07-10T21:52:04.682Z",
+      "receiptSha256": "3f346073fe3ebf8cce0d87e4f3b12556c0928e7a8c808ea6bf4c7a5755189f99",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 38.82,
+      "transformersjsTokensPerSec": 37.91249780742779,
+      "dopplerMsPerToken": 25.75991756826378,
+      "transformersjsMsPerToken": 26.37652641826413,
+      "pairedDifferenceMsPerToken": -0.6166088500003504,
+      "rateRatio": 1.0239367555570136,
+      "winner": "doppler"
+    },
+    {
+      "pair": 8,
+      "timestamp": "2026-07-10T23:41:02.572Z",
+      "receiptSha256": "46a6501ef69d2c626ba6b2498d8367364232af05aeeb00486edecff5b99cfea5",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 38.77,
+      "transformersjsTokensPerSec": 35.86643228359026,
+      "dopplerMsPerToken": 25.793139025019343,
+      "transformersjsMsPerToken": 27.881223091640585,
+      "pairedDifferenceMsPerToken": -2.088084066621242,
+      "rateRatio": 1.0809550192629056,
+      "winner": "doppler"
+    },
+    {
+      "pair": 9,
+      "timestamp": "2026-07-10T23:42:10.147Z",
+      "receiptSha256": "4d484dc37421f23c4558195d2d986fff9aba5f0e95e7c94c919137c980565c6e",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 37.05,
+      "transformersjsTokensPerSec": 35.1359351565242,
+      "dopplerMsPerToken": 26.990553306342782,
+      "transformersjsMsPerToken": 28.460890411630768,
+      "pairedDifferenceMsPerToken": -1.4703371052879852,
+      "rateRatio": 1.05447598975092,
+      "winner": "doppler"
+    },
+    {
+      "pair": 10,
+      "timestamp": "2026-07-10T23:42:59.816Z",
+      "receiptSha256": "544c4a8be5bbb0b6dc8fdfa7592a380f02ee2a4c6861b362d17525aa7ee85da8",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 35.98,
+      "transformersjsTokensPerSec": 33.50173802546152,
+      "dopplerMsPerToken": 27.793218454697055,
+      "transformersjsMsPerToken": 29.84919765177538,
+      "pairedDifferenceMsPerToken": -2.055979197078326,
+      "rateRatio": 1.0739741315108782,
+      "winner": "doppler"
+    },
+    {
+      "pair": 11,
+      "timestamp": "2026-07-10T23:43:51.502Z",
+      "receiptSha256": "1e5fb729cc7a4dfc05e9ef77609ab9e604bb9af5dc1ec6d1969a3e8d0612b0b9",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 31.73,
+      "transformersjsTokensPerSec": 32.00277566098506,
+      "dopplerMsPerToken": 31.51591553734636,
+      "transformersjsMsPerToken": 31.24728962866528,
+      "pairedDifferenceMsPerToken": 0.2686259086810807,
+      "rateRatio": 0.9914764999175493,
+      "winner": "transformersjs"
+    },
+    {
+      "pair": 12,
+      "timestamp": "2026-07-10T23:44:45.951Z",
+      "receiptSha256": "d66581e187c1a3bcd0242c5acd48e95db7ef454ba187b8ce7fc00e3c2b15e3b8",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 26.16,
+      "transformersjsTokensPerSec": 24.10059617185627,
+      "dopplerMsPerToken": 38.2262996941896,
+      "transformersjsMsPerToken": 41.49274950997937,
+      "pairedDifferenceMsPerToken": -3.2664498157897697,
+      "rateRatio": 1.0854503271810603,
+      "winner": "doppler"
+    },
+    {
+      "pair": 13,
+      "timestamp": "2026-07-10T23:45:49.395Z",
+      "receiptSha256": "e25b9aa19cbfc32c9c6422917961f4effa27e922d43087aaf144999374c50321",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 25.97,
+      "transformersjsTokensPerSec": 26.49837003855675,
+      "dopplerMsPerToken": 38.50596842510589,
+      "transformersjsMsPerToken": 37.73817025518697,
+      "pairedDifferenceMsPerToken": 0.7677981699189189,
+      "rateRatio": 0.9800602815272056,
+      "winner": "transformersjs"
+    },
+    {
+      "pair": 14,
+      "timestamp": "2026-07-10T23:46:49.582Z",
+      "receiptSha256": "ecd0b5bb3d2aa34dcfe52cfa0e68620a4edf58710389fc1180c7a367f6da7bcf",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 31.59,
+      "transformersjsTokensPerSec": 29.699088947093657,
+      "dopplerMsPerToken": 31.655587211142766,
+      "transformersjsMsPerToken": 33.67106653612887,
+      "pairedDifferenceMsPerToken": -2.015479324986103,
+      "rateRatio": 1.063668991876311,
+      "winner": "doppler"
+    },
+    {
+      "pair": 15,
+      "timestamp": "2026-07-10T23:47:41.821Z",
+      "receiptSha256": "e3bf4d7c18b30071cbf0531d4860fd4cefb55cd69e0c267c1babb608fea63e95",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 26.78,
+      "transformersjsTokensPerSec": 26.731736561063585,
+      "dopplerMsPerToken": 37.3412994772218,
+      "transformersjsMsPerToken": 37.40871819964594,
+      "pairedDifferenceMsPerToken": -0.06741872242413649,
+      "rateRatio": 1.0018054733865183,
+      "winner": "doppler"
+    },
+    {
+      "pair": 16,
+      "timestamp": "2026-07-10T23:48:40.227Z",
+      "receiptSha256": "84e6024a53d7e88fd52903656895d2de3a704ed22794ca739d3fef43d1d8163e",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 27.23,
+      "transformersjsTokensPerSec": 26.001079732079127,
+      "dopplerMsPerToken": 36.72420124862284,
+      "transformersjsMsPerToken": 38.45994129106256,
+      "pairedDifferenceMsPerToken": -1.7357400424397227,
+      "rateRatio": 1.0472642013556337,
+      "winner": "doppler"
+    },
+    {
+      "pair": 17,
+      "timestamp": "2026-07-10T23:49:39.245Z",
+      "receiptSha256": "e5c4e410d6536319f128b8f5386840c8d37f443e9b6080e328c416f686053096",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 25.52,
+      "transformersjsTokensPerSec": 24.28113467502662,
+      "dopplerMsPerToken": 39.18495297805643,
+      "transformersjsMsPerToken": 41.18423679056933,
+      "pairedDifferenceMsPerToken": -1.9992838125128998,
+      "rateRatio": 1.0510217228953291,
+      "winner": "doppler"
+    },
+    {
+      "pair": 18,
+      "timestamp": "2026-07-10T23:50:41.710Z",
+      "receiptSha256": "bd92f3a599bfa99f630ffe9092ce28fc9184a96b0ac5a8d1d5c4c4e5864006cb",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 26.23,
+      "transformersjsTokensPerSec": 24.839865505033053,
+      "dopplerMsPerToken": 38.12428516965307,
+      "transformersjsMsPerToken": 40.257866927555625,
+      "pairedDifferenceMsPerToken": -2.1335817579025544,
+      "rateRatio": 1.055963849509784,
+      "winner": "doppler"
+    },
+    {
+      "pair": 19,
+      "timestamp": "2026-07-10T23:51:43.075Z",
+      "receiptSha256": "c4952ec596d4a6b3d494ba378f9c269a751af13362a516760f87d49d22cfd140",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 25.1,
+      "transformersjsTokensPerSec": 23.996412278193485,
+      "dopplerMsPerToken": 39.8406374501992,
+      "transformersjsMsPerToken": 41.67289628161376,
+      "pairedDifferenceMsPerToken": -1.8322588314145563,
+      "rateRatio": 1.0459896966685054,
+      "winner": "doppler"
+    },
+    {
+      "pair": 20,
+      "timestamp": "2026-07-10T23:52:46.374Z",
+      "receiptSha256": "ef2d3764378c16d19c299fbf0220b0e1bf73c396bd370b86c4075cdf74ec2126",
+      "tokenIdsSha256": "7729f82df40e788f9667fe19611c1de5d120b5d675da6f728e29ff8af82e19bf",
+      "matchedTokenCount": 512,
+      "exactTokenIds": true,
+      "dopplerTokensPerSec": 26.48,
+      "transformersjsTokensPerSec": 27.132258343590497,
+      "dopplerMsPerToken": 37.764350453172206,
+      "transformersjsMsPerToken": 36.85649706472856,
+      "pairedDifferenceMsPerToken": 0.9078533884436482,
+      "rateRatio": 0.9759600422740121,
+      "winner": "transformersjs"
+    }
+  ]
+}

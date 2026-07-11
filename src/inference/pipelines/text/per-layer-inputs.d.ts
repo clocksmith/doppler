@@ -95,6 +95,19 @@ export declare function ensurePleGpuHotVocabularyRuntime(
   }
 ): Promise<object | null>;
 
+export declare function resolvePleHotVocabularyCapacity(options: {
+  maxTokens: number;
+  maxBytes: number;
+  numLayers: number;
+  hiddenSize: number;
+  bytesPerElement: number;
+  vocabSize: number;
+}): {
+  maxHotTokens: number;
+  bytesPerHotRow: number;
+  tokenIndexMapBytes: number;
+};
+
 export declare function getPleHotVocabularyRuntime(
   context: Pick<LayerContext, 'weights'>
 ): object | null;

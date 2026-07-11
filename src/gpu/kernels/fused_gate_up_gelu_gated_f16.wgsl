@@ -57,7 +57,8 @@ fn gelu_tanh(x: f32) -> f32 {
     // Gemma's gelu_pytorch_tanh activation.
     let c: f32 = 0.7978845608;
     let k: f32 = 0.044715;
-    return 0.5 * x * (1.0 + tanh(c * (x + k * x * x * x)));
+    let inner = c * (x + k * x * x * x);
+    return 0.5 * x * (1.0 + tanh(clamp(inner, -15.0, 15.0)));
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)

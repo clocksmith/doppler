@@ -3,6 +3,8 @@ import {
   createSourceStorageContext,
 } from '../tooling/source-runtime-bundle.js';
 import { createStreamingHasher } from './shard-manager.js';
+import { createOpfsStore } from './backends/opfs-store.js';
+import { normalizeModelId } from './normalize-model-id.js';
 import { isNodeRuntime } from '../utils/runtime-env.js';
 import { toArrayBuffer } from '../utils/array-buffer.js';
 
@@ -458,6 +460,40 @@ export function createArtifactStorageContext(options = {}) {
     tokenizerJsonPath: options.tokenizerJsonPath ?? tokenizerPaths.jsonPath,
     tokenizerModelPath: options.tokenizerModelPath ?? tokenizerPaths.modelPath,
     tensorsJsonPath: normalizeArtifactPath(manifest.tensorsFile),
+    verifyHashes: options.verifyHashes === true,
+    hashesTrusted: options.hashesTrusted === true,
+  });
+}
+
+export async function createOpfsArtifactStorageContext(modelId, manifest, options = {}) {
+  const normalizedModelId = normalizeModelId(modelId);
+  const opfsRootDir = normalizeText(options.opfsRootDir);
+  if (!opfsRootDir) {
+    throw new Error('OPFS artifact storage context requires opfsRootDir.');
+  }
+  const maxConcurrentHandles = normalizePositiveInteger(
+    options.maxConcurrentHandles,
+    'OPFS artifact storage context maxConcurrentHandles'
+  );
+  if (maxConcurrentHandles < 1) {
+    throw new Error('OPFS artifact storage context maxConcurrentHandles must be at least 1.');
+  }
+  const store = createOpfsStore({
+    opfsRootDir,
+    useSyncAccessHandle: options.useSyncAccessHandle === true,
+    maxConcurrentHandles,
+  });
+  await store.init();
+  await store.openModel(normalizedModelId, { create: false });
+  return createArtifactStorageContext({
+    manifest,
+    readRange: (path, offset, length) => store.readFileRange(path, offset, length),
+    streamRange: (path, offset, length, streamOptions) => (
+      store.readFileRangeStream(path, offset, length, streamOptions)
+    ),
+    readText: (path) => store.readText(path),
+    readBinary: (path) => store.readFile(path),
+    close: () => store.cleanup(),
     verifyHashes: options.verifyHashes === true,
     hashesTrusted: options.hashesTrusted === true,
   });

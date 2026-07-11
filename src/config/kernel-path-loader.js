@@ -177,6 +177,7 @@ const MATMUL_STEP_ROLE_ALIASES = {
   v_proj: { section: 'layer', ops: ['v_proj'] },
   qkv_proj: { section: 'layer', ops: ['qkv_proj', 'q_proj'] },
   linear_qkv_proj: { section: 'layer', ops: ['linear_qkv_proj', 'qkv_proj', 'q_proj'] },
+  linear_qkvz_proj: { section: 'layer', ops: ['linear_qkv_proj', 'qkv_proj', 'q_proj'] },
   linear_z_proj: { section: 'layer', ops: ['linear_z_proj', 'linear_qkv_proj', 'qkv_proj', 'q_proj'] },
   o_proj: { section: 'layer', ops: ['o_proj'] },
   linear_out_proj: { section: 'layer', ops: ['linear_out_proj', 'o_proj'] },

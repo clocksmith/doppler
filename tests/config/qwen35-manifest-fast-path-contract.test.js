@@ -130,6 +130,74 @@ function assertQwen08MetalHead256DecodePatch(profile, label) {
   );
 }
 
+function assertQwen2MetalDecodePatch(profile, label) {
+  const patch = profile.runtime?.inference?.executionPatch;
+  const attention = patch?.addKernels?.find((entry) => entry.key === 'attn_decode_head256');
+  const q4Gemv = patch?.addKernels?.find((entry) => entry.key === 'q4_decode_metal_simd16');
+  assert.equal(
+    attention?.kernel?.digest,
+    qwen08MetalHead256DecodeDigest,
+    `${label}: head256 decode attention digest must match WGSL`
+  );
+  assert.equal(q4Gemv?.kernel?.kernel, 'fused_matmul_q4_metal_simd16.wgsl');
+  assert.equal(q4Gemv?.kernel?.entry, 'main');
+  assert.equal(
+    q4Gemv?.kernel?.digest,
+    qwen2MetalQ4Simd16Digest,
+    `${label}: Metal SIMD16 Q4 GEMV digest must match WGSL`
+  );
+  assert.deepEqual(
+    q4Gemv?.kernel?.constants,
+    {
+      WORKGROUP_SIZE: 256,
+      COLS_PER_WG: 16,
+      THREADS_PER_COL_GEMV: 16,
+      USE_FULL_BLOCK_FAST_PATH: true,
+    },
+    `${label}: Metal Q4 GEMV must use the 16-lane row decomposition`
+  );
+  assert.deepEqual(
+    patch?.set,
+    [
+      { section: 'decode', op: 'attention', kernelKey: 'attn_decode_head256' },
+      { section: 'decode', op: 'q_proj', kernelKey: 'q4_decode_metal_simd16' },
+      { section: 'decode', op: 'k_proj', kernelKey: 'q4_decode_metal_simd16' },
+      { section: 'decode', op: 'v_proj', kernelKey: 'q4_decode_metal_simd16' },
+      { section: 'decode', op: 'o_proj', kernelKey: 'q4_decode_metal_simd16' },
+      { section: 'decode', op: 'gate_proj', kernelKey: 'q4_decode_metal_simd16' },
+      { section: 'decode', op: 'up_proj', kernelKey: 'q4_decode_metal_simd16' },
+      { section: 'decode', op: 'down_proj', kernelKey: 'q4_decode_metal_simd16' },
+    ],
+    `${label}: Metal Q4 specialization must cover every decode projection`
+  );
+  assert.equal(profile.runtime?.inference?.session?.usePostFfnNextInputRMSNormPairFusion, true);
+  assert.deepEqual(profile.runtime?.inference?.session?.fusedFfnQ4K, {
+    decode: {
+      variant: 'q4k_metal_simd16',
+      pipelineConstants: {
+        WORKGROUP_SIZE: 256,
+        COLS_PER_WG: 16,
+        THREADS_PER_COL: 16,
+        USE_FULL_BLOCK_FAST_PATH: true,
+      },
+    },
+  });
+  assert.equal(profile.runtime?.inference?.session?.useGreedyLmHeadArgmaxFusion, true);
+  assert.deepEqual(profile.runtime?.inference?.session?.lmHeadArgmaxQ4K, {
+    useFullBlockFastPath: true,
+    colsPerWorkgroup: 128,
+    threadsPerCol: 2,
+  });
+  assert.deepEqual(profile.runtime?.inference?.session?.attentionDecodeOnline, {
+    useDirectContiguousKVLayout: true,
+    useOutputGateFusion: true,
+  });
+  assert.equal(profile.runtime?.inference?.session?.useLinearAttentionABProjectionFusion, true);
+  assert.equal(profile.runtime?.inference?.session?.useLinearAttentionQKVZProjectionFusion, true);
+  assert.equal(profile.runtime?.inference?.session?.useLinearAttentionFusedDecodeCore, true);
+  assert.equal(profile.runtime?.inference?.session?.useFusedQKVSplitQKNormRoPE, true);
+}
+
 const qwen08Config = await readJson('src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json');
 const qwen2Config = await readJson('src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json');
 const qwen08Manifest = await readJson('models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json');
@@ -150,8 +218,13 @@ const qwen08MetalParityProfile = await readJson(
 );
 const qwen08MetalHead256DecodeDigest =
   `sha256:${KERNEL_REF_CONTENT_DIGESTS['attention_decode_online_head256_f16kv_output_gate.wgsl#main']}`;
+const qwen2MetalQ4Simd16Digest =
+  `sha256:${KERNEL_REF_CONTENT_DIGESTS['fused_matmul_q4_metal_simd16.wgsl#main']}`;
 const qwen2MetalThroughputProfile = await readJson(
   'src/config/runtime/profiles/qwen-3-5-2b-metal-throughput.json'
+);
+const qwen2MetalParityProfile = await readJson(
+  'src/config/runtime/profiles/qwen-3-5-2b-metal-parity.json'
 );
 assert.equal(qwen2F16PrimaryProfile.extends, 'profiles/throughput');
 assert.equal(qwen2F16PrimaryProfile.model, 'qwen-3-5-2b-q4k-ehaf16');
@@ -205,6 +278,15 @@ assert.equal(qwen2MetalThroughputProfile.runtime.inference.batching.readbackInte
 assert.equal(qwen2MetalThroughputProfile.runtime.inference.session.decodeLoop.batchSize, 8);
 assert.equal(qwen2MetalThroughputProfile.runtime.inference.session.decodeLoop.readbackInterval, 8);
 assert.equal(qwen2MetalThroughputProfile.runtime.inference.session.decodeLoop.maxBatchDecodeTokens, 64);
+assertQwen2MetalDecodePatch(qwen2MetalThroughputProfile, 'Qwen 2B Metal throughput profile');
+assert.equal(qwen2MetalParityProfile.extends, 'profiles/qwen-3-5-2b-metal-throughput');
+assert.equal(qwen2MetalParityProfile.model, 'qwen-3-5-2b-q4k-ehaf16');
+assert.equal(qwen2MetalParityProfile.runtime.inference.batching.batchSize, 4);
+assert.equal(qwen2MetalParityProfile.runtime.inference.batching.readbackInterval, 4);
+assert.equal(qwen2MetalParityProfile.runtime.inference.batching.readbackMode, 'sequential');
+assert.equal(qwen2MetalParityProfile.runtime.inference.session.decodeLoop.batchSize, 4);
+assert.equal(qwen2MetalParityProfile.runtime.inference.session.decodeLoop.readbackInterval, 4);
+assert.equal(qwen2MetalParityProfile.runtime.inference.session.decodeLoop.maxBatchDecodeTokens, null);
 
 const qwen08ConfigDecodeLoop = Object.freeze({
   batchSize: 4,

@@ -65,7 +65,8 @@ fn silu(x: f32) -> f32 {
 // GELU activation (approximate)
 fn gelu(x: f32) -> f32 {
     let c = 0.7978845608; // sqrt(2/pi)
-    return 0.5 * x * (1.0 + tanh(c * (x + 0.044715 * x * x * x)));
+    let inner = c * (x + 0.044715 * x * x * x);
+    return 0.5 * x * (1.0 + tanh(clamp(inner, -15.0, 15.0)));
 }
 
 fn clamp_swiglu(x: f32) -> f32 {

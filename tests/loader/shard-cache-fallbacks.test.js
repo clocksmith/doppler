@@ -56,6 +56,9 @@ async function collectStream(iterable) {
   assert.equal(cache.lastSource?.mode, 'range');
   assert.equal(cache.lastSource?.path, 'custom-loader-slice');
   assert.equal(cache.lastSource?.fallback, 'custom_range_not_supported');
+  assert.deepEqual(cache.customReadStats, { bytesRead: shard.byteLength, shardsRead: 1 });
+  cache.resetCustomReadStats();
+  assert.deepEqual(cache.customReadStats, { bytesRead: 0, shardsRead: 0 });
 }
 
 {
@@ -83,6 +86,7 @@ async function collectStream(iterable) {
   assert.equal(cache.lastSource?.mode, 'stream');
   assert.equal(cache.lastSource?.path, 'custom-range-fallback');
   assert.equal(cache.lastSource?.fallback, 'custom_stream_interrupted_resume');
+  assert.deepEqual(cache.customReadStats, { bytesRead: 6, shardsRead: 1 });
 }
 
 {
@@ -112,6 +116,7 @@ async function collectStream(iterable) {
   assert.equal(cache.lastSource?.mode, 'stream');
   assert.equal(cache.lastSource?.path, 'custom-range');
   assert.equal(cache.lastSource?.fallback, 'custom_range_partial_retry');
+  assert.deepEqual(cache.customReadStats, { bytesRead: 4, shardsRead: 1 });
 }
 
 console.log('shard-cache-fallbacks.test: ok');

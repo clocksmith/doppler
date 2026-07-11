@@ -366,9 +366,7 @@ tooling/precision-replay-math.js
 tooling/program-bundle-host.d.ts
 tooling/program-bundle-host.js
 tooling/runtime-input-composition.d.ts
-tooling/source-artifact-adapter.d.ts
 tooling/source-package-profiles.d.ts
-tooling/source-runtime-bundle.d.ts
 tooling/source-runtime-converter-config.d.ts
 tooling/source-runtime-materializer.d.ts
 tooling/source-runtime-materializer.js

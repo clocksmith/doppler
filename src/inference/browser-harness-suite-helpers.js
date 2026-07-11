@@ -248,7 +248,7 @@ function normalizeLoaderLoadTiming(loadTiming) {
     customShardLoader: loadTiming.customShardLoader === true,
     byteAccountingMode: typeof loadTiming.byteAccountingMode === 'string' && loadTiming.byteAccountingMode.length > 0
       ? loadTiming.byteAccountingMode
-      : (loadTiming.customShardLoader === true ? 'custom-loader-progress-unavailable' : 'full-shard-progress'),
+      : (loadTiming.customShardLoader === true ? 'custom-loader-read-progress' : 'full-shard-progress'),
     totalBytes: normalizeLoadTimingInteger(loadTiming.totalBytes),
     totalShards: normalizeLoadTimingInteger(loadTiming.totalShards),
     bytesLoaded: normalizeLoadTimingInteger(loadTiming.bytesLoaded),
