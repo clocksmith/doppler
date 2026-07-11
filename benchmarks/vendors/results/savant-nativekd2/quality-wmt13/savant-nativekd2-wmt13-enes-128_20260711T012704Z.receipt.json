@@ -1,0 +1,828 @@
+{
+  "schemaVersion": 1,
+  "artifactKind": "doppler.translation-quality-benchmark/v1",
+  "evidenceClass": "local-constructive",
+  "suiteId": "savant-nativekd2-wmt13-enes-128",
+  "createdAtUtc": "2026-07-11T01:27:04.033Z",
+  "config": {
+    "path": "/home/x/deco/doppler/benchmarks/translation/savant-nativekd2-wmt13.json",
+    "sha256": "sha256:f174a7e2dc7855ac2d864d91b101ac4bdfdeb69e1eea903e56a38705f7e981e3"
+  },
+  "model": {
+    "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+    "modelDir": "/home/x/deco/doppler/models/local/translategemma-4b-1b-enes-q4k-ehf16-af32",
+    "manifestSha256": "sha256:023e81b5addad0654f3c9f6ed21db9932152f100c9bbb600007d57f297498b16",
+    "sourceCheckpoint": "/home/x/deco/gamma/projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed/checkpoint-000025"
+  },
+  "dataset": {
+    "path": "/home/x/deco/gamma/projects/distillation/translation/training_data/translate_distill_pairs.eval2_wmt13_enes_128.jsonl",
+    "sha256": "sha256:8454f014eee7ba862c3d4cc4a80169c99e47de2ec39cc5baa176424859db6c47",
+    "rows": 128,
+    "pairs": {
+      "en-es": 64,
+      "es-en": 64
+    }
+  },
+  "sharedContract": {
+    "datasetPath": "/home/x/deco/gamma/projects/distillation/translation/training_data/translate_distill_pairs.eval2_wmt13_enes_128.jsonl",
+    "baselinePredictionsPath": "/home/x/deco/gamma/projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed_checkpoint_sweep_greedy_studentonly_external/eval2_external__checkpoint-000025__greedy/student_predictions.jsonl",
+    "sampleLimit": 128,
+    "maxTokens": 128,
+    "warmupRuns": 1,
+    "determinismSamples": 8,
+    "useChatTemplate": true,
+    "cacheMode": "warm",
+    "loadMode": "http",
+    "sampling": {
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "greedyThreshold": 0,
+      "seed": 0
+    }
+  },
+  "runtimeProfile": "profiles/production",
+  "sourceBaseline": {
+    "id": "source-bf16",
+    "path": "/home/x/deco/gamma/projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed_checkpoint_sweep_greedy_studentonly_external/eval2_external__checkpoint-000025__greedy/student_predictions.jsonl",
+    "sha256": "sha256:aac81561cb0ac4c5a62b30c2a411852396a89ad69ae1284907f2cc7bb962096f",
+    "rows": 128
+  },
+  "environment": {
+    "node": "v22.22.1",
+    "platform": "linux",
+    "arch": "x64",
+    "deviceInfo": {
+      "hasSubgroups": true,
+      "hasSubgroupsF16": true,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967292,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 65536,
+      "adapterInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1"
+      },
+      "submitProbeMs": 0.6029960000000187
+    }
+  },
+  "metrics": {
+    "groups": {
+      "baseline:en-es": {
+        "bleu": 30.679866833279142,
+        "bleuSignature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+        "chrf": 57.38606361784891,
+        "chrfSignature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
+        "count": 64
+      },
+      "baseline:es-en": {
+        "bleu": 31.126772843400207,
+        "bleuSignature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+        "chrf": 59.198522010547116,
+        "chrfSignature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
+        "count": 64
+      },
+      "baseline:overall": {
+        "bleu": 31.914861871372885,
+        "bleuSignature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+        "chrf": 58.21235700409009,
+        "chrfSignature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
+        "count": 128
+      },
+      "optimized:en-es": {
+        "bleu": 30.679866833279142,
+        "bleuSignature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+        "chrf": 57.38606361784891,
+        "chrfSignature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
+        "count": 64
+      },
+      "optimized:es-en": {
+        "bleu": 31.126772843400207,
+        "bleuSignature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+        "chrf": 59.198522010547116,
+        "chrfSignature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
+        "count": 64
+      },
+      "optimized:overall": {
+        "bleu": 31.914861871372885,
+        "bleuSignature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+        "chrf": 58.21235700409009,
+        "chrfSignature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
+        "count": 128
+      },
+      "source-bf16:en-es": {
+        "bleu": 32.53983902134053,
+        "bleuSignature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+        "chrf": 58.79341104077357,
+        "chrfSignature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
+        "count": 64
+      },
+      "source-bf16:es-en": {
+        "bleu": 33.90869792368985,
+        "bleuSignature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+        "chrf": 61.30773374226322,
+        "chrfSignature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
+        "count": 64
+      },
+      "source-bf16:overall": {
+        "bleu": 34.189645837340606,
+        "bleuSignature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+        "chrf": 59.93879133059762,
+        "chrfSignature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0",
+        "count": 128
+      }
+    },
+    "sacrebleuVersion": "2.6.0"
+  },
+  "comparisons": [
+    {
+      "leftId": "source-bf16",
+      "rightId": "baseline",
+      "total": 128,
+      "exactMatches": 40,
+      "exactMatchRatio": 0.3125,
+      "exact": false,
+      "divergencePreview": [
+        {
+          "index": 1,
+          "left": "Por otro lado, estos mismos Estados permiten que los miembros de clubes de pesca o de caza voten más republicanos, y que utilicen las tarjetas emitidas por estos clubes cuando votan.",
+          "right": "Por otro lado, estos mismos Estados permiten que los miembros de clubes de pesca o de caza voten más republicanos usen las tarjetas emitidas por estos clubes cuando votan."
+        },
+        {
+          "index": 2,
+          "left": "En este espíritu se han aprobado nuevas leyes por la mayoría de los gobiernos de Estados Unidos desde 2009, lo que ha dificultado el proceso de registro o votación.",
+          "right": "Es en este espíritu que se han aprobado nuevas leyes por parte de la mayoría de los gobiernos de Estados Unidos desde 2009, lo que dificulta el proceso de registro o votación."
+        },
+        {
+          "index": 3,
+          "left": "De hecho, el 25% de los afroamericanos, el 15% de aquellos que ganan menos de $35,000; el 18% de los ciudadanos mayores de 65 años y el 20% de los votantes entre 18 y 29 años no tienen el documento de identidad requerido.",
+          "right": "De hecho, el 25% de los afroamericanos, el 15% de aquellos que ganan menos de $35,000; el 18% de los ciudadanos mayores de 65 años, y el 20% de los votantes entre 18 y 29 años no tienen el pasaporte de foto requerido."
+        },
+        {
+          "index": 4,
+          "left": "Por ejemplo, solo 16 de los 34 estados han adoptado leyes que requieren la presentación de un documento de identidad fotográfica.",
+          "right": "Por ejemplo, solo 16 de los 34 estados han adoptado leyes que requieren la presentación de un permiso de identificación fotográfica."
+        },
+        {
+          "index": 5,
+          "left": "Estas restricciones no son sin consecuencias.",
+          "right": "Estas restricciones no tienen consecuencias."
+        },
+        {
+          "index": 7,
+          "left": "Este estudio también mostró, con un seguimiento después de 12 años, que es entre un 30 y un 40% más probable que se produzcan metástasis en ausencia de pruebas de detección.",
+          "right": "Este estudio también mostró, con un seguimiento después de 12 años, que es entre el 30% y el 40% más probable que se desarrollen los metástasis en ausencia de pruebas de detección."
+        },
+        {
+          "index": 8,
+          "left": "Sin embargo, las nuevas reglas que se han implementado sin duda dificultarán ejercer el derecho a voto en 2012.",
+          "right": "Sin embargo, las nuevas reglas de este tipo sin duda dificultarán ejercer el derecho a votar en 2012."
+        },
+        {
+          "index": 9,
+          "left": "Como resultado, se introdujeron 180 de leyes restringiendo el derecho a voto en 41 estados en 2011, solemos.",
+          "right": "Como resultado, se aprobaron 180 leyes que restringían el derecho a votar en 41 estados en 2011 en solitario."
+        },
+        {
+          "index": 10,
+          "left": "Por otro lado, el 76% de los votantes eran blancos pero estos representaban solo el 46% de los votantes tempranos.",
+          "right": "Por otro lado, el 76% de los votantes eran blancos pero estos representan solo el 46% de los votantes tempranos."
+        },
+        {
+          "index": 11,
+          "left": "De hecho, el 11% de los ciudadanos estadounidenses, es decir, 21 millones de personas de edad electoral, no poseen un identificación fotográfica emitida por una agencia gubernamental de su estado.",
+          "right": "De hecho, el 11% de los ciudadanos estadounidenses, es decir, 21 millones de personas de edad electoral, no poseen un permiso de identificación fotográfica emitido por una agencia gubernamental de su Estado."
+        },
+        {
+          "index": 13,
+          "left": "¿Qué es más, en 2011, los legisladores republicanos patrocinaron leyes que abolían la inscripción de votantes en los comicios en ocho Estados.",
+          "right": "¿Es más, en 2011, los legisladores republicanos patrocinaron leyes que abolían la inscripción de votantes en los procesos electorales en ocho Estados."
+        },
+        {
+          "index": 14,
+          "left": "Durante los últimos dos años, patrocinaron proyectos de ley en 34 estados para obligar a los votantes a mostrar un comprobante de identidad.",
+          "right": "Durante los últimos dos años, patrocinaron en 34 estados los votos para que los votantes mostren un comprobante de identidad."
+        }
+      ]
+    },
+    {
+      "leftId": "baseline",
+      "rightId": "optimized",
+      "total": 128,
+      "exactMatches": 128,
+      "exactMatchRatio": 1,
+      "exact": true,
+      "divergencePreview": []
+    },
+    {
+      "leftId": "source-bf16",
+      "rightId": "optimized",
+      "total": 128,
+      "exactMatches": 40,
+      "exactMatchRatio": 0.3125,
+      "exact": false,
+      "divergencePreview": [
+        {
+          "index": 1,
+          "left": "Por otro lado, estos mismos Estados permiten que los miembros de clubes de pesca o de caza voten más republicanos, y que utilicen las tarjetas emitidas por estos clubes cuando votan.",
+          "right": "Por otro lado, estos mismos Estados permiten que los miembros de clubes de pesca o de caza voten más republicanos usen las tarjetas emitidas por estos clubes cuando votan."
+        },
+        {
+          "index": 2,
+          "left": "En este espíritu se han aprobado nuevas leyes por la mayoría de los gobiernos de Estados Unidos desde 2009, lo que ha dificultado el proceso de registro o votación.",
+          "right": "Es en este espíritu que se han aprobado nuevas leyes por parte de la mayoría de los gobiernos de Estados Unidos desde 2009, lo que dificulta el proceso de registro o votación."
+        },
+        {
+          "index": 3,
+          "left": "De hecho, el 25% de los afroamericanos, el 15% de aquellos que ganan menos de $35,000; el 18% de los ciudadanos mayores de 65 años y el 20% de los votantes entre 18 y 29 años no tienen el documento de identidad requerido.",
+          "right": "De hecho, el 25% de los afroamericanos, el 15% de aquellos que ganan menos de $35,000; el 18% de los ciudadanos mayores de 65 años, y el 20% de los votantes entre 18 y 29 años no tienen el pasaporte de foto requerido."
+        },
+        {
+          "index": 4,
+          "left": "Por ejemplo, solo 16 de los 34 estados han adoptado leyes que requieren la presentación de un documento de identidad fotográfica.",
+          "right": "Por ejemplo, solo 16 de los 34 estados han adoptado leyes que requieren la presentación de un permiso de identificación fotográfica."
+        },
+        {
+          "index": 5,
+          "left": "Estas restricciones no son sin consecuencias.",
+          "right": "Estas restricciones no tienen consecuencias."
+        },
+        {
+          "index": 7,
+          "left": "Este estudio también mostró, con un seguimiento después de 12 años, que es entre un 30 y un 40% más probable que se produzcan metástasis en ausencia de pruebas de detección.",
+          "right": "Este estudio también mostró, con un seguimiento después de 12 años, que es entre el 30% y el 40% más probable que se desarrollen los metástasis en ausencia de pruebas de detección."
+        },
+        {
+          "index": 8,
+          "left": "Sin embargo, las nuevas reglas que se han implementado sin duda dificultarán ejercer el derecho a voto en 2012.",
+          "right": "Sin embargo, las nuevas reglas de este tipo sin duda dificultarán ejercer el derecho a votar en 2012."
+        },
+        {
+          "index": 9,
+          "left": "Como resultado, se introdujeron 180 de leyes restringiendo el derecho a voto en 41 estados en 2011, solemos.",
+          "right": "Como resultado, se aprobaron 180 leyes que restringían el derecho a votar en 41 estados en 2011 en solitario."
+        },
+        {
+          "index": 10,
+          "left": "Por otro lado, el 76% de los votantes eran blancos pero estos representaban solo el 46% de los votantes tempranos.",
+          "right": "Por otro lado, el 76% de los votantes eran blancos pero estos representan solo el 46% de los votantes tempranos."
+        },
+        {
+          "index": 11,
+          "left": "De hecho, el 11% de los ciudadanos estadounidenses, es decir, 21 millones de personas de edad electoral, no poseen un identificación fotográfica emitida por una agencia gubernamental de su estado.",
+          "right": "De hecho, el 11% de los ciudadanos estadounidenses, es decir, 21 millones de personas de edad electoral, no poseen un permiso de identificación fotográfica emitido por una agencia gubernamental de su Estado."
+        },
+        {
+          "index": 13,
+          "left": "¿Qué es más, en 2011, los legisladores republicanos patrocinaron leyes que abolían la inscripción de votantes en los comicios en ocho Estados.",
+          "right": "¿Es más, en 2011, los legisladores republicanos patrocinaron leyes que abolían la inscripción de votantes en los procesos electorales en ocho Estados."
+        },
+        {
+          "index": 14,
+          "left": "Durante los últimos dos años, patrocinaron proyectos de ley en 34 estados para obligar a los votantes a mostrar un comprobante de identidad.",
+          "right": "Durante los últimos dos años, patrocinaron en 34 estados los votos para que los votantes mostren un comprobante de identidad."
+        }
+      ]
+    }
+  ],
+  "lanes": {
+    "baseline": {
+      "label": "Manifest baseline",
+      "runtimeConfig": {
+        "inference": {}
+      },
+      "executionPlan": {
+        "primary": {
+          "id": "primary",
+          "kernelPathId": "translategemma-4b-1b-enes-q4k-ehf16-af32-execution-inline",
+          "kernelPathSource": "execution-v1",
+          "activationDtype": "f32",
+          "readbackInterval": 1,
+          "readbackMode": "sequential",
+          "maxBatchDecodeTokens": null,
+          "batchSize": 4,
+          "stopCheckMode": "batch",
+          "disableCommandBatching": false,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1
+        },
+        "fallback": null,
+        "activePlanIdAtStart": null,
+        "finalActivePlanId": null,
+        "transitions": []
+      },
+      "loadMetrics": {
+        "schemaVersion": 1,
+        "source": "doppler",
+        "semantics": {
+          "modelLoadMs": "suite initialization time before generation",
+          "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+          "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+          "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+          "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+          "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+        },
+        "modelLoadMs": 1442.68,
+        "loader": {
+          "schemaVersion": 1,
+          "source": "doppler-loader",
+          "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+          "status": "complete",
+          "customShardLoader": true,
+          "byteAccountingMode": "custom-loader-read-progress",
+          "totalBytes": 1025493248,
+          "totalShards": 16,
+          "bytesLoaded": 1025493248,
+          "shardsLoaded": 16,
+          "bytesPerSecond": 2524545621,
+          "phasesMs": {
+            "preflight": 1.07,
+            "tensorLocations": 1.27,
+            "embeddings": 158.91,
+            "layers": 243.61,
+            "finalWeights": 0.96,
+            "cleanup": 0.04
+          },
+          "layers": {
+            "count": 26,
+            "totalMs": 227.86,
+            "meanMs": 8.76,
+            "maxMs": 17.81,
+            "maxLayer": 0
+          },
+          "totalMs": 406.21,
+          "failedPhase": null,
+          "error": null
+        },
+        "pipeline": {
+          "schemaVersion": 1,
+          "source": "doppler-pipeline",
+          "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+          "status": "complete",
+          "phasesMs": {
+            "reset": 0.06,
+            "configResolution": 5.22,
+            "kernelWarmup": 0.05,
+            "tokenizer": 713.02,
+            "executionSetup": 6.33,
+            "loadWeights": 510.13,
+            "rope": 191.36,
+            "convStates": 0.64
+          },
+          "details": {
+            "tokenizer": {
+              "schemaVersion": 1,
+              "source": "doppler-tokenizer",
+              "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "status": "complete",
+              "tokenizerType": "bundled",
+              "tokenizerFile": "tokenizer.json",
+              "backend": "bundled",
+              "assetSource": "custom-loader",
+              "cacheHit": false,
+              "phasesMs": {
+                "configResolution": 0.04,
+                "cacheLookup": 0.04,
+                "backendCreate": 0.07,
+                "assetLoad": 312.95,
+                "assetParse": 0.22,
+                "backendLoad": 399.23,
+                "cacheStore": 0.01
+              },
+              "totalMs": 712.74,
+              "error": null
+            }
+          },
+          "totalMs": 1427.04
+        },
+        "residualsMs": {
+          "modelLoadMinusLoaderMs": 1036.47,
+          "modelLoadMinusPipelineMs": 15.64,
+          "pipelineMinusLoaderMs": 1020.83
+        },
+        "consistent": {
+          "loaderWithinModelLoad": true,
+          "pipelineWithinModelLoad": true,
+          "loaderWithinPipeline": true
+        }
+      },
+      "warmupOutput": "Y eso no es todo.",
+      "summary": {
+        "rows": 128,
+        "maxTokenStops": 0,
+        "timingMs": {
+          "total": {
+            "mean": 1074.2197276666654,
+            "median": 1023.9375989999971,
+            "min": 344.62579099999857,
+            "max": 2080.315488,
+            "p95": 1927.398133499999,
+            "p99": 2034.0668394999975,
+            "stdDev": 470.7796315392051,
+            "ci95": 82.20315067493112,
+            "samples": 128,
+            "samplesAfterOutlierRemoval": 126,
+            "outliersRemoved": 2
+          },
+          "prefill": {
+            "mean": 233.27056392173867,
+            "median": 208.81716099999903,
+            "min": 121.26043899999786,
+            "max": 408.36856499999703,
+            "p95": 353.8987616999977,
+            "p99": 371.37972688000474,
+            "stdDev": 65.00140286840896,
+            "ci95": 11.880367660562786,
+            "samples": 128,
+            "samplesAfterOutlierRemoval": 115,
+            "outliersRemoved": 13
+          },
+          "decode": {
+            "mean": 819.2941893070858,
+            "median": 792.2384060000004,
+            "min": 220.66989999997895,
+            "max": 2092.069537000003,
+            "p95": 1478.8514766999956,
+            "p99": 1707.2324522399995,
+            "stdDev": 414.67567464031606,
+            "ci95": 72.12117120096619,
+            "samples": 128,
+            "samplesAfterOutlierRemoval": 127,
+            "outliersRemoved": 1
+          }
+        },
+        "throughput": {
+          "prefillTokensPerSec": {
+            "mean": 136.23868812988403,
+            "median": 138.28415628564306,
+            "min": 104.45332980802343,
+            "max": 156.72117171898495,
+            "p95": 154.07491583430294,
+            "p99": 154.9060813156649,
+            "stdDev": 12.787772845494716,
+            "ci95": 2.3171708348486613,
+            "samples": 128,
+            "samplesAfterOutlierRemoval": 117,
+            "outliersRemoved": 11
+          },
+          "decodeTokensPerSec": {
+            "mean": 30.15167429027862,
+            "median": 31.90208860714617,
+            "min": 18.080208233374158,
+            "max": 35.99323691577496,
+            "p95": 35.317487561278,
+            "p99": 35.55020669809622,
+            "stdDev": 4.543854062576593,
+            "ci95": 0.7871825549906382,
+            "samples": 128,
+            "samplesAfterOutlierRemoval": 128,
+            "outliersRemoved": 0
+          }
+        },
+        "determinism": {
+          "checkedRows": 8,
+          "matchingRows": 8,
+          "ok": true,
+          "rows": [
+            {
+              "index": 0,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:a28ace811a8bc937b278aac5261ea7b33c17473f226f7a63430f47c50601d9e9",
+              "repeatedTokenIdsHash": "sha256:a28ace811a8bc937b278aac5261ea7b33c17473f226f7a63430f47c50601d9e9"
+            },
+            {
+              "index": 1,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:1dfcb4b3883b6e10c78295e3e41e4087cb4ae6fff474f79371fd034bea88e90d",
+              "repeatedTokenIdsHash": "sha256:1dfcb4b3883b6e10c78295e3e41e4087cb4ae6fff474f79371fd034bea88e90d"
+            },
+            {
+              "index": 2,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:84b62157917f673fa87e6794cba7ec67818eaef1a03805e75d879d6b6b418e34",
+              "repeatedTokenIdsHash": "sha256:84b62157917f673fa87e6794cba7ec67818eaef1a03805e75d879d6b6b418e34"
+            },
+            {
+              "index": 3,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:eceaa2e6695473ff55fd6f553b87514fa29dcb91490f4e8153a229bd39734349",
+              "repeatedTokenIdsHash": "sha256:eceaa2e6695473ff55fd6f553b87514fa29dcb91490f4e8153a229bd39734349"
+            },
+            {
+              "index": 4,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:b2c2530af6f7a8f9100f70a2717e305270e582774fa5deb384e12641cc1a3ea5",
+              "repeatedTokenIdsHash": "sha256:b2c2530af6f7a8f9100f70a2717e305270e582774fa5deb384e12641cc1a3ea5"
+            },
+            {
+              "index": 5,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:453d103ad087961bbf3d8fec4d6cf68283ad52d083dd31066645ccef8f17181f",
+              "repeatedTokenIdsHash": "sha256:453d103ad087961bbf3d8fec4d6cf68283ad52d083dd31066645ccef8f17181f"
+            },
+            {
+              "index": 6,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:8006fedfd22ada5874eccce7c157e92d7aff15350b0c6518a4d95bd00118322d",
+              "repeatedTokenIdsHash": "sha256:8006fedfd22ada5874eccce7c157e92d7aff15350b0c6518a4d95bd00118322d"
+            },
+            {
+              "index": 7,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:a7f852a6766caf1c49569fe0de9b9a336a279a53b81a449a7acf7407318613b7",
+              "repeatedTokenIdsHash": "sha256:a7f852a6766caf1c49569fe0de9b9a336a279a53b81a449a7acf7407318613b7"
+            }
+          ]
+        }
+      },
+      "dopplerOperatorMetrics": {
+        "bleuRatio": 0.28527089959038765,
+        "chrfRatio": 0.6250918557843623,
+        "exactMatchRatio": 0.0078125,
+        "exactMatches": 1,
+        "count": 128
+      },
+      "predictionsArtifact": {
+        "filename": "savant-nativekd2-wmt13-enes-128_20260711T012704Z.baseline.predictions.jsonl",
+        "sha256": "sha256:d702611c8f00e4219f4a4007aa5f1406d29e05e26eff7d7adfe8ec90563a209b",
+        "rows": 128
+      }
+    },
+    "optimized": {
+      "label": "Retained Q4K, wide prefill, and Gemma fusion bundle",
+      "runtimeConfig": {
+        "inference": {
+          "session": {
+            "retainQ4KMaterialization": true,
+            "useWideTileQ4KPrefill": true,
+            "useSandwichRMSNormPairFusion": true,
+            "usePostFfnNextInputRMSNormPairFusion": true,
+            "useFusedQKVSplitQKNormRoPE": true
+          }
+        }
+      },
+      "executionPlan": {
+        "primary": {
+          "id": "primary",
+          "kernelPathId": "translategemma-4b-1b-enes-q4k-ehf16-af32-execution-inline",
+          "kernelPathSource": "execution-v1",
+          "activationDtype": "f32",
+          "readbackInterval": 1,
+          "readbackMode": "sequential",
+          "maxBatchDecodeTokens": null,
+          "batchSize": 4,
+          "stopCheckMode": "batch",
+          "disableCommandBatching": false,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1
+        },
+        "fallback": null,
+        "activePlanIdAtStart": null,
+        "finalActivePlanId": null,
+        "transitions": []
+      },
+      "loadMetrics": {
+        "schemaVersion": 1,
+        "source": "doppler",
+        "semantics": {
+          "modelLoadMs": "suite initialization time before generation",
+          "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+          "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+          "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+          "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+          "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+        },
+        "modelLoadMs": 958.24,
+        "loader": {
+          "schemaVersion": 1,
+          "source": "doppler-loader",
+          "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+          "status": "complete",
+          "customShardLoader": true,
+          "byteAccountingMode": "custom-loader-read-progress",
+          "totalBytes": 1025493248,
+          "totalShards": 16,
+          "bytesLoaded": 1025493248,
+          "shardsLoaded": 16,
+          "bytesPerSecond": 1379744925,
+          "phasesMs": {
+            "preflight": 0.62,
+            "tensorLocations": 0.4,
+            "embeddings": 469.51,
+            "layers": 271.86,
+            "finalWeights": 0.56,
+            "cleanup": 0.01
+          },
+          "layers": {
+            "count": 26,
+            "totalMs": 246.7,
+            "meanMs": 9.49,
+            "maxMs": 14.1,
+            "maxLayer": 0
+          },
+          "totalMs": 743.25,
+          "failedPhase": null,
+          "error": null
+        },
+        "pipeline": {
+          "schemaVersion": 1,
+          "source": "doppler-pipeline",
+          "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+          "status": "complete",
+          "phasesMs": {
+            "reset": 0.01,
+            "configResolution": 4.08,
+            "kernelWarmup": 0.02,
+            "tokenizer": 0.16,
+            "executionSetup": 1.38,
+            "loadWeights": 784.29,
+            "rope": 163.4,
+            "convStates": 0.25
+          },
+          "details": {
+            "tokenizer": {
+              "schemaVersion": 1,
+              "source": "doppler-tokenizer",
+              "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "status": "complete",
+              "tokenizerType": "bundled",
+              "tokenizerFile": "tokenizer.json",
+              "backend": "bundled",
+              "assetSource": "cache",
+              "cacheHit": true,
+              "phasesMs": {
+                "configResolution": 0.04,
+                "cacheLookup": 0.04,
+                "backendCreate": null,
+                "assetLoad": null,
+                "assetParse": null,
+                "backendLoad": null,
+                "cacheStore": null
+              },
+              "totalMs": 0.14,
+              "error": null
+            }
+          },
+          "totalMs": 953.88
+        },
+        "residualsMs": {
+          "modelLoadMinusLoaderMs": 214.99,
+          "modelLoadMinusPipelineMs": 4.36,
+          "pipelineMinusLoaderMs": 210.63
+        },
+        "consistent": {
+          "loaderWithinModelLoad": true,
+          "pipelineWithinModelLoad": true,
+          "loaderWithinPipeline": true
+        }
+      },
+      "warmupOutput": "Y eso no es todo.",
+      "summary": {
+        "rows": 128,
+        "maxTokenStops": 0,
+        "timingMs": {
+          "total": {
+            "mean": 786.2627545,
+            "median": 743.1850360000099,
+            "min": 248.383302000002,
+            "max": 1572.5682880000095,
+            "p95": 1409.4427135000005,
+            "p99": 1553.2815132499964,
+            "stdDev": 347.2108287936545,
+            "ci95": 60.62671824177172,
+            "samples": 128,
+            "samplesAfterOutlierRemoval": 126,
+            "outliersRemoved": 2
+          },
+          "prefill": {
+            "mean": 163.4287411965809,
+            "median": 153.71372800000245,
+            "min": 83.5406929999881,
+            "max": 297.64054100000067,
+            "p95": 241.36357460001017,
+            "p99": 261.1142359999742,
+            "stdDev": 46.821767656545205,
+            "ci95": 8.484200944187918,
+            "samples": 128,
+            "samplesAfterOutlierRemoval": 117,
+            "outliersRemoved": 11
+          },
+          "decode": {
+            "mean": 597.3718362857148,
+            "median": 586.776397499998,
+            "min": 163.53346299999976,
+            "max": 1336.5438549999963,
+            "p95": 1106.3182945000008,
+            "p99": 1308.31330875001,
+            "stdDev": 292.3861763986655,
+            "ci95": 51.053748513257254,
+            "samples": 128,
+            "samplesAfterOutlierRemoval": 126,
+            "outliersRemoved": 2
+          }
+        },
+        "throughput": {
+          "prefillTokensPerSec": {
+            "mean": 196.02464019039533,
+            "median": 198.76888992433535,
+            "min": 159.85254519195587,
+            "max": 215.18014539876373,
+            "p95": 213.46972297942813,
+            "p99": 214.86243158081786,
+            "stdDev": 13.954549396245925,
+            "ci95": 2.5285931541885405,
+            "samples": 128,
+            "samplesAfterOutlierRemoval": 117,
+            "outliersRemoved": 11
+          },
+          "decodeTokensPerSec": {
+            "mean": 41.06459288831619,
+            "median": 43.69146899057043,
+            "min": 22.78827718699665,
+            "max": 48.559479205088024,
+            "p95": 47.91538208068323,
+            "p99": 48.501609133972394,
+            "stdDev": 6.809122397338512,
+            "ci95": 1.184255340207119,
+            "samples": 128,
+            "samplesAfterOutlierRemoval": 127,
+            "outliersRemoved": 1
+          }
+        },
+        "determinism": {
+          "checkedRows": 8,
+          "matchingRows": 8,
+          "ok": true,
+          "rows": [
+            {
+              "index": 0,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:a28ace811a8bc937b278aac5261ea7b33c17473f226f7a63430f47c50601d9e9",
+              "repeatedTokenIdsHash": "sha256:a28ace811a8bc937b278aac5261ea7b33c17473f226f7a63430f47c50601d9e9"
+            },
+            {
+              "index": 1,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:1dfcb4b3883b6e10c78295e3e41e4087cb4ae6fff474f79371fd034bea88e90d",
+              "repeatedTokenIdsHash": "sha256:1dfcb4b3883b6e10c78295e3e41e4087cb4ae6fff474f79371fd034bea88e90d"
+            },
+            {
+              "index": 2,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:84b62157917f673fa87e6794cba7ec67818eaef1a03805e75d879d6b6b418e34",
+              "repeatedTokenIdsHash": "sha256:84b62157917f673fa87e6794cba7ec67818eaef1a03805e75d879d6b6b418e34"
+            },
+            {
+              "index": 3,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:eceaa2e6695473ff55fd6f553b87514fa29dcb91490f4e8153a229bd39734349",
+              "repeatedTokenIdsHash": "sha256:eceaa2e6695473ff55fd6f553b87514fa29dcb91490f4e8153a229bd39734349"
+            },
+            {
+              "index": 4,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:b2c2530af6f7a8f9100f70a2717e305270e582774fa5deb384e12641cc1a3ea5",
+              "repeatedTokenIdsHash": "sha256:b2c2530af6f7a8f9100f70a2717e305270e582774fa5deb384e12641cc1a3ea5"
+            },
+            {
+              "index": 5,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:453d103ad087961bbf3d8fec4d6cf68283ad52d083dd31066645ccef8f17181f",
+              "repeatedTokenIdsHash": "sha256:453d103ad087961bbf3d8fec4d6cf68283ad52d083dd31066645ccef8f17181f"
+            },
+            {
+              "index": 6,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:8006fedfd22ada5874eccce7c157e92d7aff15350b0c6518a4d95bd00118322d",
+              "repeatedTokenIdsHash": "sha256:8006fedfd22ada5874eccce7c157e92d7aff15350b0c6518a4d95bd00118322d"
+            },
+            {
+              "index": 7,
+              "matches": true,
+              "expectedTokenIdsHash": "sha256:a7f852a6766caf1c49569fe0de9b9a336a279a53b81a449a7acf7407318613b7",
+              "repeatedTokenIdsHash": "sha256:a7f852a6766caf1c49569fe0de9b9a336a279a53b81a449a7acf7407318613b7"
+            }
+          ]
+        }
+      },
+      "dopplerOperatorMetrics": {
+        "bleuRatio": 0.28527089959038765,
+        "chrfRatio": 0.6250918557843623,
+        "exactMatchRatio": 0.0078125,
+        "exactMatches": 1,
+        "count": 128
+      },
+      "predictionsArtifact": {
+        "filename": "savant-nativekd2-wmt13-enes-128_20260711T012704Z.optimized.predictions.jsonl",
+        "sha256": "sha256:69d27c7f154c62175a191b9f17eef68750178ffa23ae2e632a8e126b30a07601",
+        "rows": 128
+      }
+    }
+  }
+}
