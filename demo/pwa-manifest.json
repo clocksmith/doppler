@@ -61,7 +61,7 @@
       "name": "Kernel X-Ray",
       "short_name": "X-Ray",
       "description": "Launch with decode and GPU x-ray panels enabled.",
-      "url": "/demo/index.html?shortcut=xray&xray=decode,kernel,gpu,batch&prompt=Explain%20the%20current%20decode%20hotspots.",
+      "url": "/demo/index.html?shortcut=xray&xray=all&prompt=Explain%20the%20current%20decode%20hotspots.",
       "icons": [
         {
           "src": "/demo/assets/pwa/shortcut-xray-96.png",

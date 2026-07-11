@@ -2,13 +2,13 @@
 // Xray — Debug visualization panels for Doppler inference internals.
 // =============================================================================
 // Toggle via:
-//   URL flag:  ?xray=decode,kv,kernel,gpu,exec,mem,batch  or  ?xray=all
-//   Checkbox:  each panel has an individual checkbox in the UI
+//   URL flag:  ?xray=all (legacy panel lists also enable the full view)
+//   Checkbox:  one UI switch controls every panel
 //
 // URL and checkboxes are bidirectionally synced:
-//   - URL ?xray= seeds checkbox state on init
-//   - Toggling a checkbox updates the URL via replaceState
-//   - Sharing/bookmarking a URL preserves the exact panel selection
+//   - Any valid URL ?xray= value seeds the checkbox on init
+//   - Toggling the checkbox updates the URL via replaceState
+//   - Sharing/bookmarking uses the canonical ?xray=all form
 //
 // Each panel reads from state.lastInferenceStats / state.lastMemoryStats
 // and pipeline.getBatchingStats() / pipeline.getBufferPool().getLabelStats().
@@ -74,10 +74,8 @@ function pushXrayToUrl(active) {
   const url = new URL(window.location.href);
   if (active.size === 0) {
     url.searchParams.delete('xray');
-  } else if (active.size === Object.keys(PANELS).length) {
-    url.searchParams.set('xray', 'all');
   } else {
-    url.searchParams.set('xray', [...active].join(','));
+    url.searchParams.set('xray', 'all');
   }
   window.history.replaceState(null, '', url.toString());
 }
@@ -87,12 +85,9 @@ function pushXrayToUrl(active) {
 // ---------------------------------------------------------------------------
 
 function getActivePanels() {
-  const active = new Set();
-  for (const key of Object.keys(PANELS)) {
-    const cb = $(`xray-toggle-${key}`);
-    if (cb?.checked) active.add(key);
-  }
-  return active;
+  return $('xray-toggle-all')?.checked === true
+    ? new Set(Object.keys(PANELS))
+    : new Set();
 }
 
 // ---------------------------------------------------------------------------
@@ -106,13 +101,11 @@ export function initXray({ onChange } = {}) {
 
   const urlFlags = parseXrayFlags();
 
-  // Seed checkboxes from URL flags
-  for (const key of Object.keys(PANELS)) {
-    const cb = $(`xray-toggle-${key}`);
-    if (cb) {
-      cb.checked = urlFlags.has(key);
-      cb.addEventListener('change', () => syncXrayState());
-    }
+  // Seed the all-panels switch from any recognized legacy or canonical flag.
+  const toggle = $('xray-toggle-all');
+  if (toggle) {
+    toggle.checked = urlFlags.size > 0;
+    toggle.addEventListener('change', () => syncXrayState());
   }
 
   // Build panel DOM for all panels (hidden by default, toggled by checkbox)
@@ -175,6 +168,7 @@ function syncXrayState() {
   if (!container) return;
 
   const active = getActivePanels();
+  state.xrayEnabled = active.size > 0;
   for (const key of Object.keys(PANELS)) {
     const entry = panelEls[key];
     if (entry) entry.section.hidden = !active.has(key);
@@ -301,16 +295,16 @@ export function getXrayRuntimeNoticeText(options = {}) {
   const traceEnabled = options.traceEnabled === true;
   const profilingEnabled = options.profilingEnabled === true;
   if (tokenPressEnabled && profilingEnabled) {
-    return 'Token Press is active. Decode, Kernel, and GPU X-Ray panels add per-step profiling; Batch stays unavailable.';
+    return 'Token logits runs stepwise; X-Ray profiling is on. Batch view is unavailable.';
   }
   if (tokenPressEnabled) {
-    return 'Token Press is a separate generation mode. It runs step-by-step decode, so Batch stats stay unavailable.';
+    return 'Token logits runs stepwise. Batch view is unavailable.';
   }
   if (profilingEnabled) {
-    return 'Decode, Kernel, and GPU X-Ray panels request extra profiling. Trace logging is separate.';
+    return 'X-Ray profiling is on. Trace logging is separate.';
   }
   if (traceEnabled) {
-    return 'Trace logging is active. It affects runtime logs, not X-Ray panel selection.';
+    return 'Trace logging is on; X-Ray selection is unchanged.';
   }
   return null;
 }
@@ -333,7 +327,7 @@ function formatBatchGuardReason(reason) {
 function formatObservedDecodeLabel(stats) {
   const decodeMode = stats?.decodeMode ?? null;
   if (isTokenPressMode()) {
-    return 'Token Press stepwise decode';
+    return 'Token logits stepwise decode';
   }
   if (decodeMode === 'batched_gpu') {
     return 'Generate batched GPU decode';
@@ -1118,7 +1112,7 @@ function renderBatchingStats(el, stats, memStats, pipeline) {
   appendKeyValueList(el, summaryPairs);
 
   if (isTokenPressMode()) {
-    const note = emptyMsg('Batching stats are unavailable in Token Press mode. Token Press drives per-step decode rather than the normal run-ahead generate path.');
+    const note = emptyMsg('Batching stats are unavailable in Token logits mode because it drives per-step decode.');
     note.style.marginTop = '6px';
     el.appendChild(note);
     return;

@@ -38,6 +38,11 @@ export interface ValidationResult {
   infCount: number;
 }
 
+export declare function resolveEmbeddingScale(
+  config: Pick<EmbedConfig, 'scaleEmbeddings' | 'embeddingScale'>,
+  hiddenSize: number
+): number;
+
 export function embed(
   tokenIds: number[] | Uint32Array | GPUBuffer,
   embedBuffer: GPUBuffer | Float32Array | CpuWeightBuffer | SplitWeightBuffer,

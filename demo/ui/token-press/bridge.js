@@ -28,7 +28,7 @@ export function createTokenPressSession(pipeline, press, prompt, options = {}) {
     topP = 1.0,
     topK: samplingTopK = 0,
     repetitionPenalty = 1.0,
-    maxTokens = 256,
+    maxTokens = 1024,
     useChatTemplate = false,
   } = options;
 

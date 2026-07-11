@@ -303,9 +303,13 @@ async function renderSelectedPrompt() {
 
 function setPanelOpen(open) {
   const panel = $('precision-replay-panel');
+  const toggle = $('precision-replay-toggle');
   if (panel) {
     panel.hidden = !open;
+    const area = panel.closest('.precision-replay-area');
+    if (area) area.hidden = !open;
   }
+  if (toggle) toggle.setAttribute('aria-expanded', String(open));
 }
 
 export async function initPrecisionReplay() {
@@ -315,6 +319,8 @@ export async function initPrecisionReplay() {
   if (!toggleEl || !selectEl || !usePromptBtn) {
     return;
   }
+
+  setPanelOpen(false);
 
   renderStatus('Loading checked-in evidence...');
   try {
@@ -327,15 +333,15 @@ export async function initPrecisionReplay() {
     renderModeGroup();
     renderBroadFlips();
     await renderSelectedPrompt();
-    renderStatus(`${replayState.manifest.broad.aggregate.f16VsF32FlipCount} / ${replayState.manifest.broad.aggregate.promptCount} broad prompts flipped on this checked-in run.`);
+    renderStatus(`${replayState.manifest.broad.aggregate.f16VsF32FlipCount}/${replayState.manifest.broad.aggregate.promptCount} prompts changed top token in F16.`);
   } catch (error) {
     toggleEl.disabled = true;
     renderStatus(`Precision replay unavailable: ${error.message}`);
     return;
   }
 
-  toggleEl.addEventListener('change', () => {
-    setPanelOpen(toggleEl.checked);
+  toggleEl.addEventListener('click', () => {
+    setPanelOpen(toggleEl.getAttribute('aria-expanded') !== 'true');
   });
 
   selectEl.addEventListener('change', async () => {
