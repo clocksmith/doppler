@@ -8,6 +8,31 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+### Added
+
+- Advanced model-handle APIs for deterministic downstream scoring and prefix
+  reuse: `tokenizeText()`, `prefillWithTokenLogits()`,
+  `prefillWithTokenLogitsFromKV()`, and stateful `resetToSeqLen()` truncation.
+- Local Savant NativeKD2 English/Spanish translation evidence, including the
+  converted Q4K artifact, WMT13 quality receipts, translation benchmark
+  tooling, and an experimental Radeon/RDNA3 throughput profile. This is local
+  evidence, not a hosted model or public cross-engine claim.
+
+### Changed
+
+- Consolidated GitHub Actions on the deterministic CPU contract; browser,
+  model-download, and GPU validation remain explicit hardware workflows.
+- Kept the receipt-linked README evidence chart in GitHub without duplicating
+  that documentation asset in the npm tarball.
+
+### Fixed
+
+- Preserved loaded-manifest provenance through `manifestHash` and reset
+  embedding state after both successful and failed calls so repeated model
+  sessions remain deterministic.
+- Regenerated kernel reachability metadata after the new runtime profiles and
+  kernel paths changed the selectable registry surface.
+
 ## [0.4.8] - 2026-07-09
 
 ### Added
