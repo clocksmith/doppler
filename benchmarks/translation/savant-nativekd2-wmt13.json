@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "savant-nativekd2-wmt13-enes-128",
+  "model": {
+    "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+    "modelDir": "../../models/local/translategemma-4b-1b-enes-q4k-ehf16-af32",
+    "sourceCheckpoint": "../../../gamma/projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed/checkpoint-000025"
+  },
+  "sharedContract": {
+    "datasetPath": "../../../gamma/projects/distillation/translation/training_data/translate_distill_pairs.eval2_wmt13_enes_128.jsonl",
+    "baselinePredictionsPath": "../../../gamma/projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed_checkpoint_sweep_greedy_studentonly_external/eval2_external__checkpoint-000025__greedy/student_predictions.jsonl",
+    "sampleLimit": 128,
+    "maxTokens": 128,
+    "warmupRuns": 1,
+    "determinismSamples": 8,
+    "useChatTemplate": true,
+    "cacheMode": "warm",
+    "loadMode": "http",
+    "sampling": {
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "greedyThreshold": 0,
+      "seed": 0
+    }
+  },
+  "runtimeProfile": "profiles/production",
+  "engineLanes": [
+    {
+      "id": "baseline",
+      "label": "Manifest baseline",
+      "runtimeConfig": {
+        "inference": {}
+      }
+    },
+    {
+      "id": "optimized",
+      "label": "Retained Q4K, wide prefill, and Gemma fusion bundle",
+      "runtimeConfig": {
+        "inference": {
+          "session": {
+            "retainQ4KMaterialization": true,
+            "useWideTileQ4KPrefill": true,
+            "useSandwichRMSNormPairFusion": true,
+            "usePostFfnNextInputRMSNormPairFusion": true,
+            "useFusedQKVSplitQKNormRoPE": true
+          }
+        }
+      }
+    }
+  ],
+  "metrics": {
+    "sacrebleuPython": "../../../gamma/.venv_rocm/bin/python"
+  },
+  "outputDir": "../vendors/results/savant-nativekd2/quality-wmt13"
+}
