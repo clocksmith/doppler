@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-07-09T19:35:08.657Z
-Release: channel=main-snapshot, version=0.4.8, commit=69c495a2723ceef79f9dfa64ef88c8ff2ce40139, dirty=yes
+Generated: 2026-07-11T13:18:02.204Z
+Release: channel=main-snapshot, version=0.4.8, commit=d9eb95510178eb7bbfc59af307a58793b85fb51e, dirty=yes
 
 ## Engine Matrix
 
@@ -48,6 +48,7 @@ Release: channel=main-snapshot, version=0.4.8, commit=69c495a2723ceef79f9dfa64ef
 | `qwen-3-embedding-0-6b-q4k-ehf16-af32` | yes | embedding |  | auto |  |  |  |
 | `qwen-3-reranker-0-6b-f16-af32` | yes | run, translate |  | auto |  |  |  |
 | `qwen-3-reranker-0-6b-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
+| `translategemma-4b-1b-enes-q4k-ehf16-af32` | yes | run, translate |  | auto | local | capability_only | No canonical Transformers.js mapping is configured for this bilingual TranslateGemma artifact. |
 | `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` | auto | local | performance_comparable |  |
 
 ## Workloads

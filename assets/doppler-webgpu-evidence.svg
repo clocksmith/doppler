@@ -11,33 +11,33 @@
   <text x="1238" y="37" text-anchor="end" class="legend">BOX ±1 SD · CENTER MEAN · WHISKER MIN–MAX</text>
   <path d="M42 56H1238" stroke="#111"/>
   <text x="42" y="82" class="column">MODEL</text><text x="320" y="82" class="column">MEAN ± SD</text>
-  <text x="600" y="82" class="column">RUN SPREAD · FASTER →</text><text x="1109" y="82" text-anchor="middle" class="column">SPEEDUP</text>
+  <text x="600" y="82" class="column">RUN SPREAD · ← LOWER IS FASTER</text><text x="1109" y="82" text-anchor="middle" class="column">SPEEDUP</text>
 
   <rect x="42" y="94" width="1196" height="38" class="band"/>
   <text x="54" y="120" class="section">Apple M3 · Metal</text><text x="1226" y="119" text-anchor="end" class="section-detail">4 MODELS</text>
 
   <text x="42" y="156" class="model">Qwen 3.5 0.8B text</text><text x="42" y="181" class="detail">n=3</text>
   <text x="320" y="155" class="dv mono">26.03 ± 0.23 ms/token</text><text x="320" y="181" class="tv mono">36.98 ± 1.98 ms/token</text>
-  <path d="M600 151H970" class="axis"/><rect x="928" y="144" width="11" height="14" class="d-box"/><path d="M928 151H939M928 144v14M939 144v14M934 144v14" class="d-mark"/>
-  <path d="M600 177H970" class="axis"/><rect x="631" y="170" width="85" height="14" class="t-box"/><path d="M631 177H722M631 170v14M722 170v14M668 170v14" class="t-mark"/>
+  <path d="M600 151H970" class="axis"/><rect x="631" y="144" width="11" height="14" class="d-box"/><path d="M631 151H642M642 144v14M631 144v14M636 144v14" class="d-mark"/>
+  <path d="M600 177H970" class="axis"/><rect x="854" y="170" width="85" height="14" class="t-box"/><path d="M848 177H939M939 170v14M848 170v14M902 170v14" class="t-mark"/>
   <path d="M1010 140V188" class="divider"/><text x="1109" y="173" text-anchor="middle" class="ratio">1.42x</text><path d="M42 204H1238" class="row"/>
 
   <text x="42" y="228" class="model">Qwen 3 Embedding 0.6B</text><text x="42" y="253" class="detail">n=15</text>
   <text x="320" y="227" class="dv mono">43.79 ± 0.42 ms/embedding</text><text x="320" y="253" class="tv mono">51.61 ± 0.67 ms/embedding</text>
-  <path d="M600 223H970" class="axis"/><rect x="906" y="216" width="25" height="14" class="d-box"/><path d="M897 223H939M897 216v14M939 216v14M918 216v14" class="d-mark"/>
-  <path d="M600 249H970" class="axis"/><rect x="663" y="242" width="40" height="14" class="t-box"/><path d="M631 249H707M631 242v14M707 242v14M683 242v14" class="t-mark"/>
+  <path d="M600 223H970" class="axis"/><rect x="639" y="216" width="25" height="14" class="d-box"/><path d="M631 223H673M673 216v14M631 216v14M652 216v14" class="d-mark"/>
+  <path d="M600 249H970" class="axis"/><rect x="867" y="242" width="40" height="14" class="t-box"/><path d="M863 249H939M939 242v14M863 242v14M887 242v14" class="t-mark"/>
   <path d="M1010 212V260" class="divider"/><text x="1109" y="245" text-anchor="middle" class="ratio">1.18x</text><path d="M42 276H1238" class="row"/>
 
   <text x="42" y="300" class="model">Qwen 3 Reranker 0.6B</text><text x="42" y="325" class="detail">n=3</text>
   <text x="320" y="299" class="dv mono">467.03 ± 17.97 ms/rerank</text><text x="320" y="325" class="tv mono">488.87 ± 5.56 ms/rerank</text>
-  <path d="M600 295H970" class="axis"/><rect x="738" y="288" width="184" height="14" class="d-box"/><path d="M738 295H939M738 288v14M939 288v14M809 288v14" class="d-mark"/>
-  <path d="M600 321H970" class="axis"/><rect x="636" y="314" width="58" height="14" class="t-box"/><path d="M631 321H694M631 314v14M694 314v14M671 314v14" class="t-mark"/>
+  <path d="M600 295H970" class="axis"/><rect x="648" y="288" width="184" height="14" class="d-box"/><path d="M631 295H832M832 288v14M631 288v14M761 288v14" class="d-mark"/>
+  <path d="M600 321H970" class="axis"/><rect x="876" y="314" width="58" height="14" class="t-box"/><path d="M876 321H939M939 314v14M876 314v14M899 314v14" class="t-mark"/>
   <path d="M1010 284V332" class="divider"/><text x="1109" y="317" text-anchor="middle" class="ratio">1.05x</text><path d="M42 348H1238" class="row"/>
 
   <text x="42" y="372" class="model">Qwen 3.5 2B text</text><text x="42" y="397" class="detail">n=20 paired · local model</text>
   <text x="320" y="371" class="dv mono">31.41 ± 6.00 ms/token</text><text x="320" y="397" class="tv mono">32.62 ± 6.06 ms/token</text>
-  <path d="M600 367H970" class="axis"/><rect x="711" y="360" width="227" height="14" class="d-box"/><path d="M665 367H939M665 360v14M939 360v14M825 360v14" class="d-mark"/>
-  <path d="M600 393H970" class="axis"/><rect x="687" y="386" width="229" height="14" class="t-box"/><path d="M631 393H920M631 386v14M920 386v14M802 386v14" class="t-mark"/>
+  <path d="M600 367H970" class="axis"/><rect x="632" y="360" width="227" height="14" class="d-box"/><path d="M631 367H905M905 360v14M631 360v14M745 360v14" class="d-mark"/>
+  <path d="M600 393H970" class="axis"/><rect x="654" y="386" width="229" height="14" class="t-box"/><path d="M650 393H939M939 386v14M650 386v14M768 386v14" class="t-mark"/>
   <path d="M1010 356V404" class="divider"/><text x="1109" y="389" text-anchor="middle" class="ratio">1.04x</text>
 
   <rect x="42" y="440" width="1196" height="38" class="band"/>
@@ -45,36 +45,36 @@
 
   <text x="42" y="502" class="model">Qwen 3.5 0.8B text</text><text x="42" y="527" class="detail">n=15</text>
   <text x="320" y="501" class="dv mono">14.75 ± 0.15 ms/token</text><text x="320" y="527" class="tv mono">23.88 ± 0.51 ms/token</text>
-  <path d="M600 497H970" class="axis"/><rect x="928" y="490" width="9" height="14" class="d-box"/><path d="M925 497H939M925 490v14M939 490v14M933 490v14" class="d-mark"/>
-  <path d="M600 523H970" class="axis"/><rect x="648" y="516" width="30" height="14" class="t-box"/><path d="M631 523H686M631 516v14M686 516v14M663 516v14" class="t-mark"/>
+  <path d="M600 497H970" class="axis"/><rect x="633" y="490" width="9" height="14" class="d-box"/><path d="M631 497H645M645 490v14M631 490v14M637 490v14" class="d-mark"/>
+  <path d="M600 523H970" class="axis"/><rect x="892" y="516" width="30" height="14" class="t-box"/><path d="M884 523H939M939 516v14M884 516v14M907 516v14" class="t-mark"/>
   <path d="M1010 486V534" class="divider"/><text x="1109" y="519" text-anchor="middle" class="ratio">1.62x</text><path d="M42 550H1238" class="row"/>
 
   <text x="42" y="574" class="model">Qwen 3 Embedding 0.6B</text><text x="42" y="599" class="detail">n=15</text>
   <text x="320" y="573" class="dv mono">29.51 ± 0.80 ms/embedding</text><text x="320" y="599" class="tv mono">149.44 ± 11.00 ms/embedding</text>
-  <path d="M600 569H970" class="axis"/><rect x="935" y="562" width="3" height="14" class="d-box"/><path d="M934 569H939M934 562v14M939 562v14M937 562v14" class="d-mark"/>
-  <path d="M600 595H970" class="axis"/><rect x="680" y="588" width="41" height="14" class="t-box"/><path d="M631 595H721M631 588v14M721 588v14M702 588v14" class="t-mark"/>
+  <path d="M600 569H970" class="axis"/><rect x="632" y="562" width="3" height="14" class="d-box"/><path d="M631 569H636M636 562v14M631 562v14M633 562v14" class="d-mark"/>
+  <path d="M600 595H970" class="axis"/><rect x="849" y="588" width="41" height="14" class="t-box"/><path d="M849 595H939M939 588v14M849 588v14M868 588v14" class="t-mark"/>
   <path d="M1010 558V606" class="divider"/><text x="1109" y="591" text-anchor="middle" class="ratio">5.06x</text><path d="M42 622H1238" class="row"/>
 
   <text x="42" y="646" class="model">Qwen 3 Reranker 0.6B</text><text x="42" y="671" class="detail">n=15</text>
   <text x="320" y="645" class="dv mono">278.62 ± 6.01 ms/rerank</text><text x="320" y="671" class="tv mono">470.80 ± 12.67 ms/rerank</text>
-  <path d="M600 641H970" class="axis"/><rect x="918" y="634" width="16" height="14" class="d-box"/><path d="M910 641H939M910 634v14M939 634v14M926 634v14" class="d-mark"/>
-  <path d="M600 667H970" class="axis"/><rect x="648" y="660" width="34" height="14" class="t-box"/><path d="M631 667H689M631 660v14M689 660v14M665 660v14" class="t-mark"/>
+  <path d="M600 641H970" class="axis"/><rect x="636" y="634" width="16" height="14" class="d-box"/><path d="M631 641H660M660 634v14M631 634v14M644 634v14" class="d-mark"/>
+  <path d="M600 667H970" class="axis"/><rect x="888" y="660" width="34" height="14" class="t-box"/><path d="M881 667H939M939 660v14M881 660v14M905 660v14" class="t-mark"/>
   <path d="M1010 630V678" class="divider"/><text x="1109" y="663" text-anchor="middle" class="ratio">1.69x</text><path d="M42 694H1238" class="row"/>
 
   <text x="42" y="718" class="model">Qwen 3.5 2B text</text><text x="42" y="743" class="detail">n=15 · local model</text>
   <text x="320" y="717" class="dv mono">17.94 ± 0.11 ms/token</text><text x="320" y="743" class="tv mono">24.50 ± 2.10 ms/token</text>
-  <path d="M600 713H970" class="axis"/><rect x="933" y="706" width="5" height="14" class="d-box"/><path d="M931 713H939M931 706v14M939 706v14M936 706v14" class="d-mark"/>
-  <path d="M600 739H970" class="axis"/><rect x="748" y="732" width="69" height="14" class="t-box"/><path d="M631 739H817M631 732v14M817 732v14M793 732v14" class="t-mark"/>
+  <path d="M600 713H970" class="axis"/><rect x="632" y="706" width="5" height="14" class="d-box"/><path d="M631 713H639M639 706v14M631 706v14M634 706v14" class="d-mark"/>
+  <path d="M600 739H970" class="axis"/><rect x="753" y="732" width="69" height="14" class="t-box"/><path d="M753 739H939M939 732v14M753 732v14M777 732v14" class="t-mark"/>
   <path d="M1010 702V750" class="divider"/><text x="1109" y="735" text-anchor="middle" class="ratio">1.37x</text><path d="M42 766H1238" class="row"/>
 
   <text x="42" y="790" class="model">Gemma 4 E2B INT4-PLE</text><text x="42" y="815" class="detail">n=15 · local model</text>
   <text x="320" y="789" class="dv mono">61.49 ± 0.75 ms/token</text><text x="320" y="815" class="tv mono">107.62 ± 1.99 ms/token</text>
-  <path d="M600 785H970" class="axis"/><rect x="929" y="778" width="10" height="14" class="d-box"/><path d="M926 785H939M926 778v14M939 778v14M934 778v14" class="d-mark"/>
-  <path d="M600 811H970" class="axis"/><rect x="638" y="804" width="25" height="14" class="t-box"/><path d="M631 811H672M631 804v14M672 804v14M650 804v14" class="t-mark"/>
+  <path d="M600 785H970" class="axis"/><rect x="631" y="778" width="10" height="14" class="d-box"/><path d="M631 785H644M644 778v14M631 778v14M636 778v14" class="d-mark"/>
+  <path d="M600 811H970" class="axis"/><rect x="907" y="804" width="25" height="14" class="t-box"/><path d="M898 811H939M939 804v14M898 804v14M920 804v14" class="t-mark"/>
   <path d="M1010 774V822" class="divider"/><text x="1109" y="807" text-anchor="middle" class="ratio">1.75x</text>
 
   <path d="M42 858H1238" stroke="#111"/>
-  <text x="42" y="883" class="footer">Latency scale is flipped: farther right is faster.</text>
+  <text x="42" y="883" class="footer">Each row uses its own latency scale; lower is left.</text>
   <text x="42" y="906" class="footer">Metal Qwen 3.5 2B paired difference: -1.21 ms/token · 95% CI -1.70 to -0.71.</text>
   <text x="1238" y="906" text-anchor="end" class="footer mono">9 LINKED RESULTS</text>
 </svg>

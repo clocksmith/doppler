@@ -8,6 +8,8 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.8] - 2026-07-11
+
 ### Added
 
 - Advanced model-handle APIs for deterministic downstream scoring and prefix
@@ -24,6 +26,14 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
   including disjoint qualification/label/student-holdout tasks, disposable
   pinned source snapshots, exact repair replay, command and path audits, and
   receipt-linked training-row export for accepted labels.
+- Claim-grade, release-claimable Apple M3 Metal evidence for the current Tier 1
+  Qwen text-generation, embedding, and reranking lanes.
+- Claim-grade, release-claimable Radeon 8060S Vulkan evidence for the current
+  Tier 1 Qwen lanes, including fresh 15-run embedding and reranking receipts.
+- Local-comparable Radeon 8060S Vulkan evidence for the Tier 2 Qwen 3.5 2B and
+  Gemma 4 E2B INT4-PLE generation lanes.
+- A receipt-linked README comparison chart for the promoted Metal and Vulkan
+  results.
 
 ### Changed
 
@@ -33,6 +43,15 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
   that documentation asset in the npm tarball.
 - Renamed nested repository guides so npm no longer force-includes them,
   preserving the 1,349-file package boundary without removing runtime code.
+- Refreshed the competition scoreboard, model support inventory, local GPU
+  challenger matrix, and model roadmap from the promoted receipts.
+- Added Metal runtime profiles and optimized WebGPU paths for Qwen 3.5 text,
+  embedding, and reranking, including fixed `head_dim=128` f16-KV prefill
+  attention for the reranker lane.
+- Reduced the npm package from 1,733 files to the enforced 1,349-file runtime,
+  declaration, and resource closure.
+- Reframed the README around the verifiable optimization loop, measured
+  performance mechanisms, and one runnable entry point.
 
 ### Fixed
 
@@ -41,32 +60,6 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
   sessions remain deterministic.
 - Regenerated kernel reachability metadata after the new runtime profiles and
   kernel paths changed the selectable registry surface.
-
-## [0.4.8] - 2026-07-09
-
-### Added
-
-- Claim-grade, release-claimable Apple M3 Metal evidence for the current Tier 1
-  Qwen text-generation, embedding, and reranking lanes.
-- Claim-grade, release-claimable Radeon 8060S Vulkan evidence for the current
-  Tier 1 Qwen lanes, including fresh 15-run embedding and reranking receipts.
-- Local-comparable Radeon 8060S Vulkan evidence for the Tier 2 Qwen 3.5 2B and
-  Gemma 4 E2B INT4-PLE generation lanes.
-- A receipt-linked README comparison chart that keeps Metal, Vulkan, Tier 1,
-  Tier 2, and claim state explicit.
-
-### Changed
-
-- Refreshed the competition scoreboard, model support inventory, local GPU
-  challenger matrix, and model roadmap from the promoted Vulkan receipts.
-- Added Metal runtime profiles and optimized WebGPU paths for Qwen 3.5 text,
-  embedding, and reranking, including fixed `head_dim=128` f16-KV prefill
-  attention for the reranker lane.
-- Reduced the npm package from 1,733 to 1,347 files by publishing the checked
-  runtime, declaration, and resource closure instead of the full source tree.
-
-### Fixed
-
 - Replaced the stale Vulkan reranker loss with the current 15-run,
   release-claimable Doppler throughput win while preserving the TJS model-load
   advantage in the evidence ledger.
@@ -76,6 +69,8 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 - Added an installed-tarball smoke for every public export, all three CLIs,
   browser-runner assets, optional-dependency omission, and strict TypeScript
   declaration resolution; repaired the declaration defects it exposed.
+- Restamped the Linux/Vulkan Qwen 3.5 2B fixture after a Darwin-only profile
+  addition and updated the harness contract test for the renamed testing guide.
 
 ## [0.4.4] - 2026-06-30
 
