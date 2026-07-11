@@ -14,6 +14,9 @@ assert.match(html, /Choose a model to run in your browser\. Note the download si
 assert.equal((html.match(/id="xray-toggle-all"/g) ?? []).length, 1);
 assert.doesNotMatch(html, /id="xray-toggle-(?:decode|kv|kernel|gpu|exec|mem|batch)"/);
 assert.match(html, /id="set-token-press"[\s\S]*?<strong>Token logits<\/strong>/);
+assert.match(html, /class="chat-toolbar"/);
+assert.ok(html.indexOf('id="xray-toggle-all"') < html.indexOf('id="output-toks"'));
+assert.ok(html.indexOf('id="settings-toggle"') < html.indexOf('id="output-toks"'));
 assert.ok(html.indexOf('id="xray-toggle-all"') < html.indexOf('id="settings-toggle"'));
 assert.ok(html.indexOf('id="settings-toggle"') < html.indexOf('id="output-area"'));
 assert.match(xraySource, /\$\('xray-toggle-all'\)\?\.checked === true/);
@@ -23,8 +26,9 @@ assert.match(settingsSource, /DEMO_DEFAULT_MAX_TOKENS = 1024/);
 assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Shuffle<\/button>/);
 assert.match(html, /id="run-btn"[^>]*>[\s\S]*&#x25B8;[\s\S]*Run<\/button>/);
 
-assert.match(html, /id="history-toggle"/);
-assert.match(html, /id="history-limit"/);
+assert.doesNotMatch(html, /id="history-toggle"/);
+assert.doesNotMatch(html, /id="history-limit"/);
+assert.doesNotMatch(html, /id="history-status"/);
 assert.match(html, /id="clear-history-btn"[^>]*>Clear chat<\/button>/);
 assert.match(html, /id="chat-thread"/);
 assert.ok(html.indexOf('id="output-area"') < html.indexOf('id="input-area"'));

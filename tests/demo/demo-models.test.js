@@ -170,7 +170,7 @@ function readManifest(modelId) {
   assert.deepEqual(
     selected.map((entry) => entry.modelId),
     ['gemma-3-1b-it-q4k-ehf16-af32', 'qwen-3-6-27b-q4k-ehaf16'],
-    'demo catalog should include only explicitly demo-visible text models'
+    'demo catalog should include quickstart models and explicitly demo-visible models'
   );
   assert.equal(
     selected[1].localBaseUrl,
@@ -185,17 +185,22 @@ function readManifest(modelId) {
     selected.map((entry) => entry.modelId),
     [
       'gemma-3-270m-it-q4k-ehf16-af32',
+      'gemma-3-1b-it-q4k-ehf16-af32',
+      'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
+      'translategemma-4b-1b-enes-q4k-ehf16-af32',
       'qwen-3-5-0-8b-q4k-ehaf16',
       'qwen-3-5-2b-q4k-ehaf16',
-      'translategemma-4b-1b-enes-q4k-ehf16-af32',
     ],
-    'public demo selector should stay limited to the curated browser model set'
+    'public demo selector should contain the six intended browser models'
   );
   for (const entry of selected) {
-    assert.ok(entry.lifecycle?.tested?.surface?.includes('browser'), `${entry.modelId} must have browser evidence`);
+    assert.equal(entry.lifecycle?.status?.tested, 'verified', `${entry.modelId} must be verified`);
     assert.ok(entry.demoLabel, `${entry.modelId} must have a compact demo label`);
     assert.ok(entry.demoRole, `${entry.modelId} must explain its demo role`);
   }
+  const translate = selected.find((entry) => entry.family === 'translategemma');
+  assert.deepEqual(translate.demoWarningBadges ?? [], []);
+  assert.equal(translate.demoWarningText ?? '', '');
 }
 
 {

@@ -7,6 +7,11 @@ function setText(id, text) {
   if (el) el.textContent = text;
 }
 
+function scrollChatToLatest() {
+  const surface = document.querySelector('.chat-surface');
+  if (surface) surface.scrollTop = surface.scrollHeight;
+}
+
 function createChatMessage(message) {
   const article = document.createElement('article');
   const role = message?.role === 'user' ? 'user' : 'assistant';
@@ -49,6 +54,7 @@ export function renderChatMessages(messages) {
   for (const message of visibleMessages) {
     thread.appendChild(createChatMessage(message));
   }
+  scrollChatToLatest();
 }
 
 export function beginChatTurn(messages) {
@@ -57,6 +63,7 @@ export function beginChatTurn(messages) {
   const output = $('output-text');
   if (output) output.textContent = '';
   if (liveMessage) liveMessage.hidden = false;
+  scrollChatToLatest();
 }
 
 export function renderImportedChat(output, prompt = null) {
@@ -93,7 +100,10 @@ export function appendToken(text) {
   const el = $('output-text');
   const liveMessage = $('live-assistant-message');
   if (liveMessage) liveMessage.hidden = false;
-  if (el) el.textContent += text;
+  if (el) {
+    el.textContent += text;
+    scrollChatToLatest();
+  }
 }
 
 export function clearOutput() {

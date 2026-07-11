@@ -92,10 +92,7 @@ export function importReportData(value) {
   };
   showTokenPress(false);
   if (Array.isArray(report.conversation?.messages)) {
-    restoreConversationHistory(report.conversation.messages, {
-      historyEnabled: report.conversation.historyEnabled,
-      turnLimit: report.conversation.turnLimit,
-    });
+    restoreConversationHistory(report.conversation.messages);
   } else {
     renderImportedChat(output, getReportPrompt(report));
   }

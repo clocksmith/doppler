@@ -23,8 +23,6 @@ export const state = {
   xrayEnabled: false,
   conversationHistory: [],
   conversationModelId: null,
-  historyEnabled: true,
-  historyTurnLimit: 8,
   lastImportedReport: null,
 
   // Promoted legacy/contract demo state.
