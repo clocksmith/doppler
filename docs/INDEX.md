@@ -63,6 +63,8 @@ Primary documentation index.
 
 - [Training Handbook](training-handbook.md) - canonical operator workflow, gates, and artifact contract.
 - [Training Artifact Policy](training-artifact-policy.md)
+- [Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) - method names, rollout and reward receipts, verifier separation, and promotion gates.
+- [WGSL Student Replay v8 Receipt](status/wgsl-student-replay-v8-2026-07-11.md) - terminal rejected result, preserved mechanics evidence, and held-out failure boundary.
 - [Training Migrations](training-migrations.md)
 
 ## Style Guides

@@ -171,6 +171,22 @@ Action requirements:
 - Distillation workloads that declare `objective="sft"` or `trainingStage="sft"` must provide `distill.sftLora`; those stages route through the registered causal-LM LoRA `text-pairs` runner/export path and still write a distill stage manifest under the run root.
 - Distillation translation eval is currently implemented for `studentGraphMode="transformer_full"` only.
 
+## Verifier-Guided Optimizer Boundary
+
+Doppler's current verified code/WGSL path qualifies teacher repairs and trains
+them with completion-masked SFT. Passing executable checks makes the data
+execution-verified; it does not turn the optimizer into RLVR. The runtime does
+not currently emit grouped on-policy rollouts, policy/reference
+log-probabilities, reward vectors, advantages, or policy-gradient updates.
+
+Any future DPO, minimum-risk, process-supervision, GRPO, CISPO, or on-policy
+distillation lane must follow the
+[Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) and add
+the reserved artifact classes to the executable validators before making a
+training claim. The terminally rejected v8 WGSL experiment and its preserved
+mechanics subreceipt are
+[recorded separately](status/wgsl-student-replay-v8-2026-07-11.md).
+
 Legacy Distill Studio helpers are compatibility tooling only:
 - `tools/distill-studio-mvp.js`
 - `tools/distill-studio-diagnostics.js`
@@ -348,4 +364,5 @@ Traceability readiness:
 ## Related Policy Docs
 
 - [training-artifact-policy.md](training-artifact-policy.md)
+- [rlvr-training-contract.md](rlvr-training-contract.md)
 - [training-migrations.md](training-migrations.md)
