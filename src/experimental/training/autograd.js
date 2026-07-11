@@ -13,6 +13,7 @@ export const OpType = {
   MATMUL: 'matmul',
   RMSNORM: 'rmsnorm',
   RESIDUAL_ADD: 'residual_add',
+  RESHAPE: 'reshape',
   ROW_SLICE: 'row_slice',
   LAYERNORM: 'layernorm',
   ATTENTION: 'attention',
@@ -149,6 +150,24 @@ export class AutogradTape {
       ]);
     }
 
+    if (backwardName === 'reshape_backward') {
+      const input = record.inputs[0];
+      const inputElements = input.shape.reduce((product, value) => product * value, 1);
+      const gradElements = gradOut.shape.reduce((product, value) => product * value, 1);
+      if (inputElements !== gradElements) {
+        throw new Error(
+          `reshape backward element mismatch: input=${inputElements}, grad=${gradElements}`
+        );
+      }
+      const gradInput = createTensor(
+        gradOut.buffer,
+        gradOut.dtype,
+        [...input.shape],
+        'reshape_backward_output'
+      );
+      return this.filterStoppedGradients(record, [{ input, grad: gradInput }]);
+    }
+
     if (backwardName === 'row_slice_backward') {
       const rows = Math.max(1, Math.floor(Number(record.options?.rows) || 0));
       const cols = Math.max(1, Math.floor(Number(record.options?.cols) || 0));
@@ -168,6 +187,17 @@ export class AutogradTape {
         { numTokens, dim, activation, swigluLimit: Number.isFinite(swigluLimit) ? swigluLimit : 0 }
       );
       return this.filterStoppedGradients(record, [{ input: record.inputs[0], grad: gradInput }]);
+    }
+
+    if (backwardName === 'rope_backward') {
+      const [input, freqsCos, freqsSin] = record.inputs;
+      const gradInput = await backwardKernels.runRoPEBackward(
+        gradOut,
+        freqsCos,
+        freqsSin,
+        record.options
+      );
+      return this.filterStoppedGradients(record, [{ input, grad: gradInput }]);
     }
 
     if (backwardName === 'cross_entropy_backward') {
@@ -197,19 +227,19 @@ export class AutogradTape {
     // Special case for attention which has CPU fallback and complex internal logic
     if (backwardName === 'attention_backward') {
       const [q, k, v, softmax] = record.inputs;
-      const { seqLen, numHeads, headDim, scale } = record.options;
+      const { seqLen, numHeads, numKVHeads, headDim, scale } = record.options;
       const recomputeForward = record.options.recomputeForward === true || !softmax;
       const { gradQ, gradK, gradV } = recomputeForward
         ? await attentionBackwardCpu(
           q, k, v, null, gradOut,
-          { seqLen, numHeads, headDim, scale, causal: record.options.causal }
+          { seqLen, numHeads, numKVHeads, headDim, scale, causal: record.options.causal }
         )
         : await backwardKernels.runAttentionBackward(
           q, k, v, softmax, gradOut,
-          { seqLen, numHeads, headDim, scale, causal: record.options.causal }
+          { seqLen, numHeads, numKVHeads, headDim, scale, causal: record.options.causal }
         ).catch(() => attentionBackwardCpu(
           q, k, v, softmax, gradOut,
-          { seqLen, numHeads, headDim, scale, causal: record.options.causal }
+          { seqLen, numHeads, numKVHeads, headDim, scale, causal: record.options.causal }
         ));
       return this.filterStoppedGradients(record, [
         { input: q, grad: gradQ },

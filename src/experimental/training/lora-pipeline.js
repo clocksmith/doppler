@@ -35,6 +35,7 @@ import { LORA_MODULE_ALIASES } from '../../inference/pipelines/text/lora.js';
 import { loadDistillModelHandle } from './suite.js';
 import { createDistillStudentRuntimeModelFixture } from './distillation/student-fixture.js';
 import { f16ToF32Array } from '../../inference/kv-cache/types.js';
+import { sha256BytesHex, sha256Hex } from '../../utils/sha256.js';
 
 const CAUSAL_LM_TEXT_PAIR_RUNNER_KEYS = Object.freeze([
   'gemma-3-270m-it-f16-af32::text-pairs::text_generation',
@@ -537,10 +538,19 @@ function createCausalLmTrainingObjective() {
     },
     async computeLoss({ batch, config, tape, forwardState }) {
       const loss = await crossEntropyLoss(forwardState.logits, batch.targets, config, tape);
-      return { loss };
+      return {
+        loss,
+        components: {
+          supervised_token_count: batch.supervisedTokenCount,
+          ignored_target_count: batch.ignoredTargetCount,
+        },
+      };
     },
-    backwardTargets({ loss, lossScale }) {
-      return createLossGradient(loss, lossScale);
+    backwardTargets({ batch, loss, lossScale }) {
+      if (!Number.isInteger(batch.supervisedTokenCount) || batch.supervisedTokenCount < 1) {
+        throw new Error('Causal-LM training batch requires supervisedTokenCount >= 1.');
+      }
+      return createLossGradient(loss, lossScale / batch.supervisedTokenCount);
     },
   };
 }
@@ -566,6 +576,8 @@ function createCausalLmDatasetBatches(samples) {
             targets: targetTensor,
             prompt: sample.prompt,
             completion: sample.completion,
+            supervisedTokenCount: sample.supervisedTokenCount,
+            ignoredTargetCount: sample.ignoredTargetCount,
           };
         } finally {
           releaseTensor(inputTensor);
@@ -598,20 +610,41 @@ async function loadCausalLmTextPairSamples(workload, datasetPath, tokenizer) {
   if (samples.length < 1) {
     throw new Error(`Causal-LM LoRA dataset ${dataset.absolutePath} produced no tokenized samples.`);
   }
+  const tokenizationContract = {
+    version: 2,
+    objective: 'completion_only_causal_lm',
+    truncation: 'preserve_completion_head_tail_prompt',
+    maxLength,
+    joinWith,
+  };
+  const supervisedTokenCount = samples.reduce(
+    (sum, sample) => sum + sample.supervisedTokenCount,
+    0
+  );
+  const ignoredTargetCount = samples.reduce(
+    (sum, sample) => sum + sample.ignoredTargetCount,
+    0
+  );
+  const truncatedPromptTokenCount = samples.reduce(
+    (sum, sample) => sum + sample.truncatedPromptTokenCount,
+    0
+  );
   return {
     ...dataset,
     samples,
     datasetHash: hashArtifactPayload({
       rows: dataset.rows,
-      tokenization: {
-        maxLength,
-        joinWith,
-      },
+      tokenization: tokenizationContract,
     }),
     tokenization: {
-      maxLength,
-      joinWith,
+      ...tokenizationContract,
       sampleCount: samples.length,
+      supervisedTokenCount,
+      ignoredTargetCount,
+      truncatedPromptTokenCount,
+      truncatedSampleCount: samples.filter(
+        (sample) => sample.truncatedPromptTokenCount > 0
+      ).length,
     },
   };
 }
@@ -688,6 +721,90 @@ function collectProtectedBuffers(model) {
     }
   }
   return protectedBuffers;
+}
+
+async function captureLoraParameterState(model) {
+  const entries = typeof model?.loraTensorEntries === 'function'
+    ? model.loraTensorEntries()
+    : [];
+  if (entries.length === 0) {
+    throw new Error('Causal-LM LoRA parameter receipt requires adapter tensors.');
+  }
+  const tensors = [];
+  for (const entry of [...entries].sort((left, right) => left.name.localeCompare(right.name))) {
+    const tensor = entry.tensor;
+    const elementCount = tensor.shape.reduce((product, value) => product * value, 1);
+    const bytesPerElement = tensor.dtype === 'f16' ? 2 : 4;
+    const raw = await readBuffer(tensor.buffer, elementCount * bytesPerElement);
+    const values = tensor.dtype === 'f16'
+      ? f16ToF32Array(new Uint16Array(raw))
+      : new Float32Array(raw);
+    let nonzeroCount = 0;
+    let sumSquares = 0;
+    let maxAbs = 0;
+    for (const value of values) {
+      if (value !== 0) nonzeroCount += 1;
+      sumSquares += value * value;
+      maxAbs = Math.max(maxAbs, Math.abs(value));
+    }
+    tensors.push({
+      name: entry.name,
+      dtype: tensor.dtype,
+      shape: [...tensor.shape],
+      elementCount,
+      hash: sha256BytesHex(new Uint8Array(raw)),
+      nonzeroCount,
+      maxAbs,
+      l2Norm: Math.sqrt(sumSquares),
+      values,
+    });
+  }
+  return {
+    aggregateHash: sha256Hex(tensors.map((tensor) => `${tensor.name}\0${tensor.hash}\n`).join('')),
+    tensors,
+  };
+}
+
+function buildLoraParameterReceipt(initial, final) {
+  const initialByName = new Map(initial.tensors.map((tensor) => [tensor.name, tensor]));
+  let totalSquaredDelta = 0;
+  const tensors = final.tensors.map((finalTensor) => {
+    const initialTensor = initialByName.get(finalTensor.name);
+    if (!initialTensor || initialTensor.elementCount !== finalTensor.elementCount) {
+      throw new Error(`LoRA parameter receipt shape mismatch for ${finalTensor.name}.`);
+    }
+    let squaredDelta = 0;
+    let maxAbsDelta = 0;
+    for (let index = 0; index < finalTensor.values.length; index += 1) {
+      const delta = finalTensor.values[index] - initialTensor.values[index];
+      squaredDelta += delta * delta;
+      maxAbsDelta = Math.max(maxAbsDelta, Math.abs(delta));
+    }
+    totalSquaredDelta += squaredDelta;
+    return {
+      name: finalTensor.name,
+      dtype: finalTensor.dtype,
+      shape: finalTensor.shape,
+      elementCount: finalTensor.elementCount,
+      initialHash: initialTensor.hash,
+      finalHash: finalTensor.hash,
+      changed: initialTensor.hash !== finalTensor.hash,
+      initialNonzeroCount: initialTensor.nonzeroCount,
+      finalNonzeroCount: finalTensor.nonzeroCount,
+      l2Delta: Math.sqrt(squaredDelta),
+      maxAbsDelta,
+    };
+  });
+  return {
+    tensorCount: tensors.length,
+    changedTensorCount: tensors.filter((tensor) => tensor.changed).length,
+    nonzeroFinalTensorCount: tensors.filter((tensor) => tensor.finalNonzeroCount > 0).length,
+    initialAggregateHash: initial.aggregateHash,
+    finalAggregateHash: final.aggregateHash,
+    aggregateChanged: initial.aggregateHash !== final.aggregateHash,
+    l2Delta: Math.sqrt(totalSquaredDelta),
+    tensors,
+  };
 }
 
 function disposeTapeOutputs(tape, protectedBuffers = new Set()) {
@@ -946,17 +1063,42 @@ async function exportCausalLmLoraModel(loadedWorkload, layout, fixture, checkpoi
   };
 }
 
-async function readLossMean(loss) {
-  const raw = await readBuffer(loss.buffer);
+async function readSupervisedLossStats(loss, targets, vocabSize) {
+  const lossElementCount = loss.shape.reduce((product, value) => product * value, 1);
+  const targetElementCount = targets.shape.reduce((product, value) => product * value, 1);
+  const [rawLoss, rawTargets] = await Promise.all([
+    readBuffer(loss.buffer, lossElementCount * (loss.dtype === 'f16' ? 2 : 4)),
+    readBuffer(targets.buffer, targetElementCount * 4),
+  ]);
   const data = loss.dtype === 'f16'
-    ? f16ToF32Array(new Uint16Array(raw))
-    : new Float32Array(raw);
-  if (!data.length) return 0;
-  let sum = 0;
-  for (const value of data) {
-    sum += Number.isFinite(value) ? value : 0;
+    ? f16ToF32Array(new Uint16Array(rawLoss))
+    : new Float32Array(rawLoss);
+  const targetIds = new Uint32Array(rawTargets);
+  if (data.length !== targetIds.length) {
+    throw new Error(
+      `Causal-LM loss/target length mismatch: ${data.length} losses for ${targetIds.length} targets.`
+    );
   }
-  return sum / data.length;
+  let sum = 0;
+  let supervisedTokenCount = 0;
+  for (let index = 0; index < data.length; index += 1) {
+    if (targetIds[index] >= vocabSize) continue;
+    const value = data[index];
+    if (!Number.isFinite(value)) {
+      throw new Error(`Causal-LM loss is non-finite at supervised target ${index}.`);
+    }
+    sum += value;
+    supervisedTokenCount += 1;
+  }
+  if (supervisedTokenCount < 1) {
+    throw new Error('Causal-LM evaluation batch contains no supervised targets.');
+  }
+  return {
+    lossSum: sum,
+    meanLoss: sum / supervisedTokenCount,
+    supervisedTokenCount,
+    ignoredTargetCount: data.length - supervisedTokenCount,
+  };
 }
 
 function finiteMetric(value) {
@@ -994,19 +1136,37 @@ function buildLossQualityClaim(evalDataset, meanLoss, baselineReport) {
 }
 
 async function computeCausalLmTextPairLosses(workload, fixture, samples, protectedBuffers) {
-  const losses = [];
+  const sampleLosses = [];
+  let lossSum = 0;
+  let supervisedTokenCount = 0;
+  let ignoredTargetCount = 0;
   for await (const resolvedBatch of createCausalLmDatasetBatches(samples).batches()) {
     const tape = new AutogradTape(loadBackwardRegistry());
     let loss = null;
     try {
       const { logits } = await fixture.model.forwardCausalLm(resolvedBatch, tape);
       loss = await crossEntropyLoss(logits, resolvedBatch.targets, { training: { precision: workload.training.precision } }, tape);
-      losses.push(await readLossMean(loss));
+      const stats = await readSupervisedLossStats(
+        loss,
+        resolvedBatch.targets,
+        logits.shape.at(-1)
+      );
+      sampleLosses.push(stats.meanLoss);
+      lossSum += stats.lossSum;
+      supervisedTokenCount += stats.supervisedTokenCount;
+      ignoredTargetCount += stats.ignoredTargetCount;
     } finally {
       disposeTapeOutputs(tape, protectedBuffers);
     }
   }
-  return losses;
+  return {
+    sampleLosses,
+    sampleCount: sampleLosses.length,
+    lossSum,
+    supervisedTokenCount,
+    ignoredTargetCount,
+    meanLoss: supervisedTokenCount > 0 ? lossSum / supervisedTokenCount : null,
+  };
 }
 
 async function evaluateCausalLmLoraModel(workload, fixture, dataset, layout = null, checkpointMeta = {}) {
@@ -1023,15 +1183,13 @@ async function evaluateCausalLmLoraModel(workload, fixture, dataset, layout = nu
     const evalDatasetMaterialized = evalDataset.datasetPath === dataset.absolutePath
       ? dataset
       : await loadCausalLmTextPairSamples(workload, evalDatasetPath, fixture.tokenizer);
-    const losses = await computeCausalLmTextPairLosses(
+    const lossStats = await computeCausalLmTextPairLosses(
       workload,
       fixture,
       evalDatasetMaterialized.samples,
       protectedBuffers
     );
-    const meanLoss = losses.length
-      ? losses.reduce((sum, value) => sum + value, 0) / losses.length
-      : null;
+    const meanLoss = lossStats.meanLoss;
     const baselineReports = checkpointMeta.baselineReportsByEvalDatasetId || {};
     const baselineReport = baselineReports[evalDataset.id] || null;
     const qualityClaim = buildLossQualityClaim(evalDataset, meanLoss, baselineReport);
@@ -1054,7 +1212,9 @@ async function evaluateCausalLmLoraModel(workload, fixture, dataset, layout = nu
       metrics: {
         loss: {
           score: meanLoss,
-          samples: losses.length,
+          samples: lossStats.sampleCount,
+          supervisedTokens: lossStats.supervisedTokenCount,
+          ignoredTargets: lossStats.ignoredTargetCount,
         },
       },
       primaryMetric: 'loss',
@@ -1618,6 +1778,7 @@ async function runInternalCausalLmLoraPipeline(options, layout, compatibility) {
   const fixture = await createCausalLmLoraFixture(workload);
   try {
     const dataset = await loadCausalLmTextPairSamples(workload, datasetPath, fixture.tokenizer);
+    const initialParameterState = await captureLoraParameterState(fixture.model);
     const evalReports = [];
     const checkpointArtifacts = [];
     const exports = [];
@@ -1754,6 +1915,11 @@ async function runInternalCausalLmLoraPipeline(options, layout, compatibility) {
         tokenizerHash: fixture.baseManifest?.tokenizerHash || null,
       }
     );
+    const finalParameterState = await captureLoraParameterState(fixture.model);
+    const parameterReceipt = buildLoraParameterReceipt(
+      initialParameterState,
+      finalParameterState
+    );
     const finalCheckpointId = runner.lastCheckpoint
       ? `checkpoint-${String(runner.lastCheckpoint.step).padStart(6, '0')}`
       : null;
@@ -1783,6 +1949,7 @@ async function runInternalCausalLmLoraPipeline(options, layout, compatibility) {
       evalReports,
       exports,
       metrics,
+      parameterReceipt,
       lastCheckpoint: runner.lastCheckpoint,
       dataset: {
         path: dataset.absolutePath,

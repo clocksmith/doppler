@@ -9,7 +9,13 @@ import { DEFAULT_HIGH_PRECISION_EPS } from '../../../config/schema/index.js';
 
 export async function runRmsNormBackward(input, weight, gradOutput, options = {}) {
   const device = getDevice();
-  const { numTokens, hiddenSize, eps = DEFAULT_HIGH_PRECISION_EPS, outputBuffer = null } = options;
+  const {
+    numTokens,
+    hiddenSize,
+    eps = DEFAULT_HIGH_PRECISION_EPS,
+    rmsNormWeightOffset = false,
+    outputBuffer = null,
+  } = options;
 
   if (!numTokens || !hiddenSize) {
     throw new Error('rmsnorm backward requires numTokens and hiddenSize');
@@ -22,7 +28,12 @@ export async function runRmsNormBackward(input, weight, gradOutput, options = {}
   const outputSize = numTokens * hiddenSize * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_backward_output');
 
-  const pipeline = await createPipeline('rmsnorm_backward', 'default');
+  const pipeline = await createPipeline(
+    'rmsnorm_backward',
+    'default',
+    null,
+    { RMS_NORM_OFFSET: rmsNormWeightOffset }
+  );
   const uniformBuffer = createUniformBufferWithView(
     'rmsnorm_backward_uniforms',
     16,
@@ -57,7 +68,13 @@ export async function runRmsNormBackward(input, weight, gradOutput, options = {}
 
 export async function recordRmsNormBackward(recorder, input, weight, gradOutput, options = {}) {
   const device = recorder.device;
-  const { numTokens, hiddenSize, eps = DEFAULT_HIGH_PRECISION_EPS, outputBuffer = null } = options;
+  const {
+    numTokens,
+    hiddenSize,
+    eps = DEFAULT_HIGH_PRECISION_EPS,
+    rmsNormWeightOffset = false,
+    outputBuffer = null,
+  } = options;
 
   if (!numTokens || !hiddenSize) {
     throw new Error('rmsnorm backward requires numTokens and hiddenSize');
@@ -70,7 +87,12 @@ export async function recordRmsNormBackward(recorder, input, weight, gradOutput,
   const outputSize = numTokens * hiddenSize * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_backward_output');
 
-  const pipeline = await createPipeline('rmsnorm_backward', 'default');
+  const pipeline = await createPipeline(
+    'rmsnorm_backward',
+    'default',
+    null,
+    { RMS_NORM_OFFSET: rmsNormWeightOffset }
+  );
   const uniformBuffer = createUniformBufferWithView(
     'rmsnorm_backward_uniforms',
     16,

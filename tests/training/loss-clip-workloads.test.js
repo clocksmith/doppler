@@ -204,6 +204,31 @@ try {
   }
 
   {
+    destroyBufferPool();
+    const device = createFakeDevice();
+    setDevice(device, { platformConfig: null });
+    getBufferPool().configure({ enablePooling: false });
+
+    const original = makeF32Tensor([3, 4], [2], 'clipped_grad');
+    const grads = new Map([['weight', original]]);
+    const result = await clipGradients(grads, {
+      training: {
+        gradientClipping: { maxNorm: 1 },
+      },
+    });
+
+    const clipped = result.clippedGrads.get('weight');
+    assert.equal(result.clipped_event_count, 1);
+    assert.equal(result.gradient_norm_unclipped, 5);
+    assert.equal(result.gradient_norm_clipped, 1);
+    assert.notEqual(clipped.buffer, original.buffer);
+    releaseBuffer(clipped.buffer);
+    releaseBuffer(original.buffer);
+    destroyBufferPool();
+    setDevice(null);
+  }
+
+  {
     assert.throws(
       () => normalizeTrainingWorkloadPack({
         schemaVersion: 1,

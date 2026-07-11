@@ -103,6 +103,8 @@ export const DEFAULT_TRAINING_METRICS_REPORT = Object.freeze({
   telemetry_alerts: [],
   window_loss_avg: null,
   window_step_time_ms_avg: null,
+  supervised_token_count: null,
+  ignored_target_count: null,
   loss_kd: null,
   loss_triplet: null,
   distill_stage: null,
@@ -223,6 +225,8 @@ export function validateTrainingMetricsEntry(entry) {
   }
   assertNullableFiniteNumber(entry.window_loss_avg, 'window_loss_avg');
   assertNullableFiniteNumber(entry.window_step_time_ms_avg, 'window_step_time_ms_avg');
+  assertOptionalIntegerGte(entry.supervised_token_count, 1, 'supervised_token_count');
+  assertOptionalIntegerGte(entry.ignored_target_count, 0, 'ignored_target_count');
   assertNullableFiniteNumber(entry.loss_kd, 'loss_kd');
   assertNullableFiniteNumber(entry.loss_triplet, 'loss_triplet');
   assertNullableFiniteNumber(entry.distill_temperature, 'distill_temperature');

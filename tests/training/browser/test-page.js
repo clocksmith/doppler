@@ -126,8 +126,9 @@ function rmsnormBackwardCpu(input, weight, gradOutput, rows, cols, eps) {
     for (let c = 0; c < cols; c += 1) {
       const x = input[r * cols + c];
       const g = gradOutput[r * cols + c];
+      const w = weight[c];
       sumSq += x * x;
-      sumGX += g * x;
+      sumGX += g * w * x;
     }
     const meanSq = sumSq / cols;
     const invRms = 1 / Math.sqrt(meanSq + eps);
@@ -156,7 +157,11 @@ async function initGPU() {
 }
 
 async function readTensor(tensor) {
-  const data = await readBuffer(tensor.buffer);
+  const elementCount = tensor.shape.reduce((product, value) => product * value, 1);
+  const data = await readBuffer(
+    tensor.buffer,
+    elementCount * Float32Array.BYTES_PER_ELEMENT
+  );
   return toFloat32(data);
 }
 
@@ -179,7 +184,7 @@ async function testSoftmaxAndLoss() {
   const softmaxCompare = compareArrays(softmaxGPU, softmaxCPU, KERNEL_TOLERANCES.softmax);
   const lossCompare = compareArrays(lossGPU, lossCPU, KERNEL_TOLERANCES.softmax);
 
-  return softmaxCompare.pass && lossCompare.pass;
+  return softmaxCompare.passed && lossCompare.passed;
 }
 
 async function testCrossEntropyBackward() {
@@ -197,7 +202,7 @@ async function testCrossEntropyBackward() {
   const gradGPUData = await readTensor(gradGPU);
   const gradCPU = crossEntropyBackwardCpu(softmaxCPU, targets, gradOutput, rows, cols);
 
-  return compareArrays(gradGPUData, gradCPU, KERNEL_TOLERANCES.softmax).pass;
+  return compareArrays(gradGPUData, gradCPU, KERNEL_TOLERANCES.softmax).passed;
 }
 
 async function testSoftmaxBackward() {
@@ -213,7 +218,7 @@ async function testSoftmaxBackward() {
   const gradGPUData = await readTensor(gradGPU);
   const gradCPU = softmaxBackwardCpu(softmaxCPU, gradOutput, rows, cols);
 
-  return compareArrays(gradGPUData, gradCPU, KERNEL_TOLERANCES.softmax).pass;
+  return compareArrays(gradGPUData, gradCPU, KERNEL_TOLERANCES.softmax).passed;
 }
 
 async function testRmsNormBackward() {
@@ -231,7 +236,7 @@ async function testRmsNormBackward() {
   const gradGPUData = await readTensor(gradGPU);
   const gradCPU = rmsnormBackwardCpu(input, weight, gradOutput, rows, cols, eps);
 
-  return compareArrays(gradGPUData, gradCPU, KERNEL_TOLERANCES.rmsnorm).pass;
+  return compareArrays(gradGPUData, gradCPU, KERNEL_TOLERANCES.rmsnorm).passed;
 }
 
 async function testMatmulBackwardGradient() {
@@ -280,8 +285,8 @@ async function testMatmulBackwardGradient() {
     }
   }
 
-  const inputPass = compareArrays(gradInputGPU, gradInputCPU, KERNEL_TOLERANCES.matmul).pass;
-  const weightPass = compareArrays(gradWeightGPU, gradWeightCPU, KERNEL_TOLERANCES.matmul).pass;
+  const inputPass = compareArrays(gradInputGPU, gradInputCPU, KERNEL_TOLERANCES.matmul).passed;
+  const weightPass = compareArrays(gradWeightGPU, gradWeightCPU, KERNEL_TOLERANCES.matmul).passed;
   if (!inputPass || !weightPass) {
     return false;
   }
@@ -305,8 +310,8 @@ async function testMatmulBackwardGradient() {
     }
   }
 
-  const inputPassT = compareArrays(gradInputGPUT, gradInputCPU, KERNEL_TOLERANCES.matmul).pass;
-  const weightPassT = compareArrays(gradWeightGPUT, gradWeightCPUStoredT, KERNEL_TOLERANCES.matmul).pass;
+  const inputPassT = compareArrays(gradInputGPUT, gradInputCPU, KERNEL_TOLERANCES.matmul).passed;
+  const weightPassT = compareArrays(gradWeightGPUT, gradWeightCPUStoredT, KERNEL_TOLERANCES.matmul).passed;
 
   return inputPassT && weightPassT;
 }
@@ -346,7 +351,7 @@ async function testEmbedBackwardScatterAdd() {
     }
   }
 
-  return compareArrays(gradWeightGPU, gradWeightCPU, KERNEL_TOLERANCES.matmul).pass;
+  return compareArrays(gradWeightGPU, gradWeightCPU, KERNEL_TOLERANCES.matmul).passed;
 }
 
 function meanSquare(values) {
@@ -823,7 +828,7 @@ async function testAutogradBranching() {
   const finalGradX = await readTensor(grads.get(x));
   const expectedGradX = new Float32Array([5.0, 5.0]);
 
-  const pass = compareArrays(finalGradX, expectedGradX, KERNEL_TOLERANCES.residual).pass;
+  const pass = compareArrays(finalGradX, expectedGradX, KERNEL_TOLERANCES.residual).passed;
 
   // Cleanup
   releaseBuffer(x.buffer);
@@ -905,9 +910,9 @@ async function testLayernormBackward() {
   
   const expected = layernormBackwardCpu(input, weight, bias, gradOutput, rows, cols, eps);
 
-  const giPass = compareArrays(giGPU, expected.gradInput, KERNEL_TOLERANCES.rmsnorm).pass;
-  const gwPass = compareArrays(gwGPU, expected.gradWeight, KERNEL_TOLERANCES.rmsnorm).pass;
-  const gbPass = compareArrays(gbGPU, expected.gradBias, KERNEL_TOLERANCES.rmsnorm).pass;
+  const giPass = compareArrays(giGPU, expected.gradInput, KERNEL_TOLERANCES.rmsnorm).passed;
+  const gwPass = compareArrays(gwGPU, expected.gradWeight, KERNEL_TOLERANCES.rmsnorm).passed;
+  const gbPass = compareArrays(gbGPU, expected.gradBias, KERNEL_TOLERANCES.rmsnorm).passed;
 
   return giPass && gwPass && gbPass;
 }
@@ -977,8 +982,8 @@ async function testConv2DBackward() {
 
   const expected = conv2dBackwardCpu(input, weight, gradOutput, options);
 
-  const giPass = compareArrays(giGPU, expected.gradInput, KERNEL_TOLERANCES.residual).pass;
-  const gwPass = compareArrays(gwGPU, expected.gradWeight, KERNEL_TOLERANCES.residual).pass;
+  const giPass = compareArrays(giGPU, expected.gradInput, KERNEL_TOLERANCES.residual).passed;
+  const gwPass = compareArrays(gwGPU, expected.gradWeight, KERNEL_TOLERANCES.residual).passed;
 
   return giPass && gwPass;
 }

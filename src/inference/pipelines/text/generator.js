@@ -2277,6 +2277,27 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillOptions(this.#state, options);
+    const diagnosticsEnabled = options?.diagnostics?.enabled === true
+      || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
+    if (diagnosticsEnabled) {
+      const captureConfig = {
+        ...createDefaultCaptureConfig(),
+        enabled: true,
+        defaultLevel: CAPTURE_LEVELS.SLICE,
+        ...(options?.diagnostics?.captureConfig ?? {}),
+      };
+      validateCaptureConfig(captureConfig);
+      this.#state.operatorDiagnostics = {
+        enabled: true,
+        captureConfig,
+        emitter: new OperatorEventEmitter({
+          modelHash: this.#state.manifest?.modelId ?? null,
+          runtimeConfigHash: this.#state.resolvedKernelPath?.id ?? null,
+          executionPlanHash: opts.executionPlan?.id ?? null,
+        }),
+        tsirFixture: null,
+      };
+    }
     try {
       const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithLogits');
 
@@ -2298,6 +2319,14 @@ export class PipelineGenerator {
       };
     } finally {
       this._closeFinitenessFallbackWindow(opts);
+      this.#state.stats.operatorDiagnostics = this.#state.operatorDiagnostics?.emitter
+        ? {
+          enabled: true,
+          timeline: this.#state.operatorDiagnostics.emitter.getTimeline(),
+          recordCount: this.#state.operatorDiagnostics.emitter.length,
+        }
+        : null;
+      this.#state.operatorDiagnostics = null;
     }
   }
 

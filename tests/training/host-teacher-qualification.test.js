@@ -8,7 +8,7 @@ import { buildHostTeacherContractReport } from '../../tools/verify-host-teacher-
 
 const report = await buildHostTeacherContractReport();
 assert.equal(report.ok, true, report.errors.join('\n'));
-assert.equal(report.tasks, 16);
+assert.equal(report.tasks, 22);
 
 const contracts = await loadHostTeacherContracts();
 const task = contracts.taskBank.tasks.find(

@@ -24,7 +24,15 @@ export interface TokenizedSample {
   text?: string;
   prompt?: string;
   completion?: string;
+  promptTokenCount: number;
+  retainedPromptTokenCount: number;
+  truncatedPromptTokenCount: number;
+  completionTokenCount: number;
+  ignoredTargetCount: number;
+  supervisedTokenCount: number;
 }
+
+export declare const CAUSAL_LM_IGNORE_TARGET_ID: number;
 
 export interface TextPairsDataset {
   sourceLabel: string;

@@ -1,4 +1,9 @@
-import { acquireBuffer, releaseBuffer, BufferUsage } from '../../memory/buffer-pool.js';
+import {
+  acquireBuffer,
+  releaseBuffer,
+  uploadData,
+  BufferUsage,
+} from '../../memory/buffer-pool.js';
 import { createTensor, tensorBytes } from '../../gpu/tensor.js';
 import { runAdam } from '../../gpu/kernels/backward/adam.js';
 
@@ -81,6 +86,9 @@ export class AdamOptimizer {
           m: createTensor(mBuf, param.dtype, [...param.shape], 'adam_m'),
           v: createTensor(vBuf, param.dtype, [...param.shape], 'adam_v'),
         };
+        const zeroState = new Uint8Array(bytes);
+        uploadData(mBuf, zeroState);
+        uploadData(vBuf, zeroState);
       } catch (error) {
         if (mBuf) {
           releaseBuffer(mBuf);

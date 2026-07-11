@@ -13,11 +13,17 @@
     "rmsnorm": {
       "backward": "rmsnorm_backward",
       "grads": ["input", "gamma"],
-      "params": ["numTokens", "hiddenSize", "eps"]
+      "params": ["numTokens", "hiddenSize", "eps", "rmsNormWeightOffset"]
     },
     "residual_add": {
       "backward": "residual_add_backward",
       "grads": ["a", "b"]
+    },
+    "reshape": {
+      "backward": "reshape_backward",
+      "grads": ["input"],
+      "params": ["shape"],
+      "notes": "Autograd metadata-only tensor view; no compute kernel"
     },
     "row_slice": {
       "backward": "row_slice_backward",
@@ -32,7 +38,7 @@
     "attention": {
       "backward": "attention_backward",
       "grads": ["q", "k", "v"],
-      "params": ["seqLen", "numHeads", "headDim", "scale"],
+      "params": ["seqLen", "numHeads", "numKVHeads", "headDim", "scale"],
       "notes": "Includes causal masking backward"
     },
     "softmax": {
