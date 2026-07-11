@@ -1,12 +1,4 @@
-export const DEFAULT_HISTORY_TURN_LIMIT = 8;
-export const MAX_STORED_HISTORY_TURNS = 16;
-
-export function normalizeHistoryTurnLimit(value, fallback = DEFAULT_HISTORY_TURN_LIMIT) {
-  const parsed = Number(value);
-  return Number.isInteger(parsed) && parsed > 0
-    ? Math.min(parsed, MAX_STORED_HISTORY_TURNS)
-    : fallback;
-}
+export const MAX_CONTEXT_HISTORY_TURNS = 16;
 
 export function countConversationTurns(history) {
   if (!Array.isArray(history)) return 0;
@@ -17,16 +9,18 @@ export function countConversationTurns(history) {
   ), 0);
 }
 
-export function trimConversationHistory(history, turnLimit = MAX_STORED_HISTORY_TURNS) {
+export function normalizeConversationHistory(history) {
   if (!Array.isArray(history)) return [];
-  const maxMessages = normalizeHistoryTurnLimit(turnLimit, MAX_STORED_HISTORY_TURNS) * 2;
   return history
     .filter((message) => (
       (message?.role === 'user' || message?.role === 'assistant')
       && typeof message.content === 'string'
     ))
-    .slice(-maxMessages)
     .map((message) => ({ role: message.role, content: message.content }));
+}
+
+function selectConversationContext(history) {
+  return normalizeConversationHistory(history).slice(-(MAX_CONTEXT_HISTORY_TURNS * 2));
 }
 
 function toRuntimeMessages(messages, templateType, translation) {
@@ -54,41 +48,34 @@ export function createConversationRequest(history, prompt, options = {}) {
   if (!currentPrompt) {
     throw new Error('Conversation prompt is required.');
   }
-  const historyEnabled = options.historyEnabled !== false;
-  const turnLimit = normalizeHistoryTurnLimit(options.turnLimit);
-  const previousMessages = historyEnabled
-    ? trimConversationHistory(history, turnLimit)
-    : [];
-  const messages = [
-    ...previousMessages,
+  const storedMessages = normalizeConversationHistory(history);
+  const contextMessages = [
+    ...selectConversationContext(storedMessages),
     { role: 'user', content: currentPrompt },
   ];
+  const messages = [...storedMessages, { role: 'user', content: currentPrompt }];
   return {
     promptInput: {
-      messages: toRuntimeMessages(messages, options.templateType ?? null, options.translation),
+      messages: toRuntimeMessages(contextMessages, options.templateType ?? null, options.translation),
     },
     messages,
+    contextMessages,
     currentPrompt,
-    historyEnabled,
-    turnLimit,
-    priorTurnCount: countConversationTurns(previousMessages),
+    priorTurnCount: countConversationTurns(contextMessages) - 1,
   };
 }
 
 export function appendConversationTurn(history, request, output) {
-  if (request?.historyEnabled !== true) {
-    return trimConversationHistory(history, MAX_STORED_HISTORY_TURNS);
-  }
   const currentPrompt = typeof request.currentPrompt === 'string'
     ? request.currentPrompt.trim()
     : '';
   const assistantOutput = typeof output === 'string' ? output.trim() : '';
   if (!currentPrompt || !assistantOutput) {
-    return trimConversationHistory(history, MAX_STORED_HISTORY_TURNS);
+    return normalizeConversationHistory(history);
   }
-  return trimConversationHistory([
+  return normalizeConversationHistory([
     ...(Array.isArray(history) ? history : []),
     { role: 'user', content: currentPrompt },
     { role: 'assistant', content: assistantOutput },
-  ], MAX_STORED_HISTORY_TURNS);
+  ]);
 }

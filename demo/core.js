@@ -152,18 +152,13 @@ export async function runGeneration() {
     if (!state.abortController?.signal?.aborted && state.lastRun?.output) {
       state.lastRun.prompt = conversationRequest.currentPrompt;
       state.lastRun.promptInput = promptInput;
-      state.lastRun.conversation = {
-        historyEnabled: conversationRequest.historyEnabled,
-        turnLimit: conversationRequest.turnLimit,
-        priorTurnCount: conversationRequest.priorTurnCount,
-        messages: [
-          ...conversationRequest.messages,
-          { role: 'assistant', content: state.lastRun.output },
-        ],
-      };
       recordConversationTurn(conversationRequest, state.lastRun.output);
+      state.lastRun.conversation = {
+        priorTurnCount: conversationRequest.priorTurnCount,
+        messages: state.conversationHistory.map((message) => ({ ...message })),
+      };
       if (useTokenPress) {
-        beginChatTurn(conversationRequest.messages);
+        beginChatTurn(state.conversationHistory.slice(0, -1));
         showTokenPress(true);
       }
     }
