@@ -89,6 +89,14 @@ const LANE_MAP = Object.freeze({
         'tests/config/training-workload-packs.test.js',
         'tests/config/training-report-id-publication.test.js',
         'tests/training/agent-heldout-eval.test.js',
+        'tests/training/host-teacher-qualification.test.js',
+      ],
+    },
+    {
+      label: 'verify host teacher qualification contracts',
+      cmd: 'node',
+      args: [
+        'tools/verify-host-teacher-contracts.js',
       ],
     },
     {

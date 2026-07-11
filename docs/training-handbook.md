@@ -139,6 +139,21 @@ Action requirements:
 - `tools/run-agent-heldout-eval.js` converts held-out candidate completions into
   a normal `training_eval_report`; when rows require patch evidence it verifies
   unified diffs with `git apply --check` against the explicit `--patch-root`.
+- Host-session teacher selection for Doppler JavaScript and WGSL uses the
+  versioned policy in `tools/policies/host-teacher-qualification-policy.json`
+  and the hidden split bank in `tools/teacher-qualification/`. Verify the bank
+  with `npm run training:teachers:verify`. Run qualification and accepted-label
+  export with an explicit model identity, for example
+  `npm run training:teachers:qualify -- --teacher codex=<full-model-id> --with-labels`.
+  `claude -p` is also supported through
+  `--teacher claude=<full-model-id>`.
+- Host qualification runs in disposable pinned source snapshots. The actual
+  git diff, allowed-path and command audits, exact original-source recovery,
+  executable checks, CLI version, model id, evaluator harness hash, and
+  policy/task hashes are written to a machine receipt. Provider prose and exit
+  status alone are not evidence.
+  Qualification tasks are never exported, only passing `label` repairs become
+  text pairs, and `student_holdout` tasks remain reserved for student eval.
 - GLM/Qwen/other teacher traces can be normalized into LoRA `text-pairs` with
   `tools/build-teacher-trace-text-pairs.js`. Trace rows preserve
   `schemaVersion`, `teacherModelId`, `studentBaseModelId`, `taskKind`,
