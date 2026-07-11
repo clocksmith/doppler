@@ -43,4 +43,39 @@ function makePipeline(overrides = {}) {
   assert.equal(seqLen, 0);
 }
 
+{
+  const calls = [];
+  const prefix = { cache: {}, seqLen: 2, tokens: [4, 5] };
+  const handle = createModelHandle(makePipeline({
+    tokenizer: {
+      encode(text) {
+        assert.equal(text, 'rank this');
+        return Uint32Array.from([4, 5, 6]);
+      },
+    },
+    prefillKVOnly(prompt, options) {
+      calls.push(['prefillKVOnly', prompt, options]);
+      return prefix;
+    },
+    prefillWithTokenLogits(prompt, tokenIds, options) {
+      calls.push(['prefillWithTokenLogits', prompt, tokenIds, options]);
+      return { logits: Float32Array.from([1, -1]) };
+    },
+    prefillWithTokenLogitsFromKV(snapshot, prompt, tokenIds, options) {
+      calls.push(['prefillWithTokenLogitsFromKV', snapshot, prompt, tokenIds, options]);
+      return { logits: Float32Array.from([2, -2]) };
+    },
+  }), { modelId: 'unit-model' });
+
+  assert.deepEqual(handle.advanced.tokenizeText('rank this'), [4, 5, 6]);
+  assert.equal(await handle.advanced.prefillKV('', { inputIds: [4, 5] }), prefix);
+  await handle.advanced.prefillWithTokenLogits('rank this', [1, 0], { useChatTemplate: false });
+  await handle.advanced.prefillWithTokenLogitsFromKV(prefix, '', [1, 0], { inputIds: [6] });
+  assert.deepEqual(calls, [
+    ['prefillKVOnly', '', { inputIds: [4, 5] }],
+    ['prefillWithTokenLogits', 'rank this', [1, 0], { useChatTemplate: false }],
+    ['prefillWithTokenLogitsFromKV', prefix, '', [1, 0], { inputIds: [6] }],
+  ]);
+}
+
 console.log('doppler-model-session-reset.test: ok');

@@ -83,8 +83,11 @@ Returns a `DopplerModel` instance with:
 - experimental `loadLoRA(...)`
 - experimental `unloadLoRA()`
 - `unload()`
+- `advanced.tokenizeText(...)`
 - `advanced.prefillKV(...)`
 - `advanced.prefillWithLogits(...)`
+- `advanced.prefillWithTokenLogits(...)`
+- `advanced.prefillWithTokenLogitsFromKV(...)`
 - `advanced.decodeStepLogits(...)`
 - `advanced.generateWithPrefixKV(...)`
 
@@ -149,10 +152,18 @@ the standard generation surface.
 ```js
 import { dr } from 'doppler-gpu';
 
-const model = await dr.load('qwen3-0.8b');
+const model = await dr.load('qwen-3-reranker-0-6b-q4k-ehf16-af32');
+const yesTokenId = model.manifest.inference.rerank.trueTokenId;
+const noTokenId = model.manifest.inference.rerank.falseTokenId;
 
 const prefill = await model.advanced.prefillWithLogits('Write one word for GPU.');
 const topLogit = prefill.logits[0];
+
+const selected = await model.advanced.prefillWithTokenLogits(
+  'Answer yes or no.',
+  [yesTokenId, noTokenId],
+  { useChatTemplate: false }
+);
 
 const step = await model.advanced.decodeStepLogits(prefill.tokenIds);
 
@@ -160,6 +171,8 @@ console.log({
   prefillTokens: prefill.tokenIds.length,
   vocabSize: step.vocabSize,
   firstLogit: topLogit,
+  yesLogit: selected.logitsByTokenId[yesTokenId],
+  noLogit: selected.logitsByTokenId[noTokenId],
 });
 
 await model.unload();

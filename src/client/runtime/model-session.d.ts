@@ -1,4 +1,4 @@
-import type { InferencePipeline, KVCacheSnapshot } from '../../inference/pipelines/text.js';
+import type { InferencePipeline, KVCacheSnapshot, PromptInput } from '../../inference/pipelines/text.js';
 import type { ChatMessage } from '../../inference/pipelines/text/chat-format.js';
 import type { GenerateOptions } from '../../generation/index.js';
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
@@ -50,11 +50,38 @@ export interface DopplerModelHandle {
   readonly manifest: unknown;
   readonly deviceInfo: Record<string, unknown> | null;
   readonly advanced: {
+    tokenizeText(text: string): number[];
     prefillKV(prompt: string, options?: DopplerGenerateOptions): Promise<KVCacheSnapshot>;
     prefillWithLogits(
       prompt: string | ChatMessage[] | { messages: ChatMessage[] },
       options?: DopplerGenerateOptions
     ): Promise<PrefillResult>;
+    prefillWithTokenLogits(
+      prompt: PromptInput,
+      tokenIds: readonly number[],
+      options?: DopplerGenerateOptions
+    ): Promise<{
+      seqLen: number;
+      tokens: number[];
+      tokenIds: number[];
+      logits: Float32Array;
+      logitsByTokenId: Record<number, number>;
+      phase?: Record<string, unknown> | null;
+    }>;
+    prefillWithTokenLogitsFromKV(
+      prefix: KVCacheSnapshot,
+      prompt: PromptInput,
+      tokenIds: readonly number[],
+      options?: DopplerGenerateOptions
+    ): Promise<{
+      seqLen: number;
+      prefixTokens: number[];
+      tokens: number[];
+      tokenIds: number[];
+      logits: Float32Array;
+      logitsByTokenId: Record<number, number>;
+      phase?: Record<string, unknown> | null;
+    }>;
     decodeStepLogits(currentIds: number[], options?: DopplerGenerateOptions): Promise<LogitsStepResult>;
     generateWithPrefixKV(
       prefix: KVCacheSnapshot,
