@@ -14,10 +14,14 @@ const SHARED_DEVICE_STATE_KEY = '__dopplerGpuDeviceState';
 function getSharedDeviceState() {
   const existing = globalThis[SHARED_DEVICE_STATE_KEY];
   if (existing && typeof existing === 'object') {
+    if (!Object.hasOwn(existing, 'deviceInitPromise')) {
+      existing.deviceInitPromise = null;
+    }
     return existing;
   }
   const created = {
     gpuDevice: null,
+    deviceInitPromise: null,
     kernelCapabilities: null,
     resolvedPlatformConfig: null,
     lastDeviceLossInfo: null,
@@ -58,14 +62,24 @@ function syncSharedDeviceState() {
 }
 
 function hydrateDeviceState() {
+  const sharedEpoch = Number.isInteger(sharedDeviceState.deviceEpoch)
+    ? sharedDeviceState.deviceEpoch
+    : 0;
+  if (sharedEpoch > deviceEpoch) {
+    gpuDevice = sharedDeviceState.gpuDevice ?? null;
+    kernelCapabilities = sharedDeviceState.kernelCapabilities ?? null;
+    resolvedPlatformConfig = sharedDeviceState.resolvedPlatformConfig ?? null;
+    lastDeviceLossInfo = sharedDeviceState.lastDeviceLossInfo ?? null;
+    platformInitialized = sharedDeviceState.platformInitialized === true;
+    deviceEpoch = sharedEpoch;
+    return;
+  }
   gpuDevice = gpuDevice ?? sharedDeviceState.gpuDevice ?? null;
   kernelCapabilities = kernelCapabilities ?? sharedDeviceState.kernelCapabilities ?? null;
   resolvedPlatformConfig = resolvedPlatformConfig ?? sharedDeviceState.resolvedPlatformConfig ?? null;
   lastDeviceLossInfo = lastDeviceLossInfo ?? sharedDeviceState.lastDeviceLossInfo ?? null;
   platformInitialized = platformInitialized || sharedDeviceState.platformInitialized === true;
-  if (Number.isInteger(sharedDeviceState.deviceEpoch) && sharedDeviceState.deviceEpoch > deviceEpoch) {
-    deviceEpoch = sharedDeviceState.deviceEpoch;
-  }
+  deviceEpoch = Math.max(deviceEpoch, sharedEpoch);
 }
 
 function advanceDeviceEpoch() {
@@ -79,6 +93,10 @@ function clearActiveDeviceState() {
   resolvedPlatformConfig = null;
   platformInitialized = false;
   syncSharedDeviceState();
+}
+
+function invalidateDeviceInitialization() {
+  sharedDeviceState.deviceInitPromise = null;
 }
 
 function hasUsableDeviceSlot(device) {
@@ -478,17 +496,7 @@ async function initializePlatformAndRegistry(adapter) {
 }
 
 
-export async function initDevice() {
-  hydrateDeviceState();
-  // Return cached device if available
-  if (gpuDevice) {
-    if (isUsableGPUDevice(gpuDevice)) {
-      return gpuDevice;
-    }
-    clearActiveDeviceState();
-    advanceDeviceEpoch();
-  }
-
+async function initializeDevice(initializationEpoch) {
   if (!isWebGPUAvailable()) {
     throw createDopplerError(ERROR_CODES.GPU_UNAVAILABLE, 'WebGPU is not available in this browser');
   }
@@ -510,36 +518,33 @@ export async function initDevice() {
   // Get adapter info (adapter.info is synchronous in modern WebGPU)
   const adapterInfo = adapter.info || { vendor: 'unknown', architecture: 'unknown', device: 'unknown', description: '' };
 
-  gpuDevice = await requestDeviceWithFeatureFallback(adapter, requestedFeatures, limits);
+  const device = await requestDeviceWithFeatureFallback(adapter, requestedFeatures, limits);
 
-  if (!gpuDevice) {
+  if (!device) {
     throw createDopplerError(ERROR_CODES.GPU_DEVICE_FAILED, 'Failed to create WebGPU device');
   }
-  lastDeviceLossInfo = null;
-  ensureGpuBufferConstructor(gpuDevice);
-  wrapDeviceCreateBindGroup(gpuDevice);
-  registerDeviceLostHandler(gpuDevice);
-  advanceDeviceEpoch();
+  ensureGpuBufferConstructor(device);
+  wrapDeviceCreateBindGroup(device);
 
   // Wrap queue for submit tracking (when enabled)
-  wrapQueueForTracking(gpuDevice.queue);
+  wrapQueueForTracking(device.queue);
 
   // Cache kernel capabilities
-  let hasF16 = gpuDevice.features.has(FEATURES.SHADER_F16);
+  let hasF16 = device.features.has(FEATURES.SHADER_F16);
   if (hasF16) {
-    hasF16 = probeShaderF16(gpuDevice);
+    hasF16 = probeShaderF16(device);
   }
-  const hasSubgroups = gpuDevice.features.has(FEATURES.SUBGROUPS);
+  const hasSubgroups = device.features.has(FEATURES.SUBGROUPS);
 
-  kernelCapabilities = {
+  const capabilities = {
     hasSubgroups,
     // This is a derived compatibility bit, not a distinct WebGPU feature.
     hasSubgroupsF16: hasSubgroups && hasF16,
     hasF16,
-    hasTimestampQuery: gpuDevice.features.has(FEATURES.TIMESTAMP_QUERY),
-    maxBufferSize: gpuDevice.limits.maxStorageBufferBindingSize,
-    maxWorkgroupSize: gpuDevice.limits.maxComputeInvocationsPerWorkgroup,
-    maxWorkgroupStorageSize: gpuDevice.limits.maxComputeWorkgroupStorageSize,
+    hasTimestampQuery: device.features.has(FEATURES.TIMESTAMP_QUERY),
+    maxBufferSize: device.limits.maxStorageBufferBindingSize,
+    maxWorkgroupSize: device.limits.maxComputeInvocationsPerWorkgroup,
+    maxWorkgroupStorageSize: device.limits.maxComputeWorkgroupStorageSize,
     adapterInfo: {
       vendor: adapterInfo.vendor || 'unknown',
       architecture: adapterInfo.architecture || 'unknown',
@@ -549,8 +554,27 @@ export async function initDevice() {
     submitProbeMs: null,
   };
 
-  const probeMs = await probeSubmitLatency(gpuDevice);
-  kernelCapabilities.submitProbeMs = probeMs;
+  const probeMs = await probeSubmitLatency(device);
+  capabilities.submitProbeMs = probeMs;
+
+  hydrateDeviceState();
+  if (deviceEpoch !== initializationEpoch) {
+    device.destroy?.();
+    if (isUsableGPUDevice(gpuDevice)) {
+      log.debug('GPU', 'Device initialization was superseded; using the active shared device');
+      return gpuDevice;
+    }
+    throw createDopplerError(
+      ERROR_CODES.GPU_DEVICE_FAILED,
+      'WebGPU device initialization was superseded by a device-state reset'
+    );
+  }
+
+  gpuDevice = device;
+  kernelCapabilities = capabilities;
+  lastDeviceLossInfo = null;
+  registerDeviceLostHandler(gpuDevice);
+  advanceDeviceEpoch();
   syncSharedDeviceState();
 
   const features = [
@@ -563,8 +587,38 @@ export async function initDevice() {
   return gpuDevice;
 }
 
+
+export async function initDevice() {
+  hydrateDeviceState();
+  // Return cached device if available
+  if (gpuDevice) {
+    if (isUsableGPUDevice(gpuDevice)) {
+      return gpuDevice;
+    }
+    clearActiveDeviceState();
+    advanceDeviceEpoch();
+  }
+
+  if (sharedDeviceState.deviceInitPromise) {
+    log.debug('GPU', 'Joining in-flight device initialization');
+    return sharedDeviceState.deviceInitPromise;
+  }
+
+  const initializationEpoch = deviceEpoch;
+  const initializationPromise = initializeDevice(initializationEpoch);
+  sharedDeviceState.deviceInitPromise = initializationPromise;
+  try {
+    return await initializationPromise;
+  } finally {
+    if (sharedDeviceState.deviceInitPromise === initializationPromise) {
+      sharedDeviceState.deviceInitPromise = null;
+    }
+  }
+}
+
 export function setDevice(device, options = {}) {
   hydrateDeviceState();
+  invalidateDeviceInitialization();
   if (!device) {
     clearActiveDeviceState();
     advanceDeviceEpoch();
@@ -653,6 +707,8 @@ export function getLastDeviceLossInfo() {
 
 
 export function resetDeviceState() {
+  hydrateDeviceState();
+  invalidateDeviceInitialization();
   clearActiveDeviceState();
   advanceDeviceEpoch();
 }
@@ -660,6 +716,7 @@ export function resetDeviceState() {
 
 export function destroyDevice() {
   hydrateDeviceState();
+  invalidateDeviceInitialization();
   if (gpuDevice) {
     gpuDevice.destroy();
     clearActiveDeviceState();

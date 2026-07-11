@@ -682,6 +682,14 @@
                 "type": "string",
                 "pattern": "^[a-f0-9]{64}$"
               },
+              "evidenceManifestSha256": {
+                "description": "Exact manifest hash recorded by historical compare receipts when the public manifest differs only because local metadata was sanitized.",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[a-f0-9]{64}$"
+              },
               "weightPackId": {
                 "type": [
                   "string",

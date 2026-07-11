@@ -21,9 +21,48 @@ import {
 
 const MODULE = 'OPFSCache';
 let cacheOperationQueue = Promise.resolve();
+let cacheOperationSequence = 0;
+let cacheQueueDepth = 0;
 
-function runCacheOperation(run) {
-  const operation = cacheOperationQueue.then(run, run);
+function monotonicNowMs() {
+  return typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
+}
+
+function runCacheOperation(modelId, onProgress, run) {
+  const operationId = cacheOperationSequence + 1;
+  cacheOperationSequence = operationId;
+  const enqueuedAtMs = monotonicNowMs();
+  cacheQueueDepth += 1;
+  const queueDepth = cacheQueueDepth;
+  onProgress?.({
+    stage: 'cache-queued',
+    modelId,
+    operationId,
+    queueDepth,
+    queueWaitMs: 0,
+    message: `OPFS cache operation queued: ${modelId}`,
+    percent: 0,
+  });
+  const execute = async () => {
+    const queueWaitMs = Math.max(0, monotonicNowMs() - enqueuedAtMs);
+    onProgress?.({
+      stage: 'cache-start',
+      modelId,
+      operationId,
+      queueDepth,
+      queueWaitMs,
+      message: `OPFS cache operation started: ${modelId}`,
+      percent: 0,
+    });
+    try {
+      return await run();
+    } finally {
+      cacheQueueDepth = Math.max(0, cacheQueueDepth - 1);
+    }
+  };
+  const operation = cacheOperationQueue.then(execute, execute);
   cacheOperationQueue = operation.then(() => undefined, () => undefined);
   return operation;
 }
@@ -465,11 +504,15 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
 }
 
 export function ensureModelCached(modelId, modelBaseUrl, onProgress = null) {
-  return runCacheOperation(() => ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress));
+  return runCacheOperation(
+    modelId,
+    onProgress,
+    () => ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress)
+  );
 }
 
 export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null, options = {}) {
-  return runCacheOperation(async () => {
+  return runCacheOperation(modelId, onProgress, async () => {
     const expectedManifestHash = normalizeExpectedManifestHash(options.expectedManifestHash);
     const pinnedHit = await resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress);
     const cache = pinnedHit ?? await ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress);

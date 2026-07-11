@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-07-08T15:19:54.264Z",
   "benchmarkPolicy": {
-    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+    "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
     "sourceSha256": "6e0e81bc2571a0a1eb6451f0f9a6a3165b015bff9ba4537a4f5a6f2b1a9b93c8",
     "updated": "2026-03-29",
@@ -363,7 +363,7 @@
     "prefillTokenTarget": 512,
     "prefillTokenSource": "tokenizer-accurate-synthetic",
     "prefillTokenSemantics": "model_input_tokens",
-    "promptTokenizerLocator": "/Users/xyz/.cache/doppler/tjs-models/onnx-community/Qwen3.5-0.8B-ONNX",
+    "promptTokenizerLocator": "/workspace/.cache/doppler/tjs-models/onnx-community/Qwen3.5-0.8B-ONNX",
     "promptTokenizerResolutionSource": "local-model-root",
     "decodeTokenTarget": 128
   },
@@ -9582,7 +9582,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },
@@ -18779,7 +18779,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },

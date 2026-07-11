@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-11T14:04:21.695Z",
+  "generatedAt": "2026-07-11T19:35:41.171Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.8",
-    "commitSha": "e0fc0604197e1fa1ba44f14f612daade69a2fea8",
-    "dirty": false
+    "commitSha": "cf1a9a38b26f25363ffc297a07877dd46fdd01cb",
+    "dirty": true
   },
   "sources": {
     "registry": {
@@ -46,8 +46,8 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "609d3e2d0581bfac040baf97029992483db289381c47b68698e6fe59cd05f169",
-      "bytes": 24908,
+      "sha256": "9a9ae3b3800922badf2820ae3df37ab1292ab1105f781a4a0cfa98c698c73088",
+      "bytes": 25000,
       "updated": "2026-06-27"
     },
     "modelCatalog": {
