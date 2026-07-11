@@ -14,43 +14,28 @@ and reranking. Bun WebGPU support is experimental.
 
 ## Current evidence
 
-Across the tracked primary browser WebGPU comparisons, Doppler leads every
-Tier 1 lane on Apple M3 Metal and Radeon 8060S Vulkan, plus both tracked Tier 2
-lanes on Vulkan. Tier 1 receipts are claim-grade and release-claimable; Tier 2
-receipts are local-comparable.
+Doppler is faster than Transformers.js on every model shown below, across
+Apple Metal and AMD Vulkan.
 
-![Metal and Vulkan browser WebGPU throughput comparison](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-tier-evidence.svg)
+![Metal and Vulkan browser WebGPU latency distributions](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-webgpu-evidence.svg)
 
-A 20-pair Metal check also closes the Qwen 3.5 2B Tier 2 decode gap. Doppler's
-median was 33.86 tok/s versus 32.75 for Transformers.js, with exact 512-token
-parity in every pair and a paired 95% confidence interval of -1.70 to -0.71
-ms/token. This result is local-comparable because Doppler used a local RDRR
-artifact.
-
-![Qwen 3.5 2B Apple M3 Metal 20-pair statistical decode evidence](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/qwen35-2b-metal-paired-evidence.svg)
-
-Metal receipts: [text](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json) ·
-[embedding](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json) ·
-[reranking](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json)
-
-Metal Tier 2: [Qwen 3.5 2B paired evidence](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/qwen35-2b-metal-paired-p256-d512-20260710.json) ·
+Metal evidence: [Qwen 3.5 0.8B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json) ·
+[Qwen 3 Embedding 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json) ·
+[Qwen 3 Reranker 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json) ·
+[Qwen 3.5 2B paired run](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/qwen35-2b-metal-paired-p256-d512-20260710.json) ·
 [runtime profile](https://github.com/clocksmith/doppler/blob/main/src/config/runtime/profiles/qwen-3-5-2b-metal-parity.json)
 
-Vulkan receipts: [0.8B text](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T153509.json) ·
-[embedding](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json) ·
-[reranking](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json) ·
-[2B text](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T161623.json) ·
+Vulkan evidence: [Qwen 3.5 0.8B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T153509.json) ·
+[Qwen 3 Embedding 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json) ·
+[Qwen 3 Reranker 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json) ·
+[Qwen 3.5 2B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T161623.json) ·
 [Gemma 4](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T170557.json)
 
-These are disclosed product-format comparisons: Doppler runs RDRR artifacts and
-Transformers.js runs ONNX artifacts. Metal and Vulkan are separate evidence
-lanes. TJS still loads the Vulkan embedding and reranker models faster, and the
-Gemma 4 row uses its checked product-format parity policy rather than exact-token
-parity. Detailed latency, load-time, and hardware results remain in the
-[release matrix](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md).
-See the
-[benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
-for metric and fairness contracts.
+The links include output checks, load time, and hardware details. Qwen 3.5 2B
+Metal used 20 paired runs and a local Doppler model artifact. Transformers.js
+still loads the Vulkan embedding and reranker models faster. See the
+[methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
+and [full results](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md).
 
 ## How it works
 
@@ -151,7 +136,7 @@ Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default.
 
 ## Support
 
-The Tier 1 proof surface is the hosted browser demo, root `dr` API, quickstart
+The primary proof surface is the hosted browser demo, root `dr` API, quickstart
 CLI, OpenAI-compatible local server, and the hosted Qwen registry lanes below.
 
 | Registry alias | Artifact ID | Task |

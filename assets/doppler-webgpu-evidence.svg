@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="930" viewBox="0 0 1280 930" role="img" aria-labelledby="title desc">
+  <title id="title">Metal and Vulkan browser WebGPU latency</title>
+  <desc id="desc">Mean latency and sample standard deviation for nine Doppler and Transformers.js comparisons on Apple M3 Metal and Radeon 8060S Vulkan.</desc>
+  <defs>
+    <style>
+      text { fill: #111111; font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; }
+      .mono { font-family: SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+      .eyebrow { font-size: 12px; font-weight: 800; fill: #6d28d9; }
+      .title { font-size: 32px; font-weight: 800; }
+      .subtitle { font-size: 14px; font-weight: 600; fill: #495057; }
+      .legend { font-size: 11.5px; font-weight: 700; fill: #495057; }
+      .column { font-size: 10.5px; font-weight: 800; fill: #6b7280; }
+      .section { font-size: 15px; font-weight: 800; }
+      .section-detail { font-size: 11px; font-weight: 700; fill: #495057; }
+      .model { font-size: 14px; font-weight: 800; }
+      .detail { font-size: 10.5px; font-weight: 650; fill: #6b7280; }
+      .doppler-value { font-size: 11.5px; font-weight: 800; fill: #6d28d9; }
+      .tjs-value { font-size: 11.5px; font-weight: 800; fill: #9a6700; }
+      .ratio { font-size: 21px; font-weight: 800; fill: #6d28d9; }
+      .footer { font-size: 10.5px; font-weight: 650; fill: #495057; }
+      .section-band { fill: #f4f4f5; }
+      .row-line { stroke: #e5e7eb; stroke-width: 1; }
+      .column-line { stroke: #e5e7eb; stroke-width: 1; }
+      .axis { stroke: #e5e7eb; stroke-width: 2; }
+      .doppler-mark { stroke: #6d28d9; stroke-width: 2; }
+      .tjs-mark { stroke: #ffb000; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="930" fill="#ffffff" />
+
+  <text x="42" y="50" class="eyebrow">DOPPLER / TRANSFORMERS.JS</text>
+  <text x="42" y="84" class="title">Metal + Vulkan latency</text>
+  <text x="42" y="112" class="subtitle">Browser WebGPU · Apple M3 Metal · Radeon 8060S Vulkan</text>
+
+  <circle cx="49" cy="144" r="6" fill="#6d28d9" />
+  <text x="65" y="149" class="legend">Doppler</text>
+  <circle cx="149" cy="144" r="6" fill="#ffb000" />
+  <text x="165" y="149" class="legend">Transformers.js</text>
+  <text x="1238" y="149" text-anchor="end" class="legend">POINT = MEAN · WHISKER = ±1 SD · LOWER IS BETTER · EACH ROW HAS ITS OWN SCALE</text>
+  <line x1="42" y1="164" x2="1238" y2="164" stroke="#111111" />
+
+  <text x="42" y="190" class="column">WORKLOAD</text>
+  <text x="390" y="190" class="column">MEAN ± SD</text>
+  <text x="650" y="190" class="column">DISTRIBUTION</text>
+  <text x="1109" y="190" text-anchor="middle" class="column">SPEEDUP</text>
+
+  <rect x="42" y="202" width="1196" height="32" class="section-band" />
+  <text x="54" y="224" class="section">Apple M3 / Metal</text>
+  <text x="1226" y="223" text-anchor="end" class="section-detail">4 MODELS</text>
+
+  <text x="42" y="254" class="model">Qwen 3.5 0.8B text</text>
+  <text x="42" y="277" class="detail">n=3 · p512 / d128 · exact output</text>
+  <text x="390" y="255" class="doppler-value mono">26.03 ± 0.23 ms/token</text>
+  <text x="390" y="281" class="tjs-value mono">36.98 ± 1.98 ms/token</text>
+  <path d="M650 251H950" class="axis" />
+  <path d="M679 251H688M679 246v10M688 246v10" class="doppler-mark" />
+  <circle cx="683" cy="251" r="5" fill="#6d28d9" />
+  <path d="M650 277H950" class="axis" />
+  <path d="M848 277H921M848 272v10M921 272v10" class="tjs-mark" />
+  <circle cx="885" cy="277" r="5" fill="#ffb000" />
+  <line x1="990" y1="242" x2="990" y2="286" class="column-line" />
+  <text x="1109" y="273" text-anchor="middle" class="ratio">1.42x</text>
+  <line x1="42" y1="298" x2="1238" y2="298" class="row-line" />
+
+  <text x="42" y="318" class="model">Qwen 3 Embedding 0.6B</text>
+  <text x="42" y="341" class="detail">n=15 · embedding output checked</text>
+  <text x="390" y="319" class="doppler-value mono">43.79 ± 0.42 ms/embedding</text>
+  <text x="390" y="345" class="tjs-value mono">51.61 ± 0.67 ms/embedding</text>
+  <path d="M650 315H950" class="axis" />
+  <path d="M679 315H702M679 310v10M702 310v10" class="doppler-mark" />
+  <circle cx="690" cy="315" r="5" fill="#6d28d9" />
+  <path d="M650 341H950" class="axis" />
+  <path d="M885 341H921M885 336v10M921 336v10" class="tjs-mark" />
+  <circle cx="903" cy="341" r="5" fill="#ffb000" />
+  <line x1="990" y1="306" x2="990" y2="350" class="column-line" />
+  <text x="1109" y="337" text-anchor="middle" class="ratio">1.18x</text>
+  <line x1="42" y1="362" x2="1238" y2="362" class="row-line" />
+
+  <text x="42" y="382" class="model">Qwen 3 Reranker 0.6B</text>
+  <text x="42" y="405" class="detail">n=3 · ranking output checked</text>
+  <text x="390" y="383" class="doppler-value mono">467.03 ± 17.97 ms/rerank</text>
+  <text x="390" y="409" class="tjs-value mono">488.87 ± 5.56 ms/rerank</text>
+  <path d="M650 379H950" class="axis" />
+  <path d="M679 379H871M679 374v10M871 374v10" class="doppler-mark" />
+  <circle cx="775" cy="379" r="5" fill="#6d28d9" />
+  <path d="M650 405H950" class="axis" />
+  <path d="M862 405H921M862 400v10M921 400v10" class="tjs-mark" />
+  <circle cx="891" cy="405" r="5" fill="#ffb000" />
+  <line x1="990" y1="370" x2="990" y2="414" class="column-line" />
+  <text x="1109" y="401" text-anchor="middle" class="ratio">1.05x</text>
+  <line x1="42" y1="426" x2="1238" y2="426" class="row-line" />
+
+  <text x="42" y="446" class="model">Qwen 3.5 2B text</text>
+  <text x="42" y="469" class="detail">n=20 paired · p256 / d512 · exact output · local model</text>
+  <text x="390" y="447" class="doppler-value mono">31.41 ± 6.00 ms/token</text>
+  <text x="390" y="473" class="tjs-value mono">32.62 ± 6.06 ms/token</text>
+  <path d="M650 443H950" class="axis" />
+  <path d="M679 443H898M679 438v10M898 438v10" class="doppler-mark" />
+  <circle cx="788" cy="443" r="5" fill="#6d28d9" />
+  <path d="M650 469H950" class="axis" />
+  <path d="M700 469H921M700 464v10M921 464v10" class="tjs-mark" />
+  <circle cx="810" cy="469" r="5" fill="#ffb000" />
+  <line x1="990" y1="434" x2="990" y2="478" class="column-line" />
+  <text x="1109" y="465" text-anchor="middle" class="ratio">1.04x</text>
+
+  <rect x="42" y="502" width="1196" height="32" class="section-band" />
+  <text x="54" y="524" class="section">Radeon 8060S / Vulkan</text>
+  <text x="1226" y="523" text-anchor="end" class="section-detail">5 MODELS</text>
+
+  <text x="42" y="554" class="model">Qwen 3.5 0.8B text</text>
+  <text x="42" y="577" class="detail">n=15 · p512 / d128 · exact output</text>
+  <text x="390" y="555" class="doppler-value mono">14.75 ± 0.15 ms/token</text>
+  <text x="390" y="581" class="tjs-value mono">23.88 ± 0.51 ms/token</text>
+  <path d="M650 551H950" class="axis" />
+  <path d="M679 551H687M679 546v10M687 546v10" class="doppler-mark" />
+  <circle cx="683" cy="551" r="5" fill="#6d28d9" />
+  <path d="M650 577H950" class="axis" />
+  <path d="M896 577H921M896 572v10M921 572v10" class="tjs-mark" />
+  <circle cx="908" cy="577" r="5" fill="#ffb000" />
+  <line x1="990" y1="542" x2="990" y2="586" class="column-line" />
+  <text x="1109" y="573" text-anchor="middle" class="ratio">1.62x</text>
+  <line x1="42" y1="598" x2="1238" y2="598" class="row-line" />
+
+  <text x="42" y="618" class="model">Qwen 3 Embedding 0.6B</text>
+  <text x="42" y="641" class="detail">n=15 · embedding output checked</text>
+  <text x="390" y="619" class="doppler-value mono">29.51 ± 0.80 ms/embedding</text>
+  <text x="390" y="645" class="tjs-value mono">149.44 ± 11.00 ms/embedding</text>
+  <path d="M650 615H950" class="axis" />
+  <path d="M679 615H682M679 610v10M682 610v10" class="doppler-mark" />
+  <circle cx="681" cy="615" r="5" fill="#6d28d9" />
+  <path d="M650 641H950" class="axis" />
+  <path d="M881 641H921M881 636v10M921 636v10" class="tjs-mark" />
+  <circle cx="901" cy="641" r="5" fill="#ffb000" />
+  <line x1="990" y1="606" x2="990" y2="650" class="column-line" />
+  <text x="1109" y="637" text-anchor="middle" class="ratio">5.06x</text>
+  <line x1="42" y1="662" x2="1238" y2="662" class="row-line" />
+
+  <text x="42" y="682" class="model">Qwen 3 Reranker 0.6B</text>
+  <text x="42" y="705" class="detail">n=15 · ranking output checked</text>
+  <text x="390" y="683" class="doppler-value mono">278.62 ± 6.01 ms/rerank</text>
+  <text x="390" y="709" class="tjs-value mono">470.80 ± 12.67 ms/rerank</text>
+  <path d="M650 679H950" class="axis" />
+  <path d="M679 679H693M679 674v10M693 674v10" class="doppler-mark" />
+  <circle cx="686" cy="679" r="5" fill="#6d28d9" />
+  <path d="M650 705H950" class="axis" />
+  <path d="M892 705H921M892 700v10M921 700v10" class="tjs-mark" />
+  <circle cx="906" cy="705" r="5" fill="#ffb000" />
+  <line x1="990" y1="670" x2="990" y2="714" class="column-line" />
+  <text x="1109" y="701" text-anchor="middle" class="ratio">1.69x</text>
+  <line x1="42" y1="726" x2="1238" y2="726" class="row-line" />
+
+  <text x="42" y="746" class="model">Qwen 3.5 2B text</text>
+  <text x="42" y="769" class="detail">n=15 · p512 / d128 · exact output · local model</text>
+  <text x="390" y="747" class="doppler-value mono">17.94 ± 0.11 ms/token</text>
+  <text x="390" y="773" class="tjs-value mono">24.50 ± 2.10 ms/token</text>
+  <path d="M650 743H950" class="axis" />
+  <path d="M679 743H685M679 738v10M685 738v10" class="doppler-mark" />
+  <circle cx="682" cy="743" r="5" fill="#6d28d9" />
+  <path d="M650 769H950" class="axis" />
+  <path d="M805 769H921M805 764v10M921 764v10" class="tjs-mark" />
+  <circle cx="863" cy="769" r="5" fill="#ffb000" />
+  <line x1="990" y1="734" x2="990" y2="778" class="column-line" />
+  <text x="1109" y="765" text-anchor="middle" class="ratio">1.37x</text>
+  <line x1="42" y1="790" x2="1238" y2="790" class="row-line" />
+
+  <text x="42" y="810" class="model">Gemma 4 E2B INT4-PLE</text>
+  <text x="42" y="833" class="detail">n=15 · p064 / d064 · matched output · local model</text>
+  <text x="390" y="811" class="doppler-value mono">61.49 ± 0.75 ms/token</text>
+  <text x="390" y="837" class="tjs-value mono">107.62 ± 1.99 ms/token</text>
+  <path d="M650 807H950" class="axis" />
+  <path d="M679 807H686M679 802v10M686 802v10" class="doppler-mark" />
+  <circle cx="683" cy="807" r="5" fill="#6d28d9" />
+  <path d="M650 833H950" class="axis" />
+  <path d="M901 833H921M901 828v10M921 828v10" class="tjs-mark" />
+  <circle cx="911" cy="833" r="5" fill="#ffb000" />
+  <line x1="990" y1="798" x2="990" y2="842" class="column-line" />
+  <text x="1109" y="829" text-anchor="middle" class="ratio">1.75x</text>
+
+  <line x1="42" y1="858" x2="1238" y2="858" stroke="#111111" />
+  <text x="42" y="882" class="footer">Points are means; whiskers are ±1 sample SD. Each row uses its own latency scale.</text>
+  <text x="42" y="904" class="footer">Metal Qwen 3.5 2B paired difference: -1.21 ms/token · 95% CI -1.70 to -0.71.</text>
+  <text x="1238" y="904" text-anchor="end" class="footer mono">9 LINKED RESULTS</text>
+</svg>
