@@ -22,7 +22,6 @@ const REQUIRED_PACKAGE_FILES = Object.freeze([
   'LICENSE',
   'NOTICE',
   'assets/doppler.svg',
-  'assets/doppler-webgpu-evidence.svg',
   'models/catalog.json',
   'src/tooling/command-runner.html',
   'tools/convert-safetensors-node.js',

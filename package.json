@@ -280,7 +280,6 @@
   ],
   "files": [
     "assets/doppler.svg",
-    "assets/doppler-webgpu-evidence.svg",
     "src",
     "models/catalog.json",
     "!models/README.md",

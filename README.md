@@ -40,33 +40,76 @@ and [full results](https://github.com/clocksmith/doppler/blob/main/docs/release-
 ## How it works
 
 ```text
-registry ID / model URL
-          |
-          v
-+----------------------+    +----------------------+
-| RDRR manifest        |--->| verified shards      |
-| model + tokenizer    |    | OPFS / disk cache    |
-| session + execution  |    +----------+-----------+
-+----------------------+               |
-                                       |
-prompt / documents                     v
-        +--------------------->+----------------------+
-                               | JavaScript runtime   |
-                               | prefill / decode / KV|
-                               +----------+-----------+
-                                          |
-                                          v
-                               +----------------------+
-                               | WGSL / WebGPU        |
-                               | selected kernels     |
-                               +----------+-----------+
-                                          |
-                                          v
-                              text / embeddings / scores
++----------------------------------------------------------------+
+| Public surfaces                                                |
+| browser | Node | CLI | OpenAI-compatible local server          |
++-------------------------------+--------------------------------+
+                                |
+                                v
++-------------------------+        +---------------------------+
+| Model input             |        | Workload input            |
+| registry ID / URL       |        | prompt / documents / task |
++-----------+-------------+        +-------------+-------------+
+            |                                    |
+            v                                    v
++-------------------------+        +---------------------------+
+| RDRR contract           |        | Request contract          |
+| manifest / tokenizer    |        | sampling / limits / mode  |
+| session / execution     |        | text / embed / rerank     |
++-----------+-------------+        +-------------+-------------+
+            |                                    |
+            v                                    |
++-------------------------+                      |
+| Verified storage        |                      |
+| hashes / OPFS / disk    |                      |
++-----------+-------------+                      |
+            |                                    |
+            +------------------+-----------------+
+                               |
+                               v
++----------------------------------------------------------------+
+| JavaScript runtime spine                                       |
+| resolve | validate | load | bind | dispatch | fail closed      |
++---------+-------------------+-------------------+--------------+
+          |                   |                   |
+          v                   v                   v
++------------------+ +------------------+ +------------------+
+| Text generation  | | Embeddings       | | Reranking        |
+| prefill / decode | | pool / normalize | | score / rank     |
+| KV / sampling    | | vectors          | | scores           |
++--------+---------+ +--------+---------+ +--------+---------+
+         |                    |                    |
+         +--------------------+--------------------+
+                              |
+                              v
++----------------------------------------------------------------+
+| Execution contract                                             |
+| kernel path | graph | dtype/capabilities | readback cadence    |
++------------------------------+---------------------------------+
+                               |
+                               v
++----------------------------------------------------------------+
+| WebGPU / WGSL                                                  |
+| adapter/device | buffers | fused kernels | deterministic math  |
++---------------+-------------------------------+----------------+
+                |                               |
+                v                               v
++-------------------------+         +----------------------------+
+| Product outputs         |         | Evidence                   |
+| text / vectors / scores |         | parity / timing / hardware |
++-------------------------+         +-------------+--------------+
+                                                  |
+                                                  v
+                                    +----------------------------+
+                                    | Claim gates                |
+                                    | schema / support / CI      |
+                                    +-------------+--------------+
+                                                  |
+                                                  v
+                                      README / release matrices
 ```
 
-The manifest and runtime config select dtype and kernel paths before execution.
-Unsupported paths fail closed.
+Runtime config selects compatible kernels; unsupported paths fail closed.
 
 ## Quick start
 

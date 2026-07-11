@@ -145,6 +145,7 @@
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
