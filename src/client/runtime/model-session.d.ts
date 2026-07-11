@@ -47,6 +47,7 @@ export interface DopplerModelHandle {
   readonly activeLoRA: string | null;
   readonly loaded: boolean;
   readonly modelId: string;
+  readonly manifestHash: string | null;
   readonly manifest: unknown;
   readonly deviceInfo: Record<string, unknown> | null;
   readonly advanced: {
@@ -97,5 +98,6 @@ export declare function createModelHandle(
   pipeline: InferencePipeline,
   resolved: {
     modelId: string;
+    manifestHash?: string | null;
   }
 ): DopplerModelHandle;

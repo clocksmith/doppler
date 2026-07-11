@@ -29,6 +29,7 @@ function makePipeline(overrides = {}) {
 
   handle.resetGenerationState();
   assert.equal(resetCount, 1);
+  assert.equal(handle.manifestHash, null);
 }
 
 {
@@ -76,6 +77,14 @@ function makePipeline(overrides = {}) {
     ['prefillWithTokenLogits', 'rank this', [1, 0], { useChatTemplate: false }],
     ['prefillWithTokenLogitsFromKV', prefix, '', [1, 0], { inputIds: [6] }],
   ]);
+}
+
+{
+  const handle = createModelHandle(makePipeline(), {
+    modelId: 'unit-model',
+    manifestHash: '0123456789abcdef',
+  });
+  assert.equal(handle.manifestHash, '0123456789abcdef');
 }
 
 console.log('doppler-model-session-reset.test: ok');

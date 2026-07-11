@@ -150,6 +150,9 @@ export function createModelHandle(pipeline, resolved) {
     get modelId() {
       return resolved.modelId;
     },
+    get manifestHash() {
+      return resolved.manifestHash || null;
+    },
     get manifest() {
       return pipeline.manifest;
     },
