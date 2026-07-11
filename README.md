@@ -19,7 +19,7 @@ Tier 1 lane on Apple M3 Metal and Radeon 8060S Vulkan, plus both tracked Tier 2
 lanes on Vulkan. Tier 1 receipts are claim-grade and release-claimable; Tier 2
 receipts are local-comparable.
 
-![Metal and Vulkan comparison showing Doppler wins all published Tier 1 rows and both published Vulkan Tier 2 rows](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-tier-evidence.svg)
+![Metal and Vulkan browser WebGPU throughput comparison](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-tier-evidence.svg)
 
 A 20-pair Metal check also closes the Qwen 3.5 2B Tier 2 decode gap. Doppler's
 median was 33.86 tok/s versus 32.75 for Transformers.js, with exact 512-token
