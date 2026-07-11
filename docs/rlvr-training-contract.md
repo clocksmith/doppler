@@ -299,4 +299,3 @@ failed objective or reward mix from reappearing under a new run name.
   related private-task evidence for interleaving, clipped policy optimization,
   on-policy distillation, and teacher promotion. It is not evidence that those
   mechanisms are implemented in Doppler.
-
