@@ -105,7 +105,6 @@ export declare function failClosedLaneMismatch(graph: ExecutionGraph, ctx: Trans
  * lane is explicitly unsupported on the resolved platform.
  * Throws when invoked.
  */
-export declare function failClosedPlatformUnsupported(graph: ExecutionGraph, ctx: TransformContext): never;
 
 /**
  * Swap prefill attention kernel between streaming and small-tile variants.

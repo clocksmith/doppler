@@ -71,6 +71,10 @@ export declare function resolveFusedGateUpPipelineConstants(options?: {
   kernelPath?: Record<string, unknown> | null;
 }): Record<string, number | boolean> | null;
 
+export declare function resolveFusedGateUpVariant(options?: {
+  phase?: 'prefill' | 'decode' | null;
+}): string | null;
+
 export declare function canUseNativeF16FusedGateUp(options?: {
   inputDtype?: 'f16' | 'f32' | null;
   gateDtype?: string | null;

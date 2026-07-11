@@ -71,6 +71,40 @@ Prompt-target note:
 - When compare runners synthesize a prompt from `prefillTokens`, they must resolve it with the selected tokenizer first.
 - If either engine reports a different prompt-token count than the shared target, or the engines disagree on prompt-token count, the paired section is invalid.
 
+## Near-parity statistical protocol
+
+Use this protocol when a remaining decode difference may be smaller than normal
+GPU clock, thermal, browser, or scheduling variation:
+
+1. Interleave engine samples as adjacent pairs. Do not run every Doppler sample
+   and then every challenger sample. Alternate which engine runs first when the
+   harness supports it, and record the order.
+2. Collect at least 20 valid pairs. Use 512 to 1024 decode tokens per sample when
+   the model context allows it so fixed overhead and clock drift are a smaller
+   fraction of the measurement.
+3. Keep the artifact, prompt tokens, sampling tuple, load mode, decode cadence,
+   browser, hardware, and power state fixed.
+4. Require the configured output-parity gate on every pair. A faster mismatched
+   output is not a timing sample for the parity population.
+5. Convert each engine's rate to per-token decode time and calculate the paired
+   difference for each adjacent pair.
+6. Report the median and minimum per-token decode time for each engine, plus the
+   paired 95% confidence interval for the mean difference. The minimum is a
+   useful least-interrupted lower bound, but it does not replace the paired
+   interval or the median.
+
+Interpret a difference as `Doppler ms/token - challenger ms/token`:
+
+- an interval entirely below zero supports a Doppler decode win
+- an interval entirely above zero supports a challenger decode win
+- an interval crossing zero with an absolute median throughput difference below
+  0.5% is parity within measurement noise; stop tuning that lane
+- an interval crossing zero with a larger observed difference is inconclusive;
+  collect more evidence or isolate an uncontrolled factor
+
+Do not publish a point estimate as a win when this stopping rule says parity or
+inconclusive. Keep the raw paired samples and the summary artifact together.
+
 ## Compare runner contract
 
 - Compare load mode must come from one explicit source:

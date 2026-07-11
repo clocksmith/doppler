@@ -25,11 +25,25 @@ import { embed, isRangeBackedCpuEmbeddingSource, normalizeRangeBytes, decodeRang
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { getDevice } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
+import { f16ToF32 } from '../../../loader/dtype-utils.js';
 
 const pleRuntimeCache = new WeakMap();
 const pleRangeRowCache = new WeakMap();
+let f16ToF32Lookup = null;
 const PLE_ACTIVATION_STATIC_QMIN = -128;
 const PLE_ACTIVATION_STATIC_QMAX = 127;
+
+function getF16ToF32Lookup() {
+  if (f16ToF32Lookup) {
+    return f16ToF32Lookup;
+  }
+  const lookup = new Float32Array(1 << 16);
+  for (let value = 0; value < lookup.length; value += 1) {
+    lookup[value] = f16ToF32(value);
+  }
+  f16ToF32Lookup = lookup;
+  return lookup;
+}
 
 function getPerLayerInputWeights(context) {
   const weights = context.weights.get('per_layer_inputs');
@@ -625,6 +639,28 @@ function getPleHotCachePolicy(sessionConfig) {
   return { mode: 'prepared_tokens', maxTokens, maxBytes, outputDtype };
 }
 
+export function resolvePleHotVocabularyCapacity({
+  maxTokens,
+  maxBytes,
+  numLayers,
+  hiddenSize,
+  bytesPerElement,
+  vocabSize,
+}) {
+  const bytesPerHotRow = numLayers * hiddenSize * bytesPerElement;
+  const tokenIndexMapBytes = vocabSize * Uint32Array.BYTES_PER_ELEMENT;
+  const tableBudgetBytes = Math.max(0, maxBytes - tokenIndexMapBytes);
+  const maxTableRows = bytesPerHotRow > 0
+    ? Math.floor(tableBudgetBytes / bytesPerHotRow)
+    : 0;
+  const maxHotTokens = Math.max(0, Math.min(maxTokens, maxTableRows - 1));
+  return {
+    maxHotTokens,
+    bytesPerHotRow,
+    tokenIndexMapBytes,
+  };
+}
+
 export function getPleHotVocabularyRuntime(context) {
   const perLayerInputWeights = context?.weights?.get?.('per_layer_inputs');
   if (!perLayerInputWeights || typeof perLayerInputWeights !== 'object') {
@@ -1095,19 +1131,32 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
     return null;
   }
 
+  const bytesPerElement = policy.outputDtype === 'f16' ? 2 : 4;
+  const capacity = resolvePleHotVocabularyCapacity({
+    maxTokens: policy.maxTokens,
+    maxBytes: policy.maxBytes,
+    numLayers,
+    hiddenSize: hiddenSizePerLayerInput,
+    bytesPerElement,
+    vocabSize: vocabSizePerLayerInput,
+  });
+  if (capacity.maxHotTokens <= 0) {
+    return null;
+  }
+
   const tokenizer = context?.tokenizer ?? null;
   const tokenizerHotTokenIds = typeof tokenizer?.getHotTokenIds === 'function'
-    ? tokenizer.getHotTokenIds(policy.maxTokens)
+    ? tokenizer.getHotTokenIds(capacity.maxHotTokens)
     : null;
   const seedTokenIds = resolvePleHotVocabularySeedTokenIds(
     context,
-    policy.maxTokens,
+    capacity.maxHotTokens,
     vocabSizePerLayerInput
   );
   const hotTokenIds = mergePleHotVocabularyTokenIds(
     seedTokenIds,
     tokenizerHotTokenIds,
-    policy.maxTokens,
+    capacity.maxHotTokens,
     vocabSizePerLayerInput
   );
   if (hotTokenIds.length === 0) {
@@ -1119,7 +1168,8 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
   const cached = perLayerInputWeights.embedTokensPerLayerHotRuntime ?? null;
   if (
     cached
-    && cached.maxTokens === policy.maxTokens
+    && cached.maxTokens === capacity.maxHotTokens
+    && cached.maxBytes === policy.maxBytes
     && cached.outputDtype === policy.outputDtype
     && cached.vocabSize === vocabSizePerLayerInput
     && cached.numLayers === numLayers
@@ -1136,13 +1186,13 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
 
   const sourceDtype = requirePleSourceDtype(
     embedTokensPerLayer.data?.sourceDtype ?? embedTokensPerLayer.dtype,
-    'Gemma 4 hot vocabulary cache',
-    [policy.outputDtype]
+    'Gemma 4 hot vocabulary cache'
   );
-  if (sourceDtype !== policy.outputDtype) {
+  const expandsF16ToF32 = sourceDtype === 'f16' && policy.outputDtype === 'f32';
+  if (sourceDtype !== policy.outputDtype && !expandsF16ToF32) {
     throw new Error(
-      `Gemma 4 hot vocabulary cache requires source dtype "${policy.outputDtype}" for zero-copy row packing; ` +
-      `got "${sourceDtype}".`
+      `Gemma 4 hot vocabulary cache cannot convert source dtype "${sourceDtype}" ` +
+      `to output dtype "${policy.outputDtype}".`
     );
   }
 
@@ -1151,7 +1201,6 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
     throw new Error('No GPU device available for Gemma 4 hot vocabulary cache.');
   }
 
-  const bytesPerElement = policy.outputDtype === 'f16' ? 2 : 4;
   const totalPerLayerHiddenSize = numLayers * hiddenSizePerLayerInput;
   const sentinelIndex = hotTokenIds.length;
   const hotRowCount = sentinelIndex + 1;
@@ -1193,6 +1242,10 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
     }
 
     const { sourceRowBytes } = getPleRangeRowLoadConfig(embedTokensPerLayer, totalPerLayerHiddenSize);
+    const expandedF32Row = expandsF16ToF32
+      ? new Float32Array(totalPerLayerHiddenSize)
+      : null;
+    const f16Lookup = expandsF16ToF32 ? getF16ToF32Lookup() : null;
     for (let hotIndex = 0; hotIndex < hotTokenIds.length; hotIndex += 1) {
       const tokenId = hotTokenIds[hotIndex];
       const chunk = normalizeRangeBytes(
@@ -1208,6 +1261,21 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
             hotIndex * hiddenSizePerLayerInput * bytesPerElement,
             sourceWords.buffer,
             sourceWords.byteOffset + sourceStart * bytesPerElement,
+            hiddenSizePerLayerInput * bytesPerElement
+          );
+        }
+      } else if (sourceDtype === 'f16') {
+        const sourceWords = new Uint16Array(chunk.buffer, chunk.byteOffset, totalPerLayerHiddenSize);
+        for (let valueIdx = 0; valueIdx < totalPerLayerHiddenSize; valueIdx += 1) {
+          expandedF32Row[valueIdx] = f16Lookup[sourceWords[valueIdx]];
+        }
+        for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
+          const sourceStart = layerIdx * hiddenSizePerLayerInput;
+          device.queue.writeBuffer(
+            splitTables[layerIdx].buffer,
+            hotIndex * hiddenSizePerLayerInput * bytesPerElement,
+            expandedF32Row.buffer,
+            sourceStart * bytesPerElement,
             hiddenSizePerLayerInput * bytesPerElement
           );
         }
@@ -1235,7 +1303,8 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
 
   const runtime = {
     mode: 'tokenizer_scores',
-    maxTokens: policy.maxTokens,
+    maxTokens: capacity.maxHotTokens,
+    maxBytes: policy.maxBytes,
     outputDtype: policy.outputDtype,
     vocabSize: vocabSizePerLayerInput,
     numLayers,

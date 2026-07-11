@@ -4,10 +4,14 @@ import {
   loadManifestFromStore,
   saveManifest,
   deleteModel,
+  verifyIntegrity,
+  computeSHA256,
 } from '../storage/shard-manager.js';
+import { createOpfsArtifactStorageContext } from '../storage/artifact-storage-context.js';
 import { downloadModel, estimateTimeRemaining, formatSpeed } from '../storage/downloader.js';
 import { isOPFSAvailable, formatBytes } from '../storage/quota.js';
 import { parseManifest, getManifestUrl } from '../formats/rdrr/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
 import { cloneJsonValue } from '../utils/clone-json.js';
 import { log } from '../debug/index.js';
 import {
@@ -16,12 +20,45 @@ import {
 } from '../storage/source-artifact-store.js';
 
 const MODULE = 'OPFSCache';
+let cacheOperationQueue = Promise.resolve();
+
+function runCacheOperation(run) {
+  const operation = cacheOperationQueue.then(run, run);
+  cacheOperationQueue = operation.then(() => undefined, () => undefined);
+  return operation;
+}
 
 function toErrorMessage(error) {
   if (error instanceof Error && typeof error.message === 'string' && error.message.length > 0) {
     return error.message;
   }
   return String(error);
+}
+
+function normalizeExpectedManifestHash(value) {
+  const raw = value && typeof value === 'object'
+    ? value.hex ?? value.hash ?? value.digest ?? ''
+    : value;
+  const normalized = String(raw || '').trim().toLowerCase().replace(/^sha256:/, '');
+  if (!normalized) return null;
+  if (!/^[0-9a-f]{64}$/.test(normalized)) {
+    throw new Error('expectedManifestHash must be a SHA-256 hex digest.');
+  }
+  return normalized;
+}
+
+function manifestTotalBytes(manifest) {
+  const declared = Number(manifest?.totalSize);
+  if (Number.isFinite(declared) && declared >= 0) return Math.floor(declared);
+  const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
+  return shards.reduce((total, shard) => {
+    const size = Number(shard?.size);
+    return total + (Number.isFinite(size) && size > 0 ? Math.floor(size) : 0);
+  }, 0);
+}
+
+async function sha256Text(text) {
+  return computeSHA256(new TextEncoder().encode(String(text || '')));
 }
 
 function normalizeShardDescriptor(shard) {
@@ -160,6 +197,49 @@ async function loadCachedManifest(modelId) {
   return { text, manifest: parseManifest(text) };
 }
 
+async function verifyCachedArtifact(manifest) {
+  if (resolveSourceArtifact(manifest)) {
+    return verifyStoredSourceArtifact(manifest, { checkHashes: false });
+  }
+  return verifyIntegrity({ checkHashes: false });
+}
+
+async function resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress) {
+  if (!expectedManifestHash || !isOPFSAvailable() || !await modelExists(modelId)) {
+    return null;
+  }
+  try {
+    const cachedManifest = await loadCachedManifest(modelId);
+    if (!cachedManifest.text || !cachedManifest.manifest) return null;
+    if (await sha256Text(cachedManifest.text) !== expectedManifestHash) return null;
+    const integrity = await verifyCachedArtifact(cachedManifest.manifest);
+    if (!integrity.valid) return null;
+    const totalBytes = manifestTotalBytes(cachedManifest.manifest);
+    onProgress?.({
+      stage: 'cache-hit',
+      modelId,
+      message: `Verified OPFS cache hit: ${modelId}`,
+      percent: 100,
+      totalBytes,
+      downloadedBytes: totalBytes,
+    });
+    return {
+      cached: true,
+      fromCache: true,
+      cacheState: 'verified-hit',
+      modelId,
+      error: null,
+      manifestText: cachedManifest.text,
+      manifestHash: expectedManifestHash,
+      manifest: cachedManifest.manifest,
+      totalBytes,
+    };
+  } catch (error) {
+    log.warn(MODULE, `Pinned cache validation failed for "${modelId}": ${toErrorMessage(error)}`);
+    return null;
+  }
+}
+
 function buildDownloadProgress(progress) {
   if (!progress) return null;
   const totalBytes = Number.isFinite(progress.totalBytes) ? progress.totalBytes : 0;
@@ -200,7 +280,7 @@ function buildDownloadStatusLine(progress, speed, remainingBytes) {
   return parts.join(' | ');
 }
 
-export async function ensureModelCached(modelId, modelBaseUrl, onProgress = null) {
+async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = null) {
   if (!modelId || !modelBaseUrl) {
     return {
       cached: false,
@@ -252,41 +332,52 @@ export async function ensureModelCached(modelId, modelBaseUrl, onProgress = null
           const remoteFingerprint = buildManifestFingerprint(remoteManifest);
           const manifestTextMatches = cachedManifestText === remoteManifestText;
           if (sourceIntegrityValid && manifestTextMatches && cachedFingerprint === remoteFingerprint) {
-            log.info(MODULE, `Cache hit: "${modelId}"`);
-            onProgress?.({ stage: 'cache-hit', modelId, message: `OPFS cache hit: ${modelId}`, percent: 100 });
-            return {
-              cached: true,
-              fromCache: true,
-              cacheState: 'hit',
-              modelId,
-              error: null,
-            };
+            const shardIntegrity = cachedSourceArtifact
+              ? sourceIntegrity
+              : await verifyCachedArtifact(cachedManifest);
+            if (shardIntegrity.valid) {
+              log.info(MODULE, `Cache hit: "${modelId}"`);
+              onProgress?.({ stage: 'cache-hit', modelId, message: `OPFS cache hit: ${modelId}`, percent: 100 });
+              return {
+                cached: true,
+                fromCache: true,
+                cacheState: 'hit',
+                modelId,
+                error: null,
+              };
+            }
+            log.warn(
+              MODULE,
+              `Cache incomplete: "${modelId}" is missing shards ${shardIntegrity.missingShards.join(', ')}`
+            );
+            needsFullImport = true;
           }
 
-          const sameShards = hasSameShardSet(cachedManifest, remoteManifest);
-          const sameHashAlgorithm = (cachedManifest?.hashAlgorithm ?? null) === (remoteManifest?.hashAlgorithm ?? null);
-          if (sourceIntegrityValid && sameShards && sameHashAlgorithm) {
-            const preservedManifest = preserveCachedSourceRuntimeMetadata(remoteManifest, cachedManifest);
-            const manifestTextToSave = preservedManifest.changed
-              ? JSON.stringify(preservedManifest.manifest)
-              : remoteManifestText;
-            await openModelStore(modelId);
-            await saveManifest(manifestTextToSave);
-            const refreshMessage = preservedManifest.changed
-              ? `Manifest refreshed: ${modelId} (shards unchanged, preserved direct-source metadata)`
-              : `Manifest refreshed: ${modelId} (shards unchanged)`;
-            log.info(MODULE, `Cache manifest refreshed: "${modelId}"${preservedManifest.changed ? ' (preserved direct-source metadata)' : ' (shards unchanged)'}`);
-            onProgress?.({ stage: 'cache-refresh', modelId, message: refreshMessage, percent: 100 });
-            return {
-              cached: true,
-              fromCache: false,
-              cacheState: 'manifest-refresh',
-              modelId,
-              error: null,
-            };
+          if (!needsFullImport) {
+            const sameShards = hasSameShardSet(cachedManifest, remoteManifest);
+            const sameHashAlgorithm = (cachedManifest?.hashAlgorithm ?? null) === (remoteManifest?.hashAlgorithm ?? null);
+            if (sourceIntegrityValid && sameShards && sameHashAlgorithm) {
+              const preservedManifest = preserveCachedSourceRuntimeMetadata(remoteManifest, cachedManifest);
+              const manifestTextToSave = preservedManifest.changed
+                ? JSON.stringify(preservedManifest.manifest)
+                : remoteManifestText;
+              await openModelStore(modelId);
+              await saveManifest(manifestTextToSave);
+              const refreshMessage = preservedManifest.changed
+                ? `Manifest refreshed: ${modelId} (shards unchanged, preserved direct-source metadata)`
+                : `Manifest refreshed: ${modelId} (shards unchanged)`;
+              log.info(MODULE, `Cache manifest refreshed: "${modelId}"${preservedManifest.changed ? ' (preserved direct-source metadata)' : ' (shards unchanged)'}`);
+              onProgress?.({ stage: 'cache-refresh', modelId, message: refreshMessage, percent: 100 });
+              return {
+                cached: true,
+                fromCache: false,
+                cacheState: 'manifest-refresh',
+                modelId,
+                error: null,
+              };
+            }
           }
 
-          // Cache is stale — newer model version. Delete old data before re-importing.
           log.info(MODULE, `Cache stale: "${modelId}" manifest/shards changed; deleting old version and re-importing`);
           onProgress?.({ stage: 'cache-invalidate', modelId, message: `Purging stale OPFS cache for ${modelId}`, percent: 0 });
           try {
@@ -371,4 +462,49 @@ export async function ensureModelCached(modelId, modelBaseUrl, onProgress = null
       error: message,
     };
   }
+}
+
+export function ensureModelCached(modelId, modelBaseUrl, onProgress = null) {
+  return runCacheOperation(() => ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress));
+}
+
+export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null, options = {}) {
+  return runCacheOperation(async () => {
+    const expectedManifestHash = normalizeExpectedManifestHash(options.expectedManifestHash);
+    const pinnedHit = await resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress);
+    const cache = pinnedHit ?? await ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress);
+    if (!cache.cached) {
+      throw new Error(`Persistent model cache failed for "${modelId}": ${cache.error || cache.cacheState}`);
+    }
+    const cachedManifest = cache.manifest && cache.manifestText
+      ? { manifest: cache.manifest, text: cache.manifestText }
+      : await loadCachedManifest(modelId);
+    if (!cachedManifest.text || !cachedManifest.manifest) {
+      throw new Error(`Persistent model cache for "${modelId}" has no readable manifest.`);
+    }
+    const manifestHash = await sha256Text(cachedManifest.text);
+    if (expectedManifestHash && manifestHash !== expectedManifestHash) {
+      await deleteModel(modelId).catch(() => {});
+      throw new Error(`Persistent model cache manifest hash mismatch for "${modelId}".`);
+    }
+    const runtime = getRuntimeConfig();
+    const opfsPath = runtime.loading.opfsPath;
+    const opfs = runtime.loading.storage.backend.opfs;
+    const storageContext = await createOpfsArtifactStorageContext(modelId, cachedManifest.manifest, {
+      opfsRootDir: opfsPath.opfsRootDir,
+      useSyncAccessHandle: opfs.useSyncAccessHandle,
+      maxConcurrentHandles: opfs.maxConcurrentHandles,
+      verifyHashes: false,
+      hashesTrusted: true,
+    });
+    return {
+      ...cache,
+      manifest: cachedManifest.manifest,
+      manifestText: cachedManifest.text,
+      manifestHash,
+      storageContext,
+      storageBackend: 'opfs',
+      totalBytes: cache.totalBytes ?? manifestTotalBytes(cachedManifest.manifest),
+    };
+  });
 }

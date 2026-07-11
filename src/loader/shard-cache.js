@@ -25,6 +25,8 @@ export class ShardCache {
   #highPriorityQueue = [];
   #lowPriorityQueue = [];
   #epoch = 0;
+  #customReadBytes = 0;
+  #customReadShards = new Set();
 
   lastSource = null;
 
@@ -112,6 +114,18 @@ export class ShardCache {
     if (loader) {
       log.info('ShardCache', 'Custom shard loader configured');
     }
+  }
+
+  resetCustomReadStats() {
+    this.#customReadBytes = 0;
+    this.#customReadShards.clear();
+  }
+
+  get customReadStats() {
+    return {
+      bytesRead: this.#customReadBytes,
+      shardsRead: this.#customReadShards.size,
+    };
   }
 
   setManifest(manifest) {
@@ -228,6 +242,13 @@ export class ShardCache {
     throw new Error('Custom shard loader must return ArrayBuffer or Uint8Array.');
   }
 
+  #recordCustomRead(shardIndex, byteLength) {
+    const bytes = Number(byteLength);
+    if (!Number.isFinite(bytes) || bytes <= 0) return;
+    this.#customReadBytes += Math.floor(bytes);
+    this.#customReadShards.add(shardIndex);
+  }
+
   #throwShortStreamRead(shardIndex, start, want, produced, path) {
     throw new Error(
       `Shard ${shardIndex} short stream read via ${path}: ` +
@@ -257,7 +278,9 @@ export class ShardCache {
         const rangeData = await this.#customRangeLoader(shardIndex, start, want);
         const elapsed = (performance.now() - rangeStart) / 1000;
         this.#setLastSource('custom', elapsed, 'range', 'custom-range');
-        return this.#toArrayBuffer(rangeData);
+        const buffer = this.#toArrayBuffer(rangeData);
+        this.#recordCustomRead(shardIndex, buffer.byteLength);
+        return buffer;
       } catch (error) {
         const unsupported = this.#isUnsupportedRangeOrStream(error);
         if (!unsupported) {
@@ -337,6 +360,7 @@ export class ShardCache {
           const bytes = chunk instanceof Uint8Array ? chunk : new Uint8Array(this.#toArrayBuffer(chunk));
           if (bytes.byteLength > 0) {
             produced += bytes.byteLength;
+            this.#recordCustomRead(shardIndex, bytes.byteLength);
             yield bytes;
           }
         }
@@ -367,6 +391,7 @@ export class ShardCache {
           }
           emptyRetries = 0;
           resumed += bytes.byteLength;
+          this.#recordCustomRead(shardIndex, bytes.byteLength);
           yield bytes;
         }
         if (want != null && produced + resumed < want) {
@@ -411,6 +436,7 @@ export class ShardCache {
           }
           emptyRetries = 0;
           resumed += bytes.byteLength;
+          this.#recordCustomRead(shardIndex, bytes.byteLength);
           yield bytes;
         }
         if (produced + resumed < want) {
@@ -462,6 +488,7 @@ export class ShardCache {
         }
         emptyRetries = 0;
         produced += bytes.byteLength;
+        this.#recordCustomRead(shardIndex, bytes.byteLength);
         yield bytes;
         if (bytes.byteLength < requestLength) {
           partialRetryUsed = true;
@@ -528,6 +555,7 @@ export class ShardCache {
 
       // Normalize to ArrayBuffer for downstream slicing
       const arrayBuffer = this.#toArrayBuffer(data);
+      this.#recordCustomRead(shardIndex, arrayBuffer.byteLength);
 
       if (epoch === this.#epoch) {
         this.#add(shardIndex, arrayBuffer);

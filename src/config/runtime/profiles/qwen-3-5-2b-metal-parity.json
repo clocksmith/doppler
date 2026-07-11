@@ -1,0 +1,38 @@
+{
+  "id": "profiles/qwen-3-5-2b-metal-parity",
+  "name": "qwen-3-5-2b-metal-parity",
+  "description": "Qwen 3.5 2B browser/Metal parity profile. Preserves the release 4x4 decode cadence while inheriting the exact Metal Q4 GEMV and decode fusions from the throughput profile.",
+  "intent": "calibrate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-07-10T00:00:00Z",
+  "extends": "profiles/qwen-3-5-2b-metal-throughput",
+  "model": "qwen-3-5-2b-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "batching": {
+        "batchSize": 4,
+        "readbackInterval": 4,
+        "stopCheckMode": "batch",
+        "readbackMode": "sequential",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 4,
+          "stopCheckMode": "batch",
+          "readbackInterval": 4,
+          "readbackMode": "sequential",
+          "submitLatencyThresholdMs": null,
+          "maxBatchDecodeTokens": null,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1,
+          "disableCommandBatching": false
+        }
+      }
+    }
+  }
+}

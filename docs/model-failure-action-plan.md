@@ -162,6 +162,33 @@ Repo-backed facts as of 2026-03-12:
 4. `WS5` must not block `WS2`, `WS3`, or `WS4`. Treat it as a maintenance appendix unless it produces new evidence that changes the primary workstreams.
 5. Do not update release-facing metadata until a human has reviewed coherent output from a real deterministic smoke.
 
+## Correct-But-Behind Performance Trigger
+
+Use this sequence only after artifact integrity and deterministic correctness are
+clean. A performance deficit is not evidence of a model failure.
+
+1. Capture the resolved runtime report and prove which kernels, constants,
+   cadence, and fallback state actually executed.
+2. Enable the candidate's decomposed Q4_K projection and fused-FFN variants
+   through a checked-in runtime profile. Do not hide model or vendor selection in
+   JavaScript.
+3. Run full-block and tail-shape CPU-reference GPU tests before measuring the
+   model. Keep f32 accumulation and exact greedy token parity as gates.
+4. Run the local challenger with the interleaved paired confidence-interval
+   protocol from [Benchmark Methodology](benchmark-methodology.md#near-parity-statistical-protocol).
+5. Apply the stopping rule. A sub-0.5% difference whose interval crosses zero is
+   parity within measurement noise, not an open kernel defect.
+6. If a statistically supported gap remains after projection math is competitive,
+   compare encoded dispatch count and profile attention phase share. Investigate
+   launch fusion, RoPE/softmax, and KV-cache access before writing another Q4_K
+   projection variant.
+
+Use
+[Kernel Performance Optimization](developer-guides/16-kernel-performance-optimization.md)
+for the lever-by-lever procedure and the negative-results ledger. Keep model and
+platform results in benchmark receipts so the generated competition scoreboard
+remains receipt-owned.
+
 ## WS0: Evidence Normalization And Inventory
 
 Status: `done`

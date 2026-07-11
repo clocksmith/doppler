@@ -93,6 +93,27 @@ The valid claim grades are `diagnostic`, `local-gpu-comparable`, and
 `release-claimable`. The matrix starts at `local-gpu-comparable`; release claims
 still require hosted Doppler artifacts and pinned competitor revisions.
 
+## Near-Parity Closeout
+
+When a local challenger difference approaches the measurement floor, use the
+interleaved paired protocol in
+[Benchmark Methodology](benchmark-methodology.md#near-parity-statistical-protocol).
+The closeout artifact must retain:
+
+- at least 20 adjacent engine pairs
+- engine order for each pair
+- 512 to 1024 decode tokens per sample when context limits allow it
+- raw throughput and per-token decode time for both engines
+- output-parity status for every pair
+- median and minimum per-token decode time per engine
+- the paired 95% confidence interval of the difference
+
+An absolute median throughput difference below 0.5% with a confidence interval
+that crosses zero is recorded as parity within measurement noise. It is not a
+win or a reason to keep changing kernels. If a statistically supported residual
+survives, compare encoded dispatch count and attention phase share before
+reopening projection math.
+
 ## Commands
 
 ```bash

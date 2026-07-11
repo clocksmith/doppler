@@ -64,13 +64,20 @@ function normalizeFusedGateUpPipelineConstants(constants) {
   const colsPerWorkgroup = constants.COLS_PER_WG;
   const threadsPerCol = constants.THREADS_PER_COL ?? constants.THREADS_PER_COL_GEMV;
   const workgroupSize = constants.WORKGROUP_SIZE;
-  if (colsPerWorkgroup === undefined && threadsPerCol === undefined && workgroupSize === undefined) {
+  const useFullBlockFastPath = constants.USE_FULL_BLOCK_FAST_PATH;
+  if (
+    colsPerWorkgroup === undefined &&
+    threadsPerCol === undefined &&
+    workgroupSize === undefined &&
+    useFullBlockFastPath === undefined
+  ) {
     return null;
   }
   return {
     ...(workgroupSize !== undefined ? { WORKGROUP_SIZE: workgroupSize } : {}),
     ...(colsPerWorkgroup !== undefined ? { COLS_PER_WG: colsPerWorkgroup } : {}),
     ...(threadsPerCol !== undefined ? { THREADS_PER_COL: threadsPerCol } : {}),
+    ...(useFullBlockFastPath !== undefined ? { USE_FULL_BLOCK_FAST_PATH: useFullBlockFastPath } : {}),
   };
 }
 
@@ -119,6 +126,22 @@ export function resolveFusedGateUpPipelineConstants(options = {}) {
   const sessionConstants = getRuntimeConfig()
     .inference?.session?.fusedFfnQ4K?.[phase]?.pipelineConstants;
   return normalizeFusedGateUpPipelineConstants(sessionConstants);
+}
+
+export function resolveFusedGateUpVariant(options = {}) {
+  const phase = options.phase ?? null;
+  if (!phase) {
+    return null;
+  }
+  const variant = getRuntimeConfig()
+    .inference?.session?.fusedFfnQ4K?.[phase]?.variant;
+  if (variant == null) {
+    return null;
+  }
+  if (typeof variant !== 'string' || variant.length === 0) {
+    throw new Error(`[FFN] fusedFfnQ4K.${phase}.variant must be a non-empty string or null.`);
+  }
+  return variant;
 }
 
 function enqueueRecordedDenseHealth(context, layerIdx, label, tensor, elementCount) {
@@ -413,6 +436,7 @@ async function dispatchFusedGateUp({
   executionPolicies = null,
   normStats = null,
   pipelineConstants = null,
+  variant = null,
 }) {
   const useNativeF16Fused = canUseNativeF16FusedGateUp({
     inputDtype: inputTensor.dtype,
@@ -439,6 +463,9 @@ async function dispatchFusedGateUp({
 
   const activation = resolveActivationOp(hiddenActivation);
   if (normStats) {
+    if (variant != null) {
+      throw new Error(`[FFN] explicit fused gate/up variant "${variant}" is not supported by the norm-stats path.`);
+    }
     if (inputTensor.dtype !== 'f32' || gateDtype !== 'q4k' || numTokens !== 1) {
       throw new Error(
         `Fused post-attention norm gate/up requires f32 Q4_K decode input; ` +
@@ -485,12 +512,12 @@ async function dispatchFusedGateUp({
     ? await recordFusedFFN(
       recorder, fusedInput, gateWeight, upWeight,
       hiddenSize, intermediateSize,
-      { batchSize: numTokens, activation, swigluLimit, pipelineConstants }
+      { batchSize: numTokens, activation, swigluLimit, pipelineConstants, variant }
     )
     : await runFusedFFN(
       fusedInput, gateWeight, upWeight,
       hiddenSize, intermediateSize,
-      { batchSize: numTokens, activation, swigluLimit, pipelineConstants }
+      { batchSize: numTokens, activation, swigluLimit, pipelineConstants, variant }
     );
 
   if (!recorder && fusedInput !== inputTensor) {
@@ -803,6 +830,7 @@ export async function runDenseFFNGPU(
       phase,
       layerIdx,
     });
+    const fusedGateUpVariant = resolveFusedGateUpVariant({ phase });
     const fusedDownOutputDtype = resolveMatmulStepDtype(
       'ffn_down',
       phase,
@@ -829,6 +857,16 @@ export async function runDenseFFNGPU(
       executionPolicies: context.executionPolicies ?? null,
       normStats: context.__pendingFfnInputNormStats ?? null,
       pipelineConstants: fusedGateUpPipelineConstants,
+      variant: fusedGateUpVariant,
+    });
+    await runProbes('ffn_act', fusedOutput.buffer, {
+      layerIdx,
+      numTokens,
+      hiddenSize: intermediateSize,
+      probes: context.debugProbes,
+      recorder,
+      operatorDiagnostics: context.operatorDiagnostics,
+      dtype: fusedOutput.dtype,
     });
     enqueueRecordedDenseHealth(context, layerIdx, 'ffn_fused_gate_up', fusedOutput, numTokens * intermediateSize);
 
@@ -1538,6 +1576,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
 	        phase,
 	        layerIdx,
 	      });
+	      const fusedGateUpVariant = resolveFusedGateUpVariant({ phase });
 	      const {
 	        fusedGateUpInputDtype,
 	      } = resolveDenseFFNFusedPathDtypes({
@@ -1564,6 +1603,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
 	        hiddenActivation, swigluLimit, recorder,
 	        executionPolicies: context.executionPolicies ?? null,
 	        pipelineConstants: fusedGateUpPipelineConstants,
+	        variant: fusedGateUpVariant,
 	      });
       if (fusedInputOwned) {
         if (recorder) {

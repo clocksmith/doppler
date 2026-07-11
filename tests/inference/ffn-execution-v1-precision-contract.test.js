@@ -5,14 +5,33 @@ const {
   buildLayerPipelineFromExecution,
 } = await import('../../src/inference/pipelines/text/execution-runtime-builders.js');
 const { getKernelPathMatmulPrecision } = await import('../../src/config/kernel-path-loader.js');
+const { resetRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 const {
   resolveGateUpPathMode,
   resolveDenseFFNMatmulStepDtype,
   resolveDenseFFNFusedPathDtypes,
   resolveFusedGateUpPipelineConstants,
+  resolveFusedGateUpVariant,
   canUseNativeF16FusedGateUp,
   canFuseSplitPrefillF16GateUpPath,
 } = await import('../../src/inference/pipelines/text/ffn/dense.js');
+
+{
+  setRuntimeConfig({
+    inference: {
+      session: {
+        fusedFfnQ4K: {
+          decode: {
+            variant: 'q4k_metal_simd16',
+          },
+        },
+      },
+    },
+  });
+  assert.equal(resolveFusedGateUpVariant({ phase: 'decode' }), 'q4k_metal_simd16');
+  assert.equal(resolveFusedGateUpVariant({ phase: 'prefill' }), null);
+  resetRuntimeConfig();
+}
 
 {
   const pipeline = buildLayerPipelineFromExecution(
@@ -292,6 +311,7 @@ const {
           constants: {
             COLS_PER_WG: 64,
             THREADS_PER_COL_GEMV: 4,
+            USE_FULL_BLOCK_FAST_PATH: true,
           },
         },
         {
@@ -301,6 +321,7 @@ const {
           constants: {
             COLS_PER_WG: 64,
             THREADS_PER_COL_GEMV: 4,
+            USE_FULL_BLOCK_FAST_PATH: true,
           },
         },
       ],
@@ -316,6 +337,7 @@ const {
     {
       COLS_PER_WG: 64,
       THREADS_PER_COL: 4,
+      USE_FULL_BLOCK_FAST_PATH: true,
     },
     'fused gate/up should inherit equivalent Q4K tiling constants from matching split gate/up steps'
   );

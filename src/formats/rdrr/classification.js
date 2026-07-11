@@ -56,6 +56,9 @@ export function classifyTensor(name, modelType) {
       lower.includes('norm')) {
     return 'head';
   }
+  if (lower === 'norm.weight' || lower === 'norm.bias') {
+    return 'head';
+  }
 
   // Multimodal groups
   const role = classifyTensorRole(name);

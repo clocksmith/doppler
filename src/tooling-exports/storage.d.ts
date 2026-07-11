@@ -22,4 +22,4 @@ export { listRegisteredModels, registerModel, removeRegisteredModel } from '../s
 export { listStorageInventory, deleteStorageEntry } from '../storage/inventory.js';
 export { formatBytes, getQuotaInfo } from '../storage/quota.js';
 export { exportModelToDirectory } from '../storage/export.js';
-export { ensureModelCached } from '../tooling/opfs-cache.js';
+export { ensureModelCached, ensureModelCachedSource } from '../tooling/opfs-cache.js';

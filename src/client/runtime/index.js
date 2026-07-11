@@ -7,6 +7,7 @@ import {
   resolveManifestArtifactSource,
   resolveLoadProgressHandlers,
   resolveModelSource,
+  sha256ManifestText,
 } from './model-source.js';
 import { assertSupportedGenerationOptions, createModelHandle } from './model-session.js';
 import {
@@ -98,7 +99,16 @@ export function createDopplerRuntimeService({
 
     emitLoadProgress(userProgress, 'manifest', 15, 'Fetching manifest');
     const manifestPayload = resolved.manifest
-      ? { text: JSON.stringify(resolved.manifest), manifest: resolved.manifest }
+      ? await (async () => {
+        const text = resolved.manifestText ?? JSON.stringify(resolved.manifest);
+        const manifestHash = await sha256ManifestText(text);
+        if (resolved.manifestHash && resolved.manifestHash !== manifestHash) {
+          throw new Error(
+            `Resolved manifest hash mismatch: expected ${resolved.manifestHash}, got ${manifestHash}.`
+          );
+        }
+        return { text, manifest: resolved.manifest, manifestHash };
+      })()
       : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);
     const resolvedArtifactSource = await resolveManifestArtifactSource(resolved, manifestPayload);
     await initDevice();
@@ -146,7 +156,10 @@ export function createDopplerRuntimeService({
     });
 
     emitLoadProgress(userProgress, 'ready', 100, 'Model ready');
-    return createModelHandle(pipeline, resolved);
+    return createModelHandle(pipeline, {
+      ...resolved,
+      manifestHash: manifestPayload.manifestHash,
+    });
   }
 
   async function getCachedModel(model, options = {}) {

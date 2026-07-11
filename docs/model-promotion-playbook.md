@@ -66,6 +66,14 @@ A model is promotion-ready only if all of the following are true:
 
 For text models, "passes" means more than "process did not crash". The run must produce non-empty, non-collapsed, non-garbage output on a deterministic prompt.
 
+When promotion includes a performance claim, a correctness-clean candidate that
+trails its reference engine must follow the
+[correct-but-behind performance trigger](model-failure-action-plan.md#correct-but-behind-performance-trigger).
+Near-parity claims require the paired stopping rule in
+[Benchmark Methodology](benchmark-methodology.md#near-parity-statistical-protocol),
+and the published score must come from a saved receipt rather than a hand-edited
+scoreboard row.
+
 ## Working Definition
 
 Use these buckets consistently:

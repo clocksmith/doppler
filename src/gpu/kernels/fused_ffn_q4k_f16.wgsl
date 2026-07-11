@@ -95,7 +95,8 @@ fn silu(x: f32) -> f32 {
 
 fn gelu(x: f32) -> f32 {
     let c = 0.7978845608;
-    return 0.5 * x * (1.0 + tanh(c * (x + 0.044715 * x * x * x)));
+    let inner = c * (x + 0.044715 * x * x * x);
+    return 0.5 * x * (1.0 + tanh(clamp(inner, -15.0, 15.0)));
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)

@@ -164,8 +164,8 @@ async function readTokenRow(buffer, tokenIdx, hiddenSize, dtype, isCpuBuffer) {
   return values;
 }
 
-function formatProbeStats(stats) {
-  return [
+function formatProbeStats(stats, firstNonFiniteIndex = -1) {
+  const fields = [
     `min=${formatProbeNumber(stats.min)}`,
     `max=${formatProbeNumber(stats.max)}`,
     `mean=${formatProbeNumber(stats.mean)}`,
@@ -175,7 +175,11 @@ function formatProbeStats(stats) {
     `nan=${stats.nanCount}`,
     `inf=${stats.infCount}`,
     `zero=${stats.zeroCount}`,
-  ].join(', ');
+  ];
+  if (firstNonFiniteIndex >= 0) {
+    fields.push(`firstNonFinite=${firstNonFiniteIndex}`);
+  }
+  return fields.join(', ');
 }
 
 
@@ -267,7 +271,8 @@ export async function runProbes(stage, buffer, options) {
       let statsText = null;
       if (includeStats) {
         const row = await readTokenRow(buffer, tokenIdx, hiddenSize, dtype, isCpuBuffer);
-        statsText = formatProbeStats(computeArrayStats(row));
+        const firstNonFiniteIndex = row.findIndex((value) => !Number.isFinite(value));
+        statsText = formatProbeStats(computeArrayStats(row), firstNonFiniteIndex);
       }
 
       const values = [];

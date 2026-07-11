@@ -36,7 +36,6 @@ import {
       '--force-download',
       '--include',
       'config.json',
-      '--include',
       'onnx/model*q4f16*',
     ]
   );

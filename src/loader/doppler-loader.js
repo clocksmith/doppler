@@ -120,7 +120,7 @@ function createLoadTiming(modelId, hasCustomLoader) {
     status: 'running',
     customShardLoader: hasCustomLoader === true,
     byteAccountingMode: hasCustomLoader === true
-      ? 'custom-loader-progress-unavailable'
+      ? 'custom-loader-read-progress'
       : 'full-shard-progress',
     totalBytes: null,
     totalShards: null,
@@ -589,10 +589,21 @@ export class DopplerLoader {
     const loadStartTime = Date.now();
     let bytesLoaded = 0;
     let shardsLoaded = 0;
+    this.shardCache.resetCustomReadStats();
+
+    const syncCustomReadStats = () => {
+      if (!this.shardCache.hasCustomLoader) return;
+      const stats = this.shardCache.customReadStats;
+      bytesLoaded = stats.bytesRead;
+      shardsLoaded = stats.shardsRead;
+      this.loadTiming.bytesLoaded = bytesLoaded;
+      this.loadTiming.shardsLoaded = shardsLoaded;
+    };
 
     
     const reportProgress = (stage, baseProgress, detail) => {
       if (!onProgress || typeof onProgress !== 'function') return;
+      syncCustomReadStats();
       const elapsed = (Date.now() - loadStartTime) / 1000;
       const speed = elapsed > 0 ? bytesLoaded / elapsed : 0;
       const speedStr = speed > 0 ? `${formatBytes(speed)}/s` : '';
@@ -751,6 +762,7 @@ export class DopplerLoader {
         }
 
         if (onProgress) {
+          syncCustomReadStats();
           const layerFraction = (l + 1) / numLayers;
           const layerProgress = 0.80 + layerFraction * 0.05;
           onProgress({
@@ -786,9 +798,17 @@ export class DopplerLoader {
       await this.#loadFinalWeights(onProgress);
       finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
       this.#assertResidentBudget('final weights');
+      syncCustomReadStats();
 
       if (onProgress) {
-        onProgress({ stage: 'complete', progress: 1.0 });
+        onProgress({
+          stage: 'complete',
+          progress: 1.0,
+          shard: shardsLoaded,
+          totalShards,
+          bytesLoaded,
+          totalBytes,
+        });
       }
 
       this.isLoaded = true;
@@ -805,6 +825,7 @@ export class DopplerLoader {
       return  (this.manifest.config) || {};
     } catch (error) {
       loadError = error;
+      syncCustomReadStats();
       finishLoadTiming(this.loadTiming, 'failed', loadTimingStart, error, activeLoadPhase);
     } finally {
       this.#loadShardOverride = null;
