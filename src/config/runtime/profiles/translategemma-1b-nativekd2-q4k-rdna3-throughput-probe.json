@@ -1,7 +1,7 @@
 {
-  "id": "profiles/translategemma-1b-savant-q4k-rdna3-throughput-probe",
-  "name": "translategemma-1b-savant-q4k-rdna3-throughput-probe",
-  "description": "TranslateGemma 1B Savant calibration profile for AMD RDNA3/Vulkan evidence. Preserves the manifest 4x1 sequential decode cadence while retaining Q4K materialization, selecting wide-tile Q4K prefill, and enabling exact-safe packed-QKV and RMSNorm-pair fusions.",
+  "id": "profiles/translategemma-1b-nativekd2-q4k-rdna3-throughput-probe",
+  "name": "translategemma-1b-nativekd2-q4k-rdna3-throughput-probe",
+  "description": "Experimental TranslateGemma 1B NativeKD2 EN/ES calibration profile for AMD RDNA3/Vulkan evidence. Preserves the manifest 4x1 sequential decode cadence while retaining Q4K materialization, selecting wide-tile Q4K prefill, and enabling exact-safe packed-QKV and RMSNorm-pair fusions.",
   "intent": "calibrate",
   "stability": "experimental",
   "owner": "doppler-core",

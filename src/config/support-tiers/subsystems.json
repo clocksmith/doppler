@@ -448,7 +448,7 @@
       "command": null,
       "docs": [
         "docs/training-handbook.md",
-        "src/experimental/training/README.md"
+        "src/experimental/training/GUIDE.md"
       ],
       "entrypoints": [
         "src/experimental/training/index.js",

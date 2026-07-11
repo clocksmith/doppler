@@ -14,7 +14,7 @@ const TEXT_FILES = Object.freeze([
   'src/config/schema/inference.schema.d.ts',
   'src/config/schema/index.d.ts',
   'src/config/kernel-path-loader.d.ts',
-  'src/config/README.md',
+  'src/config/GUIDE.md',
   'docs/config.md',
   'docs/cli.md',
   'docs/style/general-style-guide.md',
@@ -26,9 +26,9 @@ const TEXT_FILES = Object.freeze([
   'docs/developer-guides/11-wgsl-kernel.md',
   'docs/developer-guides/05-promote-model-artifact.md',
   'docs/developer-guides/13-attention-variant.md',
-  'src/gpu/kernels/README.md',
+  'src/gpu/kernels/GUIDE.md',
   'docs/registry-workflow.md',
-  'models/README.md',
+  'models/GUIDE.md',
 ]);
 
 const RULE_JSON_FILES = Object.freeze([
@@ -96,7 +96,7 @@ const REQUIRED_TEXT_SNIPPETS = Object.freeze({
     'npm run registry:hf:check',
     'npm run artifact:contract:check',
   ],
-  'src/gpu/kernels/README.md': [
+  'src/gpu/kernels/GUIDE.md': [
     'docs/developer-guides/config-source-of-truth.md',
     'src/config/kernels/registry.json',
     'npm run kernels:registry:check',
@@ -107,7 +107,7 @@ const REQUIRED_TEXT_SNIPPETS = Object.freeze({
     'npm run ci:catalog:check',
     'developer-guides/config-source-of-truth.md',
   ],
-  'models/README.md': [
+  'models/GUIDE.md': [
     'models/catalog.json',
     'docs/model-support-inventory.md',
     'npm run ci:catalog:check',

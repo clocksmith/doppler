@@ -1013,7 +1013,7 @@ For runtime capability classes and sizing guidance, use the canonical doc:
 
 ## Data Flow: Single Token Generation
 
-For detailed kernel-level execution trace including tensor shapes, kernel selection, and fusion analysis, see `../src/inference/README.md`.
+For detailed kernel-level execution trace including tensor shapes, kernel selection, and fusion analysis, see `../src/inference/GUIDE.md`.
 The walkthrough below is an illustrative text-model example (Gemma-like dimensions), not a universal shape for all model families.
 
 ```

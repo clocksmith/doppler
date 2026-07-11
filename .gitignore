@@ -58,7 +58,7 @@ downloads/
 /models/*
 !/models/catalog.json
 !/models/gemma4-targets.json
-!/models/README.md
+!/models/GUIDE.md
 !/models/local/
 /models/local/**
 !/models/local/**/

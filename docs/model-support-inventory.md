@@ -2,7 +2,7 @@
 
 Generated from model catalog, conversion configs, support rollout policy, compare profiles, saved compare receipts, release matrix, claim lanes, and release-claim receipts.
 
-Updated at: 2026-07-05
+Updated at: 2026-07-11
 
 Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not parameter class. A preferred architecture is selected only when runtime verification, compare JSON, and summary SVG evidence exist for that lane.
 
@@ -18,13 +18,13 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 
 ## Summary
 
-- Catalog models: 23
-- Source checkpoints: 16
-- Conversion-only configs: 7
-- HF-published catalog models: 14
-- Runtime-verified catalog models: 20
+- Catalog models: 24
+- Source checkpoints: 17
+- Conversion-only configs: 6
+- HF-published catalog models: 15
+- Runtime-verified catalog models: 21
 - Benchmark-selected source architectures: 1
-- Sources pending benchmark-selected architecture: 15
+- Sources pending benchmark-selected architecture: 16
 
 ## Rollout Queue
 
@@ -35,6 +35,7 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 | small | LiquidAI/LFM2.5-1.2B-Instruct | 0.79 GiB | runtime-verification-needed | pending verification | none | Refresh manifest and weight identity for lfm2-5-1-2b-instruct-q4k-ehf16-af32. |
 | small | openbmb/MiniCPM4-0.5B | 0.81 GiB | verification-failed | failed verification | none | Fix failed runtime verification for minicpm4-0-5b-f16-af32; keep it unpromoted until a passing receipt exists. |
 | small | Qwen/Qwen3-Reranker-0.6B | 0.87 GiB | benchmark-receipts-incomplete | qwen-3-reranker-0-6b-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json | Add summary SVG evidence for qwen-3-reranker-0-6b-q4k-ehf16-af32. |
+| small | clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87 | 0.96 GiB | benchmark-comparison-needed | translategemma-4b-1b-enes-q4k-ehf16-af32 candidate; benchmark comparison pending | benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json | Decide whether translategemma-4b-1b-enes-q4k-ehf16-af32 needs a claimable generation compare lane or stays capability-only. |
 | small | google/gemma-3-1b-it | 0.97 GiB | benchmark-comparison-needed | gemma-3-1b-it-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/gemma-3-1b-it-q4k-ehf16-af32/2026-06-24T01-23-10.494Z.json | Run compare/bench receipts for gemma-3-1b-it-q4k-ehf16-af32. |
 | small | Qwen/Qwen3.5-0.8B | 1.08 GiB | benchmark-receipts-incomplete | qwen-3-5-0-8b-q4k-ehaf16 candidate; benchmark comparison pending | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json | Run compare/bench receipts for qwen-3-5-0-8b-q4k-ehaf16. |
 | small | Qwen/Qwen3-Embedding-0.6B | 1.11 GiB | benchmark-receipts-incomplete | qwen-3-embedding-0-6b-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json | Add summary SVG evidence for qwen-3-embedding-0-6b-q4k-ehf16-af32. |
@@ -75,6 +76,7 @@ These are policy-generated command recipes, not evidence. A command becomes supp
 | minicpm4-0-5b-f16-af32 | minicpm | 0.81 GiB | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | 2026-07-04 failed | missing | missing | missing | runtime-verify |
 | qwen-3-reranker-0-6b-q4k-ehf16-af32 | qwen3 | 0.87 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-05 (browser+node) | Clocksmith/rdrr@f86fe245b9bbc275cd69af46b1d45d47ea685a55 | performance_comparable / onnx-community/Qwen3-Reranker-0.6B-ONNX | missing | summary-svg |
 | qwen-3-reranker-0-6b-f16-af32 | qwen3 | 1.11 GiB | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | 2026-07-04 (node) | Clocksmith/rdrr@cc1fafff8cda609372b608cd92e487f6a2c32bc8 | missing | missing | compare-profile |
+| translategemma-4b-1b-enes-q4k-ehf16-af32 | translategemma | 0.96 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-11 (browser+node) | Clocksmith/rdrr@1e2c047357f07dfe45a8effc2fa915acd73999ee | capability_only / no TJS mapping | missing | benchmark-lane-capability-only |
 | gemma-3-1b-it-q4k-ehf16-af32 | gemma3 | 0.97 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-06-24 (node) | Clocksmith/rdrr@7c3d30e300bcb02cbd68fb0db3eee64fbf738f99 | performance_comparable / onnx-community/gemma-3-1b-it-ONNX-GQA | missing | compare-result |
 | qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | 1.08 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-06-15 (browser+node) | Clocksmith/rdrr@f58f1d0b58641c84e7ea50d13fea0dd4dc91389a | performance_comparable / onnx-community/Qwen3.5-0.8B-ONNX | missing | summary-svg |
 | qwen-3-embedding-0-6b-q4k-ehf16-af32 | qwen3 | 1.11 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-05 (browser+node) | Clocksmith/rdrr@049000f49325dca7db2ed2c9de2c8881bd0f4603 | performance_comparable / onnx-community/Qwen3-Embedding-0.6B-ONNX | missing | summary-svg |
@@ -114,7 +116,6 @@ These entries have checked-in conversion configs but are not catalog-supported r
 | src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json | gemma-4-moe-q4k-ehf16-af32 | gemma4 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | Catalog, verify, and publish gemma-4-moe-q4k-ehf16-af32 before claiming runtime support. |
 | src/config/conversion/gpt-oss-20b-f16-xmxfp4.json | gpt-oss-20b-f16-xmxfp4 | root | RDRR, f16 weights, f16 embeddings, f16 LM head, f16 compute | Catalog, verify, and publish gpt-oss-20b-f16-xmxfp4 before claiming runtime support. |
 | src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json | janus-pro-1b-text-q4k-ehaf16 | janus | RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout | Catalog, verify, and publish janus-pro-1b-text-q4k-ehaf16 before claiming runtime support. |
-| src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json | translategemma-4b-1b-enes-q4k-ehf16-af32 | gemma3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | Catalog, verify, and publish translategemma-4b-1b-enes-q4k-ehf16-af32 before claiming runtime support. |
 
 ## Source Files
 

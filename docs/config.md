@@ -3,7 +3,7 @@
 Runtime-facing config contract for inference and command execution.
 
 Implementation internals for the config subsystem live in
-[../src/config/README.md](../src/config/README.md).
+[../src/config/GUIDE.md](../src/config/GUIDE.md).
 
 ## Canonical ownership
 

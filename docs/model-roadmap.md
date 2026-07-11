@@ -67,6 +67,15 @@ not blur release claims.
 | DiffusionGemma 26B A4B | runtime-needed | Cataloged as experimental. Runtime verification is the next gate before benchmark claims. |
 | Gemma 4 MoE | target-needed | Conversion-only work exists, but there is no concrete catalog target to claim yet. It should stay out of publish tiers until a catalog target exists. |
 
+## Experimental Tier: Translation Specialists
+
+Goal: surface narrow, evidence-backed language specialists without implying
+Tier 1 multilingual support or general-purpose generation quality.
+
+| Model | Status | Current state |
+| --- | --- | --- |
+| TranslateGemma 1B EN/ES NativeKD2 student | verified | The Q4K artifact is deterministic on the 128-row WMT13 receipt at 31.9149 BLEU / 58.2124 chrF, is 67.6% smaller than the cataloged 4B teacher, and passed directly from its pinned hosted revision in browser/WebGPU. Demo and hosted visibility carry explicit experimental, EN/ES-only, cross-runtime, and Radeon/Vulkan evidence boundaries. |
+
 ## Stretch
 
 Goal: opportunistic larger targets after the core Qwen and Gemma stories are

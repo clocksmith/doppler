@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-05",
+  "updated": "2026-07-11",
   "sources": [
     "models/catalog.json",
     "src/config/conversion/**",
@@ -107,15 +107,15 @@
     }
   },
   "summary": {
-    "catalogModelCount": 23,
-    "sourceCheckpointCount": 16,
-    "conversionOnlyConfigCount": 7,
-    "hfPublishedModelCount": 14,
-    "verifiedModelCount": 20,
+    "catalogModelCount": 24,
+    "sourceCheckpointCount": 17,
+    "conversionOnlyConfigCount": 6,
+    "hfPublishedModelCount": 15,
+    "verifiedModelCount": 21,
     "benchmarkSelectedSourceCount": 1,
-    "benchmarkPendingSourceCount": 15,
+    "benchmarkPendingSourceCount": 16,
     "tierCounts": {
-      "small": 8,
+      "small": 9,
       "medium": 4,
       "large": 4,
       "unknown": 0
@@ -864,6 +864,106 @@
       ],
       "nextAction": "Add summary SVG evidence for qwen-3-reranker-0-6b-q4k-ehf16-af32.",
       "nextGate": "summary-svg",
+      "nextCommand": null
+    },
+    {
+      "sourceCheckpointId": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
+      "family": "translategemma",
+      "tier": "small",
+      "minSizeBytes": 1025493248,
+      "minSizeLabel": "0.96 GiB",
+      "status": "benchmark-comparison-needed",
+      "preferredArchitecture": {
+        "status": "pending-benchmark-comparison",
+        "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "evidence": {
+          "runtimeReport": "benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json",
+          "compareResult": null,
+          "summarySvg": null
+        }
+      },
+      "variants": [
+        {
+          "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+          "label": "TranslateGemma 1B EN/ES Student (NativeKD2 Q4K)",
+          "family": "translategemma",
+          "modes": [
+            "translate"
+          ],
+          "sizeBytes": 1025493248,
+          "sizeLabel": "0.96 GiB",
+          "tier": "small",
+          "sourceCheckpointId": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
+          "weightPackId": "translategemma-4b-1b-enes-q4k-ehf16-af32-wp-16acf07340bd",
+          "manifestVariantId": "translategemma-4b-1b-enes-q4k-ehf16-af32-mv-b3c719ee90e7",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "manifest-owned",
+          "conversionConfig": "src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "q4k",
+            "embeddings": "f16",
+            "lmHead": "f16",
+            "computePrecision": "f32",
+            "q4kLayout": "row",
+            "label": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
+          },
+          "lifecycle": {
+            "runtime": "active",
+            "conversion": "ready",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-07-11",
+            "surfaces": [
+              "browser",
+              "node"
+            ]
+          },
+          "hf": {
+            "published": true,
+            "repoId": "Clocksmith/rdrr",
+            "revision": "1e2c047357f07dfe45a8effc2fa915acd73999ee",
+            "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
+          },
+          "quickstart": false,
+          "compare": {
+            "profile": {
+              "kind": "generation",
+              "dopplerSource": "local",
+              "dopplerFormat": "rdrr",
+              "tjsModelId": null,
+              "tjsDtype": null,
+              "tjsFormat": null,
+              "lane": "capability_only",
+              "laneReason": "No canonical Transformers.js mapping is configured for this bilingual TranslateGemma artifact."
+            },
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": "benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json",
+            "runtimeReportExists": true,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js translategemma-4b-1b-enes-q4k-ehf16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id translategemma-4b-1b-enes-q4k-ehf16-af32 --dry-run",
+            "compareCommands": [],
+            "primaryNextCommand": null
+          },
+          "missing": [
+            "benchmark-lane-capability-only"
+          ],
+          "nextGate": "benchmark-lane-capability-only"
+        }
+      ],
+      "nextAction": "Decide whether translategemma-4b-1b-enes-q4k-ehf16-af32 needs a claimable generation compare lane or stays capability-only.",
+      "nextGate": "benchmark-lane-capability-only",
       "nextCommand": null
     },
     {
@@ -2614,24 +2714,6 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish janus-pro-1b-text-q4k-ehaf16 before claiming runtime support.",
-      "nextCommand": null
-    },
-    {
-      "modelBaseId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
-      "family": "gemma3",
-      "conversionConfig": "src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json",
-      "sourceCheckpointId": null,
-      "architecture": {
-        "artifactFormat": "rdrr",
-        "weights": "q4k",
-        "embeddings": "f16",
-        "lmHead": "f16",
-        "computePrecision": "f32",
-        "q4kLayout": "row",
-        "label": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
-      },
-      "status": "conversion-ready",
-      "nextAction": "Catalog, verify, and publish translategemma-4b-1b-enes-q4k-ehf16-af32 before claiming runtime support.",
       "nextCommand": null
     }
   ]

@@ -181,6 +181,37 @@ function readManifest(modelId) {
   const selected = selectDemoCatalogEntries([
     {
       ...DEMO_READY,
+      modelId: 'experimental-enes-translator',
+      label: 'Experimental EN/ES Translator',
+      quickstart: false,
+      demoVisible: true,
+      modes: ['translate'],
+      weightPackId: 'experimental-enes-translator-wp-v1',
+      demoWarningBadges: ['Experimental', 'EN ↔ ES only'],
+      hf: {
+        repoId: 'Clocksmith/rdrr',
+        revision: 'abc123',
+        path: 'models/experimental-enes-translator',
+      },
+    },
+  ]);
+
+  assert.deepEqual(
+    selected.map((entry) => entry.modelId),
+    ['experimental-enes-translator'],
+    'demo catalog should include explicitly visible translate-only models'
+  );
+  assert.deepEqual(
+    selected[0].demoWarningBadges,
+    ['Experimental', 'EN ↔ ES only'],
+    'translate-only demo cards should preserve their experimental scope badges'
+  );
+}
+
+{
+  const selected = selectDemoCatalogEntries([
+    {
+      ...DEMO_READY,
       modelId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
       label: 'Gemma 4 E2B (Q4K/F32a/INT4 PLE)',
       weightPackId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1',

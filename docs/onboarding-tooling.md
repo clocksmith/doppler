@@ -55,6 +55,6 @@ Kinds:
 
 ## Related
 
-- Conversion config details: [../src/config/conversion/README.md](../src/config/conversion/README.md)
+- Conversion config details: [../src/config/conversion/GUIDE.md](../src/config/conversion/GUIDE.md)
 - Support matrix generation: [model-support-matrix.md](model-support-matrix.md)
 - Hosted publish and registry checks: [registry-workflow.md](registry-workflow.md)

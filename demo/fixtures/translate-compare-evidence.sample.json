@@ -1,34 +1,34 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-03-12",
-  "summary": "Compact EN/ES student remains close enough to the teacher to matter in-browser.",
-  "caution": "Result is specific to EN/ES translation and should not be generalized to all language pairs.",
+  "updatedAt": "2026-07-11",
+  "summary": "The experimental 1B EN/ES student is 67.6% smaller than the 4B teacher while preserving deterministic browser-ready translation behavior.",
+  "caution": "Experimental EN/ES-only evidence. Student and teacher scores use the same fixed 128-row WMT13 corpus but separate deterministic runtime receipts; the Q4K student trails the teacher on BLEU and chrF.",
   "teacher": {
     "label": "Teacher (TranslateGemma 4B)",
     "modelId": "translategemma-4b-it-q4k-ehf16-af32",
-    "bleu": 34.0474,
-    "chrf": 61.0088,
-    "sizeBytes": 3167327178
+    "bleu": 33.69725818764181,
+    "chrf": 60.80110939124903,
+    "sizeBytes": 3167500395
   },
   "student": {
-    "label": "Student (1B EN/ES, checkpoint-002000)",
+    "label": "Experimental EN/ES 1B student",
     "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
-    "bleu": 33.378,
-    "chrf": 58.8324,
+    "bleu": 31.914861871372885,
+    "chrf": 58.21235700409009,
     "sizeBytes": 1025493248
   },
   "receipts": [
     {
-      "label": "leaderboard.md",
-      "href": "https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/runs/results_bundle/leaderboard.md"
+      "label": "Doppler Q4K WMT13 receipt",
+      "href": "https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/translategemma-nativekd2/quality-wmt13/translategemma-nativekd2-wmt13-enes-128_20260711T012704Z.receipt.json"
     },
     {
-      "label": "leaderboard_all_compare_rows.csv",
-      "href": "https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/runs/results_bundle/leaderboard_all_compare_rows.csv"
+      "label": "Hosted browser/WebGPU benchmark",
+      "href": "https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json"
     },
     {
-      "label": "pack_effect_analysis.md",
-      "href": "https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/runs/results_bundle/pack_effect_analysis.md"
+      "label": "Translation promotion receipt",
+      "href": "https://github.com/clocksmith/doppler/blob/main/docs/status/translategemma-nativekd2-doppler-2026-07-11.md"
     }
   ]
 }

@@ -3,7 +3,7 @@
 Auto-generated from conversion configs (`src/config/conversion/**`), `models/catalog.json`, and `models/gemma4-targets.json`.
 Run `npm run support:matrix:sync` after editing `models/catalog.json`, `models/gemma4-targets.json`, or changing conversion configs.
 
-Updated at: 2026-07-05
+Updated at: 2026-07-11
 
 ## Current Inference Status
 
@@ -19,6 +19,7 @@ This section answers "which models work now?" from `models/catalog.json` lifecyc
 | gemma-3-1b-it-q4k-ehf16-af32 | gemma3 | text, vision | 2026-06-24 | node | Node/WebGPU quickstart smoke is package-visible at reports/release-claims/gemma-3-1b-it-q4k-ehf16-af32/2026-06-24T01-23-10.494Z.json. The report produced coherent text, executionContractOk=true, and decodeTokensPerSec > 0. |
 | gemma-4-e2b-it-q4k-ehf16-af32 | gemma4 | text, vision | 2026-04-18 | node | Package-visible runtime evidence is staged at reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json. Browser and Electron remain unverified in the Gemma 4 target matrix until same-surface runtime receipts are promoted. |
 | gemma-4-e2b-it-q4k-ehf16-af32-int4ple | gemma4 | text, vision | 2026-04-22 | node | Committed program-bundle reference reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json decodes the sky prompt to blue with executionContractOk=true. Browser and Electron remain unverified in the Gemma 4 target matrix until same-surface runtime receipts are promoted. |
+| translategemma-4b-1b-enes-q4k-ehf16-af32 | translategemma | translate | 2026-07-11 | browser, node | The exact Q4K artifact passed shard integrity, deterministic EN/ES smoke outputs, 8/8 repeated-token checks, and a 128-row WMT13 evaluation at 31.9149 BLEU / 58.2124 chrF. Baseline and optimized Doppler outputs match 128/128. The pinned hosted revision also passed browser/WebGPU verification and a 2+3-run optimized benchmark with exact expected output. Experimental visibility preserves the measured 2.2748 BLEU / 1.7264 chrF Q4K gap to the source BF16 checkpoint and does not imply Apple Metal evidence. |
 | gemma-4-e2b-it-q4k-ehf16-af16-int4ple | gemma4 | text, vision | 2026-05-07 | node | F16 activation sibling over the verified Gemma 4 E2B INT4 PLE weight pack. Package-visible runtime evidence is staged at reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-15-34.710Z.json; Apple Metal capability resolution still fails closed to the AF32 primary when this lane is incompatible. |
 | translategemma-4b-it-q4k-ehf16-af32 | translategemma | translate | 2026-03-20 | browser, node | Browser/WebGPU on Apple M3 and Node/WebGPU on AMD RDNA-3 verified through 2026-03-20 with structured TranslateGemma requests. en->fr 'Hello world.' -> 'Bonjour le monde.' The working Q4K path is gemma3-q4k-dequant-f32w-f32a-online; the prior failure remained isolated to the older q4k_dequant F16-weight path. |
 | gemma-4-12b-it-text-q4k-ehf16-af32 | gemma4 | text | 2026-06-29 | node | Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af32/2026-06-29T22-13-57.102Z.json. The safe-single report produced a coherent sky-color answer, stopReason=max-tokens, executionContractOk=true, and decodeTokensPerSec > 0. |
@@ -75,7 +76,7 @@ Generated from `models/gemma4-targets.json`. This section tracks the latest offi
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | embeddinggemma | embedding | active | 1 (src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json) | 1 (google-embeddinggemma-300m-q4k-ehf16-af32) | yes | none | verified (2026-06-24) | verified | - |
 | gemma3 | transformer | active | 5 (src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json, src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json, src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json, +2 more) | 3 (gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-f16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | none | verified (2026-06-29) | verified | catalog verification applies only to cataloged models (3/5 conversion configs cataloged) |
-| translategemma | transformer | active | 2 (src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 1 (translategemma-4b-it-q4k-ehf16-af32) | yes | none | verified (2026-03-20) | verified | catalog verification applies only to cataloged models (1/2 conversion configs cataloged) |
+| translategemma | transformer | active | 2 (src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 2 (translategemma-4b-1b-enes-q4k-ehf16-af32, translategemma-4b-it-q4k-ehf16-af32) | yes | none | verified (2026-07-11) | verified | - |
 | gemma4 | transformer | active | 10 (src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json, src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json, src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json, +7 more) | 8 (gemma-4-12b-it-text-q4k-ehf16-af16, gemma-4-12b-it-text-q4k-ehf16-af32, gemma-4-12b-it-text-w4a16-ct-ehf16-af16, +5 more) | yes | none | verified (2026-06-29) | verified | catalog verification applies only to cataloged models (8/10 conversion configs cataloged) |
 | qwen3 | transformer | active | 7 (src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json, +4 more) | 7 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16, qwen-3-6-27b-q4k-eaf16, +4 more) | yes | none | verified (2026-07-05) | verified | - |
 | lfm2 | transformer | active | 1 (src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 1 (lfm2-5-1-2b-instruct-q4k-ehf16-af32) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
@@ -95,4 +96,4 @@ Generated from `models/gemma4-targets.json`. This section tracks the latest offi
 - Families with verified catalog lifecycle: 5
 - Families with failed catalog verification: 1
 - Blocked runtime families: 0
-- Catalog entries: 23
+- Catalog entries: 24

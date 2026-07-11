@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-10T01:44:50.047Z",
+  "updatedAt": "2026-07-11T00:00:00.000Z",
   "sources": [
     "models/catalog.json",
     "benchmarks/vendors/model-support-inventory.json",
@@ -11,22 +11,22 @@
     "benchmarks/vendors/results/rerank_compare_*.json"
   ],
   "summary": {
-    "catalogModelCount": 23,
-    "scoreboardRowCount": 34,
-    "runtimeVerifiedModelCount": 20,
-    "hfPublishedModelCount": 14,
+    "catalogModelCount": 24,
+    "scoreboardRowCount": 35,
+    "runtimeVerifiedModelCount": 21,
+    "hfPublishedModelCount": 15,
     "failedModelCount": 1,
     "verificationNeededModelCount": 2,
     "platformVerifiedModelCount": {
-      "browser": 8,
-      "node": 20,
+      "browser": 9,
+      "node": 21,
       "bun": 0
     },
     "generationCompareRowCount": 15,
     "generationCompareGapRowCount": 3,
     "embeddingCompareRowCount": 2,
     "rerankCompareRowCount": 1,
-    "supportGapRowCount": 13,
+    "supportGapRowCount": 14,
     "dopplerDecodeLeaderRowCount": 13,
     "transformersjsDecodeLeaderRowCount": 2,
     "dopplerEmbeddingLatencyLeaderRowCount": 1,
@@ -35,7 +35,7 @@
     "transformersjsRerankLatencyLeaderRowCount": 0,
     "claimReadyRowCount": 3,
     "localComparableRowCount": 0,
-    "evidenceIncompleteRowCount": 28
+    "evidenceIncompleteRowCount": 29
   },
   "rows": [
     {
@@ -2177,6 +2177,58 @@
       },
       "missing": [],
       "nextGate": null,
+      "nextCommand": null
+    },
+    {
+      "rowId": "translategemma-4b-1b-enes-q4k-ehf16-af32:support",
+      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "label": "TranslateGemma 1B EN/ES Student (NativeKD2 Q4K)",
+      "family": "translategemma",
+      "modes": [
+        "translate"
+      ],
+      "sourceCheckpointId": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
+      "workloadMode": "translate",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 1025493248,
+        "sizeLabel": "0.96 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "1e2c047357f07dfe45a8effc2fa915acd73999ee",
+          "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "verified",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "capability-only",
+      "claimReason": "Decide whether translategemma-4b-1b-enes-q4k-ehf16-af32 needs a claimable generation compare lane or stays capability-only.",
+      "evidence": {
+        "runtimeReport": "benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "benchmark-lane-capability-only"
+      ],
+      "nextGate": "benchmark-lane-capability-only",
       "nextCommand": null
     },
     {

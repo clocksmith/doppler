@@ -2547,7 +2547,7 @@
   "mode": "bench",
   "workload": "inference",
   "request": {
-    "runtimeProfile": "profiles/translategemma-1b-savant-q4k-rdna3-throughput-probe",
+    "runtimeProfile": "profiles/translategemma-1b-nativekd2-q4k-rdna3-throughput-probe",
     "runtimeConfigUrl": null,
     "runtimeConfig": {
       "shared": {
@@ -3507,7 +3507,7 @@
     "workload": "inference",
     "suite": "bench",
     "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
-    "runtimeProfile": "profiles/translategemma-1b-savant-q4k-rdna3-throughput-probe",
+      "runtimeProfile": "profiles/translategemma-1b-nativekd2-q4k-rdna3-throughput-probe",
     "deviceInfo": {
       "hasSubgroups": true,
       "hasSubgroupsF16": true,

@@ -59,5 +59,5 @@ Add a new attention mechanism within the existing transformer text pipeline.
 - `src/inference/pipelines/text/attention/run.js`
 - `src/inference/pipelines/text/attention/record.js`
 - `src/gpu/kernels/attention.js`
-- `src/inference/README.md`
+- `src/inference/GUIDE.md`
 - [../kernel-testing-design.md](../kernel-testing-design.md)

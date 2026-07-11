@@ -16,7 +16,7 @@ Add a reproducible conversion config for a checkpoint that already fits an exist
 ## Required Touch Points
 
 - `src/config/conversion/<family>/<model>.json`
-- Optional `src/config/conversion/README.md` note if the config becomes a maintained example
+- Optional `src/config/conversion/GUIDE.md` note if the config becomes a maintained example
 
 ## Recommended Order
 
@@ -33,7 +33,7 @@ Add a reproducible conversion config for a checkpoint that already fits an exist
 - Run `verify` or `debug` on the produced artifact
 - Review deterministic output quality before any promotion or publication step
 
-For command-shape examples, use [../getting-started.md](../getting-started.md) and `src/config/conversion/README.md`.
+For command-shape examples, use [../getting-started.md](../getting-started.md) and `src/config/conversion/GUIDE.md`.
 
 ## Common Misses
 
@@ -50,7 +50,7 @@ For command-shape examples, use [../getting-started.md](../getting-started.md) a
 
 ## Canonical References
 
-- `src/config/conversion/README.md`
+- `src/config/conversion/GUIDE.md`
 - [../conversion-runtime-contract.md](../conversion-runtime-contract.md)
 - [../getting-started.md](../getting-started.md)
 - `src/converter/conversion-plan.js`

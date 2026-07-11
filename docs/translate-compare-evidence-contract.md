@@ -29,13 +29,15 @@ The demo loads evidence from one of these sources:
 
 1. `globalThis.__DOPPLER_TRANSLATE_COMPARE_EVIDENCE__`
 2. `globalThis.__DOPPLER_TRANSLATE_COMPARE_EVIDENCE_URL`
-3. built-in fallback placeholder
+3. built-in frozen experimental evidence bundle
 
-If no evidence is provided, the demo shows placeholder text and leaves the
-numeric fields blank.
+If no override is provided, the demo shows the checked-in EN/ES experimental
+student evidence. Deployments may still replace it with a newer schema-valid
+bundle through either global above.
 
-For local preview, point `__DOPPLER_TRANSLATE_COMPARE_EVIDENCE_URL` at the
-sample fixture or inject the same JSON object through
+For local preview or receipt updates, point
+`__DOPPLER_TRANSLATE_COMPARE_EVIDENCE_URL` at the sample fixture or inject the
+same JSON object through
 `__DOPPLER_TRANSLATE_COMPARE_EVIDENCE__`.
 
 ## Required shape

@@ -3,39 +3,48 @@
   "passed": 1,
   "failed": 0,
   "skipped": 0,
-  "duration": 13644.499273000001,
+  "duration": 131047.80000001192,
   "results": [
     {
       "name": "benchmark",
       "passed": true,
-      "duration": 6954.147888999999
+      "duration": 779.4000000357628
     }
   ],
   "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
-  "cacheMode": "warm",
+  "evidenceClass": "hosted-constructive",
+  "artifactSource": {
+    "kind": "huggingface-revision",
+    "repoId": "Clocksmith/rdrr",
+    "revision": "1e2c047357f07dfe45a8effc2fa915acd73999ee",
+    "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32",
+    "url": "https://huggingface.co/Clocksmith/rdrr/resolve/1e2c047357f07dfe45a8effc2fa915acd73999ee/models/translategemma-4b-1b-enes-q4k-ehf16-af32",
+    "manifestSha256": "sha256:72d51b42a51b6b429032db5edd9f89322d108c75b21ca62a2844b35c3a7123ee"
+  },
+  "cacheMode": "cold",
   "loadMode": "http",
   "env": {
     "library": "doppler",
     "runtime": "browser",
     "device": "webgpu",
-    "browserUserAgent": "Node.js/22",
+    "browserUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.0.0 Safari/537.36",
     "browserPlatform": "Linux x86_64",
     "browserLanguage": "en-US",
-    "browserVendor": null
+    "browserVendor": "Google Inc."
   },
   "timing": {
-    "modelLoadMs": 1452.07,
-    "firstTokenMs": 398.48,
-    "firstResponseMs": 1850.55,
-    "prefillMs": 397.08,
-    "decodeMs": 1925.3,
-    "decodeMsPerTokenP50": 27.5,
-    "decodeMsPerTokenP95": 27.58,
-    "decodeMsPerTokenP99": 27.58,
-    "decodeTokensPerSec": 36.36,
-    "prefillTokensPerSec": 224.14,
-    "totalRunMs": 2320.97,
-    "cacheMode": "warm",
+    "modelLoadMs": 129399.2,
+    "firstTokenMs": 106.1,
+    "firstResponseMs": 129505.3,
+    "prefillMs": 101.6,
+    "decodeMs": 152,
+    "decodeMsPerTokenP50": 25.33,
+    "decodeMsPerTokenP95": 26.7,
+    "decodeMsPerTokenP99": 26.82,
+    "decodeTokensPerSec": 39.47,
+    "prefillTokensPerSec": 157.48,
+    "totalRunMs": 251.5,
+    "cacheMode": "cold",
     "loadMode": "http"
   },
   "timingDiagnostics": {
@@ -50,24 +59,24 @@
       "totalRunMs": "prefillMs + decodeMs"
     },
     "componentsMs": {
-      "modelLoadMs": 1452.07,
-      "firstTokenMs": 398.48,
-      "firstResponseMs": 1850.55,
-      "prefillMs": 397.08,
-      "decodeMs": 1925.3,
-      "totalRunMs": 2320.97
+      "modelLoadMs": 129399.2,
+      "firstTokenMs": 106.1,
+      "firstResponseMs": 129505.3,
+      "prefillMs": 101.6,
+      "decodeMs": 152,
+      "totalRunMs": 251.5
     },
     "sumsMs": {
-      "firstResponseFromLoadAndFirstTokenMs": 1850.55,
-      "runFromPrefillAndDecodeMs": 2322.38
+      "firstResponseFromLoadAndFirstTokenMs": 129505.3,
+      "runFromPrefillAndDecodeMs": 253.6
     },
     "residualsMs": {
       "firstResponseResidualMs": 0,
-      "runResidualMs": -1.41
+      "runResidualMs": -2.1
     },
     "consistent": {
       "firstResponse": true,
-      "totalRun": true
+      "totalRun": false
     },
     "load": {
       "schemaVersion": 1,
@@ -80,7 +89,7 @@
         "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
         "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
       },
-      "modelLoadMs": 1452.07,
+      "modelLoadMs": 129399.2,
       "loader": {
         "schemaVersion": 1,
         "source": "doppler-loader",
@@ -92,23 +101,23 @@
         "totalShards": 16,
         "bytesLoaded": 1025493248,
         "shardsLoaded": 16,
-        "bytesPerSecond": 2274237533,
+        "bytesPerSecond": 8209956,
         "phasesMs": {
-          "preflight": 1.4,
-          "tensorLocations": 1.38,
-          "embeddings": 168.77,
-          "layers": 277.97,
-          "finalWeights": 1.01,
-          "cleanup": 0.05
+          "preflight": 1.2,
+          "tensorLocations": 1.7,
+          "embeddings": 82821,
+          "layers": 41920.1,
+          "finalWeights": 163.9,
+          "cleanup": 0.1
         },
         "layers": {
           "count": 26,
-          "totalMs": 259.65,
-          "meanMs": 9.99,
-          "maxMs": 20.69,
-          "maxLayer": 0
+          "totalMs": 41849.2,
+          "meanMs": 1609.59,
+          "maxMs": 6369.9,
+          "maxLayer": 2
         },
-        "totalMs": 450.92,
+        "totalMs": 124908.5,
         "failedPhase": null,
         "error": null
       },
@@ -118,14 +127,14 @@
         "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
         "status": "complete",
         "phasesMs": {
-          "reset": 0.07,
-          "configResolution": 5.44,
-          "kernelWarmup": 0.05,
-          "tokenizer": 709.98,
-          "executionSetup": 6.79,
-          "loadWeights": 529.13,
-          "rope": 182.3,
-          "convStates": 0.82
+          "reset": 0.1,
+          "configResolution": 3.3,
+          "kernelWarmup": 0,
+          "tokenizer": 1070.9,
+          "executionSetup": 1.4,
+          "loadWeights": 127972.3,
+          "rope": 204.6,
+          "convStates": 1.1
         },
         "details": {
           "tokenizer": {
@@ -139,24 +148,24 @@
             "assetSource": "custom-loader",
             "cacheHit": false,
             "phasesMs": {
-              "configResolution": 0.04,
-              "cacheLookup": 0.05,
-              "backendCreate": 0.08,
-              "assetLoad": 319.94,
-              "assetParse": 0.23,
-              "backendLoad": 389.18,
-              "cacheStore": 0.01
+              "configResolution": 0.1,
+              "cacheLookup": 0,
+              "backendCreate": 0,
+              "assetLoad": 854.6,
+              "assetParse": 0.1,
+              "backendLoad": 215.9,
+              "cacheStore": 0
             },
-            "totalMs": 709.69,
+            "totalMs": 1070.7,
             "error": null
           }
         },
-        "totalMs": 1434.84
+        "totalMs": 129254
       },
       "residualsMs": {
-        "modelLoadMinusLoaderMs": 1001.15,
-        "modelLoadMinusPipelineMs": 17.23,
-        "pipelineMinusLoaderMs": 983.92
+        "modelLoadMinusLoaderMs": 4490.7,
+        "modelLoadMinusPipelineMs": 145.2,
+        "pipelineMinusLoaderMs": 4345.5
       },
       "consistent": {
         "loaderWithinModelLoad": true,
@@ -170,143 +179,143 @@
       "dominant": {
         "id": "readback_map_wait",
         "label": "readback map wait",
-        "ms": 1162.95,
-        "shareOfDecode": 0.604
+        "ms": 107.1,
+        "shareOfDecode": 0.7046
       },
       "bottleneckClass": "submit-readback-wait",
-      "decodeWallMs": 1925.3,
+      "decodeWallMs": 152,
       "componentsMs": {
-        "commandRecordMs": 689.85,
-        "submitWaitMs": 1195.58,
-        "readbackWaitMs": 1182.57,
-        "effectiveSubmitReadbackWaitMs": 1195.58,
-        "readbackMapWaitMs": 1162.95,
-        "readbackCleanupMs": 18.1,
-        "readbackCopyMs": 0.77,
-        "readbackUnattributedMs": 13.76,
+        "commandRecordMs": 43.8,
+        "submitWaitMs": 107.2,
+        "readbackWaitMs": 108.2,
+        "effectiveSubmitReadbackWaitMs": 108.2,
+        "readbackMapWaitMs": 107.1,
+        "readbackCleanupMs": 0.9,
+        "readbackCopyMs": 0.1,
+        "readbackUnattributedMs": 0.1,
         "gpuTimestampMs": null,
         "submitReadbackSlackMs": null,
-        "orchestrationMs": 26.44,
-        "residualMs": 13.44
+        "orchestrationMs": 0.5,
+        "residualMs": 0
       },
       "recording": {
-        "opCount": 15480,
-        "passCount": 18,
+        "opCount": 1720,
+        "passCount": 2,
         "uniqueOpLabels": 91,
-        "msPerOp": 0.04,
-        "msPerPass": 38.32,
+        "msPerOp": 0.03,
+        "msPerPass": 21.9,
         "passesPerOp": 0,
-        "msPerExecutedBatchToken": 9.58,
+        "msPerExecutedBatchToken": 5.48,
         "opsPerExecutedBatchToken": 215,
         "passesPerExecutedBatchToken": 0.25,
         "topOps": [
           {
             "label": "attention",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "fused_ffn",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_ffn_next_input_norm",
-            "count": 1800,
+            "count": 200,
             "shareOfOps": 0.11627906976744186
           },
           {
             "label": "argmax_phase1",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "argmax_phase2",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "gather",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           }
         ],
         "topOpGroups": [
           {
             "label": "attention",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "fused_ffn",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "matmul:ffn_down",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "matmul:o_proj",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "matmul:qkv_proj",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_ffn_next_input_norm",
-            "count": 1800,
+            "count": 200,
             "shareOfOps": 0.11627906976744186
           }
         ],
         "uniformCache": {
-          "hits": 78567,
-          "misses": 173,
-          "totalLookups": 78740,
-          "hitRateRatio": 0.9978028956057912,
+          "hits": 10215,
+          "misses": 45,
+          "totalLookups": 10260,
+          "hitRateRatio": 0.9956140350877193,
           "evictions": 0,
-          "currentSize": 173,
+          "currentSize": 45,
           "pendingDestruction": 0,
-          "hitRate": "99.8%"
+          "hitRate": "99.6%"
         }
       },
       "shares": {
-        "commandRecord": 0.3583,
-        "submitWait": 0.621,
-        "readbackWait": 0.6142,
-        "effectiveSubmitReadbackWait": 0.621,
-        "readbackMapWait": 0.604,
-        "readbackCleanup": 0.0094,
-        "readbackCopy": 0.0004,
-        "readbackUnattributed": 0.0071,
+        "commandRecord": 0.2882,
+        "submitWait": 0.7053,
+        "readbackWait": 0.7118,
+        "effectiveSubmitReadbackWait": 0.7118,
+        "readbackMapWait": 0.7046,
+        "readbackCleanup": 0.0059,
+        "readbackCopy": 0.0007,
+        "readbackUnattributed": 0.0007,
         "gpuTimestamp": null,
         "submitReadbackSlack": null,
-        "orchestration": 0.0137,
-        "residual": 0.007
+        "orchestration": 0.0033,
+        "residual": 0
       },
       "semantics": {
         "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
@@ -334,12 +343,12 @@
       "browserLaunchMs": null,
       "pageReadyMs": null,
       "cachePrimeMs": null,
-      "modelLoadMs": 1452.07,
-      "firstTokenMs": 398.48,
-      "firstResponseMs": 1850.55
+      "modelLoadMs": 129399.2,
+      "firstTokenMs": 106.1,
+      "firstResponseMs": 129505.3
     },
     "sumsMs": {
-      "firstResponseFromLoadAndFirstTokenMs": 1850.55,
+      "firstResponseFromLoadAndFirstTokenMs": 129505.3,
       "harnessWarmStartToFirstResponseMs": null,
       "endToEndFirstResponseMs": null
     },
@@ -354,77 +363,78 @@
   "metrics": {
     "warmupRuns": 2,
     "timedRuns": 3,
-    "prompt": "En efecto, un 25% de afroamericanos, un 15% de personas que ganan menos de 35.000 dólares al año, un 18% de los ciudadanos de más de 65 años y un 20% de los electores de entre 18 y 29 años no cuentan con un documento de identidad con fotografía.",
-    "maxTokens": 96,
-    "decodeTokensPerSec": 36.36,
-    "avgTokensGenerated": 70,
-    "avgPrefillTokens": 89,
-    "avgDecodeTokens": 70,
-    "medianPrefillTokensPerSec": 224.14,
-    "avgPrefillTokensPerSec": 224.37,
-    "medianPrefillTokensPerSecTtft": 223.35,
-    "avgPrefillTokensPerSecTtft": 223.61,
-    "avgDecodeTokensPerSec": 36.46,
-    "firstTokenMs": 398.48,
-    "firstResponseMs": 1850.55,
-    "prefillMs": 397.08,
-    "decodeMs": 1925.3,
-    "totalRunMs": 2320.97,
-    "decodeMsPerTokenP50": 27.5,
-    "decodeMsPerTokenP95": 27.58,
-    "decodeMsPerTokenP99": 27.58,
-    "avgPrefillMs": 396.66,
-    "wallRunMs": 2322.45,
-    "modelLoadMs": 1452.07,
+    "seed": 0,
+    "prompt": "And that's not all.",
+    "maxTokens": 32,
+    "decodeTokensPerSec": 39.47,
+    "avgTokensGenerated": 6,
+    "avgPrefillTokens": 16,
+    "avgDecodeTokens": 6,
+    "medianPrefillTokensPerSec": 157.48,
+    "avgPrefillTokensPerSec": 159.81,
+    "medianPrefillTokensPerSecTtft": 150.8,
+    "avgPrefillTokensPerSecTtft": 152.13,
+    "avgDecodeTokensPerSec": 38.91,
+    "firstTokenMs": 106.1,
+    "firstResponseMs": 129505.3,
+    "prefillMs": 101.6,
+    "decodeMs": 152,
+    "totalRunMs": 251.5,
+    "decodeMsPerTokenP50": 25.33,
+    "decodeMsPerTokenP95": 26.7,
+    "decodeMsPerTokenP99": 26.82,
+    "avgPrefillMs": 100.2,
+    "wallRunMs": 256.2,
+    "modelLoadMs": 129399.2,
     "throughput": {
       "tokensPerSec": {
-        "mean": 30.198592953268683,
-        "median": 30.140568411782493,
-        "min": 30.045196835080862,
-        "max": 30.410013612942688,
-        "p95": 30.38306909282667,
-        "p99": 30.404624708919485,
-        "stdDev": 0.18920347754040617,
-        "ci95": 0.32771003606870047,
+        "mean": 23.117112556654718,
+        "median": 23.41920374816229,
+        "min": 22.132054590454928,
+        "max": 23.800079331346936,
+        "p95": 23.76199177302847,
+        "p99": 23.792461819683243,
+        "stdDev": 0.8740829194343126,
+        "ci95": 1.5139560264883631,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "prefillTokensPerSec": {
-        "mean": 224.37320300503214,
-        "median": 224.13594303290276,
-        "min": 224.0495925163489,
-        "max": 224.93407346584476,
-        "p95": 224.85426042255057,
-        "p99": 224.91811085718592,
-        "stdDev": 0.48764316696371635,
-        "ci95": 0.8446227411449497,
+        "mean": 159.80711479858448,
+        "median": 157.48031501606235,
+        "min": 155.79357353317627,
+        "max": 166.14745584651473,
+        "p95": 165.28074176346948,
+        "p99": 165.97411302990568,
+        "stdDev": 5.555287360755915,
+        "ci95": 9.62203995947446,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "prefillTokensPerSecTtft": {
-        "mean": 223.6140952479526,
-        "median": 223.34797184382123,
-        "min": 223.2797750297212,
-        "max": 224.2145388703154,
-        "p95": 224.127882167666,
-        "p99": 224.19720752978552,
-        "stdDev": 0.5211162145725877,
-        "ci95": 0.902599760287687,
+        "mean": 152.12934272847784,
+        "median": 150.80113097459585,
+        "min": 145.5868972108377,
+        "max": 160,
+        "p95": 159.0801130974596,
+        "p99": 159.81602261949192,
+        "stdDev": 7.2977731432336475,
+        "ci95": 12.640113866192303,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "decodeTokensPerSec": {
-        "mean": 36.46363584794806,
-        "median": 36.3579241087961,
-        "min": 36.25155985477465,
-        "max": 36.78142358027345,
-        "p95": 36.73907363312571,
-        "p99": 36.7729535908439,
-        "stdDev": 0.2803036224271224,
-        "ci95": 0.48550011558937906,
+        "mean": 38.91477217008072,
+        "median": 39.473684210526315,
+        "min": 37.243947852961114,
+        "max": 40.02668444675473,
+        "p95": 39.97138442313189,
+        "p99": 40.01562444203016,
+        "stdDev": 1.4731574048029685,
+        "ci95": 2.5515834726650533,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
@@ -432,66 +442,66 @@
     },
     "latency": {
       "totalMs": {
-        "mean": 2316.4579516666677,
-        "median": 2320.97393,
-        "min": 2300.215049000002,
-        "max": 2328.1848760000003,
-        "p95": 2327.4637814000002,
-        "p99": 2328.04065708,
-        "stdDev": 14.521478947848335,
-        "ci95": 25.151939338715163,
+        "mean": 254.5333333412806,
+        "median": 251.5,
+        "min": 248.30000001192093,
+        "max": 263.80000001192093,
+        "p95": 262.57000001072885,
+        "p99": 263.5540000116825,
+        "stdDev": 8.18311269441485,
+        "ci95": 14.173566950788373,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "wallRunMs": {
-        "mean": 2318.049296333333,
-        "median": 2322.4512240000004,
-        "min": 2301.873352999999,
-        "max": 2329.8233119999995,
-        "p95": 2329.0861032,
-        "p99": 2329.6758702399998,
-        "stdDev": 14.485605869702376,
-        "ci95": 25.089805344742473,
+        "mean": 259.80000001192093,
+        "median": 256.19999998807907,
+        "min": 252.10000002384186,
+        "max": 271.10000002384186,
+        "p95": 269.6100000202656,
+        "p99": 270.8020000231266,
+        "stdDev": 9.99849989392139,
+        "ci95": 17.317909815743874,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "prefillMs": {
-        "mean": 396.66180600000007,
-        "median": 397.0804450000014,
-        "min": 395.6714899999988,
-        "max": 397.233483,
-        "p95": 397.2181792000001,
-        "p99": 397.23042224,
-        "stdDev": 0.8610455808229655,
-        "ci95": 1.4913746936180303,
+        "mean": 100.19999998807907,
+        "median": 101.59999996423721,
+        "min": 96.30000001192093,
+        "max": 102.69999998807907,
+        "p95": 102.58999998569489,
+        "p99": 102.67799998760223,
+        "stdDev": 3.421987707990511,
+        "ci95": 5.9270565731157365,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "decodeMs": {
-        "mean": 1919.7961456666674,
-        "median": 1925.3024400000013,
-        "min": 1903.1346040000008,
-        "max": 1930.9513930000003,
-        "p95": 1930.3864977000003,
-        "p99": 1930.8384139400002,
-        "stdDev": 14.703159372447878,
-        "ci95": 25.466619064862254,
+        "mean": 154.33333335320154,
+        "median": 152,
+        "min": 149.9000000357628,
+        "max": 161.10000002384186,
+        "p95": 160.19000002145768,
+        "p99": 160.918000023365,
+        "stdDev": 5.953430383914377,
+        "ci95": 10.311643904263988,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "firstTokenMs": {
-        "mean": 398.00854999999956,
-        "median": 398.4813439999998,
-        "min": 396.94125299999905,
-        "max": 398.6030529999998,
-        "p95": 398.5908820999998,
-        "p99": 398.6006188199998,
-        "stdDev": 0.926307419179947,
-        "ci95": 1.6044115134476697,
+        "mean": 105.33333333333333,
+        "median": 106.10000002384186,
+        "min": 100,
+        "max": 109.89999997615814,
+        "p95": 109.51999998092651,
+        "p99": 109.82399997711181,
+        "stdDev": 4.994330109507608,
+        "ci95": 8.650433499438213,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
@@ -499,12 +509,12 @@
     },
     "tokens": {
       "generated": {
-        "mean": 70,
-        "median": 70,
-        "min": 70,
-        "max": 70,
-        "p95": 70,
-        "p99": 70,
+        "mean": 6,
+        "median": 6,
+        "min": 6,
+        "max": 6,
+        "p95": 6,
+        "p99": 6,
         "stdDev": 0,
         "ci95": 0,
         "samples": 3,
@@ -512,12 +522,12 @@
         "outliersRemoved": 0
       },
       "prefill": {
-        "mean": 89,
-        "median": 89,
-        "min": 89,
-        "max": 89,
-        "p95": 89,
-        "p99": 89,
+        "mean": 16,
+        "median": 16,
+        "min": 16,
+        "max": 16,
+        "p95": 16,
+        "p99": 16,
         "stdDev": 0,
         "ci95": 0,
         "samples": 3,
@@ -525,12 +535,12 @@
         "outliersRemoved": 0
       },
       "decode": {
-        "mean": 70,
-        "median": 70,
-        "min": 70,
-        "max": 70,
-        "p95": 70,
-        "p99": 70,
+        "mean": 6,
+        "median": 6,
+        "min": 6,
+        "max": 6,
+        "p95": 6,
+        "p99": 6,
         "stdDev": 0,
         "ci95": 0,
         "samples": 3,
@@ -566,25 +576,25 @@
         "outliersRemoved": 0
       },
       "decodeRecordMs": {
-        "mean": 697.1763980000018,
-        "median": 689.845728000002,
-        "min": 683.1730060000045,
-        "max": 718.5104599999986,
-        "p95": 715.643986799999,
-        "p99": 717.9371653599986,
-        "stdDev": 18.774662601152,
-        "ci95": 32.518669520158525,
+        "mean": 45.59999998410543,
+        "median": 43.80000001192093,
+        "min": 41.19999998807907,
+        "max": 51.799999952316284,
+        "p95": 50.999999958276746,
+        "p99": 51.63999995350838,
+        "stdDev": 5.524490902821307,
+        "ci95": 9.568698929638561,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "decodeRecordOps": {
-        "mean": 15480,
-        "median": 15480,
-        "min": 15480,
-        "max": 15480,
-        "p95": 15480,
-        "p99": 15480,
+        "mean": 1720,
+        "median": 1720,
+        "min": 1720,
+        "max": 1720,
+        "p95": 1720,
+        "p99": 1720,
         "stdDev": 0,
         "ci95": 0,
         "samples": 3,
@@ -592,12 +602,12 @@
         "outliersRemoved": 0
       },
       "decodeRecordPasses": {
-        "mean": 18,
-        "median": 18,
-        "min": 18,
-        "max": 18,
-        "p95": 18,
-        "p99": 18,
+        "mean": 2,
+        "median": 2,
+        "min": 2,
+        "max": 2,
+        "p95": 2,
+        "p99": 2,
         "stdDev": 0,
         "ci95": 0,
         "samples": 3,
@@ -605,27 +615,27 @@
         "outliersRemoved": 0
       },
       "decodeRecordMsPerOp": {
-        "mean": 0.04503723501292001,
-        "median": 0.04456367751937998,
-        "min": 0.04413262312661528,
-        "max": 0.046415404392764766,
-        "p95": 0.04623023170542628,
-        "p99": 0.04637836985529707,
-        "stdDev": 0.0012128335013664082,
-        "ci95": 0.0021006892454882766,
+        "mean": 0.02651162789773571,
+        "median": 0.02546511628600054,
+        "min": 0.02395348836516225,
+        "max": 0.03011627904204435,
+        "p95": 0.02965116276643997,
+        "p99": 0.030023255786923473,
+        "stdDev": 0.003211913315593783,
+        "ci95": 0.005563197052115443,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "decodeRecordMsPerPass": {
-        "mean": 38.732022111111206,
-        "median": 38.32476266666678,
-        "min": 37.954055888889144,
-        "max": 39.9172477777777,
-        "p95": 39.75799926666661,
-        "p99": 39.885398075555486,
-        "stdDev": 1.0430368111751123,
-        "ci95": 1.80659275111992,
+        "mean": 22.799999992052715,
+        "median": 21.900000005960464,
+        "min": 20.599999994039536,
+        "max": 25.899999976158142,
+        "p95": 25.499999979138373,
+        "p99": 25.81999997675419,
+        "stdDev": 2.7622454514106534,
+        "ci95": 4.784349464819281,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
@@ -644,14 +654,14 @@
         "outliersRemoved": 0
       },
       "decodeRecordMsPerExecutedBatchToken": {
-        "mean": 9.683005527777802,
-        "median": 9.581190666666695,
-        "min": 9.488513972222286,
-        "max": 9.979311944444426,
-        "p95": 9.939499816666652,
-        "p99": 9.971349518888871,
-        "stdDev": 0.26075920279377807,
-        "ci95": 0.45164818777998,
+        "mean": 5.699999998013179,
+        "median": 5.475000001490116,
+        "min": 5.149999998509884,
+        "max": 6.4749999940395355,
+        "p95": 6.374999994784593,
+        "p99": 6.454999994188547,
+        "stdDev": 0.6905613628526633,
+        "ci95": 1.1960873662048201,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
@@ -686,274 +696,274 @@
       "decodeRecordTopOps": [
         {
           "label": "attention",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "fused_ffn",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "rmsnorm_pair:post_ffn_next_input_norm",
-          "count": 1800,
+          "count": 200,
           "shareOfOps": 0.11627906976744186
         },
         {
           "label": "argmax_phase1",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "argmax_phase2",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "gather",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L0",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L1",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L10",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L11",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L12",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L13",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L14",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L15",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L16",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L17",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L18",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:ffn_down:L19",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         }
       ],
       "decodeRecordTopOpGroups": [
         {
           "label": "attention",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "fused_ffn",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "matmul:ffn_down",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "matmul:o_proj",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "matmul:qkv_proj",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
-          "count": 1872,
+          "count": 208,
           "shareOfOps": 0.12093023255813953
         },
         {
           "label": "rmsnorm_pair:post_ffn_next_input_norm",
-          "count": 1800,
+          "count": 200,
           "shareOfOps": 0.11627906976744186
         },
         {
           "label": "argmax_phase1",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "argmax_phase2",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "gather",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "matmul:lm_head",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "rmsnorm:final_norm",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "rmsnorm:input_norm",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "rmsnorm:post_ffn_norm",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         },
         {
           "label": "scale",
-          "count": 72,
+          "count": 8,
           "shareOfOps": 0.004651162790697674
         }
       ],
       "decodeSubmitWaitMs": {
-        "mean": 1196.4935926666674,
-        "median": 1195.5751990000044,
-        "min": 1184.8860489999997,
-        "max": 1209.0195299999978,
-        "p95": 1207.6750968999984,
-        "p99": 1208.7506433799979,
-        "stdDev": 12.092924025625123,
-        "ci95": 20.945558824453073,
+        "mean": 107.2333333293597,
+        "median": 107.19999998807907,
+        "min": 106.89999997615814,
+        "max": 107.60000002384186,
+        "p95": 107.56000002026558,
+        "p99": 107.5920000231266,
+        "stdDev": 0.3511884827553415,
+        "ci95": 0.608276295165278,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "decodeReadbackWaitMs": {
-        "mean": 1186.4544516666658,
-        "median": 1182.567551999995,
-        "min": 1175.1069249999982,
-        "max": 1201.6888780000045,
-        "p95": 1199.7767454000036,
-        "p99": 1201.3064514800044,
-        "stdDev": 13.710618078252717,
-        "ci95": 23.747487114706068,
+        "mean": 108.16666664679845,
+        "median": 108.19999998807907,
+        "min": 107.69999998807907,
+        "max": 108.59999996423721,
+        "p95": 108.5599999666214,
+        "p99": 108.59199996471405,
+        "stdDev": 0.45092496382642394,
+        "ci95": 0.7810249477485245,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "decodeReadbackMapWaitMs": {
-        "mean": 1167.0396303333355,
-        "median": 1162.945727000004,
-        "min": 1155.9113079999997,
-        "max": 1182.2618560000028,
-        "p95": 1180.330243100003,
-        "p99": 1181.8755334200027,
-        "stdDev": 13.643968570475163,
-        "ci95": 23.632046780935887,
+        "mean": 107.13333330551784,
+        "median": 107.09999996423721,
+        "min": 106.89999997615814,
+        "max": 107.39999997615814,
+        "p95": 107.36999997496605,
+        "p99": 107.39399997591973,
+        "stdDev": 0.2516611486318412,
+        "ci95": 0.43588989572149184,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "decodeReadbackCleanupMs": {
-        "mean": 18.067270666667355,
-        "median": 18.104810999997426,
-        "min": 17.877432000002045,
-        "max": 18.219569000002593,
-        "p95": 18.208093200002075,
-        "p99": 18.21727384000249,
-        "stdDev": 0.17413037977975987,
-        "ci95": 0.3016026649198084,
+        "mean": 0.9000000357627869,
+        "median": 0.9000000357627869,
+        "min": 0.800000011920929,
+        "max": 1.0000000596046448,
+        "p95": 0.990000057220459,
+        "p99": 0.9980000591278076,
+        "stdDev": 0.10000002384185791,
+        "ci95": 0.17320512205219699,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "decodeReadbackCopyMs": {
-        "mean": 0.7690389999994901,
-        "median": 0.767054999996617,
-        "min": 0.7654999999995198,
-        "max": 0.7745620000023337,
-        "p95": 0.773811300001762,
-        "p99": 0.7744118600022193,
-        "stdDev": 0.004845838732489992,
-        "ci95": 0.008393238889957836,
+        "mean": 0.06666664282480876,
+        "median": 0.09999996423721313,
+        "min": 0,
+        "max": 0.09999996423721313,
+        "p95": 0.09999996423721313,
+        "p99": 0.09999996423721313,
+        "stdDev": 0.05773500627130796,
+        "ci95": 0.09999996423721316,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "decodeOrchestrationMs": {
-        "mean": 26.12615499999841,
-        "median": 26.437182000001485,
-        "min": 24.386398999991798,
-        "max": 27.554884000001948,
-        "p95": 27.443113800001903,
-        "p99": 27.532529960001938,
-        "stdDev": 1.6069777984995672,
-        "ci95": 2.7833671936364324,
+        "mean": 0.5666667222976685,
+        "median": 0.5000000596046448,
+        "min": 0.5,
+        "max": 0.7000001072883606,
+        "p95": 0.680000102519989,
+        "p99": 0.6960001063346863,
+        "stdDev": 0.11547009857451401,
+        "ci95": 0.20000007748604487,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "prefillRecordMs": {
-        "mean": 21.652902333335685,
-        "median": 21.979138999999122,
-        "min": 19.951811000006273,
-        "max": 23.027757000001657,
-        "p95": 22.922895200001403,
-        "p99": 23.006784640001605,
-        "stdDev": 1.563708323418614,
-        "ci95": 2.7084222643793856,
+        "mean": 13.833333313465118,
+        "median": 14.400000035762787,
+        "min": 11.499999940395355,
+        "max": 15.599999964237213,
+        "p95": 15.47999997138977,
+        "p99": 15.575999965667725,
+        "stdDev": 2.1079215899780275,
+        "ci95": 3.651027292213314,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
@@ -1165,26 +1175,26 @@
         }
       ],
       "prefillSubmitWaitMs": {
-        "mean": 329.71843533333384,
-        "median": 330.0267299999996,
-        "min": 328.7234949999993,
-        "max": 330.4050810000026,
-        "p95": 330.36724590000233,
-        "p99": 330.39751398000254,
-        "stdDev": 0.8821661237956943,
-        "ci95": 1.5279565471302385,
+        "mean": 61.800000051657356,
+        "median": 62.500000059604645,
+        "min": 60.20000010728836,
+        "max": 62.69999998807907,
+        "p95": 62.679999995231626,
+        "p99": 62.69599998950958,
+        "stdDev": 1.3892443483178334,
+        "ci95": 2.4062417954144024,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
       },
       "uniformCache": {
-        "hits": 78567,
-        "misses": 173,
-        "totalLookups": 78740,
-        "hitRateRatio": 0.9978028956057912,
-        "hitRate": "99.8%",
+        "hits": 10215,
+        "misses": 45,
+        "totalLookups": 10260,
+        "hitRateRatio": 0.9956140350877193,
+        "hitRate": "99.6%",
         "evictions": 0,
-        "currentSize": 173,
+        "currentSize": 45,
         "pendingDestruction": 0
       },
       "singleTokenSubmitWaitMs": {
@@ -1268,12 +1278,12 @@
     },
     "batching": {
       "batchedForwardCalls": {
-        "mean": 18,
-        "median": 18,
-        "min": 18,
-        "max": 18,
-        "p95": 18,
-        "p99": 18,
+        "mean": 2,
+        "median": 2,
+        "min": 2,
+        "max": 2,
+        "p95": 2,
+        "p99": 2,
         "stdDev": 0,
         "ci95": 0,
         "samples": 3,
@@ -1294,14 +1304,14 @@
         "outliersRemoved": 0
       },
       "totalBatchedTimeMs": {
-        "mean": 1917.7461933333334,
-        "median": 1923.3693889999977,
-        "min": 1901.2491910000008,
-        "max": 1928.6200000000017,
-        "p95": 1928.0949389000014,
-        "p99": 1928.5149877800015,
-        "stdDev": 14.526029858768252,
-        "ci95": 25.15982174764918,
+        "mean": 154.0333333015442,
+        "median": 151.69999992847443,
+        "min": 149.69999998807907,
+        "max": 160.69999998807907,
+        "p95": 159.7999999821186,
+        "p99": 160.51999998688697,
+        "stdDev": 5.859465288950079,
+        "ci95": 10.148891585647789,
         "samples": 3,
         "samplesAfterOutlierRemoval": 3,
         "outliersRemoved": 0
@@ -1320,12 +1330,12 @@
         "outliersRemoved": 0
       },
       "gpuSubmissions": {
-        "mean": 18,
-        "median": 18,
-        "min": 18,
-        "max": 18,
-        "p95": 18,
-        "p99": 18,
+        "mean": 2,
+        "median": 2,
+        "min": 2,
+        "max": 2,
+        "p95": 2,
+        "p99": 2,
         "stdDev": 0,
         "ci95": 0,
         "samples": 3,
@@ -1359,12 +1369,12 @@
         "outliersRemoved": 0
       },
       "executedBatchTokens": {
-        "mean": 72,
-        "median": 72,
-        "min": 72,
-        "max": 72,
-        "p95": 72,
-        "p99": 72,
+        "mean": 8,
+        "median": 8,
+        "min": 8,
+        "max": 8,
+        "p95": 8,
+        "p99": 8,
         "stdDev": 0,
         "ci95": 0,
         "samples": 3,
@@ -1372,12 +1382,12 @@
         "outliersRemoved": 0
       },
       "resolvedBatchTokens": {
-        "mean": 70,
-        "median": 70,
-        "min": 70,
-        "max": 70,
-        "p95": 70,
-        "p99": 70,
+        "mean": 6,
+        "median": 6,
+        "min": 6,
+        "max": 6,
+        "p95": 6,
+        "p99": 6,
         "stdDev": 0,
         "ci95": 0,
         "samples": 3,
@@ -1489,615 +1499,101 @@
       "finalActivePlanId": null,
       "transitions": []
     },
-    "generatedText": "In fact, 25% of African Americans, 15% of people earning less than $35,000 a year, 18% of citizens over 65 years old, and 20% of voters between 18 and 29 years old do not have an identity document with a photograph.",
+    "generatedText": "Y eso no es todo.",
     "referenceTranscript": {
       "schema": "doppler.reference-transcript/v1",
       "source": {
         "kind": "inline-browser-suite",
         "path": "inline",
-        "hash": "sha256:c1436a83913f26e10aa9742132f4e0828589a275c46c313be254cd653b969451"
+        "hash": "sha256:deeb865c21d26def37e36fe7d0e73994c10fd6416b1c2c6e216b8afbccc260db"
       },
       "executionGraphHash": "sha256:a69a106314d69ad74fbce80d3bbfc6e45ebe7a7b90f4dad61be287eaf154b3d3",
       "surface": "browser-webgpu",
       "prompt": {
-        "identity": "En efecto, un 25% de afroamericanos, un 15% de personas que ganan menos de 35.000 dólares al año, un 18% de los ciudadanos de más de 65 años y un 20% de los electores de entre 18 y 29 años no cuentan con un documento de identidad con fotografía.",
-        "hash": "sha256:6741cbc12770c4b9697ab375d55f27d6caad9bbbb211e0e8b48668c7f9350cdf",
-        "tokenIdsHash": "sha256:fb43a80c095f6b61b7d03f94b76c378429c6bdc25db2bb37f54ed002b10d76a0",
-        "tokenCount": 89
+        "identity": "And that's not all.",
+        "hash": "sha256:d916d06a23b1b82fdeed618e375f10e649b85ddd8cebf660eb33a50541531eef",
+        "tokenIdsHash": "sha256:09b726ee2494cb17b5e1635a4b12a1867699cd5adfc6679dbe0a16b747b4f7d7",
+        "tokenCount": 16
       },
       "output": {
-        "textHash": "sha256:bfb9d72eeab7b9efb89a306c17f9c4590ff7f1bc6cc18dc468d893a08130dd8c",
-        "tokensGenerated": 70,
+        "textHash": "sha256:ba234f4dcc8a2bb2cf48aa99c1a8e15d0083e718974a5442cb928e4971e2a885",
+        "tokensGenerated": 6,
         "stopReason": "stop-token",
         "stopTokenId": 106
       },
       "tokens": {
         "ids": [
-          902,
-          1707,
-          236764,
-          236743,
-          236778,
-          236810,
-          236908,
-          529,
-          9992,
-          14522,
-          236764,
-          236743,
-          236770,
-          236810,
-          236908,
-          529,
-          1331,
-          28920,
-          2344,
-          1082,
-          609,
-          236800,
-          236810,
-          236764,
-          236771,
-          236771,
-          236771,
-          496,
-          1051,
-          236764,
-          236743,
-          236770,
-          236828,
-          236908,
-          529,
-          11838,
-          1024,
-          236743,
-          236825,
-          236810,
-          1518,
-          2255,
-          236764,
-          532,
-          236743,
-          236778,
-          236771,
-          236908,
-          529,
-          22339,
-          1534,
-          236743,
-          236770,
-          236828,
-          532,
-          236743,
-          236778,
-          236819,
-          1518,
-          2255,
-          776,
-          711,
-          735,
-          614,
-          9834,
-          2354,
-          607,
-          496,
-          10807,
+          236874,
+          17475,
+          951,
+          1115,
+          7914,
           236761
         ],
-        "generatedTokenIdsHash": "sha256:5dc51fc3b14f19bd15a5a5b044c486804a90f2c2cf102dce075e2ee18716c97e",
-        "generatedTextHash": "sha256:bfb9d72eeab7b9efb89a306c17f9c4590ff7f1bc6cc18dc468d893a08130dd8c",
+        "generatedTokenIdsHash": "sha256:a28ace811a8bc937b278aac5261ea7b33c17473f226f7a63430f47c50601d9e9",
+        "generatedTextHash": "sha256:ba234f4dcc8a2bb2cf48aa99c1a8e15d0083e718974a5442cb928e4971e2a885",
         "preview": [
           {
-            "id": 902,
-            "text": "In",
-            "fallbackText": "In"
+            "id": 236874,
+            "text": "Y",
+            "fallbackText": "Y"
           },
           {
-            "id": 1707,
-            "text": " fact",
-            "fallbackText": " fact"
+            "id": 17475,
+            "text": " eso",
+            "fallbackText": " eso"
           },
           {
-            "id": 236764,
-            "text": ",",
-            "fallbackText": ","
+            "id": 951,
+            "text": " no",
+            "fallbackText": " no"
           },
           {
-            "id": 236743,
-            "text": " ",
-            "fallbackText": " "
+            "id": 1115,
+            "text": " es",
+            "fallbackText": " es"
           },
           {
-            "id": 236778,
-            "text": "2",
-            "fallbackText": "2"
+            "id": 7914,
+            "text": " todo",
+            "fallbackText": " todo"
           },
           {
-            "id": 236810,
-            "text": "5",
-            "fallbackText": "5"
-          },
-          {
-            "id": 236908,
-            "text": "%",
-            "fallbackText": "%"
-          },
-          {
-            "id": 529,
-            "text": " of",
-            "fallbackText": " of"
-          },
-          {
-            "id": 9992,
-            "text": " African",
-            "fallbackText": " African"
-          },
-          {
-            "id": 14522,
-            "text": " Americans",
-            "fallbackText": " Americans"
-          },
-          {
-            "id": 236764,
-            "text": ",",
-            "fallbackText": ","
-          },
-          {
-            "id": 236743,
-            "text": " ",
-            "fallbackText": " "
-          },
-          {
-            "id": 236770,
-            "text": "1",
-            "fallbackText": "1"
-          },
-          {
-            "id": 236810,
-            "text": "5",
-            "fallbackText": "5"
-          },
-          {
-            "id": 236908,
-            "text": "%",
-            "fallbackText": "%"
-          },
-          {
-            "id": 529,
-            "text": " of",
-            "fallbackText": " of"
-          },
-          {
-            "id": 1331,
-            "text": " people",
-            "fallbackText": " people"
-          },
-          {
-            "id": 28920,
-            "text": " earning",
-            "fallbackText": " earning"
-          },
-          {
-            "id": 2344,
-            "text": " less",
-            "fallbackText": " less"
-          },
-          {
-            "id": 1082,
-            "text": " than",
-            "fallbackText": " than"
-          },
-          {
-            "id": 609,
-            "text": " $",
-            "fallbackText": " $"
-          },
-          {
-            "id": 236800,
-            "text": "3",
-            "fallbackText": "3"
-          },
-          {
-            "id": 236810,
-            "text": "5",
-            "fallbackText": "5"
-          },
-          {
-            "id": 236764,
-            "text": ",",
-            "fallbackText": ","
-          },
-          {
-            "id": 236771,
-            "text": "0",
-            "fallbackText": "0"
-          },
-          {
-            "id": 236771,
-            "text": "0",
-            "fallbackText": "0"
-          },
-          {
-            "id": 236771,
-            "text": "0",
-            "fallbackText": "0"
-          },
-          {
-            "id": 496,
-            "text": " a",
-            "fallbackText": " a"
-          },
-          {
-            "id": 1051,
-            "text": " year",
-            "fallbackText": " year"
-          },
-          {
-            "id": 236764,
-            "text": ",",
-            "fallbackText": ","
-          },
-          {
-            "id": 236743,
-            "text": " ",
-            "fallbackText": " "
-          },
-          {
-            "id": 236770,
-            "text": "1",
-            "fallbackText": "1"
+            "id": 236761,
+            "text": ".",
+            "fallbackText": "."
           }
         ],
         "perStep": [
           {
             "index": 0,
-            "tokenId": 902,
-            "tokenHash": "sha256:a00b1357f7f92d1e8f4bcbfb2b10871f7523980f872283ae8e94d51d5cbbf4fd"
+            "tokenId": 236874,
+            "tokenHash": "sha256:9ea5fe71514c1e70ce97ee192c8032cbe52422a7c51470033dbde3bf7724982e"
           },
           {
             "index": 1,
-            "tokenId": 1707,
-            "tokenHash": "sha256:9fe128b8619bbb3b61e2ab932c0dfb2ea467989a07476f3a820916fbb58cf717"
+            "tokenId": 17475,
+            "tokenHash": "sha256:2b665a8f1d768ff63373a5659392e087134630e3229c087a151e312609b54508"
           },
           {
             "index": 2,
-            "tokenId": 236764,
-            "tokenHash": "sha256:927df6b756679a9bc7570d946788a89f00a9d9a111cf87a4f62f1052d5922164"
+            "tokenId": 951,
+            "tokenHash": "sha256:8e7d98b1d864587c48497818a096955b074a4dc4da3cb74f6fd00a280ca572f4"
           },
           {
             "index": 3,
-            "tokenId": 236743,
-            "tokenHash": "sha256:71e779c2c36f3387b302bae19b5f3dfd6baf698070232db124037d080f8ce4fa"
+            "tokenId": 1115,
+            "tokenHash": "sha256:6494e5ecb9519b206e033891e77890b659347d5601d509502a9207b025503bb6"
           },
           {
             "index": 4,
-            "tokenId": 236778,
-            "tokenHash": "sha256:5de71d0e67b90e5b017a12bca8f705ec7a9377cad10aa93c50665effa8b0befd"
+            "tokenId": 7914,
+            "tokenHash": "sha256:67ed36125c5d6a1f6b5214690d3e0d6e9451299497ca8ff16d9a3f638dc2158f"
           },
           {
             "index": 5,
-            "tokenId": 236810,
-            "tokenHash": "sha256:afc86308f2133e2ba818b7b79ce6d7744e82fe690fb037457d20349363f36933"
-          },
-          {
-            "index": 6,
-            "tokenId": 236908,
-            "tokenHash": "sha256:2dccd644df02a998254475f7c5535a201c8e217c26f7674f2df4063891fa5531"
-          },
-          {
-            "index": 7,
-            "tokenId": 529,
-            "tokenHash": "sha256:919f46fee9b799bad9da56bb4c8ae537d73e1c25e0522f55bd21c6371e028d4c"
-          },
-          {
-            "index": 8,
-            "tokenId": 9992,
-            "tokenHash": "sha256:3e51ba7b0cd7c8332fc67023d6829642c42091ad02b7f78d0e0db37958b7281f"
-          },
-          {
-            "index": 9,
-            "tokenId": 14522,
-            "tokenHash": "sha256:36c128145075e4739d78f9dcd973adcf0e3e4dcb67180e566aaf12240cea9104"
-          },
-          {
-            "index": 10,
-            "tokenId": 236764,
-            "tokenHash": "sha256:7cfb60cadaeb3bf6c3922c9acc1e8ed8b8ec5caac0df9b57a1b3c06499e0dd6c"
-          },
-          {
-            "index": 11,
-            "tokenId": 236743,
-            "tokenHash": "sha256:56994d74829e69db04e03174dee6629dab1053c4f0ae261d2f533d3537b0fc65"
-          },
-          {
-            "index": 12,
-            "tokenId": 236770,
-            "tokenHash": "sha256:c2e51ef1b64a9903127887e21e636c228308d6eb61bb6c7145f62165a78d44b1"
-          },
-          {
-            "index": 13,
-            "tokenId": 236810,
-            "tokenHash": "sha256:c69f4e42f888920162cf5ea182436087baaac9509d62ffb2c5794edcc6d3ecfb"
-          },
-          {
-            "index": 14,
-            "tokenId": 236908,
-            "tokenHash": "sha256:a45fa7117aab0de5b050d85a9511b167cda86b840baa32b85d71c45496f58b0b"
-          },
-          {
-            "index": 15,
-            "tokenId": 529,
-            "tokenHash": "sha256:4b2d6e9586d005204330c2000ff27ecec8fe8cf07d7a618058b372d44f6ee717"
-          },
-          {
-            "index": 16,
-            "tokenId": 1331,
-            "tokenHash": "sha256:f76426c2e165283662d496b2028e26e9190d5251121ccb2145cfd7bfd9442f39"
-          },
-          {
-            "index": 17,
-            "tokenId": 28920,
-            "tokenHash": "sha256:0d366c5c035cc89436986bf89d9b4d6acdc64d0d53fdf0230d35d3fa9e279b3f"
-          },
-          {
-            "index": 18,
-            "tokenId": 2344,
-            "tokenHash": "sha256:24b85e4d6f4956bdb07f1a956cd3b9a6472b8771d6493655b6482d4ebff2d1ba"
-          },
-          {
-            "index": 19,
-            "tokenId": 1082,
-            "tokenHash": "sha256:27ababbf4fe99eb01b44e6e378a6e1aadcd50e96ad800a4156b8775f1339dfd0"
-          },
-          {
-            "index": 20,
-            "tokenId": 609,
-            "tokenHash": "sha256:d8860d3003f261179564346242247da6f72b0e446c9ab3ac53677668005cf0fd"
-          },
-          {
-            "index": 21,
-            "tokenId": 236800,
-            "tokenHash": "sha256:9be256ff94d8ad0712b4f98a1efdc9e516ebd02a908e084d54932de660ac0ba0"
-          },
-          {
-            "index": 22,
-            "tokenId": 236810,
-            "tokenHash": "sha256:428667e55cf1e7028bd924b7a0ee750af12789aecab59d338b79872a0fc257ad"
-          },
-          {
-            "index": 23,
-            "tokenId": 236764,
-            "tokenHash": "sha256:f6f001b25193aa42f88a0fc809c067c357c7b7d65f6d091bffb191972043c6de"
-          },
-          {
-            "index": 24,
-            "tokenId": 236771,
-            "tokenHash": "sha256:9f5605e5385604c8950cba51e11ed37a749998de01837b8e701787f80fe62a8b"
-          },
-          {
-            "index": 25,
-            "tokenId": 236771,
-            "tokenHash": "sha256:edac221c0ea9a2a64811e1f1e967fd339c45a6bdae509cc541632ff5d785f5f2"
-          },
-          {
-            "index": 26,
-            "tokenId": 236771,
-            "tokenHash": "sha256:51efeb38344651f73336a9cce7681b6ae987d04cabb3cf2897528c4d4362962f"
-          },
-          {
-            "index": 27,
-            "tokenId": 496,
-            "tokenHash": "sha256:858b71ad89cdd33d6fe0d276af4a8ffe0ce38e0e2e6190ac97658266bd4eb46d"
-          },
-          {
-            "index": 28,
-            "tokenId": 1051,
-            "tokenHash": "sha256:4aed6a2855336fe2b34a57b263148c4e62944c4630458bb878fe286d8bf359f2"
-          },
-          {
-            "index": 29,
-            "tokenId": 236764,
-            "tokenHash": "sha256:fb13b5391c543307020a904c1eed5c1a687979c2db493a50644d1dc46d96bbf0"
-          },
-          {
-            "index": 30,
-            "tokenId": 236743,
-            "tokenHash": "sha256:84a30f1a244236f7fbcceb09fc78dd328ed0be10411ed657e6246686e62a76fc"
-          },
-          {
-            "index": 31,
-            "tokenId": 236770,
-            "tokenHash": "sha256:c739ec42727df9601e9332d4a99d43ac44fddc842ed3c2748a00d7a8ddfa4ee8"
-          },
-          {
-            "index": 32,
-            "tokenId": 236828,
-            "tokenHash": "sha256:40619a8f0d36bca16ae3af43928883ce62fab0ad191c702a508dc5cf1e6555c4"
-          },
-          {
-            "index": 33,
-            "tokenId": 236908,
-            "tokenHash": "sha256:e6606884eeb3c48b09633ee8c4dd640ce28f22c3c18908fca5753df8132732cf"
-          },
-          {
-            "index": 34,
-            "tokenId": 529,
-            "tokenHash": "sha256:accbc54690e6e0cf3878637154b70f844220bb4443990d4b53c66308255e631e"
-          },
-          {
-            "index": 35,
-            "tokenId": 11838,
-            "tokenHash": "sha256:fe5fb3393e2de8f1818f72ee1a31ecfc494b741dd7ac5683a0cb35309211e6fe"
-          },
-          {
-            "index": 36,
-            "tokenId": 1024,
-            "tokenHash": "sha256:49f07aa57a3b583241b1e427c9e3fd4e71bb7ca848065153a25371b8383ec62b"
-          },
-          {
-            "index": 37,
-            "tokenId": 236743,
-            "tokenHash": "sha256:6d20d06375fb9f1b6acd9c4636c2d9f77c6b5b4e95f03a17660e5deb1ecf81a3"
-          },
-          {
-            "index": 38,
-            "tokenId": 236825,
-            "tokenHash": "sha256:22238e1d351da5a3136755e52d556c50c1088c9b5a9f2b4cec453a88f7a75a23"
-          },
-          {
-            "index": 39,
-            "tokenId": 236810,
-            "tokenHash": "sha256:b0cca16958f91b5ace35e8b756cff6a367f9bb41943a65cd92368c7aa71a1f87"
-          },
-          {
-            "index": 40,
-            "tokenId": 1518,
-            "tokenHash": "sha256:2bb9b16cca4bc788533316344050629d945d305cdf77803aa734191aeff739a0"
-          },
-          {
-            "index": 41,
-            "tokenId": 2255,
-            "tokenHash": "sha256:5c2ce64e7bad5d9b976870e2cf5b886a4dec7c88be4d5d01810a9e8efb1c5cff"
-          },
-          {
-            "index": 42,
-            "tokenId": 236764,
-            "tokenHash": "sha256:7fcdef0e72c3460f5e4b5dea24463c2de5ec68e0e68f242ea54512e1e5324f39"
-          },
-          {
-            "index": 43,
-            "tokenId": 532,
-            "tokenHash": "sha256:ee432ad25ab3ceeab064ca65bd1a79764bba24e16f8d15cafde75d68990758cf"
-          },
-          {
-            "index": 44,
-            "tokenId": 236743,
-            "tokenHash": "sha256:879ba390cb81fbca9c8445ea1dcf92ed6740294049b5e740ec777f8bea2f2448"
-          },
-          {
-            "index": 45,
-            "tokenId": 236778,
-            "tokenHash": "sha256:7b3a0b9f17e8a76e381275ede06ba30767676e30c59d2067cfb2d7bad9e56310"
-          },
-          {
-            "index": 46,
-            "tokenId": 236771,
-            "tokenHash": "sha256:fe55987fc4a5dab8540dfed98461d6d2451b54bc5aabe904e92efde3418c6a13"
-          },
-          {
-            "index": 47,
-            "tokenId": 236908,
-            "tokenHash": "sha256:02af1c789ecb9a9437797bd01a8de18a00b2c43383442b37db192e117311d5c3"
-          },
-          {
-            "index": 48,
-            "tokenId": 529,
-            "tokenHash": "sha256:90a7a270f88664f3584cbb901af14f5884c048a7d338f7e3d04068939d64efdd"
-          },
-          {
-            "index": 49,
-            "tokenId": 22339,
-            "tokenHash": "sha256:a9d8ed6d9f7404e7fd05596d99be8cf0e6b19f8e6bf57e3bbc1c4ce49dbed4ae"
-          },
-          {
-            "index": 50,
-            "tokenId": 1534,
-            "tokenHash": "sha256:9c5089b416a702b62cbe5cb980d3037336bb11e3fd2bb3b9eaaa76059206e33b"
-          },
-          {
-            "index": 51,
-            "tokenId": 236743,
-            "tokenHash": "sha256:e309acae3f8a7cc23a1720bfc32e3a28abdf49240a02bfec12a0a09c421d89fd"
-          },
-          {
-            "index": 52,
-            "tokenId": 236770,
-            "tokenHash": "sha256:1964dfaaf5116085b50c7fd436262f6615c6100cc818a05c3f57d57b3d22a882"
-          },
-          {
-            "index": 53,
-            "tokenId": 236828,
-            "tokenHash": "sha256:4dc8fe52f2918029a09085aae687fd75421dcb6d6bfa7e498cb52e3334c199d0"
-          },
-          {
-            "index": 54,
-            "tokenId": 532,
-            "tokenHash": "sha256:0c5cbcb10de38924563c5cf81880e59dba824f9eb4c1889a355f22ff1af10705"
-          },
-          {
-            "index": 55,
-            "tokenId": 236743,
-            "tokenHash": "sha256:c186c1d6a1be4786e9c893fafcc4d8910a5c378a7bfb5b9346b4acf26a23bdc8"
-          },
-          {
-            "index": 56,
-            "tokenId": 236778,
-            "tokenHash": "sha256:82dc6595f80c389efcb6e783e5a42e99931c022d3e8055515d482d32c3d31680"
-          },
-          {
-            "index": 57,
-            "tokenId": 236819,
-            "tokenHash": "sha256:07b0cb16cdffcad50af82ab86e811dd13de466cbd3974c391a6e6ecab852a139"
-          },
-          {
-            "index": 58,
-            "tokenId": 1518,
-            "tokenHash": "sha256:3faf87200d022d167253345de63c704f2cf844e938d18e22e48e947ec895e1ae"
-          },
-          {
-            "index": 59,
-            "tokenId": 2255,
-            "tokenHash": "sha256:909dad80695582376eda5ef386d1b5f26e091650f05a52b5271c7f6222f20226"
-          },
-          {
-            "index": 60,
-            "tokenId": 776,
-            "tokenHash": "sha256:43a6716c5c247eac30dc57132b5a2d6937a140d5bc20a96c03b0fe08ee03abd8"
-          },
-          {
-            "index": 61,
-            "tokenId": 711,
-            "tokenHash": "sha256:e916bd88a17aeff1d5f2de16b30d0fbf101c0af630c449a409f265b7d27be997"
-          },
-          {
-            "index": 62,
-            "tokenId": 735,
-            "tokenHash": "sha256:65fb357026c864842522405b88cef79a4d71fd6aae31db574864e4b3a809bc16"
-          },
-          {
-            "index": 63,
-            "tokenId": 614,
-            "tokenHash": "sha256:5bfe6baddef42ca0efcde65aec4eff7eb56b2f337f7cc1ef1e9006a6336d9325"
-          },
-          {
-            "index": 64,
-            "tokenId": 9834,
-            "tokenHash": "sha256:73067fb5a86ba21c4f6861ded4ae86297c7a2e4d641fc46f91b79192b2188bbe"
-          },
-          {
-            "index": 65,
-            "tokenId": 2354,
-            "tokenHash": "sha256:8c083aa94870e148d75387035d330c861c4354d8bb66e3636f6b916ac449f142"
-          },
-          {
-            "index": 66,
-            "tokenId": 607,
-            "tokenHash": "sha256:cc4bf2c3e469aba020ae8336c586c8234d7941698050d4c8ea9975406fdec028"
-          },
-          {
-            "index": 67,
-            "tokenId": 496,
-            "tokenHash": "sha256:e7c46e8bc803710998c93bc1704ecfda48487fb6dbc21aebedb40efb2f8c4efa"
-          },
-          {
-            "index": 68,
-            "tokenId": 10807,
-            "tokenHash": "sha256:7918765c1b64dc45dcb8c93684990ec2b33fe8af85bf9a7624f54370c247e094"
-          },
-          {
-            "index": 69,
             "tokenId": 236761,
-            "tokenHash": "sha256:42cff1958594d508871f3ee98f7088f8e3f39b3b15bf4a10ed7105f4f292941c"
+            "tokenHash": "sha256:8a10786af7f715f8f663794bd8a79858de46e3d78aee6be09c66dc7442611e98"
           }
         ],
         "coverage": {
@@ -2106,29 +1602,29 @@
         }
       },
       "phase": {
-        "prefillMs": 395.6714899999988,
-        "decodeMs": 1925.3024400000013,
-        "prefillTokens": 89,
-        "decodeTokens": 70
+        "prefillMs": 101.59999996423721,
+        "decodeMs": 149.9000000357628,
+        "prefillTokens": 16,
+        "decodeTokens": 6
       },
       "kvCache": {
         "mode": "stats",
         "layout": "contiguous",
         "kvDtype": "f16",
-        "seqLen": 161,
+        "seqLen": 24,
         "maxSeqLen": 4096,
-        "usedBytes": 4286464,
+        "usedBytes": 638976,
         "allocatedBytes": 109051904,
         "counters": {
           "updateCalls": 0,
           "gpuUpdateCalls": 0,
-          "recordedGpuUpdateCalls": 9490,
-          "tokensWritten": 20930
+          "recordedGpuUpdateCalls": 1170,
+          "tokensWritten": 3120
         },
         "byteDigestMode": null,
         "byteDigest": null,
         "byteDigests": null,
-        "stateHash": "sha256:7a14bf7f5b68c10f4701668429e2c717bd7e7ef8705381a820cef33fb8430c34"
+        "stateHash": "sha256:14fcf0a7fe84ba1c11de702739416d935ca6b7c7414699be369ec99e5ffcfe1d"
       },
       "logits": {
         "mode": "not-captured",
@@ -2141,150 +1637,150 @@
         "kvPolicy": "metadata hash only; KV tensor bytes are not read back by default"
       }
     },
-    "promptInput": "En efecto, un 25% de afroamericanos, un 15% de personas que ganan menos de 35.000 dólares al año, un 18% de los ciudadanos de más de 65 años y un 20% de los electores de entre 18 y 29 años no cuentan con un documento de identidad con fotografía.",
+    "promptInput": "And that's not all.",
     "decodeBottleneck": {
       "schemaVersion": 1,
       "source": "doppler",
       "dominant": {
         "id": "readback_map_wait",
         "label": "readback map wait",
-        "ms": 1162.95,
-        "shareOfDecode": 0.604
+        "ms": 107.1,
+        "shareOfDecode": 0.7046
       },
       "bottleneckClass": "submit-readback-wait",
-      "decodeWallMs": 1925.3,
+      "decodeWallMs": 152,
       "componentsMs": {
-        "commandRecordMs": 689.85,
-        "submitWaitMs": 1195.58,
-        "readbackWaitMs": 1182.57,
-        "effectiveSubmitReadbackWaitMs": 1195.58,
-        "readbackMapWaitMs": 1162.95,
-        "readbackCleanupMs": 18.1,
-        "readbackCopyMs": 0.77,
-        "readbackUnattributedMs": 13.76,
+        "commandRecordMs": 43.8,
+        "submitWaitMs": 107.2,
+        "readbackWaitMs": 108.2,
+        "effectiveSubmitReadbackWaitMs": 108.2,
+        "readbackMapWaitMs": 107.1,
+        "readbackCleanupMs": 0.9,
+        "readbackCopyMs": 0.1,
+        "readbackUnattributedMs": 0.1,
         "gpuTimestampMs": null,
         "submitReadbackSlackMs": null,
-        "orchestrationMs": 26.44,
-        "residualMs": 13.44
+        "orchestrationMs": 0.5,
+        "residualMs": 0
       },
       "recording": {
-        "opCount": 15480,
-        "passCount": 18,
+        "opCount": 1720,
+        "passCount": 2,
         "uniqueOpLabels": 91,
-        "msPerOp": 0.04,
-        "msPerPass": 38.32,
+        "msPerOp": 0.03,
+        "msPerPass": 21.9,
         "passesPerOp": 0,
-        "msPerExecutedBatchToken": 9.58,
+        "msPerExecutedBatchToken": 5.48,
         "opsPerExecutedBatchToken": 215,
         "passesPerExecutedBatchToken": 0.25,
         "topOps": [
           {
             "label": "attention",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "fused_ffn",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_ffn_next_input_norm",
-            "count": 1800,
+            "count": 200,
             "shareOfOps": 0.11627906976744186
           },
           {
             "label": "argmax_phase1",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "argmax_phase2",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "gather",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           }
         ],
         "topOpGroups": [
           {
             "label": "attention",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "fused_ffn",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "matmul:ffn_down",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "matmul:o_proj",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "matmul:qkv_proj",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_ffn_next_input_norm",
-            "count": 1800,
+            "count": 200,
             "shareOfOps": 0.11627906976744186
           }
         ],
         "uniformCache": {
-          "hits": 78567,
-          "misses": 173,
-          "totalLookups": 78740,
-          "hitRateRatio": 0.9978028956057912,
+          "hits": 10215,
+          "misses": 45,
+          "totalLookups": 10260,
+          "hitRateRatio": 0.9956140350877193,
           "evictions": 0,
-          "currentSize": 173,
+          "currentSize": 45,
           "pendingDestruction": 0,
-          "hitRate": "99.8%"
+          "hitRate": "99.6%"
         }
       },
       "shares": {
-        "commandRecord": 0.3583,
-        "submitWait": 0.621,
-        "readbackWait": 0.6142,
-        "effectiveSubmitReadbackWait": 0.621,
-        "readbackMapWait": 0.604,
-        "readbackCleanup": 0.0094,
-        "readbackCopy": 0.0004,
-        "readbackUnattributed": 0.0071,
+        "commandRecord": 0.2882,
+        "submitWait": 0.7053,
+        "readbackWait": 0.7118,
+        "effectiveSubmitReadbackWait": 0.7118,
+        "readbackMapWait": 0.7046,
+        "readbackCleanup": 0.0059,
+        "readbackCopy": 0.0007,
+        "readbackUnattributed": 0.0007,
         "gpuTimestamp": null,
         "submitReadbackSlack": null,
-        "orchestration": 0.0137,
-        "residual": 0.007
+        "orchestration": 0.0033,
+        "residual": 0
       },
       "semantics": {
         "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
@@ -2306,7 +1802,7 @@
         "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
         "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
       },
-      "modelLoadMs": 1452.07,
+      "modelLoadMs": 129399.2,
       "loader": {
         "schemaVersion": 1,
         "source": "doppler-loader",
@@ -2318,23 +1814,23 @@
         "totalShards": 16,
         "bytesLoaded": 1025493248,
         "shardsLoaded": 16,
-        "bytesPerSecond": 2274237533,
+        "bytesPerSecond": 8209956,
         "phasesMs": {
-          "preflight": 1.4,
-          "tensorLocations": 1.38,
-          "embeddings": 168.77,
-          "layers": 277.97,
-          "finalWeights": 1.01,
-          "cleanup": 0.05
+          "preflight": 1.2,
+          "tensorLocations": 1.7,
+          "embeddings": 82821,
+          "layers": 41920.1,
+          "finalWeights": 163.9,
+          "cleanup": 0.1
         },
         "layers": {
           "count": 26,
-          "totalMs": 259.65,
-          "meanMs": 9.99,
-          "maxMs": 20.69,
-          "maxLayer": 0
+          "totalMs": 41849.2,
+          "meanMs": 1609.59,
+          "maxMs": 6369.9,
+          "maxLayer": 2
         },
-        "totalMs": 450.92,
+        "totalMs": 124908.5,
         "failedPhase": null,
         "error": null
       },
@@ -2344,14 +1840,14 @@
         "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
         "status": "complete",
         "phasesMs": {
-          "reset": 0.07,
-          "configResolution": 5.44,
-          "kernelWarmup": 0.05,
-          "tokenizer": 709.98,
-          "executionSetup": 6.79,
-          "loadWeights": 529.13,
-          "rope": 182.3,
-          "convStates": 0.82
+          "reset": 0.1,
+          "configResolution": 3.3,
+          "kernelWarmup": 0,
+          "tokenizer": 1070.9,
+          "executionSetup": 1.4,
+          "loadWeights": 127972.3,
+          "rope": 204.6,
+          "convStates": 1.1
         },
         "details": {
           "tokenizer": {
@@ -2365,24 +1861,24 @@
             "assetSource": "custom-loader",
             "cacheHit": false,
             "phasesMs": {
-              "configResolution": 0.04,
-              "cacheLookup": 0.05,
-              "backendCreate": 0.08,
-              "assetLoad": 319.94,
-              "assetParse": 0.23,
-              "backendLoad": 389.18,
-              "cacheStore": 0.01
+              "configResolution": 0.1,
+              "cacheLookup": 0,
+              "backendCreate": 0,
+              "assetLoad": 854.6,
+              "assetParse": 0.1,
+              "backendLoad": 215.9,
+              "cacheStore": 0
             },
-            "totalMs": 709.69,
+            "totalMs": 1070.7,
             "error": null
           }
         },
-        "totalMs": 1434.84
+        "totalMs": 129254
       },
       "residualsMs": {
-        "modelLoadMinusLoaderMs": 1001.15,
-        "modelLoadMinusPipelineMs": 17.23,
-        "pipelineMinusLoaderMs": 983.92
+        "modelLoadMinusLoaderMs": 4490.7,
+        "modelLoadMinusPipelineMs": 145.2,
+        "pipelineMinusLoaderMs": 4345.5
       },
       "consistent": {
         "loaderWithinModelLoad": true,
@@ -2494,36 +1990,36 @@
     }
   },
   "memoryStats": {
-    "used": 2633661440,
+    "used": 2609940224,
     "pool": {
-      "allocations": 85139,
-      "reuses": 4927,
-      "totalBytesAllocated": 4272798720,
-      "peakBytesAllocated": 2543287296,
-      "currentBytesAllocated": 2524609536,
-      "totalBytesRequested": 4037366016,
-      "peakBytesRequested": 2535383296,
+      "allocations": 10665,
+      "reuses": 1961,
+      "totalBytesAllocated": 2766688000,
+      "peakBytesAllocated": 2513115904,
+      "currentBytesAllocated": 2500888320,
+      "totalBytesRequested": 2703639040,
+      "peakBytesRequested": 2499289344,
       "currentBytesRequested": 2488125696,
       "activeBuffers": 526,
       "pooledBuffers": 64,
       "budgetMaxBytes": 0,
       "budgetUtilization": 0,
-      "hitRate": "5.5%"
+      "hitRate": "15.5%"
     },
     "kvCache": {
       "theoretical": 109051904,
       "allocated": 109051904,
-      "used": 4286464,
-      "efficiency": 0.039306640625,
-      "seqLen": 161,
+      "used": 638976,
+      "efficiency": 0.005859375,
+      "seqLen": 24,
       "maxSeqLen": 4096,
       "layout": "contiguous",
       "kvDtype": "f16",
       "counters": {
         "updateCalls": 0,
         "gpuUpdateCalls": 0,
-        "recordedGpuUpdateCalls": 9490,
-        "tokensWritten": 20930
+        "recordedGpuUpdateCalls": 1170,
+        "tokensWritten": 3120
       }
     }
   },
@@ -2532,36 +2028,36 @@
     "hasSubgroupsF16": true,
     "hasF16": true,
     "hasTimestampQuery": true,
-    "maxBufferSize": 4294967292,
+    "maxBufferSize": 2147483648,
     "maxWorkgroupSize": 1024,
     "maxWorkgroupStorageSize": 65536,
     "adapterInfo": {
       "vendor": "amd",
       "architecture": "rdna-3",
-      "device": "radeon-8060s-graphics-radv-strix-halo-",
-      "description": "radv: Mesa 26.0.3-1ubuntu1"
+      "device": "0x1586",
+      "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
     },
-    "submitProbeMs": 0.7046970000000101
+    "submitProbeMs": 1.300000011920929
   },
   "pipeline": null,
   "mode": "bench",
   "workload": "inference",
   "request": {
-    "runtimeProfile": "profiles/translategemma-1b-savant-q4k-rdna3-throughput-probe",
+    "runtimeProfile": "profiles/production",
     "runtimeConfigUrl": null,
     "runtimeConfig": {
       "shared": {
         "debug": {
           "logOutput": {
-            "stdout": true,
+            "stdout": false,
             "file": null,
             "append": true
           },
           "logHistory": {
-            "maxLogHistoryEntries": 1000
+            "maxLogHistoryEntries": 100
           },
           "logLevel": {
-            "defaultLogLevel": "silent"
+            "defaultLogLevel": "error"
           },
           "trace": {
             "enabled": false,
@@ -2630,7 +2126,7 @@
           "run": {
             "promptName": "medium",
             "customPrompt": null,
-            "maxNewTokens": 96,
+            "maxNewTokens": 128,
             "seed": null,
             "runType": "warm",
             "warmupRuns": 2,
@@ -2680,7 +2176,7 @@
           }
         },
         "tooling": {
-          "intent": "calibrate",
+          "intent": "verify",
           "diagnostics": "on_failure",
           "converter": null
         },
@@ -3262,7 +2758,7 @@
       },
       "inference": {
         "batching": {
-          "maxTokens": 64
+          "maxTokens": 4096
         },
         "sampling": {
           "temperature": 0,
@@ -3273,7 +2769,8 @@
           "repetitionPenaltyWindow": 100,
           "suppressSpecialTokens": false,
           "suppressSpecialLikeTokens": false,
-          "suppressTokenIds": []
+          "suppressTokenIds": [],
+          "seed": 0
         },
         "compute": {},
         "tokenizer": {},
@@ -3342,7 +2839,7 @@
           "randomSeed": null
         },
         "generation": {
-          "maxTokens": 96,
+          "maxTokens": 32,
           "multimodalMaxTokens": 512,
           "disableMultiTokenDecode": false
         },
@@ -3361,7 +2858,7 @@
           "onIncompatible": "remap"
         },
         "chatTemplate": {
-          "enabled": null,
+          "enabled": true,
           "type": null,
           "thinking": false
         },
@@ -3437,7 +2934,7 @@
           "remove": [],
           "add": []
         },
-        "prompt": "En efecto, un 25% de afroamericanos, un 15% de personas que ganan menos de 35.000 dólares al año, un 18% de los ciudadanos de más de 65 años y un 20% de los electores de entre 18 y 29 años no cuentan con un documento de identidad con fotografía."
+        "prompt": "And that's not all."
       },
       "emulation": {
         "enabled": false,
@@ -3507,106 +3004,107 @@
     "workload": "inference",
     "suite": "bench",
     "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
-    "runtimeProfile": "profiles/translategemma-1b-savant-q4k-rdna3-throughput-probe",
+    "runtimeProfile": "profiles/production",
     "deviceInfo": {
       "hasSubgroups": true,
       "hasSubgroupsF16": true,
       "hasF16": true,
       "hasTimestampQuery": true,
-      "maxBufferSize": 4294967292,
+      "maxBufferSize": 2147483648,
       "maxWorkgroupSize": 1024,
       "maxWorkgroupStorageSize": 65536,
       "adapterInfo": {
         "vendor": "amd",
         "architecture": "rdna-3",
-        "device": "radeon-8060s-graphics-radv-strix-halo-",
-        "description": "radv: Mesa 26.0.3-1ubuntu1"
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
       },
-      "submitProbeMs": 0.7046970000000101
+      "submitProbeMs": 1.300000011920929
     },
     "results": [
       {
         "name": "benchmark",
         "passed": true,
-        "duration": 6954.147888999999
+        "duration": 779.4000000357628
       }
     ],
-    "durationMs": 13644.499273000001,
-    "timestamp": "2026-07-11T01:30:03.810Z",
+    "durationMs": 131047.80000001192,
+    "timestamp": "2026-07-11T11:56:28.166Z",
     "metrics": {
       "warmupRuns": 2,
       "timedRuns": 3,
-      "prompt": "En efecto, un 25% de afroamericanos, un 15% de personas que ganan menos de 35.000 dólares al año, un 18% de los ciudadanos de más de 65 años y un 20% de los electores de entre 18 y 29 años no cuentan con un documento de identidad con fotografía.",
-      "maxTokens": 96,
-      "decodeTokensPerSec": 36.36,
-      "avgTokensGenerated": 70,
-      "avgPrefillTokens": 89,
-      "avgDecodeTokens": 70,
-      "medianPrefillTokensPerSec": 224.14,
-      "avgPrefillTokensPerSec": 224.37,
-      "medianPrefillTokensPerSecTtft": 223.35,
-      "avgPrefillTokensPerSecTtft": 223.61,
-      "avgDecodeTokensPerSec": 36.46,
-      "firstTokenMs": 398.48,
-      "firstResponseMs": 1850.55,
-      "prefillMs": 397.08,
-      "decodeMs": 1925.3,
-      "totalRunMs": 2320.97,
-      "decodeMsPerTokenP50": 27.5,
-      "decodeMsPerTokenP95": 27.58,
-      "decodeMsPerTokenP99": 27.58,
-      "avgPrefillMs": 396.66,
-      "wallRunMs": 2322.45,
-      "modelLoadMs": 1452.07,
+      "seed": 0,
+      "prompt": "And that's not all.",
+      "maxTokens": 32,
+      "decodeTokensPerSec": 39.47,
+      "avgTokensGenerated": 6,
+      "avgPrefillTokens": 16,
+      "avgDecodeTokens": 6,
+      "medianPrefillTokensPerSec": 157.48,
+      "avgPrefillTokensPerSec": 159.81,
+      "medianPrefillTokensPerSecTtft": 150.8,
+      "avgPrefillTokensPerSecTtft": 152.13,
+      "avgDecodeTokensPerSec": 38.91,
+      "firstTokenMs": 106.1,
+      "firstResponseMs": 129505.3,
+      "prefillMs": 101.6,
+      "decodeMs": 152,
+      "totalRunMs": 251.5,
+      "decodeMsPerTokenP50": 25.33,
+      "decodeMsPerTokenP95": 26.7,
+      "decodeMsPerTokenP99": 26.82,
+      "avgPrefillMs": 100.2,
+      "wallRunMs": 256.2,
+      "modelLoadMs": 129399.2,
       "throughput": {
         "tokensPerSec": {
-          "mean": 30.198592953268683,
-          "median": 30.140568411782493,
-          "min": 30.045196835080862,
-          "max": 30.410013612942688,
-          "p95": 30.38306909282667,
-          "p99": 30.404624708919485,
-          "stdDev": 0.18920347754040617,
-          "ci95": 0.32771003606870047,
+          "mean": 23.117112556654718,
+          "median": 23.41920374816229,
+          "min": 22.132054590454928,
+          "max": 23.800079331346936,
+          "p95": 23.76199177302847,
+          "p99": 23.792461819683243,
+          "stdDev": 0.8740829194343126,
+          "ci95": 1.5139560264883631,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "prefillTokensPerSec": {
-          "mean": 224.37320300503214,
-          "median": 224.13594303290276,
-          "min": 224.0495925163489,
-          "max": 224.93407346584476,
-          "p95": 224.85426042255057,
-          "p99": 224.91811085718592,
-          "stdDev": 0.48764316696371635,
-          "ci95": 0.8446227411449497,
+          "mean": 159.80711479858448,
+          "median": 157.48031501606235,
+          "min": 155.79357353317627,
+          "max": 166.14745584651473,
+          "p95": 165.28074176346948,
+          "p99": 165.97411302990568,
+          "stdDev": 5.555287360755915,
+          "ci95": 9.62203995947446,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "prefillTokensPerSecTtft": {
-          "mean": 223.6140952479526,
-          "median": 223.34797184382123,
-          "min": 223.2797750297212,
-          "max": 224.2145388703154,
-          "p95": 224.127882167666,
-          "p99": 224.19720752978552,
-          "stdDev": 0.5211162145725877,
-          "ci95": 0.902599760287687,
+          "mean": 152.12934272847784,
+          "median": 150.80113097459585,
+          "min": 145.5868972108377,
+          "max": 160,
+          "p95": 159.0801130974596,
+          "p99": 159.81602261949192,
+          "stdDev": 7.2977731432336475,
+          "ci95": 12.640113866192303,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "decodeTokensPerSec": {
-          "mean": 36.46363584794806,
-          "median": 36.3579241087961,
-          "min": 36.25155985477465,
-          "max": 36.78142358027345,
-          "p95": 36.73907363312571,
-          "p99": 36.7729535908439,
-          "stdDev": 0.2803036224271224,
-          "ci95": 0.48550011558937906,
+          "mean": 38.91477217008072,
+          "median": 39.473684210526315,
+          "min": 37.243947852961114,
+          "max": 40.02668444675473,
+          "p95": 39.97138442313189,
+          "p99": 40.01562444203016,
+          "stdDev": 1.4731574048029685,
+          "ci95": 2.5515834726650533,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
@@ -3614,66 +3112,66 @@
       },
       "latency": {
         "totalMs": {
-          "mean": 2316.4579516666677,
-          "median": 2320.97393,
-          "min": 2300.215049000002,
-          "max": 2328.1848760000003,
-          "p95": 2327.4637814000002,
-          "p99": 2328.04065708,
-          "stdDev": 14.521478947848335,
-          "ci95": 25.151939338715163,
+          "mean": 254.5333333412806,
+          "median": 251.5,
+          "min": 248.30000001192093,
+          "max": 263.80000001192093,
+          "p95": 262.57000001072885,
+          "p99": 263.5540000116825,
+          "stdDev": 8.18311269441485,
+          "ci95": 14.173566950788373,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "wallRunMs": {
-          "mean": 2318.049296333333,
-          "median": 2322.4512240000004,
-          "min": 2301.873352999999,
-          "max": 2329.8233119999995,
-          "p95": 2329.0861032,
-          "p99": 2329.6758702399998,
-          "stdDev": 14.485605869702376,
-          "ci95": 25.089805344742473,
+          "mean": 259.80000001192093,
+          "median": 256.19999998807907,
+          "min": 252.10000002384186,
+          "max": 271.10000002384186,
+          "p95": 269.6100000202656,
+          "p99": 270.8020000231266,
+          "stdDev": 9.99849989392139,
+          "ci95": 17.317909815743874,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "prefillMs": {
-          "mean": 396.66180600000007,
-          "median": 397.0804450000014,
-          "min": 395.6714899999988,
-          "max": 397.233483,
-          "p95": 397.2181792000001,
-          "p99": 397.23042224,
-          "stdDev": 0.8610455808229655,
-          "ci95": 1.4913746936180303,
+          "mean": 100.19999998807907,
+          "median": 101.59999996423721,
+          "min": 96.30000001192093,
+          "max": 102.69999998807907,
+          "p95": 102.58999998569489,
+          "p99": 102.67799998760223,
+          "stdDev": 3.421987707990511,
+          "ci95": 5.9270565731157365,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "decodeMs": {
-          "mean": 1919.7961456666674,
-          "median": 1925.3024400000013,
-          "min": 1903.1346040000008,
-          "max": 1930.9513930000003,
-          "p95": 1930.3864977000003,
-          "p99": 1930.8384139400002,
-          "stdDev": 14.703159372447878,
-          "ci95": 25.466619064862254,
+          "mean": 154.33333335320154,
+          "median": 152,
+          "min": 149.9000000357628,
+          "max": 161.10000002384186,
+          "p95": 160.19000002145768,
+          "p99": 160.918000023365,
+          "stdDev": 5.953430383914377,
+          "ci95": 10.311643904263988,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "firstTokenMs": {
-          "mean": 398.00854999999956,
-          "median": 398.4813439999998,
-          "min": 396.94125299999905,
-          "max": 398.6030529999998,
-          "p95": 398.5908820999998,
-          "p99": 398.6006188199998,
-          "stdDev": 0.926307419179947,
-          "ci95": 1.6044115134476697,
+          "mean": 105.33333333333333,
+          "median": 106.10000002384186,
+          "min": 100,
+          "max": 109.89999997615814,
+          "p95": 109.51999998092651,
+          "p99": 109.82399997711181,
+          "stdDev": 4.994330109507608,
+          "ci95": 8.650433499438213,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
@@ -3681,12 +3179,12 @@
       },
       "tokens": {
         "generated": {
-          "mean": 70,
-          "median": 70,
-          "min": 70,
-          "max": 70,
-          "p95": 70,
-          "p99": 70,
+          "mean": 6,
+          "median": 6,
+          "min": 6,
+          "max": 6,
+          "p95": 6,
+          "p99": 6,
           "stdDev": 0,
           "ci95": 0,
           "samples": 3,
@@ -3694,12 +3192,12 @@
           "outliersRemoved": 0
         },
         "prefill": {
-          "mean": 89,
-          "median": 89,
-          "min": 89,
-          "max": 89,
-          "p95": 89,
-          "p99": 89,
+          "mean": 16,
+          "median": 16,
+          "min": 16,
+          "max": 16,
+          "p95": 16,
+          "p99": 16,
           "stdDev": 0,
           "ci95": 0,
           "samples": 3,
@@ -3707,12 +3205,12 @@
           "outliersRemoved": 0
         },
         "decode": {
-          "mean": 70,
-          "median": 70,
-          "min": 70,
-          "max": 70,
-          "p95": 70,
-          "p99": 70,
+          "mean": 6,
+          "median": 6,
+          "min": 6,
+          "max": 6,
+          "p95": 6,
+          "p99": 6,
           "stdDev": 0,
           "ci95": 0,
           "samples": 3,
@@ -3748,25 +3246,25 @@
           "outliersRemoved": 0
         },
         "decodeRecordMs": {
-          "mean": 697.1763980000018,
-          "median": 689.845728000002,
-          "min": 683.1730060000045,
-          "max": 718.5104599999986,
-          "p95": 715.643986799999,
-          "p99": 717.9371653599986,
-          "stdDev": 18.774662601152,
-          "ci95": 32.518669520158525,
+          "mean": 45.59999998410543,
+          "median": 43.80000001192093,
+          "min": 41.19999998807907,
+          "max": 51.799999952316284,
+          "p95": 50.999999958276746,
+          "p99": 51.63999995350838,
+          "stdDev": 5.524490902821307,
+          "ci95": 9.568698929638561,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "decodeRecordOps": {
-          "mean": 15480,
-          "median": 15480,
-          "min": 15480,
-          "max": 15480,
-          "p95": 15480,
-          "p99": 15480,
+          "mean": 1720,
+          "median": 1720,
+          "min": 1720,
+          "max": 1720,
+          "p95": 1720,
+          "p99": 1720,
           "stdDev": 0,
           "ci95": 0,
           "samples": 3,
@@ -3774,12 +3272,12 @@
           "outliersRemoved": 0
         },
         "decodeRecordPasses": {
-          "mean": 18,
-          "median": 18,
-          "min": 18,
-          "max": 18,
-          "p95": 18,
-          "p99": 18,
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "p95": 2,
+          "p99": 2,
           "stdDev": 0,
           "ci95": 0,
           "samples": 3,
@@ -3787,27 +3285,27 @@
           "outliersRemoved": 0
         },
         "decodeRecordMsPerOp": {
-          "mean": 0.04503723501292001,
-          "median": 0.04456367751937998,
-          "min": 0.04413262312661528,
-          "max": 0.046415404392764766,
-          "p95": 0.04623023170542628,
-          "p99": 0.04637836985529707,
-          "stdDev": 0.0012128335013664082,
-          "ci95": 0.0021006892454882766,
+          "mean": 0.02651162789773571,
+          "median": 0.02546511628600054,
+          "min": 0.02395348836516225,
+          "max": 0.03011627904204435,
+          "p95": 0.02965116276643997,
+          "p99": 0.030023255786923473,
+          "stdDev": 0.003211913315593783,
+          "ci95": 0.005563197052115443,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "decodeRecordMsPerPass": {
-          "mean": 38.732022111111206,
-          "median": 38.32476266666678,
-          "min": 37.954055888889144,
-          "max": 39.9172477777777,
-          "p95": 39.75799926666661,
-          "p99": 39.885398075555486,
-          "stdDev": 1.0430368111751123,
-          "ci95": 1.80659275111992,
+          "mean": 22.799999992052715,
+          "median": 21.900000005960464,
+          "min": 20.599999994039536,
+          "max": 25.899999976158142,
+          "p95": 25.499999979138373,
+          "p99": 25.81999997675419,
+          "stdDev": 2.7622454514106534,
+          "ci95": 4.784349464819281,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
@@ -3826,14 +3324,14 @@
           "outliersRemoved": 0
         },
         "decodeRecordMsPerExecutedBatchToken": {
-          "mean": 9.683005527777802,
-          "median": 9.581190666666695,
-          "min": 9.488513972222286,
-          "max": 9.979311944444426,
-          "p95": 9.939499816666652,
-          "p99": 9.971349518888871,
-          "stdDev": 0.26075920279377807,
-          "ci95": 0.45164818777998,
+          "mean": 5.699999998013179,
+          "median": 5.475000001490116,
+          "min": 5.149999998509884,
+          "max": 6.4749999940395355,
+          "p95": 6.374999994784593,
+          "p99": 6.454999994188547,
+          "stdDev": 0.6905613628526633,
+          "ci95": 1.1960873662048201,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
@@ -3868,274 +3366,274 @@
         "decodeRecordTopOps": [
           {
             "label": "attention",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "fused_ffn",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_ffn_next_input_norm",
-            "count": 1800,
+            "count": 200,
             "shareOfOps": 0.11627906976744186
           },
           {
             "label": "argmax_phase1",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "argmax_phase2",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "gather",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L0",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L1",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L10",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L11",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L12",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L13",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L14",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L15",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L16",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L17",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L18",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:ffn_down:L19",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           }
         ],
         "decodeRecordTopOpGroups": [
           {
             "label": "attention",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "fused_ffn",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "matmul:ffn_down",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "matmul:o_proj",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "matmul:qkv_proj",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
-            "count": 1872,
+            "count": 208,
             "shareOfOps": 0.12093023255813953
           },
           {
             "label": "rmsnorm_pair:post_ffn_next_input_norm",
-            "count": 1800,
+            "count": 200,
             "shareOfOps": 0.11627906976744186
           },
           {
             "label": "argmax_phase1",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "argmax_phase2",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "gather",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "matmul:lm_head",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "rmsnorm:final_norm",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "rmsnorm:input_norm",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "rmsnorm:post_ffn_norm",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           },
           {
             "label": "scale",
-            "count": 72,
+            "count": 8,
             "shareOfOps": 0.004651162790697674
           }
         ],
         "decodeSubmitWaitMs": {
-          "mean": 1196.4935926666674,
-          "median": 1195.5751990000044,
-          "min": 1184.8860489999997,
-          "max": 1209.0195299999978,
-          "p95": 1207.6750968999984,
-          "p99": 1208.7506433799979,
-          "stdDev": 12.092924025625123,
-          "ci95": 20.945558824453073,
+          "mean": 107.2333333293597,
+          "median": 107.19999998807907,
+          "min": 106.89999997615814,
+          "max": 107.60000002384186,
+          "p95": 107.56000002026558,
+          "p99": 107.5920000231266,
+          "stdDev": 0.3511884827553415,
+          "ci95": 0.608276295165278,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "decodeReadbackWaitMs": {
-          "mean": 1186.4544516666658,
-          "median": 1182.567551999995,
-          "min": 1175.1069249999982,
-          "max": 1201.6888780000045,
-          "p95": 1199.7767454000036,
-          "p99": 1201.3064514800044,
-          "stdDev": 13.710618078252717,
-          "ci95": 23.747487114706068,
+          "mean": 108.16666664679845,
+          "median": 108.19999998807907,
+          "min": 107.69999998807907,
+          "max": 108.59999996423721,
+          "p95": 108.5599999666214,
+          "p99": 108.59199996471405,
+          "stdDev": 0.45092496382642394,
+          "ci95": 0.7810249477485245,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "decodeReadbackMapWaitMs": {
-          "mean": 1167.0396303333355,
-          "median": 1162.945727000004,
-          "min": 1155.9113079999997,
-          "max": 1182.2618560000028,
-          "p95": 1180.330243100003,
-          "p99": 1181.8755334200027,
-          "stdDev": 13.643968570475163,
-          "ci95": 23.632046780935887,
+          "mean": 107.13333330551784,
+          "median": 107.09999996423721,
+          "min": 106.89999997615814,
+          "max": 107.39999997615814,
+          "p95": 107.36999997496605,
+          "p99": 107.39399997591973,
+          "stdDev": 0.2516611486318412,
+          "ci95": 0.43588989572149184,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "decodeReadbackCleanupMs": {
-          "mean": 18.067270666667355,
-          "median": 18.104810999997426,
-          "min": 17.877432000002045,
-          "max": 18.219569000002593,
-          "p95": 18.208093200002075,
-          "p99": 18.21727384000249,
-          "stdDev": 0.17413037977975987,
-          "ci95": 0.3016026649198084,
+          "mean": 0.9000000357627869,
+          "median": 0.9000000357627869,
+          "min": 0.800000011920929,
+          "max": 1.0000000596046448,
+          "p95": 0.990000057220459,
+          "p99": 0.9980000591278076,
+          "stdDev": 0.10000002384185791,
+          "ci95": 0.17320512205219699,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "decodeReadbackCopyMs": {
-          "mean": 0.7690389999994901,
-          "median": 0.767054999996617,
-          "min": 0.7654999999995198,
-          "max": 0.7745620000023337,
-          "p95": 0.773811300001762,
-          "p99": 0.7744118600022193,
-          "stdDev": 0.004845838732489992,
-          "ci95": 0.008393238889957836,
+          "mean": 0.06666664282480876,
+          "median": 0.09999996423721313,
+          "min": 0,
+          "max": 0.09999996423721313,
+          "p95": 0.09999996423721313,
+          "p99": 0.09999996423721313,
+          "stdDev": 0.05773500627130796,
+          "ci95": 0.09999996423721316,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "decodeOrchestrationMs": {
-          "mean": 26.12615499999841,
-          "median": 26.437182000001485,
-          "min": 24.386398999991798,
-          "max": 27.554884000001948,
-          "p95": 27.443113800001903,
-          "p99": 27.532529960001938,
-          "stdDev": 1.6069777984995672,
-          "ci95": 2.7833671936364324,
+          "mean": 0.5666667222976685,
+          "median": 0.5000000596046448,
+          "min": 0.5,
+          "max": 0.7000001072883606,
+          "p95": 0.680000102519989,
+          "p99": 0.6960001063346863,
+          "stdDev": 0.11547009857451401,
+          "ci95": 0.20000007748604487,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "prefillRecordMs": {
-          "mean": 21.652902333335685,
-          "median": 21.979138999999122,
-          "min": 19.951811000006273,
-          "max": 23.027757000001657,
-          "p95": 22.922895200001403,
-          "p99": 23.006784640001605,
-          "stdDev": 1.563708323418614,
-          "ci95": 2.7084222643793856,
+          "mean": 13.833333313465118,
+          "median": 14.400000035762787,
+          "min": 11.499999940395355,
+          "max": 15.599999964237213,
+          "p95": 15.47999997138977,
+          "p99": 15.575999965667725,
+          "stdDev": 2.1079215899780275,
+          "ci95": 3.651027292213314,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
@@ -4347,26 +3845,26 @@
           }
         ],
         "prefillSubmitWaitMs": {
-          "mean": 329.71843533333384,
-          "median": 330.0267299999996,
-          "min": 328.7234949999993,
-          "max": 330.4050810000026,
-          "p95": 330.36724590000233,
-          "p99": 330.39751398000254,
-          "stdDev": 0.8821661237956943,
-          "ci95": 1.5279565471302385,
+          "mean": 61.800000051657356,
+          "median": 62.500000059604645,
+          "min": 60.20000010728836,
+          "max": 62.69999998807907,
+          "p95": 62.679999995231626,
+          "p99": 62.69599998950958,
+          "stdDev": 1.3892443483178334,
+          "ci95": 2.4062417954144024,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
         },
         "uniformCache": {
-          "hits": 78567,
-          "misses": 173,
-          "totalLookups": 78740,
-          "hitRateRatio": 0.9978028956057912,
-          "hitRate": "99.8%",
+          "hits": 10215,
+          "misses": 45,
+          "totalLookups": 10260,
+          "hitRateRatio": 0.9956140350877193,
+          "hitRate": "99.6%",
           "evictions": 0,
-          "currentSize": 173,
+          "currentSize": 45,
           "pendingDestruction": 0
         },
         "singleTokenSubmitWaitMs": {
@@ -4450,12 +3948,12 @@
       },
       "batching": {
         "batchedForwardCalls": {
-          "mean": 18,
-          "median": 18,
-          "min": 18,
-          "max": 18,
-          "p95": 18,
-          "p99": 18,
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "p95": 2,
+          "p99": 2,
           "stdDev": 0,
           "ci95": 0,
           "samples": 3,
@@ -4476,14 +3974,14 @@
           "outliersRemoved": 0
         },
         "totalBatchedTimeMs": {
-          "mean": 1917.7461933333334,
-          "median": 1923.3693889999977,
-          "min": 1901.2491910000008,
-          "max": 1928.6200000000017,
-          "p95": 1928.0949389000014,
-          "p99": 1928.5149877800015,
-          "stdDev": 14.526029858768252,
-          "ci95": 25.15982174764918,
+          "mean": 154.0333333015442,
+          "median": 151.69999992847443,
+          "min": 149.69999998807907,
+          "max": 160.69999998807907,
+          "p95": 159.7999999821186,
+          "p99": 160.51999998688697,
+          "stdDev": 5.859465288950079,
+          "ci95": 10.148891585647789,
           "samples": 3,
           "samplesAfterOutlierRemoval": 3,
           "outliersRemoved": 0
@@ -4502,12 +4000,12 @@
           "outliersRemoved": 0
         },
         "gpuSubmissions": {
-          "mean": 18,
-          "median": 18,
-          "min": 18,
-          "max": 18,
-          "p95": 18,
-          "p99": 18,
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "p95": 2,
+          "p99": 2,
           "stdDev": 0,
           "ci95": 0,
           "samples": 3,
@@ -4541,12 +4039,12 @@
           "outliersRemoved": 0
         },
         "executedBatchTokens": {
-          "mean": 72,
-          "median": 72,
-          "min": 72,
-          "max": 72,
-          "p95": 72,
-          "p99": 72,
+          "mean": 8,
+          "median": 8,
+          "min": 8,
+          "max": 8,
+          "p95": 8,
+          "p99": 8,
           "stdDev": 0,
           "ci95": 0,
           "samples": 3,
@@ -4554,12 +4052,12 @@
           "outliersRemoved": 0
         },
         "resolvedBatchTokens": {
-          "mean": 70,
-          "median": 70,
-          "min": 70,
-          "max": 70,
-          "p95": 70,
-          "p99": 70,
+          "mean": 6,
+          "median": 6,
+          "min": 6,
+          "max": 6,
+          "p95": 6,
+          "p99": 6,
           "stdDev": 0,
           "ci95": 0,
           "samples": 3,
@@ -4671,615 +4169,101 @@
         "finalActivePlanId": null,
         "transitions": []
       },
-      "generatedText": "In fact, 25% of African Americans, 15% of people earning less than $35,000 a year, 18% of citizens over 65 years old, and 20% of voters between 18 and 29 years old do not have an identity document with a photograph.",
+      "generatedText": "Y eso no es todo.",
       "referenceTranscript": {
         "schema": "doppler.reference-transcript/v1",
         "source": {
           "kind": "inline-browser-suite",
           "path": "inline",
-          "hash": "sha256:c1436a83913f26e10aa9742132f4e0828589a275c46c313be254cd653b969451"
+          "hash": "sha256:deeb865c21d26def37e36fe7d0e73994c10fd6416b1c2c6e216b8afbccc260db"
         },
         "executionGraphHash": "sha256:a69a106314d69ad74fbce80d3bbfc6e45ebe7a7b90f4dad61be287eaf154b3d3",
         "surface": "browser-webgpu",
         "prompt": {
-          "identity": "En efecto, un 25% de afroamericanos, un 15% de personas que ganan menos de 35.000 dólares al año, un 18% de los ciudadanos de más de 65 años y un 20% de los electores de entre 18 y 29 años no cuentan con un documento de identidad con fotografía.",
-          "hash": "sha256:6741cbc12770c4b9697ab375d55f27d6caad9bbbb211e0e8b48668c7f9350cdf",
-          "tokenIdsHash": "sha256:fb43a80c095f6b61b7d03f94b76c378429c6bdc25db2bb37f54ed002b10d76a0",
-          "tokenCount": 89
+          "identity": "And that's not all.",
+          "hash": "sha256:d916d06a23b1b82fdeed618e375f10e649b85ddd8cebf660eb33a50541531eef",
+          "tokenIdsHash": "sha256:09b726ee2494cb17b5e1635a4b12a1867699cd5adfc6679dbe0a16b747b4f7d7",
+          "tokenCount": 16
         },
         "output": {
-          "textHash": "sha256:bfb9d72eeab7b9efb89a306c17f9c4590ff7f1bc6cc18dc468d893a08130dd8c",
-          "tokensGenerated": 70,
+          "textHash": "sha256:ba234f4dcc8a2bb2cf48aa99c1a8e15d0083e718974a5442cb928e4971e2a885",
+          "tokensGenerated": 6,
           "stopReason": "stop-token",
           "stopTokenId": 106
         },
         "tokens": {
           "ids": [
-            902,
-            1707,
-            236764,
-            236743,
-            236778,
-            236810,
-            236908,
-            529,
-            9992,
-            14522,
-            236764,
-            236743,
-            236770,
-            236810,
-            236908,
-            529,
-            1331,
-            28920,
-            2344,
-            1082,
-            609,
-            236800,
-            236810,
-            236764,
-            236771,
-            236771,
-            236771,
-            496,
-            1051,
-            236764,
-            236743,
-            236770,
-            236828,
-            236908,
-            529,
-            11838,
-            1024,
-            236743,
-            236825,
-            236810,
-            1518,
-            2255,
-            236764,
-            532,
-            236743,
-            236778,
-            236771,
-            236908,
-            529,
-            22339,
-            1534,
-            236743,
-            236770,
-            236828,
-            532,
-            236743,
-            236778,
-            236819,
-            1518,
-            2255,
-            776,
-            711,
-            735,
-            614,
-            9834,
-            2354,
-            607,
-            496,
-            10807,
+            236874,
+            17475,
+            951,
+            1115,
+            7914,
             236761
           ],
-          "generatedTokenIdsHash": "sha256:5dc51fc3b14f19bd15a5a5b044c486804a90f2c2cf102dce075e2ee18716c97e",
-          "generatedTextHash": "sha256:bfb9d72eeab7b9efb89a306c17f9c4590ff7f1bc6cc18dc468d893a08130dd8c",
+          "generatedTokenIdsHash": "sha256:a28ace811a8bc937b278aac5261ea7b33c17473f226f7a63430f47c50601d9e9",
+          "generatedTextHash": "sha256:ba234f4dcc8a2bb2cf48aa99c1a8e15d0083e718974a5442cb928e4971e2a885",
           "preview": [
             {
-              "id": 902,
-              "text": "In",
-              "fallbackText": "In"
+              "id": 236874,
+              "text": "Y",
+              "fallbackText": "Y"
             },
             {
-              "id": 1707,
-              "text": " fact",
-              "fallbackText": " fact"
+              "id": 17475,
+              "text": " eso",
+              "fallbackText": " eso"
             },
             {
-              "id": 236764,
-              "text": ",",
-              "fallbackText": ","
+              "id": 951,
+              "text": " no",
+              "fallbackText": " no"
             },
             {
-              "id": 236743,
-              "text": " ",
-              "fallbackText": " "
+              "id": 1115,
+              "text": " es",
+              "fallbackText": " es"
             },
             {
-              "id": 236778,
-              "text": "2",
-              "fallbackText": "2"
+              "id": 7914,
+              "text": " todo",
+              "fallbackText": " todo"
             },
             {
-              "id": 236810,
-              "text": "5",
-              "fallbackText": "5"
-            },
-            {
-              "id": 236908,
-              "text": "%",
-              "fallbackText": "%"
-            },
-            {
-              "id": 529,
-              "text": " of",
-              "fallbackText": " of"
-            },
-            {
-              "id": 9992,
-              "text": " African",
-              "fallbackText": " African"
-            },
-            {
-              "id": 14522,
-              "text": " Americans",
-              "fallbackText": " Americans"
-            },
-            {
-              "id": 236764,
-              "text": ",",
-              "fallbackText": ","
-            },
-            {
-              "id": 236743,
-              "text": " ",
-              "fallbackText": " "
-            },
-            {
-              "id": 236770,
-              "text": "1",
-              "fallbackText": "1"
-            },
-            {
-              "id": 236810,
-              "text": "5",
-              "fallbackText": "5"
-            },
-            {
-              "id": 236908,
-              "text": "%",
-              "fallbackText": "%"
-            },
-            {
-              "id": 529,
-              "text": " of",
-              "fallbackText": " of"
-            },
-            {
-              "id": 1331,
-              "text": " people",
-              "fallbackText": " people"
-            },
-            {
-              "id": 28920,
-              "text": " earning",
-              "fallbackText": " earning"
-            },
-            {
-              "id": 2344,
-              "text": " less",
-              "fallbackText": " less"
-            },
-            {
-              "id": 1082,
-              "text": " than",
-              "fallbackText": " than"
-            },
-            {
-              "id": 609,
-              "text": " $",
-              "fallbackText": " $"
-            },
-            {
-              "id": 236800,
-              "text": "3",
-              "fallbackText": "3"
-            },
-            {
-              "id": 236810,
-              "text": "5",
-              "fallbackText": "5"
-            },
-            {
-              "id": 236764,
-              "text": ",",
-              "fallbackText": ","
-            },
-            {
-              "id": 236771,
-              "text": "0",
-              "fallbackText": "0"
-            },
-            {
-              "id": 236771,
-              "text": "0",
-              "fallbackText": "0"
-            },
-            {
-              "id": 236771,
-              "text": "0",
-              "fallbackText": "0"
-            },
-            {
-              "id": 496,
-              "text": " a",
-              "fallbackText": " a"
-            },
-            {
-              "id": 1051,
-              "text": " year",
-              "fallbackText": " year"
-            },
-            {
-              "id": 236764,
-              "text": ",",
-              "fallbackText": ","
-            },
-            {
-              "id": 236743,
-              "text": " ",
-              "fallbackText": " "
-            },
-            {
-              "id": 236770,
-              "text": "1",
-              "fallbackText": "1"
+              "id": 236761,
+              "text": ".",
+              "fallbackText": "."
             }
           ],
           "perStep": [
             {
               "index": 0,
-              "tokenId": 902,
-              "tokenHash": "sha256:a00b1357f7f92d1e8f4bcbfb2b10871f7523980f872283ae8e94d51d5cbbf4fd"
+              "tokenId": 236874,
+              "tokenHash": "sha256:9ea5fe71514c1e70ce97ee192c8032cbe52422a7c51470033dbde3bf7724982e"
             },
             {
               "index": 1,
-              "tokenId": 1707,
-              "tokenHash": "sha256:9fe128b8619bbb3b61e2ab932c0dfb2ea467989a07476f3a820916fbb58cf717"
+              "tokenId": 17475,
+              "tokenHash": "sha256:2b665a8f1d768ff63373a5659392e087134630e3229c087a151e312609b54508"
             },
             {
               "index": 2,
-              "tokenId": 236764,
-              "tokenHash": "sha256:927df6b756679a9bc7570d946788a89f00a9d9a111cf87a4f62f1052d5922164"
+              "tokenId": 951,
+              "tokenHash": "sha256:8e7d98b1d864587c48497818a096955b074a4dc4da3cb74f6fd00a280ca572f4"
             },
             {
               "index": 3,
-              "tokenId": 236743,
-              "tokenHash": "sha256:71e779c2c36f3387b302bae19b5f3dfd6baf698070232db124037d080f8ce4fa"
+              "tokenId": 1115,
+              "tokenHash": "sha256:6494e5ecb9519b206e033891e77890b659347d5601d509502a9207b025503bb6"
             },
             {
               "index": 4,
-              "tokenId": 236778,
-              "tokenHash": "sha256:5de71d0e67b90e5b017a12bca8f705ec7a9377cad10aa93c50665effa8b0befd"
+              "tokenId": 7914,
+              "tokenHash": "sha256:67ed36125c5d6a1f6b5214690d3e0d6e9451299497ca8ff16d9a3f638dc2158f"
             },
             {
               "index": 5,
-              "tokenId": 236810,
-              "tokenHash": "sha256:afc86308f2133e2ba818b7b79ce6d7744e82fe690fb037457d20349363f36933"
-            },
-            {
-              "index": 6,
-              "tokenId": 236908,
-              "tokenHash": "sha256:2dccd644df02a998254475f7c5535a201c8e217c26f7674f2df4063891fa5531"
-            },
-            {
-              "index": 7,
-              "tokenId": 529,
-              "tokenHash": "sha256:919f46fee9b799bad9da56bb4c8ae537d73e1c25e0522f55bd21c6371e028d4c"
-            },
-            {
-              "index": 8,
-              "tokenId": 9992,
-              "tokenHash": "sha256:3e51ba7b0cd7c8332fc67023d6829642c42091ad02b7f78d0e0db37958b7281f"
-            },
-            {
-              "index": 9,
-              "tokenId": 14522,
-              "tokenHash": "sha256:36c128145075e4739d78f9dcd973adcf0e3e4dcb67180e566aaf12240cea9104"
-            },
-            {
-              "index": 10,
-              "tokenId": 236764,
-              "tokenHash": "sha256:7cfb60cadaeb3bf6c3922c9acc1e8ed8b8ec5caac0df9b57a1b3c06499e0dd6c"
-            },
-            {
-              "index": 11,
-              "tokenId": 236743,
-              "tokenHash": "sha256:56994d74829e69db04e03174dee6629dab1053c4f0ae261d2f533d3537b0fc65"
-            },
-            {
-              "index": 12,
-              "tokenId": 236770,
-              "tokenHash": "sha256:c2e51ef1b64a9903127887e21e636c228308d6eb61bb6c7145f62165a78d44b1"
-            },
-            {
-              "index": 13,
-              "tokenId": 236810,
-              "tokenHash": "sha256:c69f4e42f888920162cf5ea182436087baaac9509d62ffb2c5794edcc6d3ecfb"
-            },
-            {
-              "index": 14,
-              "tokenId": 236908,
-              "tokenHash": "sha256:a45fa7117aab0de5b050d85a9511b167cda86b840baa32b85d71c45496f58b0b"
-            },
-            {
-              "index": 15,
-              "tokenId": 529,
-              "tokenHash": "sha256:4b2d6e9586d005204330c2000ff27ecec8fe8cf07d7a618058b372d44f6ee717"
-            },
-            {
-              "index": 16,
-              "tokenId": 1331,
-              "tokenHash": "sha256:f76426c2e165283662d496b2028e26e9190d5251121ccb2145cfd7bfd9442f39"
-            },
-            {
-              "index": 17,
-              "tokenId": 28920,
-              "tokenHash": "sha256:0d366c5c035cc89436986bf89d9b4d6acdc64d0d53fdf0230d35d3fa9e279b3f"
-            },
-            {
-              "index": 18,
-              "tokenId": 2344,
-              "tokenHash": "sha256:24b85e4d6f4956bdb07f1a956cd3b9a6472b8771d6493655b6482d4ebff2d1ba"
-            },
-            {
-              "index": 19,
-              "tokenId": 1082,
-              "tokenHash": "sha256:27ababbf4fe99eb01b44e6e378a6e1aadcd50e96ad800a4156b8775f1339dfd0"
-            },
-            {
-              "index": 20,
-              "tokenId": 609,
-              "tokenHash": "sha256:d8860d3003f261179564346242247da6f72b0e446c9ab3ac53677668005cf0fd"
-            },
-            {
-              "index": 21,
-              "tokenId": 236800,
-              "tokenHash": "sha256:9be256ff94d8ad0712b4f98a1efdc9e516ebd02a908e084d54932de660ac0ba0"
-            },
-            {
-              "index": 22,
-              "tokenId": 236810,
-              "tokenHash": "sha256:428667e55cf1e7028bd924b7a0ee750af12789aecab59d338b79872a0fc257ad"
-            },
-            {
-              "index": 23,
-              "tokenId": 236764,
-              "tokenHash": "sha256:f6f001b25193aa42f88a0fc809c067c357c7b7d65f6d091bffb191972043c6de"
-            },
-            {
-              "index": 24,
-              "tokenId": 236771,
-              "tokenHash": "sha256:9f5605e5385604c8950cba51e11ed37a749998de01837b8e701787f80fe62a8b"
-            },
-            {
-              "index": 25,
-              "tokenId": 236771,
-              "tokenHash": "sha256:edac221c0ea9a2a64811e1f1e967fd339c45a6bdae509cc541632ff5d785f5f2"
-            },
-            {
-              "index": 26,
-              "tokenId": 236771,
-              "tokenHash": "sha256:51efeb38344651f73336a9cce7681b6ae987d04cabb3cf2897528c4d4362962f"
-            },
-            {
-              "index": 27,
-              "tokenId": 496,
-              "tokenHash": "sha256:858b71ad89cdd33d6fe0d276af4a8ffe0ce38e0e2e6190ac97658266bd4eb46d"
-            },
-            {
-              "index": 28,
-              "tokenId": 1051,
-              "tokenHash": "sha256:4aed6a2855336fe2b34a57b263148c4e62944c4630458bb878fe286d8bf359f2"
-            },
-            {
-              "index": 29,
-              "tokenId": 236764,
-              "tokenHash": "sha256:fb13b5391c543307020a904c1eed5c1a687979c2db493a50644d1dc46d96bbf0"
-            },
-            {
-              "index": 30,
-              "tokenId": 236743,
-              "tokenHash": "sha256:84a30f1a244236f7fbcceb09fc78dd328ed0be10411ed657e6246686e62a76fc"
-            },
-            {
-              "index": 31,
-              "tokenId": 236770,
-              "tokenHash": "sha256:c739ec42727df9601e9332d4a99d43ac44fddc842ed3c2748a00d7a8ddfa4ee8"
-            },
-            {
-              "index": 32,
-              "tokenId": 236828,
-              "tokenHash": "sha256:40619a8f0d36bca16ae3af43928883ce62fab0ad191c702a508dc5cf1e6555c4"
-            },
-            {
-              "index": 33,
-              "tokenId": 236908,
-              "tokenHash": "sha256:e6606884eeb3c48b09633ee8c4dd640ce28f22c3c18908fca5753df8132732cf"
-            },
-            {
-              "index": 34,
-              "tokenId": 529,
-              "tokenHash": "sha256:accbc54690e6e0cf3878637154b70f844220bb4443990d4b53c66308255e631e"
-            },
-            {
-              "index": 35,
-              "tokenId": 11838,
-              "tokenHash": "sha256:fe5fb3393e2de8f1818f72ee1a31ecfc494b741dd7ac5683a0cb35309211e6fe"
-            },
-            {
-              "index": 36,
-              "tokenId": 1024,
-              "tokenHash": "sha256:49f07aa57a3b583241b1e427c9e3fd4e71bb7ca848065153a25371b8383ec62b"
-            },
-            {
-              "index": 37,
-              "tokenId": 236743,
-              "tokenHash": "sha256:6d20d06375fb9f1b6acd9c4636c2d9f77c6b5b4e95f03a17660e5deb1ecf81a3"
-            },
-            {
-              "index": 38,
-              "tokenId": 236825,
-              "tokenHash": "sha256:22238e1d351da5a3136755e52d556c50c1088c9b5a9f2b4cec453a88f7a75a23"
-            },
-            {
-              "index": 39,
-              "tokenId": 236810,
-              "tokenHash": "sha256:b0cca16958f91b5ace35e8b756cff6a367f9bb41943a65cd92368c7aa71a1f87"
-            },
-            {
-              "index": 40,
-              "tokenId": 1518,
-              "tokenHash": "sha256:2bb9b16cca4bc788533316344050629d945d305cdf77803aa734191aeff739a0"
-            },
-            {
-              "index": 41,
-              "tokenId": 2255,
-              "tokenHash": "sha256:5c2ce64e7bad5d9b976870e2cf5b886a4dec7c88be4d5d01810a9e8efb1c5cff"
-            },
-            {
-              "index": 42,
-              "tokenId": 236764,
-              "tokenHash": "sha256:7fcdef0e72c3460f5e4b5dea24463c2de5ec68e0e68f242ea54512e1e5324f39"
-            },
-            {
-              "index": 43,
-              "tokenId": 532,
-              "tokenHash": "sha256:ee432ad25ab3ceeab064ca65bd1a79764bba24e16f8d15cafde75d68990758cf"
-            },
-            {
-              "index": 44,
-              "tokenId": 236743,
-              "tokenHash": "sha256:879ba390cb81fbca9c8445ea1dcf92ed6740294049b5e740ec777f8bea2f2448"
-            },
-            {
-              "index": 45,
-              "tokenId": 236778,
-              "tokenHash": "sha256:7b3a0b9f17e8a76e381275ede06ba30767676e30c59d2067cfb2d7bad9e56310"
-            },
-            {
-              "index": 46,
-              "tokenId": 236771,
-              "tokenHash": "sha256:fe55987fc4a5dab8540dfed98461d6d2451b54bc5aabe904e92efde3418c6a13"
-            },
-            {
-              "index": 47,
-              "tokenId": 236908,
-              "tokenHash": "sha256:02af1c789ecb9a9437797bd01a8de18a00b2c43383442b37db192e117311d5c3"
-            },
-            {
-              "index": 48,
-              "tokenId": 529,
-              "tokenHash": "sha256:90a7a270f88664f3584cbb901af14f5884c048a7d338f7e3d04068939d64efdd"
-            },
-            {
-              "index": 49,
-              "tokenId": 22339,
-              "tokenHash": "sha256:a9d8ed6d9f7404e7fd05596d99be8cf0e6b19f8e6bf57e3bbc1c4ce49dbed4ae"
-            },
-            {
-              "index": 50,
-              "tokenId": 1534,
-              "tokenHash": "sha256:9c5089b416a702b62cbe5cb980d3037336bb11e3fd2bb3b9eaaa76059206e33b"
-            },
-            {
-              "index": 51,
-              "tokenId": 236743,
-              "tokenHash": "sha256:e309acae3f8a7cc23a1720bfc32e3a28abdf49240a02bfec12a0a09c421d89fd"
-            },
-            {
-              "index": 52,
-              "tokenId": 236770,
-              "tokenHash": "sha256:1964dfaaf5116085b50c7fd436262f6615c6100cc818a05c3f57d57b3d22a882"
-            },
-            {
-              "index": 53,
-              "tokenId": 236828,
-              "tokenHash": "sha256:4dc8fe52f2918029a09085aae687fd75421dcb6d6bfa7e498cb52e3334c199d0"
-            },
-            {
-              "index": 54,
-              "tokenId": 532,
-              "tokenHash": "sha256:0c5cbcb10de38924563c5cf81880e59dba824f9eb4c1889a355f22ff1af10705"
-            },
-            {
-              "index": 55,
-              "tokenId": 236743,
-              "tokenHash": "sha256:c186c1d6a1be4786e9c893fafcc4d8910a5c378a7bfb5b9346b4acf26a23bdc8"
-            },
-            {
-              "index": 56,
-              "tokenId": 236778,
-              "tokenHash": "sha256:82dc6595f80c389efcb6e783e5a42e99931c022d3e8055515d482d32c3d31680"
-            },
-            {
-              "index": 57,
-              "tokenId": 236819,
-              "tokenHash": "sha256:07b0cb16cdffcad50af82ab86e811dd13de466cbd3974c391a6e6ecab852a139"
-            },
-            {
-              "index": 58,
-              "tokenId": 1518,
-              "tokenHash": "sha256:3faf87200d022d167253345de63c704f2cf844e938d18e22e48e947ec895e1ae"
-            },
-            {
-              "index": 59,
-              "tokenId": 2255,
-              "tokenHash": "sha256:909dad80695582376eda5ef386d1b5f26e091650f05a52b5271c7f6222f20226"
-            },
-            {
-              "index": 60,
-              "tokenId": 776,
-              "tokenHash": "sha256:43a6716c5c247eac30dc57132b5a2d6937a140d5bc20a96c03b0fe08ee03abd8"
-            },
-            {
-              "index": 61,
-              "tokenId": 711,
-              "tokenHash": "sha256:e916bd88a17aeff1d5f2de16b30d0fbf101c0af630c449a409f265b7d27be997"
-            },
-            {
-              "index": 62,
-              "tokenId": 735,
-              "tokenHash": "sha256:65fb357026c864842522405b88cef79a4d71fd6aae31db574864e4b3a809bc16"
-            },
-            {
-              "index": 63,
-              "tokenId": 614,
-              "tokenHash": "sha256:5bfe6baddef42ca0efcde65aec4eff7eb56b2f337f7cc1ef1e9006a6336d9325"
-            },
-            {
-              "index": 64,
-              "tokenId": 9834,
-              "tokenHash": "sha256:73067fb5a86ba21c4f6861ded4ae86297c7a2e4d641fc46f91b79192b2188bbe"
-            },
-            {
-              "index": 65,
-              "tokenId": 2354,
-              "tokenHash": "sha256:8c083aa94870e148d75387035d330c861c4354d8bb66e3636f6b916ac449f142"
-            },
-            {
-              "index": 66,
-              "tokenId": 607,
-              "tokenHash": "sha256:cc4bf2c3e469aba020ae8336c586c8234d7941698050d4c8ea9975406fdec028"
-            },
-            {
-              "index": 67,
-              "tokenId": 496,
-              "tokenHash": "sha256:e7c46e8bc803710998c93bc1704ecfda48487fb6dbc21aebedb40efb2f8c4efa"
-            },
-            {
-              "index": 68,
-              "tokenId": 10807,
-              "tokenHash": "sha256:7918765c1b64dc45dcb8c93684990ec2b33fe8af85bf9a7624f54370c247e094"
-            },
-            {
-              "index": 69,
               "tokenId": 236761,
-              "tokenHash": "sha256:42cff1958594d508871f3ee98f7088f8e3f39b3b15bf4a10ed7105f4f292941c"
+              "tokenHash": "sha256:8a10786af7f715f8f663794bd8a79858de46e3d78aee6be09c66dc7442611e98"
             }
           ],
           "coverage": {
@@ -5288,29 +4272,29 @@
           }
         },
         "phase": {
-          "prefillMs": 395.6714899999988,
-          "decodeMs": 1925.3024400000013,
-          "prefillTokens": 89,
-          "decodeTokens": 70
+          "prefillMs": 101.59999996423721,
+          "decodeMs": 149.9000000357628,
+          "prefillTokens": 16,
+          "decodeTokens": 6
         },
         "kvCache": {
           "mode": "stats",
           "layout": "contiguous",
           "kvDtype": "f16",
-          "seqLen": 161,
+          "seqLen": 24,
           "maxSeqLen": 4096,
-          "usedBytes": 4286464,
+          "usedBytes": 638976,
           "allocatedBytes": 109051904,
           "counters": {
             "updateCalls": 0,
             "gpuUpdateCalls": 0,
-            "recordedGpuUpdateCalls": 9490,
-            "tokensWritten": 20930
+            "recordedGpuUpdateCalls": 1170,
+            "tokensWritten": 3120
           },
           "byteDigestMode": null,
           "byteDigest": null,
           "byteDigests": null,
-          "stateHash": "sha256:7a14bf7f5b68c10f4701668429e2c717bd7e7ef8705381a820cef33fb8430c34"
+          "stateHash": "sha256:14fcf0a7fe84ba1c11de702739416d935ca6b7c7414699be369ec99e5ffcfe1d"
         },
         "logits": {
           "mode": "not-captured",
@@ -5323,150 +4307,150 @@
           "kvPolicy": "metadata hash only; KV tensor bytes are not read back by default"
         }
       },
-      "promptInput": "En efecto, un 25% de afroamericanos, un 15% de personas que ganan menos de 35.000 dólares al año, un 18% de los ciudadanos de más de 65 años y un 20% de los electores de entre 18 y 29 años no cuentan con un documento de identidad con fotografía.",
+      "promptInput": "And that's not all.",
       "decodeBottleneck": {
         "schemaVersion": 1,
         "source": "doppler",
         "dominant": {
           "id": "readback_map_wait",
           "label": "readback map wait",
-          "ms": 1162.95,
-          "shareOfDecode": 0.604
+          "ms": 107.1,
+          "shareOfDecode": 0.7046
         },
         "bottleneckClass": "submit-readback-wait",
-        "decodeWallMs": 1925.3,
+        "decodeWallMs": 152,
         "componentsMs": {
-          "commandRecordMs": 689.85,
-          "submitWaitMs": 1195.58,
-          "readbackWaitMs": 1182.57,
-          "effectiveSubmitReadbackWaitMs": 1195.58,
-          "readbackMapWaitMs": 1162.95,
-          "readbackCleanupMs": 18.1,
-          "readbackCopyMs": 0.77,
-          "readbackUnattributedMs": 13.76,
+          "commandRecordMs": 43.8,
+          "submitWaitMs": 107.2,
+          "readbackWaitMs": 108.2,
+          "effectiveSubmitReadbackWaitMs": 108.2,
+          "readbackMapWaitMs": 107.1,
+          "readbackCleanupMs": 0.9,
+          "readbackCopyMs": 0.1,
+          "readbackUnattributedMs": 0.1,
           "gpuTimestampMs": null,
           "submitReadbackSlackMs": null,
-          "orchestrationMs": 26.44,
-          "residualMs": 13.44
+          "orchestrationMs": 0.5,
+          "residualMs": 0
         },
         "recording": {
-          "opCount": 15480,
-          "passCount": 18,
+          "opCount": 1720,
+          "passCount": 2,
           "uniqueOpLabels": 91,
-          "msPerOp": 0.04,
-          "msPerPass": 38.32,
+          "msPerOp": 0.03,
+          "msPerPass": 21.9,
           "passesPerOp": 0,
-          "msPerExecutedBatchToken": 9.58,
+          "msPerExecutedBatchToken": 5.48,
           "opsPerExecutedBatchToken": 215,
           "passesPerExecutedBatchToken": 0.25,
           "topOps": [
             {
               "label": "attention",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "fused_ffn",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "rmsnorm_pair:post_ffn_next_input_norm",
-              "count": 1800,
+              "count": 200,
               "shareOfOps": 0.11627906976744186
             },
             {
               "label": "argmax_phase1",
-              "count": 72,
+              "count": 8,
               "shareOfOps": 0.004651162790697674
             },
             {
               "label": "argmax_phase2",
-              "count": 72,
+              "count": 8,
               "shareOfOps": 0.004651162790697674
             },
             {
               "label": "gather",
-              "count": 72,
+              "count": 8,
               "shareOfOps": 0.004651162790697674
             }
           ],
           "topOpGroups": [
             {
               "label": "attention",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "fused_ffn",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "matmul:ffn_down",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "matmul:o_proj",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "matmul:qkv_proj",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "rmsnorm_pair:post_attn_pre_ffn_norm",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
-              "count": 1872,
+              "count": 208,
               "shareOfOps": 0.12093023255813953
             },
             {
               "label": "rmsnorm_pair:post_ffn_next_input_norm",
-              "count": 1800,
+              "count": 200,
               "shareOfOps": 0.11627906976744186
             }
           ],
           "uniformCache": {
-            "hits": 78567,
-            "misses": 173,
-            "totalLookups": 78740,
-            "hitRateRatio": 0.9978028956057912,
+            "hits": 10215,
+            "misses": 45,
+            "totalLookups": 10260,
+            "hitRateRatio": 0.9956140350877193,
             "evictions": 0,
-            "currentSize": 173,
+            "currentSize": 45,
             "pendingDestruction": 0,
-            "hitRate": "99.8%"
+            "hitRate": "99.6%"
           }
         },
         "shares": {
-          "commandRecord": 0.3583,
-          "submitWait": 0.621,
-          "readbackWait": 0.6142,
-          "effectiveSubmitReadbackWait": 0.621,
-          "readbackMapWait": 0.604,
-          "readbackCleanup": 0.0094,
-          "readbackCopy": 0.0004,
-          "readbackUnattributed": 0.0071,
+          "commandRecord": 0.2882,
+          "submitWait": 0.7053,
+          "readbackWait": 0.7118,
+          "effectiveSubmitReadbackWait": 0.7118,
+          "readbackMapWait": 0.7046,
+          "readbackCleanup": 0.0059,
+          "readbackCopy": 0.0007,
+          "readbackUnattributed": 0.0007,
           "gpuTimestamp": null,
           "submitReadbackSlack": null,
-          "orchestration": 0.0137,
-          "residual": 0.007
+          "orchestration": 0.0033,
+          "residual": 0
         },
         "semantics": {
           "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
@@ -5488,7 +4472,7 @@
           "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
           "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
         },
-        "modelLoadMs": 1452.07,
+        "modelLoadMs": 129399.2,
         "loader": {
           "schemaVersion": 1,
           "source": "doppler-loader",
@@ -5500,23 +4484,23 @@
           "totalShards": 16,
           "bytesLoaded": 1025493248,
           "shardsLoaded": 16,
-          "bytesPerSecond": 2274237533,
+          "bytesPerSecond": 8209956,
           "phasesMs": {
-            "preflight": 1.4,
-            "tensorLocations": 1.38,
-            "embeddings": 168.77,
-            "layers": 277.97,
-            "finalWeights": 1.01,
-            "cleanup": 0.05
+            "preflight": 1.2,
+            "tensorLocations": 1.7,
+            "embeddings": 82821,
+            "layers": 41920.1,
+            "finalWeights": 163.9,
+            "cleanup": 0.1
           },
           "layers": {
             "count": 26,
-            "totalMs": 259.65,
-            "meanMs": 9.99,
-            "maxMs": 20.69,
-            "maxLayer": 0
+            "totalMs": 41849.2,
+            "meanMs": 1609.59,
+            "maxMs": 6369.9,
+            "maxLayer": 2
           },
-          "totalMs": 450.92,
+          "totalMs": 124908.5,
           "failedPhase": null,
           "error": null
         },
@@ -5526,14 +4510,14 @@
           "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
           "status": "complete",
           "phasesMs": {
-            "reset": 0.07,
-            "configResolution": 5.44,
-            "kernelWarmup": 0.05,
-            "tokenizer": 709.98,
-            "executionSetup": 6.79,
-            "loadWeights": 529.13,
-            "rope": 182.3,
-            "convStates": 0.82
+            "reset": 0.1,
+            "configResolution": 3.3,
+            "kernelWarmup": 0,
+            "tokenizer": 1070.9,
+            "executionSetup": 1.4,
+            "loadWeights": 127972.3,
+            "rope": 204.6,
+            "convStates": 1.1
           },
           "details": {
             "tokenizer": {
@@ -5547,24 +4531,24 @@
               "assetSource": "custom-loader",
               "cacheHit": false,
               "phasesMs": {
-                "configResolution": 0.04,
-                "cacheLookup": 0.05,
-                "backendCreate": 0.08,
-                "assetLoad": 319.94,
-                "assetParse": 0.23,
-                "backendLoad": 389.18,
-                "cacheStore": 0.01
+                "configResolution": 0.1,
+                "cacheLookup": 0,
+                "backendCreate": 0,
+                "assetLoad": 854.6,
+                "assetParse": 0.1,
+                "backendLoad": 215.9,
+                "cacheStore": 0
               },
-              "totalMs": 709.69,
+              "totalMs": 1070.7,
               "error": null
             }
           },
-          "totalMs": 1434.84
+          "totalMs": 129254
         },
         "residualsMs": {
-          "modelLoadMinusLoaderMs": 1001.15,
-          "modelLoadMinusPipelineMs": 17.23,
-          "pipelineMinusLoaderMs": 983.92
+          "modelLoadMinusLoaderMs": 4490.7,
+          "modelLoadMinusPipelineMs": 145.2,
+          "pipelineMinusLoaderMs": 4345.5
         },
         "consistent": {
           "loaderWithinModelLoad": true,
@@ -5677,43 +4661,43 @@
     },
     "output": null,
     "memory": {
-      "used": 2633661440,
+      "used": 2609940224,
       "pool": {
-        "allocations": 85139,
-        "reuses": 4927,
-        "totalBytesAllocated": 4272798720,
-        "peakBytesAllocated": 2543287296,
-        "currentBytesAllocated": 2524609536,
-        "totalBytesRequested": 4037366016,
-        "peakBytesRequested": 2535383296,
+        "allocations": 10665,
+        "reuses": 1961,
+        "totalBytesAllocated": 2766688000,
+        "peakBytesAllocated": 2513115904,
+        "currentBytesAllocated": 2500888320,
+        "totalBytesRequested": 2703639040,
+        "peakBytesRequested": 2499289344,
         "currentBytesRequested": 2488125696,
         "activeBuffers": 526,
         "pooledBuffers": 64,
         "budgetMaxBytes": 0,
         "budgetUtilization": 0,
-        "hitRate": "5.5%"
+        "hitRate": "15.5%"
       },
       "kvCache": {
         "theoretical": 109051904,
         "allocated": 109051904,
-        "used": 4286464,
-        "efficiency": 0.039306640625,
-        "seqLen": 161,
+        "used": 638976,
+        "efficiency": 0.005859375,
+        "seqLen": 24,
         "maxSeqLen": 4096,
         "layout": "contiguous",
         "kvDtype": "f16",
         "counters": {
           "updateCalls": 0,
           "gpuUpdateCalls": 0,
-          "recordedGpuUpdateCalls": 9490,
-          "tokensWritten": 20930
+          "recordedGpuUpdateCalls": 1170,
+          "tokensWritten": 3120
         }
       }
     },
     "debugSnapshot": null
   },
   "reportInfo": {
-    "backend": "node-fs",
-    "path": "reports/translategemma-4b-1b-enes-q4k-ehf16-af32/2026-07-11T01-30-03.810Z.json"
+    "backend": "opfs",
+    "path": "reports/translategemma-4b-1b-enes-q4k-ehf16-af32/2026-07-11T11-56-28.166Z.json"
   }
 }

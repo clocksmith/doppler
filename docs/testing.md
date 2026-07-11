@@ -7,8 +7,8 @@ This page is now a testing index.
 - How to run tests: [testing-runbook.md](testing-runbook.md)
 - Debug workflow: [debug-playbook.md](debug-playbook.md)
 - Kernel test design: [kernel-testing-design.md](kernel-testing-design.md)
-- Harness reference: [../tests/README.md](../tests/README.md)
-- Kernel coverage: [../tests/kernels/README.md](../tests/kernels/README.md)
+- Harness reference: [../tests/GUIDE.md](../tests/GUIDE.md)
+- Kernel coverage: [../tests/kernels/GUIDE.md](../tests/kernels/GUIDE.md)
 - Kernel baselines: [../tests/kernels/benchmarks.md](../tests/kernels/benchmarks.md)
 
 ## Inference matrix strategy

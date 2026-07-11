@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-05",
+  "updatedAt": "2026-07-11",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -403,6 +403,28 @@
         "kind": "runtime-report",
         "reportPath": "reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json",
         "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec"
+      }
+    },
+    {
+      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "mode": "translate",
+      "surface": [
+        "browser",
+        "node"
+      ],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-07-11",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "browser-webgpu-smoke",
+        "reportPath": "benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json",
+        "metricPath": "metrics.throughput.decodeTokensPerSec.median",
         "minValue": 0,
         "unit": "tokens/sec"
       }

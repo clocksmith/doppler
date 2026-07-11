@@ -60,6 +60,7 @@ export declare function selectCatalogModelLanes(
   catalogEntries: CatalogModelLane[] | null | undefined,
   options?: {
     localBaseUrls?: Map<string, string>;
+    supportedModes?: string[];
     isVisibleEntry?: (entry: CatalogModelLane) => boolean;
     hasSource?: (entry: CatalogModelLane) => boolean;
   }

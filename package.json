@@ -168,9 +168,13 @@
     "verify:qwen3.6-27b": "node tools/run-registry-verify.js qwen3.6-27b",
     "verify:qwen3.6-27b-f16": "node tools/run-registry-verify.js qwen3.6-27b-f16",
     "verify:translategemma": "node tools/run-registry-verify.js translategemma",
+    "verify:translategemma-1b-translation-student": "node tools/run-registry-verify.js translategemma-1b-translation-student",
     "verify:translategemma-4b": "node tools/run-registry-verify.js translategemma-4b",
+    "verify:translategemma-4b-1b-enes-q4k-ehf16-af32": "node tools/run-registry-verify.js translategemma-4b-1b-enes-q4k-ehf16-af32",
     "verify:translategemma-4b-it-q4k-ehf16-af32": "node tools/run-registry-verify.js translategemma-4b-it-q4k-ehf16-af32",
-    "verify:translategemma-4b-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js translategemma-4b-it-wq4k-ef16-hf16"
+    "verify:translategemma-4b-it-wq4k-ef16-hf16": "node tools/run-registry-verify.js translategemma-4b-it-wq4k-ef16-hf16",
+    "verify:translategemma-enes-1b": "node tools/run-registry-verify.js translategemma-enes-1b",
+    "verify:translategemma-nativekd2-enes-1b": "node tools/run-registry-verify.js translategemma-nativekd2-enes-1b"
   },
   "exports": {
     ".": {
@@ -282,7 +286,6 @@
     "assets/doppler.svg",
     "src",
     "models/catalog.json",
-    "!models/README.md",
     "tests/kernels/browser/kernel-suite.js",
     "tests/kernels/browser/test-page.js",
     "tests/kernels/harness/benchmark.js",
@@ -290,8 +293,6 @@
     "tests/kernels/harness/tolerance.js",
     "tests/kernels/reference",
     "!tests/kernels/reference/fused-ffn-q4k.js",
-    "!tests/README.md",
-    "!tests/kernels/README.md",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
