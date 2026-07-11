@@ -40,6 +40,39 @@ Pipeline-specific classes:
 
 Legacy UL manifests remain part of the broader training lineage story, but UL has not yet been migrated onto the same first-class operator surface as `lora` and `distill`.
 
+## Reserved Verifier-Guided Artifact Classes
+
+The following names are reserved for a future verifier-guided or RLVR operator
+surface:
+
+- `training_rollout_group`
+- `training_reward_vector`
+- `training_policy_update`
+- `training_verifier_report`
+- `training_policy_checkpoint`
+- `training_promotion_decision`
+
+The current runner does not emit these classes. Their presence in this policy
+is a contract reservation, not an implementation or capability claim.
+
+Before any such artifact becomes claimable, its schema and validator must bind:
+
+- task, dataset, workload, policy, model, checkpoint, runtime, and kernel hashes
+- sampling seed and generation parameters
+- prompt/completion tokens and completion masks
+- policy and reference token log-probabilities when the objective requires them
+- unreduced reward components, evaluator types, versions, configurations, and hashes
+- group statistics, advantages, clipping, KL, entropy, and scalar reduction
+- training, diagnostic, and sealed-promotion verifier split hashes
+- policy/safety failures and rejected samples
+- parent rollout, update, checkpoint, and promotion artifacts
+- `claimBoundary`
+
+Blocking contract, execution, safety, and policy components are lexicographic;
+a scalar reward or AI-judge score cannot compensate for their failure. The
+normative method and promotion boundary is
+[rlvr-training-contract.md](rlvr-training-contract.md).
+
 ## File Conventions
 
 Distill run roots typically include:
