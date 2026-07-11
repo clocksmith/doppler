@@ -41,7 +41,12 @@ export async function clipGradients(grads, config) {
   const scale = maxNorm / (globalNorm + 1e-6);
   const clipped = new Map();
   for (const [param, grad] of grads.entries()) {
-    const scaled = await runScale(grad, scale, { inplace: true });
+    // WebGPU does not allow a buffer to be bound as both read-only storage and
+    // writable storage in the same compute pass. The scale kernel exposes
+    // separate input and output bindings, so clipping must use a distinct
+    // output buffer even though mutating the gradient would be semantically
+    // acceptable here.
+    const scaled = await runScale(grad, scale, { inplace: false });
     clipped.set(param, scaled);
   }
 

@@ -151,6 +151,78 @@
       ]
     },
     {
+      "id": "js-label-lora-export-collection-gates",
+      "lane": "javascript",
+      "split": "label",
+      "title": "Restore both LoRA export collection gates",
+      "prompt": "LoRA export now accepts arbitrary truthy values as tensor collections. Restore both fail-closed array gates without changing valid tensor exports.",
+      "sourceFiles": ["src/experimental/training/export.js", "tests/training/lora-export-safetensors.test.js"],
+      "allowedChangedPaths": ["src/experimental/training/export.js"],
+      "mutations": [
+        {
+          "path": "src/experimental/training/export.js",
+          "find": "if (!Array.isArray(tensors) || tensors.length === 0) {",
+          "replace": "if (!tensors || tensors.length === 0) {",
+          "occurrences": 2
+        }
+      ],
+      "validationCommands": [
+        {
+          "id": "lora-export-tests",
+          "command": "node",
+          "args": ["tools/run-node-tests.js", "tests/training/lora-export-safetensors.test.js"]
+        }
+      ]
+    },
+    {
+      "id": "js-label-translation-row-record-gate",
+      "lane": "javascript",
+      "split": "label",
+      "title": "Restore translation-row record validation",
+      "prompt": "Translation dataset normalization mistakenly accepts arrays as row records. Restore the fail-closed record predicate while preserving valid translation rows.",
+      "sourceFiles": ["src/experimental/training/distillation/dataset.js"],
+      "allowedChangedPaths": ["src/experimental/training/distillation/dataset.js"],
+      "mutations": [
+        {
+          "path": "src/experimental/training/distillation/dataset.js",
+          "find": "if (!record || typeof record !== 'object' || Array.isArray(record)) {",
+          "replace": "if (!record || typeof record !== 'object') {",
+          "occurrences": 1
+        }
+      ],
+      "validationCommands": [
+        {
+          "id": "translation-row-record-check",
+          "command": "node",
+          "args": ["--input-type=module", "-e", "import assert from 'node:assert/strict'; import { normalizeTranslationPairRow } from './src/experimental/training/distillation/dataset.js'; assert.equal(normalizeTranslationPairRow([], 0), null); assert.equal(normalizeTranslationPairRow({ source: 'hello', target: 'hola' }, 0).source, 'hello');"]
+        }
+      ]
+    },
+    {
+      "id": "js-label-gepa-candidate-record-gate",
+      "lane": "javascript",
+      "split": "label",
+      "title": "Restore GEPA candidate record validation",
+      "prompt": "GEPA frontier parsing now treats arrays as candidate records. Restore the shared fail-closed record predicate without changing valid frontier candidates.",
+      "sourceFiles": ["src/experimental/training/datasets/gepa-frontier.js", "tests/training/gepa-frontier-dataset.test.js"],
+      "allowedChangedPaths": ["src/experimental/training/datasets/gepa-frontier.js"],
+      "mutations": [
+        {
+          "path": "src/experimental/training/datasets/gepa-frontier.js",
+          "find": "return value && typeof value === 'object' && !Array.isArray(value);",
+          "replace": "return value && typeof value === 'object';",
+          "occurrences": 1
+        }
+      ],
+      "validationCommands": [
+        {
+          "id": "gepa-frontier-tests",
+          "command": "node",
+          "args": ["tools/run-node-tests.js", "tests/training/gepa-frontier-dataset.test.js"]
+        }
+      ]
+    },
+    {
       "id": "js-holdout-optional-boolean-gate",
       "lane": "javascript",
       "split": "student_holdout",
@@ -331,6 +403,78 @@
           "path": "src/gpu/kernels/conv2d.wgsl",
           "find": "if (out_c >= u.out_channels || out_spatial_idx >= out_spatial) {",
           "replace": "if (out_c > u.out_channels || out_spatial_idx >= out_spatial) {",
+          "occurrences": 1
+        }
+      ],
+      "validationCommands": [
+        {
+          "id": "kernel-contract-check",
+          "command": "node",
+          "args": ["tools/check-kernels.js"]
+        }
+      ]
+    },
+    {
+      "id": "wgsl-label-scale-tail-guards",
+      "lane": "wgsl",
+      "split": "label",
+      "title": "Restore both scale tail guards",
+      "prompt": "Both scale entrypoints admit an invocation at exactly the logical count. Restore both dispatch tail guards without changing scale arithmetic or bindings.",
+      "sourceFiles": ["src/gpu/kernels/scale.wgsl"],
+      "allowedChangedPaths": ["src/gpu/kernels/scale.wgsl"],
+      "mutations": [
+        {
+          "path": "src/gpu/kernels/scale.wgsl",
+          "find": "if (idx >= u.count) {",
+          "replace": "if (idx > u.count) {",
+          "occurrences": 2
+        }
+      ],
+      "validationCommands": [
+        {
+          "id": "kernel-contract-check",
+          "command": "node",
+          "args": ["tools/check-kernels.js"]
+        }
+      ]
+    },
+    {
+      "id": "wgsl-label-layernorm-token-guard",
+      "lane": "wgsl",
+      "split": "label",
+      "title": "Restore the LayerNorm token guard",
+      "prompt": "The LayerNorm kernel accepts a workgroup whose token index equals num_tokens. Restore the token boundary before any buffer access and preserve normalization math.",
+      "sourceFiles": ["src/gpu/kernels/layernorm.wgsl"],
+      "allowedChangedPaths": ["src/gpu/kernels/layernorm.wgsl"],
+      "mutations": [
+        {
+          "path": "src/gpu/kernels/layernorm.wgsl",
+          "find": "if (token_idx >= u.num_tokens) {",
+          "replace": "if (token_idx > u.num_tokens) {",
+          "occurrences": 1
+        }
+      ],
+      "validationCommands": [
+        {
+          "id": "kernel-contract-check",
+          "command": "node",
+          "args": ["tools/check-kernels.js"]
+        }
+      ]
+    },
+    {
+      "id": "wgsl-label-gelu-tail-guard",
+      "lane": "wgsl",
+      "split": "label",
+      "title": "Restore the GeLU tail guard",
+      "prompt": "The scalar GeLU entrypoint writes at an index equal to its logical size. Restore its dispatch boundary without changing the row-split or gated variants.",
+      "sourceFiles": ["src/gpu/kernels/gelu.wgsl"],
+      "allowedChangedPaths": ["src/gpu/kernels/gelu.wgsl"],
+      "mutations": [
+        {
+          "path": "src/gpu/kernels/gelu.wgsl",
+          "find": "let idx = global_id.x;\n    if (idx >= u.size) {",
+          "replace": "let idx = global_id.x;\n    if (idx > u.size) {",
           "occurrences": 1
         }
       ],

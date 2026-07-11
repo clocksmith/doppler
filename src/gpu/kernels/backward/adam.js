@@ -7,6 +7,10 @@ import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 
 const MAX_ADAM_ELEMENTS_PER_DISPATCH = 65535 * WORKGROUP_SIZES.DEFAULT;
 
+function tensorElementCount(tensor) {
+  return tensor.shape.reduce((product, value) => product * value, 1);
+}
+
 async function runAdamChunked(device, pipeline, params, grads, moment1, moment2, options, inferredCount) {
   if (params.dtype !== 'f32' || grads.dtype !== 'f32' || moment1.dtype !== 'f32' || moment2.dtype !== 'f32') {
     throw new Error(
@@ -94,8 +98,7 @@ export async function runAdam(
   const device = getDevice();
   const { count, step = 1, lr, beta1, beta2, eps } = options;
 
-  const bytesPerElement = dtypeBytes(params.dtype);
-  const inferredCount = count ?? Math.floor(params.buffer.size / bytesPerElement);
+  const inferredCount = count ?? tensorElementCount(params);
   const pipeline = await createPipeline('adam', 'default');
 
   if (inferredCount > MAX_ADAM_ELEMENTS_PER_DISPATCH) {
@@ -166,8 +169,7 @@ export async function recordAdam(
   const device = recorder.device;
   const { count, step = 1, lr, beta1, beta2, eps } = options;
 
-  const bytesPerElement = dtypeBytes(params.dtype);
-  const inferredCount = count ?? Math.floor(params.buffer.size / bytesPerElement);
+  const inferredCount = count ?? tensorElementCount(params);
   const pipeline = await createPipeline('adam', 'default');
 
   const uniformBuffer = createUniformBufferWithView(

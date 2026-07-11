@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 import {
+  CAUSAL_LM_IGNORE_TARGET_ID,
   loadTextPairsDataset,
   mapTextPairs,
   normalizeTextPair,
@@ -68,6 +69,80 @@ assert.equal(samples[0].completion, columboRow.target);
 assert.equal(samples[0].text, `${columboRow.source}\nassistant: ${columboRow.target}`);
 assert.equal(samples[0].inputIds.length, samples[0].targetIds.length);
 assert.equal(samples[0].targetIds.at(-1), '}'.codePointAt(0));
+assert.equal(samples[0].ignoredTargetCount, `${columboRow.source}\nassistant: `.length - 1);
+assert.equal(samples[0].supervisedTokenCount, columboRow.target.length);
+assert.equal(samples[0].completionTokenCount, columboRow.target.length);
+assert.equal(samples[0].truncatedPromptTokenCount, 0);
+assert.ok(
+  samples[0].targetIds
+    .slice(0, samples[0].ignoredTargetCount)
+    .every((token) => token === CAUSAL_LM_IGNORE_TARGET_ID)
+);
+assert.deepEqual(
+  samples[0].targetIds.slice(samples[0].ignoredTargetCount),
+  tokenizer.encode(columboRow.target)
+);
+
+const [truncated] = await tokenizeTextPairs(tokenizer, [{
+  id: 'truncated-prompt',
+  prompt: 'ABCDEFGHIJ',
+  completion: 'xyz',
+}], {
+  maxLength: 7,
+});
+assert.deepEqual(truncated.inputIds, [
+  'A'.codePointAt(0),
+  'B'.codePointAt(0),
+  'I'.codePointAt(0),
+  'J'.codePointAt(0),
+  'x'.codePointAt(0),
+  'y'.codePointAt(0),
+]);
+assert.deepEqual(truncated.targetIds, [
+  CAUSAL_LM_IGNORE_TARGET_ID,
+  CAUSAL_LM_IGNORE_TARGET_ID,
+  CAUSAL_LM_IGNORE_TARGET_ID,
+  'x'.codePointAt(0),
+  'y'.codePointAt(0),
+  'z'.codePointAt(0),
+]);
+assert.equal(truncated.promptTokenCount, 10);
+assert.equal(truncated.retainedPromptTokenCount, 4);
+assert.equal(truncated.truncatedPromptTokenCount, 6);
+assert.equal(truncated.supervisedTokenCount, 3);
+
+const bosTokenizer = {
+  encode(text) {
+    return [2, ...tokenizer.encode(text)];
+  },
+};
+const [bosSample] = await tokenizeTextPairs(bosTokenizer, [{
+  id: 'single-bos',
+  prompt: 'AB',
+  completion: 'xyz',
+}], {
+  maxLength: 6,
+});
+assert.deepEqual(bosSample.inputIds, [
+  2,
+  'A'.codePointAt(0),
+  'B'.codePointAt(0),
+  'x'.codePointAt(0),
+  'y'.codePointAt(0),
+]);
+assert.equal(bosSample.inputIds.filter((token) => token === 2).length, 1);
+assert.equal(bosSample.completionTokenCount, 3);
+
+await assert.rejects(
+  tokenizeTextPairs(tokenizer, [{
+    id: 'oversized-completion',
+    prompt: 'A',
+    completion: 'xyz',
+  }], {
+    maxLength: 3,
+  }),
+  /must also retain at least one prompt token/
+);
 
 assert.throws(
   () => normalizeTextPair({ prompt: 'A' }, 0),

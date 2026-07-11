@@ -89,7 +89,10 @@
       "ropeLocalYarnOriginalMaxPos": null,
       "ropeLocalPartialRotaryFactor": null,
       "ropeFrequencyBaseDim": null,
-      "ropeLocalFrequencyBaseDim": null
+      "ropeLocalFrequencyBaseDim": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": null,
@@ -97,22 +100,27 @@
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
       "embeddingVocabSize": 262144,
-      "embeddingPostprocessor": null
+      "embeddingPostprocessor": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "layerPattern": {
       "type": "every_n",
       "globalPattern": null,
       "period": 6,
       "offset": 5,
-      "layerTypes": null
+      "layerTypes": null,
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": "gemma",
       "enabled": true
     },
     "supportsEmbedding": false,
+    "supportsRerank": false,
     "supportsTranscription": false,
     "supportsVision": false,
+    "rerank": null,
     "diffusionGemma": null,
     "pipeline": null,
     "session": {
@@ -3276,7 +3284,7 @@
   "conversion": null,
   "metadata": {
     "source": "file:///home/x/.cache/doppler/source/google-gemma-3-270m-it",
-    "convertedAt": "2026-06-27T05:10:49.541Z",
+    "convertedAt": "2026-07-11T13:56:57.071Z",
     "hasTokenizer": true
   },
   "tokenizer": {

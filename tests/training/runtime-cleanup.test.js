@@ -370,6 +370,32 @@ configurePerfGuards({
 }
 
 {
+  const device = createFakeDevice();
+  setDevice(device, { platformConfig: null });
+
+  const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+  const paramBuffer = acquireBuffer(16, usage, 'param');
+  const dirtyMoment1 = acquireBuffer(16, usage, 'dirty_moment_1');
+  const dirtyMoment2 = acquireBuffer(16, usage, 'dirty_moment_2');
+  uploadData(dirtyMoment1, new Uint8Array(16).fill(0xa5));
+  uploadData(dirtyMoment2, new Uint8Array(16).fill(0x5a));
+  releaseBuffer(dirtyMoment1);
+  releaseBuffer(dirtyMoment2);
+
+  const optimizer = new AdamOptimizer({});
+  const param = createTensor(paramBuffer, 'f32', [4], 'param');
+  const state = optimizer.getState(param);
+  assert.deepEqual(Array.from(state.m.buffer.ensureBytes(16).subarray(0, 16)), Array(16).fill(0));
+  assert.deepEqual(Array.from(state.v.buffer.ensureBytes(16).subarray(0, 16)), Array(16).fill(0));
+
+  releaseBuffer(state.m.buffer);
+  releaseBuffer(state.v.buffer);
+  releaseBuffer(paramBuffer);
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
   const device = createFakeDevice({ createBufferThrowAt: 2 });
   setDevice(device, { platformConfig: null });
 

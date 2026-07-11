@@ -8,6 +8,7 @@ import {
   runResidualAdd,
   runRMSNorm,
   runRoPE,
+  runScale,
   runSiLURowSplit,
 } from '../../../gpu/kernels/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
@@ -17,6 +18,8 @@ import { OpType } from '../autograd.js';
 import { LoraAdapter } from '../lora.js';
 import { normalizeOptionalString } from './suite-data.js';
 import { LORA_MODULE_ALIASES } from '../../../inference/pipelines/text/lora.js';
+import { resolveEmbeddingScale } from '../../../inference/pipelines/text/embed.js';
+import { isSlidingLayerType } from '../../../inference/pipelines/text/attention/dispatch-params.js';
 
 const DISTILL_ADAPTER_TOP_K = 64;
 const DISTILL_STUDENT_GRAPH_PROJECTION = 'projection_head';
@@ -54,6 +57,22 @@ function makeTensorFromUint32(values, shape, label) {
 function releaseTensor(tensor) {
   if (!tensor?.buffer) return;
   releaseBuffer(tensor.buffer);
+}
+
+function tensorElementCount(shape) {
+  return shape.reduce((product, value) => product * value, 1);
+}
+
+async function recordTensorView(tape, input, shape, label) {
+  if (tensorElementCount(input.shape) !== tensorElementCount(shape)) {
+    throw new Error(`${label} cannot change tensor element count.`);
+  }
+  return tape.record(
+    OpType.RESHAPE,
+    (value) => createTensor(value.buffer, value.dtype, [...shape], label),
+    [input],
+    { shape: [...shape] }
+  );
 }
 
 function toFloat32Array(values, label = 'values') {
@@ -140,7 +159,7 @@ function resolveTransformerLoraShape(moduleName, dims) {
     return { inDim: dims.hiddenSize, outDim: dims.numKVHeads * dims.headDim };
   }
   if (moduleName === 'o_proj') {
-    return { inDim: dims.hiddenSize, outDim: dims.hiddenSize };
+    return { inDim: dims.attentionSize, outDim: dims.hiddenSize };
   }
   if (moduleName === 'gate_up_proj') {
     return { inDim: dims.hiddenSize, outDim: dims.intermediateSize * 2 };
@@ -522,6 +541,7 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
   const swigluLimit = Number.isFinite(modelConfig.swigluLimit) ? modelConfig.swigluLimit : 0;
   const useEmbeddingTranspose = modelConfig.embeddingTranspose === true;
   const tieWordEmbeddings = modelConfig.useTiedEmbeddings === true;
+  const embeddingScale = resolveEmbeddingScale(modelConfig, hiddenSize);
   const loraConfig = normalizeTransformerLoraConfig(options.loraAdapter || null);
   const freezeBaseGrad = Boolean(loraConfig);
   const stopBaseWeight = freezeBaseGrad ? { stopGradInputs: [1] } : {};
@@ -573,6 +593,30 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
     'rope_sin',
     ownedTrainables
   );
+  const hasLocalAttention = Array.isArray(modelConfig.layerTypes)
+    && modelConfig.layerTypes.some((layerType) => isSlidingLayerType(layerType));
+  let ropeLocalCos = null;
+  let ropeLocalSin = null;
+  if (hasLocalAttention) {
+    if (!(studentPipeline.ropeLocalCos instanceof GPUBuffer)
+      || !(studentPipeline.ropeLocalSin instanceof GPUBuffer)) {
+      throw new Error(
+        'Distill full-graph student requires local RoPE tables for sliding-attention layers.'
+      );
+    }
+    ropeLocalCos = await ensureTrainableTensor(
+      createTensor(studentPipeline.ropeLocalCos, 'f32', [ropeRows, ropeDim], 'rope_local_cos'),
+      [ropeRows, ropeDim],
+      'rope_local_cos',
+      ownedTrainables
+    );
+    ropeLocalSin = await ensureTrainableTensor(
+      createTensor(studentPipeline.ropeLocalSin, 'f32', [ropeRows, ropeDim], 'rope_local_sin'),
+      [ropeRows, ropeDim],
+      'rope_local_sin',
+      ownedTrainables
+    );
+  }
 
   const layerParams = [];
   const loraParams = [];
@@ -583,6 +627,7 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
     numHeads,
     numKVHeads,
     headDim,
+    attentionSize: numHeads * headDim,
   };
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
     const layerWeights = studentPipeline.weights.get(`layer_${layerIdx}`);
@@ -635,6 +680,11 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         `layer_${layerIdx}.input_norm`,
         ownedTrainables
       ),
+      queryKeyNorm: modelConfig.queryKeyNorm === true
+        && (!Array.isArray(modelConfig.queryKeyNormLayers)
+          || modelConfig.queryKeyNormLayers.includes(layerIdx)),
+      qNorm: null,
+      kNorm: null,
       qProj: await ensureTrainableTensor(
         layerWeights.qProj,
         [numHeads * headDim, hiddenSize],
@@ -655,7 +705,7 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
       ),
       oProj: await ensureTrainableTensor(
         layerWeights.oProj,
-        [hiddenSize, hiddenSize],
+        [hiddenSize, numHeads * headDim],
         `layer_${layerIdx}.o_proj`,
         ownedTrainables
       ),
@@ -664,6 +714,22 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
           layerWeights.postAttentionNorm,
           hiddenSize,
           `layer_${layerIdx}.post_attention_norm`,
+          ownedTrainables
+        )
+        : null,
+      preFeedforwardNorm: layerWeights.preFeedforwardNorm
+        ? await ensureNormTensor(
+          layerWeights.preFeedforwardNorm,
+          hiddenSize,
+          `layer_${layerIdx}.pre_feedforward_norm`,
+          ownedTrainables
+        )
+        : null,
+      postFeedforwardNorm: layerWeights.postFeedforwardNorm
+        ? await ensureNormTensor(
+          layerWeights.postFeedforwardNorm,
+          hiddenSize,
+          `layer_${layerIdx}.post_feedforward_norm`,
           ownedTrainables
         )
         : null,
@@ -680,6 +746,36 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         intermediateSize: layerIntermediateSize,
       }),
     };
+    if (layer.queryKeyNorm) {
+      const weightedLayers = modelConfig.queryKeyNormWeightLayers;
+      const expectsWeightedNorm = !Array.isArray(weightedLayers) || weightedLayers.includes(layerIdx);
+      if (!expectsWeightedNorm) {
+        throw new Error(
+          `Distill full-graph student does not support unit-weight Q/K norm on layer ${layerIdx}.`
+        );
+      }
+      layer.qNorm = await ensureNormTensor(
+        layerWeights.qNorm,
+        headDim,
+        `layer_${layerIdx}.q_norm`,
+        ownedTrainables
+      );
+      layer.kNorm = await ensureNormTensor(
+        layerWeights.kNorm,
+        headDim,
+        `layer_${layerIdx}.k_norm`,
+        ownedTrainables
+      );
+    }
+    if (modelConfig.postAttentionNorm === true && !layer.postAttentionNorm) {
+      throw new Error(`Distill full-graph student missing post-attention norm on layer ${layerIdx}.`);
+    }
+    if (modelConfig.preFeedforwardNorm === true && !layer.preFeedforwardNorm) {
+      throw new Error(`Distill full-graph student missing pre-feedforward norm on layer ${layerIdx}.`);
+    }
+    if (modelConfig.postFeedforwardNorm === true && !layer.postFeedforwardNorm) {
+      throw new Error(`Distill full-graph student missing post-feedforward norm on layer ${layerIdx}.`);
+    }
     layers.push(layer);
     layerParams.push(layer.inputNorm, layer.qProj, layer.kProj, layer.vProj, layer.oProj, layer.gateUp, layer.down);
     for (const adapter of Object.values(layer.lora)) {
@@ -687,6 +783,15 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
     }
     if (layer.postAttentionNorm) {
       layerParams.push(layer.postAttentionNorm);
+    }
+    if (layer.preFeedforwardNorm) {
+      layerParams.push(layer.preFeedforwardNorm);
+    }
+    if (layer.postFeedforwardNorm) {
+      layerParams.push(layer.postFeedforwardNorm);
+    }
+    if (layer.qNorm) {
+      layerParams.push(layer.qNorm, layer.kNorm);
     }
   }
 
@@ -714,6 +819,17 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
   }
 
   async function runTransformerTokenTensor(tokenTensor, seqLen, tape, forwardOptions = {}) {
+    const captureStage = async (stage, tensor, layerIdx = null) => {
+      if (typeof forwardOptions.captureStage === 'function') {
+        await forwardOptions.captureStage({
+          stage,
+          layerIdx,
+          seqLen,
+          tensor,
+        });
+      }
+      return tensor;
+    };
     let hidden = await tape.record(
       OpType.EMBED,
       (indices, embeddings) => runGather(
@@ -738,6 +854,15 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         ...stopBaseWeight,
       }
     );
+    if (embeddingScale !== 1) {
+      hidden = await tape.record(
+        OpType.SCALE,
+        (x) => runScale(x, embeddingScale, { count: seqLen * hiddenSize }),
+        [hidden],
+        { count: seqLen * hiddenSize, scale: embeddingScale }
+      );
+    }
+    await captureStage('embed.out', hidden);
 
     for (let layerIdx = 0; layerIdx < layers.length; layerIdx += 1) {
       const layer = layers[layerIdx];
@@ -750,8 +875,15 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
           rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
         }),
         [hidden, layer.inputNorm],
-        { numTokens: seqLen, hiddenSize, eps: rmsNormEps, ...stopBaseWeight }
+        {
+          numTokens: seqLen,
+          hiddenSize,
+          eps: rmsNormEps,
+          rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+          ...stopBaseWeight,
+        }
       );
+      await captureStage('attn.post_input_norm', normed, layerIdx);
 
       let q2d = await tape.record(
         OpType.MATMUL,
@@ -807,23 +939,110 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
           { size: seqLen * numKVHeads * headDim }
         );
       }
+      await captureStage('attn.q_proj', q2d, layerIdx);
+      await captureStage('attn.k_proj', k2d, layerIdx);
+      await captureStage('attn.v_proj', v2d, layerIdx);
 
-      const q3d = createTensor(q2d.buffer, q2d.dtype, [seqLen, numHeads, headDim], `layer_${layerIdx}_q`);
-      const k3d = createTensor(k2d.buffer, k2d.dtype, [seqLen, numKVHeads, headDim], `layer_${layerIdx}_k`);
-      const v3d = createTensor(v2d.buffer, v2d.dtype, [seqLen, numKVHeads, headDim], `layer_${layerIdx}_v`);
+      if (layer.queryKeyNorm) {
+        const qNormInput = await recordTensorView(
+          tape,
+          q2d,
+          [seqLen * numHeads, headDim],
+          `layer_${layerIdx}_q_norm_input`
+        );
+        const qNormed = await tape.record(
+          OpType.RMSNORM,
+          (x, gamma) => runRMSNorm(x, gamma, rmsNormEps, {
+            batchSize: seqLen * numHeads,
+            hiddenSize: headDim,
+            rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+          }),
+          [qNormInput, layer.qNorm],
+          {
+            numTokens: seqLen * numHeads,
+            hiddenSize: headDim,
+            eps: rmsNormEps,
+            rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+            ...stopBaseWeight,
+          }
+        );
+        q2d = await recordTensorView(
+          tape,
+          qNormed,
+          [seqLen, numHeads * headDim],
+          `layer_${layerIdx}_q_normed`
+        );
+        const kNormInput = await recordTensorView(
+          tape,
+          k2d,
+          [seqLen * numKVHeads, headDim],
+          `layer_${layerIdx}_k_norm_input`
+        );
+        const kNormed = await tape.record(
+          OpType.RMSNORM,
+          (x, gamma) => runRMSNorm(x, gamma, rmsNormEps, {
+            batchSize: seqLen * numKVHeads,
+            hiddenSize: headDim,
+            rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+          }),
+          [kNormInput, layer.kNorm],
+          {
+            numTokens: seqLen * numKVHeads,
+            hiddenSize: headDim,
+            eps: rmsNormEps,
+            rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+            ...stopBaseWeight,
+          }
+        );
+        k2d = await recordTensorView(
+          tape,
+          kNormed,
+          [seqLen, numKVHeads * headDim],
+          `layer_${layerIdx}_k_normed`
+        );
+        await captureStage('attn.q_norm', q2d, layerIdx);
+        await captureStage('attn.k_norm', k2d, layerIdx);
+      }
+
+      const q3d = await recordTensorView(
+        tape,
+        q2d,
+        [seqLen, numHeads, headDim],
+        `layer_${layerIdx}_q`
+      );
+      const k3d = await recordTensorView(
+        tape,
+        k2d,
+        [seqLen, numKVHeads, headDim],
+        `layer_${layerIdx}_k`
+      );
+      const v3d = await recordTensorView(
+        tape,
+        v2d,
+        [seqLen, numKVHeads, headDim],
+        `layer_${layerIdx}_v`
+      );
+      const useLocalRope = isSlidingLayerType(modelConfig.layerTypes?.[layerIdx]);
+      const layerRopeCos = useLocalRope ? ropeLocalCos : ropeCos;
+      const layerRopeSin = useLocalRope ? ropeLocalSin : ropeSin;
+      if (!layerRopeCos || !layerRopeSin) {
+        throw new Error(`Distill full-graph student missing RoPE tensors on layer ${layerIdx}.`);
+      }
 
       const qRope = await tape.record(
         OpType.ROPE,
         (q, cos, sin) => runRoPE(q, cos, sin, seqLen, { numHeads, headDim, startPos: 0 }),
-        [q3d, ropeCos, ropeSin],
+        [q3d, layerRopeCos, layerRopeSin],
         { seqLen, numHeads, headDim, startPos: 0, ...stopRopeWeights }
       );
       const kRope = await tape.record(
         OpType.ROPE,
         (k, cos, sin) => runRoPE(k, cos, sin, seqLen, { numHeads: numKVHeads, headDim, startPos: 0 }),
-        [k3d, ropeCos, ropeSin],
+        [k3d, layerRopeCos, layerRopeSin],
         { seqLen, numHeads: numKVHeads, headDim, startPos: 0, ...stopRopeWeights }
       );
+      await captureStage('attn.q_rope', qRope, layerIdx);
+      await captureStage('attn.k_rope', kRope, layerIdx);
 
       const attention = await tape.record(
         OpType.ATTENTION,
@@ -836,23 +1055,38 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
           scale: 1 / Math.sqrt(headDim),
         }),
         [qRope, kRope, v3d],
-        { seqLen, numHeads, headDim, scale: 1 / Math.sqrt(headDim), causal: true, recomputeForward: true }
+        {
+          seqLen,
+          numHeads,
+          numKVHeads,
+          headDim,
+          scale: 1 / Math.sqrt(headDim),
+          causal: true,
+          recomputeForward: true,
+        }
       );
-      const attention2d = createTensor(
-        attention.buffer,
-        attention.dtype,
-        [seqLen, hiddenSize],
+      await captureStage('attn.core_out', attention, layerIdx);
+      const attention2d = await recordTensorView(
+        tape,
+        attention,
+        [seqLen, numHeads * headDim],
         `layer_${layerIdx}_attn_2d`
       );
 
       let attentionOutput = await tape.record(
         OpType.MATMUL,
-        (x, w) => runMatmul(x, w, seqLen, hiddenSize, hiddenSize, {
+        (x, w) => runMatmul(x, w, seqLen, hiddenSize, numHeads * headDim, {
           transposeB: 'auto',
           outputDtype: 'f32',
         }),
         [attention2d, layer.oProj],
-        { M: seqLen, N: hiddenSize, K: hiddenSize, transposeB: 'auto', ...stopBaseWeight }
+        {
+          M: seqLen,
+          N: hiddenSize,
+          K: numHeads * headDim,
+          transposeB: 'auto',
+          ...stopBaseWeight,
+        }
       );
       if (layer.lora.o_proj) {
         const delta = await layer.lora.o_proj.forward(attention2d, tape);
@@ -863,14 +1097,8 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
           { size: seqLen * hiddenSize }
         );
       }
-      const postAttention = await tape.record(
-        OpType.RESIDUAL_ADD,
-        (a, b) => runResidualAdd(a, b, seqLen * hiddenSize),
-        [attentionOutput, hidden],
-        { size: seqLen * hiddenSize }
-      );
-
-      const ffnInput = layer.postAttentionNorm
+      await captureStage('attn.out', attentionOutput, layerIdx);
+      const normalizedAttentionOutput = modelConfig.postAttentionNorm === true
         ? await tape.record(
           OpType.RMSNORM,
           (x, gamma) => runRMSNorm(x, gamma, rmsNormEps, {
@@ -878,10 +1106,43 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
             hiddenSize,
             rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
           }),
-          [postAttention, layer.postAttentionNorm],
-          { numTokens: seqLen, hiddenSize, eps: rmsNormEps, ...stopBaseWeight }
+          [attentionOutput, layer.postAttentionNorm],
+          {
+            numTokens: seqLen,
+            hiddenSize,
+            eps: rmsNormEps,
+            rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+            ...stopBaseWeight,
+          }
+        )
+        : attentionOutput;
+      const postAttention = await tape.record(
+        OpType.RESIDUAL_ADD,
+        (a, b) => runResidualAdd(a, b, seqLen * hiddenSize),
+        [normalizedAttentionOutput, hidden],
+        { size: seqLen * hiddenSize }
+      );
+      await captureStage('attn.post_attn', postAttention, layerIdx);
+
+      const ffnInput = modelConfig.preFeedforwardNorm === true
+        ? await tape.record(
+          OpType.RMSNORM,
+          (x, gamma) => runRMSNorm(x, gamma, rmsNormEps, {
+            batchSize: seqLen,
+            hiddenSize,
+            rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+          }),
+          [postAttention, layer.preFeedforwardNorm],
+          {
+            numTokens: seqLen,
+            hiddenSize,
+            eps: rmsNormEps,
+            rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+            ...stopBaseWeight,
+          }
         )
         : postAttention;
+      await captureStage('ffn.in', ffnInput, layerIdx);
       let gateUp = await tape.record(
         OpType.MATMUL,
         (x, w) => runMatmul(x, w, seqLen, layerIntermediateSize * 2, hiddenSize, {
@@ -916,6 +1177,7 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
           swigluLimit: hiddenActivation === 'gelu' ? 0 : swigluLimit,
         }
       );
+      await captureStage('ffn.act', activated, layerIdx);
       let ffnOutput = await tape.record(
         OpType.MATMUL,
         (x, w) => runMatmul(x, w, seqLen, hiddenSize, layerIntermediateSize, {
@@ -934,14 +1196,35 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
           { size: seqLen * hiddenSize }
         );
       }
+      await captureStage('ffn.out', ffnOutput, layerIdx);
+      const normalizedFfnOutput = modelConfig.postFeedforwardNorm === true
+        ? await tape.record(
+          OpType.RMSNORM,
+          (x, gamma) => runRMSNorm(x, gamma, rmsNormEps, {
+            batchSize: seqLen,
+            hiddenSize,
+            rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+          }),
+          [ffnOutput, layer.postFeedforwardNorm],
+          {
+            numTokens: seqLen,
+            hiddenSize,
+            eps: rmsNormEps,
+            rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+            ...stopBaseWeight,
+          }
+        )
+        : ffnOutput;
       hidden = await tape.record(
         OpType.RESIDUAL_ADD,
         (a, b) => runResidualAdd(a, b, seqLen * hiddenSize),
-        [ffnOutput, postAttention],
+        [normalizedFfnOutput, postAttention],
         { size: seqLen * hiddenSize }
       );
+      await captureStage('layer.out', hidden, layerIdx);
     }
 
+    await captureStage('final_norm.pre', hidden);
     const finalHidden = await tape.record(
       OpType.RMSNORM,
       (x, gamma) => runRMSNorm(x, gamma, rmsNormEps, {
@@ -950,10 +1233,17 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
       }),
       [hidden, finalNormWeight],
-      { numTokens: seqLen, hiddenSize, eps: rmsNormEps, ...stopBaseWeight }
+      {
+        numTokens: seqLen,
+        hiddenSize,
+        eps: rmsNormEps,
+        rmsNormWeightOffset: modelConfig.rmsNormWeightOffset === true,
+        ...stopBaseWeight,
+      }
     );
+    await captureStage('final_norm.out', finalHidden);
     if (forwardOptions.logitsMode === 'all') {
-      return tape.record(
+      const logits = await tape.record(
         OpType.MATMUL,
         (x, w) => runMatmul(x, w, seqLen, vocabSize, hiddenSize, {
           transposeB: 'auto',
@@ -962,6 +1252,8 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         [finalHidden, lmHeadWeight],
         { M: seqLen, N: vocabSize, K: hiddenSize, transposeB: 'auto', ...stopBaseWeight }
       );
+      await captureStage('logits.out', logits);
+      return logits;
     }
     const lastHidden = await tape.record(
       OpType.ROW_SLICE,
@@ -969,7 +1261,7 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
       [finalHidden],
       { rows: seqLen, cols: hiddenSize, rowIndex: seqLen - 1 }
     );
-    return tape.record(
+    const logits = await tape.record(
       OpType.MATMUL,
       (x, w) => runMatmul(x, w, 1, vocabSize, hiddenSize, {
         transposeB: 'auto',
@@ -978,11 +1270,13 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
       [lastHidden, lmHeadWeight],
       { M: 1, N: vocabSize, K: hiddenSize, transposeB: 'auto', ...stopBaseWeight }
     );
+    await captureStage('logits.out', logits);
+    return logits;
   }
 
-  async function runTransformerPrompt(prompt, tape) {
+  async function runTransformerPrompt(prompt, tape, forwardOptions = {}) {
     const { tokenTensor, seqLen } = await buildPromptTokens(prompt);
-    return runTransformerTokenTensor(tokenTensor, seqLen, tape);
+    return runTransformerTokenTensor(tokenTensor, seqLen, tape, forwardOptions);
   }
 
   function collectLoraTensorEntries() {
@@ -1037,7 +1331,7 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
           `Distill full-graph student currently requires batchSize=1, got ${prompts.length}.`
         );
       }
-      const logits = await runTransformerPrompt(prompts[0], tape);
+      const logits = await runTransformerPrompt(prompts[0], tape, forwardOptions);
       return { logits };
     },
     cleanupDistillStep() {

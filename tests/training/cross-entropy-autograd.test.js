@@ -174,6 +174,44 @@ try {
   assert.equal(device.dispatches[0].y, 6);
   assert.equal(device.dispatches[0].z, 1);
   releaseBuffer(gradLogits.buffer);
+
+  const reshapeInput = makeTensor(24, 'f32', [2, 3], 'reshape_input');
+  const reshapeTape = new AutogradTape(loadBackwardRegistry());
+  const reshapeOutput = await reshapeTape.record(
+    OpType.RESHAPE,
+    (input) => createTensor(input.buffer, input.dtype, [1, 2, 3], 'reshape_output'),
+    [reshapeInput],
+    { shape: [1, 2, 3] }
+  );
+  const reshapeGrad = makeTensor(24, 'f32', [1, 2, 3], 'reshape_grad');
+  const reshapeGrads = await reshapeTape.backward(reshapeGrad);
+  assert.deepEqual(reshapeGrads.get(reshapeInput).shape, [2, 3]);
+  assert.equal(reshapeGrads.get(reshapeInput).buffer, reshapeGrad.buffer);
+  assert.equal(reshapeOutput.buffer, reshapeInput.buffer);
+
+  const ropeInput = makeTensor(32, 'f32', [2, 1, 4], 'rope_input');
+  const ropeCos = makeTensor(16, 'f32', [2, 2], 'rope_cos');
+  const ropeSin = makeTensor(16, 'f32', [2, 2], 'rope_sin');
+  const ropeOutput = makeTensor(32, 'f32', [2, 1, 4], 'rope_output');
+  const ropeGrad = makeTensor(32, 'f32', [2, 1, 4], 'rope_grad');
+  const ropeTape = new AutogradTape(loadBackwardRegistry());
+  ropeTape.records.push({
+    op: OpType.ROPE,
+    inputs: [ropeInput, ropeCos, ropeSin],
+    output: ropeOutput,
+    options: {
+      seqLen: 2,
+      numHeads: 1,
+      headDim: 4,
+      startPos: 0,
+      stopGradInputs: [1, 2],
+    },
+  });
+  const ropeGrads = await ropeTape.backward(ropeGrad);
+  assert.deepEqual(ropeGrads.get(ropeInput).shape, [2, 1, 4]);
+  assert.equal(ropeGrads.has(ropeCos), false);
+  assert.equal(ropeGrads.has(ropeSin), false);
+  releaseBuffer(ropeGrads.get(ropeInput).buffer);
   destroyBufferPool();
   setDevice(null);
 } finally {

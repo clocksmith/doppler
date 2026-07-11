@@ -7,6 +7,7 @@
  * Uses shared-memory reduction for per-token stats.
  */
 override WORKGROUP_SIZE: u32 = 256u;
+override RMS_NORM_OFFSET: bool = false;
 const MAX_WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
@@ -44,7 +45,8 @@ fn main(
 
     for (var i: u32 = local_id; i < hidden_size; i = i + WORKGROUP_SIZE) {
         let x = input[base + i];
-        let g = grad_output[base + i] * weight[i];
+        let effective_weight = select(weight[i], 1.0 + weight[i], RMS_NORM_OFFSET);
+        let g = grad_output[base + i] * effective_weight;
         sum_sq = sum_sq + x * x;
         sum_gx = sum_gx + g * x;
     }
@@ -72,7 +74,8 @@ fn main(
 
     for (var i: u32 = local_id; i < hidden_size; i = i + WORKGROUP_SIZE) {
         let x = input[base + i];
-        let g = grad_output[base + i] * weight[i];
+        let effective_weight = select(weight[i], 1.0 + weight[i], RMS_NORM_OFFSET);
+        let g = grad_output[base + i] * effective_weight;
         output[base + i] = g * inv_rms - x * coeff;
     }
 }

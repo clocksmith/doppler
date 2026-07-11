@@ -2,10 +2,10 @@
 //
 // Fused tiled matmul for computing input gradients during backpropagation.
 //
-// When transpose_b = 1 (standard case: forward was Y = X @ W, W stored [K,N]):
+// When transpose_b = 0 (standard case: forward was Y = X @ W, W stored [K,N]):
 //   dX[M,K] = dY[M,N] @ W^T[N,K]   (reads W as [K,N], transposes on the fly)
 //
-// When transpose_b = 0 (forward was Y = X @ W^T, W stored [N,K]):
+// When transpose_b = 1 (forward was Y = X @ W^T, W stored [N,K]):
 //   dX[M,K] = dY[M,N] @ W[N,K]     (reads W directly as [N,K])
 //
 // Uses 16x16 shared memory tiles, matching matmul_transpose_a.wgsl style.
@@ -20,7 +20,7 @@ struct Uniforms {
     N: u32,            // Cols of dY (output dim of forward)
     K: u32,            // Cols of dX (input dim of forward)
     alpha: f32,
-    transpose_b: u32,  // 0 = W stored [N,K], 1 = W stored [K,N]
+    transpose_b: u32,  // 0 = W stored [K,N], 1 = W stored [N,K]
     _pad0: u32,
     _pad1: u32,
     _pad2: u32,
@@ -65,11 +65,11 @@ fn main(
         let wt_row = tile_n + local_row;
         if (wt_row < u.N && col < u.K) {
             if (u.transpose_b == 0u) {
-                // W stored as [N, K]: W^T[wt_row, col] = W[wt_row, col]
-                tileW[tile_idx] = W[wt_row * u.K + col];
-            } else {
                 // W stored as [K, N]: W^T[wt_row, col] = W[col, wt_row]
                 tileW[tile_idx] = W[col * u.N + wt_row];
+            } else {
+                // W stored as [N, K]: W^T[wt_row, col] = W[wt_row, col]
+                tileW[tile_idx] = W[wt_row * u.K + col];
             }
         } else {
             tileW[tile_idx] = 0.0;

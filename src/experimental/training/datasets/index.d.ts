@@ -1,5 +1,6 @@
 export { parseJsonl, loadJsonl, mapJsonl } from './jsonl.js';
 export {
+  CAUSAL_LM_IGNORE_TARGET_ID,
   tokenizeTextPairs,
   buildCausalPair,
   normalizeTextPair,

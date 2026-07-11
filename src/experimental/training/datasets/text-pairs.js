@@ -4,11 +4,38 @@ import { resolve } from 'node:path';
 
 import { parseJsonl } from './jsonl.js';
 
-function concatTokens(tokens, maxLength) {
-  if (!maxLength || tokens.length <= maxLength) {
-    return tokens;
+export const CAUSAL_LM_IGNORE_TARGET_ID = 0xffffffff;
+
+function normalizeTokenIds(values, label) {
+  const tokens = Array.from(values || []);
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (!Number.isInteger(token) || token < 0 || token > CAUSAL_LM_IGNORE_TARGET_ID) {
+      throw new Error(`${label} token ${index + 1} must be a uint32 integer.`);
+    }
   }
-  return tokens.slice(0, maxLength);
+  return tokens;
+}
+
+function commonPrefixLength(left, right) {
+  const limit = Math.min(left.length, right.length);
+  let index = 0;
+  while (index < limit && left[index] === right[index]) {
+    index += 1;
+  }
+  return index;
+}
+
+function truncatePromptTokens(tokens, budget) {
+  if (tokens.length <= budget) {
+    return tokens.slice();
+  }
+  const headCount = Math.ceil(budget / 2);
+  const tailCount = budget - headCount;
+  return [
+    ...tokens.slice(0, headCount),
+    ...(tailCount > 0 ? tokens.slice(tokens.length - tailCount) : []),
+  ];
 }
 
 export function buildCausalPair(tokens) {
@@ -100,10 +127,49 @@ export async function tokenizeTextPairs(tokenizer, pairs, options = {}) {
   const samples = [];
   const normalizedPairs = mapTextPairs(pairs);
   for (const pair of normalizedPairs) {
-    const fullText = `${pair.prompt}${joinWith}${pair.completion}`;
-    const tokens = tokenizer.encode(fullText);
-    const clipped = concatTokens(tokens, maxLength);
-    const { inputIds, targetIds } = buildCausalPair(clipped);
+    const promptText = `${pair.prompt}${joinWith}`;
+    const fullText = `${promptText}${pair.completion}`;
+    const promptTokens = normalizeTokenIds(
+      tokenizer.encode(promptText),
+      `text pair "${pair.id}" prompt`
+    );
+    const fullTokens = normalizeTokenIds(
+      tokenizer.encode(fullText),
+      `text pair "${pair.id}" full text`
+    );
+    const completionStart = commonPrefixLength(promptTokens, fullTokens);
+    const promptPrefixTokens = fullTokens.slice(0, completionStart);
+    const completionTokens = fullTokens.slice(completionStart);
+
+    if (promptPrefixTokens.length < 1) {
+      throw new Error(`text pair "${pair.id}" prompt produced no stable prefix tokens.`);
+    }
+    if (completionTokens.length < 1) {
+      throw new Error(`text pair "${pair.id}" completion produced no supervised tokens.`);
+    }
+
+    let retainedPromptTokens = promptPrefixTokens;
+    if (maxLength != null) {
+      if (!Number.isInteger(maxLength) || maxLength < 2) {
+        throw new Error('tokenizeTextPairs maxLength must be an integer >= 2 when provided.');
+      }
+      if (completionTokens.length >= maxLength) {
+        throw new Error(
+          `text pair "${pair.id}" completion requires ${completionTokens.length} tokens, `
+          + `but maxLength ${maxLength} must also retain at least one prompt token.`
+        );
+      }
+      retainedPromptTokens = truncatePromptTokens(
+        promptPrefixTokens,
+        maxLength - completionTokens.length
+      );
+    }
+
+    const tokens = [...retainedPromptTokens, ...completionTokens];
+    const { inputIds, targetIds } = buildCausalPair(tokens);
+    const ignoredTargetCount = Math.max(0, retainedPromptTokens.length - 1);
+    targetIds.fill(CAUSAL_LM_IGNORE_TARGET_ID, 0, ignoredTargetCount);
+    const supervisedTokenCount = targetIds.length - ignoredTargetCount;
     if (inputIds.length > 0) {
       samples.push({
         id: pair.id,
@@ -112,6 +178,12 @@ export async function tokenizeTextPairs(tokenizer, pairs, options = {}) {
         text: fullText,
         prompt: pair.prompt,
         completion: pair.completion,
+        promptTokenCount: promptPrefixTokens.length,
+        retainedPromptTokenCount: retainedPromptTokens.length,
+        truncatedPromptTokenCount: promptPrefixTokens.length - retainedPromptTokens.length,
+        completionTokenCount: completionTokens.length,
+        ignoredTargetCount,
+        supervisedTokenCount,
       });
     }
   }

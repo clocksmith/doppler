@@ -33,16 +33,27 @@ function toFloat32(buffer, dtype) {
   return new Float32Array(buffer);
 }
 
-async function computeLossMean(loss) {
-  const data = toFloat32(await readBuffer(loss.buffer), loss.dtype);
+async function computeLossMean(loss, elementCount = null) {
+  const lossElementCount = loss.shape.reduce((product, value) => product * value, 1);
+  const bytesPerElement = loss.dtype === 'f16' ? 2 : 4;
+  const data = toFloat32(
+    await readBuffer(loss.buffer, lossElementCount * bytesPerElement),
+    loss.dtype
+  );
   if (!data.length) {
     return 0;
+  }
+  const divisor = elementCount == null ? data.length : elementCount;
+  if (!Number.isInteger(divisor) || divisor < 1 || divisor > data.length) {
+    throw new Error(
+      `TrainingRunner loss elementCount must be an integer from 1 to ${data.length}, got ${divisor}.`
+    );
   }
   let sum = 0;
   for (let i = 0; i < data.length; i += 1) {
     sum += data[i];
   }
-  return sum / data.length;
+  return sum / divisor;
 }
 
 async function resolveBatches(dataset, batchSize, shuffle) {
@@ -1010,7 +1021,10 @@ export class TrainingRunner {
           globalThis.performance.now() - runStartMs,
           progressContext
         );
-        const meanLoss = await computeLossMean(stepResult.loss);
+        const meanLoss = await computeLossMean(
+          stepResult.loss,
+          stepResult.objectiveMetrics?.supervised_token_count ?? null
+        );
         pushRolling(lossWindow, meanLoss, telemetry.windowSize);
         pushRolling(stepTimeWindow, step_time_ms, telemetry.windowSize);
         const objectiveName = stepResult.objectiveName || this.trainingObjective?.name || 'cross_entropy';

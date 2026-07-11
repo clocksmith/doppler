@@ -63,7 +63,7 @@ export function decodeRangeChunkIntoOutput(bytes, sourceDtype, output, dstOffset
   }
 }
 
-function resolveEmbeddingScale(config, hiddenSize) {
+export function resolveEmbeddingScale(config, hiddenSize) {
   const embeddingScale = config.embeddingScale;
   const scaleEmbeddings = config.scaleEmbeddings;
   if (embeddingScale === undefined) {
