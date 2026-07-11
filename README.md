@@ -5,130 +5,99 @@
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/clocksmith/doppler/blob/main/LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/clocksmith/doppler/pulls)
 
-JavaScript and WGSL WebGPU inference for browser and Node, with CLI and
-OpenAI-compatible local server entry points. Doppler loads sharded
-[RDRR model artifacts](./docs/rdrr-format.md) for text generation, embeddings,
-and reranking. Bun WebGPU support is experimental.
+Doppler turns inference engineering into a verifiable search problem. Optimizers
+edit RDRR manifests, execution plans, and kernels; parity and benchmark gates
+accept or reject each candidate against correctness and speed.
+
+Today engineers use these contracts and gates to tune a JavaScript/WGSL WebGPU
+runtime for supported
+[RDRR artifacts](https://github.com/clocksmith/doppler/blob/main/docs/rdrr-format.md)
+in browser and Node. Doppler runs text generation, embeddings, and reranking
+locally, with CLI and OpenAI-compatible server entry points. Bun WebGPU support
+is experimental.
 
 **[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
-
-## Current evidence
-
-Doppler is faster than Transformers.js on every model shown below, across
-Apple Metal and AMD Vulkan.
-
-![Metal and Vulkan browser WebGPU latency distributions](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-webgpu-evidence.svg)
-
-Metal evidence: [Qwen 3.5 0.8B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json) ·
-[Qwen 3 Embedding 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json) ·
-[Qwen 3 Reranker 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json) ·
-[Qwen 3.5 2B paired run](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/qwen35-2b-metal-paired-p256-d512-20260710.json) ·
-[runtime profile](https://github.com/clocksmith/doppler/blob/main/src/config/runtime/profiles/qwen-3-5-2b-metal-parity.json)
-
-Vulkan evidence: [Qwen 3.5 0.8B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T153509.json) ·
-[Qwen 3 Embedding 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json) ·
-[Qwen 3 Reranker 0.6B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json) ·
-[Qwen 3.5 2B](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T161623.json) ·
-[Gemma 4](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T170557.json)
-
-The links include output checks, load time, and hardware details. Qwen 3.5 2B
-Metal used 20 paired runs and a local Doppler model artifact. Transformers.js
-still loads the Vulkan embedding and reranker models faster. See the
-[methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md)
-and [full results](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md).
-
-## How it works
-
-```text
-+----------------------------------------------------------------+
-| Public surfaces                                                |
-| browser | Node | CLI | OpenAI-compatible local server          |
-+-------------------------------+--------------------------------+
-                                |
-                                v
-+-------------------------+        +---------------------------+
-| Model input             |        | Workload input            |
-| registry ID / URL       |        | prompt / documents / task |
-+-----------+-------------+        +-------------+-------------+
-            |                                    |
-            v                                    v
-+-------------------------+        +---------------------------+
-| RDRR contract           |        | Request contract          |
-| manifest / tokenizer    |        | sampling / limits / mode  |
-| session / execution     |        | text / embed / rerank     |
-+-----------+-------------+        +-------------+-------------+
-            |                                    |
-            v                                    |
-+-------------------------+                      |
-| Verified storage        |                      |
-| hashes / OPFS / disk    |                      |
-+-----------+-------------+                      |
-            |                                    |
-            +------------------+-----------------+
-                               |
-                               v
-+----------------------------------------------------------------+
-| JavaScript runtime spine                                       |
-| resolve | validate | load | bind | dispatch | fail closed      |
-+---------+-------------------+-------------------+--------------+
-          |                   |                   |
-          v                   v                   v
-+------------------+ +------------------+ +------------------+
-| Text generation  | | Embeddings       | | Reranking        |
-| prefill / decode | | pool / normalize | | score / rank     |
-| KV / sampling    | | vectors          | | scores           |
-+--------+---------+ +--------+---------+ +--------+---------+
-         |                    |                    |
-         +--------------------+--------------------+
-                              |
-                              v
-+----------------------------------------------------------------+
-| Execution contract                                             |
-| kernel path | graph | dtype/capabilities | readback cadence    |
-+------------------------------+---------------------------------+
-                               |
-                               v
-+----------------------------------------------------------------+
-| WebGPU / WGSL                                                  |
-| adapter/device | buffers | fused kernels | deterministic math  |
-+---------------+-------------------------------+----------------+
-                |                               |
-                v                               v
-+-------------------------+         +----------------------------+
-| Product outputs         |         | Evidence                   |
-| text / vectors / scores |         | parity / timing / hardware |
-+-------------------------+         +-------------+--------------+
-                                                  |
-                                                  v
-                                    +----------------------------+
-                                    | Claim gates                |
-                                    | schema / support / CI      |
-                                    +-------------+--------------+
-                                                  |
-                                                  v
-                                      README / release matrices
-```
-
-Runtime config selects compatible kernels; unsupported paths fail closed.
-
-## Quick start
-
-### Browser
-
-Use the live demo link above. It runs entirely in the browser with no server
-required. Models load into the browser cache and work offline after the first
-download.
-
-### CLI
 
 ```bash
 npx doppler-gpu
 ```
 
-Downloads the default quickstart model, runs a local prompt, and prints the answer.
-Node quickstart artifacts are cached in `~/.cache/doppler-gpu/models` after the
-first run; set `DOPPLER_QUICKSTART_CACHE_DIR` to move the cache or
-`DOPPLER_QUICKSTART_CACHE=0` to disable it.
+## Evidence
+
+Doppler has lower steady-state inference latency than Transformers.js in each
+of the comparable browser WebGPU results indexed below.
+
+![Metal and Vulkan browser WebGPU latency distributions](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-webgpu-evidence.svg)
+
+For text, faster means lower decode ms/token; for retrieval it means lower
+ms/embedding or ms/rerank. Every comparison passes its declared workload
+correctness gate. Model loading is separate: Transformers.js loads the Vulkan
+embedding and reranker artifacts faster. The
+[competition scoreboard](https://github.com/clocksmith/doppler/blob/main/docs/model-competition-scoreboard.md) links every
+receipt, and the [methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md) defines the gates.
+
+## Why these lanes are faster
+
+Doppler authors the WGSL path and pins it in RDRR. Runtime profiles pin session
+cadence. The measured wins come from different mechanisms in different phases:
+
+| Lever | Affected phase | Measured receipt |
+| --- | --- | --- |
+| Fused Q4_K projection and FFN work removes separate dispatches | Text decode | [Qwen 3.5 0.8B Metal](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json) |
+| Fixed `head_dim=128` attention avoids the generic prefill path | Retrieval attention | [embedding](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json), [reranking](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json) |
+| Batch-four decode amortizes one readback across four tokens | Submit and map waits | [Qwen 3.5 2B Vulkan](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T161623.json) |
+| INT4-PLE and Q4_K layouts lower projection traffic | Text decode | [Gemma 4 Vulkan](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T170557.json) |
+
+The Gemma 4 comparison uses its declared product-format output policy. It does
+not claim exact greedy token parity.
+
+Parity and comparable benchmark gates decide what is retained. The
+[challenger framework](https://github.com/clocksmith/doppler/blob/main/docs/local-gpu-challenger-framework.md)
+records accepted and rejected trials, and each verdict's receipt binds it to a
+model, profile, workload, and device; the
+[negative-results findings](https://github.com/clocksmith/doppler/blob/main/docs/developer-guides/16-kernel-performance-optimization.md#what-we-ruled-out)
+keep the dead ends.
+
+### Long-term direction
+
+Humans run this loop today. The WGSL-distillation workload is experimental.
+Automated kernel generation and autotuning are directions, not shipped product
+paths. Doppler aims to reduce the manual steps between a new checkpoint or GPU
+and a verified runtime lane. Automated proposals will face the same parity and
+benchmark gates.
+
+## How it works
+
+```text
++----------+     +------------------+     +--------------+     +-----------------+     +------------------+
+| Contract | --> | Candidate        | --> | Parity gate  | --> | Benchmark gate  | --> | Retain or reject |
+| RDRR /   |     | model / plan /   |     | correctness  |     | comparable      |     | receipts /       |
+| request  |     | kernel edit      |     | vs reference |     | speed vs prior  |     | findings         |
++----------+     +------------------+     +--------------+     +-----------------+     +--------+---------+
+                                                                                               |
+                                                                            next search <------+
+```
+
+The full resolve, load, bind, dispatch, and readback flow lives in the
+[architecture](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md)
+document. Unsupported paths fail closed. Doppler owns artifact and execution
+contracts; applications own policy.
+
+New model families need RDRR conversion and may need tokenizer, graph, or kernel
+support.
+
+[Ouroboros/Reploid](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md#optional-ouroborosreploid-integration)
+keeps orchestration above this boundary.
+[Program Bundles](https://github.com/clocksmith/doppler/blob/main/docs/integration/program-bundle.md)
+preserve program identity for downstream backends.
+
+## Quick start
+
+### Browser
+
+The live demo runs locally and works offline after its first model download.
+
+### CLI
 
 ```bash
 npx doppler-gpu "Summarize WebGPU in one sentence"
@@ -138,8 +107,7 @@ npx doppler-gpu --list-models
 
 ### Root API
 
-The `dr` facade is the primary app-facing API. `doppler` remains a compatibility
-alias. Advanced APIs live on explicit package subpaths.
+The `dr` facade is the primary app API. Advanced APIs use package subpaths.
 
 ```js
 import { dr } from 'doppler-gpu';
@@ -156,13 +124,11 @@ const text = await model.generateText('Explain WebGPU in one sentence');
 
 ### OpenAI-compatible server
 
-For existing apps, SDKs, and eval stacks that speak the OpenAI protocol:
-
 ```bash
 npx doppler-serve --model qwen3-0.8b --port 8080
 ```
 
-Then point any OpenAI client at `http://localhost:8080/v1`:
+Point an OpenAI client at `http://localhost:8080/v1`:
 
 ```js
 import OpenAI from 'openai';
@@ -173,52 +139,24 @@ const response = await client.chat.completions.create({
 });
 ```
 
-This compatibility bridge uses the same runtime contract as the browser and Node APIs.
-
 Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. See the [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
-## Support
+## Start here
 
-The primary proof surface is the hosted browser demo, root `dr` API, quickstart
-CLI, OpenAI-compatible local server, and the hosted Qwen registry lanes below.
+| Reader | Entry points |
+| --- | --- |
+| Application developers | [Getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md), [Root API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md), and the [OpenAI-compatible server](#openai-compatible-server) |
+| Model integrators | [RDRR format](https://github.com/clocksmith/doppler/blob/main/docs/rdrr-format.md), [model support](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md), and [Program Bundles](https://github.com/clocksmith/doppler/blob/main/docs/integration/program-bundle.md) |
+| Runtime and kernel engineers | [Architecture](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md), [kernel optimization](https://github.com/clocksmith/doppler/blob/main/docs/developer-guides/16-kernel-performance-optimization.md), and the [challenger framework](https://github.com/clocksmith/doppler/blob/main/docs/local-gpu-challenger-framework.md) |
+| Evidence reviewers | [Competition scoreboard](https://github.com/clocksmith/doppler/blob/main/docs/model-competition-scoreboard.md), [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md), and [release matrix](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md) |
 
-| Registry alias | Artifact ID | Task |
-| --- | --- | --- |
-| `qwen3-0.8b` | `qwen-3-5-0-8b-q4k-ehaf16` | Text generation |
-| `qwen3-embedding-0.6b` | `qwen-3-embedding-0-6b-q4k-ehf16-af32` | Embeddings |
-| `qwen3-reranker-0.6b-q4k` | `qwen-3-reranker-0-6b-q4k-ehf16-af32` | Reranking |
-
-Browser and Node are mainline runtime surfaces. Bun WebGPU is experimental.
-Use the [model support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
-for verified models and the
-[subsystem support matrix](https://github.com/clocksmith/doppler/blob/main/docs/subsystem-support-matrix.md)
-for public, experimental, and internal-only APIs.
-
-## Model roadmap
-
-Current model priorities and promotion state live in the
-[model roadmap](https://github.com/clocksmith/doppler/blob/main/docs/model-roadmap.md).
-Exact registry IDs, runtime verification, and benchmark claims remain in the
-[model support inventory](https://github.com/clocksmith/doppler/blob/main/docs/model-support-inventory.md)
-and [release matrix](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md).
-
-## Documentation
-
-- npm quickstart: run `npx doppler-gpu --help`
-- Docs index (canonical navigation): [docs/INDEX.md](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)
-- First-run workflow: [docs/getting-started.md](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md)
-- CLI reference: [docs/cli.md](https://github.com/clocksmith/doppler/blob/main/docs/cli.md)
-- Runtime config contract: [docs/config.md](https://github.com/clocksmith/doppler/blob/main/docs/config.md)
-- Architecture: [docs/architecture.md](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md)
-- Model roadmap: [docs/model-roadmap.md](https://github.com/clocksmith/doppler/blob/main/docs/model-roadmap.md)
-- Model support matrix: [docs/model-support-matrix.md](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
+The [docs index](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)
+owns the complete model, subsystem, API, architecture, and operator inventory.
 
 ## Environment requirements
 
-- WebGPU is required.
-- **Browser**: Current Chromium browsers with WebGPU enabled, including Chrome and Edge.
-  WebGPU shipped in Chrome/Edge 113+. Firefox and Safari support varies.
-- **Node**: Requires a WebGPU provider (`webgpu` npm package). Installed automatically as an optional dependency.
+WebGPU is required. Use a current Chromium browser; Node installs the `webgpu`
+provider as an optional dependency.
 
 ## License
 

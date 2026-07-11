@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-09T19:35:08.657Z",
+  "generatedAt": "2026-07-11T13:18:02.204Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.4.8",
-    "commitSha": "69c495a2723ceef79f9dfa64ef88c8ff2ce40139",
+    "commitSha": "d9eb95510178eb7bbfc59af307a58793b85fb51e",
     "dirty": true
   },
   "sources": {
@@ -28,8 +28,8 @@
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "67866eecb805418a4069b0c6f96a2d233624c381c73a2720fc40909826abeba1",
-      "bytes": 8312,
+      "sha256": "49fdbad3645c3914cf1cc46b0eb839c750110876dbf2a1b2fb24b590f7ec6956",
+      "bytes": 8357,
       "updated": "2026-06-15"
     },
     "compareMetricContract": {
@@ -46,15 +46,15 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "4fabd69052293bfaefc5fc5939edae61b52fcf43737175072b202170de49da4f",
+      "sha256": "609d3e2d0581bfac040baf97029992483db289381c47b68698e6fe59cd05f169",
       "bytes": 24908,
       "updated": "2026-06-27"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "243b8a1edf0895aca03727bc263af8355648970bb2d190bcbe7d16431c349520",
-      "bytes": 37885,
-      "updated": "2026-07-05"
+      "sha256": "908b35e3e844f9b3cb618b166736ffde21411b5d193fd38ffaa1cd161f726883",
+      "bytes": 40224,
+      "updated": "2026-07-11"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
@@ -161,9 +161,9 @@
   },
   "summary": {
     "targetCount": 17,
-    "modelCoverageCount": 20,
+    "modelCoverageCount": 21,
     "compareProfileCount": 13,
-    "catalogModelCount": 23,
+    "catalogModelCount": 24,
     "workloadCount": 5,
     "committedChartCount": 14,
     "hasLatestCompareResult": true
@@ -1469,6 +1469,23 @@
       ],
       "catalogBaseUrl": null,
       "catalogSizeBytes": 938321920
+    },
+    {
+      "dopplerModelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "dopplerModelBaseDir": "local",
+      "dopplerSource": "local",
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": "capability_only",
+      "compareLaneReason": "No canonical Transformers.js mapping is configured for this bilingual TranslateGemma artifact.",
+      "inCatalog": true,
+      "catalogLabel": "TranslateGemma 1B EN/ES Student (NativeKD2 Q4K)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 1025493248
     },
     {
       "dopplerModelId": "translategemma-4b-it-q4k-ehf16-af32",
