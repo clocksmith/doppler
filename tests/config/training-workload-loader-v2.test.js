@@ -27,6 +27,13 @@ assert.equal(codeLoraF16.workload.baseModelId, 'gemma-3-270m-it-f16-af32');
 assert.equal(codeLoraF16.workload.pipeline.datasetFormat, 'text-pairs');
 assert.equal(codeLoraF16.workload.pipeline.taskType, 'text_generation');
 
+const qwen35Wgsl = await loadTrainingWorkloadPack('lora-doppler-wgsl-qwen35-9b-v9');
+assert.equal(qwen35Wgsl.workload.pipeline.baseModelRef, 'Qwen/Qwen3.5-9B');
+assert.equal(
+  qwen35Wgsl.workload.pipeline.baseModelRevision,
+  'c202236235762e1c871ad0ccb60c8ee5ba337b9a'
+);
+
 const sftDistill = await loadTrainingWorkloadPack('distill-glm52-doppler-code-agent-sft-tiny');
 assert.equal(sftDistill.workload.kind, 'distill');
 assert.equal(sftDistill.workload.pipeline.stagePlan[0].objective, 'sft');

@@ -31,7 +31,7 @@ task.verification = { mutantCompileFailed: true };
 
 const policy = {
   methods: {
-    rlvr: { groupSize: 2, advantageEpsilon: 1e-6 },
+    rlvr: { groupSize: 8, advantageEpsilon: 1e-6 },
     dpo: { minimumRewardGap: 0.5 },
   },
   verifier: {
@@ -47,7 +47,7 @@ const rawGroups = [{
     {
       sampleId: 'bad',
       prompt: task.prompt,
-      completion: mutation.mutatedSpan,
+      completion: ' ',
       tokenIds: [1, 2],
       completionMask: [0, 1],
       policyTokenLogprobs: [-0.4],
@@ -90,11 +90,18 @@ const verified = await verifyRawWgslRollouts({
   datasetHash: '1'.repeat(64),
   policyHash: '2'.repeat(64),
   referencePolicyHash: '3'.repeat(64),
+  expectedGroupSize: 2,
 });
 assert.equal(verified.groups.length, 1);
 assert.equal(verified.reports.length, 2);
 assert.equal(verified.receipt.passingSamples, 1);
-assert.equal(verified.receipt.blockedSamples, 0);
+assert.equal(verified.receipt.passingTasksAt1, 0);
+assert.equal(verified.receipt.passingTasksAtK, 1);
+assert.equal(verified.receipt.passAt1, 0);
+assert.equal(verified.receipt.passAtK, 1);
+assert.equal(verified.receipt.exactReferenceSamples, 1);
+assert.equal(verified.receipt.blockedSamples, 1);
+assert.equal(verified.receipt.expectedGroupSize, 2);
 assert.deepEqual(verified.groups[0].samples.map((sample) => sample.advantage), [-1, 1]);
 
 const derived = deriveWgslTrainingRows(verified.groups, policy);

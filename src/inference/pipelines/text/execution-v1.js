@@ -530,8 +530,12 @@ function collectCoveredLayers(entries, targetLayers, predicate) {
   return covered;
 }
 
-function assertHybridLinearProjectionIsolation(execution, layerTypes, modelId) {
+function assertHybridLinearProjectionIsolation(execution, layerTypes, modelId, weightDtype) {
   if (!Array.isArray(layerTypes) || layerTypes.length === 0) {
+    return;
+  }
+  const normalizedWeightDtype = String(weightDtype || '').trim().toLowerCase();
+  if (normalizedWeightDtype === 'f16' || normalizedWeightDtype === 'f32') {
     return;
   }
 
@@ -730,6 +734,7 @@ export function compileExecutionV1(options = {}) {
   const modelId = options.modelId ?? 'model';
   const numLayers = options.numLayers ?? 0;
   const headDim = Number.isFinite(options.headDim) ? Math.floor(options.headDim) : null;
+  const weightDtype = options.weightDtype ?? null;
   const hasCapabilityProof = options.capabilities && typeof options.capabilities === 'object';
   const hasUseGPUOption = hasOwnProperty(options, 'useGPU');
   const useGPU = hasUseGPUOption
@@ -861,7 +866,7 @@ export function compileExecutionV1(options = {}) {
 
   }
 
-  assertHybridLinearProjectionIsolation(execution, layerTypes, modelId);
+  assertHybridLinearProjectionIsolation(execution, layerTypes, modelId, weightDtype);
 
   // Transformed graphs have null digests for derived kernels — skip digest
   // validation since the original graph was already validated above.
@@ -1054,6 +1059,7 @@ export function applyExecutionV1RuntimeConfig(options = {}) {
     modelId: manifest.modelId ?? options.modelId,
     numLayers: options.numLayers ?? manifest.architecture?.numLayers ?? 0,
     headDim: options.headDim ?? manifest.architecture?.headDim ?? null,
+    weightDtype: manifest.quantizationInfo?.weights ?? null,
     capabilities: options.capabilities ?? null,
     platform: options.platform ?? null,
     runtimeSession: hasExplicitRuntimeOverrides

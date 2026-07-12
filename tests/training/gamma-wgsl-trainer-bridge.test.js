@@ -4,7 +4,18 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { serializeLoRASafetensors } from '../../src/experimental/training/export.js';
-import { readGammaAdapterTensors } from '../../tools/trainers/gamma-wgsl-trainer.js';
+import {
+  buildGammaProcessEnv,
+  readGammaAdapterTensors,
+} from '../../tools/trainers/gamma-wgsl-trainer.js';
+
+const gammaEnv = buildGammaProcessEnv({
+  PYTHONPATH: '/base/site',
+  GAMMA_WGSL_PYTHONPATH: '/overlay/site',
+  KEEP_ME: 'yes',
+});
+assert.equal(gammaEnv.PYTHONPATH, '/overlay/site');
+assert.equal(gammaEnv.KEEP_ME, 'yes');
 
 const root = await mkdtemp(join(tmpdir(), 'doppler-gamma-wgsl-'));
 const adapter = join(root, 'adapter');

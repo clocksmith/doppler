@@ -65,7 +65,7 @@ function modelRequest(policy) {
   const localPath = String(process.env.GAMMA_WGSL_MODEL_PATH || '').trim();
   return {
     modelId: model.modelId,
-    revision: process.env.GAMMA_WGSL_MODEL_REVISION || 'main',
+    revision: model.revision || process.env.GAMMA_WGSL_MODEL_REVISION || 'main',
     ...(localPath ? { localPath } : {}),
   };
 }
@@ -172,7 +172,40 @@ async function runRollout(context, adapterPath) {
   };
 }
 
-async function runVerify(context, rollout, referencePolicyHash) {
+async function runBaseRollout(context, referencePolicyHash) {
+  if (!referencePolicyHash) throw new Error('base rollout requires a preflight policy hash.');
+  const taskPath = join(context.corpusRoot, 'public-test.jsonl');
+  const outputRoot = join(context.runRoot, 'gamma', 'base-rollout');
+  const request = {
+    protocol: PROTOCOL,
+    action: 'rollout',
+    runId: `${context.policy.policyId}-base-rollout`,
+    outputRoot,
+    model: modelRequest(context.policy),
+    policyMode: 'base',
+    policyHash: referencePolicyHash,
+    datasetPath: taskPath,
+    sampling: {
+      ...context.policy.methods.rollout,
+      groupSize: context.policy.methods.rlvr.groupSize,
+    },
+    training: commonTraining(context.policy),
+  };
+  const executed = await runGammaWgslRequest(request, {
+    runRoot: outputRoot,
+    prefix: 'base-rollout',
+  });
+  return {
+    phase: 'base-rollout',
+    response: executed.response,
+    adapterPath: null,
+    policyHash: executed.response.result.policyHash,
+    rawRolloutPath: executed.response.result.rolloutPath,
+    receiptPaths: executed.paths,
+  };
+}
+
+async function runVerify(context, rollout, referencePolicyHash, options = {}) {
   if (!rollout?.rawRolloutPath || !rollout?.policyHash || !referencePolicyHash) {
     throw new Error('verify requires rollout and reference-policy receipts.');
   }
@@ -186,17 +219,18 @@ async function runVerify(context, rollout, referencePolicyHash) {
     policy: context.policy,
     tasks,
     rawGroups,
-    workloadId: `${context.policy.policyId}-rlvr`,
+    workloadId: options.workloadId || `${context.policy.policyId}-rlvr`,
     datasetHash,
     policyHash: rollout.policyHash,
     referencePolicyHash,
+    expectedGroupSize: context.policy.methods.rlvr.groupSize,
   });
   const outputRoot = await writeVerifiedWgslRollouts(
-    join(context.runRoot, 'verified-rollouts'),
+    join(context.runRoot, options.outputDir || 'verified-rollouts'),
     verified
   );
   return {
-    phase: 'verify',
+    phase: options.phase || 'verify',
     outputRoot,
     groupsPath: join(outputRoot, 'rollout-groups.jsonl'),
     receipt: verified.receipt,
@@ -228,10 +262,52 @@ function optimizerTraining(policy, method) {
   };
 }
 
+export function summarizeGrpoLearningSignal(groups) {
+  if (!Array.isArray(groups) || groups.length === 0) {
+    throw new Error('GRPO signal analysis requires rollout groups.');
+  }
+  let sampleCount = 0;
+  let nonzeroAdvantages = 0;
+  let varyingGroups = 0;
+  for (const group of groups) {
+    if (!Array.isArray(group?.samples) || group.samples.length < 2) {
+      throw new Error('GRPO signal analysis requires at least two samples per group.');
+    }
+    const groupNonzero = group.samples.filter((sample) => (
+      Number.isFinite(sample?.advantage) && Math.abs(sample.advantage) > 0
+    )).length;
+    sampleCount += group.samples.length;
+    nonzeroAdvantages += groupNonzero;
+    if (groupNonzero > 0) varyingGroups += 1;
+  }
+  return {
+    groupCount: groups.length,
+    sampleCount,
+    varyingGroups,
+    nonzeroAdvantages,
+    hasLearningSignal: nonzeroAdvantages > 0,
+  };
+}
+
 async function runDpo(context, adapterPath, dpoPath) {
   if (!adapterPath || !dpoPath) throw new Error('dpo requires an SFT adapter and DPO pairs.');
   const method = context.policy.methods.dpo;
   const outputRoot = join(context.runRoot, 'gamma', 'dpo');
+  const derivedManifest = await readJson(
+    join(context.runRoot, 'derived-training', 'derived-dataset-manifest.json')
+  );
+  if (!Number.isInteger(derivedManifest.dpoRows) || derivedManifest.dpoRows < 0) {
+    throw new Error('derived training manifest requires a non-negative integer dpoRows.');
+  }
+  if (derivedManifest.dpoRows === 0) {
+    return {
+      phase: 'dpo',
+      status: 'skipped_no_preference_pairs',
+      adapterPath: resolve(adapterPath),
+      derivedManifest,
+      claimBoundary: 'No verifier reward gap exists; no DPO optimizer update was run.',
+    };
+  }
   const request = {
     protocol: PROTOCOL,
     action: 'dpo',
@@ -247,7 +323,6 @@ async function runDpo(context, adapterPath, dpoPath) {
   };
   const executed = await runGammaWgslRequest(request, { runRoot: outputRoot, prefix: 'dpo' });
   const result = executed.response.result;
-  const derivedManifest = await readJson(join(context.runRoot, 'derived-training', 'derived-dataset-manifest.json'));
   const update = buildTrainingPolicyUpdate({
     workloadId: request.runId,
     updateId: `${request.runId}-update`,
@@ -293,6 +368,18 @@ async function runGrpo(context, adapterPath, groupsPath) {
   if (!adapterPath || !groupsPath) throw new Error('grpo requires an SFT adapter and rollout groups.');
   const method = context.policy.methods.rlvr;
   const outputRoot = join(context.runRoot, 'gamma', 'grpo');
+  const groups = await readJsonlFile(groupsPath, 'GRPO rollout groups');
+  const signal = summarizeGrpoLearningSignal(groups);
+  if (!signal.hasLearningSignal) {
+    return {
+      phase: 'grpo',
+      status: 'skipped_zero_advantages',
+      adapterPath: resolve(adapterPath),
+      signal,
+      zeroVariancePolicy: method.zeroVariancePolicy,
+      claimBoundary: 'All verifier groups have zero variance; no GRPO optimizer update was run.',
+    };
+  }
   const request = {
     protocol: PROTOCOL,
     action: 'grpo_update',
@@ -306,11 +393,12 @@ async function runGrpo(context, adapterPath, groupsPath) {
       clipLower: method.clipLower,
       clipUpper: method.clipUpper,
       klCoefficient: method.klCoefficient,
+      updatesPerRolloutBatch: method.updatesPerRolloutBatch,
+      maximumStalePolicyUpdates: method.maximumStalePolicyUpdates,
     },
   };
   const executed = await runGammaWgslRequest(request, { runRoot: outputRoot, prefix: 'grpo' });
   const result = executed.response.result;
-  const groups = await readJsonlFile(groupsPath, 'GRPO rollout groups');
   const parentRolloutHashes = groups.map(hashVerifierGuidedArtifact);
   const update = buildTrainingPolicyUpdate({
     workloadId: request.runId,
@@ -325,6 +413,9 @@ async function runGrpo(context, adapterPath, groupsPath) {
       clipUpper: method.clipUpper,
       klCoefficient: method.klCoefficient,
       advantageFormula: method.advantageFormula,
+      zeroVariancePolicy: method.zeroVariancePolicy,
+      updatesPerRolloutBatch: method.updatesPerRolloutBatch,
+      maximumStalePolicyUpdates: method.maximumStalePolicyUpdates,
     },
     metrics: result.metrics,
     runtime: executed.response.runtime,
@@ -373,10 +464,19 @@ export async function runExperiment(argv = process.argv.slice(2)) {
   let verified = null;
   let derived = null;
   const selected = args.phase;
-  if (selected === 'preflight' || selected === 'all') {
+  if (selected === 'preflight' || selected === 'baseline' || selected === 'all') {
     const result = await runPreflight(context);
     phases.push(result);
     referencePolicyHash = result.referencePolicyHash;
+  }
+  if (selected === 'baseline' || selected === 'all') {
+    const baseRollout = await runBaseRollout(context, referencePolicyHash);
+    phases.push(baseRollout);
+    phases.push(await runVerify(context, baseRollout, referencePolicyHash, {
+      phase: 'base-verify',
+      workloadId: `${context.policy.policyId}-base-eval`,
+      outputDir: 'verified-base-rollouts',
+    }));
   }
   if (selected === 'sft' || selected === 'all') {
     const result = await runSft(context);
@@ -418,7 +518,7 @@ export async function runExperiment(argv = process.argv.slice(2)) {
     phases.push(await runGrpo(context, adapterPath, verified.groupsPath));
   }
   if (phases.length === 0) {
-    throw new Error('--phase must be preflight, sft, rollout, verify, derive, dpo, grpo, or all.');
+    throw new Error('--phase must be preflight, baseline, sft, rollout, verify, derive, dpo, grpo, or all.');
   }
   const status = {
     artifactType: 'wgsl_repair_experiment_status',

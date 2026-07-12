@@ -20,7 +20,7 @@ function createSession() {
   };
 }
 
-function compileHybridExecution(execution) {
+function compileHybridExecution(execution, weightDtype = null) {
   return compileExecutionV1({
     manifestInference: {
       schema: 'doppler.execution/v1',
@@ -33,6 +33,7 @@ function compileHybridExecution(execution) {
     },
     modelId: 'unit-qwen-hybrid',
     numLayers: 2,
+    weightDtype,
     runtimeSession: createSession(),
     kernelPathPolicy: {
       mode: 'capability-aware',
@@ -72,6 +73,11 @@ const unsafeHybridExecution = {
 assert.throws(
   () => compileHybridExecution(unsafeHybridExecution),
   /Hybrid linear-attention model "unit-qwen-hybrid" cannot apply a global non-Q4/
+);
+
+assert.doesNotThrow(
+  () => compileHybridExecution(unsafeHybridExecution, 'f16'),
+  'A global F16 path is safe when every stored projection weight is F16.'
 );
 
 const isolatedHybridExecution = {

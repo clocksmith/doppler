@@ -20,7 +20,7 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 
 - Catalog models: 24
 - Source checkpoints: 17
-- Conversion-only configs: 6
+- Conversion-only configs: 7
 - HF-published catalog models: 15
 - Runtime-verified catalog models: 21
 - Benchmark-selected source architectures: 1
@@ -116,6 +116,7 @@ These entries have checked-in conversion configs but are not catalog-supported r
 | src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json | gemma-4-moe-q4k-ehf16-af32 | gemma4 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | Catalog, verify, and publish gemma-4-moe-q4k-ehf16-af32 before claiming runtime support. |
 | src/config/conversion/gpt-oss-20b-f16-xmxfp4.json | gpt-oss-20b-f16-xmxfp4 | root | RDRR, f16 weights, f16 embeddings, f16 LM head, f16 compute | Catalog, verify, and publish gpt-oss-20b-f16-xmxfp4 before claiming runtime support. |
 | src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json | janus-pro-1b-text-q4k-ehaf16 | janus | RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout | Catalog, verify, and publish janus-pro-1b-text-q4k-ehaf16 before claiming runtime support. |
+| src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json | qwen-3-5-9b-f16-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | Catalog, verify, and publish qwen-3-5-9b-f16-af32 before claiming runtime support. |
 
 ## Source Files
 

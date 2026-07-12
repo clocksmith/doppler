@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "artifactType": "training_workload_registry",
-  "generatedAt": "2026-07-12T00:07:39.019Z",
-  "registryHash": "5960c7edb1059ea6ed1acbb0ebdb9a924b1e364b71249ac16628eafeec885d61",
+  "generatedAt": "2026-07-12T01:50:04.634Z",
+  "registryHash": "e5851652e38b46d5313240cae7c41640b972e74cb19e2b5f9a61702a9f1371e8",
   "workloads": [
     {
       "id": "distill-glm52-doppler-agent-harness-gemma270m-f16-sft-tiny",
@@ -17,7 +17,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_distill-glm52-doppler-agent-harness-gemma270m-f16-sft-tiny_922b33b7ecff",
       "claimBoundary": "Executable SFT distillation receipt for agent harness teacher traces into a Doppler f16 LoRA adapter; not a model-quality claim.",
-      "configHash": "c4e8522a40e2b90d21dc60ab938516283e51ba0a5154f55fbb2c61fac2fec33c"
+      "configHash": "f7b0c5c0229ef3742d4f67f521bd963090688066bf96335f60a9c95f172113a6"
     },
     {
       "id": "distill-glm52-doppler-code-agent-gemma270m-f16-sft-tiny",
@@ -32,7 +32,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_distill-glm52-doppler-code-agent-gemma270m-f16-sft-tiny_53b048d76c32",
       "claimBoundary": "Executable local SFT sequence distillation receipt from teacher-generated text-pair traces into a Doppler f16 LoRA adapter; not a model-quality claim.",
-      "configHash": "9478cae4cc89bb80443ad796657c3c9fe96f15808efe1e112cc48d16ac6d25ff"
+      "configHash": "86f9a1c287369437a75c640184203b47151317849202a87fdac9ca846ceb7eb7"
     },
     {
       "id": "distill-glm52-doppler-code-agent-sft-tiny",
@@ -47,7 +47,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_distill-glm52-doppler-code-agent-sft-tiny_97ae3d3db9fb",
       "claimBoundary": "Operator workload shape for SFT sequence distillation from teacher-generated text-pair traces into a Doppler-compatible LoRA adapter; not a model-quality claim.",
-      "configHash": "ecb07e0a97bce9762ad7d139db4a75e78d8ba771d1cc3b364607a5ed3107a2b0"
+      "configHash": "9fc8046d5d8f95cc3703a9abb88d726a94793201de17fccf912c9f55487a97dc"
     },
     {
       "id": "distill-glm52-doppler-js-json-gemma270m-f16-sft-tiny",
@@ -62,7 +62,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_distill-glm52-doppler-js-json-gemma270m-f16-sft-tiny_a011740d9a21",
       "claimBoundary": "Executable SFT distillation receipt for JS/JSON teacher traces into a Doppler f16 LoRA adapter; not a model-quality claim.",
-      "configHash": "fb796350325110a6d506d06464085b28ddcff9aad30b495af1f1d0a07abfd517"
+      "configHash": "f323c7863b0a3ca98105615b9dd544e9da8b0f2c6faca6c8f554325eda581021"
     },
     {
       "id": "distill-glm52-doppler-review-gemma270m-f16-sft-tiny",
@@ -77,7 +77,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_distill-glm52-doppler-review-gemma270m-f16-sft-tiny_dbf198ed223b",
       "claimBoundary": "Executable SFT distillation receipt for review teacher traces into a Doppler f16 LoRA adapter; not a model-quality claim.",
-      "configHash": "ecea2b77bffbd309207b61c4ea3f790d01a2df5d5ec067e4be37fbef0e929b61"
+      "configHash": "10dc8c089b73c9ad1cf4646f3c72661cedfdbb14cd942c291c27f80dfde41d4a"
     },
     {
       "id": "distill-glm52-doppler-wgsl-gemma270m-f16-sft-tiny",
@@ -92,7 +92,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_distill-glm52-doppler-wgsl-gemma270m-f16-sft-tiny_2a398efeec87",
       "claimBoundary": "Executable SFT distillation receipt for WGSL teacher traces into a Doppler f16 LoRA adapter; not a model-quality claim.",
-      "configHash": "4e3550c146a43d3fc3dd3a1ceca81b12569018bf88bc71e162a31db72a1e5c00"
+      "configHash": "dd86e2e3d2eb7b92db51a8e732158cf54fa32616dc280eccef881c32c31a8b96"
     },
     {
       "id": "distill-translategemma-medium",
@@ -137,7 +137,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_lora-doppler-agent-harness-gemma270m-f16-tiny_ca334d7038fe",
       "claimBoundary": "Executable local LoRA adapter training receipt for agent harness traces on a Doppler f16 base; not a model-quality claim.",
-      "configHash": "6297bb50f00283ca7c341560b6c07bec5b2219f4fbe662a20cb9ef5ab8beea01"
+      "configHash": "f57ae73d24939e7ef7e3b4d7b2e564ab0fb94a8f37ec0198bb7271f6e7289d6b"
     },
     {
       "id": "lora-doppler-code-agent-gemma270m-f16-tiny",
@@ -152,7 +152,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_lora-doppler-code-agent-gemma270m-f16-tiny_6e2546b24881",
       "claimBoundary": "Executable local causal-LM LoRA adapter training receipt on a Doppler f16 base; not a model-quality claim.",
-      "configHash": "9e9718b798d231d72c4a4709ec8568d85b74ac9831f039ed8902f8539a88e516"
+      "configHash": "c02abb168801b290d18493bcf1c79ad53c50b33e41197005e8b1657b4cebbcd2"
     },
     {
       "id": "lora-doppler-code-agent-tiny",
@@ -167,7 +167,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_lora-doppler-code-agent-tiny_e5127b6749ba",
       "claimBoundary": "Operator workload shape for causal-LM LoRA adapter training on code-agent text-pair traces; not a model-quality claim.",
-      "configHash": "4379b823776d8c30ca4168f389bc1fe84d10544536af2ae38277b9dc2a561f62"
+      "configHash": "0fad267f891388f8596e98426ab07748c9e764f2a3acd5442a6cafc7229ae00a"
     },
     {
       "id": "lora-doppler-js-json-gemma270m-f16-tiny",
@@ -182,7 +182,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_lora-doppler-js-json-gemma270m-f16-tiny_87c159cf5936",
       "claimBoundary": "Executable local LoRA adapter training receipt for JS/JSON traces on a Doppler f16 base; not a model-quality claim.",
-      "configHash": "ac2d418059fabdf1ede18af696c65e1a2955ef2eef7cb0ef5023a9bd3e718786"
+      "configHash": "e1434f966bef037d0b9f5fbb9f65d7061c59b58f9dda4431b326449a1aa3127a"
     },
     {
       "id": "lora-doppler-review-gemma270m-f16-tiny",
@@ -197,7 +197,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_lora-doppler-review-gemma270m-f16-tiny_75c514d464a8",
       "claimBoundary": "Executable local LoRA adapter training receipt for review traces on a Doppler f16 base; not a model-quality claim.",
-      "configHash": "36576b62d00057a30325fb4eb44e8332cd6cb493f17266bb86a3f62215432aa6"
+      "configHash": "a7c3a2b6095743596eda77214fff6ddd20aa96dc2e0bec120cccac74f21c5802"
     },
     {
       "id": "lora-doppler-wgsl-gemma270m-f16-tiny",
@@ -212,12 +212,12 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_lora-doppler-wgsl-gemma270m-f16-tiny_40b6ef063ff1",
       "claimBoundary": "Executable local LoRA adapter training receipt for WGSL traces on a Doppler f16 base; not a model-quality claim.",
-      "configHash": "a8af4a7f4262cda72d5e1e4be0d31871e1ec16cdde93ec128d5d0ce874f286e1"
+      "configHash": "fc5d69cbb280e061e56b7c3d768114ef523f1b91d0f3d4218ebeba4982a2198b"
     },
     {
       "id": "lora-doppler-wgsl-qwen35-9b-v9",
       "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v9.json",
-      "sha256": "a8e70d2388f072fee9c684bf2bc7305e6a5df999f035ba002fb4336862a4730a",
+      "sha256": "23351a6c3a99be5c108819ef0417172eebae3357daa772893ecdcc523d2699e2",
       "workloadKind": "lora",
       "trainingSchemaVersion": 1,
       "seed": 11,
@@ -225,9 +225,9 @@
       "selectionMetric": "loss",
       "selectionGoal": "min",
       "surfaceSupport": "node",
-      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v9_a8e70d2388f0",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v9_23351a6c3a99",
       "claimBoundary": "The workload can establish SFT mechanics and adapter lineage only. Doppler V9 promotion requires family-disjoint and sealed constructive repair gains across three seeds.",
-      "configHash": "f4de63d4b7331a69fa56a9c350af97292380fd2fb39e99e8beaebb69e3ac05c3"
+      "configHash": "e2292caabc484f9ec0c2db0f0ebd306cde22df9ab460d23cccc0a3413fc809e1"
     },
     {
       "id": "lora-toy-medium",
@@ -242,7 +242,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_lora-toy-medium_622511a55294",
       "claimBoundary": "Practical deterministic LoRA traceability for toy adapter training, export, and eval artifacts.",
-      "configHash": "8695a8c7b7393b0d826c1cb117be3145815e70361d243bfd7ebba17429b7842d"
+      "configHash": "68a918b577861c6aacad83506af1a3dd7228c93150255a7b9bf0ed3d632ca245"
     },
     {
       "id": "lora-toy-tiny",
@@ -257,7 +257,7 @@
       "surfaceSupport": "node",
       "baselineReportId": "trn_lora-toy-tiny_99a3663403a3",
       "claimBoundary": "Practical deterministic LoRA traceability for toy adapter training, export, and eval artifacts.",
-      "configHash": "456e78833cac8bd2c376079e8336c50bffc193be18212a8052e2f8fed99f4341"
+      "configHash": "f4a5078754517d7f09c3a19943344bc043df1d9925b101d8351734dd489ed229"
     },
     {
       "id": "ul-training-medium",

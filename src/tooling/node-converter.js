@@ -275,10 +275,10 @@ async function loadNodeGpuCastRuntime() {
     gpuCastRuntimePromise = (async () => {
       await bootstrapNodeWebGPU();
       const [
-        { initDevice, getDevice },
+        { initDevice, getDevice, destroyDevice, resetDeviceState },
         { castF32ToF16, runBF16ToF16 },
         { createTensor },
-        { acquireBuffer, releaseBuffer, getBufferPool },
+        { acquireBuffer, releaseBuffer, getBufferPool, destroyBufferPool },
       ] = await Promise.all([
         import('../gpu/device.js'),
         import('../gpu/kernel-selector.js'),
@@ -293,12 +293,15 @@ async function loadNodeGpuCastRuntime() {
       }
       return {
         getDevice,
+        destroyDevice,
+        resetDeviceState,
         castF32ToF16,
         runBF16ToF16,
         createTensor,
         acquireBuffer,
         releaseBuffer,
         getBufferPool,
+        destroyBufferPool,
       };
     })();
   }
@@ -1056,6 +1059,7 @@ export async function convertSafetensorsDirectory(options) {
   installNodeFileFetchShim();
   const fileRangeReader = createFileRangeReader();
   const totalTimer = createStageTimer('Total');
+  let gpuRuntimeForCleanup = null;
   try {
 
   const [
@@ -1457,9 +1461,8 @@ export async function convertSafetensorsDirectory(options) {
   let result = null;
   try {
     if (executionPlan.useGpuCast) {
-      let gpuRuntime;
       try {
-        gpuRuntime = await loadNodeGpuCastRuntime();
+        gpuRuntimeForCleanup = await loadNodeGpuCastRuntime();
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         throw new Error(
@@ -1467,7 +1470,7 @@ export async function convertSafetensorsDirectory(options) {
         );
       }
       gpuTensorTransformer = createNodeGpuTensorTransformer({
-        runtime: gpuRuntime,
+        runtime: gpuRuntimeForCleanup,
         gpuCastMinTensorBytes: executionPlan.gpuCastMinTensorBytes,
         requireGpuCast: executionPlan.gpuCastRequestedExplicitly === true,
         resolveTensorTargetQuant,
@@ -1609,6 +1612,18 @@ export async function convertSafetensorsDirectory(options) {
   };
   } finally {
     await fileRangeReader.closeAll();
+    if (gpuRuntimeForCleanup) {
+      try {
+        gpuRuntimeForCleanup.destroyBufferPool();
+      } finally {
+        try {
+          gpuRuntimeForCleanup.destroyDevice();
+        } finally {
+          gpuRuntimeForCleanup.resetDeviceState();
+          gpuCastRuntimePromise = null;
+        }
+      }
+    }
     totalTimer.stop();
   }
 }

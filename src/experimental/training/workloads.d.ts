@@ -86,6 +86,7 @@ export interface LoRAWorkloadPipelineConfig {
   datasetFormat: string;
   taskType: string;
   baseModelRef: string | null;
+  baseModelRevision: string | null;
   maxLength: number | null;
   sequenceLength: number | null;
   joinWith: string | null;

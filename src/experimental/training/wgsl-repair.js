@@ -47,6 +47,13 @@ function requireString(value, label) {
   return normalized;
 }
 
+function requireStringValue(value, label) {
+  if (typeof value !== 'string') {
+    throw new Error(`${label} must be a string.`);
+  }
+  return value;
+}
+
 function requireInteger(value, label, minimum = 0) {
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed < minimum) {
@@ -617,7 +624,7 @@ function validateRolloutGroup(artifact) {
     const sample = requireObject(samples[index], `training_rollout_group.samples[${index}]`);
     requireString(sample.sampleId, `training_rollout_group.samples[${index}].sampleId`);
     requireString(sample.prompt, `training_rollout_group.samples[${index}].prompt`);
-    requireString(sample.completion, `training_rollout_group.samples[${index}].completion`);
+    requireStringValue(sample.completion, `training_rollout_group.samples[${index}].completion`);
     requireArray(sample.tokenIds, `training_rollout_group.samples[${index}].tokenIds`, 1);
     requireArray(sample.completionMask, `training_rollout_group.samples[${index}].completionMask`, 1);
     requireArray(sample.policyTokenLogprobs, `training_rollout_group.samples[${index}].policyTokenLogprobs`, 1);
