@@ -44,6 +44,7 @@ const candidate = [
 ];
 const compared = compareVerifiedWgslRollouts(reference, candidate);
 assert.equal(compared.reference.passAt1, 0.5);
+assert.equal(compared.anchorPolicyHash, referenceHash);
 assert.equal(compared.candidate.passAt1, 1);
 assert.equal(compared.effects.passAt1, 0.5);
 assert.equal(compared.paired.passAt1.referenceOnly, 0);
@@ -58,6 +59,23 @@ assert.equal(exactMcNemarLogPValue(0, 0), 0);
 assert.ok(Math.abs(exactMcNemarLogPValue(0, 6) - Math.log(0.03125)) < 1e-12);
 assert.equal(exactMcNemarPValue(0, 2392), 0);
 assert.ok(exactMcNemarLogPValue(0, 2392) < -1600);
+
+const sftHash = '1'.repeat(64);
+const optimizerReference = [
+  group('task-1', sftHash, referenceHash, [false, false]),
+  group('task-2', sftHash, referenceHash, [true, false]),
+];
+const optimizerComparison = compareVerifiedWgslRollouts(optimizerReference, candidate);
+assert.equal(optimizerComparison.referencePolicyHash, sftHash);
+assert.equal(optimizerComparison.candidatePolicyHash, candidateHash);
+assert.equal(optimizerComparison.anchorPolicyHash, referenceHash);
+
+const anchorMismatch = structuredClone(candidate);
+anchorMismatch[0].referencePolicyHash = '2'.repeat(64);
+assert.throws(
+  () => compareVerifiedWgslRollouts(optimizerReference, anchorMismatch),
+  /different anchor policy/
+);
 
 const runtimeMismatch = structuredClone(candidate);
 runtimeMismatch[0].runtimeHash = 'f'.repeat(64);
