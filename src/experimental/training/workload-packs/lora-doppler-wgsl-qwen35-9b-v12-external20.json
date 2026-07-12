@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "kind": "lora",
+  "id": "lora-doppler-wgsl-qwen35-9b-v12-external20",
+  "description": "Qwen 3.5 9B completion-masked LoRA SFT on the full seed-ordered WGSL external20 lane through Gamma ROCm",
+  "claimBoundary": "This lane tests pinned external-kernel replacement against the matching V12 anchor and random20 controls. It cannot promote from training loss or one seed.",
+  "seed": 11,
+  "baseModelId": "qwen-3-5-9b-hf-bf16",
+  "datasetId": "doppler-wgsl-repair-v12-external20",
+  "datasetPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1/train-external20.jsonl",
+  "evalDatasets": [],
+  "trainingSchemaVersion": 1,
+  "checkpointEvery": 100,
+  "selectionMetric": "loss",
+  "selectionGoal": "min",
+  "surfaceSupport": "node",
+  "training": {
+    "optimizer": {
+      "type": "adamw",
+      "lr": 0.0001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-8,
+      "weightDecay": 0.01,
+      "scheduler": {
+        "enabled": false,
+        "type": "constant",
+        "warmupSteps": 0,
+        "stepSize": 1,
+        "gamma": 1,
+        "totalSteps": 1200,
+        "minLr": 0
+      }
+    },
+    "batchSize": 1,
+    "accumSteps": 8,
+    "steps": 1200,
+    "precision": {
+      "activations": "bf16",
+      "gradients": "bf16",
+      "loraParams": "f32"
+    },
+    "gradientClipping": {
+      "maxNorm": 1
+    }
+  },
+  "lora": {
+    "datasetFormat": "text-pairs",
+    "taskType": "text_generation",
+    "baseModelRef": "Qwen/Qwen3.5-9B",
+    "baseModelRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "maxLength": 2048,
+    "joinWith": "\n",
+    "rowOrder": "seed_hash_sorted_v1",
+    "adapter": {
+      "rank": 32,
+      "alpha": 64,
+      "dropout": 0.05,
+      "targetModules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ]
+    },
+    "freeze": {
+      "encoder": false,
+      "prior": false,
+      "decoder": false,
+      "base": true,
+      "lora": false
+    },
+    "trainer": {
+      "modulePath": "../../../../tools/trainers/gamma-wgsl-trainer.js",
+      "exportName": "trainCausalLmLora",
+      "runnerId": "gamma-wgsl-causal-lm-lora"
+    },
+    "export": {
+      "enabled": true,
+      "atCheckpoints": false,
+      "select": "final",
+      "id": "doppler-wgsl-qwen35-9b-v12-external20",
+      "name": "Doppler WGSL Qwen 3.5 9B V12 External20",
+      "format": "manifest_json"
+    },
+    "activation": {
+      "enabled": false,
+      "autoActivate": false,
+      "smokePrompt": "Repair only the marked WGSL span."
+    }
+  }
+}
