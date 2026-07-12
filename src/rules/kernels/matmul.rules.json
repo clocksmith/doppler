@@ -74,6 +74,7 @@
     { "match": {}, "value": { "context": "variantWeightDtype" } }
   ],
   "weightDtypeMismatchPolicy": [
+    { "match": { "actualWeightDtype": "f16", "requiredWeightDtype": "q4k" }, "value": "fallthrough" },
     { "match": { "actualWeightDtype": "q4k", "requiredWeightDtype": "f16", "hasSubgroups": true }, "value": "fallthrough" },
     { "match": { "actualWeightDtype": "q4k", "requiredWeightDtype": "f32", "hasSubgroups": true }, "value": "fallthrough" },
     { "match": { "actualWeightDtype": "litert_int4", "requiredWeightDtype": "f16" }, "value": "fallthrough" },

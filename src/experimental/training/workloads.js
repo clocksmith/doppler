@@ -394,6 +394,11 @@ function normalizeLoraConfig(value, label) {
     datasetFormat: asNonEmptyString(lora.datasetFormat, `${label}.datasetFormat`),
     taskType: asNonEmptyString(lora.taskType, `${label}.taskType`),
     baseModelRef: asNonEmptyString(lora.baseModelRef, `${label}.baseModelRef`, { optional: true }),
+    baseModelRevision: asNonEmptyString(
+      lora.baseModelRevision,
+      `${label}.baseModelRevision`,
+      { optional: true }
+    ),
     maxLength: asPositiveInteger(lora.maxLength, `${label}.maxLength`, { optional: true }),
     sequenceLength: asPositiveInteger(lora.sequenceLength, `${label}.sequenceLength`, { optional: true }),
     joinWith: asStringValue(lora.joinWith, `${label}.joinWith`, { optional: true }),

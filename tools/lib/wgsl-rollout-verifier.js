@@ -97,6 +97,12 @@ export async function verifyRawWgslRollouts(options) {
   const datasetHash = requireHash(options.datasetHash, 'datasetHash');
   const policyHash = requireHash(options.policyHash, 'policyHash');
   const referencePolicyHash = requireHash(options.referencePolicyHash, 'referencePolicyHash');
+  const expectedGroupSize = Number.isInteger(options.expectedGroupSize)
+    ? options.expectedGroupSize
+    : policy.methods.rlvr.groupSize;
+  if (expectedGroupSize < 2) {
+    throw new Error('expectedGroupSize must be an integer >= 2.');
+  }
   const verifierBundleHash = sha256Hex(stableJson(policy.verifier));
   const ownsVerifier = !options.verifier;
   const verifier = options.verifier || await createWgslBrowserVerifier(policy.verifier.browser);
@@ -106,9 +112,9 @@ export async function verifyRawWgslRollouts(options) {
       const taskId = requireString(group.taskId, 'raw rollout group.taskId');
       const task = taskMap.get(taskId);
       if (!task) throw new Error(`Raw rollout references unknown task: ${taskId}`);
-      if (!Array.isArray(group.samples) || group.samples.length !== policy.methods.rlvr.groupSize) {
+      if (!Array.isArray(group.samples) || group.samples.length !== expectedGroupSize) {
         throw new Error(
-          `Raw rollout ${group.groupId || taskId} must contain ${policy.methods.rlvr.groupSize} samples.`
+          `Raw rollout ${group.groupId || taskId} must contain ${expectedGroupSize} samples.`
         );
       }
       for (const [index, sample] of group.samples.entries()) {
@@ -205,6 +211,17 @@ export async function verifyRawWgslRollouts(options) {
         claimBoundary: 'On-policy training signal only; not a promotion evaluation.',
       });
     });
+    const passingTasksAt1 = groups.filter((group) => (
+      group.samples[0].rewardVector.reduction.scalarReward > 0
+    )).length;
+    const passingTasksAtK = groups.filter((group) => (
+      group.samples.some((sample) => sample.rewardVector.reduction.scalarReward > 0)
+    )).length;
+    const exactReferenceSamples = reports.filter((report) => (
+      report.rewardVector.components.some((component) => (
+        component.id === 'exact_reference_match' && component.normalizedValue === 1
+      ))
+    )).length;
     return {
       groups,
       reports,
@@ -219,10 +236,16 @@ export async function verifyRawWgslRollouts(options) {
         runtimeHash,
         deviceInfo: verifier.deviceInfo,
         groupCount: groups.length,
+        expectedGroupSize,
         sampleCount: reports.length,
         passingSamples: reports.filter((report) => (
           report.rewardVector.reduction.scalarReward > 0
         )).length,
+        passingTasksAt1,
+        passingTasksAtK,
+        passAt1: passingTasksAt1 / groups.length,
+        passAtK: passingTasksAtK / groups.length,
+        exactReferenceSamples,
         blockedSamples: reports.filter((report) => (
           report.rewardVector.reduction.blocked === true
         )).length,

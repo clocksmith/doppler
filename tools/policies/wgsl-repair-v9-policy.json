@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "source": "doppler",
   "policyId": "doppler-wgsl-repair-v9",
-  "status": "draft",
+  "status": "frozen",
   "claimBoundary": "V9 replaces the rejected eight-row Gemma 270M replay with a diverse replacement-only WGSL program. A prepared corpus or successful optimizer step is not a capability claim; promotion requires the sealed multi-seed gates in this policy.",
   "sourceCatalogPath": "tools/data/wgsl-training-source-catalog-v1.json",
   "corpus": {
@@ -47,9 +47,10 @@
   "models": {
     "primary": {
       "modelId": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
       "role": "primary_student",
       "weightsProvisioning": "user_provisioned",
-      "provisionedAtFreeze": false
+      "provisionedAtFreeze": true
     },
     "efficiencyControl": {
       "modelId": "Qwen/Qwen3.5-2B",

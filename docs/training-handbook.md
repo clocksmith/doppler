@@ -179,8 +179,21 @@ that optimizer into RLVR.
 
 V9 adds grouped on-policy rollouts, policy/reference token log-probabilities,
 reward vectors, advantages, DPO, and a clipped GRPO update through the Gamma
-ROCm protocol. That is an implemented optimizer surface, not evidence that the
-unprovisioned Qwen 3.5 9B completed an update. The V9 DPO and GRPO surfaces,
+ROCm protocol. Qwen 3.5 9B is provisioned at exact revision
+`c202236235762e1c871ad0ccb60c8ee5ba337b9a`; an SFT optimizer run is still not
+a capability or RLVR result until the family-disjoint executable rollouts are
+verified. Base and adapted rollouts use the same task order, sample count,
+sampling parameters, and per-sample seeds. Generation receipts record KV-cache,
+sample-batch, and log-probability-batch behavior, and resumable prefixes fail
+closed on any model, policy, dataset, sampling, or training mismatch.
+
+DPO is skipped when verifier-derived data contains no preference pair. GRPO is
+skipped when every group has zero advantages. Executing optimizer steps on an
+all-zero learning signal is not RLVR evidence. The primary GRPO implementation
+filters zero-advantage samples, seed-shuffles
+the remaining samples, accumulates the declared microsteps against one frozen
+rollout policy, and performs exactly one optimizer update with zero stale-policy
+updates. The V9 DPO and GRPO surfaces,
 and any future minimum-risk, process-supervision, CISPO, or on-policy
 distillation lane, must follow the
 [Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) and
@@ -217,6 +230,7 @@ LoRA-specific fields include:
 - `datasetFormat`
 - `taskType`
 - `baseModelRef`
+- `baseModelRevision`
 - `maxLength` / `sequenceLength`
 - `joinWith`
 - `adapter.rank`

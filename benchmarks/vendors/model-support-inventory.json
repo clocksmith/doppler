@@ -109,7 +109,7 @@
   "summary": {
     "catalogModelCount": 24,
     "sourceCheckpointCount": 17,
-    "conversionOnlyConfigCount": 6,
+    "conversionOnlyConfigCount": 7,
     "hfPublishedModelCount": 15,
     "verifiedModelCount": 21,
     "benchmarkSelectedSourceCount": 1,
@@ -2714,6 +2714,24 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish janus-pro-1b-text-q4k-ehaf16 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "qwen-3-5-9b-f16-af32",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+      "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "f16",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "computePrecision": "f32",
+        "q4kLayout": null,
+        "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen-3-5-9b-f16-af32 before claiming runtime support.",
       "nextCommand": null
     }
   ]

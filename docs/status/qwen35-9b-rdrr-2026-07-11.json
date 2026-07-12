@@ -1,0 +1,143 @@
+{
+  "artifactType": "qwen35_9b_rdrr_conversion_receipt",
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-11",
+  "status": "verified_local",
+  "source": {
+    "modelId": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "localPath": "/tmp/qwen3.5-9b-source",
+    "configSha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05",
+    "tokenizerSha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+    "safetensorsBytes": 19306216416,
+    "shards": [
+      {
+        "filename": "model-00001-of-00004.safetensors",
+        "sha256": "db6f444b43d318c92f360a13a25561a6a65b10c0631b8ed305a426dbaa6c380e"
+      },
+      {
+        "filename": "model-00002-of-00004.safetensors",
+        "sha256": "31c7d7e2dd5d207840b31cc59083c8f4c4718959149e0358c0364052bb9a0330"
+      },
+      {
+        "filename": "model-00003-of-00004.safetensors",
+        "sha256": "7ec36ba3a4176a44c3c0876ad80c56a2f70c84bf008d82e9501df642f17dadec"
+      },
+      {
+        "filename": "model-00004-of-00004.safetensors",
+        "sha256": "b62b0c4cd7e44edee103ee8f4fe225f246d5e768e07bfd5f25b63a8aa1fdd0c6"
+      }
+    ]
+  },
+  "artifact": {
+    "modelId": "qwen-3-5-9b-f16-af32",
+    "format": "rdrr",
+    "publishedPath": "/home/x/rdrr/qwen-3-5-9b-f16-af32",
+    "directoryBytes": 17916995986,
+    "shardBytes": 17907606528,
+    "fileCount": 270,
+    "shardCount": 267,
+    "tensorCount": 427,
+    "tensorDtypes": {
+      "F16": 427
+    },
+    "modalitySet": ["text"],
+    "manifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+    "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+    "originSha256": "0099b37f79a12bc2663adb7f4851852d2aa773f03bd892d34ec91b18aae97c3b",
+    "conversionConfigDigest": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9",
+    "shardSetHash": "sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d",
+    "weightPackHash": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46"
+  },
+  "conversion": {
+    "configPath": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+    "configFileSha256": "b2f3bb3f182b9b1829406f9febf0d38f309c2e79f35f5ee52704f6830642371a",
+    "conversionReportPath": "reports/qwen-3-5-9b-f16-af32/2026-07-12T02-08-35.299Z.json",
+    "conversionReportSha256": "86344abd40254ce7feaa4070ba7f18c18a2be80966400f1bfcb435d064e45b2d",
+    "executionContractChecks": { "passed": 2, "total": 2 },
+    "layerPatternChecks": { "passed": 8, "total": 8 },
+    "requiredInferenceChecks": { "passed": 1, "total": 1 }
+  },
+  "verification": {
+    "allManifestShardHashesMatched": true,
+    "shardHashAlgorithm": "blake3",
+    "verifiedShards": 267,
+    "verifiedShardBytes": 17907606528,
+    "publishedCopyByteIdentical": true,
+    "prompt": "Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.",
+    "sampling": {
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "greedyThreshold": 0
+    },
+    "output": "`f32`",
+    "generatedTokenIds": [63, 69, 18, 17, 63, 248046],
+    "stopReason": "stop-token",
+    "stopTokenId": 248046,
+    "inferenceReportPath": "reports/qwen-3-5-9b-f16-af32/2026-07-12T02-21-24.974Z.json",
+    "inferenceReportSha256": "fced4a1bb2731be073f3a2d174bee0f44d5a300df8dff5cf50e6ee6c576d16d2",
+    "runtime": {
+      "adapterVendor": "amd",
+      "adapterArchitecture": "rdna-3",
+      "activationDtype": "f32",
+      "kvDtype": "f16",
+      "batchSize": 12,
+      "disableCommandBatching": true,
+      "modelLoadMs": 6495.23,
+      "firstTokenMs": 941.77,
+      "tokensPerSec": 3.07
+    }
+  },
+  "rejectedAblations": [
+    {
+      "id": "all_q4k",
+      "shardCount": 97,
+      "shardBytes": 6509199872,
+      "shardSetHash": "sha256:ff7a413fc41c9738499ebc5122fd4d71a87d79ba092202003f7fe13b83d4e234",
+      "weightPackHash": "sha256:cdc06859aee97cca91fea77c964c044d6388a2f3a596a8a39936688c071eac11",
+      "result": "immediate_stop_token",
+      "output": "",
+      "stopTokenId": 248046,
+      "conversionReportPath": "reports/qwen-3-5-9b-q4k-ehaf16/2026-07-12T01-01-40.806Z.json",
+      "inferenceReportPath": "reports/qwen-3-5-9b-q4k-ehaf16/2026-07-12T01-06-02.254Z.json"
+    },
+    {
+      "id": "q4k_with_f16_linear_attention_projections",
+      "shardCount": 132,
+      "shardBytes": 8824455680,
+      "shardSetHash": "sha256:27c1ba6d379e43eff7eae12b6ccc83081fe5248d1739e7877e82428d52daf228",
+      "weightPackHash": "sha256:dfeea5dc362804bd197d1f96effea74c4cd803eb93b8304c633057f4f172f237",
+      "result": "immediate_stop_token",
+      "output": "",
+      "stopTokenId": 248046,
+      "conversionReportPath": "reports/qwen-3-5-9b-q4k-ehaf16/2026-07-12T01-26-28.270Z.json",
+      "inferenceReportPath": "reports/qwen-3-5-9b-q4k-ehaf16/2026-07-12T01-29-49.538Z.json",
+      "diagnosticSuppressionResult": {
+        "output": "`f32`",
+        "reportPath": "reports/qwen-3-5-9b-q4k-ehaf16/2026-07-12T01-30-39.592Z.json",
+        "claimBoundary": "Suppressing the first stop token proves the answer remained reachable; it is not an accepted default decode."
+      }
+    },
+    {
+      "id": "q4k_with_f16_linear_attention_and_lm_head",
+      "shardCount": 154,
+      "shardBytes": 10286563840,
+      "shardSetHash": "sha256:6991cc6ea51534312f64d7359f4387bb5c5f422bae3f363639a1493d12451747",
+      "weightPackHash": "sha256:7798513cee0082e5e0f3e390f58fb586427dc8f0ab5c57943866bd3946207b3d",
+      "result": "immediate_stop_token",
+      "output": "",
+      "stopTokenId": 248046,
+      "conversionReportPath": "reports/qwen-3-5-9b-q4k-ehf16-af32/2026-07-12T01-57-19.939Z.json",
+      "inferenceReportPath": "reports/qwen-3-5-9b-q4k-ehf16-af32/2026-07-12T02-01-32.802Z.json"
+    }
+  ],
+  "runtimeCorrections": [
+    "Use F16 matmul kernels in the all-F16 execution graph instead of copied Q4 kernel aliases.",
+    "Apply hybrid linear-attention Q4 isolation only when stored projection weights are actually Q4.",
+    "Disable command-buffer batching for this 9B F16 manifest to prevent a RADV VK_ERROR_DEVICE_LOST hard recovery.",
+    "Destroy converter-owned WebGPU devices and buffer pools after GPU-assisted conversion."
+  ],
+  "claimBoundary": "This receipt proves exact-source conversion, local RDRR integrity, byte-identical publication, and one deterministic WGSL scalar-answer inference on Radeon WebGPU. It does not prove WGSL repair improvement, training quality, semantic kernel correctness, or model promotion."
+}

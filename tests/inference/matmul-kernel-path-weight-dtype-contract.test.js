@@ -96,6 +96,24 @@ const f32WeightKernelPath = {
   },
 };
 
+const q4WeightKernelPath = {
+  id: 'unit-q4k-weight-path',
+  name: 'unit-q4k-weight-path',
+  description: 'Unit test path for manifest-declared mixed F16 projection weights.',
+  activationDtype: 'f32',
+  kvDtype: 'f16',
+  decode: {
+    steps: [
+      { op: 'q_proj', kernel: 'fused_matmul_q4.wgsl', entry: 'main_gemv' },
+    ],
+  },
+  prefill: {
+    steps: [
+      { op: 'q_proj', kernel: 'fused_matmul_q4_widetile.wgsl', entry: 'main' },
+    ],
+  },
+};
+
 const litertInt4KernelPath = {
   id: 'unit-litert-int4-fused-path',
   name: 'unit-litert-int4-fused-path',
@@ -199,6 +217,40 @@ try {
     }
   );
   assert.equal(selected.variant, 'f16w_f32a');
+
+  const selectedMixedF16Prefill = selectMatmulVariantAndFlags(
+    'run',
+    8,
+    16,
+    32,
+    'f32',
+    'f16',
+    true,
+    'f32',
+    {
+      role: 'q_proj',
+      layerIdx: 0,
+      kernelPath: q4WeightKernelPath,
+    }
+  );
+  assert.equal(selectedMixedF16Prefill.variant, 'f16w_f32a');
+
+  const selectedMixedF16Decode = selectMatmulVariantAndFlags(
+    'run',
+    1,
+    16,
+    32,
+    'f32',
+    'f16',
+    true,
+    'f32',
+    {
+      role: 'q_proj',
+      layerIdx: 0,
+      kernelPath: q4WeightKernelPath,
+    }
+  );
+  assert.equal(selectedMixedF16Decode.variant, 'gemv_subgroup_vec4');
 
   assert.equal(
     selectMatmulKernel({

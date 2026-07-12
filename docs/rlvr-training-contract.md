@@ -165,6 +165,35 @@ The workload must also declare:
 objective and formula. If a future lane uses CISPO or another clipped objective,
 that objective receives its own identifier and receipt fields.
 
+## Zero-Signal and Experimental Method Routing
+
+An optimizer is not a remedy for a saturated verifier. Before DPO, GRPO, or a
+novel objective runs, the derived receipt must establish learning signal:
+
+- DPO requires at least one pair with the declared minimum reward gap.
+- Group-relative methods require at least one group with a nonzero advantage.
+- An all-pass or all-fail group is retained as evidence and receives no policy
+  update under the `zero_advantages` policy.
+
+Change the task or reward before changing the optimizer when every group has
+zero variance. For WGSL, the next scientific axis is a curriculum of semantic
+dispatch, numerical-oracle, metamorphic, bounds, and historical-regression
+checks. Once those checks yield mixed verified outcomes, preregister one method
+at a time:
+
+- DAPO-style dynamic sampling for excluding saturated groups while preserving
+  harder mixed-reward groups;
+- contrastive sequence optimization when a group contains verified positive
+  and negative repairs;
+- self-conditioned token credit or on-policy distillation when a verified
+  trajectory can provide denser credit than one sequence-level scalar; or
+- CISPO only with an explicit importance-weight clipping formula and a matched
+  GRPO control.
+
+These are candidate lanes, not implemented capability claims. Each needs its
+own objective identifier, frozen sampling budget, stale-policy rule, ablation,
+and promotion receipt.
+
 ## Verifier Separation
 
 Use three disjoint verifier roles:
@@ -294,6 +323,12 @@ failed objective or reward mix from reappearing under a new run name.
 ## References
 
 - [DeepSeekMath](https://arxiv.org/abs/2402.03300), which introduces GRPO.
+- [DAPO](https://arxiv.org/abs/2503.14476), on decoupled clipping and dynamic
+  sampling for verifiable-reward training.
+- [Self-Conditioned GRPO](https://arxiv.org/abs/2606.18810), on token-level
+  credit derived from a policy conditioned on its own verified trajectories.
+- [Contrastive Sequence-level Policy Optimization](https://arxiv.org/abs/2605.12969),
+  on within-group positive/negative sequence contrast.
 - [Direct Preference Optimization](https://arxiv.org/abs/2305.18290).
 - [SelfCodeAlign](https://arxiv.org/abs/2410.24198), an execution-filtered code
   data and instruction-tuning pipeline.

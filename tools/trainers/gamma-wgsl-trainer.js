@@ -127,6 +127,15 @@ function gammaPaths() {
   };
 }
 
+export function buildGammaProcessEnv(environment = process.env) {
+  return {
+    ...environment,
+    ...(environment.GAMMA_WGSL_PYTHONPATH
+      ? { PYTHONPATH: environment.GAMMA_WGSL_PYTHONPATH }
+      : {}),
+  };
+}
+
 export async function runGammaWgslRequest(request, options = {}) {
   if (request?.protocol !== PROTOCOL) {
     throw new Error(`Gamma WGSL request.protocol must be ${PROTOCOL}.`);
@@ -147,12 +156,7 @@ export async function runGammaWgslRequest(request, options = {}) {
       [paths.trainer, '--request', requestPath, '--response', responsePath],
       {
         cwd: paths.gammaRoot,
-        env: {
-          ...process.env,
-          ...(process.env.GAMMA_WGSL_PYTHONPATH
-            ? { PYTHONPATH: process.env.GAMMA_WGSL_PYTHONPATH }
-            : {}),
-        },
+        env: buildGammaProcessEnv(),
         encoding: 'utf8',
         maxBuffer: 16 * 1024 * 1024,
       }
@@ -205,7 +209,7 @@ function buildGammaRequest(input, outputRoot) {
     outputRoot,
     model: {
       modelId,
-      revision: process.env.GAMMA_WGSL_MODEL_REVISION || 'main',
+      revision: pipeline.baseModelRevision || process.env.GAMMA_WGSL_MODEL_REVISION || 'main',
       ...(localPath ? { localPath } : {}),
     },
     adapter: {
@@ -246,7 +250,7 @@ export async function trainCausalLmLora(input) {
       [paths.trainer, '--request', requestPath, '--response', responsePath],
       {
         cwd: paths.gammaRoot,
-        env: process.env,
+        env: buildGammaProcessEnv(),
         encoding: 'utf8',
         maxBuffer: 16 * 1024 * 1024,
       }

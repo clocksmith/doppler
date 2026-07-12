@@ -460,6 +460,11 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
           variant: pathVariant,
           reason: 'path_override_quantized_fallthrough',
         });
+      } else if (bDtype === 'f16' && isQ4KFusedVariant(pathVariant)) {
+        logKernelSelectionOnce('matmul', {
+          variant: pathVariant,
+          reason: 'path_override_f16_fallthrough',
+        });
       } else {
         throw new Error(`[Matmul] Path variant "${pathVariant}" rejected for role=${options.role ?? '?'} layerIdx=${options.layerIdx ?? '?'} phase=${phase} M=${M} K=${K} aDtype=${aDtype} bDtype=${bDtype} outDtype=${requestedOutputDtype}`);
       }
