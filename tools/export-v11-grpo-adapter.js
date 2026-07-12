@@ -117,6 +117,17 @@ function hostMetadata() {
   };
 }
 
+function invocationMetadata() {
+  const script = path.relative(ROOT, path.resolve(process.argv[1]));
+  return {
+    workingDirectory: 'repository root',
+    executable: 'node',
+    script,
+    argv: process.argv.slice(2),
+    command: ['node', script, ...process.argv.slice(2)],
+  };
+}
+
 async function inspectDirectory(directory) {
   const entries = (await readdir(directory, { withFileTypes: true }))
     .filter((entry) => entry.isFile())
@@ -193,6 +204,8 @@ async function loadContracts() {
 export async function exportV11GrpoAdapter(options) {
   const adapterDir = path.resolve(options.adapterDir);
   const outputDir = path.resolve(options.outputDir);
+  const manifestReceiptPath = path.join(options.outputDir, MANIFEST_FILENAME);
+  const weightsReceiptPath = path.join(options.outputDir, WEIGHTS_FILENAME);
   const receiptPath = path.resolve(
     options.receiptPath ?? path.join(outputDir, `${EXPORT_ID}.export.receipt.json`)
   );
@@ -258,14 +271,9 @@ export async function exportV11GrpoAdapter(options) {
     recordedAt: new Date().toISOString(),
     dopplerCommit: run('git', ['rev-parse', 'HEAD']),
     host: hostMetadata(),
-    invocation: {
-      executable: process.execPath,
-      script: path.resolve(process.argv[1]),
-      argv: process.argv.slice(2),
-      command: [process.execPath, path.resolve(process.argv[1]), ...process.argv.slice(2)],
-    },
+    invocation: invocationMetadata(),
     source: {
-      adapterDir,
+      adapterDir: options.adapterDir,
       files: sourceFiles,
       expectedWeightsSha256: contracts.sourceArtifact.sha256,
       statusPath: path.relative(ROOT, STATUS_PATH),
@@ -281,9 +289,9 @@ export async function exportV11GrpoAdapter(options) {
     },
     normalizedTensors: tensorSummary,
     output: {
-      manifestPath,
+      manifestPath: manifestReceiptPath,
       manifestSha256: sha256(manifestBytes),
-      weightsPath,
+      weightsPath: weightsReceiptPath,
       weightsBytes: weightsStats.size,
       weightsSha256: exported.weightsSha256,
       declaredWeightsSha256: exported.manifest.checksum,
@@ -344,14 +352,9 @@ async function main() {
         recordedAt: new Date().toISOString(),
         dopplerCommit: run('git', ['rev-parse', 'HEAD']),
         host: hostMetadata(),
-        invocation: {
-          executable: process.execPath,
-          script: path.resolve(process.argv[1]),
-          argv: process.argv.slice(2),
-          command: [process.execPath, path.resolve(process.argv[1]), ...process.argv.slice(2)],
-        },
+        invocation: invocationMetadata(),
         source: {
-          adapterDir: path.resolve(args.adapterDir),
+          adapterDir: args.adapterDir,
         },
         error: {
           name: error?.name ?? 'Error',

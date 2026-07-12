@@ -17,6 +17,7 @@ import { destroyBufferPool } from '../src/memory/buffer-pool.js';
 import { installNodeFileFetchShim } from '../src/tooling/node-file-fetch.js';
 import { bootstrapNodeWebGPU } from '../src/tooling/node-webgpu.js';
 
+const ROOT = path.resolve(import.meta.dirname, '..');
 const DEFAULT_PROMPT = 'What color is the sky on a clear day? Answer in one word.';
 const DEFAULT_RUNTIME_PROFILE = 'profiles/production';
 const DEFAULT_TOP_K = 10;
@@ -356,7 +357,6 @@ async function writeLogitsCapture(logits, outputPath) {
   await writeFile(absolutePath, bytes);
   return {
     path: outputPath,
-    absolutePath,
   };
 }
 
@@ -402,9 +402,11 @@ async function inspectAdapterManifest(manifestPath) {
   const weightsBytes = weightsPath ? await readFile(weightsPath) : null;
   const weightsSha256 = weightsBytes ? sha256Bytes(weightsBytes) : null;
   return {
-    manifestPath: absoluteManifestPath,
+    manifestPath,
     manifestSha256: sha256Bytes(manifestBytes),
-    weightsPath,
+    weightsPath: weightsPath
+      ? path.join(path.dirname(manifestPath), manifest.weightsPath)
+      : null,
     weightsBytes: weightsBytes?.byteLength ?? null,
     weightsSha256,
     declaredWeightsSha256: manifest.checksum ?? null,
@@ -425,7 +427,7 @@ async function inspectAdapterManifest(manifestPath) {
 function resolveDopplerCommit() {
   try {
     return execFileSync('git', ['rev-parse', 'HEAD'], {
-      cwd: path.resolve(import.meta.dirname, '..'),
+      cwd: ROOT,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
@@ -632,17 +634,25 @@ async function main() {
     schemaVersion: 1,
     recordedAt: new Date().toISOString(),
     invocation: {
-      executable: process.execPath,
-      script: path.resolve(process.argv[1]),
+      workingDirectory: 'repository root',
+      executable: 'node',
+      script: path.relative(ROOT, path.resolve(process.argv[1])),
       argv: process.argv.slice(2),
-      command: [process.execPath, path.resolve(process.argv[1]), ...process.argv.slice(2)],
+      command: [
+        'node',
+        path.relative(ROOT, path.resolve(process.argv[1])),
+        ...process.argv.slice(2),
+      ],
     },
     dopplerCommit: resolveDopplerCommit(),
     host: inspectHost(),
     modelId: artifactInspection.manifestSummary?.modelId
       ?? args.modelId
       ?? path.basename(args.modelDir),
-    modelUrl,
+    modelSource: {
+      kind: 'local_directory',
+      path: args.modelDir,
+    },
     artifactIdentity: artifactInspection.manifestSummary?.artifactIdentity ?? null,
     artifactFiles: artifactInspection.files,
     artifactSummary: artifactInspection.manifestSummary,

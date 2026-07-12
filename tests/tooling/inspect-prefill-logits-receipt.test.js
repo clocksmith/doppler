@@ -36,11 +36,12 @@ try {
   assert.equal(receipt.failurePhase, 'runtime-profile');
   assert.equal(receipt.artifactKind, 'first_token_inference_receipt');
   assert.equal(receipt.dopplerCommit?.length, 40);
-  assert.equal(receipt.invocation?.executable, process.execPath);
-  assert.equal(receipt.invocation?.script, tool);
+  assert.equal(receipt.invocation?.workingDirectory, 'repository root');
+  assert.equal(receipt.invocation?.executable, 'node');
+  assert.equal(receipt.invocation?.script, 'tools/inspect-prefill-logits.js');
   assert.deepEqual(
     receipt.invocation?.command,
-    [process.execPath, tool, ...receipt.invocation.argv]
+    ['node', 'tools/inspect-prefill-logits.js', ...receipt.invocation.argv]
   );
   assert.equal(receipt.artifactFiles?.['manifest.json'], null);
   assert.equal(receipt.error?.code, 'runtime_config_not_found');
