@@ -1,0 +1,46 @@
+{
+  "id": "profiles/qwen-3-5-9b-metal-correctness",
+  "name": "qwen-3-5-9b-metal-correctness",
+  "description": "Shared single-token decode contract for F16 and mixed-Q4_K correctness comparison on Apple Metal.",
+  "intent": "investigate",
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-07-12T00:00:00Z",
+  "extends": "profiles/production",
+  "runtime": {
+    "inference": {
+      "batching": {
+        "batchSize": 1,
+        "maxTokens": 16,
+        "stopCheckMode": "batch",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "kvcache": {
+        "maxSeqLen": 256,
+        "kvDtype": "f16"
+      },
+      "session": {
+        "kvcache": {
+          "maxSeqLen": 256,
+          "kvDtype": "f16"
+        },
+        "decodeLoop": {
+          "batchSize": 1,
+          "stopCheckMode": "batch",
+          "readbackInterval": 1,
+          "readbackMode": "sequential",
+          "submitLatencyThresholdMs": null,
+          "maxBatchDecodeTokens": null,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1,
+          "disableCommandBatching": false
+        }
+      }
+    }
+  }
+}
