@@ -170,6 +170,10 @@ export function compareVerifiedWgslRollouts(referenceGroups, candidateGroups) {
   const datasetHash = requireHash(firstReference.datasetHash, 'datasetHash');
   const referencePolicyHash = requireHash(firstReference.policyHash, 'referencePolicyHash');
   const candidatePolicyHash = requireHash(firstCandidate.policyHash, 'candidatePolicyHash');
+  const anchorPolicyHash = requireHash(
+    firstReference.referencePolicyHash,
+    'anchorPolicyHash'
+  );
   const verifierBundleHash = requireHash(
     firstReference.verifierBundleHash,
     'verifierBundleHash'
@@ -182,14 +186,14 @@ export function compareVerifiedWgslRollouts(referenceGroups, candidateGroups) {
     if (reference.policyHash !== referencePolicyHash) {
       throw new Error('Reference rollout groups contain more than one policy hash.');
     }
-    if (reference.referencePolicyHash !== referencePolicyHash) {
-      throw new Error(`Reference task ${reference.taskId} is not self-referenced to the base policy.`);
+    if (reference.referencePolicyHash !== anchorPolicyHash) {
+      throw new Error(`Reference task ${reference.taskId} names a different anchor policy.`);
     }
     if (candidate.policyHash !== candidatePolicyHash) {
       throw new Error('Candidate rollout groups contain more than one policy hash.');
     }
-    if (candidate.referencePolicyHash !== referencePolicyHash) {
-      throw new Error(`Candidate task ${candidate.taskId} does not name the compared reference policy.`);
+    if (candidate.referencePolicyHash !== anchorPolicyHash) {
+      throw new Error(`Candidate task ${candidate.taskId} names a different anchor policy.`);
     }
     if (reference.verifierBundleHash !== verifierBundleHash
         || candidate.verifierBundleHash !== verifierBundleHash) {
@@ -217,6 +221,7 @@ export function compareVerifiedWgslRollouts(referenceGroups, candidateGroups) {
     datasetHash,
     referencePolicyHash,
     candidatePolicyHash,
+    anchorPolicyHash,
     verifierBundleHash,
     runtimeHash,
     sampling: firstReference.sampling,
