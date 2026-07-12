@@ -65,21 +65,36 @@ function summarize(groups) {
   };
 }
 
-export function exactMcNemarPValue(referenceOnly, candidateOnly) {
+function validateDiscordantCounts(referenceOnly, candidateOnly) {
   if (!Number.isInteger(referenceOnly) || referenceOnly < 0
       || !Number.isInteger(candidateOnly) || candidateOnly < 0) {
     throw new Error('McNemar discordant counts must be non-negative integers.');
   }
+}
+
+function logAddExp(left, right) {
+  if (left === -Infinity) return right;
+  if (right === -Infinity) return left;
+  const maximum = Math.max(left, right);
+  return maximum + Math.log(Math.exp(left - maximum) + Math.exp(right - maximum));
+}
+
+export function exactMcNemarLogPValue(referenceOnly, candidateOnly) {
+  validateDiscordantCounts(referenceOnly, candidateOnly);
   const discordant = referenceOnly + candidateOnly;
-  if (discordant === 0) return 1;
+  if (discordant === 0) return 0;
   const tail = Math.min(referenceOnly, candidateOnly);
-  let probability = 2 ** (-discordant);
-  let cumulative = probability;
+  let logProbability = -discordant * Math.log(2);
+  let logCumulative = logProbability;
   for (let index = 1; index <= tail; index += 1) {
-    probability *= (discordant - index + 1) / index;
-    cumulative += probability;
+    logProbability += Math.log(discordant - index + 1) - Math.log(index);
+    logCumulative = logAddExp(logCumulative, logProbability);
   }
-  return Math.min(1, 2 * cumulative);
+  return Math.min(0, Math.log(2) + logCumulative);
+}
+
+export function exactMcNemarPValue(referenceOnly, candidateOnly) {
+  return Math.exp(exactMcNemarLogPValue(referenceOnly, candidateOnly));
 }
 
 function pairedComparison(referenceValues, candidateValues) {
@@ -95,13 +110,18 @@ function pairedComparison(referenceValues, candidateValues) {
     else if (candidate) candidateOnly += 1;
     else bothFail += 1;
   }
+  const exactMcNemarLogP = exactMcNemarLogPValue(referenceOnly, candidateOnly);
+  const exactMcNemarP = Math.exp(exactMcNemarLogP);
   return {
     bothPass,
     bothFail,
     referenceOnly,
     candidateOnly,
     discordant: referenceOnly + candidateOnly,
-    exactMcNemarP: exactMcNemarPValue(referenceOnly, candidateOnly),
+    exactMcNemarP,
+    exactMcNemarLogP,
+    exactMcNemarLog10P: exactMcNemarLogP / Math.log(10),
+    exactMcNemarPUnderflow: exactMcNemarP === 0 && exactMcNemarLogP < 0,
   };
 }
 
@@ -137,6 +157,12 @@ export function compareVerifiedWgslRollouts(referenceGroups, candidateGroups) {
     if (stableJson(reference.sampling) !== stableJson(candidate.sampling)) {
       throw new Error(`Sampling contract differs for task ${taskId}.`);
     }
+    if (reference.verifierBundleHash !== candidate.verifierBundleHash) {
+      throw new Error(`Verifier bundle hash differs for task ${taskId}.`);
+    }
+    if (reference.runtimeHash !== candidate.runtimeHash) {
+      throw new Error(`Verifier runtime hash differs for task ${taskId}.`);
+    }
     paired.push({ reference, candidate });
   }
   const firstReference = paired[0].reference;
@@ -144,6 +170,11 @@ export function compareVerifiedWgslRollouts(referenceGroups, candidateGroups) {
   const datasetHash = requireHash(firstReference.datasetHash, 'datasetHash');
   const referencePolicyHash = requireHash(firstReference.policyHash, 'referencePolicyHash');
   const candidatePolicyHash = requireHash(firstCandidate.policyHash, 'candidatePolicyHash');
+  const verifierBundleHash = requireHash(
+    firstReference.verifierBundleHash,
+    'verifierBundleHash'
+  );
+  const runtimeHash = requireHash(firstReference.runtimeHash, 'runtimeHash');
   for (const { reference, candidate } of paired) {
     if (reference.datasetHash !== datasetHash || candidate.datasetHash !== datasetHash) {
       throw new Error('Rollout groups contain more than one dataset hash.');
@@ -159,6 +190,13 @@ export function compareVerifiedWgslRollouts(referenceGroups, candidateGroups) {
     }
     if (candidate.referencePolicyHash !== referencePolicyHash) {
       throw new Error(`Candidate task ${candidate.taskId} does not name the compared reference policy.`);
+    }
+    if (reference.verifierBundleHash !== verifierBundleHash
+        || candidate.verifierBundleHash !== verifierBundleHash) {
+      throw new Error('Rollout groups contain more than one verifier bundle hash.');
+    }
+    if (reference.runtimeHash !== runtimeHash || candidate.runtimeHash !== runtimeHash) {
+      throw new Error('Rollout groups contain more than one verifier runtime hash.');
     }
   }
   const reference = summarize(paired.map((entry) => entry.reference));
@@ -179,6 +217,8 @@ export function compareVerifiedWgslRollouts(referenceGroups, candidateGroups) {
     datasetHash,
     referencePolicyHash,
     candidatePolicyHash,
+    verifierBundleHash,
+    runtimeHash,
     sampling: firstReference.sampling,
     reference,
     candidate,

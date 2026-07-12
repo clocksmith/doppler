@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 import {
   compareVerifiedWgslRollouts,
+  exactMcNemarLogPValue,
   exactMcNemarPValue,
 } from '../../tools/lib/wgsl-rollout-comparison.js';
 
@@ -21,6 +22,8 @@ function group(taskId, policyHash, referencePolicyHash, outcomes) {
     datasetHash: 'a'.repeat(64),
     policyHash,
     referencePolicyHash,
+    verifierBundleHash: 'd'.repeat(64),
+    runtimeHash: 'e'.repeat(64),
     sampling: { seed: 11, temperature: 0.8, topP: 0.95, maxTokens: 64 },
     samples: outcomes.map((passed, index) => ({
       sampleId: `${taskId}-${index}`,
@@ -49,8 +52,19 @@ assert.equal(compared.paired.passAt1.exactMcNemarP, 1);
 assert.equal(compared.reference.passAtK, 0.5);
 assert.equal(compared.candidate.passAtK, 1);
 assert.equal(compared.paired.samples.candidateOnly, 2);
-assert.equal(exactMcNemarPValue(0, 6), 0.03125);
+assert.ok(Math.abs(exactMcNemarPValue(0, 6) - 0.03125) < 1e-12);
 assert.equal(exactMcNemarPValue(0, 0), 1);
+assert.equal(exactMcNemarLogPValue(0, 0), 0);
+assert.ok(Math.abs(exactMcNemarLogPValue(0, 6) - Math.log(0.03125)) < 1e-12);
+assert.equal(exactMcNemarPValue(0, 2392), 0);
+assert.ok(exactMcNemarLogPValue(0, 2392) < -1600);
+
+const runtimeMismatch = structuredClone(candidate);
+runtimeMismatch[0].runtimeHash = 'f'.repeat(64);
+assert.throws(
+  () => compareVerifiedWgslRollouts(reference, runtimeMismatch),
+  /runtime hash differs/
+);
 
 assert.throws(
   () => compareVerifiedWgslRollouts(reference, [candidate[0]]),
