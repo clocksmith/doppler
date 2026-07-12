@@ -34,6 +34,15 @@ assert.equal(
   'c202236235762e1c871ad0ccb60c8ee5ba337b9a'
 );
 
+for (const lane of ['anchor', 'external20', 'random20']) {
+  const qwen35WgslV12 = await loadTrainingWorkloadPack(
+    `lora-doppler-wgsl-qwen35-9b-v12-${lane}`
+  );
+  assert.equal(qwen35WgslV12.workload.pipeline.rowOrder, 'seed_hash_sorted_v1');
+  assert.equal(qwen35WgslV12.workload.training.steps, 1200);
+  assert.equal(qwen35WgslV12.workload.datasetId.endsWith(lane), true);
+}
+
 const sftDistill = await loadTrainingWorkloadPack('distill-glm52-doppler-code-agent-sft-tiny');
 assert.equal(sftDistill.workload.kind, 'distill');
 assert.equal(sftDistill.workload.pipeline.stagePlan[0].objective, 'sft');

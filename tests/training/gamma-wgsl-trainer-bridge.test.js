@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import { serializeLoRASafetensors } from '../../src/experimental/training/export.js';
 import {
+  buildGammaRequest,
   buildGammaProcessEnv,
   readGammaAdapterTensors,
 } from '../../tools/trainers/gamma-wgsl-trainer.js';
@@ -16,6 +17,35 @@ const gammaEnv = buildGammaProcessEnv({
 });
 assert.equal(gammaEnv.PYTHONPATH, '/overlay/site');
 assert.equal(gammaEnv.KEEP_ME, 'yes');
+
+const sftRequest = buildGammaRequest({
+  workload: {
+    id: 'wgsl-v12-fixture',
+    seed: 11,
+    baseModelId: 'fixture-model',
+    pipeline: {
+      baseModelRef: 'Qwen/Qwen3.5-9B',
+      baseModelRevision: 'fixture-revision',
+      maxLength: 2048,
+      rowOrder: 'seed_hash_sorted_v1',
+    },
+  },
+  adapter: {
+    rank: 32,
+    alpha: 64,
+    dropout: 0.05,
+    targetModules: ['q_proj'],
+  },
+  dataset: { absolutePath: '/tmp/wgsl-v12.jsonl' },
+  training: {
+    steps: 1200,
+    accumSteps: 8,
+    precision: { activations: 'bf16' },
+    optimizer: { lr: 0.0001, weightDecay: 0.01 },
+    gradientClipping: { maxNorm: 1 },
+  },
+}, '/tmp/wgsl-v12-output');
+assert.equal(sftRequest.training.rowOrder, 'seed_hash_sorted_v1');
 
 const root = await mkdtemp(join(tmpdir(), 'doppler-gamma-wgsl-'));
 const adapter = join(root, 'adapter');

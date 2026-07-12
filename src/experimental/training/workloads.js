@@ -14,6 +14,7 @@ export const TRAINING_WORKLOAD_SCHEMA_VERSION = 1;
 export const TRAINING_WORKLOAD_KINDS = Object.freeze(['lora', 'distill', 'ul']);
 export const TRAINING_WORKLOAD_SURFACE_SUPPORT = Object.freeze(['node', 'browser', 'both']);
 export const TRAINING_SELECTION_GOALS = Object.freeze(['max', 'min']);
+export const TRAINING_ROW_ORDERS = Object.freeze(['dataset_order', 'seed_hash_sorted_v1']);
 export const TRAINING_EVAL_KINDS = Object.freeze([
   'translation',
   'text_generation',
@@ -385,6 +386,10 @@ function normalizeLoraConfig(value, label) {
   const exportConfig = asObject(lora.export, `${label}.export`, { optional: true });
   const activation = asObject(lora.activation, `${label}.activation`, { optional: true });
   const targetModules = asStringArray(adapter.targetModules, `${label}.adapter.targetModules`);
+  const rowOrder = asNonEmptyString(lora.rowOrder, `${label}.rowOrder`, { optional: true });
+  if (rowOrder && !TRAINING_ROW_ORDERS.includes(rowOrder)) {
+    throw new Error(`${label}.rowOrder must be one of: ${TRAINING_ROW_ORDERS.join(', ')}.`);
+  }
   for (const moduleName of targetModules) {
     if (!VALID_LORA_TARGET_MODULES.includes(moduleName)) {
       throw new Error(`${label}.adapter.targetModules contains unsupported module "${moduleName}".`);
@@ -402,6 +407,7 @@ function normalizeLoraConfig(value, label) {
     maxLength: asPositiveInteger(lora.maxLength, `${label}.maxLength`, { optional: true }),
     sequenceLength: asPositiveInteger(lora.sequenceLength, `${label}.sequenceLength`, { optional: true }),
     joinWith: asStringValue(lora.joinWith, `${label}.joinWith`, { optional: true }),
+    ...(rowOrder ? { rowOrder } : {}),
     adapter: {
       rank: asPositiveInteger(adapter.rank, `${label}.adapter.rank`),
       alpha: asFiniteNumber(adapter.alpha, `${label}.adapter.alpha`),

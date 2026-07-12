@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "artifactType": "training_workload_registry",
-  "generatedAt": "2026-07-12T01:50:04.634Z",
-  "registryHash": "e5851652e38b46d5313240cae7c41640b972e74cb19e2b5f9a61702a9f1371e8",
+  "generatedAt": "2026-07-12T10:28:27.517Z",
+  "registryHash": "332f16a092c72b4deda7bea503572bd80c454e73bce0e973d773d2b7dd2de92d",
   "workloads": [
     {
       "id": "distill-glm52-doppler-agent-harness-gemma270m-f16-sft-tiny",
@@ -213,6 +213,51 @@
       "baselineReportId": "trn_lora-doppler-wgsl-gemma270m-f16-tiny_40b6ef063ff1",
       "claimBoundary": "Executable local LoRA adapter training receipt for WGSL traces on a Doppler f16 base; not a model-quality claim.",
       "configHash": "fc5d69cbb280e061e56b7c3d768114ef523f1b91d0f3d4218ebeba4982a2198b"
+    },
+    {
+      "id": "lora-doppler-wgsl-qwen35-9b-v12-anchor",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-anchor.json",
+      "sha256": "3b5e8690b51c62abe6b97244a9397936c0cd7e747ee62f2e6599a2eb48a0a32b",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 11,
+      "checkpointEvery": 100,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v12-anchor_3b5e8690b51c",
+      "claimBoundary": "This is the V12 Doppler-only data control. Capability comparison requires the matching external20 and random20 lanes under the same row-order, update, sampler, and verifier contracts.",
+      "configHash": "4961518f308b2c035ce1b5f9cc05d14c7ad2b15090fc46f97ad13ab9e37b3b7f"
+    },
+    {
+      "id": "lora-doppler-wgsl-qwen35-9b-v12-external20",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-external20.json",
+      "sha256": "3577f9add4c49ff9ee07f28d8e21affd137dcb04b0714bc4c2ec50e4562e4cf4",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 11,
+      "checkpointEvery": 100,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v12-external20_3577f9add4c4",
+      "claimBoundary": "This lane tests pinned external-kernel replacement against the matching V12 anchor and random20 controls. It cannot promote from training loss or one seed.",
+      "configHash": "cd22a753333b2f62f94cff8532cbdb56127321e27f094e529f13583fd1f9589b"
+    },
+    {
+      "id": "lora-doppler-wgsl-qwen35-9b-v12-random20",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-random20.json",
+      "sha256": "24442cf96932c42b8e629dee4ab035adc0a9083c45d8f00a8843c213bd3adc04",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 11,
+      "checkpointEvery": 100,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v12-random20_24442cf96932",
+      "claimBoundary": "This is the random in-domain replacement control for V12. It must use the same schedule, row order, sampler, and verifier as anchor and external20.",
+      "configHash": "f5158eb0110b5f160156c982b75cba3eed12dd84e34736a778cba99385b847a3"
     },
     {
       "id": "lora-doppler-wgsl-qwen35-9b-v9",

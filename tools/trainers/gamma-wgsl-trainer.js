@@ -198,7 +198,7 @@ function precisionName(value) {
   throw new Error(`Unsupported Gamma WGSL precision: ${value}`);
 }
 
-function buildGammaRequest(input, outputRoot) {
+export function buildGammaRequest(input, outputRoot) {
   const pipeline = input.workload.pipeline;
   const modelId = String(pipeline.baseModelRef || input.workload.baseModelId);
   const localPath = String(process.env.GAMMA_WGSL_MODEL_PATH || '').trim();
@@ -229,6 +229,7 @@ function buildGammaRequest(input, outputRoot) {
       weightDecay: input.training.optimizer.weightDecay,
       maxGradNorm: input.training.gradientClipping.maxNorm,
       seed: input.workload.seed,
+      ...(pipeline.rowOrder ? { rowOrder: pipeline.rowOrder } : {}),
     },
   };
 }
