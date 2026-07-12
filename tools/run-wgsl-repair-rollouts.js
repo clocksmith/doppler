@@ -49,8 +49,11 @@ export async function main(argv = process.argv.slice(2)) {
     return;
   }
   if (phase === 'derive') {
-    const groups = await readJsonlFile(args.groups, 'verified rollout groups');
-    const derived = deriveWgslTrainingRows(groups, policy);
+    const [groups, tasks] = await Promise.all([
+      readJsonlFile(args.groups, 'verified rollout groups'),
+      args.tasks ? readJsonlFile(args.tasks, 'WGSL rollout tasks') : null,
+    ]);
+    const derived = deriveWgslTrainingRows(groups, policy, tasks);
     const outputRoot = await writeDerivedWgslTrainingRows(args.output, derived);
     console.log(JSON.stringify({ ok: true, phase, outputRoot, receipt: derived.receipt }, null, 2));
     return;
