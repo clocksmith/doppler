@@ -325,6 +325,10 @@ export function summarizeGrpoLearningSignal(groups) {
   let sampleCount = 0;
   let nonzeroAdvantages = 0;
   let varyingGroups = 0;
+  let constructiveVaryingGroups = 0;
+  let exactOnlyVaryingGroups = 0;
+  let otherVaryingGroups = 0;
+  let unclassifiedVaryingGroups = 0;
   for (const group of groups) {
     if (!Array.isArray(group?.samples) || group.samples.length < 2) {
       throw new Error('GRPO signal analysis requires at least two samples per group.');
@@ -334,7 +338,33 @@ export function summarizeGrpoLearningSignal(groups) {
     )).length;
     sampleCount += group.samples.length;
     nonzeroAdvantages += groupNonzero;
-    if (groupNonzero > 0) varyingGroups += 1;
+    if (groupNonzero > 0) {
+      varyingGroups += 1;
+      const classified = group.samples.every((sample) => (
+        sample?.rewardVector?.reduction
+        && Array.isArray(sample.rewardVector.components)
+      ));
+      if (!classified) {
+        unclassifiedVaryingGroups += 1;
+        continue;
+      }
+      const componentValue = (sample, id) => sample.rewardVector.components.find(
+        (component) => component.id === id
+      )?.normalizedValue;
+      const constructiveSignatures = new Set(group.samples.map((sample) => JSON.stringify([
+        sample.rewardVector.reduction.blocked === true,
+        componentValue(sample, 'contract_pass'),
+        componentValue(sample, 'policy_pass'),
+        componentValue(sample, 'compile_pass'),
+        componentValue(sample, 'regression_pass'),
+      ])));
+      const exactValues = new Set(group.samples.map((sample) => (
+        componentValue(sample, 'exact_reference_match')
+      )));
+      if (constructiveSignatures.size > 1) constructiveVaryingGroups += 1;
+      else if (exactValues.size > 1) exactOnlyVaryingGroups += 1;
+      else otherVaryingGroups += 1;
+    }
   }
   return {
     groupCount: groups.length,
@@ -342,6 +372,11 @@ export function summarizeGrpoLearningSignal(groups) {
     varyingGroups,
     nonzeroAdvantages,
     hasLearningSignal: nonzeroAdvantages > 0,
+    constructiveVaryingGroups,
+    exactOnlyVaryingGroups,
+    otherVaryingGroups,
+    unclassifiedVaryingGroups,
+    hasConstructiveLearningSignal: constructiveVaryingGroups > 0,
   };
 }
 
@@ -473,7 +508,10 @@ async function runGrpo(context, adapterPath, groupsPath) {
       updatesPerRolloutBatch: method.updatesPerRolloutBatch,
       maximumStalePolicyUpdates: method.maximumStalePolicyUpdates,
     },
-    metrics: result.metrics,
+    metrics: {
+      ...result.metrics,
+      learningSignal: signal,
+    },
     runtime: executed.response.runtime,
     receiptPaths: executed.paths,
     claimBoundary: 'GRPO RLVR mechanics only; not a promotion evaluation.',
@@ -487,7 +525,10 @@ async function runGrpo(context, adapterPath, groupsPath) {
     parentArtifactHashes: [updateHash],
     adapterPath: result.adapterPath,
     checkpointStep: result.checkpointStep,
-    metrics: result.metrics,
+    metrics: {
+      ...result.metrics,
+      learningSignal: signal,
+    },
     claimBoundary: 'GRPO RLVR checkpoint mechanics only; not a promotion candidate.',
   });
   await Promise.all([
@@ -498,6 +539,7 @@ async function runGrpo(context, adapterPath, groupsPath) {
     phase: 'grpo',
     response: executed.response,
     receiptPaths: executed.paths,
+    signal,
     update,
     checkpoint,
   };
