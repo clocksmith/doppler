@@ -194,10 +194,18 @@ all-zero learning signal is not RLVR evidence. The primary GRPO implementation
 filters zero-advantage samples, seed-shuffles
 the remaining samples, accumulates the declared microsteps against one frozen
 rollout policy, and performs exactly one optimizer update with zero stale-policy
-updates. V11 derives DPO and GRPO inputs only from the diagnostic split and
-reserves the public split for policy comparison. These optimizer surfaces,
-and any future minimum-risk, process-supervision, CISPO, or on-policy
-distillation lane, must follow the
+updates. V11 derived DPO and GRPO inputs only from the diagnostic split and
+reserved the public split for one policy comparison. Twelve groups supplied
+96 nonzero-advantage samples; 11 groups had constructive verifier variance and
+one varied only on exact-reference match. The one-update GRPO policy raised
+public pass@1 from 88.29% to 94.98%, with 20 paired wins and zero losses. The
+400-step DPO policy trained on 11 pairs regressed to 36.79% pass@1 and is
+rejected. This is one-seed compiler-repair capability evidence, not semantic
+kernel correctness or promotion. See the
+[V11 optimizer result](status/wgsl-repair-v11-2026-07-12.md).
+
+These optimizer surfaces, and any future minimum-risk, process-supervision,
+CISPO, or on-policy distillation lane, must follow the
 [Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) and
 materialize the complete artifact chain before making a training claim. The
 [V8 rejection](status/wgsl-student-replay-v8-2026-07-11.md) and

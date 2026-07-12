@@ -52,11 +52,13 @@ separately.
 
 ## Experimental order
 
-V11 answers the optimizer question from the existing seed-11 SFT checkpoint:
-DPO and GRPO training use only diagnostic tasks, followed by one public policy
-comparison. V12 answers the data question from three new base-initialized SFT
-runs. Mixing the new row order, external data, longer decoder, and an optimizer
-in one lane would destroy attribution.
+V11 answered the optimizer question from the existing seed-11 SFT checkpoint:
+one diagnostic-only GRPO update improved public pass@1 from 88.29% to 94.98%,
+while the matched DPO lane regressed and was rejected. V12 answers the data
+question from three new base-initialized SFT runs. Mixing the new row order,
+external data, longer decoder, and an optimizer in one lane would destroy
+attribution. See the
+[V11 optimizer result](wgsl-repair-v11-2026-07-12.md).
 
 The V12 data gate is:
 
