@@ -348,7 +348,37 @@ select {
 
 /* === CHECKBOX & RADIO === */
 
-input[type="checkbox"],
+input[type="checkbox"] {
+  display: inline-grid;
+  place-content: center;
+  width: var(--space-md);
+  height: var(--space-md);
+  flex: 0 0 var(--space-md);
+  padding: 0;
+  margin: 0;
+  border: var(--border-sm) solid currentColor;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="checkbox"]::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+  transform: scale(0);
+  transition: transform var(--transition-fast) ease;
+}
+
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: var(--border-md) solid currentColor;
+  outline-offset: var(--border-sm);
+}
+
 input[type="radio"] {
   width: var(--space-md);
   height: var(--space-md);
@@ -366,8 +396,6 @@ input[type="radio"] {
 }
 
 .checkbox-label input[type="checkbox"] {
-  border: var(--border-sm) solid var(--fg);
-  background: var(--bg);
   cursor: pointer;
 }
 

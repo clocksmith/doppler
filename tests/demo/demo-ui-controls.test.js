@@ -5,6 +5,8 @@ const html = readFileSync(new URL('../../demo/index.html', import.meta.url), 'ut
 const xraySource = readFileSync(new URL('../../demo/ui/xray/index.js', import.meta.url), 'utf8');
 const reportSource = readFileSync(new URL('../../demo/report.js', import.meta.url), 'utf8');
 const settingsSource = readFileSync(new URL('../../demo/settings.js', import.meta.url), 'utf8');
+const appStyles = readFileSync(new URL('../../demo/ui/styles/app.css', import.meta.url), 'utf8');
+const componentStyles = readFileSync(new URL('../../demo/styles/rd-components.css', import.meta.url), 'utf8');
 
 assert.match(html, /Local WebGPU inference, inspected in your browser\./);
 assert.match(html, /href="https:\/\/github\.com\/clocksmith\/doppler"/);
@@ -13,18 +15,28 @@ assert.match(html, /Choose a model to run in your browser\. Note the download si
 
 assert.equal((html.match(/id="xray-toggle-all"/g) ?? []).length, 1);
 assert.doesNotMatch(html, /id="xray-toggle-(?:decode|kv|kernel|gpu|exec|mem|batch)"/);
-assert.match(html, /id="set-token-press"[\s\S]*?<strong>Token logits<\/strong>/);
+assert.match(html, /<span class="chat-toggle-label">X-Ray<\/span>\s*<input id="xray-toggle-all"/);
+assert.match(html, /<span class="chat-toggle-label">Token logits<\/span>\s*<input id="set-token-press"/);
+assert.doesNotMatch(html, /all internals|choices \+ confidence/);
 assert.match(html, /class="chat-toolbar"/);
+assert.ok(html.indexOf('id="chat-heading"') < html.indexOf('class="chat-toolbar"'));
 assert.ok(html.indexOf('id="xray-toggle-all"') < html.indexOf('id="output-toks"'));
 assert.ok(html.indexOf('id="settings-toggle"') < html.indexOf('id="output-toks"'));
 assert.ok(html.indexOf('id="xray-toggle-all"') < html.indexOf('id="settings-toggle"'));
 assert.ok(html.indexOf('id="settings-toggle"') < html.indexOf('id="output-area"'));
 assert.match(xraySource, /\$\('xray-toggle-all'\)\?\.checked === true/);
+assert.match(componentStyles, /input\[type="checkbox"\]:checked::before\s*\{\s*transform: scale\(1\)/);
+assert.match(appStyles, /\.chat-toggle:has\(input:checked\)/);
+assert.match(appStyles, /grid-auto-rows: 1fr/);
+assert.match(appStyles, /\.model-card\s*\{[\s\S]*?height: 100%/);
 
 assert.match(html, /id="set-max-tokens"[^>]*value="1024"/);
 assert.match(settingsSource, /DEMO_DEFAULT_MAX_TOKENS = 1024/);
 assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Shuffle<\/button>/);
-assert.match(html, /id="run-btn"[^>]*>[\s\S]*&#x25B8;[\s\S]*Run<\/button>/);
+assert.match(html, /id="image-drop"[^>]*>Attach image<\/button>/);
+assert.match(html, /id="run-btn"[^>]*>[\s\S]*&#x25B8;[\s\S]*Send<\/button>/);
+assert.ok(html.indexOf('id="shuffle-btn"') < html.indexOf('id="image-drop"'));
+assert.ok(html.indexOf('id="image-drop"') < html.indexOf('id="run-btn"'));
 
 assert.doesNotMatch(html, /id="history-toggle"/);
 assert.doesNotMatch(html, /id="history-limit"/);

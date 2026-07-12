@@ -1,6 +1,11 @@
 import { isWebGPUAvailable, initDevice } from 'doppler-gpu/tooling';
 import { state } from './ui/state.js';
-import { loadCatalog, checkStoredModels, renderModelCards } from './models.js';
+import {
+  loadCatalog,
+  checkStoredModels,
+  loadDefaultStoredModel,
+  renderModelCards,
+} from './models.js';
 
 function $(id) { return document.getElementById(id); }
 
@@ -49,8 +54,12 @@ export async function boot() {
     setBootStatus('Checking stored models...');
     await checkStoredModels();
 
-    // Step 5: Render and show
+    // Step 5: Reuse a saved model before offering remote downloads
     renderModelCards();
+    setBootStatus('Loading saved model...');
+    await loadDefaultStoredModel();
+
+    // Step 6: Show the ready chat surface
     state.phase = 'ready';
     hideOverlay();
   } catch (err) {

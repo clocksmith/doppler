@@ -72,7 +72,7 @@
   <rect x="110" y="520" width="1220" height="96" rx="24" fill="#ffffff" stroke="#08090c" stroke-width="2"/>
   <text x="146" y="578" class="body">Explain the active kernel path for this prompt.</text>
   <rect x="1168" y="542" width="118" height="52" rx="26" fill="#08090c"/>
-  <text x="1227" y="574" text-anchor="middle" class="label" style="fill:#ffffff">RUN</text>
+  <text x="1227" y="574" text-anchor="middle" class="label" style="fill:#ffffff">SEND</text>
 
   <rect x="110" y="654" width="1220" height="128" rx="26" fill="#ffffff" stroke="#08090c" stroke-width="2"/>
   <text x="146" y="700" class="label">BACKEND TRACE</text>
