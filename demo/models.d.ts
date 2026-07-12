@@ -64,11 +64,23 @@ export declare function selectDemoCatalogEntries(
   options?: Record<string, unknown>
 ): DemoCatalogEntry[];
 
+export declare function selectDefaultStoredModel(
+  catalogEntries: readonly DemoCatalogEntry[],
+  registeredEntries: readonly Array<{
+    modelId: string;
+    createdAt?: string;
+    savedAtUtc?: string;
+  }>,
+  preferredModelId?: string | null
+): { modelId: string; displayModelId: string } | null;
+
 export declare function buildModelSourceCandidates(entry: DemoCatalogEntry): string[];
 
 export declare function loadCatalog(): Promise<DemoCatalogEntry[]>;
 
 export declare function checkStoredModels(): Promise<void>;
+
+export declare function loadDefaultStoredModel(): Promise<boolean>;
 
 export declare function renderModelCards(): void;
 

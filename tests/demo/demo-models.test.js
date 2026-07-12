@@ -16,6 +16,7 @@ import {
   findRegisteredSiblingsOf,
   patchManifestCompat,
   selectDemoCatalogEntries,
+  selectDefaultStoredModel,
   selectDemoExecutionEntryForCapabilities,
 } from '../../demo/models.js';
 
@@ -201,6 +202,38 @@ function readManifest(modelId) {
   const translate = selected.find((entry) => entry.family === 'translategemma');
   assert.deepEqual(translate.demoWarningBadges ?? [], []);
   assert.equal(translate.demoWarningText ?? '', '');
+}
+
+{
+  const catalog = [
+    { modelId: 'remote-only' },
+    {
+      modelId: 'visible-af16',
+      demoFallbackVariant: { modelId: 'stored-af32' },
+    },
+    { modelId: 'stored-qwen' },
+  ];
+  const registrations = [
+    { modelId: 'unlisted-model', savedAtUtc: '2026-06-01T00:00:00.000Z' },
+    { modelId: 'stored-af32', savedAtUtc: '2026-06-02T00:00:00.000Z' },
+    { modelId: 'stored-qwen', savedAtUtc: '2026-06-03T00:00:00.000Z' },
+  ];
+
+  assert.deepEqual(
+    selectDefaultStoredModel(catalog, registrations),
+    { modelId: 'stored-qwen', displayModelId: 'stored-qwen' },
+    'startup should choose the most recently saved visible model instead of a remote default'
+  );
+  assert.deepEqual(
+    selectDefaultStoredModel(catalog, registrations, 'stored-af32'),
+    { modelId: 'stored-af32', displayModelId: 'visible-af16' },
+    'startup should reuse the last-used stored execution lane and activate its visible card'
+  );
+  assert.equal(
+    selectDefaultStoredModel(catalog, [{ modelId: 'unlisted-model' }]),
+    null,
+    'startup should not select a stored model that is absent from the visible demo catalog'
+  );
 }
 
 {

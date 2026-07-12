@@ -260,7 +260,8 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 .model-cards {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  align-items: start;
+  grid-auto-rows: 1fr;
+  align-items: stretch;
   gap: var(--space-xs);
 }
 
@@ -274,6 +275,8 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   display: flex;
   flex-direction: column;
   gap: var(--space-xxs);
+  height: 100%;
+  min-height: 40px;
   min-width: 0;
   padding: var(--space-xs);
   border: var(--border-md) dotted var(--fg);
@@ -504,22 +507,25 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 }
 
 .input-row {
-  display: flex;
-  gap: var(--space-sm);
-  align-items: flex-start;
+  display: block;
 }
 
 .input-row textarea {
-  flex: 1;
+  display: block;
+  width: 100%;
   min-height: 80px;
   resize: vertical;
 }
 
 .input-actions {
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: var(--space-xs);
-  flex-shrink: 0;
-  flex-direction: column;
+}
+
+.input-actions .btn {
+  white-space: nowrap;
 }
 
 .run-btn {
@@ -529,37 +535,14 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   font-weight: var(--font-weight-bold);
 }
 
-.image-drop-zone {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 60px;
-  padding: var(--space-sm);
-  border: var(--border-md) dotted var(--fg);
-  font-size: var(--font-size-sm);
-  text-transform: uppercase;
-  letter-spacing: var(--font-tracking-label);
-  opacity: var(--opacity-soft);
-  cursor: pointer;
-  transition: opacity var(--transition-fast) ease;
-}
-
-.image-drop-zone:hover,
-.image-drop-zone.drag-over {
-  opacity: 1;
+.attach-image-btn.drag-over {
   border-style: solid;
 }
 
-.image-drop-zone.has-image {
+.attach-image-btn.has-image {
+  background: var(--fg);
+  color: var(--bg);
   border-style: solid;
-  opacity: 1;
-  padding: var(--space-xs);
-}
-
-.image-drop-zone img {
-  max-width: 100%;
-  max-height: 120px;
-  display: block;
 }
 
 /* --- Output area --- */
@@ -686,7 +669,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 }
 
 .chat-heading {
-  margin: 0 var(--space-xs) 0 0;
+  margin: 0;
 }
 
 .chat-toggle {
@@ -694,24 +677,21 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-xxs) var(--space-xs);
+  border: var(--border-sm) solid transparent;
   cursor: pointer;
 }
 
-.chat-toggle > span {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-xs);
-}
-
-.chat-toggle strong {
+.chat-toggle-label {
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--font-tracking-label);
   text-transform: uppercase;
 }
 
-.chat-toggle small {
-  font-size: var(--font-size-xs);
-  opacity: var(--opacity-soft);
+.chat-toggle:has(input:checked),
+#settings-toggle[aria-expanded="true"] {
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .chat-toolbar-run .output-toks {
@@ -1056,6 +1036,12 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 
   .input-actions .btn {
     flex: 1;
+    min-width: 0;
+    padding-inline: var(--space-xs);
+  }
+
+  .input-actions .run-btn {
+    font-size: var(--font-size-base);
   }
 
   .chat-toolbar {
@@ -1070,10 +1056,6 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 
   .chat-toolbar-main {
     overflow-x: visible;
-  }
-
-  .chat-toggle small {
-    display: none;
   }
 
   .chat-toolbar-run {

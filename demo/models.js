@@ -42,6 +42,7 @@ import { setExportEnabled } from './report.js';
 
 const HF_RESOLVE_BASE = 'https://huggingface.co';
 const CATALOG_URL = new URL('../models/catalog.json', import.meta.url).toString();
+const LAST_USED_MODEL_STORAGE_KEY = 'doppler.demo.last-used-model';
 
 let catalog = [];
 let onModelLoaded = null;
@@ -575,6 +576,73 @@ function laneIdsForCard(entry) {
   return ids;
 }
 
+export function selectDefaultStoredModel(catalogEntries, registeredEntries, preferredModelId = null) {
+  const cards = Array.isArray(catalogEntries) ? catalogEntries : [];
+  const registrations = Array.isArray(registeredEntries) ? registeredEntries : [];
+  const cardByLaneId = new Map();
+  for (const card of cards) {
+    for (const modelId of laneIdsForCard(card)) {
+      cardByLaneId.set(modelId, card);
+    }
+  }
+
+  const candidates = registrations
+    .map((registration, index) => {
+      const modelId = typeof registration?.modelId === 'string' ? registration.modelId : '';
+      const card = cardByLaneId.get(modelId);
+      if (!modelId || !card) return null;
+      const savedAt = registration.savedAtUtc ?? registration.createdAt ?? null;
+      const timestamp = typeof savedAt === 'string' ? Date.parse(savedAt) : Number.NaN;
+      return {
+        modelId,
+        displayModelId: card.modelId,
+        timestamp: Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY,
+        index,
+      };
+    })
+    .filter(Boolean);
+
+  const preferred = typeof preferredModelId === 'string' && preferredModelId.trim()
+    ? preferredModelId.trim()
+    : null;
+  if (preferred) {
+    const preferredCandidate = candidates.find((candidate) => candidate.modelId === preferred);
+    if (preferredCandidate) {
+      return {
+        modelId: preferredCandidate.modelId,
+        displayModelId: preferredCandidate.displayModelId,
+      };
+    }
+  }
+
+  candidates.sort((a, b) => b.timestamp - a.timestamp || b.index - a.index);
+  const selected = candidates[0];
+  return selected
+    ? { modelId: selected.modelId, displayModelId: selected.displayModelId }
+    : null;
+}
+
+function readLastUsedModelId() {
+  try {
+    return typeof localStorage === 'object'
+      ? localStorage.getItem(LAST_USED_MODEL_STORAGE_KEY)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function rememberLastUsedModelId(modelId) {
+  if (typeof modelId !== 'string' || !modelId) return;
+  try {
+    if (typeof localStorage === 'object') {
+      localStorage.setItem(LAST_USED_MODEL_STORAGE_KEY, modelId);
+    }
+  } catch {
+    // Browser storage preferences are optional; OPFS remains canonical.
+  }
+}
+
 export async function checkStoredModels() {
   try {
     const registered = await listRegisteredModels();
@@ -596,6 +664,30 @@ export async function checkStoredModels() {
         state.modelStatus[id] = 'available';
       }
     }
+  }
+}
+
+export async function loadDefaultStoredModel() {
+  let registered;
+  try {
+    registered = await listRegisteredModels();
+  } catch {
+    return false;
+  }
+  const selected = selectDefaultStoredModel(catalog, registered, readLastUsedModelId());
+  if (!selected || loadingLock) return false;
+
+  loadingLock = true;
+  try {
+    await loadModelFromStorage(selected.modelId, { displayModelId: selected.displayModelId });
+    return true;
+  } catch (error) {
+    log.warn('DemoModels', `Could not load saved model ${selected.modelId}`, error);
+    await checkStoredModels();
+    renderModelCards();
+    return false;
+  } finally {
+    loadingLock = false;
   }
 }
 
@@ -938,6 +1030,7 @@ async function loadModelFromStorage(modelId, options = {}) {
   state.modelStatus[modelId] = 'loaded';
   state.modelStatus[displayModelId] = 'loaded';
   state.pipeline = pipeline;
+  rememberLastUsedModelId(modelId);
   renderModelCards();
 
   if (onModelLoaded) onModelLoaded(pipeline, modelId);

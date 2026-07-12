@@ -80,12 +80,9 @@ function readImageFile(file) {
     imageData = reader.result;
     const zone = $('image-drop');
     if (zone) {
-      zone.innerHTML = '';
       zone.classList.add('has-image');
-      const img = document.createElement('img');
-      img.src = imageData;
-      img.alt = 'Attached image';
-      zone.appendChild(img);
+      zone.setAttribute('aria-pressed', 'true');
+      zone.title = `Attached: ${file.name}`;
     }
   };
   reader.readAsDataURL(file);
@@ -95,8 +92,10 @@ export function clearImage() {
   imageData = null;
   const zone = $('image-drop');
   if (zone) {
-    zone.textContent = 'Drop image here';
+    zone.textContent = 'Attach image';
     zone.classList.remove('has-image');
+    zone.setAttribute('aria-pressed', 'false');
+    zone.title = 'Attach an image, or drop an image on this button';
   }
 }
 
