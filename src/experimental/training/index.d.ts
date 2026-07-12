@@ -86,6 +86,7 @@ export {
   buildTrainingRolloutGroup,
   selectRejectionSamples,
   deriveDpoPreferencePairs,
+  deriveReferenceAnchoredDpoPairs,
   buildTrainingPromotionDecision,
   validateVerifierGuidedArtifact,
   hashVerifierGuidedArtifact,

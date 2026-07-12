@@ -9,6 +9,7 @@ import {
   computeGroupRelativeAdvantages,
   createWgslRepairMutations,
   deriveDpoPreferencePairs,
+  deriveReferenceAnchoredDpoPairs,
   hashVerifierGuidedArtifact,
   parseReplacementOnlyResponse,
   selectRejectionSamples,
@@ -130,6 +131,46 @@ const pairs = deriveDpoPreferencePairs([rolloutGroup], { minimumRewardGap: 0.5 }
 assert.equal(pairs.length, 1);
 assert.equal(pairs[0].chosenSampleId, 'sample-good');
 assert.equal(pairs[0].rejectedSampleId, 'sample-bad');
+
+const allFailGroup = buildTrainingRolloutGroup({
+  workloadId: 'wgsl-v9-reference-anchor-fixture',
+  groupId: `${task.taskId}-all-fail-group-1`,
+  taskId: task.taskId,
+  datasetHash: 'c'.repeat(64),
+  policyHash: 'd'.repeat(64),
+  referencePolicyHash: 'e'.repeat(64),
+  verifierBundleHash,
+  runtimeHash: 'f'.repeat(64),
+  advantageEpsilon: 1e-6,
+  sampling: rolloutGroup.sampling,
+  samples: [
+    {
+      ...rolloutGroup.samples[0],
+      sampleId: 'all-fail-sample-1',
+      completion: mutation.mutatedSpan,
+      rewardVector: reward('all-fail-sample-1', false),
+    },
+    {
+      ...rolloutGroup.samples[0],
+      sampleId: 'all-fail-sample-2',
+      completion: mutation.mutatedSpan,
+      rewardVector: reward('all-fail-sample-2', false),
+    },
+  ],
+  claimBoundary: 'Reference-anchor fixture only.',
+});
+const anchoredPairs = deriveReferenceAnchoredDpoPairs([allFailGroup], [{
+  ...task,
+  verification: { cleanCompilePassed: true, mutantCompileFailed: true },
+}]);
+assert.equal(anchoredPairs.length, 1);
+assert.equal(anchoredPairs[0].chosen, task.span.reference);
+assert.equal(anchoredPairs[0].rejected, mutation.mutatedSpan);
+assert.equal(anchoredPairs[0].rejectedModeCount, 2);
+assert.equal(deriveReferenceAnchoredDpoPairs([rolloutGroup], [{
+  ...task,
+  verification: { cleanCompilePassed: true, mutantCompileFailed: true },
+}]).length, 0);
 
 const promote = buildTrainingPromotionDecision({
   workloadId: 'wgsl-v9-fixture',
