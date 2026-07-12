@@ -1,0 +1,220 @@
+{
+  "artifactKind": "qwen35_9b_m3_base_inference_receipt",
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-12T21:09:46.324Z",
+  "status": "q4_failure_reproduced_f16_pending",
+  "host": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "kernel": "25.3.0",
+    "operatingSystem": "macOS 26.3",
+    "operatingSystemBuild": "25D125",
+    "node": "v22.20.0",
+    "chip": "Apple M3",
+    "logicalCpuCount": 8,
+    "gpuCoreCount": 10,
+    "unifiedMemoryBytes": 25769803776,
+    "metalSupport": "Metal 4",
+    "webgpu": {
+      "provider": "webgpu",
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "shaderF16": true,
+      "subgroups": true,
+      "subgroupsF16": true,
+      "timestampQuery": true,
+      "maxBufferSize": 4294967295,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 32768
+    },
+    "privateIdentifiersRecorded": false
+  },
+  "repository": {
+    "name": "clocksmith/doppler",
+    "branch": "main",
+    "commit": "f1ecec81f84d31ffc9a66645d46ebefe820fa6b7"
+  },
+  "artifact": {
+    "modelId": "qwen-3-5-9b-q4k-ehaf16",
+    "localPath": "~/rdrr/qwen-3-5-9b-q4k-ehaf16",
+    "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+    "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "manifestSha256": "ac1eff7f371b7d676a5b9a7ddcf94e2d01d3e1043f499dede2fc41249ef55956",
+    "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+    "conversionConfigDigest": "sha256:f6d133e2c1dac198de40dbc653694851dcec527ff5e10cbc9fd5ca6cdc083626",
+    "shardCount": 132,
+    "shardBytes": 8824455680,
+    "shardSetHash": "sha256:27c1ba6d379e43eff7eae12b6ccc83081fe5248d1739e7877e82428d52daf228",
+    "weightPackHash": "sha256:dfeea5dc362804bd197d1f96effea74c4cd803eb93b8304c633057f4f172f237"
+  },
+  "runtimeConfiguration": {
+    "profile": "profiles/qwen-3-5-9b-metal-correctness",
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "maxSeqLen": 256,
+    "batchSize": 1,
+    "maxTokens": 16,
+    "stopCheckMode": "batch",
+    "readbackInterval": 1,
+    "readbackMode": "sequential",
+    "disableCommandBatching": false,
+    "speculation": "none",
+    "performanceOverridesAdded": false,
+    "sampling": {
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "greedyThreshold": 0
+    }
+  },
+  "prompt": {
+    "text": "Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.",
+    "useChatTemplate": true,
+    "inputTokenIds": [
+      248045,
+      846,
+      198,
+      15666,
+      440,
+      6681,
+      279,
+      94693,
+      7733,
+      16764,
+      913,
+      803,
+      364,
+      264,
+      220,
+      18,
+      17,
+      14813,
+      18484,
+      16086,
+      869,
+      13,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+    ]
+  },
+  "firstToken": {
+    "logits": {
+      "dtype": "float32",
+      "elementCount": 248320,
+      "byteLength": 993280,
+      "finiteCount": 248320,
+      "nonFiniteCount": 0,
+      "minimum": -10.740042686462402,
+      "maximum": 17.236438751220703,
+      "sha256": "cb3420f9986a2f2e81fdfe204064d8aec24dffa8488e6bcdb9c795092a1f6162"
+    },
+    "topK": [
+      {
+        "tokenId": 248046,
+        "text": "<|im_end|>",
+        "logit": 17.236438751220703,
+        "probability": 0.4938950538635254
+      },
+      {
+        "tokenId": 63,
+        "text": "`",
+        "logit": 16.63433074951172,
+        "probability": 0.2704845666885376
+      },
+      {
+        "tokenId": 198,
+        "text": "\\n",
+        "logit": 15.255199432373047,
+        "probability": 0.06810726225376129
+      },
+      {
+        "tokenId": 248068,
+        "text": "<think>",
+        "logit": 14.305427551269531,
+        "probability": 0.026345878839492798
+      },
+      {
+        "tokenId": 3524,
+        "text": "float",
+        "logit": 13.922183990478516,
+        "probability": 0.017958585172891617
+      }
+    ],
+    "selectedTokenId": 248046,
+    "selectedTokenText": "<|im_end|>",
+    "generatedTokenIds": [
+      248046
+    ],
+    "generatedOutput": "",
+    "stopReason": "stop-token-or-sequence",
+    "selectionMatchesGeneration": true
+  },
+  "deterministicReplay": {
+    "runCount": 2,
+    "identicalLogitsSha256": true,
+    "identicalSelectedToken": true,
+    "identicalGeneratedOutput": true,
+    "boundaryRecordCount": 469,
+    "firstBoundary": "embed.out",
+    "lastBoundary": "logits.final",
+    "allCapturedStatsFinite": true
+  },
+  "evidence": {
+    "baseReceipt": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/q4-base-first-token.json",
+      "sha256": "1104f56ff22ef157169fa9ff8ccc19b3684a1ead2c77c97bbab5a6fdbbfac328"
+    },
+    "baseLogits": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/q4-base-first-token-logits.f32",
+      "sha256": "cb3420f9986a2f2e81fdfe204064d8aec24dffa8488e6bcdb9c795092a1f6162"
+    },
+    "boundaryReceipt": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/q4-boundaries.json",
+      "sha256": "83daa391547e72c31cc99b18e8c87d9e6839160935252a2fa796ba90480bb5c0"
+    },
+    "boundaryLogits": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/q4-boundaries-logits.f32",
+      "sha256": "cb3420f9986a2f2e81fdfe204064d8aec24dffa8488e6bcdb9c795092a1f6162"
+    }
+  },
+  "exactCommands": [
+    "node tools/inspect-prefill-logits.js --model-dir ../../rdrr/qwen-3-5-9b-q4k-ehaf16 --prompt 'Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.' --runtime-profile profiles/qwen-3-5-9b-metal-correctness --max-tokens 16 --top-k 20 --watch-token 248046 --watch-token 248044 --watch-token 63 --watch-token 69 --watch-token 18 --watch-token 17 --logits-out reports/qwen-3-5-9b-metal/2026-07-12/q4-base-first-token-logits.f32 --out reports/qwen-3-5-9b-metal/2026-07-12/q4-base-first-token.json",
+    "node tools/inspect-prefill-logits.js --model-dir ../../rdrr/qwen-3-5-9b-q4k-ehaf16 --prompt 'Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.' --runtime-profile profiles/qwen-3-5-9b-metal-correctness --max-tokens 16 --top-k 20 --watch-token 248046 --watch-token 248044 --watch-token 63 --watch-token 69 --watch-token 18 --watch-token 17 --diagnostics-level slice --logits-out reports/qwen-3-5-9b-metal/2026-07-12/q4-boundaries-logits.f32 --out reports/qwen-3-5-9b-metal/2026-07-12/q4-boundaries.json"
+  ],
+  "f16Control": {
+    "status": "blocked_on_exact_transfer",
+    "expectedManifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+    "expectedShardSetHash": "sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d",
+    "expectedWeightPackHash": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+    "transferSource": "authorized AMD/ROCm artifact host",
+    "lastError": "Permission denied (publickey,password)."
+  },
+  "firstDivergence": {
+    "status": "pending_exact_f16_boundary_capture",
+    "hypotheses": [
+      "Q4_K scale/min decoding",
+      "recurrent projection materialization",
+      "mixed-precision boundary handling"
+    ],
+    "conclusion": null
+  },
+  "adapterInference": {
+    "status": "not_run",
+    "reason": "Base Q4 token parity is not coherent, and the exact V11 adapter has not been transferred."
+  },
+  "claimBoundary": {
+    "trainingImprovement": "Not evaluated or rerun; the frozen V12 AMD/ROCm matrix was not touched.",
+    "baseModelInferenceCorrectness": "Failed for the exact mixed-Q4 candidate on this M3 because greedy first-token selection is <|im_end|> and output is empty. F16 comparison remains pending.",
+    "adapterInferenceCorrectness": "Not evaluated; correctly gated on base-model parity.",
+    "runtimePerformance": "Not measured or claimed."
+  }
+}
