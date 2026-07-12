@@ -109,7 +109,7 @@
   "summary": {
     "catalogModelCount": 24,
     "sourceCheckpointCount": 17,
-    "conversionOnlyConfigCount": 7,
+    "conversionOnlyConfigCount": 8,
     "hfPublishedModelCount": 15,
     "verifiedModelCount": 21,
     "benchmarkSelectedSourceCount": 1,
@@ -2732,6 +2732,24 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish qwen-3-5-9b-f16-af32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "qwen-3-5-9b-q4k-ehaf16",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json",
+      "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "q4k",
+        "embeddings": "f16",
+        "lmHead": "q4k",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen-3-5-9b-q4k-ehaf16 before claiming runtime support.",
       "nextCommand": null
     }
   ]

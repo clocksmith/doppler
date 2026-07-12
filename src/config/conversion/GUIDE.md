@@ -45,6 +45,8 @@ Checked-in config inventory:
 | `lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json` | `lfm2.5-1.2b-instruct-q4k-ehf16-af32` | LFM2 hybrid conv/attention scheduling |
 | `qwen3/qwen-3-5-0-8b-q4k-ehaf16.json` | `qwen-3-5-0-8b-q4k-ehaf16` | Qwen hybrid linear/full attention graph |
 | `qwen3/qwen-3-5-2b-q4k-ehaf16.json` | `qwen-3-5-2b-q4k-ehaf16` | Qwen hybrid linear/full attention graph |
+| `qwen3/qwen-3-5-9b-f16-af32.json` | `qwen-3-5-9b-f16-af32` | Qwen 3.5 9B F16 correctness control |
+| `qwen3/qwen-3-5-9b-q4k-ehaf16.json` | `qwen-3-5-9b-q4k-ehaf16` | Qwen 3.5 9B mixed Q4K/F16 correctness investigation; not catalog-promoted |
 | `qwen3/qwen-3-6-27b-q4k-ehaf16.json` | `qwen-3-6-27b-q4k-ehaf16` | Qwen 3.6 27B f32 activation lane |
 | `qwen3/qwen-3-6-27b-q4k-eaf16.json` | `qwen-3-6-27b-q4k-eaf16` | Qwen 3.6 27B f16 sibling over the existing Q4K weight pack |
 | `qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json` | `qwen-3-embedding-0-6b-q4k-ehf16-af32` | Qwen3 SentenceTransformers embedding target with last-token L2 postprocessing |
