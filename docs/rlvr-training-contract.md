@@ -230,6 +230,17 @@ Begin with three frozen comparisons:
 2. best-of-N rejection sampling from that SFT checkpoint; and
 3. GRPO-style RLVR from the same checkpoint and task distribution.
 
+Audit reward variance before updating. A group whose only difference is the
+exact-reference bonus has formatting signal, not constructive compile or
+contract signal. An all-pass or all-fail group has no group-relative learning
+signal. Report constructive, exact-only, other, and zero-variance group counts
+separately.
+
+For an all-fail training group, Doppler can emit a compiler-qualified task
+reference against the modal on-policy failure. Training that pair is
+reference-anchored corrective DPO: the chosen response is off-policy, so the
+lane is not RLVR and must not be merged into the on-policy GRPO claim.
+
 Keep token budget, rollout sampler, task IDs, verifier bundle, model
 initialization, and promotion split fixed. Report both capability and compute:
 pass rate, reward distribution, unique passing repairs, policy violations,
