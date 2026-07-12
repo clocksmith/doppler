@@ -29,11 +29,15 @@ verifier-guided surface:
   classes below.
 
 Doppler V10 completed Qwen 3.5 9B seed-11 SFT and measured a paired
-family-disjoint compiler-repair gain. That narrow result is
-`capability_proven`; it is not semantic-kernel or promotion evidence. DPO and
-GRPO from the separate V11 diagnostic partition, a sealed semantic WGSL
-promotion result, minimum-risk sequence training, process-reward training,
-CISPO/PPO, and validation-high teacher checkpoint promotion remain absent.
+family-disjoint compiler-repair gain. V11 then derived optimizer signal only
+from the separate diagnostic partition. Its single clipped GRPO-with-KL update
+raised public pass@1 from 88.29% to 94.98%, with 20 paired task wins and zero
+losses. The matched 400-step DPO lane regressed to 36.79% and is rejected.
+These are narrow compiler-repair results; they are not semantic-kernel or
+promotion evidence. A sealed semantic WGSL result, minimum-risk sequence
+training, process-reward training, CISPO/PPO, and validation-high teacher
+checkpoint promotion remain absent. See the
+[V11 optimizer result](status/wgsl-repair-v11-2026-07-12.md).
 
 The V8 WGSL student replay is execution-verified SFT, also called
 response or sequence-level distillation. It is not RLVR and it is not logit
@@ -308,7 +312,11 @@ can become claimable:
 An artifact class being implemented does not prove that a run emitted a valid
 instance. A claim still requires the complete linked set for that run. See
 [Training Artifact Policy](training-artifact-policy.md) and the
-[V10 result receipt](status/wgsl-repair-v10-2026-07-12.md).
+[V10 result receipt](status/wgsl-repair-v10-2026-07-12.md). The primary V11
+run now supplies a linked diagnostic-rollout, reward, GRPO update, checkpoint,
+public verification, and paired-comparison chain; its
+[result receipt](status/wgsl-repair-v11-2026-07-12.md) keeps the failed DPO lane
+in the same evidence boundary.
 
 ## Promotion and Rejection
 
