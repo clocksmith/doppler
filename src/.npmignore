@@ -163,6 +163,9 @@ experimental/training/workload-packs/lora-doppler-code-agent-tiny.json
 experimental/training/workload-packs/lora-doppler-js-json-gemma270m-f16-tiny.json
 experimental/training/workload-packs/lora-doppler-review-gemma270m-f16-tiny.json
 experimental/training/workload-packs/lora-doppler-wgsl-gemma270m-f16-tiny.json
+experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-anchor.json
+experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-external20.json
+experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-random20.json
 experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v9.json
 experimental/training/workload-packs/lora-toy-medium.json
 experimental/training/workload-packs/lora-toy-tiny.json
