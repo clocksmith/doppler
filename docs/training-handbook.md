@@ -203,6 +203,14 @@ materialize the complete artifact chain before making a training claim. The
 [V8 rejection](status/wgsl-student-replay-v8-2026-07-11.md) and
 [V10 SFT result](status/wgsl-repair-v10-2026-07-12.md) remain separate.
 
+V12 corrects the data-lane schedule before running the curation ablation. The
+old 800-step dataset order exposed byte-identical prefixes in anchor,
+external20, and random20. The V12 workloads seed/hash-order all 1,200 rows and
+consume each full lane once, recording the order hash. Evaluation is split by
+the input-visible broken-span length into 64-token short and 640-token long
+strata, then recombined over the original denominator. See the
+[V12 controlled-lane design](status/wgsl-repair-v12-design-2026-07-12.md).
+
 Legacy Distill Studio helpers are compatibility tooling only:
 - `tools/distill-studio-mvp.js`
 - `tools/distill-studio-diagnostics.js`
