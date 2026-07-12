@@ -84,6 +84,7 @@ const rolloutGroup = buildTrainingRolloutGroup({
   policyHash: 'd'.repeat(64),
   referencePolicyHash: 'e'.repeat(64),
   verifierBundleHash,
+  runtimeHash: 'f'.repeat(64),
   advantageEpsilon: 1e-6,
   sampling: {
     seed: 11,
