@@ -491,6 +491,7 @@ export function buildTrainingRolloutGroup(input) {
       input.verifierBundleHash,
       'rollout group input.verifierBundleHash'
     ),
+    runtimeHash: requireHash(input.runtimeHash, 'rollout group input.runtimeHash'),
     sampling: requireObject(input.sampling, 'rollout group input.sampling'),
     samples: samples.map((sample, index) => ({
       ...sample,
@@ -617,6 +618,7 @@ function validateRolloutGroup(artifact) {
   requireHash(artifact.policyHash, 'training_rollout_group.policyHash');
   requireHash(artifact.referencePolicyHash, 'training_rollout_group.referencePolicyHash');
   requireHash(artifact.verifierBundleHash, 'training_rollout_group.verifierBundleHash');
+  requireHash(artifact.runtimeHash, 'training_rollout_group.runtimeHash');
   requireObject(artifact.sampling, 'training_rollout_group.sampling');
   requireInteger(artifact.sampling.seed, 'training_rollout_group.sampling.seed');
   const samples = requireArray(artifact.samples, 'training_rollout_group.samples', 2);

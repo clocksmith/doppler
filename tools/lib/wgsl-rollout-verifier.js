@@ -202,6 +202,7 @@ export async function verifyRawWgslRollouts(options) {
         policyHash,
         referencePolicyHash,
         verifierBundleHash,
+        runtimeHash,
         advantageEpsilon: policy.methods.rlvr.advantageEpsilon,
         sampling: rawGroup.sampling,
         samples: rawGroup.samples.map((sample, index) => {
