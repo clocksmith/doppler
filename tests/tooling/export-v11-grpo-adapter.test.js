@@ -37,6 +37,11 @@ try {
   ));
   assert.equal(receipt.ok, false);
   assert.match(receipt.error?.message, /SHA-256 mismatch/);
+  assert.equal(receipt.invocation?.workingDirectory, 'repository root');
+  assert.deepEqual(
+    receipt.invocation?.command,
+    ['node', 'tools/export-v11-grpo-adapter.js', ...receipt.invocation.argv]
+  );
   assert.equal(receipt.claimBoundary?.adapterInferenceCorrectness, 'Not established.');
 } finally {
   rmSync(tempDir, { recursive: true, force: true });
