@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "artifactType": "training_workload_registry",
-  "generatedAt": "2026-07-12T10:28:27.517Z",
-  "registryHash": "332f16a092c72b4deda7bea503572bd80c454e73bce0e973d773d2b7dd2de92d",
+  "generatedAt": "2026-07-12T17:49:20.459Z",
+  "registryHash": "f8dd8be8631f962ecb99b7b16044d85f51f6f1ddb7877ba2d4e09cb534d2cfc4",
   "workloads": [
     {
       "id": "distill-glm52-doppler-agent-harness-gemma270m-f16-sft-tiny",
@@ -215,6 +215,36 @@
       "configHash": "fc5d69cbb280e061e56b7c3d768114ef523f1b91d0f3d4218ebeba4982a2198b"
     },
     {
+      "id": "lora-doppler-wgsl-qwen35-9b-v12-anchor-seed29",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-anchor-seed29.json",
+      "sha256": "4d146b5ca31e9687a41e28e82db4177b3fa013ae2f2d125b2b13baa007501062",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 29,
+      "checkpointEvery": 100,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v12-anchor-seed29_4d146b5ca31e",
+      "claimBoundary": "This is the V12 Doppler-only data control. Capability comparison requires the matching external20 and random20 lanes under the same row-order, update, sampler, and verifier contracts. This workload is replication seed 29.",
+      "configHash": "858cb5ce943e1f2ab02da1342cbcbaee695d23332a7b94ef5cf2d2badf1b9998"
+    },
+    {
+      "id": "lora-doppler-wgsl-qwen35-9b-v12-anchor-seed47",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-anchor-seed47.json",
+      "sha256": "5b87103c9881ff4d199ddb03d40de93b41f21b0e64edaba0f2ae052bc56ed3ed",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 47,
+      "checkpointEvery": 100,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v12-anchor-seed47_5b87103c9881",
+      "claimBoundary": "This is the V12 Doppler-only data control. Capability comparison requires the matching external20 and random20 lanes under the same row-order, update, sampler, and verifier contracts. This workload is replication seed 47.",
+      "configHash": "017dbb3fc2b0c7af7fca5ee82c934e9c663514b0dc80e2841140d79c18599a01"
+    },
+    {
       "id": "lora-doppler-wgsl-qwen35-9b-v12-anchor",
       "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-anchor.json",
       "sha256": "3b5e8690b51c62abe6b97244a9397936c0cd7e747ee62f2e6599a2eb48a0a32b",
@@ -230,6 +260,36 @@
       "configHash": "4961518f308b2c035ce1b5f9cc05d14c7ad2b15090fc46f97ad13ab9e37b3b7f"
     },
     {
+      "id": "lora-doppler-wgsl-qwen35-9b-v12-external20-seed29",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-external20-seed29.json",
+      "sha256": "b36a54d647b736fc404cc8a74f8c139943f5939456081d94eafa80629f7402c5",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 29,
+      "checkpointEvery": 100,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v12-external20-seed29_b36a54d647b7",
+      "claimBoundary": "This lane tests pinned external-kernel replacement against the matching V12 anchor and random20 controls. It cannot promote from training loss or one seed. This workload is replication seed 29.",
+      "configHash": "0105a5c70c1d4db29b814de66d579b43a990174b7e9637c9b9e5a5fb95feae12"
+    },
+    {
+      "id": "lora-doppler-wgsl-qwen35-9b-v12-external20-seed47",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-external20-seed47.json",
+      "sha256": "39ed499f14cde8f8f38a2e13b92738eade3fe81fcfe008fb3a436580eba001a3",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 47,
+      "checkpointEvery": 100,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v12-external20-seed47_39ed499f14cd",
+      "claimBoundary": "This lane tests pinned external-kernel replacement against the matching V12 anchor and random20 controls. It cannot promote from training loss or one seed. This workload is replication seed 47.",
+      "configHash": "4948618767176227b032678e04bc13c47e506fc2a32ecd369e53cc48f402b3af"
+    },
+    {
       "id": "lora-doppler-wgsl-qwen35-9b-v12-external20",
       "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-external20.json",
       "sha256": "3577f9add4c49ff9ee07f28d8e21affd137dcb04b0714bc4c2ec50e4562e4cf4",
@@ -243,6 +303,36 @@
       "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v12-external20_3577f9add4c4",
       "claimBoundary": "This lane tests pinned external-kernel replacement against the matching V12 anchor and random20 controls. It cannot promote from training loss or one seed.",
       "configHash": "cd22a753333b2f62f94cff8532cbdb56127321e27f094e529f13583fd1f9589b"
+    },
+    {
+      "id": "lora-doppler-wgsl-qwen35-9b-v12-random20-seed29",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-random20-seed29.json",
+      "sha256": "7f0c73fde5204fcb6f51d29f123b43c94d0f431a27a6e14907f543adb03cc5dd",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 29,
+      "checkpointEvery": 100,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v12-random20-seed29_7f0c73fde520",
+      "claimBoundary": "This is the random in-domain replacement control for V12. It must use the same schedule, row order, sampler, and verifier as anchor and external20. This workload is replication seed 29.",
+      "configHash": "0c60bfaf66fedbc8339ff953530a2ce92895fa67af26dbf4f31a5102abdf20b3"
+    },
+    {
+      "id": "lora-doppler-wgsl-qwen35-9b-v12-random20-seed47",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-random20-seed47.json",
+      "sha256": "0954e93eb3b57c05a960dfeb9035c4211ac91d9d332e35ce874d5c697dc4b82d",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 47,
+      "checkpointEvery": 100,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v12-random20-seed47_0954e93eb3b5",
+      "claimBoundary": "This is the random in-domain replacement control for V12. It must use the same schedule, row order, sampler, and verifier as anchor and external20. This workload is replication seed 47.",
+      "configHash": "b3bfb0986102e707e31b2467556e653a9fa9a5b5d1d29d21226dd00def8256b9"
     },
     {
       "id": "lora-doppler-wgsl-qwen35-9b-v12-random20",
