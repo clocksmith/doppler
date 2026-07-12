@@ -177,12 +177,13 @@ V8 qualified teacher repairs and trained them with completion-masked SFT.
 Passing executable checks made the data execution-verified; it did not turn
 that optimizer into RLVR.
 
-V9 adds grouped on-policy rollouts, policy/reference token log-probabilities,
+V9 introduced grouped on-policy rollouts, policy/reference token log-probabilities,
 reward vectors, advantages, DPO, and a clipped GRPO update through the Gamma
 ROCm protocol. Qwen 3.5 9B is provisioned at exact revision
-`c202236235762e1c871ad0ccb60c8ee5ba337b9a`; an SFT optimizer run is still not
-a capability or RLVR result until the family-disjoint executable rollouts are
-verified. Base and adapted rollouts use the same task order, sample count,
+`c202236235762e1c871ad0ccb60c8ee5ba337b9a`. V10 completed seed-11 SFT and
+raised family-disjoint public compiler-repair pass@1 from 8.36% to 88.29%.
+That is a narrow SFT capability result, not RLVR, semantic kernel correctness,
+or promotion. Base and adapted rollouts use the same task order, sample count,
 sampling parameters, and per-sample seeds. Generation receipts record KV-cache,
 sample-batch, and log-probability-batch behavior, and resumable prefixes fail
 closed on any model, policy, dataset, sampling, or training mismatch.
@@ -193,13 +194,14 @@ all-zero learning signal is not RLVR evidence. The primary GRPO implementation
 filters zero-advantage samples, seed-shuffles
 the remaining samples, accumulates the declared microsteps against one frozen
 rollout policy, and performs exactly one optimizer update with zero stale-policy
-updates. The V9 DPO and GRPO surfaces,
+updates. V11 derives DPO and GRPO inputs only from the diagnostic split and
+reserves the public split for policy comparison. These optimizer surfaces,
 and any future minimum-risk, process-supervision, CISPO, or on-policy
 distillation lane, must follow the
 [Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) and
 materialize the complete artifact chain before making a training claim. The
 [V8 rejection](status/wgsl-student-replay-v8-2026-07-11.md) and
-[V9 harness status](status/wgsl-repair-v9-2026-07-11.md) remain separate.
+[V10 SFT result](status/wgsl-repair-v10-2026-07-12.md) remain separate.
 
 Legacy Distill Studio helpers are compatibility tooling only:
 - `tools/distill-studio-mvp.js`

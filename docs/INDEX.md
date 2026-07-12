@@ -65,7 +65,8 @@ Primary documentation index.
 - [Training Artifact Policy](training-artifact-policy.md)
 - [Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) - method names, rollout and reward receipts, verifier separation, and promotion gates.
 - [WGSL Student Replay v8 Receipt](status/wgsl-student-replay-v8-2026-07-11.md) - terminal rejected result, preserved mechanics evidence, and held-out failure boundary.
-- [WGSL Repair v9 Status](status/wgsl-repair-v9-2026-07-11.md) - Radeon-verified 2,714-row replacement corpus, Qwen 9B/Gamma optimizer harness, and the explicit missing-weights blocker.
+- [WGSL Repair v9 Status](status/wgsl-repair-v9-2026-07-11.md) - historical Radeon-verified corpus and optimizer-harness receipt.
+- [WGSL Repair v10 Result](status/wgsl-repair-v10-2026-07-12.md) - Qwen 3.5 9B seed-11 SFT improves family-disjoint compiler-repair pass@1 from 8.36% to 88.29%, with semantic and promotion limits retained.
 - [WGSL ML Kernel Source Catalog v2](status/wgsl-kernel-source-catalog-v2-2026-07-12.md) - Pinned training, reference-only, and quarantined WebGPU ML sources, including MLC WebLLM.
 - [Training Migrations](training-migrations.md)
 

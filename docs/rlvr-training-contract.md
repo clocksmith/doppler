@@ -7,7 +7,7 @@ verifiable rewards (RLVR) for policy updates driven by programmatic rewards.
 
 ## Current Support Boundary
 
-Doppler currently implements the original SFT path plus an experimental V9
+Doppler currently implements the original SFT path plus an experimental V11
 verifier-guided surface:
 
 - host-session teacher qualification with disposable source snapshots,
@@ -28,11 +28,12 @@ verifier-guided surface:
 - executable validators and writers for the six verifier-guided artifact
   classes below.
 
-Doppler does not yet have a completed Qwen 3.5 9B SFT, DPO, or GRPO run, a
-sealed semantic WGSL promotion result, minimum-risk sequence training,
-process-reward training, CISPO/PPO, or validation-high teacher checkpoint
-promotion. The V9 harness therefore remains `harness_ready`, not
-`mechanics_proven` or `capability_proven`.
+Doppler V10 completed Qwen 3.5 9B seed-11 SFT and measured a paired
+family-disjoint compiler-repair gain. That narrow result is
+`capability_proven`; it is not semantic-kernel or promotion evidence. DPO and
+GRPO from the separate V11 diagnostic partition, a sealed semantic WGSL
+promotion result, minimum-risk sequence training, process-reward training,
+CISPO/PPO, and validation-high teacher checkpoint promotion remain absent.
 
 The V8 WGSL student replay is execution-verified SFT, also called
 response or sequence-level distillation. It is not RLVR and it is not logit
@@ -68,14 +69,9 @@ An RLVR rollout group must be recoverable from one immutable artifact:
   "workloadId": "example-wgsl-rlvr",
   "groupId": "task-004-group-0002",
   "taskId": "task-004",
-  "policyCheckpoint": {
-    "id": "checkpoint-000100",
-    "hash": "<sha256>"
-  },
-  "referenceCheckpoint": {
-    "id": "sft-baseline",
-    "hash": "<sha256>"
-  },
+  "datasetHash": "<sha256>",
+  "policyHash": "<sha256>",
+  "referencePolicyHash": "<sha256>",
   "sampling": {
     "seed": 1337,
     "temperature": 0.8,
@@ -84,6 +80,7 @@ An RLVR rollout group must be recoverable from one immutable artifact:
   },
   "samples": [],
   "verifierBundleHash": "<sha256>",
+  "runtimeHash": "<sha256>",
   "claimBoundary": "training signal only; not a promotion evaluation"
 }
 ```
@@ -287,7 +284,7 @@ misattributed to the optimizer.
 
 ## Required Artifact Classes
 
-The V9 experimental surface validates these classes before an optimizer run
+The V11 experimental surface validates these classes before an optimizer run
 can become claimable:
 
 - `training_rollout_group`
@@ -300,7 +297,7 @@ can become claimable:
 An artifact class being implemented does not prove that a run emitted a valid
 instance. A claim still requires the complete linked set for that run. See
 [Training Artifact Policy](training-artifact-policy.md) and the
-[V9 status receipt](status/wgsl-repair-v9-2026-07-11.md).
+[V10 result receipt](status/wgsl-repair-v10-2026-07-12.md).
 
 ## Promotion and Rejection
 

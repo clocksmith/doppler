@@ -1,7 +1,11 @@
 # WGSL Repair V9 Status
 
-V9 is harness-ready and blocked only on the primary Qwen 3.5 9B weights. It is
-not a capability result.
+This is the historical preflight and mechanics receipt. The missing-weights
+blocker was resolved, and the primary seed-11 SFT result is recorded in
+[WGSL Repair V10](wgsl-repair-v10-2026-07-12.md).
+
+At freeze, V9 was harness-ready and blocked only on the primary Qwen 3.5 9B
+weights. V9 itself is not a capability result.
 
 The rejected V8 replay used Gemma 270M, four unique WGSL repairs duplicated to
 eight rows, and prose-shaped outputs. V9 changes the experiment rather than
