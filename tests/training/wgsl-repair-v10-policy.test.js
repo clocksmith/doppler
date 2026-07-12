@@ -27,6 +27,16 @@ assert.equal(
 assert.equal(derivation.holdoutOutcomesUsed, false);
 assert.equal(derivation.sourceRows, 1200);
 assert.equal(await sha256BytesHex(sourceBytes), derivation.sourceSha256);
+assert.equal(v10.verifier.protocolRevision, 2);
+assert.equal(v10.verifier.browser.compilationTimeoutMs, 10000);
+assert.equal(v10.verifier.browser.progressEvery, 100);
+assert.equal(v10.verifier.priorBlockedAttempt.groupCount, 299);
+assert.equal(v10.verifier.priorBlockedAttempt.sampleCount, 2392);
+assert.equal(v10.verifier.priorBlockedAttempt.scoreArtifactsWritten, false);
+assert.equal(
+  v10.verifier.priorBlockedAttempt.rawRolloutSha256,
+  'd0b3569ff54fafbf55c2bf1190325263c8caa35ad30e05d9471bcbd6df5af813'
+);
 
 const comparableV9 = structuredClone(v9);
 const comparableV10 = structuredClone(v10);
@@ -35,10 +45,16 @@ comparableV10.claimBoundary = comparableV9.claimBoundary;
 delete comparableV10.methods.sft.evaluationCheckpoint;
 delete comparableV10.methods.rollout.maxTokensDerivation;
 comparableV10.methods.rollout.maxTokens = comparableV9.methods.rollout.maxTokens;
+delete comparableV10.verifier.protocolRevision;
+delete comparableV10.verifier.compilationFailurePolicy;
+delete comparableV10.verifier.sessionResetPolicy;
+delete comparableV10.verifier.priorBlockedAttempt;
+delete comparableV10.verifier.browser.compilationTimeoutMs;
+delete comparableV10.verifier.browser.progressEvery;
 assert.deepEqual(
   comparableV10,
   comparableV9,
-  'V10 may change only the declared evaluation checkpoint and rollout ceiling provenance.'
+  'V10 may change only the declared checkpoint, rollout ceiling, and fail-closed verifier revision.'
 );
 
 console.log('wgsl-repair-v10-policy.test: ok');

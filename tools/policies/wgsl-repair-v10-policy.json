@@ -172,12 +172,24 @@
   },
   "verifier": {
     "bundleId": "doppler-wgsl-compile-regression-v1",
+    "protocolRevision": 2,
     "responseContract": "replacement_only_wgsl_span_v1",
+    "compilationFailurePolicy": "timeout_or_verifier_exception_is_failed_sample",
+    "sessionResetPolicy": "relaunch_browser_and_require_same_device_identity",
+    "priorBlockedAttempt": {
+      "rawRolloutSha256": "d0b3569ff54fafbf55c2bf1190325263c8caa35ad30e05d9471bcbd6df5af813",
+      "groupCount": 299,
+      "sampleCount": 2392,
+      "scoreArtifactsWritten": false,
+      "reason": "unbounded_shader_compilation_promise"
+    },
     "browser": {
       "headless": true,
       "powerPreference": "high-performance",
       "requiredVendor": "amd",
       "requiredFeatures": ["shader-f16", "subgroups"],
+      "compilationTimeoutMs": 10000,
+      "progressEvery": 100,
       "browserArgs": [
         "--enable-unsafe-webgpu",
         "--enable-dawn-features=allow_unsafe_apis",
