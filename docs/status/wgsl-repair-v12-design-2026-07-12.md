@@ -5,13 +5,23 @@ found while interpreting V10: the three 1,200-row data lanes shared the same
 first 800 rows, and one 64-token generation ceiling was too short for a small
 but real external-kernel repair stratum.
 
+The original machine-readable design receipt recorded a seed-11-first
+selection followed by replication. Before any V12 capability outcome was
+opened, commit `df8da5d160a12aedd69c1a2ea541af1f3dd7910f` strengthened that
+contract to require all three lanes at all three seeds. The checked-in
+[evaluation policy](../../tools/policies/wgsl-repair-v12-evaluation-policy.json)
+is authoritative for execution and public-split access; the JSON design
+receipt remains the historical initial freeze.
+
 ## Full-lane data comparison
 
-All three seed-11 workloads now execute 1,200 microsteps with accumulation 8,
-or 150 optimizer updates. Gamma orders every row by
+Every lane at seeds 11, 29, and 47 executes 1,200 microsteps with accumulation
+8, or 150 optimizer updates. Gamma orders every row by
 `sha256(seed + "\0" + rowId)`, records the resulting order hash, and consumes
 the full lane once. The model, rank-32 adapter, learning rate, precision,
 sequence length, and checkpoint rule are identical.
+
+The seed-11 orders are:
 
 | Lane | Doppler rows | Zero-TVM rows | Row-order SHA-256 |
 | --- | ---: | ---: | --- |
@@ -55,18 +65,24 @@ separately.
 V11 answered the optimizer question from the existing seed-11 SFT checkpoint:
 one diagnostic-only GRPO update improved public pass@1 from 88.29% to 94.98%,
 while the matched DPO lane regressed and was rejected. V12 answers the data
-question from three new base-initialized SFT runs. Mixing the new row order,
+question from nine new base-initialized SFT runs. Mixing the new row order,
 external data, longer decoder, and an optimizer in one lane would destroy
 attribution. See the
 [V11 optimizer result](wgsl-repair-v11-2026-07-12.md).
 
 The V12 data gate is:
 
-1. train anchor, external20, and random20 under their checked-in workloads;
-2. compare all three on the same short and long diagnostic strata;
-3. select a data lane without using the public or sealed semantic outcomes;
-4. repeat the selected comparison for seeds 29 and 47;
-5. run the frozen public diagnostic and then the sealed semantic suite once.
+1. train anchor, external20, and random20 at seeds 11, 29, and 47 under their
+   checked-in workloads;
+2. evaluate all nine adapters on the same frozen short and long diagnostic
+   strata;
+3. select external20 only if it beats anchor on recombined diagnostic pass@1
+   at every seed, beats random20 on mean recombined diagnostic pass@1, and does
+   not reduce mean long-stratum pass@1 versus anchor;
+4. record the treatment decision without reading the public or sealed semantic
+   outcomes;
+5. open the frozen public diagnostic only after all nine diagnostic receipts
+   are sealed, then run the sealed semantic suite once for the selected result.
 
 Compilation remains a partial reward. Promotion still requires dispatch,
 CPU-oracle, numerical, metamorphic, and historical-regression checks. The
