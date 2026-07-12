@@ -173,19 +173,20 @@ Action requirements:
 
 ## Verifier-Guided Optimizer Boundary
 
-Doppler's current verified code/WGSL path qualifies teacher repairs and trains
-them with completion-masked SFT. Passing executable checks makes the data
-execution-verified; it does not turn the optimizer into RLVR. The runtime does
-not currently emit grouped on-policy rollouts, policy/reference
-log-probabilities, reward vectors, advantages, or policy-gradient updates.
+V8 qualified teacher repairs and trained them with completion-masked SFT.
+Passing executable checks made the data execution-verified; it did not turn
+that optimizer into RLVR.
 
-Any future DPO, minimum-risk, process-supervision, GRPO, CISPO, or on-policy
-distillation lane must follow the
-[Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) and add
-the reserved artifact classes to the executable validators before making a
-training claim. The terminally rejected v8 WGSL experiment and its preserved
-mechanics subreceipt are
-[recorded separately](status/wgsl-student-replay-v8-2026-07-11.md).
+V9 adds grouped on-policy rollouts, policy/reference token log-probabilities,
+reward vectors, advantages, DPO, and a clipped GRPO update through the Gamma
+ROCm protocol. That is an implemented optimizer surface, not evidence that the
+unprovisioned Qwen 3.5 9B completed an update. The V9 DPO and GRPO surfaces,
+and any future minimum-risk, process-supervision, CISPO, or on-policy
+distillation lane, must follow the
+[Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) and
+materialize the complete artifact chain before making a training claim. The
+[V8 rejection](status/wgsl-student-replay-v8-2026-07-11.md) and
+[V9 harness status](status/wgsl-repair-v9-2026-07-11.md) remain separate.
 
 Legacy Distill Studio helpers are compatibility tooling only:
 - `tools/distill-studio-mvp.js`

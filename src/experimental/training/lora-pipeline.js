@@ -45,6 +45,7 @@ const CAUSAL_LM_TEXT_PAIR_RUNNER_KEYS = Object.freeze([
   'gemma-4-e2b-it-q4k-ehf16-af32-int4ple::text-pairs::text_generation',
   'qwen-3-5-0-8b-q4k-ehaf16::text-pairs::text_generation',
   'qwen-3-5-2b-q4k-ehaf16::text-pairs::text_generation',
+  'qwen-3-5-9b-hf-bf16::text-pairs::text_generation',
   'qwen-3-6-27b-q4k-ehaf16::text-pairs::text_generation',
   'qwen-3-6-27b-q4k-eaf16::text-pairs::text_generation',
 ]);
@@ -61,6 +62,7 @@ export const LORA_RUNNER_SUPPORT_CONTRACT = Object.freeze({
     'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
     'qwen-3-5-0-8b-q4k-ehaf16',
     'qwen-3-5-2b-q4k-ehaf16',
+    'qwen-3-5-9b-hf-bf16',
     'qwen-3-6-27b-q4k-ehaf16',
     'qwen-3-6-27b-q4k-eaf16',
   ]),
@@ -124,6 +126,13 @@ export const LORA_RUNNER_BASE_MODEL_REGISTRY = Object.freeze({
   'qwen-3-5-2b-q4k-ehaf16': Object.freeze({
     baseModelId: 'qwen-3-5-2b-q4k-ehaf16',
     modelRef: 'qwen-3-5-2b-q4k-ehaf16',
+    family: 'qwen3',
+    runnerKind: 'causal_lm_text_generation',
+    requiresExternalTrainer: true,
+  }),
+  'qwen-3-5-9b-hf-bf16': Object.freeze({
+    baseModelId: 'qwen-3-5-9b-hf-bf16',
+    modelRef: 'Qwen/Qwen3.5-9B',
     family: 'qwen3',
     runnerKind: 'causal_lm_text_generation',
     requiresExternalTrainer: true,
@@ -1462,8 +1471,7 @@ function assertCausalLmTensorCoverage(tensors, adapter) {
     }
   }
   for (const [layerIndex, modules] of layerModules.entries()) {
-    for (const moduleName of targetModules) {
-      const kinds = modules.get(moduleName);
+    for (const [moduleName, kinds] of modules.entries()) {
       if (!kinds?.has('a') || !kinds?.has('b')) {
         throw new Error(
           `Causal-LM trainer layer ${layerIndex} module ${moduleName} must include both lora_a and lora_b tensors.`

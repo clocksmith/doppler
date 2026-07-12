@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "artifactType": "training_workload_registry",
-  "generatedAt": "2026-06-28T04:21:34.833Z",
-  "registryHash": "a8335d4b9d79d96d92109c3c4a46ffb01aea9fdb57588bca1ab5c2b7ac67ff52",
+  "generatedAt": "2026-07-12T00:07:39.019Z",
+  "registryHash": "5960c7edb1059ea6ed1acbb0ebdb9a924b1e364b71249ac16628eafeec885d61",
   "workloads": [
     {
       "id": "distill-glm52-doppler-agent-harness-gemma270m-f16-sft-tiny",
@@ -213,6 +213,21 @@
       "baselineReportId": "trn_lora-doppler-wgsl-gemma270m-f16-tiny_40b6ef063ff1",
       "claimBoundary": "Executable local LoRA adapter training receipt for WGSL traces on a Doppler f16 base; not a model-quality claim.",
       "configHash": "a8af4a7f4262cda72d5e1e4be0d31871e1ec16cdde93ec128d5d0ce874f286e1"
+    },
+    {
+      "id": "lora-doppler-wgsl-qwen35-9b-v9",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v9.json",
+      "sha256": "a8e70d2388f072fee9c684bf2bc7305e6a5df999f035ba002fb4336862a4730a",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 11,
+      "checkpointEvery": 100,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v9_a8e70d2388f0",
+      "claimBoundary": "The workload can establish SFT mechanics and adapter lineage only. Doppler V9 promotion requires family-disjoint and sealed constructive repair gains across three seeds.",
+      "configHash": "f4de63d4b7331a69fa56a9c350af97292380fd2fb39e99e8beaebb69e3ac05c3"
     },
     {
       "id": "lora-toy-medium",

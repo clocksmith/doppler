@@ -7,7 +7,8 @@ verifiable rewards (RLVR) for policy updates driven by programmatic rewards.
 
 ## Current Support Boundary
 
-Doppler currently implements:
+Doppler currently implements the original SFT path plus an experimental V9
+verifier-guided surface:
 
 - host-session teacher qualification with disposable source snapshots,
   allowed-diff checks, command audits, executable checks, and hidden task
@@ -16,19 +17,24 @@ Doppler currently implements:
 - causal-LM LoRA SFT with frozen base weights, checkpoints, parameter-delta
   receipts, loss comparison, and adapter export;
 - declared cross-entropy and teacher-logit distillation workloads; and
-- held-out `agentEval` and quality-gate contracts.
+- held-out `agentEval` and quality-gate contracts;
+- replacement-only WGSL tasks from compiler-reproducing mutations;
+- grouped policy sampling with completion masks and policy/reference token
+  log-probabilities through the Gamma ROCm trainer protocol;
+- Radeon WebGPU verification, unreduced reward vectors, group-relative
+  advantages, best-of-N selection, and DPO pair derivation;
+- completion-masked SFT, DPO, and a declared clipped GRPO-with-KL update in
+  Gamma; and
+- executable validators and writers for the six verifier-guided artifact
+  classes below.
 
-Doppler does not currently implement:
+Doppler does not yet have a completed Qwen 3.5 9B SFT, DPO, or GRPO run, a
+sealed semantic WGSL promotion result, minimum-risk sequence training,
+process-reward training, CISPO/PPO, or validation-high teacher checkpoint
+promotion. The V9 harness therefore remains `harness_ready`, not
+`mechanics_proven` or `capability_proven`.
 
-- grouped on-policy rollout collection;
-- policy and reference token log-probability receipts;
-- preference-pair optimization such as DPO;
-- minimum-risk sequence training;
-- GRPO, PPO, CISPO, or another policy-gradient optimizer;
-- process-reward training; or
-- validation-high teacher checkpoint promotion.
-
-The current WGSL student replay is execution-verified SFT, also called
+The V8 WGSL student replay is execution-verified SFT, also called
 response or sequence-level distillation. It is not RLVR and it is not logit
 knowledge distillation. The current receipt is
 [WGSL student replay v8](status/wgsl-student-replay-v8-2026-07-11.md).
@@ -252,8 +258,8 @@ misattributed to the optimizer.
 
 ## Required Artifact Classes
 
-Any implemented RLVR surface must add and validate these classes before a
-claimable run:
+The V9 experimental surface validates these classes before an optimizer run
+can become claimable:
 
 - `training_rollout_group`
 - `training_reward_vector`
@@ -262,8 +268,10 @@ claimable run:
 - `training_policy_checkpoint`
 - `training_promotion_decision`
 
-These names are reserved contracts, not a statement that the current runner
-emits them. See [Training Artifact Policy](training-artifact-policy.md).
+An artifact class being implemented does not prove that a run emitted a valid
+instance. A claim still requires the complete linked set for that run. See
+[Training Artifact Policy](training-artifact-policy.md) and the
+[V9 status receipt](status/wgsl-repair-v9-2026-07-11.md).
 
 ## Promotion and Rejection
 

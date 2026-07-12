@@ -65,6 +65,7 @@ Primary documentation index.
 - [Training Artifact Policy](training-artifact-policy.md)
 - [Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) - method names, rollout and reward receipts, verifier separation, and promotion gates.
 - [WGSL Student Replay v8 Receipt](status/wgsl-student-replay-v8-2026-07-11.md) - terminal rejected result, preserved mechanics evidence, and held-out failure boundary.
+- [WGSL Repair v9 Status](status/wgsl-repair-v9-2026-07-11.md) - Radeon-verified 2,714-row replacement corpus, Qwen 9B/Gamma optimizer harness, and the explicit missing-weights blocker.
 - [Training Migrations](training-migrations.md)
 
 ## Style Guides

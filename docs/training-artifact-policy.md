@@ -40,10 +40,10 @@ Pipeline-specific classes:
 
 Legacy UL manifests remain part of the broader training lineage story, but UL has not yet been migrated onto the same first-class operator surface as `lora` and `distill`.
 
-## Reserved Verifier-Guided Artifact Classes
+## Verifier-Guided Artifact Classes
 
-The following names are reserved for a future verifier-guided or RLVR operator
-surface:
+The V9 experimental verifier-guided surface implements validators and writers
+for:
 
 - `training_rollout_group`
 - `training_reward_vector`
@@ -52,10 +52,12 @@ surface:
 - `training_policy_checkpoint`
 - `training_promotion_decision`
 
-The current runner does not emit these classes. Their presence in this policy
-is a contract reservation, not an implementation or capability claim.
+The class contract is implemented; a particular run may still be missing one
+or more instances and must then fail closed. The rejected V8 runner did not
+emit them. V9 remains `harness_ready` until the primary model is provisioned
+and the optimizer receipts exist.
 
-Before any such artifact becomes claimable, its schema and validator must bind:
+Before any such artifact becomes claimable, its validator binds:
 
 - task, dataset, workload, policy, model, checkpoint, runtime, and kernel hashes
 - sampling seed and generation parameters
