@@ -36,7 +36,7 @@ import {
 } from '../src/inference/model-lanes/execution-lane-resolver.js';
 import { log } from '../src/debug/index.js';
 import { state } from './ui/state.js';
-import { setRunEnabled } from './input.js';
+import { syncSendButton } from './input.js';
 import { clearOutput } from './output.js';
 import { setExportEnabled } from './report.js';
 
@@ -163,9 +163,9 @@ export function buildModelCardDetail(entry, status) {
       : 'Shared weights')
     : sizeLabel(entry?.sizeBytes);
   const STATUS_LABELS = {
-    loaded: 'Active',
+    loaded: 'Loaded',
     loading: 'Loading to GPU...',
-    stored: 'Ready',
+    stored: 'Downloaded',
     downloading: 'Downloading...',
   };
   const statusLabel = STATUS_LABELS[status];
@@ -194,7 +194,7 @@ function clearLoadedModelState() {
   state.pipeline = null;
   state.lastRun = null;
   state.downloadProgress = null;
-  setRunEnabled(false);
+  syncSendButton();
   setExportEnabled(false);
   clearOutput();
   setIdleStatus();

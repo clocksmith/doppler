@@ -37,7 +37,10 @@ function shuffle() {
   if (!examples?.text?.length) return;
   shuffleIndex = (shuffleIndex + 1) % examples.text.length;
   const promptEl = $('prompt-input');
-  if (promptEl) promptEl.value = examples.text[shuffleIndex];
+  if (promptEl) {
+    promptEl.value = examples.text[shuffleIndex];
+    syncSendButton();
+  }
 }
 
 function setupImageDrop() {
@@ -110,11 +113,15 @@ export function setPromptValue(value) {
   }
   promptEl.value = typeof value === 'string' ? value : String(value ?? '');
   promptEl.focus();
+  syncSendButton();
 }
 
 export function clearPrompt() {
   const promptEl = $('prompt-input');
-  if (promptEl) promptEl.value = '';
+  if (promptEl) {
+    promptEl.value = '';
+    syncSendButton();
+  }
 }
 
 export function getImage() {
@@ -157,21 +164,60 @@ export function setRunHandler(handler) {
   onRun = handler;
 }
 
+export function isSendReady({ pipeline, prompt, generating = false, prefilling = false }) {
+  return pipeline != null
+    && typeof prompt === 'string'
+    && prompt.trim().length > 0
+    && generating !== true
+    && prefilling !== true;
+}
+
+export function syncSendButton(options = {}) {
+  const btn = $('run-btn');
+  const prompt = getPrompt();
+  const generating = options.generating ?? state.generating;
+  const prefilling = options.prefilling ?? state.prefilling;
+  const ready = isSendReady({
+    pipeline: state.pipeline,
+    prompt,
+    generating,
+    prefilling,
+  });
+  if (!btn) return ready;
+
+  btn.disabled = !ready;
+  if (state.pipeline == null) {
+    btn.title = 'Load a model to send';
+  } else if (!prompt) {
+    btn.title = 'Enter a message to send';
+  } else if (generating || prefilling) {
+    btn.title = 'Generation is in progress';
+  } else {
+    btn.title = 'Send message';
+  }
+  return ready;
+}
+
+function submitIfReady() {
+  if (syncSendButton() && onRun) {
+    onRun();
+  }
+}
+
 export async function initInput() {
   await loadExamples();
 
   $('shuffle-btn')?.addEventListener('click', shuffle);
 
-  $('run-btn')?.addEventListener('click', () => {
-    if (onRun) onRun();
-  });
+  $('run-btn')?.addEventListener('click', submitIfReady);
 
   $('prompt-input')?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (onRun) onRun();
+      submitIfReady();
     }
   });
+  $('prompt-input')?.addEventListener('input', () => syncSendButton());
 
   setupImageDrop();
   setupConversationActions();
@@ -181,11 +227,7 @@ export async function initInput() {
     shuffleIndex = Math.floor(Math.random() * examples.text.length) - 1;
     shuffle();
   }
-}
-
-export function setRunEnabled(enabled) {
-  const btn = $('run-btn');
-  if (btn) btn.disabled = !enabled;
+  syncSendButton();
 }
 
 export function setGenerating(active) {
@@ -193,4 +235,5 @@ export function setGenerating(active) {
   const stopBtn = $('stop-btn');
   if (runBtn) runBtn.hidden = active;
   if (stopBtn) stopBtn.hidden = !active;
+  syncSendButton({ generating: active, prefilling: active });
 }

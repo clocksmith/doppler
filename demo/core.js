@@ -16,7 +16,7 @@ import {
   recordConversationTurn,
   resetConversationForModel,
   setGenerating,
-  setRunEnabled,
+  syncSendButton,
 } from './input.js';
 import {
   beginChatTurn,
@@ -98,7 +98,7 @@ function updateTelemetry(pipeline, overrides = {}) {
 
 export function onModelLoaded(pipeline, modelId) {
   resetConversationForModel(modelId);
-  setRunEnabled(true);
+  syncSendButton();
   setStatus('Ready', false);
 }
 

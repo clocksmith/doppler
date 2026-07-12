@@ -598,11 +598,11 @@ function readManifest(modelId) {
 {
   assert.equal(
     buildModelCardDetail({ sizeBytes: 612 * 1024 * 1024 }, 'stored'),
-    'Ready · 612 MB'
+    'Downloaded · 612 MB'
   );
   assert.equal(
     buildModelCardDetail({ sizeBytes: 1536 * 1024 * 1024 }, 'loaded'),
-    'Active · 1.5 GB'
+    'Loaded · 1.5 GB'
   );
   assert.equal(
     buildModelCardDetail({ sizeBytes: 612 * 1024 * 1024 }, 'downloading'),
@@ -613,7 +613,7 @@ function readManifest(modelId) {
       artifactCompleteness: 'weights-ref',
       weightsRefPrimary: 'gemma-4-31b-it-text-q4k-ehf16-af32',
     }, 'stored'),
-    'Ready · Shared with gemma-4-31b-it-text-q4k-ehf16-af32'
+    'Downloaded · Shared with gemma-4-31b-it-text-q4k-ehf16-af32'
   );
 }
 

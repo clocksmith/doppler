@@ -5,6 +5,7 @@ const html = readFileSync(new URL('../../demo/index.html', import.meta.url), 'ut
 const xraySource = readFileSync(new URL('../../demo/ui/xray/index.js', import.meta.url), 'utf8');
 const reportSource = readFileSync(new URL('../../demo/report.js', import.meta.url), 'utf8');
 const settingsSource = readFileSync(new URL('../../demo/settings.js', import.meta.url), 'utf8');
+const inputSource = readFileSync(new URL('../../demo/input.js', import.meta.url), 'utf8');
 const appStyles = readFileSync(new URL('../../demo/ui/styles/app.css', import.meta.url), 'utf8');
 const componentStyles = readFileSync(new URL('../../demo/styles/rd-components.css', import.meta.url), 'utf8');
 
@@ -35,6 +36,8 @@ assert.match(settingsSource, /DEMO_DEFAULT_MAX_TOKENS = 1024/);
 assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Shuffle<\/button>/);
 assert.match(html, /id="image-drop"[^>]*>Attach image<\/button>/);
 assert.match(html, /id="run-btn"[^>]*>[\s\S]*&#x25B8;[\s\S]*Send<\/button>/);
+assert.match(html, /id="status-text">Select model<\/span>/);
+assert.match(inputSource, /addEventListener\('input', \(\) => syncSendButton\(\)\)/);
 assert.ok(html.indexOf('id="shuffle-btn"') < html.indexOf('id="image-drop"'));
 assert.ok(html.indexOf('id="image-drop"') < html.indexOf('id="run-btn"'));
 
