@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "kind": "lora",
+  "id": "lora-doppler-wgsl-qwen35-9b-v9",
+  "description": "Qwen 3.5 9B completion-masked LoRA SFT on the V9 WGSL anchor lane through Gamma ROCm",
+  "claimBoundary": "The workload can establish SFT mechanics and adapter lineage only. Doppler V9 promotion requires family-disjoint and sealed constructive repair gains across three seeds.",
+  "seed": 11,
+  "baseModelId": "qwen-3-5-9b-hf-bf16",
+  "datasetId": "doppler-wgsl-repair-v9-anchor",
+  "datasetPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1/train-anchor.jsonl",
+  "evalDatasets": [],
+  "trainingSchemaVersion": 1,
+  "checkpointEvery": 100,
+  "selectionMetric": "loss",
+  "selectionGoal": "min",
+  "surfaceSupport": "node",
+  "training": {
+    "optimizer": {
+      "type": "adamw",
+      "lr": 0.0001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-8,
+      "weightDecay": 0.01,
+      "scheduler": {
+        "enabled": false,
+        "type": "constant",
+        "warmupSteps": 0,
+        "stepSize": 1,
+        "gamma": 1,
+        "totalSteps": 800,
+        "minLr": 0
+      }
+    },
+    "batchSize": 1,
+    "accumSteps": 8,
+    "steps": 800,
+    "precision": {
+      "activations": "bf16",
+      "gradients": "bf16",
+      "loraParams": "f32"
+    },
+    "gradientClipping": {
+      "maxNorm": 1
+    }
+  },
+  "lora": {
+    "datasetFormat": "text-pairs",
+    "taskType": "text_generation",
+    "baseModelRef": "Qwen/Qwen3.5-9B",
+    "maxLength": 2048,
+    "joinWith": "\n",
+    "adapter": {
+      "rank": 32,
+      "alpha": 64,
+      "dropout": 0.05,
+      "targetModules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ]
+    },
+    "freeze": {
+      "encoder": false,
+      "prior": false,
+      "decoder": false,
+      "base": true,
+      "lora": false
+    },
+    "trainer": {
+      "modulePath": "../../../../tools/trainers/gamma-wgsl-trainer.js",
+      "exportName": "trainCausalLmLora",
+      "runnerId": "gamma-wgsl-causal-lm-lora"
+    },
+    "export": {
+      "enabled": true,
+      "atCheckpoints": false,
+      "select": "final",
+      "id": "doppler-wgsl-qwen35-9b-v9-anchor",
+      "name": "Doppler WGSL Qwen 3.5 9B V9 Anchor",
+      "format": "manifest_json"
+    },
+    "activation": {
+      "enabled": false,
+      "autoActivate": false,
+      "smokePrompt": "Repair only the marked WGSL span."
+    }
+  }
+}

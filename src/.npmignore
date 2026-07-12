@@ -43,6 +43,8 @@ config/schema/model-artifact-contract.schema.json
 config/schema/platform.schema.js
 config/schema/policy-schema-registry.json
 config/schema/subsystem-support-contract.schema.json
+config/schema/wgsl-repair-experiment-policy.schema.json
+config/schema/wgsl-training-source-catalog.schema.json
 config/support-tiers/subsystems.json
 config/supported-operations.d.ts
 config/transforms/capability-transform-resolver.d.ts
@@ -137,12 +139,16 @@ experimental/training/operator-command.d.ts
 experimental/training/operator-eval.d.ts
 experimental/training/operator-scoreboard.d.ts
 experimental/training/optimizer.d.ts
+experimental/training/policy-artifacts.d.ts
+experimental/training/policy-artifacts.js
 experimental/training/runner.d.ts
 experimental/training/suite.d.ts
 experimental/training/tensor-factory.d.ts
 experimental/training/trainer.d.ts
 experimental/training/ul_dataset.d.ts
 experimental/training/ul_schedule.d.ts
+experimental/training/wgsl-repair.d.ts
+experimental/training/wgsl-repair.js
 experimental/training/workload-packs/distill-glm52-doppler-agent-harness-gemma270m-f16-sft-tiny.json
 experimental/training/workload-packs/distill-glm52-doppler-code-agent-gemma270m-f16-sft-tiny.json
 experimental/training/workload-packs/distill-glm52-doppler-code-agent-sft-tiny.json
@@ -157,6 +163,7 @@ experimental/training/workload-packs/lora-doppler-code-agent-tiny.json
 experimental/training/workload-packs/lora-doppler-js-json-gemma270m-f16-tiny.json
 experimental/training/workload-packs/lora-doppler-review-gemma270m-f16-tiny.json
 experimental/training/workload-packs/lora-doppler-wgsl-gemma270m-f16-tiny.json
+experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v9.json
 experimental/training/workload-packs/lora-toy-medium.json
 experimental/training/workload-packs/lora-toy-tiny.json
 experimental/training/workload-packs/registry.json

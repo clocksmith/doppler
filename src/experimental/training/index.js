@@ -61,3 +61,25 @@ export {
 export * as datasets from './datasets/index.js';
 export { DataLoader } from './dataloader.js';
 export { saveCheckpoint, loadCheckpoint } from './checkpoint.js';
+export {
+  WGSL_REPAIR_TASK_CONTRACT,
+  WGSL_REPAIR_MUTATION_OPERATORS,
+  VERIFIER_GUIDED_ARTIFACT_TYPES,
+  deriveKernelFamily,
+  createWgslRepairMutations,
+  buildWgslRepairTask,
+  parseReplacementOnlyResponse,
+  applyWgslRepairResponse,
+  buildWgslRewardVector,
+  computeGroupRelativeAdvantages,
+  buildTrainingRolloutGroup,
+  selectRejectionSamples,
+  deriveDpoPreferencePairs,
+  buildTrainingPromotionDecision,
+  validateVerifierGuidedArtifact,
+  hashVerifierGuidedArtifact,
+} from './wgsl-repair.js';
+export {
+  buildTrainingPolicyUpdate,
+  buildTrainingPolicyCheckpoint,
+} from './policy-artifacts.js';

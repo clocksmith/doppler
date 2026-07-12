@@ -36,6 +36,11 @@
       "id": "subsystem-support-contract",
       "policyPath": "tools/policies/subsystem-support-contract.json",
       "schemaPath": "src/config/schema/subsystem-support-contract.schema.json"
+    },
+    {
+      "id": "wgsl-repair-v9-policy",
+      "policyPath": "tools/policies/wgsl-repair-v9-policy.json",
+      "schemaPath": "src/config/schema/wgsl-repair-experiment-policy.schema.json"
     }
   ]
 }
