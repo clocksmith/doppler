@@ -88,6 +88,28 @@ function commonTraining(policy) {
   };
 }
 
+const ROLLOUT_TASK_FILES = Object.freeze({
+  diagnostic: 'diagnostic.jsonl',
+  'public-test': 'public-test.jsonl',
+});
+
+export function resolveWgslRolloutTaskPath(corpusRoot, rolloutMethod) {
+  const taskSet = rolloutMethod?.taskSet ?? 'public-test';
+  const filename = ROLLOUT_TASK_FILES[taskSet];
+  if (!filename) {
+    throw new Error('methods.rollout.taskSet must be diagnostic or public-test.');
+  }
+  return join(corpusRoot, filename);
+}
+
+export function buildWgslRolloutSampling(policy) {
+  const { taskSet, ...sampling } = policy.methods.rollout;
+  return {
+    ...sampling,
+    groupSize: policy.methods.rlvr.groupSize,
+  };
+}
+
 async function writeStatus(runRoot, status) {
   const path = join(runRoot, 'experiment-status.json');
   await mkdir(runRoot, { recursive: true });
@@ -145,7 +167,10 @@ async function runSft(context) {
 
 async function runRollout(context, adapterPath) {
   if (!adapterPath) throw new Error('rollout requires --adapter or an SFT result.');
-  const taskPath = join(context.corpusRoot, 'public-test.jsonl');
+  const taskPath = resolveWgslRolloutTaskPath(
+    context.corpusRoot,
+    context.policy.methods.rollout
+  );
   const outputRoot = join(context.runRoot, 'gamma', 'rollout');
   const request = {
     protocol: PROTOCOL,
@@ -155,10 +180,7 @@ async function runRollout(context, adapterPath) {
     model: modelRequest(context.policy),
     adapterPath: resolve(adapterPath),
     datasetPath: taskPath,
-    sampling: {
-      ...context.policy.methods.rollout,
-      groupSize: context.policy.methods.rlvr.groupSize,
-    },
+    sampling: buildWgslRolloutSampling(context.policy),
     training: commonTraining(context.policy),
   };
   const executed = await runGammaWgslRequest(request, { runRoot: outputRoot, prefix: 'rollout' });
@@ -174,7 +196,10 @@ async function runRollout(context, adapterPath) {
 
 async function runBaseRollout(context, referencePolicyHash) {
   if (!referencePolicyHash) throw new Error('base rollout requires a preflight policy hash.');
-  const taskPath = join(context.corpusRoot, 'public-test.jsonl');
+  const taskPath = resolveWgslRolloutTaskPath(
+    context.corpusRoot,
+    context.policy.methods.rollout
+  );
   const outputRoot = join(context.runRoot, 'gamma', 'base-rollout');
   const request = {
     protocol: PROTOCOL,
@@ -185,10 +210,7 @@ async function runBaseRollout(context, referencePolicyHash) {
     policyMode: 'base',
     policyHash: referencePolicyHash,
     datasetPath: taskPath,
-    sampling: {
-      ...context.policy.methods.rollout,
-      groupSize: context.policy.methods.rlvr.groupSize,
-    },
+    sampling: buildWgslRolloutSampling(context.policy),
     training: commonTraining(context.policy),
   };
   const executed = await runGammaWgslRequest(request, {
@@ -209,9 +231,12 @@ async function runVerify(context, rollout, referencePolicyHash, options = {}) {
   if (!rollout?.rawRolloutPath || !rollout?.policyHash || !referencePolicyHash) {
     throw new Error('verify requires rollout and reference-policy receipts.');
   }
-  const taskPath = join(context.corpusRoot, 'public-test.jsonl');
+  const taskPath = resolveWgslRolloutTaskPath(
+    context.corpusRoot,
+    context.policy.methods.rollout
+  );
   const [tasks, rawGroups, datasetHash] = await Promise.all([
-    readJsonlFile(taskPath, 'public WGSL tasks'),
+    readJsonlFile(taskPath, 'WGSL rollout tasks'),
     readJsonlFile(rollout.rawRolloutPath, 'raw WGSL rollouts'),
     hashFile(taskPath),
   ]);

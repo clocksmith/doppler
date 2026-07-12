@@ -41,6 +41,16 @@
       "id": "wgsl-repair-v9-policy",
       "policyPath": "tools/policies/wgsl-repair-v9-policy.json",
       "schemaPath": "src/config/schema/wgsl-repair-experiment-policy.schema.json"
+    },
+    {
+      "id": "wgsl-repair-v10-policy",
+      "policyPath": "tools/policies/wgsl-repair-v10-policy.json",
+      "schemaPath": "src/config/schema/wgsl-repair-experiment-policy.schema.json"
+    },
+    {
+      "id": "wgsl-repair-v11-policy",
+      "policyPath": "tools/policies/wgsl-repair-v11-policy.json",
+      "schemaPath": "src/config/schema/wgsl-repair-experiment-policy.schema.json"
     }
   ]
 }
