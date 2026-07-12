@@ -1,6 +1,7 @@
 export type TrainingWorkloadKind = 'lora' | 'distill' | 'ul';
 export type TrainingSurfaceSupport = 'node' | 'browser' | 'both';
 export type TrainingSelectionGoal = 'max' | 'min';
+export type TrainingRowOrder = 'dataset_order' | 'seed_hash_sorted_v1';
 export type TrainingEvalKind =
   | 'translation'
   | 'text_generation'
@@ -90,6 +91,7 @@ export interface LoRAWorkloadPipelineConfig {
   maxLength: number | null;
   sequenceLength: number | null;
   joinWith: string | null;
+  rowOrder?: TrainingRowOrder;
   adapter: {
     rank: number;
     alpha: number;
@@ -184,6 +186,7 @@ export declare const TRAINING_WORKLOAD_SCHEMA_VERSION: number;
 export declare const TRAINING_WORKLOAD_KINDS: readonly TrainingWorkloadKind[];
 export declare const TRAINING_WORKLOAD_SURFACE_SUPPORT: readonly TrainingSurfaceSupport[];
 export declare const TRAINING_SELECTION_GOALS: readonly TrainingSelectionGoal[];
+export declare const TRAINING_ROW_ORDERS: readonly TrainingRowOrder[];
 export declare const TRAINING_EVAL_KINDS: readonly TrainingEvalKind[];
 export declare const TRAINING_AGENT_EVAL_CATEGORIES: readonly TrainingAgentEvalCategory[];
 

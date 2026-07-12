@@ -571,6 +571,81 @@ export function deriveDpoPreferencePairs(groups, options = {}) {
   return pairs;
 }
 
+export function deriveReferenceAnchoredDpoPairs(groups, tasks) {
+  const taskMap = new Map();
+  for (const [index, task] of requireArray(tasks, 'tasks', 1).entries()) {
+    const taskId = requireString(task?.taskId || task?.id, `tasks[${index}].taskId`);
+    if (taskMap.has(taskId)) throw new Error(`tasks repeats ${taskId}.`);
+    taskMap.set(taskId, task);
+  }
+  const pairs = [];
+  for (const group of requireArray(groups, 'groups', 1)) {
+    validateRolloutGroup(group);
+    if (group.samples.some((sample) => sample.rewardVector.reduction.scalarReward > 0)) {
+      continue;
+    }
+    const task = taskMap.get(group.taskId);
+    if (!task) throw new Error(`tasks is missing ${group.taskId}.`);
+    if (task.verification?.cleanCompilePassed !== true
+        || task.verification?.mutantCompileFailed !== true) {
+      throw new Error(`task ${group.taskId} lacks compiler-qualified reference evidence.`);
+    }
+    const chosen = requireStringValue(
+      task.span?.reference,
+      `task ${group.taskId}.span.reference`
+    );
+    if (!chosen) throw new Error(`task ${group.taskId}.span.reference must not be empty.`);
+    if (group.samples.some((sample) => sample.completion === chosen)) {
+      throw new Error(`task ${group.taskId} emitted its reference but the verifier rejected it.`);
+    }
+    const modes = new Map();
+    for (const sample of group.samples) {
+      const completion = requireStringValue(
+        sample.completion,
+        `task ${group.taskId} sample completion`
+      );
+      const entry = modes.get(completion) || { completion, samples: [], logprobSum: 0, tokens: 0 };
+      entry.samples.push(sample);
+      for (const value of sample.policyTokenLogprobs) {
+        entry.logprobSum += requireFinite(value, 'policy token log-probability');
+        entry.tokens += 1;
+      }
+      modes.set(completion, entry);
+    }
+    const rejectedMode = [...modes.values()].sort((left, right) => {
+      const countDelta = right.samples.length - left.samples.length;
+      if (countDelta) return countDelta;
+      const leftMean = left.tokens > 0 ? left.logprobSum / left.tokens : -Infinity;
+      const rightMean = right.tokens > 0 ? right.logprobSum / right.tokens : -Infinity;
+      if (rightMean !== leftMean) return rightMean - leftMean;
+      return left.completion.localeCompare(right.completion);
+    })[0];
+    const representative = [...rejectedMode.samples].sort((left, right) => (
+      left.sampleId.localeCompare(right.sampleId)
+    ))[0];
+    if (representative.prompt !== task.prompt) {
+      throw new Error(`task ${group.taskId} rollout prompt differs from the qualified task.`);
+    }
+    pairs.push({
+      pairId: `${group.groupId}-reference-anchored-dpo`,
+      pairConstruction: 'compiler_qualified_reference_vs_modal_all_fail_rollout_v1',
+      taskId: group.taskId,
+      prompt: task.prompt,
+      chosen,
+      rejected: rejectedMode.completion,
+      chosenSource: 'compiler_qualified_task_reference',
+      rejectedSource: 'modal_all_fail_on_policy_completion',
+      rejectedSampleId: representative.sampleId,
+      rejectedModeCount: rejectedMode.samples.length,
+      rolloutPolicyHash: group.policyHash,
+      referencePolicyHash: group.referencePolicyHash,
+      rolloutGroupHash: hashVerifierGuidedArtifact(group),
+      claimBoundary: 'Corrective DPO pair construction only; not on-policy RLVR or capability evidence.',
+    });
+  }
+  return pairs;
+}
+
 export function buildTrainingPromotionDecision(input) {
   requireObject(input, 'promotion input');
   const gates = requireArray(input.gates, 'promotion input.gates', 1).map((gate, index) => ({

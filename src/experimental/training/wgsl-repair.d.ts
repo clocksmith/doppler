@@ -78,6 +78,10 @@ export declare function deriveDpoPreferencePairs(
   groups: Array<Record<string, unknown>>,
   options?: { minimumRewardGap?: number }
 ): Array<Record<string, unknown>>;
+export declare function deriveReferenceAnchoredDpoPairs(
+  groups: Array<Record<string, unknown>>,
+  tasks: Array<Record<string, unknown>>
+): Array<Record<string, unknown>>;
 export declare function buildTrainingPromotionDecision(input: Record<string, unknown>): Record<string, unknown>;
 export declare function validateVerifierGuidedArtifact<T extends Record<string, unknown>>(artifact: T): T;
 export declare function hashVerifierGuidedArtifact(artifact: Record<string, unknown>): string;
