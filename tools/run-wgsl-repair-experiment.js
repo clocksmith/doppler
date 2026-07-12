@@ -295,8 +295,15 @@ async function runVerify(context, rollout, referencePolicyHash, options = {}) {
 
 async function runDerive(context, groupsPath) {
   if (!groupsPath) throw new Error('derive requires verified rollout groups.');
-  const groups = await readJsonlFile(groupsPath, 'verified WGSL rollout groups');
-  const derived = deriveWgslTrainingRows(groups, context.policy);
+  const taskPath = await validateWgslRolloutTaskContract(
+    context.corpusRoot,
+    context.policy.methods.rollout
+  );
+  const [groups, tasks] = await Promise.all([
+    readJsonlFile(groupsPath, 'verified WGSL rollout groups'),
+    readJsonlFile(taskPath, 'WGSL rollout tasks'),
+  ]);
+  const derived = deriveWgslTrainingRows(groups, context.policy, tasks);
   const outputRoot = await writeDerivedWgslTrainingRows(
     join(context.runRoot, 'derived-training'),
     derived
@@ -306,6 +313,7 @@ async function runDerive(context, groupsPath) {
     outputRoot,
     rejectionPath: join(outputRoot, 'rejection-sft.jsonl'),
     dpoPath: join(outputRoot, 'dpo-pairs.jsonl'),
+    referenceAnchoredDpoPath: join(outputRoot, 'reference-anchored-dpo-pairs.jsonl'),
     receipt: derived.receipt,
   };
 }

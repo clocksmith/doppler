@@ -110,5 +110,6 @@ assert.equal(derived.rejectionRows[0].sampleId, 'good');
 assert.equal(derived.dpoRows.length, 1);
 assert.equal(derived.dpoRows[0].chosenSampleId, 'good');
 assert.equal(derived.dpoRows[0].rejectedSampleId, 'bad');
+assert.equal(derived.referenceAnchoredDpoRows.length, 0);
 
 console.log('wgsl-rollout-verifier.test: ok');

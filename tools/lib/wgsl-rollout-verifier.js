@@ -6,6 +6,7 @@ import {
   buildTrainingRolloutGroup,
   buildWgslRewardVector,
   deriveDpoPreferencePairs,
+  deriveReferenceAnchoredDpoPairs,
   hashVerifierGuidedArtifact,
   selectRejectionSamples,
   validateVerifierGuidedArtifact,
@@ -291,23 +292,29 @@ export async function writeVerifiedWgslRollouts(outputRoot, verified) {
   return root;
 }
 
-export function deriveWgslTrainingRows(groups, policy) {
+export function deriveWgslTrainingRows(groups, policy, tasks = null) {
   const rejectionRows = selectRejectionSamples(groups);
   const dpoRows = deriveDpoPreferencePairs(groups, {
     minimumRewardGap: policy.methods.dpo.minimumRewardGap,
   });
+  const referenceAnchoredDpoRows = tasks
+    ? deriveReferenceAnchoredDpoPairs(groups, tasks)
+    : [];
   return {
     rejectionRows,
     dpoRows,
+    referenceAnchoredDpoRows,
     receipt: {
       artifactType: 'wgsl_rollout_derived_dataset_manifest',
       schemaVersion: 1,
       groupCount: groups.length,
       rejectionRows: rejectionRows.length,
       dpoRows: dpoRows.length,
+      referenceAnchoredDpoRows: referenceAnchoredDpoRows.length,
       rolloutGroupHashes: groups.map(hashVerifierGuidedArtifact),
       rejectionDatasetHash: sha256Hex(stableJson(rejectionRows)),
       dpoDatasetHash: sha256Hex(stableJson(dpoRows)),
+      referenceAnchoredDpoDatasetHash: sha256Hex(stableJson(referenceAnchoredDpoRows)),
       claimBoundary: 'Derived training datasets only; no optimizer or capability claim.',
     },
   };
@@ -319,6 +326,11 @@ export async function writeDerivedWgslTrainingRows(outputRoot, derived) {
   await Promise.all([
     writeFile(join(root, 'rejection-sft.jsonl'), toJsonl(derived.rejectionRows), 'utf8'),
     writeFile(join(root, 'dpo-pairs.jsonl'), toJsonl(derived.dpoRows), 'utf8'),
+    writeFile(
+      join(root, 'reference-anchored-dpo-pairs.jsonl'),
+      toJsonl(derived.referenceAnchoredDpoRows),
+      'utf8'
+    ),
     writeFile(
       join(root, 'derived-dataset-manifest.json'),
       `${JSON.stringify(derived.receipt, null, 2)}\n`,
