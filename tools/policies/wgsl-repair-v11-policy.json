@@ -118,6 +118,11 @@
     },
     "rollout": {
       "taskSet": "diagnostic",
+      "taskSetRows": 285,
+      "taskSetSha256": "8f76617dbda9551d50f2c3720f897db1773d357c26b0bda24a579d3ce87140c8",
+      "evaluationTaskSet": "public-test",
+      "evaluationTaskSetRows": 299,
+      "evaluationTaskSetSha256": "0d8b1886b263da1080e0867662451938b3eaebdc318a428dcbbb4450115ebf53",
       "temperature": 0.8,
       "topP": 0.95,
       "maxTokens": 64,

@@ -103,11 +103,42 @@ export function resolveWgslRolloutTaskPath(corpusRoot, rolloutMethod) {
 }
 
 export function buildWgslRolloutSampling(policy) {
-  const { taskSet, ...sampling } = policy.methods.rollout;
+  const {
+    taskSet,
+    taskSetRows,
+    taskSetSha256,
+    evaluationTaskSet,
+    evaluationTaskSetRows,
+    evaluationTaskSetSha256,
+    ...sampling
+  } = policy.methods.rollout;
   return {
     ...sampling,
     groupSize: policy.methods.rlvr.groupSize,
   };
+}
+
+export async function validateWgslRolloutTaskContract(corpusRoot, rolloutMethod) {
+  const taskPath = resolveWgslRolloutTaskPath(corpusRoot, rolloutMethod);
+  const expectedRows = rolloutMethod?.taskSetRows;
+  const expectedHash = rolloutMethod?.taskSetSha256;
+  if (expectedRows === undefined && expectedHash === undefined) return taskPath;
+  if (!Number.isInteger(expectedRows) || expectedRows < 1) {
+    throw new Error('methods.rollout.taskSetRows must be an integer >= 1.');
+  }
+  if (typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/.test(expectedHash)) {
+    throw new Error('methods.rollout.taskSetSha256 must be a SHA-256 digest.');
+  }
+  const bytes = new Uint8Array(await readFile(taskPath));
+  const actualHash = await sha256BytesHex(bytes);
+  if (actualHash !== expectedHash) {
+    throw new Error(`rollout task-set hash mismatch: expected ${expectedHash}, got ${actualHash}`);
+  }
+  const rows = new TextDecoder().decode(bytes).trim().split('\n').filter(Boolean).length;
+  if (rows !== expectedRows) {
+    throw new Error(`rollout task-set row mismatch: expected ${expectedRows}, got ${rows}`);
+  }
+  return taskPath;
 }
 
 async function writeStatus(runRoot, status) {
@@ -167,7 +198,7 @@ async function runSft(context) {
 
 async function runRollout(context, adapterPath) {
   if (!adapterPath) throw new Error('rollout requires --adapter or an SFT result.');
-  const taskPath = resolveWgslRolloutTaskPath(
+  const taskPath = await validateWgslRolloutTaskContract(
     context.corpusRoot,
     context.policy.methods.rollout
   );
@@ -196,7 +227,7 @@ async function runRollout(context, adapterPath) {
 
 async function runBaseRollout(context, referencePolicyHash) {
   if (!referencePolicyHash) throw new Error('base rollout requires a preflight policy hash.');
-  const taskPath = resolveWgslRolloutTaskPath(
+  const taskPath = await validateWgslRolloutTaskContract(
     context.corpusRoot,
     context.policy.methods.rollout
   );
@@ -231,7 +262,7 @@ async function runVerify(context, rollout, referencePolicyHash, options = {}) {
   if (!rollout?.rawRolloutPath || !rollout?.policyHash || !referencePolicyHash) {
     throw new Error('verify requires rollout and reference-policy receipts.');
   }
-  const taskPath = resolveWgslRolloutTaskPath(
+  const taskPath = await validateWgslRolloutTaskContract(
     context.corpusRoot,
     context.policy.methods.rollout
   );
