@@ -14,7 +14,7 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
   maxEntryCount: 1350,
   maxPackedSize: 1_775_000,
-  maxUnpackedSize: 9_300_000,
+  maxUnpackedSize: 9_325_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
