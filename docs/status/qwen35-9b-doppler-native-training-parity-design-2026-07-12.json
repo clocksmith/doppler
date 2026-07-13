@@ -158,6 +158,8 @@
       "gpuComponentSlice": {
         "status": "passed_oracle_only",
         "kernels": [
+          "src/gpu/kernels/qwen_linear_attention_prepare.wgsl",
+          "src/gpu/kernels/backward/qwen_linear_attention_prepare_backward.wgsl",
           "src/gpu/kernels/causal_conv1d_silu.wgsl",
           "src/gpu/kernels/backward/causal_conv1d_silu_backward.wgsl",
           "src/gpu/kernels/gated_rmsnorm.wgsl",
@@ -168,6 +170,12 @@
         ],
         "oracle": "tests/training/browser/qwen-linear-attention-backward-oracle.js",
         "coveredForwardOperations": [
+          "qkv_split",
+          "qk_l2_normalization",
+          "qk_head_repeat",
+          "value_split",
+          "log_decay_transform",
+          "beta_transform",
           "causal_conv_silu",
           "gated_rmsnorm",
           "gated_delta_checkpoint_output",
@@ -175,6 +183,9 @@
           "gated_delta_final_state"
         ],
         "coveredGradients": [
+          "prepare_mixed_qkv",
+          "prepare_a_projection",
+          "prepare_b_projection",
           "causal_conv_input",
           "gated_rmsnorm_input",
           "gated_rmsnorm_gate",
@@ -188,11 +199,11 @@
         "recurrentStateStrategy": "checkpoint_recompute_oracle",
         "productionStateStrategy": "bounded_checkpoint_recompute_mechanics_passed",
         "evidence": {
-          "sourceRevision": "0d9aaa06060704e324e05ff046200e634230ad21",
+          "sourceRevision": "4af552c94e3cff55d78006f5143576eca9313b0e",
           "sourceDirty": false,
           "receiptPath": "reports/training/native-parity/qwen-linear-attention-backward-oracle.json",
-          "receiptSha256": "a34845f8f085b904c76036bc6fe1186688d5c41d4bcffb2759e4a37e6734dee0",
-          "maximumComparisonError": 5.960464477539063e-8,
+          "receiptSha256": "55980bc3be81258e5b8a02a37cae6689f1f008a080f3d246cad8d1150c01706e",
+          "maximumComparisonError": 2.384185791015625e-7,
           "negativeControlDifference": 0.11269691213965416,
           "backend": "webgpu_vulkan",
           "deviceVendor": "amd",
@@ -210,7 +221,7 @@
             "backward_initial_state"
           ]
         },
-        "claimBoundary": "Numerically verified causal-convolution, gated-RMSNorm, and bounded-memory recurrence component kernels only; integrated linear-attention forward/backward does not exist."
+        "claimBoundary": "Numerically verified preparation, causal-convolution, gated-RMSNorm, and bounded-memory recurrence component kernels only; frozen projection matmuls and integrated linear-attention execution remain absent."
       }
     },
     {
@@ -234,7 +245,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "0d9aaa06060704e324e05ff046200e634230ad21",
+  "latestMechanicsRevision": "4af552c94e3cff55d78006f5143576eca9313b0e",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -247,6 +258,8 @@
     "qwen_gated_delta_scalar_reverse_mode_reference",
     "qwen_gated_delta_scalar_checkpoint_recompute_reference",
     "qwen_linear_attention_component_reverse_mode_references",
+    "qwen_linear_attention_prepare_forward_candidate",
+    "qwen_linear_attention_prepare_backward_candidate",
     "qwen_causal_conv_forward_candidate",
     "qwen_causal_conv_input_backward_candidate",
     "qwen_gated_rmsnorm_forward_candidate",
