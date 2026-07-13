@@ -70,7 +70,7 @@ This closes only the F16 projection-input-gradient gate. It does not exercise
 a Qwen block, a LoRA update, AdamW, export, inference, compiler capability, or
 semantic kernel correctness.
 
-Two additional clean-revision oracles are sealed at `00af4712`:
+Two additional clean-revision oracles were first sealed at `00af4712`:
 
 - The split `gate_proj`/`up_proj` LoRA oracle first rejected the candidate and
   localized a real layout defect: `LoraAdapter.forward()` let matmul use its
@@ -84,10 +84,8 @@ Two additional clean-revision oracles are sealed at `00af4712`:
   gated-RMSNorm input/gate gradients, and full-history recurrent gradients for
   query, key, value, log-decay, beta, and initial state. All nine families are
   finite and match their scalar references with worst error
-  `5.960464477539063e-8`. Its receipt is
-  `reports/training/native-parity/qwen-linear-attention-backward-oracle.json`,
-  SHA-256
-  `0ba99c5dc1c75dd398a4c1366a2964d7f2fa0306744f82cf21338410fd0e421c`.
+  `5.960464477539063e-8`. The checkpoint/recompute extension below supersedes
+  that first component receipt at the same local report path.
 
 Neither receipt is a complete Qwen layer or optimizer update.
 
@@ -107,8 +105,15 @@ Neither receipt is a complete Qwen layer or optimizer update.
   forward state and every backward gradient exactly. For 640 tokens, 32 heads,
   128 key/value dimensions, and interval 32, its active recurrence-state
   footprint is 28,311,552 F32 elements versus 336,068,608 for full history.
-  The corresponding GPU checkpoint/recompute schedule and projection/LoRA
-  integration remain absent.
+  The GPU checkpoint/recompute schedule is now sealed at clean revision
+  `83bb8622`: checkpointed forward output/states and blockwise backward query,
+  key, value, log-decay, beta, and initial-state gradients all match the scalar
+  schedule, including recurrent-state carry across two blocks. Projection/LoRA
+  transforms and full Qwen layer integration remain absent. The updated local
+  component receipt is
+  `reports/training/native-parity/qwen-linear-attention-backward-oracle.json`,
+  SHA-256
+  `fbdfd3bfe2a01421e1708e56b9d887ad299de0a391d440fbac7a3b11bc501b91`.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
   the block-mechanics boundary. It does not include Qwen attention, residuals,
   normalization, loss, or an optimizer update.

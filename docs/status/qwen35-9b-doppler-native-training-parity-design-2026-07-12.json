@@ -120,7 +120,7 @@
         "norm",
         "out_proj"
       ],
-      "status": "blocked_missing_bounded_gpu_recurrence",
+      "status": "blocked_missing_layer_integration",
       "referenceEvidence": {
         "implementations": [
           "src/experimental/training/qwen-gated-delta-reference.js",
@@ -153,7 +153,7 @@
           "qwen640PeakBackwardStateElements": 28311552,
           "validation": "exact_forward_final_state_and_all_gradient_arrays_across_checkpoint_intervals"
         },
-        "claimBoundary": "Scalar linear-attention and checkpoint/recompute references only; projection/LoRA integration and bounded-memory GPU backward remain unimplemented."
+        "claimBoundary": "Scalar linear-attention and checkpoint/recompute references only; GPU recurrence evidence is recorded separately and projection/LoRA integration remains unimplemented."
       },
       "gpuComponentSlice": {
         "status": "passed_oracle_only",
@@ -174,19 +174,32 @@
           "gated_delta_beta",
           "gated_delta_initial_state"
         ],
-        "recurrentStateStrategy": "full_history_oracle_only",
-        "productionStateStrategy": "scalar_checkpoint_recompute_reference_only",
+        "recurrentStateStrategy": "checkpoint_recompute_oracle",
+        "productionStateStrategy": "bounded_checkpoint_recompute_mechanics_passed",
         "evidence": {
-          "sourceRevision": "00af471259c79b7a6c0fef67dc32dc88108f6f74",
+          "sourceRevision": "83bb8622b0dd20eb5c567718b9f4f445d22b130f",
           "sourceDirty": false,
           "receiptPath": "reports/training/native-parity/qwen-linear-attention-backward-oracle.json",
-          "receiptSha256": "0ba99c5dc1c75dd398a4c1366a2964d7f2fa0306744f82cf21338410fd0e421c",
+          "receiptSha256": "fbdfd3bfe2a01421e1708e56b9d887ad299de0a391d440fbac7a3b11bc501b91",
           "maximumComparisonError": 5.960464477539063e-8,
           "negativeControlDifference": 0.11269691213965416,
           "backend": "webgpu_vulkan",
-          "deviceVendor": "amd"
+          "deviceVendor": "amd",
+          "checkpointIntervalTested": 2,
+          "checkpointBlockCountTested": 2,
+          "checkpointComparisons": [
+            "forward_output",
+            "forward_checkpoint_states",
+            "forward_final_state",
+            "backward_query",
+            "backward_key",
+            "backward_value",
+            "backward_log_decay",
+            "backward_beta",
+            "backward_initial_state"
+          ]
         },
-        "claimBoundary": "Numerically verified component kernels only; bounded-memory GPU recurrence and integrated linear-attention backward do not exist."
+        "claimBoundary": "Numerically verified bounded-memory recurrence and component kernels only; integrated linear-attention backward does not exist."
       }
     },
     {
@@ -210,7 +223,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "00af471259c79b7a6c0fef67dc32dc88108f6f74",
+  "latestMechanicsRevision": "83bb8622b0dd20eb5c567718b9f4f445d22b130f",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -228,10 +241,11 @@
     "qwen_gated_delta_full_history_backward_candidate",
     "explicit_lora_kn_weight_orientation",
     "split_gate_up_lora_browser_oracle",
-    "qwen_linear_attention_component_browser_oracle"
+    "qwen_linear_attention_component_browser_oracle",
+    "qwen_gated_delta_checkpoint_forward_gpu_oracle",
+    "qwen_gated_delta_checkpointed_backward_gpu_oracle"
   ],
   "blockingGaps": [
-    "qwen_linear_attention_checkpoint_recompute_backward",
     "qwen_linear_attention_full_layer_integration",
     "qwen_gradient_checkpointing",
     "matched_initial_adapter_import",
