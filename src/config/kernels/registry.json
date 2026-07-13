@@ -9152,37 +9152,37 @@
             "offset": 0
           },
           {
-            "name": "num_heads",
+            "name": "total_tokens",
             "type": "u32",
             "offset": 4
           },
           {
-            "name": "key_dim",
+            "name": "token_offset",
             "type": "u32",
             "offset": 8
           },
           {
-            "name": "value_dim",
+            "name": "num_heads",
             "type": "u32",
             "offset": 12
           },
           {
-            "name": "query_scale",
-            "type": "f32",
+            "name": "key_dim",
+            "type": "u32",
             "offset": 16
           },
           {
-            "name": "_pad0",
+            "name": "value_dim",
             "type": "u32",
             "offset": 20
           },
           {
-            "name": "_pad1",
-            "type": "u32",
+            "name": "query_scale",
+            "type": "f32",
             "offset": 24
           },
           {
-            "name": "_pad2",
+            "name": "_pad0",
             "type": "u32",
             "offset": 28
           }

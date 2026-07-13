@@ -3,13 +3,13 @@ const MAX_WORKGROUP_SIZE: u32 = 128u;
 
 struct Uniforms {
     num_tokens: u32,
+    total_tokens: u32,
+    token_offset: u32,
     num_heads: u32,
     key_dim: u32,
     value_dim: u32,
     query_scale: f32,
     _pad0: u32,
-    _pad1: u32,
-    _pad2: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -48,18 +48,19 @@ fn main(
         return;
     }
     let is_active = lane < u.value_dim;
-    let query_elements = u.num_tokens * u.num_heads * u.key_dim;
-    let scalar_elements = u.num_tokens * u.num_heads;
+    let query_elements = u.total_tokens * u.num_heads * u.key_dim;
+    let scalar_elements = u.total_tokens * u.num_heads;
 
     for (var reverse_token: u32 = 0u; reverse_token < u.num_tokens; reverse_token = reverse_token + 1u) {
-        let token = u.num_tokens - 1u - reverse_token;
+        let local_token = u.num_tokens - 1u - reverse_token;
+        let token = u.token_offset + local_token;
         let scalar_index = token * u.num_heads + head;
         let decay = exp(decay_beta[scalar_index]);
         var memory: f32 = 0.0;
         if (is_active) {
             for (var key_index: u32 = 0u; key_index < u.key_dim; key_index = key_index + 1u) {
                 let previous_state = state_history[
-                    state_history_index(token, head, key_index, lane)
+                    state_history_index(local_token, head, key_index, lane)
                 ];
                 memory = memory
                     + previous_state
@@ -76,7 +77,7 @@ fn main(
             let query_offset = vector_index(token, head, key_index, u.key_dim);
             let next_state = select(
                 0.0,
-                state_history[state_history_index(token + 1u, head, key_index, lane)],
+                state_history[state_history_index(local_token + 1u, head, key_index, lane)],
                 is_active
             );
             shared_reduce[lane] = output_gradient * next_state * u.query_scale;
@@ -130,7 +131,7 @@ fn main(
             let gradient_state_offset = state_gradient_index(head, key_index, lane);
             let previous_state = select(
                 0.0,
-                state_history[state_history_index(token, head, key_index, lane)],
+                state_history[state_history_index(local_token, head, key_index, lane)],
                 is_active
             );
             let decayed_state = previous_state * decay;
