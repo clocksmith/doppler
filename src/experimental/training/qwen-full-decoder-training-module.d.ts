@@ -6,6 +6,7 @@ import type {
   QwenFullAttentionTrainingModuleInputs,
   QwenFullAttentionTrainingModuleOptions,
 } from './qwen-full-attention-training-module.js';
+import type { QwenDecoderMlpCache } from './qwen-decoder-mlp-training-module.js';
 
 export interface QwenFullDecoderLayerOptions extends QwenFullAttentionTrainingModuleOptions {
   intermediateSize: number;
@@ -35,14 +36,7 @@ export interface QwenFullDecoderLayerCache {
   attentionOutput: Tensor;
   attentionCache: QwenFullAttentionTrainingModuleCache;
   postAttention: Tensor;
-  gate: Tensor;
-  up: Tensor;
-  activated: Tensor;
-  projectionDowns: {
-    gate: Tensor | null;
-    up: Tensor | null;
-    down: Tensor | null;
-  };
+  mlpCache: QwenDecoderMlpCache;
 }
 
 export interface QwenFullDecoderLayerLoraGradients extends QwenFullAttentionLoraGradients {
