@@ -533,6 +533,17 @@ configurePerfGuards({
     gradient: gradient2,
   }]);
   assert.equal(second.ready, true);
+  await assert.rejects(
+    () => accumulator.step({
+      async step() {
+        throw new Error('optimizer step failed');
+      },
+    }, { training: { optimizer: {} } }),
+    /optimizer step failed/
+  );
+  assert.equal(accumulator.microstepCount, 2);
+  assert.equal(accumulator.ready, true);
+  assert.equal(accumulator.entries.length, 1);
   let optimizerCalls = 0;
   const optimizerMetrics = await accumulator.step({
     async step(parameters, gradients) {
