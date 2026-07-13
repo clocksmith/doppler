@@ -36,6 +36,7 @@ export interface QwenFullDecoderLayerCache {
   attentionOutput: Tensor;
   attentionCache: QwenFullAttentionTrainingModuleCache;
   postAttention: Tensor;
+  normalizedPostAttention: Tensor;
   mlpCache: QwenDecoderMlpCache;
 }
 

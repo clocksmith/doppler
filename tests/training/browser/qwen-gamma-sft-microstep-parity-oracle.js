@@ -166,6 +166,9 @@ export async function runQwenGammaSftMicrostepParityOracle(input) {
   if (gamma.rank !== 32 || gamma.alpha !== 64 || gamma.parameterCount !== 14) {
     throw new Error('Gamma reference does not match the frozen rank-32 adapter contract.');
   }
+  if (JSON.stringify(gamma.architectureContract) !== JSON.stringify(fixture.architectureContract)) {
+    throw new Error('Gamma reference does not match the pinned Qwen architecture contract.');
+  }
   const ownedTensors = [];
   const makeTensor = makeTensorFactory(ownedTensors);
   const gpu = buildGpuFixture(makeTensor, fixture);
@@ -289,9 +292,11 @@ export async function runQwenGammaSftMicrostepParityOracle(input) {
         passed: maskDifference > 1e-4,
       },
       gammaIdentity: input.gammaIdentity,
+      gammaReferenceImplementation: gamma.referenceImplementation,
       dopplerAdapterInfo: capabilities.adapterInfo || null,
       precisionContract: fixture.precisionContract,
-      claimBoundary: 'Tiny one-full-layer rank-32, zero-dropout, token-aligned completion-masked microstep parity between Gamma PyTorch/ROCm and Doppler WebGPU/Vulkan. This is not production Qwen geometry, PEFT default initialization, V12 dropout, accumulation/resume, compiler capability, or semantic WGSL evidence.',
+      architectureContract: fixture.architectureContract,
+      claimBoundary: 'Tiny one-full-layer rank-32, zero-dropout, token-aligned completion-masked microstep parity between the Transformers Qwen3_5DecoderLayer on Gamma PyTorch/ROCm and Doppler WebGPU/Vulkan, using the pinned residual-before-post-attention-norm and split-half partial-RoPE contracts. This is not production Qwen geometry, PEFT default initialization, V12 dropout, accumulation/resume, compiler capability, or semantic WGSL evidence.',
     };
   } finally {
     for (const state of optimizer.state.values()) {

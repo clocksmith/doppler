@@ -92,7 +92,7 @@ async function executeCase(downAdapterPerturbation = 0) {
     headDim: 256,
     rotaryDim: 64,
     pairSpanDim: 64,
-    interleaved: true,
+    interleaved: false,
     startPos: 0,
     rmsEps: 1e-6,
   };
@@ -371,6 +371,6 @@ export async function runQwenFullDecoderBackwardOracle() {
       passed: perturbation.maxAbsError > 1e-5,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Tiny Qwen full-attention decoder layer with exact head-width/partial-rotary geometry, input/post-attention offset RMSNorm, residuals, frozen F16 attention and MLP projections, and all seven V12 LoRA families; production head count/hidden width, loss, optimizer update, hybrid-layer composition, memory, and performance remain absent.',
+    claimBoundary: 'Tiny Qwen full-attention decoder layer with exact head-width/split-half partial-rotary geometry, input norm, attention residual before post-attention offset RMSNorm, MLP residual, frozen F16 projections, and all seven V12 LoRA families; production head count/hidden width, loss, optimizer update, hybrid-layer composition, memory, and performance remain absent.',
   };
 }

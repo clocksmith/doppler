@@ -27,7 +27,7 @@ const options = {
   headDim: 4,
   rotaryDim: 2,
   pairSpanDim: 2,
-  interleaved: true,
+  interleaved: false,
   startPos: 0,
   rmsEps: 1e-6,
 };

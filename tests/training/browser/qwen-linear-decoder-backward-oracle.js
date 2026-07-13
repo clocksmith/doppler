@@ -369,6 +369,6 @@ export async function runQwenLinearDecoderBackwardOracle() {
       passed: perturbation.maxAbsError > 1e-5,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Tiny Qwen linear-attention decoder layer with checkpointed recurrence, input/post-attention offset RMSNorm, residuals, frozen F16 attention and MLP projections, and all three per-layer V12 MLP LoRA families; production geometry, loss, optimizer update, hybrid-layer composition, memory, and performance remain absent.',
+    claimBoundary: 'Tiny Qwen linear-attention decoder layer with checkpointed recurrence, input norm, attention residual before post-attention offset RMSNorm, MLP residual, frozen F16 projections, and all three per-layer V12 MLP LoRA families; production geometry, loss, optimizer update, hybrid-layer composition, memory, and performance remain absent.',
   };
 }

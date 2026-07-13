@@ -337,7 +337,7 @@ async function runIntegratedModuleCase(qAdapterPerturbation = 0) {
     headDim: 256,
     rotaryDim: 64,
     pairSpanDim: 64,
-    interleaved: true,
+    interleaved: false,
     startPos: 0,
     rmsEps: 1e-6,
   };
@@ -580,6 +580,6 @@ export async function runQwenFullAttentionBackwardOracle() {
         && adapterPerturbation.maxAbsError > 1e-7,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Tiny integrated Qwen full-attention module with frozen F16 projections, Q/K/V/O LoRA gradients, offset Q/K RMSNorm, partial interleaved RoPE, sigmoid output gate, and causal GQA backward; residuals, MLP, complete decoder integration, and production performance remain absent.',
+    claimBoundary: 'Tiny integrated Qwen full-attention module with frozen F16 projections, Q/K/V/O LoRA gradients, offset Q/K RMSNorm, Qwen split-half partial RoPE, sigmoid output gate, and causal GQA backward; a separate interleaved-RoPE control exercises the generic kernel branch. Residuals, MLP, complete decoder integration, and production performance remain absent.',
   };
 }
