@@ -55,6 +55,11 @@
       "grads": ["input"],
       "params": ["numTokens", "dim", "activation", "swigluLimit"]
     },
+    "silu_gated": {
+      "backward": "silu_gated_backward",
+      "grads": ["gate", "up"],
+      "params": ["count", "swigluLimit"]
+    },
     "gelu": {
       "backward": "gelu_backward",
       "grads": ["input"]

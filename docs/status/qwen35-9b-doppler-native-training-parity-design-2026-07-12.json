@@ -77,6 +77,10 @@
       "status": "pending"
     },
     {
+      "id": "split_gate_up_block",
+      "status": "implemented_unexecuted"
+    },
+    {
       "id": "linear_attention_block",
       "requiredComponents": [
         "in_proj_qkv",
@@ -123,7 +127,7 @@
   ],
   "blockingGaps": [
     "qwen_linear_attention_backward",
-    "separate_gate_and_up_lora",
+    "separate_gate_and_up_lora_gpu_oracle",
     "qwen_gradient_checkpointing",
     "matched_initial_adapter_import",
     "peft_export_parity",
