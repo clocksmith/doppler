@@ -107,8 +107,17 @@ export async function runQwenHybridSftMicrostep(inputs, options = {}) {
   if (activeTokenCount > numTokens) {
     throw new Error('activeTokenCount cannot exceed numTokens.');
   }
-  if (!options.optimizer || typeof options.optimizer.step !== 'function') {
+  const applyOptimizer = options.applyOptimizer !== false;
+  const gradientAccumulator = options.gradientAccumulator ?? null;
+  if (applyOptimizer && (!options.optimizer || typeof options.optimizer.step !== 'function')) {
     throw new Error('Qwen SFT microstep requires an optimizer.');
+  }
+  if (applyOptimizer && gradientAccumulator) {
+    throw new Error('Qwen SFT microstep cannot apply an optimizer and accumulate gradients together.');
+  }
+  if (!applyOptimizer && (!gradientAccumulator
+    || typeof gradientAccumulator.accumulate !== 'function')) {
+    throw new Error('Qwen SFT microstep without an optimizer requires a gradient accumulator.');
   }
   if (!options.trainingConfig?.training?.optimizer) {
     throw new Error('Qwen SFT microstep requires trainingConfig.training.optimizer.');
@@ -188,21 +197,28 @@ export async function runQwenHybridSftMicrostep(inputs, options = {}) {
     const gradientSnapshots = options.captureGradients === true
       ? await captureGradientSnapshots(adapterEntries)
       : null;
-    const parameters = adapterEntries.map((entry) => entry.parameter);
-    const gradients = new Map(
-      adapterEntries.map((entry) => [entry.parameter, entry.gradient])
-    );
-    const optimizerMetrics = await options.optimizer.step(
-      parameters,
-      gradients,
-      options.trainingConfig
-    );
+    let accumulationMetrics = null;
+    let optimizerMetrics = null;
+    if (gradientAccumulator) {
+      accumulationMetrics = await gradientAccumulator.accumulate(adapterEntries);
+    } else {
+      const parameters = adapterEntries.map((entry) => entry.parameter);
+      const gradients = new Map(
+        adapterEntries.map((entry) => [entry.parameter, entry.gradient])
+      );
+      optimizerMetrics = await options.optimizer.step(
+        parameters,
+        gradients,
+        options.trainingConfig
+      );
+    }
     return {
       meanLoss,
       activeTokenCount,
       parameterNames: adapterEntries.map((entry) => entry.name),
       gradientSnapshots,
       optimizerMetrics,
+      accumulationMetrics,
     };
   } finally {
     releaseTensor(backward?.hidden);

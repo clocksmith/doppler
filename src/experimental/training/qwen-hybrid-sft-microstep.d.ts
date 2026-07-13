@@ -1,6 +1,7 @@
 import type { Tensor } from '../../gpu/tensor.js';
 import type { AdamOptimizer } from './optimizer.js';
 import type { QwenHybridLayer } from './qwen-hybrid-decoder-training-module.js';
+import type { QwenGradientAccumulator } from './qwen-gradient-accumulator.js';
 import type { TrainingConfigSchema } from '../../config/training-defaults.d.ts';
 
 export interface QwenHybridSftMicrostepInputs {
@@ -18,9 +19,11 @@ export interface QwenHybridSftMicrostepOptions {
   vocabSize: number;
   activeTokenCount: number;
   rmsEps: number;
-  optimizer: AdamOptimizer;
+  optimizer?: AdamOptimizer;
   trainingConfig: TrainingConfigSchema;
   captureGradients?: boolean;
+  applyOptimizer?: boolean;
+  gradientAccumulator?: QwenGradientAccumulator | null;
 }
 
 export declare function runQwenHybridSftMicrostep(
@@ -31,5 +34,11 @@ export declare function runQwenHybridSftMicrostep(
   activeTokenCount: number;
   parameterNames: string[];
   gradientSnapshots: Record<string, Float32Array> | null;
-  optimizerMetrics: Record<string, unknown>;
+  optimizerMetrics: Record<string, unknown> | null;
+  accumulationMetrics: {
+    microstepCount: number;
+    accumSteps: number;
+    ready: boolean;
+    parameterCount: number;
+  } | null;
 }>;

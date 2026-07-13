@@ -42,6 +42,9 @@ const { LoraAdapter } = await import('../../src/experimental/training/lora.js');
 const {
   uploadQwenPeftAdapterToLayers,
 } = await import('../../src/experimental/training/qwen-peft-adapter-import.js');
+const {
+  QwenGradientAccumulator,
+} = await import('../../src/experimental/training/qwen-gradient-accumulator.js');
 const { createTokenBatchTensors } = await import('../../src/experimental/training/datasets/token-batch.js');
 
 class FakeBuffer {
@@ -494,6 +497,59 @@ configurePerfGuards({
     releaseBuffer(pair.A.buffer);
     releaseBuffer(pair.B.buffer);
   }
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice();
+  setDevice(device, { platformConfig: null });
+
+  const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+  const parameterBuffer = acquireBuffer(16, usage, 'qwen_accum_parameter');
+  const gradient1Buffer = acquireBuffer(16, usage, 'qwen_accum_gradient_1');
+  const gradient2Buffer = acquireBuffer(16, usage, 'qwen_accum_gradient_2');
+  uploadData(parameterBuffer, new Float32Array([1, 2, 3, 4]));
+  uploadData(gradient1Buffer, new Float32Array([0.1, 0.2, 0.3, 0.4]));
+  uploadData(gradient2Buffer, new Float32Array([0.5, 0.6, 0.7, 0.8]));
+  const parameter = createTensor(parameterBuffer, 'f32', [2, 2], 'qwen_accum_parameter');
+  const gradient1 = createTensor(gradient1Buffer, 'f32', [2, 2], 'qwen_accum_gradient_1');
+  const gradient2 = createTensor(gradient2Buffer, 'f32', [2, 2], 'qwen_accum_gradient_2');
+  const accumulator = new QwenGradientAccumulator({ accumSteps: 2 });
+  const first = await accumulator.accumulate([{
+    name: 'layers.0.mlp.gate_proj.lora_A',
+    parameter,
+    gradient: gradient1,
+  }]);
+  assert.deepEqual(first, {
+    microstepCount: 1,
+    accumSteps: 2,
+    ready: false,
+    parameterCount: 1,
+  });
+  const second = await accumulator.accumulate([{
+    name: 'layers.0.mlp.gate_proj.lora_A',
+    parameter,
+    gradient: gradient2,
+  }]);
+  assert.equal(second.ready, true);
+  let optimizerCalls = 0;
+  const optimizerMetrics = await accumulator.step({
+    async step(parameters, gradients) {
+      optimizerCalls += 1;
+      assert.deepEqual(parameters, [parameter]);
+      assert.ok(gradients.get(parameter));
+      return { optimizer_ms: 1 };
+    },
+  }, { training: { optimizer: {} } });
+  assert.equal(optimizerCalls, 1);
+  assert.deepEqual(optimizerMetrics, { optimizer_ms: 1 });
+  assert.equal(accumulator.microstepCount, 0);
+  assert.equal(accumulator.ready, false);
+
+  releaseBuffer(gradient1Buffer);
+  releaseBuffer(gradient2Buffer);
+  releaseBuffer(parameterBuffer);
   assertPoolIsClean();
   resetRuntimeState();
 }
