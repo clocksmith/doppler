@@ -5,6 +5,8 @@ import {
   causalConvSiluForward,
   gatedRmsNormBackward,
   gatedRmsNormForward,
+  qwenLinearAttentionPrepareBackward,
+  qwenLinearAttentionPrepareForward,
 } from '../../../src/experimental/training/qwen-linear-attention-reference.js';
 import {
   gatedDeltaRecurrentBackward,
@@ -16,6 +18,7 @@ import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
 import {
   runCausalConv1dSilu,
   runGatedRmsNorm,
+  runQwenLinearAttentionPrepare,
 } from '../../../src/gpu/kernels/index.js';
 import {
   runCausalConv1dSiluBackward,
@@ -23,6 +26,7 @@ import {
   runGatedDeltaRecurrentCheckpointForward,
   runGatedDeltaRecurrentCheckpointedBackward,
   runGatedRmsNormBackward,
+  runQwenLinearAttentionPrepareBackward,
 } from '../../../src/gpu/kernels/backward/index.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../src/memory/buffer-pool.js';
@@ -138,6 +142,109 @@ async function runGatedRmsNormCase() {
     releaseBuffer(gate.buffer);
     releaseBuffer(weight.buffer);
     releaseBuffer(gradOutput.buffer);
+  }
+}
+
+async function runPrepareCase() {
+  const options = {
+    numTokens: 3,
+    numKeyHeads: 2,
+    numValueHeads: 4,
+    keyDim: 2,
+    valueDim: 3,
+    eps: 1e-6,
+  };
+  const convSize = (options.numKeyHeads * options.keyDim * 2)
+    + (options.numValueHeads * options.valueDim);
+  const inputValues = {
+    mixed: values(options.numTokens * convSize, 7, 0.45),
+    a: values(options.numTokens * options.numValueHeads, 71, 0.3),
+    b: values(options.numTokens * options.numValueHeads, 83, 0.25),
+    aLog: values(options.numValueHeads, 97, 0.2),
+    dtBias: values(options.numValueHeads, 101, 0.15),
+  };
+  const gradientValues = {
+    query: values(options.numTokens * options.numValueHeads * options.keyDim, 107, 0.35),
+    key: values(options.numTokens * options.numValueHeads * options.keyDim, 113, 0.3),
+    value: values(options.numTokens * options.numValueHeads * options.valueDim, 127, 0.4),
+    logDecay: values(options.numTokens * options.numValueHeads, 131, 0.25),
+    beta: values(options.numTokens * options.numValueHeads, 139, 0.2),
+  };
+  const inputTensors = {
+    mixed: makeTensor(inputValues.mixed, [options.numTokens, convSize], 'prepare_mixed'),
+    a: makeTensor(inputValues.a, [options.numTokens, options.numValueHeads], 'prepare_a'),
+    b: makeTensor(inputValues.b, [options.numTokens, options.numValueHeads], 'prepare_b'),
+    aLog: makeTensor(inputValues.aLog, [options.numValueHeads], 'prepare_a_log'),
+    dtBias: makeTensor(inputValues.dtBias, [options.numValueHeads], 'prepare_dt_bias'),
+  };
+  const gradientTensors = {
+    gradQuery: makeTensor(
+      gradientValues.query,
+      [options.numTokens, options.numValueHeads, options.keyDim],
+      'prepare_grad_query'
+    ),
+    gradKey: makeTensor(
+      gradientValues.key,
+      [options.numTokens, options.numValueHeads, options.keyDim],
+      'prepare_grad_key'
+    ),
+    gradValue: makeTensor(
+      gradientValues.value,
+      [options.numTokens, options.numValueHeads, options.valueDim],
+      'prepare_grad_value'
+    ),
+    gradLogDecay: makeTensor(
+      gradientValues.logDecay,
+      [options.numTokens, options.numValueHeads],
+      'prepare_grad_log_decay'
+    ),
+    gradBeta: makeTensor(
+      gradientValues.beta,
+      [options.numTokens, options.numValueHeads],
+      'prepare_grad_beta'
+    ),
+  };
+  const expectedForward = qwenLinearAttentionPrepareForward(inputValues, options);
+  const expectedBackward = qwenLinearAttentionPrepareBackward(
+    inputValues,
+    gradientValues,
+    expectedForward.cache,
+    options
+  );
+  let forward = null;
+  let backward = null;
+  try {
+    forward = await runQwenLinearAttentionPrepare(
+      inputTensors.mixed,
+      inputTensors.a,
+      inputTensors.b,
+      inputTensors.aLog,
+      inputTensors.dtBias,
+      options
+    );
+    backward = await runQwenLinearAttentionPrepareBackward({
+      ...inputTensors,
+      ...gradientTensors,
+    }, options);
+    return {
+      forwardQuery: compare(await readF32(forward.query), expectedForward.query),
+      forwardKey: compare(await readF32(forward.key), expectedForward.key),
+      forwardValue: compare(await readF32(forward.value), expectedForward.value),
+      forwardLogDecay: compare(await readF32(forward.logDecay), expectedForward.logDecay),
+      forwardBeta: compare(await readF32(forward.beta), expectedForward.beta),
+      backwardMixed: compare(await readF32(backward.mixed), expectedBackward.mixed),
+      backwardA: compare(await readF32(backward.a), expectedBackward.a),
+      backwardB: compare(await readF32(backward.b), expectedBackward.b),
+    };
+  } finally {
+    if (forward) {
+      for (const tensor of Object.values(forward)) releaseBuffer(tensor.buffer);
+    }
+    if (backward) {
+      for (const tensor of Object.values(backward)) releaseBuffer(tensor.buffer);
+    }
+    for (const tensor of Object.values(inputTensors)) releaseBuffer(tensor.buffer);
+    for (const tensor of Object.values(gradientTensors)) releaseBuffer(tensor.buffer);
   }
 }
 
@@ -305,6 +412,7 @@ export async function runQwenLinearAttentionBackwardOracle() {
   const perturbedCausalConv = await runCausalConvCase(31, 'causal_conv_perturbed');
   const causalConvPerturbation = compare(perturbedCausalConv.actual, causalConv.actual);
   const gatedRmsNorm = await runGatedRmsNormCase();
+  const preparation = await runPrepareCase();
   const gatedDeltaRecurrent = await runGatedDeltaRecurrentCase();
   const comparisons = {
     causalConvForward: causalConv.forwardComparison,
@@ -312,6 +420,14 @@ export async function runQwenLinearAttentionBackwardOracle() {
     gatedRmsNormForward: gatedRmsNorm.forward,
     gatedRmsNormGradInput: gatedRmsNorm.gradInput,
     gatedRmsNormGradGate: gatedRmsNorm.gradGate,
+    prepareForwardQuery: preparation.forwardQuery,
+    prepareForwardKey: preparation.forwardKey,
+    prepareForwardValue: preparation.forwardValue,
+    prepareForwardLogDecay: preparation.forwardLogDecay,
+    prepareForwardBeta: preparation.forwardBeta,
+    prepareBackwardMixed: preparation.backwardMixed,
+    prepareBackwardA: preparation.backwardA,
+    prepareBackwardB: preparation.backwardB,
     gatedDeltaGradQuery: gatedDeltaRecurrent.query,
     gatedDeltaGradKey: gatedDeltaRecurrent.key,
     gatedDeltaGradValue: gatedDeltaRecurrent.value,
@@ -344,6 +460,6 @@ export async function runQwenLinearAttentionBackwardOracle() {
       passed: causalConvPerturbation.maxAbsError > 1e-4,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Checkpoint/recompute recurrence, causal Conv1D+SiLU, and gated RMSNorm forward/backward GPU mechanics only; projection transforms and Qwen layer integration remain absent.',
+    claimBoundary: 'Qwen preparation transforms, checkpoint/recompute recurrence, causal Conv1D+SiLU, and gated RMSNorm forward/backward GPU mechanics only; frozen projection matmuls and integrated Qwen layer execution remain absent.',
   };
 }

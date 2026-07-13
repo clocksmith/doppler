@@ -35,6 +35,26 @@ export type BackwardSeedInput =
   | BackwardSeed[]
   | { seeds: BackwardSeed[] };
 
+export interface MatmulBackwardOptions extends Record<string, unknown> {
+  stopGradInputs?: unknown[];
+  computeGradInput?: boolean;
+  computeGradWeight?: boolean;
+}
+
+export declare function resolveMatmulBackwardOptions(
+  options?: MatmulBackwardOptions
+): MatmulBackwardOptions & {
+  computeGradInput: boolean;
+  computeGradWeight: boolean;
+};
+
+export declare function computeSiluGatedBackwardValues(
+  gate: Float32Array,
+  up: Float32Array,
+  gradOutput: Float32Array,
+  swigluLimit?: number
+): { gradGate: Float32Array; gradUp: Float32Array };
+
 export declare class AutogradTape {
   constructor(registry: BackwardRegistrySchema);
   registry: BackwardRegistrySchema;

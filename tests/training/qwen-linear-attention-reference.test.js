@@ -9,6 +9,8 @@ import {
   gatedRmsNormForward,
   l2NormalizeBackward,
   l2NormalizeForward,
+  qwenLinearAttentionPrepareBackward,
+  qwenLinearAttentionPrepareForward,
 } from '../../src/experimental/training/qwen-linear-attention-reference.js';
 
 function values(length, offset, scale) {
@@ -138,6 +140,48 @@ function checkFiniteDifference({ inputs, analytic, objective, epsilon = 1e-3, to
         candidate.dtBias
       );
       return dot(forward.logDecay, gradLogDecay) + dot(forward.beta, gradBeta);
+    },
+  });
+}
+
+{
+  const options = {
+    numTokens: 2,
+    numKeyHeads: 1,
+    numValueHeads: 2,
+    keyDim: 2,
+    valueDim: 2,
+    eps: 1e-6,
+  };
+  const convSize = (options.numKeyHeads * options.keyDim * 2)
+    + (options.numValueHeads * options.valueDim);
+  const inputs = {
+    mixed: values(options.numTokens * convSize, 1, 0.45),
+    a: values(options.numTokens * options.numValueHeads, 19, 0.3),
+    b: values(options.numTokens * options.numValueHeads, 29, 0.25),
+    aLog: values(options.numValueHeads, 37, 0.2),
+    dtBias: values(options.numValueHeads, 43, 0.15),
+  };
+  const gradients = {
+    query: values(options.numTokens * options.numValueHeads * options.keyDim, 47, 0.35),
+    key: values(options.numTokens * options.numValueHeads * options.keyDim, 53, 0.3),
+    value: values(options.numTokens * options.numValueHeads * options.valueDim, 59, 0.4),
+    logDecay: values(options.numTokens * options.numValueHeads, 67, 0.25),
+    beta: values(options.numTokens * options.numValueHeads, 71, 0.2),
+  };
+  const forward = qwenLinearAttentionPrepareForward(inputs, options);
+  const analytic = qwenLinearAttentionPrepareBackward(inputs, gradients, forward.cache, options);
+  checkFiniteDifference({
+    inputs,
+    analytic,
+    tolerance: 4e-4,
+    objective: (candidate) => {
+      const output = qwenLinearAttentionPrepareForward(candidate, options);
+      return dot(output.query, gradients.query)
+        + dot(output.key, gradients.key)
+        + dot(output.value, gradients.value)
+        + dot(output.logDecay, gradients.logDecay)
+        + dot(output.beta, gradients.beta);
     },
   });
 }

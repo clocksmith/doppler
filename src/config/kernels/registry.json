@@ -8941,6 +8941,274 @@
         }
       }
     },
+    "qwen_linear_attention_prepare": {
+      "description": "Qwen linear-attention QKV split, Q/K L2 normalization, head repeat, and decay/beta preparation",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "mixed",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "a_projection",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "b_projection",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "packed_parameters",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "query",
+          "type": "storage"
+        },
+        {
+          "index": 6,
+          "name": "key",
+          "type": "storage"
+        },
+        {
+          "index": 7,
+          "name": "value",
+          "type": "storage"
+        },
+        {
+          "index": 8,
+          "name": "log_decay",
+          "type": "storage"
+        },
+        {
+          "index": 9,
+          "name": "beta",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 48,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_key_heads",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "num_value_heads",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "key_dim",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "value_dim",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "conv_size",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "query_size",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "key_size",
+            "type": "u32",
+            "offset": 28
+          },
+          {
+            "name": "value_size",
+            "type": "u32",
+            "offset": 32
+          },
+          {
+            "name": "repeat_factor",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 40
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 44
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "qwen_linear_attention_prepare.wgsl",
+          "entryPoint": "main",
+          "workgroup": [128,1,1],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "qwen_linear_attention_prepare_backward": {
+      "description": "Qwen linear-attention preparation backward for frozen recurrent parameters",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "mixed",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "packed_a_b",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "packed_parameters",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "packed_grad_query_key",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "grad_value",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 6,
+          "name": "packed_grad_decay_beta",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 7,
+          "name": "grad_mixed",
+          "type": "storage"
+        },
+        {
+          "index": 8,
+          "name": "grad_a",
+          "type": "storage"
+        },
+        {
+          "index": 9,
+          "name": "grad_b",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 48,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_key_heads",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "num_value_heads",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "key_dim",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "value_dim",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "conv_size",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "query_size",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "key_size",
+            "type": "u32",
+            "offset": 28
+          },
+          {
+            "name": "value_size",
+            "type": "u32",
+            "offset": 32
+          },
+          {
+            "name": "repeat_factor",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 40
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 44
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/qwen_linear_attention_prepare_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [128,1,1],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "gated_rmsnorm": {
       "description": "Gated RMSNorm forward for Qwen linear attention",
       "baseBindings": [
