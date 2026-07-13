@@ -8941,6 +8941,154 @@
         }
       }
     },
+    "gated_rmsnorm_backward": {
+      "description": "Gated RMSNorm backward for frozen norm weights",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "gate",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "grad_output",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "grad_input",
+          "type": "storage"
+        },
+        {
+          "index": 6,
+          "name": "grad_gate",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          {
+            "name": "rows",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "width",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "eps",
+            "type": "f32",
+            "offset": 8
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 12
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/gated_rmsnorm_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256,1,1],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "causal_conv1d_silu_backward": {
+      "description": "Causal depthwise Conv1D plus SiLU input backward for frozen weights",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "input",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "weight",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "grad_output",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "grad_input",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 16,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "channels",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "kernel_size",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 12
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/causal_conv1d_silu_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256,1,1],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "layernorm_backward": {
       "description": "LayerNorm backward",
       "baseBindings": [
