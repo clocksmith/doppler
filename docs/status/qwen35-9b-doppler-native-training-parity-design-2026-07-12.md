@@ -91,17 +91,20 @@ Two additional clean-revision oracles were first sealed at `00af4712`:
 Neither receipt is a complete Qwen layer or optimizer update.
 
 The Qwen full-attention-specific component receipt is sealed at clean revision
-`a8b97154`. The per-head split of the doubled Q projection into query
+`005ed75b`. The per-head split of the doubled Q projection into query
 and output gate is exact in both directions. Sigmoid output gating matches the
 scalar forward and backward with worst error `1.4901161193847656e-8`; its
 perturbed-gate control changes output by `0.00843888521194458`. A native
 recomputed-softmax causal GQA reverse pass also matches scalar query, grouped
 key, and grouped value gradients with worst error
-`5.960464477539063e-8`. The local receipt is
+`5.960464477539063e-8`. The previously full-width-only RoPE backward now also
+implements Qwen's partial interleaved contract; its forward/backward errors are
+`1.4901161193847656e-8` and `7.450580596923828e-9`. Non-rotary dimensions are
+copied through rather than left as pooled bytes. The local receipt is
 `reports/training/native-parity/qwen-full-attention-backward-oracle.json`,
 SHA-256
-`54409ae0a6f2df061110a6bd6bbe66309dd2088d4960e9300fc12cdd112578ab`.
-This does not yet cover composed Q/K norm, RoPE, projections, or LoRA, and the
+`9d27efe8ee930d8eac3b09a4ed2b4ddfb4fdd215c2f4941cbb6d120976c00091`.
+This does not yet cover composed Q/K norm, projections, or LoRA, and the
 GQA kernel has no production-shape performance receipt.
 
 ## Known blocking gaps
@@ -139,9 +142,9 @@ GQA kernel has no production-shape performance receipt.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
   the block-mechanics boundary. It does not include Qwen attention, residuals,
   normalization, loss, or an optimizer update.
-- Full attention still needs a composed Q/K norm, RoPE, Q/K/V/O-projection,
-  and LoRA oracle. Its Q/gate split, sigmoid output gate, and causal GQA
-  reverse mechanics are currently qualified.
+- Full attention still needs a composed Q/K norm, Q/K/V/O-projection, and LoRA
+  oracle. Its Q/gate split, sigmoid output gate, partial interleaved RoPE, and
+  causal GQA reverse mechanics are currently qualified.
 - Gradient checkpointing is not qualified for the Qwen hybrid graph.
 - A matched initial-adapter importer and PEFT export parity receipt are absent.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.
