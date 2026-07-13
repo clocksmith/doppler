@@ -86,12 +86,13 @@
     },
     {
       "id": "full_attention_block",
-      "status": "blocked_missing_lora",
+      "status": "blocked_missing_loss_and_update",
       "componentEvidence": {
-        "sourceRevision": "a7192eca5a102c6d6a2852415abb47563674a6fb",
+        "status": "passed_integrated_lora_gradient_oracle",
+        "sourceRevision": "85d1842c78f39c1114261b9e519ff59e13ae9a0d",
         "sourceDirty": false,
         "receiptPath": "reports/training/native-parity/qwen-full-attention-backward-oracle.json",
-        "receiptSha256": "c01975a74a531103cf40c3d609df04f2ba5089052a35e264861d8fc1a8e2da1a",
+        "receiptSha256": "167f09af1dbbba2dcb2cb54ad83423e381089464015a7a474e4c8fb2da6bd905",
         "coveredComponents": [
           "per_head_q_gate_split_forward",
           "per_head_q_gate_split_backward",
@@ -105,15 +106,30 @@
           "partial_interleaved_rope_backward",
           "non_rotary_gradient_passthrough",
           "f16_q_k_v_o_projections",
+          "q_k_v_o_lora_forward",
+          "q_k_v_o_lora_a_gradients",
+          "q_k_v_o_lora_b_gradients",
           "offset_q_k_rmsnorm",
           "integrated_module_forward",
           "integrated_module_hidden_backward"
         ],
         "maximumComparisonError": 5.960464477539063e-8,
-        "negativeControlDifference": 0.00843888521194458,
+        "maximumAdapterGradientComparisonError": 1.6880221664905548e-9,
+        "nonzeroGradientFamilies": [
+          "q_proj_lora_a",
+          "q_proj_lora_b",
+          "k_proj_lora_a",
+          "k_proj_lora_b",
+          "v_proj_lora_a",
+          "v_proj_lora_b",
+          "o_proj_lora_a",
+          "o_proj_lora_b"
+        ],
+        "gateNegativeControlDifference": 0.00843888521194458,
+        "adapterNegativeControlDifference": 4.777684807777405e-7,
         "backend": "webgpu_vulkan",
         "deviceVendor": "amd",
-        "claimBoundary": "Tiny integrated frozen-projection Qwen full-attention module; LoRA and production-shape performance remain unqualified."
+        "claimBoundary": "Tiny integrated frozen-F16 Qwen full-attention module with Q/K/V/O LoRA forward and gradients; loss, optimizer update, decoder residuals, and production-shape performance remain unqualified."
       }
     },
     {
