@@ -22,7 +22,7 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 - Source checkpoints: 17
 - Conversion-only configs: 8
 - HF-published catalog models: 15
-- Runtime-verified catalog models: 21
+- Runtime-verified catalog models: 19
 - Benchmark-selected source architectures: 1
 - Sources pending benchmark-selected architecture: 16
 
@@ -37,9 +37,9 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 | small | Qwen/Qwen3-Reranker-0.6B | 0.87 GiB | benchmark-receipts-incomplete | qwen-3-reranker-0-6b-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json | Add summary SVG evidence for qwen-3-reranker-0-6b-q4k-ehf16-af32. |
 | small | clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87 | 0.96 GiB | benchmark-comparison-needed | translategemma-4b-1b-enes-q4k-ehf16-af32 candidate; benchmark comparison pending | benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json | Decide whether translategemma-4b-1b-enes-q4k-ehf16-af32 needs a claimable generation compare lane or stays capability-only. |
 | small | google/gemma-3-1b-it | 0.97 GiB | benchmark-comparison-needed | gemma-3-1b-it-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/gemma-3-1b-it-q4k-ehf16-af32/2026-06-24T01-23-10.494Z.json | Run compare/bench receipts for gemma-3-1b-it-q4k-ehf16-af32. |
-| small | Qwen/Qwen3.5-0.8B | 1.08 GiB | benchmark-receipts-incomplete | qwen-3-5-0-8b-q4k-ehaf16 candidate; benchmark comparison pending | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json | Run compare/bench receipts for qwen-3-5-0-8b-q4k-ehaf16. |
+| small | Qwen/Qwen3.5-0.8B | 1.08 GiB | benchmark-receipts-incomplete | failed verification | none | Fix failed runtime verification for qwen-3-5-0-8b-q4k-ehaf16; keep it unpromoted until a passing receipt exists. |
 | small | Qwen/Qwen3-Embedding-0.6B | 1.11 GiB | benchmark-receipts-incomplete | qwen-3-embedding-0-6b-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json | Add summary SVG evidence for qwen-3-embedding-0-6b-q4k-ehf16-af32. |
-| medium | Qwen/Qwen3.5-2B | 2.32 GiB | benchmark-receipts-incomplete | qwen-3-5-2b-q4k-ehaf16 candidate; benchmark comparison pending | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json | Run compare/bench receipts for qwen-3-5-2b-q4k-ehaf16. |
+| medium | Qwen/Qwen3.5-2B | 2.32 GiB | benchmark-receipts-incomplete | failed verification | none | Fix failed runtime verification for qwen-3-5-2b-q4k-ehaf16; keep it unpromoted until a passing receipt exists. |
 | medium | google/translategemma-4b-it | 2.95 GiB | benchmark-comparison-needed | translategemma-4b-it-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json | Run compare/bench receipts for translategemma-4b-it-q4k-ehf16-af32. |
 | medium | google/gemma-4-E2B-it | 3.73 GiB | benchmark-receipts-incomplete | gemma-4-e2b-it-q4k-ehf16-af16-int4ple candidate; benchmark comparison pending | reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-15-34.710Z.json | Add a local inference claim lane for gemma-4-e2b-it-q4k-ehf16-af16-int4ple. |
 | medium | google/gemma-4-12B-it | 7.60 GiB | benchmark-comparison-needed | gemma-4-12b-it-text-q4k-ehf16-af16 candidate; benchmark comparison pending | reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af16/2026-06-29T22-14-43.963Z.json | Publish or refresh the Hugging Face manifest/weights for gemma-4-12b-it-text-q4k-ehf16-af16. |
@@ -56,8 +56,8 @@ These are policy-generated command recipes, not evidence. A command becomes supp
 | --- | --- | --- | --- |
 | small | openbmb/MiniCPM4-0.5B | runtime-verify | `node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto` |
 | small | google/gemma-3-1b-it | compare-result | `node tools/compare-engines.js --model-id gemma-3-1b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| small | Qwen/Qwen3.5-0.8B | summary-svg | `node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| medium | Qwen/Qwen3.5-2B | summary-svg | `node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
+| small | Qwen/Qwen3.5-0.8B | runtime-verify | `node tools/run-registry-verify.js qwen-3-5-0-8b-q4k-ehaf16 --surface auto` |
+| medium | Qwen/Qwen3.5-2B | runtime-verify | `node tools/run-registry-verify.js qwen-3-5-2b-q4k-ehaf16 --surface auto` |
 | medium | google/translategemma-4b-it | compare-result | `node tools/compare-engines.js --model-id translategemma-4b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | medium | google/gemma-4-E2B-it | claim-lane | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | medium | google/gemma-4-12B-it | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af16 --dry-run --bootstrap` |
@@ -78,14 +78,14 @@ These are policy-generated command recipes, not evidence. A command becomes supp
 | qwen-3-reranker-0-6b-f16-af32 | qwen3 | 1.11 GiB | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | 2026-07-04 (node) | Clocksmith/rdrr@cc1fafff8cda609372b608cd92e487f6a2c32bc8 | missing | missing | compare-profile |
 | translategemma-4b-1b-enes-q4k-ehf16-af32 | translategemma | 0.96 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-11 (browser+node) | Clocksmith/rdrr@1e2c047357f07dfe45a8effc2fa915acd73999ee | capability_only / no TJS mapping | missing | benchmark-lane-capability-only |
 | gemma-3-1b-it-q4k-ehf16-af32 | gemma3 | 0.97 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-06-24 (node) | Clocksmith/rdrr@7c3d30e300bcb02cbd68fb0db3eee64fbf738f99 | performance_comparable / onnx-community/gemma-3-1b-it-ONNX-GQA | missing | compare-result |
-| qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | 1.08 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-06-15 (browser+node) | Clocksmith/rdrr@f58f1d0b58641c84e7ea50d13fea0dd4dc91389a | performance_comparable / onnx-community/Qwen3.5-0.8B-ONNX | missing | summary-svg |
+| qwen-3-5-0-8b-q4k-ehaf16 | qwen3 | 1.08 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-07-13 failed | Clocksmith/rdrr@f58f1d0b58641c84e7ea50d13fea0dd4dc91389a | performance_comparable / onnx-community/Qwen3.5-0.8B-ONNX | missing | runtime-verify |
 | qwen-3-embedding-0-6b-q4k-ehf16-af32 | qwen3 | 1.11 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-05 (browser+node) | Clocksmith/rdrr@049000f49325dca7db2ed2c9de2c8881bd0f4603 | performance_comparable / onnx-community/Qwen3-Embedding-0.6B-ONNX | missing | summary-svg |
 
 ## Medium Models
 
 | Model ID | Family | Size | Architecture | Runtime verify | HF | Compare lane | Benchmark evidence | Next gate |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| qwen-3-5-2b-q4k-ehaf16 | qwen3 | 2.32 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-06-15 (browser+node) | Clocksmith/rdrr@977d145bf2478a7fb542e6aca65030585620ca60 | performance_comparable / onnx-community/Qwen3.5-2B-ONNX | missing | summary-svg |
+| qwen-3-5-2b-q4k-ehaf16 | qwen3 | 2.32 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-07-13 failed | Clocksmith/rdrr@977d145bf2478a7fb542e6aca65030585620ca60 | performance_comparable / onnx-community/Qwen3.5-2B-ONNX | missing | runtime-verify |
 | translategemma-4b-it-q4k-ehf16-af32 | translategemma | 2.95 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-03-20 (browser+node) | Clocksmith/rdrr@6fc46049882e961a57d1690ba1ffde21677d001a | performance_comparable / onnx-community/translategemma-text-4b-it-ONNX | missing | compare-result |
 | gemma-4-e2b-it-q4k-ehf16-af16-int4ple | gemma4 | 3.73 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout | 2026-05-07 (node) | Clocksmith/rdrr@2d326649ae3d04b83323de0e6247e1e42fb1d9af | performance_comparable / onnx-community/gemma-4-E2B-it-ONNX | missing | claim-lane |
 | gemma-4-e2b-it-q4k-ehf16-af32-int4ple | gemma4 | 3.73 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-04-22 (node) | Clocksmith/rdrr@16256bf16dc8f92b8fe5105b07628cef91587f0a | performance_comparable / onnx-community/gemma-4-E2B-it-ONNX | missing | summary-svg |

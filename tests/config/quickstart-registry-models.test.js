@@ -12,8 +12,6 @@ const expectedModelIds = [
   'gemma-3-1b-it-q4k-ehf16-af32',
   'gemma-4-e2b-it-q4k-ehf16-af32',
   'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
-  'qwen-3-5-0-8b-q4k-ehaf16',
-  'qwen-3-5-2b-q4k-ehaf16',
 ];
 
 // Registry should contain only hosted, release-claim-backed quickstart models.
@@ -69,21 +67,16 @@ for (const entry of models) {
   assert.ok(entry.hf.path.includes('gemma-4-e2b'));
 }
 
-{
-  const entry = await resolveQuickstartModel('qwen3-0.8b');
-  assert.equal(entry.modelId, 'qwen-3-5-0-8b-q4k-ehaf16');
-  assert.ok(entry.modes.includes('text'));
-  assert.equal(entry.hf.repoId, 'Clocksmith/rdrr');
-  assert.ok(entry.hf.path.includes('qwen-3-5-0-8b'));
-}
-
-{
-  const entry = await resolveQuickstartModel('qwen3-2b');
-  assert.equal(entry.modelId, 'qwen-3-5-2b-q4k-ehaf16');
-  assert.ok(entry.modes.includes('text'));
-  assert.equal(entry.hf.repoId, 'Clocksmith/rdrr');
-  assert.ok(entry.hf.path.includes('qwen-3-5-2b'));
-}
+await assert.rejects(
+  () => resolveQuickstartModel('qwen3-0.8b'),
+  /Unknown quickstart model/,
+  'the invalid Qwen 3.5 0.8B v1 artifact must remain delisted'
+);
+await assert.rejects(
+  () => resolveQuickstartModel('qwen3-2b'),
+  /Unknown quickstart model/,
+  'the invalid Qwen 3.5 2B v1 artifact must remain delisted'
+);
 
 // Unknown model throws
 await assert.rejects(

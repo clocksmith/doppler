@@ -189,10 +189,8 @@ function readManifest(modelId) {
       'gemma-3-1b-it-q4k-ehf16-af32',
       'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
       'translategemma-4b-1b-enes-q4k-ehf16-af32',
-      'qwen-3-5-0-8b-q4k-ehaf16',
-      'qwen-3-5-2b-q4k-ehaf16',
     ],
-    'public demo selector should contain the six intended browser models'
+    'public demo selector should contain only currently verified browser models'
   );
   for (const entry of selected) {
     assert.equal(entry.lifecycle?.status?.tested, 'verified', `${entry.modelId} must be verified`);
