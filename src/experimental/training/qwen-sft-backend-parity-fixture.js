@@ -80,6 +80,7 @@ export function createQwenSftBackendParityFixture(options = {}) {
       modelId: 'Qwen/Qwen3.5-9B',
       revision: 'c202236235762e1c871ad0ccb60c8ee5ba337b9a',
       transformersVersion: '5.13.1',
+      transformersDecoderSourceSha256: 'cf085792cb59e5bdf9b88a3d20bd353892289d054662a9c2b662221b97caefba',
       decoderOrder: 'input_norm_token_mixer_residual_post_attention_norm_mlp_residual',
       ropePairing: 'split_half_within_partial_rotary_prefix',
       partialRotaryFactor: 0.25,
