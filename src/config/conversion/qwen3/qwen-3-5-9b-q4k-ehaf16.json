@@ -52,7 +52,7 @@
     "normalization": {
       "rmsNormEps": 0.000001,
       "rmsNormWeightOffset": true,
-      "postAttentionNorm": true,
+      "postAttentionNorm": false,
       "preFeedforwardNorm": false,
       "postFeedforwardNorm": false
     },

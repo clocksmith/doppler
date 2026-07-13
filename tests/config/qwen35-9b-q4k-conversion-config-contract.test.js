@@ -30,6 +30,12 @@ assert.equal(identity?.shardSetHash, undefined);
 
 assert.equal(config.inference?.attention?.queryPreAttnScalar, 256);
 assert.equal(config.inference?.attention?.attentionOutputGate, true);
+assert.equal(
+  config.inference?.normalization?.postAttentionNorm,
+  false,
+  'Qwen must add the attention residual before its post-attention/pre-FFN RMSNorm'
+);
+assert.equal(config.inference?.normalization?.preFeedforwardNorm, false);
 assert.equal(config.inference?.output?.tieWordEmbeddings, false);
 assert.equal(layerTypes?.length, 32);
 for (let index = 0; index < layerTypes.length; index += 1) {
