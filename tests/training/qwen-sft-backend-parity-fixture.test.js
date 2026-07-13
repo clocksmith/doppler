@@ -9,6 +9,14 @@ const second = createQwenSftBackendParityFixture();
 assert.deepEqual(first, second);
 assert.equal(first.model.activeTokenCount, 2);
 assert.deepEqual(first.targets, [-100, 4, 5]);
+assert.equal(first.prefixRows.length, 4);
+assert.deepEqual(
+  first.prefixRows.map((row) => row.rowId),
+  ['qwen-prefix-1', 'qwen-prefix-2', 'qwen-prefix-3', 'qwen-prefix-4']
+);
+assert.equal(first.prefixContract.accumulationSteps, 2);
+assert.equal(first.prefixContract.optimizerStepCount, 2);
+assert.match(first.prefixContract.consumedPrefixSha256, /^[a-f0-9]{64}$/);
 assert.equal(first.precisionContract.adapterDropout, 0);
 assert.equal(
   first.architectureContract.decoderOrder,

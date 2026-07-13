@@ -12,7 +12,7 @@ import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../s
 
 const MASKED_TARGET = 0xffffffff;
 
-function makeTensorFactory(ownedTensors) {
+export function makeTensorFactory(ownedTensors) {
   return (data, dtype, shape, label) => {
     const byteLength = Math.ceil(data.byteLength / 4) * 4;
     const upload = byteLength === data.byteLength
@@ -30,12 +30,12 @@ function makeTensorFactory(ownedTensors) {
   };
 }
 
-async function readF32(tensor) {
+export async function readF32(tensor) {
   const count = tensor.shape.reduce((product, value) => product * value, 1);
   return new Float32Array(await readBuffer(tensor.buffer, count * 4));
 }
 
-function compare(actual, expected) {
+export function compare(actual, expected) {
   if (actual.length !== expected.length) {
     throw new Error(`Parity array length mismatch: ${actual.length} != ${expected.length}.`);
   }
@@ -56,7 +56,7 @@ function compare(actual, expected) {
   };
 }
 
-function updateSimilarity(actual, expected, initial) {
+export function updateSimilarity(actual, expected, initial) {
   let dot = 0;
   let actualSquared = 0;
   let expectedSquared = 0;
@@ -95,7 +95,7 @@ function uploadAdapter(makeTensor, spec, label) {
   };
 }
 
-function buildGpuFixture(makeTensor, fixture) {
+export function buildGpuFixture(makeTensor, fixture) {
   const byPath = Object.fromEntries(
     Object.entries(fixture.adapters).map(([name, spec]) => [
       name,
@@ -149,6 +149,35 @@ function buildGpuFixture(makeTensor, fixture) {
         },
       },
     },
+  };
+}
+
+export function buildQwenParityAdapterEntries(gpu) {
+  return Object.entries(gpu.adapters).flatMap(([prefix, adapter]) => [
+    { name: `${prefix}.lora_A`, parameter: adapter.A },
+    { name: `${prefix}.lora_B`, parameter: adapter.B },
+  ]);
+}
+
+export function uploadQwenParityRow(makeTensor, fixture, row, label) {
+  const targets = Uint32Array.from(
+    row.targets,
+    (value) => value < 0 ? MASKED_TARGET : value
+  );
+  return {
+    rowId: row.rowId,
+    tokenIds: makeTensor(
+      new Uint32Array(row.tokenIds),
+      'u32',
+      [fixture.model.numTokens],
+      `${label}_tokens`
+    ),
+    targets: makeTensor(
+      targets,
+      'u32',
+      [fixture.model.numTokens],
+      `${label}_targets`
+    ),
   };
 }
 
