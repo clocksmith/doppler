@@ -203,7 +203,13 @@ function resolveTensorDtype(value, fallback = 'f32') {
   return normalized === 'f16' ? 'f16' : (normalized === 'f32' ? 'f32' : fallback);
 }
 
-async function ensureTrainableTensor(value, shape, label, ownedTrainables = null) {
+async function ensureTrainableTensor(
+  value,
+  shape,
+  label,
+  ownedTrainables = null,
+  options = {}
+) {
   if (!value) {
     throw new Error(`Distill full-graph student missing required weight "${label}".`);
   }
@@ -213,6 +219,7 @@ async function ensureTrainableTensor(value, shape, label, ownedTrainables = null
     }
     return tensor;
   };
+  const preserveF16 = options.preserveF16 === true;
   if (isWeightBuffer(value)) {
     if (value.dtype === 'f32') {
       return value;
@@ -220,6 +227,7 @@ async function ensureTrainableTensor(value, shape, label, ownedTrainables = null
     if (value.dtype === 'f16') {
       const sourceShape = Array.isArray(value.shape) && value.shape.length > 0 ? value.shape : [...shape];
       const source = createTensor(value.buffer, 'f16', sourceShape, `${label}_source_f16`);
+      if (preserveF16) return source;
       const promoted = await castF16ToF32(source);
       return registerOwned(createTensor(promoted.buffer, 'f32', sourceShape, `${label}_trainable_f32`));
     }
@@ -231,6 +239,7 @@ async function ensureTrainableTensor(value, shape, label, ownedTrainables = null
     const dtype = rawDtype === 'f16' ? 'f16' : 'f32';
     const tensor = createTensor(value, dtype, sourceShape, label);
     if (dtype === 'f16') {
+      if (preserveF16) return tensor;
       const promoted = await castF16ToF32(tensor);
       return registerOwned(createTensor(promoted.buffer, 'f32', sourceShape, `${label}_trainable_f32`));
     }
@@ -260,6 +269,7 @@ async function ensureTrainableTensor(value, shape, label, ownedTrainables = null
         throw new Error(`Distill full-graph student weight "${label}" has non-typed f16 CPU data.`);
       }
       const source = makeTensorFromF16Bits(raw, sourceShape, `${label}_cpu_f16`);
+      if (preserveF16) return registerOwned(source);
       const promoted = await castF16ToF32(source);
       releaseTensor(source);
       return registerOwned(createTensor(promoted.buffer, 'f32', sourceShape, `${label}_trainable_f32`));
@@ -275,6 +285,7 @@ async function ensureTrainableTensor(value, shape, label, ownedTrainables = null
       label
     );
     if (tensor.dtype === 'f16') {
+      if (preserveF16) return tensor;
       const promoted = await castF16ToF32(tensor);
       return registerOwned(createTensor(promoted.buffer, 'f32', resolvedShape, `${label}_trainable_f32`));
     }
@@ -336,8 +347,8 @@ async function fuseGateUpTensors(gateTensor, upTensor, intermediateSize, hiddenS
   if (!device) {
     throw new Error('Distill full-graph student requires active GPU device.');
   }
-  if (gateTensor?.dtype !== 'f32' || upTensor?.dtype !== 'f32') {
-    throw new Error(`Distill fused gate_up expects f32 tensors for "${label}".`);
+  if (!['f16', 'f32'].includes(gateTensor?.dtype) || upTensor?.dtype !== gateTensor.dtype) {
+    throw new Error(`Distill fused gate_up expects matching f16 or f32 tensors for "${label}".`);
   }
   const expectedRows = intermediateSize;
   const expectedCols = hiddenSize;
@@ -351,14 +362,19 @@ async function fuseGateUpTensors(gateTensor, upTensor, intermediateSize, hiddenS
       `expected=[${expectedRows},${expectedCols}]`
     );
   }
-  const rowBytes = expectedCols * 4;
+  const rowBytes = expectedCols * (gateTensor.dtype === 'f16' ? 2 : 4);
   const blockBytes = expectedRows * rowBytes;
   const fusedBuffer = acquireBuffer(blockBytes * 2, undefined, `${label}_fused`);
   const encoder = device.createCommandEncoder();
   encoder.copyBufferToBuffer(gateTensor.buffer, 0, fusedBuffer, 0, blockBytes);
   encoder.copyBufferToBuffer(upTensor.buffer, 0, fusedBuffer, blockBytes, blockBytes);
   device.queue.submit([encoder.finish()]);
-  const fused = createTensor(fusedBuffer, 'f32', [expectedRows * 2, expectedCols], `${label}_fused`);
+  const fused = createTensor(
+    fusedBuffer,
+    gateTensor.dtype,
+    [expectedRows * 2, expectedCols],
+    `${label}_fused`
+  );
   if (ownedTrainables instanceof Set) {
     ownedTrainables.add(fused);
   }
@@ -544,6 +560,7 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
   const embeddingScale = resolveEmbeddingScale(modelConfig, hiddenSize);
   const loraConfig = normalizeTransformerLoraConfig(options.loraAdapter || null);
   const freezeBaseGrad = Boolean(loraConfig);
+  const frozenWeightOptions = { preserveF16: freezeBaseGrad };
   const stopBaseWeight = freezeBaseGrad ? { stopGradInputs: [1] } : {};
   const stopRopeWeights = freezeBaseGrad ? { stopGradInputs: [1, 2] } : {};
 
@@ -562,7 +579,8 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
     studentPipeline.weights.get('embed'),
     [vocabSize, hiddenSize],
     'embed',
-    ownedTrainables
+    ownedTrainables,
+    frozenWeightOptions
   );
   const lmHeadWeight = tieWordEmbeddings
     ? embeddingWeight
@@ -570,7 +588,8 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
       studentPipeline.weights.get('lm_head'),
       [vocabSize, hiddenSize],
       'lm_head',
-      ownedTrainables
+      ownedTrainables,
+      frozenWeightOptions
     );
   const finalNormWeight = await ensureNormTensor(
     studentPipeline.weights.get('final_norm'),
@@ -642,7 +661,8 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         gateUpWeight,
         [layerIntermediateSize * 2, hiddenSize],
         `layer_${layerIdx}.ffn_gate_up`,
-        ownedTrainables
+        ownedTrainables,
+        frozenWeightOptions
       );
     } else {
       const gateWeight = layerWeights.gate || layerWeights.ffnGate || null;
@@ -656,13 +676,15 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         gateWeight,
         [layerIntermediateSize, hiddenSize],
         `layer_${layerIdx}.ffn_gate`,
-        ownedTrainables
+        ownedTrainables,
+        frozenWeightOptions
       );
       const upTensor = await ensureTrainableTensor(
         upWeight,
         [layerIntermediateSize, hiddenSize],
         `layer_${layerIdx}.ffn_up`,
-        ownedTrainables
+        ownedTrainables,
+        frozenWeightOptions
       );
       layerGateUp = await fuseGateUpTensors(
         gateTensor,
@@ -689,25 +711,29 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         layerWeights.qProj,
         [numHeads * headDim, hiddenSize],
         `layer_${layerIdx}.q_proj`,
-        ownedTrainables
+        ownedTrainables,
+        frozenWeightOptions
       ),
       kProj: await ensureTrainableTensor(
         layerWeights.kProj,
         [numKVHeads * headDim, hiddenSize],
         `layer_${layerIdx}.k_proj`,
-        ownedTrainables
+        ownedTrainables,
+        frozenWeightOptions
       ),
       vProj: await ensureTrainableTensor(
         layerWeights.vProj,
         [numKVHeads * headDim, hiddenSize],
         `layer_${layerIdx}.v_proj`,
-        ownedTrainables
+        ownedTrainables,
+        frozenWeightOptions
       ),
       oProj: await ensureTrainableTensor(
         layerWeights.oProj,
         [hiddenSize, numHeads * headDim],
         `layer_${layerIdx}.o_proj`,
-        ownedTrainables
+        ownedTrainables,
+        frozenWeightOptions
       ),
       postAttentionNorm: layerWeights.postAttentionNorm
         ? await ensureNormTensor(
@@ -738,7 +764,8 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         layerWeights.down || layerWeights.ffnDown,
         [hiddenSize, layerIntermediateSize],
         `layer_${layerIdx}.ffn_down`,
-        ownedTrainables
+        ownedTrainables,
+        frozenWeightOptions
       ),
       intermediateSize: layerIntermediateSize,
       lora: createTransformerLoraAdapters(loraConfig, {

@@ -39,6 +39,7 @@ assert.deepEqual(LORA_RUNNER_SUPPORT_CONTRACT, {
     'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
     'qwen-3-5-0-8b-q4k-ehaf16',
     'qwen-3-5-2b-q4k-ehaf16',
+    'qwen-3-5-9b-hf-bf16',
     'qwen-3-6-27b-q4k-ehaf16',
     'qwen-3-6-27b-q4k-eaf16',
   ],
@@ -55,6 +56,7 @@ assert.deepEqual(LORA_RUNNER_SUPPORT_CONTRACT, {
     'gemma-4-e2b-it-q4k-ehf16-af32-int4ple::text-pairs::text_generation',
     'qwen-3-5-0-8b-q4k-ehaf16::text-pairs::text_generation',
     'qwen-3-5-2b-q4k-ehaf16::text-pairs::text_generation',
+    'qwen-3-5-9b-hf-bf16::text-pairs::text_generation',
     'qwen-3-6-27b-q4k-ehaf16::text-pairs::text_generation',
     'qwen-3-6-27b-q4k-eaf16::text-pairs::text_generation',
   ],
@@ -64,6 +66,7 @@ assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['gemma-3-270m-it-f16-af32'].family,
 assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['gemma-3-270m-it-q4k-ehf16-af32'].family, 'gemma3');
 assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['qwen-3-5-0-8b-q4k-ehaf16'].family, 'qwen3');
 assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['qwen-3-5-0-8b-q4k-ehaf16'].requiresExternalTrainer, true);
+assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['qwen-3-5-9b-hf-bf16'].requiresExternalTrainer, true);
 assert.equal(LORA_RUNNER_DATASET_FORMAT_REGISTRY['text-pairs'].datasetKind, 'causal_lm_text_pairs');
 
 assert.equal(getLoraRunnerCompatibility(toyWorkload).supported, true);

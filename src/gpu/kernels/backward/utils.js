@@ -192,13 +192,20 @@ export function createBackwardKernel(opName, spec) {
   return { run, record };
 }
 
+export function resolveMatmulBackwardDxVariant(weight) {
+  const dtype = String(weight?.dtype || 'f32').toLowerCase();
+  if (dtype === 'f16') return 'f16_weight';
+  if (dtype === 'f32') return 'default';
+  throw new Error(`matmul backward dX does not support weight dtype "${dtype}".`);
+}
+
 export async function runMatmulBackwardDx(dY, W, M, K, N, options = {}) {
   const { alpha = 1.0, transposeB = false, outputBuffer = null } = options;
   const device = getDevice();
   const outputSize = M * K * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_backward_dx_output');
 
-  const pipeline = await createPipeline('matmul_backward', 'default');
+  const pipeline = await createPipeline('matmul_backward', resolveMatmulBackwardDxVariant(W));
 
   const uniformBuffer = createUniformBufferWithView(
     'matmul_backward_uniforms',
@@ -244,7 +251,7 @@ export async function recordMatmulBackwardDx(recorder, dY, W, M, K, N, options =
   const outputSize = M * K * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_backward_dx_output');
 
-  const pipeline = await createPipeline('matmul_backward', 'default');
+  const pipeline = await createPipeline('matmul_backward', resolveMatmulBackwardDxVariant(W));
 
   const uniformBuffer = createUniformBufferWithView(
     'matmul_backward_uniforms',
