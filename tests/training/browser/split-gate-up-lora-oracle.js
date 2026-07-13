@@ -78,14 +78,12 @@ function cpuOracle(input, gateWeight, upWeight, gateA, gateB, upA, upB, gradOutp
   const { M, K, N, rank, adapterScale } = dims;
   const gateDown = matmul(input, gateA, M, K, rank);
   const upDown = matmul(input, upA, M, K, rank);
-  const gate = add(
-    matmul(input, gateWeight, M, K, N),
-    scale(matmul(gateDown, gateB, M, rank, N), adapterScale)
-  );
-  const up = add(
-    matmul(input, upWeight, M, K, N),
-    scale(matmul(upDown, upB, M, rank, N), adapterScale)
-  );
+  const baseGate = matmul(input, gateWeight, M, K, N);
+  const baseUp = matmul(input, upWeight, M, K, N);
+  const gateDelta = scale(matmul(gateDown, gateB, M, rank, N), adapterScale);
+  const upDelta = scale(matmul(upDown, upB, M, rank, N), adapterScale);
+  const gate = add(baseGate, gateDelta);
+  const up = add(baseUp, upDelta);
   const activated = new Float32Array(M * N);
   const gradGate = new Float32Array(M * N);
   const gradUp = new Float32Array(M * N);
@@ -118,7 +116,21 @@ function cpuOracle(input, gateWeight, upWeight, gateA, gateB, upA, upB, gradOutp
   );
   const gateAGrad = matmul(transpose(input, M, K), gateDownGrad, K, M, rank);
   const upAGrad = matmul(transpose(input, M, K), upDownGrad, K, M, rank);
-  return { activated, gateAGrad, gateBGrad, upAGrad, upBGrad };
+  return {
+    baseGate,
+    baseUp,
+    gateDown,
+    upDown,
+    gateDelta,
+    upDelta,
+    gate,
+    up,
+    activated,
+    gateAGrad,
+    gateBGrad,
+    upAGrad,
+    upBGrad,
+  };
 }
 
 async function readF32(tensor) {
@@ -168,7 +180,7 @@ async function executeCase(gateBValues, label) {
       transposeB: false,
       stopGradInputs: [1],
     };
-    let gate = await tape.record(
+    const baseGate = await tape.record(
       OpType.MATMUL,
       (x, weight) => runMatmul(x, weight, dims.M, dims.N, dims.K, {
         transposeB: false,
@@ -177,7 +189,7 @@ async function executeCase(gateBValues, label) {
       [input, gateWeight],
       baseOptions
     );
-    let up = await tape.record(
+    const baseUp = await tape.record(
       OpType.MATMUL,
       (x, weight) => runMatmul(x, weight, dims.M, dims.N, dims.K, {
         transposeB: false,
@@ -186,16 +198,24 @@ async function executeCase(gateBValues, label) {
       [input, upWeight],
       baseOptions
     );
-    gate = await tape.record(
+    const gateRecordStart = tape.records.length;
+    const gateDelta = await gateAdapter.forward(input, tape);
+    const gateDown = tape.records[gateRecordStart].output;
+    const gateUpRaw = tape.records[gateRecordStart + 1].output;
+    const upRecordStart = tape.records.length;
+    const upDelta = await upAdapter.forward(input, tape);
+    const upDown = tape.records[upRecordStart].output;
+    const upUpRaw = tape.records[upRecordStart + 1].output;
+    const gate = await tape.record(
       OpType.RESIDUAL_ADD,
       (base, delta) => runResidualAdd(base, delta, dims.M * dims.N),
-      [gate, await gateAdapter.forward(input, tape)],
+      [baseGate, gateDelta],
       { size: dims.M * dims.N }
     );
-    up = await tape.record(
+    const up = await tape.record(
       OpType.RESIDUAL_ADD,
       (base, delta) => runResidualAdd(base, delta, dims.M * dims.N),
-      [up, await upAdapter.forward(input, tape)],
+      [baseUp, upDelta],
       { size: dims.M * dims.N }
     );
     const activated = await tape.record(
@@ -211,6 +231,20 @@ async function executeCase(gateBValues, label) {
     );
     const grads = await tape.backward(new Map([[activated, gradOutput]]));
     const actual = {
+      gateA: await readF32(gateAdapter.A),
+      gateB: await readF32(gateAdapter.B),
+      upA: await readF32(upAdapter.A),
+      upB: await readF32(upAdapter.B),
+      baseGate: await readF32(baseGate),
+      baseUp: await readF32(baseUp),
+      gateDown: await readF32(gateDown),
+      upDown: await readF32(upDown),
+      gateUpRaw: await readF32(gateUpRaw),
+      upUpRaw: await readF32(upUpRaw),
+      gateDelta: await readF32(gateDelta),
+      upDelta: await readF32(upDelta),
+      gate: await readF32(gate),
+      up: await readF32(up),
       activated: await readF32(activated),
       gateAGrad: await readF32(grads.get(gateAdapter.A)),
       gateBGrad: await readF32(grads.get(gateAdapter.B)),
@@ -228,8 +262,15 @@ async function executeCase(gateBValues, label) {
       gradOutputValues,
       dims
     );
+    expected.gateA = gateAValues;
+    expected.gateB = gateBValues;
+    expected.upA = upAValues;
+    expected.upB = upBValues;
+    expected.gateUpRaw = scale(expected.gateDelta, 1 / dims.adapterScale);
+    expected.upUpRaw = scale(expected.upDelta, 1 / dims.adapterScale);
     return {
       actual,
+      expected,
       comparisons: Object.fromEntries(
         Object.keys(expected).map((key) => [key, compare(actual[key], expected[key])])
       ),

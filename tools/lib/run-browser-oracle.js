@@ -80,6 +80,11 @@ export async function runBrowserOracle(options) {
     const { chromium } = await import('playwright');
     browser = await chromium.launch({ headless: true, args: [...BROWSER_ARGS] });
     const page = await browser.newPage();
+    page.on('console', (message) => {
+      if (message.type() === 'error' || message.type() === 'warning') {
+        console.error(`[browser:${message.type()}] ${message.text()}`);
+      }
+    });
     const address = server.address();
     const baseUrl = `http://127.0.0.1:${address.port}`;
     await page.goto(baseUrl);

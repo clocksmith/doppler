@@ -68,15 +68,21 @@ export class LoraAdapter {
     const [tokens] = input.shape;
     const down = await tape.record(
       OpType.MATMUL,
-      (a, b) => runMatmul(a, b, tokens, this.rank, this.A.shape[0], { outputDtype: input.dtype }),
+      (a, b) => runMatmul(a, b, tokens, this.rank, this.A.shape[0], {
+        transposeB: false,
+        outputDtype: input.dtype,
+      }),
       [input, this.A],
-      { M: tokens, N: this.rank, K: this.A.shape[0] }
+      { M: tokens, N: this.rank, K: this.A.shape[0], transposeB: false }
     );
     const up = await tape.record(
       OpType.MATMUL,
-      (a, b) => runMatmul(a, b, tokens, this.B.shape[1], this.rank, { outputDtype: down.dtype }),
+      (a, b) => runMatmul(a, b, tokens, this.B.shape[1], this.rank, {
+        transposeB: false,
+        outputDtype: down.dtype,
+      }),
       [down, this.B],
-      { M: tokens, N: this.B.shape[1], K: this.rank }
+      { M: tokens, N: this.B.shape[1], K: this.rank, transposeB: false }
     );
     return tape.record(
       OpType.SCALE,
