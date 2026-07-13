@@ -6,6 +6,8 @@ export { runRmsNormBackward as runRmsnormBackward, recordRmsNormBackward as reco
 export { runGatedRmsNormBackward, recordGatedRmsNormBackward } from './gated_rmsnorm_backward.js';
 export { runCausalConv1dSiluBackward, recordCausalConv1dSiluBackward } from './causal_conv1d_silu_backward.js';
 export { runQwenLinearAttentionPrepareBackward } from './qwen_linear_attention_prepare_backward.js';
+export { runQwenAttentionSplitQGateBackward } from './qwen_attention_split_q_gate_backward.js';
+export { runSigmoidGatedBackward } from './sigmoid_gated_backward.js';
 export { runGatedDeltaRecurrentBackward } from './gated_delta_recurrent_backward.js';
 export { runGatedDeltaRecurrentCheckpointForward } from './gated_delta_recurrent_checkpoint_forward.js';
 export { runGatedDeltaRecurrentCheckpointedBackward } from './gated_delta_recurrent_checkpointed_backward.js';

@@ -58,7 +58,7 @@
     "silu_gated": {
       "backward": "silu_gated_backward",
       "grads": ["gate", "up"],
-      "params": ["count", "swigluLimit"]
+      "params": ["count", "swigluLimit", "gateActivation"]
     },
     "gelu": {
       "backward": "gelu_backward",

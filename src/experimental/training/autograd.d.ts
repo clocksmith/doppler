@@ -12,6 +12,7 @@ export const OpType: {
   ROPE: 'rope';
   SILU: 'silu';
   SILU_ROWSPLIT: 'silu_rowsplit';
+  SILU_GATED: 'silu_gated';
   GELU: 'gelu';
   SCALE: 'scale';
   CROSS_ENTROPY: 'cross_entropy';
@@ -52,7 +53,8 @@ export declare function computeSiluGatedBackwardValues(
   gate: Float32Array,
   up: Float32Array,
   gradOutput: Float32Array,
-  swigluLimit?: number
+  swigluLimit?: number,
+  gateActivation?: 'silu' | 'sigmoid'
 ): { gradGate: Float32Array; gradUp: Float32Array };
 
 export declare class AutogradTape {
