@@ -13,6 +13,27 @@ export interface QwenFullAttentionTrainingModuleOptions {
   rmsEps: number;
 }
 
+export interface QwenFullAttentionLoraAdapter {
+  A: Tensor;
+  B: Tensor;
+  rank: number;
+  alpha: number;
+}
+
+export interface QwenFullAttentionLoraAdapters {
+  q?: QwenFullAttentionLoraAdapter;
+  k?: QwenFullAttentionLoraAdapter;
+  v?: QwenFullAttentionLoraAdapter;
+  o?: QwenFullAttentionLoraAdapter;
+}
+
+export interface QwenFullAttentionLoraGradients {
+  q: { A: Tensor | null; B: Tensor | null };
+  k: { A: Tensor | null; B: Tensor | null };
+  v: { A: Tensor | null; B: Tensor | null };
+  o: { A: Tensor | null; B: Tensor | null };
+}
+
 export interface QwenFullAttentionTrainingModuleInputs {
   hidden: Tensor;
   qWeight: Tensor;
@@ -23,6 +44,7 @@ export interface QwenFullAttentionTrainingModuleInputs {
   kNormWeight: Tensor;
   cos: Tensor;
   sin: Tensor;
+  lora?: QwenFullAttentionLoraAdapters;
 }
 
 export interface QwenFullAttentionTrainingModuleCache {
@@ -34,6 +56,13 @@ export interface QwenFullAttentionTrainingModuleCache {
   queryRope: Tensor;
   keyRope: Tensor;
   attention: Tensor;
+  gated: Tensor;
+  projectionDowns: {
+    q: Tensor | null;
+    k: Tensor | null;
+    v: Tensor | null;
+    o: Tensor | null;
+  };
 }
 
 export declare function runQwenFullAttentionTrainingModuleForward(
@@ -46,7 +75,7 @@ export declare function runQwenFullAttentionTrainingModuleBackward(
   gradOutput: Tensor,
   cache: QwenFullAttentionTrainingModuleCache,
   options: QwenFullAttentionTrainingModuleOptions
-): Promise<{ hidden: Tensor }>;
+): Promise<{ hidden: Tensor; lora: QwenFullAttentionLoraGradients }>;
 
 export declare function releaseQwenFullAttentionTrainingModuleCache(
   cache: QwenFullAttentionTrainingModuleCache

@@ -164,4 +164,94 @@ function dot(left, right) {
   }
 }
 
+{
+  const options = {
+    numTokens: 2,
+    hiddenSize: 3,
+    numHeads: 2,
+    numKVHeads: 1,
+    headDim: 4,
+    rotaryDim: 2,
+    pairSpanDim: 2,
+    interleaved: true,
+    startPos: 0,
+    rmsEps: 1e-6,
+  };
+  const querySize = options.numHeads * options.headDim;
+  const kvSize = options.numKVHeads * options.headDim;
+  const rank = 2;
+  const lora = {
+    q: {
+      A: values(options.hiddenSize * rank, 137, 0.12),
+      B: values(rank * querySize * 2, 149, 0.1),
+      rank,
+      alpha: 4,
+    },
+    k: {
+      A: values(options.hiddenSize * rank, 181, 0.11),
+      B: values(rank * kvSize, 193, 0.09),
+      rank,
+      alpha: 4,
+    },
+    v: {
+      A: values(options.hiddenSize * rank, 211, 0.1),
+      B: values(rank * kvSize, 223, 0.08),
+      rank,
+      alpha: 4,
+    },
+    o: {
+      A: values(querySize * rank, 239, 0.09),
+      B: values(rank * options.hiddenSize, 277, 0.1),
+      rank,
+      alpha: 4,
+    },
+  };
+  const inputs = {
+    hidden: values(options.numTokens * options.hiddenSize, 293, 0.25),
+    qWeight: values(querySize * 2 * options.hiddenSize, 307, 0.2),
+    kWeight: values(kvSize * options.hiddenSize, 359, 0.18),
+    vWeight: values(kvSize * options.hiddenSize, 373, 0.19),
+    oWeight: values(options.hiddenSize * querySize, 389, 0.2),
+    qNormWeight: values(options.headDim, 419, 0.08),
+    kNormWeight: values(options.headDim, 431, 0.08),
+    cos: Float32Array.from(
+      { length: options.numTokens },
+      (_, index) => Math.cos(index * 0.17)
+    ),
+    sin: Float32Array.from(
+      { length: options.numTokens },
+      (_, index) => Math.sin(index * 0.17)
+    ),
+    lora,
+  };
+  const gradOutput = values(options.numTokens * options.hiddenSize, 443, 0.3);
+  const forward = qwenFullAttentionModuleForward(inputs, options);
+  const analytic = qwenFullAttentionModuleBackward(
+    inputs,
+    gradOutput,
+    forward.cache,
+    options
+  );
+  const epsilon = 1e-4;
+  for (const projection of ['q', 'k', 'v', 'o']) {
+    for (const matrix of ['A', 'B']) {
+      const parameter = lora[projection][matrix];
+      for (let index = 0; index < parameter.length; index += 1) {
+        const original = parameter[index];
+        parameter[index] = original + epsilon;
+        const plus = dot(qwenFullAttentionModuleForward(inputs, options).output, gradOutput);
+        parameter[index] = original - epsilon;
+        const minus = dot(qwenFullAttentionModuleForward(inputs, options).output, gradOutput);
+        parameter[index] = original;
+        const numeric = (plus - minus) / (2 * epsilon);
+        const actual = analytic.lora[projection][matrix][index];
+        assert.ok(
+          Math.abs(actual - numeric) <= 6e-4,
+          `${projection}.${matrix}[${index}] analytic=${actual} numeric=${numeric}`
+        );
+      }
+    }
+  }
+}
+
 console.log('qwen-full-attention-reference.test: ok');

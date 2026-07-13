@@ -83,6 +83,12 @@ function compare(actual, expected) {
   };
 }
 
+function maxAbs(valuesToCheck) {
+  let maximum = 0;
+  for (const value of valuesToCheck) maximum = Math.max(maximum, Math.abs(value));
+  return maximum;
+}
+
 async function executeCase(gatePerturbation) {
   const options = { numTokens: 3, numHeads: 2, headDim: 4 };
   const elementCount = options.numTokens * options.numHeads * options.headDim;
@@ -322,7 +328,7 @@ async function runPartialRopeCase() {
   }
 }
 
-async function runIntegratedModuleCase() {
+async function runIntegratedModuleCase(qAdapterPerturbation = 0) {
   const options = {
     seqLen: 2,
     hiddenSize: 8,
@@ -337,6 +343,8 @@ async function runIntegratedModuleCase() {
   };
   const querySize = options.numHeads * options.headDim;
   const kvSize = options.numKVHeads * options.headDim;
+  const rank = 2;
+  const alpha = 4;
   const weightBits = {
     qWeight: f32ToF16Array(values(querySize * 2 * options.hiddenSize, 3, 0.08)),
     kWeight: f32ToF16Array(values(kvSize * options.hiddenSize, 8201, 0.08)),
@@ -353,6 +361,33 @@ async function runIntegratedModuleCase() {
     { length: cosValues.length },
     (_, index) => Math.sin(index * 0.013)
   );
+  const loraValues = {
+    q: {
+      A: values(options.hiddenSize * rank, 16741, 0.08),
+      B: values(rank * querySize * 2, 16763, 0.06),
+      rank,
+      alpha,
+    },
+    k: {
+      A: values(options.hiddenSize * rank, 16811, 0.08),
+      B: values(rank * kvSize, 16829, 0.06),
+      rank,
+      alpha,
+    },
+    v: {
+      A: values(options.hiddenSize * rank, 16843, 0.08),
+      B: values(rank * kvSize, 16871, 0.06),
+      rank,
+      alpha,
+    },
+    o: {
+      A: values(querySize * rank, 16889, 0.08),
+      B: values(rank * options.hiddenSize, 16901, 0.06),
+      rank,
+      alpha,
+    },
+  };
+  loraValues.q.B[1] += qAdapterPerturbation;
   const inputValues = {
     hidden: values(options.seqLen * options.hiddenSize, 16931, 0.2),
     qWeight: f16ToF32Array(weightBits.qWeight),
@@ -363,9 +398,36 @@ async function runIntegratedModuleCase() {
     kNormWeight: f16ToF32Array(weightBits.kNormWeight),
     cos: cosValues,
     sin: sinValues,
+    lora: loraValues,
   };
   const referenceOptions = { ...options, numTokens: options.seqLen };
   const gradOutputValues = values(options.seqLen * options.hiddenSize, 17191, 0.25);
+  const loraTensors = {
+    q: {
+      A: makeTensor(loraValues.q.A, [options.hiddenSize, rank], 'full_module_q_lora_a'),
+      B: makeTensor(loraValues.q.B, [rank, querySize * 2], 'full_module_q_lora_b'),
+      rank,
+      alpha,
+    },
+    k: {
+      A: makeTensor(loraValues.k.A, [options.hiddenSize, rank], 'full_module_k_lora_a'),
+      B: makeTensor(loraValues.k.B, [rank, kvSize], 'full_module_k_lora_b'),
+      rank,
+      alpha,
+    },
+    v: {
+      A: makeTensor(loraValues.v.A, [options.hiddenSize, rank], 'full_module_v_lora_a'),
+      B: makeTensor(loraValues.v.B, [rank, kvSize], 'full_module_v_lora_b'),
+      rank,
+      alpha,
+    },
+    o: {
+      A: makeTensor(loraValues.o.A, [querySize, rank], 'full_module_o_lora_a'),
+      B: makeTensor(loraValues.o.B, [rank, options.hiddenSize], 'full_module_o_lora_b'),
+      rank,
+      alpha,
+    },
+  };
   const tensors = {
     hidden: makeTensor(inputValues.hidden, [options.seqLen, options.hiddenSize], 'full_module_hidden'),
     qWeight: makeTypedTensor(
@@ -406,6 +468,7 @@ async function runIntegratedModuleCase() {
     ),
     cos: makeTensor(cosValues, [options.seqLen, options.rotaryDim / 2], 'full_module_cos'),
     sin: makeTensor(sinValues, [options.seqLen, options.rotaryDim / 2], 'full_module_sin'),
+    lora: loraTensors,
   };
   const gradOutput = makeTensor(
     gradOutputValues,
@@ -429,17 +492,44 @@ async function runIntegratedModuleCase() {
       forward.cache,
       options
     );
-    return {
-      forward: compare(await readF32(forward.output), expectedForward.output),
-      backward: compare(await readF32(backward.hidden), expectedBackward.hidden),
+    const actualOutput = await readF32(forward.output);
+    const comparisons = {
+      integratedModuleForward: compare(actualOutput, expectedForward.output),
+      integratedModuleBackwardHidden: compare(
+        await readF32(backward.hidden),
+        expectedBackward.hidden
+      ),
     };
+    for (const projection of ['q', 'k', 'v', 'o']) {
+      for (const matrix of ['A', 'B']) {
+        const actualGradient = await readF32(backward.lora[projection][matrix]);
+        const label = `integratedModuleBackwardLora${projection.toUpperCase()}${matrix}`;
+        comparisons[label] = {
+          ...compare(actualGradient, expectedBackward.lora[projection][matrix]),
+          maxAbsValue: maxAbs(actualGradient),
+        };
+      }
+    }
+    return { actualOutput, comparisons };
   } finally {
-    if (backward) releaseBuffer(backward.hidden.buffer);
+    if (backward) {
+      releaseBuffer(backward.hidden.buffer);
+      for (const gradients of Object.values(backward.lora)) {
+        releaseBuffer(gradients.A.buffer);
+        releaseBuffer(gradients.B.buffer);
+      }
+    }
     if (forward) {
       releaseBuffer(forward.output.buffer);
       releaseQwenFullAttentionTrainingModuleCache(forward.cache);
     }
-    for (const tensor of Object.values(tensors)) releaseBuffer(tensor.buffer);
+    for (const [name, tensor] of Object.entries(tensors)) {
+      if (name !== 'lora') releaseBuffer(tensor.buffer);
+    }
+    for (const adapter of Object.values(loraTensors)) {
+      releaseBuffer(adapter.A.buffer);
+      releaseBuffer(adapter.B.buffer);
+    }
     releaseBuffer(gradOutput.buffer);
   }
 }
@@ -456,17 +546,24 @@ export async function runQwenFullAttentionBackwardOracle() {
   const gqa = await runGqaCase();
   const partialRope = await runPartialRopeCase();
   const integratedModule = await runIntegratedModuleCase();
+  const perturbedIntegratedModule = await runIntegratedModuleCase(0.125);
   baseline.comparisons.gqaGradQuery = gqa.query;
   baseline.comparisons.gqaGradKey = gqa.key;
   baseline.comparisons.gqaGradValue = gqa.value;
   baseline.comparisons.partialInterleavedRopeForward = partialRope.forward;
   baseline.comparisons.partialInterleavedRopeBackward = partialRope.backward;
-  baseline.comparisons.integratedModuleForward = integratedModule.forward;
-  baseline.comparisons.integratedModuleBackwardHidden = integratedModule.backward;
-  const perturbation = compare(perturbed.actualGated, baseline.actualGated);
+  Object.assign(baseline.comparisons, integratedModule.comparisons);
+  const gatePerturbation = compare(perturbed.actualGated, baseline.actualGated);
+  const adapterPerturbation = compare(
+    perturbedIntegratedModule.actualOutput,
+    integratedModule.actualOutput
+  );
   const passed = Object.values(baseline.comparisons).every(
-    (entry) => entry.allFinite && entry.maxAbsError <= tolerance
-  ) && perturbation.maxAbsError > 1e-4;
+    (entry) => entry.allFinite
+      && entry.maxAbsError <= tolerance
+      && (entry.maxAbsValue == null || entry.maxAbsValue > 1e-10)
+  ) && gatePerturbation.maxAbsError > 1e-4
+    && adapterPerturbation.maxAbsError > 1e-7;
   const capabilities = getKernelCapabilities();
   return {
     artifactType: 'qwen_full_attention_component_backward_oracle',
@@ -475,11 +572,14 @@ export async function runQwenFullAttentionBackwardOracle() {
     tolerance: { maxAbsError: tolerance },
     comparisons: baseline.comparisons,
     negativeControl: {
-      perturbation: 'q_projection_gate_index_1_plus_0.125',
-      gatedOutputDifference: perturbation,
-      passed: perturbation.maxAbsError > 1e-4,
+      gatePerturbation: 'q_projection_gate_index_1_plus_0.125',
+      gatedOutputDifference: gatePerturbation,
+      adapterPerturbation: 'q_proj_lora_b_index_1_plus_0.125',
+      moduleOutputDifference: adapterPerturbation,
+      passed: gatePerturbation.maxAbsError > 1e-4
+        && adapterPerturbation.maxAbsError > 1e-7,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Tiny integrated Qwen full-attention module with frozen F16 projections, offset Q/K RMSNorm, partial interleaved RoPE, sigmoid output gate, and causal GQA backward; LoRA, residuals, MLP, and complete decoder integration remain absent.',
+    claimBoundary: 'Tiny integrated Qwen full-attention module with frozen F16 projections, Q/K/V/O LoRA gradients, offset Q/K RMSNorm, partial interleaved RoPE, sigmoid output gate, and causal GQA backward; residuals, MLP, complete decoder integration, and production performance remain absent.',
   };
 }
