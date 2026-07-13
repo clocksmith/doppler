@@ -106,8 +106,15 @@ function loadedTensors(imported, loaded) {
 
 function relativeToRoot(value) {
   const absolute = path.resolve(value);
-  const relative = path.relative(ROOT, absolute);
-  return relative.startsWith('..') ? absolute : relative;
+  const commonGitDirectory = path.resolve(git(['rev-parse', '--git-common-dir']));
+  const roots = [ROOT, path.dirname(commonGitDirectory)];
+  for (const root of roots) {
+    const relative = path.relative(root, absolute);
+    if (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)) {
+      return relative;
+    }
+  }
+  throw new Error(`Receipt source path ${absolute} is outside the Doppler repository.`);
 }
 
 export async function runQwenPeftAdapterImportOracle(options) {
