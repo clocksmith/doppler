@@ -29,7 +29,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (index >= u.count) {
         return;
     }
-    let probability = stable_sigmoid(gate[index]);
+    let probability_input = select(gate[index], clamp(gate[index], -15.0, 15.0), u.gate_mode == 1u);
+    let probability = stable_sigmoid(probability_input);
     let gradient = grad_output[index];
     if (u.gate_mode == 0u) {
         grad_input[index] = gradient * probability;

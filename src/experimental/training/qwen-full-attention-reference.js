@@ -556,3 +556,10 @@ export function qwenFullAttentionModuleBackward(inputs, gradOutput, cache, optio
     },
   };
 }
+
+export {
+  projectionBackward as qwenFrozenLoraProjectionBackward,
+  projectionForward as qwenFrozenLoraProjectionForward,
+  rmsNormOffsetBackward as qwenRmsNormOffsetBackward,
+  rmsNormOffsetForward as qwenRmsNormOffsetForward,
+};
