@@ -90,7 +90,23 @@
     },
     {
       "id": "split_gate_up_block",
-      "status": "implemented_unexecuted"
+      "status": "passed",
+      "evidence": {
+        "sourceRevision": "00af471259c79b7a6c0fef67dc32dc88108f6f74",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/split-gate-up-lora-oracle.json",
+        "receiptSha256": "be4e5887ed1b2e87e25b307d31c4e11713d56ff161c82f687df10bc4c2edefc7",
+        "maximumComparisonError": 2.9802322387695312e-8,
+        "negativeControlDifference": 0.001376856118440628,
+        "nonzeroGradientFamilies": [
+          "gate_proj_lora_a",
+          "gate_proj_lora_b",
+          "up_proj_lora_a",
+          "up_proj_lora_b"
+        ],
+        "fixedDefect": "LoRA [K,N] weights previously inherited matmul transposeB=true in forward while backward treated them as transposeB=false.",
+        "claimBoundary": "Split gate/up LoRA block mechanics only."
+      }
     },
     {
       "id": "linear_attention_block",
@@ -104,7 +120,7 @@
         "norm",
         "out_proj"
       ],
-      "status": "blocked_unexecuted_gpu_components",
+      "status": "blocked_missing_bounded_gpu_recurrence",
       "referenceEvidence": {
         "implementations": [
           "src/experimental/training/qwen-gated-delta-reference.js",
@@ -140,7 +156,7 @@
         "claimBoundary": "Scalar linear-attention and checkpoint/recompute references only; projection/LoRA integration and bounded-memory GPU backward remain unimplemented."
       },
       "gpuComponentSlice": {
-        "status": "implemented_unexecuted",
+        "status": "passed_oracle_only",
         "kernels": [
           "src/gpu/kernels/backward/causal_conv1d_silu_backward.wgsl",
           "src/gpu/kernels/backward/gated_rmsnorm_backward.wgsl",
@@ -160,7 +176,17 @@
         ],
         "recurrentStateStrategy": "full_history_oracle_only",
         "productionStateStrategy": "scalar_checkpoint_recompute_reference_only",
-        "claimBoundary": "Candidate component kernels only; no numerical browser receipt, bounded-memory recurrence, or integrated linear-attention backward exists."
+        "evidence": {
+          "sourceRevision": "00af471259c79b7a6c0fef67dc32dc88108f6f74",
+          "sourceDirty": false,
+          "receiptPath": "reports/training/native-parity/qwen-linear-attention-backward-oracle.json",
+          "receiptSha256": "0ba99c5dc1c75dd398a4c1366a2964d7f2fa0306744f82cf21338410fd0e421c",
+          "maximumComparisonError": 5.960464477539063e-8,
+          "negativeControlDifference": 0.11269691213965416,
+          "backend": "webgpu_vulkan",
+          "deviceVendor": "amd"
+        },
+        "claimBoundary": "Numerically verified component kernels only; bounded-memory GPU recurrence and integrated linear-attention backward do not exist."
       }
     },
     {
@@ -184,7 +210,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "ca0544b305227b6eab405893a7320ec0e8f5ea34",
+  "latestMechanicsRevision": "00af471259c79b7a6c0fef67dc32dc88108f6f74",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -199,12 +225,14 @@
     "qwen_linear_attention_component_reverse_mode_references",
     "qwen_causal_conv_input_backward_candidate",
     "qwen_gated_rmsnorm_input_gate_backward_candidate",
-    "qwen_gated_delta_full_history_backward_candidate"
+    "qwen_gated_delta_full_history_backward_candidate",
+    "explicit_lora_kn_weight_orientation",
+    "split_gate_up_lora_browser_oracle",
+    "qwen_linear_attention_component_browser_oracle"
   ],
   "blockingGaps": [
     "qwen_linear_attention_checkpoint_recompute_backward",
-    "qwen_linear_attention_component_gpu_oracle",
-    "separate_gate_and_up_lora_gpu_oracle",
+    "qwen_linear_attention_full_layer_integration",
     "qwen_gradient_checkpointing",
     "matched_initial_adapter_import",
     "peft_export_parity",
