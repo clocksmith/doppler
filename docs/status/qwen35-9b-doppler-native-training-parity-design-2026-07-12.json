@@ -70,7 +70,19 @@
       "id": "f16_projection_dx",
       "maxAbsError": 0.000002,
       "negativeControlMinimumDifference": 0.0001,
-      "status": "implemented_unexecuted"
+      "status": "passed",
+      "evidence": {
+        "sourceRevision": "ca0544b305227b6eab405893a7320ec0e8f5ea34",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/f16-matmul-backward-oracle.json",
+        "receiptSha256": "8ce1e1672e06ba6f70d015dedc210917756ce6b7826512298098a5e114a4f5ac",
+        "standardMaxAbsError": 5.960464477539063e-8,
+        "transposedMaxAbsError": 5.960464477539063e-8,
+        "negativeControlMaxAbsDifference": 0.06321442127227783,
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Kernel-level F16 frozen-weight input-gradient mechanics only."
+      }
     },
     {
       "id": "full_attention_block",
@@ -115,6 +127,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
+  "latestMechanicsRevision": "ca0544b305227b6eab405893a7320ec0e8f5ea34",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -137,5 +150,5 @@
   "nativeQwen9bSupportClaimed": false,
   "capabilityClaimed": false,
   "promotionClaimed": false,
-  "claimBoundary": "Design plus unexecuted first mechanics slice only. No Qwen block, optimizer, adapter, compiler-capability, semantic-kernel, or promotion parity is established."
+  "claimBoundary": "The F16 projection input-gradient gate passed. No Qwen block, optimizer, adapter, compiler-capability, semantic-kernel, or promotion parity is established."
 }

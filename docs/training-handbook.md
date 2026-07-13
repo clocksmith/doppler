@@ -113,7 +113,10 @@ Action requirements:
   frozen f16 matrix weights remain packed during LoRA forward/backward; the
   input-gradient kernel decodes binary16 weights into f32 accumulation and
   stopped base weights do not allocate weight gradients. This is a memory and
-  mechanics prerequisite, not Qwen 3.5 support.
+  mechanics prerequisite, not Qwen 3.5 support. The independent AMD WebGPU
+  projection oracle passes for both weight orientations with maximum absolute
+  error `5.960464477539063e-8`; the receipt and its narrow claim boundary are
+  recorded in the Qwen 3.5 9B native-training parity status.
   Split SiLU MLP weights can retain distinct `gate_proj` and `up_proj` LoRA
   tensors; their gated activation has an explicit two-input backward contract.
   That path still requires a block-level GPU oracle before Qwen qualification.
