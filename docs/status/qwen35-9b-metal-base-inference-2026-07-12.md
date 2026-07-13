@@ -1,9 +1,10 @@
 # Qwen 3.5 9B M3 base-inference status
 
-> **Later correction (2026-07-13):** the tested v1 manifests select the wrong
-> Qwen post-attention normalization route. The failure remains reproducible,
-> but neither v1 artifact is now a base-model correctness control. See
-> [the architecture-contract correction](qwen35-architecture-contract-correction-2026-07-13.md).
+> **Later audit (2026-07-13):** an initial hypothesis that the v1 manifest used
+> the wrong post-attention normalization route was disproved. The v1 inference
+> graph already has the required norm order and split-half RoPE pairing. This
+> receipt retains its original base-inference failure scope. See
+> [the native-training architecture correction](qwen35-architecture-contract-correction-2026-07-13.md).
 
 The exact 8.8 GB mixed-Q4_K candidate reproducibly fails the deterministic
 first-token check on the Apple M3 Metal lane. Both runs produced the same raw

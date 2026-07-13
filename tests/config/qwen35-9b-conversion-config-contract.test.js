@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { detectSandwichNorm } from '../../src/inference/pipelines/text/layer.js';
 
 const path = 'src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json';
 const config = JSON.parse(fs.readFileSync(path, 'utf8'));
@@ -18,7 +19,7 @@ assert.equal(identity?.sourceCheckpointId, 'Qwen/Qwen3.5-9B');
 assert.equal(identity?.sourceRepo, 'Qwen/Qwen3.5-9B');
 assert.equal(identity?.sourceRevision, 'c202236235762e1c871ad0ccb60c8ee5ba337b9a');
 assert.equal(identity?.artifactCompleteness, 'complete');
-assert.equal(identity?.manifestVariantId, 'qwen-3-5-9b-f16-af32-mv-exec-v2-norm-order');
+assert.equal(identity?.manifestVariantId, 'qwen-3-5-9b-f16-af32-mv-exec-v1');
 assert.equal(identity?.shardSetHash, undefined);
 
 assert.equal(config.inference?.attention?.queryPreAttnScalar, 256);
@@ -26,10 +27,16 @@ assert.equal(config.inference?.attention?.attentionOutputGate, true);
 assert.equal(config.inference?.attention?.outputGateType, undefined);
 assert.equal(
   config.inference?.normalization?.postAttentionNorm,
-  false,
-  'Qwen must add the attention residual before its post-attention/pre-FFN RMSNorm'
+  true,
+  'Qwen declares the checkpoint post-attention norm tensor'
 );
 assert.equal(config.inference?.normalization?.preFeedforwardNorm, false);
+assert.equal(config.inference?.normalization?.postFeedforwardNorm, false);
+assert.equal(
+  detectSandwichNorm(config.inference?.normalization).useSandwichNorm,
+  false,
+  'Qwen tensor presence must retain the standard residual-then-post-attention-norm route'
+);
 assert.equal(config.inference?.output?.tieWordEmbeddings, false);
 assert.equal(config.inference?.rope?.partialRotaryFactor, 0.25);
 assert.deepEqual(config.inference?.rope?.mropeSection, [11, 11, 10]);

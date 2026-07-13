@@ -111,7 +111,7 @@
     "sourceCheckpointCount": 17,
     "conversionOnlyConfigCount": 8,
     "hfPublishedModelCount": 15,
-    "verifiedModelCount": 19,
+    "verifiedModelCount": 21,
     "benchmarkSelectedSourceCount": 1,
     "benchmarkPendingSourceCount": 16,
     "tierCounts": {
@@ -1106,11 +1106,11 @@
       "minSizeLabel": "1.08 GiB",
       "status": "benchmark-receipts-incomplete",
       "preferredArchitecture": {
-        "status": "verification-failed",
-        "modelId": null,
-        "architecture": null,
+        "status": "pending-benchmark-comparison",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": null,
+          "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
           "compareResult": null,
           "summarySvg": null
         }
@@ -1130,7 +1130,7 @@
           "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
           "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
           "artifactCompleteness": "complete",
-          "runtimePromotionState": "unpromoted",
+          "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
           "architecture": {
             "artifactFormat": "rdrr",
@@ -1142,11 +1142,11 @@
             "label": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout"
           },
           "lifecycle": {
-            "runtime": "experimental",
+            "runtime": "active",
             "conversion": "ready",
-            "tested": "failed",
-            "result": "fail",
-            "lastVerifiedAt": "2026-07-13",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-06-15",
             "surfaces": [
               "browser",
               "node"
@@ -1158,7 +1158,7 @@
             "revision": "f58f1d0b58641c84e7ea50d13fea0dd4dc91389a",
             "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
           },
-          "quickstart": false,
+          "quickstart": true,
           "compare": {
             "profile": {
               "kind": "generation",
@@ -1217,18 +1217,17 @@
                 "command": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p512-d128-t0-k1 --mode compute --decode-profile throughput --warmup 1 --runs 3 --save --json"
               }
             ],
-            "primaryNextCommand": "node tools/run-registry-verify.js qwen-3-5-0-8b-q4k-ehaf16 --surface auto"
+            "primaryNextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
           },
           "missing": [
-            "runtime-verify",
             "summary-svg"
           ],
-          "nextGate": "runtime-verify"
+          "nextGate": "summary-svg"
         }
       ],
-      "nextAction": "Fix failed runtime verification for qwen-3-5-0-8b-q4k-ehaf16; keep it unpromoted until a passing receipt exists.",
-      "nextGate": "runtime-verify",
-      "nextCommand": "node tools/run-registry-verify.js qwen-3-5-0-8b-q4k-ehaf16 --surface auto"
+      "nextAction": "Run compare/bench receipts for qwen-3-5-0-8b-q4k-ehaf16.",
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
       "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
@@ -1344,11 +1343,11 @@
       "minSizeLabel": "2.32 GiB",
       "status": "benchmark-receipts-incomplete",
       "preferredArchitecture": {
-        "status": "verification-failed",
-        "modelId": null,
-        "architecture": null,
+        "status": "pending-benchmark-comparison",
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": null,
+          "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
           "compareResult": null,
           "summarySvg": null
         }
@@ -1368,7 +1367,7 @@
           "weightPackId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
           "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
           "artifactCompleteness": "complete",
-          "runtimePromotionState": "unpromoted",
+          "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
           "architecture": {
             "artifactFormat": "rdrr",
@@ -1380,11 +1379,11 @@
             "label": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout"
           },
           "lifecycle": {
-            "runtime": "experimental",
+            "runtime": "active",
             "conversion": "ready",
-            "tested": "failed",
-            "result": "fail",
-            "lastVerifiedAt": "2026-07-13",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-06-15",
             "surfaces": [
               "browser",
               "node"
@@ -1396,7 +1395,7 @@
             "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
             "path": "models/qwen-3-5-2b-q4k-ehaf16"
           },
-          "quickstart": false,
+          "quickstart": true,
           "compare": {
             "profile": {
               "kind": "generation",
@@ -1455,18 +1454,17 @@
                 "command": "node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p512-d128-t0-k1 --mode compute --decode-profile throughput --warmup 1 --runs 3 --save --json"
               }
             ],
-            "primaryNextCommand": "node tools/run-registry-verify.js qwen-3-5-2b-q4k-ehaf16 --surface auto"
+            "primaryNextCommand": "node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
           },
           "missing": [
-            "runtime-verify",
             "summary-svg"
           ],
-          "nextGate": "runtime-verify"
+          "nextGate": "summary-svg"
         }
       ],
-      "nextAction": "Fix failed runtime verification for qwen-3-5-2b-q4k-ehaf16; keep it unpromoted until a passing receipt exists.",
-      "nextGate": "runtime-verify",
-      "nextCommand": "node tools/run-registry-verify.js qwen-3-5-2b-q4k-ehaf16 --surface auto"
+      "nextAction": "Run compare/bench receipts for qwen-3-5-2b-q4k-ehaf16.",
+      "nextGate": "summary-svg",
+      "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
       "sourceCheckpointId": "google/translategemma-4b-it",
