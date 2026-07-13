@@ -57,6 +57,14 @@ function git(args) {
   return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' }).trim();
 }
 
+function optionalGit(args) {
+  try {
+    return git(args);
+  } catch {
+    return '';
+  }
+}
+
 function tensorDigest(tensors) {
   const hash = createHash('sha256');
   for (const tensor of tensors) {
@@ -106,11 +114,16 @@ function loadedTensors(imported, loaded) {
 
 function relativeToRoot(value) {
   const absolute = path.resolve(value);
+  const commonGitDirectory = path.resolve(git(['rev-parse', '--git-common-dir']));
+  const configuredWorktree = optionalGit(['config', '--get', 'core.worktree']);
+  const primaryWorktree = configuredWorktree
+    ? path.resolve(commonGitDirectory, configuredWorktree)
+    : null;
   const worktreeRoots = git(['worktree', 'list', '--porcelain'])
     .split('\n')
     .filter((line) => line.startsWith('worktree '))
     .map((line) => path.resolve(line.slice('worktree '.length)));
-  const roots = [ROOT, ...worktreeRoots];
+  const roots = [ROOT, primaryWorktree, ...worktreeRoots].filter(Boolean);
   for (const root of roots) {
     const relative = path.relative(root, absolute);
     if (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)) {
