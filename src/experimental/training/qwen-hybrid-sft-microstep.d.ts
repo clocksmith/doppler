@@ -24,6 +24,7 @@ export interface QwenHybridSftMicrostepOptions {
   captureGradients?: boolean;
   applyOptimizer?: boolean;
   gradientAccumulator?: QwenGradientAccumulator | null;
+  layerCheckpointInterval?: number | null;
 }
 
 export declare function runQwenHybridSftMicrostep(
