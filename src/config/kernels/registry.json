@@ -9099,66 +9099,46 @@
         },
         {
           "index": 1,
-          "name": "query",
+          "name": "query_key",
           "type": "read-only-storage"
         },
         {
           "index": 2,
-          "name": "key",
-          "type": "read-only-storage"
-        },
-        {
-          "index": 3,
           "name": "value",
           "type": "read-only-storage"
         },
         {
+          "index": 3,
+          "name": "decay_beta",
+          "type": "read-only-storage"
+        },
+        {
           "index": 4,
-          "name": "log_decay",
-          "type": "read-only-storage"
-        },
-        {
-          "index": 5,
-          "name": "beta",
-          "type": "read-only-storage"
-        },
-        {
-          "index": 6,
           "name": "state_history",
           "type": "read-only-storage"
         },
         {
-          "index": 7,
+          "index": 5,
           "name": "grad_output",
           "type": "read-only-storage"
         },
         {
-          "index": 8,
-          "name": "grad_query",
+          "index": 6,
+          "name": "grad_query_key",
           "type": "storage"
         },
         {
-          "index": 9,
-          "name": "grad_key",
-          "type": "storage"
-        },
-        {
-          "index": 10,
+          "index": 7,
           "name": "grad_value",
           "type": "storage"
         },
         {
-          "index": 11,
-          "name": "grad_log_decay",
+          "index": 8,
+          "name": "grad_decay_beta",
           "type": "storage"
         },
         {
-          "index": 12,
-          "name": "grad_beta",
-          "type": "storage"
-        },
-        {
-          "index": 13,
+          "index": 9,
           "name": "grad_state",
           "type": "storage"
         }
