@@ -212,7 +212,9 @@ export async function runQwenPeftAdapterImportOracle(options) {
       weightsSha256: sha256(weights),
       configPath: relativeToRoot(configPath),
       configSha256: sha256(configBytes),
-      baseModelNameOrPath: adapterConfig.base_model_name_or_path ?? null,
+      sourceConfigBaseModelBasename: adapterConfig.base_model_name_or_path
+        ? path.basename(adapterConfig.base_model_name_or_path)
+        : null,
       peftType: adapterConfig.peft_type ?? null,
     },
     normalizedAdapter: {
