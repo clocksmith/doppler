@@ -1,0 +1,66 @@
+{
+  "artifactType": "qwen35_architecture_contract_correction",
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-13",
+  "status": "correction_implemented_requalification_pending",
+  "model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "referenceImplementation": {
+    "library": "transformers",
+    "version": "5.13.1",
+    "class": "Qwen3_5DecoderLayer",
+    "sourceSha256": "cf085792cb59e5bdf9b88a3d20bd353892289d054662a9c2b662221b97caefba",
+    "decoderOrder": "input_norm_token_mixer_residual_post_attention_norm_mlp_residual",
+    "ropePairing": "split_half_within_partial_rotary_prefix",
+    "partialRotaryFactor": 0.25
+  },
+  "findings": [
+    {
+      "id": "native_decoder_norm_order",
+      "disposition": "corrected",
+      "description": "Native full and linear decoder graphs and their scalar references normalized the attention output before adding the residual."
+    },
+    {
+      "id": "qwen_rope_pairing",
+      "disposition": "corrected",
+      "description": "Qwen-specific fixtures used adjacent-pair RoPE and a geometry that could not distinguish it from the required split-half pairing."
+    },
+    {
+      "id": "conversion_norm_route",
+      "disposition": "corrected",
+      "description": "Qwen 3.5 conversion configs selected the Gemma sandwich-norm runtime route instead of the existing residual-before-pre-FFN-norm route."
+    }
+  ],
+  "implementation": {
+    "dopplerCommits": [
+      "d20f1446",
+      "d61b76b0",
+      "99fa6c54",
+      "df3f7fed"
+    ],
+    "gammaCommits": [
+      "452e51e",
+      "6d21d7b"
+    ],
+    "correctedManifestVariantSuffix": "mv-exec-v2-norm-order",
+    "weightPacksChanged": false
+  },
+  "evidenceDisposition": {
+    "v12GammaTrainingAndEvaluation": "unaffected",
+    "nativeDecoderAndIntegratedSftReceiptsBeforeCorrection": "superseded",
+    "m3V1F16Result": "one_prompt_smoke_only",
+    "m3V1MixedQ4Result": "reproducible_v1_failure_only",
+    "layer0Q4ScalarOracle": "kernel_local_result_retained"
+  },
+  "requiredGates": [
+    "clean corrected native GPU oracle suite",
+    "rank-32 Transformers Gamma versus Doppler microstep parity",
+    "distinct v2 F16 and mixed-Q4 manifests",
+    "v2 F16 Transformers boundary and logit parity",
+    "v2 mixed-Q4 attribution after the F16 control passes",
+    "adapter activation only after coherent base inference"
+  ],
+  "claimBoundary": "This receipt corrects and invalidates overbroad v1 architecture claims. It does not yet prove corrected GPU parity, base inference correctness, adapter correctness, native sustained training, WGSL capability, or runtime performance."
+}
