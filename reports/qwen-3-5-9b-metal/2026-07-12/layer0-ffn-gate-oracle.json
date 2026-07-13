@@ -1,0 +1,526 @@
+{
+  "artifactKind": "q4k_single_projection_dequantization_oracle",
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-13T01:09:52.811Z",
+  "repository": {
+    "name": "clocksmith/doppler",
+    "branch": "main",
+    "commit": "a1e9fdbb9dc0737fdb4448212a45f49b5e6309a5"
+  },
+  "host": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "kernel": "25.3.0",
+    "node": "v22.20.0",
+    "cpuModel": "Apple M3",
+    "logicalCpuCount": 8,
+    "totalMemoryBytes": 25769803776,
+    "byteOrder": "LE",
+    "metal": {
+      "productVersion": "26.3",
+      "buildVersion": "25D125",
+      "adapter": {
+        "name": "Apple M3",
+        "model": "Apple M3",
+        "gpuCoreCount": 10,
+        "metalFamilySupport": "spdisplays_metal4"
+      }
+    },
+    "webgpu": {
+      "provider": "webgpu",
+      "capabilities": {
+        "hasSubgroups": true,
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967295,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 32768,
+        "adapterInfo": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "apple-m3",
+          "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+        },
+        "submitProbeMs": 1.5632499999999823
+      }
+    },
+    "privateIdentifiersRecorded": false
+  },
+  "invocation": {
+    "workingDirectory": "repository root",
+    "command": [
+      "node",
+      "tools/q4k-projection-oracle.js",
+      "--q4-model-dir",
+      "../../rdrr/qwen-3-5-9b-q4k-ehaf16",
+      "--f16-model-dir",
+      "../../rdrr/qwen-3-5-9b-f16-af32",
+      "--q4-capture",
+      "reports/qwen-3-5-9b-metal/2026-07-12/q4-layer0-ffn-gate-full.json",
+      "--f16-capture",
+      "reports/qwen-3-5-9b-metal/2026-07-12/f16-layer0-ffn-gate-full.json",
+      "--tensor",
+      "model.language_model.layers.0.mlp.gate_proj.weight",
+      "--input-op",
+      "layer.0.ffn.in",
+      "--output-op",
+      "layer.0.ffn.gate",
+      "--row",
+      "30",
+      "--artifact-dir",
+      "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle",
+      "--out",
+      "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle.json"
+    ]
+  },
+  "projection": {
+    "tensorName": "model.language_model.layers.0.mlp.gate_proj.weight",
+    "inputOpId": "layer.0.ffn.in",
+    "outputOpId": "layer.0.ffn.gate",
+    "capturedRow": 30,
+    "rowMeaning": "last prompt token",
+    "shape": [
+      12288,
+      4096
+    ],
+    "q4Dtype": "Q4_K_M",
+    "q4Layout": "row",
+    "f16Dtype": "F16"
+  },
+  "prompt": {
+    "text": "Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.",
+    "inputTokenIds": [
+      248045,
+      846,
+      198,
+      15666,
+      440,
+      6681,
+      279,
+      94693,
+      7733,
+      16764,
+      913,
+      803,
+      364,
+      264,
+      220,
+      18,
+      17,
+      14813,
+      18484,
+      16086,
+      869,
+      13,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+    ],
+    "identicalAcrossCaptures": true
+  },
+  "runtimeConfiguration": {
+    "q4RuntimeProfile": "profiles/qwen-3-5-9b-metal-correctness",
+    "f16RuntimeProfile": "profiles/qwen-3-5-9b-metal-correctness",
+    "q4ExecutionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "qwen-3-5-9b-q4k-ehaf16-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "batchSize": 1,
+        "stopCheckMode": "batch",
+        "disableCommandBatching": false,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": "primary",
+      "finalActivePlanId": "primary",
+      "transitions": []
+    },
+    "f16ExecutionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "qwen-3-5-9b-f16-af32-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "batchSize": 1,
+        "stopCheckMode": "batch",
+        "disableCommandBatching": false,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": "primary",
+      "finalActivePlanId": "primary",
+      "transitions": []
+    },
+    "q4Sampling": {
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "greedyThreshold": 0
+    },
+    "f16Sampling": {
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "greedyThreshold": 0
+    },
+    "q4MaximumTokens": 16,
+    "f16MaximumTokens": 1,
+    "performanceOverridesAdded": false
+  },
+  "artifacts": {
+    "q4": {
+      "modelId": "qwen-3-5-9b-q4k-ehaf16",
+      "modelDir": "~/rdrr/qwen-3-5-9b-q4k-ehaf16",
+      "manifestSha256": "ac1eff7f371b7d676a5b9a7ddcf94e2d01d3e1043f499dede2fc41249ef55956",
+      "artifactIdentity": {
+        "artifactCompleteness": "complete",
+        "conversionConfigDigest": "sha256:f6d133e2c1dac198de40dbc653694851dcec527ff5e10cbc9fd5ca6cdc083626",
+        "manifestVariantId": "qwen-3-5-9b-q4k-ehaf16-mv-exec-v1",
+        "materializationProfile": "auto",
+        "modalitySet": [
+          "text"
+        ],
+        "shardSetHash": "sha256:27c1ba6d379e43eff7eae12b6ccc83081fe5248d1739e7877e82428d52daf228",
+        "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+        "sourceFormat": "safetensors",
+        "sourceRepo": "Qwen/Qwen3.5-9B",
+        "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "weightPackHash": "sha256:dfeea5dc362804bd197d1f96effea74c4cd803eb93b8304c633057f4f172f237",
+        "weightPackId": "qwen-3-5-9b-q4k-ehaf16-wp-catalog-v1"
+      },
+      "tensorDescriptor": {
+        "shard": 44,
+        "offset": 21626880,
+        "size": 28311552,
+        "shape": [
+          12288,
+          4096
+        ],
+        "dtype": "Q4_K_M",
+        "role": "matmul",
+        "group": "layer.0",
+        "layout": "row"
+      },
+      "tensorSegments": [
+        {
+          "shardIndex": 44,
+          "offset": 21626880,
+          "size": 28311552
+        }
+      ],
+      "packedTensorSha256": "f3f9c62827addc9c92d9af9ffa2b1e9e3252141ac5606b050a606ef8aa61bd10"
+    },
+    "f16": {
+      "modelId": "qwen-3-5-9b-f16-af32",
+      "modelDir": "~/rdrr/qwen-3-5-9b-f16-af32",
+      "manifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+      "artifactIdentity": {
+        "artifactCompleteness": "complete",
+        "conversionConfigDigest": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9",
+        "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+        "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
+        "materializationProfile": "auto",
+        "modalitySet": [
+          "text"
+        ],
+        "shardSetHash": "sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d",
+        "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+        "sourceFormat": "safetensors",
+        "sourceRepo": "Qwen/Qwen3.5-9B",
+        "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "weightPackHash": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+        "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1"
+      },
+      "tensorDescriptor": {
+        "spans": [
+          {
+            "shardIndex": 80,
+            "offset": 8388608,
+            "size": 58720256
+          },
+          {
+            "shardIndex": 81,
+            "offset": 0,
+            "size": 41943040
+          }
+        ],
+        "size": 100663296,
+        "shape": [
+          12288,
+          4096
+        ],
+        "dtype": "F16",
+        "role": "matmul",
+        "group": "layer.0"
+      },
+      "tensorSegments": [
+        {
+          "shardIndex": 80,
+          "offset": 8388608,
+          "size": 58720256
+        },
+        {
+          "shardIndex": 81,
+          "offset": 0,
+          "size": 41943040
+        }
+      ],
+      "packedTensorSha256": "cdd58e00a80cd407a8d25c63e374760d6e404567b2ec042c3b2498ac545bcf8d"
+    },
+    "q4Capture": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/q4-layer0-ffn-gate-full.json",
+      "sha256": "7234b3c5bbf5467adf5d791e8552ebc5744a64f81e7f7424104d8393f765b4e1",
+      "command": [
+        "node",
+        "tools/inspect-prefill-logits.js",
+        "--model-dir",
+        "../../rdrr/qwen-3-5-9b-q4k-ehaf16",
+        "--prompt",
+        "Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.",
+        "--runtime-profile",
+        "profiles/qwen-3-5-9b-metal-correctness",
+        "--max-tokens",
+        "16",
+        "--top-k",
+        "20",
+        "--watch-token",
+        "248046",
+        "--watch-token",
+        "63",
+        "--diagnostics-level",
+        "full",
+        "--diagnostics-op",
+        "layer.0.ffn.in",
+        "--diagnostics-op",
+        "layer.0.ffn.gate",
+        "--logits-out",
+        "reports/qwen-3-5-9b-metal/2026-07-12/q4-layer0-ffn-gate-full-logits.f32",
+        "--out",
+        "reports/qwen-3-5-9b-metal/2026-07-12/q4-layer0-ffn-gate-full.json"
+      ]
+    },
+    "f16Capture": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/f16-layer0-ffn-gate-full.json",
+      "sha256": "968f41faf2fc1540ec8e2833be9f7804018b73500ee3ebe937e68a1505f2a6e5",
+      "command": [
+        "node",
+        "tools/inspect-prefill-logits.js",
+        "--model-dir",
+        "../../rdrr/qwen-3-5-9b-f16-af32",
+        "--prompt",
+        "Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.",
+        "--runtime-profile",
+        "profiles/qwen-3-5-9b-metal-correctness",
+        "--max-tokens",
+        "1",
+        "--top-k",
+        "20",
+        "--watch-token",
+        "248046",
+        "--watch-token",
+        "63",
+        "--diagnostics-level",
+        "full",
+        "--diagnostics-op",
+        "layer.0.ffn.in",
+        "--diagnostics-op",
+        "layer.0.ffn.gate",
+        "--logits-out",
+        "reports/qwen-3-5-9b-metal/2026-07-12/f16-layer0-ffn-gate-full-logits.f32",
+        "--out",
+        "reports/qwen-3-5-9b-metal/2026-07-12/f16-layer0-ffn-gate-full.json"
+      ]
+    }
+  },
+  "decodedQ4": {
+    "blockCount": 196608,
+    "scaleCount": 1572864,
+    "minimumCount": 1572864,
+    "decodedWeightsSha256": "7ea8065d72af826a61fc27a5eab858eaf252ab16ecdbe9701cb1d1a9db7bdf58",
+    "weightStats": {
+      "elementCount": 50331648,
+      "min": -0.28502655029296875,
+      "max": 0.26359081268310547,
+      "mean": 0.000007396716030190949,
+      "std": 0.011263447294818252
+    }
+  },
+  "comparisons": {
+    "inputQ4VsF16": {
+      "elementCount": 4096,
+      "maxAbsDiff": 0.000024825334548950195,
+      "maxRelDiff": 0.2172512776713282,
+      "meanAbsDiff": 0.000004011019723915155,
+      "rmse": 0.0000050780143858584504,
+      "worstIndex": 2283,
+      "leftAtWorst": -0.288875013589859,
+      "rightAtWorst": -0.28885018825531006,
+      "cosineSimilarity": 0.9999999992629903
+    },
+    "q4GpuVsScalarReference": {
+      "elementCount": 12288,
+      "maxAbsDiff": 8.344650268554688e-7,
+      "maxRelDiff": 0.0021673636484737763,
+      "meanAbsDiff": 4.173293978911493e-8,
+      "rmse": 6.354751818538317e-8,
+      "worstIndex": 389,
+      "leftAtWorst": -0.62767493724823,
+      "rightAtWorst": -0.6276741027832031,
+      "cosineSimilarity": 0.9999999999998528
+    },
+    "f16GpuVsScalarOwnInput": {
+      "elementCount": 12288,
+      "maxAbsDiff": 0.0000025033950805664062,
+      "maxRelDiff": 0.004347810449710305,
+      "meanAbsDiff": 8.59973215601902e-8,
+      "rmse": 1.3297147344603175e-7,
+      "worstIndex": 12080,
+      "leftAtWorst": -1.2742323875427246,
+      "rightAtWorst": -1.2742348909378052,
+      "cosineSimilarity": 0.9999999999994142
+    },
+    "q4ScalarVsF16ScalarSameQ4Input": {
+      "elementCount": 12288,
+      "maxAbsDiff": 0.05161425657570362,
+      "maxRelDiff": 1.99506313542479,
+      "meanAbsDiff": 0.006010208358334194,
+      "rmse": 0.007551034730242163,
+      "worstIndex": 12205,
+      "leftAtWorst": -0.07504890859127045,
+      "rightAtWorst": -0.023434652015566826,
+      "cosineSimilarity": 0.9981637906100974
+    },
+    "q4GpuVsF16Gpu": {
+      "elementCount": 12288,
+      "maxAbsDiff": 0.05160520039498806,
+      "maxRelDiff": 1.9942030986057244,
+      "meanAbsDiff": 0.006010237315939637,
+      "rmse": 0.007551061583841115,
+      "worstIndex": 12205,
+      "leftAtWorst": -0.07504898309707642,
+      "rightAtWorst": -0.023443782702088356,
+      "cosineSimilarity": 0.9981637792457753
+    },
+    "f16ScalarOwnInputVsSameQ4Input": {
+      "elementCount": 12288,
+      "maxAbsDiff": 0.00003793835639953613,
+      "maxRelDiff": 0.24115926593002543,
+      "meanAbsDiff": 0.000003350883368484029,
+      "rmse": 0.00000431432004980856,
+      "worstIndex": 7575,
+      "leftAtWorst": -0.2695198953151703,
+      "rightAtWorst": -0.2695578336715698,
+      "cosineSimilarity": 0.9999999994110743
+    }
+  },
+  "artifactFiles": {
+    "packedQ4": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/packed-q4k.bin",
+      "byteLength": 28311552,
+      "sha256": "f3f9c62827addc9c92d9af9ffa2b1e9e3252141ac5606b050a606ef8aa61bd10"
+    },
+    "decodedScales": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/decoded-scales.f32",
+      "byteLength": 6291456,
+      "elementCount": 1572864,
+      "sha256": "ba9c71059304f991a90cac1a3167555dfb4bf7ddf88695cb5e15851ac2e80d13"
+    },
+    "decodedMinima": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/decoded-minima.f32",
+      "byteLength": 6291456,
+      "elementCount": 1572864,
+      "sha256": "40f4fd504a0a2b8e921a47acc38ee6149d6916c160d8c63f191e0f53e7d0e0a1"
+    },
+    "packedScaleBits": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/packed-scale-bits.u8",
+      "byteLength": 1572864,
+      "elementCount": 1572864,
+      "sha256": "c799b3bbf070c2e369d97b78dc554fb7d24852d3ddae9c04b907c213cb02b43d"
+    },
+    "packedMinBits": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/packed-min-bits.u8",
+      "byteLength": 1572864,
+      "elementCount": 1572864,
+      "sha256": "0b7d33860bff4ae5ec946ebb03b84bbec4d3079633abcdd7c4623ebbbba2a91b"
+    },
+    "blockD": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/block-d.f32",
+      "byteLength": 786432,
+      "elementCount": 196608,
+      "sha256": "ae30cbd685d5aebdb81428343ee6b20a8597ded4a679471aebf8bf6fda4b203a"
+    },
+    "blockDmin": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/block-dmin.f32",
+      "byteLength": 786432,
+      "elementCount": 196608,
+      "sha256": "308ebd76478a7f09602b1157a56fa616d29ed1c20dae207867770cb3ec030769"
+    },
+    "frozenActivation": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/frozen-activation.f32",
+      "byteLength": 16384,
+      "elementCount": 4096,
+      "sha256": "72d2a0c84a3df6c0e7e81ea2ca5c3c72d5f0dee00efd64ff68ff84745e97f23b"
+    },
+    "f16Activation": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/f16-activation.f32",
+      "byteLength": 16384,
+      "elementCount": 4096,
+      "sha256": "416defeb46e1c7ab75d38e7226dfed312ab06e4d6fb4c995a99a0049f75a0b63"
+    },
+    "q4GpuOutput": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/q4-gpu-output.f32",
+      "byteLength": 49152,
+      "elementCount": 12288,
+      "sha256": "075534284749040ebf88fec14e3600df522a876f79438d099a27d790fc462f9b"
+    },
+    "q4ReferenceOutput": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/q4-reference-output.f32",
+      "byteLength": 49152,
+      "elementCount": 12288,
+      "sha256": "856fa1114eb2a6db9589c2df8be6ce022032c51b784c03afec1d1c5453687e95"
+    },
+    "f16GpuOutput": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/f16-gpu-output.f32",
+      "byteLength": 49152,
+      "elementCount": 12288,
+      "sha256": "a6fe912312b81fc0d549ccf8b0a31cfc8effcc4a6ab4059c31589eb603828b01"
+    },
+    "f16ReferenceSameInput": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/f16-reference-same-input.f32",
+      "byteLength": 49152,
+      "elementCount": 12288,
+      "sha256": "9e7fc0fee847ca86bf5ba3bf29f452fb0b0550cdddb5293c768e458c03488718"
+    },
+    "f16ReferenceOwnInput": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle/f16-reference-own-input.f32",
+      "byteLength": 49152,
+      "elementCount": 12288,
+      "sha256": "273c18d7fb32702835229028da6d067326f9709fd9f500b7c8d7c490c0f4afb9"
+    }
+  },
+  "claimBoundary": {
+    "trainingImprovement": "Not evaluated or rerun.",
+    "baseModelInferenceCorrectness": "This receipt tests one layer-0 projection boundary only.",
+    "adapterInferenceCorrectness": "Not evaluated.",
+    "runtimePerformance": "Not measured or claimed."
+  }
+}
