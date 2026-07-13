@@ -68,6 +68,7 @@ Primary documentation index.
 - [WGSL Repair v9 Status](status/wgsl-repair-v9-2026-07-11.md) - historical Radeon-verified corpus and optimizer-harness receipt.
 - [WGSL Repair v10 Result](status/wgsl-repair-v10-2026-07-12.md) - Qwen 3.5 9B seed-11 SFT improves family-disjoint compiler-repair pass@1 from 8.36% to 88.29%, with semantic and promotion limits retained.
 - [WGSL Repair v12 Controlled-Lane Design](status/wgsl-repair-v12-design-2026-07-12.md) - full seed-ordered anchor/external/random controls plus short/long repair strata; harness-ready with no V12 outcome.
+- [Qwen 3.5 9B Doppler-Native Training Parity Design](status/qwen35-9b-doppler-native-training-parity-design-2026-07-12.md) - SAME-R backend-parity gates, implemented F16 frozen-weight mechanics, and explicit Qwen hybrid-graph blockers.
 - [WGSL ML Kernel Source Catalog v2](status/wgsl-kernel-source-catalog-v2-2026-07-12.md) - Pinned training, reference-only, and quarantined WebGPU ML sources, including MLC WebLLM.
 - [Training Migrations](training-migrations.md)
 

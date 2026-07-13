@@ -1,0 +1,137 @@
+{
+  "artifactType": "qwen35_9b_doppler_native_training_parity_design",
+  "schemaVersion": 1,
+  "experimentId": "doppler-qwen35-9b-native-training-parity",
+  "method": {
+    "id": "samer",
+    "name": "Swappable Approaches under Matched Evaluation and Replication",
+    "recursiveReading": "SAMER Applies Methods, Evaluates, Repeats",
+    "selectorAutomationClaimed": false
+  },
+  "trialStage": "proposed",
+  "task": {
+    "id": "wgsl_completion_repair",
+    "objective": "completion_only_causal_lm",
+    "teacher": null,
+    "targetAuthority": "stored_compiler_accepted_repaired_wgsl_spans"
+  },
+  "student": {
+    "modelId": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "layers": 32,
+    "linearAttentionLayers": 24,
+    "fullAttentionLayers": 8,
+    "adapter": {
+      "type": "lora",
+      "rank": 32,
+      "targetModules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ]
+    }
+  },
+  "approaches": {
+    "reference": {
+      "id": "gamma_pytorch_rocm",
+      "role": "qualified_reference_backend"
+    },
+    "candidate": {
+      "id": "doppler_webgpu_vulkan",
+      "role": "candidate_native_backend"
+    }
+  },
+  "independentVariable": "training_backend_and_declared_precision_bundle",
+  "frozenRims": [
+    "model_revision",
+    "tokenizer_identity",
+    "source_rows",
+    "row_order",
+    "initial_adapter_tensors",
+    "completion_mask",
+    "target_modules",
+    "optimizer_equations",
+    "microstep_budget",
+    "evaluation_prompts",
+    "artifact_checks"
+  ],
+  "precision": {
+    "mechanicsReference": "f16_frozen_weights_f32_activations_gradients_lora_and_optimizer",
+    "dopplerCandidate": "f16_frozen_weights_f32_activations_gradients_lora_and_optimizer",
+    "v12Gamma": "bf16_base_compute_with_peft_lora",
+    "boundary": "BF16 Gamma versus F16/F32 Doppler is behavioral backend-plus-precision comparison, not tensor-identity parity."
+  },
+  "gates": [
+    {
+      "id": "f16_projection_dx",
+      "maxAbsError": 0.000002,
+      "negativeControlMinimumDifference": 0.0001,
+      "status": "implemented_unexecuted"
+    },
+    {
+      "id": "full_attention_block",
+      "status": "pending"
+    },
+    {
+      "id": "linear_attention_block",
+      "requiredComponents": [
+        "in_proj_qkv",
+        "in_proj_z",
+        "in_proj_a",
+        "in_proj_b",
+        "short_convolution",
+        "recurrent_state",
+        "norm",
+        "out_proj"
+      ],
+      "status": "blocked_missing_backward"
+    },
+    {
+      "id": "one_qwen_microstep",
+      "minimumAdapterUpdateCosine": 0.999,
+      "maximumRelativeL2Error": 0.02,
+      "status": "blocked"
+    },
+    {
+      "id": "matched_training_prefix",
+      "minimumAdapterUpdateCosine": 0.995,
+      "status": "blocked"
+    },
+    {
+      "id": "peft_export_and_inference",
+      "status": "blocked"
+    },
+    {
+      "id": "sustained_candidate",
+      "status": "blocked"
+    }
+  ],
+  "implementedRevision": "4ee6406f",
+  "implementedSlice": [
+    "packed_f16_frozen_weight_input_gradient",
+    "f32_gradient_accumulation",
+    "both_weight_orientations",
+    "stopped_base_weight_gradient_elision",
+    "stopped_embedding_gradient_elision",
+    "f16_frozen_matrix_preservation",
+    "scalar_browser_oracle",
+    "perturbed_weight_negative_control"
+  ],
+  "blockingGaps": [
+    "qwen_linear_attention_backward",
+    "separate_gate_and_up_lora",
+    "qwen_gradient_checkpointing",
+    "matched_initial_adapter_import",
+    "peft_export_parity",
+    "sustained_adamw_accumulation_and_resume",
+    "doppler_adapter_inference_parity"
+  ],
+  "nativeQwen9bSupportClaimed": false,
+  "capabilityClaimed": false,
+  "promotionClaimed": false,
+  "claimBoundary": "Design plus unexecuted first mechanics slice only. No Qwen block, optimizer, adapter, compiler-capability, semantic-kernel, or promotion parity is established."
+}
