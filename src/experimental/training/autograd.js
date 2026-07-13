@@ -31,6 +31,19 @@ export const OpType = {
   CONV2D: 'conv2d',
 };
 
+export function resolveMatmulBackwardOptions(options = {}) {
+  const stopped = new Set(
+    (Array.isArray(options.stopGradInputs) ? options.stopGradInputs : [])
+      .map((value) => Math.floor(Number(value)))
+      .filter((value) => Number.isInteger(value))
+  );
+  return {
+    ...options,
+    computeGradInput: options.computeGradInput !== false && !stopped.has(0),
+    computeGradWeight: options.computeGradWeight !== false && !stopped.has(1),
+  };
+}
+
 const MAX_RESIDUAL_ELEMENTS_PER_DISPATCH = 65535 * 256;
 
 export class AutogradTape {
@@ -214,6 +227,10 @@ export class AutogradTape {
 
     if (backwardName === 'embed_backward') {
       const [indices, embeddings] = record.inputs;
+      if (Array.isArray(record.options?.stopGradInputs)
+        && record.options.stopGradInputs.some((value) => Math.floor(Number(value)) === 1)) {
+        return [];
+      }
       const gradWeight = await backwardKernels.runEmbedBackward(indices, gradOut, {
         numTokens: Math.max(1, Math.floor(Number(record.options?.numTokens) || 0)),
         hiddenSize: Math.max(1, Math.floor(Number(record.options?.hiddenSize) || 0)),
@@ -256,12 +273,18 @@ export class AutogradTape {
     }
 
     // Prepare options from registry metadata
-    const options = { ...record.options };
+    let options = { ...record.options };
     if (entry.params) {
       for (const param of entry.params) {
         if (options[param] === undefined && record.options[param] !== undefined) {
           options[param] = record.options[param];
         }
+      }
+    }
+    if (backwardName === 'matmul_backward') {
+      options = resolveMatmulBackwardOptions(options);
+      if (!options.computeGradInput && !options.computeGradWeight) {
+        return [];
       }
     }
 

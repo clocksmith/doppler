@@ -110,6 +110,10 @@ Action requirements:
   supported by Doppler's causal-LM LoRA runner/export path. The native internal
   runner loads the f16 base model, tokenizes text-pair rows, trains LoRA
   tensors, and writes verified external safetensors adapter packages. Registered
+  frozen f16 matrix weights remain packed during LoRA forward/backward; the
+  input-gradient kernel decodes binary16 weights into f32 accumulation and
+  stopped base weights do not allocate weight gradients. This is a memory and
+  mechanics prerequisite, not Qwen 3.5 support.
   q4k bases require `runLoraPipeline({ causalLmTrainer })` or
   `lora.trainer.modulePath`; the internal full-graph runner does not train
   packed q4k base weights. Causal-LM workloads must declare

@@ -38,6 +38,7 @@ import { releaseBuffer } from '../../../src/memory/buffer-pool.js';
 import { computeSampleStats } from '../../../src/debug/stats.js';
 import { resetSubmitStats, setTrackSubmits, getSubmitStats } from '../../../src/gpu/submit-tracker.js';
 import { getRuntimeConfig } from '../../../src/config/runtime.js';
+import { f16ToF32Array, f32ToF16Array } from '../../../src/inference/kv-cache/types.js';
 
 function toFloat32(arrayBuffer) {
   return new Float32Array(arrayBuffer);
@@ -48,6 +49,13 @@ function makeTensorFromFloat32(values, shape, label) {
   const buf = acquireBuffer(data.byteLength, undefined, label || 'train_tensor');
   uploadData(buf, data);
   return createTensor(buf, 'f32', shape, label || 'train_tensor');
+}
+
+function makeTensorFromFloat16(values, shape, label) {
+  const data = f32ToF16Array(values instanceof Float32Array ? values : new Float32Array(values));
+  const buf = acquireBuffer(data.byteLength, undefined, label || 'train_tensor_f16');
+  uploadData(buf, data);
+  return createTensor(buf, 'f16', shape, label || 'train_tensor_f16');
 }
 
 function makeTensorFromUint32(values, shape, label) {
@@ -288,6 +296,30 @@ async function testMatmulBackwardGradient() {
   const inputPass = compareArrays(gradInputGPU, gradInputCPU, KERNEL_TOLERANCES.matmul).passed;
   const weightPass = compareArrays(gradWeightGPU, gradWeightCPU, KERNEL_TOLERANCES.matmul).passed;
   if (!inputPass || !weightPass) {
+    return false;
+  }
+
+  const weightTensorF16 = makeTensorFromFloat16(weight, [K, N], 'matmul_weight_f16');
+  const f16Grads = await runMatmulBackward(inputTensor, weightTensorF16, gradTensor, {
+    M,
+    N,
+    K,
+    transposeB: false,
+    computeGradWeight: false,
+  });
+  const gradInputF16GPU = await readTensor(f16Grads.gradInput);
+  const roundedWeight = f16ToF32Array(f32ToF16Array(weight));
+  const gradInputF16CPU = new Float32Array(M * K);
+  for (let m = 0; m < M; m += 1) {
+    for (let k = 0; k < K; k += 1) {
+      let sum = 0;
+      for (let n = 0; n < N; n += 1) {
+        sum += gradOutput[m * N + n] * roundedWeight[k * N + n];
+      }
+      gradInputF16CPU[m * K + k] = sum;
+    }
+  }
+  if (!compareArrays(gradInputF16GPU, gradInputF16CPU, KERNEL_TOLERANCES.matmul).passed) {
     return false;
   }
 
