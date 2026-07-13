@@ -1,11 +1,24 @@
 import { parseSafetensorsHeader } from '../../formats/safetensors/types.js';
 import { uploadData } from '../../memory/buffer-pool.js';
 
-const ATTENTION_PROJECTIONS = Object.freeze(['q_proj', 'k_proj', 'v_proj', 'o_proj']);
-const MLP_PROJECTIONS = Object.freeze(['gate_proj', 'up_proj', 'down_proj']);
-const SUPPORTED_PROJECTIONS = new Set([...ATTENTION_PROJECTIONS, ...MLP_PROJECTIONS]);
+export const QWEN_PEFT_ATTENTION_PROJECTIONS = Object.freeze([
+  'q_proj',
+  'k_proj',
+  'v_proj',
+  'o_proj',
+]);
+export const QWEN_PEFT_MLP_PROJECTIONS = Object.freeze([
+  'gate_proj',
+  'up_proj',
+  'down_proj',
+]);
+export const QWEN_PEFT_PROJECTIONS = Object.freeze([
+  ...QWEN_PEFT_ATTENTION_PROJECTIONS,
+  ...QWEN_PEFT_MLP_PROJECTIONS,
+]);
+const SUPPORTED_PROJECTIONS = new Set(QWEN_PEFT_PROJECTIONS);
 const PROJECTION_ORDER = new Map(
-  [...ATTENTION_PROJECTIONS, ...MLP_PROJECTIONS].map((name, index) => [name, index])
+  QWEN_PEFT_PROJECTIONS.map((name, index) => [name, index])
 );
 
 function asArrayBuffer(data) {
@@ -32,7 +45,7 @@ function finiteNumber(value, label) {
   return parsed;
 }
 
-function normalizeLayerTypes(value) {
+export function normalizeQwenPeftLayerTypes(value) {
   if (!Array.isArray(value) || value.length < 1) {
     throw new Error('Qwen PEFT adapter import requires an explicit layerTypes array.');
   }
@@ -44,7 +57,7 @@ function normalizeLayerTypes(value) {
   });
 }
 
-function normalizeTargetModules(value) {
+export function normalizeQwenPeftTargetModules(value) {
   if (!Array.isArray(value) || value.length < 1) {
     throw new Error('Qwen PEFT adapter import requires targetModules.');
   }
@@ -120,7 +133,7 @@ function decodeTensor(buffer, tensor) {
   return { shape, values };
 }
 
-function transpose(values, rows, columns) {
+export function transposeQwenPeftMatrix(values, rows, columns) {
   const output = new Float32Array(values.length);
   for (let row = 0; row < rows; row += 1) {
     for (let column = 0; column < columns; column += 1) {
@@ -135,10 +148,10 @@ function canonicalTensorName(parsed) {
   return `layers.${parsed.layerIndex}.${branch}.${parsed.projection}.lora_${parsed.kind}`;
 }
 
-function expectedProjections(layerType, targetModules) {
+export function qwenPeftExpectedProjections(layerType, targetModules) {
   return [
-    ...(layerType === 'full_attention' ? ATTENTION_PROJECTIONS : []),
-    ...MLP_PROJECTIONS,
+    ...(layerType === 'full_attention' ? QWEN_PEFT_ATTENTION_PROJECTIONS : []),
+    ...QWEN_PEFT_MLP_PROJECTIONS,
   ].filter((name) => targetModules.includes(name));
 }
 
@@ -156,7 +169,10 @@ function validateTopology(tensors, config) {
 
   let expectedPairCount = 0;
   for (let layerIndex = 0; layerIndex < config.layerTypes.length; layerIndex += 1) {
-    for (const projection of expectedProjections(config.layerTypes[layerIndex], config.targetModules)) {
+    for (const projection of qwenPeftExpectedProjections(
+      config.layerTypes[layerIndex],
+      config.targetModules
+    )) {
       expectedPairCount += 1;
       const key = `${layerIndex}.${projection}`;
       const pair = pairs.get(key);
@@ -171,7 +187,10 @@ function validateTopology(tensors, config) {
   if (pairs.size !== expectedPairCount) {
     const expected = new Set();
     for (let layerIndex = 0; layerIndex < config.layerTypes.length; layerIndex += 1) {
-      for (const projection of expectedProjections(config.layerTypes[layerIndex], config.targetModules)) {
+      for (const projection of qwenPeftExpectedProjections(
+        config.layerTypes[layerIndex],
+        config.targetModules
+      )) {
         expected.add(`${layerIndex}.${projection}`);
       }
     }
@@ -186,8 +205,10 @@ export function parseQwenPeftAdapterSafetensors(data, options) {
   const config = {
     rank: positiveInteger(options?.rank ?? options?.r, 'Qwen PEFT rank'),
     alpha: finiteNumber(options?.alpha ?? options?.lora_alpha, 'Qwen PEFT alpha'),
-    targetModules: normalizeTargetModules(options?.targetModules ?? options?.target_modules),
-    layerTypes: normalizeLayerTypes(options?.layerTypes),
+    targetModules: normalizeQwenPeftTargetModules(
+      options?.targetModules ?? options?.target_modules
+    ),
+    layerTypes: normalizeQwenPeftLayerTypes(options?.layerTypes),
   };
   const parsedHeader = parseSafetensorsHeader(buffer);
   const tensors = [];
@@ -202,7 +223,7 @@ export function parseQwenPeftAdapterSafetensors(data, options) {
     if (!config.targetModules.includes(parsed.projection)) {
       throw new Error(`Qwen PEFT tensor ${tensor.name} is outside targetModules.`);
     }
-    const isAttention = ATTENTION_PROJECTIONS.includes(parsed.projection);
+    const isAttention = QWEN_PEFT_ATTENTION_PROJECTIONS.includes(parsed.projection);
     if ((isAttention && parsed.branch !== 'self_attn') || (!isAttention && parsed.branch !== 'mlp')) {
       throw new Error(`Qwen PEFT tensor ${tensor.name} has the wrong model branch.`);
     }
@@ -225,7 +246,7 @@ export function parseQwenPeftAdapterSafetensors(data, options) {
       sourceDtype: tensor.dtypeOriginal,
       sourceShape: decoded.shape,
       shape: [columns, rows],
-      data: transpose(decoded.values, rows, columns),
+      data: transposeQwenPeftMatrix(decoded.values, rows, columns),
     });
   }
   tensors.sort((left, right) => (

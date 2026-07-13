@@ -10,6 +10,29 @@ export type QwenPeftProjection =
   | 'up_proj'
   | 'down_proj';
 
+export declare const QWEN_PEFT_ATTENTION_PROJECTIONS: readonly QwenPeftProjection[];
+export declare const QWEN_PEFT_MLP_PROJECTIONS: readonly QwenPeftProjection[];
+export declare const QWEN_PEFT_PROJECTIONS: readonly QwenPeftProjection[];
+
+export declare function normalizeQwenPeftLayerTypes(
+  value: unknown
+): Array<'linear_attention' | 'full_attention'>;
+
+export declare function normalizeQwenPeftTargetModules(
+  value: unknown
+): QwenPeftProjection[];
+
+export declare function qwenPeftExpectedProjections(
+  layerType: 'linear_attention' | 'full_attention',
+  targetModules: QwenPeftProjection[]
+): QwenPeftProjection[];
+
+export declare function transposeQwenPeftMatrix(
+  values: Float32Array,
+  rows: number,
+  columns: number
+): Float32Array;
+
 export interface QwenPeftAdapterTensor {
   sourceName: string;
   canonicalName: string;

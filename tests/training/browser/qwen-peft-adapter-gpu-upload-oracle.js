@@ -4,6 +4,9 @@ import {
   parseQwenPeftAdapterSafetensors,
   uploadQwenPeftAdapterToLayers,
 } from '../../../src/experimental/training/qwen-peft-adapter-import.js';
+import {
+  exportQwenPeftAdapterFromLayers,
+} from '../../../src/experimental/training/qwen-peft-adapter-export.js';
 import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
 import {
@@ -88,7 +91,7 @@ function compareBits(actual, expected) {
 }
 
 export async function runQwenPeftAdapterGpuUploadOracle(input) {
-  if (!input?.weightsUrl || !input?.configUrl
+  if (!input?.weightsUrl || !input?.configUrl || !input?.baseModel
     || !input?.weightsSha256 || !input?.configSha256
     || !Array.isArray(input.layerTypes)) {
     throw new Error('Qwen PEFT GPU upload oracle requires weights, config, hash, and layer types.');
@@ -145,6 +148,38 @@ export async function runQwenPeftAdapterGpuUploadOracle(input) {
       maxAbsError = Math.max(maxAbsError, comparison.maxAbsError);
       comparedElementCount += comparison.elementCount;
     }
+    const exported = await exportQwenPeftAdapterFromLayers(layers, {
+      rank: adapter.rank,
+      alpha: adapter.alpha,
+      dropout: adapterConfig.lora_dropout,
+      baseModel: input.baseModel,
+      targetModules: adapter.targetModules,
+      layerTypes: adapter.layerTypes,
+    });
+    const exportedSha256 = await sha256Hex(exported.weights);
+    const exportedRoundTrip = parseQwenPeftAdapterSafetensors(
+      exported.weights,
+      {
+        r: exported.adapterConfig.r,
+        lora_alpha: exported.adapterConfig.lora_alpha,
+        target_modules: exported.adapterConfig.target_modules,
+        layerTypes: adapter.layerTypes,
+      }
+    );
+    let exportMismatchCount = 0;
+    let exportMaxAbsError = 0;
+    let exportComparedElementCount = 0;
+    for (let index = 0; index < adapter.tensors.length; index += 1) {
+      const expected = adapter.tensors[index];
+      const actual = exportedRoundTrip.tensors[index];
+      if (actual?.canonicalName !== expected.canonicalName) {
+        throw new Error(`Qwen PEFT export tensor order mismatch at index ${index}.`);
+      }
+      const comparison = compareBits(actual.data, expected.data);
+      exportMismatchCount += comparison.mismatchCount;
+      exportMaxAbsError = Math.max(exportMaxAbsError, comparison.maxAbsError);
+      exportComparedElementCount += comparison.elementCount;
+    }
     const expectedTensorCount = 256;
     const expectedPairCount = 128;
     const expectedElementCount = 58195968;
@@ -155,7 +190,14 @@ export async function runQwenPeftAdapterGpuUploadOracle(input) {
       && upload.elementCount === expectedElementCount
       && comparedElementCount === expectedElementCount
       && mismatchCount === 0
-      && maxAbsError === 0;
+      && maxAbsError === 0
+      && exported.tensorCount === expectedTensorCount
+      && exported.pairCount === expectedPairCount
+      && exported.elementCount === expectedElementCount
+      && exportedRoundTrip.elementCount === expectedElementCount
+      && exportComparedElementCount === expectedElementCount
+      && exportMismatchCount === 0
+      && exportMaxAbsError === 0;
     const capabilities = getKernelCapabilities();
     return {
       artifactType: 'qwen35_9b_peft_adapter_gpu_upload_oracle',
@@ -194,8 +236,23 @@ export async function runQwenPeftAdapterGpuUploadOracle(input) {
         maxAbsError,
         exactBitMatch: mismatchCount === 0,
       },
+      peftExport: {
+        baseModel: exported.adapterConfig.base_model_name_or_path,
+        weightsSha256: exportedSha256,
+        weightsBytes: exported.weights.byteLength,
+        configSha256: await sha256Hex(
+          new TextEncoder().encode(exported.adapterConfigJson)
+        ),
+        tensorCount: exported.tensorCount,
+        pairCount: exported.pairCount,
+        elementCount: exported.elementCount,
+        comparedElementCount: exportComparedElementCount,
+        bitMismatchCount: exportMismatchCount,
+        maxAbsError: exportMaxAbsError,
+        exactCanonicalRoundTrip: exportMismatchCount === 0,
+      },
       adapterInfo: capabilities.adapterInfo || null,
-      claimBoundary: 'Exact WebGPU upload and readback for all 256 production-topology rank-32 Qwen 3.5 9B LoRA tensors; not base-model loading, forward activation, training, PEFT export, inference coherence, compiler capability, or semantic WGSL evidence.',
+      claimBoundary: 'Exact WebGPU upload/readback and PEFT-format export round trip for all 256 production-topology rank-32 Qwen 3.5 9B LoRA tensors; an independent PEFT loader, base-model loading, forward activation, training, inference coherence, compiler capability, and semantic WGSL evidence remain absent.',
     };
   } finally {
     for (const tensor of ownedTensors) releaseBuffer(tensor.buffer);
