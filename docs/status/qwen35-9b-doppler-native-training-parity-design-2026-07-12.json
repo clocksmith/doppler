@@ -158,11 +158,22 @@
       "gpuComponentSlice": {
         "status": "passed_oracle_only",
         "kernels": [
+          "src/gpu/kernels/causal_conv1d_silu.wgsl",
           "src/gpu/kernels/backward/causal_conv1d_silu_backward.wgsl",
+          "src/gpu/kernels/gated_rmsnorm.wgsl",
           "src/gpu/kernels/backward/gated_rmsnorm_backward.wgsl",
-          "src/gpu/kernels/backward/gated_delta_recurrent_backward.wgsl"
+          "src/gpu/kernels/backward/gated_delta_recurrent_backward.wgsl",
+          "src/gpu/kernels/backward/gated_delta_recurrent_checkpoint_forward.wgsl",
+          "src/gpu/kernels/backward/gated_delta_recurrent_checkpointed_backward.wgsl"
         ],
         "oracle": "tests/training/browser/qwen-linear-attention-backward-oracle.js",
+        "coveredForwardOperations": [
+          "causal_conv_silu",
+          "gated_rmsnorm",
+          "gated_delta_checkpoint_output",
+          "gated_delta_checkpoint_states",
+          "gated_delta_final_state"
+        ],
         "coveredGradients": [
           "causal_conv_input",
           "gated_rmsnorm_input",
@@ -177,10 +188,10 @@
         "recurrentStateStrategy": "checkpoint_recompute_oracle",
         "productionStateStrategy": "bounded_checkpoint_recompute_mechanics_passed",
         "evidence": {
-          "sourceRevision": "83bb8622b0dd20eb5c567718b9f4f445d22b130f",
+          "sourceRevision": "0d9aaa06060704e324e05ff046200e634230ad21",
           "sourceDirty": false,
           "receiptPath": "reports/training/native-parity/qwen-linear-attention-backward-oracle.json",
-          "receiptSha256": "fbdfd3bfe2a01421e1708e56b9d887ad299de0a391d440fbac7a3b11bc501b91",
+          "receiptSha256": "a34845f8f085b904c76036bc6fe1186688d5c41d4bcffb2759e4a37e6734dee0",
           "maximumComparisonError": 5.960464477539063e-8,
           "negativeControlDifference": 0.11269691213965416,
           "backend": "webgpu_vulkan",
@@ -199,7 +210,7 @@
             "backward_initial_state"
           ]
         },
-        "claimBoundary": "Numerically verified bounded-memory recurrence and component kernels only; integrated linear-attention backward does not exist."
+        "claimBoundary": "Numerically verified causal-convolution, gated-RMSNorm, and bounded-memory recurrence component kernels only; integrated linear-attention forward/backward does not exist."
       }
     },
     {
@@ -223,7 +234,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "83bb8622b0dd20eb5c567718b9f4f445d22b130f",
+  "latestMechanicsRevision": "0d9aaa06060704e324e05ff046200e634230ad21",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -236,7 +247,9 @@
     "qwen_gated_delta_scalar_reverse_mode_reference",
     "qwen_gated_delta_scalar_checkpoint_recompute_reference",
     "qwen_linear_attention_component_reverse_mode_references",
+    "qwen_causal_conv_forward_candidate",
     "qwen_causal_conv_input_backward_candidate",
+    "qwen_gated_rmsnorm_forward_candidate",
     "qwen_gated_rmsnorm_input_gate_backward_candidate",
     "qwen_gated_delta_full_history_backward_candidate",
     "explicit_lora_kn_weight_orientation",
