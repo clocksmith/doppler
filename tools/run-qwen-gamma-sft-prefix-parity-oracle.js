@@ -121,6 +121,7 @@ async function main() {
       accumulator: 'src/experimental/training/qwen-gradient-accumulator.js',
       trainingState: 'src/experimental/training/qwen-adapter-training-state.js',
       fixture: 'src/experimental/training/qwen-sft-backend-parity-fixture.js',
+      parityHelpers: 'tests/training/browser/qwen-gamma-sft-microstep-parity-oracle.js',
       parityOracle: 'tests/training/browser/qwen-gamma-sft-prefix-parity-oracle.js',
       runner: 'tools/run-qwen-gamma-sft-prefix-parity-oracle.js',
       gammaBridge: 'tools/trainers/gamma-wgsl-trainer.js',
