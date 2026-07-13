@@ -1,4 +1,5 @@
 import { f16ToF32Array, f32ToF16Array } from '../../inference/kv-cache/types.js';
+import { sha256Hex } from '../../utils/sha256.js';
 
 function values(length, offset, scale) {
   return Float32Array.from(
@@ -65,6 +66,15 @@ export function createQwenSftBackendParityFixture(options = {}) {
     { length: cosine.length },
     (_, index) => Math.sin(index * 0.19)
   );
+  const prefixRows = [
+    { rowId: 'qwen-prefix-1', tokenIds: [1, 2, 3], targets: [-100, 4, 5] },
+    { rowId: 'qwen-prefix-2', tokenIds: [2, 4, 6], targets: [-100, 5, 7] },
+    { rowId: 'qwen-prefix-3', tokenIds: [3, 5, 7], targets: [-100, 6, 8] },
+    { rowId: 'qwen-prefix-4', tokenIds: [4, 6, 8], targets: [-100, 7, 9] },
+  ];
+  const consumedPrefixSha256 = sha256Hex(
+    JSON.stringify(prefixRows.map((row) => row.rowId))
+  );
   return {
     artifactType: 'qwen_sft_backend_parity_fixture',
     schemaVersion: 1,
@@ -90,6 +100,15 @@ export function createQwenSftBackendParityFixture(options = {}) {
     tokenIds: [1, 2, 3],
     targets: [-100, 4, 5],
     unmaskedTargets: [6, 4, 5],
+    prefixRows,
+    prefixContract: {
+      accumulationSteps: 2,
+      microstepCount: prefixRows.length,
+      optimizerStepCount: 2,
+      checkpointAfterMicrostep: 2,
+      checkpointAfterOptimizerStep: 1,
+      consumedPrefixSha256,
+    },
     frozen: {
       embedding: frozenTensor([model.vocabSize, model.hiddenSize], 3, 0.12),
       inputNorm: frozenTensor([model.hiddenSize], 59, 0.04),
@@ -139,6 +158,6 @@ export function createQwenSftBackendParityFixture(options = {}) {
       eps: 1e-8,
       weightDecay: 0.01,
     },
-    claimBoundary: 'Deterministic tiny one-full-layer rank-32 fixture with the pinned Qwen 3.5 decoder order, pre-shifted completion targets, and zero adapter dropout; not production Qwen geometry or the PEFT default initialization distribution.',
+    claimBoundary: 'Deterministic tiny one-full-layer rank-32 fixture with the pinned Qwen 3.5 decoder order, pre-shifted completion targets, a four-row matched prefix, and zero adapter dropout; not production Qwen geometry or the PEFT default initialization distribution.',
   };
 }
