@@ -7,8 +7,16 @@ import { f16ToF32Array, f32ToF16Array } from '../../../src/inference/kv-cache/ty
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../src/memory/buffer-pool.js';
 
 function makeTensor(values, dtype, shape, label) {
-  const buffer = acquireBuffer(values.byteLength, undefined, label);
-  uploadData(buffer, values);
+  const byteLength = Math.ceil(values.byteLength / 4) * 4;
+  const upload = byteLength === values.byteLength
+    ? values
+    : (() => {
+        const padded = new Uint8Array(byteLength);
+        padded.set(new Uint8Array(values.buffer, values.byteOffset, values.byteLength));
+        return padded;
+      })();
+  const buffer = acquireBuffer(byteLength, undefined, label);
+  uploadData(buffer, upload);
   return createTensor(buffer, dtype, shape, label);
 }
 
