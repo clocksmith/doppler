@@ -82,8 +82,12 @@ semantic kernel correctness.
   implements query, key, value, log-decay, beta, and initial-state gradients
   for the tiny oracle. It is intentionally not the production algorithm:
   retaining every recurrent state is infeasible at Qwen 9B dimensions.
-  Projection/LoRA integration and a bounded-memory checkpoint/recompute
-  schedule remain absent.
+  A scalar checkpoint/recompute schedule now reproduces the full-history
+  forward state and every backward gradient exactly. For 640 tokens, 32 heads,
+  128 key/value dimensions, and interval 32, its active recurrence-state
+  footprint is 28,311,552 F32 elements versus 336,068,608 for full history.
+  The corresponding GPU checkpoint/recompute schedule and projection/LoRA
+  integration remain absent.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is
   implemented after the initial design freeze, but its block-level GPU oracle
   is not yet sealed.
