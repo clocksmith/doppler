@@ -1,0 +1,1547 @@
+{
+  "artifactKind": "first_token_inference_receipt",
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-13T00:29:21.480Z",
+  "invocation": {
+    "workingDirectory": "repository root",
+    "executable": "node",
+    "script": "tools/inspect-prefill-logits.js",
+    "argv": [
+      "--model-dir",
+      "../../rdrr/qwen-3-5-9b-f16-af32",
+      "--prompt",
+      "Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.",
+      "--runtime-profile",
+      "profiles/qwen-3-5-9b-metal-correctness",
+      "--max-tokens",
+      "16",
+      "--top-k",
+      "20",
+      "--watch-token",
+      "248046",
+      "--watch-token",
+      "248044",
+      "--watch-token",
+      "63",
+      "--watch-token",
+      "69",
+      "--watch-token",
+      "18",
+      "--watch-token",
+      "17",
+      "--logits-out",
+      "reports/qwen-3-5-9b-metal/2026-07-12/f16-base-first-token-logits.f32",
+      "--out",
+      "reports/qwen-3-5-9b-metal/2026-07-12/f16-base-first-token.json"
+    ],
+    "command": [
+      "node",
+      "tools/inspect-prefill-logits.js",
+      "--model-dir",
+      "../../rdrr/qwen-3-5-9b-f16-af32",
+      "--prompt",
+      "Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.",
+      "--runtime-profile",
+      "profiles/qwen-3-5-9b-metal-correctness",
+      "--max-tokens",
+      "16",
+      "--top-k",
+      "20",
+      "--watch-token",
+      "248046",
+      "--watch-token",
+      "248044",
+      "--watch-token",
+      "63",
+      "--watch-token",
+      "69",
+      "--watch-token",
+      "18",
+      "--watch-token",
+      "17",
+      "--logits-out",
+      "reports/qwen-3-5-9b-metal/2026-07-12/f16-base-first-token-logits.f32",
+      "--out",
+      "reports/qwen-3-5-9b-metal/2026-07-12/f16-base-first-token.json"
+    ]
+  },
+  "dopplerCommit": "63a941f1bdf4a4cd38d213627d3e01132ab15956",
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "25.3.0",
+    "nodeVersion": "v22.20.0",
+    "cpuModel": "Apple M3",
+    "logicalCpuCount": 8,
+    "totalMemoryBytes": 25769803776,
+    "metal": {
+      "productVersion": "26.3",
+      "buildVersion": "25D125",
+      "adapter": {
+        "name": "Apple M3",
+        "model": "Apple M3",
+        "gpuCoreCount": 10,
+        "metalFamilySupport": "spdisplays_metal4"
+      }
+    }
+  },
+  "modelId": "qwen-3-5-9b-f16-af32",
+  "modelSource": {
+    "kind": "local_directory",
+    "path": "../../rdrr/qwen-3-5-9b-f16-af32"
+  },
+  "artifactIdentity": {
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+    "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
+    "materializationProfile": "auto",
+    "modalitySet": [
+      "text"
+    ],
+    "shardSetHash": "sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d",
+    "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+    "sourceFormat": "safetensors",
+    "sourceRepo": "Qwen/Qwen3.5-9B",
+    "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "weightPackHash": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+    "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1"
+  },
+  "artifactFiles": {
+    "manifest.json": {
+      "bytes": 300741,
+      "sha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398"
+    },
+    "tokenizer.json": {
+      "bytes": 9088480,
+      "sha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+    },
+    "origin.json": {
+      "bytes": 237,
+      "sha256": "0099b37f79a12bc2663adb7f4851852d2aa773f03bd892d34ec91b18aae97c3b"
+    }
+  },
+  "artifactSummary": {
+    "modelId": "qwen-3-5-9b-f16-af32",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9",
+      "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+      "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
+      "materializationProfile": "auto",
+      "modalitySet": [
+        "text"
+      ],
+      "shardSetHash": "sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d",
+      "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+      "sourceFormat": "safetensors",
+      "sourceRepo": "Qwen/Qwen3.5-9B",
+      "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "weightPackHash": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+      "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1"
+    },
+    "shardCount": 267,
+    "totalSize": 17907606528
+  },
+  "runtimeProfile": "profiles/qwen-3-5-9b-metal-correctness",
+  "ok": true,
+  "adapter": null,
+  "resolvedRuntimeConfig": {
+    "shared": {
+      "debug": {
+        "logOutput": {
+          "stdout": false,
+          "file": null,
+          "append": true
+        },
+        "logHistory": {
+          "maxLogHistoryEntries": 100
+        },
+        "logLevel": {
+          "defaultLogLevel": "error"
+        },
+        "trace": {
+          "enabled": false,
+          "categories": [
+            "all"
+          ],
+          "layers": null,
+          "maxDecodeSteps": 0,
+          "file": null
+        },
+        "pipeline": {
+          "enabled": false,
+          "categories": [],
+          "layers": null,
+          "maxDecodeSteps": 0,
+          "maxAbsThreshold": 10000,
+          "bufferStats": false,
+          "readbackSampleSize": 512
+        },
+        "loader": {
+          "enabled": false,
+          "forceGpuDequant": false,
+          "preferCpuDequant": false,
+          "failOnCpuDequantPath": false,
+          "runQ4KDequantParity": false,
+          "q4kDequantParitySamples": 256
+        },
+        "matmul": {
+          "enabled": false,
+          "forceSplitQKV": false,
+          "validateAttentionWeightBuffer": false,
+          "failOnSmallAttentionWeightBuffer": false,
+          "logAttentionWeightBuffer": false,
+          "logProjectionValues": false
+        },
+        "kernelTrace": {
+          "layers": [],
+          "breakOnAnomaly": false,
+          "explosionThreshold": 10,
+          "collapseThreshold": 0.000001,
+          "maxSteps": 5000
+        },
+        "probes": [],
+        "profiler": {
+          "enabled": false,
+          "queryCapacity": 256,
+          "maxQueries": 16384,
+          "defaultQueryLimit": 4096,
+          "maxSamples": 100,
+          "maxDurationMs": 60000,
+          "logEveryDecodeSteps": 64,
+          "maxHistoryLabels": 1024
+        },
+        "perfGuards": {
+          "allowGPUReadback": true,
+          "trackSubmitCount": false,
+          "trackAllocations": false,
+          "logExpensiveOps": false,
+          "strictMode": false
+        }
+      },
+      "benchmark": {
+        "output": {
+          "schemaVersion": 1
+        },
+        "run": {
+          "promptName": "medium",
+          "customPrompt": null,
+          "maxNewTokens": 128,
+          "seed": null,
+          "runType": "warm",
+          "warmupRuns": 2,
+          "timedRuns": 3,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1
+          },
+          "debug": false,
+          "profile": false,
+          "captureMemoryTimeSeries": false,
+          "memoryTimeSeriesIntervalMs": 100
+        },
+        "stats": {
+          "outlierIqrMultiplier": 1.5,
+          "warmupStabilityPercent": 10,
+          "thermalSlowdownPercent": 10,
+          "minSamplesForComparison": 3
+        },
+        "comparison": {
+          "regressionThresholdPercent": 10,
+          "failOnRegression": true
+        },
+        "baselines": {
+          "enabled": true,
+          "file": "tests/baselines.json",
+          "failOnOutOfRange": true,
+          "requireQualityOk": true
+        }
+      },
+      "harness": {
+        "mode": "verify",
+        "workload": "kernels",
+        "autorun": false,
+        "skipLoad": false,
+        "modelId": null,
+        "trainingBench": {
+          "ebmRecorded": {
+            "dims": {
+              "M": 128,
+              "K": 512,
+              "H": 1024,
+              "O": 1
+            }
+          }
+        }
+      },
+      "tooling": {
+        "intent": "verify",
+        "diagnostics": "on_failure",
+        "converter": null
+      },
+      "ecosystem": {
+        "schemaVersion": 1,
+        "tenantTrust": {
+          "enabled": false,
+          "sso": {
+            "required": false,
+            "providers": [
+              "oidc"
+            ]
+          },
+          "rbac": {
+            "enforced": true,
+            "roleModel": "org-project"
+          },
+          "namespaceOwnership": {
+            "enforced": true
+          },
+          "publishSigning": {
+            "required": true,
+            "algorithm": "ed25519"
+          }
+        },
+        "publishWorkflow": {
+          "enabled": false,
+          "channels": [
+            "canary",
+            "stable"
+          ],
+          "gates": {
+            "schemaValidation": true,
+            "metadataValidation": true,
+            "reproducibilityCheck": false,
+            "malwareScan": false
+          },
+          "rollback": {
+            "enabled": true,
+            "maxRollbackDepth": 20
+          }
+        },
+        "discovery": {
+          "enabled": false,
+          "ranking": {
+            "mode": "policy",
+            "signals": {
+              "qualityEvidenceWeight": 0.35,
+              "trustWeight": 0.25,
+              "compatibilityWeight": 0.2,
+              "adoptionWeight": 0.2
+            },
+            "minEvidenceRuns": 1
+          },
+          "badges": {
+            "enabled": true
+          },
+          "recommendations": {
+            "enabled": true,
+            "dependencyAware": true
+          }
+        },
+        "artifactRegistry": {
+          "enabled": true,
+          "types": [
+            "model",
+            "dataset",
+            "adapter",
+            "eval",
+            "prompt",
+            "app"
+          ],
+          "linking": {
+            "enforced": true,
+            "signedLinks": true
+          }
+        },
+        "hostedAccess": {
+          "enabled": false,
+          "apiKeys": {
+            "enabled": true,
+            "rotationDays": 90
+          },
+          "quotas": {
+            "enabled": true,
+            "defaultRequestsPerMinute": 600,
+            "burstMultiplier": 2
+          },
+          "billing": {
+            "meteringEnabled": false,
+            "currency": "usd"
+          },
+          "endpoints": {
+            "managedInference": true
+          }
+        },
+        "compliance": {
+          "enabled": false,
+          "auditLog": {
+            "immutable": true,
+            "retentionDays": 3650,
+            "legalHold": true
+          },
+          "jurisdiction": {
+            "enabled": false,
+            "defaultRegion": "global"
+          },
+          "takedown": {
+            "automated": false,
+            "slaHours": 24
+          },
+          "exportControl": {
+            "enabled": false,
+            "denyUnknownClassification": true
+          }
+        },
+        "provenance": {
+          "enabled": true,
+          "notarization": {
+            "requiredForPublic": true,
+            "allowUnsignedPrivate": false,
+            "algorithm": "ed25519"
+          },
+          "attestations": {
+            "required": true,
+            "formats": [
+              "slsa-v1"
+            ]
+          },
+          "revocation": {
+            "enabled": true,
+            "propagationSlaMinutes": 15
+          }
+        },
+        "developerEcosystem": {
+          "enabled": true,
+          "sdks": {
+            "js": true,
+            "python": true,
+            "agents": true
+          },
+          "ciHooks": {
+            "publishVerifyPromote": true
+          },
+          "migrations": {
+            "hfImport": true,
+            "registryAdapters": true
+          },
+          "contracts": {
+            "stability": "semver"
+          }
+        },
+        "networkEffects": {
+          "enabled": false,
+          "socialSignals": {
+            "follows": true,
+            "stars": true,
+            "trends": true
+          },
+          "trustScores": {
+            "enabled": true,
+            "decayHalfLifeDays": 30
+          },
+          "incentives": {
+            "enabled": false,
+            "mode": "credits"
+          }
+        },
+        "abuse": {
+          "enabled": true,
+          "antiSybil": {
+            "enabled": false,
+            "minCost": "none"
+          },
+          "investigation": {
+            "enabled": true,
+            "queueSlaHours": 24
+          },
+          "enforcement": {
+            "mode": "progressive",
+            "allowAppeal": true,
+            "recoveryWindowDays": 30
+          }
+        },
+        "qualityEvidence": {
+          "enabled": true,
+          "registry": {
+            "requiredForRanking": true,
+            "immutableHistory": true
+          },
+          "gating": {
+            "promotionRequiresEvidence": false,
+            "minVerifiedRuns": 3
+          },
+          "verifiability": {
+            "requireArtifactBinding": true,
+            "requireSignedRuns": false
+          }
+        },
+        "reliability": {
+          "enabled": true,
+          "edgeRelay": {
+            "policy": "hybrid",
+            "minRelayRegions": 2
+          },
+          "failover": {
+            "tiers": [
+              "peer",
+              "relay",
+              "origin"
+            ],
+            "maxTierSwitches": 3
+          },
+          "sla": {
+            "enabled": false,
+            "targetAvailability": 0.999,
+            "targetP95Ms": 2000
+          }
+        }
+      },
+      "platform": null,
+      "kernelRegistry": {
+        "url": null
+      },
+      "kernelThresholds": {
+        "matmul": {
+          "multicolThreshold": 256,
+          "tiledPrefillMinRows": 32
+        },
+        "rmsnorm": {
+          "smallThreshold": 256
+        },
+        "softmax": {
+          "smallThreshold": 256
+        },
+        "ffn": {
+          "multiOutputThreshold": 1024
+        },
+        "sample": {
+          "argmaxReduceVocabThreshold": 65536,
+          "singlePassTopKThreshold": 100
+        },
+        "rope": {
+          "defaultTheta": 10000,
+          "uniformSize": 32,
+          "defaultStartPos": 0
+        },
+        "attention": {
+          "chunkedMaxKVLen": 2048,
+          "minHeadDimForChunked": 128,
+          "tierHeadDimLimits": {
+            "tier3": 64,
+            "tier2": 128,
+            "tier1": 256
+          },
+          "tierMinSharedMemory": {
+            "tier3": 16384,
+            "tier2": 32768,
+            "tier1": 65536
+          },
+          "largeMaxHeadDim": 64,
+          "smallMaxHeadDim": 256,
+          "subgroupMaxHeadDim": 256,
+          "largeSharedF32": 20480,
+          "largeSharedF16": 49152,
+          "smallSharedF32": 8192,
+          "smallSharedF16": 4096,
+          "subgroupShared": 8192
+        },
+        "fusedMatmul": {
+          "maxMediumN": 4096,
+          "maxMediumK": 8192,
+          "colsPerWg": 4
+        },
+        "cast": {
+          "maxWorkgroupsPerDim": 65535
+        },
+        "tuner": {
+          "maxComputeWorkgroupSizeX": 256,
+          "maxComputeWorkgroupSizeY": 256,
+          "maxComputeInvocationsPerWorkgroup": 256
+        }
+      },
+      "kernelWarmup": {
+        "prewarm": false,
+        "prewarmMode": "parallel",
+        "autoTune": false
+      },
+      "bufferPool": {
+        "bucket": {
+          "minBucketSizeBytes": 256,
+          "largeBufferThresholdBytes": 65536,
+          "largeBufferStepBytes": 65536
+        },
+        "limits": {
+          "maxBuffersPerBucket": 8,
+          "maxTotalPooledBuffers": 64
+        },
+        "alignment": {
+          "alignmentBytes": 256
+        },
+        "budget": {
+          "maxTotalBytes": 0,
+          "highWatermarkRatio": 0.9,
+          "emergencyTrimTargetRatio": 0.75,
+          "hardFailOnBudgetExceeded": true
+        }
+      },
+      "gpuCache": {
+        "uniformCacheMaxEntries": 256,
+        "uniformCacheMaxAgeMs": 60000
+      },
+      "memory": {
+        "heapTesting": {
+          "heapTestSizes": [
+            17179869184,
+            8589934592,
+            4294967296,
+            2147483648,
+            1073741824
+          ],
+          "fallbackMaxHeapBytes": 1073741824
+        },
+        "segmentTesting": {
+          "segmentTestSizes": [
+            1073741824,
+            536870912,
+            268435456,
+            134217728
+          ],
+          "safeSegmentSizeBytes": 268435456
+        },
+        "addressSpace": {
+          "targetAddressSpaceBytes": 8589934592
+        },
+        "segmentAllocation": {
+          "fallbackSegmentSizeBytes": 4294967296,
+          "segmentFallbackSizes": [
+            536870912,
+            268435456,
+            134217728
+          ]
+        },
+        "emulatedStorage": {
+          "vramBudgetBytes": 4294967296,
+          "ramBudgetBytes": 17179869184
+        }
+      },
+      "tuner": {
+        "cacheKeyPrefix": "doppler_kernel_tune_",
+        "defaultWarmupIterations": 3,
+        "defaultTimedIterations": 10,
+        "fallbackWorkgroupSizes": {
+          "matmul": [
+            16,
+            16,
+            1
+          ],
+          "attention": [
+            256,
+            1,
+            1
+          ],
+          "rmsnorm": [
+            256,
+            1,
+            1
+          ],
+          "softmax": [
+            256,
+            1,
+            1
+          ],
+          "dequant": [
+            64,
+            1,
+            1
+          ],
+          "default": [
+            256,
+            1,
+            1
+          ]
+        }
+      },
+      "hotSwap": {
+        "enabled": false,
+        "localOnly": false,
+        "allowUnsignedLocal": false,
+        "policyVersion": 1,
+        "rollout": {
+          "mode": "shadow",
+          "canaryPercent": 0,
+          "cohortSalt": "doppler-hotswap-v1",
+          "optInAllowlist": []
+        },
+        "trustedSigners": [],
+        "manifestUrl": null
+      },
+      "intentBundle": {
+        "enabled": false,
+        "bundleUrl": null,
+        "bundle": null,
+        "requireBaseModelHash": true,
+        "requireKernelRegistryVersion": true,
+        "enforceDeterministicOutput": false
+      },
+      "bridge": {
+        "maxReadSizeBytes": 104857600,
+        "allowedDirectories": "/Users:/home:/tmp:/var/tmp",
+        "timeouts": {
+          "pingTimeoutMs": 5000,
+          "readTimeoutMs": 60000,
+          "listTimeoutMs": 30000,
+          "defaultTimeoutMs": 30000
+        }
+      }
+    },
+    "loading": {
+      "storage": {
+        "quota": {
+          "lowSpaceThresholdBytes": 524288000,
+          "criticalSpaceThresholdBytes": 104857600,
+          "monitorIntervalMs": 30000
+        },
+        "vramEstimation": {
+          "unifiedMemoryRatio": 0.5,
+          "fallbackVramBytes": 4294967296,
+          "lowVramHeadroomBytes": 524288000
+        },
+        "alignment": {
+          "bufferAlignmentBytes": 4096
+        },
+        "backend": {
+          "backend": "auto",
+          "opfs": {
+            "useSyncAccessHandle": false,
+            "maxConcurrentHandles": 2
+          },
+          "indexeddb": {
+            "dbName": "doppler-models",
+            "shardStore": "shards",
+            "metaStore": "meta",
+            "chunkSizeBytes": 4194304
+          },
+          "memory": {
+            "maxBytes": 536870912
+          },
+          "streaming": {
+            "readChunkBytes": 4194304,
+            "maxInFlightBytes": 67108864,
+            "useByob": true
+          }
+        }
+      },
+      "distribution": {
+        "concurrentDownloads": 3,
+        "maxRetries": 3,
+        "initialRetryDelayMs": 1000,
+        "maxRetryDelayMs": 30000,
+        "maxChunkSizeBytes": 8388608,
+        "cdnBasePath": null,
+        "sourceOrder": [
+          "cache",
+          "p2p",
+          "http"
+        ],
+        "sourceMatrix": {
+          "cache": {
+            "onHit": "return",
+            "onMiss": "next",
+            "onFailure": "next"
+          },
+          "p2p": {
+            "onHit": "return",
+            "onMiss": "next",
+            "onFailure": "next"
+          },
+          "http": {
+            "onHit": "return",
+            "onMiss": "terminal",
+            "onFailure": "terminal"
+          }
+        },
+        "sourceDecision": {
+          "deterministic": true,
+          "trace": {
+            "enabled": false,
+            "includeSkippedSources": true,
+            "samplingRate": 1
+          }
+        },
+        "antiRollback": {
+          "enabled": true,
+          "requireExpectedHash": true,
+          "requireExpectedSize": false,
+          "requireManifestVersionSet": true
+        },
+        "p2p": {
+          "enabled": false,
+          "timeoutMs": 3000,
+          "maxRetries": 1,
+          "retryDelayMs": 250,
+          "contractVersion": 1,
+          "transport": null,
+          "controlPlane": {
+            "enabled": false,
+            "contractVersion": 1,
+            "tokenRefreshSkewMs": 5000,
+            "tokenProvider": null,
+            "policyEvaluator": null
+          },
+          "webrtc": {
+            "enabled": false,
+            "peerId": null,
+            "requestTimeoutMs": 2500,
+            "maxPayloadBytes": 67108864,
+            "selectPeer": null,
+            "getDataChannel": null
+          },
+          "security": {
+            "requireSessionToken": false,
+            "sessionToken": null,
+            "tokenExpiresAtMs": null
+          },
+          "abuse": {
+            "rateLimitPerMinute": 0,
+            "maxConsecutiveFailures": 3,
+            "quarantineMs": 30000
+          }
+        },
+        "progressUpdateIntervalMs": 100,
+        "requiredContentEncoding": null
+      },
+      "shardCache": {
+        "opfsEntries": 2,
+        "networkEntries": 16,
+        "moeMaxEntries": 16,
+        "verifyHashes": true,
+        "maxConcurrentLoads": 0,
+        "rangeCacheBlockBytes": 0,
+        "rangeCacheMaxBytes": 0,
+        "rangeCacheMinBytes": 0
+      },
+      "memoryManagement": {
+        "flushIntervalLayers": 4,
+        "flushThresholdBytes": 268435456,
+        "gpuQueueFlushLayers": 4,
+        "logIntervalMs": 30000,
+        "budget": {
+          "enabled": true,
+          "maxResidentBytes": null,
+          "systemMemoryFraction": 0.5,
+          "reserveBytes": 2147483648,
+          "minimumBudgetBytes": 1073741824
+        }
+      },
+      "prefetch": {
+        "enabled": true,
+        "layersAhead": 1,
+        "maxShards": 8,
+        "allowRangeLoaderPrefetch": false
+      },
+      "opfsPath": {
+        "opfsRootDir": "doppler-models"
+      },
+      "expertCache": {
+        "defaultSizeBytes": 2147483648,
+        "maxBufferPercentage": 0.25,
+        "maxBufferFallbackBytes": 268435456,
+        "evictionHighWatermark": 0.9,
+        "emergencyTrimToRatio": 0.75,
+        "gptOssPager": {
+          "enabled": true,
+          "maxResidentLayers": 2
+        }
+      },
+      "allowF32UpcastNonMatmul": false
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 16,
+        "batchSize": 1,
+        "stopCheckMode": "batch",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "sampling": {
+        "temperature": 0.7,
+        "topP": 0.95,
+        "topK": 50,
+        "repetitionPenalty": 1.1,
+        "greedyThreshold": 0.01,
+        "repetitionPenaltyWindow": 100,
+        "suppressSpecialTokens": false,
+        "suppressSpecialLikeTokens": false,
+        "suppressTokenIds": []
+      },
+      "compute": {},
+      "tokenizer": {},
+      "largeWeights": {
+        "enabled": true,
+        "safetyRatio": 0.9,
+        "preferF16": true,
+        "lmHeadChunkRows": null,
+        "gpuResidentOverrides": null
+      },
+      "kvcache": {
+        "maxSeqLen": 256,
+        "gpuPagedFallbackMaxSeqLen": 4096,
+        "kvDtype": "f16",
+        "forceF32Softcap": false,
+        "layout": "contiguous",
+        "pageSize": 256,
+        "bdpaVocabSize": 2048,
+        "windowSize": 1024,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "diffusion": {},
+      "diffusionGemma": {},
+      "energy": {},
+      "moe": {
+        "routing": {
+          "numExperts": 8,
+          "topK": 2,
+          "normalizeWeights": true,
+          "routerDtype": "f32",
+          "maxTokensPerExpert": 0,
+          "maxTokensPerExpertHeadroom": 2,
+          "maxTokensPerExpertMin": 4,
+          "maxTokensPerExpertCap": 0,
+          "activeExpertSelection": "all"
+        },
+        "cache": {
+          "dequantCacheMaxEntries": 128
+        }
+      },
+      "speculative": {
+        "numDraftTokens": 5,
+        "maxRejectionRetries": 3,
+        "enableTreeDraft": false,
+        "temperature": 1,
+        "randomSeed": null
+      },
+      "generation": {
+        "maxTokens": 256,
+        "multimodalMaxTokens": 512,
+        "disableMultiTokenDecode": false
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "model",
+          "manifest",
+          "config"
+        ],
+        "allowSources": [
+          "model",
+          "manifest",
+          "config"
+        ],
+        "onIncompatible": "remap"
+      },
+      "chatTemplate": {
+        "enabled": null,
+        "type": null,
+        "thinking": false
+      },
+      "session": {
+        "kvcache": {
+          "maxSeqLen": 256,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f16",
+          "forceF32Softcap": false,
+          "layout": "contiguous",
+          "pageSize": 256,
+          "bdpaVocabSize": 2048,
+          "windowSize": 1024,
+          "tiering": {
+            "mode": "off",
+            "hotWindow": 1024,
+            "coldPageSize": 256,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "none",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "auto",
+              "minAluBwRatio": 0
+            }
+          },
+          "quantization": {
+            "mode": "none",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        },
+        "speculation": {
+          "mode": "none",
+          "tokens": 1,
+          "verify": "greedy",
+          "threshold": null,
+          "rollbackOnReject": true
+        },
+        "prefillChunkSubmitMode": "sync",
+        "prefillChunkLayers": 4,
+        "prefillTokenChunkSize": null,
+        "skipEmbeddingKVCacheWrites": false,
+        "useFlashPrefillAttention": false,
+        "useFusedGateUpGelu": false,
+        "useLargeBatchF16F32FusedGateUp": false,
+        "useTiledQ4KPrefill": false,
+        "retainQ4KMaterialization": false,
+        "useWideTileQ4KPrefill": false,
+        "useWideTileQ4KDecode": false,
+        "useSandwichRMSNormPairFusion": false,
+        "usePostFfnNextInputRMSNormPairFusion": false,
+        "usePostAttnNormFusedGateUp": false,
+        "fusedFfnQ4K": null,
+        "lmHeadArgmaxQ4K": null,
+        "attentionDecodeOnline": null,
+        "useLinearAttentionABProjectionFusion": false,
+        "useLinearAttentionQKVZProjectionFusion": false,
+        "useLinearAttentionFusedDecodeCore": false,
+        "useOrtFlashPrefillAttention": false,
+        "useWideTileResidualFusion": false,
+        "useFusedRmsnormWideTile": false,
+        "useFusedQKVSplitQKNorm": false,
+        "useFusedQKVSplitQKNormRoPE": false,
+        "useGreedyLmHeadArgmaxFusion": false,
+        "decodeLoop": {
+          "batchSize": 1,
+          "stopCheckMode": "batch",
+          "readbackInterval": 1,
+          "readbackMode": "sequential",
+          "submitLatencyThresholdMs": null,
+          "maxBatchDecodeTokens": null,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1,
+          "disableCommandBatching": false
+        }
+      },
+      "executionPatch": {
+        "addKernels": [],
+        "set": [],
+        "remove": [],
+        "add": []
+      }
+    },
+    "emulation": {
+      "enabled": false,
+      "targetChip": "gh200",
+      "timingMode": "functional",
+      "gpuSpec": {
+        "name": "H200",
+        "vramBytes": 154618822656,
+        "hbmBandwidthBytesPerSec": 4800000000000,
+        "fp16Tflops": 1979
+      },
+      "cpuSpec": {
+        "name": "Grace",
+        "cores": 72,
+        "memoryBytes": 515396075520,
+        "memoryBandwidthBytesPerSec": 546000000000
+      },
+      "topology": {
+        "gpuCount": 1,
+        "gpusPerNode": 1,
+        "nodeCount": 1,
+        "cpuCount": 1
+      },
+      "nvlink": {
+        "bandwidthBytesPerSec": 900000000000,
+        "latencyUs": 1
+      },
+      "nvlinkC2C": {
+        "bandwidthBytesPerSec": 900000000000,
+        "latencyUs": 0.5,
+        "coherent": true
+      },
+      "parallelism": {
+        "tensorParallel": {
+          "enabled": false,
+          "degree": 1
+        },
+        "pipelineParallel": {
+          "enabled": false,
+          "stages": 1,
+          "microBatches": 1
+        },
+        "dataParallel": {
+          "enabled": false,
+          "degree": 1
+        },
+        "expertParallel": {
+          "enabled": false,
+          "degree": 1
+        }
+      },
+      "timingScaling": {
+        "computeScale": 1,
+        "memoryScale": 1,
+        "nvlinkScale": 1
+      },
+      "opfsRootPath": "emulation",
+      "maxActiveWorkingSetBytes": 4294967296,
+      "statsEnabled": true,
+      "logOperations": false
+    }
+  },
+  "prompt": "Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.",
+  "useChatTemplate": true,
+  "gpu": {
+    "provider": "webgpu",
+    "capabilities": {
+      "hasSubgroups": true,
+      "hasSubgroupsF16": true,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967295,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 32768,
+      "adapterInfo": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "apple-m3",
+        "description": "Metal driver on macOS Version 26.3 (Build 25D125)"
+      },
+      "submitProbeMs": 6.238750000000039
+    }
+  },
+  "kernelPathId": "qwen-3-5-9b-f16-af32-execution-inline",
+  "kernelPathSource": "none",
+  "executionPlan": {
+    "primary": {
+      "id": "primary",
+      "kernelPathId": "qwen-3-5-9b-f16-af32-execution-inline",
+      "kernelPathSource": "execution-v1",
+      "activationDtype": "f32",
+      "readbackInterval": 1,
+      "readbackMode": "sequential",
+      "batchSize": 1,
+      "stopCheckMode": "batch",
+      "disableCommandBatching": false,
+      "ringTokens": 1,
+      "ringStop": 1,
+      "ringStaging": 1
+    },
+    "fallback": null,
+    "activePlanIdAtStart": "primary",
+    "finalActivePlanId": "primary",
+    "transitions": []
+  },
+  "promptTokens": {
+    "count": 31,
+    "ids": [
+      248045,
+      846,
+      198,
+      15666,
+      440,
+      6681,
+      279,
+      94693,
+      7733,
+      16764,
+      913,
+      803,
+      364,
+      264,
+      220,
+      18,
+      17,
+      14813,
+      18484,
+      16086,
+      869,
+      13,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+    ],
+    "tail": [
+      {
+        "tokenId": 18,
+        "text": "3"
+      },
+      {
+        "tokenId": 17,
+        "text": "2"
+      },
+      {
+        "tokenId": 14813,
+        "text": "-bit"
+      },
+      {
+        "tokenId": 18484,
+        "text": " floating"
+      },
+      {
+        "tokenId": 16086,
+        "text": "-point"
+      },
+      {
+        "tokenId": 869,
+        "text": " value"
+      },
+      {
+        "tokenId": 13,
+        "text": "."
+      },
+      {
+        "tokenId": 248046,
+        "text": ""
+      },
+      {
+        "tokenId": 198,
+        "text": "\n"
+      },
+      {
+        "tokenId": 248045,
+        "text": ""
+      },
+      {
+        "tokenId": 74455,
+        "text": "assistant"
+      },
+      {
+        "tokenId": 198,
+        "text": "\n"
+      },
+      {
+        "tokenId": 248068,
+        "text": "<think>"
+      },
+      {
+        "tokenId": 271,
+        "text": "\n\n"
+      },
+      {
+        "tokenId": 248069,
+        "text": "</think>"
+      },
+      {
+        "tokenId": 271,
+        "text": "\n\n"
+      }
+    ]
+  },
+  "promptTailText": "32-bit floating-point value.\nassistant\n<think>\n\n</think>\n\n",
+  "specialTokens": {
+    "pad": 248055,
+    "bos": null,
+    "eos": 248046,
+    "unk": null
+  },
+  "encodedMarkers": {
+    "bos": null,
+    "eos": null,
+    "turnOpen": null,
+    "turnClose": null
+  },
+  "logitsCapture": {
+    "elementCount": 248320,
+    "byteLength": 993280,
+    "dtype": "float32",
+    "byteOrder": "little-endian",
+    "finiteCount": 248320,
+    "nonFiniteCount": 0,
+    "min": -10.837187767028809,
+    "max": 17.450632095336914,
+    "sha256": "c7d780e657ddf83a2272de1749d147746d3ea42f164ee8a7be826c0ca767d3f9",
+    "path": "reports/qwen-3-5-9b-metal/2026-07-12/f16-base-first-token-logits.f32"
+  },
+  "topK": [
+    {
+      "tokenId": 63,
+      "logit": 17.450632095336914,
+      "prob": 0.5727256536483765,
+      "text": "`"
+    },
+    {
+      "tokenId": 248046,
+      "logit": 16.308820724487305,
+      "prob": 0.18283706903457642,
+      "text": ""
+    },
+    {
+      "tokenId": 71093,
+      "logit": 14.918936729431152,
+      "prob": 0.04554548114538193,
+      "text": "```"
+    },
+    {
+      "tokenId": 69,
+      "logit": 14.452120780944824,
+      "prob": 0.028556810691952705,
+      "text": "f"
+    },
+    {
+      "tokenId": 760,
+      "logit": 14.33402156829834,
+      "prob": 0.025375807657837868,
+      "text": "The"
+    },
+    {
+      "tokenId": 18,
+      "logit": 14.256852149963379,
+      "prob": 0.02349122241139412,
+      "text": "3"
+    },
+    {
+      "tokenId": 3524,
+      "logit": 14.015941619873047,
+      "prob": 0.018462033942341805,
+      "text": "float"
+    },
+    {
+      "tokenId": 198,
+      "logit": 13.973235130310059,
+      "prob": 0.017690181732177734,
+      "text": "\n"
+    },
+    {
+      "tokenId": 35778,
+      "logit": 12.857126235961914,
+      "prob": 0.005794452037662268,
+      "text": "half"
+    },
+    {
+      "tokenId": 248045,
+      "logit": 12.780508041381836,
+      "prob": 0.005367072764784098,
+      "text": ""
+    },
+    {
+      "tokenId": 1510,
+      "logit": 12.76137638092041,
+      "prob": 0.005265368614345789,
+      "text": " `"
+    },
+    {
+      "tokenId": 248068,
+      "logit": 12.691032409667969,
+      "prob": 0.004907708615064621,
+      "text": "<think>"
+    },
+    {
+      "tokenId": 16,
+      "logit": 12.08272647857666,
+      "prob": 0.002671128837391734,
+      "text": "1"
+    },
+    {
+      "tokenId": 37079,
+      "logit": 11.8743257522583,
+      "prob": 0.0021686404943466187,
+      "text": "uniform"
+    },
+    {
+      "tokenId": 5271,
+      "logit": 11.84859848022461,
+      "prob": 0.002113558817654848,
+      "text": "Float"
+    },
+    {
+      "tokenId": 58,
+      "logit": 11.714649200439453,
+      "prob": 0.0018485913751646876,
+      "text": "["
+    },
+    {
+      "tokenId": 84,
+      "logit": 11.596814155578613,
+      "prob": 0.0016431068070232868,
+      "text": "u"
+    },
+    {
+      "tokenId": 15666,
+      "logit": 11.502724647521973,
+      "prob": 0.0014955579536035657,
+      "text": "Answer"
+    },
+    {
+      "tokenId": 271,
+      "logit": 11.397080421447754,
+      "prob": 0.0013456202577799559,
+      "text": "\n\n"
+    },
+    {
+      "tokenId": 40,
+      "logit": 11.344239234924316,
+      "prob": 0.0012763621052727103,
+      "text": "I"
+    }
+  ],
+  "selectedToken": {
+    "tokenId": 63,
+    "logit": 17.450632095336914,
+    "prob": 0.5727256536483765,
+    "text": "`"
+  },
+  "watchedTokens": [
+    {
+      "tokenId": 1,
+      "present": true,
+      "text": "\"",
+      "rank": 42,
+      "logit": 10.375804901123047,
+      "prob": 0.00048460536331645194
+    },
+    {
+      "tokenId": 17,
+      "present": true,
+      "text": "2",
+      "rank": 35,
+      "logit": 10.55164909362793,
+      "prob": 0.000577771850446653
+    },
+    {
+      "tokenId": 18,
+      "present": true,
+      "text": "3",
+      "rank": 6,
+      "logit": 14.256852149963379,
+      "prob": 0.023491222616335943
+    },
+    {
+      "tokenId": 50,
+      "present": true,
+      "text": "S",
+      "rank": 108,
+      "logit": 8.660188674926758,
+      "prob": 0.00008715765887555735
+    },
+    {
+      "tokenId": 63,
+      "present": true,
+      "text": "`",
+      "rank": 1,
+      "logit": 17.450632095336914,
+      "prob": 0.5727256413067617
+    },
+    {
+      "tokenId": 69,
+      "present": true,
+      "text": "f",
+      "rank": 4,
+      "logit": 14.452120780944824,
+      "prob": 0.02855681114563944
+    },
+    {
+      "tokenId": 105,
+      "present": true,
+      "text": "�",
+      "rank": 27864,
+      "logit": 0.49679186940193176,
+      "prob": 2.4830608927819105e-8
+    },
+    {
+      "tokenId": 106,
+      "present": true,
+      "text": "�",
+      "rank": 34614,
+      "logit": 0.1789930760860443,
+      "prob": 1.8070455824651606e-8
+    },
+    {
+      "tokenId": 107,
+      "present": true,
+      "text": "�",
+      "rank": 3859,
+      "logit": 3.4692423343658447,
+      "prob": 4.851837028853251e-7
+    },
+    {
+      "tokenId": 248044,
+      "present": true,
+      "text": "",
+      "rank": 34,
+      "logit": 10.592707633972168,
+      "prob": 0.0006019880584694457
+    },
+    {
+      "tokenId": 248046,
+      "present": true,
+      "text": "",
+      "rank": 2,
+      "logit": 16.308820724487305,
+      "prob": 0.18283706850444378
+    }
+  ],
+  "prefillStats": {
+    "prefillMs": 0,
+    "firstTokenMs": 0,
+    "modelLoadMs": 26040.480125000002,
+    "prefillTokens": 0,
+    "prefillTokensPerSec": null
+  },
+  "generation": {
+    "maxTokens": 16,
+    "sampling": {
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "greedyThreshold": 0
+    },
+    "tokenIds": [
+      63,
+      69,
+      18,
+      17,
+      63,
+      248046
+    ],
+    "firstTokenId": 63,
+    "outputRaw": "`f32`",
+    "output": "`f32`",
+    "stopReason": "stop-token",
+    "stopTokenId": 248046,
+    "stats": {
+      "firstTokenMs": 102226.318791,
+      "prefillMs": 102213.422792,
+      "decodeMs": 97327.56483300004,
+      "totalMs": 199555.333166,
+      "tokensGenerated": 6
+    },
+    "operatorDiagnostics": null
+  },
+  "parity": {
+    "selectedTokenMatchesGeneratedFirstToken": true
+  }
+}

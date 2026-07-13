@@ -1,0 +1,256 @@
+{
+  "artifactKind": "qwen35_9b_m3_f16_q4_base_comparison_receipt",
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-13T00:47:22Z",
+  "status": "f16_coherent_q4_first_material_divergence_layer0_ffn_gate",
+  "repository": {
+    "name": "clocksmith/doppler",
+    "branch": "main",
+    "f16RunCommit": "63a941f1bdf4a4cd38d213627d3e01132ab15956",
+    "q4RunCommit": "f1ecec81f84d31ffc9a66645d46ebefe820fa6b7"
+  },
+  "host": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "kernel": "25.3.0",
+    "operatingSystem": "macOS 26.3",
+    "operatingSystemBuild": "25D125",
+    "node": "v22.20.0",
+    "chip": "Apple M3",
+    "logicalCpuCount": 8,
+    "gpuCoreCount": 10,
+    "unifiedMemoryBytes": 25769803776,
+    "metalSupport": "Metal 4",
+    "webgpu": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "shaderF16": true,
+      "subgroups": true,
+      "subgroupsF16": true,
+      "timestampQuery": true,
+      "maxBufferSize": 4294967295,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 32768
+    },
+    "privateIdentifiersRecorded": false
+  },
+  "artifacts": {
+    "f16Control": {
+      "modelId": "qwen-3-5-9b-f16-af32",
+      "localPath": "~/rdrr/qwen-3-5-9b-f16-af32",
+      "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+      "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "manifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+      "originSha256": "0099b37f79a12bc2663adb7f4851852d2aa773f03bd892d34ec91b18aae97c3b",
+      "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "shardCount": 267,
+      "shardBytes": 17907606528,
+      "shardSetHash": "sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d",
+      "weightPackHash": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46"
+    },
+    "mixedQ4Candidate": {
+      "modelId": "qwen-3-5-9b-q4k-ehaf16",
+      "localPath": "~/rdrr/qwen-3-5-9b-q4k-ehaf16",
+      "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+      "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "manifestSha256": "ac1eff7f371b7d676a5b9a7ddcf94e2d01d3e1043f499dede2fc41249ef55956",
+      "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "shardCount": 132,
+      "shardBytes": 8824455680,
+      "shardSetHash": "sha256:27c1ba6d379e43eff7eae12b6ccc83081fe5248d1739e7877e82428d52daf228",
+      "weightPackHash": "sha256:dfeea5dc362804bd197d1f96effea74c4cd803eb93b8304c633057f4f172f237"
+    }
+  },
+  "runtimeConfiguration": {
+    "profile": "profiles/qwen-3-5-9b-metal-correctness",
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "maxSeqLen": 256,
+    "batchSize": 1,
+    "maxTokens": 16,
+    "stopCheckMode": "batch",
+    "readbackInterval": 1,
+    "readbackMode": "sequential",
+    "disableCommandBatching": false,
+    "speculation": "none",
+    "performanceOverridesAdded": false,
+    "sampling": {
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "greedyThreshold": 0
+    }
+  },
+  "prompt": {
+    "text": "Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.",
+    "useChatTemplate": true,
+    "inputTokenIds": [
+      248045,
+      846,
+      198,
+      15666,
+      440,
+      6681,
+      279,
+      94693,
+      7733,
+      16764,
+      913,
+      803,
+      364,
+      264,
+      220,
+      18,
+      17,
+      14813,
+      18484,
+      16086,
+      869,
+      13,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+    ],
+    "identicalAcrossArtifacts": true
+  },
+  "baseResults": {
+    "f16": {
+      "status": "coherent",
+      "firstTokenId": 63,
+      "firstTokenText": "`",
+      "firstTokenLogit": 17.450632095336914,
+      "endTokenRank": 2,
+      "endTokenLogit": 16.308820724487305,
+      "generatedTokenIds": [63, 69, 18, 17, 63, 248046],
+      "generatedOutput": "`f32`",
+      "stopReason": "stop-token",
+      "rawLogitsSha256": "c7d780e657ddf83a2272de1749d147746d3ea42f164ee8a7be826c0ca767d3f9",
+      "rawLogitsFiniteCount": 248320,
+      "rawLogitsNonFiniteCount": 0
+    },
+    "q4": {
+      "status": "incorrect_immediate_stop",
+      "firstTokenId": 248046,
+      "firstTokenText": "<|im_end|>",
+      "firstTokenLogit": 17.236438751220703,
+      "backtickTokenRank": 2,
+      "backtickTokenLogit": 16.63433074951172,
+      "generatedTokenIds": [248046],
+      "generatedOutput": "",
+      "stopReason": "stop-token-or-sequence",
+      "rawLogitsSha256": "cb3420f9986a2f2e81fdfe204064d8aec24dffa8488e6bcdb9c795092a1f6162",
+      "rawLogitsFiniteCount": 248320,
+      "rawLogitsNonFiniteCount": 0
+    }
+  },
+  "boundaryComparison": {
+    "comparisonMode": "F16 slice diagnostics first-token prefix versus Q4 slice diagnostics full timeline",
+    "f16TotalRecordCount": 2489,
+    "f16ComparablePrefixRecordCount": 469,
+    "q4RecordCount": 469,
+    "operatorSequenceEqual": true,
+    "allComparedCaptureStatsFinite": true,
+    "embedding": {
+      "index": 0,
+      "opId": "embed.out",
+      "sampleExact": true
+    },
+    "firstExactNonzeroSampleDifference": {
+      "index": 1,
+      "opId": "layer.0.attn.qkv_proj",
+      "maxAbsDiff": 2.384185791015625e-7,
+      "maxRelDiff": 0.000001107365294202735,
+      "withinConfiguredProjectionTolerance": true
+    },
+    "firstConfiguredToleranceViolation": {
+      "index": 7,
+      "opId": "layer.0.attn.post_attn",
+      "operatorType": "residual",
+      "maxAbsDiff": 0.000002216547727584839,
+      "maxRelDiff": 0.0002709832707680782,
+      "configuredMaxAbsDiff": 0.000001,
+      "configuredMaxRelDiff": 0.00001
+    },
+    "firstMaterialDifference": {
+      "definition": "first sampled boundary with maxAbsDiff greater than 0.001",
+      "index": 9,
+      "opId": "layer.0.ffn.gate",
+      "maxAbsDiff": 0.018221039324998856,
+      "maxRelDiff": 0.5089205363850464,
+      "f16WeightDtype": "F16",
+      "q4WeightDtype": "Q4_K_M",
+      "weightTensor": "model.language_model.layers.0.mlp.gate_proj.weight"
+    },
+    "diagnosticLogits": {
+      "f16Sha256": "bef1ce954b78880da408463a2b1e3b38cbb32105024be7e3aae579bc060e6b18",
+      "q4Sha256": "cb3420f9986a2f2e81fdfe204064d8aec24dffa8488e6bcdb9c795092a1f6162",
+      "maxAbsDiff": 3.72584730386734,
+      "rmse": 0.443181507024213,
+      "backtickTokenDeltaF16MinusQ4": 0.7278308868408203,
+      "endTokenDeltaF16MinusQ4": -0.7531261444091797
+    },
+    "captureModeControl": {
+      "f16BaseLogitsSha256": "c7d780e657ddf83a2272de1749d147746d3ea42f164ee8a7be826c0ca767d3f9",
+      "f16DiagnosticLogitsSha256": "bef1ce954b78880da408463a2b1e3b38cbb32105024be7e3aae579bc060e6b18",
+      "sameSelectedToken": true,
+      "sameGeneratedTokenIds": true,
+      "sameGeneratedOutput": true,
+      "maxAbsDiff": 0.32733678817749023,
+      "rmse": 0.06263648535794095,
+      "interpretation": "Use diagnostic-versus-diagnostic boundaries for localization. Do not treat microscopic exact differences as the root cause without a same-mode replay control."
+    },
+    "conclusion": "The first material F16-versus-Q4 change occurs at the first layer-0 feed-forward projection backed by a Q4_K_M weight. This localizes the next diagnostic boundary but does not distinguish expected quantization loss from incorrect Q4_K scale/min decoding or materialization."
+  },
+  "hypotheses": {
+    "q4ScaleMinDecoding": "open",
+    "recurrentProjectionMaterialization": "not supported as the first material boundary because the recurrent projection weights are F16 and only microscopic drift precedes the feed-forward gate",
+    "mixedPrecisionBoundaryHandling": "open",
+    "ordinaryQuantizationLoss": "open"
+  },
+  "evidence": {
+    "f16BaseReceipt": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/f16-base-first-token.json",
+      "sha256": "f95b3676a84d89cdf07faef9c689070d9e5e914e673af5fa541bc910fbe4b862"
+    },
+    "f16BaseLogits": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/f16-base-first-token-logits.f32",
+      "sha256": "c7d780e657ddf83a2272de1749d147746d3ea42f164ee8a7be826c0ca767d3f9"
+    },
+    "f16BoundaryReceipt": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/f16-boundaries.json",
+      "sha256": "089d5b632a6a1a9c188cf38303ae55764000ce73b2020ced0c2d3ab8302294cb"
+    },
+    "f16BoundaryLogits": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/f16-boundaries-logits.f32",
+      "sha256": "bef1ce954b78880da408463a2b1e3b38cbb32105024be7e3aae579bc060e6b18"
+    },
+    "q4BoundaryReceipt": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/q4-boundaries.json",
+      "sha256": "83daa391547e72c31cc99b18e8c87d9e6839160935252a2fa796ba90480bb5c0"
+    },
+    "q4BoundaryLogits": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/q4-boundaries-logits.f32",
+      "sha256": "cb3420f9986a2f2e81fdfe204064d8aec24dffa8488e6bcdb9c795092a1f6162"
+    }
+  },
+  "exactCommands": [
+    "node tools/inspect-prefill-logits.js --model-dir ../../rdrr/qwen-3-5-9b-f16-af32 --prompt 'Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.' --runtime-profile profiles/qwen-3-5-9b-metal-correctness --max-tokens 16 --top-k 20 --watch-token 248046 --watch-token 248044 --watch-token 63 --watch-token 69 --watch-token 18 --watch-token 17 --logits-out reports/qwen-3-5-9b-metal/2026-07-12/f16-base-first-token-logits.f32 --out reports/qwen-3-5-9b-metal/2026-07-12/f16-base-first-token.json",
+    "node tools/inspect-prefill-logits.js --model-dir ../../rdrr/qwen-3-5-9b-f16-af32 --prompt 'Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.' --runtime-profile profiles/qwen-3-5-9b-metal-correctness --max-tokens 16 --top-k 20 --watch-token 248046 --watch-token 248044 --watch-token 63 --watch-token 69 --watch-token 18 --watch-token 17 --diagnostics-level slice --logits-out reports/qwen-3-5-9b-metal/2026-07-12/f16-boundaries-logits.f32 --out reports/qwen-3-5-9b-metal/2026-07-12/f16-boundaries.json",
+    "node --input-type=module -e \"import fs from 'node:fs'; import { findFirstDivergence } from './src/inference/pipelines/text/operator-events.js'; import { getDriftTolerance } from './src/inference/pipelines/text/drift-policy.js'; const f=JSON.parse(fs.readFileSync('reports/qwen-3-5-9b-metal/2026-07-12/f16-boundaries.json')); const q=JSON.parse(fs.readFileSync('reports/qwen-3-5-9b-metal/2026-07-12/q4-boundaries.json')); const baseline=f.generation.operatorDiagnostics.timeline.slice(0,q.generation.operatorDiagnostics.recordCount); const observed=q.generation.operatorDiagnostics.timeline; const result=findFirstDivergence(baseline,observed,getDriftTolerance); console.log(JSON.stringify(result,null,2));\""
+  ],
+  "nextDiagnostic": "Compare the layer.0.ffn.gate Q4_K_M projection against a trusted dequantized/reference calculation using identical layer.0.ffn.in values before changing runtime code.",
+  "claimBoundary": {
+    "trainingImprovement": "Not evaluated or rerun; the frozen V12 AMD/ROCm matrix was not touched.",
+    "baseModelInferenceCorrectness": "The exact F16 control is coherent on M3 Metal. The exact mixed-Q4 candidate is not coherent and first stops at <|im_end|>.",
+    "adapterInferenceCorrectness": "Not evaluated; correctly gated on coherent base-Q4 inference.",
+    "runtimePerformance": "Not measured or claimed. Timing fields in raw receipts are operational metadata only."
+  }
+}
