@@ -133,10 +133,10 @@
       },
       "decoderLayerEvidence": {
         "status": "passed_tiny_full_decoder_gradient_oracle",
-        "sourceRevision": "d7a3bd525e31de6b12afc7691b35350196d65b8b",
+        "sourceRevision": "925de161dbd1d2a3c9f7fe1573f87b50652abe6e",
         "sourceDirty": false,
         "receiptPath": "reports/training/native-parity/qwen-full-decoder-backward-oracle.json",
-        "receiptSha256": "4cf013f0dbab234294f3a800a3e70dc5465cd979dad864f5ecf4975993766a84",
+        "receiptSha256": "5bbc19a22c5dc8dcd08acf5a8314a3c4d6d6dbab6e710a9d33dea507e36ff9e5",
         "coveredComponents": [
           "offset_input_rmsnorm",
           "full_attention_block",
@@ -318,6 +318,44 @@
           ]
         },
         "claimBoundary": "Numerically verified tiny integrated linear-attention module including frozen F16 input/output projections; residuals, decoder normalization, MLP, full attention, and complete decoder-layer execution remain absent."
+      },
+      "decoderLayerEvidence": {
+        "status": "passed_tiny_linear_decoder_gradient_oracle",
+        "sourceRevision": "925de161dbd1d2a3c9f7fe1573f87b50652abe6e",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen-linear-decoder-backward-oracle.json",
+        "receiptSha256": "5871c629ba0293172796f73243a5312a09ac5ad37695427ed5023254cb6abbfd",
+        "coveredComponents": [
+          "offset_input_rmsnorm",
+          "checkpointed_linear_attention_block",
+          "recurrent_final_state",
+          "recurrent_initial_state_gradient",
+          "offset_post_attention_rmsnorm",
+          "attention_residual",
+          "f16_gate_up_down_projections",
+          "gpu_resident_gated_silu_backward",
+          "mlp_residual",
+          "gate_up_down_lora_forward",
+          "gate_up_down_lora_gradients",
+          "hidden_backward"
+        ],
+        "maximumComparisonError": 1.7881393432617188e-7,
+        "forwardMaxAbsError": 5.960464477539063e-8,
+        "finalStateMaxAbsError": 9.313225746154785e-10,
+        "hiddenGradientMaxAbsError": 1.2665987014770508e-7,
+        "initialStateGradientMaxAbsError": 1.7881393432617188e-7,
+        "nonzeroGradientFamilies": [
+          "gate_proj_lora_a",
+          "gate_proj_lora_b",
+          "up_proj_lora_a",
+          "up_proj_lora_b",
+          "down_proj_lora_a",
+          "down_proj_lora_b"
+        ],
+        "adapterNegativeControlDifference": 0.000018775463104248047,
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Tiny Qwen linear-attention decoder with checkpointed recurrence and V12 MLP LoRA; production geometry, loss, optimizer update, cross-layer composition, memory, and performance remain unqualified."
       }
     },
     {
