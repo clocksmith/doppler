@@ -7,6 +7,8 @@ import {
   sigmoidGateForward,
   partialRopeBackward,
   partialRopeForward,
+  qwenFullAttentionModuleBackward,
+  qwenFullAttentionModuleForward,
 } from '../../src/experimental/training/qwen-full-attention-reference.js';
 
 function values(length, offset, scale) {
@@ -108,6 +110,57 @@ function dot(left, right) {
       - dot(partialRopeForward(minus, cos, sin, options), gradOutput)
     ) / (2 * epsilon);
     assert.ok(Math.abs(analytic[index] - numeric) <= 2e-5);
+  }
+}
+
+{
+  const options = {
+    numTokens: 2,
+    hiddenSize: 3,
+    numHeads: 2,
+    numKVHeads: 1,
+    headDim: 4,
+    rotaryDim: 2,
+    pairSpanDim: 2,
+    interleaved: true,
+    startPos: 0,
+    rmsEps: 1e-6,
+  };
+  const querySize = options.numHeads * options.headDim;
+  const kvSize = options.numKVHeads * options.headDim;
+  const fixed = {
+    qWeight: values(querySize * 2 * options.hiddenSize, 3, 0.2),
+    kWeight: values(kvSize * options.hiddenSize, 53, 0.18),
+    vWeight: values(kvSize * options.hiddenSize, 67, 0.19),
+    oWeight: values(options.hiddenSize * querySize, 79, 0.2),
+    qNormWeight: values(options.headDim, 103, 0.08),
+    kNormWeight: values(options.headDim, 109, 0.08),
+    cos: Float32Array.from({ length: options.numTokens }, (_, index) => Math.cos(index * 0.17)),
+    sin: Float32Array.from({ length: options.numTokens }, (_, index) => Math.sin(index * 0.17)),
+  };
+  const hidden = values(options.numTokens * options.hiddenSize, 113, 0.25);
+  const gradOutput = values(options.numTokens * options.hiddenSize, 127, 0.3);
+  const forward = qwenFullAttentionModuleForward({ ...fixed, hidden }, options);
+  const analytic = qwenFullAttentionModuleBackward(
+    { ...fixed, hidden },
+    gradOutput,
+    forward.cache,
+    options
+  ).hidden;
+  const epsilon = 1e-4;
+  for (let index = 0; index < hidden.length; index += 1) {
+    const plus = new Float32Array(hidden);
+    const minus = new Float32Array(hidden);
+    plus[index] += epsilon;
+    minus[index] -= epsilon;
+    const numeric = (
+      dot(qwenFullAttentionModuleForward({ ...fixed, hidden: plus }, options).output, gradOutput)
+      - dot(qwenFullAttentionModuleForward({ ...fixed, hidden: minus }, options).output, gradOutput)
+    ) / (2 * epsilon);
+    assert.ok(
+      Math.abs(analytic[index] - numeric) <= 3e-4,
+      `full attention hidden[${index}] analytic=${analytic[index]} numeric=${numeric}`
+    );
   }
 }
 

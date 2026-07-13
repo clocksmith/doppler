@@ -23,6 +23,7 @@ runBrowserOracle({
     ropeForwardShader: 'src/gpu/kernels/rope.wgsl',
     ropeBackwardShader: 'src/gpu/kernels/backward/rope_backward.wgsl',
     reference: 'src/experimental/training/qwen-full-attention-reference.js',
+    trainingModule: 'src/experimental/training/qwen-full-attention-training-module.js',
     oracle: 'tests/training/browser/qwen-full-attention-backward-oracle.js',
   },
 }).catch((error) => {

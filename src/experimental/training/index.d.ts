@@ -103,3 +103,8 @@ export {
   runQwenLinearAttentionTrainingModuleBackward,
   releaseQwenLinearAttentionTrainingModuleCache,
 } from './qwen-linear-attention-training-core.js';
+export {
+  runQwenFullAttentionTrainingModuleForward,
+  runQwenFullAttentionTrainingModuleBackward,
+  releaseQwenFullAttentionTrainingModuleCache,
+} from './qwen-full-attention-training-module.js';
