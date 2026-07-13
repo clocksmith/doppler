@@ -87,3 +87,67 @@ export function sigmoidGateBackward(input, gate, gradOutput) {
   }
   return { input: gradInput, gate: gradGate };
 }
+
+function resolveRopeDimensions(options) {
+  const numTokens = positiveInteger(options?.numTokens, 'numTokens');
+  const numHeads = positiveInteger(options?.numHeads, 'numHeads');
+  const headDim = positiveInteger(options?.headDim, 'headDim');
+  const rotaryDim = positiveInteger(options?.rotaryDim, 'rotaryDim');
+  const pairSpanDim = positiveInteger(options?.pairSpanDim, 'pairSpanDim');
+  const startPos = Math.floor(Number(options?.startPos ?? 0));
+  if (headDim % 2 !== 0 || rotaryDim % 2 !== 0 || pairSpanDim % 2 !== 0
+    || rotaryDim > headDim || pairSpanDim < rotaryDim || pairSpanDim > headDim
+    || startPos < 0) {
+    throw new Error('invalid partial RoPE geometry.');
+  }
+  return {
+    numTokens,
+    numHeads,
+    headDim,
+    rotaryDim,
+    pairSpanDim,
+    startPos,
+    interleaved: options?.interleaved === true,
+    halfRotary: rotaryDim / 2,
+  };
+}
+
+function ropeTransform(input, freqsCos, freqsSin, options, inverse) {
+  const dims = resolveRopeDimensions(options);
+  requireLength(input, dims.numTokens * dims.numHeads * dims.headDim, 'input');
+  const frequencyElements = (dims.startPos + dims.numTokens) * dims.halfRotary;
+  if (freqsCos.length < frequencyElements || freqsSin.length < frequencyElements) {
+    throw new Error('partial RoPE frequency tables are too short.');
+  }
+  const output = new Float32Array(input);
+  for (let token = 0; token < dims.numTokens; token += 1) {
+    for (let head = 0; head < dims.numHeads; head += 1) {
+      const base = ((token * dims.numHeads) + head) * dims.headDim;
+      for (let pair = 0; pair < dims.halfRotary; pair += 1) {
+        const first = dims.interleaved ? pair * 2 : pair;
+        const second = dims.interleaved ? (pair * 2) + 1 : pair + (dims.pairSpanDim / 2);
+        const frequency = ((dims.startPos + token) * dims.halfRotary) + pair;
+        const cos = freqsCos[frequency];
+        const sin = freqsSin[frequency];
+        const firstValue = input[base + first];
+        const secondValue = input[base + second];
+        if (inverse) {
+          output[base + first] = (firstValue * cos) + (secondValue * sin);
+          output[base + second] = (-firstValue * sin) + (secondValue * cos);
+        } else {
+          output[base + first] = (firstValue * cos) - (secondValue * sin);
+          output[base + second] = (firstValue * sin) + (secondValue * cos);
+        }
+      }
+    }
+  }
+  return output;
+}
+
+export function partialRopeForward(input, freqsCos, freqsSin, options) {
+  return ropeTransform(input, freqsCos, freqsSin, options, false);
+}
+
+export function partialRopeBackward(gradOutput, freqsCos, freqsSin, options) {
+  return ropeTransform(gradOutput, freqsCos, freqsSin, options, true);
+}

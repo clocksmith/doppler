@@ -20,6 +20,8 @@ runBrowserOracle({
     gqaSoftmaxShader: 'src/gpu/kernels/backward/qwen_gqa_softmax_recompute.wgsl',
     gqaScoresShader: 'src/gpu/kernels/backward/qwen_gqa_softmax_backward_scores.wgsl',
     gqaBackwardShader: 'src/gpu/kernels/backward/qwen_gqa_attention_backward.wgsl',
+    ropeForwardShader: 'src/gpu/kernels/rope.wgsl',
+    ropeBackwardShader: 'src/gpu/kernels/backward/rope_backward.wgsl',
     reference: 'src/experimental/training/qwen-full-attention-reference.js',
     oracle: 'tests/training/browser/qwen-full-attention-backward-oracle.js',
   },

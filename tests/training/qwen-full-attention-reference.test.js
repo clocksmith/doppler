@@ -5,6 +5,8 @@ import {
   qwenAttentionSplitQGateForward,
   sigmoidGateBackward,
   sigmoidGateForward,
+  partialRopeBackward,
+  partialRopeForward,
 } from '../../src/experimental/training/qwen-full-attention-reference.js';
 
 function values(length, offset, scale) {
@@ -77,6 +79,35 @@ function dot(left, right) {
       ) / (2 * epsilon);
       assert.ok(Math.abs(analytic[name][index] - numeric) <= 2e-5);
     }
+  }
+}
+
+{
+  const options = {
+    numTokens: 3,
+    numHeads: 2,
+    headDim: 8,
+    rotaryDim: 4,
+    pairSpanDim: 4,
+    interleaved: true,
+    startPos: 0,
+  };
+  const input = values(options.numTokens * options.numHeads * options.headDim, 5, 0.4);
+  const gradOutput = values(input.length, 37, 0.3);
+  const cos = Float32Array.from({ length: options.numTokens * 2 }, (_, index) => Math.cos(index * 0.17));
+  const sin = Float32Array.from({ length: options.numTokens * 2 }, (_, index) => Math.sin(index * 0.17));
+  const analytic = partialRopeBackward(gradOutput, cos, sin, options);
+  const epsilon = 1e-3;
+  for (let index = 0; index < input.length; index += 1) {
+    const plus = new Float32Array(input);
+    const minus = new Float32Array(input);
+    plus[index] += epsilon;
+    minus[index] -= epsilon;
+    const numeric = (
+      dot(partialRopeForward(plus, cos, sin, options), gradOutput)
+      - dot(partialRopeForward(minus, cos, sin, options), gradOutput)
+    ) / (2 * epsilon);
+    assert.ok(Math.abs(analytic[index] - numeric) <= 2e-5);
   }
 }
 

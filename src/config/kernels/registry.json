@@ -3149,12 +3149,12 @@
             "offset": 20
           },
           {
-            "name": "_pad0",
+            "name": "rotary_dim",
             "type": "u32",
             "offset": 24
           },
           {
-            "name": "_pad1",
+            "name": "pair_span_dim",
             "type": "u32",
             "offset": 28
           }
@@ -3245,7 +3245,7 @@
             "offset": 24
           },
           {
-            "name": "_pad2",
+            "name": "interleaved",
             "type": "u32",
             "offset": 28
           }
@@ -5475,7 +5475,7 @@
             "offset": 36
           },
           {
-            "name": "_pad3",
+            "name": "_pad0",
             "type": "f32",
             "offset": 40
           },
