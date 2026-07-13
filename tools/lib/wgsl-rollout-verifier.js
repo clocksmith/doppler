@@ -79,10 +79,12 @@ function buildVerifierReport(input) {
     runtimeHash: input.runtimeHash,
     kernelHash: input.kernelHash,
     verifierBundleHash: input.verifierBundleHash,
-    verifierRole: 'training',
+    verifierRole: input.rolloutPurpose,
     rawChecks: input.rawChecks,
     rewardVector: input.rewardVector,
-    claimBoundary: 'Training reward only; not a promotion evaluation.',
+    claimBoundary: input.rolloutPurpose === 'training'
+      ? 'Training reward only; not a promotion evaluation.'
+      : 'Evaluation verifier report only; not optimizer input or promotion evidence.',
   };
   return validateVerifierGuidedArtifact(artifact);
 }
@@ -103,6 +105,10 @@ export async function verifyRawWgslRollouts(options) {
     : policy.methods.rlvr.groupSize;
   if (expectedGroupSize < 2) {
     throw new Error('expectedGroupSize must be an integer >= 2.');
+  }
+  const rolloutPurpose = String(options.rolloutPurpose || 'training').trim().toLowerCase();
+  if (!['training', 'evaluation'].includes(rolloutPurpose)) {
+    throw new Error('rolloutPurpose must be training or evaluation.');
   }
   const verifierBundleHash = sha256Hex(stableJson(policy.verifier));
   const ownsVerifier = !options.verifier;
@@ -167,7 +173,9 @@ export async function verifyRawWgslRollouts(options) {
           referenceSourceSha256: candidate.task.sourceSha256,
           candidateSourceSha256: candidate.applied.candidateSha256,
         },
-        claimBoundary: 'Training signal only; not a promotion evaluation.',
+        claimBoundary: rolloutPurpose === 'training'
+          ? 'Training signal only; not a promotion evaluation.'
+          : 'Evaluation metric only; not optimizer input or promotion evidence.',
       });
       const report = buildVerifierReport({
         workloadId: options.workloadId,
@@ -178,6 +186,7 @@ export async function verifyRawWgslRollouts(options) {
         runtimeHash,
         kernelHash: candidate.task.sourceSha256,
         verifierBundleHash,
+        rolloutPurpose,
         rawChecks: [
           { id: 'response_contract', passed: candidate.applied.ok, evidence: candidate.applied.violations },
           { id: 'shader_module_compilation', passed: compile.passed, evidence: compile.messages },
@@ -204,13 +213,16 @@ export async function verifyRawWgslRollouts(options) {
         referencePolicyHash,
         verifierBundleHash,
         runtimeHash,
+        rolloutPurpose,
         advantageEpsilon: policy.methods.rlvr.advantageEpsilon,
         sampling: rawGroup.sampling,
         samples: rawGroup.samples.map((sample, index) => {
           const sampleId = sampleIdOf(sample, taskId, index);
           return sampleById.get(sampleId);
         }),
-        claimBoundary: 'On-policy training signal only; not a promotion evaluation.',
+        claimBoundary: rolloutPurpose === 'training'
+          ? 'On-policy training signal only; not a promotion evaluation.'
+          : 'Evaluation-only sampled compiler evidence; not optimizer input or promotion evidence.',
       });
     });
     const passingTasksAt1 = groups.filter((group) => (
@@ -236,6 +248,7 @@ export async function verifyRawWgslRollouts(options) {
         referencePolicyHash,
         verifierBundleHash,
         runtimeHash,
+        rolloutPurpose,
         deviceInfo: verifier.deviceInfo,
         groupCount: groups.length,
         expectedGroupSize,
@@ -253,7 +266,9 @@ export async function verifyRawWgslRollouts(options) {
         )).length,
         groupHashes: groups.map(hashVerifierGuidedArtifact),
         reportHashes: reports.map(hashVerifierGuidedArtifact),
-        claimBoundary: 'Training verifier receipt only; not a capability claim.',
+        claimBoundary: rolloutPurpose === 'training'
+          ? 'Training verifier receipt only; not a capability claim.'
+          : 'Evaluation-only compiler receipt; not optimizer input, semantic correctness, or promotion evidence.',
       },
     };
   } finally {

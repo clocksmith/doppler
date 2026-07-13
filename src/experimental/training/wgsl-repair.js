@@ -475,6 +475,10 @@ export function buildTrainingRolloutGroup(input) {
     rewards,
     input.advantageEpsilon ?? 1e-6
   );
+  const rolloutPurpose = String(input.rolloutPurpose || 'training').trim().toLowerCase();
+  if (!['training', 'evaluation'].includes(rolloutPurpose)) {
+    throw new Error('rollout group input.rolloutPurpose must be training or evaluation.');
+  }
   const artifact = {
     artifactType: 'training_rollout_group',
     schemaVersion: 1,
@@ -492,6 +496,7 @@ export function buildTrainingRolloutGroup(input) {
       'rollout group input.verifierBundleHash'
     ),
     runtimeHash: requireHash(input.runtimeHash, 'rollout group input.runtimeHash'),
+    rolloutPurpose,
     sampling: requireObject(input.sampling, 'rollout group input.sampling'),
     samples: samples.map((sample, index) => ({
       ...sample,
@@ -514,6 +519,7 @@ export function selectRejectionSamples(groups) {
   const selected = [];
   for (const [groupIndex, group] of requireArray(groups, 'groups', 1).entries()) {
     validateRolloutGroup(group);
+    requireTrainingRolloutGroup(group);
     const ranked = [...group.samples].sort((left, right) => {
       const rewardDelta = right.rewardVector.reduction.scalarReward
         - left.rewardVector.reduction.scalarReward;
@@ -543,6 +549,7 @@ export function deriveDpoPreferencePairs(groups, options = {}) {
   const pairs = [];
   for (const group of requireArray(groups, 'groups', 1)) {
     validateRolloutGroup(group);
+    requireTrainingRolloutGroup(group);
     const ranked = [...group.samples].sort((left, right) => {
       const rewardDelta = right.rewardVector.reduction.scalarReward
         - left.rewardVector.reduction.scalarReward;
@@ -581,6 +588,7 @@ export function deriveReferenceAnchoredDpoPairs(groups, tasks) {
   const pairs = [];
   for (const group of requireArray(groups, 'groups', 1)) {
     validateRolloutGroup(group);
+    requireTrainingRolloutGroup(group);
     if (group.samples.some((sample) => sample.rewardVector.reduction.scalarReward > 0)) {
       continue;
     }
@@ -694,6 +702,10 @@ function validateRolloutGroup(artifact) {
   requireHash(artifact.referencePolicyHash, 'training_rollout_group.referencePolicyHash');
   requireHash(artifact.verifierBundleHash, 'training_rollout_group.verifierBundleHash');
   requireHash(artifact.runtimeHash, 'training_rollout_group.runtimeHash');
+  const rolloutPurpose = artifact.rolloutPurpose ?? 'training';
+  if (!['training', 'evaluation'].includes(rolloutPurpose)) {
+    throw new Error('training_rollout_group.rolloutPurpose must be training or evaluation.');
+  }
   requireObject(artifact.sampling, 'training_rollout_group.sampling');
   requireInteger(artifact.sampling.seed, 'training_rollout_group.sampling.seed');
   const samples = requireArray(artifact.samples, 'training_rollout_group.samples', 2);
@@ -704,12 +716,27 @@ function validateRolloutGroup(artifact) {
     requireStringValue(sample.completion, `training_rollout_group.samples[${index}].completion`);
     requireArray(sample.tokenIds, `training_rollout_group.samples[${index}].tokenIds`, 1);
     requireArray(sample.completionMask, `training_rollout_group.samples[${index}].completionMask`, 1);
-    requireArray(sample.policyTokenLogprobs, `training_rollout_group.samples[${index}].policyTokenLogprobs`, 1);
-    requireArray(sample.referenceTokenLogprobs, `training_rollout_group.samples[${index}].referenceTokenLogprobs`, 1);
+    if (rolloutPurpose === 'training') {
+      requireArray(sample.policyTokenLogprobs, `training_rollout_group.samples[${index}].policyTokenLogprobs`, 1);
+      requireArray(sample.referenceTokenLogprobs, `training_rollout_group.samples[${index}].referenceTokenLogprobs`, 1);
+    } else {
+      if (sample.policyTokenLogprobs !== undefined) {
+        requireArray(sample.policyTokenLogprobs, `training_rollout_group.samples[${index}].policyTokenLogprobs`, 1);
+      }
+      if (sample.referenceTokenLogprobs !== undefined) {
+        requireArray(sample.referenceTokenLogprobs, `training_rollout_group.samples[${index}].referenceTokenLogprobs`, 1);
+      }
+    }
     requireObject(sample.rewardVector, `training_rollout_group.samples[${index}].rewardVector`);
     requireFinite(sample.advantage, `training_rollout_group.samples[${index}].advantage`);
   }
   requireObject(artifact.groupStatistics, 'training_rollout_group.groupStatistics');
+}
+
+function requireTrainingRolloutGroup(group) {
+  if ((group.rolloutPurpose ?? 'training') !== 'training') {
+    throw new Error('Evaluation-only rollout groups cannot produce optimizer training rows.');
+  }
 }
 
 function validateRewardVector(artifact) {

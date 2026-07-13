@@ -178,6 +178,7 @@ export async function runEvaluation(argv = process.argv.slice(2)) {
       policyHash,
       referencePolicyHash: policy.referencePolicyHash,
       expectedGroupSize: policy.sampling.groupSize,
+      rolloutPurpose: 'evaluation',
     });
     const verifiedRoot = join(runRoot, args.split, stratum, 'verified-rollouts');
     await writeVerifiedWgslRollouts(verifiedRoot, verified);
