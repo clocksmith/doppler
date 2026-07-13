@@ -49,6 +49,11 @@ const {
 const {
   QwenGradientAccumulator,
 } = await import('../../src/experimental/training/qwen-gradient-accumulator.js');
+const {
+  captureQwenAdapterTrainingState,
+  restoreQwenAdapterTrainingState,
+  validateQwenAdapterTrainingState,
+} = await import('../../src/experimental/training/qwen-adapter-training-state.js');
 const { createTokenBatchTensors } = await import('../../src/experimental/training/datasets/token-batch.js');
 
 class FakeBuffer {
@@ -406,6 +411,61 @@ configurePerfGuards({
   );
 
   releaseBuffer(paramBuffer);
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice();
+  setDevice(device, { platformConfig: null });
+
+  const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+  const parameterBuffer = acquireBuffer(16, usage, 'qwen_state_parameter');
+  uploadData(parameterBuffer, new Float32Array([1, 2, 3, 4]));
+  const parameter = createTensor(parameterBuffer, 'f32', [2, 2], 'qwen_state_parameter');
+  const optimizer = new AdamOptimizer({});
+  optimizer.stepCount = 1;
+  const state = optimizer.getState(parameter);
+  uploadData(state.m.buffer, new Float32Array([0.1, 0.2, 0.3, 0.4]));
+  uploadData(state.v.buffer, new Float32Array([0.01, 0.02, 0.03, 0.04]));
+  const entries = [{ name: 'layers.0.mlp.gate_proj.lora_A', parameter }];
+  const snapshot = await captureQwenAdapterTrainingState(entries, optimizer, {
+    microstepCount: 2,
+    consumedRowIds: ['row-1', 'row-2'],
+  });
+  assert.match(snapshot.payloadSha256, /^[a-f0-9]{64}$/);
+  assert.equal(snapshot.progress.optimizerStepCount, 1);
+  assert.throws(
+    () => validateQwenAdapterTrainingState({
+      ...snapshot,
+      payloadSha256: '0'.repeat(64),
+    }),
+    /payload checksum mismatch/
+  );
+
+  uploadData(parameterBuffer, new Uint8Array(16));
+  uploadData(state.m.buffer, new Uint8Array(16));
+  uploadData(state.v.buffer, new Uint8Array(16));
+  optimizer.stepCount = 0;
+  const restored = await restoreQwenAdapterTrainingState(entries, optimizer, snapshot);
+  assert.equal(restored.optimizerStepCount, 1);
+  assert.equal(optimizer.stepCount, 1);
+  assert.deepEqual(
+    Array.from(new Float32Array(parameterBuffer.ensureBytes(16).buffer, 0, 4)),
+    [1, 2, 3, 4]
+  );
+  assert.deepEqual(
+    Array.from(new Float32Array(state.m.buffer.ensureBytes(16).buffer, 0, 4)),
+    Array.from(new Float32Array([0.1, 0.2, 0.3, 0.4]))
+  );
+  assert.deepEqual(
+    Array.from(new Float32Array(state.v.buffer.ensureBytes(16).buffer, 0, 4)),
+    Array.from(new Float32Array([0.01, 0.02, 0.03, 0.04]))
+  );
+
+  releaseBuffer(state.m.buffer);
+  releaseBuffer(state.v.buffer);
+  releaseBuffer(parameterBuffer);
   assertPoolIsClean();
   resetRuntimeState();
 }
