@@ -1,5 +1,9 @@
 # WGSL Repair V12 Controlled-Lane Design
 
+> Historical freeze: V12 has now completed. See the
+> [V12 controlled-data result](wgsl-repair-v12-2026-07-13.md). Statements below
+> that no V12 result exists describe the state when this design was frozen.
+
 V12 is harness-ready and has no training result. It fixes two design defects
 found while interpreting V10: the three 1,200-row data lanes shared the same
 first 800 rows, and one 64-token generation ceiling was too short for a small

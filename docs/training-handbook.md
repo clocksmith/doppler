@@ -225,13 +225,17 @@ materialize the complete artifact chain before making a training claim. The
 [V8 rejection](status/wgsl-student-replay-v8-2026-07-11.md) and
 [V10 SFT result](status/wgsl-repair-v10-2026-07-12.md) remain separate.
 
-V12 corrects the data-lane schedule before running the curation ablation. The
-old 800-step dataset order exposed byte-identical prefixes in anchor,
-external20, and random20. The V12 workloads seed/hash-order all 1,200 rows and
-consume each full lane once, recording the order hash. Evaluation is split by
-the input-visible broken-span length into 64-token short and 640-token long
-strata, then recombined over the original denominator. See the
-[V12 controlled-lane design](status/wgsl-repair-v12-design-2026-07-12.md).
+V12 completed the corrected data-lane ablation. The old 800-step dataset order
+exposed byte-identical prefixes in anchor, external20, and random20; V12 instead
+seed/hash-ordered all 1,200 rows and consumed every lane once at seeds 11, 29,
+and 47. On the 299-task public compiler set, external20 reached 99.443% mean
+pass@1 versus 98.439% for anchor and 98.885% for random20. It beat anchor at all
+three seeds and replayed the frozen diagnostic selection rule on public data,
+but none of the six per-seed control tests was significant after Holm
+correction. This is seed-confirmed data-centric SFT compiler evidence, not
+teacher distillation, semantic-kernel correctness, or promotion. See the
+[V12 controlled-data result](status/wgsl-repair-v12-2026-07-13.md) and the
+[historical design](status/wgsl-repair-v12-design-2026-07-12.md).
 
 Legacy Distill Studio helpers are compatibility tooling only:
 - `tools/distill-studio-mvp.js`
