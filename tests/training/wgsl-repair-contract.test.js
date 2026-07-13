@@ -121,6 +121,7 @@ const rolloutGroup = buildTrainingRolloutGroup({
 });
 
 validateVerifierGuidedArtifact(rolloutGroup);
+assert.equal(rolloutGroup.rolloutPurpose, 'training');
 assert.match(hashVerifierGuidedArtifact(rolloutGroup), /^[a-f0-9]{64}$/);
 assert.deepEqual(rolloutGroup.samples.map((sample) => sample.advantage), [-1, 1]);
 

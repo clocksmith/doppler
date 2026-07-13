@@ -103,6 +103,7 @@ assert.equal(verified.receipt.exactReferenceSamples, 1);
 assert.equal(verified.receipt.blockedSamples, 1);
 assert.equal(verified.receipt.expectedGroupSize, 2);
 assert.deepEqual(verified.groups[0].samples.map((sample) => sample.advantage), [-1, 1]);
+assert.equal(verified.groups[0].rolloutPurpose, 'training');
 
 const derived = deriveWgslTrainingRows(verified.groups, policy);
 assert.equal(derived.rejectionRows.length, 1);
@@ -111,5 +112,29 @@ assert.equal(derived.dpoRows.length, 1);
 assert.equal(derived.dpoRows[0].chosenSampleId, 'good');
 assert.equal(derived.dpoRows[0].rejectedSampleId, 'bad');
 assert.equal(derived.referenceAnchoredDpoRows.length, 0);
+
+const evaluationGroups = rawGroups.map((group) => ({
+  ...group,
+  samples: group.samples.map(({ policyTokenLogprobs, referenceTokenLogprobs, ...sample }) => sample),
+}));
+const evaluated = await verifyRawWgslRollouts({
+  policy,
+  tasks: [task],
+  rawGroups: evaluationGroups,
+  verifier,
+  workloadId: 'wgsl-evaluation-fixture',
+  datasetHash: '1'.repeat(64),
+  policyHash: '2'.repeat(64),
+  referencePolicyHash: '3'.repeat(64),
+  expectedGroupSize: 2,
+  rolloutPurpose: 'evaluation',
+});
+assert.equal(evaluated.groups[0].rolloutPurpose, 'evaluation');
+assert.equal(evaluated.receipt.rolloutPurpose, 'evaluation');
+assert.equal('policyTokenLogprobs' in evaluated.groups[0].samples[0], false);
+assert.throws(
+  () => deriveWgslTrainingRows(evaluated.groups, policy),
+  /Evaluation-only rollout groups cannot produce optimizer training rows/
+);
 
 console.log('wgsl-rollout-verifier.test: ok');

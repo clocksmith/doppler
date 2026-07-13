@@ -13,6 +13,14 @@ contract to require all three lanes at all three seeds. The checked-in
 is authoritative for execution and public-split access; the JSON design
 receipt remains the historical initial freeze.
 
+Before any V12 verifier score was opened, evaluation execution was also made
+explicitly evaluation-only: completion generation omits GRPO policy/reference
+log-probability passes that the compiler metrics do not consume. The verified
+group records carry `rolloutPurpose="evaluation"`, and Doppler rejects those
+groups if they are passed to rejection-sampling or DPO row builders. Sampling,
+seeds, completions, compiler checks, denominators, and the lane decision are
+unchanged.
+
 ## Full-lane data comparison
 
 Every lane at seeds 11, 29, and 47 executes 1,200 microsteps with accumulation

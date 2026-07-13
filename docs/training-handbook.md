@@ -138,6 +138,10 @@ Action requirements:
   materializes those reports under `eval/`, adds them to the scoreboard, and
   includes them in compare/quality-gate artifacts. This is the supported path
   for q4k student receipts until a native packed-q4k trainer exists.
+- Sampled rollout groups declare `rolloutPurpose`. Training groups require
+  policy and reference token log-probabilities. Evaluation groups may omit
+  those unused scores, but the artifact validator prevents them from producing
+  rejection-sampling or DPO optimizer rows.
 - Code-agent held-out eval datasets can declare `agentEval` gates. These gates
   require a matching `training_eval_report.agentEval` receipt with passing row
   checks before `quality-gate` passes. The gate covers JS patching, WGSL review,
