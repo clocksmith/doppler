@@ -26,6 +26,7 @@ assert.equal(identity?.sourceCheckpointId, 'Qwen/Qwen3.5-9B');
 assert.equal(identity?.sourceRepo, 'Qwen/Qwen3.5-9B');
 assert.equal(identity?.sourceRevision, 'c202236235762e1c871ad0ccb60c8ee5ba337b9a');
 assert.equal(identity?.artifactCompleteness, 'complete');
+assert.equal(identity?.manifestVariantId, 'qwen-3-5-9b-q4k-ehaf16-mv-exec-v2-norm-order');
 assert.equal(identity?.shardSetHash, undefined);
 
 assert.equal(config.inference?.attention?.queryPreAttnScalar, 256);

@@ -204,6 +204,14 @@ assert.equal(qwen08Config.inference?.normalization?.postAttentionNorm, false);
 assert.equal(qwen08Config.inference?.normalization?.preFeedforwardNorm, false);
 assert.equal(qwen2Config.inference?.normalization?.postAttentionNorm, false);
 assert.equal(qwen2Config.inference?.normalization?.preFeedforwardNorm, false);
+assert.equal(
+  qwen08Config.manifest?.artifactIdentity?.manifestVariantId,
+  'qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v2-norm-order'
+);
+assert.equal(
+  qwen2Config.manifest?.artifactIdentity?.manifestVariantId,
+  'qwen-3-5-2b-q4k-ehaf16-mv-exec-v2-norm-order'
+);
 const qwen08Manifest = await readJson('models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json');
 const qwen2Manifest = await readJson('models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json');
 
