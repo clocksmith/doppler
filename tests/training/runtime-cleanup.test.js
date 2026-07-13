@@ -513,8 +513,17 @@ configurePerfGuards({
   uploadData(gradient1Buffer, new Float32Array([0.1, 0.2, 0.3, 0.4]));
   uploadData(gradient2Buffer, new Float32Array([0.5, 0.6, 0.7, 0.8]));
   const parameter = createTensor(parameterBuffer, 'f32', [2, 2], 'qwen_accum_parameter');
+  const f16Parameter = createTensor(parameterBuffer, 'f16', [2, 2], 'qwen_accum_parameter_f16');
   const gradient1 = createTensor(gradient1Buffer, 'f32', [2, 2], 'qwen_accum_gradient_1');
   const gradient2 = createTensor(gradient2Buffer, 'f32', [2, 2], 'qwen_accum_gradient_2');
+  await assert.rejects(
+    () => new QwenGradientAccumulator({ accumSteps: 2 }).accumulate([{
+      name: 'layers.0.mlp.gate_proj.lora_A',
+      parameter: f16Parameter,
+      gradient: gradient1,
+    }]),
+    /matching F32 parameters and gradients/
+  );
   const accumulator = new QwenGradientAccumulator({ accumSteps: 2 });
   const first = await accumulator.accumulate([{
     name: 'layers.0.mlp.gate_proj.lora_A',
@@ -541,9 +550,19 @@ configurePerfGuards({
     }, { training: { optimizer: {} } }),
     /optimizer step failed/
   );
-  assert.equal(accumulator.microstepCount, 2);
-  assert.equal(accumulator.ready, true);
-  assert.equal(accumulator.entries.length, 1);
+  assert.equal(accumulator.microstepCount, 0);
+  assert.equal(accumulator.ready, false);
+  assert.equal(accumulator.entries.length, 0);
+  await accumulator.accumulate([{
+    name: 'layers.0.mlp.gate_proj.lora_A',
+    parameter,
+    gradient: gradient1,
+  }]);
+  await accumulator.accumulate([{
+    name: 'layers.0.mlp.gate_proj.lora_A',
+    parameter,
+    gradient: gradient2,
+  }]);
   let optimizerCalls = 0;
   const optimizerMetrics = await accumulator.step({
     async step(parameters, gradients) {
