@@ -76,8 +76,10 @@ semantic kernel correctness.
   state transition, causal depthwise convolution plus SiLU, Q/K L2
   normalization, the `a`/`b` parameter transforms, and gated RMSNorm.
   Central finite differences check every input, weight, and initial-state
-  gradient. The WebGPU backward kernels, projection/LoRA integration, and
-  checkpoint/recompute schedule remain absent.
+  gradient. Candidate WebGPU kernels now implement frozen-weight causal-conv
+  input gradients and gated-RMSNorm input/gate gradients, with a browser oracle
+  ready but not yet executed. The recurrent WebGPU backward kernel,
+  projection/LoRA integration, and checkpoint/recompute schedule remain absent.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is
   implemented after the initial design freeze, but its block-level GPU oracle
   is not yet sealed.
