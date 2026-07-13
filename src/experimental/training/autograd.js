@@ -252,24 +252,20 @@ export class AutogradTape {
           { input: up, grad: gradients.input },
         ]);
       }
-      const gateValues = await this.readTensorAsF32(gate);
-      const upValues = await this.readTensorAsF32(up);
-      const gradValues = await this.readTensorAsF32(gradOut);
-      if (gateValues.length < count || upValues.length < count || gradValues.length < count) {
-        throw new Error('gated SiLU backward tensor is shorter than the declared count.');
-      }
-      const values = computeSiluGatedBackwardValues(
-        gateValues.subarray(0, count),
-        upValues.subarray(0, count),
-        gradValues.subarray(0, count),
-        Number.isFinite(record.options?.swigluLimit) ? record.options.swigluLimit : 0,
-        record.options?.gateActivation
+      const gradients = await backwardKernels.runSiluGatedBackward(
+        gate,
+        up,
+        gradOut,
+        {
+          count,
+          swigluLimit: Number.isFinite(record.options?.swigluLimit)
+            ? record.options.swigluLimit
+            : 0,
+        }
       );
-      const gradGate = createUploadedTensor(values.gradGate, 'f32', [...gate.shape], 'silu_gated_grad_gate');
-      const gradUp = createUploadedTensor(values.gradUp, 'f32', [...up.shape], 'silu_gated_grad_up');
       return this.filterStoppedGradients(record, [
-        { input: gate, grad: gradGate },
-        { input: up, grad: gradUp },
+        { input: gate, grad: gradients.gate },
+        { input: up, grad: gradients.up },
       ]);
     }
 
