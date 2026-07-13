@@ -34,6 +34,28 @@ export interface QwenFullAttentionLoraGradients {
   o: { A: Tensor | null; B: Tensor | null };
 }
 
+export declare function runFrozenLoraProjectionForward(
+  input: Tensor,
+  weight: Tensor,
+  rows: number,
+  inputSize: number,
+  outputSize: number,
+  adapter: QwenFullAttentionLoraAdapter | null | undefined,
+  label: string
+): Promise<{ output: Tensor; down: Tensor | null }>;
+
+export declare function runFrozenLoraProjectionBackward(
+  input: Tensor,
+  weight: Tensor,
+  gradOutput: Tensor,
+  rows: number,
+  inputSize: number,
+  outputSize: number,
+  adapter: QwenFullAttentionLoraAdapter | null | undefined,
+  down: Tensor | null | undefined,
+  label: string
+): Promise<{ input: Tensor; A: Tensor | null; B: Tensor | null }>;
+
 export interface QwenFullAttentionTrainingModuleInputs {
   hidden: Tensor;
   qWeight: Tensor;

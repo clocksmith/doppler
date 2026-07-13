@@ -86,7 +86,7 @@ function resolveAdapter(adapter, inputSize, outputSize, label) {
   return { A: adapter.A, B: adapter.B, rank, scale: alpha / rank };
 }
 
-async function runProjectionForward(
+export async function runFrozenLoraProjectionForward(
   input,
   weight,
   rows,
@@ -136,7 +136,7 @@ async function runProjectionForward(
   }
 }
 
-async function runProjectionBackward(
+export async function runFrozenLoraProjectionBackward(
   input,
   weight,
   gradOutput,
@@ -232,7 +232,7 @@ export async function runQwenFullAttentionTrainingModuleForward(inputs, options 
   let output = null;
   let completed = false;
   try {
-    qProjectionResult = await runProjectionForward(
+    qProjectionResult = await runFrozenLoraProjectionForward(
       inputs.hidden,
       inputs.qWeight,
       dims.seqLen,
@@ -247,7 +247,7 @@ export async function runQwenFullAttentionTrainingModuleForward(inputs, options 
       numHeads: dims.numHeads,
       headDim: dims.headDim,
     });
-    keyProjectionResult = await runProjectionForward(
+    keyProjectionResult = await runFrozenLoraProjectionForward(
       inputs.hidden,
       inputs.kWeight,
       dims.seqLen,
@@ -257,7 +257,7 @@ export async function runQwenFullAttentionTrainingModuleForward(inputs, options 
       'k_proj'
     );
     keyProjection = keyProjectionResult.output;
-    valueProjectionResult = await runProjectionForward(
+    valueProjectionResult = await runFrozenLoraProjectionForward(
       inputs.hidden,
       inputs.vWeight,
       dims.seqLen,
@@ -315,7 +315,7 @@ export async function runQwenFullAttentionTrainingModuleForward(inputs, options 
       inputActivation: 'identity',
       swigluLimit: null,
     });
-    outputResult = await runProjectionForward(
+    outputResult = await runFrozenLoraProjectionForward(
       gated,
       inputs.oWeight,
       dims.seqLen,
@@ -394,7 +394,7 @@ export async function runQwenFullAttentionTrainingModuleBackward(
   let hidden = null;
   let completed = false;
   try {
-    outputProjectionGradients = await runProjectionBackward(
+    outputProjectionGradients = await runFrozenLoraProjectionBackward(
       cache.gated,
       inputs.oWeight,
       gradOutput,
@@ -473,7 +473,7 @@ export async function runQwenFullAttentionTrainingModuleBackward(
       gateGradients.gate,
       { numTokens: dims.seqLen, numHeads: dims.numHeads, headDim: dims.headDim }
     );
-    qProjectionGradients = await runProjectionBackward(
+    qProjectionGradients = await runFrozenLoraProjectionBackward(
       inputs.hidden,
       inputs.qWeight,
       gradQProjection,
@@ -485,7 +485,7 @@ export async function runQwenFullAttentionTrainingModuleBackward(
       'q_proj'
     );
     contributions.push(qProjectionGradients.input);
-    kProjectionGradients = await runProjectionBackward(
+    kProjectionGradients = await runFrozenLoraProjectionBackward(
       inputs.hidden,
       inputs.kWeight,
       gradKey,
@@ -497,7 +497,7 @@ export async function runQwenFullAttentionTrainingModuleBackward(
       'k_proj'
     );
     contributions.push(kProjectionGradients.input);
-    vProjectionGradients = await runProjectionBackward(
+    vProjectionGradients = await runFrozenLoraProjectionBackward(
       inputs.hidden,
       inputs.vWeight,
       attentionGradients.value,
