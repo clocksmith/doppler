@@ -65,8 +65,9 @@ exists.
 ## Known blocking gaps
 
 - Native Qwen gated-delta/linear-attention backward is absent.
-- Native LoRA currently represents a fused `gate_up_proj`; V12 uses separate
-  `gate_proj` and `up_proj` tensors.
+- Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is
+  implemented after the initial design freeze, but its block-level GPU oracle
+  is not yet sealed.
 - Gradient checkpointing is not qualified for the Qwen hybrid graph.
 - A matched initial-adapter importer and PEFT export parity receipt are absent.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.

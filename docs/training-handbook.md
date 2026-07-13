@@ -114,6 +114,9 @@ Action requirements:
   input-gradient kernel decodes binary16 weights into f32 accumulation and
   stopped base weights do not allocate weight gradients. This is a memory and
   mechanics prerequisite, not Qwen 3.5 support.
+  Split SiLU MLP weights can retain distinct `gate_proj` and `up_proj` LoRA
+  tensors; their gated activation has an explicit two-input backward contract.
+  That path still requires a block-level GPU oracle before Qwen qualification.
   q4k bases require `runLoraPipeline({ causalLmTrainer })` or
   `lora.trainer.modulePath`; the internal full-graph runner does not train
   packed q4k base weights. Causal-LM workloads must declare

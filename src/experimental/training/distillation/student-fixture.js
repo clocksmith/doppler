@@ -9,6 +9,7 @@ import {
   runRMSNorm,
   runRoPE,
   runScale,
+  runSiLU,
   runSiLURowSplit,
 } from '../../../gpu/kernels/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
@@ -29,6 +30,8 @@ const TRANSFORMER_LORA_TARGET_MODULES = Object.freeze([
   'k_proj',
   'v_proj',
   'o_proj',
+  'gate_proj',
+  'up_proj',
   'gate_up_proj',
   'down_proj',
 ]);
@@ -163,6 +166,9 @@ function resolveTransformerLoraShape(moduleName, dims) {
   }
   if (moduleName === 'gate_up_proj') {
     return { inDim: dims.hiddenSize, outDim: dims.intermediateSize * 2 };
+  }
+  if (moduleName === 'gate_proj' || moduleName === 'up_proj') {
+    return { inDim: dims.hiddenSize, outDim: dims.intermediateSize };
   }
   if (moduleName === 'down_proj') {
     return { inDim: dims.intermediateSize, outDim: dims.hiddenSize };
@@ -340,45 +346,6 @@ function resolveLayerFfnIntermediateSize(layerIdx, weights, fallback) {
     return fallback;
   }
   throw new Error(`Distill full-graph student cannot resolve FFN size for layer ${layerIdx}.`);
-}
-
-async function fuseGateUpTensors(gateTensor, upTensor, intermediateSize, hiddenSize, label, ownedTrainables = null) {
-  const device = getDevice();
-  if (!device) {
-    throw new Error('Distill full-graph student requires active GPU device.');
-  }
-  if (!['f16', 'f32'].includes(gateTensor?.dtype) || upTensor?.dtype !== gateTensor.dtype) {
-    throw new Error(`Distill fused gate_up expects matching f16 or f32 tensors for "${label}".`);
-  }
-  const expectedRows = intermediateSize;
-  const expectedCols = hiddenSize;
-  const gateRows = Number.isFinite(gateTensor?.shape?.[0]) ? gateTensor.shape[0] : 0;
-  const gateCols = Number.isFinite(gateTensor?.shape?.[1]) ? gateTensor.shape[1] : 0;
-  const upRows = Number.isFinite(upTensor?.shape?.[0]) ? upTensor.shape[0] : 0;
-  const upCols = Number.isFinite(upTensor?.shape?.[1]) ? upTensor.shape[1] : 0;
-  if (gateRows !== expectedRows || gateCols !== expectedCols || upRows !== expectedRows || upCols !== expectedCols) {
-    throw new Error(
-      `Distill gate/up shape mismatch for "${label}": gate=[${gateRows},${gateCols}] up=[${upRows},${upCols}] ` +
-      `expected=[${expectedRows},${expectedCols}]`
-    );
-  }
-  const rowBytes = expectedCols * (gateTensor.dtype === 'f16' ? 2 : 4);
-  const blockBytes = expectedRows * rowBytes;
-  const fusedBuffer = acquireBuffer(blockBytes * 2, undefined, `${label}_fused`);
-  const encoder = device.createCommandEncoder();
-  encoder.copyBufferToBuffer(gateTensor.buffer, 0, fusedBuffer, 0, blockBytes);
-  encoder.copyBufferToBuffer(upTensor.buffer, 0, fusedBuffer, blockBytes, blockBytes);
-  device.queue.submit([encoder.finish()]);
-  const fused = createTensor(
-    fusedBuffer,
-    gateTensor.dtype,
-    [expectedRows * 2, expectedCols],
-    `${label}_fused`
-  );
-  if (ownedTrainables instanceof Set) {
-    ownedTrainables.add(fused);
-  }
-  return fused;
 }
 
 function resolvePhasePrompts(batch, phase) {
@@ -656,6 +623,8 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
     const layerIntermediateSize = resolveLayerFfnIntermediateSize(layerIdx, layerWeights, intermediateSize);
     const gateUpWeight = layerWeights.gateUp || layerWeights.ffnGateUp || null;
     let layerGateUp = null;
+    let layerGate = null;
+    let layerUp = null;
     if (hasTensorPayload(gateUpWeight)) {
       layerGateUp = await ensureTrainableTensor(
         gateUpWeight,
@@ -672,27 +641,19 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
           `Distill full-graph student missing gate/up projections on layer ${layerIdx}.`
         );
       }
-      const gateTensor = await ensureTrainableTensor(
+      layerGate = await ensureTrainableTensor(
         gateWeight,
         [layerIntermediateSize, hiddenSize],
         `layer_${layerIdx}.ffn_gate`,
         ownedTrainables,
         frozenWeightOptions
       );
-      const upTensor = await ensureTrainableTensor(
+      layerUp = await ensureTrainableTensor(
         upWeight,
         [layerIntermediateSize, hiddenSize],
         `layer_${layerIdx}.ffn_up`,
         ownedTrainables,
         frozenWeightOptions
-      );
-      layerGateUp = await fuseGateUpTensors(
-        gateTensor,
-        upTensor,
-        layerIntermediateSize,
-        hiddenSize,
-        `layer_${layerIdx}.ffn_gate_up`,
-        ownedTrainables
       );
     }
     const layer = {
@@ -760,6 +721,8 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         )
         : null,
       gateUp: layerGateUp,
+      gate: layerGate,
+      up: layerUp,
       down: await ensureTrainableTensor(
         layerWeights.down || layerWeights.ffnDown,
         [hiddenSize, layerIntermediateSize],
@@ -773,6 +736,16 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         intermediateSize: layerIntermediateSize,
       }),
     };
+    if (layer.gateUp && (layer.lora.gate_proj || layer.lora.up_proj)) {
+      throw new Error(
+        `Layer ${layerIdx} has fused gate/up weights but separate gate_proj or up_proj LoRA targets.`
+      );
+    }
+    if (!layer.gateUp && layer.lora.gate_up_proj) {
+      throw new Error(
+        `Layer ${layerIdx} has separate gate/up weights but a fused gate_up_proj LoRA target.`
+      );
+    }
     if (layer.queryKeyNorm) {
       const weightedLayers = modelConfig.queryKeyNormWeightLayers;
       const expectsWeightedNorm = !Array.isArray(weightedLayers) || weightedLayers.includes(layerIdx);
@@ -804,7 +777,15 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
       throw new Error(`Distill full-graph student missing post-feedforward norm on layer ${layerIdx}.`);
     }
     layers.push(layer);
-    layerParams.push(layer.inputNorm, layer.qProj, layer.kProj, layer.vProj, layer.oProj, layer.gateUp, layer.down);
+    layerParams.push(
+      layer.inputNorm,
+      layer.qProj,
+      layer.kProj,
+      layer.vProj,
+      layer.oProj,
+      ...(layer.gateUp ? [layer.gateUp] : [layer.gate, layer.up]),
+      layer.down
+    );
     for (const adapter of Object.values(layer.lora)) {
       loraParams.push(adapter.A, adapter.B);
     }
@@ -1170,40 +1151,94 @@ async function createDistillStudentTransformerModelFixture(overrides = {}, optio
         )
         : postAttention;
       await captureStage('ffn.in', ffnInput, layerIdx);
-      let gateUp = await tape.record(
-        OpType.MATMUL,
-        (x, w) => runMatmul(x, w, seqLen, layerIntermediateSize * 2, hiddenSize, {
-          transposeB: 'auto',
-          outputDtype: 'f32',
-        }),
-        [ffnInput, layer.gateUp],
-        { M: seqLen, N: layerIntermediateSize * 2, K: hiddenSize, transposeB: 'auto', ...stopBaseWeight }
-      );
-      if (layer.lora.gate_up_proj) {
-        const delta = await layer.lora.gate_up_proj.forward(ffnInput, tape);
-        gateUp = await tape.record(
-          OpType.RESIDUAL_ADD,
-          (a, b) => runResidualAdd(a, b, seqLen * layerIntermediateSize * 2),
-          [gateUp, delta],
-          { size: seqLen * layerIntermediateSize * 2 }
+      let activated = null;
+      if (layer.gateUp) {
+        let gateUp = await tape.record(
+          OpType.MATMUL,
+          (x, w) => runMatmul(x, w, seqLen, layerIntermediateSize * 2, hiddenSize, {
+            transposeB: 'auto',
+            outputDtype: 'f32',
+          }),
+          [ffnInput, layer.gateUp],
+          { M: seqLen, N: layerIntermediateSize * 2, K: hiddenSize, transposeB: 'auto', ...stopBaseWeight }
+        );
+        if (layer.lora.gate_up_proj) {
+          const delta = await layer.lora.gate_up_proj.forward(ffnInput, tape);
+          gateUp = await tape.record(
+            OpType.RESIDUAL_ADD,
+            (a, b) => runResidualAdd(a, b, seqLen * layerIntermediateSize * 2),
+            [gateUp, delta],
+            { size: seqLen * layerIntermediateSize * 2 }
+          );
+        }
+        activated = await tape.record(
+          OpType.SILU_ROWSPLIT,
+          (x) => runSiLURowSplit(x, {
+            numTokens: seqLen,
+            dim: layerIntermediateSize,
+            activation: hiddenActivation === 'gelu' ? 'gelu' : 'silu',
+            swigluLimit: hiddenActivation === 'gelu' ? null : swigluLimit,
+          }),
+          [gateUp],
+          {
+            numTokens: seqLen,
+            dim: layerIntermediateSize,
+            activation: hiddenActivation === 'gelu' ? 'gelu' : 'silu',
+            swigluLimit: hiddenActivation === 'gelu' ? 0 : swigluLimit,
+          }
+        );
+      } else {
+        if (hiddenActivation === 'gelu') {
+          throw new Error('Split gate/up training currently requires SiLU activation.');
+        }
+        let gate = await tape.record(
+          OpType.MATMUL,
+          (x, w) => runMatmul(x, w, seqLen, layerIntermediateSize, hiddenSize, {
+            transposeB: 'auto',
+            outputDtype: 'f32',
+          }),
+          [ffnInput, layer.gate],
+          { M: seqLen, N: layerIntermediateSize, K: hiddenSize, transposeB: 'auto', ...stopBaseWeight }
+        );
+        let up = await tape.record(
+          OpType.MATMUL,
+          (x, w) => runMatmul(x, w, seqLen, layerIntermediateSize, hiddenSize, {
+            transposeB: 'auto',
+            outputDtype: 'f32',
+          }),
+          [ffnInput, layer.up],
+          { M: seqLen, N: layerIntermediateSize, K: hiddenSize, transposeB: 'auto', ...stopBaseWeight }
+        );
+        if (layer.lora.gate_proj) {
+          const delta = await layer.lora.gate_proj.forward(ffnInput, tape);
+          gate = await tape.record(
+            OpType.RESIDUAL_ADD,
+            (a, b) => runResidualAdd(a, b, seqLen * layerIntermediateSize),
+            [gate, delta],
+            { size: seqLen * layerIntermediateSize }
+          );
+        }
+        if (layer.lora.up_proj) {
+          const delta = await layer.lora.up_proj.forward(ffnInput, tape);
+          up = await tape.record(
+            OpType.RESIDUAL_ADD,
+            (a, b) => runResidualAdd(a, b, seqLen * layerIntermediateSize),
+            [up, delta],
+            { size: seqLen * layerIntermediateSize }
+          );
+        }
+        activated = await tape.record(
+          OpType.SILU_GATED,
+          (gateInput, upInput) => runSiLU(upInput, {
+            size: seqLen * layerIntermediateSize,
+            gate: gateInput,
+            inputActivation: 'identity',
+            swigluLimit,
+          }),
+          [gate, up],
+          { count: seqLen * layerIntermediateSize, swigluLimit }
         );
       }
-      const activated = await tape.record(
-        OpType.SILU_ROWSPLIT,
-        (x) => runSiLURowSplit(x, {
-          numTokens: seqLen,
-          dim: layerIntermediateSize,
-          activation: hiddenActivation === 'gelu' ? 'gelu' : 'silu',
-          swigluLimit: hiddenActivation === 'gelu' ? null : swigluLimit,
-        }),
-        [gateUp],
-        {
-          numTokens: seqLen,
-          dim: layerIntermediateSize,
-          activation: hiddenActivation === 'gelu' ? 'gelu' : 'silu',
-          swigluLimit: hiddenActivation === 'gelu' ? 0 : swigluLimit,
-        }
-      );
       await captureStage('ffn.act', activated, layerIdx);
       let ffnOutput = await tape.record(
         OpType.MATMUL,
