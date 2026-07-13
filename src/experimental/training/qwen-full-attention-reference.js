@@ -190,6 +190,89 @@ function matmulInputGradient(gradOutput, weight, rows, inputSize, outputSize) {
   return output;
 }
 
+function matmulStandard(input, weight, rows, inputSize, outputSize) {
+  requireLength(input, rows * inputSize, 'matmul standard input');
+  requireLength(weight, inputSize * outputSize, 'matmul standard weight');
+  const output = new Float32Array(rows * outputSize);
+  for (let row = 0; row < rows; row += 1) {
+    for (let outputIndex = 0; outputIndex < outputSize; outputIndex += 1) {
+      for (let inputIndex = 0; inputIndex < inputSize; inputIndex += 1) {
+        output[(row * outputSize) + outputIndex] += input[(row * inputSize) + inputIndex]
+          * weight[(inputIndex * outputSize) + outputIndex];
+      }
+    }
+  }
+  return output;
+}
+
+function projectionForward(input, weight, rows, inputSize, outputSize, adapter) {
+  const base = matmulRightTransposed(input, weight, rows, inputSize, outputSize);
+  if (!adapter) return { output: base, cache: null };
+  const rank = positiveInteger(adapter.rank, 'LoRA rank');
+  const alpha = Number(adapter.alpha);
+  if (!Number.isFinite(alpha)) throw new Error('LoRA alpha must be finite.');
+  const scale = alpha / rank;
+  requireLength(adapter.A, inputSize * rank, 'LoRA A');
+  requireLength(adapter.B, rank * outputSize, 'LoRA B');
+  const down = matmulStandard(input, adapter.A, rows, inputSize, rank);
+  const delta = matmulStandard(down, adapter.B, rows, rank, outputSize);
+  for (let index = 0; index < base.length; index += 1) base[index] += delta[index] * scale;
+  return { output: base, cache: { down, rank, scale } };
+}
+
+function projectionBackward(
+  input,
+  weight,
+  gradOutput,
+  rows,
+  inputSize,
+  outputSize,
+  adapter,
+  cache
+) {
+  const gradInput = matmulInputGradient(gradOutput, weight, rows, inputSize, outputSize);
+  if (!adapter) return { input: gradInput, A: null, B: null };
+  if (!cache) throw new Error('LoRA backward requires its forward cache.');
+  const { rank, scale, down } = cache;
+  const scaledGradient = Float32Array.from(gradOutput, (value) => value * scale);
+  const gradB = new Float32Array(rank * outputSize);
+  const gradDown = new Float32Array(rows * rank);
+  const gradA = new Float32Array(inputSize * rank);
+  for (let rankIndex = 0; rankIndex < rank; rankIndex += 1) {
+    for (let outputIndex = 0; outputIndex < outputSize; outputIndex += 1) {
+      for (let row = 0; row < rows; row += 1) {
+        gradB[(rankIndex * outputSize) + outputIndex] += down[(row * rank) + rankIndex]
+          * scaledGradient[(row * outputSize) + outputIndex];
+      }
+    }
+  }
+  for (let row = 0; row < rows; row += 1) {
+    for (let rankIndex = 0; rankIndex < rank; rankIndex += 1) {
+      for (let outputIndex = 0; outputIndex < outputSize; outputIndex += 1) {
+        gradDown[(row * rank) + rankIndex] += scaledGradient[(row * outputSize) + outputIndex]
+          * adapter.B[(rankIndex * outputSize) + outputIndex];
+      }
+    }
+  }
+  for (let inputIndex = 0; inputIndex < inputSize; inputIndex += 1) {
+    for (let rankIndex = 0; rankIndex < rank; rankIndex += 1) {
+      for (let row = 0; row < rows; row += 1) {
+        gradA[(inputIndex * rank) + rankIndex] += input[(row * inputSize) + inputIndex]
+          * gradDown[(row * rank) + rankIndex];
+      }
+    }
+  }
+  for (let row = 0; row < rows; row += 1) {
+    for (let inputIndex = 0; inputIndex < inputSize; inputIndex += 1) {
+      for (let rankIndex = 0; rankIndex < rank; rankIndex += 1) {
+        gradInput[(row * inputSize) + inputIndex] += gradDown[(row * rank) + rankIndex]
+          * adapter.A[(inputIndex * rank) + rankIndex];
+      }
+    }
+  }
+  return { input: gradInput, A: gradA, B: gradB };
+}
+
 function rmsNormOffsetForward(input, weight, rows, width, eps) {
   requireLength(input, rows * width, 'RMSNorm input');
   requireLength(weight, width, 'RMSNorm weight');
@@ -275,28 +358,34 @@ function resolveModuleDimensions(options) {
 
 export function qwenFullAttentionModuleForward(inputs, options) {
   const dims = resolveModuleDimensions(options);
-  const qProjection = matmulRightTransposed(
+  const qProjectionResult = projectionForward(
     inputs.hidden,
     inputs.qWeight,
     dims.numTokens,
     dims.hiddenSize,
-    dims.querySize * 2
+    dims.querySize * 2,
+    inputs.lora?.q
   );
+  const qProjection = qProjectionResult.output;
   const split = qwenAttentionSplitQGateForward(qProjection, dims);
-  const kProjection = matmulRightTransposed(
+  const kProjectionResult = projectionForward(
     inputs.hidden,
     inputs.kWeight,
     dims.numTokens,
     dims.hiddenSize,
-    dims.kvSize
+    dims.kvSize,
+    inputs.lora?.k
   );
-  const value = matmulRightTransposed(
+  const kProjection = kProjectionResult.output;
+  const valueResult = projectionForward(
     inputs.hidden,
     inputs.vWeight,
     dims.numTokens,
     dims.hiddenSize,
-    dims.kvSize
+    dims.kvSize,
+    inputs.lora?.v
   );
+  const value = valueResult.output;
   const queryNorm = rmsNormOffsetForward(
     split.query,
     inputs.qNormWeight,
@@ -326,13 +415,15 @@ export function qwenFullAttentionModuleForward(inputs, options) {
   };
   const attention = attentionOutput(query, key, value, attentionOptions);
   const gated = sigmoidGateForward(attention.output, split.gate);
-  const output = matmulRightTransposed(
+  const outputResult = projectionForward(
     gated,
     inputs.oWeight,
     dims.numTokens,
     dims.querySize,
-    dims.hiddenSize
+    dims.hiddenSize,
+    inputs.lora?.o
   );
+  const output = outputResult.output;
   return {
     output,
     cache: {
@@ -347,19 +438,29 @@ export function qwenFullAttentionModuleForward(inputs, options) {
       attention,
       gated,
       attentionOptions,
+      projectionCaches: {
+        q: qProjectionResult.cache,
+        k: kProjectionResult.cache,
+        v: valueResult.cache,
+        o: outputResult.cache,
+      },
     },
   };
 }
 
 export function qwenFullAttentionModuleBackward(inputs, gradOutput, cache, options) {
   const dims = resolveModuleDimensions(options);
-  const gradGated = matmulInputGradient(
-    gradOutput,
+  const outputProjectionGradients = projectionBackward(
+    cache.gated,
     inputs.oWeight,
+    gradOutput,
     dims.numTokens,
     dims.querySize,
-    dims.hiddenSize
+    dims.hiddenSize,
+    inputs.lora?.o,
+    cache.projectionCaches.o
   );
+  const gradGated = outputProjectionGradients.input;
   const gateGradients = sigmoidGateBackward(
     cache.attention.output,
     cache.split.gate,
@@ -406,32 +507,52 @@ export function qwenFullAttentionModuleBackward(inputs, gradOutput, cache, optio
     gateGradients.gate,
     dims
   );
+  const qProjectionGradients = projectionBackward(
+    inputs.hidden,
+    inputs.qWeight,
+    gradQProjection,
+    dims.numTokens,
+    dims.hiddenSize,
+    dims.querySize * 2,
+    inputs.lora?.q,
+    cache.projectionCaches.q
+  );
+  const kProjectionGradients = projectionBackward(
+    inputs.hidden,
+    inputs.kWeight,
+    gradKey,
+    dims.numTokens,
+    dims.hiddenSize,
+    dims.kvSize,
+    inputs.lora?.k,
+    cache.projectionCaches.k
+  );
+  const vProjectionGradients = projectionBackward(
+    inputs.hidden,
+    inputs.vWeight,
+    attentionGradients.dV,
+    dims.numTokens,
+    dims.hiddenSize,
+    dims.kvSize,
+    inputs.lora?.v,
+    cache.projectionCaches.v
+  );
   const contributions = [
-    matmulInputGradient(
-      gradQProjection,
-      inputs.qWeight,
-      dims.numTokens,
-      dims.hiddenSize,
-      dims.querySize * 2
-    ),
-    matmulInputGradient(
-      gradKey,
-      inputs.kWeight,
-      dims.numTokens,
-      dims.hiddenSize,
-      dims.kvSize
-    ),
-    matmulInputGradient(
-      attentionGradients.dV,
-      inputs.vWeight,
-      dims.numTokens,
-      dims.hiddenSize,
-      dims.kvSize
-    ),
+    qProjectionGradients.input,
+    kProjectionGradients.input,
+    vProjectionGradients.input,
   ];
   const hidden = new Float32Array(dims.numTokens * dims.hiddenSize);
   for (const contribution of contributions) {
     for (let index = 0; index < hidden.length; index += 1) hidden[index] += contribution[index];
   }
-  return { hidden };
+  return {
+    hidden,
+    lora: {
+      q: { A: qProjectionGradients.A, B: qProjectionGradients.B },
+      k: { A: kProjectionGradients.A, B: kProjectionGradients.B },
+      v: { A: vProjectionGradients.A, B: vProjectionGradients.B },
+      o: { A: outputProjectionGradients.A, B: outputProjectionGradients.B },
+    },
+  };
 }

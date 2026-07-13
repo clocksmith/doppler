@@ -5,9 +5,11 @@ import {
   runRMSNorm,
   runResidualAdd,
   runRoPE,
+  runScale,
   runSiLU,
 } from '../../gpu/kernels/index.js';
 import {
+  runMatmulBackward,
   runQwenAttentionSplitQGateBackward,
   runQwenGqaAttentionBackward,
   runRmsNormBackward,
@@ -65,48 +67,206 @@ function releaseTensorMap(tensors) {
   for (const tensor of Object.values(tensors)) releaseTensor(tensor);
 }
 
+function requireMatrixShape(tensor, rows, columns, label) {
+  if (!tensor || tensor.shape?.length !== 2
+    || tensor.shape[0] !== rows || tensor.shape[1] !== columns) {
+    throw new Error(`${label} must have shape [${rows}, ${columns}].`);
+  }
+}
+
+function resolveAdapter(adapter, inputSize, outputSize, label) {
+  if (!adapter) return null;
+  const rank = positiveInteger(adapter.rank, `${label} LoRA rank`);
+  const alpha = Number(adapter.alpha);
+  if (!Number.isFinite(alpha)) {
+    throw new Error(`${label} LoRA alpha must be finite.`);
+  }
+  requireMatrixShape(adapter.A, inputSize, rank, `${label} LoRA A`);
+  requireMatrixShape(adapter.B, rank, outputSize, `${label} LoRA B`);
+  return { A: adapter.A, B: adapter.B, rank, scale: alpha / rank };
+}
+
+async function runProjectionForward(
+  input,
+  weight,
+  rows,
+  inputSize,
+  outputSize,
+  adapter,
+  label
+) {
+  const resolvedAdapter = resolveAdapter(adapter, inputSize, outputSize, label);
+  let base = null;
+  let down = null;
+  let up = null;
+  let scaled = null;
+  let output = null;
+  let completed = false;
+  try {
+    base = await runMatmul(input, weight, rows, outputSize, inputSize, {
+      transposeB: true,
+      outputDtype: 'f32',
+    });
+    if (!resolvedAdapter) {
+      completed = true;
+      return { output: base, down: null };
+    }
+    down = await runMatmul(input, resolvedAdapter.A, rows, resolvedAdapter.rank, inputSize, {
+      transposeB: false,
+      outputDtype: 'f32',
+    });
+    up = await runMatmul(down, resolvedAdapter.B, rows, outputSize, resolvedAdapter.rank, {
+      transposeB: false,
+      outputDtype: 'f32',
+    });
+    scaled = await runScale(up, resolvedAdapter.scale, { count: rows * outputSize });
+    output = await runResidualAdd(base, scaled, rows * outputSize);
+    completed = true;
+    return { output, down };
+  } finally {
+    if (resolvedAdapter) {
+      releaseTensor(base);
+      releaseTensor(up);
+      releaseTensor(scaled);
+    }
+    if (!completed) {
+      releaseTensor(output);
+      releaseTensor(down);
+    }
+  }
+}
+
+async function runProjectionBackward(
+  input,
+  weight,
+  gradOutput,
+  rows,
+  inputSize,
+  outputSize,
+  adapter,
+  down,
+  label
+) {
+  const resolvedAdapter = resolveAdapter(adapter, inputSize, outputSize, label);
+  let baseInput = null;
+  let scaledGradient = null;
+  let downGradients = null;
+  let inputGradients = null;
+  let combinedInput = null;
+  let completed = false;
+  try {
+    baseInput = await runMatmulBackwardDx(
+      gradOutput,
+      weight,
+      rows,
+      inputSize,
+      outputSize,
+      { transposeB: true }
+    );
+    if (!resolvedAdapter) {
+      completed = true;
+      return { input: baseInput, A: null, B: null };
+    }
+    if (!down) throw new Error(`${label} LoRA backward requires its forward cache.`);
+    scaledGradient = await runScale(gradOutput, resolvedAdapter.scale, {
+      count: rows * outputSize,
+    });
+    downGradients = await runMatmulBackward(
+      down,
+      resolvedAdapter.B,
+      scaledGradient,
+      { M: rows, N: outputSize, K: resolvedAdapter.rank, transposeB: false }
+    );
+    inputGradients = await runMatmulBackward(
+      input,
+      resolvedAdapter.A,
+      downGradients.gradInput,
+      { M: rows, N: resolvedAdapter.rank, K: inputSize, transposeB: false }
+    );
+    combinedInput = await runResidualAdd(
+      baseInput,
+      inputGradients.gradInput,
+      rows * inputSize
+    );
+    completed = true;
+    return {
+      input: combinedInput,
+      A: inputGradients.gradWeight,
+      B: downGradients.gradWeight,
+    };
+  } finally {
+    releaseTensor(scaledGradient);
+    if (resolvedAdapter) {
+      releaseTensor(baseInput);
+      releaseTensor(downGradients?.gradInput);
+      releaseTensor(inputGradients?.gradInput);
+    }
+    if (!completed) {
+      releaseTensor(combinedInput);
+      releaseTensor(downGradients?.gradWeight);
+      releaseTensor(inputGradients?.gradWeight);
+    }
+  }
+}
+
+function releaseAdapterGradients(gradients) {
+  if (!gradients) return;
+  releaseTensor(gradients.A);
+  releaseTensor(gradients.B);
+}
+
 export async function runQwenFullAttentionTrainingModuleForward(inputs, options = {}) {
   const dims = resolveDimensions(options);
+  let qProjectionResult = null;
   let qProjection = null;
   let split = null;
+  let keyProjectionResult = null;
   let keyProjection = null;
+  let valueProjectionResult = null;
   let valueProjection = null;
   let queryRope = null;
   let keyRope = null;
   let attention = null;
   let gated = null;
+  let outputResult = null;
   let output = null;
   let completed = false;
   try {
-    qProjection = await runMatmul(
+    qProjectionResult = await runProjectionForward(
       inputs.hidden,
       inputs.qWeight,
       dims.seqLen,
-      dims.querySize * 2,
       dims.hiddenSize,
-      { transposeB: true, outputDtype: 'f32' }
+      dims.querySize * 2,
+      inputs.lora?.q,
+      'q_proj'
     );
+    qProjection = qProjectionResult.output;
     split = await runQwenAttentionSplitQGate(qProjection, {
       numTokens: dims.seqLen,
       numHeads: dims.numHeads,
       headDim: dims.headDim,
     });
-    keyProjection = await runMatmul(
+    keyProjectionResult = await runProjectionForward(
       inputs.hidden,
       inputs.kWeight,
       dims.seqLen,
-      dims.kvSize,
       dims.hiddenSize,
-      { transposeB: true, outputDtype: 'f32' }
+      dims.kvSize,
+      inputs.lora?.k,
+      'k_proj'
     );
-    valueProjection = await runMatmul(
+    keyProjection = keyProjectionResult.output;
+    valueProjectionResult = await runProjectionForward(
       inputs.hidden,
       inputs.vWeight,
       dims.seqLen,
-      dims.kvSize,
       dims.hiddenSize,
-      { transposeB: true, outputDtype: 'f32' }
+      dims.kvSize,
+      inputs.lora?.v,
+      'v_proj'
     );
+    valueProjection = valueProjectionResult.output;
     queryRope = await runRMSNorm(split.query, inputs.qNormWeight, dims.rmsEps, {
       batchSize: dims.seqLen * dims.numHeads,
       hiddenSize: dims.headDim,
@@ -155,14 +315,16 @@ export async function runQwenFullAttentionTrainingModuleForward(inputs, options 
       inputActivation: 'identity',
       swigluLimit: null,
     });
-    output = await runMatmul(
+    outputResult = await runProjectionForward(
       gated,
       inputs.oWeight,
       dims.seqLen,
-      dims.hiddenSize,
       dims.querySize,
-      { transposeB: true, outputDtype: 'f32' }
+      dims.hiddenSize,
+      inputs.lora?.o,
+      'o_proj'
     );
+    output = outputResult.output;
     completed = true;
     return {
       output,
@@ -175,11 +337,17 @@ export async function runQwenFullAttentionTrainingModuleForward(inputs, options 
         queryRope,
         keyRope,
         attention,
+        gated,
+        projectionDowns: {
+          q: qProjectionResult.down,
+          k: keyProjectionResult.down,
+          v: valueProjectionResult.down,
+          o: outputResult.down,
+        },
       },
     };
   } finally {
     releaseTensor(qProjection);
-    releaseTensor(gated);
     if (!completed) {
       releaseTensor(output);
       releaseTensorMap(split);
@@ -188,6 +356,11 @@ export async function runQwenFullAttentionTrainingModuleForward(inputs, options 
       releaseTensor(queryRope);
       releaseTensor(keyRope);
       releaseTensor(attention);
+      releaseTensor(gated);
+      releaseTensor(qProjectionResult?.down);
+      releaseTensor(keyProjectionResult?.down);
+      releaseTensor(valueProjectionResult?.down);
+      releaseTensor(outputResult?.down);
     }
   }
 }
@@ -212,19 +385,27 @@ export async function runQwenFullAttentionTrainingModuleBackward(
   let gradQuery = null;
   let gradKey = null;
   let gradQProjection = null;
+  let outputProjectionGradients = null;
+  let qProjectionGradients = null;
+  let kProjectionGradients = null;
+  let vProjectionGradients = null;
   const contributions = [];
   let sumQueryKey = null;
   let hidden = null;
   let completed = false;
   try {
-    gradGated = await runMatmulBackwardDx(
-      gradOutput,
+    outputProjectionGradients = await runProjectionBackward(
+      cache.gated,
       inputs.oWeight,
+      gradOutput,
       dims.seqLen,
       dims.querySize,
       dims.hiddenSize,
-      { transposeB: true }
+      inputs.lora?.o,
+      cache.projectionDowns?.o,
+      'o_proj'
     );
+    gradGated = outputProjectionGradients.input;
     gateGradients = await runSigmoidGatedBackward(
       cache.attention,
       cache.gate,
@@ -292,25 +473,55 @@ export async function runQwenFullAttentionTrainingModuleBackward(
       gateGradients.gate,
       { numTokens: dims.seqLen, numHeads: dims.numHeads, headDim: dims.headDim }
     );
-    for (const [gradient, weight, outputSize] of [
-      [gradQProjection, inputs.qWeight, dims.querySize * 2],
-      [gradKey, inputs.kWeight, dims.kvSize],
-      [attentionGradients.value, inputs.vWeight, dims.kvSize],
-    ]) {
-      contributions.push(await runMatmulBackwardDx(
-        gradient,
-        weight,
-        dims.seqLen,
-        dims.hiddenSize,
-        outputSize,
-        { transposeB: true }
-      ));
-    }
+    qProjectionGradients = await runProjectionBackward(
+      inputs.hidden,
+      inputs.qWeight,
+      gradQProjection,
+      dims.seqLen,
+      dims.hiddenSize,
+      dims.querySize * 2,
+      inputs.lora?.q,
+      cache.projectionDowns?.q,
+      'q_proj'
+    );
+    contributions.push(qProjectionGradients.input);
+    kProjectionGradients = await runProjectionBackward(
+      inputs.hidden,
+      inputs.kWeight,
+      gradKey,
+      dims.seqLen,
+      dims.hiddenSize,
+      dims.kvSize,
+      inputs.lora?.k,
+      cache.projectionDowns?.k,
+      'k_proj'
+    );
+    contributions.push(kProjectionGradients.input);
+    vProjectionGradients = await runProjectionBackward(
+      inputs.hidden,
+      inputs.vWeight,
+      attentionGradients.value,
+      dims.seqLen,
+      dims.hiddenSize,
+      dims.kvSize,
+      inputs.lora?.v,
+      cache.projectionDowns?.v,
+      'v_proj'
+    );
+    contributions.push(vProjectionGradients.input);
     const hiddenElements = dims.seqLen * dims.hiddenSize;
     sumQueryKey = await runResidualAdd(contributions[0], contributions[1], hiddenElements);
     hidden = await runResidualAdd(sumQueryKey, contributions[2], hiddenElements);
     completed = true;
-    return { hidden };
+    return {
+      hidden,
+      lora: {
+        q: { A: qProjectionGradients.A, B: qProjectionGradients.B },
+        k: { A: kProjectionGradients.A, B: kProjectionGradients.B },
+        v: { A: vProjectionGradients.A, B: vProjectionGradients.B },
+        o: { A: outputProjectionGradients.A, B: outputProjectionGradients.B },
+      },
+    };
   } finally {
     releaseTensor(gradGated);
     releaseTensorMap(gateGradients);
@@ -322,7 +533,13 @@ export async function runQwenFullAttentionTrainingModuleBackward(
     releaseTensor(gradQProjection);
     for (const tensor of contributions) releaseTensor(tensor);
     releaseTensor(sumQueryKey);
-    if (!completed) releaseTensor(hidden);
+    if (!completed) {
+      releaseTensor(hidden);
+      releaseAdapterGradients(outputProjectionGradients);
+      releaseAdapterGradients(qProjectionGradients);
+      releaseAdapterGradients(kProjectionGradients);
+      releaseAdapterGradients(vProjectionGradients);
+    }
   }
 }
 
@@ -334,4 +551,6 @@ export function releaseQwenFullAttentionTrainingModuleCache(cache) {
   releaseTensor(cache?.queryRope);
   releaseTensor(cache?.keyRope);
   releaseTensor(cache?.attention);
+  releaseTensor(cache?.gated);
+  releaseTensorMap(cache?.projectionDowns);
 }
