@@ -1,19 +1,16 @@
-import {
-  runRMSNorm,
-  runResidualAdd,
-} from '../../gpu/kernels/index.js';
+import { runRMSNorm, runResidualAdd } from '../../gpu/kernels/index.js';
 import { runRmsNormBackward } from '../../gpu/kernels/backward/index.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
-import {
-  releaseQwenFullAttentionTrainingModuleCache,
-  runQwenFullAttentionTrainingModuleBackward,
-  runQwenFullAttentionTrainingModuleForward,
-} from './qwen-full-attention-training-module.js';
 import {
   releaseQwenDecoderMlpCache,
   runQwenDecoderMlpBackward,
   runQwenDecoderMlpForward,
 } from './qwen-decoder-mlp-training-module.js';
+import {
+  releaseQwenLinearAttentionTrainingModuleCache,
+  runQwenLinearAttentionTrainingModuleBackward,
+  runQwenLinearAttentionTrainingModuleForward,
+} from './qwen-linear-attention-training-core.js';
 
 function positiveInteger(value, label) {
   const parsed = Math.floor(Number(value));
@@ -25,7 +22,7 @@ function positiveInteger(value, label) {
 
 function resolveDimensions(options) {
   return {
-    seqLen: positiveInteger(options?.seqLen, 'seqLen'),
+    numTokens: positiveInteger(options?.numTokens, 'numTokens'),
     hiddenSize: positiveInteger(options?.hiddenSize, 'hiddenSize'),
     intermediateSize: positiveInteger(options?.intermediateSize, 'intermediateSize'),
   };
@@ -48,14 +45,7 @@ function releaseMlpAdapterGradients(gradients) {
   }
 }
 
-function releaseAttentionAdapterGradients(gradients) {
-  if (!gradients?.lora) return;
-  for (const projection of Object.values(gradients.lora)) {
-    releaseProjectionGradients(projection);
-  }
-}
-
-export async function runQwenFullDecoderLayerForward(inputs, options = {}) {
+export async function runQwenLinearDecoderLayerForward(inputs, options = {}) {
   const dims = resolveDimensions(options);
   let inputNorm = null;
   let attention = null;
@@ -66,18 +56,18 @@ export async function runQwenFullDecoderLayerForward(inputs, options = {}) {
   let completed = false;
   try {
     inputNorm = await runRMSNorm(inputs.hidden, inputs.inputNormWeight, options.rmsEps, {
-      batchSize: dims.seqLen,
+      batchSize: dims.numTokens,
       hiddenSize: dims.hiddenSize,
       rmsNormWeightOffset: true,
     });
     const attentionInputs = { ...inputs.attention, hidden: inputNorm };
-    attention = await runQwenFullAttentionTrainingModuleForward(attentionInputs, options);
+    attention = await runQwenLinearAttentionTrainingModuleForward(attentionInputs, options);
     normalizedAttention = await runRMSNorm(
       attention.output,
       inputs.postAttentionNormWeight,
       options.rmsEps,
       {
-        batchSize: dims.seqLen,
+        batchSize: dims.numTokens,
         hiddenSize: dims.hiddenSize,
         rmsNormWeightOffset: true,
       }
@@ -85,24 +75,21 @@ export async function runQwenFullDecoderLayerForward(inputs, options = {}) {
     postAttention = await runResidualAdd(
       inputs.hidden,
       normalizedAttention,
-      dims.seqLen * dims.hiddenSize
+      dims.numTokens * dims.hiddenSize
     );
     mlp = await runQwenDecoderMlpForward(
       { ...inputs.mlp, hidden: postAttention },
-      {
-        numTokens: dims.seqLen,
-        hiddenSize: dims.hiddenSize,
-        intermediateSize: dims.intermediateSize,
-      }
+      dims
     );
     output = await runResidualAdd(
       postAttention,
       mlp.output,
-      dims.seqLen * dims.hiddenSize
+      dims.numTokens * dims.hiddenSize
     );
     completed = true;
     return {
       output,
+      finalState: attention.finalState,
       cache: {
         dims,
         inputNorm,
@@ -120,18 +107,19 @@ export async function runQwenFullDecoderLayerForward(inputs, options = {}) {
       releaseTensor(output);
       releaseTensor(inputNorm);
       releaseTensor(attention?.output);
-      if (attention?.cache) releaseQwenFullAttentionTrainingModuleCache(attention.cache);
+      releaseTensor(attention?.finalState);
+      if (attention?.cache) releaseQwenLinearAttentionTrainingModuleCache(attention.cache);
       releaseTensor(postAttention);
       if (mlp?.cache) releaseQwenDecoderMlpCache(mlp.cache);
     }
   }
 }
 
-export async function runQwenFullDecoderLayerBackward(inputs, gradOutput, cache, options = {}) {
+export async function runQwenLinearDecoderLayerBackward(inputs, gradOutput, cache, options = {}) {
   const dims = resolveDimensions(options);
   for (const key of Object.keys(dims)) {
     if (cache?.dims?.[key] !== dims[key]) {
-      throw new Error(`Qwen full-decoder cache mismatch for ${key}.`);
+      throw new Error(`Qwen linear-decoder cache mismatch for ${key}.`);
     }
   }
   let mlpGradients = null;
@@ -146,29 +134,25 @@ export async function runQwenFullDecoderLayerBackward(inputs, gradOutput, cache,
       { ...inputs.mlp, hidden: cache.postAttention },
       gradOutput,
       cache.mlpCache,
-      {
-        numTokens: dims.seqLen,
-        hiddenSize: dims.hiddenSize,
-        intermediateSize: dims.intermediateSize,
-      }
+      dims
     );
     postAttentionGradient = await runResidualAdd(
       gradOutput,
       mlpGradients.hidden,
-      dims.seqLen * dims.hiddenSize
+      dims.numTokens * dims.hiddenSize
     );
     attentionOutputGradient = await runRmsNormBackward(
       cache.attentionOutput,
       inputs.postAttentionNormWeight,
       postAttentionGradient,
       {
-        numTokens: dims.seqLen,
+        numTokens: dims.numTokens,
         hiddenSize: dims.hiddenSize,
         eps: options.rmsEps,
         rmsNormWeightOffset: true,
       }
     );
-    attentionGradients = await runQwenFullAttentionTrainingModuleBackward(
+    attentionGradients = await runQwenLinearAttentionTrainingModuleBackward(
       cache.attentionInputs,
       attentionOutputGradient,
       cache.attentionCache,
@@ -179,7 +163,7 @@ export async function runQwenFullDecoderLayerBackward(inputs, gradOutput, cache,
       inputs.inputNormWeight,
       attentionGradients.hidden,
       {
-        numTokens: dims.seqLen,
+        numTokens: dims.numTokens,
         hiddenSize: dims.hiddenSize,
         eps: options.rmsEps,
         rmsNormWeightOffset: true,
@@ -188,20 +172,13 @@ export async function runQwenFullDecoderLayerBackward(inputs, gradOutput, cache,
     hidden = await runResidualAdd(
       postAttentionGradient,
       inputNormGradient,
-      dims.seqLen * dims.hiddenSize
+      dims.numTokens * dims.hiddenSize
     );
     completed = true;
     return {
       hidden,
-      lora: {
-        q: attentionGradients.lora.q,
-        k: attentionGradients.lora.k,
-        v: attentionGradients.lora.v,
-        o: attentionGradients.lora.o,
-        gate: mlpGradients.lora.gate,
-        up: mlpGradients.lora.up,
-        down: mlpGradients.lora.down,
-      },
+      initialState: attentionGradients.initialState,
+      lora: mlpGradients.lora,
     };
   } finally {
     releaseTensor(mlpGradients?.hidden);
@@ -211,16 +188,16 @@ export async function runQwenFullDecoderLayerBackward(inputs, gradOutput, cache,
     releaseTensor(inputNormGradient);
     if (!completed) {
       releaseTensor(hidden);
+      releaseTensor(attentionGradients?.initialState);
       releaseMlpAdapterGradients(mlpGradients);
-      releaseAttentionAdapterGradients(attentionGradients);
     }
   }
 }
 
-export function releaseQwenFullDecoderLayerCache(cache) {
+export function releaseQwenLinearDecoderLayerCache(cache) {
   releaseTensor(cache?.inputNorm);
   releaseTensor(cache?.attentionOutput);
-  releaseQwenFullAttentionTrainingModuleCache(cache?.attentionCache);
+  releaseQwenLinearAttentionTrainingModuleCache(cache?.attentionCache);
   releaseTensor(cache?.postAttention);
   releaseQwenDecoderMlpCache(cache?.mlpCache);
 }
