@@ -595,3 +595,122 @@ export function qwenLinearAttentionCoreBackward(inputs, gradOutput, cache, optio
     dtBias: preparationGradients.dtBias,
   };
 }
+
+function matmulRightTransposed(input, weight, rows, inputSize, outputSize) {
+  requireArrayLength(input, rows * inputSize, 'matmul input');
+  requireArrayLength(weight, outputSize * inputSize, 'matmul transposed weight');
+  const output = new Float32Array(rows * outputSize);
+  for (let row = 0; row < rows; row += 1) {
+    for (let outputIndex = 0; outputIndex < outputSize; outputIndex += 1) {
+      let sum = 0;
+      for (let inputIndex = 0; inputIndex < inputSize; inputIndex += 1) {
+        sum += input[(row * inputSize) + inputIndex]
+          * weight[(outputIndex * inputSize) + inputIndex];
+      }
+      output[(row * outputSize) + outputIndex] = sum;
+    }
+  }
+  return output;
+}
+
+function transposedWeightInputGradient(gradOutput, weight, rows, inputSize, outputSize) {
+  requireArrayLength(gradOutput, rows * outputSize, 'matmul gradOutput');
+  requireArrayLength(weight, outputSize * inputSize, 'matmul transposed weight');
+  const gradInput = new Float32Array(rows * inputSize);
+  for (let row = 0; row < rows; row += 1) {
+    for (let inputIndex = 0; inputIndex < inputSize; inputIndex += 1) {
+      let sum = 0;
+      for (let outputIndex = 0; outputIndex < outputSize; outputIndex += 1) {
+        sum += gradOutput[(row * outputSize) + outputIndex]
+          * weight[(outputIndex * inputSize) + inputIndex];
+      }
+      gradInput[(row * inputSize) + inputIndex] = sum;
+    }
+  }
+  return gradInput;
+}
+
+export function qwenLinearAttentionModuleForward(inputs, options) {
+  const dims = resolveCoreOptions(options);
+  const hiddenSize = requirePositiveInteger(options?.hiddenSize, 'hiddenSize');
+  const hidden = requireArrayLength(inputs?.hidden, dims.numTokens * hiddenSize, 'hidden');
+  const projections = {
+    qkv: matmulRightTransposed(
+      hidden,
+      inputs.qkvWeight,
+      dims.numTokens,
+      hiddenSize,
+      dims.convSize
+    ),
+    z: matmulRightTransposed(
+      hidden,
+      inputs.zWeight,
+      dims.numTokens,
+      hiddenSize,
+      dims.valueSize
+    ),
+    a: matmulRightTransposed(
+      hidden,
+      inputs.aWeight,
+      dims.numTokens,
+      hiddenSize,
+      dims.numValueHeads
+    ),
+    b: matmulRightTransposed(
+      hidden,
+      inputs.bWeight,
+      dims.numTokens,
+      hiddenSize,
+      dims.numValueHeads
+    ),
+  };
+  const core = qwenLinearAttentionCoreForward({
+    ...inputs,
+    ...projections,
+  }, dims);
+  const output = matmulRightTransposed(
+    core.output,
+    inputs.outWeight,
+    dims.numTokens,
+    dims.valueSize,
+    hiddenSize
+  );
+  return { output, finalState: core.finalState, cache: { dims: { ...dims, hiddenSize }, projections, core } };
+}
+
+export function qwenLinearAttentionModuleBackward(inputs, gradOutput, cache, options) {
+  const dims = resolveCoreOptions(options);
+  const hiddenSize = requirePositiveInteger(options?.hiddenSize, 'hiddenSize');
+  requireArrayLength(gradOutput, dims.numTokens * hiddenSize, 'gradOutput');
+  const gradCoreOutput = transposedWeightInputGradient(
+    gradOutput,
+    inputs.outWeight,
+    dims.numTokens,
+    dims.valueSize,
+    hiddenSize
+  );
+  const coreGradients = qwenLinearAttentionCoreBackward({
+    ...inputs,
+    ...cache.projections,
+  }, gradCoreOutput, cache.core.cache, dims);
+  const projectionSpecs = [
+    ['qkv', inputs.qkvWeight, dims.convSize],
+    ['z', inputs.zWeight, dims.valueSize],
+    ['a', inputs.aWeight, dims.numValueHeads],
+    ['b', inputs.bWeight, dims.numValueHeads],
+  ];
+  const hidden = new Float32Array(dims.numTokens * hiddenSize);
+  for (const [name, weight, outputSize] of projectionSpecs) {
+    const contribution = transposedWeightInputGradient(
+      coreGradients[name],
+      weight,
+      dims.numTokens,
+      hiddenSize,
+      outputSize
+    );
+    for (let index = 0; index < hidden.length; index += 1) {
+      hidden[index] += contribution[index];
+    }
+  }
+  return { hidden, initialState: coreGradients.initialState };
+}

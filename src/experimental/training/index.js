@@ -88,4 +88,7 @@ export {
   runQwenLinearAttentionTrainingCoreForward,
   runQwenLinearAttentionTrainingCoreBackward,
   releaseQwenLinearAttentionTrainingCoreCache,
+  runQwenLinearAttentionTrainingModuleForward,
+  runQwenLinearAttentionTrainingModuleBackward,
+  releaseQwenLinearAttentionTrainingModuleCache,
 } from './qwen-linear-attention-training-core.js';

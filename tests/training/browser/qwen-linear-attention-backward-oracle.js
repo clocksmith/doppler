@@ -9,11 +9,16 @@ import {
   qwenLinearAttentionPrepareForward,
   qwenLinearAttentionCoreBackward,
   qwenLinearAttentionCoreForward,
+  qwenLinearAttentionModuleBackward,
+  qwenLinearAttentionModuleForward,
 } from '../../../src/experimental/training/qwen-linear-attention-reference.js';
 import {
   releaseQwenLinearAttentionTrainingCoreCache,
   runQwenLinearAttentionTrainingCoreBackward,
   runQwenLinearAttentionTrainingCoreForward,
+  releaseQwenLinearAttentionTrainingModuleCache,
+  runQwenLinearAttentionTrainingModuleBackward,
+  runQwenLinearAttentionTrainingModuleForward,
 } from '../../../src/experimental/training/qwen-linear-attention-training-core.js';
 import {
   gatedDeltaRecurrentBackward,
@@ -36,12 +41,25 @@ import {
   runQwenLinearAttentionPrepareBackward,
 } from '../../../src/gpu/kernels/backward/index.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
+import { f16ToF32Array, f32ToF16Array } from '../../../src/inference/kv-cache/types.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../src/memory/buffer-pool.js';
 
+function makeTypedTensor(values, dtype, shape, label) {
+  const byteLength = Math.ceil(values.byteLength / 4) * 4;
+  const upload = byteLength === values.byteLength
+    ? values
+    : (() => {
+        const padded = new Uint8Array(byteLength);
+        padded.set(new Uint8Array(values.buffer, values.byteOffset, values.byteLength));
+        return padded;
+      })();
+  const buffer = acquireBuffer(byteLength, undefined, label);
+  uploadData(buffer, upload);
+  return createTensor(buffer, dtype, shape, label);
+}
+
 function makeTensor(values, shape, label) {
-  const buffer = acquireBuffer(values.byteLength, undefined, label);
-  uploadData(buffer, values);
-  return createTensor(buffer, 'f32', shape, label);
+  return makeTypedTensor(values, 'f32', shape, label);
 }
 
 function values(length, offset, scale) {
@@ -365,6 +383,144 @@ async function runIntegratedCoreCase() {
   }
 }
 
+async function runIntegratedModuleCase() {
+  const options = {
+    numTokens: 2,
+    hiddenSize: 3,
+    numKeyHeads: 1,
+    numValueHeads: 2,
+    keyDim: 2,
+    valueDim: 2,
+    kernelSize: 2,
+    checkpointInterval: 1,
+    queryScale: 1 / Math.sqrt(2),
+    l2Eps: 1e-6,
+    rmsEps: 1e-6,
+  };
+  const convSize = (options.numKeyHeads * options.keyDim * 2)
+    + (options.numValueHeads * options.valueDim);
+  const valueSize = options.numValueHeads * options.valueDim;
+  const weightValues = {
+    qkvWeight: f32ToF16Array(values(convSize * options.hiddenSize, 3, 0.2)),
+    zWeight: f32ToF16Array(values(valueSize * options.hiddenSize, 29, 0.18)),
+    aWeight: f32ToF16Array(values(options.numValueHeads * options.hiddenSize, 47, 0.15)),
+    bWeight: f32ToF16Array(values(options.numValueHeads * options.hiddenSize, 53, 0.15)),
+    outWeight: f32ToF16Array(values(options.hiddenSize * valueSize, 61, 0.2)),
+  };
+  const inputValues = {
+    hidden: values(options.numTokens * options.hiddenSize, 107, 0.25),
+    qkvWeight: f16ToF32Array(weightValues.qkvWeight),
+    zWeight: f16ToF32Array(weightValues.zWeight),
+    aWeight: f16ToF32Array(weightValues.aWeight),
+    bWeight: f16ToF32Array(weightValues.bWeight),
+    outWeight: f16ToF32Array(weightValues.outWeight),
+    convWeight: values(convSize * options.kernelSize, 73, 0.2),
+    aLog: values(options.numValueHeads, 97, 0.15),
+    dtBias: values(options.numValueHeads, 101, 0.1),
+    normWeight: Float32Array.from(
+      values(options.valueDim, 103, 0.1),
+      (value) => 1 + value
+    ),
+    initialState: values(
+      options.numValueHeads * options.keyDim * options.valueDim,
+      113,
+      0.05
+    ),
+  };
+  const gradOutputValues = values(options.numTokens * options.hiddenSize, 127, 0.3);
+  const tensors = {
+    hidden: makeTensor(inputValues.hidden, [options.numTokens, options.hiddenSize], 'module_hidden'),
+    qkvWeight: makeTypedTensor(
+      weightValues.qkvWeight,
+      'f16',
+      [convSize, options.hiddenSize],
+      'module_qkv_weight'
+    ),
+    zWeight: makeTypedTensor(
+      weightValues.zWeight,
+      'f16',
+      [valueSize, options.hiddenSize],
+      'module_z_weight'
+    ),
+    aWeight: makeTypedTensor(
+      weightValues.aWeight,
+      'f16',
+      [options.numValueHeads, options.hiddenSize],
+      'module_a_weight'
+    ),
+    bWeight: makeTypedTensor(
+      weightValues.bWeight,
+      'f16',
+      [options.numValueHeads, options.hiddenSize],
+      'module_b_weight'
+    ),
+    outWeight: makeTypedTensor(
+      weightValues.outWeight,
+      'f16',
+      [options.hiddenSize, valueSize],
+      'module_out_weight'
+    ),
+    convWeight: makeTensor(
+      inputValues.convWeight,
+      [convSize, options.kernelSize],
+      'module_conv_weight'
+    ),
+    aLog: makeTensor(inputValues.aLog, [options.numValueHeads], 'module_a_log'),
+    dtBias: makeTensor(inputValues.dtBias, [options.numValueHeads], 'module_dt_bias'),
+    normWeight: makeTensor(inputValues.normWeight, [options.valueDim], 'module_norm_weight'),
+    initialState: makeTensor(
+      inputValues.initialState,
+      [options.numValueHeads, options.keyDim, options.valueDim],
+      'module_initial_state'
+    ),
+  };
+  const gradOutput = makeTensor(
+    gradOutputValues,
+    [options.numTokens, options.hiddenSize],
+    'module_grad_output'
+  );
+  const referenceOptions = { ...options, eps: options.l2Eps };
+  const expectedForward = qwenLinearAttentionModuleForward(inputValues, referenceOptions);
+  const expectedBackward = qwenLinearAttentionModuleBackward(
+    inputValues,
+    gradOutputValues,
+    expectedForward.cache,
+    referenceOptions
+  );
+  let forward = null;
+  let backward = null;
+  try {
+    forward = await runQwenLinearAttentionTrainingModuleForward(tensors, options);
+    backward = await runQwenLinearAttentionTrainingModuleBackward(
+      tensors,
+      gradOutput,
+      forward.cache,
+      options
+    );
+    return {
+      forwardOutput: compare(await readF32(forward.output), expectedForward.output),
+      forwardFinalState: compare(await readF32(forward.finalState), expectedForward.finalState),
+      backwardHidden: compare(await readF32(backward.hidden), expectedBackward.hidden),
+      backwardInitialState: compare(
+        await readF32(backward.initialState),
+        expectedBackward.initialState
+      ),
+    };
+  } finally {
+    if (backward) {
+      releaseBuffer(backward.hidden.buffer);
+      releaseBuffer(backward.initialState.buffer);
+    }
+    if (forward) {
+      releaseBuffer(forward.output.buffer);
+      releaseBuffer(forward.finalState.buffer);
+      releaseQwenLinearAttentionTrainingModuleCache(forward.cache);
+    }
+    for (const tensor of Object.values(tensors)) releaseBuffer(tensor.buffer);
+    releaseBuffer(gradOutput.buffer);
+  }
+}
+
 async function runGatedDeltaRecurrentCase() {
   const options = {
     numTokens: 3,
@@ -531,6 +687,7 @@ export async function runQwenLinearAttentionBackwardOracle() {
   const gatedRmsNorm = await runGatedRmsNormCase();
   const preparation = await runPrepareCase();
   const integratedCore = await runIntegratedCoreCase();
+  const integratedModule = await runIntegratedModuleCase();
   const gatedDeltaRecurrent = await runGatedDeltaRecurrentCase();
   const comparisons = {
     causalConvForward: causalConv.forwardComparison,
@@ -553,6 +710,10 @@ export async function runQwenLinearAttentionBackwardOracle() {
     integratedCoreBackwardA: integratedCore.backwardA,
     integratedCoreBackwardB: integratedCore.backwardB,
     integratedCoreBackwardInitialState: integratedCore.backwardInitialState,
+    integratedModuleForwardOutput: integratedModule.forwardOutput,
+    integratedModuleForwardFinalState: integratedModule.forwardFinalState,
+    integratedModuleBackwardHidden: integratedModule.backwardHidden,
+    integratedModuleBackwardInitialState: integratedModule.backwardInitialState,
     gatedDeltaGradQuery: gatedDeltaRecurrent.query,
     gatedDeltaGradKey: gatedDeltaRecurrent.key,
     gatedDeltaGradValue: gatedDeltaRecurrent.value,
@@ -585,6 +746,6 @@ export async function runQwenLinearAttentionBackwardOracle() {
       passed: causalConvPerturbation.maxAbsError > 1e-4,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Integrated checkpointed Qwen linear-attention core from projected QKV/Z/A/B through gated RMSNorm only; frozen input/output projection matmuls, residuals, and complete decoder-layer execution remain absent.',
+    claimBoundary: 'Integrated checkpointed Qwen linear-attention module with frozen F16 input/output projections; residuals, decoder normalization, MLP, full attention, and complete decoder-layer execution remain absent.',
   };
 }
