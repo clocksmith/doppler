@@ -1,3 +1,8 @@
+import {
+  computeAttentionBackwardData,
+  computeAttentionSoftmaxData,
+} from './attention-backward.js';
+
 function positiveInteger(value, label) {
   if (!Number.isInteger(value) || value < 1) {
     throw new Error(`${label} must be a positive integer.`);
@@ -150,4 +155,283 @@ export function partialRopeForward(input, freqsCos, freqsSin, options) {
 
 export function partialRopeBackward(gradOutput, freqsCos, freqsSin, options) {
   return ropeTransform(gradOutput, freqsCos, freqsSin, options, true);
+}
+
+function matmulRightTransposed(input, weight, rows, inputSize, outputSize) {
+  requireLength(input, rows * inputSize, 'matmul input');
+  requireLength(weight, outputSize * inputSize, 'matmul weight');
+  const output = new Float32Array(rows * outputSize);
+  for (let row = 0; row < rows; row += 1) {
+    for (let outputIndex = 0; outputIndex < outputSize; outputIndex += 1) {
+      let sum = 0;
+      for (let inputIndex = 0; inputIndex < inputSize; inputIndex += 1) {
+        sum += input[(row * inputSize) + inputIndex]
+          * weight[(outputIndex * inputSize) + inputIndex];
+      }
+      output[(row * outputSize) + outputIndex] = sum;
+    }
+  }
+  return output;
+}
+
+function matmulInputGradient(gradOutput, weight, rows, inputSize, outputSize) {
+  requireLength(gradOutput, rows * outputSize, 'matmul gradOutput');
+  const output = new Float32Array(rows * inputSize);
+  for (let row = 0; row < rows; row += 1) {
+    for (let inputIndex = 0; inputIndex < inputSize; inputIndex += 1) {
+      let sum = 0;
+      for (let outputIndex = 0; outputIndex < outputSize; outputIndex += 1) {
+        sum += gradOutput[(row * outputSize) + outputIndex]
+          * weight[(outputIndex * inputSize) + inputIndex];
+      }
+      output[(row * inputSize) + inputIndex] = sum;
+    }
+  }
+  return output;
+}
+
+function rmsNormOffsetForward(input, weight, rows, width, eps) {
+  requireLength(input, rows * width, 'RMSNorm input');
+  requireLength(weight, width, 'RMSNorm weight');
+  const output = new Float32Array(input.length);
+  const inverseRms = new Float32Array(rows);
+  for (let row = 0; row < rows; row += 1) {
+    let sumSquares = 0;
+    const base = row * width;
+    for (let column = 0; column < width; column += 1) {
+      sumSquares += input[base + column] ** 2;
+    }
+    const inverse = 1 / Math.sqrt((sumSquares / width) + eps);
+    inverseRms[row] = inverse;
+    for (let column = 0; column < width; column += 1) {
+      output[base + column] = input[base + column] * inverse * (1 + weight[column]);
+    }
+  }
+  return { output, cache: { inverseRms } };
+}
+
+function rmsNormOffsetBackward(input, weight, gradOutput, cache, rows, width) {
+  const output = new Float32Array(input.length);
+  for (let row = 0; row < rows; row += 1) {
+    const base = row * width;
+    const inverse = cache.inverseRms[row];
+    let dot = 0;
+    for (let column = 0; column < width; column += 1) {
+      dot += gradOutput[base + column] * (1 + weight[column]) * input[base + column];
+    }
+    const correction = (dot * inverse * inverse) / width;
+    for (let column = 0; column < width; column += 1) {
+      const scaledGradient = gradOutput[base + column] * (1 + weight[column]);
+      output[base + column] = inverse
+        * (scaledGradient - (input[base + column] * correction));
+    }
+  }
+  return output;
+}
+
+function attentionOutput(query, key, value, options) {
+  const softmax = computeAttentionSoftmaxData(query, key, options);
+  const output = new Float32Array(options.seqLen * options.numHeads * options.headDim);
+  const headsPerKv = options.numHeads / options.numKVHeads;
+  for (let token = 0; token < options.seqLen; token += 1) {
+    for (let head = 0; head < options.numHeads; head += 1) {
+      const kvHead = Math.floor(head / headsPerKv);
+      const scoreBase = ((head * options.seqLen) + token) * options.seqLen;
+      const outputBase = ((token * options.numHeads) + head) * options.headDim;
+      for (let keyToken = 0; keyToken < options.seqLen; keyToken += 1) {
+        const probability = softmax[scoreBase + keyToken];
+        const valueBase = ((keyToken * options.numKVHeads) + kvHead) * options.headDim;
+        for (let dim = 0; dim < options.headDim; dim += 1) {
+          output[outputBase + dim] += probability * value[valueBase + dim];
+        }
+      }
+    }
+  }
+  return { output, softmax };
+}
+
+function resolveModuleDimensions(options) {
+  const numTokens = positiveInteger(options?.numTokens, 'numTokens');
+  const hiddenSize = positiveInteger(options?.hiddenSize, 'hiddenSize');
+  const numHeads = positiveInteger(options?.numHeads, 'numHeads');
+  const numKVHeads = positiveInteger(options?.numKVHeads, 'numKVHeads');
+  const headDim = positiveInteger(options?.headDim, 'headDim');
+  const rmsEps = Number(options?.rmsEps);
+  if (numHeads % numKVHeads !== 0 || !Number.isFinite(rmsEps) || rmsEps <= 0) {
+    throw new Error('invalid Qwen full-attention module geometry.');
+  }
+  return {
+    ...resolveRopeDimensions(options),
+    numTokens,
+    hiddenSize,
+    numHeads,
+    numKVHeads,
+    headDim,
+    rmsEps,
+    querySize: numHeads * headDim,
+    kvSize: numKVHeads * headDim,
+  };
+}
+
+export function qwenFullAttentionModuleForward(inputs, options) {
+  const dims = resolveModuleDimensions(options);
+  const qProjection = matmulRightTransposed(
+    inputs.hidden,
+    inputs.qWeight,
+    dims.numTokens,
+    dims.hiddenSize,
+    dims.querySize * 2
+  );
+  const split = qwenAttentionSplitQGateForward(qProjection, dims);
+  const kProjection = matmulRightTransposed(
+    inputs.hidden,
+    inputs.kWeight,
+    dims.numTokens,
+    dims.hiddenSize,
+    dims.kvSize
+  );
+  const value = matmulRightTransposed(
+    inputs.hidden,
+    inputs.vWeight,
+    dims.numTokens,
+    dims.hiddenSize,
+    dims.kvSize
+  );
+  const queryNorm = rmsNormOffsetForward(
+    split.query,
+    inputs.qNormWeight,
+    dims.numTokens * dims.numHeads,
+    dims.headDim,
+    dims.rmsEps
+  );
+  const keyNorm = rmsNormOffsetForward(
+    kProjection,
+    inputs.kNormWeight,
+    dims.numTokens * dims.numKVHeads,
+    dims.headDim,
+    dims.rmsEps
+  );
+  const query = partialRopeForward(queryNorm.output, inputs.cos, inputs.sin, dims);
+  const key = partialRopeForward(keyNorm.output, inputs.cos, inputs.sin, {
+    ...dims,
+    numHeads: dims.numKVHeads,
+  });
+  const attentionOptions = {
+    seqLen: dims.numTokens,
+    numHeads: dims.numHeads,
+    numKVHeads: dims.numKVHeads,
+    headDim: dims.headDim,
+    scale: 1 / Math.sqrt(dims.headDim),
+    causal: true,
+  };
+  const attention = attentionOutput(query, key, value, attentionOptions);
+  const gated = sigmoidGateForward(attention.output, split.gate);
+  const output = matmulRightTransposed(
+    gated,
+    inputs.oWeight,
+    dims.numTokens,
+    dims.querySize,
+    dims.hiddenSize
+  );
+  return {
+    output,
+    cache: {
+      dims,
+      split,
+      kProjection,
+      value,
+      queryNorm,
+      keyNorm,
+      query,
+      key,
+      attention,
+      gated,
+      attentionOptions,
+    },
+  };
+}
+
+export function qwenFullAttentionModuleBackward(inputs, gradOutput, cache, options) {
+  const dims = resolveModuleDimensions(options);
+  const gradGated = matmulInputGradient(
+    gradOutput,
+    inputs.oWeight,
+    dims.numTokens,
+    dims.querySize,
+    dims.hiddenSize
+  );
+  const gateGradients = sigmoidGateBackward(
+    cache.attention.output,
+    cache.split.gate,
+    gradGated
+  );
+  const attentionGradients = computeAttentionBackwardData(
+    cache.query,
+    cache.key,
+    cache.value,
+    cache.attention.softmax,
+    gateGradients.input,
+    cache.attentionOptions
+  );
+  const gradQueryNorm = partialRopeBackward(
+    attentionGradients.dQ,
+    inputs.cos,
+    inputs.sin,
+    dims
+  );
+  const gradKeyNorm = partialRopeBackward(
+    attentionGradients.dK,
+    inputs.cos,
+    inputs.sin,
+    { ...dims, numHeads: dims.numKVHeads }
+  );
+  const gradQuery = rmsNormOffsetBackward(
+    cache.split.query,
+    inputs.qNormWeight,
+    gradQueryNorm,
+    cache.queryNorm.cache,
+    dims.numTokens * dims.numHeads,
+    dims.headDim
+  );
+  const gradKey = rmsNormOffsetBackward(
+    cache.kProjection,
+    inputs.kNormWeight,
+    gradKeyNorm,
+    cache.keyNorm.cache,
+    dims.numTokens * dims.numKVHeads,
+    dims.headDim
+  );
+  const gradQProjection = qwenAttentionSplitQGateBackward(
+    gradQuery,
+    gateGradients.gate,
+    dims
+  );
+  const contributions = [
+    matmulInputGradient(
+      gradQProjection,
+      inputs.qWeight,
+      dims.numTokens,
+      dims.hiddenSize,
+      dims.querySize * 2
+    ),
+    matmulInputGradient(
+      gradKey,
+      inputs.kWeight,
+      dims.numTokens,
+      dims.hiddenSize,
+      dims.kvSize
+    ),
+    matmulInputGradient(
+      attentionGradients.dV,
+      inputs.vWeight,
+      dims.numTokens,
+      dims.hiddenSize,
+      dims.kvSize
+    ),
+  ];
+  const hidden = new Float32Array(dims.numTokens * dims.hiddenSize);
+  for (const contribution of contributions) {
+    for (let index = 0; index < hidden.length; index += 1) hidden[index] += contribution[index];
+  }
+  return { hidden };
 }
