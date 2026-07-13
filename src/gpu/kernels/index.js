@@ -374,6 +374,7 @@ export {
   recordGatedRmsNormBackward,
   runCausalConv1dSiluBackward,
   recordCausalConv1dSiluBackward,
+  runGatedDeltaRecurrentBackward,
   runLayerNormBackward,
   recordLayerNormBackward,
   runAttentionBackward,

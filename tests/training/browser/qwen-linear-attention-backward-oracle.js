@@ -6,9 +6,14 @@ import {
   gatedRmsNormBackward,
   gatedRmsNormForward,
 } from '../../../src/experimental/training/qwen-linear-attention-reference.js';
+import {
+  gatedDeltaRecurrentBackward,
+  gatedDeltaRecurrentForward,
+} from '../../../src/experimental/training/qwen-gated-delta-reference.js';
 import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
 import {
   runCausalConv1dSiluBackward,
+  runGatedDeltaRecurrentBackward,
   runGatedRmsNormBackward,
 } from '../../../src/gpu/kernels/backward/index.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
@@ -117,6 +122,69 @@ async function runGatedRmsNormCase() {
   }
 }
 
+async function runGatedDeltaRecurrentCase() {
+  const options = {
+    numTokens: 3,
+    numHeads: 2,
+    keyDim: 2,
+    valueDim: 3,
+    queryScale: 1 / Math.sqrt(2),
+  };
+  const inputs = {
+    query: values(options.numTokens * options.numHeads * options.keyDim, 1, 0.4),
+    key: values(options.numTokens * options.numHeads * options.keyDim, 7, 0.35),
+    value: values(options.numTokens * options.numHeads * options.valueDim, 13, 0.5),
+    logDecay: values(options.numTokens * options.numHeads, 19, 0.12),
+    beta: Float32Array.from(
+      values(options.numTokens * options.numHeads, 23, 0.15),
+      (value) => 0.55 + value
+    ),
+    initialState: values(options.numHeads * options.keyDim * options.valueDim, 29, 0.08),
+  };
+  const gradOutputValues = values(
+    options.numTokens * options.numHeads * options.valueDim,
+    31,
+    0.6
+  );
+  const forward = gatedDeltaRecurrentForward(inputs, options);
+  const expected = gatedDeltaRecurrentBackward(inputs, gradOutputValues, forward.cache, options);
+  const tensors = {
+    query: makeTensor(inputs.query, [options.numTokens, options.numHeads, options.keyDim], 'gated_delta_query'),
+    key: makeTensor(inputs.key, [options.numTokens, options.numHeads, options.keyDim], 'gated_delta_key'),
+    value: makeTensor(inputs.value, [options.numTokens, options.numHeads, options.valueDim], 'gated_delta_value'),
+    logDecay: makeTensor(inputs.logDecay, [options.numTokens, options.numHeads], 'gated_delta_log_decay'),
+    beta: makeTensor(inputs.beta, [options.numTokens, options.numHeads], 'gated_delta_beta'),
+    stateHistory: makeTensor(
+      forward.cache.states,
+      [options.numTokens + 1, options.numHeads, options.keyDim, options.valueDim],
+      'gated_delta_state_history'
+    ),
+    gradOutput: makeTensor(
+      gradOutputValues,
+      [options.numTokens, options.numHeads, options.valueDim],
+      'gated_delta_grad_output'
+    ),
+  };
+  let result = null;
+  try {
+    result = await runGatedDeltaRecurrentBackward(tensors, options);
+    const comparisons = {};
+    for (const key of ['query', 'key', 'value', 'logDecay', 'beta', 'initialState']) {
+      comparisons[key] = compare(await readF32(result[key]), expected[key]);
+    }
+    return comparisons;
+  } finally {
+    if (result) {
+      for (const tensor of Object.values(result)) {
+        if (tensor?.buffer) releaseBuffer(tensor.buffer);
+      }
+    }
+    for (const tensor of Object.values(tensors)) {
+      releaseBuffer(tensor.buffer);
+    }
+  }
+}
+
 export async function runQwenLinearAttentionBackwardOracle() {
   const baseUrl = new URL('../../../src/config/', import.meta.url);
   setPlatformsBaseUrl(new URL('platforms/', baseUrl).toString());
@@ -128,10 +196,17 @@ export async function runQwenLinearAttentionBackwardOracle() {
   const perturbedCausalConv = await runCausalConvCase(31, 'causal_conv_perturbed');
   const causalConvPerturbation = compare(perturbedCausalConv.actual, causalConv.actual);
   const gatedRmsNorm = await runGatedRmsNormCase();
+  const gatedDeltaRecurrent = await runGatedDeltaRecurrentCase();
   const comparisons = {
     causalConvGradInput: causalConv.comparison,
     gatedRmsNormGradInput: gatedRmsNorm.gradInput,
     gatedRmsNormGradGate: gatedRmsNorm.gradGate,
+    gatedDeltaGradQuery: gatedDeltaRecurrent.query,
+    gatedDeltaGradKey: gatedDeltaRecurrent.key,
+    gatedDeltaGradValue: gatedDeltaRecurrent.value,
+    gatedDeltaGradLogDecay: gatedDeltaRecurrent.logDecay,
+    gatedDeltaGradBeta: gatedDeltaRecurrent.beta,
+    gatedDeltaGradInitialState: gatedDeltaRecurrent.initialState,
   };
   const passed = Object.values(comparisons).every(
     (entry) => entry.allFinite && entry.maxAbsError <= tolerance
@@ -149,6 +224,6 @@ export async function runQwenLinearAttentionBackwardOracle() {
       passed: causalConvPerturbation.maxAbsError > 1e-4,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Causal-convolution input and gated-RMSNorm input/gate GPU gradients only; recurrent gated-delta GPU backward and Qwen layer integration remain absent.',
+    claimBoundary: 'Full-history recurrent, causal-convolution input, and gated-RMSNorm input/gate GPU gradients only; production checkpoint/recompute and Qwen layer integration remain absent.',
   };
 }

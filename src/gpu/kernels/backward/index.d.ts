@@ -5,6 +5,7 @@ export { runRmsNormBackward, recordRmsNormBackward } from './rmsnorm_backward.js
 export { runRmsNormBackward as runRmsnormBackward, recordRmsNormBackward as recordRmsnormBackward } from './rmsnorm_backward.js';
 export { runGatedRmsNormBackward, recordGatedRmsNormBackward } from './gated_rmsnorm_backward.js';
 export { runCausalConv1dSiluBackward, recordCausalConv1dSiluBackward } from './causal_conv1d_silu_backward.js';
+export { runGatedDeltaRecurrentBackward } from './gated_delta_recurrent_backward.js';
 export { runLayerNormBackward, recordLayerNormBackward } from './layernorm_backward.js';
 export { runLayerNormBackward as runLayernormBackward, recordLayerNormBackward as recordLayernormBackward } from './layernorm_backward.js';
 export { runAttentionBackward, recordAttentionBackward } from './attention_backward.js';

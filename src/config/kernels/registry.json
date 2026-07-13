@@ -9089,6 +9089,140 @@
         }
       }
     },
+    "gated_delta_recurrent_backward": {
+      "description": "Full-history gated-delta recurrent backward oracle",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "query",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "key",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "value",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "log_decay",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "beta",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 6,
+          "name": "state_history",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 7,
+          "name": "grad_output",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 8,
+          "name": "grad_query",
+          "type": "storage"
+        },
+        {
+          "index": 9,
+          "name": "grad_key",
+          "type": "storage"
+        },
+        {
+          "index": 10,
+          "name": "grad_value",
+          "type": "storage"
+        },
+        {
+          "index": 11,
+          "name": "grad_log_decay",
+          "type": "storage"
+        },
+        {
+          "index": 12,
+          "name": "grad_beta",
+          "type": "storage"
+        },
+        {
+          "index": 13,
+          "name": "grad_state",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "key_dim",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "value_dim",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "query_scale",
+            "type": "f32",
+            "offset": 16
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad2",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/gated_delta_recurrent_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [128,1,1],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "layernorm_backward": {
       "description": "LayerNorm backward",
       "baseBindings": [

@@ -46,6 +46,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "backward/conv2d_backward_weight.wgsl#main": "c7a66234f7c4c6d46413e5317f81bc70a2fcd93f455e43a21b4c557e3111d9b1",
   "backward/cross_entropy_backward.wgsl#main": "b1bc7791222b1a7d724b96293b7d86f848514976b58839ecc83736ebc1a60127",
   "backward/embed_backward.wgsl#main": "c6b476cde4e61dacdde7012c33b3c546ae6439824ff299e01607564eb393003f",
+  "backward/gated_delta_recurrent_backward.wgsl#main": "932a4f82a6523345acf0610061bc05df6fe1e038ecf23f999407430a65dead8c",
   "backward/gated_rmsnorm_backward.wgsl#main": "d3862d2ff276f9eaf9ac0783f8152b9855b66ceab2247365fafe01841247f19f",
   "backward/gelu_backward.wgsl#main": "6ea546fd461b5f1d88efdda75a362e01fc900996330aed9250f53364696c2b4a",
   "backward/groupnorm_backward.wgsl#main": "2962192fd365b0d4e95a02273d07724d0f145137bf0e2545a9da85b21ed30ec3",
