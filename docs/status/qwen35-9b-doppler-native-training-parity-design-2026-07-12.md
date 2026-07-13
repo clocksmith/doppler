@@ -58,9 +58,17 @@ Doppler commit `4ee6406f` adds:
 - a generated kernel digest and explicit registry variant.
 
 Static kernel, registry, autograd, and training tests pass. The numerical
-browser oracle is still unexecuted because the active V12 ROCm evaluator owns
-the accelerator. No kernel-mechanics pass is claimed until its JSON receipt
-exists.
+browser oracle is now sealed from clean Doppler revision `ca0544b3` on the AMD
+WebGPU/Vulkan backend. Both storage orientations have maximum absolute error
+`5.960464477539063e-8` against the independent scalar calculation, below the
+frozen `2e-6` threshold. The perturbed-weight negative control changes the
+output by `0.06321442127227783`, above the required `1e-4`. The local receipt
+is `reports/training/native-parity/f16-matmul-backward-oracle.json`, SHA-256
+`8ce1e1672e06ba6f70d015dedc210917756ce6b7826512298098a5e114a4f5ac`.
+
+This closes only the F16 projection-input-gradient gate. It does not exercise
+a Qwen block, a LoRA update, AdamW, export, inference, compiler capability, or
+semantic kernel correctness.
 
 ## Known blocking gaps
 
