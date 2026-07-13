@@ -72,6 +72,7 @@ export async function runBrowserOracle(options) {
     modulePath,
     exportName,
     sourcePaths,
+    oracleArgs = null,
   } = options;
   const args = parseArgs(argv, defaultOutput);
   const server = await createStaticServer(root);
@@ -88,10 +89,14 @@ export async function runBrowserOracle(options) {
     const address = server.address();
     const baseUrl = `http://127.0.0.1:${address.port}`;
     await page.goto(baseUrl);
-    const oracle = await page.evaluate(async ({ moduleUrl, functionName }) => {
+    const oracle = await page.evaluate(async ({ moduleUrl, functionName, functionArgs }) => {
       const module = await import(moduleUrl);
-      return module[functionName]();
-    }, { moduleUrl: `${baseUrl}/${modulePath}`, functionName: exportName });
+      return module[functionName](functionArgs);
+    }, {
+      moduleUrl: `${baseUrl}/${modulePath}`,
+      functionName: exportName,
+      functionArgs: oracleArgs,
+    });
     const hashes = {};
     for (const [name, path] of Object.entries(sourcePaths)) {
       hashes[name] = await fileHash(root, path);
@@ -113,6 +118,7 @@ export async function runBrowserOracle(options) {
     await writeFile(outputPath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
     console.log(JSON.stringify({ ok: receipt.passed, outputPath, receipt }, null, 2));
     if (!receipt.passed) process.exitCode = 1;
+    return { receipt, outputPath };
   } finally {
     if (browser) await browser.close();
     await new Promise((accept) => server.close(accept));
