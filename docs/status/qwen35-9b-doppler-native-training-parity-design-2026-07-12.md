@@ -133,6 +133,23 @@ SHA-256
 It uses Qwen's exact head width and partial-rotary geometry with a tiny hidden
 width and head count. It does not establish production-shape memory or speed.
 
+The first completion-masked loss/backward/update composition is sealed at
+clean revision `190511b7`. It runs frozen F16 token embedding, one full Qwen
+decoder layer, final offset RMSNorm, the frozen F16 LM head, softmax and
+completion-only cross entropy, all fourteen Q/K/V/O/gate/up/down rank-two LoRA
+gradients, and one decoupled AdamW update. All adapter gradients are finite and
+nonzero, every adapter parameter changes, and the GPU mean-loss error against
+the independent scalar calculation is `2.384185791015625e-7`. Recomputing the
+same loss without masking the prompt changes the mean by
+`0.031296690305074204`, so the completion mask is observable. The clean
+receipt is
+`reports/training/native-parity/qwen-hybrid-sft-microstep-oracle.json`,
+SHA-256
+`4792e9c80c17c1d0d8b19d22ff255b459919c0c8997aa42f1a8eb75a1fe419be`.
+This is a tiny one-layer, rank-two integration receipt. The staged one-Qwen-
+microstep gate remains blocked until an identical initialized rank-32 adapter
+is compared tensor-by-tensor with the Gamma reference backend.
+
 ## Known blocking gaps
 
 - Scalar reverse-mode references now cover the Qwen recurrent gated-delta
@@ -203,17 +220,19 @@ width and head count. It does not establish production-shape memory or speed.
   This closes two-step optimizer mechanics only; accumulation and resume still
   need their own parity receipts.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
-  the block-mechanics boundary. It does not include Qwen attention, residuals,
-  normalization, loss, or an optimizer update.
+  the block-mechanics boundary and is now also exercised inside the tiny
+  completion-masked microstep.
 - Full attention now has both its Q/K/V/O module oracle and a composed
   attention/MLP/residual decoder-layer oracle covering every V12 LoRA family.
-  It still needs a matched loss and optimizer update before the staged gate is
-  complete.
+  A tiny matched scalar loss and optimizer update also passes. The staged gate
+  still needs the exact initialized rank-32 adapter and Gamma-backend
+  comparison.
 - Gradient checkpointing is not qualified for the Qwen hybrid graph.
 - Cross-layer backward passes one tiny three-linear/one-full period. The full
   32-layer production-width graph and cross-layer activation checkpointing are
   not yet qualified.
-- A matched initial-adapter importer and PEFT export parity receipt are absent.
+- A matched initial-adapter importer and PEFT export parity receipt are absent;
+  this is the next mechanics gate.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.
 - Doppler-native inference for the trained adapter remains separate from base
   F16 inference and from the rejected mixed-Q4 artifact.
