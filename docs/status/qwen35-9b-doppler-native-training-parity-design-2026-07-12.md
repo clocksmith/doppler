@@ -78,8 +78,12 @@ semantic kernel correctness.
   Central finite differences check every input, weight, and initial-state
   gradient. Candidate WebGPU kernels now implement frozen-weight causal-conv
   input gradients and gated-RMSNorm input/gate gradients, with a browser oracle
-  ready but not yet executed. The recurrent WebGPU backward kernel,
-  projection/LoRA integration, and checkpoint/recompute schedule remain absent.
+  ready but not yet executed. A separate full-history recurrent candidate
+  implements query, key, value, log-decay, beta, and initial-state gradients
+  for the tiny oracle. It is intentionally not the production algorithm:
+  retaining every recurrent state is infeasible at Qwen 9B dimensions.
+  Projection/LoRA integration and a bounded-memory checkpoint/recompute
+  schedule remain absent.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is
   implemented after the initial design freeze, but its block-level GPU oracle
   is not yet sealed.

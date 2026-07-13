@@ -104,7 +104,7 @@
         "norm",
         "out_proj"
       ],
-      "status": "blocked_missing_recurrent_gpu_backward",
+      "status": "blocked_unexecuted_gpu_components",
       "referenceEvidence": {
         "implementations": [
           "src/experimental/training/qwen-gated-delta-reference.js",
@@ -136,15 +136,24 @@
         "status": "implemented_unexecuted",
         "kernels": [
           "src/gpu/kernels/backward/causal_conv1d_silu_backward.wgsl",
-          "src/gpu/kernels/backward/gated_rmsnorm_backward.wgsl"
+          "src/gpu/kernels/backward/gated_rmsnorm_backward.wgsl",
+          "src/gpu/kernels/backward/gated_delta_recurrent_backward.wgsl"
         ],
         "oracle": "tests/training/browser/qwen-linear-attention-backward-oracle.js",
         "coveredGradients": [
           "causal_conv_input",
           "gated_rmsnorm_input",
-          "gated_rmsnorm_gate"
+          "gated_rmsnorm_gate",
+          "gated_delta_query",
+          "gated_delta_key",
+          "gated_delta_value",
+          "gated_delta_log_decay",
+          "gated_delta_beta",
+          "gated_delta_initial_state"
         ],
-        "claimBoundary": "Candidate component kernels only; no numerical browser receipt or integrated linear-attention backward exists."
+        "recurrentStateStrategy": "full_history_oracle_only",
+        "productionStateStrategy": "blocked_missing_checkpoint_recompute",
+        "claimBoundary": "Candidate component kernels only; no numerical browser receipt, bounded-memory recurrence, or integrated linear-attention backward exists."
       }
     },
     {
@@ -181,10 +190,11 @@
     "qwen_gated_delta_scalar_reverse_mode_reference",
     "qwen_linear_attention_component_reverse_mode_references",
     "qwen_causal_conv_input_backward_candidate",
-    "qwen_gated_rmsnorm_input_gate_backward_candidate"
+    "qwen_gated_rmsnorm_input_gate_backward_candidate",
+    "qwen_gated_delta_full_history_backward_candidate"
   ],
   "blockingGaps": [
-    "qwen_linear_attention_gpu_backward",
+    "qwen_linear_attention_checkpoint_recompute_backward",
     "qwen_linear_attention_component_gpu_oracle",
     "separate_gate_and_up_lora_gpu_oracle",
     "qwen_gradient_checkpointing",
