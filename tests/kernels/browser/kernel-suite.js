@@ -1562,7 +1562,15 @@ export async function runKernelSuite(harness) {
       const grads = h.generateTestData(count, 1902);
       const moment1 = h.generateTestData(count, 1903);
       const moment2 = h.generateTestData(count, 1904);
-      const options = { count, step: 2, lr: 0.001, beta1: 0.9, beta2: 0.999, eps: 1e-8 };
+      const options = {
+        count,
+        step: 2,
+        lr: 0.001,
+        beta1: 0.9,
+        beta2: 0.999,
+        eps: 1e-8,
+        weightDecay: 0.01,
+      };
       const expected = adamRef(params, grads, moment1, moment2, options);
       const actual = await h.runAdam(null, params, grads, moment1, moment2, options);
       const pPass = h.compareArrays(expected.params, actual.params, h.KERNEL_TOLERANCES.residual).passed;

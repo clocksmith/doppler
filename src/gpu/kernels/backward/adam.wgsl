@@ -13,7 +13,7 @@ struct Uniforms {
     beta1: f32,
     beta2: f32,
     eps: f32,
-    _pad0: u32,
+    weight_decay: f32,
     _pad1: u32,
 }
 
@@ -44,7 +44,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let m_hat = m / (1.0 - pow(beta1, step_f));
     let v_hat = v / (1.0 - pow(beta2, step_f));
 
-    params[idx] = params[idx] - u.lr * m_hat / (sqrt(v_hat) + u.eps);
+    let parameter = params[idx];
+    params[idx] = parameter - u.lr
+        * (m_hat / (sqrt(v_hat) + u.eps) + u.weight_decay * parameter);
     moment1[idx] = m;
     moment2[idx] = v;
 }
