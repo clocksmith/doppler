@@ -39,6 +39,9 @@ const { runAttentionBackward } = await import('../../src/gpu/kernels/backward/at
 const { runRmsNormBackward } = await import('../../src/gpu/kernels/backward/rmsnorm_backward.js');
 const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
 const { LoraAdapter } = await import('../../src/experimental/training/lora.js');
+const {
+  uploadQwenPeftAdapterToLayers,
+} = await import('../../src/experimental/training/qwen-peft-adapter-import.js');
 const { createTokenBatchTensors } = await import('../../src/experimental/training/datasets/token-batch.js');
 
 class FakeBuffer {
@@ -434,6 +437,63 @@ configurePerfGuards({
     () => new LoraAdapter({ inDim: 4, outDim: 4, rank: 2, alpha: 8 }),
     /createBuffer failed at 2/
   );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice();
+  setDevice(device, { platformConfig: null });
+
+  const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+  const makePair = (prefix, aShape, bShape) => {
+    const aBuffer = acquireBuffer(aShape[0] * aShape[1] * 4, usage, `${prefix}_a`);
+    const bBuffer = acquireBuffer(bShape[0] * bShape[1] * 4, usage, `${prefix}_b`);
+    return {
+      A: createTensor(aBuffer, 'f32', aShape, `${prefix}_a`),
+      B: createTensor(bBuffer, 'f32', bShape, `${prefix}_b`),
+    };
+  };
+  const gate = makePair('gate', [3, 2], [2, 4]);
+  const up = makePair('up', [3, 2], [2, 4]);
+  const down = makePair('down', [4, 2], [2, 3]);
+  const layers = [{
+    type: 'linear_attention',
+    inputs: { attention: {}, mlp: { lora: { gate, up, down } } },
+  }];
+  const entries = [
+    ['gate_proj', 'a', gate.A, [1, 2, 3, 4, 5, 6]],
+    ['gate_proj', 'b', gate.B, [7, 8, 9, 10, 11, 12, 13, 14]],
+    ['up_proj', 'a', up.A, [15, 16, 17, 18, 19, 20]],
+    ['up_proj', 'b', up.B, [21, 22, 23, 24, 25, 26, 27, 28]],
+    ['down_proj', 'a', down.A, [29, 30, 31, 32, 33, 34, 35, 36]],
+    ['down_proj', 'b', down.B, [37, 38, 39, 40, 41, 42]],
+  ].map(([projection, kind, tensor, values]) => ({
+    sourceName: `source.${projection}.${kind}`,
+    canonicalName: `layers.0.mlp.${projection}.lora_${kind}`,
+    layerIndex: 0,
+    branch: 'mlp',
+    projection,
+    kind,
+    shape: tensor.shape,
+    data: new Float32Array(values),
+  }));
+  const adapter = {
+    layerTypes: ['linear_attention'],
+    tensors: entries,
+  };
+  const uploaded = uploadQwenPeftAdapterToLayers(layers, adapter);
+  assert.equal(uploaded.tensorCount, 6);
+  assert.equal(uploaded.elementCount, 42);
+  assert.deepEqual(
+    Array.from(new Float32Array(gate.A.buffer.ensureBytes(24).buffer, 0, 6)),
+    [1, 2, 3, 4, 5, 6]
+  );
+
+  for (const pair of [gate, up, down]) {
+    releaseBuffer(pair.A.buffer);
+    releaseBuffer(pair.B.buffer);
+  }
   assertPoolIsClean();
   resetRuntimeState();
 }
