@@ -1,5 +1,10 @@
 # Qwen 3.5 9B M3 F16/Q4 correctness comparison
 
+> **Later correction (2026-07-13):** the v1 manifests select the wrong Qwen
+> post-attention normalization route. This receipt retains its raw one-prompt
+> F16/Q4 observations but no longer establishes base-model correctness. See
+> [the architecture-contract correction](qwen35-architecture-contract-correction-2026-07-13.md).
+
 The exact accepted F16 control fits and runs on the 24 GB Apple M3. With the
 same prompt, input tokens, correctness profile, and greedy sampling used for
 the mixed-Q4 candidate, F16 generated `` `f32` `` and Q4 stopped immediately
