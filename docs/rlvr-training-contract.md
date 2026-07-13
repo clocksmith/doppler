@@ -39,6 +39,14 @@ training, process-reward training, CISPO/PPO, and validation-high teacher
 checkpoint promotion remain absent. See the
 [V11 optimizer result](status/wgsl-repair-v11-2026-07-12.md).
 
+V12 separately completed the three-lane data-composition question with nine
+base-initialized Qwen 3.5 9B SFT runs. External20 reached 99.443% mean public
+pass@1, versus 98.439% for anchor and 98.885% for random20, and beat anchor at
+all three seeds. None of its six per-seed control comparisons was significant
+after Holm correction. V12 is seed-confirmed data-centric SFT compiler evidence;
+it is not RLVR, teacher distillation, semantic-kernel correctness, or promotion.
+See the [V12 controlled-data result](status/wgsl-repair-v12-2026-07-13.md).
+
 The V8 WGSL student replay is execution-verified SFT, also called
 response or sequence-level distillation. It is not RLVR and it is not logit
 knowledge distillation. The current receipt is
