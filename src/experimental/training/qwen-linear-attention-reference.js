@@ -13,8 +13,12 @@ function requireArrayLength(value, expected, label) {
 }
 
 function silu(value) {
-  const clamped = Math.max(-15, Math.min(15, value));
-  const sigmoid = 1 / (1 + Math.exp(-clamped));
+  const sigmoid = value >= 0
+    ? 1 / (1 + Math.exp(-value))
+    : (() => {
+        const exponent = Math.exp(value);
+        return exponent / (1 + exponent);
+      })();
   return { value: value * sigmoid, derivative: sigmoid * (1 + (value * (1 - sigmoid))) };
 }
 
