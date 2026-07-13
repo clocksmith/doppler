@@ -104,7 +104,7 @@
         "norm",
         "out_proj"
       ],
-      "status": "blocked_missing_gpu_backward",
+      "status": "blocked_missing_recurrent_gpu_backward",
       "referenceEvidence": {
         "implementations": [
           "src/experimental/training/qwen-gated-delta-reference.js",
@@ -130,7 +130,21 @@
           "initial_recurrent_state"
         ],
         "validation": "central_finite_difference",
-        "claimBoundary": "Scalar linear-attention references only; projection/LoRA integration, checkpointing, and GPU backward remain unimplemented."
+        "claimBoundary": "Scalar linear-attention references only; projection/LoRA integration, checkpointing, and recurrent GPU backward remain unimplemented."
+      },
+      "gpuComponentSlice": {
+        "status": "implemented_unexecuted",
+        "kernels": [
+          "src/gpu/kernels/backward/causal_conv1d_silu_backward.wgsl",
+          "src/gpu/kernels/backward/gated_rmsnorm_backward.wgsl"
+        ],
+        "oracle": "tests/training/browser/qwen-linear-attention-backward-oracle.js",
+        "coveredGradients": [
+          "causal_conv_input",
+          "gated_rmsnorm_input",
+          "gated_rmsnorm_gate"
+        ],
+        "claimBoundary": "Candidate component kernels only; no numerical browser receipt or integrated linear-attention backward exists."
       }
     },
     {
@@ -165,12 +179,13 @@
     "scalar_browser_oracle",
     "perturbed_weight_negative_control",
     "qwen_gated_delta_scalar_reverse_mode_reference",
-    "qwen_linear_attention_component_reverse_mode_references"
+    "qwen_linear_attention_component_reverse_mode_references",
+    "qwen_causal_conv_input_backward_candidate",
+    "qwen_gated_rmsnorm_input_gate_backward_candidate"
   ],
   "blockingGaps": [
     "qwen_linear_attention_gpu_backward",
-    "qwen_linear_attention_causal_conv_gpu_backward",
-    "qwen_linear_attention_gated_rmsnorm_gpu_backward",
+    "qwen_linear_attention_component_gpu_oracle",
     "separate_gate_and_up_lora_gpu_oracle",
     "qwen_gradient_checkpointing",
     "matched_initial_adapter_import",
