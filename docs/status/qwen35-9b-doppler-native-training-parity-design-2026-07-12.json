@@ -86,7 +86,24 @@
     },
     {
       "id": "full_attention_block",
-      "status": "pending"
+      "status": "blocked_missing_qk_rope_gqa_projection_lora",
+      "componentEvidence": {
+        "sourceRevision": "c6b36c412995c87540b22ec244e005ea8a6506f7",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen-full-attention-backward-oracle.json",
+        "receiptSha256": "1b9d4ae7687c14f5b9a180f8307fe62b035afad8207545d5a1c5e9d97858d52c",
+        "coveredComponents": [
+          "per_head_q_gate_split_forward",
+          "per_head_q_gate_split_backward",
+          "sigmoid_output_gate_forward",
+          "sigmoid_output_gate_backward"
+        ],
+        "maximumComparisonError": 1.4901161193847656e-8,
+        "negativeControlDifference": 0.00843888521194458,
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Qwen query/output-gate split and sigmoid gate only."
+      }
     },
     {
       "id": "split_gate_up_block",
@@ -255,7 +272,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "04e139b1c0596c6bf36328b291051eb7902712a7",
+  "latestMechanicsRevision": "c6b36c412995c87540b22ec244e005ea8a6506f7",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -281,10 +298,13 @@
     "qwen_gated_delta_checkpoint_forward_gpu_oracle",
     "qwen_gated_delta_checkpointed_backward_gpu_oracle",
     "qwen_linear_attention_integrated_projected_core_oracle",
-    "qwen_linear_attention_f16_projection_module_oracle"
+    "qwen_linear_attention_f16_projection_module_oracle",
+    "qwen_full_attention_q_gate_split_oracle",
+    "qwen_full_attention_sigmoid_gate_oracle"
   ],
   "blockingGaps": [
     "qwen_decoder_layer_residual_norm_integration",
+    "qwen_full_attention_module_integration",
     "qwen_gradient_checkpointing",
     "matched_initial_adapter_import",
     "peft_export_parity",
