@@ -150,6 +150,21 @@ This is a tiny one-layer, rank-two integration receipt. The staged one-Qwen-
 microstep gate remains blocked until an identical initialized rank-32 adapter
 is compared tensor-by-tensor with the Gamma reference backend.
 
+PEFT adapter ingestion is separately sealed at clean revision `e923117a`.
+The oracle reads the completed seed-11 V12 anchor adapter, validates the exact
+24-linear/eight-full layer topology, transposes PEFT A/B storage into Doppler's
+live `[input,rank]`/`[rank,output]` contract, and round-trips the normalized
+tensors through Doppler safetensors. All 256 tensors, 128 pairs, and
+58,195,968 F32 values retain the canonical digest
+`d07dac6c88db1e05277ef6fd9f948e76638aa9dfff55227c776137474c7ac213`.
+The receipt is
+`reports/training/native-parity/qwen35-9b-peft-adapter-import-oracle.json`,
+SHA-256
+`5ec789ab8f44da3216ee90d97a8934e5c1eb19206272fe83919afe392ef92dbd`.
+This proves format, topology, and transpose fidelity for one completed adapter.
+It does not substitute that trained adapter for a matched initialization, and
+it does not establish production-geometry GPU upload or inference.
+
 ## Known blocking gaps
 
 - Scalar reverse-mode references now cover the Qwen recurrent gated-delta
@@ -231,8 +246,10 @@ is compared tensor-by-tensor with the Gamma reference backend.
 - Cross-layer backward passes one tiny three-linear/one-full period. The full
   32-layer production-width graph and cross-layer activation checkpointing are
   not yet qualified.
-- A matched initial-adapter importer and PEFT export parity receipt are absent;
-  this is the next mechanics gate.
+- Exact PEFT ingestion and Doppler-format round trip pass for one completed
+  V12 adapter. The parity experiment still needs a matched initial rank-32
+  adapter generated before either backend's first update, production-geometry
+  GPU upload, and PEFT-compatible export parity.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.
 - Doppler-native inference for the trained adapter remains separate from base
   F16 inference and from the rejected mixed-Q4 artifact.
