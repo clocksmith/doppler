@@ -90,8 +90,8 @@ Two additional clean-revision oracles were first sealed at `00af4712`:
 
 Neither receipt is a complete Qwen layer or optimizer update.
 
-The Qwen full-attention-specific receipt is sealed at clean revision
-`a7192eca`. The per-head split of the doubled Q projection into query
+The Qwen full-attention-specific receipt is now sealed at clean revision
+`85d1842c`. The per-head split of the doubled Q projection into query
 and output gate is exact in both directions. Sigmoid output gating matches the
 scalar forward and backward with worst error `1.4901161193847656e-8`; its
 perturbed-gate control changes output by `0.00843888521194458`. A native
@@ -102,14 +102,20 @@ implements Qwen's partial interleaved contract; its forward/backward errors are
 `1.4901161193847656e-8` and `7.450580596923828e-9`. Non-rotary dimensions are
 copied through rather than left as pooled bytes.
 The composed exact-head-width slice then runs frozen F16 Q/K/V/O projections,
-offset Q/K RMSNorm, partial interleaved RoPE, causal GQA, and sigmoid output
-gating as one module. Its forward error is `8.265487849712372e-9` and its
-hidden-state gradient error is `5.820766091346741e-10`. The local receipt is
+rank-two Q/K/V/O LoRA deltas, offset Q/K RMSNorm, partial interleaved RoPE,
+causal GQA, and sigmoid output gating as one module. Its forward error is
+`7.450580596923828e-9` and its hidden-state gradient error is
+`9.313225746154785e-10`. Every Q/K/V/O adapter A/B gradient is finite and
+nonzero; the worst adapter-gradient comparison error is
+`1.6880221664905548e-9`. A `q_proj` LoRA-B perturbation changes the composed
+module output by `4.777684807777405e-7`, so the adapter path is observable.
+The local receipt is
 `reports/training/native-parity/qwen-full-attention-backward-oracle.json`,
 SHA-256
-`c01975a74a531103cf40c3d609df04f2ba5089052a35e264861d8fc1a8e2da1a`.
-This does not yet cover LoRA in the full-attention projections, and the
-GQA kernel has no production-shape performance receipt.
+`167f09af1dbbba2dcb2cb54ad83423e381089464015a7a474e4c8fb2da6bd905`.
+This closes the tiny full-attention forward/hidden/adapter-gradient mechanics,
+not the staged gate's loss, optimizer update, residual, or production-shape
+performance requirements.
 
 ## Known blocking gaps
 
@@ -146,9 +152,9 @@ GQA kernel has no production-shape performance receipt.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
   the block-mechanics boundary. It does not include Qwen attention, residuals,
   normalization, loss, or an optimizer update.
-- Full attention still needs a q/k/v/o LoRA oracle. Its frozen F16 projection,
-  Q/K norm, Q/gate split, sigmoid output gate, partial interleaved RoPE, and
-  causal GQA reverse mechanics are currently qualified as one tiny module.
+- Full attention now has a Q/K/V/O LoRA forward and gradient oracle. It still
+  needs decoder residual composition, a matched loss, and an optimizer update
+  before the full-attention staged gate is complete.
 - Gradient checkpointing is not qualified for the Qwen hybrid graph.
 - A matched initial-adapter importer and PEFT export parity receipt are absent.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.
