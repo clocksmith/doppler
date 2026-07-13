@@ -391,6 +391,23 @@
       }
     },
     {
+      "id": "adamw_update",
+      "status": "passed_two_step_oracle",
+      "evidence": {
+        "sourceRevision": "6f9b46c83c84b854865fab4530a0ca0b75120b17",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/adamw-optimizer-oracle.json",
+        "receiptSha256": "ebceac348572640b1fae7fa4c8030b7aa6a22090201bf1adff1bf80504f5d577",
+        "steps": 2,
+        "maximumComparisonError": 2.9802322387695312e-8,
+        "weightDecayNegativeControlDifference": 0.00016003847122192383,
+        "fixedDefect": "The native optimizer previously ignored training.optimizer.weightDecay even when type was adamw.",
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Two deterministic F32 decoupled AdamW steps; Qwen loss integration, accumulation, resume, and sustained training remain unqualified."
+      }
+    },
+    {
       "id": "one_qwen_microstep",
       "minimumAdapterUpdateCosine": 0.999,
       "maximumRelativeL2Error": 0.02,
