@@ -8,12 +8,14 @@ import {
 } from '../../../src/experimental/training/qwen-linear-attention-reference.js';
 import {
   gatedDeltaRecurrentBackward,
+  gatedDeltaRecurrentCheckpointedForward,
   gatedDeltaRecurrentForward,
 } from '../../../src/experimental/training/qwen-gated-delta-reference.js';
 import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
 import {
   runCausalConv1dSiluBackward,
   runGatedDeltaRecurrentBackward,
+  runGatedDeltaRecurrentCheckpointForward,
   runGatedRmsNormBackward,
 } from '../../../src/gpu/kernels/backward/index.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
@@ -147,6 +149,11 @@ async function runGatedDeltaRecurrentCase() {
     0.6
   );
   const forward = gatedDeltaRecurrentForward(inputs, options);
+  const checkpointInterval = 2;
+  const checkpointedForward = gatedDeltaRecurrentCheckpointedForward(inputs, {
+    ...options,
+    checkpointInterval,
+  });
   const expected = gatedDeltaRecurrentBackward(inputs, gradOutputValues, forward.cache, options);
   const tensors = {
     query: makeTensor(inputs.query, [options.numTokens, options.numHeads, options.keyDim], 'gated_delta_query'),
@@ -154,6 +161,11 @@ async function runGatedDeltaRecurrentCase() {
     value: makeTensor(inputs.value, [options.numTokens, options.numHeads, options.valueDim], 'gated_delta_value'),
     logDecay: makeTensor(inputs.logDecay, [options.numTokens, options.numHeads], 'gated_delta_log_decay'),
     beta: makeTensor(inputs.beta, [options.numTokens, options.numHeads], 'gated_delta_beta'),
+    initialState: makeTensor(
+      inputs.initialState,
+      [options.numHeads, options.keyDim, options.valueDim],
+      'gated_delta_initial_state'
+    ),
     stateHistory: makeTensor(
       forward.cache.states,
       [options.numTokens + 1, options.numHeads, options.keyDim, options.valueDim],
@@ -166,18 +178,58 @@ async function runGatedDeltaRecurrentCase() {
     ),
   };
   let result = null;
+  let checkpointResult = null;
   try {
-    result = await runGatedDeltaRecurrentBackward(tensors, options);
+    checkpointResult = await runGatedDeltaRecurrentCheckpointForward({
+      query: tensors.query,
+      key: tensors.key,
+      value: tensors.value,
+      logDecay: tensors.logDecay,
+      beta: tensors.beta,
+      initialState: tensors.initialState,
+    }, {
+      ...options,
+      totalTokens: options.numTokens,
+      tokenOffset: 0,
+      checkpointInterval,
+      initialStateOffsetElements: 0,
+    });
+    result = await runGatedDeltaRecurrentBackward({
+      query: tensors.query,
+      key: tensors.key,
+      value: tensors.value,
+      logDecay: tensors.logDecay,
+      beta: tensors.beta,
+      stateHistory: tensors.stateHistory,
+      gradOutput: tensors.gradOutput,
+    }, options);
     const comparisons = {};
     for (const key of ['query', 'key', 'value', 'logDecay', 'beta', 'initialState']) {
       comparisons[key] = compare(await readF32(result[key]), expected[key]);
     }
+    comparisons.checkpointForwardOutput = compare(
+      await readF32(checkpointResult.output),
+      checkpointedForward.output
+    );
+    comparisons.checkpointForwardStates = compare(
+      await readF32(checkpointResult.checkpoints),
+      checkpointedForward.cache.checkpoints
+    );
+    comparisons.checkpointForwardFinalState = compare(
+      await readF32(checkpointResult.finalState),
+      checkpointedForward.finalState
+    );
     return comparisons;
   } finally {
     if (result) {
       for (const tensor of Object.values(result)) {
         if (tensor?.buffer) releaseBuffer(tensor.buffer);
       }
+    }
+    if (checkpointResult) {
+      releaseBuffer(checkpointResult.output.buffer);
+      releaseBuffer(checkpointResult.checkpoints.buffer);
+      releaseBuffer(checkpointResult.finalState.buffer);
     }
     for (const tensor of Object.values(tensors)) {
       releaseBuffer(tensor.buffer);
@@ -207,6 +259,9 @@ export async function runQwenLinearAttentionBackwardOracle() {
     gatedDeltaGradLogDecay: gatedDeltaRecurrent.logDecay,
     gatedDeltaGradBeta: gatedDeltaRecurrent.beta,
     gatedDeltaGradInitialState: gatedDeltaRecurrent.initialState,
+    gatedDeltaCheckpointForwardOutput: gatedDeltaRecurrent.checkpointForwardOutput,
+    gatedDeltaCheckpointForwardStates: gatedDeltaRecurrent.checkpointForwardStates,
+    gatedDeltaCheckpointForwardFinalState: gatedDeltaRecurrent.checkpointForwardFinalState,
   };
   const passed = Object.values(comparisons).every(
     (entry) => entry.allFinite && entry.maxAbsError <= tolerance
@@ -224,6 +279,6 @@ export async function runQwenLinearAttentionBackwardOracle() {
       passed: causalConvPerturbation.maxAbsError > 1e-4,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Full-history recurrent, causal-convolution input, and gated-RMSNorm input/gate GPU gradients only; production checkpoint/recompute and Qwen layer integration remain absent.',
+    claimBoundary: 'Checkpointed recurrent forward, full-history recurrent backward, causal-convolution input, and gated-RMSNorm input/gate GPU mechanics only; checkpointed GPU backward and Qwen layer integration remain absent.',
   };
 }

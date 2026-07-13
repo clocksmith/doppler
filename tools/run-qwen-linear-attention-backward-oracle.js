@@ -17,6 +17,7 @@ runBrowserOracle({
     causalConvShader: 'src/gpu/kernels/backward/causal_conv1d_silu_backward.wgsl',
     gatedRmsNormShader: 'src/gpu/kernels/backward/gated_rmsnorm_backward.wgsl',
     gatedDeltaShader: 'src/gpu/kernels/backward/gated_delta_recurrent_backward.wgsl',
+    checkpointForwardShader: 'src/gpu/kernels/backward/gated_delta_recurrent_checkpoint_forward.wgsl',
     recurrentReference: 'src/experimental/training/qwen-gated-delta-reference.js',
     reference: 'src/experimental/training/qwen-linear-attention-reference.js',
     oracle: 'tests/training/browser/qwen-linear-attention-backward-oracle.js',

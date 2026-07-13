@@ -9203,6 +9203,130 @@
         }
       }
     },
+    "gated_delta_recurrent_checkpoint_forward": {
+      "description": "Bounded checkpoint gated-delta recurrent forward",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "query_key",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "value",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "decay_beta",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "initial_state",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "current_state",
+          "type": "storage"
+        },
+        {
+          "index": 6,
+          "name": "checkpoints",
+          "type": "storage"
+        },
+        {
+          "index": 7,
+          "name": "output",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 48,
+        "fields": [
+          {
+            "name": "num_tokens",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "total_tokens",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "token_offset",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "key_dim",
+            "type": "u32",
+            "offset": 16
+          },
+          {
+            "name": "value_dim",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "checkpoint_interval",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "checkpoint_count",
+            "type": "u32",
+            "offset": 28
+          },
+          {
+            "name": "query_scale",
+            "type": "f32",
+            "offset": 32
+          },
+          {
+            "name": "initial_state_offset",
+            "type": "u32",
+            "offset": 36
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 40
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 44
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/gated_delta_recurrent_checkpoint_forward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [128,1,1],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "layernorm_backward": {
       "description": "LayerNorm backward",
       "baseBindings": [
