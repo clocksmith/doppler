@@ -118,7 +118,7 @@ not the staged gate's loss, optimizer update, residual, or production-shape
 performance requirements.
 
 A full decoder-layer composition is sealed separately at clean revision
-`d7a3bd52`. It adds Qwen's offset input RMSNorm, post-attention RMSNorm,
+`925de161`. It adds Qwen's offset input RMSNorm, post-attention RMSNorm,
 attention and MLP residual branches, frozen F16 `gate_proj`, `up_proj`, and
 `down_proj`, and GPU-resident gated-SiLU backward. All seven V12 adapter
 families (`q`, `k`, `v`, `o`, `gate`, `up`, and `down`) participate in one
@@ -129,7 +129,7 @@ gradient tensors are finite and nonzero, with worst comparison error
 output by `3.223121166229248e-5`. The clean receipt is
 `reports/training/native-parity/qwen-full-decoder-backward-oracle.json`,
 SHA-256
-`4cf013f0dbab234294f3a800a3e70dc5465cd979dad864f5ecf4975993766a84`.
+`5bbc19a22c5dc8dcd08acf5a8314a3c4d6d6dbab6e710a9d33dea507e36ff9e5`.
 It uses Qwen's exact head width and partial-rotary geometry with a tiny hidden
 width and head count. It does not establish production-shape memory or speed.
 
@@ -165,6 +165,18 @@ width and head count. It does not establish production-shape memory or speed.
   `reports/training/native-parity/qwen-linear-attention-backward-oracle.json`,
   SHA-256
   `bed5e7f7adc48aaf71118964bc0c37fb308b4d5369798a193ab909bef9341e8a`.
+- A linear-attention decoder-layer composition is sealed at clean revision
+  `925de161`. It adds the same input/post-attention offset RMSNorm, residual,
+  and shared MLP contract around checkpointed gated-delta recurrence. Forward,
+  final-state, hidden-gradient, and initial-state-gradient errors are at most
+  `1.7881393432617188e-7`. All six `gate`/`up`/`down` LoRA A/B gradients are
+  finite and nonzero. A `down_proj` LoRA-B perturbation changes layer output by
+  `1.8775463104248047e-5`. The receipt is
+  `reports/training/native-parity/qwen-linear-decoder-backward-oracle.json`,
+  SHA-256
+  `5871c629ba0293172796f73243a5312a09ac5ad37695427ed5023254cb6abbfd`.
+  This is a tiny layer-mechanics receipt, not production geometry or a
+  multi-layer graph.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
   the block-mechanics boundary. It does not include Qwen attention, residuals,
   normalization, loss, or an optimizer update.
@@ -173,6 +185,8 @@ width and head count. It does not establish production-shape memory or speed.
   It still needs a matched loss and optimizer update before the staged gate is
   complete.
 - Gradient checkpointing is not qualified for the Qwen hybrid graph.
+- Cross-layer backward through the three-linear/one-full repeating pattern is
+  not yet qualified, even though each decoder-layer kind now passes alone.
 - A matched initial-adapter importer and PEFT export parity receipt are absent.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.
 - Doppler-native inference for the trained adapter remains separate from base
