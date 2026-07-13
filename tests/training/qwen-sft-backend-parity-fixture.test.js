@@ -16,6 +16,7 @@ assert.equal(
 );
 assert.equal(first.architectureContract.ropePairing, 'split_half_within_partial_rotary_prefix');
 assert.equal(first.architectureContract.partialRotaryFactor, 0.25);
+assert.match(first.architectureContract.transformersDecoderSourceSha256, /^[a-f0-9]{64}$/);
 assert.equal(Object.keys(first.adapters).length, 7);
 for (const adapter of Object.values(first.adapters)) {
   assert.equal(adapter.rank, 32);
