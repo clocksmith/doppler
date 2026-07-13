@@ -5,6 +5,31 @@ import { WORKGROUP_SIZES } from '../constants.js';
 import { dispatch, recordDispatch } from '../dispatch.js';
 import { createPipeline, createUniformBufferWithView } from '../utils.js';
 
+function validateInputs(gradOutput, freqsCos, freqsSin, geometry) {
+  const { seqLen, numHeads, headDim, rotaryDim, pairSpanDim } = geometry;
+  if (!Number.isInteger(seqLen) || seqLen < 1
+    || !Number.isInteger(numHeads) || numHeads < 1
+    || !Number.isInteger(headDim) || headDim < 2 || headDim % 2 !== 0) {
+    throw new Error('rope backward requires positive seqLen/numHeads and even headDim.');
+  }
+  if (!Number.isInteger(rotaryDim) || rotaryDim < 2 || rotaryDim > headDim || rotaryDim % 2 !== 0) {
+    throw new Error('rope backward requires even rotaryDim within headDim.');
+  }
+  if (!Number.isInteger(pairSpanDim)
+    || pairSpanDim < rotaryDim
+    || pairSpanDim > headDim
+    || pairSpanDim % 2 !== 0) {
+    throw new Error('rope backward requires even pairSpanDim within [rotaryDim, headDim].');
+  }
+  for (const [label, tensor] of [
+    ['gradOutput', gradOutput],
+    ['freqsCos', freqsCos],
+    ['freqsSin', freqsSin],
+  ]) {
+    if (tensor?.dtype !== 'f32') throw new Error(`rope backward requires f32 ${label}.`);
+  }
+}
+
 export async function runRoPEBackward(gradOutput, freqsCos, freqsSin, options = {}) {
   const device = getDevice();
   const {
@@ -12,12 +37,15 @@ export async function runRoPEBackward(gradOutput, freqsCos, freqsSin, options = 
     numHeads,
     headDim,
     startPos = 0,
+    rotaryDim = headDim,
+    pairSpanDim = rotaryDim,
+    interleaved = false,
     outputBuffer = null,
   } = options;
 
-  if (!seqLen || !numHeads || !headDim) {
-    throw new Error('rope backward requires seqLen, numHeads, and headDim');
-  }
+  validateInputs(gradOutput, freqsCos, freqsSin, {
+    seqLen, numHeads, headDim, rotaryDim, pairSpanDim,
+  });
 
   const bytesPerElement = dtypeBytes(gradOutput.dtype);
   const outputSize = seqLen * numHeads * headDim * bytesPerElement;
@@ -32,6 +60,9 @@ export async function runRoPEBackward(gradOutput, freqsCos, freqsSin, options = 
       view.setUint32(4, numHeads, true);
       view.setUint32(8, headDim, true);
       view.setUint32(12, startPos, true);
+      view.setUint32(16, rotaryDim, true);
+      view.setUint32(20, pairSpanDim, true);
+      view.setUint32(24, interleaved ? 1 : 0, true);
     },
     null,
     device
@@ -49,8 +80,8 @@ export async function runRoPEBackward(gradOutput, freqsCos, freqsSin, options = 
     ],
   });
 
-  const totalPairs = seqLen * numHeads * (headDim / 2);
-  const workgroups = Math.ceil(totalPairs / WORKGROUP_SIZES.DEFAULT);
+  const totalElements = seqLen * numHeads * headDim;
+  const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
   dispatch(device, pipeline, bindGroup, workgroups, 'rope_backward');
 
   uniformBuffer.destroy();
@@ -65,12 +96,15 @@ export async function recordRoPEBackward(recorder, gradOutput, freqsCos, freqsSi
     numHeads,
     headDim,
     startPos = 0,
+    rotaryDim = headDim,
+    pairSpanDim = rotaryDim,
+    interleaved = false,
     outputBuffer = null,
   } = options;
 
-  if (!seqLen || !numHeads || !headDim) {
-    throw new Error('rope backward requires seqLen, numHeads, and headDim');
-  }
+  validateInputs(gradOutput, freqsCos, freqsSin, {
+    seqLen, numHeads, headDim, rotaryDim, pairSpanDim,
+  });
 
   const bytesPerElement = dtypeBytes(gradOutput.dtype);
   const outputSize = seqLen * numHeads * headDim * bytesPerElement;
@@ -85,6 +119,9 @@ export async function recordRoPEBackward(recorder, gradOutput, freqsCos, freqsSi
       view.setUint32(4, numHeads, true);
       view.setUint32(8, headDim, true);
       view.setUint32(12, startPos, true);
+      view.setUint32(16, rotaryDim, true);
+      view.setUint32(20, pairSpanDim, true);
+      view.setUint32(24, interleaved ? 1 : 0, true);
     },
     recorder
   );
@@ -101,8 +138,8 @@ export async function recordRoPEBackward(recorder, gradOutput, freqsCos, freqsSi
     ],
   });
 
-  const totalPairs = seqLen * numHeads * (headDim / 2);
-  const workgroups = Math.ceil(totalPairs / WORKGROUP_SIZES.DEFAULT);
+  const totalElements = seqLen * numHeads * headDim;
+  const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
   recordDispatch(recorder, pipeline, bindGroup, workgroups, 'rope_backward');
 
   return createTensor(outputBuf, gradOutput.dtype, [seqLen, numHeads, headDim], 'rope_backward_output');

@@ -7,6 +7,9 @@ export interface RoPEBackwardOptions extends BackwardKernelOptions {
   numHeads: number;
   headDim: number;
   startPos?: number;
+  rotaryDim?: number;
+  pairSpanDim?: number;
+  interleaved?: boolean;
 }
 
 export declare function runRoPEBackward(

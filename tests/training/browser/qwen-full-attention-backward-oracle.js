@@ -3,6 +3,8 @@ import { setPlatformsBaseUrl } from '../../../src/config/platforms/loader.js';
 import {
   qwenAttentionSplitQGateBackward,
   qwenAttentionSplitQGateForward,
+  partialRopeBackward,
+  partialRopeForward,
   sigmoidGateBackward,
   sigmoidGateForward,
 } from '../../../src/experimental/training/qwen-full-attention-reference.js';
@@ -13,12 +15,14 @@ import {
 import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
 import {
   runQwenAttentionSplitQGate,
+  runRoPE,
   runSiLU,
 } from '../../../src/gpu/kernels/index.js';
 import {
   runQwenAttentionSplitQGateBackward,
   runQwenGqaAttentionBackward,
   runSigmoidGatedBackward,
+  runRoPEBackward,
 } from '../../../src/gpu/kernels/backward/index.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../src/memory/buffer-pool.js';
@@ -232,6 +236,72 @@ async function runGqaCase() {
   }
 }
 
+async function runPartialRopeCase() {
+  const options = {
+    numTokens: 3,
+    numHeads: 2,
+    headDim: 8,
+    rotaryDim: 4,
+    pairSpanDim: 4,
+    interleaved: true,
+    startPos: 0,
+  };
+  const inputValues = values(options.numTokens * options.numHeads * options.headDim, 5, 0.4);
+  const gradOutputValues = values(inputValues.length, 37, 0.3);
+  const cosValues = Float32Array.from(
+    { length: options.numTokens * (options.rotaryDim / 2) },
+    (_, index) => Math.cos(index * 0.17)
+  );
+  const sinValues = Float32Array.from(
+    { length: cosValues.length },
+    (_, index) => Math.sin(index * 0.17)
+  );
+  const input = makeTensor(
+    inputValues,
+    [options.numTokens, options.numHeads, options.headDim],
+    'full_attention_rope_input'
+  );
+  const gradOutput = makeTensor(
+    gradOutputValues,
+    [options.numTokens, options.numHeads, options.headDim],
+    'full_attention_rope_grad_output'
+  );
+  const cos = makeTensor(
+    cosValues,
+    [options.numTokens, options.rotaryDim / 2],
+    'full_attention_rope_cos'
+  );
+  const sin = makeTensor(
+    sinValues,
+    [options.numTokens, options.rotaryDim / 2],
+    'full_attention_rope_sin'
+  );
+  let backward = null;
+  try {
+    const forward = await runRoPE(input, cos, sin, options.numTokens, options);
+    backward = await runRoPEBackward(gradOutput, cos, sin, {
+      ...options,
+      seqLen: options.numTokens,
+    });
+    return {
+      forward: compare(
+        await readF32(forward),
+        partialRopeForward(inputValues, cosValues, sinValues, options)
+      ),
+      backward: compare(
+        await readF32(backward),
+        partialRopeBackward(gradOutputValues, cosValues, sinValues, options)
+      ),
+    };
+  } finally {
+    if (backward) releaseBuffer(backward.buffer);
+    releaseBuffer(input.buffer);
+    releaseBuffer(gradOutput.buffer);
+    releaseBuffer(cos.buffer);
+    releaseBuffer(sin.buffer);
+  }
+}
+
 export async function runQwenFullAttentionBackwardOracle() {
   const baseUrl = new URL('../../../src/config/', import.meta.url);
   setPlatformsBaseUrl(new URL('platforms/', baseUrl).toString());
@@ -242,9 +312,12 @@ export async function runQwenFullAttentionBackwardOracle() {
   const baseline = await executeCase(0);
   const perturbed = await executeCase(0.125);
   const gqa = await runGqaCase();
+  const partialRope = await runPartialRopeCase();
   baseline.comparisons.gqaGradQuery = gqa.query;
   baseline.comparisons.gqaGradKey = gqa.key;
   baseline.comparisons.gqaGradValue = gqa.value;
+  baseline.comparisons.partialInterleavedRopeForward = partialRope.forward;
+  baseline.comparisons.partialInterleavedRopeBackward = partialRope.backward;
   const perturbation = compare(perturbed.actualGated, baseline.actualGated);
   const passed = Object.values(baseline.comparisons).every(
     (entry) => entry.allFinite && entry.maxAbsError <= tolerance
@@ -262,6 +335,6 @@ export async function runQwenFullAttentionBackwardOracle() {
       passed: perturbation.maxAbsError > 1e-4,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Qwen per-head query/output-gate split, sigmoid output gate, and recomputed-softmax causal GQA backward GPU mechanics only; Q/K norm, RoPE, projections, LoRA, and full layer integration remain absent.',
+    claimBoundary: 'Qwen per-head query/output-gate split, sigmoid output gate, partial interleaved RoPE, and recomputed-softmax causal GQA backward GPU mechanics only; Q/K norm, projections, LoRA, and full layer integration remain absent.',
   };
 }

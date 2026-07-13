@@ -62,7 +62,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "backward/qwen_gqa_softmax_recompute.wgsl#main": "c047b85fb9e25b62c53d5b3a62e6ddb0c665794946ef1bc583b0a5bb38d8f101",
   "backward/qwen_linear_attention_prepare_backward.wgsl#main": "05f150b133450f184d985b75d4d25c09ca424afde73fdb1abfa18f6e3f62664e",
   "backward/rmsnorm_backward.wgsl#main": "e16774e9c81a5bf2ee8e6bc05c9438b7b407f4b4b2af2636165d1b77b59b612d",
-  "backward/rope_backward.wgsl#main": "fa8bf2d6d20e543d33436b129bd63479c65a516bcf8b30b1cfd64e9b6bc9ca3b",
+  "backward/rope_backward.wgsl#main": "bd83dcd8a50f3a20d5ab1ddb9495ae0b5806d2d60b75e584a9d550da926d67df",
   "backward/scale_backward.wgsl#main": "cb2e639b1049a8662c0694fe9e9757327bb55dbb4546ce1c298c5927be33a896",
   "backward/sigmoid_gated_backward.wgsl#main": "741f20f2e9c437c0c39d5688d5fbc78e91784366a24148cae73797e947d3e74e",
   "backward/silu_backward.wgsl#main": "86275df7afce1554a6b4203198eb592d32fe4469aaa1e2d35110106decb9ae6b",
