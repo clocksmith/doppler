@@ -36,6 +36,7 @@ const {
 const { AdamOptimizer } = await import('../../src/experimental/training/optimizer.js');
 const { runAdam } = await import('../../src/gpu/kernels/backward/adam.js');
 const { runAttentionBackward } = await import('../../src/gpu/kernels/backward/attention_backward.js');
+const { runRmsNormBackward } = await import('../../src/gpu/kernels/backward/rmsnorm_backward.js');
 const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
 const { LoraAdapter } = await import('../../src/experimental/training/lora.js');
 const { createTokenBatchTensors } = await import('../../src/experimental/training/datasets/token-batch.js');
@@ -221,6 +222,36 @@ configurePerfGuards({
   logExpensiveOps: false,
   strictMode: false,
 });
+
+{
+  const device = createFakeDevice();
+  device.features.add('shader-f16');
+  setDevice(device, { platformConfig: null });
+
+  const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+  const inputBuffer = acquireBuffer(8, usage, 'rmsnorm_f16_input');
+  const weightBuffer = acquireBuffer(8, usage, 'rmsnorm_f16_weight');
+  const gradBuffer = acquireBuffer(8, usage, 'rmsnorm_f16_grad');
+  uploadData(inputBuffer, new Uint16Array([0x3c00, 0x4000, 0x4200, 0x4400]));
+  uploadData(weightBuffer, new Uint16Array([0, 0, 0, 0]));
+  uploadData(gradBuffer, new Uint16Array([0x3c00, 0x3c00, 0x3c00, 0x3c00]));
+  const input = createTensor(inputBuffer, 'f16', [1, 4], 'rmsnorm_f16_input');
+  const weight = createTensor(weightBuffer, 'f16', [4], 'rmsnorm_f16_weight');
+  const grad = createTensor(gradBuffer, 'f16', [1, 4], 'rmsnorm_f16_grad');
+  const output = await runRmsNormBackward(input, weight, grad, {
+    numTokens: 1,
+    hiddenSize: 4,
+    eps: 1e-6,
+    rmsNormWeightOffset: true,
+  });
+
+  releaseBuffer(output.buffer);
+  releaseBuffer(inputBuffer);
+  releaseBuffer(weightBuffer);
+  releaseBuffer(gradBuffer);
+  assertPoolIsClean();
+  resetRuntimeState();
+}
 
 {
   const device = createFakeDevice({ submitThrowAt: 1 });
