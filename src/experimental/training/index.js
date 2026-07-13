@@ -84,3 +84,8 @@ export {
   buildTrainingPolicyUpdate,
   buildTrainingPolicyCheckpoint,
 } from './policy-artifacts.js';
+export {
+  runQwenLinearAttentionTrainingCoreForward,
+  runQwenLinearAttentionTrainingCoreBackward,
+  releaseQwenLinearAttentionTrainingCoreCache,
+} from './qwen-linear-attention-training-core.js';

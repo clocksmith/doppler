@@ -1,3 +1,8 @@
+import {
+  gatedDeltaRecurrentCheckpointedBackward,
+  gatedDeltaRecurrentCheckpointedForward,
+} from './qwen-gated-delta-reference.js';
+
 function requirePositiveInteger(value, label) {
   if (!Number.isInteger(value) || value < 1) {
     throw new Error(`${label} must be a positive integer.`);
@@ -431,4 +436,162 @@ export function gatedDeltaParametersBackward(a, b, aLog, dtBias, gradLogDecay, g
     gradB[index] = gradBeta[index] * forward.beta[index] * (1 - forward.beta[index]);
   }
   return { a: gradA, b: gradB, aLog: gradALog, dtBias: gradDtBias };
+}
+
+function resolveCoreOptions(options) {
+  const preparation = resolvePrepareDimensions(options);
+  const kernelSize = requirePositiveInteger(options?.kernelSize, 'kernelSize');
+  const checkpointInterval = requirePositiveInteger(
+    options?.checkpointInterval,
+    'checkpointInterval'
+  );
+  const queryScale = Number(options?.queryScale);
+  const rmsEps = Number(options?.rmsEps);
+  if (!Number.isFinite(queryScale)) {
+    throw new Error('queryScale must be finite.');
+  }
+  if (!Number.isFinite(rmsEps) || rmsEps <= 0) {
+    throw new Error('rmsEps must be finite and positive.');
+  }
+  return { ...preparation, kernelSize, checkpointInterval, queryScale, rmsEps };
+}
+
+export function qwenLinearAttentionCoreForward(inputs, options) {
+  const dims = resolveCoreOptions(options);
+  const qkv = requireArrayLength(inputs?.qkv, dims.numTokens * dims.convSize, 'qkv');
+  const z = requireArrayLength(
+    inputs?.z,
+    dims.numTokens * dims.numValueHeads * dims.valueDim,
+    'z'
+  );
+  const convWeight = requireArrayLength(
+    inputs?.convWeight,
+    dims.convSize * dims.kernelSize,
+    'convWeight'
+  );
+  const normWeight = requireArrayLength(inputs?.normWeight, dims.valueDim, 'normWeight');
+  const stateElements = dims.numValueHeads * dims.keyDim * dims.valueDim;
+  const initialState = requireArrayLength(inputs?.initialState, stateElements, 'initialState');
+  const convolution = causalConvSiluForward(qkv, convWeight, {
+    numTokens: dims.numTokens,
+    channels: dims.convSize,
+    kernelSize: dims.kernelSize,
+  });
+  const preparation = qwenLinearAttentionPrepareForward({
+    mixed: convolution.output,
+    a: inputs.a,
+    b: inputs.b,
+    aLog: inputs.aLog,
+    dtBias: inputs.dtBias,
+  }, dims);
+  const recurrenceInputs = {
+    query: preparation.query,
+    key: preparation.key,
+    value: preparation.value,
+    logDecay: preparation.logDecay,
+    beta: preparation.beta,
+    initialState,
+  };
+  const recurrence = gatedDeltaRecurrentCheckpointedForward(recurrenceInputs, {
+    numTokens: dims.numTokens,
+    numHeads: dims.numValueHeads,
+    keyDim: dims.keyDim,
+    valueDim: dims.valueDim,
+    queryScale: dims.queryScale,
+    checkpointInterval: dims.checkpointInterval,
+  });
+  const normalization = gatedRmsNormForward(
+    recurrence.output,
+    z,
+    normWeight,
+    {
+      rows: dims.numTokens * dims.numValueHeads,
+      width: dims.valueDim,
+      eps: dims.rmsEps,
+    }
+  );
+  return {
+    output: normalization.output,
+    finalState: recurrence.finalState,
+    cache: { dims, convolution, preparation, recurrence, normalization },
+  };
+}
+
+export function qwenLinearAttentionCoreBackward(inputs, gradOutput, cache, options) {
+  const dims = resolveCoreOptions(options);
+  for (const key of Object.keys(dims)) {
+    if (cache?.dims?.[key] !== dims[key]) {
+      throw new Error(`linear-attention core cache mismatch for ${key}.`);
+    }
+  }
+  requireArrayLength(
+    gradOutput,
+    dims.numTokens * dims.numValueHeads * dims.valueDim,
+    'gradOutput'
+  );
+  const normalizationGradients = gatedRmsNormBackward(
+    cache.recurrence.output,
+    inputs.z,
+    inputs.normWeight,
+    gradOutput,
+    cache.normalization.cache,
+    {
+      rows: dims.numTokens * dims.numValueHeads,
+      width: dims.valueDim,
+      eps: dims.rmsEps,
+    }
+  );
+  const recurrenceInputs = {
+    query: cache.preparation.query,
+    key: cache.preparation.key,
+    value: cache.preparation.value,
+    logDecay: cache.preparation.logDecay,
+    beta: cache.preparation.beta,
+    initialState: inputs.initialState,
+  };
+  if (inputs.gradFinalState != null) {
+    recurrenceInputs.gradFinalState = inputs.gradFinalState;
+  }
+  const recurrenceGradients = gatedDeltaRecurrentCheckpointedBackward(
+    recurrenceInputs,
+    normalizationGradients.input,
+    cache.recurrence.cache,
+    {
+      numTokens: dims.numTokens,
+      numHeads: dims.numValueHeads,
+      keyDim: dims.keyDim,
+      valueDim: dims.valueDim,
+      queryScale: dims.queryScale,
+      checkpointInterval: dims.checkpointInterval,
+    }
+  );
+  const preparationGradients = qwenLinearAttentionPrepareBackward({
+    mixed: cache.convolution.output,
+    a: inputs.a,
+    b: inputs.b,
+    aLog: inputs.aLog,
+    dtBias: inputs.dtBias,
+  }, recurrenceGradients, cache.preparation.cache, dims);
+  const convolutionGradients = causalConvSiluBackward(
+    inputs.qkv,
+    inputs.convWeight,
+    preparationGradients.mixed,
+    cache.convolution.cache,
+    {
+      numTokens: dims.numTokens,
+      channels: dims.convSize,
+      kernelSize: dims.kernelSize,
+    }
+  );
+  return {
+    qkv: convolutionGradients.input,
+    z: normalizationGradients.gate,
+    a: preparationGradients.a,
+    b: preparationGradients.b,
+    initialState: recurrenceGradients.initialState,
+    convWeight: convolutionGradients.weight,
+    normWeight: normalizationGradients.weight,
+    aLog: preparationGradients.aLog,
+    dtBias: preparationGradients.dtBias,
+  };
 }
