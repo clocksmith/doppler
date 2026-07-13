@@ -453,7 +453,24 @@
     },
     {
       "id": "peft_export_and_inference",
-      "status": "blocked"
+      "status": "blocked_missing_matched_initial_gpu_upload_export_and_inference",
+      "componentEvidence": {
+        "status": "passed_completed_adapter_import_and_doppler_round_trip",
+        "sourceRevision": "e923117a168efec9d994c4923227d0a19b4102d9",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen35-9b-peft-adapter-import-oracle.json",
+        "receiptSha256": "5ec789ab8f44da3216ee90d97a8934e5c1eb19206272fe83919afe392ef92dbd",
+        "sourceAdapterWeightsSha256": "e8c219b3944ad9357468639c60e91a1cc38c44a8bc2050842d75c3a6c5e12f0c",
+        "rank": 32,
+        "alpha": 64,
+        "tensorCount": 256,
+        "pairCount": 128,
+        "elementCount": 58195968,
+        "canonicalTensorDigest": "d07dac6c88db1e05277ef6fd9f948e76638aa9dfff55227c776137474c7ac213",
+        "dopplerRoundTripWeightsSha256": "5fbd713d432952f045d395dd00f3a72eff2e244276ae35885b5591b5fd70c8c1",
+        "exactRoundTripDigestMatch": true,
+        "claimBoundary": "Exact PEFT topology, A/B transpose, and Doppler safetensors round trip for one completed V12 adapter; not matched initialization, production-geometry GPU upload, PEFT-compatible export, or inference evidence."
+      }
     },
     {
       "id": "sustained_candidate",
@@ -461,7 +478,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "190511b7aad522d564c483ef2aaed51020a69549",
+  "latestMechanicsRevision": "e923117a168efec9d994c4923227d0a19b4102d9",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -497,19 +514,23 @@
     "qwen_linear_decoder_layer_forward_backward_oracle",
     "qwen_hybrid_decoder_cross_layer_forward_backward_oracle",
     "decoupled_adamw_update_oracle",
-    "completion_masked_qwen_sft_microstep_oracle"
+    "completion_masked_qwen_sft_microstep_oracle",
+    "qwen_peft_fail_closed_topology_import",
+    "qwen_peft_a_b_transpose",
+    "qwen_peft_live_tensor_upload_plan",
+    "completed_v12_adapter_doppler_safetensors_round_trip"
   ],
   "blockingGaps": [
     "rank32_gamma_doppler_microstep_parity",
     "production_qwen_geometry",
     "cross_layer_activation_checkpointing",
-    "matched_initial_adapter_import",
-    "peft_export_parity",
+    "matched_initial_rank32_adapter_generation_and_gpu_upload",
+    "peft_compatible_export_parity",
     "sustained_adamw_accumulation_and_resume",
     "doppler_adapter_inference_parity"
   ],
   "nativeQwen9bSupportClaimed": false,
   "capabilityClaimed": false,
   "promotionClaimed": false,
-  "claimBoundary": "Tiny full, linear, hybrid-decoder, decoupled-AdamW, and completion-masked SFT mechanics pass independent scalar oracles. Rank-32 Gamma parity, production Qwen geometry, accumulation/resume, adapter import/export/inference, compiler capability, semantic-kernel correctness, and promotion remain unestablished."
+  "claimBoundary": "Tiny full, linear, hybrid-decoder, decoupled-AdamW, and completion-masked SFT mechanics pass independent scalar oracles; one completed rank-32 PEFT adapter also passes exact Doppler-format import and round trip. Matched Gamma microstep parity, production Qwen geometry and GPU upload, accumulation/resume, PEFT-compatible export, adapter inference, compiler capability, semantic-kernel correctness, and promotion remain unestablished."
 }
