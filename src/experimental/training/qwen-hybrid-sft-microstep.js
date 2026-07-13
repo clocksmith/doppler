@@ -22,6 +22,11 @@ import {
   runQwenHybridDecoderBackward,
   runQwenHybridDecoderForward,
 } from './qwen-hybrid-decoder-training-module.js';
+import {
+  releaseQwenCheckpointedHybridDecoderCache,
+  runQwenCheckpointedHybridDecoderBackward,
+  runQwenCheckpointedHybridDecoderForward,
+} from './qwen-checkpointed-hybrid-decoder-training-module.js';
 
 function positiveInteger(value, label) {
   const parsed = Math.floor(Number(value));
@@ -109,6 +114,9 @@ export async function runQwenHybridSftMicrostep(inputs, options = {}) {
   }
   const applyOptimizer = options.applyOptimizer !== false;
   const gradientAccumulator = options.gradientAccumulator ?? null;
+  const checkpointInterval = options.layerCheckpointInterval == null
+    ? null
+    : positiveInteger(options.layerCheckpointInterval, 'layerCheckpointInterval');
   if (applyOptimizer && (!options.optimizer || typeof options.optimizer.step !== 'function')) {
     throw new Error('Qwen SFT microstep requires an optimizer.');
   }
@@ -148,7 +156,12 @@ export async function runQwenHybridSftMicrostep(inputs, options = {}) {
         transpose: false,
       }
     );
-    hybrid = await runQwenHybridDecoderForward({ hidden: embedded, layers: inputs.layers });
+    hybrid = checkpointInterval == null
+      ? await runQwenHybridDecoderForward({ hidden: embedded, layers: inputs.layers })
+      : await runQwenCheckpointedHybridDecoderForward(
+          { hidden: embedded, layers: inputs.layers },
+          { checkpointInterval }
+        );
     finalNorm = await runRMSNorm(hybrid.output, inputs.finalNormWeight, options.rmsEps, {
       batchSize: numTokens,
       hiddenSize,
@@ -192,7 +205,9 @@ export async function runQwenHybridSftMicrostep(inputs, options = {}) {
         rmsNormWeightOffset: true,
       }
     );
-    backward = await runQwenHybridDecoderBackward(gradHybridOutput, hybrid.cache);
+    backward = checkpointInterval == null
+      ? await runQwenHybridDecoderBackward(gradHybridOutput, hybrid.cache)
+      : await runQwenCheckpointedHybridDecoderBackward(gradHybridOutput, hybrid.cache);
     adapterEntries = collectAdapterEntries(inputs.layers, backward.layers);
     const gradientSnapshots = options.captureGradients === true
       ? await captureGradientSnapshots(adapterEntries)
@@ -239,7 +254,11 @@ export async function runQwenHybridSftMicrostep(inputs, options = {}) {
     if (hybrid) {
       for (const item of hybrid.finalStates) releaseTensor(item.state);
       releaseTensor(hybrid.output);
-      releaseQwenHybridDecoderCache(hybrid.cache);
+      if (checkpointInterval == null) {
+        releaseQwenHybridDecoderCache(hybrid.cache);
+      } else {
+        releaseQwenCheckpointedHybridDecoderCache(hybrid.cache);
+      }
     }
     releaseTensor(embedded);
   }

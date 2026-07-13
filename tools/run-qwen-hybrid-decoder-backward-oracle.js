@@ -17,6 +17,7 @@ runBrowserOracle({
     fullReference: 'src/experimental/training/qwen-full-decoder-reference.js',
     linearReference: 'src/experimental/training/qwen-linear-decoder-reference.js',
     hybridModule: 'src/experimental/training/qwen-hybrid-decoder-training-module.js',
+    checkpointedHybridModule: 'src/experimental/training/qwen-checkpointed-hybrid-decoder-training-module.js',
     oracle: 'tests/training/browser/qwen-hybrid-decoder-backward-oracle.js',
   },
 }).catch((error) => {

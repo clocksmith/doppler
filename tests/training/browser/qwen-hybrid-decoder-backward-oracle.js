@@ -10,6 +10,11 @@ import {
   runQwenHybridDecoderForward,
 } from '../../../src/experimental/training/qwen-hybrid-decoder-training-module.js';
 import {
+  releaseQwenCheckpointedHybridDecoderCache,
+  runQwenCheckpointedHybridDecoderBackward,
+  runQwenCheckpointedHybridDecoderForward,
+} from '../../../src/experimental/training/qwen-checkpointed-hybrid-decoder-training-module.js';
+import {
   qwenLinearDecoderLayerBackward as linearReferenceBackward,
   qwenLinearDecoderLayerForward as linearReferenceForward,
 } from '../../../src/experimental/training/qwen-linear-decoder-reference.js';
@@ -458,7 +463,7 @@ function runReference(layers, hidden, gradOutput) {
   return { output: current, hiddenGradient: currentGradient, finalStates, gradients };
 }
 
-async function executeCase(perturbDownB = 0) {
+async function executeCase(perturbDownB = 0, layerCheckpointInterval = null) {
   const common = { numTokens: 2, hiddenSize: 4, intermediateSize: 6 };
   const ownedTensors = [];
   const makeTensor = createTensorFactory(ownedTensors);
@@ -486,15 +491,20 @@ async function executeCase(perturbDownB = 0) {
   let forward = null;
   let backward = null;
   try {
-    forward = await runQwenHybridDecoderForward({
-      hidden,
-      layers: layers.map((layer) => ({
+    const tensorLayers = layers.map((layer) => ({
         type: layer.type,
         inputs: layer.tensorInputs,
         options: layer.options,
-      })),
-    });
-    backward = await runQwenHybridDecoderBackward(gradOutput, forward.cache);
+      }));
+    forward = layerCheckpointInterval == null
+      ? await runQwenHybridDecoderForward({ hidden, layers: tensorLayers })
+      : await runQwenCheckpointedHybridDecoderForward(
+          { hidden, layers: tensorLayers },
+          { checkpointInterval: layerCheckpointInterval }
+        );
+    backward = layerCheckpointInterval == null
+      ? await runQwenHybridDecoderBackward(gradOutput, forward.cache)
+      : await runQwenCheckpointedHybridDecoderBackward(gradOutput, forward.cache);
     const actualOutput = await readF32(forward.output);
     const comparisons = {
       hybridForward: compare(actualOutput, reference.output),
@@ -544,7 +554,11 @@ async function executeCase(perturbDownB = 0) {
     if (forward) {
       releaseBuffer(forward.output.buffer);
       for (const item of forward.finalStates) releaseBuffer(item.state.buffer);
-      releaseQwenHybridDecoderCache(forward.cache);
+      if (layerCheckpointInterval == null) {
+        releaseQwenHybridDecoderCache(forward.cache);
+      } else {
+        releaseQwenCheckpointedHybridDecoderCache(forward.cache);
+      }
     }
     for (const tensor of ownedTensors) releaseBuffer(tensor.buffer);
   }
@@ -558,6 +572,7 @@ export async function runQwenHybridDecoderBackwardOracle() {
 
   const tolerance = 5e-5;
   const baseline = await executeCase();
+  const checkpointed = await executeCase(0, 2);
   const perturbed = await executeCase(0.125);
   const perturbation = compare(perturbed.actualOutput, baseline.actualOutput);
   const expectedLayerTypes = [
@@ -567,11 +582,18 @@ export async function runQwenHybridDecoderBackwardOracle() {
     'full_attention',
   ];
   const layerPatternPassed = JSON.stringify(baseline.layerTypes) === JSON.stringify(expectedLayerTypes);
-  const passed = layerPatternPassed && Object.values(baseline.comparisons).every(
+  const checkpointedLayerPatternPassed = JSON.stringify(checkpointed.layerTypes)
+    === JSON.stringify(expectedLayerTypes);
+  const comparisonsPassed = (comparisons) => Object.values(comparisons).every(
     (entry) => entry.allFinite
       && entry.maxAbsError <= tolerance
       && (entry.maxAbsValue == null || entry.maxAbsValue > 1e-10)
-  ) && perturbation.maxAbsError > 1e-5;
+  );
+  const passed = layerPatternPassed
+    && checkpointedLayerPatternPassed
+    && comparisonsPassed(baseline.comparisons)
+    && comparisonsPassed(checkpointed.comparisons)
+    && perturbation.maxAbsError > 1e-5;
   const capabilities = getKernelCapabilities();
   return {
     artifactType: 'qwen_hybrid_decoder_backward_oracle',
@@ -580,14 +602,17 @@ export async function runQwenHybridDecoderBackwardOracle() {
     layerTypes: baseline.layerTypes,
     expectedLayerTypes,
     layerPatternPassed,
+    checkpointedLayerPatternPassed,
+    layerCheckpointInterval: 2,
     tolerance: { maxAbsError: tolerance },
     comparisons: baseline.comparisons,
+    checkpointedComparisons: checkpointed.comparisons,
     negativeControl: {
       perturbation: 'layer3_down_proj_lora_b_index_1_plus_0.125',
       hybridOutputDifference: perturbation,
       passed: perturbation.maxAbsError > 1e-5,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Tiny four-layer Qwen hybrid graph matching the three-linear/one-full layer pattern with cross-layer backward, recurrent-state gradients, and every layer-local V12 LoRA family; loss, optimizer update, production geometry, activation checkpointing across layers, memory, and performance remain absent.',
+    claimBoundary: 'Tiny four-layer Qwen hybrid graph matching the three-linear/one-full layer pattern with cross-layer backward, interval-two activation checkpoint/recompute, recurrent-state gradients, and every layer-local V12 LoRA family; loss, optimizer update, production geometry, measured peak memory, and performance remain absent.',
   };
 }
