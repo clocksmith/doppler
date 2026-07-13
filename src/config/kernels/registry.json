@@ -9069,6 +9069,288 @@
         }
       }
     },
+    "qwen_gqa_softmax_recompute": {
+      "description": "Recompute causal GQA softmax rows for Qwen attention backward",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "query",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "key",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "softmax",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "seq_len",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "num_kv_heads",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "offset": 16
+          },
+          {
+            "name": "causal",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/qwen_gqa_softmax_recompute.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256,1,1],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "qwen_gqa_softmax_backward_scores": {
+      "description": "Compute causal GQA softmax-logit gradients",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "value",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "grad_output",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "softmax",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "grad_scores",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "seq_len",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "num_kv_heads",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "offset": 16
+          },
+          {
+            "name": "causal",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/qwen_gqa_softmax_backward_scores.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256,1,1],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
+    "qwen_gqa_attention_backward": {
+      "description": "Causal Qwen GQA query/key/value gradients with KV-head reduction",
+      "baseBindings": [
+        {
+          "index": 0,
+          "name": "uniforms",
+          "type": "uniform"
+        },
+        {
+          "index": 1,
+          "name": "query",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 2,
+          "name": "key",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 3,
+          "name": "softmax",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 4,
+          "name": "grad_scores",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 5,
+          "name": "grad_output",
+          "type": "read-only-storage"
+        },
+        {
+          "index": 6,
+          "name": "grad_query",
+          "type": "storage"
+        },
+        {
+          "index": 7,
+          "name": "grad_key",
+          "type": "storage"
+        },
+        {
+          "index": 8,
+          "name": "grad_value",
+          "type": "storage"
+        }
+      ],
+      "baseUniforms": {
+        "size": 32,
+        "fields": [
+          {
+            "name": "seq_len",
+            "type": "u32",
+            "offset": 0
+          },
+          {
+            "name": "num_heads",
+            "type": "u32",
+            "offset": 4
+          },
+          {
+            "name": "num_kv_heads",
+            "type": "u32",
+            "offset": 8
+          },
+          {
+            "name": "head_dim",
+            "type": "u32",
+            "offset": 12
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "offset": 16
+          },
+          {
+            "name": "causal",
+            "type": "u32",
+            "offset": 20
+          },
+          {
+            "name": "_pad0",
+            "type": "u32",
+            "offset": 24
+          },
+          {
+            "name": "_pad1",
+            "type": "u32",
+            "offset": 28
+          }
+        ]
+      },
+      "variants": {
+        "default": {
+          "wgsl": "backward/qwen_gqa_attention_backward.wgsl",
+          "entryPoint": "main",
+          "workgroup": [256,1,1],
+          "requires": [],
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        }
+      }
+    },
     "sigmoid_gated_backward": {
       "description": "Sigmoid output-gate backward",
       "baseBindings": [

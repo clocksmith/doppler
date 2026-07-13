@@ -6,6 +6,10 @@ import {
   sigmoidGateBackward,
   sigmoidGateForward,
 } from '../../../src/experimental/training/qwen-full-attention-reference.js';
+import {
+  computeAttentionBackwardData,
+  computeAttentionSoftmaxData,
+} from '../../../src/experimental/training/attention-backward.js';
 import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
 import {
   runQwenAttentionSplitQGate,
@@ -13,6 +17,7 @@ import {
 } from '../../../src/gpu/kernels/index.js';
 import {
   runQwenAttentionSplitQGateBackward,
+  runQwenGqaAttentionBackward,
   runSigmoidGatedBackward,
 } from '../../../src/gpu/kernels/backward/index.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
@@ -160,6 +165,73 @@ async function executeCase(gatePerturbation) {
   }
 }
 
+async function runGqaCase() {
+  const options = {
+    seqLen: 4,
+    numHeads: 4,
+    numKVHeads: 2,
+    headDim: 3,
+    scale: 1 / Math.sqrt(3),
+    causal: true,
+  };
+  const queryValues = values(options.seqLen * options.numHeads * options.headDim, 5, 0.35);
+  const keyValues = values(options.seqLen * options.numKVHeads * options.headDim, 37, 0.3);
+  const valueValues = values(options.seqLen * options.numKVHeads * options.headDim, 61, 0.4);
+  const gradOutputValues = values(
+    options.seqLen * options.numHeads * options.headDim,
+    83,
+    0.25
+  );
+  const query = makeTensor(
+    queryValues,
+    [options.seqLen, options.numHeads, options.headDim],
+    'full_attention_gqa_query'
+  );
+  const key = makeTensor(
+    keyValues,
+    [options.seqLen, options.numKVHeads, options.headDim],
+    'full_attention_gqa_key'
+  );
+  const value = makeTensor(
+    valueValues,
+    [options.seqLen, options.numKVHeads, options.headDim],
+    'full_attention_gqa_value'
+  );
+  const gradOutput = makeTensor(
+    gradOutputValues,
+    [options.seqLen, options.numHeads, options.headDim],
+    'full_attention_gqa_grad_output'
+  );
+  let result = null;
+  try {
+    result = await runQwenGqaAttentionBackward(query, key, value, gradOutput, options);
+    const softmax = computeAttentionSoftmaxData(queryValues, keyValues, options);
+    const expected = computeAttentionBackwardData(
+      queryValues,
+      keyValues,
+      valueValues,
+      softmax,
+      gradOutputValues,
+      options
+    );
+    return {
+      query: compare(await readF32(result.query), expected.dQ),
+      key: compare(await readF32(result.key), expected.dK),
+      value: compare(await readF32(result.value), expected.dV),
+    };
+  } finally {
+    if (result) {
+      releaseBuffer(result.query.buffer);
+      releaseBuffer(result.key.buffer);
+      releaseBuffer(result.value.buffer);
+    }
+    releaseBuffer(query.buffer);
+    releaseBuffer(key.buffer);
+    releaseBuffer(value.buffer);
+    releaseBuffer(gradOutput.buffer);
+  }
+}
+
 export async function runQwenFullAttentionBackwardOracle() {
   const baseUrl = new URL('../../../src/config/', import.meta.url);
   setPlatformsBaseUrl(new URL('platforms/', baseUrl).toString());
@@ -169,6 +241,10 @@ export async function runQwenFullAttentionBackwardOracle() {
   const tolerance = 2e-5;
   const baseline = await executeCase(0);
   const perturbed = await executeCase(0.125);
+  const gqa = await runGqaCase();
+  baseline.comparisons.gqaGradQuery = gqa.query;
+  baseline.comparisons.gqaGradKey = gqa.key;
+  baseline.comparisons.gqaGradValue = gqa.value;
   const perturbation = compare(perturbed.actualGated, baseline.actualGated);
   const passed = Object.values(baseline.comparisons).every(
     (entry) => entry.allFinite && entry.maxAbsError <= tolerance
@@ -186,6 +262,6 @@ export async function runQwenFullAttentionBackwardOracle() {
       passed: perturbation.maxAbsError > 1e-4,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Qwen per-head query/output-gate split and sigmoid output-gate GPU forward/backward only; Q/K norm, RoPE, GQA, projections, LoRA, and full layer integration remain absent.',
+    claimBoundary: 'Qwen per-head query/output-gate split, sigmoid output gate, and recomputed-softmax causal GQA backward GPU mechanics only; Q/K norm, RoPE, projections, LoRA, and full layer integration remain absent.',
   };
 }
