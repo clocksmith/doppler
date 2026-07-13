@@ -70,15 +70,36 @@ This closes only the F16 projection-input-gradient gate. It does not exercise
 a Qwen block, a LoRA update, AdamW, export, inference, compiler capability, or
 semantic kernel correctness.
 
+Two additional clean-revision oracles are sealed at `00af4712`:
+
+- The split `gate_proj`/`up_proj` LoRA oracle first rejected the candidate and
+  localized a real layout defect: `LoraAdapter.forward()` let matmul use its
+  default transposed-weight contract even though both adapter tensors are
+  stored `[K,N]`. The explicit `transposeB: false` fix makes every forward
+  intermediate and all four nonzero adapter-gradient families match the
+  scalar reference with worst error `2.9802322387695312e-8`. Its receipt is
+  `reports/training/native-parity/split-gate-up-lora-oracle.json`, SHA-256
+  `be4e5887ed1b2e87e25b307d31c4e11713d56ff161c82f687df10bc4c2edefc7`.
+- The linear-attention component oracle covers causal-conv input gradients,
+  gated-RMSNorm input/gate gradients, and full-history recurrent gradients for
+  query, key, value, log-decay, beta, and initial state. All nine families are
+  finite and match their scalar references with worst error
+  `5.960464477539063e-8`. Its receipt is
+  `reports/training/native-parity/qwen-linear-attention-backward-oracle.json`,
+  SHA-256
+  `0ba99c5dc1c75dd398a4c1366a2964d7f2fa0306744f82cf21338410fd0e421c`.
+
+Neither receipt is a complete Qwen layer or optimizer update.
+
 ## Known blocking gaps
 
 - Scalar reverse-mode references now cover the Qwen recurrent gated-delta
   state transition, causal depthwise convolution plus SiLU, Q/K L2
   normalization, the `a`/`b` parameter transforms, and gated RMSNorm.
   Central finite differences check every input, weight, and initial-state
-  gradient. Candidate WebGPU kernels now implement frozen-weight causal-conv
-  input gradients and gated-RMSNorm input/gate gradients, with a browser oracle
-  ready but not yet executed. A separate full-history recurrent candidate
+  gradient. Candidate WebGPU kernels now implement and numerically verify
+  frozen-weight causal-conv input gradients and gated-RMSNorm input/gate
+  gradients. A separate full-history recurrent candidate
   implements query, key, value, log-decay, beta, and initial-state gradients
   for the tiny oracle. It is intentionally not the production algorithm:
   retaining every recurrent state is infeasible at Qwen 9B dimensions.
@@ -88,9 +109,9 @@ semantic kernel correctness.
   footprint is 28,311,552 F32 elements versus 336,068,608 for full history.
   The corresponding GPU checkpoint/recompute schedule and projection/LoRA
   integration remain absent.
-- Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is
-  implemented after the initial design freeze, but its block-level GPU oracle
-  is not yet sealed.
+- Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
+  the block-mechanics boundary. It does not include Qwen attention, residuals,
+  normalization, loss, or an optimizer update.
 - Gradient checkpointing is not qualified for the Qwen hybrid graph.
 - A matched initial-adapter importer and PEFT export parity receipt are absent.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.
