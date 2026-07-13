@@ -48,10 +48,10 @@ export function createQwenSftBackendParityFixture(options = {}) {
     intermediateSize: model.intermediateSize,
     numHeads: 2,
     numKVHeads: 1,
-    headDim: 4,
-    rotaryDim: 2,
-    pairSpanDim: 2,
-    interleaved: true,
+    headDim: 16,
+    rotaryDim: 4,
+    pairSpanDim: 4,
+    interleaved: false,
     startPos: 0,
     rmsEps: model.rmsEps,
   };
@@ -75,6 +75,14 @@ export function createQwenSftBackendParityFixture(options = {}) {
       adapterParameters: 'f32',
       optimizerState: 'f32',
       adapterDropout: 0,
+    },
+    architectureContract: {
+      modelId: 'Qwen/Qwen3.5-9B',
+      revision: 'c202236235762e1c871ad0ccb60c8ee5ba337b9a',
+      transformersVersion: '5.13.1',
+      decoderOrder: 'input_norm_token_mixer_residual_post_attention_norm_mlp_residual',
+      ropePairing: 'split_half_within_partial_rotary_prefix',
+      partialRotaryFactor: 0.25,
     },
     model,
     layer,
@@ -130,6 +138,6 @@ export function createQwenSftBackendParityFixture(options = {}) {
       eps: 1e-8,
       weightDecay: 0.01,
     },
-    claimBoundary: 'Deterministic tiny one-full-layer rank-32 fixture with pre-shifted completion targets and zero adapter dropout; not production Qwen geometry or the PEFT default initialization distribution.',
+    claimBoundary: 'Deterministic tiny one-full-layer rank-32 fixture with the pinned Qwen 3.5 decoder order, pre-shifted completion targets, and zero adapter dropout; not production Qwen geometry or the PEFT default initialization distribution.',
   };
 }

@@ -68,16 +68,16 @@ export function qwenFullDecoderLayerForward(inputs, options) {
   );
   const attentionInputs = buildAttentionInputs(inputs, inputNorm.output);
   const attention = qwenFullAttentionModuleForward(attentionInputs, options);
-  const normalizedAttention = qwenRmsNormOffsetForward(
-    attention.output,
+  const postAttention = add(inputs.hidden, attention.output, 'attention residual');
+  const normalizedPostAttention = qwenRmsNormOffsetForward(
+    postAttention,
     inputs.postAttentionNormWeight,
     dims.numTokens,
     dims.hiddenSize,
     options.rmsEps
   );
-  const postAttention = add(inputs.hidden, normalizedAttention.output, 'attention residual');
   const gate = qwenFrozenLoraProjectionForward(
-    postAttention,
+    normalizedPostAttention.output,
     inputs.mlp.gateWeight,
     dims.numTokens,
     dims.hiddenSize,
@@ -85,7 +85,7 @@ export function qwenFullDecoderLayerForward(inputs, options) {
     inputs.mlp.lora?.gate
   );
   const up = qwenFrozenLoraProjectionForward(
-    postAttention,
+    normalizedPostAttention.output,
     inputs.mlp.upWeight,
     dims.numTokens,
     dims.hiddenSize,
@@ -107,8 +107,8 @@ export function qwenFullDecoderLayerForward(inputs, options) {
       inputNorm,
       attentionInputs,
       attention,
-      normalizedAttention,
       postAttention,
+      normalizedPostAttention,
       gate,
       up,
       activated,
@@ -135,7 +135,7 @@ export function qwenFullDecoderLayerBackward(inputs, gradOutput, cache, options)
     downGradients.input
   );
   const gateGradients = qwenFrozenLoraProjectionBackward(
-    cache.postAttention,
+    cache.normalizedPostAttention.output,
     inputs.mlp.gateWeight,
     activationGradients.gate,
     dims.numTokens,
@@ -145,7 +145,7 @@ export function qwenFullDecoderLayerBackward(inputs, gradOutput, cache, options)
     cache.gate.cache
   );
   const upGradients = qwenFrozenLoraProjectionBackward(
-    cache.postAttention,
+    cache.normalizedPostAttention.output,
     inputs.mlp.upWeight,
     activationGradients.up,
     dims.numTokens,
@@ -155,18 +155,22 @@ export function qwenFullDecoderLayerBackward(inputs, gradOutput, cache, options)
     cache.up.cache
   );
   const mlpInputGradient = add(gateGradients.input, upGradients.input, 'MLP input gradient');
-  const postAttentionGradient = add(gradOutput, mlpInputGradient, 'MLP residual gradient');
-  const attentionOutputGradient = qwenRmsNormOffsetBackward(
-    cache.attention.output,
+  const postAttentionMlpGradient = qwenRmsNormOffsetBackward(
+    cache.postAttention,
     inputs.postAttentionNormWeight,
-    postAttentionGradient,
-    cache.normalizedAttention.cache,
+    mlpInputGradient,
+    cache.normalizedPostAttention.cache,
     dims.numTokens,
     dims.hiddenSize
   );
+  const postAttentionGradient = add(
+    gradOutput,
+    postAttentionMlpGradient,
+    'MLP residual gradient'
+  );
   const attentionGradients = qwenFullAttentionModuleBackward(
     cache.attentionInputs,
-    attentionOutputGradient,
+    postAttentionGradient,
     cache.attention.cache,
     options
   );

@@ -122,7 +122,7 @@ function dot(left, right) {
     headDim: 4,
     rotaryDim: 2,
     pairSpanDim: 2,
-    interleaved: true,
+    interleaved: false,
     startPos: 0,
     rmsEps: 1e-6,
   };
@@ -173,7 +173,7 @@ function dot(left, right) {
     headDim: 4,
     rotaryDim: 2,
     pairSpanDim: 2,
-    interleaved: true,
+    interleaved: false,
     startPos: 0,
     rmsEps: 1e-6,
   };

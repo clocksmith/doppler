@@ -295,10 +295,10 @@ function buildFullLayer(makeTensor, layerIndex, common, perturbDownB) {
     intermediateSize: common.intermediateSize,
     numHeads: 2,
     numKVHeads: 1,
-    headDim: 4,
-    rotaryDim: 2,
-    pairSpanDim: 2,
-    interleaved: true,
+    headDim: 16,
+    rotaryDim: 4,
+    pairSpanDim: 4,
+    interleaved: false,
     startPos: 0,
     rmsEps: 1e-6,
   };
@@ -613,6 +613,6 @@ export async function runQwenHybridDecoderBackwardOracle() {
       passed: perturbation.maxAbsError > 1e-5,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Tiny four-layer Qwen hybrid graph matching the three-linear/one-full layer pattern with cross-layer backward, interval-two activation checkpoint/recompute, recurrent-state gradients, and every layer-local V12 LoRA family; loss, optimizer update, production geometry, measured peak memory, and performance remain absent.',
+    claimBoundary: 'Tiny four-layer Qwen hybrid graph matching the three-linear/one-full layer pattern and pinned residual-before-post-attention-norm order, with cross-layer backward, interval-two activation checkpoint/recompute, recurrent-state gradients, and every layer-local V12 LoRA family; loss, optimizer update, production geometry, measured peak memory, and performance remain absent.',
   };
 }

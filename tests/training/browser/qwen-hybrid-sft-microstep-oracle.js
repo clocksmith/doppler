@@ -194,10 +194,10 @@ function buildFixture(makeTensor) {
     intermediateSize: options.intermediateSize,
     numHeads: 2,
     numKVHeads: 1,
-    headDim: 4,
-    rotaryDim: 2,
-    pairSpanDim: 2,
-    interleaved: true,
+    headDim: 16,
+    rotaryDim: 4,
+    pairSpanDim: 4,
+    interleaved: false,
     startPos: 0,
     rmsEps: options.rmsEps,
   };
@@ -547,7 +547,7 @@ export async function runQwenHybridSftMicrostepOracle() {
         passed: maskDifference > 1e-4,
       },
       adapterInfo: capabilities.adapterInfo || null,
-      claimBoundary: 'Tiny one-full-layer completion-masked SFT microstep from frozen F16 embedding through logits, all seven rank-two LoRA families, and one decoupled AdamW update; not rank-32 Gamma parity, production Qwen geometry, accumulation, resume, or capability evidence.',
+      claimBoundary: 'Tiny one-full-layer completion-masked SFT microstep from frozen F16 embedding through logits using the pinned Qwen residual-before-post-attention-norm and split-half partial-RoPE contracts, all seven rank-two LoRA families, and one decoupled AdamW update; not rank-32 Gamma parity, production Qwen geometry, accumulation, resume, or capability evidence.',
     };
   } finally {
     for (const state of optimizer.state.values()) {

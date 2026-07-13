@@ -29,6 +29,7 @@ export interface QwenLinearDecoderLayerCache {
   attentionOutput: Tensor;
   attentionCache: QwenLinearAttentionTrainingModuleCache;
   postAttention: Tensor;
+  normalizedPostAttention: Tensor;
   mlpCache: QwenDecoderMlpCache;
 }
 
