@@ -53,6 +53,7 @@ async function runAdamChunked(device, pipeline, params, grads, moment1, moment2,
           view.setFloat32(12, options.beta1, true);
           view.setFloat32(16, options.beta2, true);
           view.setFloat32(20, options.eps, true);
+          view.setFloat32(24, options.weightDecay, true);
         },
         null,
         device
@@ -97,6 +98,10 @@ export async function runAdam(
 ) {
   const device = getDevice();
   const { count, step = 1, lr, beta1, beta2, eps } = options;
+  const weightDecay = Number(options.weightDecay ?? 0);
+  if (!Number.isFinite(weightDecay) || weightDecay < 0) {
+    throw new Error('adam weightDecay must be finite and non-negative.');
+  }
 
   const inferredCount = count ?? tensorElementCount(params);
   const pipeline = await createPipeline('adam', 'default');
@@ -115,6 +120,7 @@ export async function runAdam(
         beta1,
         beta2,
         eps,
+        weightDecay,
       },
       inferredCount
     );
@@ -131,6 +137,7 @@ export async function runAdam(
       view.setFloat32(12, beta1, true);
       view.setFloat32(16, beta2, true);
       view.setFloat32(20, eps, true);
+      view.setFloat32(24, weightDecay, true);
     },
     null,
     device
@@ -168,6 +175,10 @@ export async function recordAdam(
 ) {
   const device = recorder.device;
   const { count, step = 1, lr, beta1, beta2, eps } = options;
+  const weightDecay = Number(options.weightDecay ?? 0);
+  if (!Number.isFinite(weightDecay) || weightDecay < 0) {
+    throw new Error('adam weightDecay must be finite and non-negative.');
+  }
 
   const inferredCount = count ?? tensorElementCount(params);
   const pipeline = await createPipeline('adam', 'default');
@@ -182,6 +193,7 @@ export async function recordAdam(
       view.setFloat32(12, beta1, true);
       view.setFloat32(16, beta2, true);
       view.setFloat32(20, eps, true);
+      view.setFloat32(24, weightDecay, true);
     },
     recorder
   );

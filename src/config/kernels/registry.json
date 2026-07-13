@@ -11413,7 +11413,7 @@
       }
     },
     "adam": {
-      "description": "Adam optimizer step",
+      "description": "Adam or decoupled AdamW optimizer step",
       "baseBindings": [
         {
           "index": 0,
@@ -11475,8 +11475,8 @@
             "offset": 20
           },
           {
-            "name": "_pad0",
-            "type": "u32",
+            "name": "weight_decay",
+            "type": "f32",
             "offset": 24
           },
           {
