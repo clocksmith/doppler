@@ -40,8 +40,12 @@ const { runRmsNormBackward } = await import('../../src/gpu/kernels/backward/rmsn
 const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
 const { LoraAdapter } = await import('../../src/experimental/training/lora.js');
 const {
+  parseQwenPeftAdapterSafetensors,
   uploadQwenPeftAdapterToLayers,
 } = await import('../../src/experimental/training/qwen-peft-adapter-import.js');
+const {
+  exportQwenPeftAdapterFromLayers,
+} = await import('../../src/experimental/training/qwen-peft-adapter-export.js');
 const {
   QwenGradientAccumulator,
 } = await import('../../src/experimental/training/qwen-gradient-accumulator.js');
@@ -455,6 +459,8 @@ configurePerfGuards({
     return {
       A: createTensor(aBuffer, 'f32', aShape, `${prefix}_a`),
       B: createTensor(bBuffer, 'f32', bShape, `${prefix}_b`),
+      rank: 2,
+      alpha: 4,
     };
   };
   const gate = makePair('gate', [3, 2], [2, 4]);
@@ -491,6 +497,49 @@ configurePerfGuards({
   assert.deepEqual(
     Array.from(new Float32Array(gate.A.buffer.ensureBytes(24).buffer, 0, 6)),
     [1, 2, 3, 4, 5, 6]
+  );
+  const exported = await exportQwenPeftAdapterFromLayers(layers, {
+    rank: 2,
+    alpha: 4,
+    dropout: 0.05,
+    baseModel: 'Qwen/Qwen3.5-9B',
+    targetModules: [
+      'q_proj',
+      'k_proj',
+      'v_proj',
+      'o_proj',
+      'gate_proj',
+      'up_proj',
+      'down_proj',
+    ],
+    layerTypes: ['linear_attention'],
+  });
+  assert.equal(exported.tensorCount, 6);
+  assert.equal(exported.pairCount, 3);
+  assert.equal(exported.elementCount, 42);
+  assert.equal(exported.adapterConfig.r, 2);
+  assert.equal(exported.adapterConfig.lora_alpha, 4);
+  assert.equal(exported.adapterConfig.lora_dropout, 0.05);
+  assert.ok(exported.tensorNames.every(
+    (name) => name.startsWith('base_model.model.model.language_model.layers.0.')
+  ));
+  const roundTrip = parseQwenPeftAdapterSafetensors(exported.weights, {
+    r: exported.adapterConfig.r,
+    lora_alpha: exported.adapterConfig.lora_alpha,
+    target_modules: exported.adapterConfig.target_modules,
+    layerTypes: ['linear_attention'],
+  });
+  assert.deepEqual(
+    roundTrip.tensors.map((entry) => ({
+      canonicalName: entry.canonicalName,
+      shape: entry.shape,
+      data: Array.from(entry.data),
+    })),
+    entries.map((entry) => ({
+      canonicalName: entry.canonicalName,
+      shape: entry.shape,
+      data: Array.from(entry.data),
+    }))
   );
 
   for (const pair of [gate, up, down]) {

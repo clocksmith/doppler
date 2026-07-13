@@ -73,10 +73,12 @@ async function main() {
       configUrl: `/${INPUT_ROOT}/adapter_config.json`,
       weightsSha256: sourceSha256,
       configSha256: sourceConfigSha256,
+      baseModel: 'Qwen/Qwen3.5-9B',
       layerTypes: LAYER_TYPES,
     },
     sourcePaths: {
       importer: 'src/experimental/training/qwen-peft-adapter-import.js',
+      exporter: 'src/experimental/training/qwen-peft-adapter-export.js',
       oracle: 'tests/training/browser/qwen-peft-adapter-gpu-upload-oracle.js',
       runner: 'tools/run-qwen-peft-adapter-gpu-upload-oracle.js',
     },
