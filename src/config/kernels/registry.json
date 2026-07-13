@@ -9352,7 +9352,7 @@
       }
     },
     "sigmoid_gated_backward": {
-      "description": "Sigmoid output-gate backward",
+      "description": "Sigmoid or SiLU gated backward",
       "baseBindings": [
         {
           "index": 0,
@@ -9394,13 +9394,13 @@
             "offset": 0
           },
           {
-            "name": "_pad0",
+            "name": "gate_mode",
             "type": "u32",
             "offset": 4
           },
           {
-            "name": "_pad1",
-            "type": "u32",
+            "name": "swiglu_limit",
+            "type": "f32",
             "offset": 8
           },
           {

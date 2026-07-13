@@ -2,8 +2,8 @@ override WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     count: u32,
-    _pad0: u32,
-    _pad1: u32,
+    gate_mode: u32,
+    swiglu_limit: f32,
     _pad2: u32,
 }
 
@@ -31,6 +31,18 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
     let probability = stable_sigmoid(gate[index]);
     let gradient = grad_output[index];
-    grad_input[index] = gradient * probability;
-    grad_gate[index] = gradient * input[index] * probability * (1.0 - probability);
+    if (u.gate_mode == 0u) {
+        grad_input[index] = gradient * probability;
+        grad_gate[index] = gradient * input[index] * probability * (1.0 - probability);
+        return;
+    }
+    let activated = gate[index] * probability;
+    if (u.swiglu_limit > 0.0 && abs(activated * input[index]) > u.swiglu_limit) {
+        grad_input[index] = 0.0;
+        grad_gate[index] = 0.0;
+        return;
+    }
+    grad_input[index] = gradient * activated;
+    grad_gate[index] = gradient * input[index]
+        * probability * (1.0 + gate[index] * (1.0 - probability));
 }

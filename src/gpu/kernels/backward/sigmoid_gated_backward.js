@@ -6,7 +6,7 @@ import { dispatch } from '../dispatch.js';
 import { createPipeline, createUniformBufferWithView } from '../utils.js';
 import { releaseUniformBuffer } from '../../uniform-cache.js';
 
-export async function runSigmoidGatedBackward(input, gate, gradOutput, options = {}) {
+async function runGatedBackward(input, gate, gradOutput, options = {}) {
   const count = Math.floor(Number(options.count));
   if (!Number.isInteger(count) || count < 1) {
     throw new Error('sigmoid-gated backward requires a positive count.');
@@ -28,7 +28,11 @@ export async function runSigmoidGatedBackward(input, gate, gradOutput, options =
     uniformBuffer = createUniformBufferWithView(
       'sigmoid_gated_backward_uniforms',
       16,
-      (view) => view.setUint32(0, count, true),
+      (view) => {
+        view.setUint32(0, count, true);
+        view.setUint32(4, options.gateMode === 'silu' ? 1 : 0, true);
+        view.setFloat32(8, Number.isFinite(options.swigluLimit) ? options.swigluLimit : 0, true);
+      },
       null,
       device
     );
@@ -63,4 +67,16 @@ export async function runSigmoidGatedBackward(input, gate, gradOutput, options =
       releaseBuffer(gradGateBuffer);
     }
   }
+}
+
+export function runSigmoidGatedBackward(input, gate, gradOutput, options = {}) {
+  return runGatedBackward(input, gate, gradOutput, { ...options, gateMode: 'sigmoid' });
+}
+
+export async function runSiluGatedBackward(gate, up, gradOutput, options = {}) {
+  const gradients = await runGatedBackward(up, gate, gradOutput, {
+    ...options,
+    gateMode: 'silu',
+  });
+  return { gate: gradients.gate, up: gradients.input };
 }

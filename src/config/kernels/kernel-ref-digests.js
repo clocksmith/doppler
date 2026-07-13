@@ -64,7 +64,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "backward/rmsnorm_backward.wgsl#main": "e16774e9c81a5bf2ee8e6bc05c9438b7b407f4b4b2af2636165d1b77b59b612d",
   "backward/rope_backward.wgsl#main": "bd83dcd8a50f3a20d5ab1ddb9495ae0b5806d2d60b75e584a9d550da926d67df",
   "backward/scale_backward.wgsl#main": "cb2e639b1049a8662c0694fe9e9757327bb55dbb4546ce1c298c5927be33a896",
-  "backward/sigmoid_gated_backward.wgsl#main": "741f20f2e9c437c0c39d5688d5fbc78e91784366a24148cae73797e947d3e74e",
+  "backward/sigmoid_gated_backward.wgsl#main": "487c521365fb3ccc071f69e4bfac6da2182bdb2114c3b1d88516293b02a51ac0",
   "backward/silu_backward.wgsl#main": "86275df7afce1554a6b4203198eb592d32fe4469aaa1e2d35110106decb9ae6b",
   "backward/softmax_backward.wgsl#main": "61c39e76841e33fdc8e91cac64202e15da4f867c015dba7e444b8ecaf3d66669",
   "backward/upsample2d_backward.wgsl#main": "3f3a27fc880d3c4cba49889cafb4be66d30132cfeec9c2105751cc12a5a44ae3",
