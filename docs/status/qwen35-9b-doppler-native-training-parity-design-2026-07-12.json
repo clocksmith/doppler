@@ -130,7 +130,14 @@
           "initial_recurrent_state"
         ],
         "validation": "central_finite_difference",
-        "claimBoundary": "Scalar linear-attention references only; projection/LoRA integration, checkpointing, and recurrent GPU backward remain unimplemented."
+        "checkpointRecompute": {
+          "status": "scalar_reference_exact",
+          "checkpointInterval": 32,
+          "qwen640FullHistoryElements": 336068608,
+          "qwen640PeakBackwardStateElements": 28311552,
+          "validation": "exact_forward_final_state_and_all_gradient_arrays_across_checkpoint_intervals"
+        },
+        "claimBoundary": "Scalar linear-attention and checkpoint/recompute references only; projection/LoRA integration and bounded-memory GPU backward remain unimplemented."
       },
       "gpuComponentSlice": {
         "status": "implemented_unexecuted",
@@ -152,7 +159,7 @@
           "gated_delta_initial_state"
         ],
         "recurrentStateStrategy": "full_history_oracle_only",
-        "productionStateStrategy": "blocked_missing_checkpoint_recompute",
+        "productionStateStrategy": "scalar_checkpoint_recompute_reference_only",
         "claimBoundary": "Candidate component kernels only; no numerical browser receipt, bounded-memory recurrence, or integrated linear-attention backward exists."
       }
     },
@@ -188,6 +195,7 @@
     "scalar_browser_oracle",
     "perturbed_weight_negative_control",
     "qwen_gated_delta_scalar_reverse_mode_reference",
+    "qwen_gated_delta_scalar_checkpoint_recompute_reference",
     "qwen_linear_attention_component_reverse_mode_references",
     "qwen_causal_conv_input_backward_candidate",
     "qwen_gated_rmsnorm_input_gate_backward_candidate",
