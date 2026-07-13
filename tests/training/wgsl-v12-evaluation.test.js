@@ -46,6 +46,7 @@ const entry = {
   assert.equal(request.sampling.seed, 1100);
   assert.equal(request.sampling.maxTokens, 640);
   assert.equal(request.sampling.maxTokensDerivation.holdoutOutcomesUsed, false);
+  assert.equal(request.generation.captureLogprobs, false);
 }
 
 {

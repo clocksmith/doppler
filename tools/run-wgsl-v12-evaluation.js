@@ -75,6 +75,9 @@ export function buildStratumRequest({ policy, entry, adapterPath, lane, seed, sp
         holdoutOutcomesUsed: false,
       },
     },
+    generation: {
+      captureLogprobs: false,
+    },
     training: {
       dtype: policy.trainer.dtype,
       gradientCheckpointing: policy.trainer.gradientCheckpointing,
