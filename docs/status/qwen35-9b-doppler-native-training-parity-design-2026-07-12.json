@@ -86,12 +86,12 @@
     },
     {
       "id": "full_attention_block",
-      "status": "blocked_missing_qk_projection_lora",
+      "status": "blocked_missing_lora",
       "componentEvidence": {
-        "sourceRevision": "005ed75bbd742fa425c3c7ff64515409dee5747d",
+        "sourceRevision": "a7192eca5a102c6d6a2852415abb47563674a6fb",
         "sourceDirty": false,
         "receiptPath": "reports/training/native-parity/qwen-full-attention-backward-oracle.json",
-        "receiptSha256": "9d27efe8ee930d8eac3b09a4ed2b4ddfb4fdd215c2f4941cbb6d120976c00091",
+        "receiptSha256": "c01975a74a531103cf40c3d609df04f2ba5089052a35e264861d8fc1a8e2da1a",
         "coveredComponents": [
           "per_head_q_gate_split_forward",
           "per_head_q_gate_split_backward",
@@ -103,13 +103,17 @@
           "causal_gqa_grouped_value_backward",
           "partial_interleaved_rope_forward",
           "partial_interleaved_rope_backward",
-          "non_rotary_gradient_passthrough"
+          "non_rotary_gradient_passthrough",
+          "f16_q_k_v_o_projections",
+          "offset_q_k_rmsnorm",
+          "integrated_module_forward",
+          "integrated_module_hidden_backward"
         ],
         "maximumComparisonError": 5.960464477539063e-8,
         "negativeControlDifference": 0.00843888521194458,
         "backend": "webgpu_vulkan",
         "deviceVendor": "amd",
-        "claimBoundary": "Qwen query/output-gate split, sigmoid gate, partial interleaved RoPE, and causal GQA reverse mechanics only; no production-shape performance claim."
+        "claimBoundary": "Tiny integrated frozen-projection Qwen full-attention module; LoRA and production-shape performance remain unqualified."
       }
     },
     {
@@ -279,7 +283,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "005ed75bbd742fa425c3c7ff64515409dee5747d",
+  "latestMechanicsRevision": "a7192eca5a102c6d6a2852415abb47563674a6fb",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -309,11 +313,12 @@
     "qwen_full_attention_q_gate_split_oracle",
     "qwen_full_attention_sigmoid_gate_oracle",
     "qwen_full_attention_causal_gqa_backward_oracle",
-    "qwen_partial_interleaved_rope_backward_oracle"
+    "qwen_partial_interleaved_rope_backward_oracle",
+    "qwen_full_attention_integrated_frozen_module_oracle"
   ],
   "blockingGaps": [
     "qwen_decoder_layer_residual_norm_integration",
-    "qwen_full_attention_module_integration",
+    "qwen_full_attention_lora_integration",
     "qwen_gradient_checkpointing",
     "matched_initial_adapter_import",
     "peft_export_parity",
