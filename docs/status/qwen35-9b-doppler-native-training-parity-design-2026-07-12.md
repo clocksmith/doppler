@@ -177,6 +177,20 @@ width and head count. It does not establish production-shape memory or speed.
   `5871c629ba0293172796f73243a5312a09ac5ad37695427ed5023254cb6abbfd`.
   This is a tiny layer-mechanics receipt, not production geometry or a
   multi-layer graph.
+- Cross-layer routing and backward now pass for one complete pattern period:
+  `linear_attention`, `linear_attention`, `linear_attention`, then
+  `full_attention`. The clean `fb3738aa` receipt compares the composed GPU
+  graph against independent scalar layer composition. Hybrid forward error is
+  `7.152557373046875e-7`, input-hidden gradient error is
+  `2.384185791015625e-7`, and the worst comparison is the first linear layer's
+  recurrent initial-state gradient at `5.7220458984375e-6`, below the frozen
+  `5e-5` threshold. All layer-local V12 adapter gradients are finite and
+  nonzero. The receipt is
+  `reports/training/native-parity/qwen-hybrid-decoder-backward-oracle.json`,
+  SHA-256
+  `ddf39c9fd09c18094c7f3144525ee19ce3be576862c588e7414826e59888be80`.
+  This validates one tiny four-layer period, not all 32 production-width
+  layers or cross-layer activation checkpointing.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
   the block-mechanics boundary. It does not include Qwen attention, residuals,
   normalization, loss, or an optimizer update.
@@ -185,8 +199,9 @@ width and head count. It does not establish production-shape memory or speed.
   It still needs a matched loss and optimizer update before the staged gate is
   complete.
 - Gradient checkpointing is not qualified for the Qwen hybrid graph.
-- Cross-layer backward through the three-linear/one-full repeating pattern is
-  not yet qualified, even though each decoder-layer kind now passes alone.
+- Cross-layer backward passes one tiny three-linear/one-full period. The full
+  32-layer production-width graph and cross-layer activation checkpointing are
+  not yet qualified.
 - A matched initial-adapter importer and PEFT export parity receipt are absent.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.
 - Doppler-native inference for the trained adapter remains separate from base

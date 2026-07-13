@@ -359,6 +359,38 @@
       }
     },
     {
+      "id": "hybrid_decoder_graph",
+      "status": "passed_tiny_four_layer_pattern_oracle",
+      "evidence": {
+        "sourceRevision": "fb3738aa86a02c2ccaf091d4fb94eda60c0ff4ae",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen-hybrid-decoder-backward-oracle.json",
+        "receiptSha256": "ddf39c9fd09c18094c7f3144525ee19ce3be576862c588e7414826e59888be80",
+        "layerTypes": [
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention"
+        ],
+        "coveredComponents": [
+          "cross_layer_forward",
+          "cross_layer_backward",
+          "three_linear_recurrent_final_states",
+          "three_linear_recurrent_initial_state_gradients",
+          "all_layer_local_v12_lora_gradients",
+          "hybrid_layer_type_routing"
+        ],
+        "maximumComparisonError": 0.0000057220458984375,
+        "forwardMaxAbsError": 7.152557373046875e-7,
+        "hiddenGradientMaxAbsError": 2.384185791015625e-7,
+        "adapterNegativeControlDifference": 0.00009560585021972656,
+        "allAdapterGradientFamiliesNonzero": true,
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "One tiny four-layer three-linear/one-full pattern period; 32-layer production geometry, loss, optimizer update, cross-layer activation checkpointing, memory, and performance remain unqualified."
+      }
+    },
+    {
       "id": "one_qwen_microstep",
       "minimumAdapterUpdateCosine": 0.999,
       "maximumRelativeL2Error": 0.02,
