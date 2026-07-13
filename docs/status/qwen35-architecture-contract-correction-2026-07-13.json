@@ -1,8 +1,8 @@
 {
-  "artifactType": "qwen35_architecture_contract_correction",
+  "artifactType": "qwen35_native_training_architecture_correction",
   "schemaVersion": 1,
   "recordedAt": "2026-07-13",
-  "status": "correction_implemented_requalification_pending",
+  "status": "native_correction_implemented_inference_hypothesis_retracted_requalification_pending",
   "model": {
     "id": "Qwen/Qwen3.5-9B",
     "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
@@ -16,27 +16,40 @@
     "ropePairing": "split_half_within_partial_rotary_prefix",
     "partialRotaryFactor": 0.25
   },
-  "findings": [
+  "confirmedFindings": [
     {
       "id": "native_decoder_norm_order",
       "disposition": "corrected",
       "description": "Native full and linear decoder graphs and their scalar references normalized the attention output before adding the residual."
     },
     {
-      "id": "qwen_rope_pairing",
+      "id": "native_fixture_rope_pairing",
       "disposition": "corrected",
-      "description": "Qwen-specific fixtures used adjacent-pair RoPE and a geometry that could not distinguish it from the required split-half pairing."
-    },
-    {
-      "id": "conversion_norm_route",
-      "disposition": "corrected",
-      "description": "Qwen 3.5 conversion configs selected the Gemma sandwich-norm runtime route instead of the existing residual-before-pre-FFN-norm route."
+      "description": "Qwen-specific native-training fixtures used adjacent-pair RoPE and a geometry that could not distinguish it from the required split-half pairing."
     }
   ],
+  "retractedFinding": {
+    "id": "conversion_norm_route",
+    "disposition": "disproved",
+    "failedDiagnostic": "refresh-converted-manifest rejected postAttentionNorm=false because all 32 post_attention_layernorm tensors exist",
+    "runtimeFacts": {
+      "postAttentionNormMeaning": "tensor_presence",
+      "sandwichSelector": "preFeedforwardNorm_or_postFeedforwardNorm",
+      "qwenNormalizationFlags": {
+        "postAttentionNorm": true,
+        "preFeedforwardNorm": false,
+        "postFeedforwardNorm": false
+      },
+      "qwenRopeInterleaved": false,
+      "qwenMropeInterleaved": true
+    }
+  },
   "implementation": {
-    "dopplerCommits": [
+    "dopplerNativeCorrectionCommits": [
       "d20f1446465b375a9fbc6df760dc4384cbd6720a",
-      "d61b76b0c45e704485ea61cc4658dddde675363d",
+      "d61b76b0c45e704485ea61cc4658dddde675363d"
+    ],
+    "retractedInferenceCommits": [
       "99fa6c546b54572a11bfc48d1d71f1a15cb36b3a",
       "df3f7fed3935704219b5090ba593ed7178462f69"
     ],
@@ -44,23 +57,24 @@
       "452e51e1ff56529916dfee250f8ff0753862ca43",
       "6d21d7b229c1c2387b3e5447648effd03786ba82"
     ],
-    "correctedManifestVariantSuffix": "mv-exec-v2-norm-order",
+    "manifestVariantChanged": false,
     "weightPacksChanged": false
   },
   "evidenceDisposition": {
     "v12GammaTrainingAndEvaluation": "unaffected",
     "nativeDecoderAndIntegratedSftReceiptsBeforeCorrection": "superseded",
-    "m3V1F16Result": "one_prompt_smoke_only",
-    "m3V1MixedQ4Result": "reproducible_v1_failure_only",
-    "layer0Q4ScalarOracle": "kernel_local_result_retained"
+    "m3V1F16Result": "original_one_prompt_control_scope_retained",
+    "m3V1MixedQ4Result": "original_base_inference_failure_scope_retained",
+    "m3V1F16Q4BoundaryComparison": "original_diagnostic_scope_retained",
+    "layer0Q4ScalarOracle": "kernel_local_result_retained",
+    "qwen08And2BInferenceCatalog": "unchanged"
   },
   "requiredGates": [
     "clean corrected native GPU oracle suite",
     "rank-32 Transformers Gamma versus Doppler microstep parity",
-    "distinct v2 F16 and mixed-Q4 manifests",
-    "v2 F16 Transformers boundary and logit parity",
-    "v2 mixed-Q4 attribution after the F16 control passes",
-    "adapter activation only after coherent base inference"
+    "matched-prefix accumulation and checkpoint-resume parity",
+    "PEFT-compatible export parity",
+    "adapter inference only after coherent base inference"
   ],
-  "claimBoundary": "This receipt corrects and invalidates overbroad v1 architecture claims. It does not yet prove corrected GPU parity, base inference correctness, adapter correctness, native sustained training, WGSL capability, or runtime performance."
+  "claimBoundary": "This receipt corrects the Doppler-native training graph and retracts an unsupported inference-manifest diagnosis. It does not yet prove corrected GPU parity, native sustained training, adapter correctness, WGSL capability, semantic kernel correctness, or promotion, and it does not invalidate the separately scoped v1 inference receipts."
 }
