@@ -120,7 +120,7 @@
         "norm",
         "out_proj"
       ],
-      "status": "blocked_missing_layer_integration",
+      "status": "blocked_missing_projection_and_decoder_integration",
       "referenceEvidence": {
         "implementations": [
           "src/experimental/training/qwen-gated-delta-reference.js",
@@ -156,7 +156,7 @@
         "claimBoundary": "Scalar linear-attention and checkpoint/recompute references only; GPU recurrence evidence is recorded separately and projection/LoRA integration remains unimplemented."
       },
       "gpuComponentSlice": {
-        "status": "passed_oracle_only",
+        "status": "passed_integrated_projected_core_oracle",
         "kernels": [
           "src/gpu/kernels/qwen_linear_attention_prepare.wgsl",
           "src/gpu/kernels/backward/qwen_linear_attention_prepare_backward.wgsl",
@@ -180,7 +180,8 @@
           "gated_rmsnorm",
           "gated_delta_checkpoint_output",
           "gated_delta_checkpoint_states",
-          "gated_delta_final_state"
+          "gated_delta_final_state",
+          "integrated_projected_core_output"
         ],
         "coveredGradients": [
           "prepare_mixed_qkv",
@@ -194,16 +195,21 @@
           "gated_delta_value",
           "gated_delta_log_decay",
           "gated_delta_beta",
-          "gated_delta_initial_state"
+          "gated_delta_initial_state",
+          "integrated_core_qkv",
+          "integrated_core_z",
+          "integrated_core_a",
+          "integrated_core_b",
+          "integrated_core_initial_state"
         ],
         "recurrentStateStrategy": "checkpoint_recompute_oracle",
         "productionStateStrategy": "bounded_checkpoint_recompute_mechanics_passed",
         "evidence": {
-          "sourceRevision": "4af552c94e3cff55d78006f5143576eca9313b0e",
+          "sourceRevision": "084a3cca9513ca49eae4dd5ed1fdeae68c4eda84",
           "sourceDirty": false,
           "receiptPath": "reports/training/native-parity/qwen-linear-attention-backward-oracle.json",
-          "receiptSha256": "55980bc3be81258e5b8a02a37cae6689f1f008a080f3d246cad8d1150c01706e",
-          "maximumComparisonError": 2.384185791015625e-7,
+          "receiptSha256": "ddfdf577af55bcf7c9efa2b37f22bc941acfed1c189d3b9aa781c747cf3d95fc",
+          "maximumComparisonError": 3.5762786865234375e-7,
           "negativeControlDifference": 0.11269691213965416,
           "backend": "webgpu_vulkan",
           "deviceVendor": "amd",
@@ -221,7 +227,7 @@
             "backward_initial_state"
           ]
         },
-        "claimBoundary": "Numerically verified preparation, causal-convolution, gated-RMSNorm, and bounded-memory recurrence component kernels only; frozen projection matmuls and integrated linear-attention execution remain absent."
+        "claimBoundary": "Numerically verified integrated core from projected QKV/Z/A/B through gated RMSNorm; frozen input/output projection matmuls, residuals, and complete decoder-layer execution remain absent."
       }
     },
     {
@@ -245,7 +251,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "4af552c94e3cff55d78006f5143576eca9313b0e",
+  "latestMechanicsRevision": "084a3cca9513ca49eae4dd5ed1fdeae68c4eda84",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -269,7 +275,8 @@
     "split_gate_up_lora_browser_oracle",
     "qwen_linear_attention_component_browser_oracle",
     "qwen_gated_delta_checkpoint_forward_gpu_oracle",
-    "qwen_gated_delta_checkpointed_backward_gpu_oracle"
+    "qwen_gated_delta_checkpointed_backward_gpu_oracle",
+    "qwen_linear_attention_integrated_projected_core_oracle"
   ],
   "blockingGaps": [
     "qwen_linear_attention_full_layer_integration",
@@ -282,5 +289,5 @@
   "nativeQwen9bSupportClaimed": false,
   "capabilityClaimed": false,
   "promotionClaimed": false,
-  "claimBoundary": "The F16 projection input-gradient gate passed. No Qwen block, optimizer, adapter, compiler-capability, semantic-kernel, or promotion parity is established."
+  "claimBoundary": "The F16 projection input-gradient gate and projected-input Qwen linear-attention core oracle passed. No complete decoder block, optimizer, adapter, compiler-capability, semantic-kernel, or promotion parity is established."
 }

@@ -107,16 +107,18 @@ Neither receipt is a complete Qwen layer or optimizer update.
   forward state and every backward gradient exactly. For 640 tokens, 32 heads,
   128 key/value dimensions, and interval 32, its active recurrence-state
   footprint is 28,311,552 F32 elements versus 336,068,608 for full history.
-  The combined GPU component receipt is sealed at clean revision `4af552c9`:
-  preparation, causal Conv1D+SiLU, gated RMSNorm, checkpointed recurrent
-  forward output/states, and blockwise backward gradients all match their
-  scalar references with worst error `2.384185791015625e-7`. The recurrent
-  schedule includes state carry across two blocks. Frozen projection matmuls,
-  output projection, and full Qwen layer integration remain absent.
+  The combined GPU receipt is sealed at clean revision `084a3cca`. In addition
+  to the isolated checks, it composes projected QKV/Z/A/B through causal
+  Conv1D+SiLU, preparation, checkpointed recurrence, and gated RMSNorm, then
+  propagates one gradient through that entire chain. Forward output, final
+  state, and QKV/Z/A/B/initial-state gradients match the scalar composition
+  with worst error `3.5762786865234375e-7`. The recurrent schedule includes
+  state carry across two blocks. Frozen input/output projection matmuls,
+  residuals, and complete decoder-layer integration remain absent.
   The updated local component receipt is
   `reports/training/native-parity/qwen-linear-attention-backward-oracle.json`,
   SHA-256
-  `55980bc3be81258e5b8a02a37cae6689f1f008a080f3d246cad8d1150c01706e`.
+  `ddfdf577af55bcf7c9efa2b37f22bc941acfed1c189d3b9aa781c747cf3d95fc`.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
   the block-mechanics boundary. It does not include Qwen attention, residuals,
   normalization, loss, or an optimizer update.
