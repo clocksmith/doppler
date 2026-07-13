@@ -106,8 +106,21 @@
       ],
       "status": "blocked_missing_gpu_backward",
       "referenceEvidence": {
-        "implementation": "src/experimental/training/qwen-gated-delta-reference.js",
-        "test": "tests/training/qwen-gated-delta-reference.test.js",
+        "implementations": [
+          "src/experimental/training/qwen-gated-delta-reference.js",
+          "src/experimental/training/qwen-linear-attention-reference.js"
+        ],
+        "tests": [
+          "tests/training/qwen-gated-delta-reference.test.js",
+          "tests/training/qwen-linear-attention-reference.test.js"
+        ],
+        "coveredComponents": [
+          "causal_depthwise_conv_silu",
+          "qk_l2_normalization",
+          "a_b_log_decay_beta_transforms",
+          "gated_delta_recurrence",
+          "gated_rmsnorm"
+        ],
         "coveredGradients": [
           "query",
           "key",
@@ -117,7 +130,7 @@
           "initial_recurrent_state"
         ],
         "validation": "central_finite_difference",
-        "claimBoundary": "Scalar recurrent-core reference only; causal convolution, projection, gated RMSNorm, and GPU backward remain unimplemented."
+        "claimBoundary": "Scalar linear-attention references only; projection/LoRA integration, checkpointing, and GPU backward remain unimplemented."
       }
     },
     {
@@ -151,12 +164,13 @@
     "f16_frozen_matrix_preservation",
     "scalar_browser_oracle",
     "perturbed_weight_negative_control",
-    "qwen_gated_delta_scalar_reverse_mode_reference"
+    "qwen_gated_delta_scalar_reverse_mode_reference",
+    "qwen_linear_attention_component_reverse_mode_references"
   ],
   "blockingGaps": [
     "qwen_linear_attention_gpu_backward",
-    "qwen_linear_attention_causal_conv_backward",
-    "qwen_linear_attention_gated_rmsnorm_backward",
+    "qwen_linear_attention_causal_conv_gpu_backward",
+    "qwen_linear_attention_gated_rmsnorm_gpu_backward",
     "separate_gate_and_up_lora_gpu_oracle",
     "qwen_gradient_checkpointing",
     "matched_initial_adapter_import",

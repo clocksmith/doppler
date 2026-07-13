@@ -72,10 +72,12 @@ semantic kernel correctness.
 
 ## Known blocking gaps
 
-- A scalar reverse-mode reference now covers the Qwen recurrent gated-delta
-  state transition and finite-difference checks query, key, value, log-decay,
-  beta, and initial-state gradients. The WebGPU backward kernel, causal-conv
-  backward, projection integration, and gated RMSNorm backward remain absent.
+- Scalar reverse-mode references now cover the Qwen recurrent gated-delta
+  state transition, causal depthwise convolution plus SiLU, Q/K L2
+  normalization, the `a`/`b` parameter transforms, and gated RMSNorm.
+  Central finite differences check every input, weight, and initial-state
+  gradient. The WebGPU backward kernels, projection/LoRA integration, and
+  checkpoint/recompute schedule remain absent.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is
   implemented after the initial design freeze, but its block-level GPU oracle
   is not yet sealed.
