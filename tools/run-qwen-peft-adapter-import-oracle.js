@@ -106,8 +106,11 @@ function loadedTensors(imported, loaded) {
 
 function relativeToRoot(value) {
   const absolute = path.resolve(value);
-  const commonGitDirectory = path.resolve(git(['rev-parse', '--git-common-dir']));
-  const roots = [ROOT, path.dirname(commonGitDirectory)];
+  const worktreeRoots = git(['worktree', 'list', '--porcelain'])
+    .split('\n')
+    .filter((line) => line.startsWith('worktree '))
+    .map((line) => path.resolve(line.slice('worktree '.length)));
+  const roots = [ROOT, ...worktreeRoots];
   for (const root of roots) {
     const relative = path.relative(root, absolute);
     if (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)) {
