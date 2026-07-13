@@ -1,0 +1,125 @@
+{
+  "artifactKind": "qwen35_9b_m3_layer0_q4k_projection_oracle_summary",
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-13T01:09:52.811Z",
+  "status": "layer0_gate_q4_kernel_matches_scalar_reference",
+  "repository": {
+    "name": "clocksmith/doppler",
+    "branch": "main",
+    "oracleCommit": "a1e9fdbb9dc0737fdb4448212a45f49b5e6309a5"
+  },
+  "host": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "kernel": "25.3.0",
+    "operatingSystem": "macOS 26.3",
+    "operatingSystemBuild": "25D125",
+    "node": "v22.20.0",
+    "chip": "Apple M3",
+    "gpuCoreCount": 10,
+    "unifiedMemoryBytes": 25769803776,
+    "metalSupport": "Metal 4",
+    "privateIdentifiersRecorded": false
+  },
+  "projection": {
+    "tensorName": "model.language_model.layers.0.mlp.gate_proj.weight",
+    "inputOpId": "layer.0.ffn.in",
+    "outputOpId": "layer.0.ffn.gate",
+    "capturedRow": 30,
+    "rowMeaning": "last prompt token",
+    "shape": [
+      12288,
+      4096
+    ],
+    "q4Dtype": "Q4_K_M",
+    "q4Layout": "row",
+    "packedByteLength": 28311552,
+    "packedSha256": "f3f9c62827addc9c92d9af9ffa2b1e9e3252141ac5606b050a606ef8aa61bd10",
+    "decodedBlockCount": 196608,
+    "decodedScaleCount": 1572864,
+    "decodedMinimumCount": 1572864,
+    "decodedWeightsSha256": "7ea8065d72af826a61fc27a5eab858eaf252ab16ecdbe9701cb1d1a9db7bdf58"
+  },
+  "artifactIdentity": {
+    "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "q4ManifestSha256": "ac1eff7f371b7d676a5b9a7ddcf94e2d01d3e1043f499dede2fc41249ef55956",
+    "f16ManifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+    "q4ShardSetHash": "sha256:27c1ba6d379e43eff7eae12b6ccc83081fe5248d1739e7877e82428d52daf228",
+    "f16ShardSetHash": "sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d"
+  },
+  "comparisons": {
+    "q4GpuVsScalarReference": {
+      "maxAbsDiff": 8.344650268554688e-7,
+      "rmse": 6.354751818538317e-8,
+      "cosineSimilarity": 0.9999999999998528
+    },
+    "f16GpuVsScalarOwnInput": {
+      "maxAbsDiff": 2.5033950805664062e-6,
+      "rmse": 1.3297147344603175e-7,
+      "cosineSimilarity": 0.9999999999994142
+    },
+    "q4ScalarVsF16ScalarSameQ4Input": {
+      "maxAbsDiff": 0.05161425657570362,
+      "rmse": 0.007551034730242163,
+      "cosineSimilarity": 0.9981637906100974
+    },
+    "q4GpuVsF16Gpu": {
+      "maxAbsDiff": 0.05160520039498806,
+      "rmse": 0.007551061583841115,
+      "cosineSimilarity": 0.9981637792457753
+    },
+    "inputQ4VsF16": {
+      "maxAbsDiff": 0.000024825334548950195,
+      "rmse": 0.0000050780143858584504,
+      "cosineSimilarity": 0.9999999992629903
+    },
+    "f16ScalarOwnInputVsSameQ4Input": {
+      "maxAbsDiff": 0.00003793835639953613,
+      "rmse": 0.00000431432004980856,
+      "cosineSimilarity": 0.9999999994110743
+    }
+  },
+  "hypothesisResult": {
+    "tested": "The optimized layer-0 Q4 gate projection materially disagrees with scalar dequantization and matrix multiplication of the exact stored bytes.",
+    "result": "disproved",
+    "interpretation": "The stored Q4 weights themselves produce the observed layer-0 gate difference from F16. The optimized kernel faithfully computes those weights for this projection."
+  },
+  "closedAtThisProjection": [
+    "scale_min_decode_mismatch",
+    "packed_row_layout_mismatch",
+    "optimized_q4_projection_corruption",
+    "f16_projection_corruption"
+  ],
+  "remainingOpen": [
+    "later_quantization_error_accumulation",
+    "separate_defect_at_another_quantized_tensor",
+    "mixed_precision_tensor_selection_needed_for_base_token_parity"
+  ],
+  "evidence": {
+    "oracleReceipt": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/layer0-ffn-gate-oracle.json",
+      "sha256": "c2110ea9edd3b5c0e78e9b5423f4cec5a93777f18d2d1b75cbebf9ef78a08f6d"
+    },
+    "q4Capture": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/q4-layer0-ffn-gate-full.json",
+      "sha256": "7234b3c5bbf5467adf5d791e8552ebc5744a64f81e7f7424104d8393f765b4e1"
+    },
+    "f16Capture": {
+      "path": "reports/qwen-3-5-9b-metal/2026-07-12/f16-layer0-ffn-gate-full.json",
+      "sha256": "968f41faf2fc1540ec8e2833be9f7804018b73500ee3ebe937e68a1505f2a6e5"
+    }
+  },
+  "validation": {
+    "targetTest": "node tests/tooling/q4k-projection-reference.test.js",
+    "targetTestStatus": "pass",
+    "fullSuite": "npm run test:unit",
+    "fullSuiteStatus": "pass",
+    "fullSuiteTestFiles": 427
+  },
+  "claimBoundary": {
+    "trainingImprovement": "Not evaluated or rerun; the frozen V12 AMD/ROCm matrix was not touched.",
+    "baseModelInferenceCorrectness": "The F16 control remains coherent and the mixed-Q4 candidate remains rejected. This oracle closes only one projection-level hypothesis.",
+    "adapterInferenceCorrectness": "Not evaluated.",
+    "runtimePerformance": "Not measured or claimed."
+  }
+}
