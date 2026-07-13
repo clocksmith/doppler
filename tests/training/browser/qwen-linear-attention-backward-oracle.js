@@ -14,6 +14,10 @@ import {
 } from '../../../src/experimental/training/qwen-gated-delta-reference.js';
 import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
 import {
+  runCausalConv1dSilu,
+  runGatedRmsNorm,
+} from '../../../src/gpu/kernels/index.js';
+import {
   runCausalConv1dSiluBackward,
   runGatedDeltaRecurrentBackward,
   runGatedDeltaRecurrentCheckpointForward,
@@ -68,7 +72,9 @@ async function runCausalConvCase(gradOffset, label) {
   const weight = makeTensor(weightValues, [options.channels, options.kernelSize], `${label}_weight`);
   const gradOutput = makeTensor(gradValues, [options.numTokens, options.channels], `${label}_grad_output`);
   let result = null;
+  let forwardResult = null;
   try {
+    forwardResult = await runCausalConv1dSilu(input, weight, options);
     result = await runCausalConv1dSiluBackward(input, weight, gradOutput, options);
     const actual = await readF32(result);
     const forward = causalConvSiluForward(inputValues, weightValues, options);
@@ -79,8 +85,13 @@ async function runCausalConvCase(gradOffset, label) {
       forward.cache,
       options
     ).input;
-    return { actual, comparison: compare(actual, expected) };
+    return {
+      actual,
+      backwardComparison: compare(actual, expected),
+      forwardComparison: compare(await readF32(forwardResult), forward.output),
+    };
   } finally {
+    if (forwardResult?.buffer) releaseBuffer(forwardResult.buffer);
     if (result?.buffer) releaseBuffer(result.buffer);
     releaseBuffer(input.buffer);
     releaseBuffer(weight.buffer);
@@ -99,7 +110,9 @@ async function runGatedRmsNormCase() {
   const weight = makeTensor(weightValues, [options.width], 'gated_rms_weight');
   const gradOutput = makeTensor(gradValues, [options.rows, options.width], 'gated_rms_grad_output');
   let result = null;
+  let forwardResult = null;
   try {
+    forwardResult = await runGatedRmsNorm(input, gate, weight, options);
     result = await runGatedRmsNormBackward(input, gate, weight, gradOutput, options);
     const actualInput = await readF32(result.gradInput);
     const actualGate = await readF32(result.gradGate);
@@ -113,10 +126,12 @@ async function runGatedRmsNormCase() {
       options
     );
     return {
+      forward: compare(await readF32(forwardResult), forward.output),
       gradInput: compare(actualInput, expected.input),
       gradGate: compare(actualGate, expected.gate),
     };
   } finally {
+    if (forwardResult?.buffer) releaseBuffer(forwardResult.buffer);
     if (result?.gradInput?.buffer) releaseBuffer(result.gradInput.buffer);
     if (result?.gradGate?.buffer) releaseBuffer(result.gradGate.buffer);
     releaseBuffer(input.buffer);
@@ -292,7 +307,9 @@ export async function runQwenLinearAttentionBackwardOracle() {
   const gatedRmsNorm = await runGatedRmsNormCase();
   const gatedDeltaRecurrent = await runGatedDeltaRecurrentCase();
   const comparisons = {
-    causalConvGradInput: causalConv.comparison,
+    causalConvForward: causalConv.forwardComparison,
+    causalConvGradInput: causalConv.backwardComparison,
+    gatedRmsNormForward: gatedRmsNorm.forward,
     gatedRmsNormGradInput: gatedRmsNorm.gradInput,
     gatedRmsNormGradGate: gatedRmsNorm.gradGate,
     gatedDeltaGradQuery: gatedDeltaRecurrent.query,
@@ -327,6 +344,6 @@ export async function runQwenLinearAttentionBackwardOracle() {
       passed: causalConvPerturbation.maxAbsError > 1e-4,
     },
     adapterInfo: capabilities.adapterInfo || null,
-    claimBoundary: 'Checkpoint/recompute recurrent forward/backward, causal-convolution input, and gated-RMSNorm input/gate GPU mechanics only; projection transforms and Qwen layer integration remain absent.',
+    claimBoundary: 'Checkpoint/recompute recurrence, causal Conv1D+SiLU, and gated RMSNorm forward/backward GPU mechanics only; projection transforms and Qwen layer integration remain absent.',
   };
 }

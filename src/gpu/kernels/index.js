@@ -357,6 +357,8 @@ export {
 } from './transpose.js';
 
 // Training Backward Kernels
+export { runCausalConv1dSilu, recordCausalConv1dSilu } from './causal_conv1d_silu.js';
+export { runGatedRmsNorm, recordGatedRmsNorm } from './gated_rmsnorm.js';
 export {
   runEmbedBackward,
   recordEmbedBackward,
