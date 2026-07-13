@@ -86,23 +86,27 @@
     },
     {
       "id": "full_attention_block",
-      "status": "blocked_missing_qk_rope_gqa_projection_lora",
+      "status": "blocked_missing_qk_rope_projection_lora",
       "componentEvidence": {
-        "sourceRevision": "c6b36c412995c87540b22ec244e005ea8a6506f7",
+        "sourceRevision": "a8b97154757a310f067801756eb7e5e9fb28bbb5",
         "sourceDirty": false,
         "receiptPath": "reports/training/native-parity/qwen-full-attention-backward-oracle.json",
-        "receiptSha256": "1b9d4ae7687c14f5b9a180f8307fe62b035afad8207545d5a1c5e9d97858d52c",
+        "receiptSha256": "54409ae0a6f2df061110a6bd6bbe66309dd2088d4960e9300fc12cdd112578ab",
         "coveredComponents": [
           "per_head_q_gate_split_forward",
           "per_head_q_gate_split_backward",
           "sigmoid_output_gate_forward",
-          "sigmoid_output_gate_backward"
+          "sigmoid_output_gate_backward",
+          "causal_gqa_softmax_recompute",
+          "causal_gqa_query_backward",
+          "causal_gqa_grouped_key_backward",
+          "causal_gqa_grouped_value_backward"
         ],
-        "maximumComparisonError": 1.4901161193847656e-8,
+        "maximumComparisonError": 5.960464477539063e-8,
         "negativeControlDifference": 0.00843888521194458,
         "backend": "webgpu_vulkan",
         "deviceVendor": "amd",
-        "claimBoundary": "Qwen query/output-gate split and sigmoid gate only."
+        "claimBoundary": "Qwen query/output-gate split, sigmoid gate, and causal GQA reverse mechanics only; no production-shape performance claim."
       }
     },
     {
@@ -272,7 +276,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "c6b36c412995c87540b22ec244e005ea8a6506f7",
+  "latestMechanicsRevision": "a8b97154757a310f067801756eb7e5e9fb28bbb5",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -300,7 +304,8 @@
     "qwen_linear_attention_integrated_projected_core_oracle",
     "qwen_linear_attention_f16_projection_module_oracle",
     "qwen_full_attention_q_gate_split_oracle",
-    "qwen_full_attention_sigmoid_gate_oracle"
+    "qwen_full_attention_sigmoid_gate_oracle",
+    "qwen_full_attention_causal_gqa_backward_oracle"
   ],
   "blockingGaps": [
     "qwen_decoder_layer_residual_norm_integration",
