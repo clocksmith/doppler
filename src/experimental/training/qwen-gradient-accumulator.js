@@ -47,8 +47,9 @@ function validateEntries(entries) {
     if (parameters.has(entry.parameter)) {
       throw new Error(`Qwen gradient accumulator parameter is duplicated at ${name}.`);
     }
-    if (entry.gradient.dtype !== 'f32' || !sameShape(entry.parameter.shape, entry.gradient.shape)) {
-      throw new Error(`Qwen gradient accumulator entry ${name} requires matching F32 gradients.`);
+    if (entry.parameter.dtype !== 'f32' || entry.gradient.dtype !== 'f32'
+      || !sameShape(entry.parameter.shape, entry.gradient.shape)) {
+      throw new Error(`Qwen gradient accumulator entry ${name} requires matching F32 parameters and gradients.`);
     }
     names.add(name);
     parameters.add(entry.parameter);
@@ -156,13 +157,18 @@ export class QwenGradientAccumulator {
     if (!optimizer || typeof optimizer.step !== 'function') {
       throw new Error('Qwen gradient accumulator requires an optimizer to apply the window.');
     }
+    if (!trainingConfig?.training?.optimizer) {
+      throw new Error('Qwen gradient accumulator requires trainingConfig.training.optimizer.');
+    }
     const parameters = this.entries.map((entry) => entry.parameter);
     const gradients = new Map(
       this.entries.map((entry) => [entry.parameter, entry.gradient])
     );
-    const metrics = await optimizer.step(parameters, gradients, trainingConfig);
-    this.reset();
-    return metrics;
+    try {
+      return await optimizer.step(parameters, gradients, trainingConfig);
+    } finally {
+      this.reset();
+    }
   }
 
   reset() {
