@@ -359,6 +359,7 @@ export {
 // Training Backward Kernels
 export { runCausalConv1dSilu, recordCausalConv1dSilu } from './causal_conv1d_silu.js';
 export { runGatedRmsNorm, recordGatedRmsNorm } from './gated_rmsnorm.js';
+export { runQwenLinearAttentionPrepare } from './qwen_linear_attention_prepare.js';
 export {
   runEmbedBackward,
   recordEmbedBackward,

@@ -56,6 +56,10 @@ export declare function createBackwardKernel(
   record: (recorder: CommandRecorder, ...args: unknown[]) => Promise<Tensor>;
 };
 
+export declare function resolveMatmulBackwardDxVariant(
+  weight: Pick<Tensor, 'dtype'>
+): 'default' | 'f16_weight';
+
 /**
  * Matmul-backward gradient w.r.t. input (dX = dY · Wᵀ). Submit + wait.
  */
