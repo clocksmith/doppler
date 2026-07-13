@@ -12,10 +12,14 @@ export interface GatedDeltaRecurrentBackwardInputs {
 
 export interface GatedDeltaRecurrentBackwardOptions {
   numTokens: number;
+  totalTokens: number;
+  tokenOffset: number;
   numHeads: number;
   keyDim: number;
   valueDim: number;
   queryScale: number;
+  initializeOutputBuffers: boolean;
+  initializeGradState: boolean;
   gradQueryBuffer?: GPUBuffer | null;
   gradKeyBuffer?: GPUBuffer | null;
   gradValueBuffer?: GPUBuffer | null;
