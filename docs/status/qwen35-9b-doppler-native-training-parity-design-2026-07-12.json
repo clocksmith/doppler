@@ -411,7 +411,40 @@
       "id": "one_qwen_microstep",
       "minimumAdapterUpdateCosine": 0.999,
       "maximumRelativeL2Error": 0.02,
-      "status": "blocked"
+      "status": "blocked_missing_rank32_gamma_parity",
+      "componentEvidence": {
+        "status": "passed_tiny_completion_masked_loss_backward_update_oracle",
+        "sourceRevision": "190511b7aad522d564c483ef2aaed51020a69549",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen-hybrid-sft-microstep-oracle.json",
+        "receiptSha256": "4792e9c80c17c1d0d8b19d22ff255b459919c0c8997aa42f1a8eb75a1fe419be",
+        "activeTokenCount": 2,
+        "adapterParameterTensorCount": 14,
+        "optimizerStepCount": 1,
+        "allAdapterGradientsNonzero": true,
+        "everyAdapterParameterChanged": true,
+        "meanLossMaxAbsError": 2.384185791015625e-7,
+        "promptMaskNegativeControlMeanLossDifference": 0.031296690305074204,
+        "coveredAdapterFamilies": [
+          "q_proj_lora_a",
+          "q_proj_lora_b",
+          "k_proj_lora_a",
+          "k_proj_lora_b",
+          "v_proj_lora_a",
+          "v_proj_lora_b",
+          "o_proj_lora_a",
+          "o_proj_lora_b",
+          "gate_proj_lora_a",
+          "gate_proj_lora_b",
+          "up_proj_lora_a",
+          "up_proj_lora_b",
+          "down_proj_lora_a",
+          "down_proj_lora_b"
+        ],
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Tiny one-full-layer rank-two completion-masked SFT microstep; not the rank-32 Gamma parity gate, production Qwen geometry, accumulation, resume, or capability evidence."
+      }
     },
     {
       "id": "matched_training_prefix",
@@ -428,7 +461,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "a7192eca5a102c6d6a2852415abb47563674a6fb",
+  "latestMechanicsRevision": "190511b7aad522d564c483ef2aaed51020a69549",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -459,12 +492,17 @@
     "qwen_full_attention_sigmoid_gate_oracle",
     "qwen_full_attention_causal_gqa_backward_oracle",
     "qwen_partial_interleaved_rope_backward_oracle",
-    "qwen_full_attention_integrated_frozen_module_oracle"
+    "qwen_full_attention_integrated_frozen_module_oracle",
+    "qwen_full_decoder_layer_forward_backward_oracle",
+    "qwen_linear_decoder_layer_forward_backward_oracle",
+    "qwen_hybrid_decoder_cross_layer_forward_backward_oracle",
+    "decoupled_adamw_update_oracle",
+    "completion_masked_qwen_sft_microstep_oracle"
   ],
   "blockingGaps": [
-    "qwen_decoder_layer_residual_norm_integration",
-    "qwen_full_attention_lora_integration",
-    "qwen_gradient_checkpointing",
+    "rank32_gamma_doppler_microstep_parity",
+    "production_qwen_geometry",
+    "cross_layer_activation_checkpointing",
     "matched_initial_adapter_import",
     "peft_export_parity",
     "sustained_adamw_accumulation_and_resume",
@@ -473,5 +511,5 @@
   "nativeQwen9bSupportClaimed": false,
   "capabilityClaimed": false,
   "promotionClaimed": false,
-  "claimBoundary": "A tiny checkpointed Qwen linear-attention module with frozen F16 projections passed. No complete decoder block, optimizer, adapter, compiler-capability, semantic-kernel, or promotion parity is established."
+  "claimBoundary": "Tiny full, linear, hybrid-decoder, decoupled-AdamW, and completion-masked SFT mechanics pass independent scalar oracles. Rank-32 Gamma parity, production Qwen geometry, accumulation/resume, adapter import/export/inference, compiler capability, semantic-kernel correctness, and promotion remain unestablished."
 }
