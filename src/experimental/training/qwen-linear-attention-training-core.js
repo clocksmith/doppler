@@ -1,6 +1,8 @@
 import {
   runCausalConv1dSilu,
   runGatedRmsNorm,
+  runMatmul,
+  runResidualAdd,
   runQwenLinearAttentionPrepare,
 } from '../../gpu/kernels/index.js';
 import {
@@ -11,6 +13,7 @@ import {
   runQwenLinearAttentionPrepareBackward,
 } from '../../gpu/kernels/backward/index.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
+import { runMatmulBackwardDx } from '../../gpu/kernels/backward/utils.js';
 
 function positiveInteger(value, label) {
   const parsed = Math.floor(Number(value));
@@ -240,4 +243,136 @@ export function releaseQwenLinearAttentionTrainingCoreCache(cache) {
   releaseTensorMap(cache?.preparation);
   releaseTensor(cache?.recurrenceOutput);
   releaseTensor(cache?.checkpoints);
+}
+
+function resolveModuleDimensions(options) {
+  const core = resolveDimensions(options);
+  return { ...core, hiddenSize: positiveInteger(options?.hiddenSize, 'hiddenSize') };
+}
+
+export async function runQwenLinearAttentionTrainingModuleForward(inputs, options = {}) {
+  const dims = resolveModuleDimensions(options);
+  const projectionSpecs = [
+    ['qkv', inputs.qkvWeight, dims.convSize],
+    ['z', inputs.zWeight, dims.numValueHeads * dims.valueDim],
+    ['a', inputs.aWeight, dims.numValueHeads],
+    ['b', inputs.bWeight, dims.numValueHeads],
+  ];
+  const projections = {};
+  let core = null;
+  let output = null;
+  let completed = false;
+  try {
+    for (const [name, weight, outputSize] of projectionSpecs) {
+      projections[name] = await runMatmul(
+        inputs.hidden,
+        weight,
+        dims.numTokens,
+        outputSize,
+        dims.hiddenSize,
+        { transposeB: true, outputDtype: 'f32' }
+      );
+    }
+    core = await runQwenLinearAttentionTrainingCoreForward({
+      ...inputs,
+      ...projections,
+    }, dims);
+    output = await runMatmul(
+      core.output,
+      inputs.outWeight,
+      dims.numTokens,
+      dims.hiddenSize,
+      dims.numValueHeads * dims.valueDim,
+      { transposeB: true, outputDtype: 'f32' }
+    );
+    completed = true;
+    return {
+      output,
+      finalState: core.finalState,
+      cache: { dims, projections, core: core.cache },
+    };
+  } finally {
+    releaseTensor(core?.output);
+    if (!completed) {
+      releaseTensor(output);
+      releaseTensor(core?.finalState);
+      if (core?.cache) releaseQwenLinearAttentionTrainingCoreCache(core.cache);
+      releaseTensorMap(projections);
+    }
+  }
+}
+
+export async function runQwenLinearAttentionTrainingModuleBackward(
+  inputs,
+  gradOutput,
+  cache,
+  options = {}
+) {
+  const dims = resolveModuleDimensions(options);
+  for (const key of Object.keys(dims)) {
+    if (cache?.dims?.[key] !== dims[key]) {
+      throw new Error(`linear-attention module cache mismatch for ${key}.`);
+    }
+  }
+  const valueSize = dims.numValueHeads * dims.valueDim;
+  let gradCoreOutput = null;
+  let coreGradients = null;
+  const contributions = [];
+  let sumQkvZ = null;
+  let sumAB = null;
+  let hiddenGradient = null;
+  let completed = false;
+  try {
+    gradCoreOutput = await runMatmulBackwardDx(
+      gradOutput,
+      inputs.outWeight,
+      dims.numTokens,
+      valueSize,
+      dims.hiddenSize,
+      { transposeB: true }
+    );
+    coreGradients = await runQwenLinearAttentionTrainingCoreBackward({
+      ...inputs,
+      ...cache.projections,
+    }, gradCoreOutput, cache.core, dims);
+    const projectionSpecs = [
+      ['qkv', inputs.qkvWeight, dims.convSize],
+      ['z', inputs.zWeight, valueSize],
+      ['a', inputs.aWeight, dims.numValueHeads],
+      ['b', inputs.bWeight, dims.numValueHeads],
+    ];
+    for (const [name, weight, outputSize] of projectionSpecs) {
+      contributions.push(await runMatmulBackwardDx(
+        coreGradients[name],
+        weight,
+        dims.numTokens,
+        dims.hiddenSize,
+        outputSize,
+        { transposeB: true }
+      ));
+    }
+    const hiddenElements = dims.numTokens * dims.hiddenSize;
+    sumQkvZ = await runResidualAdd(contributions[0], contributions[1], hiddenElements);
+    sumAB = await runResidualAdd(contributions[2], contributions[3], hiddenElements);
+    hiddenGradient = await runResidualAdd(sumQkvZ, sumAB, hiddenElements);
+    completed = true;
+    return { hidden: hiddenGradient, initialState: coreGradients.initialState };
+  } finally {
+    releaseTensor(gradCoreOutput);
+    if (coreGradients) {
+      for (const key of ['qkv', 'z', 'a', 'b']) releaseTensor(coreGradients[key]);
+    }
+    for (const tensor of contributions) releaseTensor(tensor);
+    releaseTensor(sumQkvZ);
+    releaseTensor(sumAB);
+    if (!completed) {
+      releaseTensor(hiddenGradient);
+      releaseTensor(coreGradients?.initialState);
+    }
+  }
+}
+
+export function releaseQwenLinearAttentionTrainingModuleCache(cache) {
+  releaseTensorMap(cache?.projections);
+  releaseQwenLinearAttentionTrainingCoreCache(cache?.core);
 }

@@ -62,3 +62,46 @@ export declare function runQwenLinearAttentionTrainingCoreBackward(
 export declare function releaseQwenLinearAttentionTrainingCoreCache(
   cache: QwenLinearAttentionTrainingCoreCache
 ): void;
+
+export interface QwenLinearAttentionTrainingModuleOptions
+  extends QwenLinearAttentionTrainingCoreOptions {
+  hiddenSize: number;
+}
+
+export interface QwenLinearAttentionTrainingModuleInputs
+  extends Omit<QwenLinearAttentionTrainingCoreInputs, 'qkv' | 'z' | 'a' | 'b'> {
+  hidden: Tensor;
+  qkvWeight: Tensor;
+  zWeight: Tensor;
+  aWeight: Tensor;
+  bWeight: Tensor;
+  outWeight: Tensor;
+}
+
+export interface QwenLinearAttentionTrainingModuleCache {
+  dims: Record<string, number>;
+  projections: Record<'qkv' | 'z' | 'a' | 'b', Tensor>;
+  core: QwenLinearAttentionTrainingCoreCache;
+}
+
+export interface QwenLinearAttentionTrainingModuleForwardResult {
+  output: Tensor;
+  finalState: Tensor;
+  cache: QwenLinearAttentionTrainingModuleCache;
+}
+
+export declare function runQwenLinearAttentionTrainingModuleForward(
+  inputs: QwenLinearAttentionTrainingModuleInputs,
+  options: QwenLinearAttentionTrainingModuleOptions
+): Promise<QwenLinearAttentionTrainingModuleForwardResult>;
+
+export declare function runQwenLinearAttentionTrainingModuleBackward(
+  inputs: QwenLinearAttentionTrainingModuleInputs,
+  gradOutput: Tensor,
+  cache: QwenLinearAttentionTrainingModuleCache,
+  options: QwenLinearAttentionTrainingModuleOptions
+): Promise<{ hidden: Tensor; initialState: Tensor }>;
+
+export declare function releaseQwenLinearAttentionTrainingModuleCache(
+  cache: QwenLinearAttentionTrainingModuleCache
+): void;
