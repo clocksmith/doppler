@@ -191,6 +191,17 @@ width and head count. It does not establish production-shape memory or speed.
   `ddf39c9fd09c18094c7f3144525ee19ce3be576862c588e7414826e59888be80`.
   This validates one tiny four-layer period, not all 32 production-width
   layers or cross-layer activation checkpointing.
+- Native optimizer semantics now include actual decoupled AdamW. Before
+  `6f9b46c8`, `AdamOptimizer` executed Adam even when the workload declared
+  `type: adamw`; `weightDecay` never reached the kernel. The fixed two-step
+  oracle matches scalar parameters and both moment tensors with worst error
+  `2.9802322387695312e-8`. Its matched zero-decay control differs by
+  `1.6003847122192383e-4`, proving the configured decay is active. The clean
+  receipt is `reports/training/native-parity/adamw-optimizer-oracle.json`,
+  SHA-256
+  `ebceac348572640b1fae7fa4c8030b7aa6a22090201bf1adff1bf80504f5d577`.
+  This closes two-step optimizer mechanics only; accumulation and resume still
+  need their own parity receipts.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
   the block-mechanics boundary. It does not include Qwen attention, residuals,
   normalization, loss, or an optimizer update.
