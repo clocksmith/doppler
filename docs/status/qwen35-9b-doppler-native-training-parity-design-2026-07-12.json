@@ -130,6 +130,48 @@
         "backend": "webgpu_vulkan",
         "deviceVendor": "amd",
         "claimBoundary": "Tiny integrated frozen-F16 Qwen full-attention module with Q/K/V/O LoRA forward and gradients; loss, optimizer update, decoder residuals, and production-shape performance remain unqualified."
+      },
+      "decoderLayerEvidence": {
+        "status": "passed_tiny_full_decoder_gradient_oracle",
+        "sourceRevision": "d7a3bd525e31de6b12afc7691b35350196d65b8b",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen-full-decoder-backward-oracle.json",
+        "receiptSha256": "4cf013f0dbab234294f3a800a3e70dc5465cd979dad864f5ecf4975993766a84",
+        "coveredComponents": [
+          "offset_input_rmsnorm",
+          "full_attention_block",
+          "offset_post_attention_rmsnorm",
+          "attention_residual",
+          "f16_gate_up_down_projections",
+          "gpu_resident_gated_silu_backward",
+          "mlp_residual",
+          "q_k_v_o_gate_up_down_lora_forward",
+          "q_k_v_o_gate_up_down_lora_gradients",
+          "hidden_backward"
+        ],
+        "maximumComparisonError": 0.0000027120113372802734,
+        "forwardMaxAbsError": 9.5367431640625e-7,
+        "hiddenGradientMaxAbsError": 9.238719940185547e-7,
+        "nonzeroGradientFamilies": [
+          "q_proj_lora_a",
+          "q_proj_lora_b",
+          "k_proj_lora_a",
+          "k_proj_lora_b",
+          "v_proj_lora_a",
+          "v_proj_lora_b",
+          "o_proj_lora_a",
+          "o_proj_lora_b",
+          "gate_proj_lora_a",
+          "gate_proj_lora_b",
+          "up_proj_lora_a",
+          "up_proj_lora_b",
+          "down_proj_lora_a",
+          "down_proj_lora_b"
+        ],
+        "adapterNegativeControlDifference": 0.00003223121166229248,
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Tiny Qwen full-attention decoder with exact head width and partial rotary geometry; production head count/hidden width, loss, optimizer update, memory, and performance remain unqualified."
       }
     },
     {

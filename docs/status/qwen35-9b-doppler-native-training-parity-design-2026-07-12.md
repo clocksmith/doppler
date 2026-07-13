@@ -117,6 +117,22 @@ This closes the tiny full-attention forward/hidden/adapter-gradient mechanics,
 not the staged gate's loss, optimizer update, residual, or production-shape
 performance requirements.
 
+A full decoder-layer composition is sealed separately at clean revision
+`d7a3bd52`. It adds Qwen's offset input RMSNorm, post-attention RMSNorm,
+attention and MLP residual branches, frozen F16 `gate_proj`, `up_proj`, and
+`down_proj`, and GPU-resident gated-SiLU backward. All seven V12 adapter
+families (`q`, `k`, `v`, `o`, `gate`, `up`, and `down`) participate in one
+forward/backward graph. The forward and hidden-gradient errors are
+`9.5367431640625e-7` and `9.238719940185547e-7`; all fourteen adapter A/B
+gradient tensors are finite and nonzero, with worst comparison error
+`2.7120113372802734e-6`. A `down_proj` LoRA-B perturbation changes the layer
+output by `3.223121166229248e-5`. The clean receipt is
+`reports/training/native-parity/qwen-full-decoder-backward-oracle.json`,
+SHA-256
+`4cf013f0dbab234294f3a800a3e70dc5465cd979dad864f5ecf4975993766a84`.
+It uses Qwen's exact head width and partial-rotary geometry with a tiny hidden
+width and head count. It does not establish production-shape memory or speed.
+
 ## Known blocking gaps
 
 - Scalar reverse-mode references now cover the Qwen recurrent gated-delta
@@ -152,9 +168,10 @@ performance requirements.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
   the block-mechanics boundary. It does not include Qwen attention, residuals,
   normalization, loss, or an optimizer update.
-- Full attention now has a Q/K/V/O LoRA forward and gradient oracle. It still
-  needs decoder residual composition, a matched loss, and an optimizer update
-  before the full-attention staged gate is complete.
+- Full attention now has both its Q/K/V/O module oracle and a composed
+  attention/MLP/residual decoder-layer oracle covering every V12 LoRA family.
+  It still needs a matched loss and optimizer update before the staged gate is
+  complete.
 - Gradient checkpointing is not qualified for the Qwen hybrid graph.
 - A matched initial-adapter importer and PEFT export parity receipt are absent.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.
