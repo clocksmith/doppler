@@ -54,6 +54,35 @@ const limited = computeSiluGatedBackwardValues(
 assert.equal(limited.gradGate[0], 0);
 assert.equal(limited.gradUp[0], 0);
 
+const sigmoidAnalytic = computeSiluGatedBackwardValues(
+  gate,
+  up,
+  gradOutput,
+  0,
+  'sigmoid'
+);
+for (let index = 0; index < gate.length; index += 1) {
+  const plusGate = new Float32Array(gate);
+  const minusGate = new Float32Array(gate);
+  plusGate[index] += epsilon;
+  minusGate[index] -= epsilon;
+  const sigmoidLoss = (gateValues, upValues) => gateValues.reduce(
+    (total, value, item) => total
+      + ((1 / (1 + Math.exp(-value))) * upValues[item] * gradOutput[item]),
+    0
+  );
+  const numericGate = (
+    sigmoidLoss(plusGate, up) - sigmoidLoss(minusGate, up)
+  ) / (2 * epsilon);
+  assert.ok(Math.abs(sigmoidAnalytic.gradGate[index] - numericGate) < 2e-4);
+  assert.ok(
+    Math.abs(
+      sigmoidAnalytic.gradUp[index]
+      - ((1 / (1 + Math.exp(-gate[index]))) * gradOutput[index])
+    ) < 1e-7
+  );
+}
+
 const registry = loadBackwardRegistry();
 assert.equal(OpType.SILU_GATED, 'silu_gated');
 assert.equal(registry.ops.silu_gated.backward, 'silu_gated_backward');
