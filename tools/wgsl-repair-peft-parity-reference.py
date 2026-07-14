@@ -259,7 +259,7 @@ def main() -> None:
         "base": base,
         "adapters": adapter_results,
         "claimBoundary": (
-            "Transformers/PEFT BF16 diagnostic reference evidence only; this does not "
+            f"Transformers/PEFT {args.dtype} diagnostic reference evidence only; this does not "
             "select a seed or establish Doppler parity, semantic correctness, or promotion."
         ),
     }
