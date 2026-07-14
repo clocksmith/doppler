@@ -1,0 +1,4 @@
+interface:
+  display_name: "Doppler Convert"
+  short_description: "Convert and verify model artifacts"
+  default_prompt: "Use $doppler-convert to convert and verify this model for Doppler."

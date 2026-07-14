@@ -1,0 +1,4 @@
+interface:
+  display_name: "Doppler Performance"
+  short_description: "Profile and improve inference paths"
+  default_prompt: "Use $doppler-perf to profile and improve this Doppler path."
