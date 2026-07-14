@@ -46,6 +46,7 @@ export interface WgslSemanticReadinessV2Options {
   adapterPortabilityReceipt?: Record<string, unknown> | null;
   adapterPortabilityReceiptVerified?: boolean;
   populationVerification?: Record<string, boolean>;
+  selectionReceipt?: Record<string, unknown> | null;
   selectionReceiptVerified?: boolean;
   implementationVerification?: Record<string, boolean>;
   taskEvidence?: WgslSemanticTaskEvidence[];

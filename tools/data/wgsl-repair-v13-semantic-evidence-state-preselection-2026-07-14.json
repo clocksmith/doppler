@@ -13,12 +13,12 @@
   },
   "candidate": {
     "eligibleLane": "external20",
-    "seedSelectionStatus": "selected",
-    "selectedSeed": 29,
-    "adapterPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapters.safetensors",
-    "adapterSha256": "0d9ab8e1348a3fcdd6ef2973b624cc1a3d962de90a571976a5a222df27b69394",
-    "selectionReceiptPath": "docs/status/wgsl-repair-v13-seed-selection-2026-07-14.json",
-    "selectionReceiptSha256": "8f33d219a6a757e19e22beb2d809b9f9a2770aaf3d563da541c26d0b67b701ef"
+    "seedSelectionStatus": "not_selected",
+    "selectedSeed": null,
+    "adapterPath": null,
+    "adapterSha256": null,
+    "selectionReceiptPath": null,
+    "selectionReceiptSha256": null
   },
   "populations": {
     "calibration": {
@@ -41,5 +41,5 @@
     "historicalRegressionManifestPath": "tools/data/wgsl-repair-v13-historical-regressions.json",
     "historicalRegressionManifestSha256": "0cf12c4641fad4e99994d6d3b1162569d674bf82f6749b7297984027122e9c23"
   },
-  "claimBoundary": "This evidence state recognizes the passing V12 portability receipt, passing reference-control harness qualification, and seed 29 selected under the frozen checkpoint-selection policy. Selection is not seed confirmation, semantic promotion, or product authorization. Every later fact must be represented by a repo-relative artifact path and verified SHA-256 before it can clear a V13 blocker."
+  "claimBoundary": "This evidence state recognizes the passing, frozen V12 external20 portability receipt and a passing reference-control qualification of the semantic harness. It does not select a seed or claim model semantic correctness. Every later fact must be represented by a repo-relative artifact path and verified SHA-256 before it can clear a V13 blocker."
 }

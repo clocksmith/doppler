@@ -19,12 +19,13 @@ import { hashWgslSemanticEvidenceValue } from '../src/tooling/wgsl-repair-semant
 const DEFAULT_POLICY = 'tools/policies/wgsl-repair-v13-seed-selection-policy.json';
 
 function parseArgs(argv) {
-  const args = { policyPath: DEFAULT_POLICY, modelDir: '', seed: null };
+  const args = { policyPath: DEFAULT_POLICY, modelDir: '', seed: null, outputPath: '' };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === '--policy') args.policyPath = argv[++index] || '';
     else if (token === '--model-dir') args.modelDir = argv[++index] || '';
     else if (token === '--seed') args.seed = Number(argv[++index]);
+    else if (token === '--out') args.outputPath = argv[++index] || '';
     else throw new Error(`Unknown argument: ${token}`);
   }
   if (!args.modelDir) throw new Error('--model-dir is required.');
@@ -253,7 +254,15 @@ export async function runWgslRepairSeedCandidates(args) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const receipt = await runWgslRepairSeedCandidates(args);
-  process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
+  const json = `${JSON.stringify(receipt, null, 2)}\n`;
+  if (args.outputPath) {
+    const outputPath = path.resolve(args.outputPath);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, json, 'utf8');
+    console.error(`[wgsl-seed-candidates] wrote ${args.outputPath}`);
+  } else {
+    process.stdout.write(json);
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
