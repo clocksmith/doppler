@@ -589,6 +589,16 @@ try {
     resetRuntime(device);
     const input = createExternalTensor(4, 'f32', 'silu_gated_vec4_input');
     const gate = createExternalTensor(4, 'f32', 'silu_gated_vec4_gate');
+    await assert.rejects(
+      () => runSiLU(input, {
+        size: 4,
+        gate,
+        useVec4: true,
+        gateActivation: 'sigmoid',
+        swigluLimit: null,
+      }),
+      /Gated SiLU requires an explicit inputActivation/
+    );
     const result = await runSiLU(input, {
       size: 4,
       gate,
@@ -601,7 +611,11 @@ try {
     assert.equal(constants?.HAS_GATE, 1);
     assert.equal(constants?.USE_VEC4, 1);
     assert.equal(constants?.GATE_USE_SIGMOID, 1);
-    assert.equal(constants?.INPUT_USE_IDENTITY, 1);
+    assert.equal(
+      constants?.INPUT_USE_IDENTITY,
+      1,
+      'gated SiLU must leave the up branch linear when inputActivation is identity'
+    );
     releaseBuffer(result.buffer);
     resetRuntime();
   }

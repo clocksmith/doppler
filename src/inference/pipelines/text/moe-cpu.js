@@ -122,6 +122,7 @@ async function runExpertCPU(layerIdx, expertIdx, input, config, expertWeights) {
     activatedOutput = await activationFn(upOutput, {
       size: numTokens * intermediateSize,
       gate: gateOutput,
+      inputActivation: 'identity',
       swigluLimit,
     });
 
