@@ -1,0 +1,80 @@
+{
+  "schema": "doppler.gated-silu-runtime-correction/v1",
+  "recordedAt": "2026-07-13",
+  "status": "fixed_in_source_release_validated_not_published",
+  "fault": {
+    "introducedByCommit": "2b27269ff5b0207aab1d7c4b129ff74046d70f34",
+    "introducedBehavior": "Gated SiLU defaulted the input branch to SiLU, causing split SwiGLU to compute SiLU(gate) times SiLU(up).",
+    "expectedBehavior": "Split SwiGLU computes SiLU(gate) times the linear up branch.",
+    "firstDivergentBoundary": "layer.0.ffn.act"
+  },
+  "sourceFix": {
+    "commit": "358653e78f0628c227b22edb32acfbd45220a67a",
+    "behavior": "Dense and MoE split FFN callers declare inputActivation=identity, and the gated SiLU wrapper rejects missing inputActivation instead of silently selecting behavior.",
+    "runRecordParity": true
+  },
+  "scope": {
+    "confirmedAffected": [
+      {
+        "modelId": "qwen-3-5-9b-f16-af32",
+        "artifactKind": "RDRR F16 weights with F32 activations",
+        "execution": "production-profile split dense SwiGLU",
+        "evidence": "The frozen V12 probe diverged first at layer.0.ffn.act and failed base and adapter parity before the fix."
+      }
+    ],
+    "correctedCodePaths": [
+      "split dense text FFN with SiLU gating",
+      "split text MoE expert FFN with SiLU gating"
+    ],
+    "outsideConfirmedScope": [
+      "fused FFN kernels",
+      "GeGLU paths",
+      "ungated SiLU",
+      "Q4K quickstart models until their exact execution paths are requalified"
+    ]
+  },
+  "publishedPackage": {
+    "registry": "npm",
+    "name": "doppler-gpu",
+    "latestObservedVersion": "0.4.8",
+    "latestObservedAt": "2026-07-13",
+    "tarball": "https://registry.npmjs.org/doppler-gpu/-/doppler-gpu-0.4.8.tgz",
+    "integrity": "sha512-GQy70LqxmT1o1ORFf2PdAc/jBlKF5LBq+8dzyCD3jtrv1bRg/FB4u/EGUXnWEJjUC9EhI4wcZJlBT1JTqw+eUA==",
+    "faultVerifiedInPublishedTarball": true,
+    "tagsContainingFaultySource": [
+      "v0.2.0",
+      "v0.4.8"
+    ]
+  },
+  "republish": {
+    "required": true,
+    "targetVersion": "0.4.9",
+    "npmStatus": "release_validated_not_published",
+    "browserBundleRedeployRequired": true,
+    "modelArtifactRepublishRequired": false,
+    "adapterArtifactRepublishRequired": false,
+    "affectedReceiptReevaluationRequired": true
+  },
+  "validation": {
+    "releaseGate": "npm run check:green passed",
+    "unitSuite": "npm test passed 433 files",
+    "packageSmoke": "passed 19 exports, three CLIs, public declarations, and the packed package",
+    "unitTests": [
+      "tests/gpu/kernel-contract-regressions.test.js",
+      "tests/gpu/kernel-wrapper-cleanup.test.js",
+      "tests/inference/tokenizer-bundled-split-pretokenizer.test.js",
+      "tests/tooling/wgsl-repair-adapter-parity.test.js",
+      "tests/inference/lora-runtime-matmul-layout-contract.test.js",
+      "tests/inference/attention-projections-cleanup.test.js"
+    ],
+    "parityReceiptPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/parity/parity-v1-post-silu-fix.json",
+    "parityReceiptSha256": "a35a6de6b0ad2161aa216d727a79355fc608d41974b3f40770a2bd1baa579cbe",
+    "parityReceiptHash": "629e4329923ab772ca050c4ad755794836b2d6a6612ed70af3b86d9fad09d9ab",
+    "baseLogitCosineSimilarity": 0.9997408223878427,
+    "allAdapterCompletionsExact": true,
+    "allAdapterLogitCosinesAbove": 0.9997,
+    "allAdapterDeltaCosinesAbove": 0.9995
+  },
+  "claimBoundary": "This receipt establishes a source-runtime defect and correction for the confirmed Qwen 3.5 9B F16 split SwiGLU path, plus restored V12 portability on one frozen probe. It does not prove every Doppler model used the affected path, requalify historical model claims, publish npm 0.4.9, redeploy a browser product, select a V12 seed, or establish semantic WGSL correctness.",
+  "receiptHash": "a7b9c8bf91f23b860543c1eee02c8d1f75470ac740f52ab35aa1ab593962265b"
+}

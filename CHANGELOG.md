@@ -8,6 +8,14 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+### Fixed
+
+- Corrected split gated SiLU/SwiGLU inference so dense and MoE FFNs compute
+  `SiLU(gate) * up` instead of applying SiLU to the up branch a second time.
+  Gated callers now fail closed unless the input-branch activation is explicit.
+- Restored Qwen 3.5 9B F16 base and PEFT adapter parity with Transformers on the
+  frozen WGSL-repair probe without changing model, tokenizer, or adapter bytes.
+
 ## [0.4.8] - 2026-07-11
 
 ### Added
