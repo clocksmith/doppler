@@ -8,6 +8,8 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.9] - 2026-07-14
+
 ### Fixed
 
 - Corrected split gated SiLU/SwiGLU inference so dense and MoE FFNs compute
