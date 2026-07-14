@@ -43,6 +43,9 @@ config/schema/model-artifact-contract.schema.json
 config/schema/platform.schema.js
 config/schema/policy-schema-registry.json
 config/schema/subsystem-support-contract.schema.json
+config/schema/trainer-artifact-bridge.schema.json
+config/schema/trainer-artifact-handoff.schema.json
+config/schema/trainer-artifact-parity-evidence.schema.json
 config/schema/wgsl-repair-experiment-policy.schema.json
 config/schema/wgsl-training-source-catalog.schema.json
 config/support-tiers/subsystems.json
@@ -141,6 +144,8 @@ experimental/training/operator-scoreboard.d.ts
 experimental/training/optimizer.d.ts
 experimental/training/policy-artifacts.d.ts
 experimental/training/policy-artifacts.js
+experimental/training/qwen-gated-delta-reference.js
+experimental/training/qwen-linear-attention-reference.js
 experimental/training/runner.d.ts
 experimental/training/suite.d.ts
 experimental/training/tensor-factory.d.ts
@@ -163,8 +168,14 @@ experimental/training/workload-packs/lora-doppler-code-agent-tiny.json
 experimental/training/workload-packs/lora-doppler-js-json-gemma270m-f16-tiny.json
 experimental/training/workload-packs/lora-doppler-review-gemma270m-f16-tiny.json
 experimental/training/workload-packs/lora-doppler-wgsl-gemma270m-f16-tiny.json
+experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-anchor-seed29.json
+experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-anchor-seed47.json
 experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-anchor.json
+experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-external20-seed29.json
+experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-external20-seed47.json
 experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-external20.json
+experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-random20-seed29.json
+experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-random20-seed47.json
 experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-random20.json
 experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v9.json
 experimental/training/workload-packs/lora-toy-medium.json
@@ -384,6 +395,8 @@ tooling/source-package-profiles.d.ts
 tooling/source-runtime-converter-config.d.ts
 tooling/source-runtime-materializer.d.ts
 tooling/source-runtime-materializer.js
+tooling/trainer-artifact-handoff.d.ts
+tooling/trainer-artifact-handoff.js
 types/chrome.d.ts
 types/chrome.js
 types/index.d.ts

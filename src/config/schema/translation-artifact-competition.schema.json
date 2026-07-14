@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/translation-artifact-competition-v1.schema.json",
+  "title": "Doppler selected translation artifact competition v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contractId",
+    "state",
+    "owner",
+    "gammaContract",
+    "gammaSource",
+    "artifactLanes",
+    "frozenAcrossLanes",
+    "requiredEvidence",
+    "admission",
+    "blockers",
+    "claimBoundary"
+  ],
+  "properties": {
+    "$schema": { "const": "../../src/config/schema/translation-artifact-competition.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "contractId": { "const": "doppler.translation.selected-bf16-artifact-competition.v1" },
+    "state": {
+      "enum": [
+        "blocked_awaiting_gamma_selection",
+        "source_selected_artifact_generation",
+        "artifact_comparison_ready",
+        "terminal"
+      ]
+    },
+    "owner": { "const": "clocksmith/doppler" },
+    "gammaContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "path", "sha256", "selectionAuthority"],
+      "properties": {
+        "repository": { "const": "clocksmith/gamma" },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "selectionAuthority": { "const": "clocksmith/gamma" }
+      }
+    },
+    "gammaSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "handoffPath",
+        "handoffSha256",
+        "selectionReceipt",
+        "selectedCheckpointSha256",
+        "identityVerificationReceiptHash"
+      ],
+      "properties": {
+        "handoffPath": { "type": ["string", "null"] },
+        "handoffSha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+        "selectionReceipt": { "type": ["string", "null"] },
+        "selectedCheckpointSha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+        "identityVerificationReceiptHash": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] }
+      }
+    },
+    "artifactLanes": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["laneId", "derivation", "status", "artifactReceipt"],
+        "properties": {
+          "laneId": { "enum": ["q4k", "selective_f16", "qat"] },
+          "derivation": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["unmaterialized", "materialized", "evaluated", "rejected", "selected"] },
+          "artifactReceipt": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "frozenAcrossLanes": {
+      "const": [
+        "gamma_selected_checkpoint_identity",
+        "tokenizer",
+        "prompt_contract",
+        "decode_policy",
+        "population_manifests",
+        "evaluator_implementations",
+        "browser_runtime_contract"
+      ]
+    },
+    "requiredEvidence": {
+      "const": [
+        "gamma_selection_receipt",
+        "source_checkpoint_byte_identity",
+        "hosted_manifest_shard_and_tokenizer_identity",
+        "transformers_to_doppler_parity",
+        "exact_hosted_artifact_metrics",
+        "browser_load_and_execution",
+        "artifact_selection_receipt"
+      ]
+    },
+    "admission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactGenerationAllowed",
+        "artifactComparisonAllowed",
+        "promotionSubmissionAllowed"
+      ],
+      "properties": {
+        "artifactGenerationAllowed": { "type": "boolean" },
+        "artifactComparisonAllowed": { "type": "boolean" },
+        "promotionSubmissionAllowed": { "type": "boolean" }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "claimBoundary": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "state": { "const": "blocked_awaiting_gamma_selection" } },
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {
+          "gammaSource": {
+            "properties": {
+              "handoffPath": { "const": null },
+              "handoffSha256": { "const": null },
+              "selectionReceipt": { "const": null },
+              "selectedCheckpointSha256": { "const": null },
+              "identityVerificationReceiptHash": { "const": null }
+            }
+          },
+          "admission": {
+            "properties": {
+              "artifactGenerationAllowed": { "const": false },
+              "artifactComparisonAllowed": { "const": false },
+              "promotionSubmissionAllowed": { "const": false }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "doppler.wgsl-repair-semantic-readiness/v1",
+  "policyId": "doppler-wgsl-repair-v13-semantic-evaluation",
+  "policyStatus": "frozen_requirements_populations_unmaterialized",
+  "predecessorVerified": true,
+  "preservationDecision": "local_verified",
+  "candidate": {
+    "eligibleLane": "external20",
+    "seedSelectionStatus": "not_selected",
+    "selectedSeed": null,
+    "adapterSha256": null,
+    "adapterPath": null,
+    "trainerToDopplerParityReceipt": null
+  },
+  "taskEvidence": [],
+  "admission": {
+    "semanticEvaluationAllowed": false,
+    "semanticClaimAllowed": false,
+    "wgslDoctorAllowed": false,
+    "autonomousShaderAuthorAllowed": false
+  },
+  "decision": "blocked",
+  "blockers": [
+    "cpu_oracle_implementation_revision_absent",
+    "external20_seed_checkpoint_not_selected",
+    "historical_regression_manifest_absent",
+    "semantic_calibration_population_unmaterialized",
+    "semantic_checkpoint_selection_population_unmaterialized",
+    "semantic_dispatch_evidence_absent",
+    "semantic_promotion_population_unmaterialized",
+    "semantic_seed_confirmation_population_unmaterialized",
+    "semantic_task_manifest_absent",
+    "trainer_to_doppler_adapter_parity_absent",
+    "v12_adapter_external_preservation_incomplete"
+  ],
+  "receiptHash": "06ea0a6586bec831f00b3709728b59bf20c41b6225808dc48bd7eaf1352d4072"
+}

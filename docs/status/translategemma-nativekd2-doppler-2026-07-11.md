@@ -1,4 +1,4 @@
-# NativeKD2 EN/ES Translation Student Promotion Receipt
+# NativeKD2 EN/ES Translation Student Experimental Artifact Receipt
 
 ## Decision
 
@@ -9,6 +9,64 @@ This is not Tier 1 or Tier 2, not a general multilingual claim, and not a
 Transformers.js parity claim. The catalog keeps `quickstart: false`,
 `recommended: false`, and user-facing `Experimental` plus `EN ↔ ES only`
 warnings.
+
+## Capability And Promotion Boundary
+
+This receipt proves artifact conversion, integrity, deterministic browser
+execution, and diagnostic translation measurements. It does not prove Gamma's
+translation promotion target.
+
+The current evidence is:
+
+- one Gemma 3 1B NativeKD2 BF16 checkpoint serves EN to ES and ES to EN
+  without a router;
+- that checkpoint scores `34.1896` BLEU / `59.9388` chrF on the visible WMT13
+  diagnostic population;
+- this hosted Q4K artifact scores `31.9149` BLEU / `58.2124` chrF on the same
+  diagnostic population; and
+- the Q4K regression versus BF16 is `-2.2748` BLEU / `-1.7264` chrF.
+
+WMT13 is diagnostic-only because it informed prior data, checkpoint, decode,
+and router selection. COMET, blinded human review, multiple external domains,
+confirmed seeds, disjoint campaign populations, and a one-use externally
+custodied promotion evaluation remain absent.
+
+Gamma owns the future target in its
+[EN/ES single-student promotion contract](https://github.com/clocksmith/gamma/blob/main/projects/distillation/translation/promotion/README.md).
+Doppler artifact evidence cannot change that contract's capability state.
+
+## Pre-Columbo Handoff Boundary
+
+The current NativeKD2 BF16 checkpoint is frozen as a reproducible diagnostic
+baseline, not as the translation winner. The machine-readable
+[`nativekd2-bf16-baseline-handoff.json`](../../tools/policies/nativekd2-bf16-baseline-handoff.json)
+binds its checkpoint weights, tokenizer closure, architecture, conversion
+lineage, WMT13 inputs, predictions, and metrics.
+
+Before Columbo, Doppler may preserve that baseline, freeze the generic
+trainer-to-Doppler handoff shape, and implement import/parity machinery that is
+also usable by Columbo's Qwen adapter path. It may not select a BF16 winner,
+run the future translation artifact competition, or promote a translation
+artifact. Columbo has its own Qwen 3.5 0.8B selection, parity, and promotion
+authority and does not depend on a translation selection receipt.
+
+That permitted bridge work is now implemented. The handoff verifier rehashed
+thirteen bound files across Gamma and Doppler, matched nine architecture fields
+against the checkpoint `config.json`, and imported the checkpoint through the
+direct SafeTensors runtime as 340 tensors. The import receipt is
+[`nativekd2-bf16-baseline-import-receipt-2026-07-13.json`](nativekd2-bf16-baseline-import-receipt-2026-07-13.json),
+with artifact identity
+`4dcab712afc629baadbe129db9e4a34c73667fee1bb28db54a610c808783d307`.
+Its admission result is intentionally
+`candidateCompetitionAllowed: false` and `promotionAllowed: false`.
+
+The shared descriptor and parity schemas are
+`src/config/schema/trainer-artifact-bridge.schema.json` and
+`src/config/schema/trainer-artifact-parity-evidence.schema.json`. Translation
+uses the full-checkpoint profile; Columbo uses the PEFT-adapter profile and its
+own five-stage trainer-serving receipt. No first-token-logit, selected-token,
+completion, or exact browser-artifact parity result is asserted by this import
+receipt.
 
 ## Artifact
 
@@ -109,3 +167,34 @@ The active model-card selector now admits both `text` and `translate` catalog
 lanes while the shared lane resolver retains its text-only default for other
 callers. A rendered Chromium smoke showed the card with `Experimental` and
 `EN ↔ ES only` badges, the scoped warning, and no page or console errors.
+
+## Post-Gamma Doppler Artifact Comparison
+
+After Gamma selects one BF16 checkpoint under its frozen population,
+matched-lane, seed, metric, guardrail, and human-review contract, Doppler will
+compare three explicit artifact lanes:
+
+1. a Q4K conversion of the exact Gamma-selected checkpoint using the current
+   Q4K policy as the packaging reference;
+2. a selective-F16 artifact derived from that same checkpoint identity; and
+3. a quantization-aware-trained artifact with lineage back to that selected
+   checkpoint.
+
+The currently hosted Q4K artifact remains evidence for the frozen NativeKD2
+baseline. It cannot enter that comparison unless Gamma independently selects
+the byte-identical BF16 source checkpoint under the new campaign.
+
+Each lane must bind the same source checkpoint, tokenizer, prompt, decode
+policy, population manifests, and evaluator implementations. Receipts must
+record exact hosted manifest, shard, tokenizer, conversion, runtime, and output
+identity; Transformers-to-Doppler parity; exact hosted-artifact metrics; and
+browser load and execution evidence. Only the selected hosted artifact may be
+submitted to Gamma's one-use promotion population.
+
+The executable competition policy is
+`tools/policies/translation-artifact-competition.json`. Its 2026-07-13
+readiness receipt is
+`docs/status/translation-artifact-competition-readiness-2026-07-13.json`.
+Replaying the current NativeKD2 handoff returns `blocked`: it is a diagnostic
+baseline, its selection receipt is null, and all three future artifact lanes
+remain unmaterialized.

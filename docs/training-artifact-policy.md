@@ -154,6 +154,86 @@ Each claimable artifact should carry:
 - compare and quality-gate reports must point back to the run root and workload lock
 - published workload packs include deterministic report-id bindings derived from workload content hashes
 
+## Trainer-to-Doppler Handoff
+
+The canonical Gamma-to-Doppler translation handoff shape is
+`src/config/schema/trainer-artifact-handoff.schema.json`. A handoff binds the
+source checkpoint bytes, tokenizer and prompt assets, architecture, conversion
+lineage, evaluation inputs, parity requirements, and the authority that may
+select the candidate.
+
+`tools/policies/nativekd2-bf16-baseline-handoff.json` is the frozen translation
+baseline instance. Its state is `baseline_frozen_not_selected`: it protects
+reproducibility and exercises the import boundary but cannot authorize a
+translation artifact comparison. That transition requires a Gamma-owned BF16
+selection receipt from the new translation campaign.
+
+The environment-neutral bridge descriptor is
+`src/config/schema/trainer-artifact-bridge.schema.json`. The executable bridge
+helpers live in
+`src/experimental/bridge/trainer-artifact-bridge.js`, and the Node byte verifier
+and importer live in `src/tooling/trainer-artifact-handoff.js`. The
+environment-neutral descriptor and plan helpers are exposed through
+`doppler-gpu/tooling-experimental`; file-system verification remains a
+repository tool. The bridge supports two explicit profiles:
+
+- `translation_full_checkpoint`, which enters through
+  `resolveNodeSourceRuntimeBundle`; and
+- `columbo_qwen_adapter`, which enters through Doppler's LoRA manifest loader
+  and preserves Columbo's five trainer-serving parity stages.
+
+Both profiles require repository-root bindings, exact file sizes and SHA-256
+digests, base-model and tokenizer identity, evaluation-input identity, and an
+artifact-specific parity receipt. A bridge receipt never authorizes promotion.
+Candidate competition is admitted only when the descriptor is a selected
+candidate and carries the owning project's selection receipt. Translation
+requires `clocksmith/gamma`; a Columbo adapter requires `clocksmith/columbo`.
+The `diagnostic_candidate` role covers an unselected adapter used to exercise
+identity import and parity machinery. It must carry `not_selected`, cannot enter
+candidate competition, and cannot authorize promotion.
+
+Verify or import a handoff with:
+
+```bash
+node tools/verify-trainer-artifact-handoff.js verify \
+  --contract tools/policies/nativekd2-bf16-baseline-handoff.json \
+  --repo-root clocksmith/doppler=. \
+  --repo-root clocksmith/gamma=../gamma
+
+node tools/verify-trainer-artifact-handoff.js import \
+  --contract tools/policies/nativekd2-bf16-baseline-handoff.json \
+  --repo-root clocksmith/doppler=. \
+  --repo-root clocksmith/gamma=../gamma
+```
+
+The frozen NativeKD2 baseline passed all thirteen file bindings, all nine
+architecture fields, and direct SafeTensors import as a 340-tensor runtime
+bundle. Its durable receipt is
+`docs/status/nativekd2-bf16-baseline-import-receipt-2026-07-13.json`. The receipt
+sets `candidateCompetitionAllowed: false` and `promotionAllowed: false`.
+First-token logits, selected-token, completion, and exact browser-capability
+parity remain separate evidence requirements; the import receipt does not mark
+them passed.
+
+The post-Gamma artifact competition is frozen in
+`tools/policies/translation-artifact-competition.json`. Its executable gate is
+`tools/check-translation-artifact-competition.js`. The current denial receipt,
+`docs/status/translation-artifact-competition-readiness-2026-07-13.json`,
+replays the NativeKD2 handoff and rejects it because its role is
+`diagnostic_baseline` with no Gamma selection receipt. Q4K, selective-F16, and
+QAT generation, comparison, and promotion submission all remain disabled.
+
+Columbo's Qwen adapter remains governed by Columbo's own checkpoint, seed,
+parity, promotion, registry, and export receipts. Reusing this bridge does not
+share model identity or selection authority.
+
+The historical CPU-trained Columbo adapter passed exact file verification and
+Doppler LoRA import under `diagnostic_candidate`. Its receipt is
+`docs/status/columbo-qwen-cpu-diagnostic-adapter-import-receipt-2026-07-13.json`.
+It sets `candidateCompetitionAllowed: false` and `promotionAllowed: false`;
+five-stage behavioral parity remains unexecuted for a future SAME-R-selected
+adapter.
+
 ## Deterministic Timestamp Behavior
 
 - timestamps are allowed for auditability and run tracking

@@ -38,6 +38,16 @@
       "schemaPath": "src/config/schema/subsystem-support-contract.schema.json"
     },
     {
+      "id": "nativekd2-bf16-baseline-handoff",
+      "policyPath": "tools/policies/nativekd2-bf16-baseline-handoff.json",
+      "schemaPath": "src/config/schema/trainer-artifact-handoff.schema.json"
+    },
+    {
+      "id": "translation-artifact-competition",
+      "policyPath": "tools/policies/translation-artifact-competition.json",
+      "schemaPath": "src/config/schema/translation-artifact-competition.schema.json"
+    },
+    {
       "id": "wgsl-repair-v9-policy",
       "policyPath": "tools/policies/wgsl-repair-v9-policy.json",
       "schemaPath": "src/config/schema/wgsl-repair-experiment-policy.schema.json"
@@ -51,6 +61,11 @@
       "id": "wgsl-repair-v11-policy",
       "policyPath": "tools/policies/wgsl-repair-v11-policy.json",
       "schemaPath": "src/config/schema/wgsl-repair-experiment-policy.schema.json"
+    },
+    {
+      "id": "wgsl-repair-v13-semantic-policy",
+      "policyPath": "tools/policies/wgsl-repair-v13-semantic-policy.json",
+      "schemaPath": "src/config/schema/wgsl-repair-semantic-evaluation.schema.json"
     }
   ]
 }

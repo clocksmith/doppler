@@ -1,0 +1,380 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/trainer-artifact-handoff-v1.schema.json",
+  "title": "Gamma-to-Doppler Trainer Artifact Handoff Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "contractId",
+    "state",
+    "artifactRole",
+    "authorities",
+    "sourceCheckpoint",
+    "tokenizer",
+    "architecture",
+    "conversionLineage",
+    "evaluationInputs",
+    "importVerification",
+    "parity",
+    "selection",
+    "sequence",
+    "claimBoundary"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "source": { "const": "doppler" },
+    "contractId": { "type": "string", "minLength": 1 },
+    "state": {
+      "enum": [
+        "baseline_frozen_not_selected",
+        "gamma_selected_bf16",
+        "doppler_imported",
+        "parity_verified",
+        "hosted_artifact_committed"
+      ]
+    },
+    "artifactRole": { "enum": ["diagnostic_baseline", "selected_candidate"] },
+    "authorities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceArtifact", "bf16Selection", "conversionAndParity", "columboPromotion"],
+      "properties": {
+        "sourceArtifact": { "const": "clocksmith/gamma" },
+        "bf16Selection": { "const": "clocksmith/gamma" },
+        "conversionAndParity": { "const": "clocksmith/doppler" },
+        "columboPromotion": { "const": "clocksmith/columbo_independent_contract" }
+      }
+    },
+    "sourceCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "path", "format", "weights", "config", "generationConfig"],
+      "properties": {
+        "repository": { "const": "clocksmith/gamma" },
+        "path": { "type": "string", "minLength": 1 },
+        "format": { "const": "huggingface_safetensors" },
+        "weights": { "$ref": "#/$defs/fileIdentity" },
+        "config": { "$ref": "#/$defs/fileIdentity" },
+        "generationConfig": { "$ref": "#/$defs/fileIdentity" }
+      }
+    },
+    "tokenizer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "files", "promptContract"],
+      "properties": {
+        "source": { "const": "checkpoint_embedded" },
+        "files": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/fileIdentity" }
+        },
+        "promptContract": { "$ref": "#/$defs/fileIdentity" }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "architectures",
+        "modelType",
+        "hiddenSize",
+        "intermediateSize",
+        "layers",
+        "attentionHeads",
+        "keyValueHeads",
+        "headDim",
+        "vocabularySize"
+      ],
+      "properties": {
+        "architectures": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "modelType": { "type": "string", "minLength": 1 },
+        "hiddenSize": { "type": "integer", "minimum": 1 },
+        "intermediateSize": { "type": "integer", "minimum": 1 },
+        "layers": { "type": "integer", "minimum": 1 },
+        "attentionHeads": { "type": "integer", "minimum": 1 },
+        "keyValueHeads": { "type": "integer", "minimum": 1 },
+        "headDim": { "type": "integer", "minimum": 1 },
+        "vocabularySize": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "conversionLineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "sourceWeightsSha256",
+        "conversionConfig",
+        "diagnosticHostedArtifact",
+        "futureUse"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "current_baseline_converted",
+            "selected_checkpoint_awaiting_conversion",
+            "selected_checkpoint_converted"
+          ]
+        },
+        "sourceWeightsSha256": { "$ref": "#/$defs/sha256" },
+        "conversionConfig": { "$ref": "#/$defs/fileIdentity" },
+        "diagnosticHostedArtifact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["modelId", "revision", "manifestSha256"],
+          "properties": {
+            "modelId": { "type": "string", "minLength": 1 },
+            "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            "manifestSha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "futureUse": {
+          "enum": [
+            "quantization_policy_baseline_only_not_candidate_identity",
+            "gamma_selected_checkpoint_artifact_competition"
+          ]
+        }
+      }
+    },
+    "evaluationInputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["populationRole", "population", "summary", "predictions", "decodePolicy", "metrics"],
+      "properties": {
+        "populationRole": { "enum": ["diagnostic_only", "gamma_selection_evidence"] },
+        "population": { "$ref": "#/$defs/fileIdentity" },
+        "summary": { "$ref": "#/$defs/fileIdentity" },
+        "predictions": { "$ref": "#/$defs/fileIdentity" },
+        "decodePolicy": { "const": "greedy_single_checkpoint_no_router" },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bleu", "chrf", "rows", "directions"],
+          "properties": {
+            "bleu": { "type": "number" },
+            "chrf": { "type": "number" },
+            "rows": { "type": "integer", "minimum": 1 },
+            "directions": { "const": ["en-es", "es-en"] }
+          }
+        }
+      }
+    },
+    "importVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "receipt", "importReceiptHash"],
+      "properties": {
+        "status": { "enum": ["not_verified", "verified"] },
+        "receipt": {
+          "oneOf": [
+            { "$ref": "#/$defs/fileIdentity" },
+            { "type": "null" }
+          ]
+        },
+        "importReceiptHash": {
+          "oneOf": [
+            { "$ref": "#/$defs/sha256" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "parity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["machineryStatus", "sharedConsumers", "requiredChecks", "candidateEntryGate"],
+      "properties": {
+        "machineryStatus": {
+          "enum": ["contract_frozen_implementation_open", "import_verified", "parity_verified"]
+        },
+        "sharedConsumers": { "const": ["translation_full_checkpoint", "columbo_qwen_adapter"] },
+        "requiredChecks": {
+          "const": [
+            "source_artifact_byte_identity",
+            "tokenizer_and_prompt_identity",
+            "architecture_and_conversion_lineage",
+            "evaluation_input_identity",
+            "first_token_logits",
+            "selected_tokens",
+            "completions",
+            "exact_browser_artifact_capability"
+          ]
+        },
+        "candidateEntryGate": { "const": "gamma_bf16_selection_receipt_required" }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "receipt"],
+      "properties": {
+        "status": { "enum": ["not_selected", "gamma_selected"] },
+        "receipt": { "type": ["string", "null"] }
+      }
+    },
+    "sequence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preColumboAllowed", "preGammaSelectionForbidden", "orderedStages"],
+      "properties": {
+        "preColumboAllowed": {
+          "const": [
+            "preserve_nativekd2_bf16_baseline",
+            "freeze_trainer_to_doppler_handoff_format",
+            "implement_import_and_parity_machinery_shared_with_columbo"
+          ]
+        },
+        "preGammaSelectionForbidden": {
+          "const": [
+            "declare_translation_bf16_winner",
+            "run_translation_artifact_competition",
+            "promote_translation_artifact"
+          ]
+        },
+        "orderedStages": {
+          "const": [
+            "translation_baseline_and_handoff_freeze",
+            "columbo_qwen_bridge_and_promotion",
+            "gamma_translation_campaign_and_bf16_selection",
+            "doppler_selected_checkpoint_artifact_competition"
+          ]
+        }
+      }
+    },
+    "claimBoundary": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "importVerification": {
+            "properties": { "status": { "const": "not_verified" } },
+            "required": ["status"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "importVerification": {
+            "properties": {
+              "receipt": { "const": null },
+              "importReceiptHash": { "const": null }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "importVerification": {
+            "properties": { "status": { "const": "verified" } },
+            "required": ["status"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "importVerification": {
+            "properties": {
+              "receipt": { "$ref": "#/$defs/fileIdentity" },
+              "importReceiptHash": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "state": { "const": "baseline_frozen_not_selected" } },
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {
+          "artifactRole": { "const": "diagnostic_baseline" },
+          "selection": {
+            "properties": {
+              "status": { "const": "not_selected" },
+              "receipt": { "const": null }
+            }
+          },
+          "conversionLineage": {
+            "properties": {
+              "status": { "const": "current_baseline_converted" },
+              "futureUse": { "const": "quantization_policy_baseline_only_not_candidate_identity" }
+            }
+          },
+          "evaluationInputs": {
+            "properties": {
+              "populationRole": { "const": "diagnostic_only" }
+            }
+          },
+          "parity": {
+            "properties": {
+              "machineryStatus": { "const": "import_verified" }
+            }
+          },
+          "importVerification": {
+            "properties": {
+              "status": { "const": "verified" },
+              "receipt": { "$ref": "#/$defs/fileIdentity" },
+              "importReceiptHash": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "state": { "const": "gamma_selected_bf16" } },
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {
+          "artifactRole": { "const": "selected_candidate" },
+          "selection": {
+            "properties": {
+              "status": { "const": "gamma_selected" },
+              "receipt": { "type": "string", "minLength": 1 }
+            }
+          },
+          "conversionLineage": {
+            "properties": {
+              "status": {
+                "enum": ["selected_checkpoint_awaiting_conversion", "selected_checkpoint_converted"]
+              },
+              "futureUse": { "const": "gamma_selected_checkpoint_artifact_competition" }
+            }
+          },
+          "evaluationInputs": {
+            "properties": {
+              "populationRole": { "const": "gamma_selection_evidence" }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "fileIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "bytes"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

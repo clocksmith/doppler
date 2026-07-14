@@ -1,0 +1,167 @@
+{
+  "$schema": "../../src/config/schema/trainer-artifact-handoff.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "contractId": "doppler.trainer-handoff.nativekd2-bf16-baseline.v1",
+  "state": "baseline_frozen_not_selected",
+  "artifactRole": "diagnostic_baseline",
+  "authorities": {
+    "sourceArtifact": "clocksmith/gamma",
+    "bf16Selection": "clocksmith/gamma",
+    "conversionAndParity": "clocksmith/doppler",
+    "columboPromotion": "clocksmith/columbo_independent_contract"
+  },
+  "sourceCheckpoint": {
+    "repository": "clocksmith/gamma",
+    "path": "projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed/checkpoint-000025",
+    "format": "huggingface_safetensors",
+    "weights": {
+      "path": "model.safetensors",
+      "sha256": "c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
+      "bytes": 1999811208
+    },
+    "config": {
+      "path": "config.json",
+      "sha256": "9740a8ec5f478f0d5a89c865e3274dad9888d2dde4f6ca41335067964cf01c1e",
+      "bytes": 1621
+    },
+    "generationConfig": {
+      "path": "generation_config.json",
+      "sha256": "3f6c815fb4d217ffc4690d2898e24b2cee99dab9b878203b628371af4dca1b36",
+      "bytes": 210
+    }
+  },
+  "tokenizer": {
+    "source": "checkpoint_embedded",
+    "files": [
+      {
+        "path": "tokenizer.json",
+        "sha256": "3ff2eb2f470517c6123c6224cd75fa4b373953af438afa4b3114c9d7cf3309d8",
+        "bytes": 33384820
+      },
+      {
+        "path": "tokenizer.model",
+        "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c",
+        "bytes": 4689074
+      },
+      {
+        "path": "tokenizer_config.json",
+        "sha256": "89c60ff49f0c50ef0ea9b9140336d5f8c6b64a5e7c03b286ef5875910acaedbe",
+        "bytes": 1155578
+      },
+      {
+        "path": "special_tokens_map.json",
+        "sha256": "2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397",
+        "bytes": 662
+      },
+      {
+        "path": "added_tokens.json",
+        "sha256": "50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946",
+        "bytes": 35
+      }
+    ],
+    "promptContract": {
+      "path": "chat_template.jinja",
+      "sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+      "bytes": 1532
+    }
+  },
+  "architecture": {
+    "architectures": ["Gemma3ForCausalLM"],
+    "modelType": "gemma3_text",
+    "hiddenSize": 1152,
+    "intermediateSize": 6912,
+    "layers": 26,
+    "attentionHeads": 4,
+    "keyValueHeads": 1,
+    "headDim": 256,
+    "vocabularySize": 262144
+  },
+  "conversionLineage": {
+    "status": "current_baseline_converted",
+    "sourceWeightsSha256": "c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
+    "conversionConfig": {
+      "path": "src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json",
+      "sha256": "83b68d999a26939a77859512732055ecb9decc7af35f6d07806968358818a2cc",
+      "bytes": 9565
+    },
+    "diagnosticHostedArtifact": {
+      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "revision": "1e2c047357f07dfe45a8effc2fa915acd73999ee",
+      "manifestSha256": "72d51b42a51b6b429032db5edd9f89322d108c75b21ca62a2844b35c3a7123ee"
+    },
+    "futureUse": "quantization_policy_baseline_only_not_candidate_identity"
+  },
+  "evaluationInputs": {
+    "populationRole": "diagnostic_only",
+    "population": {
+      "path": "clocksmith/gamma:projects/distillation/translation/training_data/translate_distill_pairs.eval2_wmt13_enes_128.jsonl",
+      "sha256": "8454f014eee7ba862c3d4cc4a80169c99e47de2ec39cc5baa176424859db6c47",
+      "bytes": 115784
+    },
+    "summary": {
+      "path": "clocksmith/gamma:projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed_checkpoint_sweep_greedy_studentonly_external/eval2_external__checkpoint-000025__greedy/compare_eval_summary.json",
+      "sha256": "c9392162ca3b0417e0968fef964e69e7bea108861538f07f24c6e7a727f36960",
+      "bytes": 3435
+    },
+    "predictions": {
+      "path": "clocksmith/gamma:projects/distillation/translation/runs/translategemma4b_es_en_gemma3_1b_savant_nativekd2_balanced_sft010_kd010_lr1e6_steps200_20260710/mixed_checkpoint_sweep_greedy_studentonly_external/eval2_external__checkpoint-000025__greedy/student_predictions.jsonl",
+      "sha256": "aac81561cb0ac4c5a62b30c2a411852396a89ad69ae1284907f2cc7bb962096f",
+      "bytes": 56047
+    },
+    "decodePolicy": "greedy_single_checkpoint_no_router",
+    "metrics": {
+      "bleu": 34.1896,
+      "chrf": 59.9388,
+      "rows": 128,
+      "directions": ["en-es", "es-en"]
+    }
+  },
+  "importVerification": {
+    "status": "verified",
+    "receipt": {
+      "path": "docs/status/nativekd2-bf16-baseline-import-receipt-2026-07-13.json",
+      "sha256": "4be6179834b3d6529050f00b83948404f3d2b73a8300d8df1d9b73daa6059a73",
+      "bytes": 27074
+    },
+    "importReceiptHash": "71eab836e7a90742a5534217219fc901eca505de2c6824e870313d0a82e79184"
+  },
+  "parity": {
+    "machineryStatus": "import_verified",
+    "sharedConsumers": ["translation_full_checkpoint", "columbo_qwen_adapter"],
+    "requiredChecks": [
+      "source_artifact_byte_identity",
+      "tokenizer_and_prompt_identity",
+      "architecture_and_conversion_lineage",
+      "evaluation_input_identity",
+      "first_token_logits",
+      "selected_tokens",
+      "completions",
+      "exact_browser_artifact_capability"
+    ],
+    "candidateEntryGate": "gamma_bf16_selection_receipt_required"
+  },
+  "selection": {
+    "status": "not_selected",
+    "receipt": null
+  },
+  "sequence": {
+    "preColumboAllowed": [
+      "preserve_nativekd2_bf16_baseline",
+      "freeze_trainer_to_doppler_handoff_format",
+      "implement_import_and_parity_machinery_shared_with_columbo"
+    ],
+    "preGammaSelectionForbidden": [
+      "declare_translation_bf16_winner",
+      "run_translation_artifact_competition",
+      "promote_translation_artifact"
+    ],
+    "orderedStages": [
+      "translation_baseline_and_handoff_freeze",
+      "columbo_qwen_bridge_and_promotion",
+      "gamma_translation_campaign_and_bf16_selection",
+      "doppler_selected_checkpoint_artifact_competition"
+    ]
+  },
+  "claimBoundary": "This contract freezes the current NativeKD2 BF16 checkpoint as a reproducible diagnostic baseline and freezes the Gamma-to-Doppler handoff shape. It is not a Gamma selection receipt, does not name a BF16 winner, and cannot admit any translation artifact into the post-campaign Doppler comparison."
+}

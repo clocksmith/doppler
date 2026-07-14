@@ -1,0 +1,70 @@
+{
+  "$schema": "../../src/config/schema/translation-artifact-competition.schema.json",
+  "schemaVersion": 1,
+  "contractId": "doppler.translation.selected-bf16-artifact-competition.v1",
+  "state": "blocked_awaiting_gamma_selection",
+  "owner": "clocksmith/doppler",
+  "gammaContract": {
+    "repository": "clocksmith/gamma",
+    "path": "projects/distillation/translation/promotion/promotion-contract.v1.json",
+    "sha256": "bc8f2e9c5ac686578634347f86fc847271c02e8add6a0d42baaa63083ac2bc8a",
+    "selectionAuthority": "clocksmith/gamma"
+  },
+  "gammaSource": {
+    "handoffPath": null,
+    "handoffSha256": null,
+    "selectionReceipt": null,
+    "selectedCheckpointSha256": null,
+    "identityVerificationReceiptHash": null
+  },
+  "artifactLanes": [
+    {
+      "laneId": "q4k",
+      "derivation": "Convert the exact Gamma-selected BF16 checkpoint with the frozen Q4K packaging policy.",
+      "status": "unmaterialized",
+      "artifactReceipt": null
+    },
+    {
+      "laneId": "selective_f16",
+      "derivation": "Retain declared tensors at F16 while deriving all remaining tensors from the same selected checkpoint identity.",
+      "status": "unmaterialized",
+      "artifactReceipt": null
+    },
+    {
+      "laneId": "qat",
+      "derivation": "Apply quantization-aware training with lineage rooted in the same Gamma-selected checkpoint and frozen training receipt fields.",
+      "status": "unmaterialized",
+      "artifactReceipt": null
+    }
+  ],
+  "frozenAcrossLanes": [
+    "gamma_selected_checkpoint_identity",
+    "tokenizer",
+    "prompt_contract",
+    "decode_policy",
+    "population_manifests",
+    "evaluator_implementations",
+    "browser_runtime_contract"
+  ],
+  "requiredEvidence": [
+    "gamma_selection_receipt",
+    "source_checkpoint_byte_identity",
+    "hosted_manifest_shard_and_tokenizer_identity",
+    "transformers_to_doppler_parity",
+    "exact_hosted_artifact_metrics",
+    "browser_load_and_execution",
+    "artifact_selection_receipt"
+  ],
+  "admission": {
+    "artifactGenerationAllowed": false,
+    "artifactComparisonAllowed": false,
+    "promotionSubmissionAllowed": false
+  },
+  "blockers": [
+    "gamma_campaign_blocked",
+    "gamma_bf16_selection_receipt_absent",
+    "gamma_selected_handoff_absent",
+    "selected_source_identity_verification_absent"
+  ],
+  "claimBoundary": "The current NativeKD2 Q4K artifact remains a diagnostic baseline. Doppler may generate or compare Q4K, selective-F16, and QAT lanes only after Gamma supplies its selected BF16 checkpoint, immutable handoff, selection receipt, and passing source identity receipt. No artifact competition or promotion is currently authorized."
+}
