@@ -136,6 +136,7 @@ def main() -> None:
     parser.add_argument("--dataset", required=True, type=Path)
     parser.add_argument("--row-index", required=True, type=int)
     parser.add_argument("--adapter", action="append", required=True, type=parse_adapter)
+    parser.add_argument("--dtype", required=True, choices=("bfloat16", "float32"))
     parser.add_argument("--max-new-tokens", required=True, type=int)
     parser.add_argument("--logits-dir", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
@@ -152,6 +153,10 @@ def main() -> None:
 
     runtime = load_runtime()
     torch = runtime["torch"]
+    model_dtype = {
+        "bfloat16": torch.bfloat16,
+        "float32": torch.float32,
+    }[args.dtype]
     tokenizer = runtime["AutoTokenizer"].from_pretrained(
         str(model_path),
         local_files_only=True,
@@ -170,7 +175,7 @@ def main() -> None:
         str(model_path),
         local_files_only=True,
         trust_remote_code=False,
-        dtype=torch.bfloat16,
+        dtype=model_dtype,
         low_cpu_mem_usage=True,
     ).to("cuda")
     base_model.eval()
@@ -233,7 +238,7 @@ def main() -> None:
             "peftModulePath": runtime["peftModule"].__file__,
             "device": torch.cuda.get_device_name(0),
             "deviceTotalMemory": int(properties.total_memory),
-            "dtype": "bfloat16",
+            "dtype": args.dtype,
         },
         "model": {
             "path": str(model_path),
