@@ -33,11 +33,11 @@ must remain byte-identical.
 
 ## Current decision
 
-The readiness gate returns `blocked`. V12 adapters are verified locally but do
-not have governed immutable URLs. Semantic populations, task and oracle
-manifests, historical regressions, seed-level checkpoint selection, and
-trainer-to-Doppler adapter parity are absent. No semantic dispatch receipt
-exists.
+The readiness gate returns `blocked`. All three V12 external20 adapters now
+have revision-pinned Git LFS URLs and streamed SHA-256 verification. Semantic
+populations, task and oracle manifests, historical regressions, seed-level
+checkpoint selection, and trainer-to-Doppler adapter parity are absent. No
+semantic dispatch receipt exists.
 
 Accordingly, `semanticEvaluationAllowed`, `semanticClaimAllowed`,
 `wgslDoctorAllowed`, and `autonomousShaderAuthorAllowed` are all false. The
@@ -47,15 +47,13 @@ experiment.
 
 ## Required continuation
 
-1. Define a governed immutable destination and publish the three exact V12
-   adapter byte streams with revision-pinned or content-addressed URLs.
-2. Freeze disjoint semantic calibration, checkpoint-selection,
+1. Freeze disjoint semantic calibration, checkpoint-selection,
    seed-confirmation, and one-use promotion populations.
-3. Implement and seal CPU oracles, task inputs, tolerance tiers, metamorphic
+2. Implement and seal CPU oracles, task inputs, tolerance tiers, metamorphic
    relations, buffer layouts, shape/workgroup variants, and historical cases.
-4. Use calibration and checkpoint-selection evidence to select one external20
+3. Use calibration and checkpoint-selection evidence to select one external20
    seed; do not infer a deployable checkpoint from V12's lane selection.
-5. Prove Transformers-to-Doppler adapter activation parity, then run semantic
+4. Prove Transformers-to-Doppler adapter activation parity, then run semantic
    confirmation and promotion.
-6. Productize WGSL Doctor only after the exact hosted adapter clears the
+5. Productize WGSL Doctor only after the exact hosted adapter clears the
    semantic contract. Never auto-apply a candidate that fails compilation.

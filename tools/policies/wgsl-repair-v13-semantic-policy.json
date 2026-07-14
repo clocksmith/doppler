@@ -9,7 +9,7 @@
     "resultPath": "docs/status/wgsl-repair-v12-2026-07-13.json",
     "resultSha256": "84959c835e260d523a291649a52b7003dd0a7a26f263ac96993e2bd6be9ca11f",
     "preservationVerificationPath": "docs/status/wgsl-repair-v12-adapter-preservation-verification-2026-07-13.json",
-    "preservationVerificationSha256": "54df4f41abef262b668741bc05fe3025883833b6578b67815977f009e28fdaae"
+    "preservationVerificationSha256": "2892b97dd87db3247c622ee0d031c9e649eee6a0c5cb560d0ac67f5c2639025c"
   },
   "capability": "replacement_only_semantically_correct_wgsl_repair",
   "candidate": {
@@ -104,7 +104,6 @@
     "autonomousShaderAuthorAllowed": false
   },
   "blockers": [
-    "v12_adapter_external_preservation_incomplete",
     "semantic_calibration_population_unmaterialized",
     "semantic_checkpoint_selection_population_unmaterialized",
     "semantic_seed_confirmation_population_unmaterialized",

@@ -39,11 +39,11 @@ binds those files and their export receipts to the V12 result.
 The executable local verification receipt is
 [wgsl-repair-v12-adapter-preservation-verification-2026-07-13.json](wgsl-repair-v12-adapter-preservation-verification-2026-07-13.json).
 
-They do not yet have immutable external URLs. No governed publication
-destination is defined in Doppler, so off-machine preservation remains blocked.
-Completing that gate requires publishing the exact bytes, recording
-revision-pinned or content-addressed URLs, and rechecking each published digest.
-The publication step must not retrain, rewrite, or otherwise alter V12.
+All three exact byte streams are now published through Git LFS at Doppler
+revision `9e33238db9a9d42bcf122967caf3563ee97d392c`. The manifest records one
+revision-pinned URL per seed, and each remote response was streamed through
+SHA-256 verification. Publication did not retrain, rewrite, or otherwise alter
+V12. Preservation does not select a seed or establish inference parity.
 
 ## Diagnostic selection
 

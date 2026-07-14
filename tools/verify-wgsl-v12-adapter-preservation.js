@@ -76,16 +76,30 @@ export async function verifyWgslV12AdapterPreservation(options = {}) {
       adapter,
       exportReceipt,
       immutableUrl: artifact.immutableUrl,
+      externalVerification: artifact.externalVerification ?? null,
     });
   }
   const localVerified = sourceReceipt.ok
     && artifacts.length === 3
     && artifacts.every((artifact) => artifact.adapter.ok && artifact.exportReceipt.ok);
-  const externallyPreserved = artifacts.length === 3
+  const immutableUrlsPresent = artifacts.length === 3
     && artifacts.every((artifact) => typeof artifact.immutableUrl === 'string' && artifact.immutableUrl);
+  const externalIdentitiesVerified = artifacts.length === 3
+    && artifacts.every((artifact) => (
+      artifact.externalVerification?.method === 'streamed_https_sha256'
+      && typeof artifact.externalVerification.verifiedAt === 'string'
+      && artifact.externalVerification.observedSha256 === artifact.adapter.expectedSha256
+      && artifact.externalVerification.ok === true
+    ));
+  const externallyPreserved = immutableUrlsPresent
+    && externalIdentitiesVerified
+    && manifest.externalPreservation?.status === 'complete';
   const blockers = [];
   if (!localVerified) blockers.push('v12_adapter_local_identity_verification_failed');
-  if (!externallyPreserved) blockers.push('v12_adapter_immutable_urls_absent');
+  if (!immutableUrlsPresent) blockers.push('v12_adapter_immutable_urls_absent');
+  if (!externalIdentitiesVerified) {
+    blockers.push('v12_adapter_external_identity_verification_failed');
+  }
   if (manifest.externalPreservation?.status !== 'complete') {
     blockers.push('v12_adapter_governed_external_preservation_incomplete');
   }
@@ -96,10 +110,12 @@ export async function verifyWgslV12AdapterPreservation(options = {}) {
     sourceReceipt,
     artifacts,
     localVerified,
+    immutableUrlsPresent,
+    externalIdentitiesVerified,
     externallyPreserved,
     decision: localVerified && externallyPreserved ? 'complete' : localVerified ? 'local_verified' : 'blocked',
     blockers: [...new Set(blockers)].sort(),
-    claimBoundary: 'Local identity verification does not substitute for governed off-machine preservation, adapter selection, inference parity, semantic WGSL evaluation, or promotion.',
+    claimBoundary: 'Local and external identity verification establish preservation only; they do not establish adapter selection, inference parity, semantic WGSL evaluation, or promotion.',
   };
   return { ...core, receiptHash: hashStableJson(core) };
 }
