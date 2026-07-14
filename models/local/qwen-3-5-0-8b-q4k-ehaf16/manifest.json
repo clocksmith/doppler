@@ -6669,7 +6669,7 @@
   },
   "conversion": null,
   "metadata": {
-    "source": "file:///Users/xyz/deco/doppler/downloads/qwen3.5-0.8b",
+    "source": "file:///workspace/deco/doppler/downloads/qwen3.5-0.8b",
     "convertedAt": "2026-04-24T17:34:03.192Z",
     "hasTokenizer": true,
     "manifestRefresh": {

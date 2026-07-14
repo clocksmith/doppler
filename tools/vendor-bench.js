@@ -1865,9 +1865,11 @@ function assertClaimMatrixCompareEvidence(compareReport, lane, matrix, workloads
 
   const manifestSha256 = asNonEmptyStringValue(compareReport?.dopplerManifestPreflight?.manifestSha256)
     || asNonEmptyStringValue(compareReport?.dopplerModelSource?.manifestSha256);
+  const evidenceManifestSha256 = asNonEmptyStringValue(lane.artifact.evidenceManifestSha256)
+    || lane.artifact.manifestSha256;
   assertClaimCompareScalar(
     manifestSha256,
-    lane.artifact.manifestSha256,
+    evidenceManifestSha256,
     `${compareEvidenceLabel} manifestSha256`
   );
   const manifestSource = asNonEmptyStringValue(compareReport?.dopplerModelSource?.manifestSource);

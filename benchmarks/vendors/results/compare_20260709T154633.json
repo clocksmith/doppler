@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-07-09T15:43:28.131Z",
   "benchmarkPolicy": {
-    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+    "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
     "sourceSha256": "6e0e81bc2571a0a1eb6451f0f9a6a3165b015bff9ba4537a4f5a6f2b1a9b93c8",
     "updated": "2026-03-29",
@@ -8737,7 +8737,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },
@@ -17077,7 +17077,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },

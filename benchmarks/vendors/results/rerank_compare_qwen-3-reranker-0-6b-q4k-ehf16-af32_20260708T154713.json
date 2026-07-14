@@ -114,24 +114,24 @@
   },
   "commands": {
     "dopplerBench": [
-      "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
-      "/Users/xyz/deco/doppler/src/cli/doppler-cli.js",
+      "/workspace/.nvm/versions/node/v22.20.0/bin/node",
+      "/workspace/deco/doppler/src/cli/doppler-cli.js",
       "bench",
       "--config",
       "{\"request\":{\"workload\":\"rerank\",\"modelId\":\"qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"modelUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"cacheMode\":\"warm\",\"loadMode\":\"http\",\"runtimeConfig\":{\"shared\":{\"benchmark\":{\"run\":{\"warmupRuns\":1,\"timedRuns\":15,\"loadMode\":\"http\"}}},\"inference\":{\"rerank\":{\"query\":\"What API exposes GPU hardware for browser compute workloads?\",\"documents\":[\"WebGPU provides low-level access to graphics processors for compute workloads.\",\"WebSocket provides full-duplex communication over TCP.\",\"CSS grid arranges page layout rows and columns.\"]}}},\"runtimeProfile\":\"profiles/rerank-throughput\"},\"run\":{\"surface\":\"browser\",\"timestamp\":\"2026-07-08T15:47:13.019Z\",\"browser\":{\"timeoutMs\":900000,\"opfsCache\":false}}}",
       "--json"
     ],
     "dopplerVerify": [
-      "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
-      "/Users/xyz/deco/doppler/src/cli/doppler-cli.js",
+      "/workspace/.nvm/versions/node/v22.20.0/bin/node",
+      "/workspace/deco/doppler/src/cli/doppler-cli.js",
       "verify",
       "--config",
       "{\"request\":{\"workload\":\"rerank\",\"modelId\":\"qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"modelUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32\",\"cacheMode\":\"warm\",\"loadMode\":\"http\",\"runtimeConfig\":{\"shared\":{\"benchmark\":{\"run\":{\"warmupRuns\":0,\"timedRuns\":1,\"loadMode\":\"http\"}}},\"inference\":{\"rerank\":{\"query\":\"What API exposes GPU hardware for browser compute workloads?\",\"documents\":[\"WebGPU provides low-level access to graphics processors for compute workloads.\",\"WebSocket provides full-duplex communication over TCP.\",\"CSS grid arranges page layout rows and columns.\"]}}},\"runtimeProfile\":\"profiles/rerank-stability\"},\"run\":{\"surface\":\"browser\",\"timestamp\":\"2026-07-08T15:47:13.019Z\",\"browser\":{\"timeoutMs\":900000,\"opfsCache\":false}}}",
       "--json"
     ],
     "transformersjsBench": [
-      "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
-      "/Users/xyz/deco/doppler/benchmarks/runners/transformersjs-bench.js",
+      "/workspace/.nvm/versions/node/v22.20.0/bin/node",
+      "/workspace/deco/doppler/benchmarks/runners/transformersjs-bench.js",
       "--task",
       "rerank",
       "--model",
@@ -155,7 +155,7 @@
       "--format",
       "onnx",
       "--semantic-fixture",
-      "/Users/xyz/deco/doppler/src/inference/fixtures/rerank-semantic-fixtures.json",
+      "/workspace/deco/doppler/src/inference/fixtures/rerank-semantic-fixtures.json",
       "--profile-ops",
       "off",
       "--timeout",
@@ -4424,7 +4424,7 @@
         "browserExecutable": null
       },
       "benchmarkPolicy": {
-        "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+        "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
         "schemaVersion": 1,
         "updated": "2026-03-29"
       },
