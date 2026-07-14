@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/trainer-artifact-parity-evidence-v1.schema.json",
+  "title": "Trainer Artifact Parity Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "bridgeId", "profile", "artifactIdentitySha256", "checks"],
+  "properties": {
+    "schema": { "const": "doppler.trainer-artifact-parity-evidence/v1" },
+    "bridgeId": { "type": "string", "minLength": 1 },
+    "profile": { "enum": ["translation_full_checkpoint", "columbo_qwen_adapter"] },
+    "artifactIdentitySha256": { "$ref": "#/$defs/sha256" },
+    "checks": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "evidenceHash", "artifactIdentitySha256", "upstreamDecision"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["pending", "pass", "fail"] },
+          "evidenceHash": {
+            "oneOf": [
+              { "$ref": "#/$defs/sha256" },
+              { "type": "null" }
+            ]
+          },
+          "artifactIdentitySha256": { "$ref": "#/$defs/sha256" },
+          "upstreamDecision": { "enum": ["pass", "block", null] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^(sha256:)?[0-9a-f]{64}$" }
+  }
+}

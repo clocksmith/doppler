@@ -1,0 +1,290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/trainer-artifact-bridge-v1.schema.json",
+  "title": "Trainer Artifact Bridge Descriptor v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "bridgeId",
+    "sourceContractId",
+    "artifact",
+    "baseModel",
+    "conversion",
+    "evaluation",
+    "selection",
+    "parity",
+    "claimBoundary"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.trainer-artifact-bridge/v1" },
+    "bridgeId": { "type": "string", "minLength": 1 },
+    "sourceContractId": { "type": "string", "minLength": 1 },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "role", "format", "repository", "rootPath", "files"],
+      "properties": {
+        "kind": { "enum": ["full_checkpoint", "peft_adapter"] },
+        "role": { "enum": ["diagnostic_baseline", "diagnostic_candidate", "selected_candidate"] },
+        "format": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "minLength": 1 },
+        "rootPath": { "$ref": "#/$defs/repoPathOrEmpty" },
+        "files": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "$ref": "#/$defs/fileIdentity" }
+        }
+      }
+    },
+    "baseModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modelId", "checkpointSha256", "tokenizer", "architecture"],
+      "properties": {
+        "modelId": { "type": "string", "minLength": 1 },
+        "checkpointSha256": { "$ref": "#/$defs/sha256" },
+        "tokenizer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["files", "promptContract"],
+          "properties": {
+            "files": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/fileIdentity" }
+            },
+            "promptContract": { "$ref": "#/$defs/fileIdentity" }
+          }
+        },
+        "architecture": { "$ref": "#/$defs/architecture" }
+      }
+    },
+    "conversion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "sourceArtifactSha256", "config", "runtimeArtifact"],
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "sourceArtifactSha256": { "$ref": "#/$defs/sha256" },
+        "config": {
+          "oneOf": [
+            { "$ref": "#/$defs/fileIdentity" },
+            { "type": "null" }
+          ]
+        },
+        "runtimeArtifact": {
+          "oneOf": [
+            { "type": "object" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["populationRole", "files"],
+      "properties": {
+        "populationRole": { "type": "string", "minLength": 1 },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/fileIdentity" }
+        }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority", "status", "receipt"],
+      "properties": {
+        "authority": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["not_selected", "selected"] },
+        "receipt": { "type": ["string", "null"] }
+      }
+    },
+    "parity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "requiredChecks"],
+      "properties": {
+        "profile": { "enum": ["translation_full_checkpoint", "columbo_qwen_adapter"] },
+        "requiredChecks": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "claimBoundary": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "artifact": { "properties": { "kind": { "const": "full_checkpoint" } } } }
+      },
+      "then": {
+        "properties": {
+          "artifact": {
+            "properties": {
+              "files": {
+                "allOf": [
+                  { "contains": { "properties": { "role": { "const": "weights" } }, "required": ["role"] } },
+                  { "contains": { "properties": { "role": { "const": "config" } }, "required": ["role"] } },
+                  { "contains": { "properties": { "role": { "const": "generation_config" } }, "required": ["role"] } }
+                ]
+              }
+            }
+          },
+          "parity": {
+            "properties": {
+              "profile": { "const": "translation_full_checkpoint" },
+              "requiredChecks": {
+                "const": [
+                  "source_artifact_byte_identity",
+                  "tokenizer_and_prompt_identity",
+                  "architecture_and_conversion_lineage",
+                  "evaluation_input_identity",
+                  "first_token_logits",
+                  "selected_tokens",
+                  "completions",
+                  "exact_browser_artifact_capability"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "artifact": { "properties": { "kind": { "const": "peft_adapter" } } } }
+      },
+      "then": {
+        "properties": {
+          "artifact": {
+            "properties": {
+              "files": {
+                "allOf": [
+                  { "contains": { "properties": { "role": { "const": "adapter_weights" } }, "required": ["role"] } },
+                  { "contains": { "properties": { "role": { "const": "adapter_config" } }, "required": ["role"] } },
+                  { "contains": { "properties": { "role": { "const": "doppler_adapter_manifest" } }, "required": ["role"] } },
+                  { "contains": { "properties": { "role": { "const": "runtime_adapter_manifest" } }, "required": ["role"] } },
+                  { "contains": { "properties": { "role": { "const": "training_report" } }, "required": ["role"] } }
+                ]
+              }
+            }
+          },
+          "parity": {
+            "properties": {
+              "profile": { "const": "columbo_qwen_adapter" },
+              "requiredChecks": {
+                "const": [
+                  "source_base_vs_converted_base",
+                  "reference_converted_base_vs_doppler_base",
+                  "source_adapter_vs_converted_adapter",
+                  "reference_converted_adapter_vs_doppler_adapter",
+                  "browser_capability_evaluation"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "artifact": {
+            "properties": {
+              "role": { "enum": ["diagnostic_baseline", "diagnostic_candidate"] }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "selection": {
+            "properties": {
+              "status": { "const": "not_selected" },
+              "receipt": { "const": null }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "artifact": { "properties": { "role": { "const": "selected_candidate" } } } }
+      },
+      "then": {
+        "properties": {
+          "selection": {
+            "properties": {
+              "status": { "const": "selected" },
+              "receipt": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^(sha256:)?[0-9a-f]{64}$" },
+    "repoPathOrEmpty": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).*$"
+    },
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "fileIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "repository", "rootPath", "path", "sha256", "bytes"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "minLength": 1 },
+        "rootPath": { "$ref": "#/$defs/repoPathOrEmpty" },
+        "path": { "$ref": "#/$defs/repoPath" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "architectures",
+        "modelType",
+        "hiddenSize",
+        "intermediateSize",
+        "layers",
+        "attentionHeads",
+        "keyValueHeads",
+        "headDim",
+        "vocabularySize"
+      ],
+      "properties": {
+        "architectures": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "modelType": { "type": "string", "minLength": 1 },
+        "hiddenSize": { "type": "integer", "minimum": 1 },
+        "intermediateSize": { "type": "integer", "minimum": 1 },
+        "layers": { "type": "integer", "minimum": 1 },
+        "attentionHeads": { "type": "integer", "minimum": 1 },
+        "keyValueHeads": { "type": "integer", "minimum": 1 },
+        "headDim": { "type": "integer", "minimum": 1 },
+        "vocabularySize": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

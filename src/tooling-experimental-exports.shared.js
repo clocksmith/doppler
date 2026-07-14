@@ -8,6 +8,24 @@
 export { convertModel, createRemoteModelSources, isConversionSupported } from './experimental/browser/browser-converter.js';
 export { pickModelDirectory, pickModelFiles } from './experimental/browser/file-picker.js';
 
+// Trainer artifact bridge contract shared by Gamma handoffs and Columbo adapters.
+export {
+  TRAINER_ARTIFACT_BRIDGE_SCHEMA_ID,
+  TRAINER_ARTIFACT_IMPORT_PLAN_SCHEMA_ID,
+  TRAINER_ARTIFACT_PARITY_EVIDENCE_SCHEMA_ID,
+  TRAINER_ARTIFACT_PARITY_RECEIPT_SCHEMA_ID,
+  TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT,
+  TRAINER_ARTIFACT_KIND_PEFT_ADAPTER,
+  TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS,
+  COLUMBO_QWEN_ADAPTER_PARITY_CHECKS,
+  normalizeGammaTrainerArtifactHandoff,
+  validateTrainerArtifactBridgeDescriptor,
+  assertTrainerArtifactCandidateEntry,
+  buildTrainerArtifactImportPlan,
+  buildTrainerArtifactParityTemplate,
+  verifyTrainerArtifactParityEvidence,
+} from './experimental/bridge/trainer-artifact-bridge.js';
+
 // Distribution tooling
 export {
   P2P_WEBRTC_DATA_PLANE_CONTRACT_VERSION,

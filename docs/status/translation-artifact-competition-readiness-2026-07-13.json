@@ -1,0 +1,51 @@
+{
+  "schema": "doppler.translation-artifact-competition-readiness/v1",
+  "contractId": "doppler.translation.selected-bf16-artifact-competition.v1",
+  "policyState": "blocked_awaiting_gamma_selection",
+  "gammaSelectionAuthority": "clocksmith/gamma",
+  "observedSource": {
+    "bridgeId": "bridge.doppler.trainer-handoff.nativekd2-bf16-baseline.v1",
+    "artifactRole": "diagnostic_baseline",
+    "checkpointSha256": "c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
+    "selectionReceipt": null,
+    "handoffSha256": "ec2cbe774c4e4ecbc87f220b6a0ec1e8a139bf50fa3fb723978ae07ba68ef1fd",
+    "identityVerificationReceiptHash": "aed8853ab206d73de8470940319f5fee12647f770b0816a20b53c3d7eac10e80"
+  },
+  "lanes": [
+    {
+      "laneId": "q4k",
+      "status": "unmaterialized",
+      "artifactReceipt": null
+    },
+    {
+      "laneId": "selective_f16",
+      "status": "unmaterialized",
+      "artifactReceipt": null
+    },
+    {
+      "laneId": "qat",
+      "status": "unmaterialized",
+      "artifactReceipt": null
+    }
+  ],
+  "admission": {
+    "artifactGenerationAllowed": false,
+    "artifactComparisonAllowed": false,
+    "promotionSubmissionAllowed": false
+  },
+  "decision": "blocked",
+  "blockers": [
+    "competition_policy_not_bound_to_gamma_selected_source",
+    "gamma_bf16_selection_receipt_absent",
+    "gamma_campaign_blocked",
+    "gamma_selected_checkpoint_binding_mismatch",
+    "gamma_selected_handoff_absent",
+    "gamma_selected_handoff_sha256_mismatch",
+    "gamma_source_not_selected_candidate",
+    "gamma_source_selection_contract_invalid",
+    "selected_source_identity_receipt_binding_mismatch",
+    "selected_source_identity_role_mismatch",
+    "selected_source_identity_verification_absent"
+  ],
+  "receiptHash": "96b875d999035eff63fe42f7bac7a99ff473dc1c1af7457d8e344fe11c120ce2"
+}

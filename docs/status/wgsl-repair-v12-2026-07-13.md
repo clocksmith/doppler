@@ -30,6 +30,21 @@ Every run consumed 1,200 distinct rows exactly once under its recorded
 seed/hash order. The finalizer rehashed all nine exported adapter files and
 matched every byte digest to its export receipt.
 
+## Adapter preservation
+
+The three `external20` adapter files remain present on this machine and their
+SHA-256 digests match the frozen result receipt. The separate
+[adapter preservation manifest](wgsl-repair-v12-adapter-preservation-2026-07-13.json)
+binds those files and their export receipts to the V12 result.
+The executable local verification receipt is
+[wgsl-repair-v12-adapter-preservation-verification-2026-07-13.json](wgsl-repair-v12-adapter-preservation-verification-2026-07-13.json).
+
+They do not yet have immutable external URLs. No governed publication
+destination is defined in Doppler, so off-machine preservation remains blocked.
+Completing that gate requires publishing the exact bytes, recording
+revision-pinned or content-addressed URLs, and rechecking each published digest.
+The publication step must not retrain, rewrite, or otherwise alter V12.
+
 ## Diagnostic selection
 
 The diagnostic matrix was completed before the public split was opened.
@@ -101,3 +116,8 @@ is accepted, no runtime performance was measured, and no adapter is promoted.
 The next experiment must keep V12 frozen. Semantic evaluation, dense checkpoint
 selection, GRPO from the selected SFT lane, and Doppler-native Qwen training
 parity each require separate contracts and receipts.
+
+The separate V13 semantic requirements are frozen in
+[wgsl-repair-v13-semantic-design-2026-07-13.md](wgsl-repair-v13-semantic-design-2026-07-13.md).
+Its readiness gate is blocked and grants no WGSL Doctor or shader-authoring
+authority.
