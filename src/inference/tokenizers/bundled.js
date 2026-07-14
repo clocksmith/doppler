@@ -95,6 +95,67 @@ function resolveByteLevelPretokenizerConfig(preTokenizer) {
   };
 }
 
+function normalizeInlineCaseInsensitiveGroups(pattern) {
+  let source = String(pattern || '');
+  let caseInsensitive = false;
+  let start = source.indexOf('(?i:');
+  while (start !== -1) {
+    let depth = 1;
+    let escaped = false;
+    let end = start + 4;
+    for (; end < source.length; end++) {
+      const char = source[end];
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === '\\') {
+        escaped = true;
+        continue;
+      }
+      if (char === '(') depth += 1;
+      else if (char === ')') {
+        depth -= 1;
+        if (depth === 0) break;
+      }
+    }
+    if (depth !== 0) {
+      throw new Error('[Tokenizer] Unterminated inline case-insensitive regex group.');
+    }
+    source = `${source.slice(0, start)}(?:${source.slice(start + 4, end)})${source.slice(end + 1)}`;
+    caseInsensitive = true;
+    start = source.indexOf('(?i:', start + 3);
+  }
+  return { source, caseInsensitive };
+}
+
+function resolveIsolatedSplitPretokenizer(preTokenizer) {
+  if (!preTokenizer || typeof preTokenizer !== 'object') return null;
+  if (preTokenizer.type === 'Sequence' && Array.isArray(preTokenizer.pretokenizers)) {
+    for (const entry of preTokenizer.pretokenizers) {
+      const resolved = resolveIsolatedSplitPretokenizer(entry);
+      if (resolved) return resolved;
+    }
+    return null;
+  }
+  if (
+    preTokenizer.type !== 'Split'
+    || preTokenizer.behavior !== 'Isolated'
+    || preTokenizer.invert === true
+    || typeof preTokenizer.pattern?.Regex !== 'string'
+  ) {
+    return null;
+  }
+  const normalized = normalizeInlineCaseInsensitiveGroups(preTokenizer.pattern.Regex);
+  const flags = `gu${normalized.caseInsensitive ? 'i' : ''}`;
+  try {
+    new RegExp(normalized.source, flags);
+  } catch (error) {
+    throw new Error(`[Tokenizer] Unsupported split pre-tokenizer regex: ${error.message}`);
+  }
+  return { source: normalized.source, flags };
+}
+
 function hexNibble(code) {
   if (code >= 48 && code <= 57) return code - 48;
   if (code >= 65 && code <= 70) return code - 55;
@@ -388,6 +449,8 @@ export class BundledTokenizer extends BaseTokenizer {
 
   #useByteLevelEncoding = false;
 
+  #splitPretokenizer = null;
+
   
   constructor(config = {}) {
     // BundledTokenizer gets vocabSize from load(), so defer validation
@@ -412,6 +475,7 @@ export class BundledTokenizer extends BaseTokenizer {
     this.#byteDecoder = null;
     this.#byteEncoder = null;
     this.#useByteLevelEncoding = false;
+    this.#splitPretokenizer = null;
     this.vocabSize = 0;
   }
 
@@ -574,6 +638,7 @@ export class BundledTokenizer extends BaseTokenizer {
     // Handle behavior flags (use HF config if present, else runtime defaults)
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
     const byteLevelPretokenizer = resolveByteLevelPretokenizerConfig(hf.pre_tokenizer);
+    this.#splitPretokenizer = resolveIsolatedSplitPretokenizer(hf.pre_tokenizer);
     const configuredAddBosToken = this.addBosToken;
     const configuredAddEosToken = this.addEosToken;
     const inferredFlags = inferBundledTokenizerBehaviorFlags(hf, this.specialTokens);
@@ -741,6 +806,7 @@ export class BundledTokenizer extends BaseTokenizer {
 
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
     const byteLevelPretokenizer = resolveByteLevelPretokenizerConfig(tokenizerJson.pre_tokenizer);
+    this.#splitPretokenizer = resolveIsolatedSplitPretokenizer(tokenizerJson.pre_tokenizer);
     const configuredAddBosToken = this.addBosToken;
     const configuredAddEosToken = this.addEosToken;
     const inferredFlags = inferBundledTokenizerBehaviorFlags(tokenizerJson, this.specialTokens);
@@ -953,46 +1019,53 @@ export class BundledTokenizer extends BaseTokenizer {
     if (text.length === 0) return [];
 
     let normalized = text;
-    let prefixed;
-    if (this.#useByteLevelEncoding) {
-      if (this.#addSpacePrefix && !normalized.startsWith(' ')) {
-        normalized = ` ${normalized}`;
-      }
-      prefixed = this.#encodeByteLevelText(normalized);
-    } else {
-      if (this.#addSpacePrefix && !normalized.startsWith(' ')) {
-        normalized = ` ${normalized}`;
-      }
-      const sp = this.#spacePrefixChar;
-      prefixed = normalized.replace(/ /g, sp);
-    }
-
-    if (this.#mergeRanks.size === 0) {
-      return this.#encodeBPEGreedy(prefixed);
-    }
-
-    const tokens = this.#bpeTokenize(prefixed);
-    
     const ids = [];
-    for (const token of tokens) {
-      const id = this.#vocab.get(token);
-      if (id !== undefined) {
-        ids.push(id);
+    if (this.#addSpacePrefix && !normalized.startsWith(' ')) {
+      normalized = ` ${normalized}`;
+    }
+    const pretokens = this.#splitBpePretokens(normalized);
+    for (const pretoken of pretokens) {
+      const encoded = this.#useByteLevelEncoding
+        ? this.#encodeByteLevelText(pretoken)
+        : pretoken.replace(/ /g, this.#spacePrefixChar);
+      if (this.#mergeRanks.size === 0) {
+        ids.push(...this.#encodeBPEGreedy(encoded));
         continue;
       }
-      const bytes = new TextEncoder().encode(token);
-      for (const b of bytes) {
-        const byteId = this.#byteTokens.get(b);
-        if (byteId !== undefined) {
-          ids.push(byteId);
+      for (const token of this.#bpeTokenize(encoded)) {
+        const id = this.#vocab.get(token);
+        if (id !== undefined) {
+          ids.push(id);
           continue;
         }
-        const byteToken = `<0x${b.toString(16).padStart(2, '0').toUpperCase()}>`;
-        ids.push(this.#vocab.get(byteToken) ?? this.#getUnkTokenId());
+        const bytes = new TextEncoder().encode(token);
+        for (const b of bytes) {
+          const byteId = this.#byteTokens.get(b);
+          if (byteId !== undefined) {
+            ids.push(byteId);
+            continue;
+          }
+          const byteToken = `<0x${b.toString(16).padStart(2, '0').toUpperCase()}>`;
+          ids.push(this.#vocab.get(byteToken) ?? this.#getUnkTokenId());
+        }
       }
     }
-
     return ids;
+  }
+
+  #splitBpePretokens(text) {
+    if (!this.#useByteLevelEncoding || !this.#splitPretokenizer) return [text];
+    const regex = new RegExp(this.#splitPretokenizer.source, this.#splitPretokenizer.flags);
+    const pretokens = [];
+    let cursor = 0;
+    for (const match of text.matchAll(regex)) {
+      const index = match.index ?? cursor;
+      if (index > cursor) pretokens.push(text.slice(cursor, index));
+      if (match[0]) pretokens.push(match[0]);
+      cursor = index + match[0].length;
+    }
+    if (cursor < text.length) pretokens.push(text.slice(cursor));
+    return pretokens.length > 0 ? pretokens : [text];
   }
 
   
