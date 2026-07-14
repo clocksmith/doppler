@@ -46,12 +46,12 @@ export async function applyLoRA(input, baseOutput, lora, dims, getWeightBuffer, 
   let scaled = null;
   try {
     loraIntermediate = recorder
-      ? await recordMatmul(recorder, input, aBuf, M, rank, K, { transposeB: 'auto', role: 'lora_a', kernelPath, outputDtype: intermediateDtype })
-      : await runMatmul(input, aBuf, M, rank, K, { transposeB: 'auto', role: 'lora_a', kernelPath, outputDtype: intermediateDtype });
+      ? await recordMatmul(recorder, input, aBuf, M, rank, K, { transposeB: false, role: 'lora_a', kernelPath, outputDtype: intermediateDtype })
+      : await runMatmul(input, aBuf, M, rank, K, { transposeB: false, role: 'lora_a', kernelPath, outputDtype: intermediateDtype });
 
     loraOutput = recorder
-      ? await recordMatmul(recorder, loraIntermediate, bBuf, M, N, rank, { transposeB: 'auto', role: 'lora_b', kernelPath, outputDtype })
-      : await runMatmul(loraIntermediate, bBuf, M, N, rank, { transposeB: 'auto', role: 'lora_b', kernelPath, outputDtype });
+      ? await recordMatmul(recorder, loraIntermediate, bBuf, M, N, rank, { transposeB: false, role: 'lora_b', kernelPath, outputDtype })
+      : await runMatmul(loraIntermediate, bBuf, M, N, rank, { transposeB: false, role: 'lora_b', kernelPath, outputDtype });
 
     scaled = recorder
       ? await recordScale(recorder, loraOutput, lora.scale, { outputBuffer: null })
