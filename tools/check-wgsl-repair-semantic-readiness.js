@@ -5,17 +5,29 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { evaluateWgslSemanticReadiness } from '../src/tooling/wgsl-repair-semantic-gate.js';
+import {
+  evaluateWgslSemanticReadiness,
+  evaluateWgslSemanticReadinessV2,
+} from '../src/tooling/wgsl-repair-semantic-gate.js';
 
 const DEFAULT_POLICY = 'tools/policies/wgsl-repair-v13-semantic-policy.json';
+const DEFAULT_STATE = 'tools/data/wgsl-repair-v13-semantic-evidence-state.json';
 
 function parseArgs(argv) {
-  const args = { policyPath: DEFAULT_POLICY, evidencePath: '', allowBlocked: false };
+  const args = {
+    policyPath: DEFAULT_POLICY,
+    statePath: DEFAULT_STATE,
+    evidencePath: '',
+    allowBlocked: false,
+    legacyV1: false,
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === '--policy') args.policyPath = argv[++index] || '';
+    else if (token === '--state') args.statePath = argv[++index] || '';
     else if (token === '--evidence') args.evidencePath = argv[++index] || '';
     else if (token === '--allow-blocked') args.allowBlocked = true;
+    else if (token === '--legacy-v1') args.legacyV1 = true;
     else throw new Error(`Unknown argument: ${token}`);
   }
   return args;
@@ -30,6 +42,19 @@ async function sha256File(filePath) {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
+function samePath(left, right) {
+  return path.resolve(left) === path.resolve(right);
+}
+
+async function verifyOptionalBinding(filePath, expectedSha256) {
+  if (!filePath || !expectedSha256) return false;
+  try {
+    return await sha256File(filePath) === expectedSha256;
+  } catch {
+    return false;
+  }
+}
+
 export async function runWgslSemanticReadinessGate(args) {
   const policy = await readJson(args.policyPath);
   const predecessorChecks = await Promise.all([
@@ -42,10 +67,60 @@ export async function runWgslSemanticReadinessGate(args) {
   const taskEvidence = args.evidencePath
     ? (await readJson(args.evidencePath)).tasks
     : [];
-  return evaluateWgslSemanticReadiness({
+  if (args.legacyV1 === true) {
+    return evaluateWgslSemanticReadiness({
+      policy,
+      predecessorVerified,
+      preservationReceipt,
+      taskEvidence,
+    });
+  }
+
+  const evidenceState = await readJson(args.statePath || DEFAULT_STATE);
+  const policyVerified = samePath(args.policyPath, evidenceState.policy?.path)
+    && await verifyOptionalBinding(evidenceState.policy?.path, evidenceState.policy?.sha256);
+  const adapterPortabilityReceiptVerified = await verifyOptionalBinding(
+    evidenceState.adapterPortability?.path,
+    evidenceState.adapterPortability?.sha256
+  );
+  const adapterPortabilityReceipt = await readJson(evidenceState.adapterPortability.path);
+  const populationVerification = Object.fromEntries(await Promise.all(
+    Object.entries(evidenceState.populations).map(async ([role, population]) => [
+      role,
+      population?.status === 'frozen'
+        && await verifyOptionalBinding(population.manifestPath, population.populationHash),
+    ])
+  ));
+  const selectionReceiptVerified = evidenceState.candidate?.seedSelectionStatus === 'selected'
+    && await verifyOptionalBinding(
+      evidenceState.candidate.selectionReceiptPath,
+      evidenceState.candidate.selectionReceiptSha256
+    )
+    && await verifyOptionalBinding(
+      evidenceState.candidate.adapterPath,
+      evidenceState.candidate.adapterSha256
+    );
+  const implementationVerification = {
+    taskManifest: await verifyOptionalBinding(
+      evidenceState.implementation.taskManifestPath,
+      evidenceState.implementation.taskManifestSha256
+    ),
+    historicalRegressionManifest: await verifyOptionalBinding(
+      evidenceState.implementation.historicalRegressionManifestPath,
+      evidenceState.implementation.historicalRegressionManifestSha256
+    ),
+  };
+  return evaluateWgslSemanticReadinessV2({
     policy,
+    evidenceState,
+    policyVerified,
     predecessorVerified,
     preservationReceipt,
+    adapterPortabilityReceipt,
+    adapterPortabilityReceiptVerified,
+    populationVerification,
+    selectionReceiptVerified,
+    implementationVerification,
     taskEvidence,
   });
 }

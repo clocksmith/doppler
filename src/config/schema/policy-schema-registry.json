@@ -66,6 +66,11 @@
       "id": "wgsl-repair-v13-semantic-policy",
       "policyPath": "tools/policies/wgsl-repair-v13-semantic-policy.json",
       "schemaPath": "src/config/schema/wgsl-repair-semantic-evaluation.schema.json"
+    },
+    {
+      "id": "wgsl-repair-v13-seed-selection-policy",
+      "policyPath": "tools/policies/wgsl-repair-v13-seed-selection-policy.json",
+      "schemaPath": "src/config/schema/wgsl-repair-seed-selection.schema.json"
     }
   ]
 }
