@@ -16,6 +16,7 @@ export interface SiLUOptions extends OutputBufferOptions {
   size?: number | null;
   gate?: Tensor | null;
   gateActivation?: 'silu' | 'sigmoid';
+  /** Required when gate is present; ungated SiLU defaults to silu. */
   inputActivation?: 'silu' | 'identity';
   useVec4?: boolean;
   biasOffset?: number;

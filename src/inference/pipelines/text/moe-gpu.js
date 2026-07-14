@@ -1117,6 +1117,7 @@ async function runMixtralExpert(
   const activated = await activationFn(upOut, {
     size: count * intermediateSize,
     gate: gateOut,
+    inputActivation: 'identity',
     swigluLimit,
   });
   releaseBuffer(gateOut.buffer);

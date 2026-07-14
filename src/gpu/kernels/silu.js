@@ -49,6 +49,19 @@ function resolveSwigluLimit(value, context) {
   return value;
 }
 
+function resolveInputActivation(value, hasGate) {
+  if (value === undefined) {
+    if (hasGate) {
+      throw new Error('Gated SiLU requires an explicit inputActivation (identity or silu).');
+    }
+    return 'silu';
+  }
+  if (value !== 'identity' && value !== 'silu') {
+    throw new Error(`Unsupported SiLU inputActivation: ${value}`);
+  }
+  return value;
+}
+
 
 function createSiLUBindGroupEntries(uniformBuffer, input, output, gate) {
   const gateBuffer = gate?.buffer ?? input.buffer;
@@ -91,9 +104,10 @@ export async function runSiLU(
     useVec4 = false,
     swigluLimit,
     gateActivation = 'silu',
-    inputActivation = 'silu',
+    inputActivation,
   } = options;
   const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU');
+  const resolvedInputActivation = resolveInputActivation(inputActivation, Boolean(gate));
 
   const isF16 = canUseF16(input);
   const bytesPerElement = dtypeBytes(input.dtype);
@@ -109,7 +123,7 @@ export async function runSiLU(
   const constants = {
     ...(overrides || {}),
     ...(gate && gateActivation === 'sigmoid' ? { GATE_USE_SIGMOID: true } : {}),
-    ...(inputActivation === 'identity' ? { INPUT_USE_IDENTITY: true } : {}),
+    ...(resolvedInputActivation === 'identity' ? { INPUT_USE_IDENTITY: true } : {}),
   };
   const pipeline = await getPipelineFast('silu', variant, null, constants);
 
@@ -344,9 +358,10 @@ export async function recordSiLU(
     outputBuffer = null,
     swigluLimit,
     gateActivation = 'silu',
-    inputActivation = 'silu',
+    inputActivation,
   } = options;
   const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU');
+  const resolvedInputActivation = resolveInputActivation(inputActivation, Boolean(gate));
 
   const isF16 = canUseF16(input);
   const bytesPerElement = dtypeBytes(input.dtype);
@@ -362,7 +377,7 @@ export async function recordSiLU(
   const constants = {
     ...(overrides || {}),
     ...(gate && gateActivation === 'sigmoid' ? { GATE_USE_SIGMOID: true } : {}),
-    ...(inputActivation === 'identity' ? { INPUT_USE_IDENTITY: true } : {}),
+    ...(resolvedInputActivation === 'identity' ? { INPUT_USE_IDENTITY: true } : {}),
   };
   const pipeline = await getPipelineFast('silu', variant, null, constants);
 

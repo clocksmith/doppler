@@ -1257,6 +1257,7 @@ export async function runDenseFFNGPU(
   const activatedOutput = await dispatchActivation(hiddenActivation, upOutput, {
     size: numTokens * intermediateSize,
     gate: gateOutput,
+    inputActivation: 'identity',
     swigluLimit,
     label: `L${layerIdx}.ffn_activation`,
     layerIdx,
@@ -1646,6 +1647,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
       activatedOutput = await dispatchActivation(hiddenActivation, upOutput, {
         size: numTokens * intermediateSize,
         gate: gateOutput,
+        inputActivation: 'identity',
         swigluLimit,
       }, recorder);
 
