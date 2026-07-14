@@ -312,8 +312,8 @@ function populationReady(population, verified) {
     && verified === true;
 }
 
-function candidateReady(candidate, selectionReceiptVerified) {
-  return candidate?.seedSelectionStatus === 'selected'
+function evaluateCandidateSelection(candidate, receipt, receiptVerified) {
+  const pass = candidate?.seedSelectionStatus === 'selected'
     && EXPECTED_EXTERNAL20_SEEDS.includes(candidate.selectedSeed)
     && typeof candidate.adapterPath === 'string'
     && candidate.adapterPath.length > 0
@@ -323,7 +323,22 @@ function candidateReady(candidate, selectionReceiptVerified) {
     && candidate.selectionReceiptPath.length > 0
     && typeof candidate.selectionReceiptSha256 === 'string'
     && candidate.selectionReceiptSha256.length === 64
-    && selectionReceiptVerified === true;
+    && receiptVerified === true
+    && receipt?.schema === 'doppler.wgsl-repair-v13-seed-selection/v1'
+    && receipt?.experimentId === 'doppler-wgsl-repair-v13'
+    && receipt?.decision === 'selected_for_seed_confirmation'
+    && receipt?.selected?.lane === 'external20'
+    && receipt?.selected?.seed === candidate.selectedSeed
+    && receipt?.selected?.adapterPath === candidate.adapterPath
+    && receipt?.selected?.adapterSha256 === candidate.adapterSha256
+    && receipt?.seedConfirmationSatisfied === false
+    && receipt?.promotionAuthority === false;
+  return {
+    receiptVerified: receiptVerified === true,
+    decision: receipt?.decision ?? null,
+    selectedSeed: receipt?.selected?.seed ?? null,
+    pass,
+  };
 }
 
 function evaluateAdapterPortability(receipt, receiptVerified) {
@@ -423,10 +438,12 @@ export function evaluateWgslSemanticReadinessV2(options = {}) {
     }
   }
 
-  const selectedCandidateReady = candidateReady(
+  const candidateSelection = evaluateCandidateSelection(
     state.candidate,
+    options.selectionReceipt,
     options.selectionReceiptVerified
   );
+  const selectedCandidateReady = candidateSelection.pass;
   if (!selectedCandidateReady) blockers.add('external20_seed_checkpoint_not_selected');
   if (state.candidate?.seedSelectionStatus === 'selected'
     && adapterPortability.adapterPassBySeed[String(state.candidate.selectedSeed)] !== true) {
@@ -485,6 +502,7 @@ export function evaluateWgslSemanticReadinessV2(options = {}) {
     adapterPortabilityBinding: state.adapterPortability,
     adapterPortability,
     candidate: state.candidate,
+    ...(state.candidate.seedSelectionStatus === 'selected' ? { candidateSelection } : {}),
     populations: state.populations,
     implementation: state.implementation,
     taskEvidence,

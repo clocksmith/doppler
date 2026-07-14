@@ -88,6 +88,11 @@ function validateReceipt(policy, receipt) {
     || !receipt.candidateCompletions?.receiptHash) {
     throw new Error(`Candidate semantic receipt is missing completion binding: ${seed}.`);
   }
+  const receiptCore = { ...receipt };
+  delete receiptCore.receiptHash;
+  if (receipt.receiptHash !== hashWgslSemanticEvidenceValue(receiptCore)) {
+    throw new Error(`Candidate semantic receipt hash failed for seed ${seed}.`);
+  }
   return eligible;
 }
 
@@ -100,8 +105,11 @@ export async function selectWgslRepairV13Seed(args) {
     const eligible = validateReceipt(policy, receipt);
     const completionDocument = await readJson(receipt.candidateCompletions.path);
     const completionSha256 = await sha256File(receipt.candidateCompletions.path);
+    const completionCore = { ...completionDocument };
+    delete completionCore.receiptHash;
     if (completionSha256 !== receipt.candidateCompletions.sha256
       || completionDocument.receiptHash !== receipt.candidateCompletions.receiptHash
+      || completionDocument.receiptHash !== hashWgslSemanticEvidenceValue(completionCore)
       || completionDocument.candidate?.seed !== eligible.seed
       || completionDocument.population?.sha256 !== policy.populations.checkpointSelection.sha256) {
       throw new Error(`Candidate completion binding failed for seed ${eligible.seed}.`);
