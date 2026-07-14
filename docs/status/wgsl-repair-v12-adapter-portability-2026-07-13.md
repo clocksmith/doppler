@@ -1,33 +1,36 @@
 # WGSL Repair V12 Adapter Portability
 
-The three external20 adapters are preserved at revision-pinned Git LFS URLs,
-and the reusable PEFT-to-Doppler bridge now reproduces the frozen 628-token
-prompt exactly, validates adapter identity, and activates native PEFT LoRA
-matrix layouts. Behavioral inference parity is not established.
+The three external20 adapters are preserved at revision-pinned Git LFS URLs.
+The reusable PEFT-to-Doppler bridge reproduces the frozen 628-token prompt,
+validates adapter identity, and activates native PEFT LoRA matrix layouts. The
+base and all three adapters now pass the unchanged V1 portability gate.
 
-The frozen V1 gate failed for the base and all three adapters. The base matched
-the first token, but its first-token logit cosine was `0.8523495` against the
-required `0.995`, with six of ten top tokens overlapping. Every adapter matched
-the first token and produced a nonzero effect, but none reproduced the exact
-20-token Transformers/PEFT completion:
+Matched layer-zero captures located the prior divergence in the split gated
+SiLU operation. Doppler applied SiLU to both branches, computing
+`SiLU(gate) * SiLU(up)`, while Qwen requires `SiLU(gate) * up`. Commit
+`358653e7` corrects dense and MoE split callers and makes gated SiLU fail closed
+unless the input-branch activation is explicit. The Qwen weights, tokenizer,
+RDRR artifact, and LoRA adapter bytes were not changed.
 
-| Seed | Common prefix | Doppler completion | Logit cosine | Delta cosine |
-| --- | ---: | --- | ---: | ---: |
-| 11 | 9 tokens | `@group(0) @binding(0` | 0.6646071 | 0.6682266 |
-| 29 | 3 tokens | `@group((0) @binding((0) var<uniform` | 0.6769299 | 0.5815704 |
-| 47 | 3 tokens | `@group((0) @binding(0) var<uniform> u: Uniforms;;` | 0.6011106 | 0.7239024 |
+The committed-code rerun produced exact deterministic completions and ten of
+ten top-token overlap for the base and every adapter:
 
-A float32 Transformers control retained the exact seed-11 adapter completion,
-but Doppler logit cosine remained `0.8544648` for the base and `0.6646887` for
-the adapter. This rejects BF16-versus-F32 reference precision as the cause of
-the failed gate. The remaining boundary is a base-runtime component or layer
-divergence on the frozen prompt.
+| Lane | Exact completion | Logit cosine | Delta cosine |
+| --- | --- | ---: | ---: |
+| Base | yes | 0.9997408 | n/a |
+| Seed 11 | yes | 0.9998451 | 0.9996244 |
+| Seed 29 | yes | 0.9998452 | 0.9995723 |
+| Seed 47 | yes | 0.9997632 | 0.9996530 |
 
-No seed is selected. The V1 thresholds remain frozen, V13 trainer-to-Doppler
-parity remains unsatisfied, semantic evaluation remains blocked, and WGSL
-Doctor is not authorized. The machine-readable status is
-`wgsl-repair-v12-adapter-portability-2026-07-13.json`.
+The failed attempts remain evidence. The float32 Transformers control rejected
+reference precision as the cause, and the component capture then isolated the
+runtime arithmetic defect. The passing receipt is bound to Doppler commit
+`358653e78f0628c227b22edb32acfbd45220a67a` and has receipt hash
+`629e4329923ab772ca050c4ad755794836b2d6a6612ed70af3b86d9fad09d9ab`.
 
-The next diagnostic must capture matched Gamma and Doppler component or layer
-boundaries on the frozen prompt and locate the first divergence. A later policy
-may be frozen only on unexamined evidence; it cannot erase this failed V1 gate.
+No seed is selected because the frozen V1 policy has portability authority,
+not checkpoint-selection authority. Semantic WGSL evaluation still lacks its
+dispatch, CPU-oracle, numerical, metamorphic, bounds, and historical-regression
+contract. WGSL Doctor remains unauthorized. The next step is a new frozen seed
+selection policy on unexamined evidence, followed by the separately governed
+semantic campaign.

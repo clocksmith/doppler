@@ -56,6 +56,16 @@ export declare function createBackwardKernel(
   record: (recorder: CommandRecorder, ...args: unknown[]) => Promise<Tensor>;
 };
 
+export declare function resolveMatmulBackwardDxVariant(
+  weight: { dtype?: string | null } | null
+): 'default' | 'f16_weight';
+
+export interface MatmulBackwardDxOptions {
+  alpha?: number;
+  transposeB?: boolean;
+  outputBuffer?: GPUBuffer | null;
+}
+
 /**
  * Matmul-backward gradient w.r.t. input (dX = dY · Wᵀ). Submit + wait.
  */
@@ -65,7 +75,7 @@ export declare function runMatmulBackwardDx(
   M: number,
   K: number,
   N: number,
-  options?: { outputBuffer?: GPUBuffer | null }
+  options?: MatmulBackwardDxOptions
 ): Promise<Tensor>;
 
 /** Record runMatmulBackwardDx onto a CommandRecorder. */
@@ -76,5 +86,5 @@ export declare function recordMatmulBackwardDx(
   M: number,
   K: number,
   N: number,
-  options?: { outputBuffer?: GPUBuffer | null }
+  options?: MatmulBackwardDxOptions
 ): Promise<Tensor>;
