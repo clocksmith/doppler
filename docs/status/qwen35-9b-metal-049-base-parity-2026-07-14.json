@@ -1,0 +1,127 @@
+{
+  "artifactKind": "qwen35_9b_m3_doppler_049_base_parity_receipt",
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-14T15:41:46.418Z",
+  "status": "base_token_parity_coherent",
+  "repository": {
+    "commit": "a6fd91ffb1adcda3e7c26cd71183743dd0370b56",
+    "package": "doppler-gpu@0.4.9"
+  },
+  "host": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "chip": "Apple M3",
+    "unifiedMemoryBytes": 25769803776,
+    "metal": "Metal 4",
+    "webgpu": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "shaderF16": true,
+      "subgroups": true
+    }
+  },
+  "runtimeProfile": "profiles/qwen-3-5-9b-metal-correctness",
+  "prompt": {
+    "text": "Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.",
+    "inputTokenCount": 31,
+    "inputTokenIds": [
+      248045,
+      846,
+      198,
+      15666,
+      440,
+      6681,
+      279,
+      94693,
+      7733,
+      16764,
+      913,
+      803,
+      364,
+      264,
+      220,
+      18,
+      17,
+      14813,
+      18484,
+      16086,
+      869,
+      13,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+    ]
+  },
+  "artifacts": {
+    "q4": {
+      "modelId": "qwen-3-5-9b-q4k-ehaf16",
+      "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "manifestSha256": "ac1eff7f371b7d676a5b9a7ddcf94e2d01d3e1043f499dede2fc41249ef55956",
+      "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "shardSetHash": "sha256:27c1ba6d379e43eff7eae12b6ccc83081fe5248d1739e7877e82428d52daf228",
+      "weightPackHash": "sha256:dfeea5dc362804bd197d1f96effea74c4cd803eb93b8304c633057f4f172f237"
+    },
+    "f16": {
+      "modelId": "qwen-3-5-9b-f16-af32",
+      "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "manifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+      "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "shardSetHash": "sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d",
+      "weightPackHash": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46"
+    }
+  },
+  "result": {
+    "q4": {
+      "selectedTokenId": 69,
+      "selectedTokenText": "f",
+      "selectedTokenLogit": 26.31772804260254,
+      "generatedTokenIds": [69, 18, 17, 248046],
+      "output": "f32",
+      "rawLogitsSha256": "db374c775e2d0f9da99b89fe58cd5f6737e393e0721de7b81c8be0d8981c20c6"
+    },
+    "q4Replay": {
+      "selectedTokenId": 69,
+      "generatedTokenIds": [69, 18, 17, 248046],
+      "output": "f32",
+      "rawLogitsSha256": "db374c775e2d0f9da99b89fe58cd5f6737e393e0721de7b81c8be0d8981c20c6"
+    },
+    "f16": {
+      "selectedTokenId": 69,
+      "selectedTokenText": "f",
+      "selectedTokenLogit": 26.316465377807617,
+      "generatedTokenIds": [69, 18, 17, 248046],
+      "output": "f32",
+      "rawLogitsSha256": "1ffee227f81516e8822dd7c7643252a6c9a16c5a9f1bfe438f63f7ec958562af"
+    },
+    "comparison": {
+      "identicalInputTokenIds": true,
+      "identicalGeneratedTokenIds": true,
+      "identicalOutput": true,
+      "q4ReplayRawLogitsIdentical": true,
+      "rawLogitsMaxAbsDiff": 2.761598229408264,
+      "rawLogitsRmse": 0.5122713217379021,
+      "rawLogitsCosine": 0.9814944043975279
+    }
+  },
+  "evidence": {
+    "q4Receipt": "reports/qwen-3-5-9b-metal/2026-07-14/q4-base-first-token.json",
+    "q4ReceiptSha256": "88261982fe675d470601cecc9c44f3c4e6cd93ec1b4324d5da4239ab1e908104",
+    "q4ReplayReceipt": "reports/qwen-3-5-9b-metal/2026-07-14/q4-base-first-token-replay.json",
+    "q4ReplayReceiptSha256": "b126458ca586969977868206532267b667fcc12d871a4d8c76da6ba3edabf469",
+    "f16Receipt": "reports/qwen-3-5-9b-metal/2026-07-14/f16-base-first-token.json",
+    "f16ReceiptSha256": "2781d4e1dbe0b93380b02137f3d1e73c6b3cffa8eac4f3d86f46483ed5b63cd8"
+  },
+  "claimBoundary": {
+    "baseModelInferenceCorrectness": "The exact Q4 and F16 artifacts generate identical coherent tokens for this fixed deterministic control under Doppler 0.4.9.",
+    "generalBaseModelPromotion": "Not established by one prompt. A declared multi-prompt correctness population remains required.",
+    "adapterInferenceCorrectness": "Not evaluated in this receipt.",
+    "trainingImprovement": "Not evaluated. The frozen AMD ROCm training matrix was not touched.",
+    "runtimePerformance": "Not evaluated. Recorded timings are operational metadata, not a benchmark."
+  }
+}
