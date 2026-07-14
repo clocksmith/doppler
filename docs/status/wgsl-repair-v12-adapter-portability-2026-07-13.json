@@ -1,0 +1,152 @@
+{
+  "schema": "doppler.wgsl-repair-v12-adapter-portability-status/v1",
+  "experimentId": "doppler-wgsl-repair-v12",
+  "lane": "external20",
+  "recordedAt": "2026-07-13",
+  "preservation": {
+    "receiptPath": "docs/status/wgsl-repair-v12-adapter-preservation-verification-2026-07-13.json",
+    "receiptSha256": "2892b97dd87db3247c622ee0d031c9e649eee6a0c5cb560d0ac67f5c2639025c",
+    "receiptHash": "ec82711b0d3beb20024538a59769f55e12ade4fa02165aef7356734b11df60d3",
+    "decision": "complete"
+  },
+  "bridgeImplementation": {
+    "promptTokenizerParity": {
+      "status": "fixed",
+      "commit": "01b843dd",
+      "finding": "Doppler now applies the configured Qwen ByteLevel regex pre-tokenizer and reproduces all 628 frozen prompt token IDs."
+    },
+    "loraWeightLayout": {
+      "status": "fixed",
+      "commit": "25b94c0e",
+      "finding": "Runtime LoRA applies native PEFT A=[K,r] and B=[r,N] matrices without transposing either operand."
+    },
+    "referencePrecisionControl": {
+      "status": "implemented",
+      "commit": "09733df2",
+      "finding": "The reference runner requires an explicit bfloat16 or float32 model dtype."
+    }
+  },
+  "frozenParityGate": {
+    "policyPath": "tools/policies/wgsl-repair-v12-adapter-parity-policy.json",
+    "policySha256": "bffa4471eb976105ab5fe80acbbccd905788daf378ee6bcab4426991e6628719",
+    "referencePath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/parity/transformers/reference.json",
+    "referenceSha256": "6bb155e86b00166113fba7447fe22a20887625da9c95f0855a45bff284c39cb5",
+    "attemptPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/parity/parity-v1-attempt3-failed.json",
+    "attemptSha256": "5b83ba4ffbb02abcf4ea1094d0d6a7327bb8f1e66a915349123b7a72d68c290b",
+    "attemptReceiptHash": "b73ece5e3db749f33876e08f536b24ac88329051bb5dfa1106f572b7c4e9c5be",
+    "decision": "diagnostic_import_parity_failed",
+    "base": {
+      "promptTokenIdsExact": true,
+      "firstTokenIdExact": true,
+      "logitCosineSimilarity": 0.852349497667784,
+      "minimumLogitCosineSimilarity": 0.995,
+      "topKTokenOverlap": 6,
+      "minimumTopKTokenOverlap": 8,
+      "pass": false
+    },
+    "adapters": [
+      {
+        "seed": 11,
+        "promptTokenIdsExact": true,
+        "firstTokenIdExact": true,
+        "completionTokenIdsExact": false,
+        "completionCommonPrefixTokens": 9,
+        "referenceCompletionTokens": 20,
+        "dopplerCompletionTokens": 10,
+        "dopplerCompletionText": "@group(0) @binding(0",
+        "logitCosineSimilarity": 0.6646070929204241,
+        "topKTokenOverlap": 3,
+        "adapterDeltaCosineSimilarity": 0.6682266045543823,
+        "dopplerAdapterDeltaL2Norm": 1121.7637313730283,
+        "pass": false
+      },
+      {
+        "seed": 29,
+        "promptTokenIdsExact": true,
+        "firstTokenIdExact": true,
+        "completionTokenIdsExact": false,
+        "completionCommonPrefixTokens": 3,
+        "referenceCompletionTokens": 20,
+        "dopplerCompletionTokens": 16,
+        "dopplerCompletionText": "@group((0) @binding((0) var<uniform",
+        "logitCosineSimilarity": 0.6769298609648894,
+        "topKTokenOverlap": 6,
+        "adapterDeltaCosineSimilarity": 0.5815703933649073,
+        "dopplerAdapterDeltaL2Norm": 1101.8589113833225,
+        "pass": false
+      },
+      {
+        "seed": 47,
+        "promptTokenIdsExact": true,
+        "firstTokenIdExact": true,
+        "completionTokenIdsExact": false,
+        "completionCommonPrefixTokens": 3,
+        "referenceCompletionTokens": 20,
+        "dopplerCompletionTokens": 22,
+        "dopplerCompletionText": "@group((0) @binding(0) var<uniform> u: Uniforms;;",
+        "logitCosineSimilarity": 0.6011106463369514,
+        "topKTokenOverlap": 3,
+        "adapterDeltaCosineSimilarity": 0.7239023721298566,
+        "dopplerAdapterDeltaL2Norm": 1144.3743646969783,
+        "pass": false
+      }
+    ]
+  },
+  "float32Control": {
+    "purpose": "Test whether the F16/F32 Doppler versus BF16 reference precision boundary explains the failed parity gate.",
+    "seed": 11,
+    "referencePath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/parity/transformers-f32/reference-seed11.json",
+    "referenceSha256": "1786a7e7165c030e813d50ac25fbcd9cffc5268a035f7993e524ee5f7634b326",
+    "referenceAdapterCompletionExact": true,
+    "dopplerVersusReference": {
+      "baseLogitCosineSimilarity": 0.8544647839801742,
+      "adapterLogitCosineSimilarity": 0.6646887239278002,
+      "adapterDeltaCosineSimilarity": 0.6679044327910002,
+      "baseTopKTokenOverlap": 6,
+      "adapterTopKTokenOverlap": 3
+    },
+    "conclusion": "reference_precision_not_causal"
+  },
+  "artifactEvidence": {
+    "base": {
+      "path": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/parity/doppler/base.post-split-fix.json",
+      "sha256": "1ff55db9358db4b60e463c557fb4608668baf02c0bd08c49f0b534f6d554c7a8"
+    },
+    "adapters": [
+      {
+        "seed": 11,
+        "path": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/parity/doppler/seed11.post-lora-layout-fix.json",
+        "sha256": "1d74df56e771725762ab699360e6ebba29c0fcbcdd186a9c9b2dc0db274a7e60"
+      },
+      {
+        "seed": 29,
+        "path": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/parity/doppler/seed29.post-lora-layout-fix.json",
+        "sha256": "49be3e808d2457ef13efce5f1e7f6fd83af85f9a042b87f66a98be5a9cb0bf56"
+      },
+      {
+        "seed": 47,
+        "path": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/parity/doppler/seed47.post-lora-layout-fix.json",
+        "sha256": "289d6efc3c8408a5054c4e0f9abb686dae60367af65f840ca0c424efe9fef3bc"
+      }
+    ]
+  },
+  "selection": {
+    "seedSelected": false,
+    "selectedSeed": null,
+    "reason": "No external20 adapter passed the frozen trainer-to-Doppler parity gate."
+  },
+  "v13Admission": {
+    "trainerToDopplerParitySatisfied": false,
+    "semanticEvaluationAllowed": false,
+    "wgslDoctorAllowed": false
+  },
+  "blockers": [
+    "adapter_completion_parity_failed_all_seeds",
+    "adapter_delta_alignment_failed_all_seeds",
+    "adapter_logit_parity_failed_all_seeds",
+    "base_runtime_behavioral_parity_failed"
+  ],
+  "nextDiagnosticBoundary": "Capture Gamma and Doppler component or layer boundaries on the frozen prompt to locate the first base-runtime divergence; do not relax the frozen V1 thresholds or select a seed from failed evidence.",
+  "claimBoundary": "This receipt proves artifact preservation, exact prompt tokenization, adapter identity and activation, and nonzero adapter effects. It records failed behavioral portability for all three seeds. It does not select a checkpoint, establish semantic WGSL correctness, or authorize WGSL Doctor.",
+  "receiptHash": "29d3d70288aeb42bda2adda6dc5c7d297e0a1d215e95d36ba9a13528ac772f9a"
+}

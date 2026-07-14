@@ -35,9 +35,10 @@ must remain byte-identical.
 
 The readiness gate returns `blocked`. All three V12 external20 adapters now
 have revision-pinned Git LFS URLs and streamed SHA-256 verification. Semantic
-populations, task and oracle manifests, historical regressions, seed-level
-checkpoint selection, and trainer-to-Doppler adapter parity are absent. No
-semantic dispatch receipt exists.
+populations, task and oracle manifests, and historical regressions are absent.
+Seed-level checkpoint selection is absent, and the frozen V12 portability gate
+failed for all three adapters; a passing trainer-to-Doppler parity receipt is
+therefore absent. No semantic dispatch receipt exists.
 
 Accordingly, `semanticEvaluationAllowed`, `semanticClaimAllowed`,
 `wgslDoctorAllowed`, and `autonomousShaderAuthorAllowed` are all false. The
