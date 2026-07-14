@@ -71,6 +71,14 @@ downloads/
 shard_*.bin
 functiongemma-safetensors/
 
+# Governed WGSL repair adapter preservation artifacts
+!artifacts/
+!artifacts/wgsl-repair/
+!artifacts/wgsl-repair/v12/
+!artifacts/wgsl-repair/v12/external20/
+!artifacts/wgsl-repair/v12/external20/**/
+!artifacts/wgsl-repair/v12/external20/**/*.safetensors
+
 # Benchmark results
 bench-results/
 compare_*.json

@@ -1,3 +1,4 @@
 *.bin binary
 *.f32 binary
 *.u8 binary
+artifacts/wgsl-repair/v12/external20/**/*.safetensors filter=lfs diff=lfs merge=lfs -text
