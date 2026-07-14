@@ -3,7 +3,7 @@
   "policyId": "doppler-wgsl-repair-v13-semantic-evaluation",
   "policyStatus": "frozen_requirements_populations_unmaterialized",
   "predecessorVerified": true,
-  "preservationDecision": "local_verified",
+  "preservationDecision": "complete",
   "candidate": {
     "eligibleLane": "external20",
     "seedSelectionStatus": "not_selected",
@@ -30,8 +30,7 @@
     "semantic_promotion_population_unmaterialized",
     "semantic_seed_confirmation_population_unmaterialized",
     "semantic_task_manifest_absent",
-    "trainer_to_doppler_adapter_parity_absent",
-    "v12_adapter_external_preservation_incomplete"
+    "trainer_to_doppler_adapter_parity_absent"
   ],
-  "receiptHash": "06ea0a6586bec831f00b3709728b59bf20c41b6225808dc48bd7eaf1352d4072"
+  "receiptHash": "4b3e4c41d09c759280f8839af429fb853c464eea8be3d9b4a87b5b7671118a7e"
 }

@@ -99,7 +99,8 @@ assert.equal(readiness.admission.semanticEvaluationAllowed, false);
 assert.equal(readiness.admission.semanticClaimAllowed, false);
 assert.equal(readiness.admission.wgslDoctorAllowed, false);
 assert.equal(readiness.admission.autonomousShaderAuthorAllowed, false);
-assert.ok(readiness.blockers.includes('v12_adapter_external_preservation_incomplete'));
+assert.equal(readiness.preservationDecision, 'complete');
+assert.ok(!readiness.blockers.includes('v12_adapter_external_preservation_incomplete'));
 assert.ok(readiness.blockers.includes('semantic_dispatch_evidence_absent'));
 
 console.log('wgsl-repair-semantic-gate.test: ok');

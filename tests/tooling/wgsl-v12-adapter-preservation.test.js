@@ -49,10 +49,17 @@ try {
   assert.equal(local.localVerified, true);
   assert.equal(local.externallyPreserved, false);
   assert.ok(local.blockers.includes('v12_adapter_immutable_urls_absent'));
+  assert.ok(local.blockers.includes('v12_adapter_external_identity_verification_failed'));
 
   manifest.artifacts = manifest.artifacts.map((artifact) => ({
     ...artifact,
     immutableUrl: `https://artifacts.example/${artifact.sha256}`,
+    externalVerification: {
+      method: 'streamed_https_sha256',
+      verifiedAt: '2026-07-13',
+      observedSha256: artifact.sha256,
+      ok: true,
+    },
   }));
   manifest.externalPreservation.status = 'complete';
   writeFileSync(path.join(root, 'manifest.json'), JSON.stringify(manifest));

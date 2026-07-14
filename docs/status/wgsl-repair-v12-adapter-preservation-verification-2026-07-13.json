@@ -33,7 +33,13 @@
         "observedBytes": 5512,
         "ok": true
       },
-      "immutableUrl": null
+      "immutableUrl": "https://media.githubusercontent.com/media/clocksmith/doppler/9e33238db9a9d42bcf122967caf3563ee97d392c/artifacts/wgsl-repair/v12/external20/seed11/checkpoint-001200.adapters.safetensors",
+      "externalVerification": {
+        "method": "streamed_https_sha256",
+        "verifiedAt": "2026-07-13",
+        "observedSha256": "8631f512fe8ce481ade2e29a476bb1ade4e2ab6fd8627c7e27c7c093b4824af6",
+        "ok": true
+      }
     },
     {
       "seed": 29,
@@ -56,7 +62,13 @@
         "observedBytes": 5585,
         "ok": true
       },
-      "immutableUrl": null
+      "immutableUrl": "https://media.githubusercontent.com/media/clocksmith/doppler/9e33238db9a9d42bcf122967caf3563ee97d392c/artifacts/wgsl-repair/v12/external20/seed29/checkpoint-001200.adapters.safetensors",
+      "externalVerification": {
+        "method": "streamed_https_sha256",
+        "verifiedAt": "2026-07-13",
+        "observedSha256": "0d9ab8e1348a3fcdd6ef2973b624cc1a3d962de90a571976a5a222df27b69394",
+        "ok": true
+      }
     },
     {
       "seed": 47,
@@ -79,16 +91,21 @@
         "observedBytes": 5592,
         "ok": true
       },
-      "immutableUrl": null
+      "immutableUrl": "https://media.githubusercontent.com/media/clocksmith/doppler/9e33238db9a9d42bcf122967caf3563ee97d392c/artifacts/wgsl-repair/v12/external20/seed47/checkpoint-001200.adapters.safetensors",
+      "externalVerification": {
+        "method": "streamed_https_sha256",
+        "verifiedAt": "2026-07-13",
+        "observedSha256": "3e3895f062ae99d67c22ef3220a44ffe8081ba2021473de357e70216c50fd7d8",
+        "ok": true
+      }
     }
   ],
   "localVerified": true,
-  "externallyPreserved": false,
-  "decision": "local_verified",
-  "blockers": [
-    "v12_adapter_governed_external_preservation_incomplete",
-    "v12_adapter_immutable_urls_absent"
-  ],
-  "claimBoundary": "Local identity verification does not substitute for governed off-machine preservation, adapter selection, inference parity, semantic WGSL evaluation, or promotion.",
-  "receiptHash": "f71c06d614a1a78b69dfe577890b6265ab0634076729a7c1b23af7981122aaa9"
+  "immutableUrlsPresent": true,
+  "externalIdentitiesVerified": true,
+  "externallyPreserved": true,
+  "decision": "complete",
+  "blockers": [],
+  "claimBoundary": "Local and external identity verification establish preservation only; they do not establish adapter selection, inference parity, semantic WGSL evaluation, or promotion.",
+  "receiptHash": "ec82711b0d3beb20024538a59769f55e12ade4fa02165aef7356734b11df60d3"
 }
