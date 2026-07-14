@@ -4,12 +4,22 @@ import { readFileSync } from 'node:fs';
 import {
   evaluateNumericAgreement,
   evaluateWgslSemanticReadiness,
+  evaluateWgslSemanticReadinessV2,
   evaluateWgslSemanticTaskEvidence,
+  hashWgslSemanticEvidenceValue,
 } from '../../src/tooling/wgsl-repair-semantic-gate.js';
 
 const policy = JSON.parse(readFileSync('tools/policies/wgsl-repair-v13-semantic-policy.json', 'utf8'));
 const preservationReceipt = JSON.parse(readFileSync(
   'docs/status/wgsl-repair-v12-adapter-preservation-verification-2026-07-13.json',
+  'utf8'
+));
+const evidenceState = JSON.parse(readFileSync(
+  'tools/data/wgsl-repair-v13-semantic-evidence-state.json',
+  'utf8'
+));
+const adapterPortabilityReceipt = JSON.parse(readFileSync(
+  evidenceState.adapterPortability.path,
   'utf8'
 ));
 
@@ -34,14 +44,21 @@ assert.equal(nonFiniteMismatch.pass, false);
 assert.equal(nonFiniteMismatch.mismatches[0].reason, 'nonfinite_mismatch');
 
 function variant(shapeId, shapeClass, workgroupId) {
+  const inputs = { inputValues: [0.5, 1.5, 2.5] };
+  const expected = [1, 2, 3];
+  const actual = [1.000001, 2.00001, 2.99999];
   return {
     shapeId,
     shapeClass,
     workgroupId,
     dispatch: { status: 'pass', backend: 'chromium_webgpu' },
     oracle: {
-      expected: [1, 2, 3],
-      actual: [1.000001, 2.00001, 2.99999],
+      inputs,
+      inputSha256: hashWgslSemanticEvidenceValue(inputs),
+      expected,
+      expectedSha256: hashWgslSemanticEvidenceValue(expected),
+      actual,
+      actualSha256: hashWgslSemanticEvidenceValue(actual),
       tolerance: policy.taskContract.numericalAgreement.tiers.float32,
     },
     bufferBounds: {
@@ -68,6 +85,9 @@ const passingEvidence = {
     variant('shape-boundary', 'boundary_or_tail', 'wg-64'),
   ],
   historicalRegressionsPass: true,
+  historicalRegressionResults: [
+    { id: 'logical-elements-not-padded-storage', status: 'pass' },
+  ],
 };
 const passed = evaluateWgslSemanticTaskEvidence(policy, passingEvidence);
 assert.equal(passed.pass, true);
@@ -76,6 +96,9 @@ assert.equal(passed.distinctWorkgroupCount, 2);
 
 const corrupted = structuredClone(passingEvidence);
 corrupted.variants[1].oracle.actual[0] = 99;
+corrupted.variants[1].oracle.actualSha256 = hashWgslSemanticEvidenceValue(
+  corrupted.variants[1].oracle.actual
+);
 corrupted.variants[2].bufferBounds.suffixCanaryIntact = false;
 const failed = evaluateWgslSemanticTaskEvidence(policy, corrupted);
 assert.equal(failed.pass, false);
@@ -102,5 +125,44 @@ assert.equal(readiness.admission.autonomousShaderAuthorAllowed, false);
 assert.equal(readiness.preservationDecision, 'complete');
 assert.ok(!readiness.blockers.includes('v12_adapter_external_preservation_incomplete'));
 assert.ok(readiness.blockers.includes('semantic_dispatch_evidence_absent'));
+
+const readinessV2 = evaluateWgslSemanticReadinessV2({
+  policy,
+  evidenceState,
+  policyVerified: true,
+  predecessorVerified: true,
+  preservationReceipt,
+  adapterPortabilityReceipt,
+  adapterPortabilityReceiptVerified: true,
+  populationVerification: {},
+  selectionReceiptVerified: false,
+  implementationVerification: {},
+  taskEvidence: [],
+});
+assert.equal(readinessV2.schema, 'doppler.wgsl-repair-semantic-readiness/v2');
+assert.equal(readinessV2.adapterPortability.pass, true);
+assert.equal(readinessV2.decision, 'blocked');
+assert.equal(readinessV2.phaseAdmission.calibrationAllowed, false);
+assert.ok(!readinessV2.blockers.includes('trainer_to_doppler_adapter_parity_absent'));
+assert.ok(!readinessV2.blockers.includes('trainer_to_doppler_parity_failure'));
+assert.ok(readinessV2.blockers.includes('semantic_task_manifest_absent'));
+
+const tamperedPortability = structuredClone(adapterPortabilityReceipt);
+tamperedPortability.frozenParityGate.adapters[0].pass = false;
+const tamperedV2 = evaluateWgslSemanticReadinessV2({
+  policy,
+  evidenceState,
+  policyVerified: true,
+  predecessorVerified: true,
+  preservationReceipt,
+  adapterPortabilityReceipt: tamperedPortability,
+  adapterPortabilityReceiptVerified: true,
+  populationVerification: {},
+  selectionReceiptVerified: false,
+  implementationVerification: {},
+  taskEvidence: [],
+});
+assert.equal(tamperedV2.adapterPortability.pass, false);
+assert.ok(tamperedV2.blockers.includes('trainer_to_doppler_parity_failure'));
 
 console.log('wgsl-repair-semantic-gate.test: ok');

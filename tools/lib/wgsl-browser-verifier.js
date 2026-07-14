@@ -54,6 +54,11 @@ export async function createWgslBrowserVerifier(options = {}) {
     'compilationTimeoutMs'
   );
   const progressEvery = requirePositiveInteger(options.progressEvery, 100, 'progressEvery');
+  const dispatchTimeoutMs = requirePositiveInteger(
+    options.dispatchTimeoutMs,
+    20000,
+    'dispatchTimeoutMs'
+  );
   const deviceRequest = {
     powerPreference: options.powerPreference || 'high-performance',
     requiredFeatures: Array.isArray(options.requiredFeatures)
@@ -199,6 +204,171 @@ export async function createWgslBrowserVerifier(options = {}) {
           errorCount: errors.length,
         };
       });
+    },
+    async dispatch(entries) {
+      const normalizedEntries = entries.map((entry, index) => ({
+        id: String(entry.id || `dispatch-${index + 1}`),
+        code: String(entry.code || ''),
+        entryPoint: String(entry.entryPoint || 'main'),
+        constants: entry.constants || {},
+        dispatch: Array.isArray(entry.dispatch) ? entry.dispatch.map(Number) : [1, 1, 1],
+        buffers: Array.isArray(entry.buffers) ? entry.buffers.map((buffer) => ({
+          binding: Number(buffer.binding),
+          kind: String(buffer.kind || ''),
+          bytes: Array.from(buffer.bytes || [], Number),
+          readback: buffer.readback === true,
+        })) : [],
+      }));
+      const dispatched = [];
+      for (const [index, input] of normalizedEntries.entries()) {
+        const outcome = await settleWithTimeout(
+          () => page.evaluate(async (request) => {
+            const device = globalThis.__wgslVerifierDevice;
+            if (!device) throw new Error('webgpu_verifier_device_missing');
+            const compilationMessages = [];
+            const runtimeErrors = [];
+            const readbacks = {};
+            const gpuBuffers = [];
+            const stagingBuffers = [];
+            const uncaptured = (event) => {
+              runtimeErrors.push(event.error?.message || String(event.error || event));
+            };
+            device.addEventListener('uncapturederror', uncaptured);
+            device.pushErrorScope('out-of-memory');
+            device.pushErrorScope('validation');
+            try {
+              const module = device.createShaderModule({ code: request.code, label: request.id });
+              const compilationInfo = await module.getCompilationInfo();
+              compilationMessages.push(...[...compilationInfo.messages].map((message) => ({
+                type: message.type,
+                message: message.message,
+                lineNum: message.lineNum,
+                linePos: message.linePos,
+                offset: message.offset,
+                length: message.length,
+              })));
+              if (compilationMessages.some((message) => message.type === 'error')) {
+                return { compilationMessages, runtimeErrors, readbacks };
+              }
+              const pipeline = await device.createComputePipelineAsync({
+                label: request.id,
+                layout: 'auto',
+                compute: {
+                  module,
+                  entryPoint: request.entryPoint,
+                  constants: request.constants,
+                },
+              });
+              const bindGroupEntries = request.buffers.map((buffer) => {
+                if (!Number.isInteger(buffer.binding) || buffer.binding < 0) {
+                  throw new Error(`invalid_binding:${buffer.binding}`);
+                }
+                if (buffer.bytes.length === 0 || buffer.bytes.length % 4 !== 0) {
+                  throw new Error(`invalid_buffer_byte_length:${buffer.binding}`);
+                }
+                let usage = GPUBufferUsage.COPY_DST;
+                if (buffer.kind === 'uniform') usage |= GPUBufferUsage.UNIFORM;
+                else if (buffer.kind === 'storage' || buffer.kind === 'read-only-storage') {
+                  usage |= GPUBufferUsage.STORAGE;
+                } else {
+                  throw new Error(`unsupported_buffer_kind:${buffer.kind}`);
+                }
+                if (buffer.readback) usage |= GPUBufferUsage.COPY_SRC;
+                const gpuBuffer = device.createBuffer({
+                  label: `${request.id}-binding-${buffer.binding}`,
+                  size: buffer.bytes.length,
+                  usage,
+                });
+                gpuBuffers.push({ binding: buffer.binding, buffer: gpuBuffer, size: buffer.bytes.length });
+                device.queue.writeBuffer(gpuBuffer, 0, new Uint8Array(buffer.bytes));
+                return { binding: buffer.binding, resource: { buffer: gpuBuffer } };
+              });
+              const bindGroup = device.createBindGroup({
+                label: `${request.id}-bind-group`,
+                layout: pipeline.getBindGroupLayout(0),
+                entries: bindGroupEntries,
+              });
+              const encoder = device.createCommandEncoder({ label: `${request.id}-encoder` });
+              const pass = encoder.beginComputePass({ label: `${request.id}-compute` });
+              pass.setPipeline(pipeline);
+              pass.setBindGroup(0, bindGroup);
+              pass.dispatchWorkgroups(...request.dispatch);
+              pass.end();
+              for (const descriptor of request.buffers.filter((buffer) => buffer.readback)) {
+                const source = gpuBuffers.find((entry) => entry.binding === descriptor.binding);
+                const staging = device.createBuffer({
+                  label: `${request.id}-readback-${descriptor.binding}`,
+                  size: descriptor.bytes.length,
+                  usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+                });
+                stagingBuffers.push({
+                  binding: descriptor.binding,
+                  buffer: staging,
+                  size: descriptor.bytes.length,
+                });
+                encoder.copyBufferToBuffer(source.buffer, 0, staging, 0, descriptor.bytes.length);
+              }
+              device.queue.submit([encoder.finish()]);
+              await device.queue.onSubmittedWorkDone();
+              for (const staging of stagingBuffers) {
+                await staging.buffer.mapAsync(GPUMapMode.READ);
+                readbacks[String(staging.binding)] = {
+                  bytes: [...new Uint8Array(staging.buffer.getMappedRange()).slice()],
+                };
+                staging.buffer.unmap();
+              }
+            } catch (error) {
+              runtimeErrors.push(error?.message || String(error));
+            } finally {
+              const validationError = await device.popErrorScope();
+              const outOfMemoryError = await device.popErrorScope();
+              if (validationError) runtimeErrors.push(validationError.message);
+              if (outOfMemoryError) runtimeErrors.push(outOfMemoryError.message);
+              device.removeEventListener('uncapturederror', uncaptured);
+              for (const entry of gpuBuffers) entry.buffer.destroy();
+              for (const entry of stagingBuffers) entry.buffer.destroy();
+            }
+            return { compilationMessages, runtimeErrors, readbacks };
+          }, input),
+          dispatchTimeoutMs
+        );
+        if (outcome.status === 'fulfilled') {
+          const messages = normalizeMessages(outcome.value.compilationMessages);
+          const compilationErrors = messages.filter((message) => message.type === 'error');
+          const runtimeErrors = outcome.value.runtimeErrors.map(String);
+          dispatched.push({
+            id: input.id,
+            sourceSha256: sha256Hex(input.code),
+            passed: compilationErrors.length === 0 && runtimeErrors.length === 0,
+            compilation: {
+              passed: compilationErrors.length === 0,
+              messages,
+              errorCount: compilationErrors.length,
+            },
+            validationErrorsAbsent: runtimeErrors.length === 0,
+            runtimeErrors,
+            readbacks: outcome.value.readbacks,
+          });
+        } else {
+          const reason = outcome.status === 'timed_out'
+            ? `WGSL dispatch timed out after ${dispatchTimeoutMs}ms.`
+            : `WGSL dispatch exception: ${outcome.error?.message || String(outcome.error)}`;
+          dispatched.push({
+            id: input.id,
+            sourceSha256: sha256Hex(input.code),
+            passed: false,
+            compilation: { passed: false, messages: [], errorCount: 0 },
+            validationErrorsAbsent: false,
+            runtimeErrors: [reason],
+            readbacks: {},
+          });
+          await resetSession();
+        }
+        if ((index + 1) % progressEvery === 0 || index + 1 === normalizedEntries.length) {
+          console.error(`[wgsl-verifier] dispatched ${index + 1}/${normalizedEntries.length}`);
+        }
+      }
+      return dispatched;
     },
     async close() {
       if (browser) await browser.close();

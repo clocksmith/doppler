@@ -4,6 +4,13 @@ import { stableSortObject } from '../utils/stable-sort-object.js';
 
 export const WGSL_REPAIR_SEMANTIC_READINESS_SCHEMA_ID =
   'doppler.wgsl-repair-semantic-readiness/v1';
+export const WGSL_REPAIR_SEMANTIC_READINESS_V2_SCHEMA_ID =
+  'doppler.wgsl-repair-semantic-readiness/v2';
+
+const V13_POLICY_ID = 'doppler-wgsl-repair-v13-semantic-evaluation';
+const V12_PORTABILITY_SCHEMA_ID =
+  'doppler.wgsl-repair-v12-adapter-portability-status/v1';
+const EXPECTED_EXTERNAL20_SEEDS = Object.freeze([11, 29, 47]);
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value));
@@ -11,6 +18,26 @@ function stableJson(value) {
 
 function hashStableJson(value) {
   return sha256Hex(stableJson(value));
+}
+
+function normalizeHashValue(value) {
+  if (typeof value === 'number') {
+    if (Number.isNaN(value)) return { nonFinite: 'nan' };
+    if (value === Number.POSITIVE_INFINITY) return { nonFinite: 'positive_infinity' };
+    if (value === Number.NEGATIVE_INFINITY) return { nonFinite: 'negative_infinity' };
+    if (Object.is(value, -0)) return { finite: 'negative_zero' };
+  }
+  if (Array.isArray(value)) return value.map(normalizeHashValue);
+  if (isPlainObject(value)) {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => (
+      [key, normalizeHashValue(entry)]
+    )));
+  }
+  return value;
+}
+
+export function hashWgslSemanticEvidenceValue(value) {
+  return hashStableJson(normalizeHashValue(value));
 }
 
 function finiteNumber(value) {
@@ -125,7 +152,15 @@ export function evaluateWgslSemanticTaskEvidence(policy, evidence) {
       variant.oracle?.actual,
       variant.oracle?.tolerance
     );
-    if (!numeric.pass) {
+    const hashBindingPass = typeof variant.oracle?.inputSha256 === 'string'
+      && variant.oracle.inputSha256 === hashWgslSemanticEvidenceValue(variant.oracle.inputs)
+      && typeof variant.oracle?.expectedSha256 === 'string'
+      && variant.oracle.expectedSha256
+        === hashWgslSemanticEvidenceValue(Array.from(variant.oracle?.expected || []))
+      && typeof variant.oracle?.actualSha256 === 'string'
+      && variant.oracle.actualSha256
+        === hashWgslSemanticEvidenceValue(Array.from(variant.oracle?.actual || []));
+    if (!numeric.pass || !hashBindingPass) {
       const hasNonFinite = numeric.mismatches.some((entry) => entry.reason === 'nonfinite_mismatch');
       blockers.add(hasNonFinite ? 'nonfinite_mismatch' : 'cpu_oracle_mismatch');
     }
@@ -162,13 +197,21 @@ export function evaluateWgslSemanticTaskEvidence(policy, evidence) {
       workgroupId: variant.workgroupId,
       dispatchPass: variant.dispatch?.status === 'pass',
       numeric,
+      hashBindingPass,
       boundsPass,
     });
   }
   if (passedMetamorphic.size < policy.taskContract.metamorphic.minimumApplicableRelationsPerTask) {
     blockers.add('metamorphic_failure');
   }
-  if (evidence.historicalRegressionsPass !== true) blockers.add('historical_regression');
+  const historicalRegressionResults = Array.isArray(evidence.historicalRegressionResults)
+    ? evidence.historicalRegressionResults
+    : [];
+  if (evidence.historicalRegressionsPass !== true
+    || historicalRegressionResults.length === 0
+    || historicalRegressionResults.some((entry) => entry?.status !== 'pass')) {
+    blockers.add('historical_regression');
+  }
   const resultCore = {
     taskId: evidence.taskId || null,
     pass: blockers.size === 0,
@@ -183,7 +226,7 @@ export function evaluateWgslSemanticTaskEvidence(policy, evidence) {
 
 export function evaluateWgslSemanticReadiness(options = {}) {
   const policy = options.policy;
-  if (!isPlainObject(policy) || policy.policyId !== 'doppler-wgsl-repair-v13-semantic-evaluation') {
+  if (!isPlainObject(policy) || policy.policyId !== V13_POLICY_ID) {
     throw new Error('WGSL semantic readiness: unsupported policy.');
   }
   const blockers = new Set(Array.isArray(policy.blockers) ? policy.blockers : []);
@@ -256,6 +299,212 @@ export function evaluateWgslSemanticReadiness(options = {}) {
           ? 'semantic_evaluation_allowed'
           : 'blocked',
     blockers: [...blockers].sort(),
+  };
+  return { ...core, receiptHash: hashStableJson(core) };
+}
+
+function populationReady(population, verified) {
+  return population?.status === 'frozen'
+    && typeof population.manifestPath === 'string'
+    && population.manifestPath.length > 0
+    && typeof population.populationHash === 'string'
+    && population.populationHash.length === 64
+    && verified === true;
+}
+
+function candidateReady(candidate, selectionReceiptVerified) {
+  return candidate?.seedSelectionStatus === 'selected'
+    && EXPECTED_EXTERNAL20_SEEDS.includes(candidate.selectedSeed)
+    && typeof candidate.adapterPath === 'string'
+    && candidate.adapterPath.length > 0
+    && typeof candidate.adapterSha256 === 'string'
+    && candidate.adapterSha256.length === 64
+    && typeof candidate.selectionReceiptPath === 'string'
+    && candidate.selectionReceiptPath.length > 0
+    && typeof candidate.selectionReceiptSha256 === 'string'
+    && candidate.selectionReceiptSha256.length === 64
+    && selectionReceiptVerified === true;
+}
+
+function evaluateAdapterPortability(receipt, receiptVerified) {
+  const adapters = Array.isArray(receipt?.frozenParityGate?.adapters)
+    ? receipt.frozenParityGate.adapters
+    : [];
+  const adapterPassBySeed = Object.fromEntries(EXPECTED_EXTERNAL20_SEEDS.map((seed) => {
+    const adapter = adapters.find((entry) => entry?.seed === seed);
+    return [String(seed), adapter?.pass === true];
+  }));
+  const pass = receiptVerified === true
+    && receipt?.schema === V12_PORTABILITY_SCHEMA_ID
+    && receipt?.experimentId === 'doppler-wgsl-repair-v12'
+    && receipt?.lane === 'external20'
+    && receipt?.preservation?.decision === 'complete'
+    && receipt?.frozenParityGate?.decision === 'diagnostic_import_parity_passed'
+    && receipt?.frozenParityGate?.base?.pass === true
+    && EXPECTED_EXTERNAL20_SEEDS.every((seed) => adapterPassBySeed[String(seed)] === true)
+    && receipt?.v13Admission?.trainerToDopplerParitySatisfied === true;
+  return {
+    receiptVerified: receiptVerified === true,
+    schema: receipt?.schema ?? null,
+    experimentId: receipt?.experimentId ?? null,
+    lane: receipt?.lane ?? null,
+    decision: receipt?.frozenParityGate?.decision ?? null,
+    basePass: receipt?.frozenParityGate?.base?.pass === true,
+    adapterPassBySeed,
+    pass,
+  };
+}
+
+function implementationReady(implementation, verification) {
+  const taskManifestReady = typeof implementation?.taskManifestPath === 'string'
+    && implementation.taskManifestPath.length > 0
+    && typeof implementation.taskManifestSha256 === 'string'
+    && implementation.taskManifestSha256.length === 64
+    && verification?.taskManifest === true;
+  const cpuOracleReady = typeof implementation?.cpuOracleRevision === 'string'
+    && implementation.cpuOracleRevision.length > 0;
+  const historicalRegressionsReady =
+    typeof implementation?.historicalRegressionManifestPath === 'string'
+    && implementation.historicalRegressionManifestPath.length > 0
+    && typeof implementation.historicalRegressionManifestSha256 === 'string'
+    && implementation.historicalRegressionManifestSha256.length === 64
+    && verification?.historicalRegressionManifest === true;
+  return { taskManifestReady, cpuOracleReady, historicalRegressionsReady };
+}
+
+export function evaluateWgslSemanticReadinessV2(options = {}) {
+  const policy = options.policy;
+  const state = options.evidenceState;
+  if (!isPlainObject(policy) || policy.policyId !== V13_POLICY_ID) {
+    throw new Error('WGSL semantic readiness v2: unsupported policy.');
+  }
+  if (!isPlainObject(state)
+    || state.experimentId !== 'doppler-wgsl-repair-v13'
+    || !isPlainObject(state.candidate)
+    || !isPlainObject(state.populations)
+    || !isPlainObject(state.implementation)) {
+    throw new Error('WGSL semantic readiness v2: invalid evidence state.');
+  }
+
+  const blockers = new Set();
+  if (options.policyVerified !== true) blockers.add('semantic_policy_identity_verification_failed');
+  if (options.predecessorVerified !== true) blockers.add('v12_predecessor_identity_verification_failed');
+  if (options.preservationReceipt?.decision !== 'complete') {
+    blockers.add('v12_adapter_external_preservation_incomplete');
+  }
+
+  const adapterPortability = evaluateAdapterPortability(
+    options.adapterPortabilityReceipt,
+    options.adapterPortabilityReceiptVerified
+  );
+  if (!options.adapterPortabilityReceipt) {
+    blockers.add('trainer_to_doppler_adapter_parity_absent');
+  } else if (!adapterPortability.pass) {
+    blockers.add('trainer_to_doppler_parity_failure');
+  }
+
+  const populationBlockerIds = {
+    calibration: 'calibration',
+    checkpointSelection: 'checkpoint_selection',
+    seedConfirmation: 'seed_confirmation',
+    promotion: 'promotion',
+  };
+  const populationReadiness = {};
+  for (const [role, blockerId] of Object.entries(populationBlockerIds)) {
+    const population = state.populations[role];
+    const verified = options.populationVerification?.[role] === true;
+    const ready = populationReady(population, verified);
+    populationReadiness[role] = ready;
+    if (!ready) {
+      const suffix = population?.status === 'frozen'
+        ? 'identity_verification_failed'
+        : 'unmaterialized';
+      blockers.add(`semantic_${blockerId}_population_${suffix}`);
+    }
+  }
+
+  const selectedCandidateReady = candidateReady(
+    state.candidate,
+    options.selectionReceiptVerified
+  );
+  if (!selectedCandidateReady) blockers.add('external20_seed_checkpoint_not_selected');
+  if (state.candidate?.seedSelectionStatus === 'selected'
+    && adapterPortability.adapterPassBySeed[String(state.candidate.selectedSeed)] !== true) {
+    blockers.add('trainer_to_doppler_parity_failure');
+  }
+
+  const implementation = implementationReady(
+    state.implementation,
+    options.implementationVerification
+  );
+  if (!implementation.taskManifestReady) blockers.add('semantic_task_manifest_absent');
+  if (!implementation.cpuOracleReady) blockers.add('cpu_oracle_implementation_revision_absent');
+  if (!implementation.historicalRegressionsReady) {
+    blockers.add('historical_regression_manifest_absent');
+  }
+
+  const taskEvidence = Array.isArray(options.taskEvidence)
+    ? options.taskEvidence.map((entry) => evaluateWgslSemanticTaskEvidence(policy, entry))
+    : [];
+  if (taskEvidence.length === 0) blockers.add('semantic_dispatch_evidence_absent');
+  if (taskEvidence.some((entry) => !entry.pass)) blockers.add('semantic_task_failure');
+
+  const baseImplementationAllowed = options.policyVerified === true
+    && options.predecessorVerified === true
+    && options.preservationReceipt?.decision === 'complete'
+    && adapterPortability.pass
+    && implementation.taskManifestReady
+    && implementation.cpuOracleReady
+    && implementation.historicalRegressionsReady;
+  const phaseAdmission = {
+    calibrationAllowed: baseImplementationAllowed && populationReadiness.calibration,
+    checkpointSelectionAllowed: baseImplementationAllowed
+      && populationReadiness.calibration
+      && populationReadiness.checkpointSelection,
+    seedConfirmationAllowed: baseImplementationAllowed
+      && selectedCandidateReady
+      && populationReadiness.seedConfirmation,
+    promotionEvaluationAllowed: baseImplementationAllowed
+      && selectedCandidateReady
+      && Object.values(populationReadiness).every(Boolean),
+  };
+  const semanticEvaluationAllowed = Object.values(phaseAdmission).some(Boolean);
+  const semanticClaimAllowed = phaseAdmission.promotionEvaluationAllowed
+    && taskEvidence.length > 0
+    && taskEvidence.every((entry) => entry.pass)
+    && blockers.size === 0;
+  const wgslDoctorAllowed = semanticClaimAllowed && policy.productization.wgslDoctorAllowed === true;
+  const core = {
+    schema: WGSL_REPAIR_SEMANTIC_READINESS_V2_SCHEMA_ID,
+    experimentId: state.experimentId,
+    policyId: policy.policyId,
+    policyStatus: policy.status,
+    policyBinding: state.policy,
+    predecessorVerified: options.predecessorVerified === true,
+    preservationDecision: options.preservationReceipt?.decision ?? null,
+    adapterPortabilityBinding: state.adapterPortability,
+    adapterPortability,
+    candidate: state.candidate,
+    populations: state.populations,
+    implementation: state.implementation,
+    taskEvidence,
+    phaseAdmission,
+    admission: {
+      semanticEvaluationAllowed,
+      semanticClaimAllowed,
+      wgslDoctorAllowed,
+      autonomousShaderAuthorAllowed: false,
+    },
+    decision: wgslDoctorAllowed
+      ? 'wgsl_doctor_allowed'
+      : semanticClaimAllowed
+        ? 'semantic_claim_allowed'
+        : semanticEvaluationAllowed
+          ? 'semantic_evaluation_allowed'
+          : 'blocked',
+    declaredHistoricalBlockers: Array.isArray(policy.blockers) ? [...policy.blockers].sort() : [],
+    blockers: [...blockers].sort(),
+    claimBoundary: state.claimBoundary,
   };
   return { ...core, receiptHash: hashStableJson(core) };
 }
