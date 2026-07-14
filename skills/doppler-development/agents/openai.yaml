@@ -1,0 +1,4 @@
+interface:
+  display_name: "Doppler Development"
+  short_description: "Build and validate Doppler project changes"
+  default_prompt: "Use $doppler-development to implement and validate this change in Doppler."

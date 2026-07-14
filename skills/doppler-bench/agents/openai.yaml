@@ -1,0 +1,4 @@
+interface:
+  display_name: "Doppler Bench"
+  short_description: "Produce reproducible benchmark evidence"
+  default_prompt: "Use $doppler-bench to run and validate this Doppler benchmark."

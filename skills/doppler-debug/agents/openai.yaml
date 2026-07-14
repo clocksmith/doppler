@@ -1,0 +1,4 @@
+interface:
+  display_name: "Doppler Debug"
+  short_description: "Trace and fix Doppler project failures"
+  default_prompt: "Use $doppler-debug to reproduce, trace, and fix this failure in Doppler."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Doppler Kernel Reviewer"
+  short_description: "Audit WGSL kernels and wrappers"
+  default_prompt: "Use $doppler-kernel-reviewer to review this Doppler kernel path."
