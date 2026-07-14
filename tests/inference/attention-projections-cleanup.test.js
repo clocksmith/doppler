@@ -231,8 +231,8 @@ try {
     resetRuntime(device);
     const input = createExternalTensor(4, 'f32', 'lora_input');
     const baseOutput = createExternalTensor(4, 'f32', 'lora_base');
-    const loraA = createWeightBuffer(new FakeBuffer({ size: 4 * 1 * 4, usage: GPUBufferUsage.STORAGE }), 'f32', 'row', [1, 4], 'lora_a');
-    const loraB = createWeightBuffer(new FakeBuffer({ size: 1 * 4 * 4, usage: GPUBufferUsage.STORAGE }), 'f32', 'row', [4, 1], 'lora_b');
+    const loraA = createWeightBuffer(new FakeBuffer({ size: 4 * 1 * 4, usage: GPUBufferUsage.STORAGE }), 'f32', 'row', [4, 1], 'lora_a');
+    const loraB = createWeightBuffer(new FakeBuffer({ size: 1 * 4 * 4, usage: GPUBufferUsage.STORAGE }), 'f32', 'row', [1, 4], 'lora_b');
 
     await assert.rejects(
       () => applyLoRA(
