@@ -252,6 +252,11 @@ function referenceProcessArgs(options) {
 }
 
 async function runReference(options) {
+  try {
+    return await readJson(options.referencePath);
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
   const gammaRoot = path.resolve(process.env.GAMMA_ROOT || path.join(process.cwd(), '..', 'gamma'));
   const python = path.resolve(
     process.env.GAMMA_WGSL_PYTHON || path.join(gammaRoot, '.venv_rocm', 'bin', 'python')
@@ -276,6 +281,25 @@ async function runReference(options) {
     fs.writeFile(options.stderrPath, result.stderr || '', 'utf8'),
   ]);
   return readJson(options.referencePath);
+}
+
+async function readExistingCandidateReceipt(receiptPath, options) {
+  let receipt;
+  try {
+    receipt = await readJson(receiptPath);
+  } catch (error) {
+    if (error?.code === 'ENOENT') return null;
+    throw error;
+  }
+  requireStableInternalHash(receipt, 'receiptHash', `seed ${options.seed} semantic receipt`);
+  if (receipt.policy?.sha256 !== options.policySha256
+    || receipt.population?.sha256 !== options.populationSha256
+    || receipt.reference?.sha256 !== options.referenceSha256
+    || receipt.candidate?.seed !== options.seed
+    || receipt.submission?.ordinalForCandidate !== 1) {
+    throw new Error(`Seed ${options.seed} existing semantic receipt is stale.`);
+  }
+  return receipt;
 }
 
 export function summarizeWriterCandidate(tasks, evaluatedTasks, completions) {
@@ -366,7 +390,6 @@ export async function runWgslWriterV2Evaluation(args) {
   const evaluationPath = path.join(roleRoot, 'evaluation.json');
   const referencePath = path.join(roleRoot, 'peft-reference.json');
   await pathAbsent(evaluationPath, `${args.role} evaluation`);
-  await pathAbsent(referencePath, `${args.role} reference`);
   await fs.mkdir(roleRoot, { recursive: true });
   const [inputs, candidates, priorGate] = await Promise.all([
     loadEvaluationInputs(policy, args.role),
@@ -412,21 +435,29 @@ export async function runWgslWriterV2Evaluation(args) {
         || referenceCandidate.adapterTreeSha256 !== candidate.adapterTreeSha256) {
         throw new Error(`Seed ${candidate.seed} reference adapter identity mismatch.`);
       }
-      const receipt = await evaluateCandidate({
-        policy,
-        role: args.role,
-        semanticPolicy: inputs.semanticPolicy,
-        manifest: inputs.manifest,
-        referenceShaders,
-        verifier,
-        referenceCandidate,
-        candidate,
-        policyIdentity,
-        populationIdentity,
-        referenceIdentity,
-      });
       const receiptPath = path.join(roleRoot, `seed${candidate.seed}.semantic.json`);
-      await fs.writeFile(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
+      let receipt = await readExistingCandidateReceipt(receiptPath, {
+        seed: candidate.seed,
+        policySha256: policyIdentity.sha256,
+        populationSha256: populationIdentity.sha256,
+        referenceSha256: referenceIdentity.sha256,
+      });
+      if (!receipt) {
+        receipt = await evaluateCandidate({
+          policy,
+          role: args.role,
+          semanticPolicy: inputs.semanticPolicy,
+          manifest: inputs.manifest,
+          referenceShaders,
+          verifier,
+          referenceCandidate,
+          candidate,
+          policyIdentity,
+          populationIdentity,
+          referenceIdentity,
+        });
+        await fs.writeFile(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
+      }
       receipts.push({
         seed: candidate.seed,
         path: path.relative(process.cwd(), receiptPath),

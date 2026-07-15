@@ -179,6 +179,11 @@ async function runReference(args, policy, candidate, outputRoot) {
   const outputPath = path.join(outputRoot, 'transformers', 'reference.json');
   const logitsDir = path.join(outputRoot, 'transformers');
   await fs.mkdir(logitsDir, { recursive: true });
+  try {
+    return { path: outputPath, receipt: await readJson(outputPath) };
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
   await runProcess(python, [
     path.resolve(REFERENCE_RUNNER),
     '--model', path.resolve(args.sourceModelPath),
@@ -201,6 +206,11 @@ async function runReference(args, policy, candidate, outputRoot) {
 async function runDopplerCapture(options) {
   const outputPath = path.join(options.outputRoot, `${options.id}.json`);
   const logitsPath = path.join(options.outputRoot, `${options.id}.first-token-logits.f32`);
+  try {
+    return { path: outputPath, receipt: await readJson(outputPath) };
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
   const argv = [
     path.resolve(DOPPLER_RUNNER),
     '--model-dir', path.resolve(options.args.dopplerModelPath),
