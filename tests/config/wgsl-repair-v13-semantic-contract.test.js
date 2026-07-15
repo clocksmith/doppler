@@ -84,12 +84,12 @@ assert.equal(current.admission.wgslDoctorAllowed, false);
 assert.ok(!current.blockers.includes('trainer_to_doppler_adapter_parity_absent'));
 assert.ok(current.blockers.includes('external20_seed_checkpoint_not_selected'));
 
-const currentState = JSON.parse(readFileSync(
-  'tools/data/wgsl-repair-v13-semantic-evidence-state.json',
+const postSelectionState = JSON.parse(readFileSync(
+  'tools/data/wgsl-repair-v13-semantic-evidence-state-postselection-2026-07-14.json',
   'utf8'
 ));
 const selectionReceipt = JSON.parse(readFileSync(
-  currentState.candidate.selectionReceiptPath,
+  postSelectionState.candidate.selectionReceiptPath,
   'utf8'
 ));
 const postSelection = JSON.parse(readFileSync(
@@ -98,7 +98,7 @@ const postSelection = JSON.parse(readFileSync(
 ));
 const replayedPostSelection = evaluateWgslSemanticReadinessV2({
   policy,
-  evidenceState: currentState,
+  evidenceState: postSelectionState,
   policyVerified: true,
   predecessorVerified: true,
   preservationReceipt: preservation,
@@ -126,5 +126,42 @@ assert.ok(postSelection.blockers.includes('semantic_seed_confirmation_population
 assert.ok(postSelection.blockers.includes('semantic_promotion_population_unmaterialized'));
 assert.equal(postSelection.admission.semanticClaimAllowed, false);
 assert.equal(postSelection.admission.wgslDoctorAllowed, false);
+
+const latestState = JSON.parse(readFileSync(
+  'tools/data/wgsl-repair-v13-semantic-evidence-state.json',
+  'utf8'
+));
+const preConfirmation = JSON.parse(readFileSync(
+  'docs/status/wgsl-repair-v13-semantic-readiness-pre-confirmation-2026-07-14.json',
+  'utf8'
+));
+const replayedPreConfirmation = evaluateWgslSemanticReadinessV2({
+  policy,
+  evidenceState: latestState,
+  policyVerified: true,
+  predecessorVerified: true,
+  preservationReceipt: preservation,
+  adapterPortabilityReceipt: adapterPortability,
+  adapterPortabilityReceiptVerified: true,
+  populationVerification: {
+    calibration: true,
+    checkpointSelection: true,
+    seedConfirmation: true,
+    promotion: false,
+  },
+  selectionReceipt,
+  selectionReceiptVerified: true,
+  implementationVerification: {
+    taskManifest: true,
+    historicalRegressionManifest: true,
+  },
+  taskEvidence: referenceMechanics.tasks,
+});
+assert.deepEqual(replayedPreConfirmation, preConfirmation);
+assert.equal(preConfirmation.phaseAdmission.seedConfirmationAllowed, true);
+assert.equal(preConfirmation.phaseAdmission.promotionEvaluationAllowed, false);
+assert.deepEqual(preConfirmation.blockers, ['semantic_promotion_population_unmaterialized']);
+assert.equal(preConfirmation.admission.semanticClaimAllowed, false);
+assert.equal(preConfirmation.admission.wgslDoctorAllowed, false);
 
 console.log('wgsl-repair-v13-semantic-contract.test: ok');
