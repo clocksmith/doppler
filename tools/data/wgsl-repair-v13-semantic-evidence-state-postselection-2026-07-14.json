@@ -31,11 +31,7 @@
       "manifestPath": "tools/data/wgsl-repair-v13-semantic-checkpoint-selection.json",
       "populationHash": "4b35750e905ce8ff92114715f36d65807b9b020015e00d4567c80a5e9fa53c1b"
     },
-    "seedConfirmation": {
-      "status": "frozen",
-      "manifestPath": "tools/data/wgsl-repair-v13-semantic-seed-confirmation.json",
-      "populationHash": "e86d55497329d5d6adfd579b726b980bf7d42386f1df74d740ff0903fdefb3e9"
-    },
+    "seedConfirmation": { "status": "unmaterialized", "manifestPath": null, "populationHash": null },
     "promotion": { "status": "unmaterialized", "manifestPath": null, "populationHash": null }
   },
   "implementation": {
@@ -45,5 +41,5 @@
     "historicalRegressionManifestPath": "tools/data/wgsl-repair-v13-historical-regressions.json",
     "historicalRegressionManifestSha256": "0cf12c4641fad4e99994d6d3b1162569d674bf82f6749b7297984027122e9c23"
   },
-  "claimBoundary": "This evidence state recognizes passing V12 portability, passing reference-control harness qualification, seed 29 selected under the frozen checkpoint-selection policy, and a commit-derived seed-confirmation population frozen before candidate inference. It does not claim seed confirmation, semantic promotion, WGSL Doctor readiness, or complete shader writing."
+  "claimBoundary": "This evidence state recognizes the passing V12 portability receipt, passing reference-control harness qualification, and seed 29 selected under the frozen checkpoint-selection policy. Selection is not seed confirmation, semantic promotion, or product authorization. Every later fact must be represented by a repo-relative artifact path and verified SHA-256 before it can clear a V13 blocker."
 }

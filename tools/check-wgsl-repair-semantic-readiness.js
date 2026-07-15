@@ -18,6 +18,7 @@ function parseArgs(argv) {
     policyPath: DEFAULT_POLICY,
     statePath: DEFAULT_STATE,
     evidencePath: '',
+    outputPath: '',
     allowBlocked: false,
     legacyV1: false,
   };
@@ -26,6 +27,7 @@ function parseArgs(argv) {
     if (token === '--policy') args.policyPath = argv[++index] || '';
     else if (token === '--state') args.statePath = argv[++index] || '';
     else if (token === '--evidence') args.evidencePath = argv[++index] || '';
+    else if (token === '--out') args.outputPath = argv[++index] || '';
     else if (token === '--allow-blocked') args.allowBlocked = true;
     else if (token === '--legacy-v1') args.legacyV1 = true;
     else throw new Error(`Unknown argument: ${token}`);
@@ -132,7 +134,15 @@ export async function runWgslSemanticReadinessGate(args) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const receipt = await runWgslSemanticReadinessGate(args);
-  process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
+  const json = `${JSON.stringify(receipt, null, 2)}\n`;
+  if (args.outputPath) {
+    const outputPath = path.resolve(args.outputPath);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, json, 'utf8');
+    console.error(`[wgsl-semantic-readiness] wrote ${args.outputPath}`);
+  } else {
+    process.stdout.write(json);
+  }
   if (receipt.decision === 'blocked' && !args.allowBlocked) process.exitCode = 1;
 }
 

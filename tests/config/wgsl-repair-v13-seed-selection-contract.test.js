@@ -75,7 +75,11 @@ assert.equal(
   state.populations.checkpointSelection.populationHash,
   policy.populations.checkpointSelection.sha256
 );
-assert.equal(state.populations.seedConfirmation.status, 'unmaterialized');
+assert.equal(state.populations.seedConfirmation.status, 'frozen');
+assert.equal(
+  sha256File(state.populations.seedConfirmation.manifestPath),
+  state.populations.seedConfirmation.populationHash
+);
 assert.equal(state.populations.promotion.status, 'unmaterialized');
 assert.equal(state.candidate.seedSelectionStatus, 'selected');
 assert.equal(state.candidate.selectedSeed, 29);

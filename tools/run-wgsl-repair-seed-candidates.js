@@ -136,7 +136,30 @@ export async function runWgslRepairSeedCandidates(args) {
   if (!population?.path || !population?.sha256) {
     throw new Error(`Population role is not frozen in the policy: ${args.populationRole}.`);
   }
+  const optionalBindings = [];
+  if (policy.selectionReceipt?.path && policy.selectionReceipt?.sha256) {
+    optionalBindings.push(requireFileHash(
+      policy.selectionReceipt.path,
+      policy.selectionReceipt.sha256,
+      'selected-candidate receipt'
+    ));
+  }
+  if (policy.materialization?.policyPath && policy.materialization?.policySha256) {
+    optionalBindings.push(requireFileHash(
+      policy.materialization.policyPath,
+      policy.materialization.policySha256,
+      'population materialization policy'
+    ));
+  }
+  if (policy.candidateRunner?.path && policy.candidateRunner?.sha256) {
+    optionalBindings.push(requireFileHash(
+      policy.candidateRunner.path,
+      policy.candidateRunner.sha256,
+      'candidate generation runner'
+    ));
+  }
   await Promise.all([
+    ...optionalBindings,
     requireFileHash(population.path, population.sha256, `${args.populationRole} population`),
     requireFileHash(
       policy.predecessor.adapterPortabilityReceiptPath,
