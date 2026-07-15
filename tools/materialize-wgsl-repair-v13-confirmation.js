@@ -223,6 +223,43 @@ function buildTask(blueprint, freezeCommit, fixtureDirectory, rank) {
   };
 }
 
+function selectBlueprints(policy, catalog, freezeCommit) {
+  const strata = policy?.selection?.strata;
+  if (!Array.isArray(strata) || strata.length === 0) {
+    throw new Error('WGSL V13 confirmation selection strata are required.');
+  }
+  const selected = [];
+  for (const stratum of strata) {
+    const eligible = catalog.blueprints
+      .filter((blueprint) => (
+        blueprint.arity === stratum.arity
+        && (blueprint.parameter != null) === stratum.parameterized
+      ))
+      .map((blueprint) => ({
+        blueprint,
+        stratumId: stratum.id,
+        rankDigest: entropyDigest(freezeCommit, blueprint.id, `rank:${stratum.id}`),
+      }))
+      .sort((left, right) => (
+        left.rankDigest.localeCompare(right.rankDigest)
+        || left.blueprint.id.localeCompare(right.blueprint.id)
+      ));
+    if (!Number.isInteger(stratum.count)
+      || stratum.count < 1
+      || eligible.length < stratum.count) {
+      throw new Error(`WGSL V13 confirmation stratum is unsatisfied: ${stratum.id}.`);
+    }
+    selected.push(...eligible.slice(0, stratum.count));
+  }
+  if (new Set(selected.map(({ blueprint }) => blueprint.id)).size !== selected.length) {
+    throw new Error('WGSL V13 confirmation strata selected a blueprint more than once.');
+  }
+  return selected.sort((left, right) => (
+    left.rankDigest.localeCompare(right.rankDigest)
+    || left.blueprint.id.localeCompare(right.blueprint.id)
+  ));
+}
+
 export function buildWgslRepairV13ConfirmationPopulation(options) {
   const { policy, catalog, freezeCommit } = options;
   if (!COMMIT_PATTERN.test(freezeCommit)) {
@@ -235,21 +272,20 @@ export function buildWgslRepairV13ConfirmationPopulation(options) {
     || taskCount >= catalog.blueprints.length) {
     throw new Error('WGSL V13 confirmation task count must select a strict catalog subset.');
   }
-  const ranked = catalog.blueprints
-    .map((blueprint) => ({
-      blueprint,
-      rankDigest: entropyDigest(freezeCommit, blueprint.id, 'rank'),
-    }))
-    .sort((left, right) => (
-      left.rankDigest.localeCompare(right.rankDigest)
-      || left.blueprint.id.localeCompare(right.blueprint.id)
-    ));
-  const selected = ranked.slice(0, taskCount);
+  const selected = selectBlueprints(policy, catalog, freezeCommit);
+  if (selected.length !== taskCount) {
+    throw new Error('WGSL V13 confirmation strata do not sum to the frozen task count.');
+  }
   const sources = {};
-  const tasks = selected.map(({ blueprint, rankDigest }, index) => {
+  const tasks = selected.map(({ blueprint, rankDigest, stratumId }, index) => {
     const built = buildTask(blueprint, freezeCommit, policy.outputs.fixtureDirectory, index);
     sources[built.task.sourcePath] = built.source;
-    return { ...built.task, selectionRank: index + 1, selectionDigest: rankDigest };
+    return {
+      ...built.task,
+      selectionRank: index + 1,
+      selectionStratum: stratumId,
+      selectionDigest: rankDigest,
+    };
   });
   const manifest = {
     schema: 'doppler.wgsl-repair-semantic-task-manifest/v1',
@@ -271,6 +307,7 @@ export function buildWgslRepairV13ConfirmationPopulation(options) {
       oracleImplementationPath: policy.oracleImplementation.path,
       oracleImplementationSha256: policy.oracleImplementation.sha256,
       selectedBlueprintIds: selected.map(({ blueprint }) => blueprint.id),
+      strata: policy.selection.strata,
       eligibleBlueprintCount: catalog.blueprints.length,
       selectedTaskCount: tasks.length,
       candidateInferenceBeforeFreeze: false,
