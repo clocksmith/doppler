@@ -20,24 +20,24 @@ function hashStableJson(value) {
   return sha256Hex(stableJson(value));
 }
 
-function normalizeHashValue(value) {
+export function normalizeWgslSemanticEvidenceValue(value) {
   if (typeof value === 'number') {
     if (Number.isNaN(value)) return { nonFinite: 'nan' };
     if (value === Number.POSITIVE_INFINITY) return { nonFinite: 'positive_infinity' };
     if (value === Number.NEGATIVE_INFINITY) return { nonFinite: 'negative_infinity' };
     if (Object.is(value, -0)) return { finite: 'negative_zero' };
   }
-  if (Array.isArray(value)) return value.map(normalizeHashValue);
+  if (Array.isArray(value)) return value.map(normalizeWgslSemanticEvidenceValue);
   if (isPlainObject(value)) {
     return Object.fromEntries(Object.entries(value).map(([key, entry]) => (
-      [key, normalizeHashValue(entry)]
+      [key, normalizeWgslSemanticEvidenceValue(entry)]
     )));
   }
   return value;
 }
 
 export function hashWgslSemanticEvidenceValue(value) {
-  return hashStableJson(normalizeHashValue(value));
+  return hashStableJson(normalizeWgslSemanticEvidenceValue(value));
 }
 
 function finiteNumber(value) {

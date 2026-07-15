@@ -1,0 +1,92 @@
+{
+  "schema": "doppler.wgsl-writer-evaluation-batch/v1",
+  "experimentId": "doppler-wgsl-writer-v2",
+  "evaluationRole": "checkpoint_selection",
+  "policy": {
+    "path": "tools/policies/wgsl-writer-v2-training-policy.json",
+    "sha256": "a8b58555edbcefa88f0b6e769a1a3c35bf2f55c943b4ef4208b64e1b3daff06e"
+  },
+  "population": {
+    "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/checkpoint-selection.tasks.json",
+    "sha256": "26056fe48229cb4017c5910f83fe5165af950fef6025092053d04e90bf1b4042",
+    "datasetPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/checkpoint-selection.jsonl",
+    "datasetSha256": "fcda6b330323a7f0e43ec12a5740281c37e2490b99cbdc47f21fb8a37cf08f7f",
+    "rows": 16
+  },
+  "priorGate": {
+    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/calibration/evaluation.json",
+    "sha256": "c6542eb32eb8ce8abf4bab000edc51291bb746e7f8be7e6ddc9c1f502cb820e8"
+  },
+  "runner": {
+    "orchestratorPath": "tools/run-wgsl-writer-v2-evaluation.js",
+    "orchestratorSha256": "b75012f2de50f326bf8ec2a0e0bc78b900d046df2f2ce273b790e7a58baf4cdb",
+    "referencePath": "tools/wgsl-writer-peft-reference.py",
+    "referenceSha256": "8e7668dbeac042eec28f8f74a935f59a81ae60b5b5b06e01bc61c8ca511e1e39"
+  },
+  "reference": {
+    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/checkpoint-selection/peft-reference.json",
+    "sha256": "e89bc643746a6935793dd3b1a09f336a33a2a06e8ae6156c0f9f3110d12e1cd3"
+  },
+  "candidates": [
+    {
+      "seed": 11,
+      "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/checkpoint-selection/seed11.semantic.json",
+      "sha256": "bdfee0a08161472536435d40c3211bc6e7227e51ca19604c0f7b28b91bb2651a",
+      "receiptHash": "cb568880bb8110eb6a9e3c14b14026ad3df3376cb57a61d95dca77ca6d48d283",
+      "summary": {
+        "taskCount": 16,
+        "semanticPasses": 9,
+        "semanticPassRate": 0.5625,
+        "compilePasses": 15,
+        "compilePassRate": 0.9375,
+        "responseContractPasses": 16,
+        "responseContractPassRate": 1,
+        "meanShaderCharacterCount": 770.125,
+        "policyViolationTasks": 0,
+        "policyViolationRate": 0
+      }
+    },
+    {
+      "seed": 29,
+      "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/checkpoint-selection/seed29.semantic.json",
+      "sha256": "77285745a5f4bb02c0eb7ce2cfa8dc7b0d4a7c9116f1d9c471a9c906ad1bbe89",
+      "receiptHash": "5e4ccd465c1f0f0a9a108975d6f3f01e511e2642188e1097c982029d7f481ccc",
+      "summary": {
+        "taskCount": 16,
+        "semanticPasses": 10,
+        "semanticPassRate": 0.625,
+        "compilePasses": 16,
+        "compilePassRate": 1,
+        "responseContractPasses": 16,
+        "responseContractPassRate": 1,
+        "meanShaderCharacterCount": 769.625,
+        "policyViolationTasks": 0,
+        "policyViolationRate": 0
+      }
+    },
+    {
+      "seed": 47,
+      "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/checkpoint-selection/seed47.semantic.json",
+      "sha256": "fe30a94c70cf7278c86b4efa7528675537dd404e88f1e6c659bac5fc1224aa8f",
+      "receiptHash": "11de2ae17d9977865fa8536f17b0479d8ea2c35e46970d4081597c302357fc05",
+      "summary": {
+        "taskCount": 16,
+        "semanticPasses": 11,
+        "semanticPassRate": 0.6875,
+        "compilePasses": 16,
+        "compilePassRate": 1,
+        "responseContractPasses": 16,
+        "responseContractPassRate": 1,
+        "meanShaderCharacterCount": 764.75,
+        "policyViolationTasks": 0,
+        "policyViolationRate": 0
+      }
+    }
+  ],
+  "decision": "evaluation_complete",
+  "selectionAuthority": true,
+  "confirmationAuthority": false,
+  "promotionAuthority": false,
+  "claimBoundary": "The campaign may select and seed-confirm a Qwen 3.5 9B LoRA only for complete 1-D elementwise f32 shaders under explicit interface contracts. Even a perfect development result is unpromoted until exact Doppler parity and an externally custodied one-use population pass; it cannot establish a general WGSL writer.",
+  "receiptHash": "811fe8c5cd22e1f5e96a90d23afeabc43a8ea769178a872a9ce5c11cbdee5e25"
+}

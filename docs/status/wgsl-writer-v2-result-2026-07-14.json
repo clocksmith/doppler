@@ -1,0 +1,528 @@
+{
+  "schema": "doppler.wgsl-writer-v2-result/v1",
+  "experimentId": "doppler-wgsl-writer-v2",
+  "resultDate": "2026-07-14",
+  "scope": {
+    "capability": "complete_1d_elementwise_f32_wgsl_from_specification_and_interface_contract",
+    "generalWgslWriter": false,
+    "naturalLanguageToArbitraryShader": false,
+    "productCliAuthorized": false
+  },
+  "policies": {
+    "training": {
+      "path": "tools/policies/wgsl-writer-v2-training-policy.json",
+      "sha256": "a8b58555edbcefa88f0b6e769a1a3c35bf2f55c943b4ef4208b64e1b3daff06e"
+    },
+    "parity": {
+      "path": "tools/policies/wgsl-writer-v2-parity-policy.json",
+      "sha256": "bebb079501bbcaeba96710d9eecd80a52ed7e5bb8ed09fae87fb6d597cce88f6"
+    },
+    "corpus": {
+      "path": "tools/policies/wgsl-writer-v2-corpus-policy.json",
+      "sha256": "560bccb7269f1dae5b8d426bb90414097eb82e1b5f4fdaee211daa6498522c44"
+    }
+  },
+  "sourceModel": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "transformersConfigSha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05",
+    "tokenizerSha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+    "dopplerBaseArtifact": {
+      "modelId": "qwen-3-5-9b-f16-af32",
+      "manifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+      "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "runtimeProfile": "profiles/production",
+      "localProvisioning": "operator_provided_identity_verified_rdrr"
+    }
+  },
+  "executorQualification": {
+    "blockedAttempt": {
+      "receipt": {
+        "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/attempts/seed11-transformers-4.57.6-blocked/training-status.json",
+        "sha256": "9bee1d1b75a1bf9db0ff880e1a6f89e7c263f0791f8721ee629b7faaccc0df0d",
+        "bytes": 542
+      },
+      "receiptHash": "b830b24ddf9c25e4b20b872e6f4eac492017eeaf276b596b127184bd3c604bb9",
+      "decision": "blocked",
+      "error": "gamma_wgsl_trainer_failed: transformers>=5.13.1 is required for Qwen3.5; found 4.57.6",
+      "capabilityEvidence": false
+    },
+    "admittedRuntime": {
+      "deviceName": "Radeon 8060S Graphics",
+      "deviceTotalMemory": 65945612288,
+      "dtype": "bfloat16",
+      "hipVersion": "7.2.53211",
+      "matmulProbe": -17.5,
+      "torchVersion": "2.12.1+rocm7.2",
+      "transformersVersion": "5.13.1"
+    },
+    "dependencyFailureReusedAsTrainingLineage": false
+  },
+  "training": {
+    "rowsPerSeed": 720,
+    "semanticFamilies": 15,
+    "rowConsumption": "each_row_exactly_once_per_seed",
+    "seeds": [
+      {
+        "seed": 11,
+        "status": {
+          "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/training-status.json",
+          "sha256": "a955d53de761983dc0cf33548444000b20a17707ee26bec632ad4d6a9cb9b281",
+          "receiptHash": "17473c2223d093e2e15fc3f9e322d61d5150f08d129a3ea2a8babcfac1656d2d"
+        },
+        "steps": 720,
+        "distinctRowsVisited": 720,
+        "finalLoss": 0.000007882860700192396,
+        "meanLoss": 0.01677377583591427,
+        "rowOrderSha256": "4afce1d4cbb6a0a67e063493700969cb6faea0f0418f39d9281698538e4d485c",
+        "peft": {
+          "treeSha256": "fc8ff4a3bb25773024f673d4729b242fd70ee78ac9f399b9403cafce3675b986",
+          "weights": {
+            "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/sft/checkpoints/gamma/adapter/adapter_model.safetensors",
+            "sha256": "d3d71aa2e4291b4561b4a6ffe410e928f77672c1f4d1bf23cbc5c72568a5ee7e",
+            "bytes": 232821904
+          }
+        },
+        "dopplerExport": {
+          "manifest": {
+            "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/sft/exports/checkpoint-000720.adapter.manifest.json",
+            "sha256": "abe2e5fb2d19c1bcbf66e31e998613db886f0f737d1ef49a5ce9b08bea689b8b"
+          },
+          "weights": {
+            "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/sft/exports/checkpoint-000720.adapters.safetensors",
+            "sha256": "a7841d2a6e54e5f23548309c5145a0d3929793aecb05060c5bf623870fbb0e76",
+            "bytes": 232808939
+          }
+        }
+      },
+      {
+        "seed": 29,
+        "status": {
+          "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/training-status.json",
+          "sha256": "1c08dfeb03abb5e6cb1a1d7bd6f574105f8eac6cf50c046e8e453dda7f667cfe",
+          "receiptHash": "1daa052e42afbf4fe975ce58a3d7a219d12c1649e7cd3d4b5ba0966ba593b77f"
+        },
+        "steps": 720,
+        "distinctRowsVisited": 720,
+        "finalLoss": 0.00004465016536414623,
+        "meanLoss": 0.01812879262959844,
+        "rowOrderSha256": "6067f139972f29f8bec26e54a7eb942b4778b0aa0a084db0e33df0abb89a5882",
+        "peft": {
+          "treeSha256": "d40e7f2f85fb8ea88387e7beb6fd1ae2fb83245cafb5e9e303527b81e5fbcb9c",
+          "weights": {
+            "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/adapter/adapter_model.safetensors",
+            "sha256": "5a9e58c6aa6efb07dca12d01af6969266eb30053d219f3cae9b2b410838489a2",
+            "bytes": 232821904
+          }
+        },
+        "dopplerExport": {
+          "manifest": {
+            "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapter.manifest.json",
+            "sha256": "71d4d9aa115a985a61dc63669a6672cf447a5985ef9b969cbbc7d4efbe5e272a"
+          },
+          "weights": {
+            "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapters.safetensors",
+            "sha256": "b7b653521e465e59c0cebb844a30aea5b1840a6502e13a0fc636306b28762827",
+            "bytes": 232808939
+          }
+        }
+      },
+      {
+        "seed": 47,
+        "status": {
+          "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/training-status.json",
+          "sha256": "54abb1f7dee477ceaa2a20127c04841bb8b777eb507617da64c924b49e13d51b",
+          "receiptHash": "e7ed358ae6b3b776a9ea7922e737eacc5e7b18146a2ab2860b9e55abbe2b94a9"
+        },
+        "steps": 720,
+        "distinctRowsVisited": 720,
+        "finalLoss": 0.00002708004649321083,
+        "meanLoss": 0.017638645307426436,
+        "rowOrderSha256": "d9b9f154b0983e666adfd2cd751a8689a3ebdd00abc54d89e930fceb50024388",
+        "peft": {
+          "treeSha256": "aa8ad92a5e57c04d359fa2a7095f40eda6f85728f4e1ef90f4a9e8e5633d200d",
+          "weights": {
+            "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/checkpoints/gamma/adapter/adapter_model.safetensors",
+            "sha256": "64cb65bfd2f409278d666d874c4dc2179058cab8e75609f5fe1fdc8644794667",
+            "bytes": 232821904
+          }
+        },
+        "dopplerExport": {
+          "manifest": {
+            "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/exports/checkpoint-000720.adapter.manifest.json",
+            "sha256": "5edb218ed247707682b074949cd0a3e4f8b1b6d8f9d141a65c874949938cfbcd"
+          },
+          "weights": {
+            "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/exports/checkpoint-000720.adapters.safetensors",
+            "sha256": "c84667e220f4b2fe8c923c00d7893eb783d5e6118cb0db1897c720dee5fabcf6",
+            "bytes": 232808939
+          }
+        }
+      }
+    ]
+  },
+  "evaluation": {
+    "calibration": {
+      "receipt": {
+        "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/calibration/evaluation.json",
+        "sha256": "c6542eb32eb8ce8abf4bab000edc51291bb746e7f8be7e6ddc9c1f502cb820e8",
+        "bytes": 3922
+      },
+      "selectionAuthority": false,
+      "candidates": [
+        {
+          "seed": 11,
+          "semanticPasses": 16,
+          "taskCount": 16,
+          "semanticPassRate": 1,
+          "compilePasses": 16,
+          "compilePassRate": 1,
+          "responseContractPasses": 16,
+          "responseContractPassRate": 1,
+          "policyViolationTasks": 0,
+          "meanShaderCharacterCount": 734.8125
+        },
+        {
+          "seed": 29,
+          "semanticPasses": 14,
+          "taskCount": 16,
+          "semanticPassRate": 0.875,
+          "compilePasses": 16,
+          "compilePassRate": 1,
+          "responseContractPasses": 16,
+          "responseContractPassRate": 1,
+          "policyViolationTasks": 0,
+          "meanShaderCharacterCount": 733.8125
+        },
+        {
+          "seed": 47,
+          "semanticPasses": 15,
+          "taskCount": 16,
+          "semanticPassRate": 0.9375,
+          "compilePasses": 16,
+          "compilePassRate": 1,
+          "responseContractPasses": 16,
+          "responseContractPassRate": 1,
+          "policyViolationTasks": 0,
+          "meanShaderCharacterCount": 734.5625
+        }
+      ]
+    },
+    "checkpointSelection": {
+      "receipt": {
+        "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/checkpoint-selection/evaluation.json",
+        "sha256": "db59b5c6b8513973ba3896d208db4a89a326c7b26b07ed783181fc0de1131d15",
+        "bytes": 4198
+      },
+      "metric": "semantic_complete_shader_pass_at_1",
+      "tieBreakers": [
+        "compile_at_1",
+        "response_contract_pass_rate",
+        "lower_mean_shader_character_count",
+        "lower_seed"
+      ],
+      "candidates": [
+        {
+          "seed": 11,
+          "semanticPasses": 9,
+          "taskCount": 16,
+          "semanticPassRate": 0.5625,
+          "compilePasses": 15,
+          "compilePassRate": 0.9375,
+          "responseContractPasses": 16,
+          "responseContractPassRate": 1,
+          "policyViolationTasks": 0,
+          "meanShaderCharacterCount": 770.125
+        },
+        {
+          "seed": 29,
+          "semanticPasses": 10,
+          "taskCount": 16,
+          "semanticPassRate": 0.625,
+          "compilePasses": 16,
+          "compilePassRate": 1,
+          "responseContractPasses": 16,
+          "responseContractPassRate": 1,
+          "policyViolationTasks": 0,
+          "meanShaderCharacterCount": 769.625
+        },
+        {
+          "seed": 47,
+          "semanticPasses": 11,
+          "taskCount": 16,
+          "semanticPassRate": 0.6875,
+          "compilePasses": 16,
+          "compilePassRate": 1,
+          "responseContractPasses": 16,
+          "responseContractPassRate": 1,
+          "policyViolationTasks": 0,
+          "meanShaderCharacterCount": 764.75
+        }
+      ],
+      "selectedSeed": 47,
+      "selectionReceipt": {
+        "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/selection/selected-seed.json",
+        "sha256": "09df9c7444025ef749718c75afc8fbad877608f88289a6999f3544621f649cee",
+        "bytes": 5412
+      }
+    },
+    "seedConfirmation": {
+      "receipt": {
+        "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/evaluation.json",
+        "sha256": "4fcc1bcaf0daddcb0d17dbafab4ac9a5b03c798f48a866393ddbd42101263ae9",
+        "bytes": 4172
+      },
+      "candidates": [
+        {
+          "seed": 11,
+          "semanticPasses": 16,
+          "taskCount": 16,
+          "semanticPassRate": 1,
+          "compilePasses": 16,
+          "compilePassRate": 1,
+          "responseContractPasses": 16,
+          "responseContractPassRate": 1,
+          "policyViolationTasks": 0,
+          "meanShaderCharacterCount": 748.375
+        },
+        {
+          "seed": 29,
+          "semanticPasses": 15,
+          "taskCount": 16,
+          "semanticPassRate": 0.9375,
+          "compilePasses": 16,
+          "compilePassRate": 1,
+          "responseContractPasses": 16,
+          "responseContractPassRate": 1,
+          "policyViolationTasks": 0,
+          "meanShaderCharacterCount": 747.9375
+        },
+        {
+          "seed": 47,
+          "semanticPasses": 15,
+          "taskCount": 16,
+          "semanticPassRate": 0.9375,
+          "compilePasses": 16,
+          "compilePassRate": 1,
+          "responseContractPasses": 16,
+          "responseContractPassRate": 1,
+          "policyViolationTasks": 0,
+          "meanShaderCharacterCount": 746.875
+        }
+      ],
+      "thresholds": {
+        "minimumConfirmedSeeds": 2,
+        "minimumMeanSemanticPassRate": 0.75,
+        "minimumPerSeedSemanticPassRate": 0.5,
+        "submissionsPerCandidate": 1
+      },
+      "result": {
+        "pass": true,
+        "checks": {
+          "minimumConfirmedSeeds": true,
+          "minimumMeanSemanticPassRate": true,
+          "minimumPerSeedSemanticPassRate": true,
+          "oneSubmissionPerCandidate": true
+        },
+        "confirmedSeeds": [
+          11,
+          29,
+          47
+        ],
+        "confirmedSeedCount": 3,
+        "meanSemanticPassRate": 0.9583333333333334,
+        "selectedSeedConfirmed": true
+      },
+      "confirmationReceipt": {
+        "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/confirmation.json",
+        "sha256": "91f2387db1535d6d75705749a659e2288619bba2236ce5d10054ff4249693e11",
+        "bytes": 4142
+      }
+    }
+  },
+  "parity": {
+    "receipt": {
+      "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/parity.json",
+      "sha256": "bb1c9e0463b86c21a11a71fd6cb5642a3f63691f2044f5bb5a76253c4e750cba",
+      "bytes": 5439
+    },
+    "selectedSeed": 47,
+    "identities": {
+      "pass": true,
+      "checks": {
+        "sourceConfig": true,
+        "sourceTokenizer": true,
+        "sourceRevision": true,
+        "probeDataset": true,
+        "probeRow": true,
+        "prompt": true,
+        "dopplerManifest": true,
+        "dopplerTokenizer": true,
+        "referenceAdapterWeights": true,
+        "dopplerAdapterManifest": true,
+        "dopplerAdapterWeights": true,
+        "adapterActivated": true
+      }
+    },
+    "base": {
+      "pass": true,
+      "checks": {
+        "promptTokenIdsExact": true,
+        "firstTokenIdExact": true,
+        "logitsFinite": true,
+        "logitCosineSimilarity": true,
+        "topKTokenOverlap": true
+      },
+      "promptTokens": {
+        "exact": true,
+        "referenceCount": 650,
+        "candidateCount": 650,
+        "commonPrefixLength": 650,
+        "firstMismatchIndex": null
+      },
+      "logits": {
+        "comparable": true,
+        "elementCount": 248320,
+        "referenceElementCount": 248320,
+        "candidateElementCount": 248320,
+        "finite": true,
+        "maxAbsError": 0.7763361930847168,
+        "meanAbsError": 0.10531889952685472,
+        "rootMeanSquareError": 0.13383556149562034,
+        "cosineSimilarity": 0.9988282896903751
+      },
+      "topK": {
+        "count": 10,
+        "overlap": 9,
+        "referenceCount": 10,
+        "candidateCount": 10
+      },
+      "completion": {
+        "tokens": {
+          "exact": false,
+          "referenceCount": 384,
+          "candidateCount": 384,
+          "commonPrefixLength": 68,
+          "firstMismatchIndex": 68
+        },
+        "textExact": false
+      }
+    },
+    "adapter": {
+      "pass": true,
+      "checks": {
+        "promptTokenIdsExact": true,
+        "firstTokenIdExact": true,
+        "completionTokenIdsExact": true,
+        "completionTextExact": true,
+        "logitsFinite": true,
+        "logitCosineSimilarity": true,
+        "topKTokenOverlap": true,
+        "adapterDeltaFinite": true,
+        "adapterDeltaCosineSimilarity": true,
+        "referenceAdapterDeltaNonzero": true,
+        "dopplerAdapterDeltaNonzero": true
+      },
+      "promptTokens": {
+        "exact": true,
+        "referenceCount": 650,
+        "candidateCount": 650,
+        "commonPrefixLength": 650,
+        "firstMismatchIndex": null
+      },
+      "completionTokens": {
+        "exact": true,
+        "referenceCount": 247,
+        "candidateCount": 247,
+        "commonPrefixLength": 247,
+        "firstMismatchIndex": null
+      },
+      "logits": {
+        "comparable": true,
+        "elementCount": 248320,
+        "referenceElementCount": 248320,
+        "candidateElementCount": 248320,
+        "finite": true,
+        "maxAbsError": 0.5755929946899414,
+        "meanAbsError": 0.04970080028786653,
+        "rootMeanSquareError": 0.06421749926254545,
+        "cosineSimilarity": 0.9996032011272407
+      },
+      "topK": {
+        "count": 10,
+        "overlap": 10,
+        "referenceCount": 10,
+        "candidateCount": 10
+      },
+      "adapterDelta": {
+        "comparable": true,
+        "elementCount": 248320,
+        "referenceElementCount": 248320,
+        "candidateElementCount": 248320,
+        "finite": true,
+        "maxAbsError": 0.8417634963989258,
+        "meanAbsError": 0.12134402345444371,
+        "rootMeanSquareError": 0.15358582718556477,
+        "cosineSimilarity": 0.9983932857464016,
+        "referenceL2Norm": 1331.4321403105855,
+        "dopplerL2Norm": 1316.4236739933683
+      }
+    },
+    "decision": "selected_adapter_parity_passed"
+  },
+  "mechanicsAmendment": {
+    "status": "repaired_without_model_resubmission",
+    "failure": "nonfinite_numeric_error_hashed_as_sentinel_but_serialized_as_null",
+    "discoveryPoint": "frozen_seed_ranker_internal_hash_validation",
+    "modelSubmissionReused": true,
+    "semanticVerifierRerun": true,
+    "candidateOutcomesChanged": false,
+    "exactReference": {
+      "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/checkpoint-selection/peft-reference.json",
+      "sha256": "e89bc643746a6935793dd3b1a09f336a33a2a06e8ae6156c0f9f3110d12e1cd3"
+    },
+    "archivedFiles": [
+      {
+        "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/attempts/checkpoint-selection-nonfinite-json-invalid/evaluation.json",
+        "sha256": "9db13d9da8cc2103daf90468773fb0d2d97e3a17c679024b888930e16ce3f0ee",
+        "bytes": 4198
+      },
+      {
+        "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/attempts/checkpoint-selection-nonfinite-json-invalid/seed11.semantic.json",
+        "sha256": "85d09abda09a6a2ec18154d96e5f7161a79eb1ba286e916f7184ac083b2ef796",
+        "bytes": 440062
+      },
+      {
+        "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/attempts/checkpoint-selection-nonfinite-json-invalid/seed29.semantic.json",
+        "sha256": "b0d523ac92730744bd08a9ede6bde0f7b35008314a6c18be968b848a364d2421",
+        "bytes": 441808
+      },
+      {
+        "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/attempts/checkpoint-selection-nonfinite-json-invalid/seed47.semantic.json",
+        "sha256": "2b97f6836b71457681a12cbfcd8c6a6dfc5bd8da1a189927d5548fe4f27cdab7",
+        "bytes": 439669
+      }
+    ]
+  },
+  "artifactAvailability": {
+    "adapterWeightsStoredInGit": false,
+    "adapterWeightsAvailableOnThisMachine": true,
+    "immutableExternalUrls": [],
+    "preservationRequiredBeforeMachineRetirement": true
+  },
+  "externalPromotion": {
+    "populationMaterialized": false,
+    "externalCustodianAssigned": false,
+    "oneUseSubmissionPerformed": false,
+    "passed": false
+  },
+  "decision": "seed_confirmed_and_doppler_parity_passed_external_promotion_blocked",
+  "capabilityEvidence": true,
+  "seedConfirmationSatisfied": true,
+  "dopplerParitySatisfied": true,
+  "promotionAuthority": false,
+  "generalWgslWriterClaim": false,
+  "productizationAllowed": false,
+  "claimBoundary": "The campaign may select and seed-confirm a Qwen 3.5 9B LoRA only for complete 1-D elementwise f32 shaders under explicit interface contracts. Even a perfect development result is unpromoted until exact Doppler parity and an externally custodied one-use population pass; it cannot establish a general WGSL writer.",
+  "receiptHash": "63e39007971d75835bace7608fbe92079b2a696bec25bf4c5844f126714835bc"
+}

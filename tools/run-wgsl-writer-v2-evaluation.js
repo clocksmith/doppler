@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url';
 import {
   evaluateWgslSemanticTaskEvidence,
   hashWgslSemanticEvidenceValue,
+  normalizeWgslSemanticEvidenceValue,
 } from '../src/tooling/wgsl-repair-semantic-gate.js';
 import { createWgslBrowserVerifier } from './lib/wgsl-browser-verifier.js';
 import {
@@ -374,7 +375,11 @@ async function evaluateCandidate(options) {
     generalWgslWriterClaim: false,
     claimBoundary: options.policy.claimBoundary,
   };
-  return { ...core, receiptHash: hashWgslSemanticEvidenceValue(core) };
+  const serializableCore = normalizeWgslSemanticEvidenceValue(core);
+  return {
+    ...serializableCore,
+    receiptHash: hashWgslSemanticEvidenceValue(serializableCore),
+  };
 }
 
 export async function runWgslWriterV2Evaluation(args) {

@@ -1,0 +1,12 @@
+{
+  "artifactType": "training_run_contract",
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-15T01:55:02.307Z",
+  "workloadId": "lora-doppler-wgsl-writer-qwen35-9b-v2-seed11",
+  "workloadPath": "/home/x/deco/doppler/src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed11.json",
+  "workloadSha256": "7a3d52076053369a1347f32b9b0ecaf863c21faebf68456ecd5832fbe8cf3da8",
+  "configHash": "b34dea01d2a15e599b6d0086d5c7a3abb740851fe87330f7f25766db9938a78f",
+  "claimBoundary": "This workload trains one base-initialized seed for the frozen complete 1-D elementwise f32 WGSL writer contract. Loss and export mechanics are non-capability evidence; disjoint semantic evaluation and Doppler parity remain required.",
+  "kind": "lora",
+  "evalDatasets": []
+}

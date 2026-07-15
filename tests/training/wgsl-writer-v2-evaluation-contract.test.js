@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
+import {
+  hashWgslSemanticEvidenceValue,
+  normalizeWgslSemanticEvidenceValue,
+} from '../../src/tooling/wgsl-repair-semantic-gate.js';
 import { evaluateWriterSeedConfirmation } from '../../tools/finalize-wgsl-writer-v2-confirmation.js';
 import { summarizeWriterCandidate } from '../../tools/run-wgsl-writer-v2-evaluation.js';
 import { rankWriterCandidates } from '../../tools/select-wgsl-writer-v2-seed.js';
@@ -125,5 +129,19 @@ const failedConfirmation = evaluateWriterSeedConfirmation([
 ], policy.evaluation.seedConfirmation);
 assert.equal(failedConfirmation.pass, false);
 assert.deepEqual(failedConfirmation.confirmedSeeds, [11]);
+
+const nonFiniteEvidence = normalizeWgslSemanticEvidenceValue({
+  maxRelativeError: Number.POSITIVE_INFINITY,
+  mismatch: { relativeError: Number.NaN },
+});
+const persistedNonFiniteEvidence = JSON.parse(JSON.stringify(nonFiniteEvidence));
+assert.deepEqual(persistedNonFiniteEvidence, {
+  maxRelativeError: { nonFinite: 'positive_infinity' },
+  mismatch: { relativeError: { nonFinite: 'nan' } },
+});
+assert.equal(
+  hashWgslSemanticEvidenceValue(nonFiniteEvidence),
+  hashWgslSemanticEvidenceValue(persistedNonFiniteEvidence)
+);
 
 console.log('wgsl-writer-v2-evaluation-contract.test: ok');

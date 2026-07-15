@@ -1,0 +1,92 @@
+{
+  "schema": "doppler.wgsl-writer-evaluation-batch/v1",
+  "experimentId": "doppler-wgsl-writer-v2",
+  "evaluationRole": "seed_confirmation",
+  "policy": {
+    "path": "tools/policies/wgsl-writer-v2-training-policy.json",
+    "sha256": "a8b58555edbcefa88f0b6e769a1a3c35bf2f55c943b4ef4208b64e1b3daff06e"
+  },
+  "population": {
+    "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/seed-confirmation.tasks.json",
+    "sha256": "8709ae278089687adcdd6cc83539abd18b67ed51abe70f1fe52f0d4745a13d41",
+    "datasetPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/seed-confirmation.jsonl",
+    "datasetSha256": "d68c973030044da12e6c5c8e1bdf9fe75bb4f0a92919b018a3329d0611fee934",
+    "rows": 16
+  },
+  "priorGate": {
+    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/selection/selected-seed.json",
+    "sha256": "09df9c7444025ef749718c75afc8fbad877608f88289a6999f3544621f649cee"
+  },
+  "runner": {
+    "orchestratorPath": "tools/run-wgsl-writer-v2-evaluation.js",
+    "orchestratorSha256": "b75012f2de50f326bf8ec2a0e0bc78b900d046df2f2ce273b790e7a58baf4cdb",
+    "referencePath": "tools/wgsl-writer-peft-reference.py",
+    "referenceSha256": "8e7668dbeac042eec28f8f74a935f59a81ae60b5b5b06e01bc61c8ca511e1e39"
+  },
+  "reference": {
+    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/peft-reference.json",
+    "sha256": "110ff43148ec77b7604a6ff19b46e6b02cf14952b205b2552cad296a73ff80e9"
+  },
+  "candidates": [
+    {
+      "seed": 11,
+      "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/seed11.semantic.json",
+      "sha256": "d0347b319b177f003a771f63e77ea3a8176d4d659c15de37f8a7f9f38937b2fb",
+      "receiptHash": "e4672c5b7a986c2113cca96d22450686e0ccad956cdc80b7e83e55ac0589648d",
+      "summary": {
+        "taskCount": 16,
+        "semanticPasses": 16,
+        "semanticPassRate": 1,
+        "compilePasses": 16,
+        "compilePassRate": 1,
+        "responseContractPasses": 16,
+        "responseContractPassRate": 1,
+        "meanShaderCharacterCount": 748.375,
+        "policyViolationTasks": 0,
+        "policyViolationRate": 0
+      }
+    },
+    {
+      "seed": 29,
+      "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/seed29.semantic.json",
+      "sha256": "7f7bc126e2582e925187651754a078024e404a616b7ee66a505f265b546f6020",
+      "receiptHash": "de192727dad4ee6e489c9269906eecd9e6a6ceb8216f1c057ef6eee7948a3b38",
+      "summary": {
+        "taskCount": 16,
+        "semanticPasses": 15,
+        "semanticPassRate": 0.9375,
+        "compilePasses": 16,
+        "compilePassRate": 1,
+        "responseContractPasses": 16,
+        "responseContractPassRate": 1,
+        "meanShaderCharacterCount": 747.9375,
+        "policyViolationTasks": 0,
+        "policyViolationRate": 0
+      }
+    },
+    {
+      "seed": 47,
+      "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/seed47.semantic.json",
+      "sha256": "35770aa65f726bfcec2d32d53afa7465c2d7354b9fa6fcce987d7645dcb91cfd",
+      "receiptHash": "2b158ca836ddb550258a732c662039d248c395f7f758811b6da7f7a9328c26af",
+      "summary": {
+        "taskCount": 16,
+        "semanticPasses": 15,
+        "semanticPassRate": 0.9375,
+        "compilePasses": 16,
+        "compilePassRate": 1,
+        "responseContractPasses": 16,
+        "responseContractPassRate": 1,
+        "meanShaderCharacterCount": 746.875,
+        "policyViolationTasks": 0,
+        "policyViolationRate": 0
+      }
+    }
+  ],
+  "decision": "evaluation_complete",
+  "selectionAuthority": false,
+  "confirmationAuthority": true,
+  "promotionAuthority": false,
+  "claimBoundary": "The campaign may select and seed-confirm a Qwen 3.5 9B LoRA only for complete 1-D elementwise f32 shaders under explicit interface contracts. Even a perfect development result is unpromoted until exact Doppler parity and an externally custodied one-use population pass; it cannot establish a general WGSL writer.",
+  "receiptHash": "235df482c238d20031ecb1a3bf6633f5e940574130ed931acdbf653b065911b8"
+}

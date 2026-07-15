@@ -1,0 +1,74 @@
+{
+  "schema": "doppler.wgsl-writer-training-status/v1",
+  "experimentId": "doppler-wgsl-writer-v2",
+  "seed": 29,
+  "policy": {
+    "path": "tools/policies/wgsl-writer-v2-training-policy.json",
+    "sha256": "a8b58555edbcefa88f0b6e769a1a3c35bf2f55c943b4ef4208b64e1b3daff06e"
+  },
+  "workload": {
+    "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed29.json",
+    "sha256": "77b82009e21834fea3dc1974ea8a26b87e3495c207a9f10a3b915dfdcf794fdd"
+  },
+  "dataset": {
+    "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/train.jsonl",
+    "sha256": "8e50b9fe9efa5c59ebd922ba51b6bbbb0d84b6643b53038ad5b5740431d2a8e7",
+    "rows": 720,
+    "semanticFamilies": 15,
+    "rowConsumption": "each_row_exactly_once_per_seed",
+    "rowOrder": "seed_hash_sorted_v1"
+  },
+  "metrics": {
+    "datasetRows": 720,
+    "distinctRowsVisited": 720,
+    "loss": 0.00004465016536414623,
+    "meanLoss": 0.01812879262959844,
+    "rowOrder": "seed_hash_sorted_v1",
+    "rowOrderSha256": "6067f139972f29f8bec26e54a7eb942b4778b0aa0a084db0e33df0abb89a5882",
+    "steps": 720
+  },
+  "checkpoint": {
+    "id": "checkpoint-000720",
+    "step": 720,
+    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/checkpoint-000720/trainer-output.json"
+  },
+  "export": {
+    "checkpointId": "checkpoint-000720",
+    "manifestPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapter.manifest.json",
+    "manifestSha256": "71d4d9aa115a985a61dc63669a6672cf447a5985ef9b969cbbc7d4efbe5e272a",
+    "weightsPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapters.safetensors",
+    "weightsSha256": "b7b653521e465e59c0cebb844a30aea5b1840a6502e13a0fc636306b28762827",
+    "weightsSize": 232808939,
+    "runtimeManifestPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/runtime-adapter-manifest.json",
+    "exportPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.export.json"
+  },
+  "gammaReceipt": {
+    "protocol": "gamma_wgsl_trainer_json_v1",
+    "requestHash": "715153471caa517ac9c817711bf600eec226a8821fd3221c6b9ff52ece50ff3e",
+    "runtime": {
+      "deviceName": "Radeon 8060S Graphics",
+      "deviceTotalMemory": 65945612288,
+      "dtype": "bfloat16",
+      "hipVersion": "7.2.53211",
+      "matmulProbe": -22.25,
+      "torchVersion": "2.12.1+rocm7.2",
+      "transformersVersion": "5.13.1"
+    },
+    "policyHash": "d40e7f2f85fb8ea88387e7beb6fd1ae2fb83245cafb5e9e303527b81e5fbcb9c",
+    "modelPath": "/tmp/qwen3.5-9b-source",
+    "adapterPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/adapter",
+    "metricsPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/metrics.jsonl",
+    "requestPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-request.json",
+    "responsePath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-response.json",
+    "stdoutPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-stdout.log",
+    "stderrPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-stderr.log",
+    "claimBoundary": "Training mechanics and artifacts only; Doppler owns capability promotion."
+  },
+  "decision": "training_complete",
+  "capabilityEvidence": false,
+  "selectionAuthority": false,
+  "confirmationAuthority": false,
+  "promotionAuthority": false,
+  "claimBoundary": "Training completion establishes exact row consumption, optimizer execution, and adapter identity for one frozen writer-v2 seed. Capability requires disjoint semantic evaluation.",
+  "receiptHash": "1daa052e42afbf4fe975ce58a3d7a219d12c1649e7cd3d4b5ba0966ba593b77f"
+}

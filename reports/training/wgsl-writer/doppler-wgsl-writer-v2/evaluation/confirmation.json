@@ -1,0 +1,93 @@
+{
+  "schema": "doppler.wgsl-writer-seed-confirmation/v1",
+  "experimentId": "doppler-wgsl-writer-v2",
+  "policy": {
+    "path": "tools/policies/wgsl-writer-v2-training-policy.json",
+    "sha256": "a8b58555edbcefa88f0b6e769a1a3c35bf2f55c943b4ef4208b64e1b3daff06e"
+  },
+  "selection": {
+    "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/selection/selected-seed.json",
+    "sha256": "09df9c7444025ef749718c75afc8fbad877608f88289a6999f3544621f649cee",
+    "receiptHash": "179e799ce9a15875675a340a24443f0f2c8c91c3237ad939094f042228517e12",
+    "selectedSeed": 47
+  },
+  "confirmationBatch": {
+    "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/evaluation.json",
+    "sha256": "4fcc1bcaf0daddcb0d17dbafab4ac9a5b03c798f48a866393ddbd42101263ae9",
+    "receiptHash": "235df482c238d20031ecb1a3bf6633f5e940574130ed931acdbf653b065911b8"
+  },
+  "thresholds": {
+    "minimumConfirmedSeeds": 2,
+    "minimumMeanSemanticPassRate": 0.75,
+    "minimumPerSeedSemanticPassRate": 0.5,
+    "submissionsPerCandidate": 1
+  },
+  "candidates": [
+    {
+      "seed": 11,
+      "semanticPassRate": 1,
+      "semanticPasses": 16,
+      "taskCount": 16,
+      "compilePassRate": 1,
+      "responseContractPassRate": 1,
+      "submissionOrdinal": 1,
+      "semanticReceiptPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/seed11.semantic.json",
+      "semanticReceiptSha256": "d0347b319b177f003a771f63e77ea3a8176d4d659c15de37f8a7f9f38937b2fb",
+      "semanticReceiptHash": "e4672c5b7a986c2113cca96d22450686e0ccad956cdc80b7e83e55ac0589648d"
+    },
+    {
+      "seed": 29,
+      "semanticPassRate": 0.9375,
+      "semanticPasses": 15,
+      "taskCount": 16,
+      "compilePassRate": 1,
+      "responseContractPassRate": 1,
+      "submissionOrdinal": 1,
+      "semanticReceiptPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/seed29.semantic.json",
+      "semanticReceiptSha256": "7f7bc126e2582e925187651754a078024e404a616b7ee66a505f265b546f6020",
+      "semanticReceiptHash": "de192727dad4ee6e489c9269906eecd9e6a6ceb8216f1c057ef6eee7948a3b38"
+    },
+    {
+      "seed": 47,
+      "semanticPassRate": 0.9375,
+      "semanticPasses": 15,
+      "taskCount": 16,
+      "compilePassRate": 1,
+      "responseContractPassRate": 1,
+      "submissionOrdinal": 1,
+      "semanticReceiptPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/seed47.semantic.json",
+      "semanticReceiptSha256": "35770aa65f726bfcec2d32d53afa7465c2d7354b9fa6fcce987d7645dcb91cfd",
+      "semanticReceiptHash": "2b158ca836ddb550258a732c662039d248c395f7f758811b6da7f7a9328c26af"
+    }
+  ],
+  "result": {
+    "pass": true,
+    "checks": {
+      "minimumConfirmedSeeds": true,
+      "minimumMeanSemanticPassRate": true,
+      "minimumPerSeedSemanticPassRate": true,
+      "oneSubmissionPerCandidate": true
+    },
+    "confirmedSeeds": [
+      11,
+      29,
+      47
+    ],
+    "confirmedSeedCount": 3,
+    "meanSemanticPassRate": 0.9583333333333334,
+    "selectedSeedConfirmed": true
+  },
+  "decision": "seed_confirmation_passed",
+  "selectedAdapter": {
+    "seed": 47,
+    "adapterPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/checkpoints/gamma/adapter",
+    "adapterTreeSha256": "aa8ad92a5e57c04d359fa2a7095f40eda6f85728f4e1ef90f4a9e8e5633d200d",
+    "trainingStatusPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/training-status.json",
+    "trainingStatusSha256": "54abb1f7dee477ceaa2a20127c04841bb8b777eb507617da64c924b49e13d51b"
+  },
+  "dopplerParitySatisfied": false,
+  "promotionAuthority": false,
+  "generalWgslWriterClaim": false,
+  "claimBoundary": "The campaign may select and seed-confirm a Qwen 3.5 9B LoRA only for complete 1-D elementwise f32 shaders under explicit interface contracts. Even a perfect development result is unpromoted until exact Doppler parity and an externally custodied one-use population pass; it cannot establish a general WGSL writer.",
+  "receiptHash": "1ece6b82bb9f805724e40cae9a26043741a84a3bb55e1374ec554a69b3866c44"
+}

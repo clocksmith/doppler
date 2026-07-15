@@ -1,0 +1,161 @@
+{
+  "schema": "doppler.wgsl-writer-adapter-parity-receipt/v1",
+  "experimentId": "doppler-wgsl-writer-v2",
+  "policy": {
+    "path": "tools/policies/wgsl-writer-v2-parity-policy.json",
+    "sha256": "bebb079501bbcaeba96710d9eecd80a52ed7e5bb8ed09fae87fb6d597cce88f6"
+  },
+  "selection": {
+    "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/selection/selected-seed.json",
+    "sha256": "09df9c7444025ef749718c75afc8fbad877608f88289a6999f3544621f649cee",
+    "receiptHash": "179e799ce9a15875675a340a24443f0f2c8c91c3237ad939094f042228517e12",
+    "selectedSeed": 47
+  },
+  "confirmation": {
+    "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/confirmation.json",
+    "sha256": "91f2387db1535d6d75705749a659e2288619bba2236ce5d10054ff4249693e11",
+    "receiptHash": "1ece6b82bb9f805724e40cae9a26043741a84a3bb55e1374ec554a69b3866c44"
+  },
+  "evidence": {
+    "reference": {
+      "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/transformers/reference.json",
+      "sha256": "c749b67d3bb1acf29122fc9b379ad4e2afedbb3a1c6e703a5eaea62cb4d7a224"
+    },
+    "dopplerBase": {
+      "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.json",
+      "sha256": "649ebfbd05d0de4ba13ee113e65cabc058de2c6d0ced0add0845f5c3dd1497bf"
+    },
+    "dopplerAdapter": {
+      "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/seed47.json",
+      "sha256": "2e22f64db035b9c113788293d5f67e936e1b81a49211ef6e2e5f091a9f600dae"
+    }
+  },
+  "identities": {
+    "pass": true,
+    "checks": {
+      "sourceConfig": true,
+      "sourceTokenizer": true,
+      "sourceRevision": true,
+      "probeDataset": true,
+      "probeRow": true,
+      "prompt": true,
+      "dopplerManifest": true,
+      "dopplerTokenizer": true,
+      "referenceAdapterWeights": true,
+      "dopplerAdapterManifest": true,
+      "dopplerAdapterWeights": true,
+      "adapterActivated": true
+    }
+  },
+  "base": {
+    "pass": true,
+    "checks": {
+      "promptTokenIdsExact": true,
+      "firstTokenIdExact": true,
+      "logitsFinite": true,
+      "logitCosineSimilarity": true,
+      "topKTokenOverlap": true
+    },
+    "promptTokens": {
+      "exact": true,
+      "referenceCount": 650,
+      "candidateCount": 650,
+      "commonPrefixLength": 650,
+      "firstMismatchIndex": null
+    },
+    "logits": {
+      "comparable": true,
+      "elementCount": 248320,
+      "referenceElementCount": 248320,
+      "candidateElementCount": 248320,
+      "finite": true,
+      "maxAbsError": 0.7763361930847168,
+      "meanAbsError": 0.10531889952685472,
+      "rootMeanSquareError": 0.13383556149562034,
+      "cosineSimilarity": 0.9988282896903751
+    },
+    "topK": {
+      "count": 10,
+      "overlap": 9,
+      "referenceCount": 10,
+      "candidateCount": 10
+    },
+    "completion": {
+      "tokens": {
+        "exact": false,
+        "referenceCount": 384,
+        "candidateCount": 384,
+        "commonPrefixLength": 68,
+        "firstMismatchIndex": 68
+      },
+      "textExact": false
+    }
+  },
+  "adapter": {
+    "pass": true,
+    "checks": {
+      "promptTokenIdsExact": true,
+      "firstTokenIdExact": true,
+      "completionTokenIdsExact": true,
+      "completionTextExact": true,
+      "logitsFinite": true,
+      "logitCosineSimilarity": true,
+      "topKTokenOverlap": true,
+      "adapterDeltaFinite": true,
+      "adapterDeltaCosineSimilarity": true,
+      "referenceAdapterDeltaNonzero": true,
+      "dopplerAdapterDeltaNonzero": true
+    },
+    "promptTokens": {
+      "exact": true,
+      "referenceCount": 650,
+      "candidateCount": 650,
+      "commonPrefixLength": 650,
+      "firstMismatchIndex": null
+    },
+    "completionTokens": {
+      "exact": true,
+      "referenceCount": 247,
+      "candidateCount": 247,
+      "commonPrefixLength": 247,
+      "firstMismatchIndex": null
+    },
+    "logits": {
+      "comparable": true,
+      "elementCount": 248320,
+      "referenceElementCount": 248320,
+      "candidateElementCount": 248320,
+      "finite": true,
+      "maxAbsError": 0.5755929946899414,
+      "meanAbsError": 0.04970080028786653,
+      "rootMeanSquareError": 0.06421749926254545,
+      "cosineSimilarity": 0.9996032011272407
+    },
+    "topK": {
+      "count": 10,
+      "overlap": 10,
+      "referenceCount": 10,
+      "candidateCount": 10
+    },
+    "adapterDelta": {
+      "comparable": true,
+      "elementCount": 248320,
+      "referenceElementCount": 248320,
+      "candidateElementCount": 248320,
+      "finite": true,
+      "maxAbsError": 0.8417634963989258,
+      "meanAbsError": 0.12134402345444371,
+      "rootMeanSquareError": 0.15358582718556477,
+      "cosineSimilarity": 0.9983932857464016,
+      "referenceL2Norm": 1331.4321403105855,
+      "dopplerL2Norm": 1316.4236739933683
+    }
+  },
+  "decision": "selected_adapter_parity_passed",
+  "seedConfirmationSatisfied": true,
+  "dopplerParitySatisfied": true,
+  "promotionAuthority": false,
+  "generalWgslWriterClaim": false,
+  "claimBoundary": "Passing this policy proves selected PEFT-to-Doppler adapter activation and deterministic inference parity on one frozen calibration probe after seed confirmation. It does not establish external promotion, a general WGSL writer, or productization.",
+  "receiptHash": "a3f3b3a2f5d21b9ebb4393749668eca1328a2469ead0c4ccdcfdf437a10cc65e"
+}

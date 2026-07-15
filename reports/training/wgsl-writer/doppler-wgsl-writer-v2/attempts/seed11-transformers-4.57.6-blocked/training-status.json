@@ -1,0 +1,13 @@
+{
+  "schema": "doppler.wgsl-writer-training-status/v1",
+  "experimentId": "doppler-wgsl-writer-v2",
+  "seed": 11,
+  "decision": "blocked",
+  "error": "gamma_wgsl_trainer_failed: transformers>=5.13.1 is required for Qwen3.5; found 4.57.6",
+  "capabilityEvidence": false,
+  "selectionAuthority": false,
+  "confirmationAuthority": false,
+  "promotionAuthority": false,
+  "claimBoundary": "A blocked training attempt is not optimizer or capability evidence.",
+  "receiptHash": "b830b24ddf9c25e4b20b872e6f4eac492017eeaf276b596b127184bd3c604bb9"
+}
