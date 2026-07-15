@@ -47,6 +47,17 @@
         "selectionReceiptSha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] }
       }
     },
+    "seedConfirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "receiptPath", "receiptSha256", "populationHash"],
+      "properties": {
+        "status": { "enum": ["passed", "failed"] },
+        "receiptPath": { "$ref": "#/$defs/repoPath" },
+        "receiptSha256": { "$ref": "#/$defs/sha256" },
+        "populationHash": { "$ref": "#/$defs/sha256" }
+      }
+    },
     "populations": {
       "type": "object",
       "additionalProperties": false,

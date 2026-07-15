@@ -1,0 +1,418 @@
+{
+  "schema": "doppler.wgsl-repair-seed-candidate-completions/v1",
+  "experimentId": "doppler-wgsl-repair-v13",
+  "evaluationRole": "seed_confirmation",
+  "policy": {
+    "path": "tools/policies/wgsl-repair-v13-seed-confirmation-policy.json",
+    "sha256": "baabc1bfbc9c1e522a842403b5e89fc202bbd0fb5a6bddffef7caeca88ca5459"
+  },
+  "population": {
+    "path": "tools/data/wgsl-repair-v13-semantic-seed-confirmation.json",
+    "sha256": "e86d55497329d5d6adfd579b726b980bf7d42386f1df74d740ff0903fdefb3e9",
+    "selectionAuthority": false,
+    "confirmationAuthority": true
+  },
+  "candidate": {
+    "lane": "external20",
+    "seed": 29,
+    "adapterManifestPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapter.manifest.json",
+    "adapterManifestSha256": "e5dec965a953aa746e592ae38045f445e7d9b1407feb609f448238427af4b042",
+    "adapterWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapters.safetensors",
+    "adapterWeightsSha256": "0d9ab8e1348a3fcdd6ef2973b624cc1a3d962de90a571976a5a222df27b69394"
+  },
+  "runtime": {
+    "dopplerCommit": "584b1c847b15ffad50dd3a473f20564b7a54ef3d",
+    "modelId": "qwen-3-5-9b-f16-af32",
+    "modelManifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+    "runtimeProfile": "profiles/production",
+    "provider": "webgpu",
+    "capabilities": {
+      "hasSubgroups": true,
+      "hasSubgroupsF16": true,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967292,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 65536,
+      "adapterInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1"
+      },
+      "submitProbeMs": 0.5475319999999897
+    }
+  },
+  "generation": {
+    "maxTokens": 64,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "greedyThreshold": 0
+  },
+  "promptContract": {
+    "templateId": "wgsl-replacement-only-context-600-v1",
+    "contextCharactersPerSide": 600,
+    "useChatTemplate": false,
+    "responseContract": "replacement_only_wgsl_span_v1"
+  },
+  "completions": {
+    "v13-confirmation-max-pair-f32": "output_values[params.output_offset + index] = max(left_values[index], right_values[index]);",
+    "v13-confirmation-mean-pair-f32": "output_values[params.output_offset + index] = (left_values[index] + right_values[index]) * 0.5f;",
+    "v13-confirmation-square-scale-f32": "output_values[params.output_offset + index] = value * value * params.scale;",
+    "v13-confirmation-negate-f32": "output_values[params.output_offset + index] = -value;",
+    "v13-confirmation-distance-pair-f32": "output_values[params.output_offset + index] = abs(left_values[index] - right_values[index]);",
+    "v13-confirmation-difference-scale-f32": "output_values[params.output_offset + index] = (left_values[index] - right_values[index]) * params.scale;",
+    "v13-confirmation-add-scalar-f32": "output_values[params.output_offset + index] = value + params.scalar;",
+    "v13-confirmation-mask-below-f32": "output_values[params.output_offset + index] = select(0.0, value, value >= params.threshold);"
+  },
+  "tasks": [
+    {
+      "taskId": "v13-confirmation-max-pair-f32",
+      "prompt": "Repair one harness-owned WGSL span.\nReturn only the replacement WGSL for <broken_span>; no Markdown fence, diff, or explanation.\nSource: tests/fixtures/wgsl-repair-v13/confirmation/max-pair-f32-broken.wgsl@e4ead5be0b6ab95ebdced01c0ff2b6f4b492d6da10e64759b15e1d82adbc754c\nMutation class: builtin_argument_completion\n<context_before>\noverride WORKGROUP_SIZE: u32 = 64u;\n\nstruct Params {\n  length: u32,\n  output_offset: u32,\n  reserved_0: f32,\n  reserved_1: f32,\n}\n\n@group(0) @binding(0) var<storage, read> left_values: array<f32>;\n@group(0) @binding(1) var<storage, read> right_values: array<f32>;\n@group(0) @binding(2) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(3) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n  let index = global_id.x;\n  if (index >= params.length) {\n    return;\n  }\n  \n</context_before>\n<broken_span>\noutput_values[params.output_offset + index] = max(left_values[index], );\n</broken_span>\n<context_after>\n\n}\n</context_after>",
+      "promptSha256": "03e55cfe8235b7ed2dbab3e0a06604922f9ce6f3fde623177645b44a6d31ff22",
+      "completion": "output_values[params.output_offset + index] = max(left_values[index], right_values[index]);",
+      "completionSha256": "458df5aa4832fbccb75caed5612366534902cd4b8ad42760cc822f5f6cbe350a",
+      "exactReferenceCompletion": true,
+      "generation": {
+        "outputRaw": "output_values[params.output_offset + index] = max(left_values[index], right_values[index]);",
+        "output": "output_values[params.output_offset + index] = max(left_values[index], right_values[index]);",
+        "tokenIds": [
+          2911,
+          8873,
+          58,
+          3403,
+          13026,
+          6701,
+          478,
+          1857,
+          60,
+          283,
+          1866,
+          17145,
+          8873,
+          5733,
+          1089,
+          1245,
+          8873,
+          5733,
+          14545,
+          248046
+        ],
+        "stopReason": "stop-token",
+        "stopTokenId": 248046,
+        "stats": {
+          "firstTokenMs": 8563.598775999999,
+          "prefillMs": 8555.848384,
+          "decodeMs": 3916.0782379999982,
+          "totalMs": 12480.636772999998
+        }
+      }
+    },
+    {
+      "taskId": "v13-confirmation-mean-pair-f32",
+      "prompt": "Repair one harness-owned WGSL span.\nReturn only the replacement WGSL for <broken_span>; no Markdown fence, diff, or explanation.\nSource: tests/fixtures/wgsl-repair-v13/confirmation/mean-pair-f32-broken.wgsl@5774beb4d89ec09f838f91344c097074c2d7f764a6bdd0e50e12dbf2c8cc0680\nMutation class: literal_operand_completion\n<context_before>\noverride WORKGROUP_SIZE: u32 = 64u;\n\nstruct Params {\n  length: u32,\n  output_offset: u32,\n  reserved_0: f32,\n  reserved_1: f32,\n}\n\n@group(0) @binding(0) var<storage, read> left_values: array<f32>;\n@group(0) @binding(1) var<storage, read> right_values: array<f32>;\n@group(0) @binding(2) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(3) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n  let index = global_id.x;\n  if (index >= params.length) {\n    return;\n  }\n  \n</context_before>\n<broken_span>\noutput_values[params.output_offset + index] = (left_values[index] + right_values[index]) * ;\n</broken_span>\n<context_after>\n\n}\n</context_after>",
+      "promptSha256": "125f3b0be150cf22ef735c6bf6f5bbea39bfd8a1e95c879e566a6140e9e9aa6a",
+      "completion": "output_values[params.output_offset + index] = (left_values[index] + right_values[index]) * 0.5f;",
+      "completionSha256": "2f04b20e4d4a3f51ea7ecc5fc5ecaa088c91354f26857d55f987e9859270e306",
+      "exactReferenceCompletion": false,
+      "generation": {
+        "outputRaw": "output_values[params.output_offset + index] = (left_values[index] + right_values[index]) * 0.5f;",
+        "output": "output_values[params.output_offset + index] = (left_values[index] + right_values[index]) * 0.5f;",
+        "tokenIds": [
+          2911,
+          8873,
+          58,
+          3403,
+          13026,
+          6701,
+          478,
+          1857,
+          60,
+          283,
+          318,
+          2282,
+          8873,
+          5733,
+          60,
+          478,
+          1245,
+          8873,
+          5733,
+          2387,
+          348,
+          220,
+          15,
+          13,
+          20,
+          69,
+          26,
+          248046
+        ],
+        "stopReason": "stop-token",
+        "stopTokenId": 248046,
+        "stats": {
+          "firstTokenMs": 8950.679399,
+          "prefillMs": 8944.480479000002,
+          "decodeMs": 5266.602529,
+          "totalMs": 14217.458731000002
+        }
+      }
+    },
+    {
+      "taskId": "v13-confirmation-square-scale-f32",
+      "prompt": "Repair one harness-owned WGSL span.\nReturn only the replacement WGSL for <broken_span>; no Markdown fence, diff, or explanation.\nSource: tests/fixtures/wgsl-repair-v13/confirmation/square-scale-f32-broken.wgsl@af6b3f96912c5fd7f74b4eb81a49004aae6205009da4c00d7296f630039de72a\nMutation class: scalar_parameter_completion\n<context_before>\noverride WORKGROUP_SIZE: u32 = 64u;\n\nstruct Params {\n  length: u32,\n  output_offset: u32,\n  scale: f32,\n  reserved: f32,\n}\n\n@group(0) @binding(0) var<storage, read> input_values: array<f32>;\n@group(0) @binding(1) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(2) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n  let index = global_id.x;\n  if (index >= params.length) {\n    return;\n  }\n  let value = input_values[index];\n  \n</context_before>\n<broken_span>\noutput_values[params.output_offset + index] = value * value * ;\n</broken_span>\n<context_after>\n\n}\n</context_after>",
+      "promptSha256": "1361eea6ac9326eb7715ad1015640cb3dab7402640b7119b20cfc252ffc75a92",
+      "completion": "output_values[params.output_offset + index] = value * value * params.scale;",
+      "completionSha256": "4a61e6f90b26006c88a97aff5bd2a30c492e376627fbf655c541351ac89855e6",
+      "exactReferenceCompletion": true,
+      "generation": {
+        "outputRaw": "output_values[params.output_offset + index] = value * value * params.scale;",
+        "output": "output_values[params.output_offset + index] = value * value * params.scale;",
+        "tokenIds": [
+          2911,
+          8873,
+          58,
+          3403,
+          13026,
+          6701,
+          478,
+          1857,
+          60,
+          283,
+          869,
+          348,
+          869,
+          348,
+          3506,
+          16756,
+          26,
+          248046
+        ],
+        "stopReason": "stop-token",
+        "stopTokenId": 248046,
+        "stats": {
+          "firstTokenMs": 7978.2163079999955,
+          "prefillMs": 7976.502669000001,
+          "decodeMs": 3557.3198090000005,
+          "totalMs": 11535.684646999995
+        }
+      }
+    },
+    {
+      "taskId": "v13-confirmation-negate-f32",
+      "prompt": "Repair one harness-owned WGSL span.\nReturn only the replacement WGSL for <broken_span>; no Markdown fence, diff, or explanation.\nSource: tests/fixtures/wgsl-repair-v13/confirmation/negate-f32-broken.wgsl@e536e25b2267ae805fea484ddd31665883e889477403e15bfe19a872d7306ec2\nMutation class: unary_operand_completion\n<context_before>\noverride WORKGROUP_SIZE: u32 = 64u;\n\nstruct Params {\n  length: u32,\n  output_offset: u32,\n  reserved_0: f32,\n  reserved_1: f32,\n}\n\n@group(0) @binding(0) var<storage, read> input_values: array<f32>;\n@group(0) @binding(1) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(2) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n  let index = global_id.x;\n  if (index >= params.length) {\n    return;\n  }\n  let value = input_values[index];\n  \n</context_before>\n<broken_span>\noutput_values[params.output_offset + index] = -();\n</broken_span>\n<context_after>\n\n}\n</context_after>",
+      "promptSha256": "228516817135d5e4bf9de4092a6f6ed5c27275b8ad9a6459bf2d2cfabb53557c",
+      "completion": "output_values[params.output_offset + index] = -value;",
+      "completionSha256": "ac74f9cb209f40c2719b6542b483302d9cde21142c14f850f05e8f2f9aa403c9",
+      "exactReferenceCompletion": true,
+      "generation": {
+        "outputRaw": "output_values[params.output_offset + index] = -value;",
+        "output": "output_values[params.output_offset + index] = -value;",
+        "tokenIds": [
+          2911,
+          8873,
+          58,
+          3403,
+          13026,
+          6701,
+          478,
+          1857,
+          60,
+          283,
+          471,
+          927,
+          26,
+          248046
+        ],
+        "stopReason": "stop-token",
+        "stopTokenId": 248046,
+        "stats": {
+          "firstTokenMs": 7989.537036999995,
+          "prefillMs": 7987.888460999995,
+          "decodeMs": 2656.490829000002,
+          "totalMs": 10646.140337999997
+        }
+      }
+    },
+    {
+      "taskId": "v13-confirmation-distance-pair-f32",
+      "prompt": "Repair one harness-owned WGSL span.\nReturn only the replacement WGSL for <broken_span>; no Markdown fence, diff, or explanation.\nSource: tests/fixtures/wgsl-repair-v13/confirmation/distance-pair-f32-broken.wgsl@a7556b9594164c66731351534c9eab7bbaf9252cd5942b1891134f56b25f7ddf\nMutation class: nested_operand_completion\n<context_before>\noverride WORKGROUP_SIZE: u32 = 64u;\n\nstruct Params {\n  length: u32,\n  output_offset: u32,\n  reserved_0: f32,\n  reserved_1: f32,\n}\n\n@group(0) @binding(0) var<storage, read> left_values: array<f32>;\n@group(0) @binding(1) var<storage, read> right_values: array<f32>;\n@group(0) @binding(2) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(3) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n  let index = global_id.x;\n  if (index >= params.length) {\n    return;\n  }\n  \n</context_before>\n<broken_span>\noutput_values[params.output_offset + index] = abs(left_values[index] - );\n</broken_span>\n<context_after>\n\n}\n</context_after>",
+      "promptSha256": "9958d05d62d8391e95fa85679725a12a7764ce968a7ef8e08b99f06b3a14402c",
+      "completion": "output_values[params.output_offset + index] = abs(left_values[index] - right_values[index]);",
+      "completionSha256": "ea7b1cd2cb15c335775a5b78f82b4b06b685ad6eb8f6fd77313ba2b6c2ae9b67",
+      "exactReferenceCompletion": true,
+      "generation": {
+        "outputRaw": "output_values[params.output_offset + index] = abs(left_values[index] - right_values[index]);",
+        "output": "output_values[params.output_offset + index] = abs(left_values[index] - right_values[index]);",
+        "tokenIds": [
+          2911,
+          8873,
+          58,
+          3403,
+          13026,
+          6701,
+          478,
+          1857,
+          60,
+          283,
+          3523,
+          17145,
+          8873,
+          5733,
+          60,
+          471,
+          1245,
+          8873,
+          5733,
+          14545,
+          248046
+        ],
+        "stopReason": "stop-token",
+        "stopTokenId": 248046,
+        "stats": {
+          "firstTokenMs": 8424.640628000001,
+          "prefillMs": 8423.268772999996,
+          "decodeMs": 4067.8786600000094,
+          "totalMs": 12492.700990000005
+        }
+      }
+    },
+    {
+      "taskId": "v13-confirmation-difference-scale-f32",
+      "prompt": "Repair one harness-owned WGSL span.\nReturn only the replacement WGSL for <broken_span>; no Markdown fence, diff, or explanation.\nSource: tests/fixtures/wgsl-repair-v13/confirmation/difference-scale-f32-broken.wgsl@7d8153d87789171436d2c89c59c92e935e02344813381699603310578416f452\nMutation class: scalar_parameter_completion\n<context_before>\noverride WORKGROUP_SIZE: u32 = 64u;\n\nstruct Params {\n  length: u32,\n  output_offset: u32,\n  scale: f32,\n  reserved: f32,\n}\n\n@group(0) @binding(0) var<storage, read> left_values: array<f32>;\n@group(0) @binding(1) var<storage, read> right_values: array<f32>;\n@group(0) @binding(2) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(3) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n  let index = global_id.x;\n  if (index >= params.length) {\n    return;\n  }\n  \n</context_before>\n<broken_span>\noutput_values[params.output_offset + index] = (left_values[index] - right_values[index]) * ;\n</broken_span>\n<context_after>\n\n}\n</context_after>",
+      "promptSha256": "bdb188d0bb2574e4e834070210a84a778c2cae8e9b9ea4f3769657123988bc75",
+      "completion": "output_values[params.output_offset + index] = (left_values[index] - right_values[index]) * params.scale;",
+      "completionSha256": "734e354ae1250f70b05fa8666e18f824959e184d4e570c5ae10863744b4b0250",
+      "exactReferenceCompletion": true,
+      "generation": {
+        "outputRaw": "output_values[params.output_offset + index] = (left_values[index] - right_values[index]) * params.scale;",
+        "output": "output_values[params.output_offset + index] = (left_values[index] - right_values[index]) * params.scale;",
+        "tokenIds": [
+          2911,
+          8873,
+          58,
+          3403,
+          13026,
+          6701,
+          478,
+          1857,
+          60,
+          283,
+          318,
+          2282,
+          8873,
+          5733,
+          60,
+          471,
+          1245,
+          8873,
+          5733,
+          2387,
+          348,
+          3506,
+          16756,
+          26,
+          248046
+        ],
+        "stopReason": "stop-token",
+        "stopTokenId": 248046,
+        "stats": {
+          "firstTokenMs": 8767.984928000005,
+          "prefillMs": 8766.077644999998,
+          "decodeMs": 5076.476687000002,
+          "totalMs": 13844.635762999998
+        }
+      }
+    },
+    {
+      "taskId": "v13-confirmation-add-scalar-f32",
+      "prompt": "Repair one harness-owned WGSL span.\nReturn only the replacement WGSL for <broken_span>; no Markdown fence, diff, or explanation.\nSource: tests/fixtures/wgsl-repair-v13/confirmation/add-scalar-f32-broken.wgsl@c606c240b6835e2d22fbc4742041fb165797e89fc7fc423604b654ba07bb1416\nMutation class: scalar_parameter_completion\n<context_before>\noverride WORKGROUP_SIZE: u32 = 64u;\n\nstruct Params {\n  length: u32,\n  output_offset: u32,\n  scalar: f32,\n  reserved: f32,\n}\n\n@group(0) @binding(0) var<storage, read> input_values: array<f32>;\n@group(0) @binding(1) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(2) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n  let index = global_id.x;\n  if (index >= params.length) {\n    return;\n  }\n  let value = input_values[index];\n  \n</context_before>\n<broken_span>\noutput_values[params.output_offset + index] = value + ;\n</broken_span>\n<context_after>\n\n}\n</context_after>",
+      "promptSha256": "64d8a629f32b414ee36cd9ef13efd62dcc0fbbc364dc571cc97b37699506b78e",
+      "completion": "output_values[params.output_offset + index] = value + params.scalar;",
+      "completionSha256": "f8a82692ced0b06b95f9250f9affd0baf828bd61509c30bdf82af9c234555e98",
+      "exactReferenceCompletion": true,
+      "generation": {
+        "outputRaw": "output_values[params.output_offset + index] = value + params.scalar;",
+        "output": "output_values[params.output_offset + index] = value + params.scalar;",
+        "tokenIds": [
+          2911,
+          8873,
+          58,
+          3403,
+          13026,
+          6701,
+          478,
+          1857,
+          60,
+          283,
+          869,
+          478,
+          3506,
+          77616,
+          26,
+          248046
+        ],
+        "stopReason": "stop-token",
+        "stopTokenId": 248046,
+        "stats": {
+          "firstTokenMs": 8187.751556000003,
+          "prefillMs": 8186.011077000003,
+          "decodeMs": 3038.1048759999976,
+          "totalMs": 11226.047533000004
+        }
+      }
+    },
+    {
+      "taskId": "v13-confirmation-mask-below-f32",
+      "prompt": "Repair one harness-owned WGSL span.\nReturn only the replacement WGSL for <broken_span>; no Markdown fence, diff, or explanation.\nSource: tests/fixtures/wgsl-repair-v13/confirmation/mask-below-f32-broken.wgsl@b30c9576e341337c56abe90159dc5d7913ea9925d1ae69938ab39d256679259e\nMutation class: scalar_condition_completion\n<context_before>\noverride WORKGROUP_SIZE: u32 = 64u;\n\nstruct Params {\n  length: u32,\n  output_offset: u32,\n  threshold: f32,\n  reserved: f32,\n}\n\n@group(0) @binding(0) var<storage, read> input_values: array<f32>;\n@group(0) @binding(1) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(2) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n  let index = global_id.x;\n  if (index >= params.length) {\n    return;\n  }\n  let value = input_values[index];\n  \n</context_before>\n<broken_span>\noutput_values[params.output_offset + index] = select(0.0, value, value >= );\n</broken_span>\n<context_after>\n\n}\n</context_after>",
+      "promptSha256": "cd34d788120da2fabd3daa90cd160ea67ed6e0063434792415e32de0913548a9",
+      "completion": "output_values[params.output_offset + index] = select(0.0, value, value >= params.threshold);",
+      "completionSha256": "708c76c6d9c6dc392ed27b394fe2b077a3dda75a812c67f615b6296c48420079",
+      "exactReferenceCompletion": true,
+      "generation": {
+        "outputRaw": "output_values[params.output_offset + index] = select(0.0, value, value >= params.threshold);",
+        "output": "output_values[params.output_offset + index] = select(0.0, value, value >= params.threshold);",
+        "tokenIds": [
+          2911,
+          8873,
+          58,
+          3403,
+          13026,
+          6701,
+          478,
+          1857,
+          60,
+          283,
+          3186,
+          7,
+          15,
+          13,
+          15,
+          11,
+          869,
+          11,
+          869,
+          2518,
+          3506,
+          63006,
+          1174,
+          248046
+        ],
+        "stopReason": "stop-token",
+        "stopTokenId": 248046,
+        "stats": {
+          "firstTokenMs": 8134.484283999991,
+          "prefillMs": 8133.0250950000045,
+          "decodeMs": 4816.4951960000035,
+          "totalMs": 12951.141695999991
+        }
+      }
+    }
+  ],
+  "selectionAuthority": false,
+  "promotionAuthority": false,
+  "claimBoundary": "Deterministic Doppler candidate completions on the frozen seed_confirmation population. This receipt has no authority beyond that declared role.",
+  "receiptHash": "4612e80cfcb0dc0377fe7d034c17c89873c23877120fdebf03cc331c57ff241a"
+}

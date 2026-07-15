@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
+import {
+  finalizeWgslRepairV13SeedConfirmation,
+} from '../../tools/finalize-wgsl-repair-v13-seed-confirmation.js';
+
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
 }
@@ -17,6 +21,8 @@ const selection = readJson(policy.selectionReceipt.path);
 const reference = readJson(
   'docs/status/wgsl-repair-v13-seed-confirmation-reference-2026-07-14.json'
 );
+const resultPath = 'docs/status/wgsl-repair-v13-seed-confirmation-result-2026-07-14.json';
+const result = readJson(resultPath);
 const catalog = readJson('tools/data/wgsl-repair-v13-confirmation-blueprints.json');
 const blueprintById = new Map(catalog.blueprints.map((entry) => [entry.id, entry]));
 
@@ -110,5 +116,21 @@ assert.equal(reference.summary.compilationPasses, manifest.tasks.length);
 assert.equal(reference.summary.dispatchVariantPasses, manifest.tasks.length * 3);
 assert.equal(reference.summary.historicalRegressionPasses, manifest.tasks.length);
 assert.ok(reference.evaluatedTasks.every((task) => task.pass === true));
+
+const replayedResult = await finalizeWgslRepairV13SeedConfirmation({
+  policyPath,
+  referencePath: result.referenceReceipt.path,
+  completionsPath: result.completionReceipt.path,
+  semanticPath: result.semanticReceipt.path,
+});
+assert.deepEqual(replayedResult, result);
+assert.equal(result.decision, 'seed_confirmation_passed');
+assert.equal(result.seedConfirmationSatisfied, true);
+assert.equal(result.metrics.semanticTaskPasses, 8);
+assert.equal(result.metrics.semanticVariantPasses, 24);
+assert.equal(result.metrics.exactReferenceCompletionCount, 7);
+assert.equal(result.promotionAuthority, false);
+assert.equal(result.wgslDoctorAllowed, false);
+assert.equal(result.completeShaderWritingEstablished, false);
 
 console.log('wgsl-repair-v13-seed-confirmation-contract.test: ok');

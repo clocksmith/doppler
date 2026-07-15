@@ -20,12 +20,6 @@
     "selectionReceiptPath": "docs/status/wgsl-repair-v13-seed-selection-2026-07-14.json",
     "selectionReceiptSha256": "8f33d219a6a757e19e22beb2d809b9f9a2770aaf3d563da541c26d0b67b701ef"
   },
-  "seedConfirmation": {
-    "status": "passed",
-    "receiptPath": "docs/status/wgsl-repair-v13-seed-confirmation-result-2026-07-14.json",
-    "receiptSha256": "5195a50299e7054a49d5d176ce30f468e561f9870fe9890b404ee7b9ec352fc5",
-    "populationHash": "e86d55497329d5d6adfd579b726b980bf7d42386f1df74d740ff0903fdefb3e9"
-  },
   "populations": {
     "calibration": {
       "status": "frozen",
@@ -51,5 +45,5 @@
     "historicalRegressionManifestPath": "tools/data/wgsl-repair-v13-historical-regressions.json",
     "historicalRegressionManifestSha256": "0cf12c4641fad4e99994d6d3b1162569d674bf82f6749b7297984027122e9c23"
   },
-  "claimBoundary": "This evidence state recognizes passing V12 portability, seed 29 selected under the frozen checkpoint-selection policy, and seed 29 passing the one-use commit-derived semantic confirmation population. Promotion evaluation remains blocked until a separate one-use promotion population is externally frozen; WGSL Doctor and complete shader writing remain unauthorized."
+  "claimBoundary": "This evidence state recognizes passing V12 portability, passing reference-control harness qualification, seed 29 selected under the frozen checkpoint-selection policy, and a commit-derived seed-confirmation population frozen before candidate inference. It does not claim seed confirmation, semantic promotion, WGSL Doctor readiness, or complete shader writing."
 }
