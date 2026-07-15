@@ -86,6 +86,11 @@
       "id": "wgsl-writer-v1-policy",
       "policyPath": "tools/policies/wgsl-writer-v1-policy.json",
       "schemaPath": "src/config/schema/wgsl-writer-experiment.schema.json"
+    },
+    {
+      "id": "wgsl-writer-v1-diagnostic-policy",
+      "policyPath": "tools/policies/wgsl-writer-v1-diagnostic-policy.json",
+      "schemaPath": "src/config/schema/wgsl-writer-diagnostic.schema.json"
     }
   ]
 }

@@ -43,6 +43,7 @@
     "training:wgsl:rollouts": "node tools/run-wgsl-repair-rollouts.js",
     "training:wgsl:semantic": "node tools/run-wgsl-repair-semantic-harness.js",
     "training:wgsl:writer:semantic": "node tools/run-wgsl-writer-semantic-harness.js",
+    "training:wgsl:writer:candidate": "node tools/run-wgsl-writer-candidate.js",
     "training:wgsl:seed-candidates": "node tools/run-wgsl-repair-seed-candidates.js",
     "training:wgsl:seed-select": "node tools/select-wgsl-repair-v13-seed.js",
     "training:contract:delta": "node tools/emit-training-contract-delta.js",
