@@ -1,0 +1,1702 @@
+{
+  "schema": "doppler.wgsl-writer-task-manifest/v1",
+  "schemaVersion": 1,
+  "experimentId": "doppler-wgsl-writer-v2",
+  "role": "checkpoint_selection",
+  "populationAuthority": "checkpoint_selection",
+  "responseContract": "complete_wgsl_compute_shader_only_v1",
+  "cpuOracleRevision": "wgsl-semantic-cpu-oracles-v1",
+  "inputGeneratorRevision": "wgsl-semantic-inputs-v1",
+  "tasks": [
+    {
+      "taskId": "writer-v2-checkpoint-selection-mask-below-001",
+      "kernelFamilyId": "writer-v2-mask-below",
+      "specification": "Implement an elementwise f32 compute kernel: write zero when the input is below the f32 threshold stored in the first scalar uniform field and otherwise preserve the input. Process exactly params.length elements, store the result in output_values[params.output_offset + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "input_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "output_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "params",
+            "kind": "uniform",
+            "wgslType": "Params"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "threshold",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(params.length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= params.length.",
+        "outputRule": "Write only output_values[params.output_offset + index]."
+      },
+      "referenceShaderSha256": "cd82765fa58ddc3c3e1fcc83935dee1b13b86db48c1af976eb0a0a3cdd0b8f2b",
+      "oracleId": "mask_below_f32",
+      "inputSeed": 20990916,
+      "parameters": {
+        "threshold": 0.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-001-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-001-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-001-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "mask_below_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "mask_below",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-001.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-mask-below-002",
+      "kernelFamilyId": "writer-v2-mask-below",
+      "specification": "For every logical index, write zero when the input is below the f32 threshold stored in the first scalar uniform field and otherwise preserve the input, then store the result in destination_values[config.destination_offset + index]. An invocation whose x index is at least config.element_count must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "source_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "destination_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "config",
+            "kind": "uniform",
+            "wgslType": "Config"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "element_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "threshold",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(config.element_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= config.element_count.",
+        "outputRule": "Write only destination_values[config.destination_offset + index]."
+      },
+      "referenceShaderSha256": "e3fbb7081dab3f41fe41ff3732333abc748bc1e888749873c4e1c19220f24f4f",
+      "oracleId": "mask_below_f32",
+      "inputSeed": 267597413,
+      "parameters": {
+        "threshold": 0.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-002-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-002-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-002-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "mask_below_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "mask_below",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-002.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-mask-below-003",
+      "kernelFamilyId": "writer-v2-mask-below",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must write zero when the input is below the f32 threshold stored in the first scalar uniform field and otherwise preserve the input, store the result in result_data[uniforms.write_offset + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "input_data",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "result_data",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "uniforms",
+            "kind": "uniform",
+            "wgslType": "Uniforms"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_size",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "write_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "threshold",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(uniforms.logical_size / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= uniforms.logical_size.",
+        "outputRule": "Write only result_data[uniforms.write_offset + index]."
+      },
+      "referenceShaderSha256": "6fd4ec27feeff53d5e944df09bf3cba5f61fcf823cd0d0ffafc6da3cb7e689ad",
+      "oracleId": "mask_below_f32",
+      "inputSeed": 231484472,
+      "parameters": {
+        "threshold": 0.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-003-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-003-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-003-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "mask_below_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "mask_below",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-003.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-mask-below-004",
+      "kernelFamilyId": "writer-v2-mask-below",
+      "specification": "At each in-range global x index, write zero when the input is below the f32 threshold stored in the first scalar uniform field and otherwise preserve the input and store the result in results[settings.result_offset + index]. An invocation whose x index is at least settings.item_count must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "results",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "settings",
+            "kind": "uniform",
+            "wgslType": "Settings"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "item_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "result_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "threshold",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(settings.item_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= settings.item_count.",
+        "outputRule": "Write only results[settings.result_offset + index]."
+      },
+      "referenceShaderSha256": "9562855f6e3bc69647cc17df2de0466ae7cc5370fd7072a5c26fdfc6ee548dda",
+      "oracleId": "mask_below_f32",
+      "inputSeed": 219697512,
+      "parameters": {
+        "threshold": 0.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-004-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-004-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-004-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "mask_below_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "mask_below",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-004.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-mask-below-005",
+      "kernelFamilyId": "writer-v2-mask-below",
+      "specification": "Implement an elementwise f32 compute kernel: write zero when the input is below the f32 threshold stored in the first scalar uniform field and otherwise preserve the input. Process exactly parameters.value_count elements, store the result in outputs[parameters.output_start + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "samples",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "outputs",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "parameters",
+            "kind": "uniform",
+            "wgslType": "Parameters"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "value_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "threshold",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(parameters.value_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= parameters.value_count.",
+        "outputRule": "Write only outputs[parameters.output_start + index]."
+      },
+      "referenceShaderSha256": "61a67fae23a7e42430f4f5a85698782933bf75c97e63edd732e6189bd845928a",
+      "oracleId": "mask_below_f32",
+      "inputSeed": 49187839,
+      "parameters": {
+        "threshold": 0.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-005-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-005-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-005-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "mask_below_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "mask_below",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-005.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-mask-below-006",
+      "kernelFamilyId": "writer-v2-mask-below",
+      "specification": "For every logical index, write zero when the input is below the f32 threshold stored in the first scalar uniform field and otherwise preserve the input, then store the result in destination[kernel_params.destination_start + index]. An invocation whose x index is at least kernel_params.num_elements must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "source",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "destination",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "kernel_params",
+            "kind": "uniform",
+            "wgslType": "KernelParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "num_elements",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "threshold",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(kernel_params.num_elements / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= kernel_params.num_elements.",
+        "outputRule": "Write only destination[kernel_params.destination_start + index]."
+      },
+      "referenceShaderSha256": "697fe854982a6815b0b5396e16c937bc25d54be175ad7878a95ce9ac586c1b86",
+      "oracleId": "mask_below_f32",
+      "inputSeed": 177052338,
+      "parameters": {
+        "threshold": 0.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-006-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-006-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-006-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "mask_below_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "mask_below",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-006.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-mask-below-007",
+      "kernelFamilyId": "writer-v2-mask-below",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must write zero when the input is below the f32 threshold stored in the first scalar uniform field and otherwise preserve the input, store the result in output_buffer[dispatch_params.output_base + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "input_buffer",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "output_buffer",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "dispatch_params",
+            "kind": "uniform",
+            "wgslType": "DispatchParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "active_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_base",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "threshold",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(dispatch_params.active_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= dispatch_params.active_length.",
+        "outputRule": "Write only output_buffer[dispatch_params.output_base + index]."
+      },
+      "referenceShaderSha256": "c52b602cbf6a9fbd2d82290a15c114e6b6dbb1642b5cc8f72f371953f5e30e98",
+      "oracleId": "mask_below_f32",
+      "inputSeed": 178202659,
+      "parameters": {
+        "threshold": 0.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-007-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-007-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-007-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "mask_below_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "mask_below",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-007.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-mask-below-008",
+      "kernelFamilyId": "writer-v2-mask-below",
+      "specification": "At each in-range global x index, write zero when the input is below the f32 threshold stored in the first scalar uniform field and otherwise preserve the input and store the result in result_values[control.store_offset + index]. An invocation whose x index is at least control.logical_length must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "operands",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "result_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "control",
+            "kind": "uniform",
+            "wgslType": "Control"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "store_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "threshold",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(control.logical_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= control.logical_length.",
+        "outputRule": "Write only result_values[control.store_offset + index]."
+      },
+      "referenceShaderSha256": "0f1a5c537ccf8c5b81a989a712dc9d9548498bf85d493456503c6b7c6f2e8596",
+      "oracleId": "mask_below_f32",
+      "inputSeed": 69560141,
+      "parameters": {
+        "threshold": 0.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-008-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-008-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-mask-below-008-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "mask_below_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "mask_below",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-008.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-difference-scale-001",
+      "kernelFamilyId": "writer-v2-difference-scale",
+      "specification": "At each in-range global x index, subtract the right input from the left input and multiply the difference by the f32 scale stored in the first scalar uniform field and store the result in output_values[params.output_offset + index]. An invocation whose x index is at least params.length must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "left_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "right_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "output_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "params",
+            "kind": "uniform",
+            "wgslType": "Params"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(params.length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= params.length.",
+        "outputRule": "Write only output_values[params.output_offset + index]."
+      },
+      "referenceShaderSha256": "d94dd094b3e5d78894811d19acf7c360ba033030f0b1d9645381aa8bdd16979e",
+      "oracleId": "difference_scale_f32",
+      "inputSeed": 175597669,
+      "parameters": {
+        "scale": -0.625
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-001-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-001-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-001-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "difference_scale_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "difference_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-001.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-difference-scale-002",
+      "kernelFamilyId": "writer-v2-difference-scale",
+      "specification": "Implement an elementwise f32 compute kernel: subtract the right input from the left input and multiply the difference by the f32 scale stored in the first scalar uniform field. Process exactly config.element_count elements, store the result in destination_values[config.destination_offset + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "lhs_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "rhs_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "destination_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "config",
+            "kind": "uniform",
+            "wgslType": "Config"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "element_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(config.element_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= config.element_count.",
+        "outputRule": "Write only destination_values[config.destination_offset + index]."
+      },
+      "referenceShaderSha256": "78a99baa2b6da80685ccf5905d243a64dcee47171db1cd3208e14761f7757206",
+      "oracleId": "difference_scale_f32",
+      "inputSeed": 28693256,
+      "parameters": {
+        "scale": -0.625
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-002-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-002-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-002-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "difference_scale_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "difference_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-002.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-difference-scale-003",
+      "kernelFamilyId": "writer-v2-difference-scale",
+      "specification": "For every logical index, subtract the right input from the left input and multiply the difference by the f32 scale stored in the first scalar uniform field, then store the result in result_data[uniforms.write_offset + index]. An invocation whose x index is at least uniforms.logical_size must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "a_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "b_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "result_data",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "uniforms",
+            "kind": "uniform",
+            "wgslType": "Uniforms"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_size",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "write_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(uniforms.logical_size / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= uniforms.logical_size.",
+        "outputRule": "Write only result_data[uniforms.write_offset + index]."
+      },
+      "referenceShaderSha256": "bb4bff3b077bda985db95633d9e8e6ac52c702d1e49ceff86c1571c485cddf17",
+      "oracleId": "difference_scale_f32",
+      "inputSeed": 227152409,
+      "parameters": {
+        "scale": -0.625
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-003-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-003-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-003-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "difference_scale_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "difference_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-003.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-difference-scale-004",
+      "kernelFamilyId": "writer-v2-difference-scale",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must subtract the right input from the left input and multiply the difference by the f32 scale stored in the first scalar uniform field, store the result in results[settings.result_offset + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "first_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "second_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "results",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "settings",
+            "kind": "uniform",
+            "wgslType": "Settings"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "item_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "result_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(settings.item_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= settings.item_count.",
+        "outputRule": "Write only results[settings.result_offset + index]."
+      },
+      "referenceShaderSha256": "6a61dc18701bf2b1d6f787e18591c08afe85d7b51524525e2fb2e2e7349b341d",
+      "oracleId": "difference_scale_f32",
+      "inputSeed": 200154568,
+      "parameters": {
+        "scale": -0.625
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-004-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-004-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-004-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "difference_scale_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "difference_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-004.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-difference-scale-005",
+      "kernelFamilyId": "writer-v2-difference-scale",
+      "specification": "At each in-range global x index, subtract the right input from the left input and multiply the difference by the f32 scale stored in the first scalar uniform field and store the result in outputs[parameters.output_start + index]. An invocation whose x index is at least parameters.value_count must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "primary_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "secondary_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "outputs",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "parameters",
+            "kind": "uniform",
+            "wgslType": "Parameters"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "value_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(parameters.value_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= parameters.value_count.",
+        "outputRule": "Write only outputs[parameters.output_start + index]."
+      },
+      "referenceShaderSha256": "afded6e741e739695aeb0a89388694cc1f3558ef7eb73268e09fb0d2a7797701",
+      "oracleId": "difference_scale_f32",
+      "inputSeed": 141392281,
+      "parameters": {
+        "scale": -0.625
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-005-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-005-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-005-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "difference_scale_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "difference_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-005.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-difference-scale-006",
+      "kernelFamilyId": "writer-v2-difference-scale",
+      "specification": "Implement an elementwise f32 compute kernel: subtract the right input from the left input and multiply the difference by the f32 scale stored in the first scalar uniform field. Process exactly kernel_params.num_elements elements, store the result in destination[kernel_params.destination_start + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "left",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "right",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "destination",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "kernel_params",
+            "kind": "uniform",
+            "wgslType": "KernelParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "num_elements",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(kernel_params.num_elements / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= kernel_params.num_elements.",
+        "outputRule": "Write only destination[kernel_params.destination_start + index]."
+      },
+      "referenceShaderSha256": "5fecd30f137cef2b0d41d764c900da7e6164271ca1ec40f57e60ddbdddcc0617",
+      "oracleId": "difference_scale_f32",
+      "inputSeed": 168321955,
+      "parameters": {
+        "scale": -0.625
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-006-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-006-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-006-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "difference_scale_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "difference_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-006.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-difference-scale-007",
+      "kernelFamilyId": "writer-v2-difference-scale",
+      "specification": "For every logical index, subtract the right input from the left input and multiply the difference by the f32 scale stored in the first scalar uniform field, then store the result in output_buffer[dispatch_params.output_base + index]. An invocation whose x index is at least dispatch_params.active_length must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "x_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "y_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "output_buffer",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "dispatch_params",
+            "kind": "uniform",
+            "wgslType": "DispatchParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "active_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_base",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(dispatch_params.active_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= dispatch_params.active_length.",
+        "outputRule": "Write only output_buffer[dispatch_params.output_base + index]."
+      },
+      "referenceShaderSha256": "8b855b33470ed03e9924da181b4627c7ff7dfa673b4832273b24aacf19ecfa96",
+      "oracleId": "difference_scale_f32",
+      "inputSeed": 168421182,
+      "parameters": {
+        "scale": -0.625
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-007-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-007-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-007-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "difference_scale_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "difference_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-007.wgsl"
+    },
+    {
+      "taskId": "writer-v2-checkpoint-selection-difference-scale-008",
+      "kernelFamilyId": "writer-v2-difference-scale",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must subtract the right input from the left input and multiply the difference by the f32 scale stored in the first scalar uniform field, store the result in result_values[control.store_offset + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "left_operands",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "right_operands",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "result_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "control",
+            "kind": "uniform",
+            "wgslType": "Control"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "store_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(control.logical_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= control.logical_length.",
+        "outputRule": "Write only result_values[control.store_offset + index]."
+      },
+      "referenceShaderSha256": "a0be4b5c09209ebc8deced107695ec8cecc636a7c1b5835618627d789b576608",
+      "oracleId": "difference_scale_f32",
+      "inputSeed": 139058248,
+      "parameters": {
+        "scale": -0.625
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-008-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-008-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-checkpoint-selection-difference-scale-008-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "difference_scale_f32",
+      "populationRole": "checkpoint_selection",
+      "blueprintId": "difference_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-008.wgsl"
+    }
+  ],
+  "overlapPolicy": "Semantic families, task ids, prompts, reference shaders, and input seeds are disjoint across writer-v2 population roles.",
+  "claimBoundary": "checkpoint_selection evidence is limited to the frozen complete 1-D elementwise f32 writer contract."
+}

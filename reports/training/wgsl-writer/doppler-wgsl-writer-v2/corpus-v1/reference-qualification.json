@@ -1,0 +1,4180 @@
+{
+  "schema": "doppler.wgsl-writer-corpus-qualification/v1",
+  "experimentId": "doppler-wgsl-writer-v2",
+  "policy": {
+    "path": "tools/policies/wgsl-writer-v2-corpus-policy.json",
+    "sha256": "560bccb7269f1dae5b8d426bb90414097eb82e1b5f4fdaee211daa6498522c44"
+  },
+  "corpusManifest": {
+    "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/corpus-manifest.json",
+    "sha256": "dc507148075cff97d1faf05c848c471f97b33dacd88905bd31a81e45b01f528c",
+    "internalManifestSha256": "95687c9013d21dcc4b176b2595b68aa30380f6d71a117cefc7c6b23ffd1dc05a",
+    "corpusSha256": "df55d1fc2ae65c2d9758fd9b3a59bce62147a05533a7f16cf9a72017759f413c"
+  },
+  "referenceTaskManifest": {
+    "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/reference-qualification.tasks.json",
+    "sha256": "52fe4f183b8751d3ca403615ace2d7551bba511cd2e205c6117837beb1909049"
+  },
+  "runtime": {
+    "backend": "chromium_webgpu",
+    "deviceInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": null,
+      "description": null,
+      "availableFeatures": [
+        "bgra8unorm-storage",
+        "chromium-experimental-multi-draw-indirect",
+        "chromium-experimental-subgroup-matrix",
+        "chromium-experimental-timestamp-query-inside-passes",
+        "clip-distances",
+        "core-features-and-limits",
+        "depth-clip-control",
+        "depth32float-stencil8",
+        "dual-source-blending",
+        "float32-blendable",
+        "float32-filterable",
+        "indirect-first-instance",
+        "primitive-index",
+        "rg11b10ufloat-renderable",
+        "shader-f16",
+        "subgroups",
+        "texture-component-swizzle",
+        "texture-compression-bc",
+        "texture-compression-bc-sliced-3d",
+        "texture-formats-tier1",
+        "texture-formats-tier2",
+        "timestamp-query"
+      ],
+      "requiredFeatures": []
+    },
+    "browserArgs": [
+      "--enable-unsafe-webgpu",
+      "--enable-dawn-features=allow_unsafe_apis",
+      "--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE",
+      "--use-angle=vulkan",
+      "--disable-vulkan-surface"
+    ]
+  },
+  "compilation": {
+    "shaderCount": 768,
+    "passes": 768,
+    "failures": [],
+    "passedIdsSha256": "321574ed5f0f8063e7e7de3fe9c9d4abf7ed2e98babb0f85fb70468e5ffe785f"
+  },
+  "semantic": {
+    "taskCount": 63,
+    "responseContractPasses": 63,
+    "compilationPasses": 63,
+    "dispatchVariantCount": 189,
+    "dispatchVariantPasses": 189,
+    "historicalRegressionPasses": 63,
+    "semanticTaskPasses": 63,
+    "evaluatedTasks": [
+      {
+        "taskId": "writer-v2-training-scale-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-scale-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-scale-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-scale-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "41f7937b03f2015d5ff24fd183b3f54f9c5716a92deaa1ac890fa94e2c4c0501"
+      },
+      {
+        "taskId": "writer-v2-training-relu-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-relu-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-relu-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-relu-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "34f02cfaad15b3faf29745179d3c3dc43cc98ecc234f9f8afc2e1b16635e41f9"
+      },
+      {
+        "taskId": "writer-v2-training-subtract-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-subtract-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-subtract-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-subtract-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "b308526848b0d0e705bdf0cb6e380df5ff77d341a8bb79b44ff2b9d4e1e4415e"
+      },
+      {
+        "taskId": "writer-v2-training-mix-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-mix-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 4.76837158203125e-7,
+              "maxRelError": 0.00010777023386140747,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-mix-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 4.76837158203125e-7,
+              "maxRelError": 0.00010777023386140747,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-mix-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 5.960464477539063e-8,
+              "maxRelError": 3.0102003649566923e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "fa1d484c22882718f2c8184ab5588d9a7ed2f256f9f17776ba9b5f22781f5fca"
+      },
+      {
+        "taskId": "writer-v2-training-square-bias-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-square-bias-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0.00000762939453125,
+              "maxRelError": 1.1883620378222363e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-square-bias-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0.00000762939453125,
+              "maxRelError": 1.1883620378222363e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-square-bias-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "9e143d357f3fc185c7aad4701705099ed16739650abe145294bf394ecdb12df2"
+      },
+      {
+        "taskId": "writer-v2-training-absolute-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-absolute-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-absolute-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-absolute-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "aa7edeb291e96c17b30a8f8f23a195d397edbdeac22cfecdc481d7200d1b4534"
+      },
+      {
+        "taskId": "writer-v2-training-minimum-pair-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-minimum-pair-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-minimum-pair-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-minimum-pair-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "7c57fcf61798bea1e336ddf8233f25a9cfa970f61ce477c698f1202b564fee7d"
+      },
+      {
+        "taskId": "writer-v2-training-threshold-negate-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-threshold-negate-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-threshold-negate-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-threshold-negate-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "3a494023731ab4302d6c66b75f1c6f863a6fb2945349137bcd7439c105a92e9c"
+      },
+      {
+        "taskId": "writer-v2-training-multiply-pair-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-multiply-pair-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-multiply-pair-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-multiply-pair-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "902c73313983d0084f4aad6afe178c1d06097069b7df8cbcd5be6eabdc487f00"
+      },
+      {
+        "taskId": "writer-v2-training-maximum-pair-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-maximum-pair-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-maximum-pair-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-maximum-pair-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "db45bc0e11b5ead781e514fd6e8d9a82a676444686fb0d8051674e31392fcfb2"
+      },
+      {
+        "taskId": "writer-v2-training-mean-pair-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-mean-pair-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-mean-pair-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-mean-pair-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "432445c78b6d45796eff5502f2fea8dbfb9d17d5ab317eb9dc767e9a1ef3672c"
+      },
+      {
+        "taskId": "writer-v2-training-negate-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-negate-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-negate-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-negate-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "f34040d43b5f82bfd884381d3574c79df695a697ea5992b5c0b495c3209531d3"
+      },
+      {
+        "taskId": "writer-v2-training-floor-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-floor-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-floor-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-floor-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "ed67527a27b08eaba057a532d3a1c658ab8fb0a5ae5bf8137293331f83be521e"
+      },
+      {
+        "taskId": "writer-v2-training-add-scalar-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-add-scalar-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-add-scalar-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-add-scalar-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "f96e1063b87e5e1c3854d0bc5b62715a3f753e2d07bbd335050169b73bcc60a2"
+      },
+      {
+        "taskId": "writer-v2-training-leaky-relu-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-training-leaky-relu-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-leaky-relu-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-training-leaky-relu-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "f39c47c34257f12ef40b75b822f5ce14500fbeb42a903f119c20171c537d203b"
+      },
+      {
+        "taskId": "writer-v2-calibration-distance-pair-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "fbe6d4882ad9f9511f787ba0ed6bf1d7835e40c5fd9e4f6476c54ec8f293d1cc"
+      },
+      {
+        "taskId": "writer-v2-calibration-distance-pair-002",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-002-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-002-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-002-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "f284680ef629133e8246712be61d20edb90151dc5d50d534e2cb0eb516cdb39d"
+      },
+      {
+        "taskId": "writer-v2-calibration-distance-pair-003",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-003-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-003-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-003-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "403b1aa3565ebdd60084c398b684d498115fd511d61d4b2970a1cc7b7c60a864"
+      },
+      {
+        "taskId": "writer-v2-calibration-distance-pair-004",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-004-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-004-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-004-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "b142cb372143e9b93056babc67204e969987d0827b11922b4d842b042e360fd2"
+      },
+      {
+        "taskId": "writer-v2-calibration-distance-pair-005",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-005-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-005-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-005-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "834af2adca7dafa909be38a797a278c5488a755587f26d87f8b1a435cce2f3ed"
+      },
+      {
+        "taskId": "writer-v2-calibration-distance-pair-006",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-006-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-006-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-006-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "3d07f91a5db3d7e723b5c746f0ab7bd3bb9eb7e4cca38cba2928dcaa0dff7553"
+      },
+      {
+        "taskId": "writer-v2-calibration-distance-pair-007",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-007-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-007-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-007-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "07854c0f7092374da6504f6462f0096d975bbaf80b547512814cd24696270c10"
+      },
+      {
+        "taskId": "writer-v2-calibration-distance-pair-008",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-008-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-008-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-distance-pair-008-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "5672f093ca671f37e4bde2b768d70a3c719c809d56e9c00b1d595ecc1f04dec8"
+      },
+      {
+        "taskId": "writer-v2-calibration-cap-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-cap-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "aae6f94ae7c04f94b10bb3b299ab9d059fd46b7a613f23ce00727c1aef913fef"
+      },
+      {
+        "taskId": "writer-v2-calibration-cap-002",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-cap-002-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-002-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-002-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "f2ec500be43890ad0cf238b5fee7b8674e6527f762961fcbceb08f4f70ac9129"
+      },
+      {
+        "taskId": "writer-v2-calibration-cap-003",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-cap-003-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-003-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-003-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "90bdc17b56051136f11120bdf983e3647a93651934f9608ecfd4d1dd85007e57"
+      },
+      {
+        "taskId": "writer-v2-calibration-cap-004",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-cap-004-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-004-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-004-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "5f53597d4a5d4e6cb562b3c50a10295ce141f552e64fad3d9621356f1892d859"
+      },
+      {
+        "taskId": "writer-v2-calibration-cap-005",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-cap-005-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-005-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-005-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "6a4f2f2ef5f914cab8e2eb05b30593db71548c4ff81c5e09004b0238e4fc327e"
+      },
+      {
+        "taskId": "writer-v2-calibration-cap-006",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-cap-006-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-006-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-006-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "a399e6359e6d8b8d85c16e5d0afba13c29afbcf756121218f813ceae8866a002"
+      },
+      {
+        "taskId": "writer-v2-calibration-cap-007",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-cap-007-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-007-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-007-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "1bebe24d8fa56480db2d084e7b34bb215e6f88c24718917b27b814cb55da4e16"
+      },
+      {
+        "taskId": "writer-v2-calibration-cap-008",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-calibration-cap-008-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-008-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-calibration-cap-008-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "bb128a5caec6bc69b5079071d1fc323583d9704cd79eed645c6533951649ca89"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-mask-below-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "32b8f3e44d31d4fdc6f3601baa18d0de7da4b1e30b6913d80342624068243071"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-mask-below-002",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-002-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-002-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-002-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "2c3b1c239427c5b7c09cd951706185d2539b3acb238d985dd654bdc2242780b3"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-mask-below-003",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-003-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-003-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-003-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "241c6786e5107a7285b54253379949301676a0252f048d92b78f7d779c9b5243"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-mask-below-004",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-004-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-004-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-004-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "f293beba291fa783057184bb3df0ef4f5c7c06eaa02c72cae4b16eb0f8a3d2fa"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-mask-below-005",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-005-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-005-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-005-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "3acf2d338eaead45f40c149b07cf8943317e464103e38b7b99ecf741036d1065"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-mask-below-006",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-006-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-006-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-006-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "369628cc2f803428f07951f6185672789a413972e67f9b69acb036a23a4cd8d5"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-mask-below-007",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-007-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-007-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-007-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "2400d156ef64bb460dc1fd96be043429ef3b85a66c3a31c2beb7ed29755d8787"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-mask-below-008",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-008-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-008-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-mask-below-008-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "d9064c790bcfd71b012c182a73ef86faf416562dfe9f4a7467878d5ff48acc4a"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-difference-scale-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "2bdf6f5eee3280062ea14cbae8ff6e3594f88fe660a659d3f40932df98ac0950"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-difference-scale-002",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-002-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-002-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-002-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "d6c4b2ac3970de650895ceb3a9a0f4a4819f98be62b462a0ae14773246ab4e7e"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-difference-scale-003",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-003-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-003-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-003-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "c1febb300f6aa8124654ce3d2f32a6f3e2cea58c2acb871168f44ec5e5089bf2"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-difference-scale-004",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-004-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-004-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-004-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "1276d881759cfb7f61e34fc06ab6b785feb2ea59f06928dc8af90367ce549ecc"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-difference-scale-005",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-005-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-005-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-005-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "603facdf214709fdf215dc17145f3057d61461ad953e1deea6c9dd925c1baa9f"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-difference-scale-006",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-006-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-006-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-006-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "c3aa34d160d0230320fdbb6b94591ba6791129ea59baff2adc95c61917edbd35"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-difference-scale-007",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-007-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-007-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-007-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "c701d03a3886baf5637ba6707dd686e9aa4bbb9de2a77731e207def61d156334"
+      },
+      {
+        "taskId": "writer-v2-checkpoint-selection-difference-scale-008",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-008-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-008-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-checkpoint-selection-difference-scale-008-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "a717f1e79c212cbcfc735c9115e784d8fc9d0e7d0b5c414d76ece87cbc813d50"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-square-scale-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "efc57a64cf059cbdd46acbc2516ee3d820e2ce9f9d1b3fc7e711ba9b4fe731a6"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-square-scale-002",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-002-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-002-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-002-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "f1e150a61503fe075ba0aca322174e5b6697854cda0bd3c39c7956c82f78601d"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-square-scale-003",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-003-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-003-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-003-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "0000e12840ed7e667a9ea4803c8acf7b1b4c73fa03a61c90a6707d608cb1d166"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-square-scale-004",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-004-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-004-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-004-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "60f6e765203fb5c4cf4e4c108ea2bb86b0b5e80c1cb2af49a8024cc9580c20e6"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-square-scale-005",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-005-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-005-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-005-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "dbea91615ce30780c0ed8534613ca48accbccc234e8915dacacfde005146853c"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-square-scale-006",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-006-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-006-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-006-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "6d99543db8b10554be45984cb8068eadaab60894cb69eb13761e54e9e30a271c"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-square-scale-007",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-007-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-007-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-007-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "52e98fbd89f757f2a2ab69de82f92961f3286091f9940af02023791bd17680b3"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-square-scale-008",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-008-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-008-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-square-scale-008-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "fef58ec8f85493dacdcf9069a6a47228bf608a39e42a8e75fae121a282ca474e"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-saxpy-001",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-001-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 0.0000013470625953046785,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-001-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 0.0000013470625953046785,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-001-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "a9befed8fd549b9bd1ae8a64cd149fcb756ee50f605beff6c52c3a4f814b4c0a"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-saxpy-002",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-002-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 0.000002342732375624338,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-002-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 0.000002342732375624338,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-002-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "209681cd044fbf9e814e1ffa2ffab84640aada2d9247db48792bb6c4a780e085"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-saxpy-003",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-003-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 0.0000019073486328125,
+              "maxRelError": 0.000008980368913554968,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-003-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 0.0000019073486328125,
+              "maxRelError": 0.000008980368913554968,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-003-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 5.960464477539063e-8,
+              "maxRelError": 1.4179626372516935e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "7581488f745c94265b686f578e0779e661698bc9ccb27b39bd60344299db8237"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-saxpy-004",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-004-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 8.980417302031191e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-004-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 8.980417302031191e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-004-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 7.078174258563016e-8,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "913da6396527473f850a9de2a642059494d2578164588932bd0f6206d379e5f0"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-saxpy-005",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-005-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 9.29012311271149e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-005-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 9.29012311271149e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-005-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 1.1254851825936514e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "770b3262c8df64f2b82bddc3c5c1de40e21fad881edc1f28d599798db69e9d45"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-saxpy-006",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-006-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 0.0000014562908853666067,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-006-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 0.0000014562908853666067,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-006-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "a414ec36fdf6f39e4d360ba2ff1b9b8a0b29a1932e0d74136f002eacb2d11554"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-saxpy-007",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-007-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 2.72134464904723e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-007-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 2.72134464904723e-7,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-007-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 4.76837158203125e-7,
+              "maxRelError": 9.77019141954433e-8,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "82f9ed1b7549072f3cffe6c699850d79f9a9a7ee591160822bc2eaa9cdc63b2f"
+      },
+      {
+        "taskId": "writer-v2-seed-confirmation-saxpy-008",
+        "pass": true,
+        "variants": [
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-008-nominal-64",
+            "shapeClass": "nominal",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 64,
+              "actualElements": 64,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 0.0000011225536749039656,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-008-tail-67",
+            "shapeClass": "non_workgroup_multiple",
+            "workgroupId": "wg-64",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 67,
+              "actualElements": 67,
+              "mismatchCount": 0,
+              "maxAbsError": 9.5367431640625e-7,
+              "maxRelError": 0.0000011225536749039656,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          },
+          {
+            "shapeId": "writer-v2-seed-confirmation-saxpy-008-boundary-1",
+            "shapeClass": "boundary_or_tail",
+            "workgroupId": "wg-32",
+            "dispatchPass": true,
+            "numeric": {
+              "pass": true,
+              "expectedElements": 1,
+              "actualElements": 1,
+              "mismatchCount": 0,
+              "maxAbsError": 0,
+              "maxRelError": 0,
+              "mismatches": []
+            },
+            "hashBindingPass": true,
+            "boundsPass": true
+          }
+        ],
+        "distinctShapeCount": 3,
+        "distinctWorkgroupCount": 2,
+        "passedMetamorphicRelations": [
+          "input_permutation_equivariance",
+          "tiling_equivalence"
+        ],
+        "blockers": [],
+        "resultHash": "d98f16fdcf986ae53883a02337a7d81069ab372358187147db38d66b1347a531"
+      }
+    ]
+  },
+  "decision": "reference_corpus_qualified",
+  "trainingAdmission": true,
+  "selectionAuthority": false,
+  "confirmationAuthority": false,
+  "promotionAuthority": false,
+  "completeShaderWritingEstablished": false,
+  "productizationAllowed": false,
+  "claimBoundary": "A pass admits the frozen v2 corpus to training by proving all materialized target shaders compile and all heldout tasks plus one representative per training family pass reference semantic dispatch. It contains no model capability evidence.",
+  "receiptHash": "4f88127a4b1ed4c08486f43d05ee8e485b8e6aedca5b07a5df81e37d89eb2605"
+}

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "artifactType": "training_workload_registry",
-  "generatedAt": "2026-07-12T17:49:20.459Z",
-  "registryHash": "f8dd8be8631f962ecb99b7b16044d85f51f6f1ddb7877ba2d4e09cb534d2cfc4",
+  "generatedAt": "2026-07-15T01:48:26.426Z",
+  "registryHash": "64b71f8f431f54af559669ef8b2c61ec4b86ad738ad0eee488e9cd622e2372a6",
   "workloads": [
     {
       "id": "distill-glm52-doppler-agent-harness-gemma270m-f16-sft-tiny",
@@ -363,6 +363,51 @@
       "baselineReportId": "trn_lora-doppler-wgsl-qwen35-9b-v9_23351a6c3a99",
       "claimBoundary": "The workload can establish SFT mechanics and adapter lineage only. Doppler V9 promotion requires family-disjoint and sealed constructive repair gains across three seeds.",
       "configHash": "e2292caabc484f9ec0c2db0f0ebd306cde22df9ab460d23cccc0a3413fc809e1"
+    },
+    {
+      "id": "lora-doppler-wgsl-writer-qwen35-9b-v2-seed11",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed11.json",
+      "sha256": "7a3d52076053369a1347f32b9b0ecaf863c21faebf68456ecd5832fbe8cf3da8",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 11,
+      "checkpointEvery": 90,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-writer-qwen35-9b-v2-seed11_7a3d52076053",
+      "claimBoundary": "This workload trains one base-initialized seed for the frozen complete 1-D elementwise f32 WGSL writer contract. Loss and export mechanics are non-capability evidence; disjoint semantic evaluation and Doppler parity remain required.",
+      "configHash": "b34dea01d2a15e599b6d0086d5c7a3abb740851fe87330f7f25766db9938a78f"
+    },
+    {
+      "id": "lora-doppler-wgsl-writer-qwen35-9b-v2-seed29",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed29.json",
+      "sha256": "77b82009e21834fea3dc1974ea8a26b87e3495c207a9f10a3b915dfdcf794fdd",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 29,
+      "checkpointEvery": 90,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-writer-qwen35-9b-v2-seed29_77b82009e218",
+      "claimBoundary": "This workload trains one base-initialized seed for the frozen complete 1-D elementwise f32 WGSL writer contract. Loss and export mechanics are non-capability evidence; disjoint semantic evaluation and Doppler parity remain required. This workload is replication seed 29.",
+      "configHash": "1dd571564ff79a8289508463f5d00c40ff85765f3fa514f11299fbd927aaa48c"
+    },
+    {
+      "id": "lora-doppler-wgsl-writer-qwen35-9b-v2-seed47",
+      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed47.json",
+      "sha256": "5f8b05fa9bfc23b6bf48a028f19dd1113dccca02ac3d7d3284b2ef28084689e3",
+      "workloadKind": "lora",
+      "trainingSchemaVersion": 1,
+      "seed": 47,
+      "checkpointEvery": 90,
+      "selectionMetric": "loss",
+      "selectionGoal": "min",
+      "surfaceSupport": "node",
+      "baselineReportId": "trn_lora-doppler-wgsl-writer-qwen35-9b-v2-seed47_5f8b05fa9bfc",
+      "claimBoundary": "This workload trains one base-initialized seed for the frozen complete 1-D elementwise f32 WGSL writer contract. Loss and export mechanics are non-capability evidence; disjoint semantic evaluation and Doppler parity remain required. This workload is replication seed 47.",
+      "configHash": "e7dbaa9ae11d63140fb80abc20ed394cd6b4a7589795c4672ca4abee79cbc4be"
     },
     {
       "id": "lora-toy-medium",
