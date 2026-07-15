@@ -47,9 +47,18 @@ config/schema/trainer-artifact-bridge.schema.json
 config/schema/trainer-artifact-handoff.schema.json
 config/schema/trainer-artifact-parity-evidence.schema.json
 config/schema/translation-artifact-competition.schema.json
+config/schema/wgsl-repair-confirmation-materialization.schema.json
 config/schema/wgsl-repair-experiment-policy.schema.json
+config/schema/wgsl-repair-seed-confirmation.schema.json
+config/schema/wgsl-repair-seed-selection.schema.json
 config/schema/wgsl-repair-semantic-evaluation.schema.json
+config/schema/wgsl-repair-semantic-evidence-state.schema.json
 config/schema/wgsl-training-source-catalog.schema.json
+config/schema/wgsl-writer-blueprint-catalog.schema.json
+config/schema/wgsl-writer-corpus-policy.schema.json
+config/schema/wgsl-writer-diagnostic.schema.json
+config/schema/wgsl-writer-experiment.schema.json
+config/schema/wgsl-writer-training-policy.schema.json
 config/support-tiers/subsystems.json
 config/supported-operations.d.ts
 config/transforms/capability-transform-resolver.d.ts
@@ -180,6 +189,9 @@ experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-random20-se
 experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-random20-seed47.json
 experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v12-random20.json
 experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v9.json
+experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed11.json
+experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed29.json
+experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed47.json
 experimental/training/workload-packs/lora-toy-medium.json
 experimental/training/workload-packs/lora-toy-tiny.json
 experimental/training/workload-packs/registry.json
@@ -400,6 +412,7 @@ tooling/source-runtime-materializer.js
 tooling/trainer-artifact-handoff.d.ts
 tooling/trainer-artifact-handoff.js
 tooling/translation-artifact-competition.js
+tooling/wgsl-repair-semantic-gate.d.ts
 tooling/wgsl-repair-semantic-gate.js
 types/chrome.d.ts
 types/chrome.js

@@ -53,6 +53,7 @@
     "training:wgsl:writer:select": "node tools/select-wgsl-writer-v2-seed.js",
     "training:wgsl:writer:confirm": "node tools/finalize-wgsl-writer-v2-confirmation.js",
     "training:wgsl:writer:parity": "node tools/run-wgsl-writer-v2-parity.js",
+    "training:wgsl:writer:result": "node tools/finalize-wgsl-writer-v2-result.js",
     "training:wgsl:seed-candidates": "node tools/run-wgsl-repair-seed-candidates.js",
     "training:wgsl:seed-select": "node tools/select-wgsl-repair-v13-seed.js",
     "training:contract:delta": "node tools/emit-training-contract-delta.js",

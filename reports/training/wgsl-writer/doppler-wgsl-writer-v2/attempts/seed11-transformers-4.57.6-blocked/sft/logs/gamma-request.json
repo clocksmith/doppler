@@ -1,0 +1,38 @@
+{
+  "protocol": "gamma_wgsl_trainer_json_v1",
+  "action": "sft",
+  "runId": "lora-doppler-wgsl-writer-qwen35-9b-v2-seed11",
+  "outputRoot": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/sft/checkpoints/gamma",
+  "model": {
+    "modelId": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "localPath": "/tmp/qwen3.5-9b-source"
+  },
+  "adapter": {
+    "rank": 32,
+    "alpha": 64,
+    "dropout": 0.05,
+    "targetModules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ]
+  },
+  "datasetPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/train.jsonl",
+  "training": {
+    "dtype": "bfloat16",
+    "gradientCheckpointing": true,
+    "steps": 720,
+    "gradientAccumulationSteps": 8,
+    "maxLength": 2048,
+    "learningRate": 0.0001,
+    "weightDecay": 0.01,
+    "maxGradNorm": 1,
+    "seed": 11,
+    "rowOrder": "seed_hash_sorted_v1"
+  }
+}

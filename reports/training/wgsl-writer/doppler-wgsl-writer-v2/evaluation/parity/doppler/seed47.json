@@ -1,0 +1,2349 @@
+{
+  "artifactKind": "first_token_inference_receipt",
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-15T07:09:55.741Z",
+  "invocation": {
+    "workingDirectory": "repository root",
+    "executable": "node",
+    "script": "tools/inspect-prefill-logits.js",
+    "argv": [
+      "--model-dir",
+      "/tmp/qwen-3-5-9b-f16-af32-rebuild",
+      "--model-id",
+      "qwen-3-5-9b-f16-af32",
+      "--prompt",
+      "Author one complete WGSL compute shader from the supplied contract.\nReturn only the complete WGSL source; no Markdown fence, diff, or explanation.\nThe shader must implement every binding, entry-point, dispatch, bounds, and arithmetic requirement exactly.\n<task_id>writer-v2-calibration-distance-pair-001</task_id>\n<specification>\nThe shader operates on one logical f32 element per global x invocation. It must compute the absolute difference between the corresponding left and right input values, store the result in output_values[params.output_offset + index], and guard all reads and writes with the declared logical length.\n</specification>\n<interface_contract>\n{\n  \"entryPoint\": \"main\",\n  \"stage\": \"compute\",\n  \"requiredOverrides\": [\n    {\n      \"name\": \"WORKGROUP_SIZE\",\n      \"type\": \"u32\",\n      \"default\": 256\n    }\n  ],\n  \"bindings\": [\n    {\n      \"group\": 0,\n      \"binding\": 0,\n      \"name\": \"left_values\",\n      \"kind\": \"read_only_storage\",\n      \"wgslType\": \"array<f32>\"\n    },\n    {\n      \"group\": 0,\n      \"binding\": 1,\n      \"name\": \"right_values\",\n      \"kind\": \"read_only_storage\",\n      \"wgslType\": \"array<f32>\"\n    },\n    {\n      \"group\": 0,\n      \"binding\": 2,\n      \"name\": \"output_values\",\n      \"kind\": \"read_write_storage\",\n      \"wgslType\": \"array<f32>\"\n    },\n    {\n      \"group\": 0,\n      \"binding\": 3,\n      \"name\": \"params\",\n      \"kind\": \"uniform\",\n      \"wgslType\": \"Params\"\n    }\n  ],\n  \"uniformLayout\": [\n    {\n      \"name\": \"length\",\n      \"type\": \"u32\",\n      \"byteOffset\": 0\n    },\n    {\n      \"name\": \"output_offset\",\n      \"type\": \"u32\",\n      \"byteOffset\": 4\n    },\n    {\n      \"name\": \"first_reserved\",\n      \"type\": \"f32\",\n      \"byteOffset\": 8\n    },\n    {\n      \"name\": \"second_reserved\",\n      \"type\": \"f32\",\n      \"byteOffset\": 12\n    }\n  ],\n  \"dispatch\": \"ceil(params.length / WORKGROUP_SIZE) workgroups in x; y=1; z=1\",\n  \"requiredBuiltin\": \"global_invocation_id\",\n  \"boundsRule\": \"Return when global_invocation_id.x >= params.length.\",\n  \"outputRule\": \"Write only output_values[params.output_offset + index].\"\n}\n</interface_contract>",
+      "--runtime-profile",
+      "profiles/production",
+      "--top-k",
+      "20",
+      "--max-tokens",
+      "384",
+      "--no-chat-template",
+      "--out",
+      "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/seed47.json",
+      "--logits-out",
+      "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/seed47.first-token-logits.f32",
+      "--adapter-manifest",
+      "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/exports/checkpoint-000720.adapter.manifest.json"
+    ],
+    "command": [
+      "node",
+      "tools/inspect-prefill-logits.js",
+      "--model-dir",
+      "/tmp/qwen-3-5-9b-f16-af32-rebuild",
+      "--model-id",
+      "qwen-3-5-9b-f16-af32",
+      "--prompt",
+      "Author one complete WGSL compute shader from the supplied contract.\nReturn only the complete WGSL source; no Markdown fence, diff, or explanation.\nThe shader must implement every binding, entry-point, dispatch, bounds, and arithmetic requirement exactly.\n<task_id>writer-v2-calibration-distance-pair-001</task_id>\n<specification>\nThe shader operates on one logical f32 element per global x invocation. It must compute the absolute difference between the corresponding left and right input values, store the result in output_values[params.output_offset + index], and guard all reads and writes with the declared logical length.\n</specification>\n<interface_contract>\n{\n  \"entryPoint\": \"main\",\n  \"stage\": \"compute\",\n  \"requiredOverrides\": [\n    {\n      \"name\": \"WORKGROUP_SIZE\",\n      \"type\": \"u32\",\n      \"default\": 256\n    }\n  ],\n  \"bindings\": [\n    {\n      \"group\": 0,\n      \"binding\": 0,\n      \"name\": \"left_values\",\n      \"kind\": \"read_only_storage\",\n      \"wgslType\": \"array<f32>\"\n    },\n    {\n      \"group\": 0,\n      \"binding\": 1,\n      \"name\": \"right_values\",\n      \"kind\": \"read_only_storage\",\n      \"wgslType\": \"array<f32>\"\n    },\n    {\n      \"group\": 0,\n      \"binding\": 2,\n      \"name\": \"output_values\",\n      \"kind\": \"read_write_storage\",\n      \"wgslType\": \"array<f32>\"\n    },\n    {\n      \"group\": 0,\n      \"binding\": 3,\n      \"name\": \"params\",\n      \"kind\": \"uniform\",\n      \"wgslType\": \"Params\"\n    }\n  ],\n  \"uniformLayout\": [\n    {\n      \"name\": \"length\",\n      \"type\": \"u32\",\n      \"byteOffset\": 0\n    },\n    {\n      \"name\": \"output_offset\",\n      \"type\": \"u32\",\n      \"byteOffset\": 4\n    },\n    {\n      \"name\": \"first_reserved\",\n      \"type\": \"f32\",\n      \"byteOffset\": 8\n    },\n    {\n      \"name\": \"second_reserved\",\n      \"type\": \"f32\",\n      \"byteOffset\": 12\n    }\n  ],\n  \"dispatch\": \"ceil(params.length / WORKGROUP_SIZE) workgroups in x; y=1; z=1\",\n  \"requiredBuiltin\": \"global_invocation_id\",\n  \"boundsRule\": \"Return when global_invocation_id.x >= params.length.\",\n  \"outputRule\": \"Write only output_values[params.output_offset + index].\"\n}\n</interface_contract>",
+      "--runtime-profile",
+      "profiles/production",
+      "--top-k",
+      "20",
+      "--max-tokens",
+      "384",
+      "--no-chat-template",
+      "--out",
+      "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/seed47.json",
+      "--logits-out",
+      "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/seed47.first-token-logits.f32",
+      "--adapter-manifest",
+      "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/exports/checkpoint-000720.adapter.manifest.json"
+    ]
+  },
+  "dopplerCommit": "c84237bc52641286d3c07e46efd0f1bfeaf0f41e",
+  "host": {
+    "platform": "linux",
+    "arch": "x64",
+    "osRelease": "7.0.0-22-generic",
+    "nodeVersion": "v22.22.1",
+    "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+    "logicalCpuCount": 32,
+    "totalMemoryBytes": 131891228672,
+    "metal": null
+  },
+  "modelId": "qwen-3-5-9b-f16-af32",
+  "modelSource": {
+    "kind": "local_directory",
+    "path": "/tmp/qwen-3-5-9b-f16-af32-rebuild"
+  },
+  "artifactIdentity": {
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+    "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
+    "materializationProfile": "auto",
+    "modalitySet": [
+      "text"
+    ],
+    "shardSetHash": "sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d",
+    "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+    "sourceFormat": "safetensors",
+    "sourceRepo": "Qwen/Qwen3.5-9B",
+    "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "weightPackHash": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+    "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1"
+  },
+  "artifactFiles": {
+    "manifest.json": {
+      "bytes": 300741,
+      "sha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398"
+    },
+    "tokenizer.json": {
+      "bytes": 9088480,
+      "sha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+    },
+    "origin.json": {
+      "bytes": 237,
+      "sha256": "0099b37f79a12bc2663adb7f4851852d2aa773f03bd892d34ec91b18aae97c3b"
+    }
+  },
+  "artifactSummary": {
+    "modelId": "qwen-3-5-9b-f16-af32",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9",
+      "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+      "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
+      "materializationProfile": "auto",
+      "modalitySet": [
+        "text"
+      ],
+      "shardSetHash": "sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d",
+      "sourceCheckpointId": "Qwen/Qwen3.5-9B",
+      "sourceFormat": "safetensors",
+      "sourceRepo": "Qwen/Qwen3.5-9B",
+      "sourceRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "weightPackHash": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+      "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1"
+    },
+    "shardCount": 267,
+    "totalSize": 17907606528
+  },
+  "runtimeProfile": "profiles/production",
+  "adapter": {
+    "artifact": {
+      "manifestPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/exports/checkpoint-000720.adapter.manifest.json",
+      "manifestSha256": "5edb218ed247707682b074949cd0a3e4f8b1b6d8f9d141a65c874949938cfbcd",
+      "weightsPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/exports/checkpoint-000720.adapters.safetensors",
+      "weightsBytes": 232808939,
+      "weightsSha256": "c84667e220f4b2fe8c923c00d7893eb783d5e6118cb0db1897c720dee5fabcf6",
+      "declaredWeightsSha256": "c84667e220f4b2fe8c923c00d7893eb783d5e6118cb0db1897c720dee5fabcf6",
+      "declaredWeightsMatch": true,
+      "identity": {
+        "id": "doppler-wgsl-writer-qwen35-9b-v2-seed47",
+        "name": "Doppler WGSL Writer Qwen 3.5 9B V2 Seed 47",
+        "baseModel": "qwen-3-5-9b-hf-bf16",
+        "rank": 32,
+        "alpha": 64,
+        "targetModules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj",
+          "gate_proj",
+          "up_proj",
+          "down_proj"
+        ]
+      }
+    },
+    "activation": {
+      "activated": true,
+      "adapterName": "Doppler WGSL Writer Qwen 3.5 9B V2 Seed 47",
+      "source": "adapterManifestPath:file",
+      "reason": null
+    }
+  },
+  "ok": true,
+  "resolvedRuntimeConfig": {
+    "shared": {
+      "debug": {
+        "logOutput": {
+          "stdout": false,
+          "file": null,
+          "append": true
+        },
+        "logHistory": {
+          "maxLogHistoryEntries": 100
+        },
+        "logLevel": {
+          "defaultLogLevel": "error"
+        },
+        "trace": {
+          "enabled": false,
+          "categories": [
+            "all"
+          ],
+          "layers": null,
+          "maxDecodeSteps": 0,
+          "file": null
+        },
+        "pipeline": {
+          "enabled": false,
+          "categories": [],
+          "layers": null,
+          "maxDecodeSteps": 0,
+          "maxAbsThreshold": 10000,
+          "bufferStats": false,
+          "readbackSampleSize": 512
+        },
+        "loader": {
+          "enabled": false,
+          "forceGpuDequant": false,
+          "preferCpuDequant": false,
+          "failOnCpuDequantPath": false,
+          "runQ4KDequantParity": false,
+          "q4kDequantParitySamples": 256
+        },
+        "matmul": {
+          "enabled": false,
+          "forceSplitQKV": false,
+          "validateAttentionWeightBuffer": false,
+          "failOnSmallAttentionWeightBuffer": false,
+          "logAttentionWeightBuffer": false,
+          "logProjectionValues": false
+        },
+        "kernelTrace": {
+          "layers": [],
+          "breakOnAnomaly": false,
+          "explosionThreshold": 10,
+          "collapseThreshold": 0.000001,
+          "maxSteps": 5000
+        },
+        "probes": [],
+        "profiler": {
+          "enabled": false,
+          "queryCapacity": 256,
+          "maxQueries": 16384,
+          "defaultQueryLimit": 4096,
+          "maxSamples": 100,
+          "maxDurationMs": 60000,
+          "logEveryDecodeSteps": 64,
+          "maxHistoryLabels": 1024
+        },
+        "perfGuards": {
+          "allowGPUReadback": true,
+          "trackSubmitCount": false,
+          "trackAllocations": false,
+          "logExpensiveOps": false,
+          "strictMode": false
+        }
+      },
+      "benchmark": {
+        "output": {
+          "schemaVersion": 1
+        },
+        "run": {
+          "promptName": "medium",
+          "customPrompt": null,
+          "maxNewTokens": 128,
+          "seed": null,
+          "runType": "warm",
+          "warmupRuns": 2,
+          "timedRuns": 3,
+          "sampling": {
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1
+          },
+          "debug": false,
+          "profile": false,
+          "captureMemoryTimeSeries": false,
+          "memoryTimeSeriesIntervalMs": 100
+        },
+        "stats": {
+          "outlierIqrMultiplier": 1.5,
+          "warmupStabilityPercent": 10,
+          "thermalSlowdownPercent": 10,
+          "minSamplesForComparison": 3
+        },
+        "comparison": {
+          "regressionThresholdPercent": 10,
+          "failOnRegression": true
+        },
+        "baselines": {
+          "enabled": true,
+          "file": "tests/baselines.json",
+          "failOnOutOfRange": true,
+          "requireQualityOk": true
+        }
+      },
+      "harness": {
+        "mode": "verify",
+        "workload": "kernels",
+        "autorun": false,
+        "skipLoad": false,
+        "modelId": null,
+        "trainingBench": {
+          "ebmRecorded": {
+            "dims": {
+              "M": 128,
+              "K": 512,
+              "H": 1024,
+              "O": 1
+            }
+          }
+        }
+      },
+      "tooling": {
+        "intent": "verify",
+        "diagnostics": "on_failure",
+        "converter": null
+      },
+      "ecosystem": {
+        "schemaVersion": 1,
+        "tenantTrust": {
+          "enabled": false,
+          "sso": {
+            "required": false,
+            "providers": [
+              "oidc"
+            ]
+          },
+          "rbac": {
+            "enforced": true,
+            "roleModel": "org-project"
+          },
+          "namespaceOwnership": {
+            "enforced": true
+          },
+          "publishSigning": {
+            "required": true,
+            "algorithm": "ed25519"
+          }
+        },
+        "publishWorkflow": {
+          "enabled": false,
+          "channels": [
+            "canary",
+            "stable"
+          ],
+          "gates": {
+            "schemaValidation": true,
+            "metadataValidation": true,
+            "reproducibilityCheck": false,
+            "malwareScan": false
+          },
+          "rollback": {
+            "enabled": true,
+            "maxRollbackDepth": 20
+          }
+        },
+        "discovery": {
+          "enabled": false,
+          "ranking": {
+            "mode": "policy",
+            "signals": {
+              "qualityEvidenceWeight": 0.35,
+              "trustWeight": 0.25,
+              "compatibilityWeight": 0.2,
+              "adoptionWeight": 0.2
+            },
+            "minEvidenceRuns": 1
+          },
+          "badges": {
+            "enabled": true
+          },
+          "recommendations": {
+            "enabled": true,
+            "dependencyAware": true
+          }
+        },
+        "artifactRegistry": {
+          "enabled": true,
+          "types": [
+            "model",
+            "dataset",
+            "adapter",
+            "eval",
+            "prompt",
+            "app"
+          ],
+          "linking": {
+            "enforced": true,
+            "signedLinks": true
+          }
+        },
+        "hostedAccess": {
+          "enabled": false,
+          "apiKeys": {
+            "enabled": true,
+            "rotationDays": 90
+          },
+          "quotas": {
+            "enabled": true,
+            "defaultRequestsPerMinute": 600,
+            "burstMultiplier": 2
+          },
+          "billing": {
+            "meteringEnabled": false,
+            "currency": "usd"
+          },
+          "endpoints": {
+            "managedInference": true
+          }
+        },
+        "compliance": {
+          "enabled": false,
+          "auditLog": {
+            "immutable": true,
+            "retentionDays": 3650,
+            "legalHold": true
+          },
+          "jurisdiction": {
+            "enabled": false,
+            "defaultRegion": "global"
+          },
+          "takedown": {
+            "automated": false,
+            "slaHours": 24
+          },
+          "exportControl": {
+            "enabled": false,
+            "denyUnknownClassification": true
+          }
+        },
+        "provenance": {
+          "enabled": true,
+          "notarization": {
+            "requiredForPublic": true,
+            "allowUnsignedPrivate": false,
+            "algorithm": "ed25519"
+          },
+          "attestations": {
+            "required": true,
+            "formats": [
+              "slsa-v1"
+            ]
+          },
+          "revocation": {
+            "enabled": true,
+            "propagationSlaMinutes": 15
+          }
+        },
+        "developerEcosystem": {
+          "enabled": true,
+          "sdks": {
+            "js": true,
+            "python": true,
+            "agents": true
+          },
+          "ciHooks": {
+            "publishVerifyPromote": true
+          },
+          "migrations": {
+            "hfImport": true,
+            "registryAdapters": true
+          },
+          "contracts": {
+            "stability": "semver"
+          }
+        },
+        "networkEffects": {
+          "enabled": false,
+          "socialSignals": {
+            "follows": true,
+            "stars": true,
+            "trends": true
+          },
+          "trustScores": {
+            "enabled": true,
+            "decayHalfLifeDays": 30
+          },
+          "incentives": {
+            "enabled": false,
+            "mode": "credits"
+          }
+        },
+        "abuse": {
+          "enabled": true,
+          "antiSybil": {
+            "enabled": false,
+            "minCost": "none"
+          },
+          "investigation": {
+            "enabled": true,
+            "queueSlaHours": 24
+          },
+          "enforcement": {
+            "mode": "progressive",
+            "allowAppeal": true,
+            "recoveryWindowDays": 30
+          }
+        },
+        "qualityEvidence": {
+          "enabled": true,
+          "registry": {
+            "requiredForRanking": true,
+            "immutableHistory": true
+          },
+          "gating": {
+            "promotionRequiresEvidence": false,
+            "minVerifiedRuns": 3
+          },
+          "verifiability": {
+            "requireArtifactBinding": true,
+            "requireSignedRuns": false
+          }
+        },
+        "reliability": {
+          "enabled": true,
+          "edgeRelay": {
+            "policy": "hybrid",
+            "minRelayRegions": 2
+          },
+          "failover": {
+            "tiers": [
+              "peer",
+              "relay",
+              "origin"
+            ],
+            "maxTierSwitches": 3
+          },
+          "sla": {
+            "enabled": false,
+            "targetAvailability": 0.999,
+            "targetP95Ms": 2000
+          }
+        }
+      },
+      "platform": null,
+      "kernelRegistry": {
+        "url": null
+      },
+      "kernelThresholds": {
+        "matmul": {
+          "multicolThreshold": 256,
+          "tiledPrefillMinRows": 32
+        },
+        "rmsnorm": {
+          "smallThreshold": 256
+        },
+        "softmax": {
+          "smallThreshold": 256
+        },
+        "ffn": {
+          "multiOutputThreshold": 1024
+        },
+        "sample": {
+          "argmaxReduceVocabThreshold": 65536,
+          "singlePassTopKThreshold": 100
+        },
+        "rope": {
+          "defaultTheta": 10000,
+          "uniformSize": 32,
+          "defaultStartPos": 0
+        },
+        "attention": {
+          "chunkedMaxKVLen": 2048,
+          "minHeadDimForChunked": 128,
+          "tierHeadDimLimits": {
+            "tier3": 64,
+            "tier2": 128,
+            "tier1": 256
+          },
+          "tierMinSharedMemory": {
+            "tier3": 16384,
+            "tier2": 32768,
+            "tier1": 65536
+          },
+          "largeMaxHeadDim": 64,
+          "smallMaxHeadDim": 256,
+          "subgroupMaxHeadDim": 256,
+          "largeSharedF32": 20480,
+          "largeSharedF16": 49152,
+          "smallSharedF32": 8192,
+          "smallSharedF16": 4096,
+          "subgroupShared": 8192
+        },
+        "fusedMatmul": {
+          "maxMediumN": 4096,
+          "maxMediumK": 8192,
+          "colsPerWg": 4
+        },
+        "cast": {
+          "maxWorkgroupsPerDim": 65535
+        },
+        "tuner": {
+          "maxComputeWorkgroupSizeX": 256,
+          "maxComputeWorkgroupSizeY": 256,
+          "maxComputeInvocationsPerWorkgroup": 256
+        }
+      },
+      "kernelWarmup": {
+        "prewarm": false,
+        "prewarmMode": "parallel",
+        "autoTune": false
+      },
+      "bufferPool": {
+        "bucket": {
+          "minBucketSizeBytes": 256,
+          "largeBufferThresholdBytes": 65536,
+          "largeBufferStepBytes": 65536
+        },
+        "limits": {
+          "maxBuffersPerBucket": 8,
+          "maxTotalPooledBuffers": 64
+        },
+        "alignment": {
+          "alignmentBytes": 256
+        },
+        "budget": {
+          "maxTotalBytes": 0,
+          "highWatermarkRatio": 0.9,
+          "emergencyTrimTargetRatio": 0.75,
+          "hardFailOnBudgetExceeded": true
+        }
+      },
+      "gpuCache": {
+        "uniformCacheMaxEntries": 256,
+        "uniformCacheMaxAgeMs": 60000
+      },
+      "memory": {
+        "heapTesting": {
+          "heapTestSizes": [
+            17179869184,
+            8589934592,
+            4294967296,
+            2147483648,
+            1073741824
+          ],
+          "fallbackMaxHeapBytes": 1073741824
+        },
+        "segmentTesting": {
+          "segmentTestSizes": [
+            1073741824,
+            536870912,
+            268435456,
+            134217728
+          ],
+          "safeSegmentSizeBytes": 268435456
+        },
+        "addressSpace": {
+          "targetAddressSpaceBytes": 8589934592
+        },
+        "segmentAllocation": {
+          "fallbackSegmentSizeBytes": 4294967296,
+          "segmentFallbackSizes": [
+            536870912,
+            268435456,
+            134217728
+          ]
+        },
+        "emulatedStorage": {
+          "vramBudgetBytes": 4294967296,
+          "ramBudgetBytes": 17179869184
+        }
+      },
+      "tuner": {
+        "cacheKeyPrefix": "doppler_kernel_tune_",
+        "defaultWarmupIterations": 3,
+        "defaultTimedIterations": 10,
+        "fallbackWorkgroupSizes": {
+          "matmul": [
+            16,
+            16,
+            1
+          ],
+          "attention": [
+            256,
+            1,
+            1
+          ],
+          "rmsnorm": [
+            256,
+            1,
+            1
+          ],
+          "softmax": [
+            256,
+            1,
+            1
+          ],
+          "dequant": [
+            64,
+            1,
+            1
+          ],
+          "default": [
+            256,
+            1,
+            1
+          ]
+        }
+      },
+      "hotSwap": {
+        "enabled": false,
+        "localOnly": false,
+        "allowUnsignedLocal": false,
+        "policyVersion": 1,
+        "rollout": {
+          "mode": "shadow",
+          "canaryPercent": 0,
+          "cohortSalt": "doppler-hotswap-v1",
+          "optInAllowlist": []
+        },
+        "trustedSigners": [],
+        "manifestUrl": null
+      },
+      "intentBundle": {
+        "enabled": false,
+        "bundleUrl": null,
+        "bundle": null,
+        "requireBaseModelHash": true,
+        "requireKernelRegistryVersion": true,
+        "enforceDeterministicOutput": false
+      },
+      "bridge": {
+        "maxReadSizeBytes": 104857600,
+        "allowedDirectories": "/Users:/home:/tmp:/var/tmp",
+        "timeouts": {
+          "pingTimeoutMs": 5000,
+          "readTimeoutMs": 60000,
+          "listTimeoutMs": 30000,
+          "defaultTimeoutMs": 30000
+        }
+      }
+    },
+    "loading": {
+      "storage": {
+        "quota": {
+          "lowSpaceThresholdBytes": 524288000,
+          "criticalSpaceThresholdBytes": 104857600,
+          "monitorIntervalMs": 30000
+        },
+        "vramEstimation": {
+          "unifiedMemoryRatio": 0.5,
+          "fallbackVramBytes": 4294967296,
+          "lowVramHeadroomBytes": 524288000
+        },
+        "alignment": {
+          "bufferAlignmentBytes": 4096
+        },
+        "backend": {
+          "backend": "auto",
+          "opfs": {
+            "useSyncAccessHandle": false,
+            "maxConcurrentHandles": 2
+          },
+          "indexeddb": {
+            "dbName": "doppler-models",
+            "shardStore": "shards",
+            "metaStore": "meta",
+            "chunkSizeBytes": 4194304
+          },
+          "memory": {
+            "maxBytes": 536870912
+          },
+          "streaming": {
+            "readChunkBytes": 4194304,
+            "maxInFlightBytes": 67108864,
+            "useByob": true
+          }
+        }
+      },
+      "distribution": {
+        "concurrentDownloads": 3,
+        "maxRetries": 3,
+        "initialRetryDelayMs": 1000,
+        "maxRetryDelayMs": 30000,
+        "maxChunkSizeBytes": 8388608,
+        "cdnBasePath": null,
+        "sourceOrder": [
+          "cache",
+          "p2p",
+          "http"
+        ],
+        "sourceMatrix": {
+          "cache": {
+            "onHit": "return",
+            "onMiss": "next",
+            "onFailure": "next"
+          },
+          "p2p": {
+            "onHit": "return",
+            "onMiss": "next",
+            "onFailure": "next"
+          },
+          "http": {
+            "onHit": "return",
+            "onMiss": "terminal",
+            "onFailure": "terminal"
+          }
+        },
+        "sourceDecision": {
+          "deterministic": true,
+          "trace": {
+            "enabled": false,
+            "includeSkippedSources": true,
+            "samplingRate": 1
+          }
+        },
+        "antiRollback": {
+          "enabled": true,
+          "requireExpectedHash": true,
+          "requireExpectedSize": false,
+          "requireManifestVersionSet": true
+        },
+        "p2p": {
+          "enabled": false,
+          "timeoutMs": 3000,
+          "maxRetries": 1,
+          "retryDelayMs": 250,
+          "contractVersion": 1,
+          "transport": null,
+          "controlPlane": {
+            "enabled": false,
+            "contractVersion": 1,
+            "tokenRefreshSkewMs": 5000,
+            "tokenProvider": null,
+            "policyEvaluator": null
+          },
+          "webrtc": {
+            "enabled": false,
+            "peerId": null,
+            "requestTimeoutMs": 2500,
+            "maxPayloadBytes": 67108864,
+            "selectPeer": null,
+            "getDataChannel": null
+          },
+          "security": {
+            "requireSessionToken": false,
+            "sessionToken": null,
+            "tokenExpiresAtMs": null
+          },
+          "abuse": {
+            "rateLimitPerMinute": 0,
+            "maxConsecutiveFailures": 3,
+            "quarantineMs": 30000
+          }
+        },
+        "progressUpdateIntervalMs": 100,
+        "requiredContentEncoding": null
+      },
+      "shardCache": {
+        "opfsEntries": 2,
+        "networkEntries": 16,
+        "moeMaxEntries": 16,
+        "verifyHashes": true,
+        "maxConcurrentLoads": 0,
+        "rangeCacheBlockBytes": 0,
+        "rangeCacheMaxBytes": 0,
+        "rangeCacheMinBytes": 0
+      },
+      "memoryManagement": {
+        "flushIntervalLayers": 4,
+        "flushThresholdBytes": 268435456,
+        "gpuQueueFlushLayers": 4,
+        "logIntervalMs": 30000,
+        "budget": {
+          "enabled": true,
+          "maxResidentBytes": null,
+          "systemMemoryFraction": 0.5,
+          "reserveBytes": 2147483648,
+          "minimumBudgetBytes": 1073741824
+        }
+      },
+      "prefetch": {
+        "enabled": true,
+        "layersAhead": 1,
+        "maxShards": 8,
+        "allowRangeLoaderPrefetch": false
+      },
+      "opfsPath": {
+        "opfsRootDir": "doppler-models"
+      },
+      "expertCache": {
+        "defaultSizeBytes": 2147483648,
+        "maxBufferPercentage": 0.25,
+        "maxBufferFallbackBytes": 268435456,
+        "evictionHighWatermark": 0.9,
+        "emergencyTrimToRatio": 0.75,
+        "gptOssPager": {
+          "enabled": true,
+          "maxResidentLayers": 2
+        }
+      },
+      "allowF32UpcastNonMatmul": false
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 4096
+      },
+      "sampling": {
+        "temperature": 0.7,
+        "topP": 0.95,
+        "topK": 50,
+        "repetitionPenalty": 1.1,
+        "greedyThreshold": 0.01,
+        "repetitionPenaltyWindow": 100,
+        "suppressSpecialTokens": false,
+        "suppressSpecialLikeTokens": false,
+        "suppressTokenIds": []
+      },
+      "compute": {},
+      "tokenizer": {},
+      "largeWeights": {
+        "enabled": true,
+        "safetyRatio": 0.9,
+        "preferF16": true,
+        "lmHeadChunkRows": null,
+        "gpuResidentOverrides": null
+      },
+      "kvcache": {
+        "maxSeqLen": 4096,
+        "gpuPagedFallbackMaxSeqLen": 4096,
+        "kvDtype": "f16",
+        "forceF32Softcap": false,
+        "layout": "contiguous",
+        "pageSize": 256,
+        "bdpaVocabSize": 2048,
+        "windowSize": 1024,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "diffusion": {},
+      "diffusionGemma": {},
+      "energy": {},
+      "moe": {
+        "routing": {
+          "numExperts": 8,
+          "topK": 2,
+          "normalizeWeights": true,
+          "routerDtype": "f32",
+          "maxTokensPerExpert": 0,
+          "maxTokensPerExpertHeadroom": 2,
+          "maxTokensPerExpertMin": 4,
+          "maxTokensPerExpertCap": 0,
+          "activeExpertSelection": "all"
+        },
+        "cache": {
+          "dequantCacheMaxEntries": 128
+        }
+      },
+      "speculative": {
+        "numDraftTokens": 5,
+        "maxRejectionRetries": 3,
+        "enableTreeDraft": false,
+        "temperature": 1,
+        "randomSeed": null
+      },
+      "generation": {
+        "maxTokens": 256,
+        "multimodalMaxTokens": 512,
+        "disableMultiTokenDecode": false
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "model",
+          "manifest",
+          "config"
+        ],
+        "allowSources": [
+          "model",
+          "manifest",
+          "config"
+        ],
+        "onIncompatible": "remap"
+      },
+      "chatTemplate": {
+        "enabled": null,
+        "type": null,
+        "thinking": false
+      },
+      "session": {
+        "kvcache": {
+          "maxSeqLen": 4096,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f16",
+          "forceF32Softcap": false,
+          "layout": "contiguous",
+          "pageSize": 256,
+          "bdpaVocabSize": 2048,
+          "windowSize": 1024,
+          "tiering": {
+            "mode": "off",
+            "hotWindow": 1024,
+            "coldPageSize": 256,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "none",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "auto",
+              "minAluBwRatio": 0
+            }
+          },
+          "quantization": {
+            "mode": "none",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        },
+        "speculation": {
+          "mode": "none",
+          "tokens": 1,
+          "verify": "greedy",
+          "threshold": null,
+          "rollbackOnReject": true
+        },
+        "prefillChunkSubmitMode": "sync",
+        "prefillChunkLayers": 4,
+        "prefillTokenChunkSize": null,
+        "skipEmbeddingKVCacheWrites": false,
+        "useFlashPrefillAttention": false,
+        "useFusedGateUpGelu": false,
+        "useLargeBatchF16F32FusedGateUp": false,
+        "useTiledQ4KPrefill": false,
+        "retainQ4KMaterialization": false,
+        "useWideTileQ4KPrefill": false,
+        "useWideTileQ4KDecode": false,
+        "useSandwichRMSNormPairFusion": false,
+        "usePostFfnNextInputRMSNormPairFusion": false,
+        "usePostAttnNormFusedGateUp": false,
+        "fusedFfnQ4K": null,
+        "lmHeadArgmaxQ4K": null,
+        "attentionDecodeOnline": null,
+        "useLinearAttentionABProjectionFusion": false,
+        "useLinearAttentionQKVZProjectionFusion": false,
+        "useLinearAttentionFusedDecodeCore": false,
+        "useOrtFlashPrefillAttention": false,
+        "useWideTileResidualFusion": false,
+        "useFusedRmsnormWideTile": false,
+        "useFusedQKVSplitQKNorm": false,
+        "useFusedQKVSplitQKNormRoPE": false,
+        "useGreedyLmHeadArgmaxFusion": false
+      },
+      "executionPatch": {
+        "addKernels": [],
+        "set": [],
+        "remove": [],
+        "add": []
+      }
+    },
+    "emulation": {
+      "enabled": false,
+      "targetChip": "gh200",
+      "timingMode": "functional",
+      "gpuSpec": {
+        "name": "H200",
+        "vramBytes": 154618822656,
+        "hbmBandwidthBytesPerSec": 4800000000000,
+        "fp16Tflops": 1979
+      },
+      "cpuSpec": {
+        "name": "Grace",
+        "cores": 72,
+        "memoryBytes": 515396075520,
+        "memoryBandwidthBytesPerSec": 546000000000
+      },
+      "topology": {
+        "gpuCount": 1,
+        "gpusPerNode": 1,
+        "nodeCount": 1,
+        "cpuCount": 1
+      },
+      "nvlink": {
+        "bandwidthBytesPerSec": 900000000000,
+        "latencyUs": 1
+      },
+      "nvlinkC2C": {
+        "bandwidthBytesPerSec": 900000000000,
+        "latencyUs": 0.5,
+        "coherent": true
+      },
+      "parallelism": {
+        "tensorParallel": {
+          "enabled": false,
+          "degree": 1
+        },
+        "pipelineParallel": {
+          "enabled": false,
+          "stages": 1,
+          "microBatches": 1
+        },
+        "dataParallel": {
+          "enabled": false,
+          "degree": 1
+        },
+        "expertParallel": {
+          "enabled": false,
+          "degree": 1
+        }
+      },
+      "timingScaling": {
+        "computeScale": 1,
+        "memoryScale": 1,
+        "nvlinkScale": 1
+      },
+      "opfsRootPath": "emulation",
+      "maxActiveWorkingSetBytes": 4294967296,
+      "statsEnabled": true,
+      "logOperations": false
+    }
+  },
+  "prompt": "Author one complete WGSL compute shader from the supplied contract.\nReturn only the complete WGSL source; no Markdown fence, diff, or explanation.\nThe shader must implement every binding, entry-point, dispatch, bounds, and arithmetic requirement exactly.\n<task_id>writer-v2-calibration-distance-pair-001</task_id>\n<specification>\nThe shader operates on one logical f32 element per global x invocation. It must compute the absolute difference between the corresponding left and right input values, store the result in output_values[params.output_offset + index], and guard all reads and writes with the declared logical length.\n</specification>\n<interface_contract>\n{\n  \"entryPoint\": \"main\",\n  \"stage\": \"compute\",\n  \"requiredOverrides\": [\n    {\n      \"name\": \"WORKGROUP_SIZE\",\n      \"type\": \"u32\",\n      \"default\": 256\n    }\n  ],\n  \"bindings\": [\n    {\n      \"group\": 0,\n      \"binding\": 0,\n      \"name\": \"left_values\",\n      \"kind\": \"read_only_storage\",\n      \"wgslType\": \"array<f32>\"\n    },\n    {\n      \"group\": 0,\n      \"binding\": 1,\n      \"name\": \"right_values\",\n      \"kind\": \"read_only_storage\",\n      \"wgslType\": \"array<f32>\"\n    },\n    {\n      \"group\": 0,\n      \"binding\": 2,\n      \"name\": \"output_values\",\n      \"kind\": \"read_write_storage\",\n      \"wgslType\": \"array<f32>\"\n    },\n    {\n      \"group\": 0,\n      \"binding\": 3,\n      \"name\": \"params\",\n      \"kind\": \"uniform\",\n      \"wgslType\": \"Params\"\n    }\n  ],\n  \"uniformLayout\": [\n    {\n      \"name\": \"length\",\n      \"type\": \"u32\",\n      \"byteOffset\": 0\n    },\n    {\n      \"name\": \"output_offset\",\n      \"type\": \"u32\",\n      \"byteOffset\": 4\n    },\n    {\n      \"name\": \"first_reserved\",\n      \"type\": \"f32\",\n      \"byteOffset\": 8\n    },\n    {\n      \"name\": \"second_reserved\",\n      \"type\": \"f32\",\n      \"byteOffset\": 12\n    }\n  ],\n  \"dispatch\": \"ceil(params.length / WORKGROUP_SIZE) workgroups in x; y=1; z=1\",\n  \"requiredBuiltin\": \"global_invocation_id\",\n  \"boundsRule\": \"Return when global_invocation_id.x >= params.length.\",\n  \"outputRule\": \"Write only output_values[params.output_offset + index].\"\n}\n</interface_contract>",
+  "useChatTemplate": false,
+  "gpu": {
+    "provider": "webgpu",
+    "capabilities": {
+      "hasSubgroups": true,
+      "hasSubgroupsF16": true,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967292,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 65536,
+      "adapterInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1"
+      },
+      "submitProbeMs": 0.5324750000000336
+    }
+  },
+  "kernelPathId": "qwen-3-5-9b-f16-af32-execution-inline",
+  "kernelPathSource": "none",
+  "executionPlan": {
+    "primary": {
+      "id": "primary",
+      "kernelPathId": "qwen-3-5-9b-f16-af32-execution-inline",
+      "kernelPathSource": "execution-v1",
+      "activationDtype": "f32",
+      "readbackInterval": 32,
+      "readbackMode": "sequential",
+      "batchSize": 12,
+      "stopCheckMode": "batch",
+      "disableCommandBatching": true,
+      "ringTokens": 1,
+      "ringStop": 1,
+      "ringStaging": 1
+    },
+    "fallback": null,
+    "activePlanIdAtStart": "primary",
+    "finalActivePlanId": "primary",
+    "transitions": []
+  },
+  "promptTokens": {
+    "count": 650,
+    "ids": [
+      6910,
+      799,
+      4434,
+      94693,
+      7733,
+      12204,
+      20370,
+      494,
+      279,
+      16713,
+      4954,
+      13,
+      198,
+      5423,
+      1132,
+      279,
+      4434,
+      94693,
+      7733,
+      2450,
+      26,
+      874,
+      70703,
+      23873,
+      11,
+      3515,
+      11,
+      466,
+      15673,
+      13,
+      198,
+      760,
+      20370,
+      1902,
+      4072,
+      1396,
+      10649,
+      11,
+      4202,
+      16086,
+      11,
+      6631,
+      11,
+      13854,
+      11,
+      321,
+      33633,
+      15808,
+      6681,
+      13,
+      198,
+      27,
+      7945,
+      816,
+      15821,
+      2461,
+      8015,
+      17,
+      46529,
+      17804,
+      71300,
+      2195,
+      1264,
+      12,
+      15,
+      15,
+      16,
+      510,
+      7945,
+      816,
+      29,
+      198,
+      27,
+      9253,
+      2325,
+      29,
+      198,
+      760,
+      20370,
+      25224,
+      383,
+      799,
+      19214,
+      281,
+      18,
+      17,
+      2315,
+      791,
+      3521,
+      830,
+      27757,
+      13,
+      1049,
+      1902,
+      12204,
+      279,
+      10424,
+      6463,
+      1881,
+      279,
+      11811,
+      2047,
+      321,
+      1245,
+      1879,
+      2663,
+      11,
+      3436,
+      279,
+      1067,
+      303,
+      2468,
+      8873,
+      58,
+      3403,
+      13026,
+      6701,
+      478,
+      1857,
+      1089,
+      321,
+      7374,
+      660,
+      15339,
+      321,
+      13514,
+      440,
+      279,
+      13866,
+      19214,
+      2984,
+      13,
+      198,
+      510,
+      9253,
+      2325,
+      29,
+      198,
+      27,
+      4809,
+      49763,
+      29,
+      198,
+      90,
+      198,
+      220,
+      328,
+      3949,
+      2522,
+      763,
+      328,
+      3689,
+      487,
+      198,
+      220,
+      328,
+      20113,
+      763,
+      328,
+      26808,
+      487,
+      198,
+      220,
+      328,
+      6081,
+      77252,
+      763,
+      498,
+      198,
+      262,
+      313,
+      198,
+      406,
+      328,
+      591,
+      763,
+      328,
+      17919,
+      40106,
+      3962,
+      487,
+      198,
+      406,
+      328,
+      1267,
+      763,
+      328,
+      84,
+      18,
+      17,
+      487,
+      198,
+      406,
+      328,
+      2186,
+      763,
+      220,
+      17,
+      20,
+      21,
+      198,
+      262,
+      333,
+      198,
+      220,
+      10339,
+      198,
+      220,
+      328,
+      63286,
+      763,
+      498,
+      198,
+      262,
+      313,
+      198,
+      406,
+      328,
+      3938,
+      763,
+      220,
+      15,
+      11,
+      198,
+      406,
+      328,
+      30018,
+      763,
+      220,
+      15,
+      11,
+      198,
+      406,
+      328,
+      591,
+      763,
+      328,
+      2282,
+      8873,
+      487,
+      198,
+      406,
+      328,
+      14868,
+      763,
+      328,
+      851,
+      17861,
+      22585,
+      487,
+      198,
+      406,
+      328,
+      44023,
+      3122,
+      900,
+      763,
+      328,
+      1595,
+      61738,
+      18,
+      17,
+      9585,
+      198,
+      262,
+      2390,
+      198,
+      262,
+      313,
+      198,
+      406,
+      328,
+      3938,
+      763,
+      220,
+      15,
+      11,
+      198,
+      406,
+      328,
+      30018,
+      763,
+      220,
+      16,
+      11,
+      198,
+      406,
+      328,
+      591,
+      763,
+      328,
+      1246,
+      8873,
+      487,
+      198,
+      406,
+      328,
+      14868,
+      763,
+      328,
+      851,
+      17861,
+      22585,
+      487,
+      198,
+      406,
+      328,
+      44023,
+      3122,
+      900,
+      763,
+      328,
+      1595,
+      61738,
+      18,
+      17,
+      9585,
+      198,
+      262,
+      2390,
+      198,
+      262,
+      313,
+      198,
+      406,
+      328,
+      3938,
+      763,
+      220,
+      15,
+      11,
+      198,
+      406,
+      328,
+      30018,
+      763,
+      220,
+      17,
+      11,
+      198,
+      406,
+      328,
+      591,
+      763,
+      328,
+      2911,
+      8873,
+      487,
+      198,
+      406,
+      328,
+      14868,
+      763,
+      328,
+      851,
+      8892,
+      22585,
+      487,
+      198,
+      406,
+      328,
+      44023,
+      3122,
+      900,
+      763,
+      328,
+      1595,
+      61738,
+      18,
+      17,
+      9585,
+      198,
+      262,
+      2390,
+      198,
+      262,
+      313,
+      198,
+      406,
+      328,
+      3938,
+      763,
+      220,
+      15,
+      11,
+      198,
+      406,
+      328,
+      30018,
+      763,
+      220,
+      18,
+      11,
+      198,
+      406,
+      328,
+      591,
+      763,
+      328,
+      3403,
+      487,
+      198,
+      406,
+      328,
+      14868,
+      763,
+      328,
+      37079,
+      487,
+      198,
+      406,
+      328,
+      44023,
+      3122,
+      900,
+      763,
+      328,
+      4714,
+      1,
+      198,
+      262,
+      333,
+      198,
+      220,
+      10339,
+      198,
+      220,
+      328,
+      37079,
+      2106,
+      763,
+      498,
+      198,
+      262,
+      313,
+      198,
+      406,
+      328,
+      591,
+      763,
+      328,
+      3993,
+      487,
+      198,
+      406,
+      328,
+      1267,
+      763,
+      328,
+      84,
+      18,
+      17,
+      487,
+      198,
+      406,
+      328,
+      3654,
+      6244,
+      763,
+      220,
+      15,
+      198,
+      262,
+      2390,
+      198,
+      262,
+      313,
+      198,
+      406,
+      328,
+      591,
+      763,
+      328,
+      2911,
+      6701,
+      487,
+      198,
+      406,
+      328,
+      1267,
+      763,
+      328,
+      84,
+      18,
+      17,
+      487,
+      198,
+      406,
+      328,
+      3654,
+      6244,
+      763,
+      220,
+      19,
+      198,
+      262,
+      2390,
+      198,
+      262,
+      313,
+      198,
+      406,
+      328,
+      591,
+      763,
+      328,
+      3765,
+      72361,
+      487,
+      198,
+      406,
+      328,
+      1267,
+      763,
+      328,
+      69,
+      18,
+      17,
+      487,
+      198,
+      406,
+      328,
+      3654,
+      6244,
+      763,
+      220,
+      23,
+      198,
+      262,
+      2390,
+      198,
+      262,
+      313,
+      198,
+      406,
+      328,
+      591,
+      763,
+      328,
+      5394,
+      72361,
+      487,
+      198,
+      406,
+      328,
+      1267,
+      763,
+      328,
+      69,
+      18,
+      17,
+      487,
+      198,
+      406,
+      328,
+      3654,
+      6244,
+      763,
+      220,
+      16,
+      17,
+      198,
+      262,
+      333,
+      198,
+      220,
+      10339,
+      198,
+      220,
+      328,
+      17730,
+      763,
+      328,
+      21378,
+      8647,
+      1887,
+      593,
+      30760,
+      40106,
+      3962,
+      8,
+      944,
+      16261,
+      303,
+      830,
+      26,
+      374,
+      28,
+      16,
+      26,
+      1110,
+      28,
+      16,
+      487,
+      198,
+      220,
+      328,
+      6081,
+      33,
+      24812,
+      763,
+      328,
+      9461,
+      19387,
+      2203,
+      816,
+      487,
+      198,
+      220,
+      328,
+      32892,
+      11009,
+      763,
+      328,
+      5423,
+      948,
+      3521,
+      19387,
+      2203,
+      816,
+      1926,
+      2518,
+      3506,
+      1887,
+      10152,
+      198,
+      220,
+      328,
+      2911,
+      11009,
+      763,
+      328,
+      7734,
+      1132,
+      2468,
+      8873,
+      58,
+      3403,
+      13026,
+      6701,
+      478,
+      1857,
+      68559,
+      198,
+      92,
+      198,
+      510,
+      4809,
+      49763,
+      29
+    ],
+    "tail": [
+      {
+        "tokenId": 2468,
+        "text": " output"
+      },
+      {
+        "tokenId": 8873,
+        "text": "_values"
+      },
+      {
+        "tokenId": 58,
+        "text": "["
+      },
+      {
+        "tokenId": 3403,
+        "text": "params"
+      },
+      {
+        "tokenId": 13026,
+        "text": ".output"
+      },
+      {
+        "tokenId": 6701,
+        "text": "_offset"
+      },
+      {
+        "tokenId": 478,
+        "text": " +"
+      },
+      {
+        "tokenId": 1857,
+        "text": " index"
+      },
+      {
+        "tokenId": 68559,
+        "text": "].\""
+      },
+      {
+        "tokenId": 198,
+        "text": "\n"
+      },
+      {
+        "tokenId": 92,
+        "text": "}"
+      },
+      {
+        "tokenId": 198,
+        "text": "\n"
+      },
+      {
+        "tokenId": 510,
+        "text": "</"
+      },
+      {
+        "tokenId": 4809,
+        "text": "interface"
+      },
+      {
+        "tokenId": 49763,
+        "text": "_contract"
+      },
+      {
+        "tokenId": 29,
+        "text": ">"
+      }
+    ]
+  },
+  "promptTailText": " output_values[params.output_offset + index].\"\n}\n</interface_contract>",
+  "specialTokens": {
+    "pad": 248055,
+    "bos": null,
+    "eos": 248046,
+    "unk": null
+  },
+  "encodedMarkers": {
+    "bos": null,
+    "eos": null,
+    "turnOpen": null,
+    "turnClose": null
+  },
+  "logitsCapture": {
+    "elementCount": 248320,
+    "byteLength": 993280,
+    "dtype": "float32",
+    "byteOrder": "little-endian",
+    "finiteCount": 248320,
+    "nonFiniteCount": 0,
+    "min": -9.429443359375,
+    "max": 39.80402374267578,
+    "sha256": "d31c768e8f045cbe26a5dbfd5c00206dce546b7ece81fd24ea73d769e0f96466",
+    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/seed47.first-token-logits.f32"
+  },
+  "topK": [
+    {
+      "tokenId": 8926,
+      "logit": 39.80402374267578,
+      "prob": 1,
+      "text": "override"
+    },
+    {
+      "tokenId": 2723,
+      "logit": 20.992576599121094,
+      "prob": 6.765381588280661e-9,
+      "text": " override"
+    },
+    {
+      "tokenId": 80483,
+      "logit": 20.68617820739746,
+      "prob": 4.979952450412384e-9,
+      "text": "overrides"
+    },
+    {
+      "tokenId": 93459,
+      "logit": 18.503446578979492,
+      "prob": 5.614057552172369e-10,
+      "text": ".override"
+    },
+    {
+      "tokenId": 46957,
+      "logit": 18.37699317932129,
+      "prob": 4.947193210647072e-10,
+      "text": "_override"
+    },
+    {
+      "tokenId": 2108,
+      "logit": 17.271530151367188,
+      "prob": 1.6378057243748856e-10,
+      "text": "Override"
+    },
+    {
+      "tokenId": 19641,
+      "logit": 17.003664016723633,
+      "prob": 1.252938031104378e-10,
+      "text": "contract"
+    },
+    {
+      "tokenId": 48597,
+      "logit": 16.9205265045166,
+      "prob": 1.1529843746416191e-10,
+      "text": "\toverride"
+    },
+    {
+      "tokenId": 4809,
+      "logit": 16.23367691040039,
+      "prob": 5.801341698696838e-11,
+      "text": "interface"
+    },
+    {
+      "tokenId": 36990,
+      "logit": 16.05916976928711,
+      "prob": 4.872377848408327e-11,
+      "text": " Override"
+    },
+    {
+      "tokenId": 84289,
+      "logit": 15.832489967346191,
+      "prob": 3.8841426602820306e-11,
+      "text": " OVERRIDE"
+    },
+    {
+      "tokenId": 4211,
+      "logit": 15.555257797241211,
+      "prob": 2.9437081244809704e-11,
+      "text": "module"
+    },
+    {
+      "tokenId": 47711,
+      "logit": 14.97402286529541,
+      "prob": 1.6461432911230034e-11,
+      "text": "_OVERRIDE"
+    },
+    {
+      "tokenId": 70388,
+      "logit": 14.613822937011719,
+      "prob": 1.148245647869528e-11,
+      "text": "directive"
+    },
+    {
+      "tokenId": 4169,
+      "logit": 14.438985824584961,
+      "prob": 9.640598215565621e-12,
+      "text": "require"
+    },
+    {
+      "tokenId": 2482,
+      "logit": 14.371794700622559,
+      "prob": 9.014118444727881e-12,
+      "text": "field"
+    },
+    {
+      "tokenId": 49724,
+      "logit": 14.339926719665527,
+      "prob": 8.731385406357539e-12,
+      "text": " overridden"
+    },
+    {
+      "tokenId": 84,
+      "logit": 14.068177223205566,
+      "prob": 6.6537101349462e-12,
+      "text": "u"
+    },
+    {
+      "tokenId": 46455,
+      "logit": 13.959366798400879,
+      "prob": 5.967715471094648e-12,
+      "text": "constraint"
+    },
+    {
+      "tokenId": 90406,
+      "logit": 13.947874069213867,
+      "prob": 5.8995226238922616e-12,
+      "text": "explicit"
+    }
+  ],
+  "selectedToken": {
+    "tokenId": 8926,
+    "logit": 39.80402374267578,
+    "prob": 1,
+    "text": "override"
+  },
+  "watchedTokens": [
+    {
+      "tokenId": 1,
+      "present": true,
+      "text": "\"",
+      "rank": 3643,
+      "logit": 5.209972381591797,
+      "prob": 9.46224919450905e-16
+    },
+    {
+      "tokenId": 50,
+      "present": true,
+      "text": "S",
+      "rank": 11120,
+      "logit": 3.059782028198242,
+      "prob": 1.1019923401174337e-16
+    },
+    {
+      "tokenId": 105,
+      "present": true,
+      "text": "�",
+      "rank": 148807,
+      "logit": -1.361567497253418,
+      "prob": 1.324374695805598e-18
+    },
+    {
+      "tokenId": 106,
+      "present": true,
+      "text": "�",
+      "rank": 206923,
+      "logit": -2.657965898513794,
+      "prob": 3.6223649443877327e-19
+    },
+    {
+      "tokenId": 107,
+      "present": true,
+      "text": "�",
+      "rank": 98623,
+      "logit": -0.416644424200058,
+      "prob": 3.407106827225922e-18
+    }
+  ],
+  "prefillStats": {
+    "prefillMs": 0,
+    "firstTokenMs": 0,
+    "modelLoadMs": 6915.348777,
+    "prefillTokens": 0,
+    "prefillTokensPerSec": null
+  },
+  "generation": {
+    "maxTokens": 384,
+    "sampling": {
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "greedyThreshold": 0
+    },
+    "tokenIds": [
+      8926,
+      30760,
+      40106,
+      3962,
+      25,
+      560,
+      18,
+      17,
+      283,
+      220,
+      17,
+      20,
+      21,
+      84,
+      26,
+      271,
+      1193,
+      33211,
+      313,
+      198,
+      262,
+      2984,
+      25,
+      560,
+      18,
+      17,
+      11,
+      198,
+      262,
+      2468,
+      6701,
+      25,
+      560,
+      18,
+      17,
+      11,
+      198,
+      262,
+      1118,
+      72361,
+      25,
+      281,
+      18,
+      17,
+      11,
+      198,
+      262,
+      2018,
+      72361,
+      25,
+      281,
+      18,
+      17,
+      11,
+      198,
+      92,
+      271,
+      31,
+      3938,
+      7,
+      15,
+      8,
+      554,
+      30018,
+      7,
+      15,
+      8,
+      737,
+      27,
+      15696,
+      11,
+      1301,
+      29,
+      2047,
+      8873,
+      25,
+      1287,
+      61738,
+      18,
+      17,
+      63576,
+      198,
+      31,
+      3938,
+      7,
+      15,
+      8,
+      554,
+      30018,
+      7,
+      16,
+      8,
+      737,
+      27,
+      15696,
+      11,
+      1301,
+      29,
+      1245,
+      8873,
+      25,
+      1287,
+      61738,
+      18,
+      17,
+      63576,
+      198,
+      31,
+      3938,
+      7,
+      15,
+      8,
+      554,
+      30018,
+      7,
+      17,
+      8,
+      737,
+      27,
+      15696,
+      11,
+      1301,
+      8892,
+      29,
+      2468,
+      8873,
+      25,
+      1287,
+      61738,
+      18,
+      17,
+      63576,
+      198,
+      31,
+      3938,
+      7,
+      15,
+      8,
+      554,
+      30018,
+      7,
+      18,
+      8,
+      737,
+      27,
+      37079,
+      29,
+      3506,
+      25,
+      33211,
+      26,
+      271,
+      31,
+      26808,
+      554,
+      1715,
+      3938,
+      2291,
+      13628,
+      10332,
+      40106,
+      3962,
+      11,
+      220,
+      16,
+      11,
+      220,
+      16,
+      8,
+      198,
+      8556,
+      1822,
+      5771,
+      41046,
+      30900,
+      19387,
+      2203,
+      816,
+      8,
+      3521,
+      816,
+      25,
+      7251,
+      18,
+      33682,
+      18,
+      17,
+      8958,
+      313,
+      198,
+      262,
+      1042,
+      1857,
+      283,
+      3521,
+      816,
+      1926,
+      26,
+      198,
+      262,
+      413,
+      318,
+      1209,
+      2518,
+      3506,
+      1887,
+      8,
+      313,
+      198,
+      285,
+      460,
+      26,
+      198,
+      262,
+      333,
+      271,
+      262,
+      1042,
+      1067,
+      283,
+      3523,
+      17145,
+      8873,
+      5733,
+      60,
+      471,
+      1245,
+      8873,
+      5733,
+      14545,
+      198,
+      262,
+      2468,
+      8873,
+      58,
+      3403,
+      13026,
+      6701,
+      478,
+      1857,
+      60,
+      283,
+      1067,
+      26,
+      198,
+      92,
+      248046
+    ],
+    "firstTokenId": 8926,
+    "outputRaw": "override WORKGROUP_SIZE: u32 = 256u;\n\nstruct Params {\n    length: u32,\n    output_offset: u32,\n    first_reserved: f32,\n    second_reserved: f32,\n}\n\n@group(0) @binding(0) var<storage, read> left_values: array<f32>;\n@group(0) @binding(1) var<storage, read> right_values: array<f32>;\n@group(0) @binding(2) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(3) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n    let index = global_id.x;\n    if (index >= params.length) {\n        return;\n    }\n\n    let result = abs(left_values[index] - right_values[index]);\n    output_values[params.output_offset + index] = result;\n}",
+    "output": "override WORKGROUP_SIZE: u32 = 256u;\n\nstruct Params {\n    length: u32,\n    output_offset: u32,\n    first_reserved: f32,\n    second_reserved: f32,\n}\n\n@group(0) @binding(0) var<storage, read> left_values: array<f32>;\n@group(0) @binding(1) var<storage, read> right_values: array<f32>;\n@group(0) @binding(2) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(3) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n    let index = global_id.x;\n    if (index >= params.length) {\n        return;\n    }\n\n    let result = abs(left_values[index] - right_values[index]);\n    output_values[params.output_offset + index] = result;\n}",
+    "stopReason": "stop-token",
+    "stopTokenId": 248046,
+    "stats": {
+      "firstTokenMs": 14217.632063999998,
+      "prefillMs": 14206.629402999995,
+      "decodeMs": 49717.065022999996,
+      "totalMs": 63935.746929,
+      "tokensGenerated": 247
+    },
+    "operatorDiagnostics": null
+  },
+  "parity": {
+    "selectedTokenMatchesGeneratedFirstToken": true
+  }
+}

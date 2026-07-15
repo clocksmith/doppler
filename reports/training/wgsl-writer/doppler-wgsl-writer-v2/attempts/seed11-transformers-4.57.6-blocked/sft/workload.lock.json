@@ -1,0 +1,106 @@
+{
+  "artifactType": "training_workload_lock",
+  "schemaVersion": 1,
+  "workload": {
+    "baseModelId": "qwen-3-5-9b-hf-bf16",
+    "checkpointEvery": 90,
+    "claimBoundary": "This workload trains one base-initialized seed for the frozen complete 1-D elementwise f32 WGSL writer contract. Loss and export mechanics are non-capability evidence; disjoint semantic evaluation and Doppler parity remain required.",
+    "configHash": "b34dea01d2a15e599b6d0086d5c7a3abb740851fe87330f7f25766db9938a78f",
+    "datasetId": "doppler-wgsl-writer-v2-train",
+    "datasetPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/train.jsonl",
+    "description": "Qwen 3.5 9B completion-masked LoRA SFT on the frozen complete-shader WGSL writer v2 corpus; seed 11",
+    "evalDatasets": [],
+    "id": "lora-doppler-wgsl-writer-qwen35-9b-v2-seed11",
+    "kind": "lora",
+    "pipeline": {
+      "activation": {
+        "autoActivate": false,
+        "enabled": false,
+        "smokePrompt": "Author one complete WGSL compute shader from the supplied contract."
+      },
+      "adapter": {
+        "alpha": 64,
+        "dropout": 0.05,
+        "rank": 32,
+        "targetModules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj",
+          "gate_proj",
+          "up_proj",
+          "down_proj"
+        ]
+      },
+      "baseModelRef": "Qwen/Qwen3.5-9B",
+      "baseModelRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "datasetFormat": "text-pairs",
+      "export": {
+        "atCheckpoints": false,
+        "enabled": true,
+        "format": "manifest_json",
+        "id": "doppler-wgsl-writer-qwen35-9b-v2-seed11",
+        "name": "Doppler WGSL Writer Qwen 3.5 9B V2 Seed 11",
+        "select": "final"
+      },
+      "freeze": {
+        "base": true,
+        "decoder": false,
+        "encoder": false,
+        "lora": false,
+        "prior": false
+      },
+      "joinWith": "\n",
+      "maxLength": 2048,
+      "rowOrder": "seed_hash_sorted_v1",
+      "sequenceLength": null,
+      "taskType": "text_generation",
+      "trainer": {
+        "exportName": "trainCausalLmLora",
+        "modulePath": "../../../../tools/trainers/gamma-wgsl-trainer.js",
+        "runnerId": "gamma-wgsl-causal-lm-lora"
+      }
+    },
+    "schemaVersion": 1,
+    "seed": 11,
+    "selectionGoal": "min",
+    "selectionMetric": "loss",
+    "studentModelId": null,
+    "surfaceSupport": "node",
+    "teacherModelId": null,
+    "training": {
+      "accumSteps": 8,
+      "batchSize": 1,
+      "gradientClipping": {
+        "maxNorm": 1
+      },
+      "optimizer": {
+        "beta1": 0.9,
+        "beta2": 0.999,
+        "eps": 1e-8,
+        "lr": 0.0001,
+        "scheduler": {
+          "enabled": false,
+          "gamma": 1,
+          "minLr": 0,
+          "stepSize": 1,
+          "totalSteps": 720,
+          "type": "constant",
+          "warmupSteps": 0
+        },
+        "type": "adamw",
+        "weightDecay": 0.01
+      },
+      "precision": {
+        "activations": "bf16",
+        "gradients": "bf16",
+        "loraParams": "f32"
+      },
+      "steps": 720
+    },
+    "trainingSchemaVersion": 1
+  },
+  "workloadId": "lora-doppler-wgsl-writer-qwen35-9b-v2-seed11",
+  "workloadPath": "/home/x/deco/doppler/src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed11.json",
+  "workloadSha256": "7a3d52076053369a1347f32b9b0ecaf863c21faebf68456ecd5832fbe8cf3da8"
+}

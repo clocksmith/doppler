@@ -60,6 +60,8 @@ export declare function evaluateNumericAgreement(
   tolerance: WgslSemanticTolerance
 ): WgslNumericAgreementResult;
 
+export declare function normalizeWgslSemanticEvidenceValue(value: unknown): unknown;
+
 export declare function hashWgslSemanticEvidenceValue(value: unknown): string;
 
 export declare function evaluateWgslSemanticTaskEvidence(
