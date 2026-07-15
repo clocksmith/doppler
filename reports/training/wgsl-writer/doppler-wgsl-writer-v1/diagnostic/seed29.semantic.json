@@ -1,0 +1,2023 @@
+{
+  "schema": "doppler.wgsl-writer-semantic-dispatch-receipt/v1",
+  "experimentId": "doppler-wgsl-writer-v1",
+  "evaluationRole": "mechanics_qualification_only",
+  "mode": "candidate",
+  "candidate": {
+    "id": "v13-seed29-repair-initialization",
+    "kind": "repair_adapter_initialization",
+    "modelId": "qwen-3-5-9b-f16-af32",
+    "modelManifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+    "adapterManifestPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapter.manifest.json",
+    "adapterManifestSha256": "e5dec965a953aa746e592ae38045f445e7d9b1407feb609f448238427af4b042",
+    "adapterWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapters.safetensors",
+    "adapterWeightsSha256": "0d9ab8e1348a3fcdd6ef2973b624cc1a3d962de90a571976a5a222df27b69394",
+    "predecessorReceiptPath": "docs/status/wgsl-repair-v13-seed-confirmation-result-2026-07-14.json",
+    "predecessorReceiptSha256": "5195a50299e7054a49d5d176ce30f468e561f9870fe9890b404ee7b9ec352fc5"
+  },
+  "candidateCompletions": {
+    "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v1/diagnostic/seed29.completions.json",
+    "sha256": "34eab46140fb93c58006e5da95d4929c85e974b66699983a2443588df6c02d6e",
+    "receiptHash": "7fe46f701eed96f70936fc20b313d2af737f18f849b4cc8fa771e14937af21b4"
+  },
+  "policy": {
+    "path": "tools/policies/wgsl-writer-v1-policy.json",
+    "sha256": "1a55f4ae3bcc1331cbfb9203d9c3573fdc434dd4775d803b1be121dcf82ecebc"
+  },
+  "taskManifest": {
+    "path": "tools/data/wgsl-writer-v1-mechanics.json",
+    "sha256": "5df1979f7487431d6ad9480dd7ac14417e9297fbee5c5d26f6d11b2ff3882dbe"
+  },
+  "runtime": {
+    "backend": "chromium_webgpu",
+    "deviceInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": null,
+      "description": null,
+      "availableFeatures": [
+        "bgra8unorm-storage",
+        "chromium-experimental-multi-draw-indirect",
+        "chromium-experimental-subgroup-matrix",
+        "chromium-experimental-timestamp-query-inside-passes",
+        "clip-distances",
+        "core-features-and-limits",
+        "depth-clip-control",
+        "depth32float-stencil8",
+        "dual-source-blending",
+        "float32-blendable",
+        "float32-filterable",
+        "indirect-first-instance",
+        "primitive-index",
+        "rg11b10ufloat-renderable",
+        "shader-f16",
+        "subgroups",
+        "texture-component-swizzle",
+        "texture-compression-bc",
+        "texture-compression-bc-sliced-3d",
+        "texture-formats-tier1",
+        "texture-formats-tier2",
+        "timestamp-query"
+      ],
+      "requiredFeatures": []
+    },
+    "browserArgs": [
+      "--enable-unsafe-webgpu",
+      "--enable-dawn-features=allow_unsafe_apis",
+      "--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE",
+      "--use-angle=vulkan",
+      "--disable-vulkan-surface"
+    ]
+  },
+  "tasks": [
+    {
+      "taskId": "writer-v1-mechanics-vector-add-f32",
+      "kernelFamilyId": "writer-v1-mechanics-vector-add",
+      "role": "mechanics_qualification_only",
+      "responseContractPass": false,
+      "responseContractViolations": [
+        "required_override_absent:WORKGROUP_SIZE"
+      ],
+      "completionSha256": "58ec339ed1167f78b40fc16fa8fb5154cde57863226e3359a83421f6bd4460cf",
+      "exactReferenceCompletion": false,
+      "candidateSourceSha256": "aa85a64c3a6f8551eefb47f1e5a520f11d07925c7d97d11fd7bb0cfbaef9e592",
+      "compilation": {
+        "status": "fail"
+      },
+      "variants": [
+        {
+          "shapeId": "vector-add-nominal-64",
+          "shapeClass": "nominal",
+          "workgroupId": "wg-32",
+          "dispatch": {
+            "status": "fail",
+            "backend": "chromium_webgpu",
+            "workgroupSize": 32,
+            "workgroups": [
+              2,
+              1,
+              1
+            ],
+            "runtimeErrors": [
+              "Error while parsing WGSL: :10:5 error: cannot use access enumerant 'read' as address space\nvar<read> left_values : array<f32>;\n    ^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"writer-v1-mechanics-vector-add-f32-vector-add-nominal-64-base\"\"]).\n"
+            ]
+          },
+          "compilation": {
+            "passed": false,
+            "messages": [
+              {
+                "type": "error",
+                "message": "cannot use access enumerant 'read' as address space",
+                "lineNum": 10,
+                "linePos": 5,
+                "offset": 124,
+                "length": 4
+              }
+            ],
+            "errorCount": 1
+          },
+          "oracle": {
+            "revision": "wgsl-semantic-cpu-oracles-v1",
+            "inputs": {
+              "leftValues": [
+                2.238938093185425,
+                -0.47787609696388245,
+                -3.194690227508545,
+                -5.91150426864624,
+                -8.628318786621094,
+                6.362832069396973,
+                3.6460177898406982,
+                0.9292035102844238,
+                -1.787610650062561,
+                -4.504424571990967,
+                -7.22123908996582,
+                7.769911289215088,
+                5.053097248077393,
+                2.3362832069396973,
+                -0.38053098320961,
+                -3.0973451137542725,
+                -5.814159393310547,
+                -8.530973434448242,
+                6.460176944732666,
+                3.7433629035949707,
+                1.0265486240386963,
+                -1.6902655363082886,
+                -4.407079696655273,
+                -7.123893737792969,
+                7.8672566413879395,
+                5.150442600250244,
+                2.4336283206939697,
+                -0.28318583965301514,
+                -3,
+                -5.716814041137695,
+                -8.43362808227539,
+                6.557522296905518,
+                3.840708017349243,
+                1.1238938570022583,
+                -1.5929203033447266,
+                -4.309734344482422,
+                -7.026548862457275,
+                7.964601993560791,
+                5.2477874755859375,
+                2.530973434448242,
+                -0.18584071099758148,
+                -2.9026548862457275,
+                -5.619469165802002,
+                -8.336282730102539,
+                6.654867172241211,
+                3.9380531311035156,
+                1.2212389707565308,
+                -1.495575189590454,
+                -4.2123894691467285,
+                -6.929203510284424,
+                8.061946868896484,
+                5.345132827758789,
+                2.6283185482025146,
+                -0.08849557489156723,
+                -2.805309772491455,
+                -5.52212381362915,
+                -8.238938331604004,
+                6.7522125244140625,
+                4.035398006439209,
+                1.3185840845108032,
+                -1.3982300758361816,
+                -4.115044116973877,
+                -6.8318586349487305,
+                8.159292221069336
+              ],
+              "rightValues": [
+                8.38938045501709,
+                5.6725664138793945,
+                2.95575213432312,
+                0.23893804848194122,
+                -2.4778761863708496,
+                -5.194690227508545,
+                -7.91150426864624,
+                7.079646110534668,
+                4.362832069396973,
+                1.6460176706314087,
+                -1.0707964897155762,
+                -3.7876105308532715,
+                -6.504424571990967,
+                8.486725807189941,
+                5.769911289215088,
+                3.0530972480773926,
+                0.3362831771373749,
+                -2.380531072616577,
+                -5.097345352172852,
+                -7.814159393310547,
+                7.176990985870361,
+                4.460176944732666,
+                1.7433627843856812,
+                -0.9734513163566589,
+                -3.690265417098999,
+                -6.407079696655273,
+                8.584071159362793,
+                5.8672566413879395,
+                3.150442361831665,
+                0.4336283206939697,
+                -2.2831859588623047,
+                -5,
+                -7.716814041137695,
+                7.274336338043213,
+                4.557522296905518,
+                1.8407080173492432,
+                -0.8761062026023865,
+                -3.5929203033447266,
+                -6.309734344482422,
+                8.681415557861328,
+                5.964601993560791,
+                3.2477877140045166,
+                0.5309734344482422,
+                -2.185840606689453,
+                -4.902654647827148,
+                -7.619469165802002,
+                7.371681213378906,
+                4.654867172241211,
+                1.9380531311035156,
+                -0.778761088848114,
+                -3.495575189590454,
+                -6.2123894691467285,
+                8.77876091003418,
+                6.061946868896484,
+                3.345132827758789,
+                0.6283186078071594,
+                -2.0884954929351807,
+                -4.805309772491455,
+                -7.52212381362915,
+                7.469026565551758,
+                4.7522125244140625,
+                2.035398244857788,
+                -0.6814159154891968,
+                -3.3982300758361816
+              ]
+            },
+            "inputSha256": "d6576bd6bfeb2dcc225f827c9984a393e9a835efdb764906462b6dbbd4c4d780",
+            "expected": [
+              10.628318786621094,
+              5.194690227508545,
+              -0.2389380931854248,
+              -5.6725664138793945,
+              -11.106195449829102,
+              1.1681418418884277,
+              -4.265486717224121,
+              8.00885009765625,
+              2.575221538543701,
+              -2.8584070205688477,
+              -8.292036056518555,
+              3.9823007583618164,
+              -1.4513273239135742,
+              10.823009490966797,
+              5.38938045501709,
+              -0.04424786567687988,
+              -5.47787618637085,
+              -10.911504745483398,
+              1.3628315925598145,
+              -4.070796489715576,
+              8.203539848327637,
+              2.769911289215088,
+              -2.6637167930603027,
+              -8.097345352172852,
+              4.1769914627075195,
+              -1.2566370964050293,
+              11.017699241638184,
+              5.584070682525635,
+              0.15044236183166504,
+              -5.283185958862305,
+              -10.716814041137695,
+              1.5575222969055176,
+              -3.876106023788452,
+              8.39823055267334,
+              2.964601993560791,
+              -2.4690263271331787,
+              -7.902655124664307,
+              4.3716816902160645,
+              -1.0619468688964844,
+              11.21238899230957,
+              5.778761386871338,
+              0.34513282775878906,
+              -5.08849573135376,
+              -10.522123336791992,
+              1.7522125244140625,
+              -3.6814160346984863,
+              8.592920303344727,
+              3.159291982650757,
+              -2.274336338043213,
+              -7.7079644203186035,
+              4.566371917724609,
+              -0.8672566413879395,
+              11.407079696655273,
+              5.973451137542725,
+              0.539823055267334,
+              -4.893805027008057,
+              -10.327433586120605,
+              1.9469027519226074,
+              -3.4867258071899414,
+              8.78761100769043,
+              3.353982448577881,
+              -2.079645872116089,
+              -7.513274669647217,
+              4.761062145233154
+            ],
+            "expectedSha256": "1fbc010d2df473d34d2c28b24165729ddeb4ce396620cc33921c2a4552c78b46",
+            "actual": [],
+            "actualSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "tolerance": {
+              "mode": "numeric",
+              "absTolerance": 0.00001,
+              "relTolerance": 0.0001
+            }
+          },
+          "bufferBounds": {
+            "prefixCanaryIntact": true,
+            "suffixCanaryIntact": true,
+            "readOnlyBuffersUnchanged": false,
+            "outputPaddingUnchanged": true,
+            "validationErrorsAbsent": false
+          },
+          "metamorphic": [
+            {
+              "id": "input_permutation_equivariance",
+              "status": "fail",
+              "evidenceSha256": "2ef089f9af711d7605a9c11baaf6b6c8d19e34edfcba6f4e3cb21b3487b133f2"
+            },
+            {
+              "id": "tiling_equivalence",
+              "status": "fail",
+              "evidenceSha256": "a395583c91fde63c06149c48abcec7b5341f6fdb5215aa7e6fa87870a067dd66"
+            }
+          ],
+          "supportingDispatches": {
+            "permutationPass": false,
+            "alternateWorkgroupPass": false
+          }
+        },
+        {
+          "shapeId": "vector-add-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "workgroupId": "wg-64",
+          "dispatch": {
+            "status": "fail",
+            "backend": "chromium_webgpu",
+            "workgroupSize": 64,
+            "workgroups": [
+              2,
+              1,
+              1
+            ],
+            "runtimeErrors": [
+              "Error while parsing WGSL: :10:5 error: cannot use access enumerant 'read' as address space\nvar<read> left_values : array<f32>;\n    ^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"writer-v1-mechanics-vector-add-f32-vector-add-tail-67-base\"\"]).\n"
+            ]
+          },
+          "compilation": {
+            "passed": false,
+            "messages": [
+              {
+                "type": "error",
+                "message": "cannot use access enumerant 'read' as address space",
+                "lineNum": 10,
+                "linePos": 5,
+                "offset": 124,
+                "length": 4
+              }
+            ],
+            "errorCount": 1
+          },
+          "oracle": {
+            "revision": "wgsl-semantic-cpu-oracles-v1",
+            "inputs": {
+              "leftValues": [
+                2.238938093185425,
+                -0.47787609696388245,
+                -3.194690227508545,
+                -5.91150426864624,
+                -8.628318786621094,
+                6.362832069396973,
+                3.6460177898406982,
+                0.9292035102844238,
+                -1.787610650062561,
+                -4.504424571990967,
+                -7.22123908996582,
+                7.769911289215088,
+                5.053097248077393,
+                2.3362832069396973,
+                -0.38053098320961,
+                -3.0973451137542725,
+                -5.814159393310547,
+                -8.530973434448242,
+                6.460176944732666,
+                3.7433629035949707,
+                1.0265486240386963,
+                -1.6902655363082886,
+                -4.407079696655273,
+                -7.123893737792969,
+                7.8672566413879395,
+                5.150442600250244,
+                2.4336283206939697,
+                -0.28318583965301514,
+                -3,
+                -5.716814041137695,
+                -8.43362808227539,
+                6.557522296905518,
+                3.840708017349243,
+                1.1238938570022583,
+                -1.5929203033447266,
+                -4.309734344482422,
+                -7.026548862457275,
+                7.964601993560791,
+                5.2477874755859375,
+                2.530973434448242,
+                -0.18584071099758148,
+                -2.9026548862457275,
+                -5.619469165802002,
+                -8.336282730102539,
+                6.654867172241211,
+                3.9380531311035156,
+                1.2212389707565308,
+                -1.495575189590454,
+                -4.2123894691467285,
+                -6.929203510284424,
+                8.061946868896484,
+                5.345132827758789,
+                2.6283185482025146,
+                -0.08849557489156723,
+                -2.805309772491455,
+                -5.52212381362915,
+                -8.238938331604004,
+                6.7522125244140625,
+                4.035398006439209,
+                1.3185840845108032,
+                -1.3982300758361816,
+                -4.115044116973877,
+                -6.8318586349487305,
+                8.159292221069336,
+                5.442477703094482,
+                2.725663661956787,
+                0.008849557489156723
+              ],
+              "rightValues": [
+                8.38938045501709,
+                5.6725664138793945,
+                2.95575213432312,
+                0.23893804848194122,
+                -2.4778761863708496,
+                -5.194690227508545,
+                -7.91150426864624,
+                7.079646110534668,
+                4.362832069396973,
+                1.6460176706314087,
+                -1.0707964897155762,
+                -3.7876105308532715,
+                -6.504424571990967,
+                8.486725807189941,
+                5.769911289215088,
+                3.0530972480773926,
+                0.3362831771373749,
+                -2.380531072616577,
+                -5.097345352172852,
+                -7.814159393310547,
+                7.176990985870361,
+                4.460176944732666,
+                1.7433627843856812,
+                -0.9734513163566589,
+                -3.690265417098999,
+                -6.407079696655273,
+                8.584071159362793,
+                5.8672566413879395,
+                3.150442361831665,
+                0.4336283206939697,
+                -2.2831859588623047,
+                -5,
+                -7.716814041137695,
+                7.274336338043213,
+                4.557522296905518,
+                1.8407080173492432,
+                -0.8761062026023865,
+                -3.5929203033447266,
+                -6.309734344482422,
+                8.681415557861328,
+                5.964601993560791,
+                3.2477877140045166,
+                0.5309734344482422,
+                -2.185840606689453,
+                -4.902654647827148,
+                -7.619469165802002,
+                7.371681213378906,
+                4.654867172241211,
+                1.9380531311035156,
+                -0.778761088848114,
+                -3.495575189590454,
+                -6.2123894691467285,
+                8.77876091003418,
+                6.061946868896484,
+                3.345132827758789,
+                0.6283186078071594,
+                -2.0884954929351807,
+                -4.805309772491455,
+                -7.52212381362915,
+                7.469026565551758,
+                4.7522125244140625,
+                2.035398244857788,
+                -0.6814159154891968,
+                -3.3982300758361816,
+                -6.115044116973877,
+                -8.83185863494873,
+                6.159292221069336
+              ]
+            },
+            "inputSha256": "61a9e122ccc3e6008f89240036d9d270321fdc5578f77b9c4b8596ec6ef54dff",
+            "expected": [
+              10.628318786621094,
+              5.194690227508545,
+              -0.2389380931854248,
+              -5.6725664138793945,
+              -11.106195449829102,
+              1.1681418418884277,
+              -4.265486717224121,
+              8.00885009765625,
+              2.575221538543701,
+              -2.8584070205688477,
+              -8.292036056518555,
+              3.9823007583618164,
+              -1.4513273239135742,
+              10.823009490966797,
+              5.38938045501709,
+              -0.04424786567687988,
+              -5.47787618637085,
+              -10.911504745483398,
+              1.3628315925598145,
+              -4.070796489715576,
+              8.203539848327637,
+              2.769911289215088,
+              -2.6637167930603027,
+              -8.097345352172852,
+              4.1769914627075195,
+              -1.2566370964050293,
+              11.017699241638184,
+              5.584070682525635,
+              0.15044236183166504,
+              -5.283185958862305,
+              -10.716814041137695,
+              1.5575222969055176,
+              -3.876106023788452,
+              8.39823055267334,
+              2.964601993560791,
+              -2.4690263271331787,
+              -7.902655124664307,
+              4.3716816902160645,
+              -1.0619468688964844,
+              11.21238899230957,
+              5.778761386871338,
+              0.34513282775878906,
+              -5.08849573135376,
+              -10.522123336791992,
+              1.7522125244140625,
+              -3.6814160346984863,
+              8.592920303344727,
+              3.159291982650757,
+              -2.274336338043213,
+              -7.7079644203186035,
+              4.566371917724609,
+              -0.8672566413879395,
+              11.407079696655273,
+              5.973451137542725,
+              0.539823055267334,
+              -4.893805027008057,
+              -10.327433586120605,
+              1.9469027519226074,
+              -3.4867258071899414,
+              8.78761100769043,
+              3.353982448577881,
+              -2.079645872116089,
+              -7.513274669647217,
+              4.761062145233154,
+              -0.6725664138793945,
+              -6.106194972991943,
+              6.168141841888428
+            ],
+            "expectedSha256": "20c5aaaed3ae738bc2e5b2c92e7cf9e3db1b9a71a39a8654e24738958504100b",
+            "actual": [],
+            "actualSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "tolerance": {
+              "mode": "numeric",
+              "absTolerance": 0.00001,
+              "relTolerance": 0.0001
+            }
+          },
+          "bufferBounds": {
+            "prefixCanaryIntact": true,
+            "suffixCanaryIntact": true,
+            "readOnlyBuffersUnchanged": false,
+            "outputPaddingUnchanged": true,
+            "validationErrorsAbsent": false
+          },
+          "metamorphic": [
+            {
+              "id": "input_permutation_equivariance",
+              "status": "fail",
+              "evidenceSha256": "2ef089f9af711d7605a9c11baaf6b6c8d19e34edfcba6f4e3cb21b3487b133f2"
+            },
+            {
+              "id": "tiling_equivalence",
+              "status": "fail",
+              "evidenceSha256": "aecd19b2ce68ee63c5f570f53f5b21e68cca2ca4d51d1d8ca33bde62474a301a"
+            }
+          ],
+          "supportingDispatches": {
+            "permutationPass": false,
+            "alternateWorkgroupPass": false
+          }
+        },
+        {
+          "shapeId": "vector-add-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "workgroupId": "wg-32",
+          "dispatch": {
+            "status": "fail",
+            "backend": "chromium_webgpu",
+            "workgroupSize": 32,
+            "workgroups": [
+              1,
+              1,
+              1
+            ],
+            "runtimeErrors": [
+              "Error while parsing WGSL: :10:5 error: cannot use access enumerant 'read' as address space\nvar<read> left_values : array<f32>;\n    ^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"writer-v1-mechanics-vector-add-f32-vector-add-boundary-1-base\"\"]).\n"
+            ]
+          },
+          "compilation": {
+            "passed": false,
+            "messages": [
+              {
+                "type": "error",
+                "message": "cannot use access enumerant 'read' as address space",
+                "lineNum": 10,
+                "linePos": 5,
+                "offset": 124,
+                "length": 4
+              }
+            ],
+            "errorCount": 1
+          },
+          "oracle": {
+            "revision": "wgsl-semantic-cpu-oracles-v1",
+            "inputs": {
+              "leftValues": [
+                2.238938093185425
+              ],
+              "rightValues": [
+                8.38938045501709
+              ]
+            },
+            "inputSha256": "ef4d1610f83ded488349cf2380d7a7cb11e06553693ba392b6fe93a9d785e4c7",
+            "expected": [
+              10.628318786621094
+            ],
+            "expectedSha256": "28936c259b3b8db62397368e7ac7ca67031e9e46b04b2c0fe3fb9bc013383ddb",
+            "actual": [],
+            "actualSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "tolerance": {
+              "mode": "numeric",
+              "absTolerance": 0.00001,
+              "relTolerance": 0.0001
+            }
+          },
+          "bufferBounds": {
+            "prefixCanaryIntact": true,
+            "suffixCanaryIntact": true,
+            "readOnlyBuffersUnchanged": false,
+            "outputPaddingUnchanged": true,
+            "validationErrorsAbsent": false
+          },
+          "metamorphic": [
+            {
+              "id": "input_permutation_equivariance",
+              "status": "fail",
+              "evidenceSha256": "2ef089f9af711d7605a9c11baaf6b6c8d19e34edfcba6f4e3cb21b3487b133f2"
+            },
+            {
+              "id": "tiling_equivalence",
+              "status": "fail",
+              "evidenceSha256": "a395583c91fde63c06149c48abcec7b5341f6fdb5215aa7e6fa87870a067dd66"
+            }
+          ],
+          "supportingDispatches": {
+            "permutationPass": false,
+            "alternateWorkgroupPass": false
+          }
+        }
+      ],
+      "historicalRegressionsPass": false,
+      "historicalRegressionResults": [
+        {
+          "id": "logical-elements-not-padded-storage",
+          "status": "fail"
+        },
+        {
+          "id": "readonly-input-byte-identity",
+          "status": "fail"
+        }
+      ],
+      "referenceShaderSha256": "04c322b871a9a7c371b6013c11ad33b0a8f2eb93c981f44f0417197c7da534b4"
+    },
+    {
+      "taskId": "writer-v1-mechanics-affine-f32",
+      "kernelFamilyId": "writer-v1-mechanics-affine",
+      "role": "mechanics_qualification_only",
+      "responseContractPass": false,
+      "responseContractViolations": [
+        "required_override_absent:WORKGROUP_SIZE"
+      ],
+      "completionSha256": "75577b29b4c1d92aea8f648a04865d5bdb0b9ac2dcfc5904a1f066ce13024879",
+      "exactReferenceCompletion": false,
+      "candidateSourceSha256": "153291392bab31fc4e76cb4d589544a87da32c65674efedb8b2a70e3d2fe5e50",
+      "compilation": {
+        "status": "fail"
+      },
+      "variants": [
+        {
+          "shapeId": "affine-nominal-64",
+          "shapeClass": "nominal",
+          "workgroupId": "wg-32",
+          "dispatch": {
+            "status": "fail",
+            "backend": "chromium_webgpu",
+            "workgroupSize": 32,
+            "workgroups": [
+              2,
+              1,
+              1
+            ],
+            "runtimeErrors": [
+              "Error while parsing WGSL: :6:29 error: cannot use access enumerant 'read' as address space\n};@group(0) @binding(0) var<read> input_values : array<f32>;\n                            ^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"writer-v1-mechanics-affine-f32-affine-nominal-64-base\"\"]).\n"
+            ]
+          },
+          "compilation": {
+            "passed": false,
+            "messages": [
+              {
+                "type": "error",
+                "message": "cannot use access enumerant 'read' as address space",
+                "lineNum": 6,
+                "linePos": 29,
+                "offset": 120,
+                "length": 4
+              }
+            ],
+            "errorCount": 1
+          },
+          "oracle": {
+            "revision": "wgsl-semantic-cpu-oracles-v1",
+            "inputs": {
+              "inputValues": [
+                1.3008849620819092,
+                -1.4159291982650757,
+                -4.1327433586120605,
+                -6.849557399749756,
+                8.141592979431152,
+                5.424778938293457,
+                2.7079646587371826,
+                -0.008849557489156723,
+                -2.725663661956787,
+                -5.442477703094482,
+                -8.159292221069336,
+                6.8318586349487305,
+                4.115044116973877,
+                1.3982300758361816,
+                -1.3185840845108032,
+                -4.035398006439209,
+                -6.7522125244140625,
+                8.238938331604004,
+                5.52212381362915,
+                2.805309772491455,
+                0.08849557489156723,
+                -2.6283185482025146,
+                -5.345132827758789,
+                -8.061946868896484,
+                6.929203510284424,
+                4.2123894691467285,
+                1.495575189590454,
+                -1.2212389707565308,
+                -3.9380531311035156,
+                -6.654867172241211,
+                8.336282730102539,
+                5.619469165802002,
+                2.9026548862457275,
+                0.18584071099758148,
+                -2.530973434448242,
+                -5.2477874755859375,
+                -7.964601993560791,
+                7.026548862457275,
+                4.309734344482422,
+                1.5929203033447266,
+                -1.1238938570022583,
+                -3.840708017349243,
+                -6.557522296905518,
+                8.43362808227539,
+                5.716814041137695,
+                3,
+                0.28318583965301514,
+                -2.4336283206939697,
+                -5.150442600250244,
+                -7.8672566413879395,
+                7.123893737792969,
+                4.407079696655273,
+                1.6902655363082886,
+                -1.0265486240386963,
+                -3.7433629035949707,
+                -6.460176944732666,
+                8.530973434448242,
+                5.814159393310547,
+                3.0973451137542725,
+                0.38053098320961,
+                -2.3362832069396973,
+                -5.053097248077393,
+                -7.769911289215088,
+                7.22123908996582
+              ]
+            },
+            "inputSha256": "4f2b66aa1ee47869f97153b93e73c7938a9e2c4fccce2516a2173bf0bba51ade",
+            "expected": [
+              -1.6515486240386963,
+              3.1028761863708496,
+              7.857300758361816,
+              12.611725807189941,
+              -13.622787475585938,
+              -8.868363380432129,
+              -4.113938331604004,
+              0.6404867172241211,
+              5.394911289215088,
+              10.149335861206055,
+              14.90376091003418,
+              -11.3307523727417,
+              -6.576327323913574,
+              -1.8219027519226074,
+              2.9325220584869385,
+              7.686946392059326,
+              12.44137191772461,
+              -13.793142318725586,
+              -9.038716316223145,
+              -4.284292221069336,
+              0.4701327383518219,
+              5.224557399749756,
+              9.978982925415039,
+              14.733407020568848,
+              -11.501106262207031,
+              -6.7466816902160645,
+              -1.9922566413879395,
+              2.7621681690216064,
+              7.516592979431152,
+              12.271017074584961,
+              -13.963495254516602,
+              -9.209071159362793,
+              -4.454646110534668,
+              0.2997787594795227,
+              5.054203510284424,
+              9.80862808227539,
+              14.563053131103516,
+              -11.671460151672363,
+              -6.917035102844238,
+              -2.1626105308532715,
+              2.5918142795562744,
+              7.34623908996582,
+              12.100664138793945,
+              -14.133849143981934,
+              -9.379425048828125,
+              -4.625,
+              0.1294247806072235,
+              4.883849620819092,
+              9.638274192810059,
+              14.392699241638184,
+              -11.841814041137695,
+              -7.0873894691467285,
+              -2.3329646587371826,
+              2.4214601516723633,
+              7.175885200500488,
+              11.930309295654297,
+              -14.304203033447266,
+              -9.549778938293457,
+              -4.795353889465332,
+              -0.040929198265075684,
+              4.71349573135376,
+              9.467920303344727,
+              14.222344398498535,
+              -12.012168884277344
+            ],
+            "expectedSha256": "897a9ef3ef26bf1461578d1ba1d0a4ba2e78290551d1ebacbf96b8ef749ecd6f",
+            "actual": [],
+            "actualSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "tolerance": {
+              "mode": "numeric",
+              "absTolerance": 0.00001,
+              "relTolerance": 0.0001
+            }
+          },
+          "bufferBounds": {
+            "prefixCanaryIntact": true,
+            "suffixCanaryIntact": true,
+            "readOnlyBuffersUnchanged": false,
+            "outputPaddingUnchanged": true,
+            "validationErrorsAbsent": false
+          },
+          "metamorphic": [
+            {
+              "id": "input_permutation_equivariance",
+              "status": "fail",
+              "evidenceSha256": "2ef089f9af711d7605a9c11baaf6b6c8d19e34edfcba6f4e3cb21b3487b133f2"
+            },
+            {
+              "id": "tiling_equivalence",
+              "status": "fail",
+              "evidenceSha256": "a395583c91fde63c06149c48abcec7b5341f6fdb5215aa7e6fa87870a067dd66"
+            }
+          ],
+          "supportingDispatches": {
+            "permutationPass": false,
+            "alternateWorkgroupPass": false
+          }
+        },
+        {
+          "shapeId": "affine-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "workgroupId": "wg-64",
+          "dispatch": {
+            "status": "fail",
+            "backend": "chromium_webgpu",
+            "workgroupSize": 64,
+            "workgroups": [
+              2,
+              1,
+              1
+            ],
+            "runtimeErrors": [
+              "Error while parsing WGSL: :6:29 error: cannot use access enumerant 'read' as address space\n};@group(0) @binding(0) var<read> input_values : array<f32>;\n                            ^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"writer-v1-mechanics-affine-f32-affine-tail-67-base\"\"]).\n"
+            ]
+          },
+          "compilation": {
+            "passed": false,
+            "messages": [
+              {
+                "type": "error",
+                "message": "cannot use access enumerant 'read' as address space",
+                "lineNum": 6,
+                "linePos": 29,
+                "offset": 120,
+                "length": 4
+              }
+            ],
+            "errorCount": 1
+          },
+          "oracle": {
+            "revision": "wgsl-semantic-cpu-oracles-v1",
+            "inputs": {
+              "inputValues": [
+                1.3008849620819092,
+                -1.4159291982650757,
+                -4.1327433586120605,
+                -6.849557399749756,
+                8.141592979431152,
+                5.424778938293457,
+                2.7079646587371826,
+                -0.008849557489156723,
+                -2.725663661956787,
+                -5.442477703094482,
+                -8.159292221069336,
+                6.8318586349487305,
+                4.115044116973877,
+                1.3982300758361816,
+                -1.3185840845108032,
+                -4.035398006439209,
+                -6.7522125244140625,
+                8.238938331604004,
+                5.52212381362915,
+                2.805309772491455,
+                0.08849557489156723,
+                -2.6283185482025146,
+                -5.345132827758789,
+                -8.061946868896484,
+                6.929203510284424,
+                4.2123894691467285,
+                1.495575189590454,
+                -1.2212389707565308,
+                -3.9380531311035156,
+                -6.654867172241211,
+                8.336282730102539,
+                5.619469165802002,
+                2.9026548862457275,
+                0.18584071099758148,
+                -2.530973434448242,
+                -5.2477874755859375,
+                -7.964601993560791,
+                7.026548862457275,
+                4.309734344482422,
+                1.5929203033447266,
+                -1.1238938570022583,
+                -3.840708017349243,
+                -6.557522296905518,
+                8.43362808227539,
+                5.716814041137695,
+                3,
+                0.28318583965301514,
+                -2.4336283206939697,
+                -5.150442600250244,
+                -7.8672566413879395,
+                7.123893737792969,
+                4.407079696655273,
+                1.6902655363082886,
+                -1.0265486240386963,
+                -3.7433629035949707,
+                -6.460176944732666,
+                8.530973434448242,
+                5.814159393310547,
+                3.0973451137542725,
+                0.38053098320961,
+                -2.3362832069396973,
+                -5.053097248077393,
+                -7.769911289215088,
+                7.22123908996582,
+                4.504424571990967,
+                1.787610650062561,
+                -0.9292035102844238
+              ]
+            },
+            "inputSha256": "3692d95183bc4b93345be111d468e08018b545b3a16c7fd6ef69aa68922146f9",
+            "expected": [
+              -1.6515486240386963,
+              3.1028761863708496,
+              7.857300758361816,
+              12.611725807189941,
+              -13.622787475585938,
+              -8.868363380432129,
+              -4.113938331604004,
+              0.6404867172241211,
+              5.394911289215088,
+              10.149335861206055,
+              14.90376091003418,
+              -11.3307523727417,
+              -6.576327323913574,
+              -1.8219027519226074,
+              2.9325220584869385,
+              7.686946392059326,
+              12.44137191772461,
+              -13.793142318725586,
+              -9.038716316223145,
+              -4.284292221069336,
+              0.4701327383518219,
+              5.224557399749756,
+              9.978982925415039,
+              14.733407020568848,
+              -11.501106262207031,
+              -6.7466816902160645,
+              -1.9922566413879395,
+              2.7621681690216064,
+              7.516592979431152,
+              12.271017074584961,
+              -13.963495254516602,
+              -9.209071159362793,
+              -4.454646110534668,
+              0.2997787594795227,
+              5.054203510284424,
+              9.80862808227539,
+              14.563053131103516,
+              -11.671460151672363,
+              -6.917035102844238,
+              -2.1626105308532715,
+              2.5918142795562744,
+              7.34623908996582,
+              12.100664138793945,
+              -14.133849143981934,
+              -9.379425048828125,
+              -4.625,
+              0.1294247806072235,
+              4.883849620819092,
+              9.638274192810059,
+              14.392699241638184,
+              -11.841814041137695,
+              -7.0873894691467285,
+              -2.3329646587371826,
+              2.4214601516723633,
+              7.175885200500488,
+              11.930309295654297,
+              -14.304203033447266,
+              -9.549778938293457,
+              -4.795353889465332,
+              -0.040929198265075684,
+              4.71349573135376,
+              9.467920303344727,
+              14.222344398498535,
+              -12.012168884277344,
+              -7.257742881774902,
+              -2.5033185482025146,
+              2.2511062622070312
+            ],
+            "expectedSha256": "a58638765fb6def4d64d1f454d2578b93085e7fb400c9288ae95d2a1b0e66c4e",
+            "actual": [],
+            "actualSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "tolerance": {
+              "mode": "numeric",
+              "absTolerance": 0.00001,
+              "relTolerance": 0.0001
+            }
+          },
+          "bufferBounds": {
+            "prefixCanaryIntact": true,
+            "suffixCanaryIntact": true,
+            "readOnlyBuffersUnchanged": false,
+            "outputPaddingUnchanged": true,
+            "validationErrorsAbsent": false
+          },
+          "metamorphic": [
+            {
+              "id": "input_permutation_equivariance",
+              "status": "fail",
+              "evidenceSha256": "2ef089f9af711d7605a9c11baaf6b6c8d19e34edfcba6f4e3cb21b3487b133f2"
+            },
+            {
+              "id": "tiling_equivalence",
+              "status": "fail",
+              "evidenceSha256": "aecd19b2ce68ee63c5f570f53f5b21e68cca2ca4d51d1d8ca33bde62474a301a"
+            }
+          ],
+          "supportingDispatches": {
+            "permutationPass": false,
+            "alternateWorkgroupPass": false
+          }
+        },
+        {
+          "shapeId": "affine-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "workgroupId": "wg-32",
+          "dispatch": {
+            "status": "fail",
+            "backend": "chromium_webgpu",
+            "workgroupSize": 32,
+            "workgroups": [
+              1,
+              1,
+              1
+            ],
+            "runtimeErrors": [
+              "Error while parsing WGSL: :6:29 error: cannot use access enumerant 'read' as address space\n};@group(0) @binding(0) var<read> input_values : array<f32>;\n                            ^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"writer-v1-mechanics-affine-f32-affine-boundary-1-base\"\"]).\n"
+            ]
+          },
+          "compilation": {
+            "passed": false,
+            "messages": [
+              {
+                "type": "error",
+                "message": "cannot use access enumerant 'read' as address space",
+                "lineNum": 6,
+                "linePos": 29,
+                "offset": 120,
+                "length": 4
+              }
+            ],
+            "errorCount": 1
+          },
+          "oracle": {
+            "revision": "wgsl-semantic-cpu-oracles-v1",
+            "inputs": {
+              "inputValues": [
+                1.3008849620819092
+              ]
+            },
+            "inputSha256": "aac504900f48114689f47e104b01d6704e5c6ee48af91ccac54ec9fb345f6f96",
+            "expected": [
+              -1.6515486240386963
+            ],
+            "expectedSha256": "cd05bc1d1911830f7436d33c5b2bbf9ba07f485f560dc7aef997a933a5d72c47",
+            "actual": [],
+            "actualSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "tolerance": {
+              "mode": "numeric",
+              "absTolerance": 0.00001,
+              "relTolerance": 0.0001
+            }
+          },
+          "bufferBounds": {
+            "prefixCanaryIntact": true,
+            "suffixCanaryIntact": true,
+            "readOnlyBuffersUnchanged": false,
+            "outputPaddingUnchanged": true,
+            "validationErrorsAbsent": false
+          },
+          "metamorphic": [
+            {
+              "id": "input_permutation_equivariance",
+              "status": "fail",
+              "evidenceSha256": "2ef089f9af711d7605a9c11baaf6b6c8d19e34edfcba6f4e3cb21b3487b133f2"
+            },
+            {
+              "id": "tiling_equivalence",
+              "status": "fail",
+              "evidenceSha256": "a395583c91fde63c06149c48abcec7b5341f6fdb5215aa7e6fa87870a067dd66"
+            }
+          ],
+          "supportingDispatches": {
+            "permutationPass": false,
+            "alternateWorkgroupPass": false
+          }
+        }
+      ],
+      "historicalRegressionsPass": false,
+      "historicalRegressionResults": [
+        {
+          "id": "logical-elements-not-padded-storage",
+          "status": "fail"
+        },
+        {
+          "id": "readonly-input-byte-identity",
+          "status": "fail"
+        }
+      ],
+      "referenceShaderSha256": "94d1742689d2451d309b64c11f0fb5138ae7bb03912210426d822d770b68574d"
+    },
+    {
+      "taskId": "writer-v1-mechanics-clamp-f32",
+      "kernelFamilyId": "writer-v1-mechanics-clamp",
+      "role": "mechanics_qualification_only",
+      "responseContractPass": false,
+      "responseContractViolations": [
+        "required_override_absent:WORKGROUP_SIZE"
+      ],
+      "completionSha256": "5c6bf46efacb756fd3b09a3c8e3f9d7c2cee2c8205d1e95609817c2ff0c78a3f",
+      "exactReferenceCompletion": false,
+      "candidateSourceSha256": "d7bd9e4745a6b53880fef820a569685ed0d157b0d3581c68cd3e2fe6be678362",
+      "compilation": {
+        "status": "fail"
+      },
+      "variants": [
+        {
+          "shapeId": "clamp-nominal-64",
+          "shapeClass": "nominal",
+          "workgroupId": "wg-32",
+          "dispatch": {
+            "status": "fail",
+            "backend": "chromium_webgpu",
+            "workgroupSize": 32,
+            "workgroups": [
+              2,
+              1,
+              1
+            ],
+            "runtimeErrors": [
+              "Error while parsing WGSL: :10:5 error: cannot use access enumerant 'read' as address space\nvar<read> input_values : array<f32>;\n    ^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"writer-v1-mechanics-clamp-f32-clamp-nominal-64-base\"\"]).\n"
+            ]
+          },
+          "compilation": {
+            "passed": false,
+            "messages": [
+              {
+                "type": "error",
+                "message": "cannot use access enumerant 'read' as address space",
+                "lineNum": 10,
+                "linePos": 5,
+                "offset": 123,
+                "length": 4
+              }
+            ],
+            "errorCount": 1
+          },
+          "oracle": {
+            "revision": "wgsl-semantic-cpu-oracles-v1",
+            "inputs": {
+              "inputValues": [
+                -7.47787618637085,
+                7.513274192810059,
+                4.796460151672363,
+                2.079646110534668,
+                -0.6371681690216064,
+                -3.3539822101593018,
+                -6.070796489715576,
+                -8.78761100769043,
+                6.203539848327637,
+                3.4867255687713623,
+                0.769911527633667,
+                -1.9469026327133179,
+                -4.663716793060303,
+                -7.380530834197998,
+                7.61061954498291,
+                4.893805503845215,
+                2.1769912242889404,
+                -0.5398229956626892,
+                -3.2566370964050293,
+                -5.973451137542725,
+                -8.690265655517578,
+                6.30088472366333,
+                3.5840706825256348,
+                0.8672566413879395,
+                -1.8495575189590454,
+                -4.566371917724609,
+                -7.283185958862305,
+                7.7079644203186035,
+                4.991150379180908,
+                2.274336338043213,
+                -0.44247788190841675,
+                -3.159291982650757,
+                -5.876106262207031,
+                -8.592920303344727,
+                6.398230075836182,
+                3.6814160346984863,
+                0.9646017551422119,
+                -1.752212405204773,
+                -4.469026565551758,
+                -7.185840606689453,
+                7.805309772491455,
+                5.08849573135376,
+                2.3716814517974854,
+                -0.3451327383518219,
+                -3.0619468688964844,
+                -5.77876091003418,
+                -8.495574951171875,
+                6.495575428009033,
+                3.778761148452759,
+                1.0619468688964844,
+                -1.6548672914505005,
+                -4.371681213378906,
+                -7.08849573135376,
+                7.902654647827148,
+                5.185840606689453,
+                2.469026565551758,
+                -0.24778760969638824,
+                -2.964601755142212,
+                -5.681416034698486,
+                -8.39823055267334,
+                6.592920303344727,
+                3.8761062622070312,
+                1.1592919826507568,
+                -1.557522177696228
+              ]
+            },
+            "inputSha256": "c35087bae18941ae810b269e437f98440465a2863aa5ad4157b3fe53d41593cb",
+            "expected": [
+              -2.25,
+              3.5,
+              3.5,
+              2.079646110534668,
+              -0.6371681690216064,
+              -2.25,
+              -2.25,
+              -2.25,
+              3.5,
+              3.4867255687713623,
+              0.769911527633667,
+              -1.9469026327133179,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              2.1769912242889404,
+              -0.5398229956626892,
+              -2.25,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              0.8672566413879395,
+              -1.8495575189590454,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              2.274336338043213,
+              -0.44247788190841675,
+              -2.25,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              0.9646017551422119,
+              -1.752212405204773,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              2.3716814517974854,
+              -0.3451327383518219,
+              -2.25,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              1.0619468688964844,
+              -1.6548672914505005,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              2.469026565551758,
+              -0.24778760969638824,
+              -2.25,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              1.1592919826507568,
+              -1.557522177696228
+            ],
+            "expectedSha256": "d65c2d6987b2f2307384905fc2a12bcbf47fdeb2dd26043dab26e069a15528a3",
+            "actual": [],
+            "actualSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "tolerance": {
+              "mode": "numeric",
+              "absTolerance": 0.00001,
+              "relTolerance": 0.0001
+            }
+          },
+          "bufferBounds": {
+            "prefixCanaryIntact": true,
+            "suffixCanaryIntact": true,
+            "readOnlyBuffersUnchanged": false,
+            "outputPaddingUnchanged": true,
+            "validationErrorsAbsent": false
+          },
+          "metamorphic": [
+            {
+              "id": "input_permutation_equivariance",
+              "status": "fail",
+              "evidenceSha256": "2ef089f9af711d7605a9c11baaf6b6c8d19e34edfcba6f4e3cb21b3487b133f2"
+            },
+            {
+              "id": "tiling_equivalence",
+              "status": "fail",
+              "evidenceSha256": "a395583c91fde63c06149c48abcec7b5341f6fdb5215aa7e6fa87870a067dd66"
+            }
+          ],
+          "supportingDispatches": {
+            "permutationPass": false,
+            "alternateWorkgroupPass": false
+          }
+        },
+        {
+          "shapeId": "clamp-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "workgroupId": "wg-64",
+          "dispatch": {
+            "status": "fail",
+            "backend": "chromium_webgpu",
+            "workgroupSize": 64,
+            "workgroups": [
+              2,
+              1,
+              1
+            ],
+            "runtimeErrors": [
+              "Error while parsing WGSL: :10:5 error: cannot use access enumerant 'read' as address space\nvar<read> input_values : array<f32>;\n    ^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"writer-v1-mechanics-clamp-f32-clamp-tail-67-base\"\"]).\n"
+            ]
+          },
+          "compilation": {
+            "passed": false,
+            "messages": [
+              {
+                "type": "error",
+                "message": "cannot use access enumerant 'read' as address space",
+                "lineNum": 10,
+                "linePos": 5,
+                "offset": 123,
+                "length": 4
+              }
+            ],
+            "errorCount": 1
+          },
+          "oracle": {
+            "revision": "wgsl-semantic-cpu-oracles-v1",
+            "inputs": {
+              "inputValues": [
+                -7.47787618637085,
+                7.513274192810059,
+                4.796460151672363,
+                2.079646110534668,
+                -0.6371681690216064,
+                -3.3539822101593018,
+                -6.070796489715576,
+                -8.78761100769043,
+                6.203539848327637,
+                3.4867255687713623,
+                0.769911527633667,
+                -1.9469026327133179,
+                -4.663716793060303,
+                -7.380530834197998,
+                7.61061954498291,
+                4.893805503845215,
+                2.1769912242889404,
+                -0.5398229956626892,
+                -3.2566370964050293,
+                -5.973451137542725,
+                -8.690265655517578,
+                6.30088472366333,
+                3.5840706825256348,
+                0.8672566413879395,
+                -1.8495575189590454,
+                -4.566371917724609,
+                -7.283185958862305,
+                7.7079644203186035,
+                4.991150379180908,
+                2.274336338043213,
+                -0.44247788190841675,
+                -3.159291982650757,
+                -5.876106262207031,
+                -8.592920303344727,
+                6.398230075836182,
+                3.6814160346984863,
+                0.9646017551422119,
+                -1.752212405204773,
+                -4.469026565551758,
+                -7.185840606689453,
+                7.805309772491455,
+                5.08849573135376,
+                2.3716814517974854,
+                -0.3451327383518219,
+                -3.0619468688964844,
+                -5.77876091003418,
+                -8.495574951171875,
+                6.495575428009033,
+                3.778761148452759,
+                1.0619468688964844,
+                -1.6548672914505005,
+                -4.371681213378906,
+                -7.08849573135376,
+                7.902654647827148,
+                5.185840606689453,
+                2.469026565551758,
+                -0.24778760969638824,
+                -2.964601755142212,
+                -5.681416034698486,
+                -8.39823055267334,
+                6.592920303344727,
+                3.8761062622070312,
+                1.1592919826507568,
+                -1.557522177696228,
+                -4.274336338043213,
+                -6.991150379180908,
+                8
+              ]
+            },
+            "inputSha256": "a2e1ebaa2f8e5da8722c04d0beda4b6bd9b7626f6e3fad4b7b7814c55fbd39f9",
+            "expected": [
+              -2.25,
+              3.5,
+              3.5,
+              2.079646110534668,
+              -0.6371681690216064,
+              -2.25,
+              -2.25,
+              -2.25,
+              3.5,
+              3.4867255687713623,
+              0.769911527633667,
+              -1.9469026327133179,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              2.1769912242889404,
+              -0.5398229956626892,
+              -2.25,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              0.8672566413879395,
+              -1.8495575189590454,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              2.274336338043213,
+              -0.44247788190841675,
+              -2.25,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              0.9646017551422119,
+              -1.752212405204773,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              2.3716814517974854,
+              -0.3451327383518219,
+              -2.25,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              1.0619468688964844,
+              -1.6548672914505005,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              2.469026565551758,
+              -0.24778760969638824,
+              -2.25,
+              -2.25,
+              -2.25,
+              3.5,
+              3.5,
+              1.1592919826507568,
+              -1.557522177696228,
+              -2.25,
+              -2.25,
+              3.5
+            ],
+            "expectedSha256": "f6f26a194d1c1e917639ae6f97d2e9b4e10dd508e8870b63e86d7003cdd597c1",
+            "actual": [],
+            "actualSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "tolerance": {
+              "mode": "numeric",
+              "absTolerance": 0.00001,
+              "relTolerance": 0.0001
+            }
+          },
+          "bufferBounds": {
+            "prefixCanaryIntact": true,
+            "suffixCanaryIntact": true,
+            "readOnlyBuffersUnchanged": false,
+            "outputPaddingUnchanged": true,
+            "validationErrorsAbsent": false
+          },
+          "metamorphic": [
+            {
+              "id": "input_permutation_equivariance",
+              "status": "fail",
+              "evidenceSha256": "2ef089f9af711d7605a9c11baaf6b6c8d19e34edfcba6f4e3cb21b3487b133f2"
+            },
+            {
+              "id": "tiling_equivalence",
+              "status": "fail",
+              "evidenceSha256": "aecd19b2ce68ee63c5f570f53f5b21e68cca2ca4d51d1d8ca33bde62474a301a"
+            }
+          ],
+          "supportingDispatches": {
+            "permutationPass": false,
+            "alternateWorkgroupPass": false
+          }
+        },
+        {
+          "shapeId": "clamp-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "workgroupId": "wg-32",
+          "dispatch": {
+            "status": "fail",
+            "backend": "chromium_webgpu",
+            "workgroupSize": 32,
+            "workgroups": [
+              1,
+              1,
+              1
+            ],
+            "runtimeErrors": [
+              "Error while parsing WGSL: :10:5 error: cannot use access enumerant 'read' as address space\nvar<read> input_values : array<f32>;\n    ^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"writer-v1-mechanics-clamp-f32-clamp-boundary-1-base\"\"]).\n"
+            ]
+          },
+          "compilation": {
+            "passed": false,
+            "messages": [
+              {
+                "type": "error",
+                "message": "cannot use access enumerant 'read' as address space",
+                "lineNum": 10,
+                "linePos": 5,
+                "offset": 123,
+                "length": 4
+              }
+            ],
+            "errorCount": 1
+          },
+          "oracle": {
+            "revision": "wgsl-semantic-cpu-oracles-v1",
+            "inputs": {
+              "inputValues": [
+                -7.47787618637085
+              ]
+            },
+            "inputSha256": "843db7f7c3a92e209ef83c3a626fc318548c0e03d7243a8bbc989e03c1d67c89",
+            "expected": [
+              -2.25
+            ],
+            "expectedSha256": "5ea6b38bdf9bf9a3fc14c736a903fcdf30bd86e1a8fcfeab2efea3844f100a25",
+            "actual": [],
+            "actualSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "tolerance": {
+              "mode": "numeric",
+              "absTolerance": 0.00001,
+              "relTolerance": 0.0001
+            }
+          },
+          "bufferBounds": {
+            "prefixCanaryIntact": true,
+            "suffixCanaryIntact": true,
+            "readOnlyBuffersUnchanged": false,
+            "outputPaddingUnchanged": true,
+            "validationErrorsAbsent": false
+          },
+          "metamorphic": [
+            {
+              "id": "input_permutation_equivariance",
+              "status": "fail",
+              "evidenceSha256": "2ef089f9af711d7605a9c11baaf6b6c8d19e34edfcba6f4e3cb21b3487b133f2"
+            },
+            {
+              "id": "tiling_equivalence",
+              "status": "fail",
+              "evidenceSha256": "a395583c91fde63c06149c48abcec7b5341f6fdb5215aa7e6fa87870a067dd66"
+            }
+          ],
+          "supportingDispatches": {
+            "permutationPass": false,
+            "alternateWorkgroupPass": false
+          }
+        }
+      ],
+      "historicalRegressionsPass": false,
+      "historicalRegressionResults": [
+        {
+          "id": "logical-elements-not-padded-storage",
+          "status": "fail"
+        },
+        {
+          "id": "readonly-input-byte-identity",
+          "status": "fail"
+        }
+      ],
+      "referenceShaderSha256": "c5f0194058e78eec8e74b638129086491da2b530740dee7108d3d0da3fecf808"
+    }
+  ],
+  "evaluatedTasks": [
+    {
+      "taskId": "writer-v1-mechanics-vector-add-f32",
+      "pass": false,
+      "variants": [
+        {
+          "shapeId": "vector-add-nominal-64",
+          "shapeClass": "nominal",
+          "workgroupId": "wg-32",
+          "dispatchPass": false,
+          "numeric": {
+            "pass": false,
+            "expectedElements": 64,
+            "actualElements": 0,
+            "mismatchCount": 64,
+            "maxAbsError": null,
+            "maxRelError": null,
+            "mismatches": [
+              {
+                "index": -1,
+                "reason": "length_mismatch"
+              }
+            ]
+          },
+          "hashBindingPass": true,
+          "boundsPass": false
+        },
+        {
+          "shapeId": "vector-add-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "workgroupId": "wg-64",
+          "dispatchPass": false,
+          "numeric": {
+            "pass": false,
+            "expectedElements": 67,
+            "actualElements": 0,
+            "mismatchCount": 67,
+            "maxAbsError": null,
+            "maxRelError": null,
+            "mismatches": [
+              {
+                "index": -1,
+                "reason": "length_mismatch"
+              }
+            ]
+          },
+          "hashBindingPass": true,
+          "boundsPass": false
+        },
+        {
+          "shapeId": "vector-add-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "workgroupId": "wg-32",
+          "dispatchPass": false,
+          "numeric": {
+            "pass": false,
+            "expectedElements": 1,
+            "actualElements": 0,
+            "mismatchCount": 1,
+            "maxAbsError": null,
+            "maxRelError": null,
+            "mismatches": [
+              {
+                "index": -1,
+                "reason": "length_mismatch"
+              }
+            ]
+          },
+          "hashBindingPass": true,
+          "boundsPass": false
+        }
+      ],
+      "distinctShapeCount": 3,
+      "distinctWorkgroupCount": 2,
+      "passedMetamorphicRelations": [],
+      "blockers": [
+        "compilation_failure",
+        "cpu_oracle_mismatch",
+        "dispatch_failure",
+        "historical_regression",
+        "metamorphic_failure",
+        "read_only_buffer_mutation",
+        "response_contract_violation"
+      ],
+      "resultHash": "8c8f02cd0a139f43ecfc5c7137b3e8506bcf031d1deb8f00dfaebe3434f874ba"
+    },
+    {
+      "taskId": "writer-v1-mechanics-affine-f32",
+      "pass": false,
+      "variants": [
+        {
+          "shapeId": "affine-nominal-64",
+          "shapeClass": "nominal",
+          "workgroupId": "wg-32",
+          "dispatchPass": false,
+          "numeric": {
+            "pass": false,
+            "expectedElements": 64,
+            "actualElements": 0,
+            "mismatchCount": 64,
+            "maxAbsError": null,
+            "maxRelError": null,
+            "mismatches": [
+              {
+                "index": -1,
+                "reason": "length_mismatch"
+              }
+            ]
+          },
+          "hashBindingPass": true,
+          "boundsPass": false
+        },
+        {
+          "shapeId": "affine-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "workgroupId": "wg-64",
+          "dispatchPass": false,
+          "numeric": {
+            "pass": false,
+            "expectedElements": 67,
+            "actualElements": 0,
+            "mismatchCount": 67,
+            "maxAbsError": null,
+            "maxRelError": null,
+            "mismatches": [
+              {
+                "index": -1,
+                "reason": "length_mismatch"
+              }
+            ]
+          },
+          "hashBindingPass": true,
+          "boundsPass": false
+        },
+        {
+          "shapeId": "affine-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "workgroupId": "wg-32",
+          "dispatchPass": false,
+          "numeric": {
+            "pass": false,
+            "expectedElements": 1,
+            "actualElements": 0,
+            "mismatchCount": 1,
+            "maxAbsError": null,
+            "maxRelError": null,
+            "mismatches": [
+              {
+                "index": -1,
+                "reason": "length_mismatch"
+              }
+            ]
+          },
+          "hashBindingPass": true,
+          "boundsPass": false
+        }
+      ],
+      "distinctShapeCount": 3,
+      "distinctWorkgroupCount": 2,
+      "passedMetamorphicRelations": [],
+      "blockers": [
+        "compilation_failure",
+        "cpu_oracle_mismatch",
+        "dispatch_failure",
+        "historical_regression",
+        "metamorphic_failure",
+        "read_only_buffer_mutation",
+        "response_contract_violation"
+      ],
+      "resultHash": "fbea8d15443d2e8cc1fb926abb87c73dc1083701acc771d1fc9b68262c79c044"
+    },
+    {
+      "taskId": "writer-v1-mechanics-clamp-f32",
+      "pass": false,
+      "variants": [
+        {
+          "shapeId": "clamp-nominal-64",
+          "shapeClass": "nominal",
+          "workgroupId": "wg-32",
+          "dispatchPass": false,
+          "numeric": {
+            "pass": false,
+            "expectedElements": 64,
+            "actualElements": 0,
+            "mismatchCount": 64,
+            "maxAbsError": null,
+            "maxRelError": null,
+            "mismatches": [
+              {
+                "index": -1,
+                "reason": "length_mismatch"
+              }
+            ]
+          },
+          "hashBindingPass": true,
+          "boundsPass": false
+        },
+        {
+          "shapeId": "clamp-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "workgroupId": "wg-64",
+          "dispatchPass": false,
+          "numeric": {
+            "pass": false,
+            "expectedElements": 67,
+            "actualElements": 0,
+            "mismatchCount": 67,
+            "maxAbsError": null,
+            "maxRelError": null,
+            "mismatches": [
+              {
+                "index": -1,
+                "reason": "length_mismatch"
+              }
+            ]
+          },
+          "hashBindingPass": true,
+          "boundsPass": false
+        },
+        {
+          "shapeId": "clamp-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "workgroupId": "wg-32",
+          "dispatchPass": false,
+          "numeric": {
+            "pass": false,
+            "expectedElements": 1,
+            "actualElements": 0,
+            "mismatchCount": 1,
+            "maxAbsError": null,
+            "maxRelError": null,
+            "mismatches": [
+              {
+                "index": -1,
+                "reason": "length_mismatch"
+              }
+            ]
+          },
+          "hashBindingPass": true,
+          "boundsPass": false
+        }
+      ],
+      "distinctShapeCount": 3,
+      "distinctWorkgroupCount": 2,
+      "passedMetamorphicRelations": [],
+      "blockers": [
+        "compilation_failure",
+        "cpu_oracle_mismatch",
+        "dispatch_failure",
+        "historical_regression",
+        "metamorphic_failure",
+        "read_only_buffer_mutation",
+        "response_contract_violation"
+      ],
+      "resultHash": "f085770102a79268764e87d55cfe291060a542045ab1b4312c7662dd6d8fc262"
+    }
+  ],
+  "summary": {
+    "taskCount": 3,
+    "responseContractPasses": 0,
+    "compilationPasses": 0,
+    "dispatchVariantCount": 9,
+    "dispatchVariantPasses": 0,
+    "historicalRegressionPasses": 0,
+    "semanticTaskPasses": 0
+  },
+  "decision": "candidate_tasks_failed",
+  "mechanicsQualificationAuthority": false,
+  "selectionAuthority": false,
+  "confirmationAuthority": false,
+  "promotionAuthority": false,
+  "completeShaderWritingEstablished": false,
+  "productizationAllowed": false,
+  "claimBoundary": "A candidate result on the visible mechanics tasks is diagnostic only. It cannot select, confirm, promote, or productize a WGSL writer.",
+  "receiptHash": "04617e227c80d6b6fe45ea90ccf7454b85aabd864488106d0dcfc4f7b7f0c8db"
+}
