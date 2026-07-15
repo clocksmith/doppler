@@ -22,6 +22,14 @@ const adapterPortabilityReceipt = JSON.parse(readFileSync(
   evidenceState.adapterPortability.path,
   'utf8'
 ));
+const selectionReceipt = JSON.parse(readFileSync(
+  evidenceState.candidate.selectionReceiptPath,
+  'utf8'
+));
+const seedConfirmationReceipt = JSON.parse(readFileSync(
+  evidenceState.seedConfirmation.receiptPath,
+  'utf8'
+));
 
 const withinTolerance = evaluateNumericAgreement(
   [1, 2, 3],
@@ -164,5 +172,65 @@ const tamperedV2 = evaluateWgslSemanticReadinessV2({
 });
 assert.equal(tamperedV2.adapterPortability.pass, false);
 assert.ok(tamperedV2.blockers.includes('trainer_to_doppler_parity_failure'));
+
+const postConfirmationV2 = evaluateWgslSemanticReadinessV2({
+  policy,
+  evidenceState,
+  policyVerified: true,
+  predecessorVerified: true,
+  preservationReceipt,
+  adapterPortabilityReceipt,
+  adapterPortabilityReceiptVerified: true,
+  populationVerification: {
+    calibration: true,
+    checkpointSelection: true,
+    seedConfirmation: true,
+    promotion: false,
+  },
+  selectionReceipt,
+  selectionReceiptVerified: true,
+  seedConfirmationReceipt,
+  seedConfirmationReceiptVerified: true,
+  implementationVerification: {
+    taskManifest: true,
+    historicalRegressionManifest: true,
+  },
+  taskEvidence: [passingEvidence],
+});
+assert.equal(postConfirmationV2.seedConfirmation.pass, true);
+assert.equal(postConfirmationV2.phaseAdmission.seedConfirmationAllowed, true);
+assert.equal(postConfirmationV2.phaseAdmission.promotionEvaluationAllowed, false);
+assert.deepEqual(postConfirmationV2.blockers, ['semantic_promotion_population_unmaterialized']);
+
+const tamperedSeedConfirmation = structuredClone(seedConfirmationReceipt);
+tamperedSeedConfirmation.candidate.seed = 47;
+const tamperedConfirmationV2 = evaluateWgslSemanticReadinessV2({
+  policy,
+  evidenceState,
+  policyVerified: true,
+  predecessorVerified: true,
+  preservationReceipt,
+  adapterPortabilityReceipt,
+  adapterPortabilityReceiptVerified: true,
+  populationVerification: {
+    calibration: true,
+    checkpointSelection: true,
+    seedConfirmation: true,
+    promotion: false,
+  },
+  selectionReceipt,
+  selectionReceiptVerified: true,
+  seedConfirmationReceipt: tamperedSeedConfirmation,
+  seedConfirmationReceiptVerified: true,
+  implementationVerification: {
+    taskManifest: true,
+    historicalRegressionManifest: true,
+  },
+  taskEvidence: [passingEvidence],
+});
+assert.equal(tamperedConfirmationV2.seedConfirmation.pass, false);
+assert.ok(tamperedConfirmationV2.blockers.includes(
+  'semantic_seed_confirmation_evidence_invalid'
+));
 
 console.log('wgsl-repair-semantic-gate.test: ok');

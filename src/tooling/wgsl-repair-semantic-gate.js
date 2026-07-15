@@ -370,6 +370,33 @@ function evaluateAdapterPortability(receipt, receiptVerified) {
   };
 }
 
+function evaluateSeedConfirmation(state, receipt, receiptVerified, candidate, population) {
+  if (!state) return null;
+  const expectedDecision = state.status === 'passed'
+    ? 'seed_confirmation_passed'
+    : 'seed_confirmation_rejected';
+  const pass = state.status === 'passed'
+    && receiptVerified === true
+    && receipt?.schema === 'doppler.wgsl-repair-v13-seed-confirmation-result/v1'
+    && receipt?.experimentId === 'doppler-wgsl-repair-v13'
+    && receipt?.decision === expectedDecision
+    && receipt?.seedConfirmationSatisfied === true
+    && receipt?.candidate?.seed === candidate?.selectedSeed
+    && receipt?.candidate?.adapterWeightsSha256 === candidate?.adapterSha256
+    && receipt?.population?.sha256 === state.populationHash
+    && population?.populationHash === state.populationHash
+    && receipt?.promotionAuthority === false
+    && receipt?.wgslDoctorAllowed === false
+    && receipt?.completeShaderWritingEstablished === false;
+  return {
+    receiptVerified: receiptVerified === true,
+    status: state.status,
+    decision: receipt?.decision ?? null,
+    selectedSeed: receipt?.candidate?.seed ?? null,
+    pass,
+  };
+}
+
 function implementationReady(implementation, verification) {
   const taskManifestReady = typeof implementation?.taskManifestPath === 'string'
     && implementation.taskManifestPath.length > 0
@@ -450,6 +477,19 @@ export function evaluateWgslSemanticReadinessV2(options = {}) {
     blockers.add('trainer_to_doppler_parity_failure');
   }
 
+  const seedConfirmation = evaluateSeedConfirmation(
+    state.seedConfirmation,
+    options.seedConfirmationReceipt,
+    options.seedConfirmationReceiptVerified,
+    state.candidate,
+    state.populations.seedConfirmation
+  );
+  if (state.seedConfirmation && !seedConfirmation.pass) {
+    blockers.add(state.seedConfirmation.status === 'failed'
+      ? 'semantic_seed_confirmation_failed'
+      : 'semantic_seed_confirmation_evidence_invalid');
+  }
+
   const implementation = implementationReady(
     state.implementation,
     options.implementationVerification
@@ -483,6 +523,7 @@ export function evaluateWgslSemanticReadinessV2(options = {}) {
       && populationReadiness.seedConfirmation,
     promotionEvaluationAllowed: baseImplementationAllowed
       && selectedCandidateReady
+      && (state.seedConfirmation == null || seedConfirmation?.pass === true)
       && Object.values(populationReadiness).every(Boolean),
   };
   const semanticEvaluationAllowed = Object.values(phaseAdmission).some(Boolean);
@@ -503,6 +544,7 @@ export function evaluateWgslSemanticReadinessV2(options = {}) {
     adapterPortability,
     candidate: state.candidate,
     ...(state.candidate.seedSelectionStatus === 'selected' ? { candidateSelection } : {}),
+    ...(seedConfirmation ? { seedConfirmation } : {}),
     populations: state.populations,
     implementation: state.implementation,
     taskEvidence,

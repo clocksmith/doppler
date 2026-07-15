@@ -122,6 +122,8 @@ reports/**
 !reports/training/wgsl-repair/doppler-wgsl-repair-v13/
 !reports/training/wgsl-repair/doppler-wgsl-repair-v13/checkpoint-selection/
 !reports/training/wgsl-repair/doppler-wgsl-repair-v13/checkpoint-selection/*.json
+!reports/training/wgsl-repair/doppler-wgsl-repair-v13/seed-confirmation/
+!reports/training/wgsl-repair/doppler-wgsl-repair-v13/seed-confirmation/*.json
 !reports/f16-precision-collapse/
 reports/f16-precision-collapse/**
 !reports/f16-precision-collapse/stable/

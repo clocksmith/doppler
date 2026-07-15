@@ -105,6 +105,14 @@ export async function runWgslSemanticReadinessGate(args) {
   const selectionReceipt = evidenceState.candidate?.seedSelectionStatus === 'selected'
     ? await readJson(evidenceState.candidate.selectionReceiptPath)
     : null;
+  const seedConfirmationReceiptVerified = evidenceState.seedConfirmation != null
+    && await verifyOptionalBinding(
+      evidenceState.seedConfirmation.receiptPath,
+      evidenceState.seedConfirmation.receiptSha256
+    );
+  const seedConfirmationReceipt = evidenceState.seedConfirmation != null
+    ? await readJson(evidenceState.seedConfirmation.receiptPath)
+    : null;
   const implementationVerification = {
     taskManifest: await verifyOptionalBinding(
       evidenceState.implementation.taskManifestPath,
@@ -126,6 +134,8 @@ export async function runWgslSemanticReadinessGate(args) {
     populationVerification,
     selectionReceipt,
     selectionReceiptVerified,
+    seedConfirmationReceipt,
+    seedConfirmationReceiptVerified,
     implementationVerification,
     taskEvidence,
   });

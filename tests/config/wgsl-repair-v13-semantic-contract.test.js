@@ -127,8 +127,8 @@ assert.ok(postSelection.blockers.includes('semantic_promotion_population_unmater
 assert.equal(postSelection.admission.semanticClaimAllowed, false);
 assert.equal(postSelection.admission.wgslDoctorAllowed, false);
 
-const latestState = JSON.parse(readFileSync(
-  'tools/data/wgsl-repair-v13-semantic-evidence-state.json',
+const preConfirmationState = JSON.parse(readFileSync(
+  'tools/data/wgsl-repair-v13-semantic-evidence-state-preconfirmation-2026-07-14.json',
   'utf8'
 ));
 const preConfirmation = JSON.parse(readFileSync(
@@ -137,7 +137,7 @@ const preConfirmation = JSON.parse(readFileSync(
 ));
 const replayedPreConfirmation = evaluateWgslSemanticReadinessV2({
   policy,
-  evidenceState: latestState,
+  evidenceState: preConfirmationState,
   policyVerified: true,
   predecessorVerified: true,
   preservationReceipt: preservation,
@@ -163,5 +163,54 @@ assert.equal(preConfirmation.phaseAdmission.promotionEvaluationAllowed, false);
 assert.deepEqual(preConfirmation.blockers, ['semantic_promotion_population_unmaterialized']);
 assert.equal(preConfirmation.admission.semanticClaimAllowed, false);
 assert.equal(preConfirmation.admission.wgslDoctorAllowed, false);
+
+const latestState = JSON.parse(readFileSync(
+  'tools/data/wgsl-repair-v13-semantic-evidence-state.json',
+  'utf8'
+));
+const seedConfirmationReceipt = JSON.parse(readFileSync(
+  latestState.seedConfirmation.receiptPath,
+  'utf8'
+));
+const seedConfirmationSemantic = JSON.parse(readFileSync(
+  seedConfirmationReceipt.semanticReceipt.path,
+  'utf8'
+));
+const postConfirmation = JSON.parse(readFileSync(
+  'docs/status/wgsl-repair-v13-semantic-readiness-post-confirmation-2026-07-14.json',
+  'utf8'
+));
+const replayedPostConfirmation = evaluateWgslSemanticReadinessV2({
+  policy,
+  evidenceState: latestState,
+  policyVerified: true,
+  predecessorVerified: true,
+  preservationReceipt: preservation,
+  adapterPortabilityReceipt: adapterPortability,
+  adapterPortabilityReceiptVerified: true,
+  populationVerification: {
+    calibration: true,
+    checkpointSelection: true,
+    seedConfirmation: true,
+    promotion: false,
+  },
+  selectionReceipt,
+  selectionReceiptVerified: true,
+  seedConfirmationReceipt,
+  seedConfirmationReceiptVerified: true,
+  implementationVerification: {
+    taskManifest: true,
+    historicalRegressionManifest: true,
+  },
+  taskEvidence: seedConfirmationSemantic.tasks,
+});
+assert.deepEqual(replayedPostConfirmation, postConfirmation);
+assert.equal(postConfirmation.seedConfirmation.pass, true);
+assert.equal(postConfirmation.seedConfirmation.selectedSeed, 29);
+assert.equal(postConfirmation.taskEvidence.length, 8);
+assert.ok(postConfirmation.taskEvidence.every((task) => task.pass === true));
+assert.deepEqual(postConfirmation.blockers, ['semantic_promotion_population_unmaterialized']);
+assert.equal(postConfirmation.admission.semanticClaimAllowed, false);
+assert.equal(postConfirmation.admission.wgslDoctorAllowed, false);
 
 console.log('wgsl-repair-v13-semantic-contract.test: ok');

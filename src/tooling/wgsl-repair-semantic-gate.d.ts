@@ -48,6 +48,8 @@ export interface WgslSemanticReadinessV2Options {
   populationVerification?: Record<string, boolean>;
   selectionReceipt?: Record<string, unknown> | null;
   selectionReceiptVerified?: boolean;
+  seedConfirmationReceipt?: Record<string, unknown> | null;
+  seedConfirmationReceiptVerified?: boolean;
   implementationVerification?: Record<string, boolean>;
   taskEvidence?: WgslSemanticTaskEvidence[];
 }
