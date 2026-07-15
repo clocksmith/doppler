@@ -1,7 +1,8 @@
 # WGSL Repair V13 Seed-Confirmation Readiness
 
-The authoritative V13 seed-confirmation population is materialized and ready
-for reference qualification. Seed 29 has not received any confirmation prompt.
+The authoritative V13 seed-confirmation population is materialized and has
+passed reference qualification. Seed 29 has not received any confirmation
+prompt.
 
 The population derives from freeze commit
 `327589ac633f15dc9ace2d13a48ab1512edef2c8` under the stratified V2
@@ -28,6 +29,13 @@ It sets `seedConfirmationAllowed: true`. Promotion evaluation, semantic
 promotion claims, WGSL Doctor, and complete shader writing remain false.
 
 The unstratified V1 population remains invalid with no reference or candidate
-execution. The next admissible actions are to push this exact population and
-policy, qualify all reference shaders, commit that qualification receipt, and
-only then run seed 29 once.
+execution.
+
+The frozen reference shaders passed 8/8 compilation checks, 24/24 primary
+dispatch variants, every CPU oracle, bounds check, metamorphic relation, and
+historical regression on AMD RDNA3 Chromium WebGPU. The reference receipt is
+`wgsl-repair-v13-seed-confirmation-reference-2026-07-14.json`, with file
+SHA-256
+`26b826be2d194c521d95680d675a6c4bbaf62e13a5d2cd320248a38a89885b32`.
+After this receipt is pushed, the next admissible action is the policy's one
+deterministic seed-29 submission.

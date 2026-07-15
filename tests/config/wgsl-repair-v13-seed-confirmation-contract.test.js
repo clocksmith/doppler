@@ -14,6 +14,9 @@ const policyPath = 'tools/policies/wgsl-repair-v13-seed-confirmation-policy.json
 const policy = readJson(policyPath);
 const manifest = readJson(policy.populations.seedConfirmation.path);
 const selection = readJson(policy.selectionReceipt.path);
+const reference = readJson(
+  'docs/status/wgsl-repair-v13-seed-confirmation-reference-2026-07-14.json'
+);
 const catalog = readJson('tools/data/wgsl-repair-v13-confirmation-blueprints.json');
 const blueprintById = new Map(catalog.blueprints.map((entry) => [entry.id, entry]));
 
@@ -97,5 +100,15 @@ assert.equal(unary, 4);
 assert.equal(binary, 4);
 assert.equal(parameterized, 4);
 assert.equal(manifest.tasks.length - parameterized, 4);
+
+assert.equal(reference.decision, 'reference_mechanics_passed');
+assert.equal(reference.mode, 'reference');
+assert.equal(reference.evaluationRole, 'seed_confirmation');
+assert.equal(reference.taskManifest.sha256, policy.populations.seedConfirmation.sha256);
+assert.equal(reference.summary.taskCount, manifest.tasks.length);
+assert.equal(reference.summary.compilationPasses, manifest.tasks.length);
+assert.equal(reference.summary.dispatchVariantPasses, manifest.tasks.length * 3);
+assert.equal(reference.summary.historicalRegressionPasses, manifest.tasks.length);
+assert.ok(reference.evaluatedTasks.every((task) => task.pass === true));
 
 console.log('wgsl-repair-v13-seed-confirmation-contract.test: ok');
