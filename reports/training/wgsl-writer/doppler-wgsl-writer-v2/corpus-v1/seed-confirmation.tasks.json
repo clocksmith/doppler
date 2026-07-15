@@ -1,0 +1,1702 @@
+{
+  "schema": "doppler.wgsl-writer-task-manifest/v1",
+  "schemaVersion": 1,
+  "experimentId": "doppler-wgsl-writer-v2",
+  "role": "seed_confirmation",
+  "populationAuthority": "seed_confirmation",
+  "responseContract": "complete_wgsl_compute_shader_only_v1",
+  "cpuOracleRevision": "wgsl-semantic-cpu-oracles-v1",
+  "inputGeneratorRevision": "wgsl-semantic-inputs-v1",
+  "tasks": [
+    {
+      "taskId": "writer-v2-seed-confirmation-square-scale-001",
+      "kernelFamilyId": "writer-v2-square-scale",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must square the input and multiply the result by the f32 scale stored in the first scalar uniform field, store the result in output_values[params.output_offset + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "input_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "output_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "params",
+            "kind": "uniform",
+            "wgslType": "Params"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(params.length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= params.length.",
+        "outputRule": "Write only output_values[params.output_offset + index]."
+      },
+      "referenceShaderSha256": "e335e87e636b7a102f3788f7f23e6edd6654ea55e382ab8b08c6f1dcd7a8747d",
+      "oracleId": "square_scale_f32",
+      "inputSeed": 223362705,
+      "parameters": {
+        "scale": 0.375
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-001-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-001-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-001-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "square_scale_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "square_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-001.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-square-scale-002",
+      "kernelFamilyId": "writer-v2-square-scale",
+      "specification": "At each in-range global x index, square the input and multiply the result by the f32 scale stored in the first scalar uniform field and store the result in destination_values[config.destination_offset + index]. An invocation whose x index is at least config.element_count must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "source_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "destination_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "config",
+            "kind": "uniform",
+            "wgslType": "Config"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "element_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(config.element_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= config.element_count.",
+        "outputRule": "Write only destination_values[config.destination_offset + index]."
+      },
+      "referenceShaderSha256": "645f8b5b256ce5040797f1caacbe3ab1920ef1b418c2e8d1f8041d4e6d28a8c1",
+      "oracleId": "square_scale_f32",
+      "inputSeed": 91288933,
+      "parameters": {
+        "scale": 0.375
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-002-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-002-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-002-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "square_scale_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "square_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-002.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-square-scale-003",
+      "kernelFamilyId": "writer-v2-square-scale",
+      "specification": "Implement an elementwise f32 compute kernel: square the input and multiply the result by the f32 scale stored in the first scalar uniform field. Process exactly uniforms.logical_size elements, store the result in result_data[uniforms.write_offset + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "input_data",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "result_data",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "uniforms",
+            "kind": "uniform",
+            "wgslType": "Uniforms"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_size",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "write_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(uniforms.logical_size / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= uniforms.logical_size.",
+        "outputRule": "Write only result_data[uniforms.write_offset + index]."
+      },
+      "referenceShaderSha256": "1693b7f72645b17934814c822dc0626aa92cde1571938492ee74d367e316d5ee",
+      "oracleId": "square_scale_f32",
+      "inputSeed": 234599580,
+      "parameters": {
+        "scale": 0.375
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-003-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-003-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-003-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "square_scale_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "square_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-003.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-square-scale-004",
+      "kernelFamilyId": "writer-v2-square-scale",
+      "specification": "For every logical index, square the input and multiply the result by the f32 scale stored in the first scalar uniform field, then store the result in results[settings.result_offset + index]. An invocation whose x index is at least settings.item_count must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "results",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "settings",
+            "kind": "uniform",
+            "wgslType": "Settings"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "item_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "result_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(settings.item_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= settings.item_count.",
+        "outputRule": "Write only results[settings.result_offset + index]."
+      },
+      "referenceShaderSha256": "5eb4485c7e1d26abfedd56559aacf4c6770cdb8961957e4c55ecd5e3478021b8",
+      "oracleId": "square_scale_f32",
+      "inputSeed": 133302826,
+      "parameters": {
+        "scale": 0.375
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-004-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-004-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-004-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "square_scale_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "square_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-004.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-square-scale-005",
+      "kernelFamilyId": "writer-v2-square-scale",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must square the input and multiply the result by the f32 scale stored in the first scalar uniform field, store the result in outputs[parameters.output_start + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "samples",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "outputs",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "parameters",
+            "kind": "uniform",
+            "wgslType": "Parameters"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "value_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(parameters.value_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= parameters.value_count.",
+        "outputRule": "Write only outputs[parameters.output_start + index]."
+      },
+      "referenceShaderSha256": "c99c06a27a4f09924eecff47ba04843c62b3c4837306d826729b6617c7374a46",
+      "oracleId": "square_scale_f32",
+      "inputSeed": 208138614,
+      "parameters": {
+        "scale": 0.375
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-005-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-005-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-005-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "square_scale_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "square_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-005.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-square-scale-006",
+      "kernelFamilyId": "writer-v2-square-scale",
+      "specification": "At each in-range global x index, square the input and multiply the result by the f32 scale stored in the first scalar uniform field and store the result in destination[kernel_params.destination_start + index]. An invocation whose x index is at least kernel_params.num_elements must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "source",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "destination",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "kernel_params",
+            "kind": "uniform",
+            "wgslType": "KernelParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "num_elements",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(kernel_params.num_elements / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= kernel_params.num_elements.",
+        "outputRule": "Write only destination[kernel_params.destination_start + index]."
+      },
+      "referenceShaderSha256": "7d50da67fa5d5bfb9fb5c3783fb7f02a98717cbbc7282885b43bff7eceb3a4ff",
+      "oracleId": "square_scale_f32",
+      "inputSeed": 80678435,
+      "parameters": {
+        "scale": 0.375
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-006-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-006-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-006-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "square_scale_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "square_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-006.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-square-scale-007",
+      "kernelFamilyId": "writer-v2-square-scale",
+      "specification": "Implement an elementwise f32 compute kernel: square the input and multiply the result by the f32 scale stored in the first scalar uniform field. Process exactly dispatch_params.active_length elements, store the result in output_buffer[dispatch_params.output_base + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "input_buffer",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "output_buffer",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "dispatch_params",
+            "kind": "uniform",
+            "wgslType": "DispatchParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "active_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_base",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(dispatch_params.active_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= dispatch_params.active_length.",
+        "outputRule": "Write only output_buffer[dispatch_params.output_base + index]."
+      },
+      "referenceShaderSha256": "2e34a21c91a2e594bd2646e957fc3d5f01f645a0b6c5ffbfb78369d183e6a708",
+      "oracleId": "square_scale_f32",
+      "inputSeed": 239692945,
+      "parameters": {
+        "scale": 0.375
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-007-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-007-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-007-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "square_scale_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "square_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-007.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-square-scale-008",
+      "kernelFamilyId": "writer-v2-square-scale",
+      "specification": "For every logical index, square the input and multiply the result by the f32 scale stored in the first scalar uniform field, then store the result in result_values[control.store_offset + index]. An invocation whose x index is at least control.logical_length must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "operands",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "result_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "control",
+            "kind": "uniform",
+            "wgslType": "Control"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "store_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(control.logical_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= control.logical_length.",
+        "outputRule": "Write only result_values[control.store_offset + index]."
+      },
+      "referenceShaderSha256": "7b7b8d65d55ef52640fde728ad13db7fd06d379a4788c1c425fe11b7a5c360b7",
+      "oracleId": "square_scale_f32",
+      "inputSeed": 56227885,
+      "parameters": {
+        "scale": 0.375
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-008-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-008-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-square-scale-008-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "square_scale_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "square_scale",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-008.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-saxpy-001",
+      "kernelFamilyId": "writer-v2-saxpy",
+      "specification": "For every logical index, add the left input value to the right input value multiplied by the f32 scale stored in the first scalar uniform field, then store the result in output_values[params.output_offset + index]. An invocation whose x index is at least params.length must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "left_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "right_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "output_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "params",
+            "kind": "uniform",
+            "wgslType": "Params"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(params.length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= params.length.",
+        "outputRule": "Write only output_values[params.output_offset + index]."
+      },
+      "referenceShaderSha256": "2ab2bf66ba4252a218391d9da3d1770f5fb1581be5e6007edb9a4111a87124f3",
+      "oracleId": "saxpy_f32",
+      "inputSeed": 151195988,
+      "parameters": {
+        "scale": 1.5
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-001-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-001-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-001-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "saxpy_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "saxpy",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-001.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-saxpy-002",
+      "kernelFamilyId": "writer-v2-saxpy",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must add the left input value to the right input value multiplied by the f32 scale stored in the first scalar uniform field, store the result in destination_values[config.destination_offset + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "lhs_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "rhs_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "destination_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "config",
+            "kind": "uniform",
+            "wgslType": "Config"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "element_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(config.element_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= config.element_count.",
+        "outputRule": "Write only destination_values[config.destination_offset + index]."
+      },
+      "referenceShaderSha256": "6e7b70c619ea02d38cde64d6c0fc0413fb9b10ac3e8665964bd2aa78ba64da1e",
+      "oracleId": "saxpy_f32",
+      "inputSeed": 29327513,
+      "parameters": {
+        "scale": 1.5
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-002-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-002-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-002-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "saxpy_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "saxpy",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-002.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-saxpy-003",
+      "kernelFamilyId": "writer-v2-saxpy",
+      "specification": "At each in-range global x index, add the left input value to the right input value multiplied by the f32 scale stored in the first scalar uniform field and store the result in result_data[uniforms.write_offset + index]. An invocation whose x index is at least uniforms.logical_size must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "a_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "b_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "result_data",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "uniforms",
+            "kind": "uniform",
+            "wgslType": "Uniforms"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_size",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "write_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(uniforms.logical_size / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= uniforms.logical_size.",
+        "outputRule": "Write only result_data[uniforms.write_offset + index]."
+      },
+      "referenceShaderSha256": "10850c74403d14078adbf91efe37b346f9d011583e50e5f2a8970150635ded73",
+      "oracleId": "saxpy_f32",
+      "inputSeed": 76916203,
+      "parameters": {
+        "scale": 1.5
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-003-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-003-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-003-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "saxpy_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "saxpy",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-003.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-saxpy-004",
+      "kernelFamilyId": "writer-v2-saxpy",
+      "specification": "Implement an elementwise f32 compute kernel: add the left input value to the right input value multiplied by the f32 scale stored in the first scalar uniform field. Process exactly settings.item_count elements, store the result in results[settings.result_offset + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "first_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "second_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "results",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "settings",
+            "kind": "uniform",
+            "wgslType": "Settings"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "item_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "result_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(settings.item_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= settings.item_count.",
+        "outputRule": "Write only results[settings.result_offset + index]."
+      },
+      "referenceShaderSha256": "6f2a69472e96a1d12528628650c375fd551cf21217c0c2e4fce5f77db7392d6a",
+      "oracleId": "saxpy_f32",
+      "inputSeed": 78583229,
+      "parameters": {
+        "scale": 1.5
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-004-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-004-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-004-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "saxpy_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "saxpy",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-004.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-saxpy-005",
+      "kernelFamilyId": "writer-v2-saxpy",
+      "specification": "For every logical index, add the left input value to the right input value multiplied by the f32 scale stored in the first scalar uniform field, then store the result in outputs[parameters.output_start + index]. An invocation whose x index is at least parameters.value_count must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "primary_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "secondary_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "outputs",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "parameters",
+            "kind": "uniform",
+            "wgslType": "Parameters"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "value_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(parameters.value_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= parameters.value_count.",
+        "outputRule": "Write only outputs[parameters.output_start + index]."
+      },
+      "referenceShaderSha256": "503bb423e3c69eb3da3b5b93c560a2a82462a0580d424d4f899f0afbf495848a",
+      "oracleId": "saxpy_f32",
+      "inputSeed": 19844076,
+      "parameters": {
+        "scale": 1.5
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-005-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-005-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-005-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "saxpy_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "saxpy",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-005.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-saxpy-006",
+      "kernelFamilyId": "writer-v2-saxpy",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must add the left input value to the right input value multiplied by the f32 scale stored in the first scalar uniform field, store the result in destination[kernel_params.destination_start + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "left",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "right",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "destination",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "kernel_params",
+            "kind": "uniform",
+            "wgslType": "KernelParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "num_elements",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(kernel_params.num_elements / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= kernel_params.num_elements.",
+        "outputRule": "Write only destination[kernel_params.destination_start + index]."
+      },
+      "referenceShaderSha256": "a63bb5fffd6d140e19d6241fdd993945965004cac85d23b2c3f81bb85c5a5b02",
+      "oracleId": "saxpy_f32",
+      "inputSeed": 247337252,
+      "parameters": {
+        "scale": 1.5
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-006-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-006-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-006-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "saxpy_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "saxpy",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-006.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-saxpy-007",
+      "kernelFamilyId": "writer-v2-saxpy",
+      "specification": "At each in-range global x index, add the left input value to the right input value multiplied by the f32 scale stored in the first scalar uniform field and store the result in output_buffer[dispatch_params.output_base + index]. An invocation whose x index is at least dispatch_params.active_length must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "x_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "y_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "output_buffer",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "dispatch_params",
+            "kind": "uniform",
+            "wgslType": "DispatchParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "active_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_base",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(dispatch_params.active_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= dispatch_params.active_length.",
+        "outputRule": "Write only output_buffer[dispatch_params.output_base + index]."
+      },
+      "referenceShaderSha256": "638d87b3014543d367379c26f0f692748e06f87e760d752897a7eba8a35865c6",
+      "oracleId": "saxpy_f32",
+      "inputSeed": 167957520,
+      "parameters": {
+        "scale": 1.5
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-007-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-007-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-007-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "saxpy_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "saxpy",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-007.wgsl"
+    },
+    {
+      "taskId": "writer-v2-seed-confirmation-saxpy-008",
+      "kernelFamilyId": "writer-v2-saxpy",
+      "specification": "Implement an elementwise f32 compute kernel: add the left input value to the right input value multiplied by the f32 scale stored in the first scalar uniform field. Process exactly control.logical_length elements, store the result in result_values[control.store_offset + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "left_operands",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "right_operands",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "result_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "control",
+            "kind": "uniform",
+            "wgslType": "Control"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "store_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "scale",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(control.logical_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= control.logical_length.",
+        "outputRule": "Write only result_values[control.store_offset + index]."
+      },
+      "referenceShaderSha256": "ba0fd2196a2bbf8838f3a12a0544978016c8bd8a13ee5c7e4922b2ca2542c6cb",
+      "oracleId": "saxpy_f32",
+      "inputSeed": 180686612,
+      "parameters": {
+        "scale": 1.5
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-008-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-008-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-seed-confirmation-saxpy-008-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "saxpy_f32",
+      "populationRole": "seed_confirmation",
+      "blueprintId": "saxpy",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-008.wgsl"
+    }
+  ],
+  "overlapPolicy": "Semantic families, task ids, prompts, reference shaders, and input seeds are disjoint across writer-v2 population roles.",
+  "claimBoundary": "seed_confirmation evidence is limited to the frozen complete 1-D elementwise f32 writer contract."
+}

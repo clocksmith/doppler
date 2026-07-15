@@ -1,0 +1,1686 @@
+{
+  "schema": "doppler.wgsl-writer-task-manifest/v1",
+  "schemaVersion": 1,
+  "experimentId": "doppler-wgsl-writer-v2",
+  "role": "calibration",
+  "populationAuthority": "calibration",
+  "responseContract": "complete_wgsl_compute_shader_only_v1",
+  "cpuOracleRevision": "wgsl-semantic-cpu-oracles-v1",
+  "inputGeneratorRevision": "wgsl-semantic-inputs-v1",
+  "tasks": [
+    {
+      "taskId": "writer-v2-calibration-distance-pair-001",
+      "kernelFamilyId": "writer-v2-distance-pair",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must compute the absolute difference between the corresponding left and right input values, store the result in output_values[params.output_offset + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "left_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "right_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "output_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "params",
+            "kind": "uniform",
+            "wgslType": "Params"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "first_reserved",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(params.length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= params.length.",
+        "outputRule": "Write only output_values[params.output_offset + index]."
+      },
+      "referenceShaderSha256": "e89d0bb22ee065f5aa5a47d2e6028564d16ad24995c120250d457efa31c98c9f",
+      "oracleId": "distance_pair_f32",
+      "inputSeed": 167717545,
+      "parameters": {},
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-001-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-001-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-001-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "distance_pair_f32",
+      "populationRole": "calibration",
+      "blueprintId": "distance_pair",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-001.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-distance-pair-002",
+      "kernelFamilyId": "writer-v2-distance-pair",
+      "specification": "At each in-range global x index, compute the absolute difference between the corresponding left and right input values and store the result in destination_values[config.destination_offset + index]. An invocation whose x index is at least config.element_count must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "lhs_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "rhs_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "destination_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "config",
+            "kind": "uniform",
+            "wgslType": "Config"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "element_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "first_reserved",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(config.element_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= config.element_count.",
+        "outputRule": "Write only destination_values[config.destination_offset + index]."
+      },
+      "referenceShaderSha256": "6cc0fdbd02a72109d995ec9ee66e62c9885c31c5e50fea304f95095133a6770e",
+      "oracleId": "distance_pair_f32",
+      "inputSeed": 167925433,
+      "parameters": {},
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-002-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-002-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-002-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "distance_pair_f32",
+      "populationRole": "calibration",
+      "blueprintId": "distance_pair",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-002.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-distance-pair-003",
+      "kernelFamilyId": "writer-v2-distance-pair",
+      "specification": "Implement an elementwise f32 compute kernel: compute the absolute difference between the corresponding left and right input values. Process exactly uniforms.logical_size elements, store the result in result_data[uniforms.write_offset + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "a_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "b_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "result_data",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "uniforms",
+            "kind": "uniform",
+            "wgslType": "Uniforms"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_size",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "write_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "first_reserved",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(uniforms.logical_size / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= uniforms.logical_size.",
+        "outputRule": "Write only result_data[uniforms.write_offset + index]."
+      },
+      "referenceShaderSha256": "586a1c54a158a71f97bf8d887fc3b5da069543dba7e099349e518410aac48fe1",
+      "oracleId": "distance_pair_f32",
+      "inputSeed": 183994865,
+      "parameters": {},
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-003-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-003-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-003-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "distance_pair_f32",
+      "populationRole": "calibration",
+      "blueprintId": "distance_pair",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-003.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-distance-pair-004",
+      "kernelFamilyId": "writer-v2-distance-pair",
+      "specification": "For every logical index, compute the absolute difference between the corresponding left and right input values, then store the result in results[settings.result_offset + index]. An invocation whose x index is at least settings.item_count must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "first_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "second_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "results",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "settings",
+            "kind": "uniform",
+            "wgslType": "Settings"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "item_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "result_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "first_reserved",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(settings.item_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= settings.item_count.",
+        "outputRule": "Write only results[settings.result_offset + index]."
+      },
+      "referenceShaderSha256": "a1938191847fbb4e566c7b0af5c05de27f4ba3a542c53bd11d4af5a4afda7405",
+      "oracleId": "distance_pair_f32",
+      "inputSeed": 1617768,
+      "parameters": {},
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-004-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-004-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-004-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "distance_pair_f32",
+      "populationRole": "calibration",
+      "blueprintId": "distance_pair",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-004.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-distance-pair-005",
+      "kernelFamilyId": "writer-v2-distance-pair",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must compute the absolute difference between the corresponding left and right input values, store the result in outputs[parameters.output_start + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "primary_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "secondary_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "outputs",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "parameters",
+            "kind": "uniform",
+            "wgslType": "Parameters"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "value_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "first_reserved",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(parameters.value_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= parameters.value_count.",
+        "outputRule": "Write only outputs[parameters.output_start + index]."
+      },
+      "referenceShaderSha256": "1256edf358e0cd718ff1c0d42d4f53817af77fb3867e54fabaaaea299dd3f168",
+      "oracleId": "distance_pair_f32",
+      "inputSeed": 245573644,
+      "parameters": {},
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-005-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-005-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-005-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "distance_pair_f32",
+      "populationRole": "calibration",
+      "blueprintId": "distance_pair",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-005.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-distance-pair-006",
+      "kernelFamilyId": "writer-v2-distance-pair",
+      "specification": "At each in-range global x index, compute the absolute difference between the corresponding left and right input values and store the result in destination[kernel_params.destination_start + index]. An invocation whose x index is at least kernel_params.num_elements must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "left",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "right",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "destination",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "kernel_params",
+            "kind": "uniform",
+            "wgslType": "KernelParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "num_elements",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "first_reserved",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(kernel_params.num_elements / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= kernel_params.num_elements.",
+        "outputRule": "Write only destination[kernel_params.destination_start + index]."
+      },
+      "referenceShaderSha256": "ad4bdcc996a889d2320726a4fbb7ec6a0cbf4e10e620d0666f61c1bc4330d7db",
+      "oracleId": "distance_pair_f32",
+      "inputSeed": 178242262,
+      "parameters": {},
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-006-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-006-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-006-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "distance_pair_f32",
+      "populationRole": "calibration",
+      "blueprintId": "distance_pair",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-006.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-distance-pair-007",
+      "kernelFamilyId": "writer-v2-distance-pair",
+      "specification": "Implement an elementwise f32 compute kernel: compute the absolute difference between the corresponding left and right input values. Process exactly dispatch_params.active_length elements, store the result in output_buffer[dispatch_params.output_base + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "x_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "y_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "output_buffer",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "dispatch_params",
+            "kind": "uniform",
+            "wgslType": "DispatchParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "active_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_base",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "first_reserved",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(dispatch_params.active_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= dispatch_params.active_length.",
+        "outputRule": "Write only output_buffer[dispatch_params.output_base + index]."
+      },
+      "referenceShaderSha256": "2b1e4ed6d682519bf7ffea1f363dc2f41e6f87434450f1572610a06cb3214b2b",
+      "oracleId": "distance_pair_f32",
+      "inputSeed": 37823210,
+      "parameters": {},
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-007-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-007-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-007-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "distance_pair_f32",
+      "populationRole": "calibration",
+      "blueprintId": "distance_pair",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-007.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-distance-pair-008",
+      "kernelFamilyId": "writer-v2-distance-pair",
+      "specification": "For every logical index, compute the absolute difference between the corresponding left and right input values, then store the result in result_values[control.store_offset + index]. An invocation whose x index is at least control.logical_length must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "left_operands",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "right_operands",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "result_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "name": "control",
+            "kind": "uniform",
+            "wgslType": "Control"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "store_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "first_reserved",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(control.logical_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= control.logical_length.",
+        "outputRule": "Write only result_values[control.store_offset + index]."
+      },
+      "referenceShaderSha256": "77ecda2fa2d23cff68d91ea1293a9c8c4f75d7fc183562917ce2a5bf76e5d855",
+      "oracleId": "distance_pair_f32",
+      "inputSeed": 43857403,
+      "parameters": {},
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-008-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-008-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-distance-pair-008-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "distance_pair_f32",
+      "populationRole": "calibration",
+      "blueprintId": "distance_pair",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-008.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-cap-001",
+      "kernelFamilyId": "writer-v2-cap",
+      "specification": "For every logical index, limit the input to at most the f32 cap stored in the first scalar uniform field, then store the result in output_values[params.output_offset + index]. An invocation whose x index is at least params.length must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "input_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "output_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "params",
+            "kind": "uniform",
+            "wgslType": "Params"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "cap",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(params.length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= params.length.",
+        "outputRule": "Write only output_values[params.output_offset + index]."
+      },
+      "referenceShaderSha256": "7edbbe85689b35fe38402f17e1a3bc777bc2904160e519e217cb5b915ad2f1cb",
+      "oracleId": "cap_f32",
+      "inputSeed": 125873762,
+      "parameters": {
+        "cap": 2.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-cap-001-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-001-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-001-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "cap_f32",
+      "populationRole": "calibration",
+      "blueprintId": "cap",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-001.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-cap-002",
+      "kernelFamilyId": "writer-v2-cap",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must limit the input to at most the f32 cap stored in the first scalar uniform field, store the result in destination_values[config.destination_offset + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "source_values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "destination_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "config",
+            "kind": "uniform",
+            "wgslType": "Config"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "element_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "cap",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(config.element_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= config.element_count.",
+        "outputRule": "Write only destination_values[config.destination_offset + index]."
+      },
+      "referenceShaderSha256": "f663105939c38d1ab75e1de8107eaeec22985e11097320b9037a765d42932b77",
+      "oracleId": "cap_f32",
+      "inputSeed": 159241863,
+      "parameters": {
+        "cap": 2.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-cap-002-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-002-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-002-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "cap_f32",
+      "populationRole": "calibration",
+      "blueprintId": "cap",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-002.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-cap-003",
+      "kernelFamilyId": "writer-v2-cap",
+      "specification": "At each in-range global x index, limit the input to at most the f32 cap stored in the first scalar uniform field and store the result in result_data[uniforms.write_offset + index]. An invocation whose x index is at least uniforms.logical_size must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "input_data",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "result_data",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "uniforms",
+            "kind": "uniform",
+            "wgslType": "Uniforms"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_size",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "write_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "cap",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(uniforms.logical_size / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= uniforms.logical_size.",
+        "outputRule": "Write only result_data[uniforms.write_offset + index]."
+      },
+      "referenceShaderSha256": "2e81e1c04fe466fd5d8a8bbd2b493cb9d6c094f981c2e26fc136ed88cb9bed53",
+      "oracleId": "cap_f32",
+      "inputSeed": 84913756,
+      "parameters": {
+        "cap": 2.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-cap-003-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-003-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-003-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "cap_f32",
+      "populationRole": "calibration",
+      "blueprintId": "cap",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-003.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-cap-004",
+      "kernelFamilyId": "writer-v2-cap",
+      "specification": "Implement an elementwise f32 compute kernel: limit the input to at most the f32 cap stored in the first scalar uniform field. Process exactly settings.item_count elements, store the result in results[settings.result_offset + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "values",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "results",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "settings",
+            "kind": "uniform",
+            "wgslType": "Settings"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "item_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "result_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "cap",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(settings.item_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= settings.item_count.",
+        "outputRule": "Write only results[settings.result_offset + index]."
+      },
+      "referenceShaderSha256": "ae65e91d941c9bb520847ef527e086d03afea36cc53d21ca4d91573ec4e608ce",
+      "oracleId": "cap_f32",
+      "inputSeed": 177920501,
+      "parameters": {
+        "cap": 2.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-cap-004-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-004-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-004-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "cap_f32",
+      "populationRole": "calibration",
+      "blueprintId": "cap",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-004.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-cap-005",
+      "kernelFamilyId": "writer-v2-cap",
+      "specification": "For every logical index, limit the input to at most the f32 cap stored in the first scalar uniform field, then store the result in outputs[parameters.output_start + index]. An invocation whose x index is at least parameters.value_count must return before any storage access.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 32
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "samples",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "outputs",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "parameters",
+            "kind": "uniform",
+            "wgslType": "Parameters"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "value_count",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "cap",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(parameters.value_count / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= parameters.value_count.",
+        "outputRule": "Write only outputs[parameters.output_start + index]."
+      },
+      "referenceShaderSha256": "97cac8f4cac049b064bcd9dcfd656e6a27db6705e6b51dd9c4445c9a5dabc3d7",
+      "oracleId": "cap_f32",
+      "inputSeed": 24658710,
+      "parameters": {
+        "cap": 2.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-cap-005-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-005-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-005-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "cap_f32",
+      "populationRole": "calibration",
+      "blueprintId": "cap",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-005.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-cap-006",
+      "kernelFamilyId": "writer-v2-cap",
+      "specification": "The shader operates on one logical f32 element per global x invocation. It must limit the input to at most the f32 cap stored in the first scalar uniform field, store the result in destination[kernel_params.destination_start + index], and guard all reads and writes with the declared logical length.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 64
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "source",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "destination",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "kernel_params",
+            "kind": "uniform",
+            "wgslType": "KernelParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "num_elements",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "destination_start",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "cap",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(kernel_params.num_elements / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= kernel_params.num_elements.",
+        "outputRule": "Write only destination[kernel_params.destination_start + index]."
+      },
+      "referenceShaderSha256": "84b8e905d3989c4d30433def912b2b8b3c98b89fb245caf87de1aad831edb600",
+      "oracleId": "cap_f32",
+      "inputSeed": 160626186,
+      "parameters": {
+        "cap": 2.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-cap-006-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-006-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-006-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "cap_f32",
+      "populationRole": "calibration",
+      "blueprintId": "cap",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-006.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-cap-007",
+      "kernelFamilyId": "writer-v2-cap",
+      "specification": "At each in-range global x index, limit the input to at most the f32 cap stored in the first scalar uniform field and store the result in output_buffer[dispatch_params.output_base + index]. An invocation whose x index is at least dispatch_params.active_length must return before any storage access; output prefix and tail elements must remain untouched.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 128
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "input_buffer",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "output_buffer",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "dispatch_params",
+            "kind": "uniform",
+            "wgslType": "DispatchParams"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "active_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "output_base",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "cap",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(dispatch_params.active_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= dispatch_params.active_length.",
+        "outputRule": "Write only output_buffer[dispatch_params.output_base + index]."
+      },
+      "referenceShaderSha256": "acec5c3df7046769b2b26ca1872c89987c18ba33d3fd654d204f10118942aad6",
+      "oracleId": "cap_f32",
+      "inputSeed": 255886407,
+      "parameters": {
+        "cap": 2.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-cap-007-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-007-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-007-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "cap_f32",
+      "populationRole": "calibration",
+      "blueprintId": "cap",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-007.wgsl"
+    },
+    {
+      "taskId": "writer-v2-calibration-cap-008",
+      "kernelFamilyId": "writer-v2-cap",
+      "specification": "Implement an elementwise f32 compute kernel: limit the input to at most the f32 cap stored in the first scalar uniform field. Process exactly control.logical_length elements, store the result in result_values[control.store_offset + index], and perform no storage access for an out-of-range invocation.",
+      "interfaceContract": {
+        "entryPoint": "main",
+        "stage": "compute",
+        "requiredOverrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "default": 256
+          }
+        ],
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "name": "operands",
+            "kind": "read_only_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "name": "result_values",
+            "kind": "read_write_storage",
+            "wgslType": "array<f32>"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "name": "control",
+            "kind": "uniform",
+            "wgslType": "Control"
+          }
+        ],
+        "uniformLayout": [
+          {
+            "name": "logical_length",
+            "type": "u32",
+            "byteOffset": 0
+          },
+          {
+            "name": "store_offset",
+            "type": "u32",
+            "byteOffset": 4
+          },
+          {
+            "name": "cap",
+            "type": "f32",
+            "byteOffset": 8
+          },
+          {
+            "name": "second_reserved",
+            "type": "f32",
+            "byteOffset": 12
+          }
+        ],
+        "dispatch": "ceil(control.logical_length / WORKGROUP_SIZE) workgroups in x; y=1; z=1",
+        "requiredBuiltin": "global_invocation_id",
+        "boundsRule": "Return when global_invocation_id.x >= control.logical_length.",
+        "outputRule": "Write only result_values[control.store_offset + index]."
+      },
+      "referenceShaderSha256": "e9d7a04cda4d8756abcab500888f3efdba7f28e2581a60b3258b509237ff25d5",
+      "oracleId": "cap_f32",
+      "inputSeed": 149393858,
+      "parameters": {
+        "cap": 2.75
+      },
+      "variants": [
+        {
+          "shapeId": "writer-v2-calibration-cap-008-nominal-64",
+          "shapeClass": "nominal",
+          "length": 64,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-008-tail-67",
+          "shapeClass": "non_workgroup_multiple",
+          "length": 67,
+          "workgroupId": "wg-64",
+          "workgroupSize": 64
+        },
+        {
+          "shapeId": "writer-v2-calibration-cap-008-boundary-1",
+          "shapeClass": "boundary_or_tail",
+          "length": 1,
+          "workgroupId": "wg-32",
+          "workgroupSize": 32
+        }
+      ],
+      "metamorphicRelations": [
+        "input_permutation_equivariance",
+        "tiling_equivalence"
+      ],
+      "semanticFamilyId": "cap_f32",
+      "populationRole": "calibration",
+      "blueprintId": "cap",
+      "referenceShaderPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-008.wgsl"
+    }
+  ],
+  "overlapPolicy": "Semantic families, task ids, prompts, reference shaders, and input seeds are disjoint across writer-v2 population roles.",
+  "claimBoundary": "calibration evidence is limited to the frozen complete 1-D elementwise f32 writer contract."
+}

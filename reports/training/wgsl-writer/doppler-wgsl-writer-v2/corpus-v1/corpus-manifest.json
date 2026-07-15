@@ -1,0 +1,388 @@
+{
+  "artifactType": "wgsl_writer_corpus_manifest",
+  "schemaVersion": 1,
+  "experimentId": "doppler-wgsl-writer-v2",
+  "taskScope": "complete_1d_elementwise_f32_compute_shader_from_explicit_interface",
+  "taskContract": "complete_wgsl_compute_shader_only_v1",
+  "catalog": {
+    "path": "tools/data/wgsl-writer-v2-blueprints.json",
+    "sha256": "85ff008bbdfb86800296e08779186d0f23d938e8cf5c3418f9b5127d448dfc61",
+    "catalogId": "doppler-wgsl-writer-elementwise-f32-v1",
+    "license": "Apache-2.0",
+    "lineage": "doppler_owned_parametric_blueprints"
+  },
+  "constructionPolicy": {
+    "path": "tools/policies/wgsl-writer-v2-corpus-policy.json",
+    "sha256": "560bccb7269f1dae5b8d426bb90414097eb82e1b5f4fdaee211daa6498522c44"
+  },
+  "roles": {
+    "training": {
+      "datasetPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/train.jsonl",
+      "rows": 720,
+      "semanticFamilies": [
+        "absolute_f32",
+        "add_scalar_f32",
+        "floor_f32",
+        "leaky_relu_f32",
+        "max_pair_f32",
+        "mean_pair_f32",
+        "min_pair_f32",
+        "mix_f32",
+        "multiply_pair_f32",
+        "negate_f32",
+        "relu_f32",
+        "scale_f32",
+        "square_bias_f32",
+        "subtract_f32",
+        "threshold_negate_f32"
+      ],
+      "semanticFamilyCount": 15,
+      "datasetSha256": "8e50b9fe9efa5c59ebd922ba51b6bbbb0d84b6643b53038ad5b5740431d2a8e7",
+      "taskManifestPath": null
+    },
+    "calibration": {
+      "datasetPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/calibration.jsonl",
+      "rows": 16,
+      "semanticFamilies": [
+        "cap_f32",
+        "distance_pair_f32"
+      ],
+      "semanticFamilyCount": 2,
+      "datasetSha256": "3fa6dc28d89b81e029bcb9562d3e9bb23ccb0e85322574d0897b6d376ee5bae6",
+      "taskManifestPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/calibration.tasks.json"
+    },
+    "checkpoint_selection": {
+      "datasetPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/checkpoint-selection.jsonl",
+      "rows": 16,
+      "semanticFamilies": [
+        "difference_scale_f32",
+        "mask_below_f32"
+      ],
+      "semanticFamilyCount": 2,
+      "datasetSha256": "fcda6b330323a7f0e43ec12a5740281c37e2490b99cbdc47f21fb8a37cf08f7f",
+      "taskManifestPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/checkpoint-selection.tasks.json"
+    },
+    "seed_confirmation": {
+      "datasetPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/seed-confirmation.jsonl",
+      "rows": 16,
+      "semanticFamilies": [
+        "saxpy_f32",
+        "square_scale_f32"
+      ],
+      "semanticFamilyCount": 2,
+      "datasetSha256": "d68c973030044da12e6c5c8e1bdf9fe75bb4f0a92919b018a3329d0611fee934",
+      "taskManifestPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/seed-confirmation.tasks.json"
+    }
+  },
+  "referenceQualification": {
+    "taskManifestPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/reference-qualification.tasks.json",
+    "taskCount": 63,
+    "trainingFamilyRepresentatives": 15
+  },
+  "isolation": {
+    "splitKey": "semanticFamilyId",
+    "semanticFamilyOverlaps": [],
+    "duplicateRowIds": 0,
+    "duplicatePrompts": 0,
+    "mechanicsOracleExclusions": [
+      "add_f32",
+      "affine_f32",
+      "clamp_f32"
+    ],
+    "visibleMechanicsPopulationUsedForTraining": false
+  },
+  "promotion": {
+    "status": "external_custody_required",
+    "rows": 0,
+    "reason": "A sealed one-use promotion population cannot be authored and inspected by the training operator."
+  },
+  "fileBindings": {
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/calibration.jsonl": {
+      "sha256": "3fa6dc28d89b81e029bcb9562d3e9bb23ccb0e85322574d0897b6d376ee5bae6",
+      "bytes": 60108
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/calibration.tasks.json": {
+      "sha256": "7689fc230b312c61ddd7dbfd651f5a2fda3b26eb063fbd96c5204fef86d9116d",
+      "bytes": 56089
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/checkpoint-selection.jsonl": {
+      "sha256": "fcda6b330323a7f0e43ec12a5740281c37e2490b99cbdc47f21fb8a37cf08f7f",
+      "bytes": 62267
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/checkpoint-selection.tasks.json": {
+      "sha256": "26056fe48229cb4017c5910f83fe5165af950fef6025092053d04e90bf1b4042",
+      "bytes": 58844
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/reference-qualification.tasks.json": {
+      "sha256": "52fe4f183b8751d3ca403615ace2d7551bba511cd2e205c6117837beb1909049",
+      "bytes": 222192
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-001.wgsl": {
+      "sha256": "7edbbe85689b35fe38402f17e1a3bc777bc2904160e519e217cb5b915ad2f1cb",
+      "bytes": 641
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-002.wgsl": {
+      "sha256": "f663105939c38d1ab75e1de8107eaeec22985e11097320b9037a765d42932b77",
+      "bytes": 733
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-003.wgsl": {
+      "sha256": "2e81e1c04fe466fd5d8a8bbd2b493cb9d6c094f981c2e26fc136ed88cb9bed53",
+      "bytes": 650
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-004.wgsl": {
+      "sha256": "ae65e91d941c9bb520847ef527e086d03afea36cc53d21ca4d91573ec4e608ce",
+      "bytes": 698
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-005.wgsl": {
+      "sha256": "97cac8f4cac049b064bcd9dcfd656e6a27db6705e6b51dd9c4445c9a5dabc3d7",
+      "bytes": 681
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-006.wgsl": {
+      "sha256": "84b8e905d3989c4d30433def912b2b8b3c98b89fb245caf87de1aad831edb600",
+      "bytes": 719
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-007.wgsl": {
+      "sha256": "acec5c3df7046769b2b26ca1872c89987c18ba33d3fd654d204f10118942aad6",
+      "bytes": 728
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-cap-008.wgsl": {
+      "sha256": "e9d7a04cda4d8756abcab500888f3efdba7f28e2581a60b3258b509237ff25d5",
+      "bytes": 686
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-001.wgsl": {
+      "sha256": "e89d0bb22ee065f5aa5a47d2e6028564d16ad24995c120250d457efa31c98c9f",
+      "bytes": 728
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-002.wgsl": {
+      "sha256": "6cc0fdbd02a72109d995ec9ee66e62c9885c31c5e50fea304f95095133a6770e",
+      "bytes": 819
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-003.wgsl": {
+      "sha256": "586a1c54a158a71f97bf8d887fc3b5da069543dba7e099349e518410aac48fe1",
+      "bytes": 721
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-004.wgsl": {
+      "sha256": "a1938191847fbb4e566c7b0af5c05de27f4ba3a542c53bd11d4af5a4afda7405",
+      "bytes": 806
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-005.wgsl": {
+      "sha256": "1256edf358e0cd718ff1c0d42d4f53817af77fb3867e54fabaaaea299dd3f168",
+      "bytes": 793
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-006.wgsl": {
+      "sha256": "ad4bdcc996a889d2320726a4fbb7ec6a0cbf4e10e620d0666f61c1bc4330d7db",
+      "bytes": 789
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-007.wgsl": {
+      "sha256": "2b1e4ed6d682519bf7ffea1f363dc2f41e6f87434450f1572610a06cb3214b2b",
+      "bytes": 793
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/calibration/writer-v2-calibration-distance-pair-008.wgsl": {
+      "sha256": "77ecda2fa2d23cff68d91ea1293a9c8c4f75d7fc183562917ce2a5bf76e5d855",
+      "bytes": 788
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-001.wgsl": {
+      "sha256": "d94dd094b3e5d78894811d19acf7c360ba033030f0b1d9645381aa8bdd16979e",
+      "bytes": 731
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-002.wgsl": {
+      "sha256": "78a99baa2b6da80685ccf5905d243a64dcee47171db1cd3208e14761f7757206",
+      "bytes": 823
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-003.wgsl": {
+      "sha256": "bb4bff3b077bda985db95633d9e8e6ac52c702d1e49ceff86c1571c485cddf17",
+      "bytes": 726
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-004.wgsl": {
+      "sha256": "6a61dc18701bf2b1d6f787e18591c08afe85d7b51524525e2fb2e2e7349b341d",
+      "bytes": 810
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-005.wgsl": {
+      "sha256": "afded6e741e739695aeb0a89388694cc1f3558ef7eb73268e09fb0d2a7797701",
+      "bytes": 800
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-006.wgsl": {
+      "sha256": "5fecd30f137cef2b0d41d764c900da7e6164271ca1ec40f57e60ddbdddcc0617",
+      "bytes": 800
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-007.wgsl": {
+      "sha256": "8b855b33470ed03e9924da181b4627c7ff7dfa673b4832273b24aacf19ecfa96",
+      "bytes": 805
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-difference-scale-008.wgsl": {
+      "sha256": "a0be4b5c09209ebc8deced107695ec8cecc636a7c1b5835618627d789b576608",
+      "bytes": 791
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-001.wgsl": {
+      "sha256": "cd82765fa58ddc3c3e1fcc83935dee1b13b86db48c1af976eb0a0a3cdd0b8f2b",
+      "bytes": 684
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-002.wgsl": {
+      "sha256": "e3fbb7081dab3f41fe41ff3732333abc748bc1e888749873c4e1c19220f24f4f",
+      "bytes": 786
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-003.wgsl": {
+      "sha256": "6fd4ec27feeff53d5e944df09bf3cba5f61fcf823cd0d0ffafc6da3cb7e689ad",
+      "bytes": 689
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-004.wgsl": {
+      "sha256": "9562855f6e3bc69647cc17df2de0466ae7cc5370fd7072a5c26fdfc6ee548dda",
+      "bytes": 742
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-005.wgsl": {
+      "sha256": "61a67fae23a7e42430f4f5a85698782933bf75c97e63edd732e6189bd845928a",
+      "bytes": 724
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-006.wgsl": {
+      "sha256": "697fe854982a6815b0b5396e16c937bc25d54be175ad7878a95ce9ac586c1b86",
+      "bytes": 764
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-007.wgsl": {
+      "sha256": "c52b602cbf6a9fbd2d82290a15c114e6b6dbb1642b5cc8f72f371953f5e30e98",
+      "bytes": 774
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/checkpoint_selection/writer-v2-checkpoint-selection-mask-below-008.wgsl": {
+      "sha256": "0f1a5c537ccf8c5b81a989a712dc9d9548498bf85d493456503c6b7c6f2e8596",
+      "bytes": 725
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-absolute-001.wgsl": {
+      "sha256": "bc52eb4d7d6dc51cf95b410a2bc2e7ea148de2a05dd3adc5c51d449bf3450dff",
+      "bytes": 640
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-add-scalar-001.wgsl": {
+      "sha256": "38d6b163bfbe2a0911450f95af06237c70367e30fc20aedca33e9db9b0013f47",
+      "bytes": 643
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-floor-001.wgsl": {
+      "sha256": "bd71665bd481ef4872b89379ecd12f42f9264e1c2294c85ca6147f1b301ae489",
+      "bytes": 642
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-leaky-relu-001.wgsl": {
+      "sha256": "83548fe31aef5588ea21e49dcc5160ed593db2f8ab21f45f2f2f5435a7dea2ee",
+      "bytes": 699
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-maximum-pair-001.wgsl": {
+      "sha256": "677d4cdf2ef316a96f930a1f2a805db1fbc7c0976028d3407db28e0379234df1",
+      "bytes": 726
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-mean-pair-001.wgsl": {
+      "sha256": "bfd371f5b7e2af446c62e0791e90219ba5b38334c1c2c9a9b675ffa534618241",
+      "bytes": 731
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-minimum-pair-001.wgsl": {
+      "sha256": "d7323023a253457403ff9e0116524e208b74a180d5feb00267e9e043ca403e7a",
+      "bytes": 727
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-mix-001.wgsl": {
+      "sha256": "e1d02892a7c0536d53aae0b36f31b59bea68f2af9e4d3470a91389aae706bbff",
+      "bytes": 732
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-multiply-pair-001.wgsl": {
+      "sha256": "290dc31f827226067a6ce372360c9d2a69bfdd5aa5ebea5df4890d7869c2c568",
+      "bytes": 722
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-negate-001.wgsl": {
+      "sha256": "2149a5029564ee4babef6311490f3692dcde27f0396a9dd6ecd24e3c57783783",
+      "bytes": 637
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-relu-001.wgsl": {
+      "sha256": "7f850be9fd7a66aad446c60472a9c5471f4f03e8e0df05d666f4336404ae5644",
+      "bytes": 645
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-scale-001.wgsl": {
+      "sha256": "9a5dc0c0ed45e79c892bdbf49b967e7f19cdc99dd6b392c4d3c81bf5e84b616e",
+      "bytes": 641
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-square-bias-001.wgsl": {
+      "sha256": "57fd5d370341408ff83741e1495563091f94790de70ecaf0a393fecf032e31d1",
+      "bytes": 661
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-subtract-001.wgsl": {
+      "sha256": "f7cc43437b27cd6684d183abd0306704db03a9a99d2ba28400b8a32814fd046d",
+      "bytes": 723
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/qualification-training/writer-v2-training-threshold-negate-001.wgsl": {
+      "sha256": "bf98250db5cf58c78870ab85b031121132ac7e1f153855a9c8b8880f06eb0f8d",
+      "bytes": 701
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-001.wgsl": {
+      "sha256": "2ab2bf66ba4252a218391d9da3d1770f5fb1581be5e6007edb9a4111a87124f3",
+      "bytes": 728
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-002.wgsl": {
+      "sha256": "6e7b70c619ea02d38cde64d6c0fc0413fb9b10ac3e8665964bd2aa78ba64da1e",
+      "bytes": 820
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-003.wgsl": {
+      "sha256": "10850c74403d14078adbf91efe37b346f9d011583e50e5f2a8970150635ded73",
+      "bytes": 725
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-004.wgsl": {
+      "sha256": "6f2a69472e96a1d12528628650c375fd551cf21217c0c2e4fce5f77db7392d6a",
+      "bytes": 809
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-005.wgsl": {
+      "sha256": "503bb423e3c69eb3da3b5b93c560a2a82462a0580d424d4f899f0afbf495848a",
+      "bytes": 797
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-006.wgsl": {
+      "sha256": "a63bb5fffd6d140e19d6241fdd993945965004cac85d23b2c3f81bb85c5a5b02",
+      "bytes": 797
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-007.wgsl": {
+      "sha256": "638d87b3014543d367379c26f0f692748e06f87e760d752897a7eba8a35865c6",
+      "bytes": 804
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-saxpy-008.wgsl": {
+      "sha256": "ba0fd2196a2bbf8838f3a12a0544978016c8bd8a13ee5c7e4922b2ca2542c6cb",
+      "bytes": 790
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-001.wgsl": {
+      "sha256": "e335e87e636b7a102f3788f7f23e6edd6654ea55e382ab8b08c6f1dcd7a8747d",
+      "bytes": 666
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-002.wgsl": {
+      "sha256": "645f8b5b256ce5040797f1caacbe3ab1920ef1b418c2e8d1f8041d4e6d28a8c1",
+      "bytes": 766
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-003.wgsl": {
+      "sha256": "1693b7f72645b17934814c822dc0626aa92cde1571938492ee74d367e316d5ee",
+      "bytes": 669
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-004.wgsl": {
+      "sha256": "5eb4485c7e1d26abfedd56559aacf4c6770cdb8961957e4c55ecd5e3478021b8",
+      "bytes": 724
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-005.wgsl": {
+      "sha256": "c99c06a27a4f09924eecff47ba04843c62b3c4837306d826729b6617c7374a46",
+      "bytes": 706
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-006.wgsl": {
+      "sha256": "7d50da67fa5d5bfb9fb5c3783fb7f02a98717cbbc7282885b43bff7eceb3a4ff",
+      "bytes": 744
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-007.wgsl": {
+      "sha256": "2e34a21c91a2e594bd2646e957fc3d5f01f645a0b6c5ffbfb78369d183e6a708",
+      "bytes": 754
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/references/seed_confirmation/writer-v2-seed-confirmation-square-scale-008.wgsl": {
+      "sha256": "7b7b8d65d55ef52640fde728ad13db7fd06d379a4788c1c425fe11b7a5c360b7",
+      "bytes": 707
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/seed-confirmation.jsonl": {
+      "sha256": "d68c973030044da12e6c5c8e1bdf9fe75bb4f0a92919b018a3329d0611fee934",
+      "bytes": 61133
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/seed-confirmation.tasks.json": {
+      "sha256": "8709ae278089687adcdd6cc83539abd18b67ed51abe70f1fe52f0d4745a13d41",
+      "bytes": 57458
+    },
+    "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/train.jsonl": {
+      "sha256": "8e50b9fe9efa5c59ebd922ba51b6bbbb0d84b6643b53038ad5b5740431d2a8e7",
+      "bytes": 2683032
+    }
+  },
+  "corpusSha256": "df55d1fc2ae65c2d9758fd9b3a59bce62147a05533a7f16cf9a72017759f413c",
+  "claimBoundary": "This corpus can train and evaluate complete 1-D elementwise f32 WGSL shaders under explicit interface contracts. It cannot establish arbitrary WGSL program synthesis, binding design, reductions, shared memory, atomics, textures, graphics stages, or deployment readiness.",
+  "manifestSha256": "95687c9013d21dcc4b176b2595b68aa30380f6d71a117cefc7c6b23ffd1dc05a"
+}

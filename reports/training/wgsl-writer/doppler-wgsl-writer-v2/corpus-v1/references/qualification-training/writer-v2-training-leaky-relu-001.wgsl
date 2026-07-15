@@ -1,0 +1,23 @@
+override WORKGROUP_SIZE: u32 = 128u;
+
+struct Params {
+    length: u32,
+    output_offset: u32,
+    slope: f32,
+    second_reserved: f32,
+}
+
+@group(0) @binding(0) var<storage, read> input_values: array<f32>;
+@group(0) @binding(1) var<storage, read_write> output_values: array<f32>;
+@group(0) @binding(2) var<uniform> params: Params;
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+    if (index >= params.length) {
+        return;
+    }
+
+    let result = select(params.slope * input_values[index], input_values[index], input_values[index] >= 0.0);
+    output_values[params.output_offset + index] = result;
+}
