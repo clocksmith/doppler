@@ -6,10 +6,11 @@ seed 29 has not received a confirmation prompt at this stage.
 
 The commit containing this document, the materialization policy, the generator,
 the 12-blueprint catalog, and the CPU-oracle implementation supplies the
-population entropy. The generator ranks all blueprint identifiers using
-domain-separated SHA-256 values derived from that full commit hash, selects
-eight, and independently derives parameter choices, input seeds, and shape
-variants.
+population entropy. The generator ranks blueprint identifiers within frozen
+arity and parameterization strata using domain-separated SHA-256 values derived
+from that full commit hash. It selects four unary and four binary tasks, split
+equally between parameterized and non-parameterized tasks, then independently
+derives parameter choices, input seeds, and shape variants.
 
 The protocol requires this order:
 
@@ -31,3 +32,9 @@ It has no promotion, WGSL Doctor, or complete-shader-writing authority. A WGSL
 writer remains a separate experiment with specification-to-complete-shader
 inputs and its own compilation, dispatch, CPU-oracle, bounds, metamorphic, and
 promotion populations.
+
+The original unstratified V1 materialization was invalidated before reference
+qualification or candidate inference because its blind subset happened to
+contain seven unary and six parameterized tasks. Its immutable invalidation
+receipt is
+`wgsl-repair-v13-seed-confirmation-materialization-v1-invalid-2026-07-14.json`.

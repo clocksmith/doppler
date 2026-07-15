@@ -72,12 +72,40 @@
     "selection": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["algorithm", "taskCount", "subsetRule", "parameterRule"],
+      "required": ["algorithm", "taskCount", "strata", "subsetRule", "parameterRule"],
       "properties": {
-        "algorithm": { "const": "commit_sha256_ranked_blueprint_subset_v1" },
+        "algorithm": { "const": "commit_sha256_stratified_blueprint_subset_v2" },
         "taskCount": { "const": 8 },
+        "strata": {
+          "const": [
+            {
+              "id": "binary_parameterized",
+              "arity": "binary",
+              "parameterized": true,
+              "count": 1
+            },
+            {
+              "id": "binary_nonparameterized",
+              "arity": "binary",
+              "parameterized": false,
+              "count": 3
+            },
+            {
+              "id": "unary_parameterized",
+              "arity": "unary",
+              "parameterized": true,
+              "count": 3
+            },
+            {
+              "id": "unary_nonparameterized",
+              "arity": "unary",
+              "parameterized": false,
+              "count": 1
+            }
+          ]
+        },
         "subsetRule": {
-          "const": "rank all blueprint ids by domain-separated SHA-256 and take the first eight"
+          "const": "within frozen arity and parameterization strata, rank blueprint ids by domain-separated SHA-256 and take each declared count"
         },
         "parameterRule": {
           "const": "select declared parameter values, input seeds, and shape variants from independent domain-separated SHA-256 digests"

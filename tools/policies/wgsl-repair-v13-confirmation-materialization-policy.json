@@ -6,7 +6,7 @@
   "status": "frozen_before_population_materialization",
   "generator": {
     "path": "tools/materialize-wgsl-repair-v13-confirmation.js",
-    "sha256": "bcfc8d2aab1a829a0f04cf42b7f4eb82ce0c44f0f932552e5d3ca3e723563662"
+    "sha256": "c0c66e7a0531126b3323f704697d8ea3447e661472a7891688dadde308d1551d"
   },
   "catalog": {
     "path": "tools/data/wgsl-repair-v13-confirmation-blueprints.json",
@@ -24,9 +24,35 @@
     "domainSeparator": "doppler-wgsl-v13-confirmation-v1"
   },
   "selection": {
-    "algorithm": "commit_sha256_ranked_blueprint_subset_v1",
+    "algorithm": "commit_sha256_stratified_blueprint_subset_v2",
     "taskCount": 8,
-    "subsetRule": "rank all blueprint ids by domain-separated SHA-256 and take the first eight",
+    "strata": [
+      {
+        "id": "binary_parameterized",
+        "arity": "binary",
+        "parameterized": true,
+        "count": 1
+      },
+      {
+        "id": "binary_nonparameterized",
+        "arity": "binary",
+        "parameterized": false,
+        "count": 3
+      },
+      {
+        "id": "unary_parameterized",
+        "arity": "unary",
+        "parameterized": true,
+        "count": 3
+      },
+      {
+        "id": "unary_nonparameterized",
+        "arity": "unary",
+        "parameterized": false,
+        "count": 1
+      }
+    ],
+    "subsetRule": "within frozen arity and parameterization strata, rank blueprint ids by domain-separated SHA-256 and take each declared count",
     "parameterRule": "select declared parameter values, input seeds, and shape variants from independent domain-separated SHA-256 digests"
   },
   "outputs": {

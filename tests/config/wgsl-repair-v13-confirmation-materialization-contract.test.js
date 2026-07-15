@@ -60,6 +60,15 @@ assert.equal(first.manifest.tasks.length, policy.selection.taskCount);
 assert.equal(first.manifest.materialization.freezeCommit, freezeCommit);
 assert.equal(first.manifest.materialization.eligibleBlueprintCount, catalog.blueprints.length);
 assert.equal(new Set(first.manifest.materialization.selectedBlueprintIds).size, 8);
+const selectedBlueprints = new Map(catalog.blueprints.map((entry) => [entry.id, entry]));
+assert.equal(first.manifest.tasks.filter((task) => (
+  selectedBlueprints.get(task.taskId.replace('v13-confirmation-', '')).arity === 'unary'
+)).length, 4);
+assert.equal(first.manifest.tasks.filter((task) => (
+  selectedBlueprints.get(task.taskId.replace('v13-confirmation-', '')).arity === 'binary'
+)).length, 4);
+assert.equal(first.manifest.tasks.filter((task) => Object.keys(task.parameters).length > 0).length, 4);
+assert.equal(first.manifest.tasks.filter((task) => Object.keys(task.parameters).length === 0).length, 4);
 
 const priorTaskIds = new Set();
 const priorFamilies = new Set();
@@ -76,7 +85,6 @@ for (const manifest of priorManifests) {
   }
 }
 
-const selectedBlueprints = new Map(catalog.blueprints.map((entry) => [entry.id, entry]));
 for (const task of first.manifest.tasks) {
   const blueprintId = task.taskId.replace('v13-confirmation-', '');
   const blueprint = selectedBlueprints.get(blueprintId);
