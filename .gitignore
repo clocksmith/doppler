@@ -128,6 +128,8 @@ reports/**
 !reports/training/wgsl-writer/doppler-wgsl-writer-v1/
 !reports/training/wgsl-writer/doppler-wgsl-writer-v1/mechanics/
 !reports/training/wgsl-writer/doppler-wgsl-writer-v1/mechanics/*.json
+!reports/training/wgsl-writer/doppler-wgsl-writer-v1/diagnostic/
+!reports/training/wgsl-writer/doppler-wgsl-writer-v1/diagnostic/*.json
 !reports/f16-precision-collapse/
 reports/f16-precision-collapse/**
 !reports/f16-precision-collapse/stable/
