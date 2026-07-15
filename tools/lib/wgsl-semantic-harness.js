@@ -212,6 +212,86 @@ function createOracleDefinition(task, length) {
       Number(parameters.threshold)
     );
   }
+  if (task.oracleId === 'multiply_pair_f32') {
+    return binaryDefinition((inputs) => inputs.leftValues.map((value, index) => (
+      Math.fround(value * inputs.rightValues[index])
+    )));
+  }
+  if (task.oracleId === 'max_pair_f32') {
+    return binaryDefinition((inputs) => inputs.leftValues.map((value, index) => (
+      Math.fround(Math.max(value, inputs.rightValues[index]))
+    )));
+  }
+  if (task.oracleId === 'mean_pair_f32') {
+    return binaryDefinition((inputs) => inputs.leftValues.map((value, index) => (
+      Math.fround(Math.fround(value + inputs.rightValues[index]) * 0.5)
+    )));
+  }
+  if (task.oracleId === 'distance_pair_f32') {
+    return binaryDefinition((inputs) => inputs.leftValues.map((value, index) => (
+      Math.fround(Math.abs(Math.fround(value - inputs.rightValues[index])))
+    )));
+  }
+  if (task.oracleId === 'negate_f32') {
+    return unaryDefinition((inputs) => inputs.inputValues.map((value) => (
+      Math.fround(-value)
+    )));
+  }
+  if (task.oracleId === 'floor_f32') {
+    return unaryDefinition((inputs) => inputs.inputValues.map((value) => (
+      Math.fround(Math.floor(value))
+    )));
+  }
+  if (task.oracleId === 'add_scalar_f32') {
+    return unaryDefinition(
+      (inputs) => inputs.inputValues.map((value) => (
+        Math.fround(value + parameters.scalar)
+      )),
+      Number(parameters.scalar)
+    );
+  }
+  if (task.oracleId === 'leaky_relu_f32') {
+    return unaryDefinition(
+      (inputs) => inputs.inputValues.map((value) => (
+        Math.fround(value >= 0 ? value : Math.fround(parameters.slope * value))
+      )),
+      Number(parameters.slope)
+    );
+  }
+  if (task.oracleId === 'cap_f32') {
+    return unaryDefinition(
+      (inputs) => inputs.inputValues.map((value) => (
+        Math.fround(Math.min(value, parameters.cap))
+      )),
+      Number(parameters.cap)
+    );
+  }
+  if (task.oracleId === 'mask_below_f32') {
+    return unaryDefinition(
+      (inputs) => inputs.inputValues.map((value) => (
+        Math.fround(value >= parameters.threshold ? value : 0)
+      )),
+      Number(parameters.threshold)
+    );
+  }
+  if (task.oracleId === 'difference_scale_f32') {
+    return binaryDefinition(
+      (inputs) => inputs.leftValues.map((value, index) => (
+        Math.fround(
+          Math.fround(value - inputs.rightValues[index]) * parameters.scale
+        )
+      )),
+      Number(parameters.scale)
+    );
+  }
+  if (task.oracleId === 'square_scale_f32') {
+    return unaryDefinition(
+      (inputs) => inputs.inputValues.map((value) => (
+        Math.fround(Math.fround(value * value) * parameters.scale)
+      )),
+      Number(parameters.scale)
+    );
+  }
   throw new Error(`WGSL semantic harness: unsupported oracle ${task.oracleId}.`);
 }
 

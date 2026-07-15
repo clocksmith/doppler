@@ -19,17 +19,28 @@ import { hashWgslSemanticEvidenceValue } from '../src/tooling/wgsl-repair-semant
 const DEFAULT_POLICY = 'tools/policies/wgsl-repair-v13-seed-selection-policy.json';
 
 function parseArgs(argv) {
-  const args = { policyPath: DEFAULT_POLICY, modelDir: '', seed: null, outputPath: '' };
+  const args = {
+    policyPath: DEFAULT_POLICY,
+    modelDir: '',
+    seed: null,
+    outputPath: '',
+    populationRole: 'checkpointSelection',
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === '--policy') args.policyPath = argv[++index] || '';
     else if (token === '--model-dir') args.modelDir = argv[++index] || '';
     else if (token === '--seed') args.seed = Number(argv[++index]);
     else if (token === '--out') args.outputPath = argv[++index] || '';
+    else if (token === '--population-role') args.populationRole = argv[++index] || '';
     else throw new Error(`Unknown argument: ${token}`);
   }
   if (!args.modelDir) throw new Error('--model-dir is required.');
   if (![11, 29, 47].includes(args.seed)) throw new Error('--seed must be 11, 29, or 47.');
+  if (!['calibration', 'checkpointSelection', 'seedConfirmation', 'promotion']
+    .includes(args.populationRole)) {
+    throw new Error('--population-role is invalid.');
+  }
   return args;
 }
 
@@ -121,9 +132,12 @@ export async function runWgslRepairSeedCandidates(args) {
   const policy = await readJson(args.policyPath);
   const candidate = policy.eligibleCandidates.find((entry) => entry.seed === args.seed);
   if (!candidate) throw new Error(`Seed ${args.seed} is not eligible.`);
-  const population = policy.populations.checkpointSelection;
+  const population = policy.populations?.[args.populationRole];
+  if (!population?.path || !population?.sha256) {
+    throw new Error(`Population role is not frozen in the policy: ${args.populationRole}.`);
+  }
   await Promise.all([
-    requireFileHash(population.path, population.sha256, 'checkpoint-selection population'),
+    requireFileHash(population.path, population.sha256, `${args.populationRole} population`),
     requireFileHash(
       policy.predecessor.adapterPortabilityReceiptPath,
       policy.predecessor.adapterPortabilityReceiptSha256,
@@ -200,6 +214,7 @@ export async function runWgslRepairSeedCandidates(args) {
     const core = {
       schema: 'doppler.wgsl-repair-seed-candidate-completions/v1',
       experimentId: 'doppler-wgsl-repair-v13',
+      evaluationRole: manifest.role,
       policy: { path: args.policyPath, sha256: await sha256File(args.policyPath) },
       population,
       candidate: {
@@ -224,7 +239,9 @@ export async function runWgslRepairSeedCandidates(args) {
       tasks,
       selectionAuthority: false,
       promotionAuthority: false,
-      claimBoundary: 'Deterministic Doppler candidate completions on the frozen checkpoint-selection population. Semantic dispatch evaluation and the frozen ranking policy must run before a seed can be selected.',
+      claimBoundary: manifest.role === 'checkpoint_selection'
+        ? 'Deterministic Doppler candidate completions on the frozen checkpoint-selection population. Semantic dispatch evaluation and the frozen ranking policy must run before a seed can be selected.'
+        : `Deterministic Doppler candidate completions on the frozen ${manifest.role} population. This receipt has no authority beyond that declared role.`,
     };
     return { ...core, receiptHash: hashWgslSemanticEvidenceValue(core) };
   } finally {

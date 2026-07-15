@@ -71,6 +71,11 @@
       "id": "wgsl-repair-v13-seed-selection-policy",
       "policyPath": "tools/policies/wgsl-repair-v13-seed-selection-policy.json",
       "schemaPath": "src/config/schema/wgsl-repair-seed-selection.schema.json"
+    },
+    {
+      "id": "wgsl-repair-v13-confirmation-materialization-policy",
+      "policyPath": "tools/policies/wgsl-repair-v13-confirmation-materialization-policy.json",
+      "schemaPath": "src/config/schema/wgsl-repair-confirmation-materialization.schema.json"
     }
   ]
 }
