@@ -24,13 +24,13 @@ npx doppler-gpu
 
 ## Evidence
 
-Doppler has lower steady-state inference latency than Transformers.js in each
+Doppler has higher steady-state inference throughput than Transformers.js in each
 of the comparable browser WebGPU results indexed below.
 
-![Metal and Vulkan browser WebGPU latency distributions](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-webgpu-evidence.svg)
+![Metal and Vulkan browser WebGPU throughput distributions](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-webgpu-evidence.svg)
 
-For text, faster means lower decode ms/token; for retrieval it means lower
-ms/embedding or ms/rerank. Every comparison passes its declared workload
+Text uses tok/s, embeddings use embedding/s, and reranking uses rerank/s;
+higher is faster. Every comparison passes its declared workload
 correctness gate. Model loading is separate: Transformers.js loads the Vulkan
 embedding and reranker artifacts faster. The
 [competition scoreboard](https://github.com/clocksmith/doppler/blob/main/docs/model-competition-scoreboard.md) links every
