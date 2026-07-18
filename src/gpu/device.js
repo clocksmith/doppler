@@ -14,6 +14,12 @@ const SHARED_DEVICE_STATE_KEY = '__dopplerGpuDeviceState';
 function getSharedDeviceState() {
   const existing = globalThis[SHARED_DEVICE_STATE_KEY];
   if (existing && typeof existing === 'object') {
+    if (!(existing.bufferOwners instanceof WeakMap)) {
+      existing.bufferOwners = new WeakMap();
+    }
+    if (!('deviceInitPromise' in existing)) {
+      existing.deviceInitPromise = null;
+    }
     return existing;
   }
   const created = {
@@ -23,6 +29,8 @@ function getSharedDeviceState() {
     lastDeviceLossInfo: null,
     platformInitialized: false,
     deviceEpoch: 0,
+    bufferOwners: new WeakMap(),
+    deviceInitPromise: null,
   };
   Object.defineProperty(globalThis, SHARED_DEVICE_STATE_KEY, {
     value: created,
@@ -58,14 +66,14 @@ function syncSharedDeviceState() {
 }
 
 function hydrateDeviceState() {
-  gpuDevice = gpuDevice ?? sharedDeviceState.gpuDevice ?? null;
-  kernelCapabilities = kernelCapabilities ?? sharedDeviceState.kernelCapabilities ?? null;
-  resolvedPlatformConfig = resolvedPlatformConfig ?? sharedDeviceState.resolvedPlatformConfig ?? null;
-  lastDeviceLossInfo = lastDeviceLossInfo ?? sharedDeviceState.lastDeviceLossInfo ?? null;
-  platformInitialized = platformInitialized || sharedDeviceState.platformInitialized === true;
-  if (Number.isInteger(sharedDeviceState.deviceEpoch) && sharedDeviceState.deviceEpoch > deviceEpoch) {
-    deviceEpoch = sharedDeviceState.deviceEpoch;
-  }
+  gpuDevice = sharedDeviceState.gpuDevice ?? null;
+  kernelCapabilities = sharedDeviceState.kernelCapabilities ?? null;
+  resolvedPlatformConfig = sharedDeviceState.resolvedPlatformConfig ?? null;
+  lastDeviceLossInfo = sharedDeviceState.lastDeviceLossInfo ?? null;
+  platformInitialized = sharedDeviceState.platformInitialized === true;
+  deviceEpoch = Number.isInteger(sharedDeviceState.deviceEpoch)
+    ? sharedDeviceState.deviceEpoch
+    : 0;
 }
 
 function advanceDeviceEpoch() {
@@ -185,7 +193,7 @@ function describeBindGroupBufferValue(value) {
   return typeof value;
 }
 
-function validateBindGroupDescriptor(descriptor) {
+function validateBindGroupDescriptor(descriptor, device) {
   const label = descriptor?.label || 'unlabeled_bind_group';
   const entries = Array.isArray(descriptor?.entries) ? descriptor.entries : [];
   for (const entry of entries) {
@@ -193,13 +201,18 @@ function validateBindGroupDescriptor(descriptor) {
     if (!resource || typeof resource !== 'object' || !('buffer' in resource)) {
       continue;
     }
-    if (isValidGPUBuffer(resource.buffer)) {
-      continue;
+    if (!isValidGPUBuffer(resource.buffer)) {
+      throw new Error(
+        `[${label}] binding ${entry.binding} requires a GPUBuffer; ` +
+        `got ${describeBindGroupBufferValue(resource.buffer)}.`
+      );
     }
-    throw new Error(
-      `[${label}] binding ${entry.binding} requires a GPUBuffer; ` +
-      `got ${describeBindGroupBufferValue(resource.buffer)}.`
-    );
+    const owner = sharedDeviceState.bufferOwners.get(resource.buffer);
+    if (owner && owner !== device) {
+      throw new Error(
+        `[${label}] binding ${entry.binding} uses a GPUBuffer created by a different GPUDevice.`
+      );
+    }
   }
 }
 
@@ -211,16 +224,49 @@ function shouldValidateBindGroupDescriptors() {
   return false;
 }
 
+function wrapDeviceCreateBuffer(device) {
+  if (
+    !device
+    || device.__dopplerBufferOwnershipWrapped
+    || typeof device.createBuffer !== 'function'
+  ) {
+    return device;
+  }
+  const originalCreateBuffer = device.createBuffer.bind(device);
+  device.createBuffer = (descriptor) => {
+    const buffer = originalCreateBuffer(descriptor);
+    if (buffer && (typeof buffer === 'object' || typeof buffer === 'function')) {
+      sharedDeviceState.bufferOwners.set(buffer, device);
+    }
+    return buffer;
+  };
+  Object.defineProperty(device, '__dopplerBufferOwnershipWrapped', {
+    value: true,
+    configurable: true,
+    enumerable: false,
+    writable: false,
+  });
+  return device;
+}
+
 function wrapDeviceCreateBindGroup(device) {
   if (!device || device.__dopplerBindGroupValidationWrapped) {
     return device;
   }
-  if (!shouldValidateBindGroupDescriptors()) {
-    return device;
-  }
   const originalCreateBindGroup = device.createBindGroup.bind(device);
   device.createBindGroup = (descriptor) => {
-    validateBindGroupDescriptor(descriptor);
+    if (shouldValidateBindGroupDescriptors()) {
+      validateBindGroupDescriptor(descriptor, device);
+    } else {
+      const entries = Array.isArray(descriptor?.entries) ? descriptor.entries : [];
+      for (const entry of entries) {
+        const buffer = entry?.resource?.buffer;
+        if (buffer && sharedDeviceState.bufferOwners.get(buffer) !== undefined) {
+          validateBindGroupDescriptor(descriptor, device);
+          break;
+        }
+      }
+    }
     return originalCreateBindGroup(descriptor);
   };
   Object.defineProperty(device, '__dopplerBindGroupValidationWrapped', {
@@ -240,9 +286,10 @@ function registerDeviceLostHandler(device) {
   if (device.lost && typeof device.lost.then === 'function') {
     const trackedDevice = device;
     device.lost.then((info) => {
-      if (gpuDevice !== trackedDevice) {
+      if (sharedDeviceState.gpuDevice !== trackedDevice) {
         return;
       }
+      hydrateDeviceState();
       lastDeviceLossInfo = {
         message: info?.message ?? '',
         reason: info?.reason ?? 'unknown',
@@ -254,9 +301,10 @@ function registerDeviceLostHandler(device) {
       clearActiveDeviceState();
       advanceDeviceEpoch();
     }).catch((error) => {
-      if (gpuDevice !== trackedDevice) {
+      if (sharedDeviceState.gpuDevice !== trackedDevice) {
         return;
       }
+      hydrateDeviceState();
       lastDeviceLossInfo = {
         message: error?.message ?? String(error),
         reason: 'device_lost_handler_failed',
@@ -478,17 +526,7 @@ async function initializePlatformAndRegistry(adapter) {
 }
 
 
-export async function initDevice() {
-  hydrateDeviceState();
-  // Return cached device if available
-  if (gpuDevice) {
-    if (isUsableGPUDevice(gpuDevice)) {
-      return gpuDevice;
-    }
-    clearActiveDeviceState();
-    advanceDeviceEpoch();
-  }
-
+async function initializeDevice() {
   if (!isWebGPUAvailable()) {
     throw createDopplerError(ERROR_CODES.GPU_UNAVAILABLE, 'WebGPU is not available in this browser');
   }
@@ -517,6 +555,7 @@ export async function initDevice() {
   }
   lastDeviceLossInfo = null;
   ensureGpuBufferConstructor(gpuDevice);
+  wrapDeviceCreateBuffer(gpuDevice);
   wrapDeviceCreateBindGroup(gpuDevice);
   registerDeviceLostHandler(gpuDevice);
   advanceDeviceEpoch();
@@ -563,6 +602,34 @@ export async function initDevice() {
   return gpuDevice;
 }
 
+export async function initDevice() {
+  hydrateDeviceState();
+  // Return cached device if available
+  if (gpuDevice) {
+    if (isUsableGPUDevice(gpuDevice)) {
+      return gpuDevice;
+    }
+    clearActiveDeviceState();
+    advanceDeviceEpoch();
+  }
+  if (sharedDeviceState.deviceInitPromise) {
+    const device = await sharedDeviceState.deviceInitPromise;
+    hydrateDeviceState();
+    return device;
+  }
+  const initialization = initializeDevice();
+  sharedDeviceState.deviceInitPromise = initialization;
+  try {
+    const device = await initialization;
+    hydrateDeviceState();
+    return device;
+  } finally {
+    if (sharedDeviceState.deviceInitPromise === initialization) {
+      sharedDeviceState.deviceInitPromise = null;
+    }
+  }
+}
+
 export function setDevice(device, options = {}) {
   hydrateDeviceState();
   if (!device) {
@@ -574,6 +641,7 @@ export function setDevice(device, options = {}) {
   gpuDevice = device;
   lastDeviceLossInfo = null;
   ensureGpuBufferConstructor(gpuDevice);
+  wrapDeviceCreateBuffer(gpuDevice);
   wrapDeviceCreateBindGroup(gpuDevice);
   registerDeviceLostHandler(gpuDevice);
   advanceDeviceEpoch();
