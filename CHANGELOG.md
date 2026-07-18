@@ -22,6 +22,10 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 - Included the WGSL Writer V3 package and campaign schemas in the generated npm
   source closure.
+- Retained the experimental
+  `translategemma-4b-1b-enes-q4k-ehf16-af32` NativeKD2 EN/ES candidate first
+  shipped in `0.4.8`, without changing its weights, evidence boundary, or
+  promotion status. Version `0.4.10` makes no new translation-model claim.
 
 ## [0.4.9] - 2026-07-14
 
