@@ -54,6 +54,8 @@
     "training:wgsl:writer:confirm": "node tools/finalize-wgsl-writer-v2-confirmation.js",
     "training:wgsl:writer:parity": "node tools/run-wgsl-writer-v2-parity.js",
     "training:wgsl:writer:result": "node tools/finalize-wgsl-writer-v2-result.js",
+    "training:wgsl:author:contract": "node tools/run-node-tests.js tests/tooling/wgsl-author-package.test.js tests/tooling/wgsl-author-execution-plan.test.js tests/tooling/wgsl-author-browser-executor.test.js tests/tooling/wgsl-author-reference.test.js tests/training/wgsl-writer-v3-contract.test.js",
+    "training:wgsl:author:reference": "node tools/run-wgsl-author-v3-reference.js",
     "training:wgsl:seed-candidates": "node tools/run-wgsl-repair-seed-candidates.js",
     "training:wgsl:seed-select": "node tools/select-wgsl-repair-v13-seed.js",
     "training:contract:delta": "node tools/emit-training-contract-delta.js",

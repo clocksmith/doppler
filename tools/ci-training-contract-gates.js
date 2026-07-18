@@ -91,6 +91,11 @@ const LANE_MAP = Object.freeze({
         'tests/training/agent-heldout-eval.test.js',
         'tests/training/host-teacher-qualification.test.js',
         'tests/training/student-code-experiment.test.js',
+        'tests/tooling/wgsl-author-package.test.js',
+        'tests/tooling/wgsl-author-execution-plan.test.js',
+        'tests/tooling/wgsl-author-browser-executor.test.js',
+        'tests/tooling/wgsl-author-reference.test.js',
+        'tests/training/wgsl-writer-v3-contract.test.js',
       ],
     },
     {
