@@ -39,6 +39,9 @@ function runInline(args, source) {
     if (typeof mod.runBrowserCommand !== 'function') {
       throw new Error('expected runBrowserCommand on browser tooling import');
     }
+    if (typeof mod.evaluateBrowserRuntimeOptimizationCandidate !== 'function') {
+      throw new Error('expected runtime optimization evaluator on browser tooling import');
+    }
     if ('runNodeCommand' in mod) {
       throw new Error('browser tooling import unexpectedly exposed runNodeCommand');
     }

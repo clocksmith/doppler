@@ -65,6 +65,25 @@ export {
   ensureCommandSupportedOnSurface,
 } from './tooling/command-api.js';
 export { runBrowserCommand, normalizeBrowserCommand } from './tooling/browser-command-runner.js';
+export {
+  RUNTIME_OPTIMIZATION_CONTRACT_SCHEMA,
+  RUNTIME_OPTIMIZATION_CANDIDATE_SCHEMA,
+  RUNTIME_OPTIMIZATION_RECEIPT_SCHEMA,
+  validateRuntimeOptimizationContract,
+  hashRuntimeOptimizationContract,
+  enumerateRuntimeOptimizationCandidates,
+  validateRuntimeOptimizationCandidate,
+  materializeRuntimeOptimizationCandidate,
+  evaluateBrowserRuntimeOptimizationCandidate,
+} from './tooling/runtime-optimization.js';
+export type {
+  RuntimeOptimizationWorkload,
+  RuntimeOptimizationDirection,
+  RuntimeOptimizationContract,
+  RuntimeOptimizationCandidate,
+  RuntimeOptimizationReceipt,
+  RuntimeOptimizationEvaluationOptions,
+} from './tooling/runtime-optimization.js';
 
 export type {
   ToolingCommand,
