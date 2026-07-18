@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/runtime-optimization-contract-v1.schema.json",
+  "title": "Doppler runtime optimization contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contractId",
+    "kind",
+    "model",
+    "baseline",
+    "workload",
+    "mutationPolicy",
+    "verification",
+    "measurement"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.runtime-optimization-contract/v1" },
+    "contractId": { "type": "string", "minLength": 1 },
+    "kind": { "const": "runtime_profile" },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modelId", "modelUrl", "expectedExecutionContractHash"],
+      "properties": {
+        "modelId": { "type": "string", "minLength": 1 },
+        "modelUrl": { "type": ["string", "null"] },
+        "expectedExecutionContractHash": {
+          "anyOf": [
+            { "$ref": "#/$defs/digest" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtimeProfile", "runtimeConfig"],
+      "properties": {
+        "runtimeProfile": { "type": "null" },
+        "runtimeConfig": { "type": "object" }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "request"],
+      "properties": {
+        "type": { "enum": ["inference", "embedding", "rerank"] },
+        "request": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "inferenceInput": { "type": ["object", "null"] },
+            "cacheMode": { "enum": ["cold", "warm", null] },
+            "loadMode": { "enum": ["opfs", "http", "memory", "file", null] }
+          }
+        }
+      }
+    },
+    "mutationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimensions", "maxCandidates"],
+      "properties": {
+        "dimensions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "values"],
+            "properties": {
+              "path": { "type": "string", "pattern": "^/" },
+              "values": { "type": "array", "minItems": 1 }
+            }
+          }
+        },
+        "maxCandidates": { "type": "integer", "minimum": 1, "maximum": 256 }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["comparisons"],
+      "properties": {
+        "comparisons": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "mode"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "mode": { "const": "canonical_exact" }
+            }
+          }
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metricPath",
+        "direction",
+        "pairCount",
+        "minValidPairs",
+        "minImprovementPercent",
+        "requirePositiveConfidence",
+        "maxRelativeStdDevPercent"
+      ],
+      "properties": {
+        "metricPath": { "type": "string", "minLength": 1 },
+        "direction": { "enum": ["maximize", "minimize"] },
+        "pairCount": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "minValidPairs": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "minImprovementPercent": { "type": "number" },
+        "requirePositiveConfidence": { "type": "boolean" },
+        "maxRelativeStdDevPercent": { "type": ["number", "null"], "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

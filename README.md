@@ -68,14 +68,64 @@ benchmark gates.
 
 ## How it works
 
-```text
-+----------+     +------------------+     +--------------+     +-----------------+     +------------------+
-| Contract | --> | Candidate        | --> | Parity gate  | --> | Benchmark gate  | --> | Retain or reject |
-| RDRR /   |     | model / plan /   |     | correctness  |     | comparable      |     | receipts /       |
-| request  |     | kernel edit      |     | vs reference |     | speed vs prior  |     | findings         |
-+----------+     +------------------+     +--------------+     +-----------------+     +--------+---------+
-                                                                                               |
-                                                                            next search <------+
+```mermaid
+flowchart TB
+  subgraph Propose["1 · Propose"]
+    direction LR
+    HUMAN["Engineer or optimizer"]
+    CANDIDATE["Candidate edit<br/>manifest · plan · WGSL"]
+    HUMAN --> CANDIDATE
+  end
+
+  subgraph Run["2 · Resolve and run"]
+    direction LR
+    ARTIFACT["RDRR artifact<br/>manifest · weights · tokenizer"]
+    REQUEST["Request + runtime profile"]
+    VALIDATE["Validate contracts"]
+    RESOLVE["Resolve execution graph<br/>kernel refs · session"]
+    LOAD["Load + bind<br/>GPU buffers · cache"]
+    DISPATCH["Dispatch WGSL<br/>prefill · decode · retrieval"]
+    OUTPUT["Tokens · embeddings · scores"]
+
+    ARTIFACT --> VALIDATE
+    REQUEST --> VALIDATE
+    CANDIDATE --> VALIDATE
+    VALIDATE --> RESOLVE --> LOAD --> DISPATCH --> OUTPUT
+  end
+
+  subgraph Verify["3 · Evidence disposes"]
+    direction LR
+    PARITY{"Parity gate<br/>correct vs reference"}
+    BENCH{"Benchmark gate<br/>comparable speed vs prior"}
+    RETAIN["Retain<br/>versioned lane + receipt"]
+    REJECT["Reject<br/>finding + negative result"]
+
+    OUTPUT --> PARITY
+    PARITY -- pass --> BENCH
+    PARITY -- mismatch --> REJECT
+    BENCH -- pass --> RETAIN
+    BENCH -- fail --> REJECT
+  end
+
+  RETAIN -. reusable asset .-> HUMAN
+  REJECT -. search memory .-> HUMAN
+
+  classDef proposal fill:#fff1f3,stroke:#ff6b7a,color:#08090c,stroke-width:2px;
+  classDef runtime fill:#eef4ff,stroke:#5d8dff,color:#08090c,stroke-width:2px;
+  classDef gate fill:#f7f1ff,stroke:#b98cff,color:#08090c,stroke-width:2px;
+  classDef accepted fill:#08090c,stroke:#5d8dff,color:#ffffff,stroke-width:3px;
+  classDef rejected fill:#fff1f3,stroke:#ff6b7a,color:#08090c,stroke-width:2px;
+
+  class HUMAN,CANDIDATE proposal;
+  class ARTIFACT,REQUEST,VALIDATE,RESOLVE,LOAD,DISPATCH,OUTPUT runtime;
+  class PARITY,BENCH gate;
+  class RETAIN accepted;
+  class REJECT rejected;
+
+  style Propose fill:#fffafa,stroke:#ff6b7a,stroke-width:1px
+  style Run fill:#f8faff,stroke:#5d8dff,stroke-width:1px
+  style Verify fill:#fcfaff,stroke:#b98cff,stroke-width:1px
+  linkStyle default stroke:#5d8dff,stroke-width:2px;
 ```
 
 The full resolve, load, bind, dispatch, and readback flow lives in the

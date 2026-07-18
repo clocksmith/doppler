@@ -40,6 +40,9 @@ config/schema/host-teacher-qualification-policy.schema.json
 config/schema/host-teacher-qualification-receipt.schema.json
 config/schema/host-teacher-task-bank.schema.json
 config/schema/model-artifact-contract.schema.json
+config/schema/optimization-candidate.schema.json
+config/schema/optimization-contract.schema.json
+config/schema/optimization-receipt.schema.json
 config/schema/platform.schema.js
 config/schema/policy-schema-registry.json
 config/schema/subsystem-support-contract.schema.json

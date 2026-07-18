@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/runtime-optimization-receipt-v1.schema.json",
+  "title": "Doppler runtime optimization receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "contractId",
+    "contractHash",
+    "candidateId",
+    "candidateHash",
+    "parentHash",
+    "model",
+    "runtimeInputs",
+    "verification",
+    "measurement",
+    "decision"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.runtime-optimization-receipt/v1" },
+    "contractId": { "type": "string", "minLength": 1 },
+    "contractHash": { "$ref": "#/$defs/digest" },
+    "candidateId": { "type": "string", "minLength": 1 },
+    "candidateHash": { "$ref": "#/$defs/digest" },
+    "parentHash": { "$ref": "#/$defs/digest" },
+    "model": { "type": "object" },
+    "runtimeInputs": { "type": "object" },
+    "verification": { "type": "object" },
+    "measurement": { "type": "object" },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["accepted", "status", "reasons"],
+      "properties": {
+        "accepted": { "type": "boolean" },
+        "status": { "enum": ["accepted", "rejected", "invalid"] },
+        "reasons": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "receiptHash": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}
