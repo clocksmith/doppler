@@ -91,6 +91,11 @@
       "id": "wgsl-writer-v1-diagnostic-policy",
       "policyPath": "tools/policies/wgsl-writer-v1-diagnostic-policy.json",
       "schemaPath": "src/config/schema/wgsl-writer-diagnostic.schema.json"
+    },
+    {
+      "id": "wgsl-writer-v3-campaign-policy",
+      "policyPath": "tools/policies/wgsl-writer-v3-campaign-policy.json",
+      "schemaPath": "src/config/schema/wgsl-writer-v3-campaign.schema.json"
     }
   ]
 }
