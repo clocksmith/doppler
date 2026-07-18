@@ -3,10 +3,10 @@
 ## Decision
 
 WGSL Writer V3 is Doppler's planned general shader-program experiment. Its
-output unit is an executable package, not a WGSL string. Execution is sequenced
-after the Columbo adapter and tiered-runtime work reaches its declared evidence
-boundary. Until that receipt exists, this document owns the plan but does not
-authorize V3 implementation, training, productization, or capability claims.
+output unit is an executable package, not a WGSL string. This public document
+owns the technical plan and claim boundary. It does not encode private portfolio
+priority or authorize V3 implementation, training, productization, or
+capability claims.
 
 ## Current Ground Truth
 
@@ -173,12 +173,8 @@ The surface must never:
 - silently downgrade unsupported features; or
 - claim shader families outside the promoted capability envelope.
 
-## Resume Gate
+## Authorization Boundary
 
-Resume V3 only after Columbo's
-[`tiered-review-runtime.md`](../../columbo/docs/tiered-review-runtime.md)
-campaign records its terminal decision and that receipt is linked here. The
-current V8 grounded-redaction rejection is already terminal for that adapter
-campaign; it does not satisfy the separate tiered-runtime gate. Columbo model
-weights, evaluators, and promotion decisions do not transfer into V3; the gate
-controls sequencing only.
+This plan defines the evidence required for WGSL Writer V3. Private work order
+and portfolio priority are intentionally outside this public repository. No
+external project artifact or result transfers into the V3 capability claim.
