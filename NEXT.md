@@ -6,11 +6,10 @@ Status note: this file has been corrected to reference only modules, functions, 
 
 - WGSL Writer V3 is defined in `docs/wgsl-writer-v3-plan.md`. It expands the
   narrow V2 compute-only result into an executable compute/render package with
-  semantic Chromium WebGPU qualification. Execution remains paused until the
-  user-declared Columbo adapter and tiered-runtime evidence boundary is reached.
-  The first permitted V3 implementation is the package schema, validator,
-  executor, and four reference fixtures; no V3 mechanics currently exist on
-  `main`.
+  semantic Chromium WebGPU qualification. Private portfolio sequencing is not
+  recorded in this public repository. The first V3 implementation boundary is
+  the package schema, validator, executor, and four reference fixtures; no V3
+  execution qualification is currently claimed on `main`.
 
 ## Active Metal Decode Work
 
