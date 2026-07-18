@@ -175,7 +175,10 @@ The surface must never:
 
 ## Resume Gate
 
-Resume V3 only after the user-declared Columbo adapter and tiered-runtime
-campaign reaches its evidence boundary and that terminal receipt is linked
-here. Columbo model weights, evaluators, and promotion decisions do not transfer
-into V3; the gate controls sequencing only.
+Resume V3 only after Columbo's
+[`tiered-review-runtime.md`](../../columbo/docs/tiered-review-runtime.md)
+campaign records its terminal decision and that receipt is linked here. The
+current V8 grounded-redaction rejection is already terminal for that adapter
+campaign; it does not satisfy the separate tiered-runtime gate. Columbo model
+weights, evaluators, and promotion decisions do not transfer into V3; the gate
+controls sequencing only.
