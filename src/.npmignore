@@ -50,6 +50,7 @@ config/schema/trainer-artifact-bridge.schema.json
 config/schema/trainer-artifact-handoff.schema.json
 config/schema/trainer-artifact-parity-evidence.schema.json
 config/schema/translation-artifact-competition.schema.json
+config/schema/wgsl-author-package.schema.json
 config/schema/wgsl-repair-confirmation-materialization.schema.json
 config/schema/wgsl-repair-experiment-policy.schema.json
 config/schema/wgsl-repair-seed-confirmation.schema.json
@@ -62,6 +63,8 @@ config/schema/wgsl-writer-corpus-policy.schema.json
 config/schema/wgsl-writer-diagnostic.schema.json
 config/schema/wgsl-writer-experiment.schema.json
 config/schema/wgsl-writer-training-policy.schema.json
+config/schema/wgsl-writer-v3-campaign.schema.json
+config/schema/wgsl-writer-v3-capability-catalog.schema.json
 config/support-tiers/subsystems.json
 config/supported-operations.d.ts
 config/transforms/capability-transform-resolver.d.ts

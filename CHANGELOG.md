@@ -8,6 +8,21 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.10] - 2026-07-18
+
+### Fixed
+
+- Unified duplicate runtime module instances behind one authoritative WebGPU
+  device state and one in-flight initialization, preventing concurrent model
+  handles from creating incompatible devices.
+- Rejected tracked cross-device GPU buffers before native bind-group creation
+  and prevented stale device-loss callbacks from clearing a replacement device.
+
+### Changed
+
+- Included the WGSL Writer V3 package and campaign schemas in the generated npm
+  source closure.
+
 ## [0.4.9] - 2026-07-14
 
 ### Fixed
