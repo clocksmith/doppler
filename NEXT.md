@@ -2,6 +2,16 @@
 
 Status note: this file has been corrected to reference only modules, functions, and rules that currently exist in the repository. It is documentation-only and does not change runtime behavior.
 
+## Sequenced Capability Work
+
+- WGSL Writer V3 is defined in `docs/wgsl-writer-v3-plan.md`. It expands the
+  narrow V2 compute-only result into an executable compute/render package with
+  semantic Chromium WebGPU qualification. Execution remains paused until the
+  user-declared Columbo adapter and tiered-runtime evidence boundary is reached.
+  The first permitted V3 implementation is the package schema, validator,
+  executor, and four reference fixtures; no V3 mechanics currently exist on
+  `main`.
+
 ## Active Metal Decode Work
 
 - Close the Qwen 3.5 2B Metal comparison with at least 20 interleaved 512-token
