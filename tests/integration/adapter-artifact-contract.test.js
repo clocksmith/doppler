@@ -82,5 +82,9 @@ assert.equal(validateAdapterArtifactOrigin({
   object: '../escape',
   generation: 'latest',
 }).valid, false);
+assert.equal(validateAdapterArtifactOrigin({
+  ...record.primaryOrigin,
+  object: 'adapter.bin?generation=latest',
+}).valid, false);
 
 console.log('adapter artifact contract tests passed');

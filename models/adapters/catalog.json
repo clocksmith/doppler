@@ -42,7 +42,7 @@
       "primaryOrigin": {
         "provider": "huggingface",
         "repoId": "Clocksmith/doppler-wgsl-repair-qwen35-9b-lora",
-        "revision": "3e451dae47372ebcdc9448c514d0984551d93757",
+        "revision": "82a921317b8f4b02dd4fe8ac2152e6841bd9a3dc",
         "path": "adapters/seed11/adapter_model.safetensors"
       },
       "preservationMirrors": [
@@ -66,7 +66,7 @@
         {
           "kind": "immutable-custody",
           "path": "docs/status/wgsl-repair-v12-huggingface-custody-2026-07-19.json",
-          "sha256": "sha256:0191e3d95e334babcf88adc9418d7bd7eff8a2e6dcdc4657847d9d45dfaf9c07"
+          "sha256": "sha256:6ed95fb757c3141bfe51738e1cbe0ebcbf5526755d4bd66b74d45aa87f19bb60"
         }
       ],
       "claimBoundary": "Preserved and Doppler-portable. Not selected or promoted for network execution."
@@ -101,7 +101,7 @@
       "primaryOrigin": {
         "provider": "huggingface",
         "repoId": "Clocksmith/doppler-wgsl-repair-qwen35-9b-lora",
-        "revision": "3e451dae47372ebcdc9448c514d0984551d93757",
+        "revision": "82a921317b8f4b02dd4fe8ac2152e6841bd9a3dc",
         "path": "adapters/seed29/adapter_model.safetensors"
       },
       "preservationMirrors": [
@@ -130,7 +130,7 @@
         {
           "kind": "immutable-custody",
           "path": "docs/status/wgsl-repair-v12-huggingface-custody-2026-07-19.json",
-          "sha256": "sha256:0191e3d95e334babcf88adc9418d7bd7eff8a2e6dcdc4657847d9d45dfaf9c07"
+          "sha256": "sha256:6ed95fb757c3141bfe51738e1cbe0ebcbf5526755d4bd66b74d45aa87f19bb60"
         }
       ],
       "claimBoundary": "Selected and semantically confirmed as a repair candidate. Not promoted or authorized as a general WGSL writer."
@@ -165,7 +165,7 @@
       "primaryOrigin": {
         "provider": "huggingface",
         "repoId": "Clocksmith/doppler-wgsl-repair-qwen35-9b-lora",
-        "revision": "3e451dae47372ebcdc9448c514d0984551d93757",
+        "revision": "82a921317b8f4b02dd4fe8ac2152e6841bd9a3dc",
         "path": "adapters/seed47/adapter_model.safetensors"
       },
       "preservationMirrors": [
@@ -189,7 +189,7 @@
         {
           "kind": "immutable-custody",
           "path": "docs/status/wgsl-repair-v12-huggingface-custody-2026-07-19.json",
-          "sha256": "sha256:0191e3d95e334babcf88adc9418d7bd7eff8a2e6dcdc4657847d9d45dfaf9c07"
+          "sha256": "sha256:6ed95fb757c3141bfe51738e1cbe0ebcbf5526755d4bd66b74d45aa87f19bb60"
         }
       ],
       "claimBoundary": "Preserved and Doppler-portable. Not selected or promoted for network execution."

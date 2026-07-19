@@ -5,7 +5,7 @@
   "repoId": "Clocksmith/doppler-wgsl-repair-qwen35-9b-lora",
   "repoType": "model",
   "visibility": "private",
-  "revision": "3e451dae47372ebcdc9448c514d0984551d93757",
+  "revision": "82a921317b8f4b02dd4fe8ac2152e6841bd9a3dc",
   "artifacts": [
     {
       "artifactId": "doppler-wgsl-qwen35-9b-v12-external20-seed11",
@@ -27,9 +27,13 @@
     }
   ],
   "verification": {
-    "method": "revision-pinned-hf-download-and-local-sha256",
+    "method": "revision-pinned-hf-download-local-sha256-and-peft-config-check",
     "result": "pass",
-    "verifiedAt": "2026-07-19T21:50:37Z"
+    "verifiedAt": "2026-07-19T21:52:29Z",
+    "peftBaseModel": "Qwen/Qwen3.5-9B",
+    "peftBaseRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "rank": 32,
+    "alpha": 64
   },
   "claimBoundary": "This receipt proves immutable off-machine custody and byte identity only. It does not promote any adapter or establish general WGSL authoring capability."
 }

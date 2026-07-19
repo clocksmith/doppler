@@ -62,6 +62,7 @@ config/schema/wgsl-writer-blueprint-catalog.schema.json
 config/schema/wgsl-writer-corpus-policy.schema.json
 config/schema/wgsl-writer-diagnostic.schema.json
 config/schema/wgsl-writer-experiment.schema.json
+config/schema/wgsl-writer-family-distillation-policy.schema.json
 config/schema/wgsl-writer-training-policy.schema.json
 config/schema/wgsl-writer-v3-campaign.schema.json
 config/schema/wgsl-writer-v3-capability-catalog.schema.json

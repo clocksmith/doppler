@@ -17,6 +17,8 @@ const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 const HF_REVISION_PATTERN = /^[a-f0-9]{40,64}$/;
 const GCS_GENERATION_PATTERN = /^[1-9][0-9]*$/;
 const GCS_BUCKET_PATTERN = /^[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]$/;
+const HF_REPO_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*$/;
+const FORBIDDEN_ARTIFACT_PATH_PATTERN = /[\\?#\u0000-\u001f\u007f]/;
 
 const asText = (value) => String(value || '').trim();
 const hasTraversal = (value) => asText(value).split('/').includes('..');
@@ -37,7 +39,12 @@ const validateArtifactPath = (errors, value, field) => {
   if (path.startsWith('/') || hasTraversal(path)) {
     errors.push({ field, message: `${field} must be an artifact-relative path`, value });
   }
+  if (FORBIDDEN_ARTIFACT_PATH_PATTERN.test(path)) {
+    errors.push({ field, message: `${field} contains a forbidden URL delimiter`, value });
+  }
 };
+
+const encodeArtifactPath = (value) => asText(value).split('/').map(encodeURIComponent).join('/');
 
 export function validateAdapterArtifactOrigin(origin, { allowPreservation = false } = {}) {
   const errors = [];
@@ -51,7 +58,9 @@ export function validateAdapterArtifactOrigin(origin, { allowPreservation = fals
   if (!ADAPTER_ARTIFACT_ORIGIN_PROVIDERS.includes(origin.provider)) {
     errors.push({ field: 'origin.provider', message: 'origin.provider is unsupported', value: origin.provider });
   } else if (origin.provider === 'huggingface') {
-    requireText(errors, origin.repoId, 'origin.repoId');
+    if (!HF_REPO_PATTERN.test(asText(origin.repoId))) {
+      errors.push({ field: 'origin.repoId', message: 'origin.repoId must be an owner/repository identifier', value: origin.repoId });
+    }
     if (!HF_REVISION_PATTERN.test(asText(origin.revision))) {
       errors.push({
         field: 'origin.revision',
@@ -234,9 +243,9 @@ export function buildImmutableArtifactUrl(origin) {
     throw new Error(`Adapter artifact origin invalid: ${message}`);
   }
   if (origin.provider === 'huggingface') {
-    return `https://huggingface.co/${origin.repoId}/resolve/${origin.revision}/${origin.path}`;
+    return `https://huggingface.co/${origin.repoId}/resolve/${origin.revision}/${encodeArtifactPath(origin.path)}`;
   }
-  return `https://storage.googleapis.com/${origin.bucket}/${origin.object}?generation=${origin.generation}`;
+  return `https://storage.googleapis.com/${origin.bucket}/${encodeArtifactPath(origin.object)}?generation=${origin.generation}`;
 }
 
 export function adapterArtifactCacheKey(record) {
