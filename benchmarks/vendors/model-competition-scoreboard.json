@@ -11,22 +11,22 @@
     "benchmarks/vendors/results/rerank_compare_*.json"
   ],
   "summary": {
-    "catalogModelCount": 24,
-    "scoreboardRowCount": 35,
-    "runtimeVerifiedModelCount": 21,
-    "hfPublishedModelCount": 15,
+    "catalogModelCount": 28,
+    "scoreboardRowCount": 39,
+    "runtimeVerifiedModelCount": 25,
+    "hfPublishedModelCount": 19,
     "failedModelCount": 1,
     "verificationNeededModelCount": 2,
     "platformVerifiedModelCount": {
       "browser": 9,
-      "node": 21,
+      "node": 25,
       "bun": 0
     },
     "generationCompareRowCount": 15,
     "generationCompareGapRowCount": 3,
     "embeddingCompareRowCount": 2,
     "rerankCompareRowCount": 1,
-    "supportGapRowCount": 14,
+    "supportGapRowCount": 18,
     "dopplerDecodeLeaderRowCount": 13,
     "transformersjsDecodeLeaderRowCount": 2,
     "dopplerEmbeddingLatencyLeaderRowCount": 1,
@@ -35,9 +35,61 @@
     "transformersjsRerankLatencyLeaderRowCount": 0,
     "claimReadyRowCount": 3,
     "localComparableRowCount": 0,
-    "evidenceIncompleteRowCount": 29
+    "evidenceIncompleteRowCount": 33
   },
   "rows": [
+    {
+      "rowId": "amplify-120m-f16-af32:support",
+      "modelId": "amplify-120m-f16-af32",
+      "label": "AMPLIFY 120M Protein Encoder (F16/F32a)",
+      "family": "amplify",
+      "modes": [
+        "embedding"
+      ],
+      "sourceCheckpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470",
+      "workloadMode": "embedding",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 236647491,
+        "sizeLabel": "0.22 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "990de206946a0972cc92e9dbcc9726399d257cac",
+          "path": "models/amplify-120m-f16-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Add a compare profile for amplify-120m-f16-af32.",
+      "evidence": {
+        "runtimeReport": "docs/status/amplify-120m-sequence-webgpu-lora-qualification-2026-07-19.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "compare-profile"
+      ],
+      "nextGate": "compare-profile",
+      "nextCommand": null
+    },
     {
       "rowId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16:support",
       "modelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
@@ -165,6 +217,110 @@
       },
       "missing": [],
       "nextGate": null,
+      "nextCommand": null
+    },
+    {
+      "rowId": "esm2-t12-35m-ur50d-f32-af32:support",
+      "modelId": "esm2-t12-35m-ur50d-f32-af32",
+      "label": "ESM-2 35M Protein Encoder (F32)",
+      "family": "esm",
+      "modes": [
+        "embedding"
+      ],
+      "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "workloadMode": "embedding",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 133159807,
+        "sizeLabel": "0.12 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "8e6ba9aa2929eeac1bc9aa1766979c08f658b015",
+          "path": "models/esm2-t12-35m-ur50d-f32-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Add a compare profile for esm2-t12-35m-ur50d-f32-af32.",
+      "evidence": {
+        "runtimeReport": "docs/status/esm2-t12-35m-sequence-webgpu-lora-qualification-2026-07-19.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "compare-profile"
+      ],
+      "nextGate": "compare-profile",
+      "nextCommand": null
+    },
+    {
+      "rowId": "esmc-300m-f32-af32:support",
+      "modelId": "esmc-300m-f32-af32",
+      "label": "ESMC 300M Protein Encoder (F32)",
+      "family": "esmc",
+      "modes": [
+        "embedding"
+      ],
+      "sourceCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
+      "workloadMode": "embedding",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 1328207519,
+        "sizeLabel": "1.24 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "8354795dc544798ca7a4419bf00f844648f4b6f0",
+          "path": "models/esmc-300m-f32-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Add a compare profile for esmc-300m-f32-af32.",
+      "evidence": {
+        "runtimeReport": "docs/status/esmc-300m-sequence-webgpu-lora-qualification-2026-07-19.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "compare-profile"
+      ],
+      "nextGate": "compare-profile",
       "nextCommand": null
     },
     {
@@ -1509,6 +1665,58 @@
       ],
       "nextGate": "runtime-verify",
       "nextCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto"
+    },
+    {
+      "rowId": "nucleotide-transformer-v2-50m-f32-af32:support",
+      "modelId": "nucleotide-transformer-v2-50m-f32-af32",
+      "label": "Nucleotide Transformer v2 50M DNA Encoder (F32)",
+      "family": "nucleotide-transformer",
+      "modes": [
+        "embedding"
+      ],
+      "sourceCheckpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
+      "workloadMode": "embedding",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 210074179,
+        "sizeLabel": "0.20 GiB",
+        "hf": {
+          "published": true,
+          "repoId": "Clocksmith/rdrr",
+          "revision": "a5703ef6971cc883438a393d73f2f54dccf94976",
+          "path": "models/nucleotide-transformer-v2-50m-f32-af32"
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Add a compare profile for nucleotide-transformer-v2-50m-f32-af32.",
+      "evidence": {
+        "runtimeReport": "docs/status/nucleotide-transformer-v2-50m-sequence-webgpu-lora-qualification-2026-07-19.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "compare-profile"
+      ],
+      "nextGate": "compare-profile",
+      "nextCommand": null
     },
     {
       "rowId": "qwen-3-5-0-8b-q4k-ehaf16:generation:browser:p064-d064-t0-k1:throughput",

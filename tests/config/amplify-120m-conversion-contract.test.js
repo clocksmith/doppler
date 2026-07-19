@@ -103,10 +103,17 @@ assert.deepEqual(
 );
 
 const catalog = JSON.parse(fs.readFileSync('models/catalog.json', 'utf8'));
-assert.equal(
-  JSON.stringify(catalog).includes(config.output.modelBaseId),
-  false,
-  'AMPLIFY must remain outside the supported catalog until conversion and parity receipts pass'
+const catalogEntry = catalog.models.find((entry) => entry.modelId === config.output.modelBaseId);
+assert.ok(catalogEntry, 'AMPLIFY must be cataloged after conversion, sequence parity, and hosted promotion pass');
+assert.equal(catalogEntry.lifecycle.status.runtime, 'active');
+assert.equal(catalogEntry.lifecycle.status.tested, 'verified');
+assert.equal(catalogEntry.lifecycle.tested.result, 'pass');
+assert.equal(catalogEntry.lifecycle.availability.hf, true);
+assert.match(catalogEntry.hf.revision, /^[0-9a-f]{40}$/u);
+const qualification = JSON.parse(
+  fs.readFileSync('docs/status/amplify-120m-sequence-webgpu-lora-qualification-2026-07-19.json', 'utf8')
 );
+assert.equal(qualification.passed, true);
+assert.equal(qualification.model.modelId, config.output.modelBaseId);
 
 console.log('amplify-120m-conversion-contract.test: ok');

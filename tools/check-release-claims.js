@@ -117,12 +117,13 @@ function valueAtPath(payload, metricPath) {
 }
 
 function resolvePayloadModelId(payload) {
-  return normalizeText(payload?.modelId || payload?.dopplerModelId);
+  return normalizeText(payload?.modelId || payload?.dopplerModelId || payload?.model?.modelId);
 }
 
 function hasAdapterEvidence(payload) {
   return isPlainObject(payload?.deviceInfo?.adapterInfo)
-    || isPlainObject(payload?.captureProfile?.adapter?.deviceInfo?.adapterInfo);
+    || isPlainObject(payload?.captureProfile?.adapter?.deviceInfo?.adapterInfo)
+    || isPlainObject(payload?.runtime?.adapterInfo);
 }
 
 function hasExecutionContractEvidence(payload) {
@@ -149,11 +150,33 @@ function hasTextOutputEvidence(payload) {
 
 function hasEmbeddingEvidence(payload) {
   const metrics = isPlainObject(payload?.metrics) ? payload.metrics : {};
-  return Number.isFinite(metrics.embeddingDim)
+  const semanticEmbeddingPassed = Number.isFinite(metrics.embeddingDim)
     && metrics.embeddingDim > 0
     && Number.isFinite(metrics.finiteRatio)
     && metrics.finiteRatio === 1
     && metrics.semanticPassed === true;
+  if (semanticEmbeddingPassed) return true;
+  if (payload?.schema !== 'doppler.sequenceModelQualification.v1' || payload?.passed !== true) {
+    return false;
+  }
+  const checks = Array.isArray(payload?.result?.checks) ? payload.result.checks : [];
+  const passedCheckIds = new Set(
+    checks
+      .filter((check) => check?.passed === true)
+      .map((check) => normalizeText(check?.id))
+      .filter(Boolean)
+  );
+  const required = [
+    'model.identity',
+    'sequence.contract',
+    'tokenizer.ids',
+    'pooledEmbedding.finite',
+    'pooledEmbedding.parity',
+  ];
+  if (payload?.model?.sequence?.tokenEmbeddings === true) {
+    required.push('tokenEmbeddings.finite', 'tokenEmbeddings.parity');
+  }
+  return required.every((id) => passedCheckIds.has(id));
 }
 
 function hasRerankEvidence(payload) {
@@ -367,7 +390,7 @@ async function validateClaimEvidenceFiles(policy) {
         errors.push(`${modelId}: ${mode} evidence requires generated output evidence`);
       }
       if (mode === 'embedding' && !hasEmbeddingEvidence(evidencePayload)) {
-        errors.push(`${modelId}: embedding evidence requires finite semantic embedding evidence`);
+        errors.push(`${modelId}: embedding evidence requires finite semantic or sequence-parity evidence`);
       }
       if (mode === 'rerank' && !hasRerankEvidence(evidencePayload)) {
         errors.push(`${modelId}: rerank evidence requires semantic rerank evidence`);

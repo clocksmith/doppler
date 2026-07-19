@@ -1584,6 +1584,238 @@
       "artifactCompleteness": "incomplete",
       "runtimePromotionState": "unpromoted",
       "weightsRefAllowed": false
+    },
+    {
+      "modelId": "amplify-120m-f16-af32",
+      "family": "amplify",
+      "label": "AMPLIFY 120M Protein Encoder (F16/F32a)",
+      "description": "AMPLIFY 120M protein-sequence encoder with F16 weights and F32 activations.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "amplify-120m",
+        "chandar-lab/AMPLIFY_120M"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "path": "models/amplify-120m-f16-af32",
+        "revision": "990de206946a0972cc92e9dbcc9726399d257cac"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 236647491,
+      "recommended": false,
+      "sortOrder": 36,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "sequence-embedding",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-19",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/amplify-120m-sequence-webgpu-lora-qualification-2026-07-19.json. This is not a downstream biological-task quality claim.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "sourceCheckpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470",
+      "weightPackId": "amplify-120m-f16-af32-wp-v1",
+      "manifestVariantId": "amplify-120m-f16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "esm2-t12-35m-ur50d-f32-af32",
+      "family": "esm",
+      "label": "ESM-2 35M Protein Encoder (F32)",
+      "description": "ESM-2 35M protein-sequence encoder with F32 weights and activations.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "esm2-35m",
+        "facebook/esm2_t12_35M_UR50D"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "path": "models/esm2-t12-35m-ur50d-f32-af32",
+        "revision": "8e6ba9aa2929eeac1bc9aa1766979c08f658b015"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 133159807,
+      "recommended": false,
+      "sortOrder": 37,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "sequence-embedding",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-19",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/esm2-t12-35m-sequence-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "weightPackId": "esm2-t12-35m-ur50d-f32-af32-wp-v1",
+      "manifestVariantId": "esm2-t12-35m-ur50d-f32-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "esmc-300m-f32-af32",
+      "family": "esmc",
+      "label": "ESMC 300M Protein Encoder (F32)",
+      "description": "ESMC 300M protein-sequence encoder with F32 weights and activations.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "esmc-300m",
+        "biohub/ESMC-300M"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "path": "models/esmc-300m-f32-af32",
+        "revision": "8354795dc544798ca7a4419bf00f844648f4b6f0"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 1328207519,
+      "recommended": false,
+      "sortOrder": 38,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "sequence-embedding",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-19",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/esmc-300m-sequence-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "sourceCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
+      "weightPackId": "esmc-300m-f32-af32-wp-v1",
+      "manifestVariantId": "esmc-300m-f32-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "nucleotide-transformer-v2-50m-f32-af32",
+      "family": "nucleotide-transformer",
+      "label": "Nucleotide Transformer v2 50M DNA Encoder (F32)",
+      "description": "Nucleotide Transformer v2 50M DNA-sequence encoder with F32 weights and activations.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "nucleotide-transformer-v2-50m",
+        "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "Clocksmith/rdrr",
+        "path": "models/nucleotide-transformer-v2-50m-f32-af32",
+        "revision": "a5703ef6971cc883438a393d73f2f54dccf94976"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 210074179,
+      "recommended": false,
+      "sortOrder": 39,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "sequence-embedding",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-19",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/nucleotide-transformer-v2-50m-sequence-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality; upstream use is CC-BY-NC-SA-4.0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "sourceCheckpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
+      "weightPackId": "nucleotide-transformer-v2-50m-f32-af32-wp-v1",
+      "manifestVariantId": "nucleotide-transformer-v2-50m-f32-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
     }
   ]
 }

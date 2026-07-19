@@ -34,6 +34,10 @@ This section answers "which models work now?" from `models/catalog.json` lifecyc
 | qwen-3-5-2b-q4k-ehaf16 | qwen3 | text | 2026-06-15 | browser, node | Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json. The execution-v1 lane keeps the fixed fused-Q4 decode path and q4 LM-head/prefill kernels; the hosted Clocksmith/rdrr artifact is approved for quickstart resolution with explicit stop-token metadata. |
 | qwen-3-6-27b-q4k-ehaf16 | qwen3 | text | 2026-04-28 | browser | Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json captured a deterministic reference transcript and executionContractOk=true. Hosted artifact is enabled for web demo download; quickstart remains disabled. |
 | qwen-3-6-27b-q4k-eaf16 | qwen3 | text | 2026-04-29 | browser, node | Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json produces coherent sky prompt output with f16 compute. |
+| amplify-120m-f16-af32 | amplify | embedding | 2026-07-19 | node | Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/amplify-120m-sequence-webgpu-lora-qualification-2026-07-19.json. This is not a downstream biological-task quality claim. |
+| esm2-t12-35m-ur50d-f32-af32 | esm | embedding | 2026-07-19 | node | Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/esm2-t12-35m-sequence-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality. |
+| esmc-300m-f32-af32 | esmc | embedding | 2026-07-19 | node | Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/esmc-300m-sequence-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality. |
+| nucleotide-transformer-v2-50m-f32-af32 | nucleotide-transformer | embedding | 2026-07-19 | node | Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/nucleotide-transformer-v2-50m-sequence-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality; upstream use is CC-BY-NC-SA-4.0. |
 
 ### 2. Loads But Unverified
 
@@ -78,22 +82,26 @@ Generated from `models/gemma4-targets.json`. This section tracks the latest offi
 | gemma3 | transformer | active | 5 (src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json, src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json, src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json, +2 more) | 3 (gemma-3-1b-it-q4k-ehf16-af32, gemma-3-270m-it-f16-af32, gemma-3-270m-it-q4k-ehf16-af32) | yes | none | verified (2026-06-29) | verified | catalog verification applies only to cataloged models (3/5 conversion configs cataloged) |
 | translategemma | transformer | active | 2 (src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json, src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json) | 2 (translategemma-4b-1b-enes-q4k-ehf16-af32, translategemma-4b-it-q4k-ehf16-af32) | yes | none | verified (2026-07-11) | verified | - |
 | gemma4 | transformer | active | 10 (src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json, src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json, src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json, +7 more) | 8 (gemma-4-12b-it-text-q4k-ehf16-af16, gemma-4-12b-it-text-q4k-ehf16-af32, gemma-4-12b-it-text-w4a16-ct-ehf16-af16, +5 more) | yes | none | verified (2026-06-29) | verified | catalog verification applies only to cataloged models (8/10 conversion configs cataloged) |
-| qwen3 | transformer | active | 7 (src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json, +4 more) | 7 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16, qwen-3-6-27b-q4k-eaf16, +4 more) | yes | none | verified (2026-07-05) | verified | - |
+| qwen3 | transformer | active | 9 (src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json, src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json, +6 more) | 7 (qwen-3-5-0-8b-q4k-ehaf16, qwen-3-5-2b-q4k-ehaf16, qwen-3-6-27b-q4k-eaf16, +4 more) | yes | none | verified (2026-07-05) | verified | catalog verification applies only to cataloged models (7/9 conversion configs cataloged) |
 | lfm2 | transformer | active | 1 (src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json) | 1 (lfm2-5-1-2b-instruct-q4k-ehf16-af32) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
+| amplify | transformer | active | 1 (src/config/conversion/amplify/amplify-120m-f16-af32.json) | 1 (amplify-120m-f16-af32) | yes | none | verified (2026-07-19) | verified | - |
 | diffusiongemma | transformer | active | 1 (src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json) | 1 (diffusiongemma-26b-a4b-it-q4k-ehf16-af16) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
+| esm | transformer | active | 1 (src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json) | 1 (esm2-t12-35m-ur50d-f32-af32) | yes | none | verified (2026-07-19) | verified | - |
+| esmc | transformer | active | 1 (src/config/conversion/esmc/esmc-300m-f32-af32.json) | 1 (esmc-300m-f32-af32) | yes | none | verified (2026-07-19) | verified | - |
 | gpt_oss | transformer | active | 1 (src/config/conversion/gpt-oss-20b-f16-xmxfp4.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | janus_text | transformer | active | 1 (src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | minicpm | transformer | active | 1 (src/config/conversion/minicpm/minicpm4-0-5b-f16-af32.json) | 1 (minicpm4-0-5b-f16-af32) | no | none | failed | verification-failed | - |
+| nucleotide-transformer | transformer | active | 1 (src/config/conversion/nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32.json) | 1 (nucleotide-transformer-v2-50m-f32-af32) | yes | none | verified (2026-07-19) | verified | - |
 
 ## Summary
 
-- Families tracked: 10
-- Families with conversion configs: 10
-- Families present in catalog: 8
-- Verified families (active runtime + conversion + catalog + passing verification): 5
+- Families tracked: 14
+- Families with conversion configs: 14
+- Families present in catalog: 12
+- Verified families (active runtime + conversion + catalog + passing verification): 9
 - Cataloged families pending verification: 2
-- Families with HF-hosted catalog entries: 5
-- Families with verified catalog lifecycle: 5
+- Families with HF-hosted catalog entries: 9
+- Families with verified catalog lifecycle: 9
 - Families with failed catalog verification: 1
 - Blocked runtime families: 0
-- Catalog entries: 24
+- Catalog entries: 28

@@ -60,7 +60,7 @@ function hasFiniteNumberAtAnyPath(value, paths) {
 function artifactModelIds(artifact) {
   return [
     artifact.modelId,
-    artifact.model,
+    typeof artifact.model === 'string' ? artifact.model : artifact?.model?.modelId,
     artifact.dopplerModelId,
     artifact?.sections?.compute?.parity?.dopplerModelId,
     artifact?.sections?.compute?.throughput?.dopplerModelId,
@@ -77,6 +77,14 @@ function assertArtifactModelMatches(claim, artifact, context) {
 }
 
 function assertArtifactResultsPassed(artifact, context) {
+  if (artifact?.schema === 'doppler.sequenceModelQualification.v1') {
+    assert.equal(artifact.passed, true, `${context}: sequence qualification must pass`);
+    assert.ok(Array.isArray(artifact?.result?.checks), `${context}: sequence qualification checks[] are required`);
+    for (const check of artifact.result.checks) {
+      assert.equal(check?.passed, true, `${context}: sequence qualification check "${check?.id ?? '<unnamed>'}" must pass`);
+    }
+    return;
+  }
   if (!Array.isArray(artifact.results)) {
     return;
   }
@@ -148,6 +156,20 @@ function assertPerformanceEvidence(claim) {
   );
 
   if (claim.mode === 'embedding') {
+    if (artifact?.schema === 'doppler.sequenceModelQualification.v1') {
+      const checks = new Map(artifact.result.checks.map((check) => [check.id, check]));
+      assert.equal(
+        checks.get('pooledEmbedding.finite')?.valueCount,
+        artifact?.model?.architecture?.hiddenSize,
+        `${claim.modelId}: sequence embedding width must match the manifest-owned hidden size`
+      );
+      assert.equal(
+        checks.get('pooledEmbedding.parity')?.passed,
+        true,
+        `${claim.modelId}: sequence embedding performance evidence must preserve reference parity`
+      );
+      return;
+    }
     const manifest = readLocalManifest(claim.modelId, `${claim.modelId}: embedding performance evidence`);
     const expectedEmbeddingDim = manifest?.architecture?.hiddenSize;
     assert.equal(
