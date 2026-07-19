@@ -1,0 +1,445 @@
+{
+  "schema": "doppler.sequenceModelQualification.v1",
+  "passed": true,
+  "generatedAt": "2026-07-19T17:35:56.461Z",
+  "model": {
+    "modelId": "esmc-300m-f32-af32",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:8198a1962ca4d2214dafed6ff8d5d85f53246b56c5aab1c057f1b0483a0f517d",
+      "conversionConfigPath": "src/config/conversion/esmc/esmc-300m-f32-af32.json",
+      "manifestVariantId": "esmc-300m-f32-af32-mv-exec-v1",
+      "materializationProfile": "f32-weights-f32-activations",
+      "modalitySet": [
+        "protein_sequence"
+      ],
+      "shardSetHash": "sha256:bfff66da5d8aebfdc5eb4bde3477f148bb50b1cd4c8151116b92e90597daf63d",
+      "sourceCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
+      "sourceFormat": "safetensors",
+      "sourceRepo": "biohub/ESMC-300M",
+      "sourceRevision": "a59b831785f907e96e6a246b1d142bfb76df31ee",
+      "weightPackHash": "sha256:e08669de53de410cd9eaa04ef845c4c38e807d409eb0aafced5c7a52b7502f19",
+      "weightPackId": "esmc-300m-f32-af32-wp-v1"
+    },
+    "quantization": "F32",
+    "architecture": {
+      "numLayers": 30,
+      "hiddenSize": 960,
+      "intermediateSize": 2560,
+      "numAttentionHeads": 15,
+      "numKeyValueHeads": 15,
+      "headDim": 64,
+      "vocabSize": 64,
+      "maxSeqLen": 2048,
+      "ropeTheta": 10000
+    },
+    "sequence": {
+      "alphabet": "amino_acid",
+      "tokenEmbeddings": true,
+      "pooledEmbedding": {
+        "mode": "mean",
+        "excludeTokenIds": [
+          0,
+          1,
+          2,
+          3,
+          31,
+          32
+        ]
+      },
+      "logits": false
+    },
+    "session": {
+      "compute": {
+        "defaults": {
+          "activationDtype": "f32",
+          "mathDtype": "f32",
+          "accumDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "kvcache": {
+        "kvDtype": "f32",
+        "layout": "contiguous",
+        "maxSeqLen": 2048,
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "decodeLoop": {
+        "batchSize": 1,
+        "stopCheckMode": "per-token",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "submitLatencyThresholdMs": null,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": false
+      },
+      "perLayerInputs": {
+        "materialization": "auto",
+        "rowCache": {
+          "mode": "lru",
+          "maxRows": 256,
+          "maxBytes": 134217728,
+          "decodedDtype": "f32"
+        },
+        "prefetch": {
+          "mode": "next_token",
+          "rowsAhead": 1
+        },
+        "gpuUpload": {
+          "mode": "per_step_slices",
+          "stagingRows": 2
+        },
+        "hotCache": {
+          "mode": "prepared_tokens",
+          "maxTokens": 1024,
+          "maxBytes": 134217728,
+          "outputDtype": "f32"
+        }
+      },
+      "skipEmbeddingKVCacheWrites": true,
+      "prefillChunkSubmitMode": "sync",
+      "useFlashPrefillAttention": false,
+      "useWideTileQ4KPrefill": false,
+      "retainQ4KMaterialization": false
+    },
+    "execution": {
+      "schema": "doppler.execution/v1",
+      "kernelPathId": "esmc-300m-f32-af32-execution-inline",
+      "kernels": {
+        "embed": {
+          "kernel": "gather.wgsl",
+          "entry": "main",
+          "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+        },
+        "layernorm": {
+          "kernel": "layernorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c"
+        },
+        "tiled": {
+          "kernel": "matmul_f32.wgsl",
+          "entry": "main",
+          "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
+        },
+        "bias_add": {
+          "kernel": "bias_add.wgsl",
+          "entry": "main",
+          "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715"
+        },
+        "rope": {
+          "kernel": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+        },
+        "attn_small": {
+          "kernel": "attention_small.wgsl",
+          "entry": "main",
+          "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+          "precision": {
+            "kvDtype": "f32"
+          }
+        },
+        "residual": {
+          "kernel": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        "silu": {
+          "kernel": "silu.wgsl",
+          "entry": "main",
+          "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+          "constants": {
+            "HAS_GATE": true
+          }
+        }
+      }
+    }
+  },
+  "reference": {
+    "path": "tools/data/esmc-300m-sequence-reference.json",
+    "digest": "sha256:ec632737af79eaaa914111fded670149cb5b0da3ad5e574d337ada2425a8e923",
+    "source": {
+      "checkpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
+      "repository": "biohub/ESMC-300M",
+      "revision": "a59b831785f907e96e6a246b1d142bfb76df31ee",
+      "runtime": {
+        "framework": "pytorch-esm",
+        "esmVersion": "3.2.1.post1",
+        "torchVersion": "2.9.1",
+        "weightDtype": "f32"
+      },
+      "files": {
+        "model.safetensors": "sha256:0772d8fe64bb25e14fe6f23b80e3c9a7d215d0da3c6cba5bd356d7c0e0bb22cc",
+        "config.json": "sha256:0d4c14b1e7192175b5ce8bb6c0eaa6b06c02645d49d6708c84fc3c765fe83a04",
+        "tokenizer.json": "sha256:8d3447b278176e65fb3ef0224472927bf5fee3be46ea2bd77fad0111423cee1f",
+        "tokenizer_config.json": "sha256:e8d8e40c9f92b334f0272e80bb65ed4043cb9836523cbae899e9859e8cbb8833",
+        "special_tokens_map.json": "sha256:0b7245ec86c8c3aeaf61523ba70dfa79be137e6283f127bd651adc30b4f15c74"
+      }
+    },
+    "input": {
+      "alphabet": "amino_acid",
+      "sequence": "MKTIIALSYIFCLVFADYKDDDDK",
+      "tokenIds": [
+        0,
+        20,
+        15,
+        11,
+        12,
+        12,
+        5,
+        4,
+        8,
+        19,
+        12,
+        18,
+        23,
+        4,
+        7,
+        18,
+        5,
+        13,
+        19,
+        15,
+        13,
+        13,
+        13,
+        13,
+        15,
+        2
+      ]
+    },
+    "tolerances": {
+      "pooledEmbeddingMaxAbs": 0.001,
+      "tokenEmbeddingMaxAbs": 0.001
+    }
+  },
+  "runtime": {
+    "surface": "node-webgpu",
+    "capabilities": {
+      "hasF16": true,
+      "hasSubgroups": true,
+      "hasSubgroupsF16": true,
+      "maxBufferSize": 4294967295
+    },
+    "adapterInfo": {
+      "subgroupMatrixConfigs": []
+    },
+    "sourceRevision": "c74b4a4cc954da744247d19f03b4cc3f1ed3f208",
+    "sourceDirty": false
+  },
+  "result": {
+    "checks": [
+      {
+        "id": "model.identity",
+        "passed": true,
+        "expectedModelId": "esmc-300m-f32-af32",
+        "actualModelId": "esmc-300m-f32-af32",
+        "expectedCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
+        "actualCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee"
+      },
+      {
+        "id": "sequence.contract",
+        "passed": true,
+        "expectedAlphabet": "amino_acid",
+        "actualAlphabet": "amino_acid"
+      },
+      {
+        "id": "tokenizer.ids",
+        "passed": true,
+        "expectedCount": 26,
+        "actualCount": 26,
+        "mismatchCount": 0,
+        "mismatches": []
+      },
+      {
+        "id": "pooledEmbedding.finite",
+        "passed": true,
+        "valueCount": 960,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "tokenEmbeddings.finite",
+        "passed": true,
+        "valueCount": 24960,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "logits.not-requested",
+        "passed": true,
+        "actual": null
+      },
+      {
+        "id": "pooledEmbedding.parity",
+        "passed": true,
+        "sampleCount": 16,
+        "tolerance": 0.001,
+        "maxAbsoluteError": 4.093355007034338e-8,
+        "meanAbsoluteError": 1.4744731705127606e-8,
+        "failures": []
+      },
+      {
+        "id": "tokenEmbeddings.parity",
+        "passed": true,
+        "sampleCount": 40,
+        "tolerance": 0.001,
+        "maxAbsoluteError": 8.940444564536909e-8,
+        "meanAbsoluteError": 2.4136931016334244e-8,
+        "failures": []
+      }
+    ],
+    "outputDigests": {
+      "pooledEmbedding": "sha256:121e23d72935311ed3294fd9252bca46ee42f9edcfae1ccccecd8d3a71929674",
+      "tokenEmbeddings": "sha256:8e0b76554997bd22e835a577bf1b69895b29c40dba059e377646a6f9d8f93475",
+      "logits": null
+    },
+    "loraQualification": {
+      "passed": true,
+      "checks": [
+        {
+          "id": "lora.wrong-base.rejected",
+          "passed": true,
+          "error": "LoRA adapter targets base model \"esmc-300m-f32-af32-wrong-base\", but the loaded model is \"esmc-300m-f32-af32\"."
+        },
+        {
+          "id": "lora.invalid-layer.rejected",
+          "passed": true,
+          "error": "LoRA adapter targets layer 30, which is absent from the loaded model."
+        },
+        {
+          "id": "lora.activation.active",
+          "passed": true,
+          "expectedAdapterName": "esmc-300m-f32-af32-synthetic-q-proj-qualification",
+          "activeAdapterName": "esmc-300m-f32-af32-synthetic-q-proj-qualification"
+        },
+        {
+          "id": "lora.unload.inactive",
+          "passed": true,
+          "unloadedAdapterName": null
+        },
+        {
+          "id": "lora.adapted.pooledEmbedding.finite",
+          "passed": true,
+          "valueCount": 960,
+          "nonFiniteCount": 0
+        },
+        {
+          "id": "lora.changed.pooledEmbedding",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 960,
+          "actualCount": 960,
+          "mismatchCount": 960,
+          "maxAbsoluteDelta": 0.000032007694244384766,
+          "baselineDigest": "sha256:121e23d72935311ed3294fd9252bca46ee42f9edcfae1ccccecd8d3a71929674",
+          "actualDigest": "sha256:d3231cde032394303aa1cc55a57f78bd0be32c20f7e05a0161a6d3ef284c5893"
+        },
+        {
+          "id": "lora.restored.pooledEmbedding",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 960,
+          "actualCount": 960,
+          "mismatchCount": 0,
+          "maxAbsoluteDelta": 0
+        },
+        {
+          "id": "lora.adapted.tokenEmbeddings.finite",
+          "passed": true,
+          "valueCount": 24960,
+          "nonFiniteCount": 0
+        },
+        {
+          "id": "lora.changed.tokenEmbeddings",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 24960,
+          "actualCount": 24960,
+          "mismatchCount": 24948,
+          "maxAbsoluteDelta": 0.00006470084190368652,
+          "baselineDigest": "sha256:8e0b76554997bd22e835a577bf1b69895b29c40dba059e377646a6f9d8f93475",
+          "actualDigest": "sha256:afb35fcf269b560a8062f0088598f9fe398294483c7e2451c89db34f3d0c2689"
+        },
+        {
+          "id": "lora.restored.tokenEmbeddings",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 24960,
+          "actualCount": 24960,
+          "mismatchCount": 0,
+          "maxAbsoluteDelta": 0
+        }
+      ],
+      "outputDigests": {
+        "pooledEmbedding": {
+          "base": "sha256:121e23d72935311ed3294fd9252bca46ee42f9edcfae1ccccecd8d3a71929674",
+          "adapted": "sha256:d3231cde032394303aa1cc55a57f78bd0be32c20f7e05a0161a6d3ef284c5893",
+          "restored": "sha256:121e23d72935311ed3294fd9252bca46ee42f9edcfae1ccccecd8d3a71929674"
+        },
+        "tokenEmbeddings": {
+          "base": "sha256:8e0b76554997bd22e835a577bf1b69895b29c40dba059e377646a6f9d8f93475",
+          "adapted": "sha256:afb35fcf269b560a8062f0088598f9fe398294483c7e2451c89db34f3d0c2689",
+          "restored": "sha256:8e0b76554997bd22e835a577bf1b69895b29c40dba059e377646a6f9d8f93475"
+        }
+      },
+      "adapter": {
+        "id": "esmc-300m-f32-af32-synthetic-q-proj-qualification",
+        "name": "esmc-300m-f32-af32-synthetic-q-proj-qualification",
+        "baseModel": "esmc-300m-f32-af32",
+        "rank": 1,
+        "alpha": 1,
+        "targetModules": [
+          "q_proj"
+        ],
+        "layerIndices": [
+          0
+        ],
+        "synthetic": true
+      },
+      "claimBoundary": "Synthetic rank-1 q_proj qualification proves exact base binding, target validation, WebGPU activation, output influence, unload, and base-output restoration. It does not prove trained-adapter quality or arbitrary PEFT compatibility."
+    },
+    "phase": {
+      "totalMs": 280.1629169999942,
+      "inputMs": 0.6014580000046408,
+      "prefillMs": 272.4809580000001,
+      "submitWaitMs": 0.022042000011424534,
+      "readbackMs": 0.5044579999957932,
+      "decodeHiddenMs": 0.07141699999920093,
+      "finalNormMs": 0.8722920000000158,
+      "extractMs": 5.031124999994063,
+      "logitsMs": 0,
+      "hiddenBytes": 99840,
+      "tokens": 26,
+      "activationDtype": "f32",
+      "prefillRecordMs": 96.83741700001701,
+      "prefillRecordOps": 511,
+      "prefillRecordPasses": 8,
+      "prefillRecordOpLabels": {},
+      "prefillSubmitWaitMs": 153.33462500003225,
+      "gpuPrefillMs": null
+    },
+    "operatorDiagnostics": null
+  }
+}
