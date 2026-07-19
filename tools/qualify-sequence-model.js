@@ -43,6 +43,7 @@ function readFlag(argv, index) {
 export function parseArgs(argv) {
   const args = {
     modelDir: null,
+    modelUrl: null,
     reference: DEFAULT_REFERENCE,
     output: null,
     diagnoseLayers: [],
@@ -52,6 +53,7 @@ export function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--model-dir') args.modelDir = resolve(readFlag(argv, index++));
+    else if (arg === '--model-url') args.modelUrl = readFlag(argv, index++).replace(/\/+$/u, '');
     else if (arg === '--reference') args.reference = resolve(readFlag(argv, index++));
     else if (arg === '--output') args.output = resolve(readFlag(argv, index++));
     else if (arg === '--diagnose-layer') {
@@ -69,7 +71,12 @@ export function parseArgs(argv) {
     else if (arg === '--qualify-lora') args.qualifyLoRA = true;
     else throw new Error(`Unknown argument "${arg}".`);
   }
-  if (!args.modelDir) throw new Error('--model-dir is required.');
+  if (Boolean(args.modelDir) === Boolean(args.modelUrl)) {
+    throw new Error('Exactly one of --model-dir or --model-url is required.');
+  }
+  if (args.modelUrl && !/^https?:\/\//u.test(args.modelUrl)) {
+    throw new Error('--model-url must be an HTTP(S) URL.');
+  }
   return args;
 }
 
@@ -133,6 +140,18 @@ async function closeModelServer(server) {
     server.close((error) => (error ? reject(error) : accept()));
     server.closeAllConnections?.();
   });
+}
+
+async function readModelManifest(args) {
+  if (args.modelDir) {
+    return JSON.parse(await readFile(resolve(args.modelDir, 'manifest.json'), 'utf8'));
+  }
+  const manifestUrl = `${args.modelUrl}/manifest.json`;
+  const response = await fetch(manifestUrl, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`Failed to load hosted manifest (${response.status}) from ${manifestUrl}.`);
+  }
+  return response.json();
 }
 
 function gitValue(args) {
@@ -229,17 +248,19 @@ async function qualifySequenceLoRA(pipeline, manifest, reference, baseResult) {
 export async function qualifySequenceModel(args) {
   const referenceBytes = await readFile(args.reference);
   const reference = validateSequenceReference(JSON.parse(referenceBytes.toString('utf8')));
-  const manifest = JSON.parse(await readFile(resolve(args.modelDir, 'manifest.json'), 'utf8'));
+  const manifest = await readModelManifest(args);
   if (manifest.modelId !== reference.modelId) {
     throw new Error(`Reference modelId "${reference.modelId}" does not match manifest "${manifest.modelId}".`);
   }
 
   const webgpuBootstrap = await bootstrapNodeWebGPU();
   const releaseBootstrappedProvider = webgpuBootstrap.provider !== 'pre-installed';
-  const server = await createModelServer(args.modelDir);
+  const server = args.modelDir ? await createModelServer(args.modelDir) : null;
   let pipeline = null;
   try {
-    const baseUrl = `http://127.0.0.1:${server.address().port}/model`;
+    const baseUrl = server
+      ? `http://127.0.0.1:${server.address().port}/model`
+      : args.modelUrl;
     const harness = await initializeInference(baseUrl, {
       modelId: reference.modelId,
       loadMode: 'http',
@@ -301,6 +322,10 @@ export async function qualifySequenceModel(args) {
       },
       runtime: {
         surface: 'node-webgpu',
+        artifactSource: {
+          kind: args.modelDir ? 'local-directory' : 'hosted-url',
+          baseUrl,
+        },
         capabilities: summarizeCapabilities(harness.capabilities),
         adapterInfo: device?.adapterInfo ?? null,
         sourceRevision: gitValue(['rev-parse', 'HEAD']),
@@ -326,7 +351,7 @@ export async function qualifySequenceModel(args) {
       if (pipeline?.unload) await pipeline.unload();
     } finally {
       try {
-        await closeModelServer(server);
+        if (server) await closeModelServer(server);
       } finally {
         try {
           destroyBufferPool();

@@ -107,9 +107,26 @@ assert.deepEqual(parsed.diagnoseLayers, [0, 3]);
 assert.deepEqual(parsed.diagnoseOps, ['embed.out']);
 assert.equal(parsed.qualifyLoRA, true);
 assert.match(parsed.reference, /amplify-120m-sequence-reference\.json$/u);
+const hosted = parseArgs([
+  '--model-url', 'https://example.test/models/sequence-test/',
+]);
+assert.equal(hosted.modelDir, null);
+assert.equal(hosted.modelUrl, 'https://example.test/models/sequence-test');
 assert.throws(
   () => parseArgs(['--model-dir', '/tmp/model', '--diagnose-layer', '-1']),
   /non-negative integer/
+);
+assert.throws(
+  () => parseArgs([]),
+  /Exactly one of --model-dir or --model-url/
+);
+assert.throws(
+  () => parseArgs(['--model-dir', '/tmp/model', '--model-url', 'https://example.test/model']),
+  /Exactly one of --model-dir or --model-url/
+);
+assert.throws(
+  () => parseArgs(['--model-url', 'file:///tmp/model']),
+  /HTTP\(S\) URL/
 );
 
 const syntheticManifest = createSyntheticSequenceLoRAManifest({

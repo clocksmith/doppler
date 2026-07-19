@@ -321,4 +321,94 @@ function policy(claims = [releaseClaim()]) {
   await fs.rm(tmp, { recursive: true, force: true });
 }
 
+{
+  const tmp = path.join(process.cwd(), `.tmp-sequence-release-claims-test-${process.pid}`);
+  await fs.rm(tmp, { recursive: true, force: true });
+  await fs.mkdir(tmp, { recursive: true });
+  const reportPath = path.join(tmp, 'report.json');
+  const policyPath = path.join(tmp, 'policy.json');
+  const catalogPath = path.join(tmp, 'catalog.json');
+  const quickstartPath = path.join(tmp, 'quickstart.json');
+  const subsystemsPath = path.join(tmp, 'subsystems.json');
+  const modelId = 'unit-protein-encoder';
+  const model = catalogModel({
+    modelId,
+    modes: ['embedding'],
+    lifecycle: {
+      status: { tested: 'verified' },
+      tested: {
+        result: 'pass',
+        source: 'runtime-verify',
+        lastVerifiedAt: '2026-07-19',
+        surface: ['node'],
+      },
+    },
+  });
+  const claim = releaseClaim({
+    modelId,
+    mode: 'embedding',
+    surface: ['node'],
+    lastVerifiedAt: '2026-07-19',
+    evidence: {
+      kind: 'runtime-verify',
+      reportPath: path.relative(process.cwd(), reportPath),
+    },
+    performanceEvidence: {
+      kind: 'runtime-report',
+      reportPath: path.relative(process.cwd(), reportPath),
+      metricPath: 'result.phase.totalMs',
+      minValue: 0,
+      unit: 'ms',
+    },
+  });
+  const sequenceReport = {
+    schema: 'doppler.sequenceModelQualification.v1',
+    passed: true,
+    model: {
+      modelId,
+      sequence: { tokenEmbeddings: true },
+    },
+    runtime: {
+      adapterInfo: { architecture: 'test' },
+    },
+    result: {
+      checks: [
+        'model.identity',
+        'sequence.contract',
+        'tokenizer.ids',
+        'pooledEmbedding.finite',
+        'pooledEmbedding.parity',
+        'tokenEmbeddings.finite',
+        'tokenEmbeddings.parity',
+      ].map((id) => ({ id, passed: true })),
+      phase: { totalMs: 1 },
+    },
+  };
+  await fs.writeFile(reportPath, JSON.stringify(sequenceReport, null, 2));
+  await fs.writeFile(policyPath, JSON.stringify(policy([claim]), null, 2));
+  await fs.writeFile(catalogPath, JSON.stringify({ models: [model] }, null, 2));
+  await fs.writeFile(quickstartPath, JSON.stringify({ models: [] }, null, 2));
+  await fs.writeFile(subsystemsPath, JSON.stringify({ subsystems: [] }, null, 2));
+
+  const result = await checkReleaseClaims({
+    policyPath,
+    catalogPath,
+    quickstartRegistryPath: quickstartPath,
+    subsystemsPath,
+  });
+  assert.equal(result.ok, true, result.errors.join('\n'));
+
+  sequenceReport.result.checks.find((check) => check.id === 'pooledEmbedding.parity').passed = false;
+  await fs.writeFile(reportPath, JSON.stringify(sequenceReport, null, 2));
+  const failed = await checkReleaseClaims({
+    policyPath,
+    catalogPath,
+    quickstartRegistryPath: quickstartPath,
+    subsystemsPath,
+  });
+  assert.equal(failed.ok, false);
+  assert.match(failed.errors.join('\n'), /sequence-parity evidence/);
+  await fs.rm(tmp, { recursive: true, force: true });
+}
+
 console.log('release-claim-policy.test: ok');
