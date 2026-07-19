@@ -462,11 +462,11 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify",
-        "reportPath": "docs/status/amplify-120m-sequence-webgpu-lora-qualification-2026-07-19.json"
+        "reportPath": "docs/status/amplify-120m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json"
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "docs/status/amplify-120m-sequence-webgpu-lora-qualification-2026-07-19.json",
+        "reportPath": "docs/status/amplify-120m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
         "metricPath": "result.phase.totalMs",
         "minValue": 0,
         "unit": "ms"
@@ -483,11 +483,11 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify",
-        "reportPath": "docs/status/esm2-t12-35m-sequence-webgpu-lora-qualification-2026-07-19.json"
+        "reportPath": "docs/status/esm2-t12-35m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json"
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "docs/status/esm2-t12-35m-sequence-webgpu-lora-qualification-2026-07-19.json",
+        "reportPath": "docs/status/esm2-t12-35m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
         "metricPath": "result.phase.totalMs",
         "minValue": 0,
         "unit": "ms"
@@ -504,11 +504,11 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify",
-        "reportPath": "docs/status/esmc-300m-sequence-webgpu-lora-qualification-2026-07-19.json"
+        "reportPath": "docs/status/esmc-300m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json"
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "docs/status/esmc-300m-sequence-webgpu-lora-qualification-2026-07-19.json",
+        "reportPath": "docs/status/esmc-300m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
         "metricPath": "result.phase.totalMs",
         "minValue": 0,
         "unit": "ms"
@@ -525,11 +525,11 @@
       "artifactFormat": "rdrr",
       "evidence": {
         "kind": "runtime-verify",
-        "reportPath": "docs/status/nucleotide-transformer-v2-50m-sequence-webgpu-lora-qualification-2026-07-19.json"
+        "reportPath": "docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json"
       },
       "performanceEvidence": {
         "kind": "runtime-report",
-        "reportPath": "docs/status/nucleotide-transformer-v2-50m-sequence-webgpu-lora-qualification-2026-07-19.json",
+        "reportPath": "docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
         "metricPath": "result.phase.totalMs",
         "minValue": 0,
         "unit": "ms"

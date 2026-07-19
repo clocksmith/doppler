@@ -134,7 +134,7 @@
         "modelId": "esm2-t12-35m-ur50d-f32-af32",
         "architecture": "RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": "docs/status/esm2-t12-35m-sequence-webgpu-lora-qualification-2026-07-19.json",
+          "runtimeReport": "docs/status/esm2-t12-35m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
           "compareResult": null,
           "summarySvg": null
         }
@@ -178,7 +178,7 @@
           "hf": {
             "published": true,
             "repoId": "Clocksmith/rdrr",
-            "revision": "8e6ba9aa2929eeac1bc9aa1766979c08f658b015",
+            "revision": "75ef5bbd520ed875c5c5345801d5ac65ac17cc7b",
             "path": "models/esm2-t12-35m-ur50d-f32-af32"
           },
           "quickstart": false,
@@ -188,7 +188,7 @@
             "benchmarkEvidenceOk": false
           },
           "evidence": {
-            "runtimeReport": "docs/status/esm2-t12-35m-sequence-webgpu-lora-qualification-2026-07-19.json",
+            "runtimeReport": "docs/status/esm2-t12-35m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
             "runtimeReportExists": true,
             "compareResult": null,
             "compareResultExists": false,
@@ -224,7 +224,7 @@
         "modelId": "nucleotide-transformer-v2-50m-f32-af32",
         "architecture": "RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": "docs/status/nucleotide-transformer-v2-50m-sequence-webgpu-lora-qualification-2026-07-19.json",
+          "runtimeReport": "docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
           "compareResult": null,
           "summarySvg": null
         }
@@ -278,7 +278,7 @@
             "benchmarkEvidenceOk": false
           },
           "evidence": {
-            "runtimeReport": "docs/status/nucleotide-transformer-v2-50m-sequence-webgpu-lora-qualification-2026-07-19.json",
+            "runtimeReport": "docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
             "runtimeReportExists": true,
             "compareResult": null,
             "compareResultExists": false,
@@ -314,7 +314,7 @@
         "modelId": "amplify-120m-f16-af32",
         "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": "docs/status/amplify-120m-sequence-webgpu-lora-qualification-2026-07-19.json",
+          "runtimeReport": "docs/status/amplify-120m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
           "compareResult": null,
           "summarySvg": null
         }
@@ -368,7 +368,7 @@
             "benchmarkEvidenceOk": false
           },
           "evidence": {
-            "runtimeReport": "docs/status/amplify-120m-sequence-webgpu-lora-qualification-2026-07-19.json",
+            "runtimeReport": "docs/status/amplify-120m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
             "runtimeReportExists": true,
             "compareResult": null,
             "compareResultExists": false,
@@ -1617,7 +1617,7 @@
         "modelId": "esmc-300m-f32-af32",
         "architecture": "RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": "docs/status/esmc-300m-sequence-webgpu-lora-qualification-2026-07-19.json",
+          "runtimeReport": "docs/status/esmc-300m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
           "compareResult": null,
           "summarySvg": null
         }
@@ -1671,7 +1671,7 @@
             "benchmarkEvidenceOk": false
           },
           "evidence": {
-            "runtimeReport": "docs/status/esmc-300m-sequence-webgpu-lora-qualification-2026-07-19.json",
+            "runtimeReport": "docs/status/esmc-300m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
             "runtimeReportExists": true,
             "compareResult": null,
             "compareResultExists": false,

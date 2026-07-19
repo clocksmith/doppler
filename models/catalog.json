@@ -1630,7 +1630,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-07-19",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/amplify-120m-sequence-webgpu-lora-qualification-2026-07-19.json. This is not a downstream biological-task quality claim.",
+          "notes": "Hosted Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/amplify-120m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json. This is not a downstream biological-task quality claim.",
           "contracts": {
             "executionContractOk": true
           }
@@ -1661,7 +1661,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "path": "models/esm2-t12-35m-ur50d-f32-af32",
-        "revision": "8e6ba9aa2929eeac1bc9aa1766979c08f658b015"
+        "revision": "75ef5bbd520ed875c5c5345801d5ac65ac17cc7b"
       },
       "baseUrl": null,
       "quickstart": false,
@@ -1688,7 +1688,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-07-19",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/esm2-t12-35m-sequence-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality.",
+          "notes": "Hosted Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/esm2-t12-35m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality.",
           "contracts": {
             "executionContractOk": true
           }
@@ -1746,7 +1746,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-07-19",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/esmc-300m-sequence-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality.",
+          "notes": "Hosted Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/esmc-300m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality.",
           "contracts": {
             "executionContractOk": true
           }
@@ -1804,7 +1804,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-07-19",
           "source": "runtime-verify",
-          "notes": "Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/nucleotide-transformer-v2-50m-sequence-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality; upstream use is CC-BY-NC-SA-4.0.",
+          "notes": "Hosted Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality; upstream use is CC-BY-NC-SA-4.0.",
           "contracts": {
             "executionContractOk": true
           }
