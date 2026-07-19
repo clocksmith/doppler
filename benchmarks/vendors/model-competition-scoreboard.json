@@ -1728,7 +1728,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "f58f1d0b58641c84e7ea50d13fea0dd4dc91389a",
+          "revision": "80d7716270b6371d541de979eff3370edaf34e13",
           "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
         }
       },
@@ -1801,7 +1801,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "f58f1d0b58641c84e7ea50d13fea0dd4dc91389a",
+          "revision": "80d7716270b6371d541de979eff3370edaf34e13",
           "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
         }
       },

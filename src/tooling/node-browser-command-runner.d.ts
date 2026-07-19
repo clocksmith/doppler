@@ -32,6 +32,22 @@ export interface BrowserRelayLocalModelResolution {
   }>;
 }
 
+export interface StaticFileServerOptions {
+  rootDir?: string;
+  staticMounts?: NodeBrowserCommandRunOptions['staticMounts'];
+  host?: string;
+  port?: number;
+}
+
+export interface StaticFileServerHandle {
+  baseUrl: string;
+  close: () => Promise<void>;
+}
+
+export declare function createStaticFileServer(
+  options?: StaticFileServerOptions
+): Promise<StaticFileServerHandle>;
+
 export declare function resolveLocalFileModelUrlForBrowserRelay(
   commandRequest: ToolingCommandRequestInput,
   options?: Pick<NodeBrowserCommandRunOptions, 'baseUrl' | 'staticMounts'>

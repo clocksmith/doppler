@@ -492,6 +492,7 @@
         "compression": "q4k-ehaf16",
         "quantization": "Q4_K_M",
         "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+        "manifestGitRevision": "e9d7216dd33840f69864b5c9bc76334a599d6974",
         "manifestSha256": "af47de9173b29e370c7301be0212814e912f67c1e1205ce199302b701f05602e",
         "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
         "weightPackHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
