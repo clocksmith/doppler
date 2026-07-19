@@ -24,7 +24,7 @@
       },
       "adapterManifestPath": "models/adapters/wgsl-repair-qwen35-9b-v12/seed11/runtime-adapter-manifest.json",
       "adapterManifestSha256": "sha256:62ba1033b0158757998d97a7e8a0d6d65b329417dd50833859318472e47b6ec0",
-      "localWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed11/external20/sft/exports/checkpoint-001200.adapters.safetensors",
+      "localWeightsPath": "artifacts/wgsl-repair/v12/external20/seed11/checkpoint-001200.adapters.safetensors",
       "trainingBase": {
         "repoId": "Qwen/Qwen3.5-9B",
         "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
@@ -83,7 +83,7 @@
       },
       "adapterManifestPath": "models/adapters/wgsl-repair-qwen35-9b-v12/seed29/runtime-adapter-manifest.json",
       "adapterManifestSha256": "sha256:ae9f2e21f61bcb59966f43e66a60f378d325cb21cd38171af77c2f54723b8d85",
-      "localWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapters.safetensors",
+      "localWeightsPath": "artifacts/wgsl-repair/v12/external20/seed29/checkpoint-001200.adapters.safetensors",
       "trainingBase": {
         "repoId": "Qwen/Qwen3.5-9B",
         "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
@@ -147,7 +147,7 @@
       },
       "adapterManifestPath": "models/adapters/wgsl-repair-qwen35-9b-v12/seed47/runtime-adapter-manifest.json",
       "adapterManifestSha256": "sha256:99fcf373441d0ff8ec1b65e7260dcc3b638ea9e80595f355a97d362cc1e8a280",
-      "localWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed47/external20/sft/exports/checkpoint-001200.adapters.safetensors",
+      "localWeightsPath": "artifacts/wgsl-repair/v12/external20/seed47/checkpoint-001200.adapters.safetensors",
       "trainingBase": {
         "repoId": "Qwen/Qwen3.5-9B",
         "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"

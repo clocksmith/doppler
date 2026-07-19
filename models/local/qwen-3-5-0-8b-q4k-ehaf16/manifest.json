@@ -14,7 +14,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:e6273027b3d2413031f4ed55ecb0f0d8f77161bc05f1c46a89b9cfad792bc8a2",
+    "conversionConfigDigest": "sha256:f25a87e06dbb4b112fd8e3710894059f80904a35e1a95cb1ab0f1106c50a0ac9",
     "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
     "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
     "materializationProfile": "auto",
@@ -53,6 +53,8 @@
   "inference": {
     "schema": "doppler.execution/v1",
     "attention": {
+      "queryKeyNormType": "rmsnorm",
+      "queryKeyNormAxis": "head",
       "queryPreAttnScalar": 256,
       "attnLogitSoftcapping": null,
       "slidingWindow": null,
@@ -147,14 +149,17 @@
       "residualBranchScale": 1
     },
     "chatTemplate": {
-      "type": "chatml",
-      "enabled": true
+      "type": "qwen",
+      "enabled": true,
+      "thinking": false
     },
     "supportsEmbedding": false,
+    "supportsSequence": false,
     "supportsRerank": false,
     "supportsTranscription": false,
     "supportsVision": false,
     "rerank": null,
+    "sequence": null,
     "diffusionGemma": null,
     "pipeline": null,
     "session": {
@@ -6673,7 +6678,7 @@
     "convertedAt": "2026-04-24T17:34:03.192Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-07-04T14:34:40.210Z",
+      "at": "2026-07-19T22:42:46.593Z",
       "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
     }
   },
