@@ -8,7 +8,7 @@ Updated at: 2026-04-13
 ## Summary
 
 - Tier 1 subsystems: 9
-- Experimental subsystems: 12
+- Experimental subsystems: 13
 - Internal-only subsystems: 2
 
 ## Tier Meanings
@@ -64,7 +64,8 @@ Updated at: 2026-04-13
 | Tooling browser import helpers | `api` | yes | no | yes | [docs/api/tooling-experimental.md](api/tooling-experimental.md), [docs/api/advanced-root-exports.md](api/advanced-root-exports.md), [src/tooling-exports.shared.js](../src/tooling-exports.shared.js) | Browser conversion and file-picker helpers ship on the dedicated tooling-experimental subpath for advanced workflows, but they are not part of the tier1 quickstart or demo-default contract. |
 | Tooling operator commands | `api` | yes | no | yes | [docs/api/tooling.md](api/tooling.md), [src/tooling/node-command-runner.js](../src/tooling/node-command-runner.js), [src/experimental/training/index.js](../src/experimental/training/index.js) | Node-only `diagnose`, `lora`, and `distill` operator flows share the tooling contract surface, but they are still experimental research/operator lanes rather than tier1 product behavior. |
 | Tooling P2P helpers | `api` | yes | no | yes | [docs/api/tooling.md](api/tooling.md), [docs/api/advanced-root-exports.md](api/advanced-root-exports.md), [src/tooling-exports.shared.js](../src/tooling-exports.shared.js) | P2P and distribution helpers are exported on the dedicated tooling-experimental subpath for advanced tooling flows, but they remain outside the current tier1 local text inference story. |
-| Training and distillation surfaces | `runtime` | yes | no | no | [docs/training-handbook.md](training-handbook.md), [src/experimental/training/GUIDE.md](../src/experimental/training/GUIDE.md), [src/experimental/training/index.js](../src/experimental/training/index.js) | Repo-supported research and operator lane, but not part of the current tier1 app/runtime contract. |
+| Training and distillation surfaces | `runtime` | yes | no | no | [docs/training-handbook.md](training-handbook.md), [src/experimental/training/GUIDE.md](../src/experimental/training/GUIDE.md), [src/experimental/training/index.js](../src/experimental/training/index.js) | Repo-supported research and operator lane, including distillation workflows that are not exported by the SFT/LoRA training subpath. |
+| Training API subpath | `api` | yes | no | yes | [docs/api/training.md](api/training.md), [docs/training-handbook.md](training-handbook.md), [src/training.js](../src/training.js) | Public experimental SFT/LoRA library; native full-graph support is capability-gated and packed Q4K bases require an external trainer. |
 
 ## Internal-only Surfaces
 

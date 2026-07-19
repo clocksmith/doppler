@@ -43,6 +43,12 @@ const EXPORT_META = {
     docPath: 'docs/api/generation.md',
     notes: 'Lower-level text pipeline construction and pipeline types.',
   },
+  './training': {
+    audience: 'training and adapter pipeline authors',
+    stability: 'experimental export',
+    docPath: 'docs/api/training.md',
+    notes: 'Capability-gated SFT/LoRA orchestration, WebGPU training primitives, and adapter export.',
+  },
   './diffusion': {
     audience: 'advanced diffusion consumers',
     stability: 'public advanced',

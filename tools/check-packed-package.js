@@ -49,6 +49,21 @@ async function writeImportSmoke(consumerDir, packageJson) {
   console.log(`package import smoke passed (${specifiers.length} exports + browser condition)`);
 }
 
+async function runTrainingApiSmoke(consumerDir, packageJson) {
+  const source = [
+    `import { getTrainingCapabilities, TRAINING_BACKENDS } from '${packageJson.name}/training';`,
+    "const capabilities = getTrainingCapabilities({ kind: 'lora', baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16', pipeline: { datasetFormat: 'text-pairs', taskType: 'text_generation' } });",
+    "if (!capabilities.supported || capabilities.backends.webgpuNative.supported || !capabilities.backends.external.supported) throw new Error('training capability contract mismatch');",
+    "if (TRAINING_BACKENDS.join(',') !== 'webgpu_native,external') throw new Error('training backend registry mismatch');",
+    "console.log('package training API smoke passed');",
+    '',
+  ].join('\n');
+  const smokePath = path.join(consumerDir, 'training-smoke.js');
+  await fs.writeFile(smokePath, source, 'utf8');
+  run(process.execPath, [smokePath], { cwd: consumerDir });
+  console.log('package training API smoke passed');
+}
+
 async function writeTypeSmoke(consumerDir, packageJson) {
   const specifiers = collectExportSpecifiers(packageJson);
   const source = specifiers
@@ -149,6 +164,7 @@ async function main() {
 
     await assertInstalledFiles(consumerDir, packageJson);
     await writeImportSmoke(consumerDir, packageJson);
+    await runTrainingApiSmoke(consumerDir, packageJson);
     await runCliSmokes(consumerDir, packageJson);
     await writeTypeSmoke(consumerDir, packageJson);
     console.log(
