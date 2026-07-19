@@ -44,10 +44,44 @@ async function requireBinding(binding, label) {
   return actual;
 }
 
+function evaluateOracleSafely(oracle, execution) {
+  try {
+    return evaluateWgslAuthorReferenceOracle(oracle, execution);
+  } catch (error) {
+    return {
+      pass: false,
+      kind: oracle?.kind || null,
+      resourceId: oracle?.resourceId || null,
+      error: error?.message || String(error),
+    };
+  }
+}
+
+function summarizeDeterministicReplay(runs, requiredRuns) {
+  const outputHashes = runs.map((run) => run.outputSha256);
+  const executedPasses = runs.map((run) => JSON.stringify(
+    run.execution?.executedPassIds || []
+  ));
+  const outputsMatch = new Set(outputHashes).size === 1;
+  const executedPassesMatch = new Set(executedPasses).size === 1;
+  return {
+    requiredRuns,
+    completedRuns: runs.length,
+    outputHashes,
+    outputsMatch,
+    executedPassesMatch,
+    pass: runs.length === requiredRuns
+      && runs.every((run) => run.pass)
+      && outputsMatch
+      && executedPassesMatch,
+  };
+}
+
 export async function runWgslAuthorV3Reference(args) {
   const policy = await readJson(args.policyPath);
   if (policy?.policyId !== 'doppler-wgsl-writer-v3-general-authoring'
     || policy?.status !== 'mechanics_implemented_reference_qualification_blocked'
+    || policy?.mechanics?.referenceQualification?.status !== 'not_run'
     || policy?.authority?.training !== false
     || policy?.authority?.promotion !== false) {
     throw new Error('WGSL author v3 reference runner requires the blocked v3 campaign policy.');
@@ -83,16 +117,45 @@ export async function runWgslAuthorV3Reference(args) {
   }
   const executor = await createWgslAuthorBrowserExecutor({
     browserArgs: manifest.runtime.browserArgs,
+    headless: manifest.runtime.headless,
+    requiredBackend: manifest.runtime.requiredBackend,
+    requiredVendor: manifest.runtime.requiredVendor,
     requiredFeatures: manifest.runtime.requiredFeatures,
     requiredLimits: manifest.runtime.requiredLimits,
     powerPreference: manifest.runtime.powerPreference,
     executionTimeoutMs: manifest.runtime.executionTimeoutMs,
   });
+  const tasks = [];
+  let sessionCleanup = null;
   try {
-    const tasks = [];
     for (const task of materialized) {
-      const execution = await executor.execute(task.plan, { id: task.taskId });
-      const oracle = evaluateWgslAuthorReferenceOracle(task.oracle, execution);
+      const runs = [];
+      for (let runIndex = 0; runIndex < manifest.runtime.replayCount; runIndex += 1) {
+        let execution = null;
+        let executionError = null;
+        try {
+          execution = await executor.execute(task.plan, {
+            id: `${task.taskId}-run-${runIndex + 1}`,
+          });
+        } catch (error) {
+          executionError = error?.message || String(error);
+        }
+        const oracle = evaluateOracleSafely(task.oracle, execution);
+        runs.push({
+          run: runIndex + 1,
+          execution,
+          executionError,
+          outputSha256: hashWgslSemanticEvidenceValue(execution?.outputs || null),
+          oracle,
+          pass: executionError === null
+            && execution?.passed === true
+            && oracle.pass === true,
+        });
+      }
+      const deterministicReplay = summarizeDeterministicReplay(
+        runs,
+        manifest.runtime.replayCount
+      );
       tasks.push({
         taskId: task.taskId,
         pipelineKind: task.pipelineKind,
@@ -100,54 +163,60 @@ export async function runWgslAuthorV3Reference(args) {
         sourceBindings: task.sourceBindings,
         packageSha256: task.packageSha256,
         planSha256: task.planSha256,
-        execution,
-        oracle,
-        pass: execution.passed === true && oracle.pass === true,
+        runs,
+        deterministicReplay,
+        pass: deterministicReplay.pass,
       });
     }
-    const passedTasks = tasks.filter((task) => task.pass).length;
-    const allTasksPass = passedTasks === tasks.length;
-    const core = {
-      schema: 'doppler.wgsl-author-reference-qualification/v1',
-      experimentId: policy.experimentId,
-      evaluationRole: manifest.role,
-      policy: {
-        path: args.policyPath,
-        sha256: await sha256File(args.policyPath),
-      },
-      manifest: policy.mechanics.referenceQualification.manifest,
-      runtime: {
-        backend: 'chromium_webgpu',
-        deviceInfo: executor.deviceInfo,
-        browserArgs: executor.browserArgs,
-        executionTimeoutMs: executor.executionTimeoutMs,
-      },
-      tasks,
-      summary: {
-        tasks: tasks.length,
-        passedTasks,
-        failedTasks: tasks.length - passedTasks,
-        computeTasks: tasks.filter((task) => task.pipelineKind === 'compute').length,
-        renderTasks: tasks.filter((task) => task.pipelineKind === 'render').length,
-        multiPassTasks: tasks.filter((task) => task.pipelineKind === 'multi_pass').length,
-      },
-      decision: allTasksPass
-        ? 'reference_package_mechanics_qualified'
-        : 'reference_package_mechanics_failed',
-      mechanicsQualificationAuthority: true,
-      corpusMaterializationAuthority: false,
-      trainingAuthority: false,
-      selectionAuthority: false,
-      confirmationAuthority: false,
-      promotionAuthority: false,
-      generalWgslWriterClaim: false,
-      productizationAllowed: false,
-      claimBoundary: 'A passing receipt qualifies visible compute, procedural-render, indexed-render, multi-pass, readback, and oracle mechanics only. It is not model capability, corpus, training, selection, confirmation, promotion, or product evidence.',
-    };
-    return { ...core, receiptHash: hashWgslSemanticEvidenceValue(core) };
   } finally {
-    await executor.close();
+    sessionCleanup = await executor.close();
   }
+  const passedTasks = tasks.filter((task) => task.pass).length;
+  const allTasksPass = passedTasks === tasks.length && sessionCleanup?.passed === true;
+  const core = {
+    schema: 'doppler.wgsl-author-reference-qualification/v1',
+    createdAtUtc: new Date().toISOString(),
+    experimentId: policy.experimentId,
+    evaluationRole: manifest.role,
+    policy: {
+      path: args.policyPath,
+      sha256: await sha256File(args.policyPath),
+    },
+    manifest: policy.mechanics.referenceQualification.manifest,
+    runtime: {
+      backend: 'chromium_webgpu',
+      identity: executor.runtimeIdentity,
+      executionTimeoutMs: executor.executionTimeoutMs,
+      replayCount: manifest.runtime.replayCount,
+      sessionCleanup,
+    },
+    tasks,
+    summary: {
+      tasks: tasks.length,
+      runs: tasks.reduce((count, task) => count + task.runs.length, 0),
+      passedTasks,
+      failedTasks: tasks.length - passedTasks,
+      computeTasks: tasks.filter((task) => task.pipelineKind === 'compute').length,
+      renderTasks: tasks.filter((task) => task.pipelineKind === 'render').length,
+      multiPassTasks: tasks.filter((task) => task.pipelineKind === 'multi_pass').length,
+      deterministicReplayPassed: tasks.every((task) => task.deterministicReplay.pass),
+      cleanupPassed: sessionCleanup?.passed === true
+        && tasks.every((task) => task.runs.every((run) => run.execution?.cleanup?.passed === true)),
+    },
+    decision: allTasksPass
+      ? 'reference_package_mechanics_qualified'
+      : 'reference_package_mechanics_failed',
+    mechanicsQualificationAuthority: allTasksPass,
+    corpusMaterializationAuthority: false,
+    trainingAuthority: false,
+    selectionAuthority: false,
+    confirmationAuthority: false,
+    promotionAuthority: false,
+    generalWgslWriterClaim: false,
+    productizationAllowed: false,
+    claimBoundary: 'A passing receipt qualifies visible compute, procedural-render, indexed-render, multi-pass, deterministic replay, tracked GPU-resource cleanup, readback, and oracle mechanics only on the bound Chromium WebGPU identity. It is not model capability, corpus, training, selection, confirmation, promotion, or product evidence.',
+  };
+  return { ...core, receiptHash: hashWgslSemanticEvidenceValue(core) };
 }
 
 async function main() {
@@ -171,3 +240,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exitCode = 1;
   });
 }
+
+export { evaluateOracleSafely, summarizeDeterministicReplay };

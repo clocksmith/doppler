@@ -76,9 +76,21 @@ export function validateWgslAuthorReferenceManifest(manifest) {
     || manifest.populationAuthority !== 'none'
     || manifest.license !== 'Apache-2.0'
     || !isPlainObject(manifest.runtime)
+    || typeof manifest.runtime.headless !== 'boolean'
+    || typeof manifest.runtime.requiredBackend !== 'string'
+    || manifest.runtime.requiredBackend.length === 0
+    || (manifest.runtime.requiredVendor !== null
+      && (typeof manifest.runtime.requiredVendor !== 'string'
+        || manifest.runtime.requiredVendor.length === 0))
+    || !Number.isSafeInteger(manifest.runtime.replayCount)
+    || manifest.runtime.replayCount < 2
+    || !Array.isArray(manifest.runtime.browserArgs)
+    || manifest.runtime.browserArgs.length === 0
+    || !Array.isArray(manifest.runtime.requiredFeatures)
+    || !isPlainObject(manifest.runtime.requiredLimits)
     || !isPlainObject(manifest.allocationLimits)
     || !Array.isArray(manifest.tasks)
-    || manifest.tasks.length < 4) {
+    || manifest.tasks.length !== 4) {
     throw new Error('WGSL author reference manifest is invalid.');
   }
   const taskIds = new Set();

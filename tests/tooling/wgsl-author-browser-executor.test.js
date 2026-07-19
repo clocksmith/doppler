@@ -20,19 +20,33 @@ const plan = {
   ],
   outputs: ['color'],
 };
-const deviceInfo = {
-  vendor: 'test',
-  availableFeatures: [],
-  requiredFeatures: [],
-  limits: {},
-  requiredLimits: {},
+const runtimeIdentity = {
+  schema: 'doppler.chromium-webgpu-runtime-identity/v1',
+  host: { platform: 'test', release: 'test', architecture: 'test' },
+  browser: { engine: 'chromium', version: 'test', headless: true, args: ['--test'] },
+  gpuBackend: { required: 'vulkan', detected: 'vulkan' },
+  chromiumGpu: { devices: [], auxAttributes: {}, featureStatus: {} },
+  webgpuAdapter: {
+    vendor: 'test',
+    availableFeatures: [],
+    requiredFeatures: [],
+    limits: {},
+    requiredLimits: {},
+  },
 };
-const browserArgs = ['--test'];
+const successfulCleanup = {
+  attempted: true,
+  destroyableCount: 2,
+  destroyedCount: 2,
+  mappedBufferCount: 1,
+  unmappedBufferCount: 1,
+  errors: [],
+  passed: true,
+};
 const successful = summarizeWgslAuthorBrowserExecution(
   'receipt-test',
   plan,
-  deviceInfo,
-  browserArgs,
+  runtimeIdentity,
   {
     compilation: [
       { moduleId: 'compute-module', messages: [] },
@@ -41,6 +55,7 @@ const successful = summarizeWgslAuthorBrowserExecution(
     runtimeErrors: [],
     executedPassIds: ['prepare', 'draw'],
     outputs: { color: { kind: 'texture', bytes: [0, 1, 2, 3] } },
+    cleanup: successfulCleanup,
   }
 );
 assert.equal(successful.passed, true);
@@ -51,8 +66,7 @@ assert.deepEqual(
   summarizeWgslAuthorBrowserExecution(
     'receipt-test',
     plan,
-    deviceInfo,
-    browserArgs,
+    runtimeIdentity,
     {
       compilation: [
         { moduleId: 'compute-module', messages: [] },
@@ -61,6 +75,7 @@ assert.deepEqual(
       runtimeErrors: [],
       executedPassIds: ['prepare', 'draw'],
       outputs: { color: { kind: 'texture', bytes: [0, 1, 2, 3] } },
+      cleanup: successfulCleanup,
     }
   ),
   successful
@@ -69,8 +84,7 @@ assert.deepEqual(
 const compilationFailure = summarizeWgslAuthorBrowserExecution(
   'compile-failure',
   plan,
-  deviceInfo,
-  browserArgs,
+  runtimeIdentity,
   {
     compilation: [
       {
@@ -82,6 +96,7 @@ const compilationFailure = summarizeWgslAuthorBrowserExecution(
     runtimeErrors: [],
     executedPassIds: [],
     outputs: {},
+    cleanup: successfulCleanup,
   }
 );
 assert.equal(compilationFailure.passed, false);
@@ -90,8 +105,7 @@ assert.equal(compilationFailure.compilation[0].errorCount, 1);
 const runtimeFailure = summarizeWgslAuthorBrowserExecution(
   'runtime-failure',
   plan,
-  deviceInfo,
-  browserArgs,
+  runtimeIdentity,
   {
     compilation: [
       { moduleId: 'compute-module', messages: [] },
@@ -100,9 +114,50 @@ const runtimeFailure = summarizeWgslAuthorBrowserExecution(
     runtimeErrors: ['validation failed'],
     executedPassIds: ['prepare'],
     outputs: {},
+    cleanup: successfulCleanup,
   }
 );
 assert.equal(runtimeFailure.passed, false);
 assert.equal(runtimeFailure.validationErrorsAbsent, false);
+
+const cleanupFailure = summarizeWgslAuthorBrowserExecution(
+  'cleanup-failure',
+  plan,
+  runtimeIdentity,
+  {
+    compilation: [
+      { moduleId: 'compute-module', messages: [] },
+      { moduleId: 'render-module', messages: [] },
+    ],
+    runtimeErrors: [],
+    executedPassIds: ['prepare', 'draw'],
+    outputs: { color: { kind: 'texture', bytes: [0, 1, 2, 3] } },
+    cleanup: {
+      ...successfulCleanup,
+      destroyedCount: 1,
+      errors: ['destroy_failed:test'],
+      passed: false,
+    },
+  }
+);
+assert.equal(cleanupFailure.passed, false);
+assert.equal(cleanupFailure.cleanup.passed, false);
+
+const missingCleanup = summarizeWgslAuthorBrowserExecution(
+  'cleanup-missing',
+  plan,
+  runtimeIdentity,
+  {
+    compilation: [
+      { moduleId: 'compute-module', messages: [] },
+      { moduleId: 'render-module', messages: [] },
+    ],
+    runtimeErrors: [],
+    executedPassIds: ['prepare', 'draw'],
+    outputs: { color: { kind: 'texture', bytes: [0, 1, 2, 3] } },
+  }
+);
+assert.equal(missingCleanup.passed, false);
+assert.deepEqual(missingCleanup.cleanup.errors, ['cleanup_result_missing']);
 
 console.log('wgsl-author-browser-executor.test: ok');

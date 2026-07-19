@@ -632,8 +632,7 @@
     "promotionAllowed": false
   },
   "blockers": [
-    "package_executor_not_reference_qualified",
-    "reference_tasks_and_oracles_not_materialized",
+    "capability_tasks_and_oracles_not_materialized",
     "render_depth_stencil_blend_state_not_represented",
     "mipmapped_and_multisampled_resource_execution_not_supported",
     "indirect_draw_and_dispatch_not_represented",

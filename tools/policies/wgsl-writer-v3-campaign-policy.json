@@ -4,7 +4,7 @@
   "source": "doppler",
   "policyId": "doppler-wgsl-writer-v3-general-authoring",
   "experimentId": "doppler-wgsl-writer-v3",
-  "status": "mechanics_implemented_reference_qualification_blocked",
+  "status": "reference_qualified_corpus_materialization_blocked",
   "targetCapability": "complete_executable_webgpu_shader_package_from_natural_language_and_host_contract",
   "predecessor": {
     "result": {
@@ -23,7 +23,7 @@
     },
     "packageValidator": {
       "path": "tools/lib/wgsl-author-package.js",
-      "sha256": "bfd50832a936894d73122a41c3bc1d84ceab5f599b42fd20ed01ee5bcff5fca3"
+      "sha256": "048e471a5515351dbf88d06f4ecf5f1e9784535b4276897049e6e0fa205eef4a"
     },
     "executionPlanner": {
       "path": "tools/lib/wgsl-author-execution-plan.js",
@@ -35,30 +35,34 @@
     },
     "capabilityCatalog": {
       "path": "tools/data/wgsl-writer-v3-capability-catalog.json",
-      "sha256": "b78f4f08014f18ebbd08aeed1bbcb9d9b4be1d6758b151a2e875797341689258"
+      "sha256": "e9b54639ae5b7eb121652427adc704da434ecf8b35940fc33fa5eb3371e7c990"
     },
     "browserExecutor": {
       "required": true,
       "path": "tools/lib/wgsl-author-browser-executor.js",
-      "sha256": "86019ad15338c0b3bf2133680181e75d9906a4d2a3ca3d006e61b51357648948",
-      "status": "implemented_unqualified",
+      "sha256": "c802f8f5d43b7525819be6b7dd164a28edb860d1e2c7ca49bd25ca8925a08643",
+      "status": "reference_qualified",
       "mustCompileAndExecuteReturnedPackage": true
     },
     "referenceQualification": {
       "required": true,
       "library": {
         "path": "tools/lib/wgsl-author-reference.js",
-        "sha256": "08006a28528eab0eed7cc6a56b572737766c5c4f3470d8ebd21b28568c7b4f20"
+        "sha256": "9b60ff124d419caf8ceb012266d9b4e9939913ffa8a4f835d20d3c7462d4e6eb"
       },
       "harness": {
         "path": "tools/run-wgsl-author-v3-reference.js",
-        "sha256": "e807a426e62d5ca0846accaa590414e413b5de07d22cef5ed1a15fef9666de0a"
+        "sha256": "9e6bcfeb89219f25368acb05d94c52ab12c8bcc91c15089c9ffd46e63a02209a"
       },
       "manifest": {
         "path": "tools/data/wgsl-author-v3-reference/manifest.json",
-        "sha256": "9fe9e2fc28ace5700226920cb2b0dc0c418ee524976817bfdff60d9a1334a55b"
+        "sha256": "f9697f2f7ff6e2b7b686f50eb30987265fe06d1cba9f8da19a72d03798aeb0a0"
       },
-      "status": "not_run",
+      "status": "qualified",
+      "receipt": {
+        "path": "docs/status/wgsl-writer-v3-reference-qualification-2026-07-18.json",
+        "sha256": "0ce2f83e7b8ab71f87a8a50ed623d4b34f8169856a8012d0eff5f3a126368f24"
+      },
       "mustPassBeforeCorpusFreeze": true
     }
   },
@@ -77,7 +81,7 @@
   "training": {
     "allowed": false,
     "workloadsFrozen": false,
-    "reason": "Training is blocked until executable-package browser mechanics, reference semantic oracles, source lineage, and disjoint populations pass qualification."
+    "reason": "Training remains blocked until the executable capability corpus, semantic oracles, source lineage, and disjoint development and promotion populations are materialized and qualified."
   },
   "evaluation": {
     "primaryMetric": "semantic_executable_package_pass_at_1",
@@ -111,8 +115,7 @@
   },
   "blockers": [
     "selected_v2_adapter_weights_have_no_immutable_external_url",
-    "executable_package_browser_runner_is_not_reference_qualified",
-    "reference_tasks_cpu_oracles_and_raster_oracles_are_not_materialized",
+    "executable_capability_tasks_cpu_and_raster_oracles_are_not_materialized",
     "depth_stencil_blend_indirect_and_query_contracts_are_not_represented",
     "mipmapped_and_multisampled_resource_execution_is_not_supported",
     "development_and_external_promotion_populations_are_not_materialized"

@@ -247,6 +247,73 @@ const multiPassContract = {
 };
 assert.equal(validateWgslAuthorPackage(multiPassPackage, multiPassContract).ok, true);
 
+const offscreenPackage = structuredClone(renderPackage);
+offscreenPackage.modules.push({
+  id: 'postprocess-module',
+  wgsl: `
+@group(0) @binding(0) var offscreenColor: texture_2d<f32>;
+
+struct VertexOutput {
+  @builtin(position) position: vec4<f32>,
+  @location(0) uv: vec2<f32>,
+};
+
+@vertex
+fn vertex_main(@builtin(vertex_index) index: u32) -> VertexOutput {
+  let positions = array<vec2<f32>, 3>(
+    vec2<f32>(-1.0, -1.0),
+    vec2<f32>(3.0, -1.0),
+    vec2<f32>(-1.0, 3.0)
+  );
+  let position = positions[index];
+  var output: VertexOutput;
+  output.position = vec4<f32>(position, 0.0, 1.0);
+  output.uv = position * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5);
+  return output;
+}
+
+@fragment
+fn fragment_main(input: VertexOutput) -> @location(0) vec4<f32> {
+  let size = vec2<i32>(textureDimensions(offscreenColor));
+  let coordinate = clamp(vec2<i32>(input.uv * vec2<f32>(size)), vec2<i32>(0), size - 1);
+  return textureLoad(offscreenColor, coordinate, 0);
+}`.trim(),
+});
+offscreenPackage.resources[1].access = 'read_write';
+offscreenPackage.resources.push({
+  ...structuredClone(offscreenPackage.resources[1]),
+  id: 'postprocess-color',
+  access: 'write',
+});
+offscreenPackage.passes.push({
+  ...structuredClone(offscreenPackage.passes[0]),
+  id: 'postprocess-pass',
+  moduleId: 'postprocess-module',
+  bindings: [{
+    group: 0,
+    binding: 0,
+    resourceId: 'color',
+    shaderName: 'offscreenColor',
+  }],
+  targets: [{
+    ...structuredClone(offscreenPackage.passes[0].targets[0]),
+    resourceId: 'postprocess-color',
+  }],
+});
+offscreenPackage.outputs = ['postprocess-color'];
+const offscreenContract = {
+  ...renderContract,
+  resources: [
+    renderContract.resources[0],
+    { id: 'color', kind: 'render_target', access: 'read_write' },
+    { id: 'postprocess-color', kind: 'render_target', access: 'write' },
+  ],
+};
+assert.deepEqual(validateWgslAuthorPackage(offscreenPackage, offscreenContract), {
+  ok: true,
+  violations: [],
+});
+
 const indexedPackage = structuredClone(renderPackage);
 indexedPackage.resources.splice(1, 0,
   {
