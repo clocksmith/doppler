@@ -8,6 +8,7 @@ import { WGSL_WRITER_V3_MULTIPASS_FAMILY_BUILDERS } from './wgsl-writer-v3-multi
 import { WGSL_WRITER_V3_RENDER_FAMILY_BUILDERS } from './wgsl-writer-v3-render-families.js';
 import { WGSL_WRITER_V3_TEXTURE_FAMILY_BUILDERS } from './wgsl-writer-v3-texture-families.js';
 import { evaluateWgslWriterV3Quality } from './wgsl-writer-v3-quality.js';
+import { diversifyWgslWriterV3Package } from './wgsl-writer-v3-package-diversity.js';
 
 const ROLE_FILENAMES = Object.freeze({
   training: 'train.jsonl',
@@ -90,6 +91,13 @@ function materializeTask(family, rowIndex) {
     throw new Error(`WGSL writer v3 family builder is missing: ${family.id}.`);
   }
   const built = builder(family, rowIndex);
+  if (family.populationRole === 'training' && family.packageDiversity !== null) {
+    built.packageValue = diversifyWgslWriterV3Package(
+      built.packageValue,
+      rowIndex,
+      family.packageDiversity
+    );
+  }
   const quality = evaluateWgslWriterV3Quality(built, family);
   if (!quality.pass) {
     throw new Error(
@@ -103,10 +111,11 @@ function materializeTask(family, rowIndex) {
     populationRole: family.populationRole,
     pipelineKind: family.pipelineKind,
     taskClass: family.taskClass,
+    semanticContract: family.semanticContract,
     source: {
       owner: 'doppler',
       license: 'Apache-2.0',
-      lineage: 'human_authored_doppler_parametric_reference',
+      lineage: family.sourceLineage,
     },
     objective: built.objective,
     contract: built.contract,
@@ -134,6 +143,7 @@ function promptTask(task) {
   return {
     taskId: task.taskId,
     objective: task.objective,
+    semanticContract: task.semanticContract,
     resources: task.contract.resources,
     parameters: task.contract.parameterNames,
     acceptance: task.acceptance,
@@ -141,8 +151,44 @@ function promptTask(task) {
   };
 }
 
+function buildCorpusPrompt(task, promptContract) {
+  let prompt = buildWgslAuthorPrompt(promptTask(task), promptContract);
+  if (promptContract.includesExplicitSemanticContract !== true) return prompt;
+  if (!isPlainObject(task.semanticContract)) {
+    throw new Error(`WGSL writer v3 task is missing semantic contract: ${task.taskId}.`);
+  }
+  const boundary = '</objective>\n<host_contract>';
+  if (!prompt.includes(boundary)) {
+    throw new Error('WGSL writer v3 semantic prompt objective boundary is missing.');
+  }
+  prompt = prompt.replace(boundary, [
+    '</objective>',
+    '<semantic_contract>',
+    JSON.stringify(task.semanticContract, null, 2),
+    '</semantic_contract>',
+    '<host_contract>',
+  ].join('\n'));
+  if (promptContract.includesExplicitOutputTokenBudget !== true) return prompt;
+  const outputTokenBudget = Number(promptContract.outputTokenBudget);
+  if (!Number.isSafeInteger(outputTokenBudget) || outputTokenBudget < 1
+    || promptContract.hardStopDisclosed !== true) {
+    throw new Error('WGSL writer v3 explicit output-token budget contract is invalid.');
+  }
+  const responseBoundary = '</host_contract>';
+  if (!prompt.endsWith(responseBoundary)) {
+    throw new Error('WGSL writer v3 output-budget response boundary is missing.');
+  }
+  return prompt.replace(responseBoundary, [
+    '</host_contract>',
+    '<output_contract>',
+    `The response is hard-stopped after ${outputTokenBudget} generated tokens.`,
+    `Complete the single JSON object within ${outputTokenBudget} generated tokens.`,
+    '</output_contract>',
+  ].join('\n'));
+}
+
 function rowForTask(task, policy) {
-  const prompt = buildWgslAuthorPrompt(promptTask(task), policy.promptContract);
+  const prompt = buildCorpusPrompt(task, policy.promptContract);
   const completion = JSON.stringify(task.packageValue);
   return {
     schema: 'doppler.wgsl-writer-v3-sft-row/v1',
@@ -217,7 +263,17 @@ export function materializeWgslWriterV3Corpus(options) {
     if (!Number.isSafeInteger(count) || count < 3) {
       throw new Error(`WGSL writer v3 row count is invalid for ${family.populationRole}.`);
     }
-    const familyTasks = Array.from({ length: count }, (_, index) => materializeTask(family, index));
+    const materializationFamily = {
+      ...family,
+      sourceLineage: policy.corpus.sourceLineage,
+      packageDiversity: family.populationRole === 'training'
+        ? policy.corpus.packageDiversity || null
+        : null,
+    };
+    const familyTasks = Array.from(
+      { length: count },
+      (_, index) => materializeTask(materializationFamily, index)
+    );
     verifyFamilyVariation(familyTasks, family);
     tasksByRole[family.populationRole].push(...familyTasks);
   }
@@ -248,13 +304,11 @@ export function materializeWgslWriterV3Corpus(options) {
       ...(manifests[role] ? { taskManifestPath: manifests[role].path } : {}),
     };
   }
-  const trainingRepresentatives = [];
-  const seenTrainingFamilies = new Set();
-  for (const task of tasksByRole.training) {
-    if (seenTrainingFamilies.has(task.semanticFamilyId)) continue;
-    seenTrainingFamilies.add(task.semanticFamilyId);
-    trainingRepresentatives.push(task);
-  }
+  const trainingRepresentatives = policy.referenceQualification.executeEveryTrainingTask === true
+    ? tasksByRole.training
+    : tasksByRole.training.filter((task, index, tasks) => (
+      tasks.findIndex((candidate) => candidate.semanticFamilyId === task.semanticFamilyId) === index
+    ));
   const qualificationManifest = roleManifest(policy, 'reference_qualification_only', [
     ...trainingRepresentatives,
     ...Object.values(manifests).flatMap(({ manifest }) => manifest.tasks),

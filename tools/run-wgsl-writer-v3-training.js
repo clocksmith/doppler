@@ -9,6 +9,12 @@ import { hashWgslSemanticEvidenceValue } from '../src/tooling/wgsl-repair-semant
 import { runGammaWgslRequest } from './trainers/gamma-wgsl-trainer.js';
 
 const DEFAULT_POLICY = 'tools/policies/wgsl-writer-v3-training-policy.json';
+const POLICY_IDS = new Set([
+  'doppler-wgsl-writer-v3-training',
+  'doppler-wgsl-writer-v3-diversity-repair-training',
+  'doppler-wgsl-writer-v3-explicit-semantic-training',
+  'doppler-wgsl-writer-v3-explicit-budget-training',
+]);
 
 function parseArgs(argv) {
   const args = { policyPath: DEFAULT_POLICY, laneId: '', seed: 47 };
@@ -75,19 +81,46 @@ async function requireModel(policy, modelPath) {
 
 async function requireInitialization(policy, lane) {
   if (lane.initialization === 'base') return null;
-  const adapterPath = policy.initialization.v2AdapterPath;
+  let adapter;
+  if (lane.initialization === 'v2_seed47_adapter') {
+    adapter = {
+      path: policy.initialization.v2AdapterPath,
+      configSha256: policy.initialization.v2AdapterConfigSha256,
+      weightsSha256: policy.initialization.v2AdapterWeightsSha256,
+    };
+  } else {
+    adapter = policy.initialization.adapters?.find((entry) => entry.id === lane.initialization);
+  }
+  if (!adapter?.path) {
+    throw new Error(`WGSL writer v3 initialization is not bound: ${lane.initialization}.`);
+  }
+  const adapterPath = adapter.path;
   await Promise.all([
     requireFileHash(
       path.join(adapterPath, 'adapter_config.json'),
-      policy.initialization.v2AdapterConfigSha256,
-      'v2 adapter config'
+      adapter.configSha256,
+      `${lane.initialization} config`
     ),
     requireFileHash(
       path.join(adapterPath, 'adapter_model.safetensors'),
-      policy.initialization.v2AdapterWeightsSha256,
-      'v2 adapter weights'
+      adapter.weightsSha256,
+      `${lane.initialization} weights`
     ),
+    ...(adapter.sourceTrainingStatus ? [requireFileHash(
+      adapter.sourceTrainingStatus.path,
+      adapter.sourceTrainingStatus.sha256,
+      `${lane.initialization} source training status`
+    )] : []),
   ]);
+  if (adapter.sourceTrainingStatus) {
+    const status = await readJson(adapter.sourceTrainingStatus.path);
+    if (status.decision !== 'training_complete'
+      || path.resolve(status.adapter?.path || '') !== path.resolve(adapterPath)
+      || status.adapter?.configSha256 !== adapter.configSha256
+      || status.adapter?.weightsSha256 !== adapter.weightsSha256) {
+      throw new Error(`${lane.initialization} source training receipt does not bind the adapter.`);
+    }
+  }
   return path.resolve(adapterPath);
 }
 
@@ -107,7 +140,8 @@ async function requireConfirmationAdmission(policy, lane, seed) {
     throw new Error(`WGSL writer v3 seed is not frozen: ${seed}.`);
   }
   const selectionPath = path.resolve(
-    'reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation/selection/selected-lane.json'
+    policy.evaluation.selectionReceiptPath
+      || 'reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation/selection/selected-lane.json'
   );
   const selection = await readJson(selectionPath);
   const core = { ...selection };
@@ -159,7 +193,7 @@ function gammaRequest(policy, lane, seed, modelPath, adapterPath, outputRoot) {
 
 export async function runWgslWriterV3Training(args) {
   const policy = await readJson(args.policyPath);
-  if (policy.policyId !== 'doppler-wgsl-writer-v3-training'
+  if (!POLICY_IDS.has(policy.policyId)
     || policy.status !== 'frozen_before_training') {
     throw new Error('WGSL writer v3 training requires the frozen training policy.');
   }
@@ -171,7 +205,9 @@ export async function runWgslWriterV3Training(args) {
     throw new Error('GAMMA_WGSL_MODEL_PATH is required.');
   }
   const runRoot = path.resolve(
-    'reports/training/wgsl-writer/doppler-wgsl-writer-v3/training',
+    policy.artifactRoot
+      ? path.join(policy.artifactRoot, 'training')
+      : 'reports/training/wgsl-writer/doppler-wgsl-writer-v3/training',
     `${lane.id}-seed${args.seed}`
   );
   const statusPath = path.join(runRoot, 'training-status.json');

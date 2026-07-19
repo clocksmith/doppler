@@ -26,7 +26,14 @@
     },
     "schemaVersion": { "const": 1 },
     "source": { "const": "doppler" },
-    "policyId": { "const": "doppler-wgsl-writer-v3-corpus" },
+    "policyId": {
+      "enum": [
+        "doppler-wgsl-writer-v3-corpus",
+        "doppler-wgsl-writer-v3-corpus-diversity-repair",
+        "doppler-wgsl-writer-v3-explicit-semantic-repair",
+        "doppler-wgsl-writer-v3-explicit-output-budget"
+      ]
+    },
     "experimentId": { "const": "doppler-wgsl-writer-v3" },
     "status": { "enum": ["frozen_before_materialization", "reference_qualified"] },
     "capability": {
@@ -67,18 +74,60 @@
           }
         },
         "splitKey": { "const": "semanticFamilyId" },
-        "sourceLineage": { "const": "human_authored_doppler_parametric_reference" },
-        "sourceLicense": { "const": "Apache-2.0" }
+        "sourceLineage": {
+          "enum": [
+            "human_authored_doppler_parametric_reference",
+            "human_authored_doppler_parametric_reference_with_verified_alpha_layout_variants",
+            "human_authored_doppler_explicit_semantic_contract_with_verified_alpha_layout_variants",
+            "human_authored_doppler_explicit_semantic_and_output_budget_contract"
+          ]
+        },
+        "sourceLicense": { "const": "Apache-2.0" },
+        "packageDiversity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": {
+            "mode": { "const": "identifier_binding_permutation_v1" }
+          }
+        }
       }
     },
     "promptContract": {
-      "const": {
-        "templateId": "wgsl-executable-package-spec-host-v1",
-        "useChatTemplate": false,
-        "responseContract": "wgsl_author_package_v1",
-        "includesNaturalLanguageSpecification": true,
-        "includesExplicitHostContract": true
-      }
+      "oneOf": [
+        {
+          "const": {
+            "templateId": "wgsl-executable-package-spec-host-v1",
+            "useChatTemplate": false,
+            "responseContract": "wgsl_author_package_v1",
+            "includesNaturalLanguageSpecification": true,
+            "includesExplicitHostContract": true
+          }
+        },
+        {
+          "const": {
+            "templateId": "wgsl-executable-package-semantic-spec-host-v2",
+            "useChatTemplate": false,
+            "responseContract": "wgsl_author_package_v1",
+            "includesNaturalLanguageSpecification": true,
+            "includesExplicitSemanticContract": true,
+            "includesExplicitHostContract": true
+          }
+        },
+        {
+          "const": {
+            "templateId": "wgsl-executable-package-semantic-budget-spec-host-v3",
+            "useChatTemplate": false,
+            "responseContract": "wgsl_author_package_v1",
+            "includesNaturalLanguageSpecification": true,
+            "includesExplicitSemanticContract": true,
+            "includesExplicitHostContract": true,
+            "includesExplicitOutputTokenBudget": true,
+            "outputTokenBudget": 1280,
+            "hardStopDisclosed": true
+          }
+        }
+      ]
     },
     "runtime": {
       "type": "object",
@@ -130,7 +179,8 @@
         "replayCount": { "type": "integer", "minimum": 2 },
         "compileEveryPackage": { "const": true },
         "executeEveryHeldoutTask": { "const": true },
-        "executeOneRepresentativePerTrainingFamily": { "const": true },
+        "executeOneRepresentativePerTrainingFamily": { "type": "boolean" },
+        "executeEveryTrainingTask": { "type": "boolean" },
         "qualityGateBlocking": { "const": true },
         "mustPassBeforeTraining": { "const": true }
       }
@@ -149,6 +199,109 @@
     },
     "claimBoundary": { "type": "string", "minLength": 1 }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "policyId": { "const": "doppler-wgsl-writer-v3-corpus-diversity-repair" }
+        }
+      },
+      "then": {
+        "properties": {
+          "corpus": {
+            "required": ["packageDiversity"],
+            "properties": {
+              "sourceLineage": {
+                "const": "human_authored_doppler_parametric_reference_with_verified_alpha_layout_variants"
+              }
+            }
+          },
+          "referenceQualification": {
+            "required": ["executeEveryTrainingTask"],
+            "properties": {
+              "executeOneRepresentativePerTrainingFamily": { "const": false },
+              "executeEveryTrainingTask": { "const": true }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "policyId": { "const": "doppler-wgsl-writer-v3-explicit-semantic-repair" }
+        }
+      },
+      "then": {
+        "properties": {
+          "corpus": {
+            "required": ["packageDiversity"],
+            "properties": {
+              "sourceLineage": {
+                "const": "human_authored_doppler_explicit_semantic_contract_with_verified_alpha_layout_variants"
+              }
+            }
+          },
+          "promptContract": {
+            "const": {
+              "templateId": "wgsl-executable-package-semantic-spec-host-v2",
+              "useChatTemplate": false,
+              "responseContract": "wgsl_author_package_v1",
+              "includesNaturalLanguageSpecification": true,
+              "includesExplicitSemanticContract": true,
+              "includesExplicitHostContract": true
+            }
+          },
+          "referenceQualification": {
+            "required": ["executeEveryTrainingTask"],
+            "properties": {
+              "executeOneRepresentativePerTrainingFamily": { "const": false },
+              "executeEveryTrainingTask": { "const": true }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "policyId": { "const": "doppler-wgsl-writer-v3-explicit-output-budget" }
+        }
+      },
+      "then": {
+        "properties": {
+          "corpus": {
+            "required": ["packageDiversity"],
+            "properties": {
+              "sourceLineage": {
+                "const": "human_authored_doppler_explicit_semantic_and_output_budget_contract"
+              }
+            }
+          },
+          "promptContract": {
+            "const": {
+              "templateId": "wgsl-executable-package-semantic-budget-spec-host-v3",
+              "useChatTemplate": false,
+              "responseContract": "wgsl_author_package_v1",
+              "includesNaturalLanguageSpecification": true,
+              "includesExplicitSemanticContract": true,
+              "includesExplicitHostContract": true,
+              "includesExplicitOutputTokenBudget": true,
+              "outputTokenBudget": 1280,
+              "hardStopDisclosed": true
+            }
+          },
+          "referenceQualification": {
+            "required": ["executeEveryTrainingTask"],
+            "properties": {
+              "executeOneRepresentativePerTrainingFamily": { "const": false },
+              "executeEveryTrainingTask": { "const": true }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "repoPath": {
       "type": "string",

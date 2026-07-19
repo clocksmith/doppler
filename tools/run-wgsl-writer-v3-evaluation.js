@@ -47,9 +47,65 @@ async function sha256File(filePath) {
   return createHash('sha256').update(await fs.readFile(path.resolve(filePath))).digest('hex');
 }
 
-async function candidateFromStatus(lane, seed, candidateId = lane.id) {
+async function requireFileHash(filePath, expectedSha256, label) {
+  const actual = await sha256File(filePath);
+  if (actual !== expectedSha256) {
+    throw new Error(`${label} SHA-256 mismatch: expected ${expectedSha256}, got ${actual}.`);
+  }
+}
+
+function initializationAdapter(policy, initializationId) {
+  if (initializationId === 'v2_seed47_adapter') {
+    return {
+      id: initializationId,
+      path: policy.initialization.v2AdapterPath,
+    };
+  }
+  return policy.initialization.adapters?.find((entry) => entry.id === initializationId) || null;
+}
+
+function baselineCandidates(policy) {
+  if (!Array.isArray(policy.evaluation.baselineCandidates)) {
+    return [{
+      id: 'unchanged-v2',
+      path: policy.initialization.v2AdapterPath,
+    }];
+  }
+  const candidates = policy.evaluation.baselineCandidates.map((entry) => {
+    const adapter = initializationAdapter(policy, entry.initialization);
+    if (!adapter?.path) {
+      throw new Error(`WGSL writer v3 baseline initialization is not bound: ${entry.initialization}.`);
+    }
+    return { id: entry.id, path: adapter.path };
+  });
+  if (candidates.length === 0) {
+    throw new Error('WGSL writer v3 evaluation requires at least one bound adapter baseline.');
+  }
+  return candidates;
+}
+
+export function requireDisclosedOutputBudget(policy, corpusPolicy) {
+  const promptContract = corpusPolicy.promptContract;
+  const outputTokenBudget = Number(promptContract?.outputTokenBudget);
+  if (promptContract?.includesExplicitOutputTokenBudget !== true
+    || promptContract?.hardStopDisclosed !== true
+    || !Number.isSafeInteger(outputTokenBudget)
+    || outputTokenBudget < 1) {
+    throw new Error('WGSL writer v3 evaluation requires a prompt-disclosed hard output-token budget.');
+  }
+  if (policy.evaluation?.generation?.maxNewTokens !== outputTokenBudget) {
+    throw new Error(
+      `WGSL writer v3 evaluation maxNewTokens must match the disclosed prompt budget: ${outputTokenBudget}.`
+    );
+  }
+  return outputTokenBudget;
+}
+
+async function candidateFromStatus(policy, lane, seed, candidateId = lane.id) {
   const root = path.resolve(
-    'reports/training/wgsl-writer/doppler-wgsl-writer-v3/training',
+    policy.artifactRoot
+      ? path.join(policy.artifactRoot, 'training')
+      : 'reports/training/wgsl-writer/doppler-wgsl-writer-v3/training',
     `${lane.id}-seed${seed}`
   );
   const statusPath = path.join(root, 'training-status.json');
@@ -71,19 +127,20 @@ async function candidateFromStatus(lane, seed, candidateId = lane.id) {
 async function trainedCandidates(policy, role) {
   if (role === 'seed-confirmation') {
     const selection = await readJson(
-      'reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation/selection/selected-lane.json'
+      policy.evaluation.selectionReceiptPath
+        || 'reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation/selection/selected-lane.json'
     );
     if (selection.decision !== 'lane_selected') {
       throw new Error('WGSL writer v3 seed confirmation has no selected lane.');
     }
     const lane = policy.lanes.find((entry) => entry.id === selection.selected.candidateId);
     return Promise.all(policy.evaluation.confirmationSeeds.map((seed) => (
-      candidateFromStatus(lane, seed, `${lane.id}-seed${seed}`)
+      candidateFromStatus(policy, lane, seed, `${lane.id}-seed${seed}`)
     )));
   }
   const candidates = [];
   for (const lane of policy.lanes) {
-    candidates.push(await candidateFromStatus(lane, lane.screeningSeed));
+    candidates.push(await candidateFromStatus(policy, lane, lane.screeningSeed));
   }
   return candidates;
 }
@@ -108,10 +165,12 @@ async function runReference(options) {
     '--evaluation-role', options.role,
     '--experiment-id', options.policy.experimentId,
     '--out', path.resolve(options.outputPath),
-    '--adapter', `47=${path.resolve(options.v2AdapterPath)}`,
+    '--adapter', `0=${path.resolve(options.baselines[0].path)}`,
     '--base-candidate', 'unchanged-base',
-    '--candidate', `unchanged-v2=${path.resolve(options.v2AdapterPath)}`,
   ];
+  for (const baseline of options.baselines) {
+    args.push('--candidate', `${baseline.id}=${path.resolve(baseline.path)}`);
+  }
   for (const candidate of options.candidates) {
     args.push('--candidate', `${candidate.id}=${path.resolve(candidate.path)}`);
   }
@@ -140,10 +199,17 @@ function summarizeReplay(runs) {
 }
 
 async function evaluateCompletion(options) {
+  const generation = {
+    stopReason: options.completionTask.stopReason,
+    completionTokens: options.completionTask.completionTokenIds.length,
+    outputTokenBudget: options.outputTokenBudget,
+    hardStopDisclosed: true,
+  };
   const parsed = parseWgslAuthorPackageResponse(options.completion, options.task.contract);
   if (!parsed.ok) {
     return {
       taskId: options.task.taskId,
+      generation,
       responseContractPass: false,
       responseContractViolations: parsed.violations,
       quality: { pass: false, violations: ['response_contract_failed'] },
@@ -168,6 +234,7 @@ async function evaluateCompletion(options) {
   } catch (error) {
     return {
       taskId: options.task.taskId,
+      generation,
       responseContractPass: true,
       responseContractViolations: [],
       quality,
@@ -206,6 +273,7 @@ async function evaluateCompletion(options) {
   const deterministicReplay = summarizeReplay(runs);
   return {
     taskId: options.task.taskId,
+    generation,
     responseContractPass: true,
     responseContractViolations: [],
     packageSha256: hashWgslSemanticEvidenceValue(parsed.value),
@@ -227,6 +295,7 @@ function candidateSummary(tasks, completionTasks) {
     compilePasses: tasks.filter((task) => task.runs.length > 0
       && task.runs.every((run) => run.execution?.compilation?.every((entry) => entry.passed))).length,
     deterministicReplayPasses: tasks.filter((task) => task.deterministicReplay.pass).length,
+    lengthStops: tasks.filter((task) => task.generation.stopReason === 'length').length,
     meanResponseCharacters: completionTasks.reduce(
       (sum, task) => sum + Number(task.completionCharacterCount),
       0
@@ -236,17 +305,35 @@ function candidateSummary(tasks, completionTasks) {
 
 export async function runWgslWriterV3Evaluation(args) {
   const policy = await readJson(args.policyPath);
+  await Promise.all(Object.entries(policy.admission).map(([label, binding]) => (
+    requireFileHash(binding.path, binding.sha256, `evaluation admission ${label}`)
+  )));
   const corpusManifest = await readJson(policy.admission.corpusManifest.path);
+  if (corpusManifest.policy.path !== policy.admission.corpusPolicy.path
+    || corpusManifest.policy.sha256 !== policy.admission.corpusPolicy.sha256) {
+    throw new Error('WGSL writer v3 corpus manifest does not bind the admitted corpus policy.');
+  }
+  await requireFileHash(
+    corpusManifest.capabilityCatalog.path,
+    corpusManifest.capabilityCatalog.sha256,
+    'evaluation capability catalog'
+  );
+  const corpusPolicy = await readJson(corpusManifest.policy.path);
+  const outputTokenBudget = requireDisclosedOutputBudget(policy, corpusPolicy);
   const roleKey = ROLE_KEYS[args.role];
   const role = corpusManifest.roles[roleKey];
   const taskManifest = await readJson(role.taskManifestPath);
-  const catalog = await readJson('tools/data/wgsl-writer-v3-capability-catalog.json');
+  const catalog = await readJson(corpusManifest.capabilityCatalog.path);
   const families = new Map(catalog.families.map((family) => [family.id, family]));
   const formatCatalog = await readJson('tools/data/wgsl-author-format-catalog.json');
   const candidates = await trainedCandidates(policy, args.role);
   const outputRoot = path.resolve(
     args.outputRoot
-      || path.join('reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation', args.role)
+      || path.join(
+        policy.artifactRoot || 'reports/training/wgsl-writer/doppler-wgsl-writer-v3',
+        'evaluation',
+        args.role
+      )
   );
   await fs.mkdir(outputRoot, { recursive: true });
   const referencePath = path.join(outputRoot, 'peft-reference.json');
@@ -258,34 +345,42 @@ export async function runWgslWriterV3Evaluation(args) {
     outputPath: referencePath,
     modelPath,
     datasetPath: role.datasetPath,
-    v2AdapterPath: policy.initialization.v2AdapterPath,
+    baselines: baselineCandidates(policy),
     candidates,
     role: roleKey,
     policy,
   });
+  const runtime = corpusPolicy.runtime;
   const executor = await createWgslAuthorBrowserExecutor({
-    browserArgs: (await readJson('tools/policies/wgsl-writer-v3-corpus-policy.json')).runtime.browserArgs,
-    headless: true,
-    requiredBackend: 'vulkan',
-    requiredVendor: 'amd',
-    requiredFeatures: [],
-    requiredLimits: {},
-    powerPreference: 'high-performance',
-    executionTimeoutMs: 30000,
+    browserArgs: runtime.browserArgs,
+    headless: runtime.headless,
+    requiredBackend: runtime.requiredBackend,
+    requiredVendor: runtime.requiredVendor,
+    requiredFeatures: runtime.requiredFeatures,
+    requiredLimits: runtime.requiredLimits,
+    powerPreference: runtime.powerPreference,
+    executionTimeoutMs: runtime.executionTimeoutMs,
   });
   const receipts = [];
   let sessionCleanup;
   try {
     for (const candidate of reference.candidates) {
       const tasks = [];
+      const completionTasks = new Map(candidate.tasks.map((task) => [task.taskId, task]));
       for (const task of taskManifest.tasks) {
+        const completionTask = completionTasks.get(task.taskId);
+        if (!completionTask) {
+          throw new Error(`${candidate.candidateId} is missing completion receipt ${task.taskId}.`);
+        }
         tasks.push(await evaluateCompletion({
           candidateId: candidate.candidateId,
           completion: candidate.completions[task.taskId],
+          completionTask,
+          outputTokenBudget,
           task,
           family: families.get(task.semanticFamilyId),
           formatCatalog,
-          runtime: (await readJson('tools/policies/wgsl-writer-v3-corpus-policy.json')).runtime,
+          runtime,
           executor,
         }));
       }
