@@ -15,6 +15,25 @@ const EVALUATION_PATH =
 const OUTPUT_PATH =
   'reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation/confirmation/confirmation.json';
 
+function parseArgs(argv) {
+  const args = {
+    policyPath: POLICY_PATH,
+    selectionPath: '',
+    evaluationPath: '',
+    outputPath: '',
+  };
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token === '--policy') args.policyPath = argv[++index] || '';
+    else if (token === '--selection') args.selectionPath = argv[++index] || '';
+    else if (token === '--evaluation') args.evaluationPath = argv[++index] || '';
+    else if (token === '--out') args.outputPath = argv[++index] || '';
+    else throw new Error(`Unknown argument: ${token}`);
+  }
+  if (!args.policyPath) throw new Error('--policy requires a value.');
+  return args;
+}
+
 async function readJson(filePath) {
   return JSON.parse(await fs.readFile(filePath, 'utf8'));
 }
@@ -23,11 +42,27 @@ async function sha256File(filePath) {
   return createHash('sha256').update(await fs.readFile(filePath)).digest('hex');
 }
 
-export async function finalizeWgslWriterV3Confirmation() {
-  const [policy, selection, evaluation] = await Promise.all([
-    readJson(POLICY_PATH),
-    readJson(SELECTION_PATH),
-    readJson(EVALUATION_PATH),
+export async function finalizeWgslWriterV3Confirmation(options = {}) {
+  const policyPath = options.policyPath || POLICY_PATH;
+  const policy = await readJson(policyPath);
+  const selectionPath = options.selectionPath
+    || policy.evaluation.selectionReceiptPath
+    || SELECTION_PATH;
+  const evaluationPath = options.evaluationPath || path.join(
+    policy.artifactRoot || 'reports/training/wgsl-writer/doppler-wgsl-writer-v3',
+    'evaluation',
+    'seed-confirmation',
+    'evaluation.json'
+  );
+  const outputPath = options.outputPath || path.join(
+    policy.artifactRoot || path.dirname(path.dirname(path.dirname(OUTPUT_PATH))),
+    'evaluation',
+    'confirmation',
+    'confirmation.json'
+  );
+  const [selection, evaluation] = await Promise.all([
+    readJson(selectionPath),
+    readJson(evaluationPath),
   ]);
   if (selection.decision !== 'lane_selected') {
     throw new Error('WGSL writer v3 confirmation requires a selected lane.');
@@ -49,9 +84,9 @@ export async function finalizeWgslWriterV3Confirmation() {
   const core = {
     schema: 'doppler.wgsl-writer-v3-confirmation/v1',
     experimentId: policy.experimentId,
-    policy: { path: POLICY_PATH, sha256: await sha256File(POLICY_PATH) },
-    selection: { path: SELECTION_PATH, sha256: await sha256File(SELECTION_PATH) },
-    evaluation: { path: EVALUATION_PATH, sha256: await sha256File(EVALUATION_PATH) },
+    policy: { path: policyPath, sha256: await sha256File(policyPath) },
+    selection: { path: selectionPath, sha256: await sha256File(selectionPath) },
+    evaluation: { path: evaluationPath, sha256: await sha256File(evaluationPath) },
     selectedLaneId: selection.selected.candidateId,
     candidates: candidates.map((candidate) => ({
       candidateId: candidate.candidateId,
@@ -71,13 +106,13 @@ export async function finalizeWgslWriterV3Confirmation() {
     claimBoundary: policy.claimBoundary,
   };
   const receipt = { ...core, receiptHash: hashWgslSemanticEvidenceValue(core) };
-  await fs.mkdir(path.dirname(OUTPUT_PATH), { recursive: true });
-  await fs.writeFile(OUTPUT_PATH, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
-  return { outputPath: OUTPUT_PATH, receipt };
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  await fs.writeFile(outputPath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
+  return { outputPath, receipt };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  finalizeWgslWriterV3Confirmation().then((result) => {
+  finalizeWgslWriterV3Confirmation(parseArgs(process.argv.slice(2))).then((result) => {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     if (!result.receipt.dopplerParityAuthority) process.exitCode = 1;
   }).catch((error) => {

@@ -12,6 +12,10 @@ import {
 } from './lib/wgsl-writer-v3-corpus.js';
 
 const DEFAULT_POLICY = 'tools/policies/wgsl-writer-v3-corpus-policy.json';
+const POLICY_IDS = new Set([
+  'doppler-wgsl-writer-v3-corpus',
+  'doppler-wgsl-writer-v3-corpus-diversity-repair',
+]);
 
 function parseArgs(argv) {
   const args = { policyPath: DEFAULT_POLICY, check: false };
@@ -45,7 +49,7 @@ export async function main(argv = process.argv.slice(2)) {
   const repoRoot = resolve(new URL('..', import.meta.url).pathname);
   const policyPath = resolve(repoRoot, args.policyPath);
   const policy = await readJson(policyPath);
-  if (policy.policyId !== 'doppler-wgsl-writer-v3-corpus'
+  if (!POLICY_IDS.has(policy.policyId)
     || policy.status !== 'frozen_before_materialization') {
     throw new Error('WGSL writer v3 corpus builder requires the frozen materialization policy.');
   }

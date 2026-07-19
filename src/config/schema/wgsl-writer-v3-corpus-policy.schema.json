@@ -26,7 +26,12 @@
     },
     "schemaVersion": { "const": 1 },
     "source": { "const": "doppler" },
-    "policyId": { "const": "doppler-wgsl-writer-v3-corpus" },
+    "policyId": {
+      "enum": [
+        "doppler-wgsl-writer-v3-corpus",
+        "doppler-wgsl-writer-v3-corpus-diversity-repair"
+      ]
+    },
     "experimentId": { "const": "doppler-wgsl-writer-v3" },
     "status": { "enum": ["frozen_before_materialization", "reference_qualified"] },
     "capability": {
@@ -67,8 +72,21 @@
           }
         },
         "splitKey": { "const": "semanticFamilyId" },
-        "sourceLineage": { "const": "human_authored_doppler_parametric_reference" },
-        "sourceLicense": { "const": "Apache-2.0" }
+        "sourceLineage": {
+          "enum": [
+            "human_authored_doppler_parametric_reference",
+            "human_authored_doppler_parametric_reference_with_verified_alpha_layout_variants"
+          ]
+        },
+        "sourceLicense": { "const": "Apache-2.0" },
+        "packageDiversity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": {
+            "mode": { "const": "identifier_binding_permutation_v1" }
+          }
+        }
       }
     },
     "promptContract": {
@@ -130,7 +148,8 @@
         "replayCount": { "type": "integer", "minimum": 2 },
         "compileEveryPackage": { "const": true },
         "executeEveryHeldoutTask": { "const": true },
-        "executeOneRepresentativePerTrainingFamily": { "const": true },
+        "executeOneRepresentativePerTrainingFamily": { "type": "boolean" },
+        "executeEveryTrainingTask": { "type": "boolean" },
         "qualityGateBlocking": { "const": true },
         "mustPassBeforeTraining": { "const": true }
       }
@@ -149,6 +168,34 @@
     },
     "claimBoundary": { "type": "string", "minLength": 1 }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "policyId": { "const": "doppler-wgsl-writer-v3-corpus-diversity-repair" }
+        }
+      },
+      "then": {
+        "properties": {
+          "corpus": {
+            "required": ["packageDiversity"],
+            "properties": {
+              "sourceLineage": {
+                "const": "human_authored_doppler_parametric_reference_with_verified_alpha_layout_variants"
+              }
+            }
+          },
+          "referenceQualification": {
+            "required": ["executeEveryTrainingTask"],
+            "properties": {
+              "executeOneRepresentativePerTrainingFamily": { "const": false },
+              "executeEveryTrainingTask": { "const": true }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "repoPath": {
       "type": "string",

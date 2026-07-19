@@ -8,6 +8,20 @@ import { pathToFileURL } from 'node:url';
 const SOURCE = 'reports/training/wgsl-writer/doppler-wgsl-writer-v3/corpus-v1/train.jsonl';
 const OUTPUT_ROOT = 'reports/training/wgsl-writer/doppler-wgsl-writer-v3/training-lanes-v1';
 
+function parseArgs(argv) {
+  const args = { source: SOURCE, outputRoot: OUTPUT_ROOT };
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token === '--source') args.source = argv[++index] || '';
+    else if (token === '--out-root') args.outputRoot = argv[++index] || '';
+    else throw new Error(`Unknown argument: ${token}`);
+  }
+  if (!args.source || !args.outputRoot) {
+    throw new Error('--source and --out-root require values.');
+  }
+  return args;
+}
+
 function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
 }
@@ -110,17 +124,19 @@ function materializeControl(rows) {
   });
 }
 
-export async function materializeTrainingLanes() {
-  const sourceRows = await readJsonl(SOURCE);
+export async function materializeTrainingLanes(options = {}) {
+  const source = options.source || SOURCE;
+  const outputRoot = options.outputRoot || OUTPUT_ROOT;
+  const sourceRows = await readJsonl(source);
   const lanes = {
     package_sft: sourceRows.map((row) => ({ ...row, lane: 'package_sft' })),
     repair_mixed_sft: materializeRepair(sourceRows),
     count_matched_control: materializeControl(sourceRows),
   };
-  await fs.mkdir(OUTPUT_ROOT, { recursive: true });
+  await fs.mkdir(outputRoot, { recursive: true });
   const bindings = {};
   for (const [lane, rows] of Object.entries(lanes)) {
-    const filePath = path.join(OUTPUT_ROOT, `${lane.replaceAll('_', '-')}.jsonl`);
+    const filePath = path.join(outputRoot, `${lane.replaceAll('_', '-')}.jsonl`);
     const contents = toJsonl(rows);
     await fs.writeFile(filePath, contents, 'utf8');
     bindings[lane] = {
@@ -128,13 +144,13 @@ export async function materializeTrainingLanes() {
       sha256: sha256(contents),
       rows: rows.length,
       semanticFamilies: new Set(rows.map((row) => row.semanticFamilyId)).size,
-      completionTokenMultisetSource: SOURCE,
+      completionTokenMultisetSource: source,
     };
   }
-  const sourceBytes = await fs.readFile(SOURCE);
+  const sourceBytes = await fs.readFile(source);
   const core = {
     schema: 'doppler.wgsl-writer-v3-training-lanes/v1',
-    source: { path: SOURCE, sha256: sha256(sourceBytes), rows: sourceRows.length },
+    source: { path: source, sha256: sha256(sourceBytes), rows: sourceRows.length },
     transform: {
       package_sft: 'identity',
       repair_mixed_sft: 'six_deterministic_failure_repairs_per_family_plus_eighteen_identity_rows',
@@ -150,13 +166,13 @@ export async function materializeTrainingLanes() {
     claimBoundary: 'The derived lanes freeze matched row and supervised-completion budgets. The mismatched control has no capability authority.',
   };
   const manifest = { ...core, manifestSha256: sha256(JSON.stringify(core)) };
-  const manifestPath = path.join(OUTPUT_ROOT, 'manifest.json');
+  const manifestPath = path.join(outputRoot, 'manifest.json');
   await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
   return { manifestPath, manifest, rows: sourceRows.length };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  materializeTrainingLanes().then((result) => {
+  materializeTrainingLanes(parseArgs(process.argv.slice(2))).then((result) => {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   }).catch((error) => {
     console.error(error instanceof Error ? error.stack : String(error));

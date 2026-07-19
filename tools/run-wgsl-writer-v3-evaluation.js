@@ -47,9 +47,11 @@ async function sha256File(filePath) {
   return createHash('sha256').update(await fs.readFile(path.resolve(filePath))).digest('hex');
 }
 
-async function candidateFromStatus(lane, seed, candidateId = lane.id) {
+async function candidateFromStatus(policy, lane, seed, candidateId = lane.id) {
   const root = path.resolve(
-    'reports/training/wgsl-writer/doppler-wgsl-writer-v3/training',
+    policy.artifactRoot
+      ? path.join(policy.artifactRoot, 'training')
+      : 'reports/training/wgsl-writer/doppler-wgsl-writer-v3/training',
     `${lane.id}-seed${seed}`
   );
   const statusPath = path.join(root, 'training-status.json');
@@ -71,19 +73,20 @@ async function candidateFromStatus(lane, seed, candidateId = lane.id) {
 async function trainedCandidates(policy, role) {
   if (role === 'seed-confirmation') {
     const selection = await readJson(
-      'reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation/selection/selected-lane.json'
+      policy.evaluation.selectionReceiptPath
+        || 'reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation/selection/selected-lane.json'
     );
     if (selection.decision !== 'lane_selected') {
       throw new Error('WGSL writer v3 seed confirmation has no selected lane.');
     }
     const lane = policy.lanes.find((entry) => entry.id === selection.selected.candidateId);
     return Promise.all(policy.evaluation.confirmationSeeds.map((seed) => (
-      candidateFromStatus(lane, seed, `${lane.id}-seed${seed}`)
+      candidateFromStatus(policy, lane, seed, `${lane.id}-seed${seed}`)
     )));
   }
   const candidates = [];
   for (const lane of policy.lanes) {
-    candidates.push(await candidateFromStatus(lane, lane.screeningSeed));
+    candidates.push(await candidateFromStatus(policy, lane, lane.screeningSeed));
   }
   return candidates;
 }
@@ -246,7 +249,11 @@ export async function runWgslWriterV3Evaluation(args) {
   const candidates = await trainedCandidates(policy, args.role);
   const outputRoot = path.resolve(
     args.outputRoot
-      || path.join('reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation', args.role)
+      || path.join(
+        policy.artifactRoot || 'reports/training/wgsl-writer/doppler-wgsl-writer-v3',
+        'evaluation',
+        args.role
+      )
   );
   await fs.mkdir(outputRoot, { recursive: true });
   const referencePath = path.join(outputRoot, 'peft-reference.json');
