@@ -3,7 +3,10 @@ import { mkdtemp, readFile, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { runLoraPipeline } from '../../src/experimental/training/lora-pipeline.js';
+import {
+  getTrainingCapabilities,
+  trainSftLoRA,
+} from '../../src/training.js';
 
 const datasetText = [
   JSON.stringify({
@@ -109,7 +112,8 @@ const workload = {
   configHash: 'sha256:test',
 };
 
-const result = await runLoraPipeline({
+const result = await trainSftLoRA({
+  backend: 'external',
   loadedWorkload: {
     absolutePath: join(tmpRoot, 'dream-causal-lm-runner.workload.json'),
     path: join(tmpRoot, 'dream-causal-lm-runner.workload.json'),
@@ -228,7 +232,8 @@ const moduleWorkload = {
   },
 };
 
-const moduleResult = await runLoraPipeline({
+const moduleResult = await trainSftLoRA({
+  backend: 'external',
   loadedWorkload: {
     absolutePath: join(tmpRoot, 'module.workload.json'),
     path: join(tmpRoot, 'module.workload.json'),
@@ -245,21 +250,28 @@ const moduleManifest = JSON.parse(await readFile(moduleResult.exports[0].manifes
 assert.equal(moduleManifest.metadata.runnerId, 'module-causal-lm-lora');
 assert.equal(moduleManifest.metadata.trainerId, 'module-provider');
 
-const qwenResult = await runLoraPipeline({
+const qwenWorkload = {
+  ...workload,
+  id: 'qwen-q4k-provider',
+  baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+};
+const qwenCapabilities = getTrainingCapabilities(qwenWorkload);
+assert.equal(qwenCapabilities.supported, true);
+assert.equal(qwenCapabilities.backends.webgpuNative.supported, false);
+assert.deepEqual(
+  qwenCapabilities.backends.webgpuNative.blockedReasons,
+  ['native_full_graph_runner_unavailable_for_base_model']
+);
+assert.equal(qwenCapabilities.backends.external.supported, true);
+
+const qwenResult = await trainSftLoRA({
+  backend: 'external',
   loadedWorkload: {
     absolutePath: join(tmpRoot, 'qwen-q4k-provider.workload.json'),
     path: join(tmpRoot, 'qwen-q4k-provider.workload.json'),
-    raw: JSON.stringify({
-      ...workload,
-      id: 'qwen-q4k-provider',
-      baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
-    }),
+    raw: JSON.stringify(qwenWorkload),
     workloadSha256: 'sha256:qwen-q4k-provider',
-    workload: {
-      ...workload,
-      id: 'qwen-q4k-provider',
-      baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
-    },
+    workload: qwenWorkload,
   },
   runRoot: join(tmpRoot, 'qwen-q4k-provider-run'),
   causalLmTrainer: async (input) => ({
@@ -290,7 +302,8 @@ assert.equal(qwenResult.evalReports.length, 1);
 assert.equal(qwenResult.evalReports[0].qualityClaim.improved, true);
 
 await assert.rejects(
-  () => runLoraPipeline({
+  () => trainSftLoRA({
+    backend: 'webgpu_native',
     loadedWorkload: {
       absolutePath: join(tmpRoot, 'qwen-q4k.workload.json'),
       path: join(tmpRoot, 'qwen-q4k.workload.json'),
@@ -316,7 +329,7 @@ await assert.rejects(
     },
     runRoot: join(tmpRoot, 'qwen-q4k-run'),
   }),
-  /requires lora\.trainer\.modulePath/
+  /native_full_graph_runner_unavailable_for_base_model/
 );
 
 console.log('lora-causal-lm-provider-runner.test: ok');

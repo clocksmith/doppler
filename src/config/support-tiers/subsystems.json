@@ -435,6 +435,27 @@
       "notes": "Shipped specialized surface, but not part of the mainline README or demo-default claim set."
     },
     {
+      "id": "api.training-subpath",
+      "label": "Training API subpath",
+      "scope": "api",
+      "tier": "experimental",
+      "owner": "research-runtime",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "none",
+      "packageExport": "./training",
+      "command": null,
+      "docs": [
+        "docs/api/training.md",
+        "docs/training-handbook.md"
+      ],
+      "entrypoints": [
+        "src/training.js"
+      ],
+      "notes": "Public experimental SFT/LoRA library; native full-graph support is capability-gated and packed Q4K bases require an external trainer."
+    },
+    {
       "id": "runtime.training-and-distillation",
       "label": "Training and distillation surfaces",
       "scope": "runtime",
@@ -454,7 +475,7 @@
         "src/experimental/training/index.js",
         "src/experimental/training/distillation/index.js"
       ],
-      "notes": "Repo-supported research and operator lane, but not part of the current tier1 app/runtime contract."
+      "notes": "Repo-supported research and operator lane, including distillation workflows that are not exported by the SFT/LoRA training subpath."
     },
     {
       "id": "integration.bridge-layer",

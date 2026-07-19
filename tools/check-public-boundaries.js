@@ -12,9 +12,9 @@ import { assertPackageSourceClosure } from './package-source-closure.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
-  maxEntryCount: 1375,
-  maxPackedSize: 1_825_000,
-  maxUnpackedSize: 9_625_000,
+  maxEntryCount: 1400,
+  maxPackedSize: 1_850_000,
+  maxUnpackedSize: 9_750_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -382,6 +382,7 @@ async function validatePackageExports() {
   assert(exportsField['./loaders'], 'package.json exports must include ./loaders.');
   assert(exportsField['./orchestration'], 'package.json exports must include ./orchestration.');
   assert(exportsField['./generation'], 'package.json exports must include ./generation.');
+  assert(exportsField['./training'], 'package.json exports must include ./training.');
 
   const rootExport = exportsField['.'];
   assert(

@@ -324,6 +324,62 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `RouterWeights`
   - `SamplingOptions`
 
+## `doppler-gpu/training`
+
+- Audience: training and adapter pipeline authors
+- Stability: experimental export
+- Manual guide: [docs/api/training.md](../training.md)
+- Types: [src/training.d.ts](../../../src/training.d.ts)
+- Implementation: [src/training.js](../../../src/training.js)
+- Notes: Capability-gated SFT/LoRA orchestration, WebGPU training primitives, and adapter export.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.training-subpath)
+- Exported symbols:
+  - `AdamOptimizer`
+  - `assertTrainingBackend`
+  - `AutogradTape`
+  - `buildAttentionSoftmaxCache`
+  - `CausalLmLoraTrainer`
+  - `CausalLmLoraTrainerInput`
+  - `CausalLmLoraTrainerResult`
+  - `CausalLmLoraTrainerTensor`
+  - `clipGradients`
+  - `compareLoraRun`
+  - `crossEntropyLoss`
+  - `DataLoader`
+  - `detectOverflow`
+  - `DynamicLossScaler`
+  - `evaluateLoraCheckpoint`
+  - `exportLoRAAdapter`
+  - `exportLoraCheckpoint`
+  - `getLoraRunnerCompatibility`
+  - `getTrainingCapabilities`
+  - `loadCheckpoint`
+  - `LoadedTrainingWorkload`
+  - `loadTrainingWorkloadPack`
+  - `LORA_RUNNER_BASE_MODEL_REGISTRY`
+  - `LORA_RUNNER_DATASET_FORMAT_REGISTRY`
+  - `LORA_RUNNER_SUPPORT_CONTRACT`
+  - `LoraAdapter`
+  - `LoRAWorkloadPipelineConfig`
+  - `normalizeTrainingWorkloadPack`
+  - `OpType`
+  - `qualityGateLoraRun`
+  - `recordAttentionForward`
+  - `runTraining`
+  - `saveCheckpoint`
+  - `serializeLoRASafetensors`
+  - `serializeTrainingWorkloadLock`
+  - `TRAINING_BACKENDS`
+  - `TrainingBackend`
+  - `TrainingBackendCapability`
+  - `TrainingCapabilities`
+  - `TrainingRunner`
+  - `TrainingWorkloadPack`
+  - `trainSftLoRA`
+  - `TrainSftLoRAOptions`
+  - `trainStep`
+  - `watchLoraCheckpoints`
+
 ## `doppler-gpu/diffusion`
 
 - Audience: advanced diffusion consumers

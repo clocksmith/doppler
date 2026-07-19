@@ -11,6 +11,7 @@ import { dr } from 'doppler-gpu';
 import { DopplerLoader } from 'doppler-gpu/loaders';
 import { KVCache } from 'doppler-gpu/orchestration';
 import { createPipeline } from 'doppler-gpu/generation';
+import { getTrainingCapabilities, trainSftLoRA } from 'doppler-gpu/training';
 ```
 
 ## Audience
@@ -81,6 +82,12 @@ Subpath support tiers are defined in [Subsystem Support Matrix](../subsystem-sup
 - `EmbeddingPipeline`
 - core text-pipeline types and generation option types
 
+### `doppler-gpu/training`
+
+- explicit `webgpu_native` versus `external` backend capability checks
+- completion-masked SFT/LoRA workload execution and evaluation
+- autograd, optimizer, loss, checkpoint, and adapter-export primitives
+
 ### `doppler-gpu/tooling`
 
 - tier1 runtime config/profile helpers
@@ -100,6 +107,7 @@ Subpath support tiers are defined in [Subsystem Support Matrix](../subsystem-sup
 - Explicit loader work should import from `doppler-gpu/loaders`.
 - KV cache, routers, adapters, and logit-merge helpers should import from `doppler-gpu/orchestration`.
 - Direct pipeline construction should import from `doppler-gpu/generation`.
+- SFT/LoRA orchestration and backward primitives should import from `doppler-gpu/training`.
 - Tooling and command helpers should import from `doppler-gpu/tooling`.
 - Browser conversion/file-picker and P2P helpers should import from `doppler-gpu/tooling-experimental`.
 - Treat `doppler-gpu/tooling` as a mixed-tier export mainly because operator command flows remain experimental.
@@ -112,6 +120,7 @@ Subpath support tiers are defined in [Subsystem Support Matrix](../subsystem-sup
 - loaders subpath: [src/loaders/index.js](../../src/loaders/index.js)
 - orchestration subpath: [src/experimental/orchestration/index.js](../../src/experimental/orchestration/index.js)
 - generation subpath: [docs/api/generation.md](generation.md)
+- training subpath: [docs/api/training.md](training.md)
 
 ## Related Surfaces
 

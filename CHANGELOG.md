@@ -8,6 +8,22 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.13] - 2026-07-19
+
+### Added
+
+- Added the public `doppler-gpu/training` npm entry point for capability-gated
+  SFT/LoRA workloads, WebGPU autograd and optimization primitives, checkpoint
+  evaluation, and runtime-compatible safetensors adapter export.
+- Added explicit `webgpu_native` and `external` training-backend selection.
+  Packed Q4K Gemma and Qwen workloads fail closed on the native backend and
+  require an injected or workload-declared external trainer.
+
+### Changed
+
+- Added installed-package import, type, and capability smokes for the training
+  entry point so repository-only deep imports cannot masquerade as npm support.
+
 ## [0.4.12] - 2026-07-19
 
 ### Added

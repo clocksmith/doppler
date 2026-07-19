@@ -13,6 +13,19 @@ This is operational guidance, not a paper-equivalent SOTA claim surface.
 
 ## Primary Commands
 
+The same SFT/LoRA engine is available programmatically from the npm package:
+
+```js
+import {
+  getTrainingCapabilities,
+  loadTrainingWorkloadPack,
+  trainSftLoRA,
+} from 'doppler-gpu/training';
+```
+
+The library requires explicit `webgpu_native` or `external` backend selection.
+See [Training API](api/training.md).
+
 ### Contract and release gates
 
 ```bash

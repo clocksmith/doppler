@@ -1,6 +1,6 @@
 {
   "name": "doppler-gpu",
-  "version": "0.4.12",
+  "version": "0.4.13",
   "description": "Browser-native WebGPU inference engine for local intent and inference loops",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -286,6 +286,10 @@
     "./generation": {
       "types": "./src/generation/index.d.ts",
       "import": "./src/generation/index.js"
+    },
+    "./training": {
+      "types": "./src/training.d.ts",
+      "import": "./src/training.js"
     },
     "./diffusion": {
       "types": "./src/experimental/diffusion/index.d.ts",
