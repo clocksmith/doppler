@@ -71,7 +71,10 @@
       "ropeLocalYarnOriginalMaxPos": null,
       "ropeLocalPartialRotaryFactor": null,
       "ropeFrequencyBaseDim": null,
-      "ropeLocalFrequencyBaseDim": null
+      "ropeLocalFrequencyBaseDim": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
     },
     "output": {
       "finalLogitSoftcapping": null,
@@ -79,14 +82,17 @@
       "scaleEmbeddings": true,
       "embeddingTranspose": false,
       "embeddingVocabSize": null,
-      "embeddingPostprocessor": null
+      "embeddingPostprocessor": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
     },
     "layerPattern": {
       "type": "every_n",
       "globalPattern": null,
       "period": 6,
       "offset": 5,
-      "layerTypes": null
+      "layerTypes": null,
+      "residualBranchScale": 1
     },
     "chatTemplate": {
       "type": "gemma",
@@ -418,7 +424,8 @@
     },
     "largeWeights": {
       "gpuResidentOverrides": null
-    }
+    },
+    "sessionDefaults": null
   },
   "shards": [
     {
@@ -3364,6 +3371,10 @@
     "integrityRefresh": {
       "at": "2026-04-23T22:48:40.354Z",
       "blockSize": 1048576
+    },
+    "executionGraphPatch": {
+      "at": "2026-07-19T19:33:18.845Z",
+      "config": "gemma-3-270m-it-q4k-ehf16-af32.json"
     }
   },
   "tokenizer": {
