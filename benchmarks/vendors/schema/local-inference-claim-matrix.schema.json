@@ -682,6 +682,10 @@
                 "type": "string",
                 "pattern": "^[a-f0-9]{64}$"
               },
+              "manifestGitRevision": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{40}$"
+              },
               "weightPackId": {
                 "type": [
                   "string",

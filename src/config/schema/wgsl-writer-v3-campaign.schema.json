@@ -16,6 +16,7 @@
     "mechanics",
     "populationPlan",
     "training",
+    "reconciliation",
     "evaluation",
     "authority",
     "blockers",
@@ -40,7 +41,8 @@
     "status": {
       "enum": [
         "mechanics_implemented_reference_qualification_blocked",
-        "reference_qualified_corpus_materialization_blocked"
+        "reference_qualified_corpus_materialization_blocked",
+        "developmental_policies_reconciled_prospective_materialization_blocked"
       ]
     },
     "targetCapability": {
@@ -325,6 +327,22 @@
         "exactDopplerArtifactParity": {
           "const": true
         }
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt",
+        "laterPoliciesRole",
+        "historicalGatePreserved",
+        "prospectiveCampaignRequired"
+      ],
+      "properties": {
+        "receipt": { "$ref": "#/$defs/binding" },
+        "laterPoliciesRole": { "const": "development" },
+        "historicalGatePreserved": { "const": true },
+        "prospectiveCampaignRequired": { "const": true }
       }
     },
     "authority": {

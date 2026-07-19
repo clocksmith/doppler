@@ -504,6 +504,7 @@ export async function doAttention(
         getWeightBuffer: getWeightBufferFn,
         getNormWeightBuffer: getNormWeightBufferFn,
         recorder: recorder ?? null,
+        lora: lora ?? null,
       }),
       residualFused: false,
     };

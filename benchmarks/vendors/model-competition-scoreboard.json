@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-19T00:00:00.000Z",
+  "updatedAt": "2026-07-19T21:53:32.956Z",
   "sources": [
     "models/catalog.json",
     "benchmarks/vendors/model-support-inventory.json",
@@ -459,7 +459,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
           "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
         }
       },
@@ -532,7 +532,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
           "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
         }
       },
@@ -605,7 +605,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
           "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
         }
       },
@@ -676,7 +676,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
           "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
         }
       },
@@ -749,7 +749,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
           "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
         }
       },
@@ -822,7 +822,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
           "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
         }
       },
@@ -893,7 +893,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
           "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
         }
       },
@@ -966,7 +966,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
           "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
         }
       },
@@ -1039,7 +1039,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
+          "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
           "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
         }
       },
