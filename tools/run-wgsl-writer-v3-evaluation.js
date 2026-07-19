@@ -84,6 +84,23 @@ function baselineCandidates(policy) {
   return candidates;
 }
 
+export function requireDisclosedOutputBudget(policy, corpusPolicy) {
+  const promptContract = corpusPolicy.promptContract;
+  const outputTokenBudget = Number(promptContract?.outputTokenBudget);
+  if (promptContract?.includesExplicitOutputTokenBudget !== true
+    || promptContract?.hardStopDisclosed !== true
+    || !Number.isSafeInteger(outputTokenBudget)
+    || outputTokenBudget < 1) {
+    throw new Error('WGSL writer v3 evaluation requires a prompt-disclosed hard output-token budget.');
+  }
+  if (policy.evaluation?.generation?.maxNewTokens !== outputTokenBudget) {
+    throw new Error(
+      `WGSL writer v3 evaluation maxNewTokens must match the disclosed prompt budget: ${outputTokenBudget}.`
+    );
+  }
+  return outputTokenBudget;
+}
+
 async function candidateFromStatus(policy, lane, seed, candidateId = lane.id) {
   const root = path.resolve(
     policy.artifactRoot
@@ -182,10 +199,17 @@ function summarizeReplay(runs) {
 }
 
 async function evaluateCompletion(options) {
+  const generation = {
+    stopReason: options.completionTask.stopReason,
+    completionTokens: options.completionTask.completionTokenIds.length,
+    outputTokenBudget: options.outputTokenBudget,
+    hardStopDisclosed: true,
+  };
   const parsed = parseWgslAuthorPackageResponse(options.completion, options.task.contract);
   if (!parsed.ok) {
     return {
       taskId: options.task.taskId,
+      generation,
       responseContractPass: false,
       responseContractViolations: parsed.violations,
       quality: { pass: false, violations: ['response_contract_failed'] },
@@ -210,6 +234,7 @@ async function evaluateCompletion(options) {
   } catch (error) {
     return {
       taskId: options.task.taskId,
+      generation,
       responseContractPass: true,
       responseContractViolations: [],
       quality,
@@ -248,6 +273,7 @@ async function evaluateCompletion(options) {
   const deterministicReplay = summarizeReplay(runs);
   return {
     taskId: options.task.taskId,
+    generation,
     responseContractPass: true,
     responseContractViolations: [],
     packageSha256: hashWgslSemanticEvidenceValue(parsed.value),
@@ -269,6 +295,7 @@ function candidateSummary(tasks, completionTasks) {
     compilePasses: tasks.filter((task) => task.runs.length > 0
       && task.runs.every((run) => run.execution?.compilation?.every((entry) => entry.passed))).length,
     deterministicReplayPasses: tasks.filter((task) => task.deterministicReplay.pass).length,
+    lengthStops: tasks.filter((task) => task.generation.stopReason === 'length').length,
     meanResponseCharacters: completionTasks.reduce(
       (sum, task) => sum + Number(task.completionCharacterCount),
       0
@@ -292,6 +319,7 @@ export async function runWgslWriterV3Evaluation(args) {
     'evaluation capability catalog'
   );
   const corpusPolicy = await readJson(corpusManifest.policy.path);
+  const outputTokenBudget = requireDisclosedOutputBudget(policy, corpusPolicy);
   const roleKey = ROLE_KEYS[args.role];
   const role = corpusManifest.roles[roleKey];
   const taskManifest = await readJson(role.taskManifestPath);
@@ -338,10 +366,17 @@ export async function runWgslWriterV3Evaluation(args) {
   try {
     for (const candidate of reference.candidates) {
       const tasks = [];
+      const completionTasks = new Map(candidate.tasks.map((task) => [task.taskId, task]));
       for (const task of taskManifest.tasks) {
+        const completionTask = completionTasks.get(task.taskId);
+        if (!completionTask) {
+          throw new Error(`${candidate.candidateId} is missing completion receipt ${task.taskId}.`);
+        }
         tasks.push(await evaluateCompletion({
           candidateId: candidate.candidateId,
           completion: candidate.completions[task.taskId],
+          completionTask,
+          outputTokenBudget,
           task,
           family: families.get(task.semanticFamilyId),
           formatCatalog,

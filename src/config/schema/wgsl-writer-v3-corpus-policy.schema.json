@@ -30,7 +30,8 @@
       "enum": [
         "doppler-wgsl-writer-v3-corpus",
         "doppler-wgsl-writer-v3-corpus-diversity-repair",
-        "doppler-wgsl-writer-v3-explicit-semantic-repair"
+        "doppler-wgsl-writer-v3-explicit-semantic-repair",
+        "doppler-wgsl-writer-v3-explicit-output-budget"
       ]
     },
     "experimentId": { "const": "doppler-wgsl-writer-v3" },
@@ -77,7 +78,8 @@
           "enum": [
             "human_authored_doppler_parametric_reference",
             "human_authored_doppler_parametric_reference_with_verified_alpha_layout_variants",
-            "human_authored_doppler_explicit_semantic_contract_with_verified_alpha_layout_variants"
+            "human_authored_doppler_explicit_semantic_contract_with_verified_alpha_layout_variants",
+            "human_authored_doppler_explicit_semantic_and_output_budget_contract"
           ]
         },
         "sourceLicense": { "const": "Apache-2.0" },
@@ -110,6 +112,19 @@
             "includesNaturalLanguageSpecification": true,
             "includesExplicitSemanticContract": true,
             "includesExplicitHostContract": true
+          }
+        },
+        {
+          "const": {
+            "templateId": "wgsl-executable-package-semantic-budget-spec-host-v3",
+            "useChatTemplate": false,
+            "responseContract": "wgsl_author_package_v1",
+            "includesNaturalLanguageSpecification": true,
+            "includesExplicitSemanticContract": true,
+            "includesExplicitHostContract": true,
+            "includesExplicitOutputTokenBudget": true,
+            "outputTokenBudget": 1280,
+            "hardStopDisclosed": true
           }
         }
       ]
@@ -235,6 +250,45 @@
               "includesNaturalLanguageSpecification": true,
               "includesExplicitSemanticContract": true,
               "includesExplicitHostContract": true
+            }
+          },
+          "referenceQualification": {
+            "required": ["executeEveryTrainingTask"],
+            "properties": {
+              "executeOneRepresentativePerTrainingFamily": { "const": false },
+              "executeEveryTrainingTask": { "const": true }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "policyId": { "const": "doppler-wgsl-writer-v3-explicit-output-budget" }
+        }
+      },
+      "then": {
+        "properties": {
+          "corpus": {
+            "required": ["packageDiversity"],
+            "properties": {
+              "sourceLineage": {
+                "const": "human_authored_doppler_explicit_semantic_and_output_budget_contract"
+              }
+            }
+          },
+          "promptContract": {
+            "const": {
+              "templateId": "wgsl-executable-package-semantic-budget-spec-host-v3",
+              "useChatTemplate": false,
+              "responseContract": "wgsl_author_package_v1",
+              "includesNaturalLanguageSpecification": true,
+              "includesExplicitSemanticContract": true,
+              "includesExplicitHostContract": true,
+              "includesExplicitOutputTokenBudget": true,
+              "outputTokenBudget": 1280,
+              "hardStopDisclosed": true
             }
           },
           "referenceQualification": {

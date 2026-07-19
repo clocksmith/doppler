@@ -152,7 +152,7 @@ function promptTask(task) {
 }
 
 function buildCorpusPrompt(task, promptContract) {
-  const prompt = buildWgslAuthorPrompt(promptTask(task), promptContract);
+  let prompt = buildWgslAuthorPrompt(promptTask(task), promptContract);
   if (promptContract.includesExplicitSemanticContract !== true) return prompt;
   if (!isPlainObject(task.semanticContract)) {
     throw new Error(`WGSL writer v3 task is missing semantic contract: ${task.taskId}.`);
@@ -161,12 +161,29 @@ function buildCorpusPrompt(task, promptContract) {
   if (!prompt.includes(boundary)) {
     throw new Error('WGSL writer v3 semantic prompt objective boundary is missing.');
   }
-  return prompt.replace(boundary, [
+  prompt = prompt.replace(boundary, [
     '</objective>',
     '<semantic_contract>',
     JSON.stringify(task.semanticContract, null, 2),
     '</semantic_contract>',
     '<host_contract>',
+  ].join('\n'));
+  if (promptContract.includesExplicitOutputTokenBudget !== true) return prompt;
+  const outputTokenBudget = Number(promptContract.outputTokenBudget);
+  if (!Number.isSafeInteger(outputTokenBudget) || outputTokenBudget < 1
+    || promptContract.hardStopDisclosed !== true) {
+    throw new Error('WGSL writer v3 explicit output-token budget contract is invalid.');
+  }
+  const responseBoundary = '</host_contract>';
+  if (!prompt.endsWith(responseBoundary)) {
+    throw new Error('WGSL writer v3 output-budget response boundary is missing.');
+  }
+  return prompt.replace(responseBoundary, [
+    '</host_contract>',
+    '<output_contract>',
+    `The response is hard-stopped after ${outputTokenBudget} generated tokens.`,
+    `Complete the single JSON object within ${outputTokenBudget} generated tokens.`,
+    '</output_contract>',
   ].join('\n'));
 }
 

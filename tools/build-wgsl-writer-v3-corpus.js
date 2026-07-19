@@ -16,6 +16,7 @@ const POLICY_IDS = new Set([
   'doppler-wgsl-writer-v3-corpus',
   'doppler-wgsl-writer-v3-corpus-diversity-repair',
   'doppler-wgsl-writer-v3-explicit-semantic-repair',
+  'doppler-wgsl-writer-v3-explicit-output-budget',
 ]);
 
 function parseArgs(argv) {
