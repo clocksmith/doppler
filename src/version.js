@@ -1,2 +1,2 @@
-export const DOPPLER_VERSION = '0.4.10';
+export const DOPPLER_VERSION = '0.4.11';
 export const DOPPLER_PROVIDER_VERSION = DOPPLER_VERSION;

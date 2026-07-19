@@ -8,6 +8,40 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.11] - 2026-07-19
+
+### Added
+
+- Added manifest-first conversion and WebGPU inference support for four
+  biological sequence encoders: ESM-2 35M, Nucleotide Transformer v2 50M,
+  AMPLIFY 120M, and ESMC 300M.
+- Published hosted RDRR registry lanes and Node/WebGPU qualification evidence
+  for tokenizer identity, finite outputs, reference parity, and synthetic LoRA
+  activation/unload behavior. This evidence does not claim downstream
+  biological-task quality or trained-adapter quality.
+- Added source tokenizer and tensor-mapping contracts for importing sequence
+  checkpoints without runtime family detection.
+- Added a model taxonomy for domain, task, architecture role, inputs, and
+  outputs, and exposed that classification through the quickstart registry.
+- Added the `tinker_peft_browser_adapter` trainer-artifact bridge profile with
+  explicit Gamma selection authority and browser-parity requirements.
+
+### Changed
+
+- Extended the text pipeline and loader contracts for bidirectional sequence
+  encoders, including model-declared normalization and logits bias, QK
+  normalization shape, token-level outputs, and sequence embedding results.
+- Expanded WGSL Writer V3 corpus, semantic-oracle, training, and evaluation
+  contracts after the four reference packages passed AMD/Vulkan Chromium
+  execution qualification. General shader authorship remains unproven.
+- Rebuilt kernel reachability metadata for the current 301 registered
+  variants.
+
+### Fixed
+
+- Required WGSL Writer V3 evaluation receipts to disclose output-generation
+  budgets so compared lanes cannot hide unequal generation work.
+
 ## [0.4.10] - 2026-07-18
 
 ### Fixed
