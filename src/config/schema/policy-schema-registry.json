@@ -96,6 +96,16 @@
       "id": "wgsl-writer-v3-campaign-policy",
       "policyPath": "tools/policies/wgsl-writer-v3-campaign-policy.json",
       "schemaPath": "src/config/schema/wgsl-writer-v3-campaign.schema.json"
+    },
+    {
+      "id": "wgsl-writer-v3-corpus-policy",
+      "policyPath": "tools/policies/wgsl-writer-v3-corpus-policy.json",
+      "schemaPath": "src/config/schema/wgsl-writer-v3-corpus-policy.schema.json"
+    },
+    {
+      "id": "wgsl-writer-v3-training-policy",
+      "policyPath": "tools/policies/wgsl-writer-v3-training-policy.json",
+      "schemaPath": "src/config/schema/wgsl-writer-v3-training-policy.schema.json"
     }
   ]
 }

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/wgsl-writer-v3-training-policy-v1.schema.json",
+  "title": "WGSL writer v3 matched training policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "policyId",
+    "experimentId",
+    "status",
+    "admission",
+    "model",
+    "initialization",
+    "lanes",
+    "trainer",
+    "evaluation",
+    "authority",
+    "claimBoundary"
+  ],
+  "properties": {
+    "$schema": { "const": "../../src/config/schema/wgsl-writer-v3-training-policy.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "source": { "const": "doppler" },
+    "policyId": { "const": "doppler-wgsl-writer-v3-training" },
+    "experimentId": { "const": "doppler-wgsl-writer-v3" },
+    "status": { "const": "frozen_before_training" },
+    "admission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["corpusPolicy", "corpusManifest", "referenceQualification", "trainingLanes"],
+      "properties": {
+        "corpusPolicy": { "$ref": "#/$defs/binding" },
+        "corpusManifest": { "$ref": "#/$defs/binding" },
+        "referenceQualification": { "$ref": "#/$defs/binding" },
+        "trainingLanes": { "$ref": "#/$defs/binding" }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modelId", "revision", "configSha256", "tokenizerSha256", "localProvisioning"],
+      "properties": {
+        "modelId": { "const": "Qwen/Qwen3.5-9B" },
+        "revision": { "$ref": "#/$defs/sha256" },
+        "configSha256": { "$ref": "#/$defs/sha256" },
+        "tokenizerSha256": { "$ref": "#/$defs/sha256" },
+        "localProvisioning": { "const": "operator_provided_pinned_snapshot" }
+      }
+    },
+    "initialization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["v2AdapterPath", "v2AdapterConfigSha256", "v2AdapterWeightsSha256", "evidenceTransfers"],
+      "properties": {
+        "v2AdapterPath": { "$ref": "#/$defs/repoPath" },
+        "v2AdapterConfigSha256": { "$ref": "#/$defs/sha256" },
+        "v2AdapterWeightsSha256": { "$ref": "#/$defs/sha256" },
+        "evidenceTransfers": { "const": false }
+      }
+    },
+    "lanes": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "dataset", "initialization", "screeningSeed", "capabilityAuthority"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+          "dataset": { "$ref": "#/$defs/dataset" },
+          "initialization": { "enum": ["base", "v2_seed47_adapter"] },
+          "screeningSeed": { "const": 47 },
+          "capabilityAuthority": { "type": "boolean" }
+        }
+      }
+    },
+    "trainer": { "type": "object" },
+    "evaluation": { "type": "object" },
+    "authority": {
+      "const": {
+        "training": true,
+        "checkpointSelection": true,
+        "seedConfirmation": true,
+        "dopplerParity": true,
+        "promotion": false,
+        "generalWgslWriterClaim": false,
+        "productization": false
+      }
+    },
+    "claimBoundary": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "repoPath": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/repoPath" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "rows", "supervisedCompletionTokens"],
+      "properties": {
+        "path": { "$ref": "#/$defs/repoPath" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "rows": { "const": 192 },
+        "supervisedCompletionTokens": { "const": 142416 }
+      }
+    }
+  }
+}

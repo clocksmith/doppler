@@ -8,6 +8,7 @@ import hashlib
 import json
 from pathlib import Path
 import platform
+from contextlib import nullcontext
 from typing import Any
 
 
@@ -46,6 +47,16 @@ def parse_adapter(value: str) -> tuple[int, Path]:
     if not path.is_dir():
         raise argparse.ArgumentTypeError(f"adapter directory does not exist: {path}")
     return int(seed_text), path
+
+
+def parse_candidate(value: str) -> tuple[str, Path]:
+    candidate_id, separator, path_text = value.partition("=")
+    if not separator or not candidate_id or not path_text:
+        raise argparse.ArgumentTypeError("--candidate must be id=/path/to/adapter")
+    path = Path(path_text).expanduser().resolve()
+    if not path.is_dir():
+        raise argparse.ArgumentTypeError(f"adapter directory does not exist: {path}")
+    return candidate_id, path
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -231,12 +242,58 @@ def evaluate_candidates(
     return candidates
 
 
+def evaluate_named_candidates(
+    model: Any,
+    tokenizer: Any,
+    rows: list[dict[str, Any]],
+    candidates: list[tuple[str, Path | None]],
+    max_new_tokens: int,
+    torch: Any,
+) -> list[dict[str, Any]]:
+    receipts: list[dict[str, Any]] = []
+    for candidate_id, adapter_path in candidates:
+        context = nullcontext()
+        if adapter_path is None:
+            context = model.disable_adapter() if hasattr(model, "disable_adapter") else nullcontext()
+        else:
+            model.set_adapter(candidate_id)
+        tasks = []
+        completions = {}
+        with context:
+            for index, row in enumerate(rows, 1):
+                print(f"candidate {candidate_id}: task {index}/{len(rows)}", flush=True)
+                result = run_prompt(model, tokenizer, row["prompt"], max_new_tokens, torch)
+                completions[row["taskId"]] = result["completion"]
+                tasks.append({
+                    "taskId": row["taskId"],
+                    "promptSha256": sha256_text(row["prompt"]),
+                    **result,
+                })
+        receipts.append({
+            "candidateId": candidate_id,
+            "adapterPath": str(adapter_path) if adapter_path else None,
+            "adapterTreeSha256": hash_tree(adapter_path) if adapter_path else None,
+            "adapterConfigSha256": (
+                sha256_file(adapter_path / "adapter_config.json") if adapter_path else None
+            ),
+            "adapterWeightsSha256": (
+                sha256_file(adapter_path / "adapter_model.safetensors") if adapter_path else None
+            ),
+            "completions": completions,
+            "tasks": tasks,
+        })
+    return receipts
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True, type=Path)
     parser.add_argument("--model-revision", required=True)
     parser.add_argument("--dataset", required=True, type=Path)
     parser.add_argument("--adapter", action="append", required=True, type=parse_adapter)
+    parser.add_argument("--candidate", action="append", type=parse_candidate, default=[])
+    parser.add_argument("--base-candidate", action="append", default=[])
+    parser.add_argument("--experiment-id", default="doppler-wgsl-writer-v2")
     parser.add_argument("--dtype", required=True, choices=("bfloat16", "float32"))
     parser.add_argument("--max-new-tokens", required=True, type=int)
     parser.add_argument("--evaluation-role", required=True)
@@ -262,18 +319,37 @@ def main() -> None:
         tokenizer.pad_token = tokenizer.eos_token
     base_model = load_base_model(model_path, runtime, dtype)
     model = load_adapters(base_model, adapters, runtime)
-    candidates = evaluate_candidates(
-        model,
-        tokenizer,
-        rows,
-        adapters,
-        args.max_new_tokens,
-        torch,
-    )
+    if args.candidate or args.base_candidate:
+        named_adapters = list(args.candidate)
+        existing_names = {name for name, _ in named_adapters}
+        if len(existing_names) != len(named_adapters):
+            raise RuntimeError("named candidate ids must be unique")
+        for candidate_id, adapter_path in named_adapters:
+            model.load_adapter(
+                str(adapter_path),
+                adapter_name=candidate_id,
+                is_trainable=False,
+            )
+        named_candidates = [
+            *((candidate_id, None) for candidate_id in args.base_candidate),
+            *named_adapters,
+        ]
+        candidates = evaluate_named_candidates(
+            model, tokenizer, rows, named_candidates, args.max_new_tokens, torch
+        )
+    else:
+        candidates = evaluate_candidates(
+            model,
+            tokenizer,
+            rows,
+            adapters,
+            args.max_new_tokens,
+            torch,
+        )
     properties = torch.cuda.get_device_properties(0)
     receipt = {
         "schema": "doppler.wgsl-writer-peft-reference/v1",
-        "experimentId": "doppler-wgsl-writer-v2",
+        "experimentId": args.experiment_id,
         "evaluationRole": args.evaluation_role,
         "runtime": {
             "python": platform.python_version(),

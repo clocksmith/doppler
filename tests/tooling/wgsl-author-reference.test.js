@@ -7,6 +7,10 @@ import {
   materializeWgslAuthorReferenceTask,
   validateWgslAuthorReferenceManifest,
 } from '../../tools/lib/wgsl-author-reference.js';
+import {
+  evaluateOracleSafely,
+  summarizeDeterministicReplay,
+} from '../../tools/run-wgsl-author-v3-reference.js';
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
@@ -29,6 +33,10 @@ const manifest = validateWgslAuthorReferenceManifest(
 const formatCatalog = readJson(manifest.formatCatalog.path);
 assert.equal(sha256File(manifest.formatCatalog.path), manifest.formatCatalog.sha256);
 assert.equal(manifest.tasks.length, 4);
+assert.equal(manifest.runtime.headless, true);
+assert.equal(manifest.runtime.requiredBackend, 'vulkan');
+assert.equal(manifest.runtime.requiredVendor, null);
+assert.equal(manifest.runtime.replayCount, 2);
 assert.deepEqual(
   new Set(manifest.tasks.map((task) => task.pipelineKind)),
   new Set(['compute', 'render', 'multi_pass'])
@@ -67,6 +75,26 @@ const badComputeOracle = evaluateWgslAuthorReferenceOracle(computeTask.oracle, {
   },
 });
 assert.equal(badComputeOracle.pass, false);
+const missingComputeOracle = evaluateOracleSafely(computeTask.oracle, { outputs: {} });
+assert.equal(missingComputeOracle.pass, false);
+assert.match(missingComputeOracle.error, /output bytes are invalid/);
+
+const replayRuns = [1, 2].map((run) => ({
+  run,
+  outputSha256: 'a'.repeat(64),
+  execution: { executedPassIds: ['compute-pass'] },
+  pass: true,
+}));
+assert.equal(summarizeDeterministicReplay(replayRuns, 2).pass, true);
+replayRuns[1].outputSha256 = 'b'.repeat(64);
+assert.equal(summarizeDeterministicReplay(replayRuns, 2).pass, false);
+
+const insufficientReplayManifest = structuredClone(manifest);
+insufficientReplayManifest.runtime.replayCount = 1;
+assert.throws(
+  () => validateWgslAuthorReferenceManifest(insufficientReplayManifest),
+  /reference manifest is invalid/
+);
 
 for (const task of materialized.filter((entry) => entry.oracle.kind === 'rgba8_uniform')) {
   const bytes = Array.from({ length: 4 }, () => task.oracle.expectedPixel).flat();

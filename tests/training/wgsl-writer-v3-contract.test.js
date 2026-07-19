@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 import { buildPolicySchemaRegistryReport } from '../../tools/check-policy-schema-registry.js';
+import { hashWgslSemanticEvidenceValue } from '../../src/tooling/wgsl-repair-semantic-gate.js';
 
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
@@ -17,9 +18,10 @@ const policy = readJson(policyPath);
 const catalog = readJson(policy.mechanics.capabilityCatalog.path);
 const packageSchema = readJson(policy.mechanics.responseSchema.path);
 const predecessor = readJson(policy.predecessor.result.path);
+const qualification = readJson(policy.mechanics.referenceQualification.receipt.path);
 
 assert.equal(policy.policyId, 'doppler-wgsl-writer-v3-general-authoring');
-assert.equal(policy.status, 'mechanics_implemented_reference_qualification_blocked');
+assert.equal(policy.status, 'reference_qualified_corpus_materialization_blocked');
 assert.equal(policy.targetCapability, catalog.targetCapability);
 assert.equal(catalog.responseContract, 'doppler.wgsl-author-package/v1');
 assert.equal(packageSchema.properties.schema.const, catalog.responseContract);
@@ -38,6 +40,7 @@ for (const binding of [
   policy.mechanics.referenceQualification.library,
   policy.mechanics.referenceQualification.harness,
   policy.mechanics.referenceQualification.manifest,
+  policy.mechanics.referenceQualification.receipt,
 ]) {
   assert.equal(sha256File(binding.path), binding.sha256, binding.path);
 }
@@ -95,7 +98,8 @@ assert.equal(catalog.promotion.materialized, false);
 assert.equal(catalog.promotion.promotionAllowed, false);
 assert.equal(catalog.promotion.naturalSpecificationsRequired, true);
 assert.equal(catalog.promotion.familyDisjointFromAllDevelopmentRoles, true);
-assert.equal(catalog.blockers.includes('package_executor_not_reference_qualified'), true);
+assert.equal(catalog.blockers.includes('package_executor_not_reference_qualified'), false);
+assert.equal(catalog.blockers.includes('capability_tasks_and_oracles_not_materialized'), true);
 
 assert.deepEqual(policy.authority, {
   corpusMaterialization: false,
@@ -106,8 +110,30 @@ assert.deepEqual(policy.authority, {
   generalWgslWriterClaim: false,
   productization: false,
 });
-assert.equal(policy.mechanics.browserExecutor.status, 'implemented_unqualified');
-assert.equal(policy.mechanics.referenceQualification.status, 'not_run');
+assert.equal(policy.mechanics.browserExecutor.status, 'reference_qualified');
+assert.equal(policy.mechanics.referenceQualification.status, 'qualified');
+assert.equal(qualification.decision, 'reference_package_mechanics_qualified');
+assert.equal(qualification.summary.tasks, 4);
+assert.equal(qualification.summary.runs, 8);
+assert.equal(qualification.summary.passedTasks, 4);
+assert.equal(qualification.summary.failedTasks, 0);
+assert.equal(qualification.summary.deterministicReplayPassed, true);
+assert.equal(qualification.summary.cleanupPassed, true);
+assert.equal(qualification.runtime.identity.gpuBackend.detected, 'vulkan');
+assert.equal(qualification.runtime.identity.webgpuAdapter.vendor, 'amd');
+assert.equal(qualification.runtime.sessionCleanup.passed, true);
+const { receiptHash, ...qualificationCore } = qualification;
+assert.equal(hashWgslSemanticEvidenceValue(qualificationCore), receiptHash);
+assert.equal(qualification.generalWgslWriterClaim, false);
+assert.equal(qualification.productizationAllowed, false);
+assert.equal(
+  policy.blockers.includes('executable_package_browser_runner_is_not_reference_qualified'),
+  false
+);
+assert.equal(
+  policy.blockers.includes('executable_capability_tasks_cpu_and_raster_oracles_are_not_materialized'),
+  true
+);
 assert.equal(policy.populationPlan.developmentRolesMaterialized, false);
 assert.equal(policy.populationPlan.externalPromotion.materialized, false);
 assert.equal(policy.training.allowed, false);

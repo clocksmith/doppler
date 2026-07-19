@@ -11,6 +11,10 @@
     "sha256": "6c4849383eaba2c5c1f7e98ef6a53e8433294df4c90d62bc29bcb0773cdcd223"
   },
   "runtime": {
+    "headless": true,
+    "requiredBackend": "vulkan",
+    "requiredVendor": null,
+    "replayCount": 2,
     "requiredFeatures": [],
     "requiredLimits": {},
     "powerPreference": "high-performance",

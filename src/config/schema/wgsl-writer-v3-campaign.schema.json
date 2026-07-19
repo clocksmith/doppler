@@ -38,7 +38,10 @@
       "const": "doppler-wgsl-writer-v3"
     },
     "status": {
-      "const": "mechanics_implemented_reference_qualification_blocked"
+      "enum": [
+        "mechanics_implemented_reference_qualification_blocked",
+        "reference_qualified_corpus_materialization_blocked"
+      ]
     },
     "targetCapability": {
       "const": "complete_executable_webgpu_shader_package_from_natural_language_and_host_contract"
@@ -120,7 +123,10 @@
               "$ref": "#/$defs/sha256"
             },
             "status": {
-              "const": "implemented_unqualified"
+              "enum": [
+                "implemented_unqualified",
+                "reference_qualified"
+              ]
             },
             "mustCompileAndExecuteReturnedPackage": {
               "const": true
@@ -136,6 +142,7 @@
             "harness",
             "manifest",
             "status",
+            "receipt",
             "mustPassBeforeCorpusFreeze"
           ],
           "properties": {
@@ -152,12 +159,59 @@
               "$ref": "#/$defs/binding"
             },
             "status": {
-              "const": "not_run"
+              "enum": [
+                "not_run",
+                "qualified"
+              ]
+            },
+            "receipt": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/binding"
+                }
+              ]
             },
             "mustPassBeforeCorpusFreeze": {
               "const": true
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "not_run"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "receipt": {
+                    "type": "null"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "qualified"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "receipt": {
+                    "$ref": "#/$defs/binding"
+                  }
+                }
+              }
+            }
+          ]
         }
       }
     },
@@ -298,6 +352,70 @@
       "minLength": 1
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "mechanics_implemented_reference_qualification_blocked"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "mechanics": {
+            "properties": {
+              "browserExecutor": {
+                "properties": {
+                  "status": {
+                    "const": "implemented_unqualified"
+                  }
+                }
+              },
+              "referenceQualification": {
+                "properties": {
+                  "status": {
+                    "const": "not_run"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "reference_qualified_corpus_materialization_blocked"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "mechanics": {
+            "properties": {
+              "browserExecutor": {
+                "properties": {
+                  "status": {
+                    "const": "reference_qualified"
+                  }
+                }
+              },
+              "referenceQualification": {
+                "properties": {
+                  "status": {
+                    "const": "qualified"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "repoPath": {
       "type": "string",

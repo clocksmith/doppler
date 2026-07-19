@@ -17,6 +17,7 @@ const BINDABLE_RESOURCE_KINDS = new Set([
   'sampled_texture',
   'storage_texture',
   'sampler',
+  'render_target',
 ]);
 const OUTPUT_RESOURCE_KINDS = new Set([
   'storage_buffer',

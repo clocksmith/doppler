@@ -1,26 +1,27 @@
+import os from 'node:os';
+
 import {
   hashWgslSemanticEvidenceValue,
 } from '../../src/tooling/wgsl-repair-semantic-gate.js';
 import { settleWithTimeout } from './wgsl-browser-verifier.js';
 
-const DEFAULT_BROWSER_ARGS = Object.freeze([
-  '--enable-unsafe-webgpu',
-  '--enable-dawn-features=allow_unsafe_apis',
-  '--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE',
-  '--use-angle=vulkan',
-  '--disable-vulkan-surface',
-]);
-
 function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function requirePositiveInteger(value, fallback, label) {
-  const parsed = value == null ? fallback : Number(value);
+function requirePositiveInteger(value, label) {
+  const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < 1) {
     throw new Error(`${label} must be a positive safe integer.`);
   }
   return parsed;
+}
+
+function requireNonEmptyString(value, label) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${label} must be a non-empty string.`);
+  }
+  return value.trim();
 }
 
 function normalizeRequiredLimits(value) {
@@ -46,7 +47,81 @@ function normalizeCompilationMessages(messages) {
   }));
 }
 
-function summarizeExecution(id, plan, deviceInfo, browserArgs, result) {
+function normalizeChromiumGpuInfo(gpu) {
+  const auxAttributes = gpu?.auxAttributes || {};
+  const featureStatus = gpu?.featureStatus || {};
+  return {
+    devices: (gpu?.devices || []).map((device) => ({
+      vendorId: Number(device.vendorId),
+      deviceId: Number(device.deviceId),
+      vendorString: String(device.vendorString || ''),
+      deviceString: String(device.deviceString || ''),
+      driverVendor: String(device.driverVendor || ''),
+      driverVersion: String(device.driverVersion || ''),
+    })),
+    auxAttributes: {
+      displayType: String(auxAttributes.displayType || ''),
+      glImplementationParts: String(auxAttributes.glImplementationParts || ''),
+      glRenderer: String(auxAttributes.glRenderer || ''),
+      glVendor: String(auxAttributes.glVendor || ''),
+      glVersion: String(auxAttributes.glVersion || ''),
+      hardwareSupportsVulkan: auxAttributes.hardwareSupportsVulkan === true,
+      skiaBackendType: String(auxAttributes.skiaBackendType || ''),
+    },
+    featureStatus: {
+      gpuCompositing: String(featureStatus.gpu_compositing || ''),
+      vulkan: String(featureStatus.vulkan || ''),
+      webgpu: String(featureStatus.webgpu || ''),
+    },
+  };
+}
+
+function detectGpuBackend(chromiumGpu) {
+  const evidence = [
+    chromiumGpu.auxAttributes.displayType,
+    chromiumGpu.auxAttributes.glImplementationParts,
+    chromiumGpu.auxAttributes.glRenderer,
+    ...chromiumGpu.devices.map((device) => device.deviceString),
+  ].join(' ').toLowerCase();
+  for (const backend of ['vulkan', 'metal', 'd3d12', 'd3d11', 'opengl']) {
+    if (evidence.includes(backend)) return backend;
+  }
+  return 'unknown';
+}
+
+async function readBrowserIdentity(browser, requiredBackend, headless, browserArgs) {
+  const session = await browser.newBrowserCDPSession();
+  const systemInfo = await session.send('SystemInfo.getInfo');
+  await session.detach();
+  const chromiumGpu = normalizeChromiumGpuInfo(systemInfo.gpu);
+  const detectedBackend = detectGpuBackend(chromiumGpu);
+  if (detectedBackend !== requiredBackend) {
+    throw new Error(
+      `chromium_gpu_backend_mismatch: expected ${requiredBackend}, got ${detectedBackend}`
+    );
+  }
+  return {
+    schema: 'doppler.chromium-webgpu-runtime-identity/v1',
+    host: {
+      platform: os.platform(),
+      release: os.release(),
+      architecture: os.arch(),
+    },
+    browser: {
+      engine: 'chromium',
+      version: browser.version(),
+      headless,
+      args: browserArgs,
+    },
+    gpuBackend: {
+      required: requiredBackend,
+      detected: detectedBackend,
+    },
+    chromiumGpu,
+  };
+}
+
+function summarizeExecution(id, plan, runtimeIdentity, result) {
   const compilation = (result.compilation || []).map((entry) => {
     const messages = normalizeCompilationMessages(entry.messages);
     const errorCount = messages.filter((message) => message.type === 'error').length;
@@ -61,22 +136,34 @@ function summarizeExecution(id, plan, deviceInfo, browserArgs, result) {
   const expectedPassIds = plan.passes.map((pass) => pass.id);
   const executedPassIds = (result.executedPassIds || []).map(String);
   const outputIds = Object.keys(result.outputs || {}).sort();
+  const cleanup = isPlainObject(result.cleanup)
+    ? result.cleanup
+    : {
+      attempted: false,
+      destroyableCount: 0,
+      destroyedCount: 0,
+      mappedBufferCount: 0,
+      unmappedBufferCount: 0,
+      errors: ['cleanup_result_missing'],
+      passed: false,
+    };
   const passed = compilation.length === plan.modules.length
     && compilation.every((entry) => entry.passed)
     && runtimeErrors.length === 0
     && JSON.stringify(executedPassIds) === JSON.stringify(expectedPassIds)
-    && plan.outputs.every((outputId) => outputIds.includes(outputId));
+    && plan.outputs.every((outputId) => outputIds.includes(outputId))
+    && cleanup.passed === true;
   const core = {
     schema: 'doppler.wgsl-author-browser-execution/v1',
     id,
     planSha256: hashWgslSemanticEvidenceValue(plan),
-    deviceInfo,
-    browserArgs,
+    runtimeIdentity,
     compilation,
     executedPassIds,
     outputs: result.outputs || {},
     runtimeErrors,
     validationErrorsAbsent: runtimeErrors.length === 0,
+    cleanup,
     passed,
   };
   return { ...core, receiptHash: hashWgslSemanticEvidenceValue(core) };
@@ -84,38 +171,58 @@ function summarizeExecution(id, plan, deviceInfo, browserArgs, result) {
 
 export async function createWgslAuthorBrowserExecutor(options = {}) {
   const { chromium } = await import('playwright');
-  const browserArgs = Array.isArray(options.browserArgs)
-    ? options.browserArgs.map(String)
-    : [...DEFAULT_BROWSER_ARGS];
-  const requiredFeatures = Array.isArray(options.requiredFeatures)
-    ? [...new Set(options.requiredFeatures.map(String))].sort()
-    : [];
-  const requiredLimits = normalizeRequiredLimits(options.requiredLimits || {});
+  if (!Array.isArray(options.browserArgs) || options.browserArgs.length === 0) {
+    throw new Error('browserArgs must be a non-empty array.');
+  }
+  if (!Array.isArray(options.requiredFeatures)) {
+    throw new Error('requiredFeatures must be an array.');
+  }
+  if (typeof options.headless !== 'boolean') {
+    throw new Error('headless must be an explicit boolean.');
+  }
+  const browserArgs = options.browserArgs.map(String);
+  const requiredFeatures = [...new Set(options.requiredFeatures.map(String))].sort();
+  const requiredLimits = normalizeRequiredLimits(options.requiredLimits);
   const executionTimeoutMs = requirePositiveInteger(
     options.executionTimeoutMs,
-    30000,
     'executionTimeoutMs'
   );
-  const powerPreference = String(options.powerPreference || 'high-performance');
-  const requiredVendor = String(options.requiredVendor || '').trim().toLowerCase();
+  const powerPreference = requireNonEmptyString(options.powerPreference, 'powerPreference');
+  const requiredBackend = requireNonEmptyString(
+    options.requiredBackend,
+    'requiredBackend'
+  ).toLowerCase();
+  if (options.requiredVendor === undefined) {
+    throw new Error('requiredVendor must be an explicit string or null.');
+  }
+  const requiredVendor = options.requiredVendor === null
+    ? ''
+    : requireNonEmptyString(options.requiredVendor, 'requiredVendor').toLowerCase();
   let browser = null;
   let page = null;
 
   async function openSession() {
-    browser = await chromium.launch({
-      headless: options.headless !== false,
-      args: browserArgs,
-    });
-    page = await browser.newPage();
-    await page.route('https://wgsl-author.invalid/**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'text/html',
-        body: '<!doctype html><meta charset="utf-8"><title>WGSL author executor</title>',
+    try {
+      browser = await chromium.launch({
+        headless: options.headless,
+        args: browserArgs,
       });
-    });
-    await page.goto('https://wgsl-author.invalid/');
-    const info = await page.evaluate(async (request) => {
+      const browserIdentity = await readBrowserIdentity(
+        browser,
+        requiredBackend,
+        options.headless,
+        browserArgs
+      );
+      page = await browser.newPage();
+      await page.route('https://wgsl-author.invalid/**', async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'text/html',
+          body: '<!doctype html><meta charset="utf-8"><title>WGSL author executor</title>',
+        });
+      });
+      await page.goto('https://wgsl-author.invalid/');
+      const deviceInfo = await page.evaluate(async (request) => {
       if (!navigator.gpu) throw new Error('webgpu_unavailable');
       const adapter = await navigator.gpu.requestAdapter({
         powerPreference: request.powerPreference,
@@ -141,45 +248,53 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
       });
       globalThis.__wgslAuthorDevice = device;
       const adapterInfo = adapter.info || {};
-      return {
+        const limits = {};
+        for (const name in adapter.limits) limits[name] = adapter.limits[name];
+        return {
         vendor: adapterInfo.vendor || null,
         architecture: adapterInfo.architecture || null,
         device: adapterInfo.device || null,
         description: adapterInfo.description || null,
         availableFeatures: [...adapter.features].sort(),
         requiredFeatures: request.requiredFeatures,
-        limits: Object.fromEntries(Object.keys(request.requiredLimits).map((name) => [
-          name,
-          adapter.limits[name],
-        ])),
+        limits,
         requiredLimits: request.requiredLimits,
       };
-    }, { powerPreference, requiredFeatures, requiredLimits });
-    if (requiredVendor && String(info.vendor || '').toLowerCase() !== requiredVendor) {
-      await browser.close();
+      }, { powerPreference, requiredFeatures, requiredLimits });
+      if (requiredVendor
+        && String(deviceInfo.vendor || '').toLowerCase() !== requiredVendor) {
+        throw new Error(
+          `webgpu_adapter_vendor_mismatch: expected ${requiredVendor}, got ${deviceInfo.vendor || 'unknown'}`
+        );
+      }
+      return {
+        ...browserIdentity,
+        webgpuAdapter: deviceInfo,
+      };
+    } catch (error) {
+      if (browser) await browser.close().catch(() => {});
       browser = null;
       page = null;
-      throw new Error(
-        `webgpu_adapter_vendor_mismatch: expected ${requiredVendor}, got ${info.vendor || 'unknown'}`
-      );
+      throw error;
     }
-    return info;
   }
 
-  const deviceInfo = await openSession();
+  const runtimeIdentity = await openSession();
+  const deviceInfo = runtimeIdentity.webgpuAdapter;
 
   async function resetSession() {
     if (browser) await browser.close().catch(() => {});
     browser = null;
     page = null;
     const replacement = await openSession();
-    if (JSON.stringify(replacement) !== JSON.stringify(deviceInfo)) {
+    if (JSON.stringify(replacement) !== JSON.stringify(runtimeIdentity)) {
       throw new Error('wgsl_author_device_changed_after_reset');
     }
   }
 
   return {
     deviceInfo,
+    runtimeIdentity,
     browserArgs,
     executionTimeoutMs,
     async execute(plan, executionOptions = {}) {
@@ -210,6 +325,15 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
           const gpuResources = new Map();
           const staging = [];
           const destroyables = [];
+          const cleanup = {
+            attempted: false,
+            destroyableCount: 0,
+            destroyedCount: 0,
+            mappedBufferCount: 0,
+            unmappedBufferCount: 0,
+            errors: [],
+            passed: false,
+          };
           const moduleObjects = new Map();
           const pipelines = new Map();
           const uncaptured = (event) => {
@@ -303,14 +427,16 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
                     usage: usageBits(resource.usage, bufferUsageValues, 'buffer'),
                     mappedAtCreation: true,
                   });
+                  destroyables.push(object);
+                  cleanup.mappedBufferCount += 1;
                   const mapped = new Uint8Array(object.getMappedRange());
                   mapped.fill(0);
                   if (resource.initialization.kind === 'bytes') {
                     mapped.set(resource.initialization.bytes);
                   }
                   object.unmap();
+                  cleanup.unmappedBufferCount += 1;
                   gpuResources.set(resource.id, { ...resource, object });
-                  destroyables.push(object);
                 } else if (resource.kind === 'sampler') {
                   const { samplerType: _samplerType, ...descriptor } = resource.descriptor;
                   if (descriptor.compare === null) delete descriptor.compare;
@@ -330,8 +456,8 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
                     format: descriptor.format,
                     usage: usageBits(resource.usage, textureUsageValues, 'texture'),
                   });
-                  gpuResources.set(resource.id, { ...resource, object });
                   destroyables.push(object);
+                  gpuResources.set(resource.id, { ...resource, object });
                   const bytes = resource.initialization.kind === 'bytes'
                     ? resource.initialization.bytes
                     : new Array(descriptor.copy.tightByteLength).fill(0);
@@ -409,20 +535,6 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
                   });
                   encoder.setPipeline(pipeline);
                   setBindGroups(encoder, groups);
-                  encoder.setViewport(
-                    pass.viewport.x,
-                    pass.viewport.y,
-                    pass.viewport.width,
-                    pass.viewport.height,
-                    pass.viewport.minDepth,
-                    pass.viewport.maxDepth
-                  );
-                  encoder.setScissorRect(
-                    pass.scissor.x,
-                    pass.scissor.y,
-                    pass.scissor.width,
-                    pass.scissor.height
-                  );
                   encoder.dispatchWorkgroups(...pass.dispatch);
                   encoder.end();
                 } else {
@@ -445,6 +557,20 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
                   });
                   encoder.setPipeline(pipeline);
                   setBindGroups(encoder, groups);
+                  encoder.setViewport(
+                    pass.viewport.x,
+                    pass.viewport.y,
+                    pass.viewport.width,
+                    pass.viewport.height,
+                    pass.viewport.minDepth,
+                    pass.viewport.maxDepth
+                  );
+                  encoder.setScissorRect(
+                    pass.scissor.x,
+                    pass.scissor.y,
+                    pass.scissor.width,
+                    pass.scissor.height
+                  );
                   for (const vertexBuffer of pass.vertexBuffers) {
                     encoder.setVertexBuffer(
                       vertexBuffer.slot,
@@ -484,6 +610,7 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
                     size: resource.descriptor.byteLength,
                     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
                   });
+                  destroyables.push(object);
                   commandEncoder.copyBufferToBuffer(
                     resource.object,
                     0,
@@ -497,7 +624,6 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
                     object,
                     byteLength: resource.descriptor.byteLength,
                   });
-                  destroyables.push(object);
                 } else {
                   const copy = resource.descriptor.copy;
                   const paddedBytesPerRow = Math.ceil(copy.tightBytesPerRow / 256) * 256;
@@ -509,6 +635,7 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
                     size: byteLength,
                     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
                   });
+                  destroyables.push(object);
                   commandEncoder.copyTextureToBuffer(
                     { texture: resource.object },
                     {
@@ -528,13 +655,13 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
                     blockRows: copy.blockRows,
                     depthOrArrayLayers: resource.descriptor.size.depthOrArrayLayers,
                   });
-                  destroyables.push(object);
                 }
               }
               device.queue.submit([commandEncoder.finish()]);
               await device.queue.onSubmittedWorkDone();
               for (const entry of staging) {
                 await entry.object.mapAsync(GPUMapMode.READ);
+                cleanup.mappedBufferCount += 1;
                 const mapped = new Uint8Array(entry.object.getMappedRange()).slice();
                 if (entry.kind === 'buffer') {
                   outputs[entry.id] = { kind: entry.kind, bytes: [...mapped] };
@@ -549,40 +676,96 @@ export async function createWgslAuthorBrowserExecutor(options = {}) {
                   outputs[entry.id] = { kind: entry.kind, bytes };
                 }
                 entry.object.unmap();
+                cleanup.unmappedBufferCount += 1;
               }
             }
           } catch (error) {
             runtimeErrors.push(error?.message || String(error));
           } finally {
-            const validationError = await device.popErrorScope();
-            const outOfMemoryError = await device.popErrorScope();
-            if (validationError) runtimeErrors.push(validationError.message);
-            if (outOfMemoryError) runtimeErrors.push(outOfMemoryError.message);
+            cleanup.attempted = true;
+            try {
+              const validationError = await device.popErrorScope();
+              if (validationError) runtimeErrors.push(validationError.message);
+            } catch (error) {
+              runtimeErrors.push(`validation_error_scope_failed:${error?.message || String(error)}`);
+            }
+            try {
+              const outOfMemoryError = await device.popErrorScope();
+              if (outOfMemoryError) runtimeErrors.push(outOfMemoryError.message);
+            } catch (error) {
+              runtimeErrors.push(`out_of_memory_error_scope_failed:${error?.message || String(error)}`);
+            }
             device.removeEventListener('uncapturederror', uncaptured);
-            for (const object of destroyables.reverse()) object.destroy();
+            for (const [index, object] of destroyables.entries()) {
+              if (object.mapState !== 'mapped') continue;
+              try {
+                object.unmap();
+                cleanup.unmappedBufferCount += 1;
+              } catch (error) {
+                cleanup.errors.push(`unmap_failed:${index}:${error?.message || String(error)}`);
+              }
+            }
+            cleanup.destroyableCount = destroyables.length;
+            for (const object of destroyables.reverse()) {
+              try {
+                object.destroy();
+                cleanup.destroyedCount += 1;
+              } catch (error) {
+                cleanup.errors.push(`destroy_failed:${error?.message || String(error)}`);
+              }
+            }
+            cleanup.passed = cleanup.errors.length === 0
+              && cleanup.destroyedCount === cleanup.destroyableCount
+              && cleanup.unmappedBufferCount === cleanup.mappedBufferCount;
           }
-          return { compilation, runtimeErrors, executedPassIds, outputs };
+          return { compilation, runtimeErrors, executedPassIds, outputs, cleanup };
         }, { id, plan }),
         executionTimeoutMs
       );
       if (outcome.status === 'fulfilled') {
-        return summarizeExecution(id, plan, deviceInfo, browserArgs, outcome.value);
+        return summarizeExecution(id, plan, runtimeIdentity, outcome.value);
       }
       const reason = outcome.status === 'timed_out'
         ? `WGSL author execution timed out after ${executionTimeoutMs}ms.`
         : `WGSL author browser exception: ${outcome.error?.message || String(outcome.error)}`;
       await resetSession();
-      return summarizeExecution(id, plan, deviceInfo, browserArgs, {
+      return summarizeExecution(id, plan, runtimeIdentity, {
         compilation: [],
         runtimeErrors: [reason],
         executedPassIds: [],
         outputs: {},
+        cleanup: {
+          attempted: true,
+          destroyableCount: 0,
+          destroyedCount: 0,
+          mappedBufferCount: 0,
+          unmappedBufferCount: 0,
+          errors: [],
+          passed: true,
+          mode: 'browser_session_reset',
+        },
       });
     },
     async close() {
-      if (browser) await browser.close();
+      const cleanup = {
+        attempted: browser !== null,
+        browserClosed: false,
+        errors: [],
+        passed: false,
+      };
+      if (browser) {
+        try {
+          await browser.close();
+          cleanup.browserClosed = true;
+        } catch (error) {
+          cleanup.errors.push(error?.message || String(error));
+        }
+      }
       browser = null;
       page = null;
+      cleanup.passed = cleanup.errors.length === 0
+        && (!cleanup.attempted || cleanup.browserClosed);
+      return cleanup;
     },
   };
 }

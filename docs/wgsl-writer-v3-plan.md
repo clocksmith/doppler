@@ -16,9 +16,12 @@ exact selected-adapter completion parity between Transformers/PEFT and Doppler.
 
 V2 did not establish arbitrary resource design, render pipelines, textures,
 multi-pass execution, general shader authorship, or external promotion. Doppler
-`main` does not yet contain a V3 executable-package schema or general package
-executor. Those are the first V3 deliverables; they must not be described as
-implemented mechanics before they land and pass reference qualification.
+now contains the V3 executable-package schema, validator, planner, Chromium
+executor, fixtures, and oracles. The four mechanics-reference packages passed
+identity-bound AMD/Vulkan Chromium qualification on 2026-07-18; see
+[`status/wgsl-writer-v3-reference-qualification-2026-07-18.md`](status/wgsl-writer-v3-reference-qualification-2026-07-18.md).
+The executable capability corpus and its semantic oracles remain unmaterialized,
+so training and every capability or product claim remain blocked.
 
 Canonical predecessor evidence:
 
@@ -58,20 +61,22 @@ executor. Unknown fields, unsupported feature combinations, missing bindings,
 resource-limit violations, and incomplete output declarations fail closed with
 stable reason codes.
 
-Planned source boundaries:
+Implemented source boundaries:
 
-- `src/config/schema/wgsl-writer-program-package.schema.json`
-- `tools/lib/wgsl-writer-program-package.js`
-- `tools/lib/wgsl-writer-program-executor.js`
-- `tools/run-wgsl-writer-v3-reference.js`
-- `tests/tooling/wgsl-writer-program-package.test.js`
-- `tests/tooling/wgsl-writer-program-executor.test.js`
+- `src/config/schema/wgsl-author-package.schema.json`
+- `tools/lib/wgsl-author-package.js`
+- `tools/lib/wgsl-author-execution-plan.js`
+- `tools/lib/wgsl-author-browser-executor.js`
+- `tools/run-wgsl-author-v3-reference.js`
+- `tests/tooling/wgsl-author-package.test.js`
+- `tests/tooling/wgsl-author-execution-plan.test.js`
+- `tests/tooling/wgsl-author-browser-executor.test.js`
+- `tests/tooling/wgsl-author-reference.test.js`
 
-These names become authoritative only when the implementation lands. Runtime
-policy remains JSON-owned; JavaScript owns orchestration and cleanup; WGSL owns
-shader math.
+Runtime policy remains JSON-owned; JavaScript owns orchestration and cleanup;
+WGSL owns shader math.
 
-### 2. Qualify four reference packages
+### 2. Qualify four reference packages — complete
 
 Run these hand-authored packages through Chromium WebGPU before model output is
 allowed into the evaluator:
