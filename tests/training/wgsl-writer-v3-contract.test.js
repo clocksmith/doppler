@@ -13,12 +13,26 @@ function sha256File(filePath) {
   return createHash('sha256').update(readFileSync(filePath)).digest('hex');
 }
 
+function readJsonl(filePath) {
+  return readFileSync(filePath, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse);
+}
+
 const policyPath = 'tools/policies/wgsl-writer-v3-campaign-policy.json';
 const policy = readJson(policyPath);
 const catalog = readJson(policy.mechanics.capabilityCatalog.path);
 const packageSchema = readJson(policy.mechanics.responseSchema.path);
 const predecessor = readJson(policy.predecessor.result.path);
 const qualification = readJson(policy.mechanics.referenceQualification.receipt.path);
+const diversityPolicy = readJson('tools/policies/wgsl-writer-v3-corpus-diversity-policy.json');
+const diversityManifest = readJson(
+  `${diversityPolicy.corpus.outputRoot}/corpus-manifest.json`
+);
+const diversityQualification = readJson(
+  `${diversityPolicy.corpus.outputRoot}/reference-qualification.json`
+);
+const diversityTrainingPolicy = readJson(
+  'tools/policies/wgsl-writer-v3-diversity-training-policy.json'
+);
 
 assert.equal(policy.policyId, 'doppler-wgsl-writer-v3-general-authoring');
 assert.equal(policy.status, 'reference_qualified_corpus_materialization_blocked');
@@ -139,11 +153,57 @@ assert.equal(policy.populationPlan.externalPromotion.materialized, false);
 assert.equal(policy.training.allowed, false);
 assert.equal(policy.training.workloadsFrozen, false);
 
+const diversityRows = readJsonl(diversityManifest.roles.training.datasetPath);
+assert.equal(diversityRows.length, 192);
+assert.equal(new Set(diversityRows.map((row) => row.completionSha256)).size, 192);
+for (const familyId of new Set(diversityRows.map((row) => row.semanticFamilyId))) {
+  assert.equal(
+    new Set(diversityRows
+      .filter((row) => row.semanticFamilyId === familyId)
+      .map((row) => row.completionSha256)).size,
+    24,
+    familyId
+  );
+}
+assert.equal(diversityManifest.referenceQualification.tasks, 228);
+assert.equal(diversityQualification.decision, 'reference_corpus_qualified');
+assert.equal(diversityQualification.summary.tasks, 228);
+assert.equal(diversityQualification.summary.runs, 456);
+assert.equal(diversityQualification.summary.passedTasks, 228);
+assert.equal(diversityQualification.summary.failedTasks, 0);
+assert.equal(diversityQualification.summary.deterministicReplayPassed, true);
+assert.equal(diversityQualification.summary.cleanupPassed, true);
+assert.equal(diversityQualification.runtime.identity.gpuBackend.detected, 'vulkan');
+assert.equal(diversityQualification.runtime.identity.webgpuAdapter.vendor, 'amd');
+const { receiptHash: diversityReceiptHash, ...diversityCore } = diversityQualification;
+assert.equal(hashWgslSemanticEvidenceValue(diversityCore), diversityReceiptHash);
+
+assert.equal(diversityTrainingPolicy.repairEvidence.uniqueTrainingCompletionsBefore, 8);
+assert.equal(diversityTrainingPolicy.repairEvidence.uniqueTrainingCompletionsAfter, 192);
+assert.equal(diversityTrainingPolicy.repairEvidence.selectionGateChanged, false);
+assert.equal(
+  sha256File(diversityTrainingPolicy.repairEvidence.failedEvaluation.path),
+  diversityTrainingPolicy.repairEvidence.failedEvaluation.sha256
+);
+assert.equal(diversityTrainingPolicy.evaluation.minimumSelectionSemanticPassRate, 0.5);
+assert.equal(diversityTrainingPolicy.evaluation.minimumConfirmationMeanSemanticPassRate, 0.75);
+for (const binding of Object.values(diversityTrainingPolicy.admission)) {
+  assert.equal(sha256File(binding.path), binding.sha256, binding.path);
+}
+
 const registryReport = await buildPolicySchemaRegistryReport();
 assert.equal(registryReport.ok, true, registryReport.errors.join('\n'));
 const schemaRegistry = readJson('src/config/schema/policy-schema-registry.json');
 assert.equal(
   schemaRegistry.policies.some((entry) => entry.id === 'wgsl-writer-v3-campaign-policy'),
+  true
+);
+assert.equal(
+  schemaRegistry.policies.some((entry) => entry.id === 'wgsl-writer-v3-corpus-diversity-policy'),
+  true
+);
+assert.equal(
+  schemaRegistry.policies.some((entry) => entry.id === 'wgsl-writer-v3-diversity-training-policy'),
   true
 );
 

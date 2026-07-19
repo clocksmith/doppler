@@ -103,8 +103,18 @@
       "schemaPath": "src/config/schema/wgsl-writer-v3-corpus-policy.schema.json"
     },
     {
+      "id": "wgsl-writer-v3-corpus-diversity-policy",
+      "policyPath": "tools/policies/wgsl-writer-v3-corpus-diversity-policy.json",
+      "schemaPath": "src/config/schema/wgsl-writer-v3-corpus-policy.schema.json"
+    },
+    {
       "id": "wgsl-writer-v3-training-policy",
       "policyPath": "tools/policies/wgsl-writer-v3-training-policy.json",
+      "schemaPath": "src/config/schema/wgsl-writer-v3-training-policy.schema.json"
+    },
+    {
+      "id": "wgsl-writer-v3-diversity-training-policy",
+      "policyPath": "tools/policies/wgsl-writer-v3-diversity-training-policy.json",
       "schemaPath": "src/config/schema/wgsl-writer-v3-training-policy.schema.json"
     }
   ]

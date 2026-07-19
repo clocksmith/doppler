@@ -8,6 +8,7 @@ import { WGSL_WRITER_V3_MULTIPASS_FAMILY_BUILDERS } from './wgsl-writer-v3-multi
 import { WGSL_WRITER_V3_RENDER_FAMILY_BUILDERS } from './wgsl-writer-v3-render-families.js';
 import { WGSL_WRITER_V3_TEXTURE_FAMILY_BUILDERS } from './wgsl-writer-v3-texture-families.js';
 import { evaluateWgslWriterV3Quality } from './wgsl-writer-v3-quality.js';
+import { diversifyWgslWriterV3Package } from './wgsl-writer-v3-package-diversity.js';
 
 const ROLE_FILENAMES = Object.freeze({
   training: 'train.jsonl',
@@ -90,6 +91,13 @@ function materializeTask(family, rowIndex) {
     throw new Error(`WGSL writer v3 family builder is missing: ${family.id}.`);
   }
   const built = builder(family, rowIndex);
+  if (family.populationRole === 'training' && family.packageDiversity !== null) {
+    built.packageValue = diversifyWgslWriterV3Package(
+      built.packageValue,
+      rowIndex,
+      family.packageDiversity
+    );
+  }
   const quality = evaluateWgslWriterV3Quality(built, family);
   if (!quality.pass) {
     throw new Error(
@@ -106,7 +114,7 @@ function materializeTask(family, rowIndex) {
     source: {
       owner: 'doppler',
       license: 'Apache-2.0',
-      lineage: 'human_authored_doppler_parametric_reference',
+      lineage: family.sourceLineage,
     },
     objective: built.objective,
     contract: built.contract,
@@ -217,7 +225,17 @@ export function materializeWgslWriterV3Corpus(options) {
     if (!Number.isSafeInteger(count) || count < 3) {
       throw new Error(`WGSL writer v3 row count is invalid for ${family.populationRole}.`);
     }
-    const familyTasks = Array.from({ length: count }, (_, index) => materializeTask(family, index));
+    const materializationFamily = {
+      ...family,
+      sourceLineage: policy.corpus.sourceLineage,
+      packageDiversity: family.populationRole === 'training'
+        ? policy.corpus.packageDiversity || null
+        : null,
+    };
+    const familyTasks = Array.from(
+      { length: count },
+      (_, index) => materializeTask(materializationFamily, index)
+    );
     verifyFamilyVariation(familyTasks, family);
     tasksByRole[family.populationRole].push(...familyTasks);
   }
@@ -248,13 +266,11 @@ export function materializeWgslWriterV3Corpus(options) {
       ...(manifests[role] ? { taskManifestPath: manifests[role].path } : {}),
     };
   }
-  const trainingRepresentatives = [];
-  const seenTrainingFamilies = new Set();
-  for (const task of tasksByRole.training) {
-    if (seenTrainingFamilies.has(task.semanticFamilyId)) continue;
-    seenTrainingFamilies.add(task.semanticFamilyId);
-    trainingRepresentatives.push(task);
-  }
+  const trainingRepresentatives = policy.referenceQualification.executeEveryTrainingTask === true
+    ? tasksByRole.training
+    : tasksByRole.training.filter((task, index, tasks) => (
+      tasks.findIndex((candidate) => candidate.semanticFamilyId === task.semanticFamilyId) === index
+    ));
   const qualificationManifest = roleManifest(policy, 'reference_qualification_only', [
     ...trainingRepresentatives,
     ...Object.values(manifests).flatMap(({ manifest }) => manifest.tasks),

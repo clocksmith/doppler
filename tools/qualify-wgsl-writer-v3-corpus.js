@@ -13,6 +13,10 @@ import { evaluateWgslWriterV3Oracle } from './lib/wgsl-writer-v3-oracles.js';
 const DEFAULT_POLICY = 'tools/policies/wgsl-writer-v3-corpus-policy.json';
 const DEFAULT_OUTPUT =
   'reports/training/wgsl-writer/doppler-wgsl-writer-v3/corpus-v1/reference-qualification.json';
+const POLICY_IDS = new Set([
+  'doppler-wgsl-writer-v3-corpus',
+  'doppler-wgsl-writer-v3-corpus-diversity-repair',
+]);
 
 function parseArgs(argv) {
   const args = { policyPath: DEFAULT_POLICY, outputPath: DEFAULT_OUTPUT };
@@ -69,7 +73,7 @@ function summarizeReplay(runs, requiredRuns) {
 
 export async function qualifyWgslWriterV3Corpus(args) {
   const policy = await readJson(args.policyPath);
-  if (policy.policyId !== 'doppler-wgsl-writer-v3-corpus'
+  if (!POLICY_IDS.has(policy.policyId)
     || policy.status !== 'frozen_before_materialization') {
     throw new Error('WGSL writer v3 qualification requires the frozen corpus policy.');
   }

@@ -24,9 +24,33 @@
     "$schema": { "const": "../../src/config/schema/wgsl-writer-v3-training-policy.schema.json" },
     "schemaVersion": { "const": 1 },
     "source": { "const": "doppler" },
-    "policyId": { "const": "doppler-wgsl-writer-v3-training" },
+    "policyId": {
+      "enum": [
+        "doppler-wgsl-writer-v3-training",
+        "doppler-wgsl-writer-v3-diversity-repair-training"
+      ]
+    },
     "experimentId": { "const": "doppler-wgsl-writer-v3" },
     "status": { "const": "frozen_before_training" },
+    "artifactRoot": { "$ref": "#/$defs/repoPath" },
+    "repairEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failedEvaluation",
+        "failureClass",
+        "uniqueTrainingCompletionsBefore",
+        "uniqueTrainingCompletionsAfter",
+        "selectionGateChanged"
+      ],
+      "properties": {
+        "failedEvaluation": { "$ref": "#/$defs/binding" },
+        "failureClass": { "const": "training_completion_diversity_collapse" },
+        "uniqueTrainingCompletionsBefore": { "const": 8 },
+        "uniqueTrainingCompletionsAfter": { "const": 192 },
+        "selectionGateChanged": { "const": false }
+      }
+    },
     "admission": {
       "type": "object",
       "additionalProperties": false,
@@ -44,7 +68,7 @@
       "required": ["modelId", "revision", "configSha256", "tokenizerSha256", "localProvisioning"],
       "properties": {
         "modelId": { "const": "Qwen/Qwen3.5-9B" },
-        "revision": { "$ref": "#/$defs/sha256" },
+        "revision": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
         "configSha256": { "$ref": "#/$defs/sha256" },
         "tokenizerSha256": { "$ref": "#/$defs/sha256" },
         "localProvisioning": { "const": "operator_provided_pinned_snapshot" }
@@ -92,6 +116,18 @@
     },
     "claimBoundary": { "type": "string", "minLength": 1 }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "policyId": { "const": "doppler-wgsl-writer-v3-diversity-repair-training" }
+        }
+      },
+      "then": {
+        "required": ["artifactRoot", "repairEvidence"]
+      }
+    }
+  ],
   "$defs": {
     "repoPath": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
     "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
@@ -112,7 +148,7 @@
         "path": { "$ref": "#/$defs/repoPath" },
         "sha256": { "$ref": "#/$defs/sha256" },
         "rows": { "const": 192 },
-        "supervisedCompletionTokens": { "const": 142416 }
+        "supervisedCompletionTokens": { "type": "integer", "minimum": 1 }
       }
     }
   }

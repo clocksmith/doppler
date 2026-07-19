@@ -9,6 +9,10 @@ import { hashWgslSemanticEvidenceValue } from '../src/tooling/wgsl-repair-semant
 import { runGammaWgslRequest } from './trainers/gamma-wgsl-trainer.js';
 
 const DEFAULT_POLICY = 'tools/policies/wgsl-writer-v3-training-policy.json';
+const POLICY_IDS = new Set([
+  'doppler-wgsl-writer-v3-training',
+  'doppler-wgsl-writer-v3-diversity-repair-training',
+]);
 
 function parseArgs(argv) {
   const args = { policyPath: DEFAULT_POLICY, laneId: '', seed: 47 };
@@ -107,7 +111,8 @@ async function requireConfirmationAdmission(policy, lane, seed) {
     throw new Error(`WGSL writer v3 seed is not frozen: ${seed}.`);
   }
   const selectionPath = path.resolve(
-    'reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation/selection/selected-lane.json'
+    policy.evaluation.selectionReceiptPath
+      || 'reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation/selection/selected-lane.json'
   );
   const selection = await readJson(selectionPath);
   const core = { ...selection };
@@ -159,7 +164,7 @@ function gammaRequest(policy, lane, seed, modelPath, adapterPath, outputRoot) {
 
 export async function runWgslWriterV3Training(args) {
   const policy = await readJson(args.policyPath);
-  if (policy.policyId !== 'doppler-wgsl-writer-v3-training'
+  if (!POLICY_IDS.has(policy.policyId)
     || policy.status !== 'frozen_before_training') {
     throw new Error('WGSL writer v3 training requires the frozen training policy.');
   }
@@ -171,7 +176,9 @@ export async function runWgslWriterV3Training(args) {
     throw new Error('GAMMA_WGSL_MODEL_PATH is required.');
   }
   const runRoot = path.resolve(
-    'reports/training/wgsl-writer/doppler-wgsl-writer-v3/training',
+    policy.artifactRoot
+      ? path.join(policy.artifactRoot, 'training')
+      : 'reports/training/wgsl-writer/doppler-wgsl-writer-v3/training',
     `${lane.id}-seed${args.seed}`
   );
   const statusPath = path.join(runRoot, 'training-status.json');
