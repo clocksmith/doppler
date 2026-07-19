@@ -26,7 +26,9 @@ npx doppler-gpu
 
 ## Supported RDRR model types
 
-Doppler classifies artifacts by what they consume and produce. This is separate from lineage (`family`), runtime implementation (`modelType`), and artifact-size tier.
+Doppler classifies artifacts by what they consume and produce. This is
+separate from lineage (`family`), runtime implementation (`modelType`), and
+artifact-size tier.
 
 | Type | Input → output | Runtime-verified / cataloged | Representative lanes |
 | --- | --- | --- | --- |
@@ -39,7 +41,11 @@ Doppler classifies artifacts by what they consume and produce. This is separate 
 | Protein encoders | protein-sequence → pooled-embedding + token-embedding + token-logits | 3 / 3 | amplify-120m-f16-af32<br>esm2-t12-35m-ur50d-f32-af32<br>esmc-300m-f32-af32 |
 | Nucleotide encoders | dna-sequence → pooled-embedding + token-embedding | 1 / 1 | nucleotide-transformer-v2-50m-f32-af32 |
 
-The [full model-support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md) lists every lane and its lifecycle evidence. Classification says what an artifact is shaped to do; only lifecycle receipts establish what is verified, and a runtime pass does not by itself qualify every declared input modality.
+The [full model-support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
+lists every lane and its lifecycle evidence. Classification says what an
+artifact is shaped to do; only lifecycle receipts establish what is
+verified, and a runtime pass does not by itself qualify every declared input
+modality.
 
 <!-- model-type-clusters:end -->
 
