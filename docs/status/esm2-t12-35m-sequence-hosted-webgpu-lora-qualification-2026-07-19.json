@@ -1,0 +1,457 @@
+{
+  "schema": "doppler.sequenceModelQualification.v1",
+  "passed": true,
+  "generatedAt": "2026-07-19T18:05:16.897Z",
+  "model": {
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:25da72db3b9cbfae0c6fab4ad22f62ef7064f1a83edadc09c1ef694afb1f7203",
+      "conversionConfigPath": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
+      "manifestVariantId": "esm2-t12-35m-ur50d-f32-af32-mv-exec-v1",
+      "materializationProfile": "f32-weights-f32-activations",
+      "modalitySet": [
+        "protein_sequence"
+      ],
+      "shardSetHash": "sha256:02d771a5ddf516cd4d01338a229309d87822b46b2317fd8432b756fd45ce924e",
+      "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "sourceFormat": "safetensors",
+      "sourceRepo": "facebook/esm2_t12_35M_UR50D",
+      "sourceRevision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "weightPackHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+      "weightPackId": "esm2-t12-35m-ur50d-f32-af32-wp-v1"
+    },
+    "quantization": "F32",
+    "architecture": {
+      "numLayers": 12,
+      "hiddenSize": 480,
+      "intermediateSize": 1920,
+      "numAttentionHeads": 20,
+      "numKeyValueHeads": 20,
+      "headDim": 24,
+      "vocabSize": 33,
+      "maxSeqLen": 1026,
+      "linearNumKeyHeads": null,
+      "linearNumValueHeads": null,
+      "linearKeyHeadDim": null,
+      "linearValueHeadDim": null,
+      "linearConvKernelDim": null,
+      "hiddenSizePerLayerInput": null,
+      "vocabSizePerLayerInput": null,
+      "globalHeadDim": null,
+      "numKvSharedLayers": null
+    },
+    "sequence": {
+      "alphabet": "amino_acid",
+      "tokenEmbeddings": true,
+      "pooledEmbedding": {
+        "mode": "mean",
+        "excludeTokenIds": [
+          0,
+          1,
+          2,
+          3,
+          31,
+          32
+        ]
+      },
+      "logits": false
+    },
+    "session": {
+      "compute": {
+        "defaults": {
+          "activationDtype": "f32",
+          "mathDtype": "f32",
+          "accumDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "kvcache": {
+        "kvDtype": "f32",
+        "layout": "contiguous",
+        "maxSeqLen": 1026,
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "decodeLoop": {
+        "batchSize": 1,
+        "stopCheckMode": "per-token",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "submitLatencyThresholdMs": null,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": false
+      },
+      "perLayerInputs": {
+        "materialization": "auto",
+        "rowCache": {
+          "mode": "lru",
+          "maxRows": 256,
+          "maxBytes": 134217728,
+          "decodedDtype": "f32"
+        },
+        "prefetch": {
+          "mode": "next_token",
+          "rowsAhead": 1
+        },
+        "gpuUpload": {
+          "mode": "per_step_slices",
+          "stagingRows": 2
+        },
+        "hotCache": {
+          "mode": "prepared_tokens",
+          "maxTokens": 1024,
+          "maxBytes": 134217728,
+          "outputDtype": "f32"
+        }
+      },
+      "skipEmbeddingKVCacheWrites": true,
+      "prefillChunkSubmitMode": "sync",
+      "useFlashPrefillAttention": false,
+      "useWideTileQ4KPrefill": false,
+      "retainQ4KMaterialization": false
+    },
+    "execution": {
+      "schema": "doppler.execution/v1",
+      "kernelPathId": "esm2-t12-35m-ur50d-f32-af32-execution-inline",
+      "kernels": {
+        "embed": {
+          "kernel": "gather.wgsl",
+          "entry": "main",
+          "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+        },
+        "layernorm": {
+          "kernel": "layernorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c"
+        },
+        "tiled": {
+          "kernel": "matmul_f32.wgsl",
+          "entry": "main",
+          "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
+        },
+        "bias_add": {
+          "kernel": "bias_add.wgsl",
+          "entry": "main",
+          "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715"
+        },
+        "rope": {
+          "kernel": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+        },
+        "attn_small": {
+          "kernel": "attention_small.wgsl",
+          "entry": "main",
+          "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+          "precision": {
+            "kvDtype": "f32"
+          }
+        },
+        "residual": {
+          "kernel": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        "gelu": {
+          "kernel": "gelu.wgsl",
+          "entry": "main",
+          "digest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "constants": {
+            "HAS_GATE": false
+          }
+        }
+      }
+    }
+  },
+  "reference": {
+    "path": "tools/data/esm2-t12-35m-ur50d-sequence-reference.json",
+    "digest": "sha256:dbca1163755bed5e1eb2365d08a3d0f286fa7d5b6d8408281e7ba28f48948221",
+    "source": {
+      "checkpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "repository": "facebook/esm2_t12_35M_UR50D",
+      "revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "runtime": {
+        "framework": "pytorch",
+        "torchVersion": "2.9.1",
+        "transformersVersion": "4.57.3",
+        "weightDtype": "f32"
+      },
+      "files": {
+        "model.safetensors": "sha256:e35647818e0e064351d4531ed480d225a002567b4b2b93ad3a9246d753150fc0",
+        "config.json": "sha256:ae07364efa51e0fa1d81da3fe608f6d948abdbbb69785ba6e1df379a458e58ee",
+        "tokenizer_config.json": "sha256:7e9161ecdb548ec45a41cbc6b24aa4476fdd418461f491c4207baa99419a29ad",
+        "special_tokens_map.json": "sha256:3aedcd4211c0d43aec4e607ff60a63255f3174ead795e997350f09a5f8cd9ee1",
+        "vocab.txt": "sha256:0b82cc0a7c7cf9e567b1e5892d793285b9fbae822c964ca48696f7db44598e03"
+      }
+    },
+    "input": {
+      "alphabet": "amino_acid",
+      "sequence": "MKTIIALSYIFCLVFADYKDDDDK",
+      "tokenIds": [
+        0,
+        20,
+        15,
+        11,
+        12,
+        12,
+        5,
+        4,
+        8,
+        19,
+        12,
+        18,
+        23,
+        4,
+        7,
+        18,
+        5,
+        13,
+        19,
+        15,
+        13,
+        13,
+        13,
+        13,
+        15,
+        2
+      ]
+    },
+    "tolerances": {
+      "pooledEmbeddingMaxAbs": 0.001,
+      "tokenEmbeddingMaxAbs": 0.001
+    }
+  },
+  "runtime": {
+    "surface": "node-webgpu",
+    "artifactSource": {
+      "kind": "hosted-url",
+      "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/8e6ba9aa2929eeac1bc9aa1766979c08f658b015/models/esm2-t12-35m-ur50d-f32-af32"
+    },
+    "capabilities": {
+      "hasF16": true,
+      "hasSubgroups": true,
+      "hasSubgroupsF16": true,
+      "maxBufferSize": 4294967295
+    },
+    "adapterInfo": {
+      "subgroupMatrixConfigs": []
+    },
+    "sourceRevision": "c65cebe7b919019668164d7e1d09860766017520",
+    "sourceDirty": false
+  },
+  "result": {
+    "checks": [
+      {
+        "id": "model.identity",
+        "passed": true,
+        "expectedModelId": "esm2-t12-35m-ur50d-f32-af32",
+        "actualModelId": "esm2-t12-35m-ur50d-f32-af32",
+        "expectedCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+        "actualCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8"
+      },
+      {
+        "id": "sequence.contract",
+        "passed": true,
+        "expectedAlphabet": "amino_acid",
+        "actualAlphabet": "amino_acid"
+      },
+      {
+        "id": "tokenizer.ids",
+        "passed": true,
+        "expectedCount": 26,
+        "actualCount": 26,
+        "mismatchCount": 0,
+        "mismatches": []
+      },
+      {
+        "id": "pooledEmbedding.finite",
+        "passed": true,
+        "valueCount": 480,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "tokenEmbeddings.finite",
+        "passed": true,
+        "valueCount": 12480,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "logits.not-requested",
+        "passed": true,
+        "actual": null
+      },
+      {
+        "id": "pooledEmbedding.parity",
+        "passed": true,
+        "sampleCount": 16,
+        "tolerance": 0.001,
+        "maxAbsoluteError": 0.000511728186766626,
+        "meanAbsoluteError": 0.00018293804340559629,
+        "failures": []
+      },
+      {
+        "id": "tokenEmbeddings.parity",
+        "passed": true,
+        "sampleCount": 40,
+        "tolerance": 0.001,
+        "maxAbsoluteError": 0.0008879001914062767,
+        "meanAbsoluteError": 0.0002918888782550997,
+        "failures": []
+      }
+    ],
+    "outputDigests": {
+      "pooledEmbedding": "sha256:d6a5e916875dff0c0d718cc935aab79580e697b1e44d540b2be10504c6336e3f",
+      "tokenEmbeddings": "sha256:ea440881903d2beba30cdf21686cc6f69e0afc6a94c25d9a3bf0af1f42c1412b",
+      "logits": null
+    },
+    "loraQualification": {
+      "passed": true,
+      "checks": [
+        {
+          "id": "lora.wrong-base.rejected",
+          "passed": true,
+          "error": "LoRA adapter targets base model \"esm2-t12-35m-ur50d-f32-af32-wrong-base\", but the loaded model is \"esm2-t12-35m-ur50d-f32-af32\"."
+        },
+        {
+          "id": "lora.invalid-layer.rejected",
+          "passed": true,
+          "error": "LoRA adapter targets layer 12, which is absent from the loaded model."
+        },
+        {
+          "id": "lora.activation.active",
+          "passed": true,
+          "expectedAdapterName": "esm2-t12-35m-ur50d-f32-af32-synthetic-q-proj-qualification",
+          "activeAdapterName": "esm2-t12-35m-ur50d-f32-af32-synthetic-q-proj-qualification"
+        },
+        {
+          "id": "lora.unload.inactive",
+          "passed": true,
+          "unloadedAdapterName": null
+        },
+        {
+          "id": "lora.adapted.pooledEmbedding.finite",
+          "passed": true,
+          "valueCount": 480,
+          "nonFiniteCount": 0
+        },
+        {
+          "id": "lora.changed.pooledEmbedding",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 480,
+          "actualCount": 480,
+          "mismatchCount": 479,
+          "maxAbsoluteDelta": 0.000051975250244140625,
+          "baselineDigest": "sha256:d6a5e916875dff0c0d718cc935aab79580e697b1e44d540b2be10504c6336e3f",
+          "actualDigest": "sha256:9af138494f095be8ade3af3dac9c4897248b5ac958068c912b627158d59b0e12"
+        },
+        {
+          "id": "lora.restored.pooledEmbedding",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 480,
+          "actualCount": 480,
+          "mismatchCount": 0,
+          "maxAbsoluteDelta": 0
+        },
+        {
+          "id": "lora.adapted.tokenEmbeddings.finite",
+          "passed": true,
+          "valueCount": 12480,
+          "nonFiniteCount": 0
+        },
+        {
+          "id": "lora.changed.tokenEmbeddings",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 12480,
+          "actualCount": 12480,
+          "mismatchCount": 12475,
+          "maxAbsoluteDelta": 0.000148773193359375,
+          "baselineDigest": "sha256:ea440881903d2beba30cdf21686cc6f69e0afc6a94c25d9a3bf0af1f42c1412b",
+          "actualDigest": "sha256:10fe7868cc9581783cfbf0e94bfce885663ece33036260f394dac6bc922d7ebd"
+        },
+        {
+          "id": "lora.restored.tokenEmbeddings",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 12480,
+          "actualCount": 12480,
+          "mismatchCount": 0,
+          "maxAbsoluteDelta": 0
+        }
+      ],
+      "outputDigests": {
+        "pooledEmbedding": {
+          "base": "sha256:d6a5e916875dff0c0d718cc935aab79580e697b1e44d540b2be10504c6336e3f",
+          "adapted": "sha256:9af138494f095be8ade3af3dac9c4897248b5ac958068c912b627158d59b0e12",
+          "restored": "sha256:d6a5e916875dff0c0d718cc935aab79580e697b1e44d540b2be10504c6336e3f"
+        },
+        "tokenEmbeddings": {
+          "base": "sha256:ea440881903d2beba30cdf21686cc6f69e0afc6a94c25d9a3bf0af1f42c1412b",
+          "adapted": "sha256:10fe7868cc9581783cfbf0e94bfce885663ece33036260f394dac6bc922d7ebd",
+          "restored": "sha256:ea440881903d2beba30cdf21686cc6f69e0afc6a94c25d9a3bf0af1f42c1412b"
+        }
+      },
+      "adapter": {
+        "id": "esm2-t12-35m-ur50d-f32-af32-synthetic-q-proj-qualification",
+        "name": "esm2-t12-35m-ur50d-f32-af32-synthetic-q-proj-qualification",
+        "baseModel": "esm2-t12-35m-ur50d-f32-af32",
+        "rank": 1,
+        "alpha": 1,
+        "targetModules": [
+          "q_proj"
+        ],
+        "layerIndices": [
+          0
+        ],
+        "synthetic": true
+      },
+      "claimBoundary": "Synthetic rank-1 q_proj qualification proves exact base binding, target validation, WebGPU activation, output influence, unload, and base-output restoration. It does not prove trained-adapter quality or arbitrary PEFT compatibility."
+    },
+    "phase": {
+      "totalMs": 126.09679200000392,
+      "inputMs": 0.9149590000015451,
+      "prefillMs": 121.36333300000115,
+      "submitWaitMs": 0.0148750000007567,
+      "readbackMs": 0.5388749999983702,
+      "decodeHiddenMs": 0.04724999999598367,
+      "finalNormMs": 0.6392500000001746,
+      "extractMs": 2.2009169999946607,
+      "logitsMs": 0,
+      "hiddenBytes": 49920,
+      "tokens": 26,
+      "activationDtype": "f32",
+      "prefillRecordMs": 69.24100000000908,
+      "prefillRecordOps": 194,
+      "prefillRecordPasses": 3,
+      "prefillRecordOpLabels": {},
+      "prefillSubmitWaitMs": 25.582875000007334,
+      "gpuPrefillMs": null
+    },
+    "operatorDiagnostics": null
+  }
+}
