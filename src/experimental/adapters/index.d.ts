@@ -81,6 +81,31 @@ export {
   createMemoryRegistry,
 } from './adapter-registry.js';
 
+export {
+  ADAPTER_ARTIFACT_SCHEMA,
+  ADAPTER_ARTIFACT_LIFECYCLES,
+  ADAPTER_ARTIFACT_ACCESS,
+  ADAPTER_ARTIFACT_ORIGIN_PROVIDERS,
+  validateAdapterArtifactOrigin,
+  validateAdapterArtifactRecord,
+  assertAdapterArtifactRecord,
+  buildImmutableArtifactUrl,
+  adapterArtifactCacheKey,
+} from './artifact-contract.js';
+
+export type {
+  AdapterArtifactLifecycle,
+  AdapterArtifactAccess,
+  HuggingFaceArtifactOrigin,
+  GcsArtifactOrigin,
+  HttpsPreservationOrigin,
+  AdapterArtifactOrigin,
+  AdapterArtifactMirror,
+  AdapterArtifactRecord,
+  AdapterArtifactValidationError,
+  AdapterArtifactValidationResult,
+} from './artifact-contract.js';
+
 export type {
   // Types
   AdapterRegistryEntry,

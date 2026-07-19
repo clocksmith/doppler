@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "checksumAlgorithm": "sha256",
+  "weightsFormat": "safetensors",
+  "id": "doppler-wgsl-qwen35-9b-v12-external20-seed47",
+  "name": "Doppler WGSL Qwen 3.5 9B V12 External20 Seed 47",
+  "baseModel": "qwen-3-5-9b-f16-af32",
+  "rank": 32,
+  "alpha": 64,
+  "targetModules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj",
+    "gate_proj",
+    "up_proj",
+    "down_proj"
+  ],
+  "weightsPath": "adapter_model.safetensors",
+  "weightsSize": 232808939,
+  "checksum": "3e3895f062ae99d67c22ef3220a44ffe8081ba2021473de357e70216c50fd7d8",
+  "metadata": {
+    "trainingBaseModelId": "qwen-3-5-9b-hf-bf16",
+    "trainingBaseRepo": "Qwen/Qwen3.5-9B",
+    "trainingBaseRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "sourceManifestSha256": "sha256:ca04f8d0cbd3cafcce0a97fe8e2850208bbaed4a1ee1cefcfb39d191d7d5b13a",
+    "claimBoundary": "Deployment identity bridge only. This adapter remains preserved and unselected."
+  }
+}
