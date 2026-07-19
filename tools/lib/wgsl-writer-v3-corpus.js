@@ -111,6 +111,7 @@ function materializeTask(family, rowIndex) {
     populationRole: family.populationRole,
     pipelineKind: family.pipelineKind,
     taskClass: family.taskClass,
+    semanticContract: family.semanticContract,
     source: {
       owner: 'doppler',
       license: 'Apache-2.0',
@@ -142,6 +143,7 @@ function promptTask(task) {
   return {
     taskId: task.taskId,
     objective: task.objective,
+    semanticContract: task.semanticContract,
     resources: task.contract.resources,
     parameters: task.contract.parameterNames,
     acceptance: task.acceptance,
@@ -149,8 +151,27 @@ function promptTask(task) {
   };
 }
 
+function buildCorpusPrompt(task, promptContract) {
+  const prompt = buildWgslAuthorPrompt(promptTask(task), promptContract);
+  if (promptContract.includesExplicitSemanticContract !== true) return prompt;
+  if (!isPlainObject(task.semanticContract)) {
+    throw new Error(`WGSL writer v3 task is missing semantic contract: ${task.taskId}.`);
+  }
+  const boundary = '</objective>\n<host_contract>';
+  if (!prompt.includes(boundary)) {
+    throw new Error('WGSL writer v3 semantic prompt objective boundary is missing.');
+  }
+  return prompt.replace(boundary, [
+    '</objective>',
+    '<semantic_contract>',
+    JSON.stringify(task.semanticContract, null, 2),
+    '</semantic_contract>',
+    '<host_contract>',
+  ].join('\n'));
+}
+
 function rowForTask(task, policy) {
-  const prompt = buildWgslAuthorPrompt(promptTask(task), policy.promptContract);
+  const prompt = buildCorpusPrompt(task, policy.promptContract);
   const completion = JSON.stringify(task.packageValue);
   return {
     schema: 'doppler.wgsl-writer-v3-sft-row/v1',

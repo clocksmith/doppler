@@ -27,29 +27,18 @@
     "policyId": {
       "enum": [
         "doppler-wgsl-writer-v3-training",
-        "doppler-wgsl-writer-v3-diversity-repair-training"
+        "doppler-wgsl-writer-v3-diversity-repair-training",
+        "doppler-wgsl-writer-v3-explicit-semantic-training"
       ]
     },
     "experimentId": { "const": "doppler-wgsl-writer-v3" },
     "status": { "const": "frozen_before_training" },
     "artifactRoot": { "$ref": "#/$defs/repoPath" },
     "repairEvidence": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "failedEvaluation",
-        "failureClass",
-        "uniqueTrainingCompletionsBefore",
-        "uniqueTrainingCompletionsAfter",
-        "selectionGateChanged"
-      ],
-      "properties": {
-        "failedEvaluation": { "$ref": "#/$defs/binding" },
-        "failureClass": { "const": "training_completion_diversity_collapse" },
-        "uniqueTrainingCompletionsBefore": { "const": 8 },
-        "uniqueTrainingCompletionsAfter": { "const": 192 },
-        "selectionGateChanged": { "const": false }
-      }
+      "oneOf": [
+        { "$ref": "#/$defs/diversityRepairEvidence" },
+        { "$ref": "#/$defs/explicitSemanticRepairEvidence" }
+      ]
     },
     "admission": {
       "type": "object",
@@ -75,15 +64,10 @@
       }
     },
     "initialization": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["v2AdapterPath", "v2AdapterConfigSha256", "v2AdapterWeightsSha256", "evidenceTransfers"],
-      "properties": {
-        "v2AdapterPath": { "$ref": "#/$defs/repoPath" },
-        "v2AdapterConfigSha256": { "$ref": "#/$defs/sha256" },
-        "v2AdapterWeightsSha256": { "$ref": "#/$defs/sha256" },
-        "evidenceTransfers": { "const": false }
-      }
+      "oneOf": [
+        { "$ref": "#/$defs/legacyInitialization" },
+        { "$ref": "#/$defs/namedInitialization" }
+      ]
     },
     "lanes": {
       "type": "array",
@@ -95,7 +79,14 @@
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
           "dataset": { "$ref": "#/$defs/dataset" },
-          "initialization": { "enum": ["base", "v2_seed47_adapter"] },
+          "initialization": {
+            "enum": [
+              "base",
+              "v2_seed47_adapter",
+              "diversity_package_seed47_adapter",
+              "diversity_repair_seed47_adapter"
+            ]
+          },
           "screeningSeed": { "const": 47 },
           "capabilityAuthority": { "type": "boolean" }
         }
@@ -126,6 +117,20 @@
       "then": {
         "required": ["artifactRoot", "repairEvidence"]
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "policyId": { "const": "doppler-wgsl-writer-v3-explicit-semantic-training" }
+        }
+      },
+      "then": {
+        "required": ["artifactRoot", "repairEvidence"],
+        "properties": {
+          "repairEvidence": { "$ref": "#/$defs/explicitSemanticRepairEvidence" },
+          "initialization": { "$ref": "#/$defs/namedInitialization" }
+        }
+      }
     }
   ],
   "$defs": {
@@ -138,6 +143,86 @@
       "properties": {
         "path": { "$ref": "#/$defs/repoPath" },
         "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "diversityRepairEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failedEvaluation",
+        "failureClass",
+        "uniqueTrainingCompletionsBefore",
+        "uniqueTrainingCompletionsAfter",
+        "selectionGateChanged"
+      ],
+      "properties": {
+        "failedEvaluation": { "$ref": "#/$defs/binding" },
+        "failureClass": { "const": "training_completion_diversity_collapse" },
+        "uniqueTrainingCompletionsBefore": { "const": 8 },
+        "uniqueTrainingCompletionsAfter": { "const": 192 },
+        "selectionGateChanged": { "const": false }
+      }
+    },
+    "explicitSemanticRepairEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failedEvaluation",
+        "failedSelection",
+        "failureClass",
+        "promptContractBefore",
+        "promptContractAfter",
+        "hiddenOracleFieldsRemoved",
+        "selectionGateChanged"
+      ],
+      "properties": {
+        "failedEvaluation": { "$ref": "#/$defs/binding" },
+        "failedSelection": { "$ref": "#/$defs/binding" },
+        "failureClass": { "const": "prompt_semantic_contract_underspecified" },
+        "promptContractBefore": { "const": "wgsl-executable-package-spec-host-v1" },
+        "promptContractAfter": { "const": "wgsl-executable-package-semantic-spec-host-v2" },
+        "hiddenOracleFieldsRemoved": { "const": true },
+        "selectionGateChanged": { "const": false }
+      }
+    },
+    "legacyInitialization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["v2AdapterPath", "v2AdapterConfigSha256", "v2AdapterWeightsSha256", "evidenceTransfers"],
+      "properties": {
+        "v2AdapterPath": { "$ref": "#/$defs/repoPath" },
+        "v2AdapterConfigSha256": { "$ref": "#/$defs/sha256" },
+        "v2AdapterWeightsSha256": { "$ref": "#/$defs/sha256" },
+        "evidenceTransfers": { "const": false }
+      }
+    },
+    "namedInitialization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapters", "evidenceTransfers"],
+      "properties": {
+        "adapters": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "path", "configSha256", "weightsSha256", "sourceTrainingStatus"],
+            "properties": {
+              "id": {
+                "enum": [
+                  "diversity_package_seed47_adapter",
+                  "diversity_repair_seed47_adapter"
+                ]
+              },
+              "path": { "$ref": "#/$defs/repoPath" },
+              "configSha256": { "$ref": "#/$defs/sha256" },
+              "weightsSha256": { "$ref": "#/$defs/sha256" },
+              "sourceTrainingStatus": { "$ref": "#/$defs/binding" }
+            }
+          }
+        },
+        "evidenceTransfers": { "const": false }
       }
     },
     "dataset": {
