@@ -1,0 +1,432 @@
+{
+  "schema": "doppler.sequenceModelQualification.v1",
+  "passed": true,
+  "generatedAt": "2026-07-19T18:06:46.460Z",
+  "model": {
+    "modelId": "nucleotide-transformer-v2-50m-f32-af32",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:4723476d3a695e1269a6c9fe71c04742d5c5c64fad94bf214b74cc0fbfa858c3",
+      "conversionConfigPath": "src/config/conversion/nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32.json",
+      "manifestVariantId": "nucleotide-transformer-v2-50m-f32-af32-mv-exec-v1",
+      "materializationProfile": "f32-weights-f32-activations",
+      "modalitySet": [
+        "dna_sequence"
+      ],
+      "shardSetHash": "sha256:15d09437f46a28151766182805dcc891b0ba80a2f1479ab17a7deb0c4a676cfd",
+      "sourceCheckpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
+      "sourceFormat": "safetensors",
+      "sourceRepo": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species",
+      "sourceRevision": "81b29e5786726d891dbf929404ef20adca5b36f1",
+      "weightPackHash": "sha256:78ce445d4e2aff491574e8917e188913c35b9ba188617354ddb7b5f25f9be467",
+      "weightPackId": "nucleotide-transformer-v2-50m-f32-af32-wp-v1"
+    },
+    "quantization": "F32",
+    "architecture": {
+      "numLayers": 12,
+      "hiddenSize": 512,
+      "intermediateSize": 2048,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 16,
+      "headDim": 32,
+      "vocabSize": 4107,
+      "maxSeqLen": 2050,
+      "ropeTheta": 10000
+    },
+    "sequence": {
+      "alphabet": "nucleotide",
+      "tokenEmbeddings": true,
+      "pooledEmbedding": {
+        "mode": "mean",
+        "excludeTokenIds": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "logits": false
+    },
+    "session": {
+      "compute": {
+        "defaults": {
+          "activationDtype": "f32",
+          "mathDtype": "f32",
+          "accumDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "kvcache": {
+        "kvDtype": "f32",
+        "layout": "contiguous",
+        "maxSeqLen": 2050,
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "decodeLoop": {
+        "batchSize": 1,
+        "stopCheckMode": "per-token",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "submitLatencyThresholdMs": null,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": false
+      },
+      "perLayerInputs": {
+        "materialization": "auto",
+        "rowCache": {
+          "mode": "lru",
+          "maxRows": 256,
+          "maxBytes": 134217728,
+          "decodedDtype": "f32"
+        },
+        "prefetch": {
+          "mode": "next_token",
+          "rowsAhead": 1
+        },
+        "gpuUpload": {
+          "mode": "per_step_slices",
+          "stagingRows": 2
+        },
+        "hotCache": {
+          "mode": "prepared_tokens",
+          "maxTokens": 1024,
+          "maxBytes": 134217728,
+          "outputDtype": "f32"
+        }
+      },
+      "skipEmbeddingKVCacheWrites": true,
+      "prefillChunkSubmitMode": "sync",
+      "useFlashPrefillAttention": false,
+      "useWideTileQ4KPrefill": false,
+      "retainQ4KMaterialization": false
+    },
+    "execution": {
+      "schema": "doppler.execution/v1",
+      "kernelPathId": "nucleotide-transformer-v2-50m-f32-af32-execution-inline",
+      "kernels": {
+        "embed": {
+          "kernel": "gather.wgsl",
+          "entry": "main",
+          "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+        },
+        "layernorm": {
+          "kernel": "layernorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c"
+        },
+        "tiled": {
+          "kernel": "matmul_f32.wgsl",
+          "entry": "main",
+          "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
+        },
+        "bias_add": {
+          "kernel": "bias_add.wgsl",
+          "entry": "main",
+          "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715"
+        },
+        "rope": {
+          "kernel": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+        },
+        "attn_small": {
+          "kernel": "attention_small.wgsl",
+          "entry": "main",
+          "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+          "precision": {
+            "kvDtype": "f32"
+          }
+        },
+        "residual": {
+          "kernel": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        "silu": {
+          "kernel": "silu.wgsl",
+          "entry": "main",
+          "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+          "constants": {
+            "HAS_GATE": true
+          }
+        }
+      }
+    }
+  },
+  "reference": {
+    "path": "tools/data/nucleotide-transformer-v2-50m-sequence-reference.json",
+    "digest": "sha256:f60a3c6b949c54ef6a9809fdffc85eeba206b490759868752b41ab00a18a491a",
+    "source": {
+      "checkpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
+      "repository": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species",
+      "revision": "81b29e5786726d891dbf929404ef20adca5b36f1",
+      "runtime": {
+        "framework": "transformers-custom-esm",
+        "transformersVersion": "4.57.3",
+        "torchVersion": "2.9.1",
+        "weightDtype": "f32"
+      },
+      "files": {
+        "model.safetensors": "sha256:17e75af297556ea56828716d8aa539e8f12b8b625547204b74171ab91aa33569",
+        "config.json": "sha256:e20f497248c7cb264c7cd4582dbcfd52dc4cbf74a97fc711559b8c8f71c635db",
+        "tokenizer_config.json": "sha256:253d338919eba938e50b776f3243cc739462c207fe64e3d2e81cc5e681bee45b",
+        "special_tokens_map.json": "sha256:d6dc30bf018166daab248b0abf7efda6fd1b1e0a2d1bee5b31b23db2ebdaee77",
+        "vocab.txt": "sha256:c00e0ad166d6ab3f7540ebc92270392e581bb3106763412f29034b49323e1052",
+        "modeling_esm.py": "sha256:f2b003f45d2fa4f94e92d8bbef927b719dfdd7ab7c7a95743daa2b10ab140cb3"
+      }
+    },
+    "input": {
+      "alphabet": "nucleotide",
+      "sequence": "ATTCCGAAAATGCCGTTAACCGGTACGTN",
+      "tokenIds": [
+        3,
+        369,
+        13,
+        2778,
+        707,
+        4102,
+        4104,
+        4105,
+        4103,
+        4106
+      ]
+    },
+    "tolerances": {
+      "pooledEmbeddingMaxAbs": 0.001,
+      "tokenEmbeddingMaxAbs": 0.001
+    }
+  },
+  "runtime": {
+    "surface": "node-webgpu",
+    "artifactSource": {
+      "kind": "hosted-url",
+      "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/a5703ef6971cc883438a393d73f2f54dccf94976/models/nucleotide-transformer-v2-50m-f32-af32"
+    },
+    "capabilities": {
+      "hasF16": true,
+      "hasSubgroups": true,
+      "hasSubgroupsF16": true,
+      "maxBufferSize": 4294967295
+    },
+    "adapterInfo": {
+      "subgroupMatrixConfigs": []
+    },
+    "sourceRevision": "0e024d23bc637911e4174d0587349ff2b19627d9",
+    "sourceDirty": false
+  },
+  "result": {
+    "checks": [
+      {
+        "id": "model.identity",
+        "passed": true,
+        "expectedModelId": "nucleotide-transformer-v2-50m-f32-af32",
+        "actualModelId": "nucleotide-transformer-v2-50m-f32-af32",
+        "expectedCheckpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
+        "actualCheckpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1"
+      },
+      {
+        "id": "sequence.contract",
+        "passed": true,
+        "expectedAlphabet": "nucleotide",
+        "actualAlphabet": "nucleotide"
+      },
+      {
+        "id": "tokenizer.ids",
+        "passed": true,
+        "expectedCount": 10,
+        "actualCount": 10,
+        "mismatchCount": 0,
+        "mismatches": []
+      },
+      {
+        "id": "pooledEmbedding.finite",
+        "passed": true,
+        "valueCount": 512,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "tokenEmbeddings.finite",
+        "passed": true,
+        "valueCount": 5120,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "logits.not-requested",
+        "passed": true,
+        "actual": null
+      },
+      {
+        "id": "pooledEmbedding.parity",
+        "passed": true,
+        "sampleCount": 16,
+        "tolerance": 0.001,
+        "maxAbsoluteError": 0.0000010486652812953523,
+        "meanAbsoluteError": 3.4028535406517915e-7,
+        "failures": []
+      },
+      {
+        "id": "tokenEmbeddings.parity",
+        "passed": true,
+        "sampleCount": 32,
+        "tolerance": 0.001,
+        "maxAbsoluteError": 0.000002637535951227621,
+        "meanAbsoluteError": 9.258747986902829e-7,
+        "failures": []
+      }
+    ],
+    "outputDigests": {
+      "pooledEmbedding": "sha256:13637f772789437024927037cf420b10110ceb3fe2d21aaa3d347930d4c75a79",
+      "tokenEmbeddings": "sha256:dc133ac5cf2ce5f19d3b5c5707a13cfe22451141290acdd4c38c7916010c28b8",
+      "logits": null
+    },
+    "loraQualification": {
+      "passed": true,
+      "checks": [
+        {
+          "id": "lora.wrong-base.rejected",
+          "passed": true,
+          "error": "LoRA adapter targets base model \"nucleotide-transformer-v2-50m-f32-af32-wrong-base\", but the loaded model is \"nucleotide-transformer-v2-50m-f32-af32\"."
+        },
+        {
+          "id": "lora.invalid-layer.rejected",
+          "passed": true,
+          "error": "LoRA adapter targets layer 12, which is absent from the loaded model."
+        },
+        {
+          "id": "lora.activation.active",
+          "passed": true,
+          "expectedAdapterName": "nucleotide-transformer-v2-50m-f32-af32-synthetic-q-proj-qualification",
+          "activeAdapterName": "nucleotide-transformer-v2-50m-f32-af32-synthetic-q-proj-qualification"
+        },
+        {
+          "id": "lora.unload.inactive",
+          "passed": true,
+          "unloadedAdapterName": null
+        },
+        {
+          "id": "lora.adapted.pooledEmbedding.finite",
+          "passed": true,
+          "valueCount": 512,
+          "nonFiniteCount": 0
+        },
+        {
+          "id": "lora.changed.pooledEmbedding",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 512,
+          "actualCount": 512,
+          "mismatchCount": 512,
+          "maxAbsoluteDelta": 0.00031119585037231445,
+          "baselineDigest": "sha256:13637f772789437024927037cf420b10110ceb3fe2d21aaa3d347930d4c75a79",
+          "actualDigest": "sha256:de9e0cf1bad9f8cd0afa60fe149d62d812163b3de5daed6ba4eb7f3d37348efd"
+        },
+        {
+          "id": "lora.restored.pooledEmbedding",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 512,
+          "actualCount": 512,
+          "mismatchCount": 0,
+          "maxAbsoluteDelta": 0
+        },
+        {
+          "id": "lora.adapted.tokenEmbeddings.finite",
+          "passed": true,
+          "valueCount": 5120,
+          "nonFiniteCount": 0
+        },
+        {
+          "id": "lora.changed.tokenEmbeddings",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 5120,
+          "actualCount": 5120,
+          "mismatchCount": 5120,
+          "maxAbsoluteDelta": 0.0012941062450408936,
+          "baselineDigest": "sha256:dc133ac5cf2ce5f19d3b5c5707a13cfe22451141290acdd4c38c7916010c28b8",
+          "actualDigest": "sha256:c3e23e29a6e28245621b391218ab0521854612a02866f18e9806b8d445882935"
+        },
+        {
+          "id": "lora.restored.tokenEmbeddings",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 5120,
+          "actualCount": 5120,
+          "mismatchCount": 0,
+          "maxAbsoluteDelta": 0
+        }
+      ],
+      "outputDigests": {
+        "pooledEmbedding": {
+          "base": "sha256:13637f772789437024927037cf420b10110ceb3fe2d21aaa3d347930d4c75a79",
+          "adapted": "sha256:de9e0cf1bad9f8cd0afa60fe149d62d812163b3de5daed6ba4eb7f3d37348efd",
+          "restored": "sha256:13637f772789437024927037cf420b10110ceb3fe2d21aaa3d347930d4c75a79"
+        },
+        "tokenEmbeddings": {
+          "base": "sha256:dc133ac5cf2ce5f19d3b5c5707a13cfe22451141290acdd4c38c7916010c28b8",
+          "adapted": "sha256:c3e23e29a6e28245621b391218ab0521854612a02866f18e9806b8d445882935",
+          "restored": "sha256:dc133ac5cf2ce5f19d3b5c5707a13cfe22451141290acdd4c38c7916010c28b8"
+        }
+      },
+      "adapter": {
+        "id": "nucleotide-transformer-v2-50m-f32-af32-synthetic-q-proj-qualification",
+        "name": "nucleotide-transformer-v2-50m-f32-af32-synthetic-q-proj-qualification",
+        "baseModel": "nucleotide-transformer-v2-50m-f32-af32",
+        "rank": 1,
+        "alpha": 1,
+        "targetModules": [
+          "q_proj"
+        ],
+        "layerIndices": [
+          0
+        ],
+        "synthetic": true
+      },
+      "claimBoundary": "Synthetic rank-1 q_proj qualification proves exact base binding, target validation, WebGPU activation, output influence, unload, and base-output restoration. It does not prove trained-adapter quality or arbitrary PEFT compatibility."
+    },
+    "phase": {
+      "totalMs": 88.9642920000042,
+      "inputMs": 0.4470000000001164,
+      "prefillMs": 86.01204200000211,
+      "submitWaitMs": 0.010874999999941792,
+      "readbackMs": 0.4932909999988624,
+      "decodeHiddenMs": 0.03687499999796273,
+      "finalNormMs": 0.5690409999951953,
+      "extractMs": 1.0514170000024023,
+      "logitsMs": 0,
+      "hiddenBytes": 20480,
+      "tokens": 10,
+      "activationDtype": "f32",
+      "prefillRecordMs": 47.102583000007144,
+      "prefillRecordOps": 181,
+      "prefillRecordPasses": 3,
+      "prefillRecordOpLabels": {},
+      "prefillSubmitWaitMs": 21.35399999999936,
+      "gpuPrefillMs": null
+    },
+    "operatorDiagnostics": null
+  }
+}
