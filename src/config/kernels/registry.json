@@ -112,6 +112,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "amplify/amplify-120m-f16-af32",
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
@@ -966,7 +967,12 @@
           "weightDtype": "f32",
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": ["gemma3/translategemma-4b-it-q4k-ehf16-af32"],
+            "inlineConfigs": [
+              "esm/esm2-t12-35m-ur50d-f32-af32",
+              "esmc/esmc-300m-f32-af32",
+              "gemma3/translategemma-4b-it-q4k-ehf16-af32",
+              "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
+            ],
             "ruleChains": ["matmul.rules.json#gemvVariant","matmul.rules.json#matmulKernel"],
             "wgslOnDisk": true
           }
@@ -1619,7 +1625,12 @@
           },
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": ["embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32"],
+            "inlineConfigs": [
+              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "esm/esm2-t12-35m-ur50d-f32-af32",
+              "esmc/esmc-300m-f32-af32",
+              "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -1635,7 +1646,12 @@
           },
           "reachability": {
             "status": "pinned",
-            "inlineConfigs": ["embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32"],
+            "inlineConfigs": [
+              "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "esm/esm2-t12-35m-ur50d-f32-af32",
+              "esmc/esmc-300m-f32-af32",
+              "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
@@ -1812,6 +1828,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "amplify/amplify-120m-f16-af32",
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
@@ -1845,6 +1862,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "amplify/amplify-120m-f16-af32",
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
@@ -3260,6 +3278,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "amplify/amplify-120m-f16-af32",
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
@@ -3748,8 +3767,12 @@
           "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
-            "status": "selectable",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "esm/esm2-t12-35m-ur50d-f32-af32",
+              "esmc/esmc-300m-f32-af32",
+              "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
+            ],
             "ruleChains": ["layernorm.rules.json#variant"],
             "wgslOnDisk": true
           }
@@ -3760,7 +3783,7 @@
           "workgroup": [256,1,1],
           "requires": ["shader-f16"],
           "reachability": {
-            "status": "selectable",
+            "status": "model-selectable",
             "inlineConfigs": [],
             "ruleChains": ["layernorm.rules.json#variant"],
             "wgslOnDisk": true
@@ -4388,8 +4411,11 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "amplify/amplify-120m-f16-af32",
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "esm/esm2-t12-35m-ur50d-f32-af32",
+              "esmc/esmc-300m-f32-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-f16-af32",
@@ -4411,6 +4437,7 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "minicpm/minicpm4-0-5b-f16-af32",
+              "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-5-9b-f16-af32",
@@ -4684,7 +4711,10 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "amplify/amplify-120m-f16-af32",
+              "esmc/esmc-300m-f32-af32",
               "minicpm/minicpm4-0-5b-f16-af32",
+              "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-5-9b-f16-af32",
@@ -4763,6 +4793,7 @@
             "inlineConfigs": [
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "esm/esm2-t12-35m-ur50d-f32-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-f16-af32",
@@ -5601,6 +5632,8 @@
             "inlineConfigs": [
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "esm/esm2-t12-35m-ur50d-f32-af32",
+              "esmc/esmc-300m-f32-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-270m-it-f16-af32",
               "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
@@ -5609,7 +5642,8 @@
               "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
               "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
               "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
-              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32"
+              "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
+              "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
             ],
             "ruleChains": ["gather.rules.json#variant"],
             "wgslOnDisk": true
@@ -5638,6 +5672,7 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "amplify/amplify-120m-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
               "gemma3/translategemma-4b-it-q4k-ehf16-af32",
@@ -6122,8 +6157,11 @@
           "reachability": {
             "status": "pinned",
             "inlineConfigs": [
+              "amplify/amplify-120m-f16-af32",
               "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
               "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
+              "esm/esm2-t12-35m-ur50d-f32-af32",
+              "esmc/esmc-300m-f32-af32",
               "gemma3/gemma-3-1b-it-f16-af32",
               "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
               "gemma3/gemma-3-270m-it-f16-af32",
@@ -6144,6 +6182,7 @@
               "janus/janus-pro-1b-text-q4k-ehaf16",
               "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
               "minicpm/minicpm4-0-5b-f16-af32",
+              "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
               "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
               "qwen3/qwen-3-5-2b-q4k-ehaf16",
               "qwen3/qwen-3-5-9b-f16-af32",
@@ -7153,8 +7192,12 @@
           "workgroup": [256,1,1],
           "requires": [],
           "reachability": {
-            "status": "unused",
-            "inlineConfigs": [],
+            "status": "pinned",
+            "inlineConfigs": [
+              "esm/esm2-t12-35m-ur50d-f32-af32",
+              "esmc/esmc-300m-f32-af32",
+              "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
+            ],
             "ruleChains": [],
             "wgslOnDisk": true
           }
