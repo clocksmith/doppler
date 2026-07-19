@@ -1,6 +1,7 @@
 {
   "version": 1,
   "source": "models/catalog.json",
+  "taxonomySource": "models/model-type-taxonomy.json",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",

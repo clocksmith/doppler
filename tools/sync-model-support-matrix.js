@@ -1360,7 +1360,9 @@ function renderReadmeModelTypeBlock(typeClusters) {
     '',
     '## Supported RDRR model types',
     '',
-    'Doppler classifies artifacts by what they consume and produce. This is separate from lineage (`family`), runtime implementation (`modelType`), and artifact-size tier.',
+    'Doppler classifies artifacts by what they consume and produce. This is',
+    'separate from lineage (`family`), runtime implementation (`modelType`), and',
+    'artifact-size tier.',
     '',
     '| Type | Input → output | Runtime-verified / cataloged | Representative lanes |',
     '| --- | --- | --- | --- |',
@@ -1370,7 +1372,11 @@ function renderReadmeModelTypeBlock(typeClusters) {
     lines.push(`| ${cluster.label} | ${summarizeTypeInterface(cluster.models)} | ${verified.length} / ${cluster.models.length} | ${summarizeModelIds(cluster.models)} |`);
   }
   lines.push('');
-  lines.push('The [full model-support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md) lists every lane and its lifecycle evidence. Classification says what an artifact is shaped to do; only lifecycle receipts establish what is verified, and a runtime pass does not by itself qualify every declared input modality.');
+  lines.push('The [full model-support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)');
+  lines.push('lists every lane and its lifecycle evidence. Classification says what an');
+  lines.push('artifact is shaped to do; only lifecycle receipts establish what is');
+  lines.push('verified, and a runtime pass does not by itself qualify every declared input');
+  lines.push('modality.');
   lines.push('');
   lines.push(README_MODEL_TYPES_END);
   return lines.join('\n');

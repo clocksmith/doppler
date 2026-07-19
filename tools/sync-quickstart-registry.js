@@ -197,6 +197,7 @@ export function buildQuickstartRegistryPayload(catalog) {
   return {
     version: 1,
     source: 'models/catalog.json',
+    taxonomySource: 'models/model-type-taxonomy.json',
     models,
   };
 }
