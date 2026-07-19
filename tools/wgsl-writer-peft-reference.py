@@ -208,12 +208,79 @@ def run_prompt(
     }
 
 
+def run_prompts(
+    model: Any,
+    tokenizer: Any,
+    prompts: list[str],
+    max_new_tokens: int,
+    torch: Any,
+) -> list[dict[str, Any]]:
+    if len(prompts) == 1:
+        return [run_prompt(model, tokenizer, prompts[0], max_new_tokens, torch)]
+    previous_padding_side = tokenizer.padding_side
+    tokenizer.padding_side = "left"
+    try:
+        inputs = tokenizer(
+            prompts,
+            add_special_tokens=True,
+            padding=True,
+            return_tensors="pt",
+        ).to("cuda")
+    finally:
+        tokenizer.padding_side = previous_padding_side
+    input_ids = inputs["input_ids"]
+    attention_mask = inputs["attention_mask"]
+    with torch.inference_mode():
+        first_logits = model(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            use_cache=False,
+        ).logits[:, -1]
+        generated = model.generate(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            do_sample=False,
+            max_new_tokens=max_new_tokens,
+            pad_token_id=tokenizer.pad_token_id,
+            eos_token_id=tokenizer.eos_token_id,
+            use_cache=True,
+        )
+    eos_ids = tokenizer.eos_token_id
+    if not isinstance(eos_ids, (list, tuple, set)):
+        eos_ids = [eos_ids]
+    eos_ids = set(eos_ids)
+    results: list[dict[str, Any]] = []
+    input_width = input_ids.shape[1]
+    for index in range(len(prompts)):
+        prompt_ids = input_ids[index][attention_mask[index].bool()].tolist()
+        completion_ids = [int(value) for value in generated[index, input_width:].tolist()]
+        first_eos = next(
+            (offset for offset, token_id in enumerate(completion_ids) if token_id in eos_ids),
+            None,
+        )
+        if first_eos is not None:
+            completion_ids = completion_ids[: first_eos + 1]
+        completion = tokenizer.decode(completion_ids, skip_special_tokens=True).strip()
+        results.append({
+            "promptTokenIds": [int(value) for value in prompt_ids],
+            "completionTokenIds": completion_ids,
+            "completion": completion,
+            "completionSha256": sha256_text(completion),
+            "completionCharacterCount": len(completion),
+            "selectedTokenId": int(first_logits[index].argmax().item()),
+            "topK": top_k(first_logits[index], tokenizer, 20),
+            "stopReason": "eos" if first_eos is not None else "length",
+        })
+    return results
+
+
 def evaluate_candidates(
     model: Any,
     tokenizer: Any,
     rows: list[dict[str, Any]],
     adapters: list[tuple[int, Path]],
     max_new_tokens: int,
+    batch_size: int,
     torch: Any,
 ) -> list[dict[str, Any]]:
     candidates: list[dict[str, Any]] = []
@@ -221,15 +288,26 @@ def evaluate_candidates(
         model.set_adapter(f"seed{seed}")
         tasks = []
         completions = {}
-        for index, row in enumerate(rows, 1):
-            print(f"seed {seed}: task {index}/{len(rows)}", flush=True)
-            result = run_prompt(model, tokenizer, row["prompt"], max_new_tokens, torch)
-            completions[row["taskId"]] = result["completion"]
-            tasks.append({
-                "taskId": row["taskId"],
-                "promptSha256": sha256_text(row["prompt"]),
-                **result,
-            })
+        for offset in range(0, len(rows), batch_size):
+            batch = rows[offset : offset + batch_size]
+            print(
+                f"seed {seed}: tasks {offset + 1}-{offset + len(batch)}/{len(rows)}",
+                flush=True,
+            )
+            results = run_prompts(
+                model,
+                tokenizer,
+                [row["prompt"] for row in batch],
+                max_new_tokens,
+                torch,
+            )
+            for row, result in zip(batch, results):
+                completions[row["taskId"]] = result["completion"]
+                tasks.append({
+                    "taskId": row["taskId"],
+                    "promptSha256": sha256_text(row["prompt"]),
+                    **result,
+                })
         candidates.append({
             "seed": seed,
             "adapterPath": str(adapter_path),
@@ -248,6 +326,7 @@ def evaluate_named_candidates(
     rows: list[dict[str, Any]],
     candidates: list[tuple[str, Path | None]],
     max_new_tokens: int,
+    batch_size: int,
     torch: Any,
 ) -> list[dict[str, Any]]:
     receipts: list[dict[str, Any]] = []
@@ -260,15 +339,27 @@ def evaluate_named_candidates(
         tasks = []
         completions = {}
         with context:
-            for index, row in enumerate(rows, 1):
-                print(f"candidate {candidate_id}: task {index}/{len(rows)}", flush=True)
-                result = run_prompt(model, tokenizer, row["prompt"], max_new_tokens, torch)
-                completions[row["taskId"]] = result["completion"]
-                tasks.append({
-                    "taskId": row["taskId"],
-                    "promptSha256": sha256_text(row["prompt"]),
-                    **result,
-                })
+            for offset in range(0, len(rows), batch_size):
+                batch = rows[offset : offset + batch_size]
+                print(
+                    f"candidate {candidate_id}: tasks "
+                    f"{offset + 1}-{offset + len(batch)}/{len(rows)}",
+                    flush=True,
+                )
+                results = run_prompts(
+                    model,
+                    tokenizer,
+                    [row["prompt"] for row in batch],
+                    max_new_tokens,
+                    torch,
+                )
+                for row, result in zip(batch, results):
+                    completions[row["taskId"]] = result["completion"]
+                    tasks.append({
+                        "taskId": row["taskId"],
+                        "promptSha256": sha256_text(row["prompt"]),
+                        **result,
+                    })
         receipts.append({
             "candidateId": candidate_id,
             "adapterPath": str(adapter_path) if adapter_path else None,
@@ -296,9 +387,12 @@ def main() -> None:
     parser.add_argument("--experiment-id", default="doppler-wgsl-writer-v2")
     parser.add_argument("--dtype", required=True, choices=("bfloat16", "float32"))
     parser.add_argument("--max-new-tokens", required=True, type=int)
+    parser.add_argument("--batch-size", default=1, type=int)
     parser.add_argument("--evaluation-role", required=True)
     parser.add_argument("--out", required=True, type=Path)
     args = parser.parse_args()
+    if args.batch_size < 1:
+        raise RuntimeError("--batch-size must be >= 1")
 
     model_path = args.model.expanduser().resolve()
     dataset_path = args.dataset.expanduser().resolve()
@@ -335,7 +429,13 @@ def main() -> None:
             *named_adapters,
         ]
         candidates = evaluate_named_candidates(
-            model, tokenizer, rows, named_candidates, args.max_new_tokens, torch
+            model,
+            tokenizer,
+            rows,
+            named_candidates,
+            args.max_new_tokens,
+            args.batch_size,
+            torch,
         )
     else:
         candidates = evaluate_candidates(
@@ -344,6 +444,7 @@ def main() -> None:
             rows,
             adapters,
             args.max_new_tokens,
+            args.batch_size,
             torch,
         )
     properties = torch.cuda.get_device_properties(0)
@@ -378,6 +479,7 @@ def main() -> None:
             "mode": "greedy",
             "useChatTemplate": False,
             "maxNewTokens": args.max_new_tokens,
+            "batchSize": args.batch_size,
         },
         "candidates": candidates,
         "claimBoundary": (

@@ -152,7 +152,7 @@ async function resolveFileForRequest(rootDir, mounts, requestPath) {
   return { filePath: resolved, size: stats.size };
 }
 
-async function createStaticFileServer(options = {}) {
+export async function createStaticFileServer(options = {}) {
   const rootDir = path.resolve(
     options.rootDir || fileURLToPath(new URL('../..', import.meta.url))
   );

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>WGSL family browser qualification</title></head>
+<body>
+<script type="module">
+import {
+  getActiveLoRAForPipeline,
+  loadLoRAAdapterForPipeline,
+  unloadLoRAAdapterForPipeline,
+} from '/src/client/runtime/lora.js';
+import { destroyDevice, getKernelCapabilities, resetDeviceState } from '/src/gpu/device.js';
+import { initializeInference } from '/src/inference/test-harness.js';
+import { destroyBufferPool } from '/src/memory/buffer-pool.js';
+
+async function generate(pipeline, prompt, maxTokens) {
+  pipeline.reset();
+  const chunks = [];
+  const tokenIds = [];
+  for await (const chunk of pipeline.generate(prompt, {
+    useChatTemplate: false,
+    benchmark: false,
+    maxTokens,
+    temperature: 0,
+    topK: 1,
+    topP: 1,
+    repetitionPenalty: 1,
+    seed: 47,
+    onToken(tokenId) {
+      tokenIds.push(Number(tokenId));
+    },
+  })) {
+    chunks.push(String(chunk));
+  }
+  const output = chunks.join('').trim();
+  const stats = pipeline.getStats?.() || {};
+  return {
+    output,
+    tokenIds,
+    stopReason: stats.stopReason ?? null,
+    timing: {
+      prefillMs: stats.prefillMs ?? stats.prefillTimeMs ?? null,
+      decodeMs: stats.decodeMs ?? stats.decodeTimeMs ?? null,
+      totalMs: stats.totalMs ?? stats.totalTimeMs ?? null,
+    },
+  };
+}
+
+window.runWgslFamilyBrowserQualification = async function runQualification(request) {
+  let harness = null;
+  const cleanup = {
+    adapterUnloaded: false,
+    pipelineUnloaded: false,
+    bufferPoolDestroyed: false,
+    deviceDestroyed: false,
+    deviceStateReset: false,
+  };
+  try {
+    harness = await initializeInference(request.modelUrl, {
+      modelId: request.modelId,
+      loadMode: 'http',
+    });
+    const candidates = [];
+    for (const adapter of request.adapters) {
+      await unloadLoRAAdapterForPipeline(harness.pipeline);
+      await loadLoRAAdapterForPipeline(harness.pipeline, adapter.manifestUrl);
+      const active = getActiveLoRAForPipeline(harness.pipeline);
+      const activation = {
+        activated: active != null,
+        id: active?.id ?? null,
+        name: typeof active === 'string' ? active : (active?.name ?? null),
+        baseModel: active?.baseModel ?? null,
+      };
+      const generation = await generate(harness.pipeline, request.prompt, request.maxTokens);
+      candidates.push({
+        candidateId: adapter.id,
+        activation,
+        generation,
+      });
+    }
+    await unloadLoRAAdapterForPipeline(harness.pipeline);
+    cleanup.adapterUnloaded = true;
+    return {
+      ok: true,
+      runtime: {
+        userAgent: navigator.userAgent,
+        capabilities: getKernelCapabilities(),
+      },
+      model: {
+        modelId: harness.manifest?.modelId ?? null,
+        modelType: harness.manifest?.modelType ?? null,
+      },
+      candidates,
+      cleanup,
+    };
+  } finally {
+    try {
+      await unloadLoRAAdapterForPipeline(harness?.pipeline);
+      cleanup.adapterUnloaded = true;
+    } catch {}
+    try {
+      await harness?.pipeline?.unload?.();
+      cleanup.pipelineUnloaded = true;
+    } catch {}
+    try {
+      destroyBufferPool();
+      cleanup.bufferPoolDestroyed = true;
+    } catch {}
+    try {
+      destroyDevice();
+      cleanup.deviceDestroyed = true;
+    } catch {}
+    try {
+      resetDeviceState();
+      cleanup.deviceStateReset = true;
+    } catch {}
+  }
+};
+</script>
+</body>
+</html>

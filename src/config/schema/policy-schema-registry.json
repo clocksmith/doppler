@@ -136,6 +136,11 @@
       "id": "wgsl-writer-v3-explicit-budget-training-policy",
       "policyPath": "tools/policies/wgsl-writer-v3-explicit-budget-training-policy.json",
       "schemaPath": "src/config/schema/wgsl-writer-v3-training-policy.schema.json"
+    },
+    {
+      "id": "wgsl-writer-family-distillation-policy",
+      "policyPath": "tools/policies/wgsl-writer-family-distillation-policy.json",
+      "schemaPath": "src/config/schema/wgsl-writer-family-distillation-policy.schema.json"
     }
   ]
 }

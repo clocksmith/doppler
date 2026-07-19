@@ -198,7 +198,7 @@ function summarizeReplay(runs) {
   };
 }
 
-async function evaluateCompletion(options) {
+export async function evaluateCompletion(options) {
   const generation = {
     stopReason: options.completionTask.stopReason,
     completionTokens: options.completionTask.completionTokenIds.length,
@@ -284,7 +284,7 @@ async function evaluateCompletion(options) {
   };
 }
 
-function candidateSummary(tasks, completionTasks) {
+export function candidateSummary(tasks, completionTasks) {
   const count = tasks.length;
   return {
     taskCount: count,
