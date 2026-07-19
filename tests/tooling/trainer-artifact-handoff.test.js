@@ -6,6 +6,7 @@ import path from 'node:path';
 
 import {
   COLUMBO_QWEN_ADAPTER_PARITY_CHECKS,
+  TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS,
   TRAINER_ARTIFACT_BRIDGE_SCHEMA_ID,
   TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS,
   assertTrainerArtifactCandidateEntry,
@@ -411,6 +412,42 @@ try {
   assert.throws(
     () => assertTrainerArtifactCandidateEntry(wrongAuthority),
     /selection authority must be "clocksmith\/columbo"/
+  );
+
+  const tinkerDescriptor = structuredClone(adapterDescriptor);
+  tinkerDescriptor.bridgeId = 'bridge.tinker.unit';
+  tinkerDescriptor.sourceContractId = 'gamma.same-r.tinker-browser.unit';
+  tinkerDescriptor.selection.authority = 'clocksmith/gamma';
+  tinkerDescriptor.selection.receipt = 'same-r.selection-receipt/v1:tinker-unit';
+  tinkerDescriptor.parity = {
+    profile: 'tinker_peft_browser_adapter',
+    requiredChecks: [...TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS],
+  };
+  assert.equal(assertTrainerArtifactCandidateEntry(tinkerDescriptor).selection.authority, 'clocksmith/gamma');
+  const tinkerVerification = await verifyTrainerArtifactHandoff({
+    contract: tinkerDescriptor,
+    repositoryRoots,
+    verifiedAt: VERIFIED_AT,
+  });
+  assert.equal(tinkerVerification.receipt.ok, true);
+  const tinkerTemplate = buildTrainerArtifactParityTemplate(
+    tinkerDescriptor,
+    tinkerVerification.receipt
+  );
+  assert.deepEqual(
+    tinkerTemplate.checks.slice(0, 4).map((check) => check.status),
+    ['pass', 'pass', 'pass', 'pass']
+  );
+  assert.deepEqual(
+    tinkerTemplate.checks.slice(4).map((check) => check.status),
+    ['pending', 'pending', 'pending', 'pending', 'pending', 'pending']
+  );
+
+  const tinkerWrongAuthority = structuredClone(tinkerDescriptor);
+  tinkerWrongAuthority.selection.authority = 'clocksmith/columbo';
+  assert.throws(
+    () => assertTrainerArtifactCandidateEntry(tinkerWrongAuthority),
+    /selection authority must be "clocksmith\/gamma"/
   );
 } finally {
   rmSync(root, { recursive: true, force: true });

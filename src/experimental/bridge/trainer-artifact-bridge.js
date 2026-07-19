@@ -29,6 +29,19 @@ export const COLUMBO_QWEN_ADAPTER_PARITY_CHECKS = Object.freeze([
   'browser_capability_evaluation',
 ]);
 
+export const TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS = Object.freeze([
+  'source_artifact_byte_identity',
+  'tokenizer_and_prompt_identity',
+  'architecture_and_conversion_lineage',
+  'evaluation_input_identity',
+  'tinker_checkpoint_vs_peft_reference',
+  'peft_reference_vs_doppler_f16',
+  'doppler_f16_vs_quantized_browser',
+  'gamma_sealed_task_gain',
+  'gamma_retention_floor',
+  'browser_capability_evaluation',
+]);
+
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const FILE_ROLES_BY_KIND = Object.freeze({
   [TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT]: Object.freeze([
@@ -44,9 +57,22 @@ const FILE_ROLES_BY_KIND = Object.freeze({
     'training_report',
   ]),
 });
-const PARITY_CHECKS_BY_PROFILE = Object.freeze({
-  translation_full_checkpoint: TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS,
-  columbo_qwen_adapter: COLUMBO_QWEN_ADAPTER_PARITY_CHECKS,
+const PARITY_PROFILES = Object.freeze({
+  translation_full_checkpoint: Object.freeze({
+    artifactKind: TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT,
+    selectionAuthority: 'clocksmith/gamma',
+    requiredChecks: TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS,
+  }),
+  columbo_qwen_adapter: Object.freeze({
+    artifactKind: TRAINER_ARTIFACT_KIND_PEFT_ADAPTER,
+    selectionAuthority: 'clocksmith/columbo',
+    requiredChecks: COLUMBO_QWEN_ADAPTER_PARITY_CHECKS,
+  }),
+  tinker_peft_browser_adapter: Object.freeze({
+    artifactKind: TRAINER_ARTIFACT_KIND_PEFT_ADAPTER,
+    selectionAuthority: 'clocksmith/gamma',
+    requiredChecks: TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS,
+  }),
 });
 
 function stableJson(value) {
@@ -181,18 +207,16 @@ function normalizeParity(parity, artifactKind) {
     throw new Error('trainer artifact bridge: parity must be an object.');
   }
   const profile = requireText(parity.profile, 'parity.profile');
-  const canonicalChecks = PARITY_CHECKS_BY_PROFILE[profile];
-  if (!canonicalChecks) {
+  const profileContract = PARITY_PROFILES[profile];
+  if (!profileContract) {
     throw new Error(`trainer artifact bridge: unsupported parity profile "${profile}".`);
   }
-  const expectedProfile = artifactKind === TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT
-    ? 'translation_full_checkpoint'
-    : 'columbo_qwen_adapter';
-  if (profile !== expectedProfile) {
+  if (profileContract.artifactKind !== artifactKind) {
     throw new Error(
-      `trainer artifact bridge: artifact kind "${artifactKind}" requires parity profile "${expectedProfile}".`
+      `trainer artifact bridge: parity profile "${profile}" does not support artifact kind "${artifactKind}".`
     );
   }
+  const canonicalChecks = profileContract.requiredChecks;
   const requiredChecks = Array.isArray(parity.requiredChecks) ? parity.requiredChecks : [];
   if (stableJson(requiredChecks) !== stableJson(canonicalChecks)) {
     throw new Error(`trainer artifact bridge: parity.requiredChecks must match profile "${profile}".`);
@@ -435,9 +459,7 @@ export function assertTrainerArtifactCandidateEntry(descriptor) {
   if (normalized.selection.status !== 'selected' || !normalized.selection.receipt) {
     throw new Error('trainer artifact bridge: candidate entry denied; selection receipt is required.');
   }
-  const expectedAuthority = normalized.artifact.kind === TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT
-    ? 'clocksmith/gamma'
-    : 'clocksmith/columbo';
+  const expectedAuthority = PARITY_PROFILES[normalized.parity.profile].selectionAuthority;
   if (normalized.selection.authority !== expectedAuthority) {
     throw new Error(
       `trainer artifact bridge: candidate entry denied; selection authority must be "${expectedAuthority}".`
