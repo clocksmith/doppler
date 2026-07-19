@@ -1,0 +1,502 @@
+{
+  "schema": "doppler.sequenceModelQualification.v1",
+  "passed": true,
+  "generatedAt": "2026-07-19T18:08:41.533Z",
+  "model": {
+    "modelId": "amplify-120m-f16-af32",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:cdcc8eaf3c18df8f9849889cefe89c5652e3e5e582710435a47ea038c0fe1e2e",
+      "conversionConfigPath": "src/config/conversion/amplify/amplify-120m-f16-af32.json",
+      "manifestVariantId": "amplify-120m-f16-af32-mv-exec-v1",
+      "materializationProfile": "f16-weights-f32-activations",
+      "modalitySet": [
+        "protein_sequence"
+      ],
+      "shardSetHash": "sha256:b97fe5d4f452be69bbdbb6a9b569aa4c9cc5882291dee36ac2aa703506392ba8",
+      "sourceCheckpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470",
+      "sourceFormat": "safetensors",
+      "sourceRepo": "chandar-lab/AMPLIFY_120M",
+      "sourceRevision": "d918a9e8c64dc43f6ec4996022c3deba14d66470",
+      "weightPackHash": "sha256:6943813494fc75d352c29852dfb285251f06009db99529d566e076159a3aa43b",
+      "weightPackId": "amplify-120m-f16-af32-wp-v1"
+    },
+    "quantization": "F16",
+    "architecture": {
+      "numLayers": 24,
+      "hiddenSize": 640,
+      "intermediateSize": 1712,
+      "numAttentionHeads": 10,
+      "numKeyValueHeads": 10,
+      "headDim": 64,
+      "vocabSize": 27,
+      "maxSeqLen": 2048,
+      "linearNumKeyHeads": null,
+      "linearNumValueHeads": null,
+      "linearKeyHeadDim": null,
+      "linearValueHeadDim": null,
+      "linearConvKernelDim": null,
+      "hiddenSizePerLayerInput": null,
+      "vocabSizePerLayerInput": null,
+      "globalHeadDim": null,
+      "numKvSharedLayers": null
+    },
+    "sequence": {
+      "alphabet": "amino_acid",
+      "tokenEmbeddings": true,
+      "pooledEmbedding": {
+        "mode": "mean",
+        "excludeTokenIds": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "logits": true
+    },
+    "session": {
+      "compute": {
+        "defaults": {
+          "activationDtype": "f32",
+          "mathDtype": "f32",
+          "accumDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "kvcache": {
+        "kvDtype": "f16",
+        "layout": "contiguous",
+        "maxSeqLen": 2048,
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "decodeLoop": {
+        "batchSize": 1,
+        "stopCheckMode": "per-token",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "submitLatencyThresholdMs": null,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": false
+      },
+      "perLayerInputs": {
+        "materialization": "auto",
+        "rowCache": {
+          "mode": "lru",
+          "maxRows": 256,
+          "maxBytes": 134217728,
+          "decodedDtype": "f32"
+        },
+        "prefetch": {
+          "mode": "next_token",
+          "rowsAhead": 1
+        },
+        "gpuUpload": {
+          "mode": "per_step_slices",
+          "stagingRows": 2
+        },
+        "hotCache": {
+          "mode": "prepared_tokens",
+          "maxTokens": 1024,
+          "maxBytes": 134217728,
+          "outputDtype": "f32"
+        }
+      },
+      "skipEmbeddingKVCacheWrites": true,
+      "prefillChunkSubmitMode": "sync",
+      "useFlashPrefillAttention": false,
+      "useWideTileQ4KPrefill": false,
+      "retainQ4KMaterialization": false
+    },
+    "execution": {
+      "schema": "doppler.execution/v1",
+      "kernelPathId": "amplify-120m-f16-af32-execution-inline",
+      "kernels": {
+        "embed": {
+          "kernel": "gather_f16.wgsl",
+          "entry": "main",
+          "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+        },
+        "rmsnorm": {
+          "kernel": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+        },
+        "tiled": {
+          "kernel": "matmul_f16w_f32a.wgsl",
+          "entry": "main",
+          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+        },
+        "rope": {
+          "kernel": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+        },
+        "attn_small": {
+          "kernel": "attention_small_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
+        "residual": {
+          "kernel": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        "silu": {
+          "kernel": "silu.wgsl",
+          "entry": "main",
+          "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+          "constants": {
+            "HAS_GATE": true
+          }
+        }
+      }
+    }
+  },
+  "reference": {
+    "path": "tools/data/amplify-120m-sequence-reference.json",
+    "digest": "sha256:445420b165ce702ad2e1b5522df7100a2942fd2044418e3df7732a88d15b6813",
+    "source": {
+      "checkpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470",
+      "repository": "chandar-lab/AMPLIFY_120M",
+      "revision": "d918a9e8c64dc43f6ec4996022c3deba14d66470",
+      "runtime": {
+        "framework": "pytorch",
+        "torchVersion": "2.9.1",
+        "transformersVersion": "4.57.3",
+        "weightDtype": "f32"
+      },
+      "files": {
+        "model.safetensors": "sha256:a2375f1f54cbe00bdbe27eedcd039c92d12f165720c0349bc582a6eb42c099ce",
+        "config.json": "sha256:b28a52518d6006d5f0ceda4737b8623a30760fc79294f84771eb061b7bb8c5d3",
+        "tokenizer.json": "sha256:07043215b16802129fee788489f51e245f8d28e1d05fedb42cdb6900749f54db",
+        "amplify.py": "sha256:aaefa417bcc6562cab45d244669c765b8fc0238af6712958e63d1eb52d81b3f2",
+        "rotary.py": "sha256:ab73337b627e7a104d2c0c7299f929d6da836417d8b8203c47e3a9bc2d3918ab",
+        "rmsnorm.py": "sha256:3f63bdd73a4c8c35f67622f799e592062066b602c82d6c98569754facdbb382d"
+      }
+    },
+    "input": {
+      "alphabet": "amino_acid",
+      "sequence": "MKTIIALSYIFCLVFADYKDDDDK",
+      "tokenIds": [
+        3,
+        22,
+        17,
+        13,
+        14,
+        14,
+        7,
+        6,
+        10,
+        21,
+        14,
+        20,
+        25,
+        6,
+        9,
+        20,
+        7,
+        15,
+        21,
+        17,
+        15,
+        15,
+        15,
+        15,
+        17,
+        4
+      ]
+    },
+    "tolerances": {
+      "pooledEmbeddingMaxAbs": 0.002,
+      "tokenEmbeddingMaxAbs": 0.002,
+      "logitMaxAbs": 0.03
+    }
+  },
+  "runtime": {
+    "surface": "node-webgpu",
+    "artifactSource": {
+      "kind": "hosted-url",
+      "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/990de206946a0972cc92e9dbcc9726399d257cac/models/amplify-120m-f16-af32"
+    },
+    "capabilities": {
+      "hasF16": true,
+      "hasSubgroups": true,
+      "hasSubgroupsF16": true,
+      "maxBufferSize": 4294967295
+    },
+    "adapterInfo": {
+      "subgroupMatrixConfigs": []
+    },
+    "sourceRevision": "43bf4257a72b16eb82f33724b23c79a3ff3cf8e2",
+    "sourceDirty": false
+  },
+  "result": {
+    "checks": [
+      {
+        "id": "model.identity",
+        "passed": true,
+        "expectedModelId": "amplify-120m-f16-af32",
+        "actualModelId": "amplify-120m-f16-af32",
+        "expectedCheckpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470",
+        "actualCheckpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470"
+      },
+      {
+        "id": "sequence.contract",
+        "passed": true,
+        "expectedAlphabet": "amino_acid",
+        "actualAlphabet": "amino_acid"
+      },
+      {
+        "id": "tokenizer.ids",
+        "passed": true,
+        "expectedCount": 26,
+        "actualCount": 26,
+        "mismatchCount": 0,
+        "mismatches": []
+      },
+      {
+        "id": "pooledEmbedding.finite",
+        "passed": true,
+        "valueCount": 640,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "tokenEmbeddings.finite",
+        "passed": true,
+        "valueCount": 16640,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "logits.finite",
+        "passed": true,
+        "valueCount": 702,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "pooledEmbedding.parity",
+        "passed": true,
+        "sampleCount": 16,
+        "tolerance": 0.002,
+        "maxAbsoluteError": 0.00025135290821837186,
+        "meanAbsoluteError": 0.00011054104895793192,
+        "failures": []
+      },
+      {
+        "id": "tokenEmbeddings.parity",
+        "passed": true,
+        "sampleCount": 40,
+        "tolerance": 0.002,
+        "maxAbsoluteError": 0.0009711387086182022,
+        "meanAbsoluteError": 0.00020870749327258622,
+        "failures": []
+      },
+      {
+        "id": "logits.parity",
+        "passed": true,
+        "sampleCount": 40,
+        "tolerance": 0.03,
+        "maxAbsoluteError": 0.021993674023438103,
+        "meanAbsoluteError": 0.009973873270529232,
+        "failures": []
+      },
+      {
+        "id": "logits.argmax",
+        "passed": true,
+        "expectedCount": 26,
+        "actualCount": 26,
+        "mismatchCount": 0,
+        "mismatches": []
+      }
+    ],
+    "outputDigests": {
+      "pooledEmbedding": "sha256:182797b658112f9e98974fcc0c397c4442c6d89070ebe3e8949cc5882e70ead5",
+      "tokenEmbeddings": "sha256:cbd28959a9d49ed5a174e52b81be196d823b0eafc77f103204eeb2a73fb28cb2",
+      "logits": "sha256:c923b6d00b9fea43e63b0d1684caa37515df25233d3a587f333629a08080ed4d"
+    },
+    "loraQualification": {
+      "passed": true,
+      "checks": [
+        {
+          "id": "lora.wrong-base.rejected",
+          "passed": true,
+          "error": "LoRA adapter targets base model \"amplify-120m-f16-af32-wrong-base\", but the loaded model is \"amplify-120m-f16-af32\"."
+        },
+        {
+          "id": "lora.invalid-layer.rejected",
+          "passed": true,
+          "error": "LoRA adapter targets layer 24, which is absent from the loaded model."
+        },
+        {
+          "id": "lora.activation.active",
+          "passed": true,
+          "expectedAdapterName": "amplify-120m-f16-af32-synthetic-q-proj-qualification",
+          "activeAdapterName": "amplify-120m-f16-af32-synthetic-q-proj-qualification"
+        },
+        {
+          "id": "lora.unload.inactive",
+          "passed": true,
+          "unloadedAdapterName": null
+        },
+        {
+          "id": "lora.adapted.pooledEmbedding.finite",
+          "passed": true,
+          "valueCount": 640,
+          "nonFiniteCount": 0
+        },
+        {
+          "id": "lora.changed.pooledEmbedding",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 640,
+          "actualCount": 640,
+          "mismatchCount": 639,
+          "maxAbsoluteDelta": 0.0009319782257080078,
+          "baselineDigest": "sha256:182797b658112f9e98974fcc0c397c4442c6d89070ebe3e8949cc5882e70ead5",
+          "actualDigest": "sha256:b44d5cbffa1c919cd9a272c31b8499c59e1470867830a56967f44c4d01725aea"
+        },
+        {
+          "id": "lora.restored.pooledEmbedding",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 640,
+          "actualCount": 640,
+          "mismatchCount": 0,
+          "maxAbsoluteDelta": 0
+        },
+        {
+          "id": "lora.adapted.tokenEmbeddings.finite",
+          "passed": true,
+          "valueCount": 16640,
+          "nonFiniteCount": 0
+        },
+        {
+          "id": "lora.changed.tokenEmbeddings",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 16640,
+          "actualCount": 16640,
+          "mismatchCount": 16632,
+          "maxAbsoluteDelta": 0.0027980804443359375,
+          "baselineDigest": "sha256:cbd28959a9d49ed5a174e52b81be196d823b0eafc77f103204eeb2a73fb28cb2",
+          "actualDigest": "sha256:c3ee9604e33a2db4fdd5cb509ca9b192fb8ad94dd9ad216c95aae055f97e6ed5"
+        },
+        {
+          "id": "lora.restored.tokenEmbeddings",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 16640,
+          "actualCount": 16640,
+          "mismatchCount": 0,
+          "maxAbsoluteDelta": 0
+        },
+        {
+          "id": "lora.adapted.logits.finite",
+          "passed": true,
+          "valueCount": 702,
+          "nonFiniteCount": 0
+        },
+        {
+          "id": "lora.changed.logits",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 702,
+          "actualCount": 702,
+          "mismatchCount": 699,
+          "maxAbsoluteDelta": 0.0009860992431640625,
+          "baselineDigest": "sha256:c923b6d00b9fea43e63b0d1684caa37515df25233d3a587f333629a08080ed4d",
+          "actualDigest": "sha256:3d1b54fd8f0269019b66171add51a245a88629aba7a6e95462db2d487ef52416"
+        },
+        {
+          "id": "lora.restored.logits",
+          "passed": true,
+          "tolerance": 0,
+          "expectedCount": 702,
+          "actualCount": 702,
+          "mismatchCount": 0,
+          "maxAbsoluteDelta": 0
+        }
+      ],
+      "outputDigests": {
+        "pooledEmbedding": {
+          "base": "sha256:182797b658112f9e98974fcc0c397c4442c6d89070ebe3e8949cc5882e70ead5",
+          "adapted": "sha256:b44d5cbffa1c919cd9a272c31b8499c59e1470867830a56967f44c4d01725aea",
+          "restored": "sha256:182797b658112f9e98974fcc0c397c4442c6d89070ebe3e8949cc5882e70ead5"
+        },
+        "tokenEmbeddings": {
+          "base": "sha256:cbd28959a9d49ed5a174e52b81be196d823b0eafc77f103204eeb2a73fb28cb2",
+          "adapted": "sha256:c3ee9604e33a2db4fdd5cb509ca9b192fb8ad94dd9ad216c95aae055f97e6ed5",
+          "restored": "sha256:cbd28959a9d49ed5a174e52b81be196d823b0eafc77f103204eeb2a73fb28cb2"
+        },
+        "logits": {
+          "base": "sha256:c923b6d00b9fea43e63b0d1684caa37515df25233d3a587f333629a08080ed4d",
+          "adapted": "sha256:3d1b54fd8f0269019b66171add51a245a88629aba7a6e95462db2d487ef52416",
+          "restored": "sha256:c923b6d00b9fea43e63b0d1684caa37515df25233d3a587f333629a08080ed4d"
+        }
+      },
+      "adapter": {
+        "id": "amplify-120m-f16-af32-synthetic-q-proj-qualification",
+        "name": "amplify-120m-f16-af32-synthetic-q-proj-qualification",
+        "baseModel": "amplify-120m-f16-af32",
+        "rank": 1,
+        "alpha": 1,
+        "targetModules": [
+          "q_proj"
+        ],
+        "layerIndices": [
+          0
+        ],
+        "synthetic": true
+      },
+      "claimBoundary": "Synthetic rank-1 q_proj qualification proves exact base binding, target validation, WebGPU activation, output influence, unload, and base-output restoration. It does not prove trained-adapter quality or arbitrary PEFT compatibility."
+    },
+    "phase": {
+      "totalMs": 323.56699999999546,
+      "inputMs": 1.1767499999987194,
+      "prefillMs": 314.30712500000664,
+      "submitWaitMs": 0.013290999995660968,
+      "readbackMs": 0.3714580000087153,
+      "decodeHiddenMs": 0.07733400000142865,
+      "finalNormMs": 2.247624999989057,
+      "extractMs": 2.3988749999989523,
+      "logitsMs": 2.3952079999871785,
+      "hiddenBytes": 66560,
+      "tokens": 26,
+      "activationDtype": "f32",
+      "prefillRecordMs": 171.45066099998076,
+      "prefillRecordOps": 289,
+      "prefillRecordPasses": 6,
+      "prefillRecordOpLabels": {},
+      "prefillSubmitWaitMs": 103.79441699999734,
+      "gpuPrefillMs": null
+    },
+    "operatorDiagnostics": null
+  }
+}
