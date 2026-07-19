@@ -13,6 +13,19 @@ export interface QuickstartBenchmarkEvidence {
   summarySvg: string;
 }
 
+export interface QuickstartModelClassification {
+  domain: string;
+  tasks: string[];
+  architectureRole: string;
+  inputs: string[];
+  outputs: string[];
+}
+
+export interface QuickstartModelTypeCluster {
+  id: string;
+  label: string;
+}
+
 export interface QuickstartRegistryEntry {
   modelId: string;
   sourceCheckpointId: string;
@@ -23,6 +36,8 @@ export interface QuickstartRegistryEntry {
   weightsRefAllowed: boolean;
   aliases: string[];
   modes: string[];
+  classification?: QuickstartModelClassification;
+  typeCluster?: QuickstartModelTypeCluster;
   hf: {
     repoId: string;
     revision: string | null;
@@ -42,6 +57,8 @@ export declare function listQuickstartModels(): Promise<Array<{
   weightsRefAllowed: boolean;
   aliases: string[];
   modes: string[];
+  classification?: QuickstartModelClassification;
+  typeCluster?: QuickstartModelTypeCluster;
   vendorBenchmark?: QuickstartVendorBenchmark;
   benchmarkEvidence?: QuickstartBenchmarkEvidence;
 }>>;

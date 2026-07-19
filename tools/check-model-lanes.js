@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { validateCatalogClassifications } from './lib/model-type-taxonomy.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_CATALOG_PATH = path.join(REPO_ROOT, 'models', 'catalog.json');
@@ -83,6 +84,7 @@ function validateCatalog(catalog) {
   if (!isPlainObject(catalog) || !Array.isArray(catalog.models)) {
     return ['models/catalog.json must be an object with a models array'];
   }
+  errors.push(...validateCatalogClassifications(catalog));
 
   const byModelId = new Map();
   const primaryByWeightPackId = new Map();

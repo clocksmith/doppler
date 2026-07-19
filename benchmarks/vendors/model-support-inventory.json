@@ -1,8 +1,9 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-11",
+  "updated": "2026-07-19",
   "sources": [
     "models/catalog.json",
+    "models/model-type-taxonomy.json",
     "src/config/conversion/**",
     "benchmarks/vendors/support-rollout-policy.json",
     "benchmarks/vendors/benchmark-policy.json",
@@ -119,12 +120,26 @@
       "medium": 4,
       "large": 4,
       "unknown": 0
+    },
+    "typeClusterCounts": {
+      "text-generators": 14,
+      "multimodal-generators": 3,
+      "diffusion-language-models": 1,
+      "translation-specialists": 2,
+      "language-embedders": 2,
+      "rerankers": 2,
+      "protein-encoders": 3,
+      "nucleotide-encoders": 1
     }
   },
   "sourceModels": [
     {
       "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
       "family": "esm",
+      "typeCluster": {
+        "id": "protein-encoders",
+        "label": "Protein encoders"
+      },
       "tier": "small",
       "minSizeBytes": 133159807,
       "minSizeLabel": "0.12 GiB",
@@ -144,6 +159,24 @@
           "modelId": "esm2-t12-35m-ur50d-f32-af32",
           "label": "ESM-2 35M Protein Encoder (F32)",
           "family": "esm",
+          "classification": {
+            "domain": "protein",
+            "tasks": [
+              "embedding"
+            ],
+            "architectureRole": "bidirectional-encoder",
+            "inputs": [
+              "protein-sequence"
+            ],
+            "outputs": [
+              "token-embedding",
+              "pooled-embedding"
+            ]
+          },
+          "typeCluster": {
+            "id": "protein-encoders",
+            "label": "Protein encoders"
+          },
           "modes": [
             "embedding"
           ],
@@ -178,7 +211,7 @@
           "hf": {
             "published": true,
             "repoId": "Clocksmith/rdrr",
-            "revision": "75ef5bbd520ed875c5c5345801d5ac65ac17cc7b",
+            "revision": "feea324bae6c06c9d129ce39e188a75478ccdbbc",
             "path": "models/esm2-t12-35m-ur50d-f32-af32"
           },
           "quickstart": false,
@@ -215,6 +248,10 @@
     {
       "sourceCheckpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
       "family": "nucleotide-transformer",
+      "typeCluster": {
+        "id": "nucleotide-encoders",
+        "label": "Nucleotide encoders"
+      },
       "tier": "small",
       "minSizeBytes": 210074179,
       "minSizeLabel": "0.20 GiB",
@@ -234,6 +271,24 @@
           "modelId": "nucleotide-transformer-v2-50m-f32-af32",
           "label": "Nucleotide Transformer v2 50M DNA Encoder (F32)",
           "family": "nucleotide-transformer",
+          "classification": {
+            "domain": "nucleotide",
+            "tasks": [
+              "embedding"
+            ],
+            "architectureRole": "bidirectional-encoder",
+            "inputs": [
+              "dna-sequence"
+            ],
+            "outputs": [
+              "token-embedding",
+              "pooled-embedding"
+            ]
+          },
+          "typeCluster": {
+            "id": "nucleotide-encoders",
+            "label": "Nucleotide encoders"
+          },
           "modes": [
             "embedding"
           ],
@@ -305,6 +360,10 @@
     {
       "sourceCheckpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470",
       "family": "amplify",
+      "typeCluster": {
+        "id": "protein-encoders",
+        "label": "Protein encoders"
+      },
       "tier": "small",
       "minSizeBytes": 236647491,
       "minSizeLabel": "0.22 GiB",
@@ -324,6 +383,26 @@
           "modelId": "amplify-120m-f16-af32",
           "label": "AMPLIFY 120M Protein Encoder (F16/F32a)",
           "family": "amplify",
+          "classification": {
+            "domain": "protein",
+            "tasks": [
+              "embedding",
+              "masked-token-prediction"
+            ],
+            "architectureRole": "bidirectional-encoder",
+            "inputs": [
+              "protein-sequence"
+            ],
+            "outputs": [
+              "token-embedding",
+              "pooled-embedding",
+              "token-logits"
+            ]
+          },
+          "typeCluster": {
+            "id": "protein-encoders",
+            "label": "Protein encoders"
+          },
           "modes": [
             "embedding"
           ],
@@ -395,6 +474,10 @@
     {
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "family": "gemma3",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "tier": "small",
       "minSizeBytes": 418518521,
       "minSizeLabel": "0.39 GiB",
@@ -414,9 +497,25 @@
           "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
           "label": "Gemma 3 270M Instruct (Q4K/F32a)",
           "family": "gemma3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
-            "text",
-            "vision"
+            "text"
           ],
           "sizeBytes": 418518521,
           "sizeLabel": "0.39 GiB",
@@ -521,9 +620,25 @@
           "modelId": "gemma-3-270m-it-f16-af32",
           "label": "Gemma 3 270M Instruct (F16/F32a)",
           "family": "gemma3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
-            "text",
-            "vision"
+            "text"
           ],
           "sizeBytes": 540000000,
           "sizeLabel": "0.50 GiB",
@@ -636,6 +751,10 @@
     {
       "sourceCheckpointId": "google/embeddinggemma-300m",
       "family": "embeddinggemma",
+      "typeCluster": {
+        "id": "language-embedders",
+        "label": "Language embedders"
+      },
       "tier": "small",
       "minSizeBytes": 480563695,
       "minSizeLabel": "0.45 GiB",
@@ -655,6 +774,23 @@
           "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
           "label": "EmbeddingGemma 300M (Q4K)",
           "family": "embeddinggemma",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "embedding"
+            ],
+            "architectureRole": "decoder-embedding-encoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "pooled-embedding"
+            ]
+          },
+          "typeCluster": {
+            "id": "language-embedders",
+            "label": "Language embedders"
+          },
           "modes": [
             "embedding"
           ],
@@ -741,6 +877,10 @@
     {
       "sourceCheckpointId": "LiquidAI/LFM2.5-1.2B-Instruct",
       "family": "lfm2",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "tier": "small",
       "minSizeBytes": 853551378,
       "minSizeLabel": "0.79 GiB",
@@ -760,6 +900,23 @@
           "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
           "label": "LFM2.5 1.2B Instruct (Q4K/F32a)",
           "family": "lfm2",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],
@@ -874,6 +1031,10 @@
     {
       "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
       "family": "minicpm",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "tier": "small",
       "minSizeBytes": 867747840,
       "minSizeLabel": "0.81 GiB",
@@ -893,6 +1054,23 @@
           "modelId": "minicpm4-0-5b-f16-af32",
           "label": "MiniCPM4 0.5B (F16/F32a)",
           "family": "minicpm",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],
@@ -966,6 +1144,10 @@
     {
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
       "family": "qwen3",
+      "typeCluster": {
+        "id": "rerankers",
+        "label": "Rerankers"
+      },
       "tier": "small",
       "minSizeBytes": 938321920,
       "minSizeLabel": "0.87 GiB",
@@ -985,6 +1167,23 @@
           "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
           "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
           "family": "qwen3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "reranking"
+            ],
+            "architectureRole": "decoder-cross-encoder",
+            "inputs": [
+              "text-pair"
+            ],
+            "outputs": [
+              "relevance-score"
+            ]
+          },
+          "typeCluster": {
+            "id": "rerankers",
+            "label": "Rerankers"
+          },
           "modes": [
             "rerank"
           ],
@@ -1068,6 +1267,23 @@
           "modelId": "qwen-3-reranker-0-6b-f16-af32",
           "label": "Qwen3 Reranker 0.6B (F16/F32a)",
           "family": "qwen3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "reranking"
+            ],
+            "architectureRole": "decoder-cross-encoder",
+            "inputs": [
+              "text-pair"
+            ],
+            "outputs": [
+              "relevance-score"
+            ]
+          },
+          "typeCluster": {
+            "id": "rerankers",
+            "label": "Rerankers"
+          },
           "modes": [
             "rerank"
           ],
@@ -1139,6 +1355,10 @@
     {
       "sourceCheckpointId": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
       "family": "translategemma",
+      "typeCluster": {
+        "id": "translation-specialists",
+        "label": "Translation specialists"
+      },
       "tier": "small",
       "minSizeBytes": 1025493248,
       "minSizeLabel": "0.96 GiB",
@@ -1158,6 +1378,23 @@
           "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
           "label": "TranslateGemma 1B EN/ES Student (NativeKD2 Q4K)",
           "family": "translategemma",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "translation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "translation-specialists",
+            "label": "Translation specialists"
+          },
           "modes": [
             "translate"
           ],
@@ -1239,6 +1476,10 @@
     {
       "sourceCheckpointId": "google/gemma-3-1b-it",
       "family": "gemma3",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "tier": "small",
       "minSizeBytes": 1044786820,
       "minSizeLabel": "0.97 GiB",
@@ -1258,9 +1499,25 @@
           "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
           "label": "Gemma 3 1B Instruct (Q4K/F32a)",
           "family": "gemma3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
-            "text",
-            "vision"
+            "text"
           ],
           "sizeBytes": 1044786820,
           "sizeLabel": "0.97 GiB",
@@ -1371,6 +1628,10 @@
     {
       "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
       "family": "qwen3",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "tier": "small",
       "minSizeBytes": 1155348912,
       "minSizeLabel": "1.08 GiB",
@@ -1390,6 +1651,23 @@
           "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
           "label": "Qwen 3.5 0.8B (Q4K)",
           "family": "qwen3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],
@@ -1502,6 +1780,10 @@
     {
       "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
       "family": "qwen3",
+      "typeCluster": {
+        "id": "language-embedders",
+        "label": "Language embedders"
+      },
       "tier": "small",
       "minSizeBytes": 1191586416,
       "minSizeLabel": "1.11 GiB",
@@ -1521,6 +1803,23 @@
           "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
           "label": "Qwen3 Embedding 0.6B (Q4K/F32a)",
           "family": "qwen3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "embedding"
+            ],
+            "architectureRole": "decoder-embedding-encoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "pooled-embedding"
+            ]
+          },
+          "typeCluster": {
+            "id": "language-embedders",
+            "label": "Language embedders"
+          },
           "modes": [
             "embedding"
           ],
@@ -1608,6 +1907,10 @@
     {
       "sourceCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
       "family": "esmc",
+      "typeCluster": {
+        "id": "protein-encoders",
+        "label": "Protein encoders"
+      },
       "tier": "small",
       "minSizeBytes": 1328207519,
       "minSizeLabel": "1.24 GiB",
@@ -1627,6 +1930,24 @@
           "modelId": "esmc-300m-f32-af32",
           "label": "ESMC 300M Protein Encoder (F32)",
           "family": "esmc",
+          "classification": {
+            "domain": "protein",
+            "tasks": [
+              "embedding"
+            ],
+            "architectureRole": "bidirectional-encoder",
+            "inputs": [
+              "protein-sequence"
+            ],
+            "outputs": [
+              "token-embedding",
+              "pooled-embedding"
+            ]
+          },
+          "typeCluster": {
+            "id": "protein-encoders",
+            "label": "Protein encoders"
+          },
           "modes": [
             "embedding"
           ],
@@ -1698,6 +2019,10 @@
     {
       "sourceCheckpointId": "Qwen/Qwen3.5-2B",
       "family": "qwen3",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "tier": "medium",
       "minSizeBytes": 2496068973,
       "minSizeLabel": "2.32 GiB",
@@ -1717,6 +2042,23 @@
           "modelId": "qwen-3-5-2b-q4k-ehaf16",
           "label": "Qwen 3.5 2B (Q4K)",
           "family": "qwen3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],
@@ -1829,6 +2171,10 @@
     {
       "sourceCheckpointId": "google/translategemma-4b-it",
       "family": "translategemma",
+      "typeCluster": {
+        "id": "translation-specialists",
+        "label": "Translation specialists"
+      },
       "tier": "medium",
       "minSizeBytes": 3167500395,
       "minSizeLabel": "2.95 GiB",
@@ -1848,6 +2194,23 @@
           "modelId": "translategemma-4b-it-q4k-ehf16-af32",
           "label": "TranslateGemma 4B Instruct (Q4K)",
           "family": "translategemma",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "translation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "translation-specialists",
+            "label": "Translation specialists"
+          },
           "modes": [
             "translate"
           ],
@@ -1961,6 +2324,10 @@
     {
       "sourceCheckpointId": "google/gemma-4-E2B-it",
       "family": "gemma4",
+      "typeCluster": {
+        "id": "multimodal-generators",
+        "label": "Multimodal generators"
+      },
       "tier": "medium",
       "minSizeBytes": 4009916310,
       "minSizeLabel": "3.73 GiB",
@@ -1980,6 +2347,25 @@
           "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
           "label": "Gemma 4 E2B Instruct (Q4K/F16a/INT4 PLE)",
           "family": "gemma4",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text",
+              "image",
+              "audio"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "multimodal-generators",
+            "label": "Multimodal generators"
+          },
           "modes": [
             "text",
             "vision"
@@ -2090,6 +2476,25 @@
           "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
           "label": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
           "family": "gemma4",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text",
+              "image",
+              "audio"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "multimodal-generators",
+            "label": "Multimodal generators"
+          },
           "modes": [
             "text",
             "vision"
@@ -2198,6 +2603,25 @@
           "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
           "label": "Gemma 4 E2B Instruct (Q4K/F32a)",
           "family": "gemma4",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text",
+              "image",
+              "audio"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "multimodal-generators",
+            "label": "Multimodal generators"
+          },
           "modes": [
             "text",
             "vision"
@@ -2311,6 +2735,10 @@
     {
       "sourceCheckpointId": "google/gemma-4-12B-it",
       "family": "gemma4",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "tier": "medium",
       "minSizeBytes": 8159955902,
       "minSizeLabel": "7.60 GiB",
@@ -2330,6 +2758,23 @@
           "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
           "label": "Gemma 4 12B Instruct Text (Q4K/F16a)",
           "family": "gemma4",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],
@@ -2398,6 +2843,23 @@
           "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
           "label": "Gemma 4 12B Instruct Text (Q4K/F32a)",
           "family": "gemma4",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],
@@ -2470,6 +2932,10 @@
     {
       "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
       "family": "gemma4",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "tier": "large",
       "minSizeBytes": 10173636932,
       "minSizeLabel": "9.47 GiB",
@@ -2489,6 +2955,23 @@
           "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
           "label": "Gemma 4 12B Instruct Text (W4A16 QAT/F16a)",
           "family": "gemma4",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],
@@ -2561,6 +3044,10 @@
     {
       "sourceCheckpointId": "google/diffusiongemma-26B-A4B-it",
       "family": "diffusiongemma",
+      "typeCluster": {
+        "id": "diffusion-language-models",
+        "label": "Diffusion language models"
+      },
       "tier": "large",
       "minSizeBytes": 15694066921,
       "minSizeLabel": "14.6 GiB",
@@ -2580,6 +3067,23 @@
           "modelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
           "label": "DiffusionGemma 26B A4B Instruct (Q4K/F16a)",
           "family": "diffusiongemma",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "block-diffusion-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "diffusion-language-models",
+            "label": "Diffusion language models"
+          },
           "modes": [
             "diffusion",
             "text"
@@ -2652,6 +3156,10 @@
     {
       "sourceCheckpointId": "Qwen/Qwen3.6-27B",
       "family": "qwen3",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "tier": "large",
       "minSizeBytes": 16994352128,
       "minSizeLabel": "15.8 GiB",
@@ -2671,6 +3179,23 @@
           "modelId": "qwen-3-6-27b-q4k-eaf16",
           "label": "Qwen 3.6 27B (Q4K/F16a)",
           "family": "qwen3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],
@@ -2739,6 +3264,23 @@
           "modelId": "qwen-3-6-27b-q4k-ehaf16",
           "label": "Qwen 3.6 27B (Q4K)",
           "family": "qwen3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],
@@ -2810,6 +3352,10 @@
     {
       "sourceCheckpointId": "google/gemma-4-31B-it",
       "family": "gemma4",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "tier": "large",
       "minSizeBytes": 19295019640,
       "minSizeLabel": "18.0 GiB",
@@ -2829,6 +3375,23 @@
           "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
           "label": "Gemma 4 31B Instruct Text (Q4K/F16a)",
           "family": "gemma4",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],
@@ -2897,6 +3460,23 @@
           "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
           "label": "Gemma 4 31B Instruct Text (Q4K/F32a)",
           "family": "gemma4",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
           "modes": [
             "text"
           ],

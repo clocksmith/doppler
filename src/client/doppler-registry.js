@@ -25,6 +25,8 @@ function normalizeEntry(entry) {
   const runtimePromotionState = typeof entry.runtimePromotionState === 'string' ? entry.runtimePromotionState.trim() : '';
   const vendorBenchmark = cloneOptionalObject(entry.vendorBenchmark);
   const benchmarkEvidence = cloneOptionalObject(entry.benchmarkEvidence);
+  const classification = cloneOptionalObject(entry.classification);
+  const typeCluster = cloneOptionalObject(entry.typeCluster);
   if (
     !sourceCheckpointId
     || !weightPackId
@@ -49,6 +51,8 @@ function normalizeEntry(entry) {
     modes: Array.isArray(entry.modes)
       ? entry.modes.filter((mode) => typeof mode === 'string' && mode.trim().length > 0)
       : [],
+    ...(classification ? { classification } : {}),
+    ...(typeCluster ? { typeCluster } : {}),
     hf: entry.hf && typeof entry.hf === 'object'
       ? {
         repoId: typeof entry.hf.repoId === 'string' ? entry.hf.repoId.trim() : '',
@@ -91,6 +95,8 @@ export async function listQuickstartModels() {
     weightsRefAllowed: entry.weightsRefAllowed,
     aliases: [...entry.aliases],
     modes: [...entry.modes],
+    ...(entry.classification ? { classification: cloneOptionalObject(entry.classification) } : {}),
+    ...(entry.typeCluster ? { typeCluster: cloneOptionalObject(entry.typeCluster) } : {}),
     ...(entry.vendorBenchmark ? { vendorBenchmark: cloneOptionalObject(entry.vendorBenchmark) } : {}),
     ...(entry.benchmarkEvidence ? { benchmarkEvidence: cloneOptionalObject(entry.benchmarkEvidence) } : {}),
   }));

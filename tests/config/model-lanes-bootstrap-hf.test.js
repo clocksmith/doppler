@@ -4,6 +4,13 @@ import { validateCatalog } from '../../tools/check-model-lanes.js';
 
 const bootstrapEntry = {
   modelId: 'unit-bootstrap-model',
+  classification: {
+    domain: 'language',
+    tasks: ['generation'],
+    architectureRole: 'autoregressive-decoder',
+    inputs: ['text'],
+    outputs: ['text'],
+  },
   sourceCheckpointId: 'org/unit',
   weightPackId: 'unit-bootstrap-wp-v1',
   manifestVariantId: 'unit-bootstrap-mv-v1',
@@ -61,6 +68,32 @@ assert.match(
     }],
   }).join('\n'),
   /bootstrap hf repo\/path requires active verified\/pass lifecycle/
+);
+
+assert.match(
+  validateCatalog({
+    models: [{
+      ...bootstrapEntry,
+      classification: {
+        ...bootstrapEntry.classification,
+        domain: 'weather',
+      },
+    }],
+  }).join('\n'),
+  /classification\.domain contains unknown value "weather"/
+);
+
+assert.match(
+  validateCatalog({
+    models: [{
+      ...bootstrapEntry,
+      classification: {
+        ...bootstrapEntry.classification,
+        architectureRole: 'bidirectional-encoder',
+      },
+    }],
+  }).join('\n'),
+  /classification must resolve to exactly one model type cluster; matched none/
 );
 
 console.log('model-lanes-bootstrap-hf.test: ok');

@@ -1,16 +1,28 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-07-11",
+  "updatedAt": "2026-07-19",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "family": "gemma3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "description": "Gemma 3 270M text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "aliases": [
         "gemma3-270m",
@@ -86,11 +98,23 @@
     {
       "modelId": "gemma-3-270m-it-f16-af32",
       "family": "gemma3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 3 270M Instruct (F16/F32a)",
       "description": "Gemma 3 270M text model. F16 weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "aliases": [
         "gemma-3-270m-it-f16",
@@ -146,6 +170,19 @@
     {
       "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "family": "embeddinggemma",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "decoder-embedding-encoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "pooled-embedding"
+        ]
+      },
       "label": "EmbeddingGemma 300M (Q4K)",
       "description": "EmbeddingGemma 300M sentence embedding model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
@@ -211,11 +248,23 @@
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
       "family": "gemma3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 3 1B Instruct (Q4K/F32a)",
       "description": "Gemma 3 1B text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "aliases": [
         "gemma3-1b",
@@ -279,6 +328,21 @@
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
       "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text",
+          "image",
+          "audio"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 4 E2B Instruct (Q4K/F32a)",
       "description": "Gemma 4 E2B multimodal model. Q4K weights, F16 embeddings/head/vision/audio/projector, F32 accumulation.",
       "modes": [
@@ -345,6 +409,21 @@
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
       "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text",
+          "image",
+          "audio"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
       "description": "Gemma 4 E2B multimodal model. Q4K weights, INT4 per-layer embeddings with per-row F32 scales, F16 embeddings/head/vision/audio/projector, F32 accumulation.",
       "modes": [
@@ -415,6 +494,21 @@
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
       "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text",
+          "image",
+          "audio"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 4 E2B Instruct (Q4K/F16a/INT4 PLE)",
       "description": "Gemma 4 E2B multimodal Doppler/WebGPU f16 activation variant. Shares the existing Q4K/INT4 PLE weight pack and falls back to AF32 when capability rules reject AF16.",
       "modes": [
@@ -482,6 +576,19 @@
     {
       "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
       "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 4 12B Instruct Text (Q4K/F32a)",
       "description": "Gemma 4 12B text-only local RDRR lane. Q4K weights, F16 embeddings/head, F32 activation contract.",
       "modes": [
@@ -542,6 +649,19 @@
     {
       "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
       "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 4 12B Instruct Text (Q4K/F16a)",
       "description": "Gemma 4 12B text-only local f16 activation sibling over the existing Q4K weight pack.",
       "modes": [
@@ -602,6 +722,19 @@
     {
       "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
       "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 4 12B Instruct Text (W4A16 QAT/F16a)",
       "description": "Gemma 4 12B text-only RDRR lane from Google's W4A16 QAT compressed-tensors checkpoint. W4A16 weights, F16 embeddings/head, F16 activation contract.",
       "modes": [
@@ -663,6 +796,19 @@
     {
       "modelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
       "family": "diffusiongemma",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "block-diffusion-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "DiffusionGemma 26B A4B Instruct (Q4K/F16a)",
       "description": "DiffusionGemma 26B A4B text-only block-diffusion MoE artifact. Q4K weights, F16 embeddings/head, F16 activation contract, and DiffusionGemma throughput runtime profile.",
       "modes": [
@@ -709,6 +855,19 @@
     {
       "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
       "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 4 31B Instruct Text (Q4K/F32a)",
       "description": "Gemma 4 31B text-only model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
@@ -774,6 +933,19 @@
     {
       "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
       "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Gemma 4 31B Instruct Text (Q4K/F16a)",
       "description": "Gemma 4 31B text-only Doppler/WebGPU f16 activation variant. Shares the existing Q4K/F16 embedding and head weight pack; Doe/Cerebras f16 CSL lowering is intentionally unsupported.",
       "modes": [
@@ -834,6 +1006,19 @@
     {
       "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
       "family": "translategemma",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "translation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "TranslateGemma 1B EN/ES Student (NativeKD2 Q4K)",
       "description": "Experimental-tier English/Spanish translation specialist distilled from TranslateGemma 4B into Gemma 3 1B. The hosted Q4K artifact has deterministic WMT13 and browser/WebGPU evidence; quality and performance claims remain limited to the recorded EN/ES and Radeon/Vulkan receipts.",
       "modes": [
@@ -898,6 +1083,19 @@
     {
       "modelId": "translategemma-4b-it-q4k-ehf16-af32",
       "family": "translategemma",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "translation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "TranslateGemma 4B Instruct (Q4K)",
       "description": "TranslateGemma 4B translation model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
@@ -964,6 +1162,19 @@
     {
       "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
       "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "decoder-embedding-encoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "pooled-embedding"
+        ]
+      },
       "label": "Qwen3 Embedding 0.6B (Q4K/F32a)",
       "description": "Qwen3 0.6B SentenceTransformers embedding target with manifest-owned last-token pooling, prompt inclusion, and L2 normalization. Node/WebGPU verification passes semantic retrieval and pair thresholds; the local compare lane cites the Transformers.js ONNX WebGPU baseline.",
       "modes": [
@@ -1039,6 +1250,19 @@
     {
       "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
       "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "reranking"
+        ],
+        "architectureRole": "decoder-cross-encoder",
+        "inputs": [
+          "text-pair"
+        ],
+        "outputs": [
+          "relevance-score"
+        ]
+      },
       "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
       "description": "Qwen3 0.6B SentenceTransformers CrossEncoder reranker target with Q4K attention, F16 MLP projections, and manifest-owned true-logit scoring. The hosted registry lane passes semantic rerank verification and has an external Transformers.js ONNX compare profile for fair rerank receipts.",
       "modes": [
@@ -1123,6 +1347,19 @@
     {
       "modelId": "qwen-3-reranker-0-6b-f16-af32",
       "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "reranking"
+        ],
+        "architectureRole": "decoder-cross-encoder",
+        "inputs": [
+          "text-pair"
+        ],
+        "outputs": [
+          "relevance-score"
+        ]
+      },
       "label": "Qwen3 Reranker 0.6B (F16/F32a)",
       "description": "Qwen3 0.6B SentenceTransformers CrossEncoder reranker target with manifest-owned true/false token scoring. The F16 lane passes the semantic rerank suite and is the supported reranker variant for publication.",
       "modes": [
@@ -1200,6 +1437,19 @@
     {
       "modelId": "minicpm4-0-5b-f16-af32",
       "family": "minicpm",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "MiniCPM4 0.5B (F16/F32a)",
       "description": "MiniCPM4 0.5B text onboarding artifact. The manifest and shards are complete, but the deterministic smoke prompt produced incoherent text, so this lane is not a supported generation model yet.",
       "modes": [
@@ -1257,6 +1507,19 @@
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Qwen 3.5 0.8B (Q4K)",
       "description": "Qwen 3.5 0.8B text model with hybrid linear attention. Q4K weights, F16 embeddings, Q4 tied LM head, F32 accumulation.",
       "modes": [
@@ -1346,6 +1609,19 @@
     {
       "modelId": "qwen-3-5-2b-q4k-ehaf16",
       "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Qwen 3.5 2B (Q4K)",
       "description": "Qwen 3.5 2B text model with hybrid linear attention. Q4K weights, F16 embeddings, Q4 tied LM head, F32 accumulation.",
       "modes": [
@@ -1417,6 +1693,19 @@
     {
       "modelId": "qwen-3-6-27b-q4k-ehaf16",
       "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Qwen 3.6 27B (Q4K)",
       "description": "Qwen 3.6 27B text model with hybrid linear attention. Q4K weights, F16 embeddings, F32 accumulation.",
       "modes": [
@@ -1483,6 +1772,19 @@
     {
       "modelId": "qwen-3-6-27b-q4k-eaf16",
       "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "Qwen 3.6 27B (Q4K/F16a)",
       "description": "Qwen 3.6 27B text-only Doppler/WebGPU f16 lane. Shares the existing Q4K/F16 embedding weight pack; Doe/Cerebras f16 CSL lowering is intentionally unsupported.",
       "modes": [
@@ -1544,6 +1846,19 @@
     {
       "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
       "family": "lfm2",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
       "label": "LFM2.5 1.2B Instruct (Q4K/F32a)",
       "description": "Liquid AI LFM2.5 1.2B Instruct text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
       "modes": [
@@ -1588,6 +1903,22 @@
     {
       "modelId": "amplify-120m-f16-af32",
       "family": "amplify",
+      "classification": {
+        "domain": "protein",
+        "tasks": [
+          "embedding",
+          "masked-token-prediction"
+        ],
+        "architectureRole": "bidirectional-encoder",
+        "inputs": [
+          "protein-sequence"
+        ],
+        "outputs": [
+          "token-embedding",
+          "pooled-embedding",
+          "token-logits"
+        ]
+      },
       "label": "AMPLIFY 120M Protein Encoder (F16/F32a)",
       "description": "AMPLIFY 120M protein-sequence encoder with F16 weights and F32 activations.",
       "modes": [
@@ -1646,6 +1977,20 @@
     {
       "modelId": "esm2-t12-35m-ur50d-f32-af32",
       "family": "esm",
+      "classification": {
+        "domain": "protein",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "bidirectional-encoder",
+        "inputs": [
+          "protein-sequence"
+        ],
+        "outputs": [
+          "token-embedding",
+          "pooled-embedding"
+        ]
+      },
       "label": "ESM-2 35M Protein Encoder (F32)",
       "description": "ESM-2 35M protein-sequence encoder with F32 weights and activations.",
       "modes": [
@@ -1661,7 +2006,7 @@
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "path": "models/esm2-t12-35m-ur50d-f32-af32",
-        "revision": "75ef5bbd520ed875c5c5345801d5ac65ac17cc7b"
+        "revision": "feea324bae6c06c9d129ce39e188a75478ccdbbc"
       },
       "baseUrl": null,
       "quickstart": false,
@@ -1704,6 +2049,20 @@
     {
       "modelId": "esmc-300m-f32-af32",
       "family": "esmc",
+      "classification": {
+        "domain": "protein",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "bidirectional-encoder",
+        "inputs": [
+          "protein-sequence"
+        ],
+        "outputs": [
+          "token-embedding",
+          "pooled-embedding"
+        ]
+      },
       "label": "ESMC 300M Protein Encoder (F32)",
       "description": "ESMC 300M protein-sequence encoder with F32 weights and activations.",
       "modes": [
@@ -1762,6 +2121,20 @@
     {
       "modelId": "nucleotide-transformer-v2-50m-f32-af32",
       "family": "nucleotide-transformer",
+      "classification": {
+        "domain": "nucleotide",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "bidirectional-encoder",
+        "inputs": [
+          "dna-sequence"
+        ],
+        "outputs": [
+          "token-embedding",
+          "pooled-embedding"
+        ]
+      },
       "label": "Nucleotide Transformer v2 50M DNA Encoder (F32)",
       "description": "Nucleotide Transformer v2 50M DNA-sequence encoder with F32 weights and activations.",
       "modes": [

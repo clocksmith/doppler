@@ -31,6 +31,8 @@ for (const entry of models) {
   assert.equal(entry.artifactCompleteness, 'complete');
   assert.equal(entry.runtimePromotionState, 'manifest-owned');
   assert.equal(entry.weightsRefAllowed, false);
+  assert.ok(entry.classification, `${entry.modelId}: classification missing`);
+  assert.ok(entry.typeCluster?.id, `${entry.modelId}: type cluster missing`);
 }
 
 // Alias resolution

@@ -18,9 +18,25 @@
         "gemma-3-270m-it-wq4k-ef16-hf16-f32"
       ],
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "7e194b4a6824a8b71cbd0eaa511d9f2c7e1c0129",
@@ -56,6 +72,23 @@
       "modes": [
         "embedding"
       ],
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "decoder-embedding-encoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "pooled-embedding"
+        ]
+      },
+      "typeCluster": {
+        "id": "language-embedders",
+        "label": "Language embedders"
+      },
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "95f0b29ec73dea70394c6bcfa8407bc6796df6c9",
@@ -82,9 +115,25 @@
         "gemma-3-1b-it-wq4k-ef16-hf16"
       ],
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "7c3d30e300bcb02cbd68fb0db3eee64fbf738f99",
@@ -113,6 +162,25 @@
         "text",
         "vision"
       ],
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text",
+          "image",
+          "audio"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "typeCluster": {
+        "id": "multimodal-generators",
+        "label": "Multimodal generators"
+      },
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "2070777c77047d54e6eae105f6dcb1891cf6f21a",
@@ -141,6 +209,25 @@
         "text",
         "vision"
       ],
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text",
+          "image",
+          "audio"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "typeCluster": {
+        "id": "multimodal-generators",
+        "label": "Multimodal generators"
+      },
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "16256bf16dc8f92b8fe5105b07628cef91587f0a",
@@ -170,6 +257,23 @@
       "modes": [
         "text"
       ],
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "f58f1d0b58641c84e7ea50d13fea0dd4dc91389a",
@@ -199,6 +303,23 @@
       "modes": [
         "text"
       ],
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
       "hf": {
         "repoId": "Clocksmith/rdrr",
         "revision": "977d145bf2478a7fb542e6aca65030585620ca60",

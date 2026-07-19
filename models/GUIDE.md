@@ -6,8 +6,8 @@
 
 `models/catalog.json` is the repo source of truth for supported model metadata:
 model IDs, labels, aliases, lifecycle, artifact identity, quickstart/demo
-visibility, vendor benchmark mapping, benchmark evidence citations, and Hugging
-Face hosted coordinates.
+visibility, functional classification, vendor benchmark mapping, benchmark
+evidence citations, and Hugging Face hosted coordinates.
 
 Generated mirrors include:
 
@@ -72,6 +72,14 @@ Each entry supports:
 - `modelId` (string, required)
 - `label` (string, optional)
 - `description` (string, optional)
+- `classification` (object, required): governed functional facets validated
+  against `models/model-type-taxonomy.json`.
+  - `domain`: subject domain such as `language`, `protein`, or `nucleotide`
+  - `tasks`: one or more workload contracts such as `generation`, `embedding`,
+    `reranking`, `translation`, or `masked-token-prediction`
+  - `architectureRole`: functional role in the workload, not the runtime
+    implementation name from an RDRR manifest
+  - `inputs` and `outputs`: artifact-level interface terms
 - `mode` or `modes` (`run`, `embedding`, or other explicit surface labels used by tooling)
 - `baseUrl` (string or null). `null` for models that are HF-only or external-volume-only. Non-null only for models served from a repo-relative path in demo deployments.
 - `sizeBytes` (number, optional)
@@ -104,6 +112,13 @@ Each entry supports:
     - `lastVerifiedAt` (`YYYY-MM-DD`)
     - `source` (string, e.g. `registry-verify`)
     - `contracts` (object): `executionContractOk`
+
+`classification` answers what the artifact consumes and produces. `family`
+tracks checkpoint lineage, manifest `modelType` selects a runtime
+implementation, `modes` preserves existing surface routing, and support
+inventory tiers are derived from artifact bytes. These axes are intentionally
+independent. Display clusters such as “Protein encoders” are derived from the
+classification facets and must never be hand-written per catalog row.
 
 ## Related Docs
 

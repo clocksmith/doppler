@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { isDeepStrictEqual } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   DEFAULT_HF_REGISTRY_URL,
@@ -505,6 +506,9 @@ export async function validateRemoteRegistry(payload, registryUrl, localCatalog 
         if (localEntry?.[field] !== remoteEntry?.[field]) {
           errors.push(`${localEntry.modelId}: local ${field} ${JSON.stringify(localEntry?.[field])} does not match remote registry ${JSON.stringify(remoteEntry?.[field])}`);
         }
+      }
+      if (!isDeepStrictEqual(localEntry?.classification, remoteEntry?.classification)) {
+        errors.push(`${localEntry.modelId}: local classification does not match remote registry`);
       }
     }
     for (const remoteEntry of registry.models) {

@@ -51,6 +51,7 @@ for (const entry of Array.isArray(quickstartRegistry?.models) ? quickstartRegist
     'artifactCompleteness',
     'runtimePromotionState',
     'weightsRefAllowed',
+    'classification',
     'vendorBenchmark',
     'benchmarkEvidence',
   ]) {

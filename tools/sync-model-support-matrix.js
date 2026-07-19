@@ -5,11 +5,19 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  buildModelTypeClusters,
+  resolveModelTypeCluster,
+  validateCatalogClassifications,
+} from './lib/model-type-taxonomy.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
 const DEFAULT_OUTPUT_PATH = path.join(REPO_ROOT, 'docs/model-support-matrix.md');
+const README_PATH = path.join(REPO_ROOT, 'README.md');
+const README_MODEL_TYPES_START = '<!-- model-type-clusters:start -->';
+const README_MODEL_TYPES_END = '<!-- model-type-clusters:end -->';
 const CONVERSION_CONFIG_DIR = path.join(REPO_ROOT, 'src/config/conversion');
 const CATALOG_PATH = path.join(REPO_ROOT, 'models/catalog.json');
 const GEMMA4_TARGETS_PATH = path.join(REPO_ROOT, 'models/gemma4-targets.json');
@@ -340,6 +348,8 @@ export function validateCatalogMatrixInputs(payload) {
       errors.push(`${modelId}: lifecycle.status.demo=local requires a local baseUrl`);
     }
   }
+
+  errors.push(...validateCatalogClassifications(payload));
 
   return errors;
 }
@@ -1183,6 +1193,7 @@ function compareCatalogModels(left, right) {
 
 function buildCatalogModelStatusEntry(model) {
   const lifecycle = resolveCatalogLifecycle(model);
+  const typeCluster = resolveModelTypeCluster(model.classification);
   const status = model?.lifecycle && typeof model.lifecycle === 'object' && model.lifecycle.status && typeof model.lifecycle.status === 'object'
     ? model.lifecycle.status
     : {};
@@ -1192,6 +1203,7 @@ function buildCatalogModelStatusEntry(model) {
   return {
     modelId: normalizeModelId(model?.modelId),
     family: normalizeFamily(model?.family),
+    typeCluster: typeCluster.label,
     modes: summarizeModes(model),
     runtimeStatus: normalizeText(status.runtime) || 'unknown',
     tested: lifecycle.tested,
@@ -1301,6 +1313,87 @@ function pushTable(lines, headers, rows) {
   lines.push('');
 }
 
+function isVerifiedCatalogModel(model) {
+  return normalizeText(model?.lifecycle?.status?.runtime) === 'active'
+    && normalizeText(model?.lifecycle?.status?.tested) === 'verified'
+    && normalizeText(model?.lifecycle?.tested?.result) === 'pass';
+}
+
+function summarizeTypeInterface(models) {
+  const inputs = new Set();
+  const outputs = new Set();
+  for (const model of models) {
+    for (const input of model?.classification?.inputs || []) inputs.add(input);
+    for (const output of model?.classification?.outputs || []) outputs.add(output);
+  }
+  return `${[...inputs].sort().join(' + ')} → ${[...outputs].sort().join(' + ')}`;
+}
+
+function summarizeModelIds(models, limit = 3) {
+  const ids = models.map((model) => normalizeModelId(model?.modelId));
+  if (ids.length <= limit) return ids.join('<br>');
+  return `${ids.slice(0, limit).join('<br>')}<br>+${ids.length - limit} more`;
+}
+
+function renderModelTypeClusters(lines, typeClusters) {
+  lines.push('## Model Type Clusters');
+  lines.push('');
+  lines.push('These clusters describe each RDRR artifact by domain, task, architecture role, and input/output contract. They are independent of model family, runtime `modelType`, and artifact-size tier.');
+  lines.push('');
+  pushTable(lines,
+    ['Type', 'Interface', 'Verified lanes', 'Other cataloged lanes'],
+    typeClusters.map((cluster) => {
+      const verified = cluster.models.filter(isVerifiedCatalogModel);
+      const other = cluster.models.filter((model) => !isVerifiedCatalogModel(model));
+      return [
+        cluster.label,
+        summarizeTypeInterface(cluster.models),
+        verified.length > 0 ? verified.map((model) => model.modelId).join('<br>') : 'none',
+        other.length > 0 ? other.map((model) => model.modelId).join('<br>') : 'none',
+      ];
+    }));
+}
+
+function renderReadmeModelTypeBlock(typeClusters) {
+  const lines = [
+    README_MODEL_TYPES_START,
+    '',
+    '## Supported RDRR model types',
+    '',
+    'Doppler classifies artifacts by what they consume and produce. This is separate from lineage (`family`), runtime implementation (`modelType`), and artifact-size tier.',
+    '',
+    '| Type | Input → output | Runtime-verified / cataloged | Representative lanes |',
+    '| --- | --- | --- | --- |',
+  ];
+  for (const cluster of typeClusters) {
+    const verified = cluster.models.filter(isVerifiedCatalogModel);
+    lines.push(`| ${cluster.label} | ${summarizeTypeInterface(cluster.models)} | ${verified.length} / ${cluster.models.length} | ${summarizeModelIds(cluster.models)} |`);
+  }
+  lines.push('');
+  lines.push('The [full model-support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md) lists every lane and its lifecycle evidence. Classification says what an artifact is shaped to do; only lifecycle receipts establish what is verified, and a runtime pass does not by itself qualify every declared input modality.');
+  lines.push('');
+  lines.push(README_MODEL_TYPES_END);
+  return lines.join('\n');
+}
+
+function replaceReadmeModelTypeBlock(readme, block) {
+  const startIndex = readme.indexOf(README_MODEL_TYPES_START);
+  const endIndex = readme.indexOf(README_MODEL_TYPES_END);
+  if (startIndex >= 0 || endIndex >= 0) {
+    if (startIndex < 0 || endIndex < startIndex) {
+      throw new Error('README model type cluster markers are malformed');
+    }
+    const afterEnd = endIndex + README_MODEL_TYPES_END.length;
+    return `${readme.slice(0, startIndex).trimEnd()}\n\n${block}\n\n${readme.slice(afterEnd).trimStart()}`;
+  }
+  const evidenceHeading = '\n## Evidence\n';
+  const insertionIndex = readme.indexOf(evidenceHeading);
+  if (insertionIndex < 0) {
+    throw new Error('README is missing the Evidence heading required for model type cluster insertion');
+  }
+  return `${readme.slice(0, insertionIndex).trimEnd()}\n\n${block}\n\n${readme.slice(insertionIndex).trimStart()}`;
+}
+
 function summarizeGemma4Evidence(entries) {
   if (!Array.isArray(entries) || entries.length === 0) {
     return 'none';
@@ -1341,9 +1434,10 @@ function renderCurrentInferenceStatus(lines, buckets) {
     lines.push('');
   } else {
     pushTable(lines,
-      ['Model ID', 'Family', 'Modes', 'Last verified', 'Surface', 'Notes'],
+      ['Model ID', 'Type', 'Family', 'Modes', 'Last verified', 'Surface', 'Notes'],
       buckets.verified.map((entry) => [
         entry.modelId,
+        entry.typeCluster,
         entry.family,
         entry.modes,
         entry.testedAt || null,
@@ -1359,9 +1453,10 @@ function renderCurrentInferenceStatus(lines, buckets) {
     lines.push('');
   } else {
     pushTable(lines,
-      ['Model ID', 'Family', 'Modes', 'Runtime', 'Notes'],
+      ['Model ID', 'Type', 'Family', 'Modes', 'Runtime', 'Notes'],
       buckets.loadsButUnverified.map((entry) => [
         entry.modelId,
+        entry.typeCluster,
         entry.family,
         entry.modes,
         entry.runtimeStatus,
@@ -1376,9 +1471,10 @@ function renderCurrentInferenceStatus(lines, buckets) {
     lines.push('');
   } else {
     pushTable(lines,
-      ['Model ID', 'Family', 'Modes', 'Last checked', 'Surface', 'Notes'],
+      ['Model ID', 'Type', 'Family', 'Modes', 'Last checked', 'Surface', 'Notes'],
       buckets.knownFailing.map((entry) => [
         entry.modelId,
+        entry.typeCluster,
         entry.family,
         entry.modes,
         entry.testedAt || null,
@@ -1470,15 +1566,16 @@ function renderGemma4TargetCoverage(lines, targetMatrix) {
     ]));
 }
 
-function renderMatrix(rows, metadata, buckets, gemma4TargetMatrix) {
+function renderMatrix(rows, metadata, buckets, gemma4TargetMatrix, typeClusters) {
   const lines = [];
   lines.push('# Model Support Matrix');
   lines.push('');
-  lines.push('Auto-generated from conversion configs (`src/config/conversion/**`), `models/catalog.json`, and `models/gemma4-targets.json`.');
-  lines.push('Run `npm run support:matrix:sync` after editing `models/catalog.json`, `models/gemma4-targets.json`, or changing conversion configs.');
+  lines.push('Auto-generated from conversion configs (`src/config/conversion/**`), `models/catalog.json`, `models/model-type-taxonomy.json`, and `models/gemma4-targets.json`.');
+  lines.push('Run `npm run support:matrix:sync` after editing the catalog, taxonomy, Gemma 4 targets, or conversion configs.');
   lines.push('');
   lines.push(`Updated at: ${metadata.generatedAt}`);
   lines.push('');
+  renderModelTypeClusters(lines, typeClusters);
   renderCurrentInferenceStatus(lines, buckets);
   renderGemma4TargetCoverage(lines, gemma4TargetMatrix);
   lines.push('## Family Coverage Matrix');
@@ -1568,6 +1665,7 @@ async function main() {
     throw new Error(`Catalog lifecycle metadata is invalid:\n${catalogInputErrors.join('\n')}`);
   }
   const catalogModels = Array.isArray(catalogPayload?.models) ? catalogPayload.models : [];
+  const typeClusters = buildModelTypeClusters(catalogModels);
   const quickstartRegistry = await readJson(QUICKSTART_REGISTRY_PATH);
   const quickstartModels = Array.isArray(quickstartRegistry?.models) ? quickstartRegistry.models : [];
   const gemma4TargetMatrix = await readJson(GEMMA4_TARGETS_PATH);
@@ -1670,7 +1768,9 @@ async function main() {
     blockedCount: rows.filter((row) => row.runtimeStatus === 'blocked').length,
     catalogCount: catalogModels.length,
   };
-  const nextContent = renderMatrix(rows, metadata, buckets, gemma4TargetMatrix);
+  const nextContent = renderMatrix(rows, metadata, buckets, gemma4TargetMatrix, typeClusters);
+  const readme = await fs.readFile(README_PATH, 'utf8');
+  const nextReadme = replaceReadmeModelTypeBlock(readme, renderReadmeModelTypeBlock(typeClusters));
 
   if (args.check) {
     let currentContent;
@@ -1688,11 +1788,15 @@ async function main() {
         'Run npm run support:matrix:sync'
       );
     }
+    if (readme !== nextReadme) {
+      throw new Error('README model type clusters are out of date. Run npm run support:matrix:sync');
+    }
     console.log(`[support-matrix] up to date (${rows.length} families)`);
     return;
   }
 
   await fs.writeFile(args.outputPath, nextContent, 'utf8');
+  await fs.writeFile(README_PATH, nextReadme, 'utf8');
   console.log(`[support-matrix] wrote ${relativePath(args.outputPath)}`);
 }
 
