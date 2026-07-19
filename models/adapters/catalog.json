@@ -1,0 +1,198 @@
+{
+  "schema": "doppler.adapter-artifact-catalog/v1",
+  "policy": {
+    "technicalAuthority": "models/adapters/catalog.json",
+    "modelAuthority": "models/catalog.json",
+    "publicationAuthority": "Reploid signed adapter publication",
+    "cacheKey": "weights.sha256",
+    "primaryOriginProviders": [
+      "huggingface",
+      "gcs"
+    ],
+    "silentOriginFallback": false
+  },
+  "artifacts": [
+    {
+      "schema": "doppler.adapter-artifact/v1",
+      "artifactId": "doppler-wgsl-qwen35-9b-v12-external20-seed11",
+      "lifecycle": "preserved",
+      "access": "private",
+      "weights": {
+        "sha256": "sha256:8631f512fe8ce481ade2e29a476bb1ade4e2ab6fd8627c7e27c7c093b4824af6",
+        "bytes": 232808939,
+        "format": "safetensors"
+      },
+      "adapterManifestPath": "models/adapters/wgsl-repair-qwen35-9b-v12/seed11/runtime-adapter-manifest.json",
+      "adapterManifestSha256": "sha256:62ba1033b0158757998d97a7e8a0d6d65b329417dd50833859318472e47b6ec0",
+      "localWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed11/external20/sft/exports/checkpoint-001200.adapters.safetensors",
+      "trainingBase": {
+        "repoId": "Qwen/Qwen3.5-9B",
+        "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+      },
+      "runtimeBase": {
+        "modelId": "qwen-3-5-9b-f16-af32",
+        "modelSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+        "manifestSha256": "sha256:2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+        "tokenizerSha256": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+        "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1",
+        "weightPackSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+        "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
+        "conversionConfigSha256": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9"
+      },
+      "primaryOrigin": {
+        "provider": "huggingface",
+        "repoId": "Clocksmith/doppler-wgsl-repair-qwen35-9b-lora",
+        "revision": "3e451dae47372ebcdc9448c514d0984551d93757",
+        "path": "adapters/seed11/adapter_model.safetensors"
+      },
+      "preservationMirrors": [
+        {
+          "provider": "https-preservation",
+          "url": "https://media.githubusercontent.com/media/clocksmith/doppler/9e33238db9a9d42bcf122967caf3563ee97d392c/artifacts/wgsl-repair/v12/external20/seed11/checkpoint-001200.adapters.safetensors",
+          "revision": "9e33238db9a9d42bcf122967caf3563ee97d392c"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "preservation",
+          "path": "docs/status/wgsl-repair-v12-adapter-preservation-verification-2026-07-13.json",
+          "sha256": "sha256:2892b97dd87db3247c622ee0d031c9e649eee6a0c5cb560d0ac67f5c2639025c"
+        },
+        {
+          "kind": "doppler-parity",
+          "path": "docs/status/wgsl-repair-v12-adapter-portability-2026-07-13.json",
+          "sha256": "sha256:589888d414a34a25e386f1b43347dc9b25a68ed858de6e0dc2cc3b46d8ea32e3"
+        },
+        {
+          "kind": "immutable-custody",
+          "path": "docs/status/wgsl-repair-v12-huggingface-custody-2026-07-19.json",
+          "sha256": "sha256:0191e3d95e334babcf88adc9418d7bd7eff8a2e6dcdc4657847d9d45dfaf9c07"
+        }
+      ],
+      "claimBoundary": "Preserved and Doppler-portable. Not selected or promoted for network execution."
+    },
+    {
+      "schema": "doppler.adapter-artifact/v1",
+      "artifactId": "doppler-wgsl-qwen35-9b-v12-external20-seed29",
+      "lifecycle": "candidate",
+      "access": "private",
+      "weights": {
+        "sha256": "sha256:0d9ab8e1348a3fcdd6ef2973b624cc1a3d962de90a571976a5a222df27b69394",
+        "bytes": 232808939,
+        "format": "safetensors"
+      },
+      "adapterManifestPath": "models/adapters/wgsl-repair-qwen35-9b-v12/seed29/runtime-adapter-manifest.json",
+      "adapterManifestSha256": "sha256:ae9f2e21f61bcb59966f43e66a60f378d325cb21cd38171af77c2f54723b8d85",
+      "localWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapters.safetensors",
+      "trainingBase": {
+        "repoId": "Qwen/Qwen3.5-9B",
+        "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+      },
+      "runtimeBase": {
+        "modelId": "qwen-3-5-9b-f16-af32",
+        "modelSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+        "manifestSha256": "sha256:2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+        "tokenizerSha256": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+        "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1",
+        "weightPackSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+        "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
+        "conversionConfigSha256": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9"
+      },
+      "primaryOrigin": {
+        "provider": "huggingface",
+        "repoId": "Clocksmith/doppler-wgsl-repair-qwen35-9b-lora",
+        "revision": "3e451dae47372ebcdc9448c514d0984551d93757",
+        "path": "adapters/seed29/adapter_model.safetensors"
+      },
+      "preservationMirrors": [
+        {
+          "provider": "https-preservation",
+          "url": "https://media.githubusercontent.com/media/clocksmith/doppler/9e33238db9a9d42bcf122967caf3563ee97d392c/artifacts/wgsl-repair/v12/external20/seed29/checkpoint-001200.adapters.safetensors",
+          "revision": "9e33238db9a9d42bcf122967caf3563ee97d392c"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "preservation",
+          "path": "docs/status/wgsl-repair-v12-adapter-preservation-verification-2026-07-13.json",
+          "sha256": "sha256:2892b97dd87db3247c622ee0d031c9e649eee6a0c5cb560d0ac67f5c2639025c"
+        },
+        {
+          "kind": "doppler-parity",
+          "path": "docs/status/wgsl-repair-v12-adapter-portability-2026-07-13.json",
+          "sha256": "sha256:589888d414a34a25e386f1b43347dc9b25a68ed858de6e0dc2cc3b46d8ea32e3"
+        },
+        {
+          "kind": "semantic-confirmation",
+          "path": "docs/status/wgsl-repair-v13-seed-confirmation-result-2026-07-14.json",
+          "sha256": "sha256:5195a50299e7054a49d5d176ce30f468e561f9870fe9890b404ee7b9ec352fc5"
+        },
+        {
+          "kind": "immutable-custody",
+          "path": "docs/status/wgsl-repair-v12-huggingface-custody-2026-07-19.json",
+          "sha256": "sha256:0191e3d95e334babcf88adc9418d7bd7eff8a2e6dcdc4657847d9d45dfaf9c07"
+        }
+      ],
+      "claimBoundary": "Selected and semantically confirmed as a repair candidate. Not promoted or authorized as a general WGSL writer."
+    },
+    {
+      "schema": "doppler.adapter-artifact/v1",
+      "artifactId": "doppler-wgsl-qwen35-9b-v12-external20-seed47",
+      "lifecycle": "preserved",
+      "access": "private",
+      "weights": {
+        "sha256": "sha256:3e3895f062ae99d67c22ef3220a44ffe8081ba2021473de357e70216c50fd7d8",
+        "bytes": 232808939,
+        "format": "safetensors"
+      },
+      "adapterManifestPath": "models/adapters/wgsl-repair-qwen35-9b-v12/seed47/runtime-adapter-manifest.json",
+      "adapterManifestSha256": "sha256:99fcf373441d0ff8ec1b65e7260dcc3b638ea9e80595f355a97d362cc1e8a280",
+      "localWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed47/external20/sft/exports/checkpoint-001200.adapters.safetensors",
+      "trainingBase": {
+        "repoId": "Qwen/Qwen3.5-9B",
+        "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+      },
+      "runtimeBase": {
+        "modelId": "qwen-3-5-9b-f16-af32",
+        "modelSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+        "manifestSha256": "sha256:2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
+        "tokenizerSha256": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+        "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1",
+        "weightPackSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+        "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
+        "conversionConfigSha256": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9"
+      },
+      "primaryOrigin": {
+        "provider": "huggingface",
+        "repoId": "Clocksmith/doppler-wgsl-repair-qwen35-9b-lora",
+        "revision": "3e451dae47372ebcdc9448c514d0984551d93757",
+        "path": "adapters/seed47/adapter_model.safetensors"
+      },
+      "preservationMirrors": [
+        {
+          "provider": "https-preservation",
+          "url": "https://media.githubusercontent.com/media/clocksmith/doppler/9e33238db9a9d42bcf122967caf3563ee97d392c/artifacts/wgsl-repair/v12/external20/seed47/checkpoint-001200.adapters.safetensors",
+          "revision": "9e33238db9a9d42bcf122967caf3563ee97d392c"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "preservation",
+          "path": "docs/status/wgsl-repair-v12-adapter-preservation-verification-2026-07-13.json",
+          "sha256": "sha256:2892b97dd87db3247c622ee0d031c9e649eee6a0c5cb560d0ac67f5c2639025c"
+        },
+        {
+          "kind": "doppler-parity",
+          "path": "docs/status/wgsl-repair-v12-adapter-portability-2026-07-13.json",
+          "sha256": "sha256:589888d414a34a25e386f1b43347dc9b25a68ed858de6e0dc2cc3b46d8ea32e3"
+        },
+        {
+          "kind": "immutable-custody",
+          "path": "docs/status/wgsl-repair-v12-huggingface-custody-2026-07-19.json",
+          "sha256": "sha256:0191e3d95e334babcf88adc9418d7bd7eff8a2e6dcdc4657847d9d45dfaf9c07"
+        }
+      ],
+      "claimBoundary": "Preserved and Doppler-portable. Not selected or promoted for network execution."
+    }
+  ]
+}

@@ -40,3 +40,15 @@ export {
   resetAdapterRegistry,
   createMemoryRegistry,
 } from './adapter-registry.js';
+
+export {
+  ADAPTER_ARTIFACT_SCHEMA,
+  ADAPTER_ARTIFACT_LIFECYCLES,
+  ADAPTER_ARTIFACT_ACCESS,
+  ADAPTER_ARTIFACT_ORIGIN_PROVIDERS,
+  validateAdapterArtifactOrigin,
+  validateAdapterArtifactRecord,
+  assertAdapterArtifactRecord,
+  buildImmutableArtifactUrl,
+  adapterArtifactCacheKey,
+} from './artifact-contract.js';

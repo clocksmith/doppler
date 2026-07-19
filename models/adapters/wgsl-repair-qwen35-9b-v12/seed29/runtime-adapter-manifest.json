@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "checksumAlgorithm": "sha256",
+  "weightsFormat": "safetensors",
+  "id": "doppler-wgsl-qwen35-9b-v12-external20-seed29",
+  "name": "Doppler WGSL Qwen 3.5 9B V12 External20 Seed 29",
+  "baseModel": "qwen-3-5-9b-f16-af32",
+  "rank": 32,
+  "alpha": 64,
+  "targetModules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj",
+    "gate_proj",
+    "up_proj",
+    "down_proj"
+  ],
+  "weightsPath": "adapter_model.safetensors",
+  "weightsSize": 232808939,
+  "checksum": "0d9ab8e1348a3fcdd6ef2973b624cc1a3d962de90a571976a5a222df27b69394",
+  "metadata": {
+    "trainingBaseModelId": "qwen-3-5-9b-hf-bf16",
+    "trainingBaseRepo": "Qwen/Qwen3.5-9B",
+    "trainingBaseRevision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "sourceManifestSha256": "sha256:e5dec965a953aa746e592ae38045f445e7d9b1407feb609f448238427af4b042",
+    "claimBoundary": "Deployment identity bridge only. Seed 29 is a confirmed repair candidate, not a promoted general WGSL writer."
+  }
+}
