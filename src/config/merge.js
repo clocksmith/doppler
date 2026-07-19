@@ -51,6 +51,18 @@ function mergeAttention(
       runtime?.queryKeyNorm,
       sources
     ),
+    queryKeyNormType: overlay(
+      `${prefix}.queryKeyNormType`,
+      manifest.queryKeyNormType,
+      runtime?.queryKeyNormType,
+      sources
+    ),
+    queryKeyNormAxis: overlay(
+      `${prefix}.queryKeyNormAxis`,
+      manifest.queryKeyNormAxis,
+      runtime?.queryKeyNormAxis,
+      sources
+    ),
     queryKeyNormLayers: overlay(
       `${prefix}.queryKeyNormLayers`,
       manifest.queryKeyNormLayers,
@@ -97,6 +109,12 @@ function mergeNormalization(
 ) {
   const prefix = 'inference.normalization';
   return {
+    type: overlay(
+      `${prefix}.type`,
+      manifest.type,
+      runtime?.type,
+      sources
+    ),
     rmsNormEps: overlay(
       `${prefix}.rmsNormEps`,
       manifest.rmsNormEps,
@@ -125,6 +143,12 @@ function mergeNormalization(
       `${prefix}.postFeedforwardNorm`,
       manifest.postFeedforwardNorm,
       runtime?.postFeedforwardNorm,
+      sources
+    ),
+    finalNormBiasTensor: overlay(
+      `${prefix}.finalNormBiasTensor`,
+      manifest.finalNormBiasTensor,
+      runtime?.finalNormBiasTensor,
       sources
     ),
   };

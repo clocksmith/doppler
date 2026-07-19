@@ -25,6 +25,28 @@ export function rmsNormCPU(
   return result;
 }
 
+export function layerNormCPU(x, weight, bias, eps = 1e-5) {
+  if (weight.length !== x.length || bias.length !== x.length) {
+    throw new Error(
+      `LayerNorm parameter length mismatch: input=${x.length}, weight=${weight.length}, bias=${bias.length}.`
+    );
+  }
+  let sum = 0;
+  for (let i = 0; i < x.length; i++) sum += x[i];
+  const mean = sum / x.length;
+  let squaredDeviation = 0;
+  for (let i = 0; i < x.length; i++) {
+    const centered = x[i] - mean;
+    squaredDeviation += centered * centered;
+  }
+  const invStd = 1 / Math.sqrt(squaredDeviation / x.length + eps);
+  const result = new Float32Array(x.length);
+  for (let i = 0; i < x.length; i++) {
+    result[i] = (x[i] - mean) * invStd * weight[i] + bias[i];
+  }
+  return result;
+}
+
 
 export function f16BufferToF32(data) {
   const u16 = new Uint16Array(data);

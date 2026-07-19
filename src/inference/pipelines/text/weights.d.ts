@@ -12,6 +12,7 @@
 
 import type { LayerWeights } from './types.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
+import type { Tensor } from '../../../gpu/tensor.js';
 
 // ============================================================================
 // Types
@@ -60,3 +61,12 @@ export function getNormWeightBuffer(
   debugFlags?: WeightDebugFlags,
   deviceOverride?: GPUDevice | null
 ): GPUBuffer;
+
+export function getVectorTensor(
+  weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | { buffer: ArrayBuffer; byteOffset: number; byteLength: number } | CpuWeightBuffer,
+  label: string,
+  length: number,
+  config: WeightBufferConfig,
+  debugFlags?: WeightDebugFlags,
+  deviceOverride?: GPUDevice | null
+): { tensor: Tensor; owned: boolean };

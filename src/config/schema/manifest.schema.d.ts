@@ -260,6 +260,10 @@ export interface ManifestAttentionSchema {
   slidingWindow: number | null;
   /** Query-key normalization */
   queryKeyNorm: boolean;
+  /** Numerical family used for Q/K normalization. */
+  queryKeyNormType: 'rmsnorm' | 'layernorm';
+  /** Normalize each head independently or the complete projection before head reshaping. */
+  queryKeyNormAxis: 'head' | 'projection';
   /** Layers that apply query-key normalization; null means all layers when queryKeyNorm=true */
   queryKeyNormLayers: number[] | null;
   /** Layers that have explicit Q/K RMSNorm scale tensors; null means every normalized layer must have weights */
@@ -276,9 +280,11 @@ export interface ManifestAttentionSchema {
 
 /**
  * Normalization configuration for inference.
- * Controls RMSNorm behavior and sandwich norm architecture.
+ * Controls transformer normalization and sandwich norm architecture.
  */
 export interface ManifestNormalizationSchema {
+  /** Normalization family used by transformer and final norms. */
+  type: 'rmsnorm' | 'layernorm';
   /** RMSNorm epsilon for numerical stability (default: 1e-5) */
   rmsNormEps: number;
   /** Use (1 + weight) pattern for RMSNorm (Gemma models) */
@@ -289,6 +295,8 @@ export interface ManifestNormalizationSchema {
   preFeedforwardNorm: boolean;
   /** Has post-feedforward normalization (sandwich norm) */
   postFeedforwardNorm: boolean;
+  /** Exact final LayerNorm bias tensor; null for RMSNorm or bias-free LayerNorm. */
+  finalNormBiasTensor: string | null;
 }
 
 /**
@@ -380,6 +388,20 @@ export interface ManifestOutputSchema {
   embeddingVocabSize: number | null;
   /** Optional embedding-only postprocessor stack applied after pooled hidden states. */
   embeddingPostprocessor: ManifestEmbeddingPostprocessorSchema | null;
+  /** Optional exact tensor name for an additive decoder/LM-head bias. */
+  lmHeadBiasTensor: string | null;
+}
+
+export interface ManifestSequencePoolingSchema {
+  mode: 'mean' | 'last';
+  excludeTokenIds: number[];
+}
+
+export interface ManifestSequenceSchema {
+  alphabet: 'amino_acid' | 'nucleotide';
+  tokenEmbeddings: boolean;
+  pooledEmbedding: ManifestSequencePoolingSchema | null;
+  logits: boolean;
 }
 
 export interface ManifestEmbeddingProjectionSchema {
@@ -511,12 +533,16 @@ export interface ManifestInferenceSchema {
   chatTemplate: ManifestChatTemplateSchema;
   /** Whether this artifact exposes embedding workload support through pipeline.embed(). */
   supportsEmbedding: boolean;
+  /** Whether this artifact exposes typed biological sequence outputs. */
+  supportsSequence: boolean;
   /** Whether this artifact exposes rerank workload support through prefillWithLogits(). */
   supportsRerank: boolean;
   /** DiffusionGemma block-diffusion runtime contract, null for non-DiffusionGemma models. */
   diffusionGemma: ManifestDiffusionGemmaSchema | null;
   /** Manifest-owned rerank scoring contract, null when rerank is unsupported. */
   rerank: ManifestRerankSchema | null;
+  /** Biological sequence input/output contract, null when unsupported. */
+  sequence: ManifestSequenceSchema | null;
   /** Layer pipeline override (null = use optimized hardcoded path) */
   pipeline: LayerPipelineSchema | null;
   /** Explicit session policy for execution v1 manifests */
@@ -790,6 +816,11 @@ export declare function hasInferenceConfig<T extends { inference?: ManifestInfer
 
 /** Check if a manifest supports embedding workloads. */
 export declare function modelSupportsEmbedding(
+  manifest: Partial<ManifestSchema> | null | undefined
+): boolean;
+
+/** Check if a manifest supports typed biological sequence workloads. */
+export declare function modelSupportsSequence(
   manifest: Partial<ManifestSchema> | null | undefined
 ): boolean;
 

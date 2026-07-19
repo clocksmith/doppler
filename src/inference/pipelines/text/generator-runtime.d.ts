@@ -88,6 +88,17 @@ export function extractEmbeddingFromHidden(
   hiddenSize: number,
   embeddingMode: 'last' | 'mean',
   finalNormWeights: Float32Array,
-  config: Pick<ParsedModelConfig, 'rmsNormEps' | 'rmsNormWeightOffset' | 'embeddingPostprocessor'>,
-  embeddingPostprocessor?: LoadedEmbeddingPostprocessor | null
+  config: Pick<ParsedModelConfig, 'normalizationType' | 'finalNormBiasTensor' | 'rmsNormEps' | 'rmsNormWeightOffset' | 'embeddingPostprocessor'>,
+  embeddingPostprocessor?: LoadedEmbeddingPostprocessor | null,
+  normalizedTokenEmbeddings?: Float32Array | null,
+  finalNormBias?: Float32Array | null
+): Float32Array;
+
+export function extractTokenEmbeddingsFromHidden(
+  hiddenStates: Float32Array,
+  numTokens: number,
+  hiddenSize: number,
+  finalNormWeights: Float32Array,
+  config: Pick<ParsedModelConfig, 'normalizationType' | 'finalNormBiasTensor' | 'rmsNormEps' | 'rmsNormWeightOffset'>,
+  finalNormBias?: Float32Array | null
 ): Float32Array;

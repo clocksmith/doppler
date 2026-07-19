@@ -245,9 +245,11 @@ export async function loadFinalWeights(ctx) {
   if (normDebugLogged) {
     normOffsetDebugLogged = true;
   }
+  const finalNormBias = await loadFinalNormBias(ctx);
 
   // Load LM head
   const lmHead = await loadLmHead(ctx);
+  const lmHeadBias = await loadLmHeadBias(ctx);
   const embeddingPostprocessor = await loadEmbeddingPostprocessor(ctx);
   const diffusionGemmaSelfConditioning = shouldLoadDiffusionGemmaSelfConditioning(ctx)
     ? await loadDiffusionGemmaSelfConditioning(ctx)
@@ -255,11 +257,32 @@ export async function loadFinalWeights(ctx) {
 
   return {
     finalNorm,
+    finalNormBias,
     lmHead,
+    lmHeadBias,
     embeddingPostprocessor,
     diffusionGemmaSelfConditioning,
     normOffsetDebugLogged,
   };
+}
+
+async function loadFinalNormBias(ctx) {
+  const tensorName = typeof ctx.finalNormBiasTensor === 'string'
+    ? ctx.finalNormBiasTensor.trim()
+    : '';
+  if (!tensorName) {
+    return null;
+  }
+  const location = ctx.tensorLocations.get(tensorName);
+  if (!location) {
+    throw new Error(`[Loader] Final norm bias tensor "${tensorName}" is missing from the manifest.`);
+  }
+  if (!Array.isArray(location.shape) || location.shape.length !== 1) {
+    throw new Error(
+      `[Loader] Final norm bias tensor "${tensorName}" must be rank 1, got ${JSON.stringify(location.shape)}.`
+    );
+  }
+  return loadCpuFloatTensor(ctx, tensorName, `final norm bias "${tensorName}"`);
 }
 
 // ============================================================================
@@ -396,6 +419,25 @@ async function loadLmHead(ctx) {
   }
 
   return lmHead;
+}
+
+async function loadLmHeadBias(ctx) {
+  const tensorName = typeof ctx.lmHeadBiasTensor === 'string'
+    ? ctx.lmHeadBiasTensor.trim()
+    : '';
+  if (!tensorName) {
+    return null;
+  }
+  const location = ctx.tensorLocations.get(tensorName);
+  if (!location) {
+    throw new Error(`[Loader] LM head bias tensor "${tensorName}" is missing from the manifest.`);
+  }
+  if (!Array.isArray(location.shape) || location.shape.length !== 1) {
+    throw new Error(
+      `[Loader] LM head bias tensor "${tensorName}" must be rank 1, got ${JSON.stringify(location.shape)}.`
+    );
+  }
+  return loadCpuFloatTensor(ctx, tensorName, `LM head bias "${tensorName}"`);
 }
 
 async function loadEmbeddingPostprocessor(ctx) {

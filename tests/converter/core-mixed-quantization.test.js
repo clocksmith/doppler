@@ -98,13 +98,13 @@ await convertModel(model, io, {
       scaleEmbeddings: true,
     },
   },
-  eosTokenId: 1,
   converterConfig: createConverterConfig(),
 });
 
 assert.ok(capturedManifest, 'manifest should be written');
 assert.equal(capturedManifest.quantization, 'F16');
 assert.equal(capturedManifest.quantizationInfo?.embeddings, 'f32');
+assert.equal(capturedManifest.eos_token_id, null, 'embedding artifacts may explicitly omit EOS');
 
 const embedLoc = capturedManifest.tensors?.['embed_tokens.weight'];
 const qProjLoc = capturedManifest.tensors?.['model.layers.0.self_attn.q_proj.weight'];

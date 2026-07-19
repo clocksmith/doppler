@@ -57,6 +57,7 @@ function shouldUseSandwichRMSNormPairFusion({
   attnOutput,
   inputTensor,
 }) {
+  if (context.config?.normalizationType === 'layernorm') return false;
   const mergedSession = getRuntimeConfig()?.inference?.session;
   if (mergedSession?.useSandwichRMSNormPairFusion !== true) {
     return false;
@@ -123,6 +124,7 @@ function shouldUsePostFfnNextInputRMSNormPairFusion({
   activationDtype,
   layerScalar,
 }) {
+  if (config.normalizationType === 'layernorm') return false;
   const mergedSession = getRuntimeConfig()?.inference?.session;
   if (mergedSession?.usePostFfnNextInputRMSNormPairFusion !== true) {
     return false;
@@ -176,6 +178,7 @@ function shouldUseStandardPostFfnNextInputRMSNormPairFusion({
   layerScalar,
   residualBranchScale,
 }) {
+  if (config.normalizationType === 'layernorm') return false;
   const mergedSession = getRuntimeConfig()?.inference?.session;
   if (mergedSession?.usePostFfnNextInputRMSNormPairFusion !== true) {
     return false;
@@ -851,6 +854,8 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
       queryPreAttnScalar: config.queryPreAttnScalar,
       queryKeyNorm,
+      queryKeyNormType: config.queryKeyNormType,
+      queryKeyNormAxis: config.queryKeyNormAxis,
       queryKeyNormWeightLayers: config.queryKeyNormWeightLayers,
       valueNorm: config.valueNorm,
       attentionOutputGate: config.attentionOutputGate,
@@ -860,6 +865,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         ? (context.multimodalBidirectionalSpan ?? null)
         : null,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
+      normalizationType: config.normalizationType,
       ropeRotaryDim: resolveAttentionRotaryDim(config, layerType),
       ropeFrequencyBaseDim: resolveAttentionFrequencyBaseDim(config, layerType),
       ropeInterleaved: config.ropeInterleaved,

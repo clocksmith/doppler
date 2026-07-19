@@ -778,7 +778,7 @@ function resolveIntermediateSizeFromTensors(architecture, model, tensorLocations
     return architecture;
   }
   const modelType = String(rawConfig?.model_type ?? getNestedTextConfig(rawConfig)?.model_type ?? '').toLowerCase();
-  if (modelType !== 'lfm2') {
+  if (modelType !== 'lfm2' && modelType !== 'amplify') {
     return architecture;
   }
   const entries = Array.isArray(model?.tensors) && model.tensors.length > 0
@@ -1576,7 +1576,7 @@ export function extractArchitecture(config, ggufConfig) {
       'vocab_size'
     );
     const maxSeqLen = requireNumber(
-      fromConfig('max_position_embeddings', 'n_positions', 'max_seq_len'),
+      fromConfig('max_position_embeddings', 'n_positions', 'max_seq_len', 'max_length'),
       'max_position_embeddings'
     );
     const ropeTheta = fromConfig('rope_theta') ?? undefined;
@@ -2264,6 +2264,7 @@ export function createManifest(
     throw new Error('Missing modelType for manifest');
   }
   const isDiffusion = resolvedModelType === 'diffusion';
+  const isEmbedding = resolvedModelType === 'embedding';
   const architecture = options.architecture ?? model.architecture ?? (
     isDiffusion ? 'diffusion' : extractArchitecture(model.config, model.ggufConfig)
   );
@@ -2300,8 +2301,8 @@ export function createManifest(
     inference = {
       ...inference,
       output: {
-        ...inference.output,
         ...embeddingOutput,
+        ...inference.output,
         embeddingPostprocessor,
       },
     };
@@ -2309,7 +2310,7 @@ export function createManifest(
 
   const eosTokenId = options.eosTokenId !== undefined
     ? options.eosTokenId
-    : isDiffusion
+    : isDiffusion || isEmbedding
       ? null
       : resolveEosTokenId({
           config: rawConfig,

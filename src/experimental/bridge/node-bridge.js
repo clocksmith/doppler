@@ -21,4 +21,8 @@
  *
  * See `src/tooling/node-webgpu.js` for the full implementation.
  */
-export { bootstrapNodeWebGPU, bootstrapNodeWebGPUProvider } from '../tooling/node-webgpu.js';
+export {
+  bootstrapNodeWebGPU,
+  bootstrapNodeWebGPUProvider,
+  releaseNodeWebGPU,
+} from '../tooling/node-webgpu.js';

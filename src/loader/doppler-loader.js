@@ -224,6 +224,9 @@ export class DopplerLoader {
   experts = new Map();
   
   lmHead = null;
+
+  lmHeadBias = null;
+  finalNormBias = null;
   
   finalNorm = null;
 
@@ -1398,6 +1401,8 @@ export class DopplerLoader {
       resolveWeightLayout: (loc) => this.#resolveWeightLayout(loc),
       embeddings: this.embeddings,
       embeddingPostprocessor: this.manifest?.inference?.output?.embeddingPostprocessor ?? null,
+      finalNormBiasTensor: this.manifest?.inference?.normalization?.finalNormBiasTensor ?? null,
+      lmHeadBiasTensor: this.manifest?.inference?.output?.lmHeadBiasTensor ?? null,
       diffusionGemmaSelfConditioning: this.manifest?.inference?.diffusionGemma?.selfConditioning === true,
       modelType: this.manifest?.modelType ?? null,
       tieWordEmbeddings,
@@ -1408,7 +1413,9 @@ export class DopplerLoader {
 
     const result = await loadFinalWeights(ctx);
     this.finalNorm = result.finalNorm;
+    this.finalNormBias = result.finalNormBias;
     this.lmHead = result.lmHead;
+    this.lmHeadBias = result.lmHeadBias;
     this.embeddingPostprocessor = result.embeddingPostprocessor;
     this.diffusionGemmaSelfConditioning = result.diffusionGemmaSelfConditioning;
     this.#normOffsetDebugLogged = result.normOffsetDebugLogged;
@@ -1525,6 +1532,8 @@ export class DopplerLoader {
     this.layers.clear();
     this.experts.clear();
     this.lmHead = null;
+    this.lmHeadBias = null;
+    this.finalNormBias = null;
     this.finalNorm = null;
     this.embeddingPostprocessor = null;
     this.perLayerInputWeights = null;

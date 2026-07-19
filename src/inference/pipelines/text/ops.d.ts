@@ -59,6 +59,36 @@ export function doRMSNorm(
   recorder?: CommandRecorder
 ): Promise<Tensor>;
 
+export function doLayerNorm(
+  input: Tensor,
+  weight: GPUBuffer,
+  bias: GPUBuffer,
+  eps: number,
+  options: {
+    batchSize: number;
+    hiddenSize: number;
+    outputBuffer?: GPUBuffer | null;
+    label?: string;
+    layerIdx?: number;
+  },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+export function doBiasAdd(
+  data: Tensor,
+  bias: Tensor,
+  numTokens: number,
+  dim: number,
+  options?: {
+    dataOffset?: number;
+    biasOffset?: number;
+    label?: string;
+    layerIdx?: number;
+    executionPolicies?: ExecutionV1PoliciesSchema | null;
+  },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
 export function doRMSNormStats(
   input: Tensor,
   residual: Tensor,

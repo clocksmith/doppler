@@ -13,6 +13,8 @@ const ADAPTER_PROBE_OPTIONS = Object.freeze([
   null,
 ]);
 
+let ownedProviderInstallation = null;
+
 function hasNavigatorGpu() {
   return typeof globalThis.navigator !== 'undefined'
     && !!globalThis.navigator?.gpu
@@ -158,6 +160,11 @@ function resolveExportsPath(exportsField, rootPath) {
 function installNavigatorGpu(gpu, options = {}) {
   if (!gpu || typeof gpu.requestAdapter !== 'function') return false;
   const force = options.force === true;
+  const provider = options.provider ?? null;
+  const hadNavigator = typeof globalThis.navigator !== 'undefined';
+  const navigatorGpuDescriptor = hadNavigator
+    ? Object.getOwnPropertyDescriptor(globalThis.navigator, 'gpu') ?? null
+    : null;
   if (typeof globalThis.navigator === 'undefined') {
     Object.defineProperty(globalThis, 'navigator', {
       value: { gpu },
@@ -165,11 +172,34 @@ function installNavigatorGpu(gpu, options = {}) {
       configurable: true,
       enumerable: false,
     });
+    ownedProviderInstallation = {
+      gpu,
+      provider,
+      hadNavigator: false,
+      navigatorGpuDescriptor: null,
+    };
     return true;
   }
 
   if (force && globalThis.navigator.gpu) {
-    globalThis.navigator.gpu = gpu;
+    const previousOwnedInstallation = ownedProviderInstallation;
+    const replacesOwnedProvider = previousOwnedInstallation?.gpu === globalThis.navigator.gpu;
+    Object.defineProperty(globalThis.navigator, 'gpu', {
+      value: gpu,
+      writable: true,
+      configurable: true,
+      enumerable: navigatorGpuDescriptor?.enumerable === true,
+    });
+    ownedProviderInstallation = {
+      gpu,
+      provider,
+      hadNavigator: replacesOwnedProvider
+        ? previousOwnedInstallation.hadNavigator
+        : hadNavigator,
+      navigatorGpuDescriptor: replacesOwnedProvider
+        ? previousOwnedInstallation.navigatorGpuDescriptor
+        : navigatorGpuDescriptor,
+    };
     return true;
   }
 
@@ -180,8 +210,58 @@ function installNavigatorGpu(gpu, options = {}) {
       configurable: true,
       enumerable: false,
     });
+    ownedProviderInstallation = {
+      gpu,
+      provider,
+      hadNavigator,
+      navigatorGpuDescriptor,
+    };
   }
   return true;
+}
+
+/**
+ * Release a Node WebGPU provider installed by this module.
+ *
+ * Dawn's Node binding keeps its callback pump alive while the GPU object is
+ * reachable. Device destruction is necessary but insufficient: command-line
+ * callers must also release Doppler's global provider reference after all GPU
+ * work and devices have been torn down. Pre-installed browser or host-owned
+ * providers are never removed.
+ */
+export function releaseNodeWebGPU() {
+  const installation = ownedProviderInstallation;
+  ownedProviderInstallation = null;
+  if (!installation) {
+    return { released: false, provider: null, reason: 'not-owned' };
+  }
+
+  const navigatorObject = globalThis.navigator;
+  if (!navigatorObject || navigatorObject.gpu !== installation.gpu) {
+    return {
+      released: false,
+      provider: installation.provider,
+      reason: 'provider-replaced',
+    };
+  }
+
+  if (!installation.hadNavigator) {
+    delete globalThis.navigator;
+  } else if (installation.navigatorGpuDescriptor) {
+    Object.defineProperty(
+      navigatorObject,
+      'gpu',
+      installation.navigatorGpuDescriptor
+    );
+  } else {
+    delete navigatorObject.gpu;
+  }
+
+  return {
+    released: true,
+    provider: installation.provider,
+    reason: null,
+  };
 }
 
 function resolveGpuFromModule(mod) {
@@ -317,7 +397,10 @@ async function tryInstallAndProbeProvider(providerSpecifier, options = {}) {
     };
   }
 
-  if (!installWebgpuFromModule(mod, { force: options.force === true })) {
+  if (!installWebgpuFromModule(mod, {
+    force: options.force === true,
+    provider: providerSpecifier,
+  })) {
     return {
       ok: false,
       provider: providerSpecifier,

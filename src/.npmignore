@@ -65,6 +65,8 @@ config/schema/wgsl-writer-experiment.schema.json
 config/schema/wgsl-writer-training-policy.schema.json
 config/schema/wgsl-writer-v3-campaign.schema.json
 config/schema/wgsl-writer-v3-capability-catalog.schema.json
+config/schema/wgsl-writer-v3-corpus-policy.schema.json
+config/schema/wgsl-writer-v3-training-policy.schema.json
 config/support-tiers/subsystems.json
 config/supported-operations.d.ts
 config/transforms/capability-transform-resolver.d.ts

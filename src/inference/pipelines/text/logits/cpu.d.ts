@@ -25,6 +25,12 @@ export function rmsNormCPU(
   eps?: number,
   rmsNormWeightOffset?: boolean
 ): Float32Array;
+export function layerNormCPU(
+  x: Float32Array,
+  weight: Float32Array,
+  bias: Float32Array,
+  eps?: number
+): Float32Array;
 
 /**
  * Convert a single float16 value to float32.

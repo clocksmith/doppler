@@ -19,6 +19,8 @@ const ATTN_CONFIG_REQUIRED_FIELDS = Object.freeze([
   'activationDtype',
   'attnSoftcap',
   'queryPreAttnScalar',
+  'queryKeyNormType',
+  'queryKeyNormAxis',
 ]);
 
 /**

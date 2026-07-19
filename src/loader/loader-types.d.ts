@@ -38,11 +38,17 @@ export interface TensorLocation {
  */
 export interface LayerWeights {
   inputNorm: GPUBuffer | Float32Array | null;
+  inputNormBias?: GPUBuffer | Float32Array | null;
   qProj: GPUBuffer | WeightBuffer | Float32Array | null;
+  qProjBias?: GPUBuffer | Float32Array | null;
   kProj: GPUBuffer | WeightBuffer | Float32Array | null;
+  kProjBias?: GPUBuffer | Float32Array | null;
   vProj: GPUBuffer | WeightBuffer | Float32Array | null;
+  vProjBias?: GPUBuffer | Float32Array | null;
   oProj: GPUBuffer | WeightBuffer | Float32Array | null;
+  oProjBias?: GPUBuffer | Float32Array | null;
   qkvProj?: GPUBuffer | WeightBuffer | Float32Array | null;
+  qkvProjBias?: GPUBuffer | Float32Array | null;
   qkvSizes?: [number, number, number] | null;
   qkvDtype?: 'f16' | 'f32' | null;
   linearABProj?: WeightBuffer | null;
@@ -54,9 +60,10 @@ export interface LayerWeights {
   linearDtBias?: GPUBuffer | Float32Array | null;
   linearALog?: GPUBuffer | Float32Array | null;
   linearNorm?: GPUBuffer | Float32Array | null;
-  qNorm: GPUBuffer | Float32Array | null;
-  kNorm: GPUBuffer | Float32Array | null;
+  qNorm: GPUBuffer | WeightBuffer | Float32Array | null;
+  kNorm: GPUBuffer | WeightBuffer | Float32Array | null;
   postAttentionNorm: GPUBuffer | Float32Array | null;
+  postAttentionNormBias?: GPUBuffer | Float32Array | null;
   preFeedforwardNorm: GPUBuffer | Float32Array | null;
   preFeedforwardNorm2?: GPUBuffer | Float32Array | null;
   postFeedforwardNorm: GPUBuffer | Float32Array | null;
@@ -68,14 +75,20 @@ export interface LayerWeights {
   convKernel?: GPUBuffer | WeightBuffer | Float32Array | null;
   convOutProj?: GPUBuffer | WeightBuffer | Float32Array | null;
   ffnGate: GPUBuffer | WeightBuffer | Float32Array | null;
+  ffnGateBias?: GPUBuffer | Float32Array | null;
   ffnUp: GPUBuffer | WeightBuffer | Float32Array | null;
+  ffnUpBias?: GPUBuffer | Float32Array | null;
   ffnDown: GPUBuffer | WeightBuffer | Float32Array | null;
+  ffnDownBias?: GPUBuffer | Float32Array | null;
   /** Fused gate+up projection [intermediateSize*2, hiddenSize] for 2-pass FFN */
   ffnGateUp?: GPUBuffer | WeightBuffer | Float32Array | null;
   // Aliases for pipeline compatibility
   gate?: GPUBuffer | WeightBuffer | Float32Array | null;
+  gateBias?: GPUBuffer | Float32Array | null;
   up?: GPUBuffer | WeightBuffer | Float32Array | null;
+  upBias?: GPUBuffer | Float32Array | null;
   down?: GPUBuffer | WeightBuffer | Float32Array | null;
+  downBias?: GPUBuffer | Float32Array | null;
   /** Fused gate+up for pipeline compatibility */
   gateUp?: GPUBuffer | WeightBuffer | Float32Array | null;
   routerWeight?: GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null;

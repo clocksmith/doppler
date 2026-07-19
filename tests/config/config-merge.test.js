@@ -22,10 +22,13 @@ function createManifest(overrides = {}) {
         attnLogitSoftcapping: null,
         slidingWindow: null,
         queryKeyNorm: false,
+        queryKeyNormType: 'rmsnorm',
+        queryKeyNormAxis: 'head',
         attentionOutputGate: false,
         causal: true,
       },
       normalization: {
+        type: 'rmsnorm',
         rmsNormEps: 1e-6,
         rmsNormWeightOffset: false,
         postAttentionNorm: false,
@@ -82,6 +85,9 @@ function createManifest(overrides = {}) {
   assert.equal(merged.architecture, 'transformer');
   assert.equal(merged.inference.layerPattern, 'standard');
   assert.equal(merged.inference.attention.causal, true);
+  assert.equal(merged.inference.attention.queryKeyNormType, 'rmsnorm');
+  assert.equal(merged.inference.attention.queryKeyNormAxis, 'head');
+  assert.equal(merged.inference.normalization.type, 'rmsnorm');
   assert.equal(merged.inference.normalization.rmsNormEps, 1e-6);
   assert.equal(merged.inference.ffn.activation, 'gelu');
   assert.equal(merged.inference.rope.ropeTheta, 10000);
@@ -102,8 +108,13 @@ function createManifest(overrides = {}) {
   const merged = mergeConfig(manifest, {
     layerPattern: 'custom',
     pipeline: 'embedding',
-    attention: { causal: false, slidingWindow: 512 },
-    normalization: { rmsNormEps: 1e-5 },
+    attention: {
+      causal: false,
+      slidingWindow: 512,
+      queryKeyNormType: 'layernorm',
+      queryKeyNormAxis: 'projection',
+    },
+    normalization: { type: 'layernorm', rmsNormEps: 1e-5 },
     ffn: { activation: 'silu', useDoubleWideMlp: true },
     rope: { ropeTheta: 500000 },
     output: {
@@ -122,6 +133,9 @@ function createManifest(overrides = {}) {
   assert.equal(merged.inference.pipeline, 'embedding');
   assert.equal(merged.inference.attention.causal, false);
   assert.equal(merged.inference.attention.slidingWindow, 512);
+  assert.equal(merged.inference.attention.queryKeyNormType, 'layernorm');
+  assert.equal(merged.inference.attention.queryKeyNormAxis, 'projection');
+  assert.equal(merged.inference.normalization.type, 'layernorm');
   assert.equal(merged.inference.normalization.rmsNormEps, 1e-5);
   assert.equal(merged.inference.ffn.activation, 'silu');
   assert.equal(merged.inference.ffn.useDoubleWideMlp, true);
@@ -134,6 +148,7 @@ function createManifest(overrides = {}) {
   assert.equal(merged._sources.get('inference.layerPattern'), 'runtime');
   assert.equal(merged._sources.get('inference.pipeline'), 'runtime');
   assert.equal(merged._sources.get('inference.attention.causal'), 'runtime');
+  assert.equal(merged._sources.get('inference.normalization.type'), 'runtime');
   assert.equal(merged._sources.get('inference.normalization.rmsNormEps'), 'runtime');
   assert.equal(merged._sources.get('inference.rope.ropeTheta'), 'runtime');
   assert.equal(merged._sources.get('inference.output.embeddingPostprocessor'), 'runtime');

@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import {
   bootstrapNodeWebGPU,
   bootstrapNodeWebGPUProvider,
+  releaseNodeWebGPU,
 } from '../../src/tooling/node-webgpu.js';
 
 function snapshotState() {
@@ -28,6 +29,7 @@ function snapshotState() {
 }
 
 function restoreState(snapshot) {
+  releaseNodeWebGPU();
   if (snapshot.moduleEnv === undefined) {
     delete process.env.DOPPLER_NODE_WEBGPU_MODULE;
   } else {
@@ -695,6 +697,100 @@ export const GPUShaderStage = { COMPUTE: 1 };
 
     const ready = await bootstrapNodeWebGPU();
     assert.equal(ready.ok, false);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  try {
+    clearRuntime();
+    const hostGpu = {
+      provider: 'host',
+      async requestAdapter() { return { provider: 'host' }; },
+    };
+    setNavigatorGpu(hostGpu);
+    globalThis.GPUBufferUsage = { COPY_SRC: 1 };
+    globalThis.GPUShaderStage = { COMPUTE: 1 };
+
+    const ready = await bootstrapNodeWebGPU();
+    assert.equal(ready.provider, 'pre-installed');
+    assert.deepEqual(releaseNodeWebGPU(), {
+      released: false,
+      provider: null,
+      reason: 'not-owned',
+    });
+    assert.equal(globalThis.navigator.gpu, hostGpu);
+  } finally {
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-release-'));
+  try {
+    clearRuntime();
+    const hostGpu = {
+      provider: 'host',
+      async requestAdapter() { return { provider: 'host' }; },
+    };
+    setNavigatorGpu(hostGpu);
+    globalThis.GPUBufferUsage = { COPY_SRC: 1 };
+    globalThis.GPUShaderStage = { COMPUTE: 1 };
+    const modulePath = path.join(tempDir, 'owned-provider.mjs');
+    writeFileSync(modulePath, `
+export const gpu = {
+  provider: 'owned',
+  async requestAdapter() { return { provider: 'owned' }; }
+};
+export const GPUBufferUsage = { COPY_SRC: 2 };
+export const GPUShaderStage = { COMPUTE: 2 };
+`, 'utf8');
+
+    await bootstrapNodeWebGPUProvider(pathToFileURL(modulePath).href, { force: true });
+    assert.equal(globalThis.navigator.gpu.provider, 'owned');
+    assert.deepEqual(releaseNodeWebGPU(), {
+      released: true,
+      provider: pathToFileURL(modulePath).href,
+      reason: null,
+    });
+    assert.equal(globalThis.navigator.gpu, hostGpu);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+    restoreState(snapshot);
+  }
+}
+
+{
+  const snapshot = snapshotState();
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-webgpu-replaced-'));
+  try {
+    clearRuntime();
+    const modulePath = path.join(tempDir, 'owned-provider.mjs');
+    writeFileSync(modulePath, `
+export const gpu = {
+  provider: 'owned',
+  async requestAdapter() { return { provider: 'owned' }; }
+};
+export const GPUBufferUsage = { COPY_SRC: 2 };
+export const GPUShaderStage = { COMPUTE: 2 };
+`, 'utf8');
+
+    await bootstrapNodeWebGPUProvider(pathToFileURL(modulePath).href, { force: true });
+    const replacementGpu = {
+      provider: 'replacement',
+      async requestAdapter() { return { provider: 'replacement' }; },
+    };
+    setNavigatorGpu(replacementGpu);
+    assert.deepEqual(releaseNodeWebGPU(), {
+      released: false,
+      provider: pathToFileURL(modulePath).href,
+      reason: 'provider-replaced',
+    });
+    assert.equal(globalThis.navigator.gpu, replacementGpu);
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
     restoreState(snapshot);

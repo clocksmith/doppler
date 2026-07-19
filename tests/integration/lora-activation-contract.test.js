@@ -78,6 +78,10 @@ function sha256Hex(bytes) {
   const manifestPath = path.join(dir, 'doppler-adapter-manifest.json');
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
   const pipeline = {
+    manifest: { modelId: 'gemma4-e2b-it' },
+    weights: new Map([
+      ['layer_0', { qProj: {} }],
+    ]),
     lora: null,
     setLoRAAdapter(adapter) {
       this.lora = adapter;
@@ -95,6 +99,60 @@ function sha256Hex(bytes) {
   assert.equal(result.adapterName, 'columbo-peft-demo');
   assert.equal(result.source, 'adapterManifestPath:file');
   assert.equal(pipeline.lora.layers.get(0).q_proj.scale, 2);
+
+  await assert.rejects(
+    () => activateLoRAFromTrainingOutputForPipeline(pipeline, {
+      adapterManifest: {
+        ...manifest,
+        baseModel: 'different-base-model',
+        weightsPath: undefined,
+        checksum: undefined,
+        tensors: [
+          {
+            name: 'layers.0.q_proj.lora_a',
+            shape: [1, 1],
+            dtype: 'f32',
+            data: [7],
+          },
+          {
+            name: 'layers.0.q_proj.lora_b',
+            shape: [1, 1],
+            dtype: 'f32',
+            data: [11],
+          },
+        ],
+      },
+    }),
+    /targets base model "different-base-model", but the loaded model is "gemma4-e2b-it"/
+  );
+  assert.equal(pipeline.lora.name, 'columbo-peft-demo');
+
+  await assert.rejects(
+    () => activateLoRAFromTrainingOutputForPipeline(pipeline, {
+      adapterManifest: {
+        ...manifest,
+        targetModules: ['up_proj'],
+        weightsPath: undefined,
+        checksum: undefined,
+        tensors: [
+          {
+            name: 'layers.0.up_proj.lora_a',
+            shape: [1, 1],
+            dtype: 'f32',
+            data: [7],
+          },
+          {
+            name: 'layers.0.up_proj.lora_b',
+            shape: [1, 1],
+            dtype: 'f32',
+            data: [11],
+          },
+        ],
+      },
+    }),
+    /targets up_proj at layer 0, but the loaded model has no compatible weight/
+  );
+  assert.equal(pipeline.lora.name, 'columbo-peft-demo');
 }
 
 console.log('lora-activation-contract.test: ok');

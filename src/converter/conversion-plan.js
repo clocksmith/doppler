@@ -123,7 +123,19 @@ function resolveConversionPlanV1(options) {
   const rawConfig = options?.rawConfig || {};
   const tensors = Array.isArray(options?.tensors) ? options.tensors : [];
   const converterConfig = options.converterConfig;
-  const inference = converterConfig.inference;
+  const rawInference = converterConfig.inference;
+  const inference = rawInference && typeof rawInference === 'object'
+    ? {
+      ...rawInference,
+      attention: rawInference.attention && typeof rawInference.attention === 'object'
+        ? {
+          queryKeyNormType: 'rmsnorm',
+          queryKeyNormAxis: 'head',
+          ...rawInference.attention,
+        }
+        : rawInference.attention,
+    }
+    : rawInference;
   const execution = converterConfig.execution;
   const session = converterConfig.session;
   const modelType = converterConfig?.modelType ?? rawConfig?.model_type ?? 'transformer';
@@ -217,10 +229,12 @@ function resolveConversionPlanV1(options) {
     layerPattern: inference.layerPattern ?? { type: 'uniform', globalPattern: null, period: null, offset: null, layerTypes: null },
     chatTemplate: inference.chatTemplate,
     supportsEmbedding: inference.supportsEmbedding ?? false,
+    supportsSequence: inference.supportsSequence ?? false,
     supportsRerank: inference.supportsRerank ?? false,
     supportsTranscription: inference.supportsTranscription ?? false,
     supportsVision: inference.supportsVision ?? false,
     rerank: inference.rerank ?? null,
+    sequence: inference.sequence ?? null,
     diffusionGemma: inference.diffusionGemma ?? null,
     pipeline: inference.pipeline ?? null,
     session,

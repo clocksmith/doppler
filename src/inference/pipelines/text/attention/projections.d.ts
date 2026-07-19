@@ -72,6 +72,12 @@ export function resolveProjectionSliceOffsetBytes(
   inputCols: number
 ): number;
 
+export function normBufferMatchesSize(
+  buffer: { size?: number } | null | undefined,
+  expectedSize: number,
+  layerWeight?: Pick<WeightBuffer | CpuWeightBuffer, 'shape'> | ArrayBufferView | null
+): boolean;
+
 export interface AttentionQKNormState {
   wantsQKNorm: boolean;
   hasQNorm: boolean;
@@ -102,6 +108,8 @@ export function hasAttentionStageDiagnostics(
 export function resolveAttentionQKNormState(options: {
   config: {
     queryKeyNorm?: boolean;
+    queryKeyNormType?: 'rmsnorm' | 'layernorm';
+    queryKeyNormAxis?: 'head' | 'projection';
     queryKeyNormWeightLayers?: number[] | null;
   };
   layerWeights: LayerWeights;
@@ -181,6 +189,8 @@ export interface ApplyAttentionQKNormOptions {
   numKVHeads: number;
   headDim: number;
   rmsNormWeightOffset?: boolean;
+  normalizationType?: 'rmsnorm' | 'layernorm';
+  normalizationAxis?: 'head' | 'projection';
   releaseTemporary: (buffer: GPUBuffer) => void;
   onQNormApplied?: ((tensor: Tensor) => Promise<void> | void) | null;
   onKNormApplied?: ((tensor: Tensor) => Promise<void> | void) | null;

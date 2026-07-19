@@ -2,7 +2,9 @@
 
 import {
   runRMSNorm, runResidualAdd, runMatmul, runSiLU, runGeLU,
+  runLayerNorm, runBiasAdd,
   recordRMSNorm, recordResidualAdd, recordMatmul, recordSiLU, recordGeLU,
+  recordLayerNorm, recordBiasAdd,
   runSiLURowSplit, recordSiLURowSplit,
   runMatmulRMSNormFused, recordMatmulRMSNormFused,
   runRMSNormStats, recordRMSNormStats,
@@ -57,6 +59,36 @@ export async function doRMSNorm(input, weight, eps, options, recorder) {
     await traceStep('rmsnorm', label, layer, result.buffer, [options.batchSize, options.hiddenSize]);
   }
 
+  return result;
+}
+
+export async function doLayerNorm(input, weight, bias, eps, options, recorder) {
+  const result = recorder
+    ? await recordLayerNorm(recorder, input, weight, bias, eps, options)
+    : await runLayerNorm(input, weight, bias, eps, options);
+
+  if (kernelTrace.enabled && !recorder) {
+    const layer = options.layerIdx ?? -1;
+    const label = options.label ?? 'layernorm';
+    await traceStep('layernorm', label, layer, result.buffer, [options.batchSize, options.hiddenSize]);
+  }
+  return result;
+}
+
+export async function doBiasAdd(data, bias, numTokens, dim, options, recorder) {
+  const result = recorder
+    ? await recordBiasAdd(recorder, data, bias, numTokens, dim, options)
+    : await runBiasAdd(data, bias, numTokens, dim, options);
+
+  if (kernelTrace.enabled && !recorder) {
+    await traceStep(
+      'bias_add',
+      options?.label ?? 'bias_add',
+      options?.layerIdx ?? -1,
+      result.buffer,
+      [numTokens, dim]
+    );
+  }
   return result;
 }
 

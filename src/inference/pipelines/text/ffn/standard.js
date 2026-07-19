@@ -1,7 +1,15 @@
 
 
-import { doCast, doRMSNorm, doRMSNormStats, doResidualAdd, doResidualNextRMSNormPair, releaseOrTrack } from '../ops.js';
-import { getNormWeightBuffer } from '../weights.js';
+import {
+  doCast,
+  doLayerNorm,
+  doRMSNorm,
+  doRMSNormStats,
+  doResidualAdd,
+  doResidualNextRMSNormPair,
+  releaseOrTrack,
+} from '../ops.js';
+import { getNormWeightBuffer, getVectorTensor } from '../weights.js';
 import { runProbes } from '../probes.js';
 import { isMoELayerLocal } from './types.js';
 import { runDenseFFNGPU } from './dense.js';
@@ -15,6 +23,7 @@ import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 
 function shouldUsePostAttnNormFusedGateUpPrelude({ session, postAttn, fusedResidualInput, numTokens, context }) {
+  if (context.config.normalizationType !== 'rmsnorm') return false;
   if (session?.usePostAttnNormFusedGateUp !== true) return false;
   if (numTokens !== 1) return false;
   if (postAttn?.dtype !== 'f32' || fusedResidualInput?.dtype !== 'f32') return false;
@@ -92,7 +101,44 @@ export async function processFFNStandard(
     releasePostAttnNormWeight = !isGpuBufferInstance(layerWeights.postAttnNorm) && !isWeightBuffer(layerWeights.postAttnNorm);
     const session = getRuntimeConfig().inference?.session;
 
-    if (fusedResidualInput) {
+    if (config.normalizationType === 'layernorm') {
+      if (!layerWeights.postAttentionNormBias) {
+        throw new Error(`Layer ${layerIdx} requires post_attention_layernorm.bias for LayerNorm execution.`);
+      }
+      let normInput = postAttn;
+      if (fusedResidualInput) {
+        normInput = await doResidualAdd(postAttn, fusedResidualInput, size, recorder, {
+          label: `L${layerIdx}.attention_residual`,
+          layerIdx,
+          executionPolicies: context.executionPolicies ?? null,
+        });
+        prenormSumBuffer = normInput.buffer;
+      }
+      const { tensor: normBiasTensor, owned: normBiasOwned } = getVectorTensor(
+        layerWeights.postAttentionNormBias,
+        `L${layerIdx}.post_attn_norm_bias`,
+        hiddenSize,
+        weightConfig,
+        debugFlags
+      );
+      try {
+        normedTensor = await doLayerNorm(
+          normInput,
+          normWeightBuf,
+          normBiasTensor.buffer,
+          rmsNormEps,
+          {
+            batchSize: numTokens,
+            hiddenSize,
+            label: `L${layerIdx}.post_attn_norm`,
+            layerIdx,
+          },
+          recorder
+        );
+      } finally {
+        if (normBiasOwned) releaseOrTrack(recorder, normBiasTensor.buffer, decodeBuffers);
+      }
+    } else if (fusedResidualInput) {
       const bytesPerElement = postAttn.dtype === 'f16' ? 2 : 4;
       prenormSumBuffer = acquireBuffer(size * bytesPerElement, undefined, 'fused_prenorm_sum');
       if (shouldUsePostAttnNormFusedGateUpPrelude({ session, postAttn, fusedResidualInput, numTokens, context })) {
@@ -226,6 +272,7 @@ export async function processFFNStandard(
       : 1;
     if (
       nextInputNormFusion
+      && config.normalizationType === 'rmsnorm'
       && residualInput.dtype === 'f32'
       && residualTensor.dtype === 'f32'
     ) {

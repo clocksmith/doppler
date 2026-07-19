@@ -49,6 +49,11 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   // of modelType: dedicated embedding models (modelType="embedding") always
   // support embedding workloads; text-generation models opt in explicitly.
   supportsEmbedding: false,
+  // When true, exposes residue/base-level encoder outputs through
+  // pipeline.encodeSequence(). The exact alphabet and output surfaces are
+  // declared by inference.sequence; the runtime never infers them from a
+  // model family name.
+  supportsSequence: false,
   // When true, allows workload="rerank" to dispatch through prefillWithLogits()
   // using manifest-owned scoring metadata in inference.rerank.
   supportsRerank: false,
@@ -67,6 +72,11 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     attnLogitSoftcapping: null,  // No softcapping (null = disabled)
     slidingWindow: null,  // Full attention (null = no sliding window)
     queryKeyNorm: false,
+    // Q/K normalization is normally per attention head RMSNorm (Qwen/Gemma).
+    // Encoder families such as ESMC normalize the complete Q/K projection with
+    // LayerNorm before reshaping into heads, so both semantics are explicit.
+    queryKeyNormType: 'rmsnorm',
+    queryKeyNormAxis: 'head',
     queryKeyNormLayers: null,
     queryKeyNormWeightLayers: null,
     valueNorm: false,
@@ -78,11 +88,17 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     outputGateType: null,
   },
   normalization: {
+    // Transformer normalization family. Existing decoder manifests resolve to
+    // rmsnorm; encoder checkpoints such as ESM-2 must declare layernorm.
+    type: 'rmsnorm',
     rmsNormEps: DEFAULT_RMS_NORM_EPS,
     rmsNormWeightOffset: false,
     postAttentionNorm: false,
     preFeedforwardNorm: false,
     postFeedforwardNorm: false,
+    // Exact optional tensor for the final LayerNorm bias. Per-layer norm bias
+    // tensors use canonical *.bias names and are loaded with their layer.
+    finalNormBiasTensor: null,
   },
   ffn: {
     activation: 'silu',
@@ -127,6 +143,8 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     embeddingTranspose: false,
     embeddingVocabSize: null,
     embeddingPostprocessor: null,
+    // Optional exact tensor name for an additive decoder/LM-head bias.
+    lmHeadBiasTensor: null,
   },
   layerPattern: {
     type: 'uniform',  // All layers same type
@@ -142,6 +160,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   },
   diffusionGemma: null,
   rerank: null,
+  sequence: null,
   pipeline: null,
   session: null,
   execution: null,
@@ -199,6 +218,13 @@ export function hasInferenceConfig(
 export function modelSupportsEmbedding(manifest) {
   if (manifest?.modelType === 'embedding') return true;
   return manifest?.inference?.supportsEmbedding === true;
+}
+
+export function modelSupportsSequence(manifest) {
+  return manifest?.inference?.supportsSequence === true
+    && manifest?.inference?.sequence != null
+    && typeof manifest.inference.sequence === 'object'
+    && !Array.isArray(manifest.inference.sequence);
 }
 
 export function modelSupportsRerank(manifest) {

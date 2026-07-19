@@ -237,7 +237,9 @@ export interface WeightLoadResult {
   layerWeights: Map<string, LayerWeights>;
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
+  lmHeadBias: Float32Array | null;
   finalNorm: GPUBuffer | Float32Array | null;
+  finalNormBias: Float32Array | null;
   embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
   diffusionGemmaSelfConditioning: DiffusionGemmaSelfConditioningWeights | null;
   perLayerInputWeights: PerLayerInputWeights | null;

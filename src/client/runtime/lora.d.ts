@@ -11,6 +11,16 @@ export interface LoRALoadOptions {
   fetchUrl?: (url: string) => Promise<ArrayBuffer | Uint8Array>;
 }
 
+export declare function assertLoRABaseModelForPipeline(
+  pipeline: InferencePipeline | null | undefined,
+  adapter: { baseModel?: string } | null | undefined
+): void;
+
+export declare function assertLoRATargetsForPipeline(
+  pipeline: InferencePipeline | null | undefined,
+  adapter: { layers?: Map<number, Record<string, unknown>> } | null | undefined
+): void;
+
 export declare function loadLoRAAdapterForPipeline(
   pipeline: InferencePipeline | null | undefined,
   adapter: LoRAManifest | RDRRManifest | string,

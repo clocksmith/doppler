@@ -128,6 +128,33 @@ await assert.rejects(
   /is incomplete; both lora_a and lora_b tensors are required/
 );
 
+await assert.rejects(
+  () => loadLoRAFromManifest(createManifest({
+    tensors: [
+      {
+        name: 'layers.0.k_proj.lora_a',
+        shape: [1, 1],
+        dtype: 'f32',
+        data: [1],
+      },
+      {
+        name: 'layers.0.k_proj.lora_b',
+        shape: [1, 1],
+        dtype: 'f32',
+        data: [1],
+      },
+    ],
+  })),
+  /contains module k_proj outside targetModules/
+);
+
+await assert.rejects(
+  () => loadLoRAFromManifest(createManifest({
+    targetModules: ['q_proj', 'k_proj'],
+  })),
+  /declares k_proj, but no complete tensors were loaded/
+);
+
 {
   const weights = createSafetensors([
     {

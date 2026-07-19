@@ -45,28 +45,37 @@ export function releaseOrTrack(recorder, buffer) {
 
 
 const qkNormOnesCache = new WeakMap();
+const qkNormZerosCache = new WeakMap();
 
-
-export function getQKNormOnesBuffer(headDim) {
+function getCachedQKNormConstantBuffer(cache, size, value, label) {
   const device = getDevice();
   if (!device) {
     throw new Error('No GPU device available for Q/K norm buffer');
   }
-  let perDeviceCache = qkNormOnesCache.get(device);
+  let perDeviceCache = cache.get(device);
   if (!perDeviceCache) {
     perDeviceCache = new Map();
-    qkNormOnesCache.set(device, perDeviceCache);
+    cache.set(device, perDeviceCache);
   }
-  const cached = perDeviceCache.get(headDim);
+  const cached = perDeviceCache.get(size);
   if (cached) return cached;
-  const data = new Float32Array(headDim);
-  data.fill(1);
+  const data = new Float32Array(size);
+  data.fill(value);
   const buffer = device.createBuffer({
-    label: `qk_norm_ones_${headDim}`,
+    label: `${label}_${size}`,
     size: data.byteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
   device.queue.writeBuffer(buffer, 0, data);
-  perDeviceCache.set(headDim, buffer);
+  perDeviceCache.set(size, buffer);
   return buffer;
+}
+
+
+export function getQKNormOnesBuffer(headDim) {
+  return getCachedQKNormConstantBuffer(qkNormOnesCache, headDim, 1, 'qk_norm_ones');
+}
+
+export function getQKNormZerosBuffer(size) {
+  return getCachedQKNormConstantBuffer(qkNormZerosCache, size, 0, 'qk_norm_zeros');
 }

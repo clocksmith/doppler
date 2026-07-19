@@ -149,8 +149,15 @@ async function loadExternalWeights(manifest, options = {}) {
 }
 
 function assertCompleteAdapterLayers(adapter) {
+  const targetModules = new Set(adapter.targetModules || []);
+  const loadedModules = new Set();
   for (const [layerIndex, layer] of adapter.layers.entries()) {
     for (const [moduleName, weights] of Object.entries(layer)) {
+      if (!targetModules.has(moduleName)) {
+        throw new Error(
+          `LoRA adapter layer ${layerIndex} contains module ${moduleName} outside targetModules.`
+        );
+      }
       const hasA = weights?.a instanceof Float32Array && weights.a.length > 0;
       const hasB = weights?.b instanceof Float32Array && weights.b.length > 0;
       if (!hasA || !hasB) {
@@ -158,6 +165,14 @@ function assertCompleteAdapterLayers(adapter) {
           `LoRA adapter layer ${layerIndex} module ${moduleName} is incomplete; both lora_a and lora_b tensors are required.`
         );
       }
+      loadedModules.add(moduleName);
+    }
+  }
+  for (const moduleName of targetModules) {
+    if (!loadedModules.has(moduleName)) {
+      throw new Error(
+        `LoRA adapter targetModules declares ${moduleName}, but no complete tensors were loaded for it.`
+      );
     }
   }
 }
