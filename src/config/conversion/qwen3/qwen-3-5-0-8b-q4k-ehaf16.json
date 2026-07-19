@@ -160,8 +160,9 @@
       "residualBranchScale": 1
     },
     "chatTemplate": {
-      "type": "chatml",
-      "enabled": true
+      "type": "qwen",
+      "enabled": true,
+      "thinking": false
     }
   },
   "session": {

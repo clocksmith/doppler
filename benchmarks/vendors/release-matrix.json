@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-11T14:04:21.695Z",
+  "generatedAt": "2026-07-19T21:53:32.956Z",
   "release": {
     "channel": "main-snapshot",
-    "version": "0.4.8",
-    "commitSha": "e0fc0604197e1fa1ba44f14f612daade69a2fea8",
-    "dirty": false
+    "version": "0.4.11",
+    "commitSha": "9f0ef19dbe5fd9b1c69e1cd7002005c7d3ea8d6d",
+    "dirty": true
   },
   "sources": {
     "registry": {
@@ -46,15 +46,15 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "609d3e2d0581bfac040baf97029992483db289381c47b68698e6fe59cd05f169",
-      "bytes": 24908,
+      "sha256": "cb7859cd42d01d482dec5be0c8632074ae12d22da68649e8391b7fb46356bbe0",
+      "bytes": 24973,
       "updated": "2026-06-27"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "908b35e3e844f9b3cb618b166736ffde21411b5d193fd38ffaa1cd161f726883",
-      "bytes": 40224,
-      "updated": "2026-07-11"
+      "sha256": "54c0e40cea586b9e0e375b3ac124d820274c6598e4d8d3bcdcf133fedee6d5c6",
+      "bytes": 50604,
+      "updated": "2026-07-19"
     },
     "harness:doppler": {
       "path": "benchmarks/vendors/harnesses/doppler.json",
@@ -161,9 +161,9 @@
   },
   "summary": {
     "targetCount": 17,
-    "modelCoverageCount": 21,
+    "modelCoverageCount": 25,
     "compareProfileCount": 13,
-    "catalogModelCount": 24,
+    "catalogModelCount": 28,
     "workloadCount": 5,
     "committedChartCount": 14,
     "hasLatestCompareResult": true
@@ -1150,6 +1150,54 @@
   ],
   "modelCoverage": [
     {
+      "dopplerModelId": "amplify-120m-f16-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "AMPLIFY 120M Protein Encoder (F16/F32a)",
+      "catalogModes": [
+        "embedding"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 236647491
+    },
+    {
+      "dopplerModelId": "esm2-t12-35m-ur50d-f32-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "ESM-2 35M Protein Encoder (F32)",
+      "catalogModes": [
+        "embedding"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 133159807
+    },
+    {
+      "dopplerModelId": "esmc-300m-f32-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "ESMC 300M Protein Encoder (F32)",
+      "catalogModes": [
+        "embedding"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 1328207519
+    },
+    {
       "dopplerModelId": "gemma-3-1b-it-q4k-ehf16-af32",
       "dopplerModelBaseDir": null,
       "dopplerSource": "quickstart-registry",
@@ -1351,6 +1399,22 @@
       ],
       "catalogBaseUrl": null,
       "catalogSizeBytes": 480563695
+    },
+    {
+      "dopplerModelId": "nucleotide-transformer-v2-50m-f32-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Nucleotide Transformer v2 50M DNA Encoder (F32)",
+      "catalogModes": [
+        "embedding"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 210074179
     },
     {
       "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",

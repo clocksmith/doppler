@@ -12,15 +12,14 @@ import { assertPackageSourceClosure } from './package-source-closure.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
-  maxEntryCount: 1376,
+  maxEntryCount: 1375,
   maxPackedSize: 1_825_000,
-  maxUnpackedSize: 9_615_000,
+  maxUnpackedSize: 9_625_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
   'CHANGELOG.md',
   'LICENSE',
-  'NOTICE',
   'assets/doppler.svg',
   'models/catalog.json',
   'src/tooling/command-runner.html',

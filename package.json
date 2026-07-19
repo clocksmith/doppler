@@ -1,6 +1,6 @@
 {
   "name": "doppler-gpu",
-  "version": "0.4.11",
+  "version": "0.4.12",
   "description": "Browser-native WebGPU inference engine for local intent and inference loops",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -340,7 +340,6 @@
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
-    "NOTICE",
     "tools/convert-safetensors-node.js"
   ],
   "devDependencies": {

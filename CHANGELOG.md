@@ -8,6 +8,26 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.12] - 2026-07-19
+
+### Added
+
+- Added LoRA activation for Qwen 3.5 linear-attention projections, including
+  `in_proj_a`, `in_proj_b`, `in_proj_qkv`, `in_proj_z`, and `out_proj` PEFT
+  targets, with deterministic intermediate-buffer cleanup.
+- Added immutable adapter-custody catalog validation for preserved WGSL Repair
+  artifacts and their exact base-model, tokenizer, conversion, and source
+  lineage.
+
+### Changed
+
+- Corrected the Qwen 3.5 0.8B chat contract to use the Qwen template with
+  thinking disabled, and published the refreshed complete RDRR artifact at an
+  immutable hosted revision.
+- Reconciled WGSL Writer V3 campaign records with explicit generation budgets
+  and finite confirmation metrics; this does not promote general shader
+  authorship.
+
 ## [0.4.11] - 2026-07-19
 
 ### Added
