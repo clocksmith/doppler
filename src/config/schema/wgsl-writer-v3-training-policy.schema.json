@@ -28,7 +28,8 @@
       "enum": [
         "doppler-wgsl-writer-v3-training",
         "doppler-wgsl-writer-v3-diversity-repair-training",
-        "doppler-wgsl-writer-v3-explicit-semantic-training"
+        "doppler-wgsl-writer-v3-explicit-semantic-training",
+        "doppler-wgsl-writer-v3-explicit-budget-training"
       ]
     },
     "experimentId": { "const": "doppler-wgsl-writer-v3" },
@@ -37,7 +38,8 @@
     "repairEvidence": {
       "oneOf": [
         { "$ref": "#/$defs/diversityRepairEvidence" },
-        { "$ref": "#/$defs/explicitSemanticRepairEvidence" }
+        { "$ref": "#/$defs/explicitSemanticRepairEvidence" },
+        { "$ref": "#/$defs/explicitBudgetRepairEvidence" }
       ]
     },
     "admission": {
@@ -84,7 +86,9 @@
               "base",
               "v2_seed47_adapter",
               "diversity_package_seed47_adapter",
-              "diversity_repair_seed47_adapter"
+              "diversity_repair_seed47_adapter",
+              "semantic_package_base_seed47_adapter",
+              "semantic_repair_seed47_adapter"
             ]
           },
           "screeningSeed": { "const": 47 },
@@ -129,6 +133,33 @@
         "properties": {
           "repairEvidence": { "$ref": "#/$defs/explicitSemanticRepairEvidence" },
           "initialization": { "$ref": "#/$defs/namedInitialization" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "policyId": { "const": "doppler-wgsl-writer-v3-explicit-budget-training" }
+        }
+      },
+      "then": {
+        "required": ["artifactRoot", "repairEvidence"],
+        "properties": {
+          "repairEvidence": { "$ref": "#/$defs/explicitBudgetRepairEvidence" },
+          "initialization": { "$ref": "#/$defs/namedInitialization" },
+          "evaluation": {
+            "type": "object",
+            "required": ["generation"],
+            "properties": {
+              "generation": {
+                "type": "object",
+                "required": ["maxNewTokens"],
+                "properties": {
+                  "maxNewTokens": { "const": 1280 }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -185,6 +216,30 @@
         "selectionGateChanged": { "const": false }
       }
     },
+    "explicitBudgetRepairEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unfairTrainingPolicy",
+        "failureClass",
+        "promptContractBefore",
+        "promptContractAfter",
+        "outputTokenBudget",
+        "hardStopDisclosed",
+        "abortedBeforeReceipt",
+        "selectionGateChanged"
+      ],
+      "properties": {
+        "unfairTrainingPolicy": { "$ref": "#/$defs/binding" },
+        "failureClass": { "const": "hidden_output_token_budget" },
+        "promptContractBefore": { "const": "wgsl-executable-package-semantic-spec-host-v2" },
+        "promptContractAfter": { "const": "wgsl-executable-package-semantic-budget-spec-host-v3" },
+        "outputTokenBudget": { "const": 1280 },
+        "hardStopDisclosed": { "const": true },
+        "abortedBeforeReceipt": { "const": true },
+        "selectionGateChanged": { "const": false }
+      }
+    },
     "legacyInitialization": {
       "type": "object",
       "additionalProperties": false,
@@ -212,7 +267,9 @@
               "id": {
                 "enum": [
                   "diversity_package_seed47_adapter",
-                  "diversity_repair_seed47_adapter"
+                  "diversity_repair_seed47_adapter",
+                  "semantic_package_base_seed47_adapter",
+                  "semantic_repair_seed47_adapter"
                 ]
               },
               "path": { "$ref": "#/$defs/repoPath" },

@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 
 import { buildPolicySchemaRegistryReport } from '../../tools/check-policy-schema-registry.js';
 import { hashWgslSemanticEvidenceValue } from '../../src/tooling/wgsl-repair-semantic-gate.js';
+import { resolveQualificationOutputPath } from '../../tools/qualify-wgsl-writer-v3-corpus.js';
+import { requireDisclosedOutputBudget } from '../../tools/run-wgsl-writer-v3-evaluation.js';
 
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
@@ -47,6 +49,17 @@ const semanticTrainingPolicy = readJson(
 const semanticTrainingLanes = readJson(
   semanticTrainingPolicy.admission.trainingLanes.path
 );
+const budgetCorpusPolicy = readJson(
+  'tools/policies/wgsl-writer-v3-explicit-output-budget-corpus-policy.json'
+);
+const budgetManifest = readJson(`${budgetCorpusPolicy.corpus.outputRoot}/corpus-manifest.json`);
+const budgetQualification = readJson(
+  `${budgetCorpusPolicy.corpus.outputRoot}/reference-qualification.json`
+);
+const budgetTrainingPolicy = readJson(
+  'tools/policies/wgsl-writer-v3-explicit-budget-training-policy.json'
+);
+const budgetTrainingLanes = readJson(budgetTrainingPolicy.admission.trainingLanes.path);
 
 assert.equal(policy.policyId, 'doppler-wgsl-writer-v3-general-authoring');
 assert.equal(policy.status, 'reference_qualified_corpus_materialization_blocked');
@@ -143,6 +156,61 @@ assert.equal(particlePrompt.includes('16 bytes per particle'), true);
 assert.equal(particlePrompt.includes('delta_time:f32, domain_max:f32, count:u32'), true);
 assert.equal(particlePrompt.includes('position + velocity * delta_time'), true);
 assert.equal(semanticManifest.referenceQualification.tasks, 228);
+assert.equal(
+  resolveQualificationOutputPath(budgetCorpusPolicy),
+  `${budgetCorpusPolicy.corpus.outputRoot}/reference-qualification.json`
+);
+assert.equal(
+  resolveQualificationOutputPath(budgetCorpusPolicy, 'reports/explicit.json'),
+  'reports/explicit.json'
+);
+const budgetSelectionRows = readJsonl(budgetManifest.roles.checkpoint_selection.datasetPath);
+assert.equal(budgetSelectionRows.length, 12);
+assert.equal(
+  budgetSelectionRows.every((row) => (
+    row.prompt.includes('hard-stopped after 1280 generated tokens')
+      && row.prompt.includes('within 1280 generated tokens')
+  )),
+  true
+);
+assert.throws(
+  () => requireDisclosedOutputBudget(semanticTrainingPolicy, semanticCorpusPolicy),
+  /prompt-disclosed hard output-token budget/
+);
+assert.equal(
+  requireDisclosedOutputBudget(budgetTrainingPolicy, budgetCorpusPolicy),
+  1280
+);
+assert.throws(
+  () => requireDisclosedOutputBudget(
+    {
+      ...budgetTrainingPolicy,
+      evaluation: {
+        ...budgetTrainingPolicy.evaluation,
+        generation: {
+          ...budgetTrainingPolicy.evaluation.generation,
+          maxNewTokens: 1279,
+        },
+      },
+    },
+    budgetCorpusPolicy
+  ),
+  /must match the disclosed prompt budget: 1280/
+);
+assert.equal(budgetQualification.decision, 'reference_corpus_qualified');
+assert.equal(budgetQualification.summary.tasks, 228);
+assert.equal(budgetQualification.summary.runs, 456);
+assert.equal(budgetQualification.summary.passedTasks, 228);
+assert.equal(budgetQualification.summary.failedTasks, 0);
+assert.equal(budgetQualification.summary.deterministicReplayPassed, true);
+assert.equal(budgetQualification.summary.cleanupPassed, true);
+assert.equal(budgetQualification.runtime.identity.gpuBackend.detected, 'vulkan');
+assert.equal(budgetQualification.runtime.identity.webgpuAdapter.vendor, 'amd');
+const { receiptHash: budgetReceiptHash, ...budgetQualificationCore } = budgetQualification;
+assert.equal(
+  hashWgslSemanticEvidenceValue(budgetQualificationCore),
+  budgetReceiptHash
+);
 assert.equal(semanticQualification.decision, 'reference_corpus_qualified');
 assert.equal(semanticQualification.summary.tasks, 228);
 assert.equal(semanticQualification.summary.runs, 456);
@@ -177,6 +245,31 @@ for (const binding of [
   assert.equal(sha256File(binding.path), binding.sha256, binding.path);
 }
 for (const adapter of semanticTrainingPolicy.initialization.adapters) {
+  assert.equal(sha256File(`${adapter.path}/adapter_config.json`), adapter.configSha256);
+  assert.equal(sha256File(`${adapter.path}/adapter_model.safetensors`), adapter.weightsSha256);
+  assert.equal(
+    sha256File(adapter.sourceTrainingStatus.path),
+    adapter.sourceTrainingStatus.sha256
+  );
+}
+
+assert.equal(budgetTrainingPolicy.repairEvidence.failureClass, 'hidden_output_token_budget');
+assert.equal(budgetTrainingPolicy.repairEvidence.outputTokenBudget, 1280);
+assert.equal(budgetTrainingPolicy.repairEvidence.hardStopDisclosed, true);
+assert.equal(budgetTrainingPolicy.repairEvidence.abortedBeforeReceipt, true);
+assert.equal(budgetTrainingPolicy.repairEvidence.selectionGateChanged, false);
+assert.equal(budgetTrainingPolicy.evaluation.generation.maxNewTokens, 1280);
+assert.equal(budgetTrainingPolicy.evaluation.minimumSelectionSemanticPassRate, 0.5);
+assert.equal(budgetTrainingPolicy.evaluation.minimumConfirmationMeanSemanticPassRate, 0.75);
+assert.equal(budgetTrainingLanes.matching.rowsPerLane, 192);
+assert.equal(budgetTrainingLanes.matching.updateBudgetIdentical, true);
+for (const binding of [
+  ...Object.values(budgetTrainingPolicy.admission),
+  budgetTrainingPolicy.repairEvidence.unfairTrainingPolicy,
+]) {
+  assert.equal(sha256File(binding.path), binding.sha256, binding.path);
+}
+for (const adapter of budgetTrainingPolicy.initialization.adapters) {
   assert.equal(sha256File(`${adapter.path}/adapter_config.json`), adapter.configSha256);
   assert.equal(sha256File(`${adapter.path}/adapter_model.safetensors`), adapter.weightsSha256);
   assert.equal(
@@ -291,7 +384,19 @@ assert.equal(
 );
 assert.equal(
   schemaRegistry.policies.some(
+    (entry) => entry.id === 'wgsl-writer-v3-explicit-output-budget-corpus-policy'
+  ),
+  true
+);
+assert.equal(
+  schemaRegistry.policies.some(
     (entry) => entry.id === 'wgsl-writer-v3-explicit-semantic-training-policy'
+  ),
+  true
+);
+assert.equal(
+  schemaRegistry.policies.some(
+    (entry) => entry.id === 'wgsl-writer-v3-explicit-budget-training-policy'
   ),
   true
 );
