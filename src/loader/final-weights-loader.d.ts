@@ -56,6 +56,10 @@ export interface FinalWeightsContext {
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   /** Optional embedding postprocessor declared by manifest */
   embeddingPostprocessor?: ManifestEmbeddingPostprocessorSchema | null;
+  /** Optional exact tensor name for an additive LM-head bias. */
+  lmHeadBiasTensor?: string | null;
+  /** Optional exact tensor name for a final LayerNorm bias. */
+  finalNormBiasTensor?: string | null;
   /** Manifest-owned DiffusionGemma self-conditioning enablement */
   diffusionGemmaSelfConditioning?: boolean;
   /** Manifest model type */
@@ -74,8 +78,12 @@ export interface FinalWeightsContext {
 export interface FinalWeightsResult {
   /** Final layer norm tensor */
   finalNorm: GPUBuffer | Float32Array | null;
+  /** Optional final LayerNorm bias, held on CPU for embedding extraction. */
+  finalNormBias: Float32Array | null;
   /** LM head tensor */
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
+  /** Optional additive LM-head bias, held on CPU for exact post-projection application. */
+  lmHeadBias: Float32Array | null;
   /** Optional embedding-only postprocessor weights */
   embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
   /** Optional DiffusionGemma decoder self-conditioning weights */

@@ -2,7 +2,7 @@ import type { InferencePipeline, KVCacheSnapshot, PromptInput } from '../../infe
 import type { ChatMessage } from '../../inference/pipelines/text/chat-format.js';
 import type { GenerateOptions } from '../../generation/index.js';
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
-import type { LogitsStepResult, PrefillResult } from '../../inference/pipelines/text/types.d.ts';
+import type { LogitsStepResult, PrefillResult, SequenceEncodeOptions, SequenceEncodeResult } from '../../inference/pipelines/text/types.d.ts';
 import type { LoRAManifest } from './types.js';
 import type { LoRALoadOptions } from './lora.js';
 
@@ -22,6 +22,7 @@ export interface DopplerModelHandle {
   generateText(prompt: string, options?: DopplerGenerateOptions): Promise<string>;
   chat(messages: ChatMessage[], options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   chatText(messages: ChatMessage[], options?: DopplerGenerateOptions): Promise<DopplerChatResponse>;
+  encodeSequence(sequence: string, options?: SequenceEncodeOptions): Promise<SequenceEncodeResult>;
   resetGenerationState(): void;
   loadLoRA(adapter: LoRAManifest | RDRRManifest | string, loadOptions?: LoRALoadOptions): Promise<void>;
   activateLoRAFromTrainingOutput(
@@ -50,6 +51,7 @@ export interface DopplerModelHandle {
   readonly manifestHash: string | null;
   readonly manifest: unknown;
   readonly deviceInfo: Record<string, unknown> | null;
+  readonly supportsSequence: boolean;
   readonly advanced: {
     tokenizeText(text: string): number[];
     prefillKV(prompt: string, options?: DopplerGenerateOptions): Promise<KVCacheSnapshot>;

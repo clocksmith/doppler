@@ -186,6 +186,8 @@ export interface ParsedModelConfig {
   ropeLocalScaling: RopeScalingConfig | null;
   quantization: string;
   quantMethod: string | null;
+  normalizationType: 'rmsnorm' | 'layernorm';
+  finalNormBiasTensor: string | null;
   rmsNormEps: number;
   rmsNormWeightOffset: boolean;
   postAttentionNorm: boolean;
@@ -200,6 +202,7 @@ export interface ParsedModelConfig {
   embeddingVocabSize: number | null;
   embeddingPostprocessor: ManifestEmbeddingPostprocessorSchema | null;
   hiddenActivation: ActivationType;
+  gatedActivation: boolean;
   ffnBranchMode: 'auto' | 'dense' | 'moe' | 'dense_plus_moe';
   useDoubleWideMlp: boolean;
   swigluLimit: number | null;
@@ -216,6 +219,8 @@ export interface ParsedModelConfig {
   finalLogitSoftcapping: number | null;
   attnLogitSoftcapping: number | null;
   queryKeyNorm: boolean;
+  queryKeyNormType: 'rmsnorm' | 'layernorm';
+  queryKeyNormAxis: 'head' | 'projection';
   queryKeyNormLayers: number[] | null;
   queryKeyNormWeightLayers: number[] | null;
   valueNorm: boolean;

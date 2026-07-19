@@ -1,0 +1,47 @@
+{
+  "schema": "doppler.sequenceModelReference.v1",
+  "modelId": "esm2-t12-35m-ur50d-f32-af32",
+  "source": {
+    "checkpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+    "repository": "facebook/esm2_t12_35M_UR50D",
+    "revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+    "runtime": {
+      "framework": "pytorch",
+      "torchVersion": "2.9.1",
+      "transformersVersion": "4.57.3",
+      "weightDtype": "f32"
+    },
+    "files": {
+      "model.safetensors": "sha256:e35647818e0e064351d4531ed480d225a002567b4b2b93ad3a9246d753150fc0",
+      "config.json": "sha256:ae07364efa51e0fa1d81da3fe608f6d948abdbbb69785ba6e1df379a458e58ee",
+      "tokenizer_config.json": "sha256:7e9161ecdb548ec45a41cbc6b24aa4476fdd418461f491c4207baa99419a29ad",
+      "special_tokens_map.json": "sha256:3aedcd4211c0d43aec4e607ff60a63255f3174ead795e997350f09a5f8cd9ee1",
+      "vocab.txt": "sha256:0b82cc0a7c7cf9e567b1e5892d793285b9fbae822c964ca48696f7db44598e03"
+    }
+  },
+  "input": {
+    "alphabet": "amino_acid",
+    "sequence": "MKTIIALSYIFCLVFADYKDDDDK",
+    "tokenIds": [0, 20, 15, 11, 12, 12, 5, 4, 8, 19, 12, 18, 23, 4, 7, 18, 5, 13, 19, 15, 13, 13, 13, 13, 15, 2]
+  },
+  "outputs": {
+    "logits": false
+  },
+  "probes": {
+    "pooledEmbedding": {
+      "indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      "values": [-0.0658836514, -0.0623499788, 0.284564823, 0.0293618198, 0.146052957, -0.019399358, -0.368159145, -0.0168217625, 0.144467592, -0.144485533, -0.0320267677, -0.293137312, 0.0947384536, -0.0716032162, 0.161965638, -0.0659382939]
+    },
+    "tokenEmbeddings": [
+      { "position": 0, "indices": [0, 1, 2, 3, 4, 5, 6, 7], "values": [-0.144374967, -0.152261466, 0.171601132, 0.208276659, 0.384066969, 0.0811319649, -0.54261291, -0.154593229] },
+      { "position": 1, "indices": [0, 1, 2, 3, 4, 5, 6, 7], "values": [-0.429988861, -0.0789118558, -0.32811442, 0.697993517, 0.273959875, 0.52680254, -0.364436179, -0.155111] },
+      { "position": 8, "indices": [0, 1, 2, 3, 4, 5, 6, 7], "values": [-0.145731449, 0.0620585866, 0.139249384, -0.274088323, 0.395787865, -0.018338006, -0.367856383, 0.209107831] },
+      { "position": 24, "indices": [0, 1, 2, 3, 4, 5, 6, 7], "values": [-0.271674007, -0.132807538, 0.491992295, -0.0158894099, -0.0444145985, 0.105868809, -0.435308695, -0.0785607472] },
+      { "position": 25, "indices": [0, 1, 2, 3, 4, 5, 6, 7], "values": [-0.185093299, 0.341723174, 0.420123518, 0.186077639, 0.291316658, -0.0686630607, -0.439646721, -0.207384109] }
+    ]
+  },
+  "tolerances": {
+    "pooledEmbeddingMaxAbs": 0.001,
+    "tokenEmbeddingMaxAbs": 0.001
+  }
+}

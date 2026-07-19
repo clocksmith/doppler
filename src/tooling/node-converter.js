@@ -7,6 +7,11 @@ import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { buildManifestIntegrityFromModelDir } from './rdrr-integrity-refresh.js';
+import { applySourceTensorRules } from '../converter/source-tensor-rules.js';
+import {
+  buildSourceTokenizerJson,
+  validateSourceTokenizerPolicy,
+} from '../converter/source-tokenizer.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { log, trace } from '../debug/index.js';
@@ -1345,13 +1350,40 @@ export async function convertSafetensorsDirectory(options) {
     architectureHint = parsedTransformer.architectureHint;
     embeddingPostprocessor = parsedTransformer.embeddingPostprocessor ?? null;
     rerankScoring = parsedTransformer.rerankScoring ?? null;
-    architecture = extractArchitecture(config, null);
+    tensors = applySourceTensorRules(tensors, converterConfig.sourceTensors);
+    architecture = converterConfig.architecture ?? extractArchitecture(config, null);
     const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
     tokenizerModelPath = path.join(inputDir, 'tokenizer.model');
     const tokenizerConfigPath = path.join(inputDir, 'tokenizer_config.json');
     tokenizerJson = await readOptionalJson(tokenizerJsonPath);
     tokenizerConfig = await readOptionalJson(tokenizerConfigPath);
     hasTokenizerModel = await fileExists(tokenizerModelPath);
+    const sourceTokenizerPolicy = validateSourceTokenizerPolicy(converterConfig.sourceTokenizer);
+    if (sourceTokenizerPolicy) {
+      if (tokenizerJson) {
+        throw new Error(
+          'node convert: sourceTokenizer cannot be combined with a source tokenizer.json. ' +
+          'Remove sourceTokenizer or make the source tokenizer identity explicit in one place.'
+        );
+      }
+      if (hasTokenizerModel) {
+        throw new Error(
+          'node convert: sourceTokenizer cannot be combined with a source tokenizer.model.'
+        );
+      }
+      const vocabPath = path.join(inputDir, sourceTokenizerPolicy.vocabFile);
+      let vocabText;
+      try {
+        vocabText = await fs.readFile(vocabPath, 'utf8');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `node convert: unable to read sourceTokenizer.vocabFile ` +
+          `"${sourceTokenizerPolicy.vocabFile}": ${message}`
+        );
+      }
+      tokenizerJson = buildSourceTokenizerJson(sourceTokenizerPolicy, vocabText);
+    }
   }
   parseTimer.stop(`${modelKind} tensors=${tensors.length}`);
 

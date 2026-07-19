@@ -89,6 +89,16 @@ async function stableHashString(value) {
 
   assert.equal(manifest.metadata.convertedAt, '2026-01-05T10:20:30.000Z');
   assert.equal(manifest.conversion?.tool, 'tests');
+  assert.equal(
+    manifest.inference.output.embeddingTranspose,
+    false,
+    'explicit conversion output geometry must override shape heuristics'
+  );
+  assert.equal(
+    manifest.inference.output.embeddingVocabSize,
+    null,
+    'an explicit null embedding vocab override must remain manifest-owned'
+  );
 }
 
 {

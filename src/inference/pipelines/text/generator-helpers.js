@@ -204,13 +204,21 @@ function getWeightBufferConfig(state) {
 export function getLogitsWeights(state) {
   const finalNorm = state.weights.get('final_norm');
   const lmHead = state.weights.get('lm_head');
+  const lmHeadBias = state.weights.get('lm_head_bias') ?? null;
+  const finalNormBias = state.weights.get('final_norm_bias') ?? null;
   if (!finalNorm || !(isGpuBufferInstance(finalNorm) || finalNorm instanceof Float32Array || isWeightBuffer(finalNorm))) {
     throw new Error('Final norm not found or invalid type');
   }
   if (!lmHead || !(isGpuBufferInstance(lmHead) || lmHead instanceof Float32Array || isWeightBuffer(lmHead) || isCpuWeightBuffer(lmHead) || isSplitWeightBuffer(lmHead))) {
     throw new Error('LM head not found or invalid type');
   }
-  return { finalNorm, lmHead };
+  if (lmHeadBias !== null && !(lmHeadBias instanceof Float32Array)) {
+    throw new Error('LM head bias is not a Float32Array');
+  }
+  if (finalNormBias !== null && !(finalNormBias instanceof Float32Array)) {
+    throw new Error('Final norm bias is not a Float32Array');
+  }
+  return { finalNorm, finalNormBias, lmHead, lmHeadBias };
 }
 
 
@@ -222,6 +230,8 @@ export function getLogitsConfig(state) {
   return {
     hiddenSize: config.hiddenSize,
     vocabSize: config.vocabSize,
+    normalizationType: config.normalizationType,
+    finalNormBiasTensor: config.finalNormBiasTensor,
     rmsNormEps: config.rmsNormEps,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
     useTiedEmbeddings: state.useTiedEmbeddings,

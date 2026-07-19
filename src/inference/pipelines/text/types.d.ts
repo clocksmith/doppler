@@ -390,6 +390,12 @@ export interface GenerateOptions {
     offset: number;
     length: number;
   } | null;
+
+  /** @internal Return final-normalized embeddings for every input token. */
+  __returnTokenEmbeddings?: boolean;
+
+  /** @internal Return full per-token vocabulary logits. */
+  __returnSequenceLogits?: boolean;
 }
 
 /**
@@ -438,6 +444,30 @@ export interface PrefillEmbeddingResult extends KVCacheSnapshot {
   /** Pooling mode used to construct embedding */
   embeddingMode: 'last' | 'mean';
 
+  /** Final-normalized token matrix when explicitly requested. */
+  tokenEmbeddings?: Float32Array | null;
+
+  /** Full token-by-vocabulary logits when explicitly requested. */
+  logits?: Float32Array | null;
+
+  phase?: WorkloadPhaseTiming | null;
+}
+
+export interface SequenceEncodeOptions extends GenerateOptions {
+  includeTokenEmbeddings?: boolean;
+  includeLogits?: boolean;
+}
+
+export interface SequenceEncodeResult {
+  alphabet: 'amino_acid' | 'nucleotide';
+  tokens: number[];
+  tokenMask: Uint8Array;
+  includedTokenCount: number;
+  tokenEmbeddings: Float32Array | null;
+  pooledEmbedding: Float32Array | null;
+  logits: Float32Array | null;
+  embeddingDim: number;
+  vocabSize: number;
   phase?: WorkloadPhaseTiming | null;
 }
 
@@ -495,16 +525,23 @@ export type LayerWeightBuffer = GPUBuffer | WeightBuffer | Float32Array | CpuWei
 export interface LayerWeights {
   // Attention
   inputNorm: GPUBuffer | Float32Array;
+  inputNormBias?: GPUBuffer | Float32Array | null;
   qProj: LayerWeightBuffer;
+  qProjBias?: GPUBuffer | Float32Array | null;
   kProj: LayerWeightBuffer;
+  kProjBias?: GPUBuffer | Float32Array | null;
   vProj?: LayerWeightBuffer;
+  vProjBias?: GPUBuffer | Float32Array | null;
   oProj: LayerWeightBuffer;
+  oProjBias?: GPUBuffer | Float32Array | null;
   qGateProj?: LayerWeightBuffer | null;
   convInProj?: LayerWeightBuffer;
   convKernel?: LayerWeightBuffer;
   convOutProj?: LayerWeightBuffer;
   /** Fused Q/K/V projection (runtime-generated for 3->1 matmul optimization) */
   qkvProj?: GPUBuffer | WeightBuffer | null;
+  /** Concatenated Q/K/V projection bias matching qkvSizes. */
+  qkvProjBias?: GPUBuffer | Float32Array | null;
   /** Sizes for splitting fused QKV output: [qSize, kSize, vSize] in elements */
   qkvSizes?: [number, number, number];
   /** Data type of fused QKV weights (f16, f32, or q4k) */
@@ -516,6 +553,7 @@ export interface LayerWeights {
 
   // FFN (dense layers)
   postAttentionNorm?: GPUBuffer | Float32Array;
+  postAttentionNormBias?: GPUBuffer | Float32Array | null;
   postAttnNorm?: GPUBuffer | Float32Array;  // LLaMA-style pre-FFN norm
   gate?: LayerWeightBuffer;
   up?: LayerWeightBuffer;

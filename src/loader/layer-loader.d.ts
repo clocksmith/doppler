@@ -52,6 +52,12 @@ export interface LayerLoaderContext {
   linearValueHeadDim?: number;
 }
 
+export declare function describeQKNormTensor(
+  tensor: GPUBuffer | WeightBuffer | Float32Array | Uint8Array | null,
+  location: TensorLocation | null | undefined,
+  name: string
+): WeightBuffer | Float32Array | null;
+
 /**
  * Load all weights for a single transformer layer.
  *

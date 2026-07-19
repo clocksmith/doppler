@@ -7,6 +7,8 @@ import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js'
 import {
   runMatmul,
   runRMSNorm,
+  runLayerNorm,
+  runBiasAdd,
   runRoPE,
   canUseRoPEQK,
   runRoPEQK,
@@ -67,6 +69,7 @@ import {
 } from './precision-contract.js';
 import { canUseRmsNormWideTileProjectionFusion } from './rmsnorm-fusion-gate.js';
 import { canUseAttentionOutputGateFusion } from './output-gate-fusion.js';
+import { getVectorTensor } from '../weights.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
 
@@ -244,6 +247,7 @@ export async function runLayerAttentionGPU(
   const hasInputNormWeight = layerWeights?.inputNorm != null && getNormWeightBuffer != null;
   const canSelectFusedRmsNormProjection = canUseRmsNormWideTileProjectionFusion(layerWeights, reusesSharedKV);
   const canFuseInputNormIntoProjections = rmsNormFusionFlag
+    && config.normalizationType === 'rmsnorm'
     && hasInputNormWeight
     && canSelectFusedRmsNormProjection
     && !skipInputNorm
@@ -283,18 +287,41 @@ export async function runLayerAttentionGPU(
     // norm internally via the fused kernel variant.
   } else if (!skipInputNorm && layerWeights.inputNorm && getNormWeightBuffer) {
     const normWeightBuf = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
+    let normBiasTensor = null;
+    let normBiasOwned = false;
     try {
       // Debug: norm weights for configured layers
       if (isPrefill && shouldDebugLayer(layerIdx, debugFlags.debugLayers) && !markStageLogged(layerIdx, 'norm_weights', debugFlags) && debugCheckBuffer) {
         await debugCheckBuffer(normWeightBuf, `L${layerIdx} input norm weights (GPU)`, 1, hiddenSize);
       }
 
-      normed = await runRMSNorm(attentionInput, normWeightBuf, rmsNormEps, {
-        batchSize: numTokens,
-        hiddenSize,
-        rmsNormWeightOffset: config.rmsNormWeightOffset,
-      });
+      if (config.normalizationType === 'layernorm') {
+        if (!layerWeights.inputNormBias) {
+          throw new Error(`Layer ${layerIdx} requires input_layernorm.bias for LayerNorm execution.`);
+        }
+        ({ tensor: normBiasTensor, owned: normBiasOwned } = getVectorTensor(
+          layerWeights.inputNormBias,
+          `L${layerIdx}.input_norm_bias`,
+          hiddenSize,
+          {},
+          debugFlags
+        ));
+        normed = await runLayerNorm(
+          attentionInput,
+          normWeightBuf,
+          normBiasTensor.buffer,
+          rmsNormEps,
+          { batchSize: numTokens, hiddenSize }
+        );
+      } else {
+        normed = await runRMSNorm(attentionInput, normWeightBuf, rmsNormEps, {
+          batchSize: numTokens,
+          hiddenSize,
+          rmsNormWeightOffset: config.rmsNormWeightOffset,
+        });
+      }
     } finally {
+      if (normBiasOwned && normBiasTensor) releaseBuffer(normBiasTensor.buffer);
       if (!isGpuBufferInstance(layerWeights.inputNorm) && !isWeightBuffer(layerWeights.inputNorm)) releaseBuffer(normWeightBuf);
     }
 
@@ -408,7 +435,10 @@ export async function runLayerAttentionGPU(
     fusedNormEps,
     fusedNormOffset,
     qkNormFusion: {
-      enabled: qkNormFusionFlag && qkNormState.wantsQKNorm,
+      enabled: qkNormFusionFlag
+        && qkNormState.wantsQKNorm
+        && config.queryKeyNormType === 'rmsnorm'
+        && config.queryKeyNormAxis === 'head',
       getNormWeightBuffer,
       rmsNormEps,
       rmsNormWeightOffset: config.rmsNormWeightOffset,
@@ -419,6 +449,8 @@ export async function runLayerAttentionGPU(
     qkNormRoPEFusion: {
       enabled: qkNormRoPEFusionFlag
         && qkNormState.wantsQKNorm
+        && config.queryKeyNormType === 'rmsnorm'
+        && config.queryKeyNormAxis === 'head'
         && !disableRoPE
         && !!state.ropeFreqsCos
         && !!state.ropeFreqsSin,
@@ -508,7 +540,7 @@ export async function runLayerAttentionGPU(
     await debugCheckBuffer(vTensor.buffer, `L${layerIdx} V after proj (GPU)`, numTokens, numKVHeads * headDim);
   }
 
-  // Optional per-head Q/K normalization
+  // Optional Q/K normalization; the manifest owns the axis and norm family.
   if (isKernelDebugEnabled(layerIdx)) {
     logKernelStep(
       'qk_norm',
@@ -533,6 +565,8 @@ export async function runLayerAttentionGPU(
     numKVHeads,
     headDim,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
+    normalizationType: config.queryKeyNormType,
+    normalizationAxis: config.queryKeyNormAxis,
     releaseTemporary: (buffer) => releaseBuffer(buffer),
     skipKNorm: qkNormState.skipKNorm,
     onQNormApplied: isKernelDebugEnabled(layerIdx)
@@ -1226,6 +1260,25 @@ export async function runLayerAttentionGPU(
         releaseBuffer(output.buffer);
         output = combined;
       }
+    }
+  }
+
+  if (layerWeights.oProjBias) {
+    const { tensor: oProjBiasTensor, owned } = getVectorTensor(
+      layerWeights.oProjBias,
+      `L${layerIdx}.o_proj_bias`,
+      hiddenSize,
+      {},
+      debugFlags
+    );
+    try {
+      output = await runBiasAdd(output, oProjBiasTensor, numTokens, hiddenSize, {
+        label: `L${layerIdx}.o_proj_bias`,
+        layerIdx,
+        executionPolicies: state.executionPolicies ?? null,
+      });
+    } finally {
+      if (owned) releaseBuffer(oProjBiasTensor.buffer);
     }
   }
 

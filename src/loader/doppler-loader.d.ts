@@ -75,7 +75,9 @@ export declare class DopplerLoader {
   layers: Map<number, LayerWeights>;
   experts: Map<string, ExpertWeights>;
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
+  lmHeadBias: Float32Array | null;
   finalNorm: GPUBuffer | Float32Array | null;
+  finalNormBias: Float32Array | null;
   embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
   diffusionGemmaSelfConditioning: DiffusionGemmaSelfConditioningWeights | null;
   perLayerInputWeights: PerLayerInputWeights | null;

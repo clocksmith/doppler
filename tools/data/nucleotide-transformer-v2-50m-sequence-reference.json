@@ -1,0 +1,78 @@
+{
+  "schema": "doppler.sequenceModelReference.v1",
+  "modelId": "nucleotide-transformer-v2-50m-f32-af32",
+  "source": {
+    "checkpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
+    "repository": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species",
+    "revision": "81b29e5786726d891dbf929404ef20adca5b36f1",
+    "runtime": {
+      "framework": "transformers-custom-esm",
+      "transformersVersion": "4.57.3",
+      "torchVersion": "2.9.1",
+      "weightDtype": "f32"
+    },
+    "files": {
+      "model.safetensors": "sha256:17e75af297556ea56828716d8aa539e8f12b8b625547204b74171ab91aa33569",
+      "config.json": "sha256:e20f497248c7cb264c7cd4582dbcfd52dc4cbf74a97fc711559b8c8f71c635db",
+      "tokenizer_config.json": "sha256:253d338919eba938e50b776f3243cc739462c207fe64e3d2e81cc5e681bee45b",
+      "special_tokens_map.json": "sha256:d6dc30bf018166daab248b0abf7efda6fd1b1e0a2d1bee5b31b23db2ebdaee77",
+      "vocab.txt": "sha256:c00e0ad166d6ab3f7540ebc92270392e581bb3106763412f29034b49323e1052",
+      "modeling_esm.py": "sha256:f2b003f45d2fa4f94e92d8bbef927b719dfdd7ab7c7a95743daa2b10ab140cb3"
+    }
+  },
+  "input": {
+    "alphabet": "nucleotide",
+    "sequence": "ATTCCGAAAATGCCGTTAACCGGTACGTN",
+    "tokenIds": [3, 369, 13, 2778, 707, 4102, 4104, 4105, 4103, 4106]
+  },
+  "outputs": { "logits": false },
+  "probes": {
+    "pooledEmbedding": {
+      "indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      "values": [
+        -0.2453340143, 0.2308294475, 0.1101651341, 0.2086721659,
+        -0.0194120165, -0.0231215879, -0.091664575, 0.2273423374,
+        0.0670159161, 0.096436061, 0.1071318537, 0.07053978,
+        0.2188468575, -0.0951059088, -0.261405021, 0.0461105406
+      ]
+    },
+    "tokenEmbeddings": [
+      {
+        "position": 0,
+        "indices": [0, 1, 2, 3, 4, 5, 6, 7],
+        "values": [
+          -0.1797564626, 0.7477654219, 0.3492087126, -0.1061215401,
+          0.3786472976, 0.2438282222, 0.0433724821, 0.4421748221
+        ]
+      },
+      {
+        "position": 1,
+        "indices": [0, 1, 2, 3, 4, 5, 6, 7],
+        "values": [
+          -0.1004463434, 0.6046850085, 0.305601269, 0.0150393397,
+          0.6119493842, -0.2577858567, -0.0850914866, 0.6528269649
+        ]
+      },
+      {
+        "position": 5,
+        "indices": [0, 1, 2, 3, 4, 5, 6, 7],
+        "values": [
+          -0.3848265409, 0.0872339904, -0.0761963129, 0.4543403983,
+          -0.3859215379, -0.0754275769, -0.135123834, 0.2768173814
+        ]
+      },
+      {
+        "position": 9,
+        "indices": [0, 1, 2, 3, 4, 5, 6, 7],
+        "values": [
+          -0.2411471307, 0.3367980719, 0.1539854258, -0.1650150567,
+          0.1985131353, 0.1185971871, 0.187567994, 0.1949745417
+        ]
+      }
+    ]
+  },
+  "tolerances": {
+    "pooledEmbeddingMaxAbs": 0.001,
+    "tokenEmbeddingMaxAbs": 0.001
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "schema": "doppler.sequenceModelReference.v1",
+  "modelId": "esmc-300m-f32-af32",
+  "source": {
+    "checkpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
+    "repository": "biohub/ESMC-300M",
+    "revision": "a59b831785f907e96e6a246b1d142bfb76df31ee",
+    "runtime": {
+      "framework": "pytorch-esm",
+      "esmVersion": "3.2.1.post1",
+      "torchVersion": "2.9.1",
+      "weightDtype": "f32"
+    },
+    "files": {
+      "model.safetensors": "sha256:0772d8fe64bb25e14fe6f23b80e3c9a7d215d0da3c6cba5bd356d7c0e0bb22cc",
+      "config.json": "sha256:0d4c14b1e7192175b5ce8bb6c0eaa6b06c02645d49d6708c84fc3c765fe83a04",
+      "tokenizer.json": "sha256:8d3447b278176e65fb3ef0224472927bf5fee3be46ea2bd77fad0111423cee1f",
+      "tokenizer_config.json": "sha256:e8d8e40c9f92b334f0272e80bb65ed4043cb9836523cbae899e9859e8cbb8833",
+      "special_tokens_map.json": "sha256:0b7245ec86c8c3aeaf61523ba70dfa79be137e6283f127bd651adc30b4f15c74"
+    }
+  },
+  "input": {
+    "alphabet": "amino_acid",
+    "sequence": "MKTIIALSYIFCLVFADYKDDDDK",
+    "tokenIds": [0, 20, 15, 11, 12, 12, 5, 4, 8, 19, 12, 18, 23, 4, 7, 18, 5, 13, 19, 15, 13, 13, 13, 13, 15, 2]
+  },
+  "outputs": {
+    "logits": false
+  },
+  "probes": {
+    "pooledEmbedding": {
+      "indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      "values": [-0.0050567691, 0.0122287823, 0.012315277, 0.0219152793, 0.0050516338, -0.0004307906, -0.0250898376, 0.0119213881, -0.0049185776, 0.0129494295, 0.0236054603, 0.0005792715, 0.0022182229, 0.0138175162, -0.0129054785, -0.0237062518]
+    },
+    "tokenEmbeddings": [
+      { "position": 0, "indices": [0, 1, 2, 3, 4, 5, 6, 7], "values": [0.0104918806, 0.0067540691, 0.0137831885, 0.0012490362, 0.0017007157, 0.0052198451, -0.0145018119, 0.0035773155] },
+      { "position": 1, "indices": [0, 1, 2, 3, 4, 5, 6, 7], "values": [0.0030763298, 0.0475112423, 0.043894656, 0.0513042659, 0.0069425683, 0.0159655996, 0.0079779215, 0.0199181773] },
+      { "position": 8, "indices": [0, 1, 2, 3, 4, 5, 6, 7], "values": [-0.0236241277, 0.0079130335, 0.0339458138, 0.0109960726, 0.0336206146, 0.0124137346, -0.0355861969, 0.0275449567] },
+      { "position": 24, "indices": [0, 1, 2, 3, 4, 5, 6, 7], "values": [0.0148514304, 0.0226548836, 0.0078298645, 0.019643113, -0.0035038921, -0.0150256408, 0.0031767243, -0.0127431173] },
+      { "position": 25, "indices": [0, 1, 2, 3, 4, 5, 6, 7], "values": [0.018451469, 0.0015143075, 0.0212452747, 0.0121718254, -0.0005382663, -0.0097031351, -0.0140560148, -0.0207278319] }
+    ]
+  },
+  "tolerances": {
+    "pooledEmbeddingMaxAbs": 0.001,
+    "tokenEmbeddingMaxAbs": 0.001
+  }
+}

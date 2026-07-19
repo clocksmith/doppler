@@ -3,7 +3,14 @@
 import { getDevice } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, tagBufferDtype } from '../../../gpu/weight-buffer.js';
+import {
+  getBufferDtype,
+  isWeightBuffer,
+  isCpuWeightBuffer,
+  isGpuBufferInstance,
+  tagBufferDtype,
+} from '../../../gpu/weight-buffer.js';
+import { createTensor } from '../../../gpu/tensor.js';
 
 // ============================================================================
 // Type Guards
@@ -114,6 +121,31 @@ export function getNormWeightBuffer(weight, label, config, debugFlags, deviceOve
     releaseBuffer(buf);
     throw error;
   }
+}
+
+export function getVectorTensor(weight, label, length, config, debugFlags, deviceOverride = null) {
+  if (!Number.isInteger(length) || length <= 0) {
+    throw new Error(`Vector tensor "${label}" requires a positive integer length.`);
+  }
+  const buffer = getNormWeightBuffer(weight, label, config, debugFlags, deviceOverride);
+  let dtype = getBufferDtype(buffer);
+  if (dtype == null) {
+    const bytesPerElement = buffer.size / length;
+    if (bytesPerElement === 2) dtype = 'f16';
+    else if (bytesPerElement === 4) dtype = 'f32';
+    else {
+      throw new Error(
+        `Vector tensor "${label}" cannot infer dtype from ${buffer.size} bytes for ${length} elements.`
+      );
+    }
+  }
+  if (dtype !== 'f16' && dtype !== 'f32') {
+    throw new Error(`Vector tensor "${label}" has unsupported dtype "${String(dtype)}".`);
+  }
+  return {
+    tensor: createTensor(buffer, dtype, [length], label),
+    owned: !isGpuBufferInstance(weight) && !isWeightBuffer(weight),
+  };
 }
 
 

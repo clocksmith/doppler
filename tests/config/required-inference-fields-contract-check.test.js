@@ -16,6 +16,8 @@ const manifestArtifact = buildManifestRequiredInferenceFieldsArtifact({
   attention: {
     queryPreAttnScalar: 256,
     queryKeyNorm: true,
+    queryKeyNormType: 'rmsnorm',
+    queryKeyNormAxis: 'head',
     valueNorm: false,
     attentionBias: false,
     causal: true,

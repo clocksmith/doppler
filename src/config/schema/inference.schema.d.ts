@@ -84,6 +84,10 @@ export interface AttentionSchema {
   attnLogitSoftcapping?: number | null;
   /** Use query-key normalization */
   queryKeyNorm?: boolean;
+  /** Numerical family used for Q/K normalization. */
+  queryKeyNormType?: 'rmsnorm' | 'layernorm';
+  /** Normalize each head independently or the complete projection before head reshaping. */
+  queryKeyNormAxis?: 'head' | 'projection';
   /** Layers that apply query-key normalization; null means all layers when queryKeyNorm=true */
   queryKeyNormLayers?: number[] | null;
   /** Layers that have explicit Q/K RMSNorm scale tensors; null means every normalized layer must have weights */
@@ -100,6 +104,8 @@ export interface AttentionSchema {
 
 /** Normalization configuration */
 export interface NormalizationSchema {
+  /** Transformer normalization family. */
+  type?: 'rmsnorm' | 'layernorm';
   /** Add 1.0 to RMSNorm weights (Gemma-style) */
   rmsNormWeightOffset?: boolean;
   /** RMSNorm epsilon */
@@ -108,6 +114,8 @@ export interface NormalizationSchema {
   postAttentionNorm?: boolean;
   /** Use pre-feedforward norm */
   preFeedforwardNorm?: boolean;
+  /** Canonical final LayerNorm bias tensor, or null for a bias-free LayerNorm. */
+  finalNormBiasTensor?: string | null;
   /** Use post-feedforward norm */
   postFeedforwardNorm?: boolean;
 }

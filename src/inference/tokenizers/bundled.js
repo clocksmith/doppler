@@ -25,7 +25,7 @@ function resolveTokenId(value, vocab, label) {
   return null;
 }
 
-function resolveSpecialTokens(specialTokensRaw, fallbackTokens, vocab) {
+function resolveSpecialTokens(specialTokensRaw, fallbackTokens, vocab, options = {}) {
   const padCandidate = pickCandidate(
     specialTokensRaw?.pad,
     specialTokensRaw?.pad_token,
@@ -58,7 +58,7 @@ function resolveSpecialTokens(specialTokensRaw, fallbackTokens, vocab) {
     unk: resolveTokenId(unkCandidate, vocab, 'unk'),
   };
 
-  if (resolved.eos == null) {
+  if (resolved.eos == null && options.allowMissingEos !== true) {
     throw new Error('[Tokenizer] Missing EOS token in tokenizer.json and runtime config.');
   }
 
@@ -154,6 +154,17 @@ function resolveIsolatedSplitPretokenizer(preTokenizer) {
     throw new Error(`[Tokenizer] Unsupported split pre-tokenizer regex: ${error.message}`);
   }
   return { source: normalized.source, flags };
+}
+
+function resolvesCharacterSplitPretokenizer(preTokenizer) {
+  if (!preTokenizer || typeof preTokenizer !== 'object') return false;
+  if (preTokenizer.type === 'Sequence' && Array.isArray(preTokenizer.pretokenizers)) {
+    return preTokenizer.pretokenizers.some(resolvesCharacterSplitPretokenizer);
+  }
+  return preTokenizer.type === 'Split'
+    && preTokenizer.behavior === 'Removed'
+    && preTokenizer.invert !== true
+    && preTokenizer.pattern?.String === '';
 }
 
 function hexNibble(code) {
@@ -333,7 +344,10 @@ function registerAddedTokens(addedTokens, vocab, reverseVocab, patterns, special
     if (token.special) {
       specialTokenIds.add(id);
       if (derivedSpecialTokens) {
-        if (derivedSpecialTokens.bos == null && (content === '<bos>' || content === '<s>' || content.includes('bos'))) {
+        if (
+          derivedSpecialTokens.bos == null
+          && (content === '<bos>' || content === '<s>' || content === '<cls>' || content.includes('bos'))
+        ) {
           derivedSpecialTokens.bos = id;
         } else if (derivedSpecialTokens.eos == null && (content === '<eos>' || content === '</s>' || content.includes('eos'))) {
           derivedSpecialTokens.eos = id;
@@ -451,6 +465,12 @@ export class BundledTokenizer extends BaseTokenizer {
 
   #splitPretokenizer = null;
 
+  #splitEveryCharacter = false;
+
+  #wordPiecePrefix = '##';
+
+  #wordPieceMaxChars = 100;
+
   
   constructor(config = {}) {
     // BundledTokenizer gets vocabSize from load(), so defer validation
@@ -476,6 +496,9 @@ export class BundledTokenizer extends BaseTokenizer {
     this.#byteEncoder = null;
     this.#useByteLevelEncoding = false;
     this.#splitPretokenizer = null;
+    this.#splitEveryCharacter = false;
+    this.#wordPiecePrefix = '##';
+    this.#wordPieceMaxChars = 100;
     this.vocabSize = 0;
   }
 
@@ -550,7 +573,7 @@ export class BundledTokenizer extends BaseTokenizer {
       throw new Error('[Tokenizer] Missing model.type in HuggingFace tokenizer JSON.');
     }
     this.#type = model.type.toLowerCase();
-    if (this.#type !== 'bpe' && this.#type !== 'unigram') {
+    if (this.#type !== 'bpe' && this.#type !== 'unigram' && this.#type !== 'wordpiece') {
       throw new Error(`[Tokenizer] Unsupported tokenizer type: ${model.type}`);
     }
     log.info('Tokenizer', `HuggingFace model.type="${model.type}", using type="${this.#type}"`);
@@ -566,8 +589,12 @@ export class BundledTokenizer extends BaseTokenizer {
         this.#scores.push(score);
         if (i > maxId) maxId = i;
       }
-    } else if (this.#type === 'bpe' && model.vocab && typeof model.vocab === 'object') {
-      // BPE format: { token: id }
+    } else if (
+      (this.#type === 'bpe' || this.#type === 'wordpiece')
+      && model.vocab
+      && typeof model.vocab === 'object'
+    ) {
+      // BPE and WordPiece format: { token: id }
       maxId = loadObjectVocab(model.vocab, this.#vocab, this.#reverseVocab, this.#byteTokens);
     } else {
       throw new Error(`[Tokenizer] Missing vocab for tokenizer type: ${model.type}`);
@@ -610,7 +637,9 @@ export class BundledTokenizer extends BaseTokenizer {
       eos: model.eos_id ?? this.specialTokens.eos ?? derivedSpecialTokens.eos,
       unk: model.unk_id ?? this.specialTokens.unk ?? derivedSpecialTokens.unk,
     };
-    this.specialTokens = resolveSpecialTokens(specialTokensRaw, fallbackTokens, this.#vocab);
+    this.specialTokens = resolveSpecialTokens(specialTokensRaw, fallbackTokens, this.#vocab, {
+      allowMissingEos: hf.add_eos_token === false || hf.addEosToken === false,
+    });
     this.#specialTokenIds = specialTokenIds;
     this.#specialTokenPatterns = specialTokenPatterns;
     const builtinSpecials = [
@@ -639,6 +668,16 @@ export class BundledTokenizer extends BaseTokenizer {
     const runtimeDefaults = getRuntimeConfig().inference.tokenizer;
     const byteLevelPretokenizer = resolveByteLevelPretokenizerConfig(hf.pre_tokenizer);
     this.#splitPretokenizer = resolveIsolatedSplitPretokenizer(hf.pre_tokenizer);
+    this.#splitEveryCharacter = resolvesCharacterSplitPretokenizer(hf.pre_tokenizer);
+    if (this.#type === 'wordpiece') {
+      this.#wordPiecePrefix = typeof model.continuing_subword_prefix === 'string'
+        ? model.continuing_subword_prefix
+        : '##';
+      this.#wordPieceMaxChars = Number.isInteger(model.max_input_chars_per_word)
+        && model.max_input_chars_per_word > 0
+        ? model.max_input_chars_per_word
+        : 100;
+    }
     const configuredAddBosToken = this.addBosToken;
     const configuredAddEosToken = this.addEosToken;
     const inferredFlags = inferBundledTokenizerBehaviorFlags(hf, this.specialTokens);
@@ -783,7 +822,10 @@ export class BundledTokenizer extends BaseTokenizer {
         ...derivedSpecialTokens,
         ...this.specialTokens,
       },
-      this.#vocab
+      this.#vocab,
+      {
+        allowMissingEos: tokenizerJson.add_eos_token === false || tokenizerJson.addEosToken === false,
+      }
     );
     log.debug('Tokenizer', `Special tokens: BOS=${this.specialTokens.bos}, EOS=${this.specialTokens.eos}`);
     this.#specialTokenIds = specialTokenIds;
@@ -885,6 +927,8 @@ export class BundledTokenizer extends BaseTokenizer {
       } else if (seg.text && seg.text.length > 0) {
         if (this.#type === 'unigram') {
           ids.push(...this.#encodeUnigram(seg.text));
+        } else if (this.#type === 'wordpiece') {
+          ids.push(...this.#encodeWordPiece(seg.text));
         } else {
           ids.push(...this.#encodeBPE(seg.text));
         }
@@ -1053,6 +1097,42 @@ export class BundledTokenizer extends BaseTokenizer {
     return ids;
   }
 
+  #encodeWordPiece(text) {
+    if (text.length === 0) return [];
+    const words = this.#splitEveryCharacter
+      ? Array.from(text)
+      : text.match(/[\p{L}\p{M}\p{N}]+|[^\s\p{L}\p{M}\p{N}]/gu) ?? [];
+    const ids = [];
+    for (const word of words) {
+      if (/^\s+$/u.test(word)) continue;
+      if (word.length > this.#wordPieceMaxChars) {
+        ids.push(this.#getUnkTokenId());
+        continue;
+      }
+      let start = 0;
+      const wordIds = [];
+      let failed = false;
+      while (start < word.length) {
+        let end = word.length;
+        let tokenId;
+        while (start < end) {
+          const piece = `${start > 0 ? this.#wordPiecePrefix : ''}${word.slice(start, end)}`;
+          tokenId = this.#vocab.get(piece);
+          if (tokenId !== undefined) break;
+          end -= 1;
+        }
+        if (tokenId === undefined) {
+          failed = true;
+          break;
+        }
+        wordIds.push(tokenId);
+        start = end;
+      }
+      ids.push(...(failed ? [this.#getUnkTokenId()] : wordIds));
+    }
+    return ids;
+  }
+
   #splitBpePretokens(text) {
     if (!this.#useByteLevelEncoding || !this.#splitPretokenizer) return [text];
     const regex = new RegExp(this.#splitPretokenizer.source, this.#splitPretokenizer.flags);
@@ -1196,6 +1276,17 @@ export class BundledTokenizer extends BaseTokenizer {
       result = new TextDecoder('utf-8', { fatal: false }).decode(Uint8Array.from(bytes));
       // SentencePiece-style markers can still appear in some mixed vocabularies.
       result = result.replace(/▁/g, ' ');
+    } else if (this.#type === 'wordpiece') {
+      if (this.#splitEveryCharacter) {
+        result = tokens.join('');
+      } else {
+        result = tokens.reduce((text, token) => {
+          if (token.startsWith(this.#wordPiecePrefix)) {
+            return `${text}${token.slice(this.#wordPiecePrefix.length)}`;
+          }
+          return text ? `${text} ${token}` : token;
+        }, '');
+      }
     } else {
       // Join and convert ▁ back to spaces, handle GPT-style markers
       result = decodeByteFallbackTokens(tokens)

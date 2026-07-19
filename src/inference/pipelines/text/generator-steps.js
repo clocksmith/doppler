@@ -1222,7 +1222,9 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
       embeddingMode,
       finalNormWeights,
       config,
-      state.embeddingPostprocessor
+      state.embeddingPostprocessor,
+      null,
+      state.weights.get('final_norm_bias') ?? null
     );
   } finally {
     const isPreAllocated = isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer);

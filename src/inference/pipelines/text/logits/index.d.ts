@@ -17,7 +17,7 @@ import type { LogitsConfig, LogitsWeights, LogitsDebugFlags } from './types.js';
 export type { LogitsConfig, LogitsWeights, LogitsDebugFlags } from './types.js';
 
 // Re-export CPU functions
-export { rmsNormCPU, matmulCPU, applySoftcapping, f16ToF32, f16BufferToF32 } from './cpu.js';
+export { layerNormCPU, rmsNormCPU, matmulCPU, applySoftcapping, f16ToF32, f16BufferToF32 } from './cpu.js';
 
 // Re-export GPU functions
 export { computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, computeChunkedLogitsGPU, resolveCpuWeightDims, resolveLmHeadChunkRows, extractLmHeadChunk, writeChunkLogits } from './gpu.js';

@@ -109,7 +109,7 @@
   "summary": {
     "catalogModelCount": 24,
     "sourceCheckpointCount": 17,
-    "conversionOnlyConfigCount": 8,
+    "conversionOnlyConfigCount": 12,
     "hfPublishedModelCount": 15,
     "verifiedModelCount": 21,
     "benchmarkSelectedSourceCount": 1,
@@ -2609,6 +2609,60 @@
   ],
   "conversionOnly": [
     {
+      "modelBaseId": "amplify-120m-f16-af32",
+      "family": "amplify",
+      "conversionConfig": "src/config/conversion/amplify/amplify-120m-f16-af32.json",
+      "sourceCheckpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "f16",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish amplify-120m-f16-af32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "esm2-t12-35m-ur50d-f32-af32",
+      "family": "esm",
+      "conversionConfig": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
+      "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "f32",
+        "embeddings": "f32",
+        "lmHead": "f32",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish esm2-t12-35m-ur50d-f32-af32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "esmc-300m-f32-af32",
+      "family": "esmc",
+      "conversionConfig": "src/config/conversion/esmc/esmc-300m-f32-af32.json",
+      "sourceCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "f32",
+        "embeddings": "f32",
+        "lmHead": "f32",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish esmc-300m-f32-af32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
       "modelBaseId": "gemma-3-1b-it-f16-af32",
       "family": "gemma3",
       "conversionConfig": "src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
@@ -2714,6 +2768,24 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish janus-pro-1b-text-q4k-ehaf16 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "nucleotide-transformer-v2-50m-f32-af32",
+      "family": "nucleotide-transformer",
+      "conversionConfig": "src/config/conversion/nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32.json",
+      "sourceCheckpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "f32",
+        "embeddings": "f32",
+        "lmHead": "f32",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish nucleotide-transformer-v2-50m-f32-af32 before claiming runtime support.",
       "nextCommand": null
     },
     {

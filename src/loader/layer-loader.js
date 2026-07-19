@@ -35,13 +35,19 @@ const LAYER_PREFIXES = (layerIdx) => [
 
 const ATTN_SUFFIXES = {
   inputNorm: ['input_layernorm.weight', 'attn_norm.weight', 'operator_norm.weight'],
+  inputNormBias: ['input_layernorm.bias', 'attn_norm.bias', 'operator_norm.bias'],
   qProj: ['self_attn.q_proj.weight', 'attention.wq.weight', 'attn_q.weight'],
+  qProjBias: ['self_attn.q_proj.bias', 'attention.wq.bias', 'attn_q.bias'],
   kProj: ['self_attn.k_proj.weight', 'attention.wk.weight', 'attn_k.weight'],
+  kProjBias: ['self_attn.k_proj.bias', 'attention.wk.bias', 'attn_k.bias'],
   vProj: ['self_attn.v_proj.weight', 'attention.wv.weight', 'attn_v.weight'],
+  vProjBias: ['self_attn.v_proj.bias', 'attention.wv.bias', 'attn_v.bias'],
   oProj: ['self_attn.o_proj.weight', 'self_attn.out_proj.weight', 'attention.wo.weight', 'attn_output.weight'],
+  oProjBias: ['self_attn.o_proj.bias', 'self_attn.out_proj.bias', 'attention.wo.bias', 'attn_output.bias'],
   qNorm: ['self_attn.q_norm.weight', 'self_attn.q_layernorm.weight', 'attn_q_norm.weight'],
   kNorm: ['self_attn.k_norm.weight', 'self_attn.k_layernorm.weight', 'attn_k_norm.weight'],
   postAttentionNorm: ['post_attention_layernorm.weight', 'post_attention_norm.weight', 'ffn_norm.weight'],
+  postAttentionNormBias: ['post_attention_layernorm.bias', 'post_attention_norm.bias', 'ffn_norm.bias'],
   preFeedforwardNorm: ['pre_feedforward_layernorm.weight'],
   preFeedforwardNorm2: ['pre_feedforward_layernorm_2.weight'],
   postFeedforwardNorm: ['post_feedforward_layernorm.weight', 'post_ffw_norm.weight'],
@@ -73,8 +79,11 @@ const CONV_SUFFIXES = {
 const FFN_SUFFIXES = {
   ffnGateUp: ['mlp.gate_up_proj.weight', 'ffn_gate_up.weight', 'feed_forward.w1_w3.weight'],
   ffnGate: ['mlp.gate_proj.weight', 'feed_forward.w1.weight', 'ffn_gate.weight'],
+  ffnGateBias: ['mlp.gate_proj.bias', 'feed_forward.w1.bias', 'ffn_gate.bias'],
   ffnUp: ['mlp.up_proj.weight', 'feed_forward.w3.weight', 'ffn_up.weight'],
+  ffnUpBias: ['mlp.up_proj.bias', 'feed_forward.w3.bias', 'ffn_up.bias'],
   ffnDown: ['mlp.down_proj.weight', 'feed_forward.w2.weight', 'ffn_down.weight'],
+  ffnDownBias: ['mlp.down_proj.bias', 'feed_forward.w2.bias', 'ffn_down.bias'],
   perLayerInputGate: ['per_layer_input_gate.weight'],
   perLayerProjection: ['per_layer_projection.weight'],
 };
@@ -334,10 +343,15 @@ export async function loadLayer(ctx, layerIdx) {
   
   const weights = {
     inputNorm: null,
+    inputNormBias: null,
     qProj: null,
+    qProjBias: null,
     kProj: null,
+    kProjBias: null,
     vProj: null,
+    vProjBias: null,
     oProj: null,
+    oProjBias: null,
     qkvProj: null,
     qkvSizes: null,
     qkvDtype: null,
@@ -351,6 +365,7 @@ export async function loadLayer(ctx, layerIdx) {
     qNorm: null,
     kNorm: null,
     postAttentionNorm: null,
+    postAttentionNormBias: null,
     preFeedforwardNorm: null,
     preFeedforwardNorm2: null,
     postFeedforwardNorm: null,
@@ -362,8 +377,11 @@ export async function loadLayer(ctx, layerIdx) {
     convKernel: null,
     convOutProj: null,
     ffnGate: null,
+    ffnGateBias: null,
     ffnUp: null,
+    ffnUpBias: null,
     ffnDown: null,
+    ffnDownBias: null,
     ffnGateUp: null,
     perLayerInputGate: null,
     perLayerProjection: null,
@@ -430,12 +448,58 @@ function createTryLoadNorm(ctx, prefixes, tryLoad) {
   };
 }
 
+export function describeQKNormTensor(tensor, location, name) {
+  if (isWeightBuffer(tensor) || tensor instanceof Float32Array) {
+    return tensor;
+  }
+
+  const isGpuBuffer = typeof GPUBuffer !== 'undefined' && tensor instanceof GPUBuffer;
+  const isGpuBufferLike = tensor && typeof tensor.size === 'number' && typeof tensor.destroy === 'function';
+  if (!isGpuBuffer && !isGpuBufferLike) return null;
+
+  if (!Array.isArray(location?.shape) || location.shape.length === 0) {
+    throw new Error(`[LayerLoader] Q/K norm tensor "${name}" is missing its logical shape.`);
+  }
+  const dtype = getWeightDtype(tensor);
+  if (dtype !== 'f16' && dtype !== 'f32') {
+    throw new Error(
+      `[LayerLoader] Q/K norm tensor "${name}" has unsupported runtime dtype "${String(dtype)}".`
+    );
+  }
+  return createWeightBuffer(
+    tensor,
+    dtype,
+    location.layout ?? 'row',
+    location.shape,
+    name
+  );
+}
+
+function createTryLoadQKNorm(ctx, prefixes) {
+  return async (suffixes) => {
+    for (const prefix of prefixes) {
+      for (const suffix of suffixes) {
+        const name = `${prefix}.${suffix}`;
+        const location = ctx.tensorLocations.get(name) ?? null;
+        if (!location) continue;
+
+        const tensor = await ctx.loadTensor(name, true, true);
+        if (!tensor) continue;
+        const described = describeQKNormTensor(tensor, location, name);
+        if (described) return described;
+      }
+    }
+    return null;
+  };
+}
+
 // ============================================================================
 // Weight Loading Functions
 // ============================================================================
 
 
 async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm) {
+  const tryLoadQKNorm = createTryLoadQKNorm(ctx, LAYER_PREFIXES(layerIdx));
   const tryLoadCpu = async (suffixes) => {
     for (const prefix of LAYER_PREFIXES(layerIdx)) {
       for (const suffix of suffixes) {
@@ -450,13 +514,19 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
 
   const [
     inputNorm,
+    inputNormBias,
     qProj,
+    qProjBias,
     kProj,
+    kProjBias,
     vProj,
+    vProjBias,
     oProj,
+    oProjBias,
     qNorm,
     kNorm,
     postAttentionNorm,
+    postAttentionNormBias,
     preFeedforwardNorm,
     preFeedforwardNorm2,
     postFeedforwardNorm,
@@ -478,14 +548,20 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     linearNorm,
   ] = await Promise.all([
     tryLoadNorm(ATTN_SUFFIXES.inputNorm),
+    tryLoadNorm(ATTN_SUFFIXES.inputNormBias),
     tryLoad(ATTN_SUFFIXES.qProj),
+    tryLoadNorm(ATTN_SUFFIXES.qProjBias),
     tryLoad(ATTN_SUFFIXES.kProj),
+    tryLoadNorm(ATTN_SUFFIXES.kProjBias),
     tryLoad(ATTN_SUFFIXES.vProj),
+    tryLoadNorm(ATTN_SUFFIXES.vProjBias),
     tryLoad(ATTN_SUFFIXES.oProj),
+    tryLoadNorm(ATTN_SUFFIXES.oProjBias),
     // Gemma 3: q_norm and k_norm use Gemma3RMSNorm with (1+weight) formula
-    tryLoadNorm(ATTN_SUFFIXES.qNorm),
-    tryLoadNorm(ATTN_SUFFIXES.kNorm),
+    tryLoadQKNorm(ATTN_SUFFIXES.qNorm),
+    tryLoadQKNorm(ATTN_SUFFIXES.kNorm),
     tryLoadNorm(ATTN_SUFFIXES.postAttentionNorm),
+    tryLoadNorm(ATTN_SUFFIXES.postAttentionNormBias),
     tryLoadNorm(ATTN_SUFFIXES.preFeedforwardNorm),
     tryLoadNorm(ATTN_SUFFIXES.preFeedforwardNorm2),
     tryLoadNorm(ATTN_SUFFIXES.postFeedforwardNorm),
@@ -508,10 +584,15 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
   ]);
 
   weights.inputNorm = inputNorm;
+  weights.inputNormBias = inputNormBias;
   weights.qProj = qProj;
+  weights.qProjBias = qProjBias;
   weights.kProj = kProj;
+  weights.kProjBias = kProjBias;
   weights.vProj = vProj;
+  weights.vProjBias = vProjBias;
   weights.oProj = oProj;
+  weights.oProjBias = oProjBias;
   weights.qNorm = qNorm;
   weights.kNorm = kNorm;
 
@@ -525,6 +606,7 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
   }
 
   weights.postAttentionNorm = postAttentionNorm;
+  weights.postAttentionNormBias = postAttentionNormBias;
   weights.preFeedforwardNorm = preFeedforwardNorm;
   weights.preFeedforwardNorm2 = preFeedforwardNorm2;
   weights.postFeedforwardNorm = postFeedforwardNorm;
@@ -570,11 +652,22 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
 async function loadFfnWeights(ctx, weights, layerIdx, tryLoad, prefixes) {
   const perLayerProjection = await loadStablePerLayerProjection(ctx, layerIdx, prefixes, tryLoad);
   const stablePerLayerInputGate = await loadStablePerLayerInputGate(ctx, layerIdx, prefixes, tryLoad);
-  const [ffnGateUp, ffnGate, ffnUp, ffnDown] = await Promise.all([
+  const [
+    ffnGateUp,
+    ffnGate,
+    ffnGateBias,
+    ffnUp,
+    ffnUpBias,
+    ffnDown,
+    ffnDownBias,
+  ] = await Promise.all([
     tryLoad(FFN_SUFFIXES.ffnGateUp),
     tryLoad(FFN_SUFFIXES.ffnGate),
+    tryLoad(FFN_SUFFIXES.ffnGateBias),
     tryLoad(FFN_SUFFIXES.ffnUp),
+    tryLoad(FFN_SUFFIXES.ffnUpBias),
     tryLoad(FFN_SUFFIXES.ffnDown),
+    tryLoad(FFN_SUFFIXES.ffnDownBias),
   ]);
 
   if (ffnGateUp) {
@@ -584,16 +677,22 @@ async function loadFfnWeights(ctx, weights, layerIdx, tryLoad, prefixes) {
     debugTrace.loader(`Layer ${layerIdx}: Using fused gate_up_proj for 2-pass FFN`);
   } else {
     weights.ffnGate = ffnGate;
+    weights.ffnGateBias = ffnGateBias;
     weights.ffnUp = ffnUp;
+    weights.ffnUpBias = ffnUpBias;
   }
 
   weights.ffnDown = ffnDown;
+  weights.ffnDownBias = ffnDownBias;
   weights.perLayerInputGate = stablePerLayerInputGate;
   weights.perLayerProjection = perLayerProjection;
 
   weights.gate = weights.ffnGate;
+  weights.gateBias = weights.ffnGateBias;
   weights.up = weights.ffnUp;
+  weights.upBias = weights.ffnUpBias;
   weights.down = weights.ffnDown;
+  weights.downBias = weights.ffnDownBias;
   weights.gateUp = weights.ffnGateUp;
 }
 

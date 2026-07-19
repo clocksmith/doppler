@@ -93,6 +93,34 @@ try {
   assert.deepEqual(Array.from(fused.shape), [12, 4]);
   assert.equal(fused.buffer.size, 12 * 4 * 2);
 
+  const qProjBias = new GPUBuffer({ size: 4 * 4, usage: GPUBufferUsage.STORAGE, label: 'q_proj_bias' });
+  const kProjBias = new GPUBuffer({ size: 4 * 4, usage: GPUBufferUsage.STORAGE, label: 'k_proj_bias' });
+  const vProjBias = new GPUBuffer({ size: 4 * 4, usage: GPUBufferUsage.STORAGE, label: 'v_proj_bias' });
+  tagBufferDtype(qProjBias, 'f32');
+  tagBufferDtype(kProjBias, 'f32');
+  tagBufferDtype(vProjBias, 'f32');
+  const biasedLayerWeights = new Map();
+  biasedLayerWeights.set('layer_0', {
+    qProj,
+    qProjBias,
+    kProj,
+    kProjBias,
+    vProj,
+    vProjBias,
+    qkvProj: null,
+  });
+  fuseQKVWeights(biasedLayerWeights, {
+    numLayers: 1,
+    numHeads: 1,
+    numKVHeads: 1,
+    headDim: 4,
+    hiddenSize: 4,
+  });
+  const fusedBias = biasedLayerWeights.get('layer_0').qkvProjBias;
+  assert.ok(fusedBias, 'expected fused QKV projection bias');
+  assert.equal(getWeightDtype(fusedBias), 'f32');
+  assert.equal(fusedBias.size, 12 * 4);
+
   const q4RowBytes = q4kBlockCount(4) * Q4K_BLOCK_BYTES;
   const qProjQ4 = createWeightBuffer(
     new GPUBuffer({ size: 4 * q4RowBytes, usage: GPUBufferUsage.STORAGE, label: 'q_proj_q4' }),

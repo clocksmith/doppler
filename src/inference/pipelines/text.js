@@ -74,6 +74,47 @@ function assertNotAborted(signal) {
     throw new AbortError(typeof signal.reason === 'string' ? signal.reason : 'Doppler: aborted');
   }
 }
+
+function poolSequenceTokenEmbeddings(tokenEmbeddings, tokenIds, hiddenSize, pooling) {
+  if (!(tokenEmbeddings instanceof Float32Array)) {
+    throw new Error('Sequence token embeddings are unavailable.');
+  }
+  if (tokenEmbeddings.length !== tokenIds.length * hiddenSize) {
+    throw new Error(
+      `Sequence embedding shape mismatch: expected ${tokenIds.length * hiddenSize}, got ${tokenEmbeddings.length}.`
+    );
+  }
+  const excluded = new Set(pooling.excludeTokenIds);
+  const includedIndices = [];
+  for (let index = 0; index < tokenIds.length; index += 1) {
+    if (!excluded.has(tokenIds[index])) includedIndices.push(index);
+  }
+  if (includedIndices.length === 0) {
+    throw new Error('Sequence pooling excluded every input token.');
+  }
+  const pooled = new Float32Array(hiddenSize);
+  if (pooling.mode === 'last') {
+    const tokenIndex = includedIndices[includedIndices.length - 1];
+    const offset = tokenIndex * hiddenSize;
+    pooled.set(tokenEmbeddings.subarray(offset, offset + hiddenSize));
+  } else {
+    for (const tokenIndex of includedIndices) {
+      const offset = tokenIndex * hiddenSize;
+      for (let column = 0; column < hiddenSize; column += 1) {
+        pooled[column] += tokenEmbeddings[offset + column];
+      }
+    }
+    const scale = 1 / includedIndices.length;
+    for (let column = 0; column < hiddenSize; column += 1) {
+      pooled[column] *= scale;
+    }
+  }
+  return {
+    pooled,
+    tokenMask: Uint8Array.from(tokenIds, (tokenId) => excluded.has(tokenId) ? 0 : 1),
+    includedTokenCount: includedIndices.length,
+  };
+}
 import { initConvLayerState } from './text/ops.js';
 import { destroyPleBufferCache, destroyPleRuntimeCache } from './text/per-layer-inputs.js';
 
@@ -672,7 +713,21 @@ export class InferencePipeline extends PipelineState {
     result.layerWeights.forEach((w, k) => this.weights.set(k, w));
     this.weights.set('embed', result.embeddings);
     this.weights.set('lm_head', result.lmHead);
+    this.weights.set('lm_head_bias', result.lmHeadBias);
+    if (result.lmHeadBias) {
+      // Recorded/fused logits currently keep their result on GPU, while the
+      // manifest-owned decoder bias is loaded as an exact CPU tensor. Route
+      // biased heads through computeLogits until the execution graph declares
+      // and records an explicit GPU bias-add step.
+      this.disableRecordedLogits = true;
+      this.disableFusedDecode = true;
+    }
     this.weights.set('final_norm', result.finalNorm);
+    this.weights.set('final_norm_bias', result.finalNormBias);
+    if (result.finalNormBias) {
+      this.disableRecordedLogits = true;
+      this.disableFusedDecode = true;
+    }
     this.weights.set('diffusion_gemma_self_conditioning', result.diffusionGemmaSelfConditioning);
     this.weights.set('per_layer_inputs', result.perLayerInputWeights);
     this.embeddingPostprocessor = result.embeddingPostprocessor;
@@ -1477,6 +1532,7 @@ export class InferencePipeline extends PipelineState {
   get capabilities() {
     const caps = ['generation'];
     if (typeof this.prefillWithEmbedding === 'function') caps.push('embedding');
+    if (this.manifest?.inference?.supportsSequence === true) caps.push('sequence');
     if (this.visionCapable) caps.push('multimodal');
     if (this.audioCapable) caps.push('audio');
     if (this.visionCapable) caps.push('video');
@@ -1617,6 +1673,62 @@ export class InferencePipeline extends PipelineState {
       outputs.push(await this.embed(prompt, batchOptions));
     }
     return outputs;
+  }
+
+  async encodeSequence(sequence, options = {}) {
+    assertNotAborted(options?.signal);
+    const contract = this.manifest?.inference?.sequence ?? null;
+    if (this.manifest?.inference?.supportsSequence !== true || !contract) {
+      throw new Error('Model manifest does not declare sequence encoding support.');
+    }
+    if (typeof sequence !== 'string' || sequence.length === 0) {
+      throw new Error('encodeSequence expects a non-empty sequence string.');
+    }
+    const includeTokenEmbeddings = options.includeTokenEmbeddings
+      ?? contract.tokenEmbeddings;
+    const includeLogits = options.includeLogits === true;
+    if (includeTokenEmbeddings && contract.tokenEmbeddings !== true) {
+      throw new Error('Model manifest does not permit token-level sequence embeddings.');
+    }
+    if (includeLogits && contract.logits !== true) {
+      throw new Error('Model manifest does not permit sequence logits.');
+    }
+    const needsTokenEmbeddings = includeTokenEmbeddings || contract.pooledEmbedding !== null;
+
+    this.resetForBatch();
+    try {
+      const result = await this.prefillWithEmbedding(sequence, {
+        ...options,
+        embeddingMode: contract.pooledEmbedding?.mode ?? 'last',
+        __skipStateSnapshot: true,
+        __returnTokenEmbeddings: needsTokenEmbeddings,
+        __returnSequenceLogits: includeLogits,
+      });
+      assertNotAborted(options?.signal);
+      const hiddenSize = this.modelConfig.hiddenSize;
+      const pooledResult = contract.pooledEmbedding
+        ? poolSequenceTokenEmbeddings(
+          result.tokenEmbeddings,
+          result.tokens,
+          hiddenSize,
+          contract.pooledEmbedding
+        )
+        : null;
+      return {
+        alphabet: contract.alphabet,
+        tokens: result.tokens,
+        tokenMask: pooledResult?.tokenMask ?? new Uint8Array(result.tokens.length),
+        includedTokenCount: pooledResult?.includedTokenCount ?? 0,
+        tokenEmbeddings: includeTokenEmbeddings ? result.tokenEmbeddings : null,
+        pooledEmbedding: pooledResult?.pooled ?? null,
+        logits: includeLogits ? result.logits : null,
+        embeddingDim: hiddenSize,
+        vocabSize: this.modelConfig.vocabSize,
+        phase: result.phase ?? null,
+      };
+    } finally {
+      this.resetForBatch();
+    }
   }
 
   // Run the vision encoder over a single image and return a mean-pooled

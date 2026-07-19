@@ -17,11 +17,14 @@ import type {
   ManifestArtifactIdentitySchema,
   ManifestWeightsRefSchema,
   MoEConfigSchema,
+  ArchitectureSchema,
 } from './manifest.schema.js';
 import type {
   ExecutionV1GraphSchema,
   ExecutionV1SessionSchema,
 } from './execution-v1.schema.js';
+import type { SourceTensorPolicy } from '../../converter/source-tensor-rules.js';
+import type { SourceTokenizerPolicy } from '../../converter/source-tokenizer.js';
 
 export type ComputePrecision = 'f16' | 'f32' | 'auto' | null;
 /** Q4K layout: 'row' = fused kernel (fast), 'col' = dequant fallback */
@@ -112,6 +115,10 @@ export interface ConverterConfigSchema {
   manifest: ConverterManifestConfigSchema;
   inference: ConverterInferenceConfigSchema;
   output: ConverterOutputConfigSchema;
+  /** Explicit architecture for custom checkpoints whose source config omits standard HF fields. */
+  architecture: ArchitectureSchema | null;
+  sourceTensors: SourceTensorPolicy | null;
+  sourceTokenizer: SourceTokenizerPolicy | null;
   moeConfig?: MoEConfigSchema | null;
   execution?: ExecutionV1GraphSchema;
   session?: ExecutionV1SessionSchema;

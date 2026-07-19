@@ -17,6 +17,8 @@ import type { WeightBuffer, CpuWeightBuffer, SplitWeightBuffer } from '../../../
 export interface LogitsConfig {
   hiddenSize: number;
   vocabSize: number;
+  normalizationType: 'rmsnorm' | 'layernorm';
+  finalNormBiasTensor: string | null;
   rmsNormEps: number;
   useTiedEmbeddings: boolean;
   embeddingVocabSize: number | null;
@@ -38,7 +40,9 @@ export interface LogitsConfig {
  */
 export interface LogitsWeights {
   finalNorm: GPUBuffer | Float32Array;
+  finalNormBias?: Float32Array | null;
   lmHead: GPUBuffer | Float32Array | WeightBuffer | CpuWeightBuffer | SplitWeightBuffer;
+  lmHeadBias?: Float32Array | null;
 }
 
 /**

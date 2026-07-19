@@ -9,6 +9,8 @@ import {
   recordSplitQG,
   runRMSNorm,
   recordRMSNorm,
+  runLayerNorm,
+  recordLayerNorm,
   canUseRMSNormQK,
   runRMSNormQK,
   recordRMSNormQK,
@@ -22,6 +24,8 @@ import {
   castF32ToF16,
   recordCastF16ToF32,
   recordCastF32ToF16,
+  runBiasAdd,
+  recordBiasAdd,
 } from '../../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
@@ -29,7 +33,8 @@ import { QK_K, Q4K_BLOCK_BYTES } from '../../../../config/schema/index.js';
 import { getKernelPathMatmulPrecision } from '../../../../config/kernel-path-loader.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
-import { getQKNormOnesBuffer } from './types.js';
+import { getQKNormOnesBuffer, getQKNormZerosBuffer } from './types.js';
+import { getVectorTensor } from '../weights.js';
 
 function getMatmulRunner(recorder) {
   if (!recorder) {
@@ -52,11 +57,39 @@ function getSplitQGRunner(recorder) {
   return (qgTensor, options) => recordSplitQG(recorder, qgTensor, options);
 }
 
+function getBiasAddRunner(recorder) {
+  if (!recorder) {
+    return (data, bias, numTokens, dim, options) => runBiasAdd(data, bias, numTokens, dim, options);
+  }
+  return (data, bias, numTokens, dim, options) => recordBiasAdd(
+    recorder,
+    data,
+    bias,
+    numTokens,
+    dim,
+    options
+  );
+}
+
 function getRmsNormRunner(recorder) {
   if (!recorder) {
     return (input, weight, eps, options) => runRMSNorm(input, weight, eps, options);
   }
   return (input, weight, eps, options) => recordRMSNorm(recorder, input, weight, eps, options);
+}
+
+function getLayerNormRunner(recorder) {
+  if (!recorder) {
+    return (input, weight, bias, eps, options) => runLayerNorm(input, weight, bias, eps, options);
+  }
+  return (input, weight, bias, eps, options) => recordLayerNorm(
+    recorder,
+    input,
+    weight,
+    bias,
+    eps,
+    options
+  );
 }
 
 function getRmsNormQKRunner(recorder) {
@@ -148,13 +181,24 @@ function releaseOwnedWeightBuffer(layerWeight, resolvedWeightBuffer, releaseTemp
   releaseTemporary(buffer);
 }
 
-function normBufferMatchesHeadDim(buffer, headDim) {
+export function normBufferMatchesSize(buffer, expectedSize, layerWeight = null) {
+  // Logical shape proves how many elements a loaded weight represents; it does
+  // not prove that this invocation actually resolved a buffer. Reused-KV
+  // layers deliberately leave kNormBuf null, so accepting shape alone would
+  // dispatch K normalization with a missing binding.
   if (!buffer || !Number.isFinite(buffer.size)) {
     return false;
   }
+  if (Array.isArray(layerWeight?.shape)) {
+    const logicalElements = layerWeight.shape.reduce((product, dimension) => product * dimension, 1);
+    return logicalElements === expectedSize;
+  }
+  if (ArrayBuffer.isView(layerWeight)) {
+    return layerWeight.length === expectedSize;
+  }
   const elemsF32 = buffer.size / 4;
   const elemsF16 = buffer.size / 2;
-  return elemsF32 === headDim || elemsF16 === headDim;
+  return elemsF32 === expectedSize || elemsF16 === expectedSize;
 }
 
 function ownsNormBuffer(layerWeight) {
@@ -364,6 +408,32 @@ async function projectSingleQkvTensor({
         releaseTemporary(projected.buffer);
       }
       throw error;
+    }
+  }
+
+  const biasWeight = layerWeights?.[`${weightKey}Bias`];
+  if (biasWeight) {
+    const { tensor: biasTensor, owned } = getVectorTensor(
+      biasWeight,
+      `${role}_bias`,
+      outputSize,
+      {},
+      {}
+    );
+    try {
+      projected = await getBiasAddRunner(recorder)(
+        projected,
+        biasTensor,
+        numTokens,
+        outputSize,
+        {
+          label: `L${layerIdx}.${role}_bias`,
+          layerIdx,
+          executionPolicies,
+        }
+      );
+    } finally {
+      if (owned) releaseTemporary(biasTensor.buffer);
     }
   }
 
@@ -674,6 +744,30 @@ export async function projectAttentionQKV({
         rmsNormEps: fusedNormEps,
         rmsNormOffset: fusedNormOffset,
       });
+      if (layerWeights.qkvProjBias) {
+        const { tensor: qkvBiasTensor, owned: qkvBiasOwned } = getVectorTensor(
+          layerWeights.qkvProjBias,
+          `L${layerIdx}.qkv_proj_bias`,
+          qkvSizeTotal,
+          {},
+          {}
+        );
+        try {
+          qkvTensor = await getBiasAddRunner(recorder)(
+            qkvTensor,
+            qkvBiasTensor,
+            numTokens,
+            qkvSizeTotal,
+            {
+              label: `L${layerIdx}.qkv_proj_bias`,
+              layerIdx,
+              executionPolicies,
+            }
+          );
+        } finally {
+          if (qkvBiasOwned) releaseTemporary(qkvBiasTensor.buffer);
+        }
+      }
       const qkNormRoPEOptions = qkNormRoPEFusion
         ? { ...qkNormRoPEFusion, headDim }
         : null;
@@ -691,8 +785,8 @@ export async function projectAttentionQKV({
       if (canFuseSplitQKNormAndRoPE) {
         qNormBuf = qkNormRoPEFusion.getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
         kNormBuf = qkNormRoPEFusion.getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
-        const qNormApplies = normBufferMatchesHeadDim(qNormBuf, headDim);
-        const kNormApplies = normBufferMatchesHeadDim(kNormBuf, headDim);
+        const qNormApplies = normBufferMatchesSize(qNormBuf, headDim, layerWeights.qNorm);
+        const kNormApplies = normBufferMatchesSize(kNormBuf, headDim, layerWeights.kNorm);
         if (qNormApplies && kNormApplies) {
           const fused = await runSplitQKVRMSNormRoPEQKForMode(
             qkvTensor,
@@ -779,8 +873,8 @@ export async function projectAttentionQKV({
       if (canFuseSplitAndQKNorm) {
         qNormBuf = qkNormFusion.getNormWeightBuffer(layerWeights.qNorm, 'q_norm');
         kNormBuf = qkNormFusion.getNormWeightBuffer(layerWeights.kNorm, 'k_norm');
-        const qNormApplies = normBufferMatchesHeadDim(qNormBuf, headDim);
-        const kNormApplies = normBufferMatchesHeadDim(kNormBuf, headDim);
+        const qNormApplies = normBufferMatchesSize(qNormBuf, headDim, layerWeights.qNorm);
+        const kNormApplies = normBufferMatchesSize(kNormBuf, headDim, layerWeights.kNorm);
         if (qNormApplies && kNormApplies) {
           const fused = await runSplitQKVRMSNormQKForMode(
             qkvTensor,
@@ -1099,6 +1193,8 @@ export async function applyAttentionQKNorm({
   numKVHeads,
   headDim,
   rmsNormWeightOffset = false,
+  normalizationType = 'rmsnorm',
+  normalizationAxis = 'head',
   releaseTemporary,
   onQNormApplied = null,
   onKNormApplied = null,
@@ -1108,6 +1204,17 @@ export async function applyAttentionQKNorm({
 }) {
   const runRmsNormForMode = getRmsNormRunner(recorder);
   const runRmsNormQKForMode = getRmsNormQKRunner(recorder);
+  const runLayerNormForMode = getLayerNormRunner(recorder);
+  if (normalizationType !== 'rmsnorm' && normalizationType !== 'layernorm') {
+    throw new Error(`Unsupported Q/K normalization type "${normalizationType}".`);
+  }
+  if (normalizationAxis !== 'head' && normalizationAxis !== 'projection') {
+    throw new Error(`Unsupported Q/K normalization axis "${normalizationAxis}".`);
+  }
+  const qNormSize = normalizationAxis === 'projection' ? numHeads * headDim : headDim;
+  const kNormSize = normalizationAxis === 'projection' ? numKVHeads * headDim : headDim;
+  const qNormBatchSize = normalizationAxis === 'projection' ? numTokens : numTokens * numHeads;
+  const kNormBatchSize = normalizationAxis === 'projection' ? numTokens : numTokens * numKVHeads;
   let nextQ = qTensor;
   let nextK = kTensor;
   let qNormBuf = null;
@@ -1121,18 +1228,32 @@ export async function applyAttentionQKNorm({
     if (wantsQNorm) {
       qNormBuf = layerWeights.qNorm && getNormWeightBuffer
         ? getNormWeightBuffer(layerWeights.qNorm, 'q_norm')
-        : getQKNormOnesBuffer(headDim);
+        : getQKNormOnesBuffer(qNormSize);
     }
     if (wantsKNorm) {
       kNormBuf = layerWeights.kNorm && getNormWeightBuffer
         ? getNormWeightBuffer(layerWeights.kNorm, 'k_norm')
-        : getQKNormOnesBuffer(headDim);
+        : getQKNormOnesBuffer(kNormSize);
     }
 
-    const qNormApplies = normBufferMatchesHeadDim(qNormBuf, headDim);
-    const kNormApplies = normBufferMatchesHeadDim(kNormBuf, headDim);
+    const qNormApplies = normBufferMatchesSize(qNormBuf, qNormSize, layerWeights.qNorm);
+    const kNormApplies = normBufferMatchesSize(kNormBuf, kNormSize, layerWeights.kNorm);
+    if (wantsQNorm && !qNormApplies) {
+      throw new Error(
+        `Q normalization weight has ${String(qNormBuf?.size ?? 'unknown')} bytes; ` +
+        `expected ${qNormSize} f16 or f32 elements.`
+      );
+    }
+    if (wantsKNorm && !kNormApplies) {
+      throw new Error(
+        `K normalization weight has ${String(kNormBuf?.size ?? 'unknown')} bytes; ` +
+        `expected ${kNormSize} f16 or f32 elements.`
+      );
+    }
     if (
-      qNormApplies
+      normalizationType === 'rmsnorm'
+      && normalizationAxis === 'head'
+      && qNormApplies
       && kNormApplies
       && canUseRMSNormQK(nextQ, nextK, { skipKNorm })
     ) {
@@ -1159,12 +1280,20 @@ export async function applyAttentionQKNorm({
     }
 
     if (qNormApplies) {
-      const qNormedTensor = await runRmsNormForMode(nextQ, qNormBuf, rmsNormEps, {
-        batchSize: numTokens * numHeads,
-        hiddenSize: headDim,
-        rmsNormWeightOffset,
-        label: 'q_norm',
-      });
+      const qNormedTensor = normalizationType === 'layernorm'
+        ? await runLayerNormForMode(
+          nextQ,
+          qNormBuf,
+          getQKNormZerosBuffer(qNormSize),
+          rmsNormEps,
+          { batchSize: qNormBatchSize, hiddenSize: qNormSize, label: 'q_norm' }
+        )
+        : await runRmsNormForMode(nextQ, qNormBuf, rmsNormEps, {
+          batchSize: qNormBatchSize,
+          hiddenSize: qNormSize,
+          rmsNormWeightOffset,
+          label: 'q_norm',
+        });
       releaseTemporary(nextQ.buffer);
       nextQ = qNormedTensor;
       if (onQNormApplied) {
@@ -1173,12 +1302,20 @@ export async function applyAttentionQKNorm({
     }
 
     if (kNormApplies) {
-      const kNormedTensor = await runRmsNormForMode(nextK, kNormBuf, rmsNormEps, {
-        batchSize: numTokens * numKVHeads,
-        hiddenSize: headDim,
-        rmsNormWeightOffset,
-        label: 'k_norm',
-      });
+      const kNormedTensor = normalizationType === 'layernorm'
+        ? await runLayerNormForMode(
+          nextK,
+          kNormBuf,
+          getQKNormZerosBuffer(kNormSize),
+          rmsNormEps,
+          { batchSize: kNormBatchSize, hiddenSize: kNormSize, label: 'k_norm' }
+        )
+        : await runRmsNormForMode(nextK, kNormBuf, rmsNormEps, {
+          batchSize: kNormBatchSize,
+          hiddenSize: kNormSize,
+          rmsNormWeightOffset,
+          label: 'k_norm',
+        });
       if (!retainKInput) {
         releaseTemporary(nextK.buffer);
       }

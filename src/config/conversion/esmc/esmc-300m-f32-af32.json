@@ -1,0 +1,342 @@
+{
+  "modelType": "embedding",
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "esmc-300m-f32-af32",
+    "textOnly": true,
+    "fast": false
+  },
+  "architecture": {
+    "numLayers": 30,
+    "hiddenSize": 960,
+    "intermediateSize": 2560,
+    "numAttentionHeads": 15,
+    "numKeyValueHeads": 15,
+    "headDim": 64,
+    "vocabSize": 64,
+    "maxSeqLen": 2048,
+    "ropeTheta": 10000
+  },
+  "quantization": {
+    "weights": "f32",
+    "embeddings": "f32",
+    "lmHead": "f32",
+    "q4kLayout": "row",
+    "computePrecision": "f32"
+  },
+  "sourceTensors": {
+    "requireAll": true,
+    "rules": [
+      {
+        "kind": "rename",
+        "match": "^esmc\\.embed\\.weight$",
+        "replace": "model.embed_tokens.weight",
+        "expectedMatches": 1,
+        "role": "embedding",
+        "group": "embed"
+      },
+      {
+        "kind": "rename",
+        "match": "^esmc\\.transformer\\.norm\\.weight$",
+        "replace": "model.norm.weight",
+        "expectedMatches": 1,
+        "role": "norm",
+        "group": "head"
+      },
+      {
+        "kind": "rename",
+        "match": "^esmc\\.transformer\\.blocks\\.(\\d+)\\.attn\\.layernorm_qkv\\.layer_norm_weight$",
+        "replace": "model.layers.$1.input_layernorm.weight",
+        "expectedMatches": 30
+      },
+      {
+        "kind": "rename",
+        "match": "^esmc\\.transformer\\.blocks\\.(\\d+)\\.attn\\.layernorm_qkv\\.layer_norm_bias$",
+        "replace": "model.layers.$1.input_layernorm.bias",
+        "expectedMatches": 30
+      },
+      {
+        "kind": "split",
+        "match": "^esmc\\.transformer\\.blocks\\.(\\d+)\\.attn\\.layernorm_qkv\\.weight$",
+        "axis": 0,
+        "expectedMatches": 30,
+        "parts": [
+          { "replace": "model.layers.$1.self_attn.q_proj.weight", "size": 960 },
+          { "replace": "model.layers.$1.self_attn.k_proj.weight", "size": 960 },
+          { "replace": "model.layers.$1.self_attn.v_proj.weight", "size": 960 }
+        ]
+      },
+      {
+        "kind": "rename",
+        "match": "^esmc\\.transformer\\.blocks\\.(\\d+)\\.attn\\.q_ln\\.weight$",
+        "replace": "model.layers.$1.self_attn.q_norm.weight",
+        "expectedMatches": 30
+      },
+      {
+        "kind": "rename",
+        "match": "^esmc\\.transformer\\.blocks\\.(\\d+)\\.attn\\.k_ln\\.weight$",
+        "replace": "model.layers.$1.self_attn.k_norm.weight",
+        "expectedMatches": 30
+      },
+      {
+        "kind": "rename",
+        "match": "^esmc\\.transformer\\.blocks\\.(\\d+)\\.attn\\.out_proj\\.weight$",
+        "replace": "model.layers.$1.self_attn.o_proj.weight",
+        "expectedMatches": 30
+      },
+      {
+        "kind": "rename",
+        "match": "^esmc\\.transformer\\.blocks\\.(\\d+)\\.ffn\\.layer_norm_weight$",
+        "replace": "model.layers.$1.post_attention_layernorm.weight",
+        "expectedMatches": 30
+      },
+      {
+        "kind": "rename",
+        "match": "^esmc\\.transformer\\.blocks\\.(\\d+)\\.ffn\\.layer_norm_bias$",
+        "replace": "model.layers.$1.post_attention_layernorm.bias",
+        "expectedMatches": 30
+      },
+      {
+        "kind": "split",
+        "match": "^esmc\\.transformer\\.blocks\\.(\\d+)\\.ffn\\.fc1_weight$",
+        "axis": 0,
+        "expectedMatches": 30,
+        "parts": [
+          { "replace": "model.layers.$1.mlp.gate_proj.weight", "size": 2560 },
+          { "replace": "model.layers.$1.mlp.up_proj.weight", "size": 2560 }
+        ]
+      },
+      {
+        "kind": "rename",
+        "match": "^esmc\\.transformer\\.blocks\\.(\\d+)\\.ffn\\.fc2_weight$",
+        "replace": "model.layers.$1.mlp.down_proj.weight",
+        "expectedMatches": 30
+      },
+      {
+        "kind": "ignore",
+        "match": "^esmc\\.transformer\\.blocks\\.\\d+\\.(?:attn\\.(?:layernorm_qkv|out_proj)|ffn)\\._extra_state$",
+        "expectedMatches": 90,
+        "reason": "PyTorch module extra-state markers contain no inference parameters."
+      },
+      {
+        "kind": "ignore",
+        "match": "^lm_head\\.",
+        "expectedMatches": 6,
+        "reason": "The initial ESMC lane exposes embeddings. Its dense-GELU-LayerNorm masked-token head requires a separately qualified output pipeline."
+      }
+    ]
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3",
+    "artifactIdentity": {
+      "sourceCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
+      "sourceRepo": "biohub/ESMC-300M",
+      "sourceRevision": "a59b831785f907e96e6a246b1d142bfb76df31ee",
+      "sourceFormat": "safetensors",
+      "conversionConfigPath": "src/config/conversion/esmc/esmc-300m-f32-af32.json",
+      "weightPackId": "esmc-300m-f32-af32-wp-v1",
+      "manifestVariantId": "esmc-300m-f32-af32-mv-exec-v1",
+      "modalitySet": ["protein_sequence"],
+      "materializationProfile": "f32-weights-f32-activations",
+      "artifactCompleteness": "complete"
+    },
+    "eosTokenId": 2
+  },
+  "inference": {
+    "supportsEmbedding": true,
+    "supportsSequence": true,
+    "sequence": {
+      "alphabet": "amino_acid",
+      "tokenEmbeddings": true,
+      "pooledEmbedding": {
+        "mode": "mean",
+        "excludeTokenIds": [0, 1, 2, 3, 31, 32]
+      },
+      "logits": false
+    },
+    "attention": {
+      "queryPreAttnScalar": 64,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": null,
+      "queryKeyNorm": true,
+      "queryKeyNormType": "layernorm",
+      "queryKeyNormAxis": "projection",
+      "queryKeyNormLayers": null,
+      "queryKeyNormWeightLayers": null,
+      "valueNorm": false,
+      "causal": false,
+      "attentionBias": true,
+      "attentionOutputGate": false,
+      "outputGateType": null
+    },
+    "normalization": {
+      "type": "layernorm",
+      "rmsNormEps": 0.00001,
+      "rmsNormWeightOffset": false,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": false,
+      "postFeedforwardNorm": false,
+      "finalNormBiasTensor": null
+    },
+    "ffn": {
+      "activation": "silu",
+      "gatedActivation": true,
+      "branchMode": "dense",
+      "useDoubleWideMlp": false,
+      "swigluLimit": null
+    },
+    "rope": {
+      "ropeTheta": 10000,
+      "ropeLocalTheta": null,
+      "ropeInterleaved": false,
+      "mropeInterleaved": false,
+      "mropeSection": null,
+      "partialRotaryFactor": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "ropeLocalScalingType": null,
+      "ropeLocalScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null,
+      "ropeLocalYarnBetaFast": null,
+      "ropeLocalYarnBetaSlow": null,
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "tieWordEmbeddings": false,
+      "scaleEmbeddings": false,
+      "embeddingScale": null,
+      "logitInputScale": 1,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": null,
+      "embeddingPostprocessor": null,
+      "lmHeadBiasTensor": null
+    },
+    "layerPattern": {
+      "type": "uniform",
+      "globalPattern": null,
+      "period": null,
+      "offset": null,
+      "layerTypes": null,
+      "residualBranchScale": 1.0954451150103321
+    },
+    "chatTemplate": { "type": null, "enabled": false }
+  },
+  "session": {
+    "compute": {
+      "defaults": {
+        "activationDtype": "f32",
+        "mathDtype": "f32",
+        "accumDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "kvcache": {
+      "kvDtype": "f32",
+      "layout": "contiguous",
+      "maxSeqLen": 2048,
+      "pageSize": 256,
+      "tiering": {
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": { "mode": "auto", "minAluBwRatio": 0 }
+      },
+      "quantization": { "mode": "none", "bitWidth": 4, "prodMode": false }
+    },
+    "decodeLoop": {
+      "batchSize": 1,
+      "stopCheckMode": "per-token",
+      "readbackInterval": 1,
+      "readbackMode": "sequential",
+      "submitLatencyThresholdMs": null,
+      "ringTokens": 1,
+      "ringStop": 1,
+      "ringStaging": 1,
+      "disableCommandBatching": false
+    },
+    "perLayerInputs": {
+      "materialization": "auto",
+      "rowCache": { "mode": "lru", "maxRows": 256, "maxBytes": 134217728, "decodedDtype": "f32" },
+      "prefetch": { "mode": "next_token", "rowsAhead": 1 },
+      "gpuUpload": { "mode": "per_step_slices", "stagingRows": 2 },
+      "hotCache": { "mode": "prepared_tokens", "maxTokens": 1024, "maxBytes": 134217728, "outputDtype": "f32" }
+    },
+    "skipEmbeddingKVCacheWrites": true,
+    "prefillChunkSubmitMode": "sync",
+    "useFlashPrefillAttention": false,
+    "useWideTileQ4KPrefill": false,
+    "retainQ4KMaterialization": false
+  },
+  "execution": {
+    "inlineKernelPath": true,
+    "policies": {
+      "unsupportedPrecision": "error",
+      "dtypeTransition": "require_cast_step",
+      "unresolvedKernel": "error"
+    },
+    "kernels": {
+      "embed": { "kernel": "gather.wgsl", "entry": "main", "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6" },
+      "layernorm": { "kernel": "layernorm.wgsl", "entry": "main", "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c" },
+      "tiled": { "kernel": "matmul_f32.wgsl", "entry": "main", "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8" },
+      "bias_add": { "kernel": "bias_add.wgsl", "entry": "main", "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715" },
+      "rope": { "kernel": "rope.wgsl", "entry": "main", "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b" },
+      "attn_small": { "kernel": "attention_small.wgsl", "entry": "main", "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4", "precision": { "kvDtype": "f32" } },
+      "residual": { "kernel": "residual.wgsl", "entry": "main", "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117" },
+      "silu": { "kernel": "silu.wgsl", "entry": "main", "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca", "constants": { "HAS_GATE": true } }
+    },
+    "preLayer": [["embed", "embed", "embed_tokens"]],
+    "decode": [
+      ["input_norm", "layernorm"],
+      ["q_proj", "tiled", "layer.{L}.self_attn.q_proj"],
+      ["k_proj", "tiled", "layer.{L}.self_attn.k_proj"],
+      ["v_proj", "tiled", "layer.{L}.self_attn.v_proj"],
+      ["rope_q", "rope"],
+      ["rope_k", "rope"],
+      ["attention", "attn_small"],
+      ["o_proj", "tiled", "layer.{L}.self_attn.o_proj"],
+      ["attn_residual", "residual"],
+      ["post_attn_norm", "layernorm"],
+      ["gate_proj", "tiled", "layer.{L}.mlp.gate_proj"],
+      ["up_proj", "tiled", "layer.{L}.mlp.up_proj"],
+      ["activation", "silu"],
+      ["down_proj", "tiled", "layer.{L}.mlp.down_proj"],
+      ["ffn_residual", "residual"]
+    ],
+    "prefill": [
+      ["input_norm", "layernorm"],
+      ["q_proj", "tiled", "layer.{L}.self_attn.q_proj"],
+      ["k_proj", "tiled", "layer.{L}.self_attn.k_proj"],
+      ["v_proj", "tiled", "layer.{L}.self_attn.v_proj"],
+      ["rope_q", "rope"],
+      ["rope_k", "rope"],
+      ["attention", "attn_small"],
+      ["o_proj", "tiled", "layer.{L}.self_attn.o_proj"],
+      ["attn_residual", "residual"],
+      ["post_attn_norm", "layernorm"],
+      ["gate_proj", "tiled", "layer.{L}.mlp.gate_proj"],
+      ["up_proj", "tiled", "layer.{L}.mlp.up_proj"],
+      ["activation", "silu"],
+      ["down_proj", "tiled", "layer.{L}.mlp.down_proj"],
+      ["ffn_residual", "residual"]
+    ],
+    "postLayer": [["final_norm", "layernorm"]],
+    "sampling": null
+  },
+  "largeWeights": { "gpuResidentOverrides": null }
+}

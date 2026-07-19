@@ -136,6 +136,10 @@ export function wrapPipelineAsHandle(pipeline, resolved = {}) {
       return manifest?.modelType === 'embedding'
         || manifest?.inference?.supportsEmbedding === true;
     },
+    get supportsSequence() {
+      const manifest = pipeline.manifest || resolved.manifest || null;
+      return manifest?.inference?.supportsSequence === true;
+    },
     get supportsTranscription() {
       const manifest = pipeline.manifest || resolved.manifest || null;
       return manifest?.inference?.supportsTranscription === true
@@ -154,6 +158,9 @@ export function wrapPipelineAsHandle(pipeline, resolved = {}) {
     },
     async embedBatch(prompts, options = {}) {
       return pipeline.embedBatch(prompts, options);
+    },
+    async encodeSequence(sequence, options = {}) {
+      return pipeline.encodeSequence(sequence, options);
     },
     async embedImage(args = {}) {
       return pipeline.embedImage(args);

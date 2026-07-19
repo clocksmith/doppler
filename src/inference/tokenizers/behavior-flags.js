@@ -7,7 +7,11 @@ function normalizeSpecialTokenLabel(value) {
 
 function isBosLikeLabel(value) {
   const normalized = normalizeSpecialTokenLabel(value);
-  return normalized === '<bos>' || normalized === '<s>' || normalized.includes('bos');
+  return normalized === '<bos>'
+    || normalized === '<s>'
+    || normalized === '<cls>'
+    || normalized === 'cls'
+    || normalized.includes('bos');
 }
 
 function isEosLikeLabel(value) {

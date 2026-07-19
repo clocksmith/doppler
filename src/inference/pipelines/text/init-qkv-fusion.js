@@ -2,7 +2,13 @@ import { getDevice } from '../../../gpu/device.js';
 import { Q4K_BLOCK_BYTES, q4kBlockCount } from '../../../config/schema/index.js';
 import { getKernelConfig } from '../../../gpu/kernels/kernel-configs.js';
 import { getKernelPathMatmulVariant } from '../../../config/kernel-path-loader.js';
-import { createWeightBuffer, getWeightDtype, isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
+import {
+  createWeightBuffer,
+  getWeightDtype,
+  isGpuBufferInstance,
+  isWeightBuffer,
+  tagBufferDtype,
+} from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { log } from '../../../debug/index.js';
 
@@ -112,6 +118,26 @@ function formatsMatch(a, b) {
     && a?.bytesPerRow === b?.bytesPerRow;
 }
 
+function resolveBiasStorageFormat(weight, expectedElements) {
+  if (!weight || !Number.isFinite(expectedElements) || expectedElements <= 0) {
+    return null;
+  }
+  const buffer = isWeightBuffer(weight) ? weight.buffer : weight;
+  if (!isGpuBufferInstance(buffer)) {
+    return null;
+  }
+  const dtype = String(getWeightDtype(weight) ?? getWeightDtype(buffer) ?? '').toLowerCase();
+  if (dtype !== 'f16' && dtype !== 'f32') {
+    return null;
+  }
+  const bytesPerElement = dtype === 'f16' ? 2 : 4;
+  const byteLength = expectedElements * bytesPerElement;
+  if (buffer.size < byteLength) {
+    return null;
+  }
+  return { buffer, dtype, bytesPerElement, byteLength };
+}
+
 export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, options = {}) {
   const device = getDevice();
   if (!device) {
@@ -174,6 +200,17 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
       continue;
     }
 
+    const projectionBiases = [weights.qProjBias, weights.kProjBias, weights.vProjBias];
+    const presentProjectionBiases = projectionBiases.filter(Boolean).length;
+    if (presentProjectionBiases !== 0 && presentProjectionBiases !== projectionBiases.length) {
+      log.debug('QKV Fusion', `Layer ${l}: partial Q/K/V projection biases require split projections`);
+      continue;
+    }
+    if (hasAttentionOutputGate && presentProjectionBiases > 0) {
+      log.debug('QKV Fusion', `Layer ${l}: gated Q projection biases require split projections`);
+      continue;
+    }
+
     const qFormat = resolveProjectionStorageFormat(qProj, qProjSize, hiddenSize);
     const kFormat = resolveProjectionStorageFormat(kProj, kSize, hiddenSize);
     const vFormat = resolveProjectionStorageFormat(vProj, vSize, hiddenSize);
@@ -228,6 +265,32 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
       })
       : null;
 
+    let qBiasFormat = null;
+    let kBiasFormat = null;
+    let vBiasFormat = null;
+    let qkvBiasBuffer = null;
+    if (presentProjectionBiases === projectionBiases.length) {
+      qBiasFormat = resolveBiasStorageFormat(weights.qProjBias, qSize);
+      kBiasFormat = resolveBiasStorageFormat(weights.kProjBias, kSize);
+      vBiasFormat = resolveBiasStorageFormat(weights.vProjBias, vSize);
+      const biasFormatsMatch = qBiasFormat
+        && kBiasFormat
+        && vBiasFormat
+        && qBiasFormat.dtype === kBiasFormat.dtype
+        && qBiasFormat.dtype === vBiasFormat.dtype;
+      if (!biasFormatsMatch) {
+        log.debug('QKV Fusion', `Layer ${l}: inconsistent Q/K/V projection bias formats, skipping`);
+        qkvBuffer.destroy();
+        qGateBuffer?.destroy();
+        continue;
+      }
+      qkvBiasBuffer = device.createBuffer({
+        label: `layer_${l}_qkv_proj_bias`,
+        size: qBiasFormat.byteLength + kBiasFormat.byteLength + vBiasFormat.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      });
+    }
+
     const encoder = device.createCommandEncoder({ label: 'qkv_fusion' });
     if (hasAttentionOutputGate) {
       for (let head = 0; head < numHeads; head++) {
@@ -266,6 +329,23 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
       qkvBuffer, qBytes + kFormat.byteLength,
       vFormat.byteLength
     );
+    if (qkvBiasBuffer) {
+      encoder.copyBufferToBuffer(qBiasFormat.buffer, 0, qkvBiasBuffer, 0, qBiasFormat.byteLength);
+      encoder.copyBufferToBuffer(
+        kBiasFormat.buffer,
+        0,
+        qkvBiasBuffer,
+        qBiasFormat.byteLength,
+        kBiasFormat.byteLength
+      );
+      encoder.copyBufferToBuffer(
+        vBiasFormat.buffer,
+        0,
+        qkvBiasBuffer,
+        qBiasFormat.byteLength + kBiasFormat.byteLength,
+        vBiasFormat.byteLength
+      );
+    }
     device.queue.submit([encoder.finish()]);
 
     // Store fused buffer, sizes, and dtype
@@ -278,6 +358,10 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
     );
     weights.qkvSizes = [qSize, kSize, vSize];
     weights.qkvDtype = dtype;
+    if (qkvBiasBuffer) {
+      tagBufferDtype(qkvBiasBuffer, qBiasFormat.dtype);
+      weights.qkvProjBias = qkvBiasBuffer;
+    }
     if (qGateBuffer) {
       weights.qGateProj = createWeightBuffer(
         qGateBuffer,

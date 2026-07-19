@@ -63,6 +63,7 @@ import {
   resolveAdvanceEmbeddingMode,
   getFinalNormWeights,
   extractEmbeddingFromHidden,
+  extractTokenEmbeddingsFromHidden,
 } from './generator-runtime.js';
 
 import { resolveSamplingConfig } from './sampling-config.js';
@@ -642,7 +643,20 @@ export class PipelineGenerator {
       embeddingMode,
       finalNormWeights,
       config,
-      this.#state.embeddingPostprocessor
+      this.#state.embeddingPostprocessor,
+      null,
+      this.#state.weights.get('final_norm_bias') ?? null
+    );
+  }
+
+  _extractTokenEmbeddingsFromHidden(hiddenStates, numTokens, hiddenSize, finalNormWeights, config) {
+    return extractTokenEmbeddingsFromHidden(
+      hiddenStates,
+      numTokens,
+      hiddenSize,
+      finalNormWeights,
+      config,
+      this.#state.weights.get('final_norm_bias') ?? null
     );
   }
 
@@ -2112,6 +2126,34 @@ export class PipelineGenerator {
     this.#state.stats.gpuTimePrefillMs = undefined;
     this.#state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillEmbeddingOptions(this.#state, options);
+    const diagnosticsEnabled = options?.diagnostics?.enabled === true
+      || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
+    const tsirFixtureCfg = this.#state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
+    if (diagnosticsEnabled || tsirFixtureCfg) {
+      const captureConfig = {
+        ...createDefaultCaptureConfig(),
+        enabled: true,
+        defaultLevel: CAPTURE_LEVELS.SLICE,
+        ...(options?.diagnostics?.captureConfig ?? {}),
+      };
+      validateCaptureConfig(captureConfig);
+      this.#state.operatorDiagnostics = {
+        enabled: diagnosticsEnabled === true,
+        captureConfig,
+        emitter: diagnosticsEnabled ? new OperatorEventEmitter({
+          modelHash: this.#state.manifest?.modelId ?? null,
+          runtimeConfigHash: this.#state.resolvedKernelPath?.id ?? null,
+          executionPlanHash: opts.executionPlan?.id ?? null,
+        }) : null,
+        tsirFixture: tsirFixtureCfg ? {
+          dir: tsirFixtureCfg.dir,
+          layerFilter: Array.isArray(tsirFixtureCfg.layerFilter)
+            ? tsirFixtureCfg.layerFilter
+            : null,
+          records: [],
+        } : null,
+      };
+    }
     const prefillStartSeqLen = this.#state.currentSeqLen;
     const inputStart = performance.now();
     const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, 'prefillWithEmbedding', opts.inputIds);
@@ -2178,12 +2220,32 @@ export class PipelineGenerator {
       }
 
       let embedding;
+      let tokenEmbeddings = null;
+      let logits = null;
       let hiddenBytes = 0;
       let readbackMs = 0;
       let decodeHiddenMs = 0;
       let finalNormMs = 0;
       let extractMs = 0;
+      let logitsMs = 0;
       try {
+        if (options.__returnSequenceLogits === true) {
+          const logitsStart = performance.now();
+          logits = await computeLogits(
+            currentHiddenBuffer,
+            numTokens,
+            getLogitsWeights(this.#state),
+            getLogitsConfig(this.#state),
+            this.#state.useGPU,
+            this.#state.debugFlags,
+            undefined,
+            undefined,
+            this.#state.runtimeConfig.shared.debug.probes,
+            { lastPositionOnly: false },
+            this.#state.operatorDiagnostics
+          );
+          logitsMs = performance.now() - logitsStart;
+        }
         const hiddenSize = config.hiddenSize;
         hiddenBytes = numTokens * hiddenSize * activationBytes;
         const readbackStart = performance.now();
@@ -2199,13 +2261,25 @@ export class PipelineGenerator {
         const finalNormWeights = await this._getFinalNormWeights();
         finalNormMs = performance.now() - finalNormStart;
         const extractStart = performance.now();
-        embedding = this._extractEmbeddingFromHidden(
+        if (options.__returnTokenEmbeddings === true) {
+          tokenEmbeddings = this._extractTokenEmbeddingsFromHidden(
+            hiddenStates,
+            numTokens,
+            hiddenSize,
+            finalNormWeights,
+            config
+          );
+        }
+        embedding = extractEmbeddingFromHidden(
           hiddenStates,
           numTokens,
           hiddenSize,
           opts.embeddingMode,
           finalNormWeights,
-          config
+          config,
+          this.#state.embeddingPostprocessor,
+          tokenEmbeddings,
+          this.#state.weights.get('final_norm_bias') ?? null
         );
         extractMs = performance.now() - extractStart;
       } finally {
@@ -2222,6 +2296,7 @@ export class PipelineGenerator {
         decodeHiddenMs,
         finalNormMs,
         extractMs,
+        logitsMs,
         hiddenBytes,
         tokens: numTokens,
         activationDtype,
@@ -2241,6 +2316,8 @@ export class PipelineGenerator {
           seqLen: this.#state.currentSeqLen,
           tokens: inputIds,
           embedding,
+          tokenEmbeddings,
+          logits,
           embeddingMode: opts.embeddingMode,
           phase,
           linearAttention: null,
@@ -2257,12 +2334,22 @@ export class PipelineGenerator {
         seqLen: this.#state.currentSeqLen,
         tokens: inputIds,
         embedding,
+        tokenEmbeddings,
+        logits,
         embeddingMode: opts.embeddingMode,
         phase,
         linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
       };
     } finally {
       this._closeFinitenessFallbackWindow(opts);
+      this.#state.stats.operatorDiagnostics = this.#state.operatorDiagnostics?.emitter
+        ? {
+          enabled: true,
+          timeline: this.#state.operatorDiagnostics.emitter.getTimeline(),
+          recordCount: this.#state.operatorDiagnostics.emitter.length,
+        }
+        : null;
+      this.#state.operatorDiagnostics = null;
     }
   }
 

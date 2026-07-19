@@ -13,8 +13,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
   maxEntryCount: 1375,
-  maxPackedSize: 1_800_000,
-  maxUnpackedSize: 9_450_000,
+  maxPackedSize: 1_825_000,
+  maxUnpackedSize: 9_600_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -13,7 +13,6 @@ import { requestPersistence, getStorageReport } from '../../storage/quota.js';
 import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice, getDevice } from '../../gpu/device.js';
 import { prepareKernelRuntime } from '../../gpu/kernel-runtime.js';
 import { createPipeline } from '../../inference/pipelines/text.js';
-import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { log } from '../../debug/index.js';
 import { DopplerCapabilities } from './types.js';
 import { GB, HEADER_READ_SIZE } from '../../config/schema/index.js';
@@ -25,20 +24,18 @@ import {
   synthesizeStoredSourceArtifactManifest,
   verifyStoredSourceArtifact,
 } from '../../storage/source-artifact-store.js';
+import {
+  activateLoRAFromTrainingOutputForPipeline,
+  getActiveLoRAForPipeline,
+} from './lora.js';
 
 let pipeline = null;
 let currentModelId = null;
 let bridgeModulePromise = null;
-let loraModulePromise = null;
 
 async function getExperimentalBridgeModule() {
   bridgeModulePromise ??= import('../../experimental/bridge/index.js');
   return bridgeModulePromise;
-}
-
-async function getExperimentalLoRAModule() {
-  loraModulePromise ??= import('../../experimental/adapters/lora-loader.js');
-  return loraModulePromise;
 }
 
 function manifestsDiffer(localManifest, remoteManifest) {
@@ -582,168 +579,10 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
   }
 }
 
-function createLoRALoadOptions(overrides = {}) {
-  return {
-    readOPFS: readOPFSFile,
-    writeOPFS: writeOPFSFile,
-    fetchUrl: fetchArrayBuffer,
-    ...overrides,
-  };
-}
-
-async function loadLoRAAdapter(adapter, loadOptions = {}) {
-  if (!pipeline) {
-    throw new Error('No model loaded. Call loadModel() first.');
-  }
-
-  const options = createLoRALoadOptions(loadOptions);
-
-  let lora;
-  if (typeof adapter === 'string') {
-    const { loadLoRAFromUrl } = await getExperimentalLoRAModule();
-    lora = await loadLoRAFromUrl(adapter, options);
-  } else if (adapter.adapterType === 'lora' || adapter.modelType === 'lora') {
-    const loader = pipeline.dopplerLoader || getDopplerLoader();
-    await loader.init();
-    lora = await loader.loadLoRAWeights(adapter);
-  } else {
-    const { loadLoRAFromManifest } = await getExperimentalLoRAModule();
-    lora = await loadLoRAFromManifest(adapter, options);
-  }
-
-  pipeline.setLoRAAdapter(lora);
-  log.info('DopplerProvider', `LoRA adapter loaded: ${lora.name}`);
-}
-
-async function readLocalJson(path) {
-  const { readFile } = await import('node:fs/promises');
-  const raw = await readFile(path, 'utf8');
-  return JSON.parse(raw);
-}
-
-async function createLocalFileLoadOptions(path) {
-  const { readFile } = await import('node:fs/promises');
-  const { dirname, isAbsolute, join } = await import('node:path');
-  const basePath = dirname(path);
-  return {
-    basePath,
-    resolvePath(filePath) {
-      return isAbsolute(filePath) ? filePath : join(basePath, filePath);
-    },
-    async readFile(filePath) {
-      const data = await readFile(filePath);
-      return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-    },
-  };
-}
-
 export async function activateLoRAFromTrainingOutput(trainingOutput) {
-  if (!pipeline) {
-    return {
-      activated: false,
-      adapterName: null,
-      source: null,
-      reason: 'no_model_loaded',
-    };
-  }
-
-  const output = trainingOutput && typeof trainingOutput === 'object'
-    ? trainingOutput
-    : null;
-  if (!output && typeof trainingOutput !== 'string') {
-    return {
-      activated: false,
-      adapterName: getActiveLoRA(),
-      source: null,
-      reason: 'no_adapter_candidate',
-    };
-  }
-
-  if (typeof trainingOutput === 'string') {
-    await loadLoRAAdapter(trainingOutput);
-    return {
-      activated: true,
-      adapterName: getActiveLoRA(),
-      source: 'adapter-string',
-      reason: null,
-    };
-  }
-
-  if (output.adapterManifest && typeof output.adapterManifest === 'object') {
-    await loadLoRAAdapter(output.adapterManifest);
-    return {
-      activated: true,
-      adapterName: getActiveLoRA(),
-      source: 'adapterManifest',
-      reason: null,
-    };
-  }
-
-  if (typeof output.adapterManifestJson === 'string' && output.adapterManifestJson.trim()) {
-    const manifest = JSON.parse(output.adapterManifestJson);
-    await loadLoRAAdapter(manifest);
-    return {
-      activated: true,
-      adapterName: getActiveLoRA(),
-      source: 'adapterManifestJson',
-      reason: null,
-    };
-  }
-
-  if (typeof output.adapterManifestUrl === 'string' && output.adapterManifestUrl.trim()) {
-    await loadLoRAAdapter(output.adapterManifestUrl.trim());
-    return {
-      activated: true,
-      adapterName: getActiveLoRA(),
-      source: 'adapterManifestUrl',
-      reason: null,
-    };
-  }
-
-  if (typeof output.adapterManifestPath === 'string' && output.adapterManifestPath.trim()) {
-    const path = output.adapterManifestPath.trim();
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      await loadLoRAAdapter(path);
-      return {
-        activated: true,
-        adapterName: getActiveLoRA(),
-        source: 'adapterManifestPath:url',
-        reason: null,
-      };
-    }
-    const isNode = typeof process !== 'undefined' && !!process.versions?.node;
-    if (!isNode) {
-      throw new Error('adapterManifestPath local files require Node runtime.');
-    }
-    const manifest = await readLocalJson(path);
-    await loadLoRAAdapter(manifest, await createLocalFileLoadOptions(path));
-    return {
-      activated: true,
-      adapterName: getActiveLoRA(),
-      source: 'adapterManifestPath:file',
-      reason: null,
-    };
-  }
-
-  if (output.adapter != null) {
-    await loadLoRAAdapter(output.adapter);
-    return {
-      activated: true,
-      adapterName: getActiveLoRA(),
-      source: 'adapter',
-      reason: null,
-    };
-  }
-
-  return {
-    activated: false,
-    adapterName: getActiveLoRA(),
-    source: null,
-    reason: 'no_adapter_candidate',
-  };
+  return activateLoRAFromTrainingOutputForPipeline(pipeline, trainingOutput);
 }
 
 export function getActiveLoRA() {
-  const active = pipeline?.getActiveLoRA() || null;
-  return active ? active.name : null;
+  return getActiveLoRAForPipeline(pipeline);
 }

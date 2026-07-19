@@ -1,0 +1,571 @@
+{
+  "modelType": "embedding",
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "esm2-t12-35m-ur50d-f32-af32",
+    "textOnly": true,
+    "fast": false
+  },
+  "quantization": {
+    "weights": "f32",
+    "embeddings": "f32",
+    "lmHead": "f32",
+    "q4kLayout": "row",
+    "computePrecision": "f32"
+  },
+  "sourceTokenizer": {
+    "kind": "character_vocab",
+    "vocabFile": "vocab.txt",
+    "specialTokens": {
+      "pad": "<pad>",
+      "bos": "<cls>",
+      "eos": "<eos>",
+      "unk": "<unk>",
+      "mask": "<mask>"
+    },
+    "addBosToken": true,
+    "addEosToken": true
+  },
+  "sourceTensors": {
+    "requireAll": true,
+    "rules": [
+      {
+        "kind": "rename",
+        "match": "^esm\\.embeddings\\.word_embeddings\\.weight$",
+        "replace": "model.embed_tokens.weight",
+        "expectedMatches": 1,
+        "role": "embedding",
+        "group": "embed"
+      },
+      {
+        "kind": "ignore",
+        "match": "^esm\\.embeddings\\.(?:position_embeddings\\.weight|position_ids)$",
+        "expectedMatches": 2,
+        "reason": "ESM-2 declares rotary positions; these absolute-position tensors are not used by the encoder."
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.emb_layer_norm_after\\.weight$",
+        "replace": "model.norm.weight",
+        "expectedMatches": 1,
+        "role": "norm",
+        "group": "head"
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.emb_layer_norm_after\\.bias$",
+        "replace": "model.norm.bias",
+        "expectedMatches": 1,
+        "role": "other",
+        "group": "head"
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.attention\\.LayerNorm\\.weight$",
+        "replace": "model.layers.$1.input_layernorm.weight",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.attention\\.LayerNorm\\.bias$",
+        "replace": "model.layers.$1.input_layernorm.bias",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.attention\\.self\\.query\\.weight$",
+        "replace": "model.layers.$1.self_attn.q_proj.weight",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.attention\\.self\\.query\\.bias$",
+        "replace": "model.layers.$1.self_attn.q_proj.bias",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.attention\\.self\\.key\\.weight$",
+        "replace": "model.layers.$1.self_attn.k_proj.weight",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.attention\\.self\\.key\\.bias$",
+        "replace": "model.layers.$1.self_attn.k_proj.bias",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.attention\\.self\\.value\\.weight$",
+        "replace": "model.layers.$1.self_attn.v_proj.weight",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.attention\\.self\\.value\\.bias$",
+        "replace": "model.layers.$1.self_attn.v_proj.bias",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "ignore",
+        "match": "^esm\\.encoder\\.layer\\.\\d+\\.attention\\.self\\.rotary_embeddings\\.inv_freq$",
+        "expectedMatches": 12,
+        "reason": "RoPE frequencies are deterministically generated from the manifest theta and head dimension."
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.attention\\.output\\.dense\\.weight$",
+        "replace": "model.layers.$1.self_attn.o_proj.weight",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.attention\\.output\\.dense\\.bias$",
+        "replace": "model.layers.$1.self_attn.o_proj.bias",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.LayerNorm\\.weight$",
+        "replace": "model.layers.$1.post_attention_layernorm.weight",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.LayerNorm\\.bias$",
+        "replace": "model.layers.$1.post_attention_layernorm.bias",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.intermediate\\.dense\\.weight$",
+        "replace": "model.layers.$1.mlp.up_proj.weight",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.intermediate\\.dense\\.bias$",
+        "replace": "model.layers.$1.mlp.up_proj.bias",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.output\\.dense\\.weight$",
+        "replace": "model.layers.$1.mlp.down_proj.weight",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "rename",
+        "match": "^esm\\.encoder\\.layer\\.(\\d+)\\.output\\.dense\\.bias$",
+        "replace": "model.layers.$1.mlp.down_proj.bias",
+        "expectedMatches": 12
+      },
+      {
+        "kind": "ignore",
+        "match": "^esm\\.contact_head\\.",
+        "expectedMatches": 2,
+        "reason": "Contact prediction is outside the initial sequence-embedding lane."
+      },
+      {
+        "kind": "ignore",
+        "match": "^lm_head\\.",
+        "expectedMatches": 5,
+        "reason": "Masked-token logits require ESM's dense-GELU-LayerNorm tied head and dynamic token-dropout scaling; the initial lane is embeddings-only."
+      }
+    ]
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3",
+    "artifactIdentity": {
+      "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "sourceRepo": "facebook/esm2_t12_35M_UR50D",
+      "sourceRevision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "sourceFormat": "safetensors",
+      "conversionConfigPath": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
+      "weightPackId": "esm2-t12-35m-ur50d-f32-af32-wp-v1",
+      "manifestVariantId": "esm2-t12-35m-ur50d-f32-af32-mv-exec-v1",
+      "modalitySet": [
+        "protein_sequence"
+      ],
+      "materializationProfile": "f32-weights-f32-activations",
+      "artifactCompleteness": "complete"
+    },
+    "eosTokenId": 2
+  },
+  "inference": {
+    "supportsEmbedding": true,
+    "supportsSequence": true,
+    "sequence": {
+      "alphabet": "amino_acid",
+      "tokenEmbeddings": true,
+      "pooledEmbedding": {
+        "mode": "mean",
+        "excludeTokenIds": [
+          0,
+          1,
+          2,
+          3,
+          31,
+          32
+        ]
+      },
+      "logits": false
+    },
+    "attention": {
+      "queryPreAttnScalar": 24,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": null,
+      "queryKeyNorm": false,
+      "queryKeyNormType": "rmsnorm",
+      "queryKeyNormAxis": "head",
+      "queryKeyNormLayers": null,
+      "queryKeyNormWeightLayers": null,
+      "valueNorm": false,
+      "causal": false,
+      "attentionBias": true,
+      "attentionOutputGate": false,
+      "outputGateType": null
+    },
+    "normalization": {
+      "type": "layernorm",
+      "rmsNormEps": 0.00001,
+      "rmsNormWeightOffset": false,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": false,
+      "postFeedforwardNorm": false,
+      "finalNormBiasTensor": "model.norm.bias"
+    },
+    "ffn": {
+      "activation": "gelu",
+      "gatedActivation": false,
+      "branchMode": "dense",
+      "useDoubleWideMlp": false,
+      "swigluLimit": null
+    },
+    "rope": {
+      "ropeTheta": 10000,
+      "ropeLocalTheta": null,
+      "ropeInterleaved": false,
+      "mropeInterleaved": false,
+      "mropeSection": null,
+      "partialRotaryFactor": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "ropeLocalScalingType": null,
+      "ropeLocalScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null,
+      "ropeLocalYarnBetaFast": null,
+      "ropeLocalYarnBetaSlow": null,
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "tieWordEmbeddings": false,
+      "scaleEmbeddings": false,
+      "embeddingScale": 0.88,
+      "logitInputScale": 1,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": null,
+      "embeddingPostprocessor": null,
+      "lmHeadBiasTensor": null
+    },
+    "layerPattern": {
+      "type": "uniform",
+      "globalPattern": null,
+      "period": null,
+      "offset": null,
+      "layerTypes": null,
+      "residualBranchScale": 1
+    },
+    "chatTemplate": {
+      "type": null,
+      "enabled": false
+    }
+  },
+  "session": {
+    "compute": {
+      "defaults": {
+        "activationDtype": "f32",
+        "mathDtype": "f32",
+        "accumDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "kvcache": {
+      "kvDtype": "f32",
+      "layout": "contiguous",
+      "maxSeqLen": 1026,
+      "pageSize": 256,
+      "tiering": {
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
+      }
+    },
+    "decodeLoop": {
+      "batchSize": 1,
+      "stopCheckMode": "per-token",
+      "readbackInterval": 1,
+      "readbackMode": "sequential",
+      "submitLatencyThresholdMs": null,
+      "ringTokens": 1,
+      "ringStop": 1,
+      "ringStaging": 1,
+      "disableCommandBatching": false
+    },
+    "perLayerInputs": {
+      "materialization": "auto",
+      "rowCache": {
+        "mode": "lru",
+        "maxRows": 256,
+        "maxBytes": 134217728,
+        "decodedDtype": "f32"
+      },
+      "prefetch": {
+        "mode": "next_token",
+        "rowsAhead": 1
+      },
+      "gpuUpload": {
+        "mode": "per_step_slices",
+        "stagingRows": 2
+      },
+      "hotCache": {
+        "mode": "prepared_tokens",
+        "maxTokens": 1024,
+        "maxBytes": 134217728,
+        "outputDtype": "f32"
+      }
+    },
+    "skipEmbeddingKVCacheWrites": true,
+    "prefillChunkSubmitMode": "sync",
+    "useFlashPrefillAttention": false,
+    "useWideTileQ4KPrefill": false,
+    "retainQ4KMaterialization": false
+  },
+  "execution": {
+    "inlineKernelPath": true,
+    "policies": {
+      "unsupportedPrecision": "error",
+      "dtypeTransition": "require_cast_step",
+      "unresolvedKernel": "error"
+    },
+    "kernels": {
+      "embed": {
+        "kernel": "gather.wgsl",
+        "entry": "main",
+        "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+      },
+      "layernorm": {
+        "kernel": "layernorm.wgsl",
+        "entry": "main",
+        "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c"
+      },
+      "tiled": {
+        "kernel": "matmul_f32.wgsl",
+        "entry": "main",
+        "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
+      },
+      "bias_add": {
+        "kernel": "bias_add.wgsl",
+        "entry": "main",
+        "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715"
+      },
+      "rope": {
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+      },
+      "attn_small": {
+        "kernel": "attention_small.wgsl",
+        "entry": "main",
+        "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+        "precision": {
+          "kvDtype": "f32"
+        }
+      },
+      "residual": {
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+      },
+      "gelu": {
+        "kernel": "gelu.wgsl",
+        "entry": "main",
+        "digest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+        "constants": {
+          "HAS_GATE": false
+        }
+      }
+    },
+    "preLayer": [
+      [
+        "embed",
+        "embed",
+        "embed_tokens"
+      ]
+    ],
+    "decode": [
+      [
+        "input_norm",
+        "layernorm"
+      ],
+      [
+        "q_proj",
+        "tiled",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "tiled",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "tiled",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_small"
+      ],
+      [
+        "o_proj",
+        "tiled",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "layernorm"
+      ],
+      [
+        "up_proj",
+        "tiled",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "gelu"
+      ],
+      [
+        "down_proj",
+        "tiled",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
+    ],
+    "prefill": [
+      [
+        "input_norm",
+        "layernorm"
+      ],
+      [
+        "q_proj",
+        "tiled",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "tiled",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "tiled",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_small"
+      ],
+      [
+        "o_proj",
+        "tiled",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "layernorm"
+      ],
+      [
+        "up_proj",
+        "tiled",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "gelu"
+      ],
+      [
+        "down_proj",
+        "tiled",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
+    ],
+    "postLayer": [
+      [
+        "final_norm",
+        "layernorm"
+      ]
+    ],
+    "sampling": null
+  },
+  "largeWeights": {
+    "gpuResidentOverrides": null
+  }
+}

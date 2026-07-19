@@ -91,6 +91,9 @@ export const DEFAULT_CONVERTER_CONFIG = {
   manifest: DEFAULT_CONVERTER_MANIFEST_CONFIG,
   inference: DEFAULT_CONVERTER_INFERENCE_CONFIG,
   output: DEFAULT_CONVERTER_OUTPUT_CONFIG,
+  architecture: null,
+  sourceTensors: null,
+  sourceTokenizer: null,
   moeConfig: null,
 };
 
@@ -105,6 +108,9 @@ export function createConverterConfig(overrides) {
       manifest: { ...DEFAULT_CONVERTER_MANIFEST_CONFIG },
       inference: { ...DEFAULT_CONVERTER_INFERENCE_CONFIG },
       output: { ...DEFAULT_CONVERTER_OUTPUT_CONFIG },
+      architecture: null,
+      sourceTensors: null,
+      sourceTokenizer: null,
     };
   }
 
@@ -133,6 +139,15 @@ export function createConverterConfig(overrides) {
     output: overrides.output
       ? { ...DEFAULT_CONVERTER_OUTPUT_CONFIG, ...overrides.output }
       : { ...DEFAULT_CONVERTER_OUTPUT_CONFIG },
+    architecture: Object.prototype.hasOwnProperty.call(overrides, 'architecture')
+      ? (overrides.architecture ?? null)
+      : null,
+    sourceTensors: Object.prototype.hasOwnProperty.call(overrides, 'sourceTensors')
+      ? (overrides.sourceTensors ?? null)
+      : null,
+    sourceTokenizer: Object.prototype.hasOwnProperty.call(overrides, 'sourceTokenizer')
+      ? (overrides.sourceTokenizer ?? null)
+      : null,
     moeConfig: Object.prototype.hasOwnProperty.call(overrides, 'moeConfig')
       ? (overrides.moeConfig ?? null)
       : null,

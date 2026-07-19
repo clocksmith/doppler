@@ -1,5 +1,5 @@
 import { readBuffer } from '../../../memory/buffer-pool.js';
-import { matmulCPU, rmsNormCPU } from './logits/index.js';
+import { layerNormCPU, matmulCPU, rmsNormCPU } from './logits/index.js';
 import { isGpuBufferInstance, isWeightBuffer, isCpuWeightBuffer, getBufferDtype } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
@@ -454,14 +454,13 @@ export async function getFinalNormWeights(state) {
   return weights;
 }
 
-export function extractEmbeddingFromHidden(
+export function extractTokenEmbeddingsFromHidden(
   hiddenStates,
   numTokens,
   hiddenSize,
-  embeddingMode,
   finalNormWeights,
   config,
-  embeddingPostprocessor = null
+  finalNormBias = null
 ) {
   const expectedLength = numTokens * hiddenSize;
   if (hiddenStates.length !== expectedLength) {
@@ -470,16 +469,64 @@ export function extractEmbeddingFromHidden(
     );
   }
 
-  const applyFinalNorm = (tokenIndex) => {
+  const tokenEmbeddings = new Float32Array(expectedLength);
+  let effectiveLayerNormBias = null;
+  if (config.normalizationType === 'layernorm') {
+    if (config.finalNormBiasTensor !== null && !(finalNormBias instanceof Float32Array)) {
+      throw new Error(
+        `[Pipeline] LayerNorm declares bias tensor "${config.finalNormBiasTensor}" but it was not loaded.`
+      );
+    }
+    effectiveLayerNormBias = finalNormBias instanceof Float32Array
+      ? finalNormBias
+      : new Float32Array(hiddenSize);
+    if (effectiveLayerNormBias.length !== hiddenSize) {
+      throw new Error(
+        `[Pipeline] LayerNorm final bias length must be ${hiddenSize}; got ${effectiveLayerNormBias.length}.`
+      );
+    }
+  }
+  for (let tokenIndex = 0; tokenIndex < numTokens; tokenIndex += 1) {
     const offset = tokenIndex * hiddenSize;
     const tokenHidden = hiddenStates.subarray(offset, offset + hiddenSize);
-    return rmsNormCPU(
-      tokenHidden,
-      finalNormWeights,
-      config.rmsNormEps,
-      config.rmsNormWeightOffset
-    );
-  };
+    if (config.normalizationType === 'layernorm') {
+      tokenEmbeddings.set(layerNormCPU(
+        tokenHidden,
+        finalNormWeights,
+        effectiveLayerNormBias,
+        config.rmsNormEps
+      ), offset);
+    } else {
+      tokenEmbeddings.set(rmsNormCPU(
+        tokenHidden,
+        finalNormWeights,
+        config.rmsNormEps,
+        config.rmsNormWeightOffset
+      ), offset);
+    }
+  }
+  return tokenEmbeddings;
+}
+
+export function extractEmbeddingFromHidden(
+  hiddenStates,
+  numTokens,
+  hiddenSize,
+  embeddingMode,
+  finalNormWeights,
+  config,
+  embeddingPostprocessor = null,
+  normalizedTokenEmbeddings = null,
+  finalNormBias = null
+) {
+  const tokenEmbeddings = normalizedTokenEmbeddings ?? extractTokenEmbeddingsFromHidden(
+    hiddenStates,
+    numTokens,
+    hiddenSize,
+    finalNormWeights,
+    config,
+    finalNormBias
+  );
 
   const postprocessorConfig = config?.embeddingPostprocessor ?? null;
   const resolvedEmbeddingMode = postprocessorConfig?.poolingMode ?? embeddingMode;
@@ -491,13 +538,14 @@ export function extractEmbeddingFromHidden(
 
   let pooled;
   if (resolvedEmbeddingMode === 'last') {
-    pooled = applyFinalNorm(numTokens - 1);
+    const offset = (numTokens - 1) * hiddenSize;
+    pooled = tokenEmbeddings.slice(offset, offset + hiddenSize);
   } else if (resolvedEmbeddingMode === 'mean') {
     pooled = new Float32Array(hiddenSize);
     for (let t = 0; t < numTokens; t++) {
-      const tokenEmbedding = applyFinalNorm(t);
+      const offset = t * hiddenSize;
       for (let i = 0; i < hiddenSize; i++) {
-        pooled[i] += tokenEmbedding[i];
+        pooled[i] += tokenEmbeddings[offset + i];
       }
     }
     const invTokens = numTokens > 0 ? (1 / numTokens) : 1;

@@ -1,7 +1,7 @@
 
 
 import {
-  doMatmul, doSiLU, doGeLU, doSiLURowSplit, doMatmulRMSNormFused,
+  doBiasAdd, doMatmul, doSiLU, doGeLU, doSiLURowSplit, doMatmulRMSNormFused,
   releaseOrTrack
 } from '../ops.js';
 import { createTensor } from '../../../../gpu/tensor.js';
@@ -29,7 +29,7 @@ import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { isKernelDebugEnabled, dumpTokenVector, decodeReadback, getLogitsHealth, shouldDebugLayerOutput } from '../debug-utils.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
-import { getWeightBuffer, getNormWeightBuffer } from '../weights.js';
+import { getWeightBuffer, getNormWeightBuffer, getVectorTensor } from '../weights.js';
 import { runProbes } from '../probes.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import {
@@ -527,6 +527,189 @@ async function dispatchFusedGateUp({
   return fusedOutput;
 }
 
+async function applyDenseProjectionBias(
+  tensor,
+  biasWeight,
+  label,
+  numTokens,
+  dim,
+  context,
+  layerIdx
+) {
+  if (!biasWeight) return tensor;
+  const { tensor: biasTensor, owned } = getVectorTensor(
+    biasWeight,
+    label,
+    dim,
+    context.weightConfig,
+    context.debugFlags
+  );
+  try {
+    return await doBiasAdd(tensor, biasTensor, numTokens, dim, {
+      label,
+      layerIdx,
+      executionPolicies: context.executionPolicies ?? null,
+    }, context.recorder);
+  } finally {
+    if (owned) releaseOrTrack(context.recorder, biasTensor.buffer, context.decodeBuffers);
+  }
+}
+
+async function runDenseUngatedFFNGPU(layerIdx, inputTensor, numTokens, context, layerWeights) {
+  const { config, recorder } = context;
+  const { hiddenSize, hiddenActivation } = config;
+  const intermediateSize = resolveLayerIntermediateSize(config, layerIdx);
+  if (layerWeights.gate || layerWeights.gateUp) {
+    throw new Error(`Layer ${layerIdx} declares an ungated FFN but contains gate weights.`);
+  }
+  if (!layerWeights.up || !layerWeights.down) {
+    throw new Error(`Layer ${layerIdx} ungated FFN requires up_proj and down_proj weights.`);
+  }
+
+  const kernelPath = context.kernelPath ?? null;
+  const phase = context.phase ?? (numTokens === 1 ? 'decode' : 'prefill');
+  const ffnStepPrecision = context.ffnStepPrecision ?? null;
+  const upInputDtype = resolveMatmulStepDtype(
+    'ffn_up', phase, layerIdx, kernelPath, inputTensor.dtype, 'inputDtype', ffnStepPrecision
+  );
+  const upOutputDtype = resolveMatmulStepDtype(
+    'ffn_up', phase, layerIdx, kernelPath, inputTensor.dtype, 'outputDtype', ffnStepPrecision
+  );
+  const downInputDtype = resolveMatmulStepDtype(
+    'ffn_down', phase, layerIdx, kernelPath, upOutputDtype, 'inputDtype', ffnStepPrecision
+  );
+  const downOutputDtype = resolveMatmulStepDtype(
+    'ffn_down', phase, layerIdx, kernelPath, inputTensor.dtype, 'outputDtype', ffnStepPrecision
+  );
+
+  let upInput = inputTensor;
+  let upInputOwned = false;
+  if (upInputDtype && upInputDtype !== inputTensor.dtype) {
+    upInput = await coerceTensorDtype(inputTensor, upInputDtype, recorder, {
+      executionPolicies: context.executionPolicies ?? null,
+      op: 'ffn_up_input',
+      transitionDeclaredBy: 'step_precision',
+    });
+    upInputOwned = upInput !== inputTensor;
+  }
+
+  const upWeight = getWeightBuffer(layerWeights.up, 'ffn_up');
+  let upOutput = await doMatmul(
+    upInput,
+    upWeight,
+    numTokens,
+    intermediateSize,
+    hiddenSize,
+    {
+      transposeB: 'auto',
+      label: `L${layerIdx}.ffn_up`,
+      layerIdx,
+      kernelPath,
+      outputDtype: upOutputDtype,
+      role: 'ffn_up',
+      executionPolicies: context.executionPolicies ?? null,
+    },
+    recorder
+  );
+  const loraUp = getLoRAModule(context.lora ?? null, layerIdx, 'up_proj');
+  if (loraUp) {
+    const combined = await applyLoRA(
+      upInput,
+      upOutput,
+      loraUp,
+      { M: numTokens, N: intermediateSize, K: hiddenSize },
+      getWeightBuffer,
+      recorder,
+      { kernelPath }
+    );
+    if (combined.buffer !== upOutput.buffer) {
+      releaseOrTrack(recorder, upOutput.buffer, context.decodeBuffers);
+      upOutput = combined;
+    }
+  }
+  upOutput = await applyDenseProjectionBias(
+    upOutput,
+    layerWeights.upBias,
+    `L${layerIdx}.ffn_up_bias`,
+    numTokens,
+    intermediateSize,
+    context,
+    layerIdx
+  );
+  const activated = await dispatchActivation(hiddenActivation, upOutput, {
+    size: numTokens * intermediateSize,
+    gate: null,
+    label: `L${layerIdx}.ffn_activation`,
+    layerIdx,
+  }, recorder);
+
+  let downInput = activated;
+  let downInputOwned = false;
+  if (downInputDtype && activated.dtype !== downInputDtype) {
+    downInput = await coerceTensorDtype(activated, downInputDtype, recorder, {
+      executionPolicies: context.executionPolicies ?? null,
+      op: 'ffn_down_input',
+      transitionDeclaredBy: 'step_precision',
+    });
+    downInputOwned = downInput !== activated;
+  }
+  const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+  let output = await doMatmul(
+    downInput,
+    downWeight,
+    numTokens,
+    hiddenSize,
+    intermediateSize,
+    {
+      transposeB: 'auto',
+      label: `L${layerIdx}.ffn_down`,
+      layerIdx,
+      kernelPath,
+      outputDtype: downOutputDtype,
+      role: 'ffn_down',
+      executionPolicies: context.executionPolicies ?? null,
+    },
+    recorder
+  );
+  const loraDown = getLoRAModule(context.lora ?? null, layerIdx, 'down_proj');
+  if (loraDown) {
+    const combined = await applyLoRA(
+      downInput,
+      output,
+      loraDown,
+      { M: numTokens, N: hiddenSize, K: intermediateSize },
+      getWeightBuffer,
+      recorder,
+      { kernelPath }
+    );
+    if (combined.buffer !== output.buffer) {
+      releaseOrTrack(recorder, output.buffer, context.decodeBuffers);
+      output = combined;
+    }
+  }
+  output = await applyDenseProjectionBias(
+    output,
+    layerWeights.downBias,
+    `L${layerIdx}.ffn_down_bias`,
+    numTokens,
+    hiddenSize,
+    context,
+    layerIdx
+  );
+
+  if (!isGpuBufferInstance(layerWeights.up) && !isWeightBuffer(layerWeights.up)) {
+    releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight, context.decodeBuffers);
+  }
+  if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
+    releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight, context.decodeBuffers);
+  }
+  if (upInputOwned) releaseOrTrack(recorder, upInput.buffer, context.decodeBuffers);
+  if (downInputOwned) releaseOrTrack(recorder, downInput.buffer, context.decodeBuffers);
+  releaseOrTrack(recorder, upOutput.buffer, context.decodeBuffers);
+  releaseOrTrack(recorder, activated.buffer, context.decodeBuffers);
+  return output;
+}
+
 
 export async function runDenseFFNGPU(
   layerIdx,
@@ -547,6 +730,10 @@ export async function runDenseFFNGPU(
   const kernelPath = context.kernelPath ?? null;
   const phase = context.phase ?? (numTokens === 1 ? 'decode' : 'prefill');
   const gateUpPathMode = resolveGateUpPathMode({ kernelPath, phase, layerIdx });
+
+  if (config.gatedActivation === false) {
+    return runDenseUngatedFFNGPU(layerIdx, inputTensor, numTokens, context, layerWeights);
+  }
 
   if (layerWeights?.gateUp && layerWeights?.down) {
     const gateUpWeight = getWeightBuffer(layerWeights.gateUp, 'ffn_gate_up');

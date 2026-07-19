@@ -93,6 +93,9 @@ export function createModelHandle(pipeline, resolved) {
     async embedBatch(prompts, options = {}) {
       return pipeline.embedBatch(prompts, options);
     },
+    async encodeSequence(sequence, options = {}) {
+      return pipeline.encodeSequence(sequence, options);
+    },
     async embedImage(args = {}) {
       return pipeline.embedImage(args);
     },
@@ -111,6 +114,9 @@ export function createModelHandle(pipeline, resolved) {
     get supportsEmbedding() {
       return pipeline.manifest?.modelType === 'embedding'
         || pipeline.manifest?.inference?.supportsEmbedding === true;
+    },
+    get supportsSequence() {
+      return pipeline.manifest?.inference?.supportsSequence === true;
     },
     get supportsTranscription() {
       return pipeline.manifest?.inference?.supportsTranscription === true

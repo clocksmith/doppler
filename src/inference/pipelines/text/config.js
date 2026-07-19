@@ -458,6 +458,9 @@ export function getStopTokenIds(manifest) {
   if (typeof eosTokenId === 'number') return [eosTokenId];
   const modelId = manifest?.modelId ?? 'unknown';
   if (eosTokenId == null) {
+    if (manifest?.modelType === 'embedding') {
+      return [];
+    }
     throw new Error(
       `Manifest "${modelId}" is missing eos_token_id. Re-convert the model with tokenizer metadata.`
     );
@@ -709,6 +712,18 @@ export function validateRequiredInferenceFields(inf, modelId) {
     errors.push('attention.queryKeyNorm is required');
   }
   if (
+    inf.attention.queryKeyNormType !== undefined
+    && !['rmsnorm', 'layernorm'].includes(inf.attention.queryKeyNormType)
+  ) {
+    errors.push('attention.queryKeyNormType must be "rmsnorm" or "layernorm"');
+  }
+  if (
+    inf.attention.queryKeyNormAxis !== undefined
+    && !['head', 'projection'].includes(inf.attention.queryKeyNormAxis)
+  ) {
+    errors.push('attention.queryKeyNormAxis must be "head" or "projection"');
+  }
+  if (
     inf.attention.queryKeyNormLayers !== undefined
     && inf.attention.queryKeyNormLayers !== null
   ) {
@@ -756,6 +771,12 @@ export function validateRequiredInferenceFields(inf, modelId) {
   }
 
   // Normalization fields
+  if (
+    inf.normalization.type !== undefined
+    && !['rmsnorm', 'layernorm'].includes(inf.normalization.type)
+  ) {
+    errors.push('normalization.type must be rmsnorm or layernorm');
+  }
   if (inf.normalization.rmsNormWeightOffset == null) {
     errors.push('normalization.rmsNormWeightOffset is required');
   }
@@ -770,6 +791,23 @@ export function validateRequiredInferenceFields(inf, modelId) {
   }
   if (inf.normalization.postFeedforwardNorm == null) {
     errors.push('normalization.postFeedforwardNorm is required');
+  }
+  if (
+    inf.normalization.finalNormBiasTensor !== undefined
+    &&
+    inf.normalization.finalNormBiasTensor !== null
+    && (
+      typeof inf.normalization.finalNormBiasTensor !== 'string'
+      || inf.normalization.finalNormBiasTensor.trim() === ''
+    )
+  ) {
+    errors.push('normalization.finalNormBiasTensor must be null or a non-empty string');
+  }
+  if (
+    (inf.normalization.type ?? 'rmsnorm') === 'rmsnorm'
+    && (inf.normalization.finalNormBiasTensor ?? null) !== null
+  ) {
+    errors.push('normalization.finalNormBiasTensor requires normalization.type="layernorm"');
   }
 
   // FFN fields
@@ -943,6 +981,54 @@ export function validateRequiredInferenceFields(inf, modelId) {
         errors.push('output.embeddingPostprocessor.normalize must be null or "l2"');
       }
     }
+  }
+  if (
+    inf.output.lmHeadBiasTensor !== undefined
+    && inf.output.lmHeadBiasTensor !== null
+    && (typeof inf.output.lmHeadBiasTensor !== 'string' || inf.output.lmHeadBiasTensor.trim() === '')
+  ) {
+    errors.push('output.lmHeadBiasTensor must be null or a non-empty tensor name');
+  }
+
+  if (inf.supportsSequence !== undefined && typeof inf.supportsSequence !== 'boolean') {
+    errors.push('supportsSequence must be boolean when provided');
+  }
+  if (inf.sequence !== undefined && inf.sequence !== null) {
+    const sequence = inf.sequence;
+    if (!sequence || typeof sequence !== 'object' || Array.isArray(sequence)) {
+      errors.push('sequence must be null or an object');
+    } else {
+      if (sequence.alphabet !== 'amino_acid' && sequence.alphabet !== 'nucleotide') {
+        errors.push('sequence.alphabet must be "amino_acid" or "nucleotide"');
+      }
+      if (typeof sequence.tokenEmbeddings !== 'boolean') {
+        errors.push('sequence.tokenEmbeddings must be boolean');
+      }
+      if (typeof sequence.logits !== 'boolean') {
+        errors.push('sequence.logits must be boolean');
+      }
+      if (sequence.pooledEmbedding !== null) {
+        const pooling = sequence.pooledEmbedding;
+        if (!pooling || typeof pooling !== 'object' || Array.isArray(pooling)) {
+          errors.push('sequence.pooledEmbedding must be null or an object');
+        } else {
+          if (pooling.mode !== 'mean' && pooling.mode !== 'last') {
+            errors.push('sequence.pooledEmbedding.mode must be "mean" or "last"');
+          }
+          if (!Array.isArray(pooling.excludeTokenIds) || pooling.excludeTokenIds.some(
+            (tokenId) => !Number.isInteger(tokenId) || tokenId < 0
+          )) {
+            errors.push('sequence.pooledEmbedding.excludeTokenIds must be an array of non-negative integers');
+          }
+        }
+      }
+    }
+  }
+  if (inf.supportsSequence === true && (inf.sequence == null || typeof inf.sequence !== 'object')) {
+    errors.push('sequence is required when supportsSequence=true');
+  }
+  if (inf.supportsSequence !== true && inf.sequence != null) {
+    errors.push('supportsSequence must be true when sequence is configured');
   }
 
   // Layer pattern fields
@@ -1843,6 +1929,8 @@ function toParsedConfigFromMerged(merged, manifest) {
     ropeLocalScaling,
     quantization: manifest.quantization,
     quantMethod: config.quantization_config?.quant_method ?? null,
+    normalizationType: inf.normalization.type ?? 'rmsnorm',
+    finalNormBiasTensor: inf.normalization.finalNormBiasTensor ?? null,
     rmsNormEps: inf.normalization.rmsNormEps,
     rmsNormWeightOffset: inf.normalization.rmsNormWeightOffset,
     postAttentionNorm: inf.normalization.postAttentionNorm,
@@ -1857,6 +1945,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     embeddingVocabSize: inf.output.embeddingVocabSize,
     embeddingPostprocessor,
     hiddenActivation,
+    gatedActivation: inf.ffn.gatedActivation,
     ffnBranchMode: inf.ffn.branchMode,
     useDoubleWideMlp: inf.ffn.useDoubleWideMlp,
     swigluLimit: inf.ffn.swigluLimit,
@@ -1873,6 +1962,8 @@ function toParsedConfigFromMerged(merged, manifest) {
     finalLogitSoftcapping: inf.output.finalLogitSoftcapping,
     attnLogitSoftcapping: inf.attention.attnLogitSoftcapping,
     queryKeyNorm: inf.attention.queryKeyNorm,
+    queryKeyNormType: inf.attention.queryKeyNormType ?? 'rmsnorm',
+    queryKeyNormAxis: inf.attention.queryKeyNormAxis ?? 'head',
     queryKeyNormLayers: inf.attention.queryKeyNormLayers ?? null,
     queryKeyNormWeightLayers: inf.attention.queryKeyNormWeightLayers ?? null,
     valueNorm: inf.attention.valueNorm,

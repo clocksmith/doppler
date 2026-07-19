@@ -24,6 +24,7 @@ export interface AttentionConfig {
   headDim: number;
   hiddenSize: number;
   rmsNormEps: number;
+  normalizationType?: 'rmsnorm' | 'layernorm';
   currentSeqLen: number;
   /** Expected activation dtype from runtime config. */
   activationDtype?: 'f16' | 'f32';
@@ -41,7 +42,9 @@ export interface AttentionConfig {
   queryPreAttnScalar?: number;
   /** Apply query/key RMSNorm where per-head weights are declared. */
   queryKeyNorm?: boolean;
-  /** Layers that apply query/key RMSNorm; null means all layers when queryKeyNorm=true. */
+  queryKeyNormType?: 'rmsnorm' | 'layernorm';
+  queryKeyNormAxis?: 'head' | 'projection';
+  /** Layers that apply query/key normalization; null means all layers when queryKeyNorm=true. */
   queryKeyNormLayers?: number[] | null;
   /** Layers that carry explicit Q/K RMSNorm scale tensors; null means missing weights are invalid. */
   queryKeyNormWeightLayers?: number[] | null;
@@ -124,3 +127,6 @@ export function releaseOrTrack(recorder: CommandRecorder | undefined, buffer: GP
  * Get or create a buffer of ones for Q/K norm when per-head weights are absent.
  */
 export function getQKNormOnesBuffer(headDim: number): GPUBuffer;
+
+/** Get or create a zero-bias buffer for Q/K LayerNorm. */
+export function getQKNormZerosBuffer(size: number): GPUBuffer;
