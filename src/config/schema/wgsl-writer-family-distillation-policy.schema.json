@@ -70,7 +70,14 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "method", "initialization", "teacherSignal", "adapterPath"],
+        "required": [
+          "id",
+          "method",
+          "initialization",
+          "teacherSignal",
+          "adapterPath",
+          "dopplerExportPath"
+        ],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
           "method": {
@@ -83,7 +90,8 @@
           },
           "initialization": { "enum": ["transported_rank32", "fresh_rank32"] },
           "teacherSignal": { "enum": ["weights_and_adapters", "topk_logits", "delta_logits", "hard_sequences"] },
-          "adapterPath": { "$ref": "#/$defs/repoPath" }
+          "adapterPath": { "$ref": "#/$defs/repoPath" },
+          "dopplerExportPath": { "$ref": "#/$defs/repoPath" }
         }
       }
     },

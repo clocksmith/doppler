@@ -50,6 +50,10 @@ assert.deepEqual(policy.arms.map((arm) => arm.id), [
   'delta-kd',
   'sequence-kd',
 ]);
+for (const arm of policy.arms) {
+  assert.equal(arm.dopplerExportPath.endsWith('/doppler-export'), true);
+  assert.equal(arm.dopplerExportPath.includes('/checkpoint/'), false);
+}
 assert.equal(policy.fairness.rank, 32);
 assert.equal(policy.fairness.microsteps, policy.dataset.rows);
 assert.equal(

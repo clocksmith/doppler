@@ -197,4 +197,53 @@ await assert.rejects(
   assert.equal(unchecked.checksumValid, undefined);
 }
 
+{
+  const weights = createSafetensors([
+    {
+      name: 'base_model.model.model.language_model.layers.0.self_attn.q_proj.lora_A.weight',
+      shape: [1, 2],
+      values: [1, 2],
+    },
+    {
+      name: 'base_model.model.model.language_model.layers.0.self_attn.q_proj.lora_B.weight',
+      shape: [3, 1],
+      values: [3, 4, 5],
+    },
+  ]);
+  const manifest = createManifest({
+    tensors: undefined,
+    weightsPath: 'adapter.safetensors',
+    checksum: sha256Hex(weights),
+  });
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    assert.equal(url, 'https://example.test/adapters/runtime-adapter-manifest.json');
+    return new Response(JSON.stringify(manifest), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+  try {
+    let opfsReads = 0;
+    const result = await loadLoRAWeights(
+      'https://example.test/adapters/runtime-adapter-manifest.json',
+      {
+        async readOPFS() {
+          opfsReads += 1;
+          throw new DOMException('missing', 'NotFoundError');
+        },
+        async fetchUrl(url) {
+          assert.equal(url, 'https://example.test/adapters/adapter.safetensors');
+          return weights;
+        },
+      },
+    );
+    assert.equal(opfsReads, 0);
+    assert.deepEqual(Array.from(result.adapter.layers.get(0).q_proj.a), [1, 2]);
+    assert.deepEqual(Array.from(result.adapter.layers.get(0).q_proj.b), [3, 4, 5]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
 console.log('lora-loader-contract.test: ok');

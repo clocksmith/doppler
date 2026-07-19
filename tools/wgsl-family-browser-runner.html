@@ -12,6 +12,17 @@ import { destroyDevice, getKernelCapabilities, resetDeviceState } from '/src/gpu
 import { initializeInference } from '/src/inference/test-harness.js';
 import { destroyBufferPool } from '/src/memory/buffer-pool.js';
 
+async function withPhase(phase, operation) {
+  try {
+    return await operation();
+  } catch (error) {
+    const detail = error?.stack || error?.message || String(error);
+    throw new Error(`WGSL family browser phase "${phase}" failed: ${detail}`, {
+      cause: error,
+    });
+  }
+}
+
 async function generate(pipeline, prompt, maxTokens) {
   pipeline.reset();
   const chunks = [];
@@ -55,14 +66,18 @@ window.runWgslFamilyBrowserQualification = async function runQualification(reque
     deviceStateReset: false,
   };
   try {
-    harness = await initializeInference(request.modelUrl, {
+    harness = await withPhase('initializeInference', () => initializeInference(request.modelUrl, {
       modelId: request.modelId,
       loadMode: 'http',
-    });
+    }));
     const candidates = [];
     for (const adapter of request.adapters) {
-      await unloadLoRAAdapterForPipeline(harness.pipeline);
-      await loadLoRAAdapterForPipeline(harness.pipeline, adapter.manifestUrl);
+      await withPhase(`unloadAdapter:${adapter.id}`, () => (
+        unloadLoRAAdapterForPipeline(harness.pipeline)
+      ));
+      await withPhase(`loadAdapter:${adapter.id}`, () => (
+        loadLoRAAdapterForPipeline(harness.pipeline, adapter.manifestUrl)
+      ));
       const active = getActiveLoRAForPipeline(harness.pipeline);
       const activation = {
         activated: active != null,
@@ -70,7 +85,9 @@ window.runWgslFamilyBrowserQualification = async function runQualification(reque
         name: typeof active === 'string' ? active : (active?.name ?? null),
         baseModel: active?.baseModel ?? null,
       };
-      const generation = await generate(harness.pipeline, request.prompt, request.maxTokens);
+      const generation = await withPhase(`generate:${adapter.id}`, () => (
+        generate(harness.pipeline, request.prompt, request.maxTokens)
+      ));
       candidates.push({
         candidateId: adapter.id,
         activation,

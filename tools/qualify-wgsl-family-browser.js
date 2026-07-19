@@ -65,7 +65,7 @@ export async function qualifyWgslFamilyBrowser(args) {
   const adapterBindings = [];
   const staticMounts = [{ urlPrefix: '/__wgsl_model', rootDir: path.resolve(args.modelDir) }];
   for (const arm of policy.arms) {
-    const exportRoot = path.join(path.dirname(path.resolve(arm.adapterPath)), 'doppler-export');
+    const exportRoot = path.resolve(arm.dopplerExportPath);
     const manifestPath = path.join(exportRoot, 'runtime-adapter-manifest.json');
     const manifest = await readJson(manifestPath);
     const weightsPath = path.join(exportRoot, manifest.weightsPath);
