@@ -62,7 +62,7 @@ const budgetTrainingPolicy = readJson(
 const budgetTrainingLanes = readJson(budgetTrainingPolicy.admission.trainingLanes.path);
 
 assert.equal(policy.policyId, 'doppler-wgsl-writer-v3-general-authoring');
-assert.equal(policy.status, 'reference_qualified_corpus_materialization_blocked');
+assert.equal(policy.status, 'developmental_policies_reconciled_prospective_materialization_blocked');
 assert.equal(policy.targetCapability, catalog.targetCapability);
 assert.equal(catalog.responseContract, 'doppler.wgsl-author-package/v1');
 assert.equal(packageSchema.properties.schema.const, catalog.responseContract);
@@ -82,6 +82,7 @@ for (const binding of [
   policy.mechanics.referenceQualification.harness,
   policy.mechanics.referenceQualification.manifest,
   policy.mechanics.referenceQualification.receipt,
+  policy.reconciliation.receipt,
 ]) {
   assert.equal(sha256File(binding.path), binding.sha256, binding.path);
 }
@@ -94,6 +95,9 @@ assert.equal(predecessor.productizationAllowed, false);
 assert.equal(policy.predecessor.initializationMayBeTested, true);
 assert.equal(policy.predecessor.capabilityClaimTransfers, false);
 assert.equal(policy.predecessor.weightsPublished, false);
+assert.equal(policy.reconciliation.laterPoliciesRole, 'development');
+assert.equal(policy.reconciliation.historicalGatePreserved, true);
+assert.equal(policy.reconciliation.prospectiveCampaignRequired, true);
 
 const expectedRoleCounts = {
   training: 8,

@@ -23,6 +23,8 @@ import { dequantizeQ4KM } from '../../../converter/quantizer.js';
 import { getKernelPathMatmulPrecision } from '../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from './dtype-contract.js';
+import { applyLoRA } from './lora-apply.js';
+import { getLoRAModule } from './lora.js';
 
 const LINEAR_RUNTIME_SCHEMA_VERSION = 1;
 const QK_L2NORM_EPS = 1e-6;
@@ -169,6 +171,38 @@ function releaseOrTrackBuffer(recorder, buffer) {
     recorder.trackTemporaryBuffer(buffer);
   } else {
     releaseBuffer(buffer);
+  }
+}
+
+async function applyProjectionLoRA({
+  inputTensor,
+  baseOutput,
+  loraModule,
+  dims,
+  getWeightBuffer,
+  recorder,
+  kernelPath,
+}) {
+  if (!loraModule) {
+    return baseOutput;
+  }
+  try {
+    const combined = await applyLoRA(
+      inputTensor,
+      baseOutput,
+      loraModule,
+      dims,
+      getWeightBuffer,
+      recorder ?? undefined,
+      { kernelPath }
+    );
+    if (combined.buffer !== baseOutput.buffer) {
+      releaseOrTrackBuffer(recorder, baseOutput.buffer);
+    }
+    return combined;
+  } catch (error) {
+    releaseOrTrackBuffer(recorder, baseOutput.buffer);
+    throw error;
   }
 }
 
@@ -637,6 +671,7 @@ async function projectLinearTensor({
   getWeightBuffer,
   recorder,
   executionPolicies = null,
+  loraModule = null,
 }) {
   const resolvedWeight = getWeightBuffer(sourceWeight, role);
   const resolvedInputDtype = resolveMatmulStepDtype(
@@ -702,7 +737,16 @@ async function projectLinearTensor({
         outputDtype: resolvedOutputDtype,
         executionPolicies,
       });
-      return await settleProjectionOutputDtype(result);
+      const projected = await settleProjectionOutputDtype(result);
+      return await applyProjectionLoRA({
+        inputTensor: matmulInput,
+        baseOutput: projected,
+        loraModule,
+        dims: { M: numTokens, N: outDim, K: hiddenSize },
+        getWeightBuffer,
+        recorder,
+        kernelPath,
+      });
     }
     const result = await runMatmul(matmulInput, resolvedWeight, numTokens, outDim, hiddenSize, {
       transposeB: 'auto',
@@ -712,7 +756,16 @@ async function projectLinearTensor({
       outputDtype: resolvedOutputDtype,
       executionPolicies,
     });
-    return await settleProjectionOutputDtype(result);
+    const projected = await settleProjectionOutputDtype(result);
+    return await applyProjectionLoRA({
+      inputTensor: matmulInput,
+      baseOutput: projected,
+      loraModule,
+      dims: { M: numTokens, N: outDim, K: hiddenSize },
+      getWeightBuffer,
+      recorder: null,
+      kernelPath,
+    });
   } finally {
     if (matmulInput !== inputTensor) {
       releaseOrTrackBuffer(recorder, matmulInput.buffer);
@@ -835,6 +888,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     recorder,
     executionPolicies = null,
     precomputedInputNorm = null,
+    lora = null,
   } = options;
 
   if (!layerWeights) {
@@ -909,7 +963,12 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     }
   }
 
-  const qkvzProjection = resolveLinearAttentionQKVZProjection(layerWeights, {
+  const qkvLoRA = getLoRAModule(lora, layerIdx, 'in_proj_qkv');
+  const zLoRA = getLoRAModule(lora, layerIdx, 'in_proj_z');
+  const aLoRA = getLoRAModule(lora, layerIdx, 'in_proj_a');
+  const bLoRA = getLoRAModule(lora, layerIdx, 'in_proj_b');
+  const outLoRA = getLoRAModule(lora, layerIdx, 'out_proj');
+  const qkvzProjection = qkvLoRA || zLoRA ? null : resolveLinearAttentionQKVZProjection(layerWeights, {
     phase,
     numTokens,
     hiddenSize,
@@ -951,6 +1010,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     getWeightBuffer,
     recorder,
     executionPolicies,
+    loraModule: qkvLoRA,
   });
   const zTensor = qkvzTensor ?? await projectLinearTensor({
     inputTensor: normedTensor,
@@ -966,8 +1026,9 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     getWeightBuffer,
     recorder,
     executionPolicies,
+    loraModule: zLoRA,
   });
-  const abProjection = resolveLinearAttentionABProjection(layerWeights, {
+  const abProjection = aLoRA || bLoRA ? null : resolveLinearAttentionABProjection(layerWeights, {
     phase,
     numTokens,
     hiddenSize,
@@ -1007,6 +1068,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     getWeightBuffer,
     recorder,
     executionPolicies,
+    loraModule: aLoRA,
   });
   const bTensor = abTensor ?? await projectLinearTensor({
     inputTensor: normedTensor,
@@ -1022,6 +1084,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     getWeightBuffer,
     recorder,
     executionPolicies,
+    loraModule: bLoRA,
   });
 
   const outProjInputDtype = resolveMatmulStepDtype(
@@ -1160,9 +1223,17 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
           ? (recorder ? await recordCastF32ToF16(recorder, result) : await castF32ToF16(result))
           : (recorder ? await recordCastF16ToF32(recorder, result) : await castF16ToF32(result));
         releaseOrTrackBuffer(recorder, result.buffer);
-        return casted;
+        result = casted;
       }
-      return result;
+      return await applyProjectionLoRA({
+        inputTensor: coreTensor,
+        baseOutput: result,
+        loraModule: outLoRA,
+        dims: { M: numTokens, N: hiddenSize, K: projectionLayout.valueDim },
+        getWeightBuffer,
+        recorder,
+        kernelPath,
+      });
     } finally {
       releaseOrTrackBuffer(recorder, coreTensor.buffer);
       releaseResolvedWeightBuffer(layerWeights.oProj, outProjWeight, recorder);

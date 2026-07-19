@@ -6,6 +6,7 @@ import type { LinearNormMode } from '../../../config/schema/index.js';
 import type { ProbeConfigSchema } from '../../../config/schema/index.js';
 import type { ExecutionV1PoliciesSchema } from '../../../config/schema/execution-v1.schema.js';
 import type { KernelPathSchema } from '../../../config/schema/kernel-path.schema.js';
+import type { LoRAAdapter } from './lora.js';
 
 export interface LinearLayerRuntimeState {
   layerIdx: number;
@@ -76,6 +77,7 @@ export interface RunLinearAttentionLayerOptions {
   precomputedInputNorm?: Tensor | null;
   debugProbes?: ProbeConfigSchema[] | null;
   recorder?: CommandRecorder | null;
+  lora?: LoRAAdapter | null;
 }
 
 export declare function hasLinearAttentionLayers(layerTypes: unknown): boolean;

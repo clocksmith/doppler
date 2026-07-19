@@ -2176,7 +2176,20 @@ function assertPromotedRuntimeBackendCoverage(lane, requiredBackends, label) {
 
 async function assertClaimMatrixArtifact(lane, catalogEntry, label) {
   const manifestPath = lane?.artifact?.manifestPath;
-  const manifestHash = await hashRepoFileBytes(manifestPath, `${label}.artifact.manifestPath`);
+  const manifestGitRevision = asNonEmptyStringValue(lane?.artifact?.manifestGitRevision);
+  const readBoundArtifact = async (repoPath, field) => {
+    if (!manifestGitRevision) return fs.readFile(repoPathToAbsolute(repoPath, field));
+    if (!/^[a-f0-9]{40}$/u.test(manifestGitRevision)) throw new Error(`${label}.artifact.manifestGitRevision is invalid`);
+    const result = spawnSync('git', ['show', `${manifestGitRevision}:${repoPath}`], {
+      cwd: ROOT_DIR,
+      encoding: null,
+      maxBuffer: 32 * 1024 * 1024,
+    });
+    if (result.status !== 0) throw new Error(`${field} is absent at Git revision ${manifestGitRevision}`);
+    return result.stdout;
+  };
+  const manifestBytes = await readBoundArtifact(manifestPath, `${label}.artifact.manifestPath`);
+  const manifestHash = crypto.createHash('sha256').update(manifestBytes).digest('hex');
   if (manifestHash !== lane?.artifact?.manifestSha256) {
     throw new Error(
       `${label}.artifact.manifestSha256 mismatch for ${manifestPath} `
@@ -2184,7 +2197,7 @@ async function assertClaimMatrixArtifact(lane, catalogEntry, label) {
     );
   }
 
-  const manifest = await readJson(repoPathToAbsolute(manifestPath, `${label}.artifact.manifestPath`));
+  const manifest = JSON.parse(manifestBytes.toString('utf8'));
   const manifestModelId = asNonEmptyStringValue(manifest?.modelId);
   if (manifestModelId !== lane?.model?.dopplerModelId) {
     throw new Error(`${label}.artifact.manifestPath modelId mismatch: expected ${lane.model.dopplerModelId}, got ${manifestModelId}`);
@@ -2193,7 +2206,8 @@ async function assertClaimMatrixArtifact(lane, catalogEntry, label) {
   const tokenizerFile = asNonEmptyStringValue(lane?.model?.tokenizer?.file);
   if (tokenizerFile) {
     const tokenizerPath = path.posix.join(path.posix.dirname(manifestPath), tokenizerFile);
-    const tokenizerHash = await hashRepoFileBytes(tokenizerPath, `${label}.model.tokenizer.file`);
+    const tokenizerBytes = await readBoundArtifact(tokenizerPath, `${label}.model.tokenizer.file`);
+    const tokenizerHash = crypto.createHash('sha256').update(tokenizerBytes).digest('hex');
     if (tokenizerHash !== lane?.model?.tokenizer?.sha256) {
       throw new Error(
         `${label}.model.tokenizer.sha256 mismatch for ${tokenizerPath} `

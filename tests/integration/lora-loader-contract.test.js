@@ -158,6 +158,43 @@ await assert.rejects(
 {
   const weights = createSafetensors([
     {
+      name: 'base_model.model.model.language_model.layers.0.linear_attn.in_proj_qkv.lora_A.weight',
+      shape: [1, 2],
+      values: [1, 2],
+    },
+    {
+      name: 'base_model.model.model.language_model.layers.0.linear_attn.in_proj_qkv.lora_B.weight',
+      shape: [3, 1],
+      values: [3, 4, 5],
+    },
+    {
+      name: 'base_model.model.model.language_model.layers.0.linear_attn.out_proj.lora_A.weight',
+      shape: [1, 3],
+      values: [6, 7, 8],
+    },
+    {
+      name: 'base_model.model.model.language_model.layers.0.linear_attn.out_proj.lora_B.weight',
+      shape: [2, 1],
+      values: [9, 10],
+    },
+  ]);
+  const adapter = await loadLoRAFromManifest(createManifest({
+    tensors: undefined,
+    targetModules: ['in_proj_qkv', 'out_proj'],
+    weightsPath: 'adapter.safetensors',
+    checksum: sha256Hex(weights),
+  }), {
+    async readFile() {
+      return weights;
+    },
+  });
+  assert.deepEqual(Array.from(adapter.layers.get(0).in_proj_qkv.a), [1, 2]);
+  assert.deepEqual(Array.from(adapter.layers.get(0).out_proj.b), [9, 10]);
+}
+
+{
+  const weights = createSafetensors([
+    {
       name: 'base_model.model.model.language_model.layers.0.self_attn.q_proj.lora_A.weight',
       shape: [1, 2],
       values: [1, 2],

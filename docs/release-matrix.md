@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-07-11T14:04:21.695Z
-Release: channel=main-snapshot, version=0.4.8, commit=e0fc0604197e1fa1ba44f14f612daade69a2fea8, dirty=no
+Generated: 2026-07-19T21:53:32.956Z
+Release: channel=main-snapshot, version=0.4.11, commit=9f0ef19dbe5fd9b1c69e1cd7002005c7d3ea8d6d, dirty=yes
 
 ## Engine Matrix
 
@@ -29,6 +29,9 @@ Release: channel=main-snapshot, version=0.4.8, commit=e0fc0604197e1fa1ba44f14f61
 
 | Doppler Model | In Catalog | Catalog Modes | TJS Mapping | Surface | Source | Compare Lane | Notes |
 |---|---|---|---|---|---|---|---|
+| `amplify-120m-f16-af32` | yes | embedding |  | auto |  |  |  |
+| `esm2-t12-35m-ur50d-f32-af32` | yes | embedding |  | auto |  |  |  |
+| `esmc-300m-f32-af32` | yes | embedding |  | auto |  |  |  |
 | `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | auto | quickstart-registry | performance_comparable |  |
 | `gemma-3-270m-it-f16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | local | performance_comparable |  |
 | `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | quickstart-registry | performance_comparable |  |
@@ -41,6 +44,7 @@ Release: channel=main-snapshot, version=0.4.8, commit=e0fc0604197e1fa1ba44f14f61
 | `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims. |
 | `gemma-4-e2b-it-q4k-ehf16-af32-int4ple` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful. |
 | `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` | auto | quickstart-registry | capability_only | Embedding models use a separate workload contract and are not part of the text-generation compare lane. |
+| `nucleotide-transformer-v2-50m-f32-af32` | yes | embedding |  | auto |  |  |  |
 | `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` | browser | quickstart-registry | performance_comparable |  |
 | `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` | browser | local | performance_comparable |  |
 | `qwen-3-6-27b-q4k-eaf16` | yes | run, translate |  | auto |  |  |  |

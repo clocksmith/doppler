@@ -224,6 +224,7 @@
         "quantization": "Q4_K_M",
         "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
         "manifestSha256": "4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511",
+        "manifestGitRevision": "26a0043786b01f9273ae07027c96fd37679bc1b3",
         "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
         "weightPackHash": null,
         "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",

@@ -4,7 +4,7 @@
   "source": "doppler",
   "policyId": "doppler-wgsl-writer-v3-general-authoring",
   "experimentId": "doppler-wgsl-writer-v3",
-  "status": "reference_qualified_corpus_materialization_blocked",
+  "status": "developmental_policies_reconciled_prospective_materialization_blocked",
   "targetCapability": "complete_executable_webgpu_shader_package_from_natural_language_and_host_contract",
   "predecessor": {
     "result": {
@@ -83,6 +83,15 @@
     "workloadsFrozen": false,
     "reason": "Training remains blocked until the executable capability corpus, semantic oracles, source lineage, and disjoint development and promotion populations are materialized and qualified."
   },
+  "reconciliation": {
+    "receipt": {
+      "path": "docs/status/wgsl-writer-v3-campaign-reconciliation-2026-07-19.json",
+      "sha256": "7f0fbd724ac5869c27635e2d2c8bcb48268ea2d3c961b6627d1e613381e6818c"
+    },
+    "laterPoliciesRole": "development",
+    "historicalGatePreserved": true,
+    "prospectiveCampaignRequired": true
+  },
   "evaluation": {
     "primaryMetric": "semantic_executable_package_pass_at_1",
     "blockingPrerequisites": [
@@ -120,5 +129,5 @@
     "mipmapped_and_multisampled_resource_execution_is_not_supported",
     "development_and_external_promotion_populations_are_not_materialized"
   ],
-  "claimBoundary": "This policy freezes only the response envelope, planned capability families, causal isolation, and gate order for a future general-authoring campaign. V2 may be tested as an initialization, but its narrow elementwise evidence does not transfer. No V3 corpus, training run, selected adapter, seed confirmation, general-writer capability, or product promotion exists."
+  "claimBoundary": "The original blocked gate and later V3 policies are preserved through the reconciliation receipt. Later policies and any outputs derived from them are developmental only. A new exposure-ledger-bound materialization transition is required before prospective selection, confirmation, general-writer capability, or product promotion."
 }

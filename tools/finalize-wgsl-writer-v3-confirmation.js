@@ -67,6 +67,9 @@ export async function finalizeWgslWriterV3Confirmation(options = {}) {
   if (selection.decision !== 'lane_selected') {
     throw new Error('WGSL writer v3 confirmation requires a selected lane.');
   }
+  if (!Array.isArray(evaluation.candidates)) {
+    throw new Error('WGSL writer v3 confirmation candidates must be an array.');
+  }
   const candidates = evaluation.candidates.filter((candidate) => (
     candidate.capabilityAuthority === true
   ));
@@ -75,6 +78,16 @@ export async function finalizeWgslWriterV3Confirmation(options = {}) {
     throw new Error('WGSL writer v3 confirmation candidate count mismatch.');
   }
   const rates = candidates.map((candidate) => candidate.summary.semanticPassRate);
+  if (rates.some((rate) => !Number.isFinite(rate) || rate < 0 || rate > 1)) {
+    throw new Error('WGSL writer v3 confirmation halted on a nonfinite or out-of-range semantic pass rate.');
+  }
+  const thresholds = [
+    policy.evaluation.minimumConfirmationPerSeedSemanticPassRate,
+    policy.evaluation.minimumConfirmationMeanSemanticPassRate,
+  ];
+  if (thresholds.some((threshold) => !Number.isFinite(threshold) || threshold < 0 || threshold > 1)) {
+    throw new Error('WGSL writer v3 confirmation halted on a nonfinite or out-of-range threshold.');
+  }
   const mean = rates.reduce((sum, value) => sum + value, 0) / rates.length;
   const perSeedPass = rates.every((rate) => (
     rate >= policy.evaluation.minimumConfirmationPerSeedSemanticPassRate
