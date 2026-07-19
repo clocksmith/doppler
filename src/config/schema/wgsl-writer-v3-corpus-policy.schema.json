@@ -29,7 +29,8 @@
     "policyId": {
       "enum": [
         "doppler-wgsl-writer-v3-corpus",
-        "doppler-wgsl-writer-v3-corpus-diversity-repair"
+        "doppler-wgsl-writer-v3-corpus-diversity-repair",
+        "doppler-wgsl-writer-v3-explicit-semantic-repair"
       ]
     },
     "experimentId": { "const": "doppler-wgsl-writer-v3" },
@@ -75,7 +76,8 @@
         "sourceLineage": {
           "enum": [
             "human_authored_doppler_parametric_reference",
-            "human_authored_doppler_parametric_reference_with_verified_alpha_layout_variants"
+            "human_authored_doppler_parametric_reference_with_verified_alpha_layout_variants",
+            "human_authored_doppler_explicit_semantic_contract_with_verified_alpha_layout_variants"
           ]
         },
         "sourceLicense": { "const": "Apache-2.0" },
@@ -90,13 +92,27 @@
       }
     },
     "promptContract": {
-      "const": {
-        "templateId": "wgsl-executable-package-spec-host-v1",
-        "useChatTemplate": false,
-        "responseContract": "wgsl_author_package_v1",
-        "includesNaturalLanguageSpecification": true,
-        "includesExplicitHostContract": true
-      }
+      "oneOf": [
+        {
+          "const": {
+            "templateId": "wgsl-executable-package-spec-host-v1",
+            "useChatTemplate": false,
+            "responseContract": "wgsl_author_package_v1",
+            "includesNaturalLanguageSpecification": true,
+            "includesExplicitHostContract": true
+          }
+        },
+        {
+          "const": {
+            "templateId": "wgsl-executable-package-semantic-spec-host-v2",
+            "useChatTemplate": false,
+            "responseContract": "wgsl_author_package_v1",
+            "includesNaturalLanguageSpecification": true,
+            "includesExplicitSemanticContract": true,
+            "includesExplicitHostContract": true
+          }
+        }
+      ]
     },
     "runtime": {
       "type": "object",
@@ -183,6 +199,42 @@
               "sourceLineage": {
                 "const": "human_authored_doppler_parametric_reference_with_verified_alpha_layout_variants"
               }
+            }
+          },
+          "referenceQualification": {
+            "required": ["executeEveryTrainingTask"],
+            "properties": {
+              "executeOneRepresentativePerTrainingFamily": { "const": false },
+              "executeEveryTrainingTask": { "const": true }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "policyId": { "const": "doppler-wgsl-writer-v3-explicit-semantic-repair" }
+        }
+      },
+      "then": {
+        "properties": {
+          "corpus": {
+            "required": ["packageDiversity"],
+            "properties": {
+              "sourceLineage": {
+                "const": "human_authored_doppler_explicit_semantic_contract_with_verified_alpha_layout_variants"
+              }
+            }
+          },
+          "promptContract": {
+            "const": {
+              "templateId": "wgsl-executable-package-semantic-spec-host-v2",
+              "useChatTemplate": false,
+              "responseContract": "wgsl_author_package_v1",
+              "includesNaturalLanguageSpecification": true,
+              "includesExplicitSemanticContract": true,
+              "includesExplicitHostContract": true
             }
           },
           "referenceQualification": {

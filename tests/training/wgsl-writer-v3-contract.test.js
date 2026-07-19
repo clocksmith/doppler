@@ -33,6 +33,20 @@ const diversityQualification = readJson(
 const diversityTrainingPolicy = readJson(
   'tools/policies/wgsl-writer-v3-diversity-training-policy.json'
 );
+const semanticCorpusPolicy = readJson(
+  'tools/policies/wgsl-writer-v3-explicit-semantic-corpus-policy.json'
+);
+const semanticCatalog = readJson(semanticCorpusPolicy.corpus.capabilityCatalog.path);
+const semanticManifest = readJson(`${semanticCorpusPolicy.corpus.outputRoot}/corpus-manifest.json`);
+const semanticQualification = readJson(
+  `${semanticCorpusPolicy.corpus.outputRoot}/reference-qualification.json`
+);
+const semanticTrainingPolicy = readJson(
+  'tools/policies/wgsl-writer-v3-explicit-semantic-training-policy.json'
+);
+const semanticTrainingLanes = readJson(
+  semanticTrainingPolicy.admission.trainingLanes.path
+);
 
 assert.equal(policy.policyId, 'doppler-wgsl-writer-v3-general-authoring');
 assert.equal(policy.status, 'reference_qualified_corpus_materialization_blocked');
@@ -106,6 +120,69 @@ for (const [leftRole, leftIds] of roleIds.entries()) {
       `${leftRole}/${rightRole}`
     );
   }
+}
+
+assert.equal(semanticCatalog.families.length, catalog.families.length);
+for (const family of semanticCatalog.families) {
+  assert.equal(family.semanticContract.resourceLayouts.length > 0, true, family.id);
+  assert.equal(family.semanticContract.operation.length > 0, true, family.id);
+  assert.equal(family.semanticContract.passGraph.length > 0, true, family.id);
+}
+const semanticSelectionRows = readJsonl(
+  semanticManifest.roles.checkpoint_selection.datasetPath
+);
+assert.equal(semanticSelectionRows.length, 12);
+assert.equal(
+  semanticSelectionRows.every((row) => row.prompt.includes('<semantic_contract>')),
+  true
+);
+const particlePrompt = semanticSelectionRows.find(
+  (row) => row.semanticFamilyId === 'particle-integration'
+).prompt;
+assert.equal(particlePrompt.includes('16 bytes per particle'), true);
+assert.equal(particlePrompt.includes('delta_time:f32, domain_max:f32, count:u32'), true);
+assert.equal(particlePrompt.includes('position + velocity * delta_time'), true);
+assert.equal(semanticManifest.referenceQualification.tasks, 228);
+assert.equal(semanticQualification.decision, 'reference_corpus_qualified');
+assert.equal(semanticQualification.summary.tasks, 228);
+assert.equal(semanticQualification.summary.runs, 456);
+assert.equal(semanticQualification.summary.passedTasks, 228);
+assert.equal(semanticQualification.summary.failedTasks, 0);
+assert.equal(semanticQualification.summary.deterministicReplayPassed, true);
+assert.equal(semanticQualification.summary.cleanupPassed, true);
+assert.equal(semanticQualification.runtime.identity.gpuBackend.detected, 'vulkan');
+assert.equal(semanticQualification.runtime.identity.webgpuAdapter.vendor, 'amd');
+const { receiptHash: semanticReceiptHash, ...semanticQualificationCore } = semanticQualification;
+assert.equal(
+  hashWgslSemanticEvidenceValue(semanticQualificationCore),
+  semanticReceiptHash
+);
+
+assert.equal(
+  semanticTrainingPolicy.repairEvidence.failureClass,
+  'prompt_semantic_contract_underspecified'
+);
+assert.equal(semanticTrainingPolicy.repairEvidence.hiddenOracleFieldsRemoved, true);
+assert.equal(semanticTrainingPolicy.repairEvidence.selectionGateChanged, false);
+assert.equal(semanticTrainingPolicy.evaluation.minimumSelectionSemanticPassRate, 0.5);
+assert.equal(semanticTrainingPolicy.evaluation.minimumConfirmationMeanSemanticPassRate, 0.75);
+assert.equal(semanticTrainingPolicy.trainer.sequenceLength, 3072);
+assert.equal(semanticTrainingLanes.matching.rowsPerLane, 192);
+assert.equal(semanticTrainingLanes.matching.updateBudgetIdentical, true);
+for (const binding of [
+  ...Object.values(semanticTrainingPolicy.admission),
+  semanticTrainingPolicy.repairEvidence.failedEvaluation,
+  semanticTrainingPolicy.repairEvidence.failedSelection,
+]) {
+  assert.equal(sha256File(binding.path), binding.sha256, binding.path);
+}
+for (const adapter of semanticTrainingPolicy.initialization.adapters) {
+  assert.equal(sha256File(`${adapter.path}/adapter_config.json`), adapter.configSha256);
+  assert.equal(sha256File(`${adapter.path}/adapter_model.safetensors`), adapter.weightsSha256);
+  assert.equal(
+    sha256File(adapter.sourceTrainingStatus.path),
+    adapter.sourceTrainingStatus.sha256
+  );
 }
 
 assert.equal(catalog.promotion.materialized, false);
@@ -204,6 +281,18 @@ assert.equal(
 );
 assert.equal(
   schemaRegistry.policies.some((entry) => entry.id === 'wgsl-writer-v3-diversity-training-policy'),
+  true
+);
+assert.equal(
+  schemaRegistry.policies.some(
+    (entry) => entry.id === 'wgsl-writer-v3-explicit-semantic-corpus-policy'
+  ),
+  true
+);
+assert.equal(
+  schemaRegistry.policies.some(
+    (entry) => entry.id === 'wgsl-writer-v3-explicit-semantic-training-policy'
+  ),
   true
 );
 

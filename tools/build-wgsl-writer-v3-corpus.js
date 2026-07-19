@@ -15,6 +15,7 @@ const DEFAULT_POLICY = 'tools/policies/wgsl-writer-v3-corpus-policy.json';
 const POLICY_IDS = new Set([
   'doppler-wgsl-writer-v3-corpus',
   'doppler-wgsl-writer-v3-corpus-diversity-repair',
+  'doppler-wgsl-writer-v3-explicit-semantic-repair',
 ]);
 
 function parseArgs(argv) {
