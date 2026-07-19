@@ -73,28 +73,32 @@
       "method": "lineage-weighted-sketch-compress-v2",
       "initialization": "transported_rank32",
       "teacherSignal": "weights_and_adapters",
-      "adapterPath": "reports/training/wgsl-writer/family-distillation-v1/arms/lwsc-v2-sft-0-8b/checkpoint/adapter"
+      "adapterPath": "reports/training/wgsl-writer/family-distillation-v1/arms/lwsc-v2-sft-0-8b/checkpoint/adapter",
+      "dopplerExportPath": "reports/training/wgsl-writer/family-distillation-v1/arms/lwsc-v2-sft-0-8b/doppler-export"
     },
     {
       "id": "llm-neo",
       "method": "llm-neo-topk-v1",
       "initialization": "fresh_rank32",
       "teacherSignal": "topk_logits",
-      "adapterPath": "reports/training/wgsl-writer/family-distillation-v1/arms/llm-neo-0-8b/checkpoint/adapter"
+      "adapterPath": "reports/training/wgsl-writer/family-distillation-v1/arms/llm-neo-0-8b/checkpoint/adapter",
+      "dopplerExportPath": "reports/training/wgsl-writer/family-distillation-v1/arms/llm-neo-0-8b/doppler-export"
     },
     {
       "id": "delta-kd",
       "method": "delta-kd-topk-v1",
       "initialization": "fresh_rank32",
       "teacherSignal": "delta_logits",
-      "adapterPath": "reports/training/wgsl-writer/family-distillation-v1/arms/delta-kd-0-8b/checkpoint/adapter"
+      "adapterPath": "reports/training/wgsl-writer/family-distillation-v1/arms/delta-kd-0-8b/checkpoint/adapter",
+      "dopplerExportPath": "reports/training/wgsl-writer/family-distillation-v1/arms/delta-kd-0-8b/doppler-export"
     },
     {
       "id": "sequence-kd",
       "method": "oracle-filtered-sequence-kd-v1",
       "initialization": "fresh_rank32",
       "teacherSignal": "hard_sequences",
-      "adapterPath": "reports/training/wgsl-writer/family-distillation-v1/arms/sequence-kd-0-8b/checkpoint/adapter"
+      "adapterPath": "reports/training/wgsl-writer/family-distillation-v1/arms/sequence-kd-0-8b/checkpoint/adapter",
+      "dopplerExportPath": "reports/training/wgsl-writer/family-distillation-v1/arms/sequence-kd-0-8b/doppler-export"
     }
   ],
   "fairness": {

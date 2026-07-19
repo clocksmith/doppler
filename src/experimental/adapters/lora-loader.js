@@ -256,10 +256,15 @@ export async function loadLoRAWeights(path, options = {}) {
     return res.arrayBuffer();
   };
 
-  const adapter = await loadLoRAFromManifest(
-    manifest,
-    { ...options, fetchUrl: fetchWithBase }
-  );
+  const manifestLoadOptions = isUrl
+    ? {
+        ...options,
+        readFile: undefined,
+        readOPFS: undefined,
+        fetchUrl: fetchWithBase,
+      }
+    : { ...options, fetchUrl: fetchWithBase };
+  const adapter = await loadLoRAFromManifest(manifest, manifestLoadOptions);
 
   let checksumValid;
   if (manifest.checksum && !options.skipVerify && Array.isArray(manifest.tensors) && manifest.tensors.length > 0) {
