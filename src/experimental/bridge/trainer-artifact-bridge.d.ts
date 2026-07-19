@@ -7,6 +7,7 @@ export declare const TRAINER_ARTIFACT_KIND_PEFT_ADAPTER: 'peft_adapter';
 
 export declare const TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS: readonly string[];
 export declare const COLUMBO_QWEN_ADAPTER_PARITY_CHECKS: readonly string[];
+export declare const TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS: readonly string[];
 
 export interface TrainerArtifactFileIdentity {
   id: string;
@@ -67,7 +68,7 @@ export interface TrainerArtifactBridgeDescriptor {
     receipt: string | null;
   };
   parity: {
-    profile: 'translation_full_checkpoint' | 'columbo_qwen_adapter';
+    profile: 'translation_full_checkpoint' | 'columbo_qwen_adapter' | 'tinker_peft_browser_adapter';
     requiredChecks: string[];
   };
   claimBoundary: string;

@@ -8,7 +8,13 @@
   "properties": {
     "schema": { "const": "doppler.trainer-artifact-parity-evidence/v1" },
     "bridgeId": { "type": "string", "minLength": 1 },
-    "profile": { "enum": ["translation_full_checkpoint", "columbo_qwen_adapter"] },
+    "profile": {
+      "enum": [
+        "translation_full_checkpoint",
+        "columbo_qwen_adapter",
+        "tinker_peft_browser_adapter"
+      ]
+    },
     "artifactIdentitySha256": { "$ref": "#/$defs/sha256" },
     "checks": {
       "type": "array",
