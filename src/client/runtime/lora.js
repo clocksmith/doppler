@@ -13,6 +13,11 @@ const LORA_TARGET_WEIGHT_KEYS = Object.freeze({
   up_proj: 'up',
   down_proj: 'down',
   gate_up_proj: 'gateUp',
+  in_proj_a: 'linearInProjA',
+  in_proj_b: 'linearInProjB',
+  in_proj_qkv: 'qkvProj',
+  in_proj_z: 'linearInProjZ',
+  out_proj: 'oProj',
 });
 
 async function getExperimentalLoRAModule() {

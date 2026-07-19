@@ -15,4 +15,9 @@ export const LORA_MODULE_ALIASES = {
   'gate': 'gate_proj',
   'up': 'up_proj',
   'down': 'down_proj',
+  'in_proj_a': 'in_proj_a',
+  'in_proj_b': 'in_proj_b',
+  'in_proj_qkv': 'in_proj_qkv',
+  'in_proj_z': 'in_proj_z',
+  'out_proj': 'out_proj',
 };

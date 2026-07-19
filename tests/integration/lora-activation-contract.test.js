@@ -153,6 +153,53 @@ function sha256Hex(bytes) {
     /targets up_proj at layer 0, but the loaded model has no compatible weight/
   );
   assert.equal(pipeline.lora.name, 'columbo-peft-demo');
+
+  const linearPipeline = {
+    manifest: { modelId: 'qwen-3-5-0-8b-q4k-ehaf16' },
+    weights: new Map([
+      ['layer_0', {
+        qkvProj: {},
+        linearInProjZ: {},
+        linearInProjA: {},
+        linearInProjB: {},
+        oProj: {},
+      }],
+    ]),
+    setLoRAAdapter(adapter) {
+      this.lora = adapter;
+    },
+    getActiveLoRA() {
+      return this.lora;
+    },
+  };
+  const linearTargets = ['in_proj_qkv', 'in_proj_z', 'in_proj_a', 'in_proj_b', 'out_proj'];
+  const linearTensors = linearTargets.flatMap((target) => ([
+    {
+      name: `layers.0.${target}.lora_a`,
+      shape: [1, 1],
+      dtype: 'f32',
+      data: [1],
+    },
+    {
+      name: `layers.0.${target}.lora_b`,
+      shape: [1, 1],
+      dtype: 'f32',
+      data: [1],
+    },
+  ]));
+  const linearResult = await activateLoRAFromTrainingOutputForPipeline(linearPipeline, {
+    adapterManifest: {
+      id: 'qwen-linear-attention-lora',
+      name: 'qwen-linear-attention-lora',
+      baseModel: 'qwen-3-5-0-8b-q4k-ehaf16',
+      rank: 1,
+      alpha: 2,
+      targetModules: linearTargets,
+      tensors: linearTensors,
+    },
+  });
+  assert.equal(linearResult.activated, true);
+  assert.deepEqual([...linearPipeline.lora.layers.get(0).out_proj.a], [1]);
 }
 
 console.log('lora-activation-contract.test: ok');

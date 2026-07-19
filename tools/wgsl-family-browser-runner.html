@@ -4,7 +4,6 @@
 <body>
 <script type="module">
 import {
-  getActiveLoRAForPipeline,
   loadLoRAAdapterForPipeline,
   unloadLoRAAdapterForPipeline,
 } from '/src/client/runtime/lora.js';
@@ -23,12 +22,12 @@ async function withPhase(phase, operation) {
   }
 }
 
-async function generate(pipeline, prompt, maxTokens) {
+async function generate(pipeline, prompt, maxTokens, useChatTemplate = false) {
   pipeline.reset();
   const chunks = [];
   const tokenIds = [];
   for await (const chunk of pipeline.generate(prompt, {
-    useChatTemplate: false,
+    useChatTemplate,
     benchmark: false,
     maxTokens,
     temperature: 0,
@@ -56,6 +55,29 @@ async function generate(pipeline, prompt, maxTokens) {
   };
 }
 
+async function capturePrefillLogits(pipeline, prompt, useChatTemplate = false) {
+  pipeline.reset();
+  const prefill = await pipeline.prefillWithLogits(prompt, { useChatTemplate });
+  const logits = prefill?.logits instanceof Float32Array
+    ? prefill.logits
+    : Float32Array.from(prefill?.logits ?? []);
+  const top = Array.from(logits, (logit, tokenId) => ({ tokenId, logit }))
+    .sort((left, right) => right.logit - left.logit)
+    .slice(0, 8);
+  let sum = 0;
+  let sumSquares = 0;
+  for (const logit of logits) {
+    sum += logit;
+    sumSquares += logit * logit;
+  }
+  return {
+    count: logits.length,
+    sum,
+    sumSquares,
+    top,
+  };
+}
+
 window.runWgslFamilyBrowserQualification = async function runQualification(request) {
   let harness = null;
   const cleanup = {
@@ -75,22 +97,34 @@ window.runWgslFamilyBrowserQualification = async function runQualification(reque
       await withPhase(`unloadAdapter:${adapter.id}`, () => (
         unloadLoRAAdapterForPipeline(harness.pipeline)
       ));
-      await withPhase(`loadAdapter:${adapter.id}`, () => (
-        loadLoRAAdapterForPipeline(harness.pipeline, adapter.manifestUrl)
-      ));
-      const active = getActiveLoRAForPipeline(harness.pipeline);
+      if (adapter.manifestUrl) {
+        await withPhase(`loadAdapter:${adapter.id}`, () => (
+          loadLoRAAdapterForPipeline(harness.pipeline, adapter.manifestUrl)
+        ));
+      }
+      const active = harness.pipeline.getActiveLoRA?.() ?? null;
       const activation = {
         activated: active != null,
         id: active?.id ?? null,
-        name: typeof active === 'string' ? active : (active?.name ?? null),
+        name: active?.name ?? null,
         baseModel: active?.baseModel ?? null,
       };
+      const prefillLogits = request.captureLogits === true
+        ? await withPhase(`prefillLogits:${adapter.id}`, () => (
+          capturePrefillLogits(
+            harness.pipeline,
+            request.prompt,
+            request.useChatTemplate === true
+          )
+        ))
+        : null;
       const generation = await withPhase(`generate:${adapter.id}`, () => (
-        generate(harness.pipeline, request.prompt, request.maxTokens)
+        generate(harness.pipeline, request.prompt, request.maxTokens, request.useChatTemplate === true)
       ));
       candidates.push({
         candidateId: adapter.id,
         activation,
+        prefillLogits,
         generation,
       });
     }

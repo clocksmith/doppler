@@ -937,7 +937,8 @@ try {
       );
     }
     assert.ok(
-      linearAttentionSource.includes('return await settleProjectionOutputDtype(result);'),
+      linearAttentionSource.includes('const projected = await settleProjectionOutputDtype(result);')
+        && linearAttentionSource.includes('baseOutput: projected,'),
       'linear_attention projections must settle returned kernel dtype to declared output dtype'
     );
   }
