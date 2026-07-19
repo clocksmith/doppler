@@ -1,0 +1,127 @@
+{
+  "schema": "doppler.model-type-taxonomy.v1",
+  "version": 1,
+  "domains": [
+    "language",
+    "protein",
+    "nucleotide"
+  ],
+  "tasks": [
+    "generation",
+    "embedding",
+    "reranking",
+    "translation",
+    "masked-token-prediction"
+  ],
+  "architectureRoles": [
+    "autoregressive-decoder",
+    "decoder-embedding-encoder",
+    "decoder-cross-encoder",
+    "bidirectional-encoder",
+    "block-diffusion-decoder"
+  ],
+  "inputs": [
+    "text",
+    "text-pair",
+    "image",
+    "audio",
+    "protein-sequence",
+    "dna-sequence"
+  ],
+  "outputs": [
+    "text",
+    "pooled-embedding",
+    "token-embedding",
+    "relevance-score",
+    "token-logits"
+  ],
+  "clusters": [
+    {
+      "id": "text-generators",
+      "label": "Text generators",
+      "description": "Autoregressive language models that accept text and generate text.",
+      "match": {
+        "domain": "language",
+        "task": "generation",
+        "architectureRole": "autoregressive-decoder",
+        "inputsExact": [
+          "text"
+        ]
+      }
+    },
+    {
+      "id": "multimodal-generators",
+      "label": "Multimodal generators",
+      "description": "Autoregressive language models whose artifact contract accepts text plus image or audio inputs.",
+      "match": {
+        "domain": "language",
+        "task": "generation",
+        "architectureRole": "autoregressive-decoder",
+        "inputsAny": [
+          "image",
+          "audio"
+        ]
+      }
+    },
+    {
+      "id": "diffusion-language-models",
+      "label": "Diffusion language models",
+      "description": "Language generators that refine token states with a block-diffusion decoder.",
+      "match": {
+        "domain": "language",
+        "task": "generation",
+        "architectureRole": "block-diffusion-decoder"
+      }
+    },
+    {
+      "id": "translation-specialists",
+      "label": "Translation specialists",
+      "description": "Language models trained and qualified for text-to-text translation.",
+      "match": {
+        "domain": "language",
+        "task": "translation",
+        "architectureRole": "autoregressive-decoder"
+      }
+    },
+    {
+      "id": "language-embedders",
+      "label": "Language embedders",
+      "description": "Text encoders that return pooled semantic vectors.",
+      "match": {
+        "domain": "language",
+        "task": "embedding",
+        "architectureRole": "decoder-embedding-encoder"
+      }
+    },
+    {
+      "id": "rerankers",
+      "label": "Rerankers",
+      "description": "Cross-encoders that score the relevance of a text pair.",
+      "match": {
+        "domain": "language",
+        "task": "reranking",
+        "architectureRole": "decoder-cross-encoder"
+      }
+    },
+    {
+      "id": "protein-encoders",
+      "label": "Protein encoders",
+      "description": "Bidirectional protein-sequence encoders that expose token or pooled representations.",
+      "match": {
+        "domain": "protein",
+        "task": "embedding",
+        "architectureRole": "bidirectional-encoder"
+      }
+    },
+    {
+      "id": "nucleotide-encoders",
+      "label": "Nucleotide encoders",
+      "description": "Bidirectional DNA-sequence encoders that expose token or pooled representations.",
+      "match": {
+        "domain": "nucleotide",
+        "task": "embedding",
+        "architectureRole": "bidirectional-encoder"
+      }
+    }
+  ]
+}

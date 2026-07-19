@@ -4,6 +4,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import {
+  resolveModelTypeCluster,
+  validateModelClassification,
+} from './lib/model-type-taxonomy.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
@@ -149,6 +153,12 @@ function toQuickstartEntry(entry) {
   }
   const vendorBenchmark = clonePlainObject(entry?.vendorBenchmark);
   const benchmarkEvidence = clonePlainObject(entry?.benchmarkEvidence);
+  const classificationErrors = validateModelClassification(entry?.classification);
+  if (classificationErrors.length > 0) {
+    throw new Error(`${modelId}: ${classificationErrors.join('; ')}`);
+  }
+  const classification = structuredClone(entry.classification);
+  const typeCluster = resolveModelTypeCluster(classification);
 
   return {
     modelId,
@@ -160,6 +170,11 @@ function toQuickstartEntry(entry) {
     weightsRefAllowed: entry.weightsRefAllowed,
     aliases: normalizeStringList(entry?.aliases),
     modes,
+    classification,
+    typeCluster: {
+      id: typeCluster.id,
+      label: typeCluster.label,
+    },
     hf: {
       repoId,
       revision,

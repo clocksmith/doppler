@@ -5,6 +5,11 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { listTrackedFilesInDirectory } from './git-file-inventory.js';
+import {
+  MODEL_TYPE_TAXONOMY,
+  resolveModelTypeCluster,
+  validateCatalogClassifications,
+} from './lib/model-type-taxonomy.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -636,6 +641,7 @@ function resolveReleaseClaimPath(modelId, releaseClaimByModelId) {
 async function buildVariant(model, context) {
   const conversion = findConversionForCatalogModel(model, context.conversionIndex);
   const modelId = normalizeText(model.modelId);
+  const typeCluster = resolveModelTypeCluster(model.classification);
   const compareProfile = context.compareProfileByModelId.get(modelId) || null;
   const releaseCoverage = context.releaseCoverageByModelId.get(modelId) || null;
   const claimLane = context.claimLaneByModelId.get(modelId) || null;
@@ -700,6 +706,11 @@ async function buildVariant(model, context) {
     modelId,
     label: normalizeText(model.label) || modelId,
     family: normalizeText(model.family) || 'unknown',
+    classification: structuredClone(model.classification),
+    typeCluster: {
+      id: typeCluster.id,
+      label: typeCluster.label,
+    },
     modes: Array.isArray(model.modes) ? model.modes.map(normalizeText).filter(Boolean) : [],
     sizeBytes: hasFiniteNumber(model.sizeBytes) ? model.sizeBytes : null,
     sizeLabel: describeBytes(model.sizeBytes),
@@ -920,6 +931,10 @@ async function buildInventory() {
     collectLatestCompareResults('rerank_compare_'),
   ]);
   const supportRollout = validateSupportRolloutPolicy(supportRolloutPolicy);
+  const classificationErrors = validateCatalogClassifications(catalog);
+  if (classificationErrors.length > 0) {
+    throw new Error(`Catalog model classification is invalid:\n${classificationErrors.join('\n')}`);
+  }
   validateBenchmarkCommandReferences(supportRollout, workloads, benchmarkPolicy);
   const conversionIndex = buildConversionIndex(conversionRecords);
   const compareProfileByModelId = buildCompareProfileIndex(catalog, compareConfig, embeddingCompareConfig, rerankCompareConfig);
@@ -956,11 +971,16 @@ async function buildInventory() {
   const sourceModels = [];
   for (const [sourceCheckpointId, sourceVariants] of sourceGroups) {
     const sortedVariants = sourceVariants.sort(compareVariants);
+    const sourceTypeClusterIds = new Set(sortedVariants.map((variant) => variant.typeCluster.id));
+    if (sourceTypeClusterIds.size !== 1) {
+      throw new Error(`${sourceCheckpointId}: source variants must share one model type cluster`);
+    }
     const minSizeBytes = sortedVariants.find((variant) => hasFiniteNumber(variant.sizeBytes))?.sizeBytes ?? null;
     const preferredArchitecture = choosePreferredArchitecture(sortedVariants, supportRollout);
     const sourceModel = {
       sourceCheckpointId,
       family: sortedVariants[0]?.family || 'unknown',
+      typeCluster: structuredClone(sortedVariants[0].typeCluster),
       tier: resolveTier(minSizeBytes, supportRollout.sizeTiers),
       minSizeBytes,
       minSizeLabel: describeBytes(minSizeBytes),
@@ -999,12 +1019,17 @@ async function buildInventory() {
       tier.id,
       sourceModels.filter((entry) => entry.tier === tier.id).length,
     ])),
+    typeClusterCounts: Object.fromEntries(MODEL_TYPE_TAXONOMY.clusters.map((cluster) => [
+      cluster.id,
+      variants.filter((variant) => variant.typeCluster.id === cluster.id).length,
+    ])),
   };
   return {
     schemaVersion: 1,
     updated: latestSourceDate(catalog.updatedAt, supportRollout.updated),
     sources: [
       'models/catalog.json',
+      'models/model-type-taxonomy.json',
       'src/config/conversion/**',
       'benchmarks/vendors/support-rollout-policy.json',
       'benchmarks/vendors/benchmark-policy.json',
@@ -1071,11 +1096,11 @@ function renderMarkdown(inventory) {
   const lines = [];
   lines.push('# Model Support Inventory');
   lines.push('');
-  lines.push('Generated from model catalog, conversion configs, support rollout policy, compare profiles, saved compare receipts, release matrix, claim lanes, and release-claim receipts.');
+  lines.push('Generated from model catalog, model type taxonomy, conversion configs, support rollout policy, compare profiles, saved compare receipts, release matrix, claim lanes, and release-claim receipts.');
   lines.push('');
   lines.push(`Updated at: ${inventory.updated}`);
   lines.push('');
-  lines.push('Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not parameter class. A preferred architecture is selected only when runtime verification, compare JSON, and summary SVG evidence exist for that lane.');
+  lines.push('Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not parameter class. Model type is an independent functional axis derived from domain, task, architecture role, and input/output contract. A preferred architecture is selected only when runtime verification, compare JSON, and summary SVG evidence exist for that lane.');
   lines.push('');
   lines.push('## Gate Order');
   lines.push('');
@@ -1090,14 +1115,16 @@ function renderMarkdown(inventory) {
   lines.push(`- Runtime-verified catalog models: ${inventory.summary.verifiedModelCount}`);
   lines.push(`- Benchmark-selected source architectures: ${inventory.summary.benchmarkSelectedSourceCount}`);
   lines.push(`- Sources pending benchmark-selected architecture: ${inventory.summary.benchmarkPendingSourceCount}`);
+  lines.push(`- Model type counts: ${Object.entries(inventory.summary.typeClusterCounts).map(([type, count]) => `${type}=${count}`).join(', ')}`);
   lines.push('');
   lines.push('## Rollout Queue');
   lines.push('');
-  lines.push('| Tier | Source checkpoint | Smallest artifact | Status | Preferred architecture | Evidence | Next action |');
-  lines.push('| --- | --- | --- | --- | --- | --- | --- |');
+  lines.push('| Tier | Type | Source checkpoint | Smallest artifact | Status | Preferred architecture | Evidence | Next action |');
+  lines.push('| --- | --- | --- | --- | --- | --- | --- | --- |');
   for (const source of inventory.sourceModels) {
     lines.push(renderTableRow([
       source.tier,
+      source.typeCluster.label,
       source.sourceCheckpointId,
       source.minSizeLabel,
       source.status,
@@ -1111,12 +1138,13 @@ function renderMarkdown(inventory) {
   lines.push('');
   lines.push('These are policy-generated command recipes, not evidence. A command becomes support evidence only after its saved artifact is committed and referenced by the claim lane.');
   lines.push('');
-  lines.push('| Tier | Source checkpoint | Next gate | Command |');
-  lines.push('| --- | --- | --- | --- |');
+  lines.push('| Tier | Type | Source checkpoint | Next gate | Command |');
+  lines.push('| --- | --- | --- | --- | --- |');
   for (const source of inventory.sourceModels) {
     if (!source.nextCommand) continue;
     lines.push(renderTableRow([
       source.tier,
+      source.typeCluster.label,
       source.sourceCheckpointId,
       source.nextGate,
       renderCommand(source.nextCommand),
@@ -1128,12 +1156,13 @@ function renderMarkdown(inventory) {
     lines.push('');
     lines.push(`## ${tier[0].toUpperCase()}${tier.slice(1)} Models`);
     lines.push('');
-    lines.push('| Model ID | Family | Size | Architecture | Runtime verify | HF | Compare lane | Benchmark evidence | Next gate |');
-    lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+    lines.push('| Model ID | Type | Family | Size | Architecture | Runtime verify | HF | Compare lane | Benchmark evidence | Next gate |');
+    lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
     for (const source of tierSources) {
       for (const variant of source.variants) {
         lines.push(renderTableRow([
           variant.modelId,
+          variant.typeCluster.label,
           variant.family,
           variant.sizeLabel,
           variant.architecture.label,

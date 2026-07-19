@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveModelTypeCluster } from '../../tools/lib/model-type-taxonomy.js';
 
 const repoRoot = process.cwd();
 
@@ -113,6 +114,11 @@ for (const catalogEntry of catalogByModelId.values()) {
 
 for (const sourceModel of inventory.sourceModels) {
   const smallestVariant = sourceModel.variants[0] || null;
+  assert.deepEqual(
+    sourceModel.typeCluster,
+    smallestVariant?.typeCluster || null,
+    `${sourceModel.sourceCheckpointId}: source type cluster must match its variants`
+  );
   assert.equal(
     sourceModel.nextGate,
     smallestVariant?.nextGate || null,
@@ -151,6 +157,15 @@ assert.equal(sourceCommandCount > 0, true, 'at least one source model must expos
 
 for (const sourceModel of inventory.sourceModels) {
   for (const variant of sourceModel.variants) {
+    const catalogEntry = catalogByModelId.get(variant.modelId);
+    assert.ok(catalogEntry, `${variant.modelId}: inventory variant must exist in catalog`);
+    const expectedTypeCluster = resolveModelTypeCluster(catalogEntry.classification);
+    assert.deepEqual(variant.classification, catalogEntry.classification, `${variant.modelId}: classification must mirror catalog`);
+    assert.deepEqual(
+      variant.typeCluster,
+      { id: expectedTypeCluster.id, label: expectedTypeCluster.label },
+      `${variant.modelId}: type cluster must be taxonomy-derived`
+    );
     assert.ok(variant.actions, `${variant.modelId}: actions must exist`);
     assertIncludes(
       variant.actions.verifyCommand,
@@ -235,6 +250,12 @@ for (const sourceModel of inventory.sourceModels) {
     }
   }
 }
+
+assert.equal(
+  Object.values(inventory.summary.typeClusterCounts).reduce((sum, count) => sum + count, 0),
+  catalog.models.length,
+  'model type counts must cover every catalog lane exactly once'
+);
 
 const qwenEmbedding = inventory.sourceModels
   .flatMap((sourceModel) => sourceModel.variants)

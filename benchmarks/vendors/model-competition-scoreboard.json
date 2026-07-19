@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-11T14:04:21.695Z",
+  "updatedAt": "2026-07-19T00:00:00.000Z",
   "sources": [
     "models/catalog.json",
     "benchmarks/vendors/model-support-inventory.json",
@@ -240,7 +240,7 @@
         "hf": {
           "published": true,
           "repoId": "Clocksmith/rdrr",
-          "revision": "75ef5bbd520ed875c5c5345801d5ac65ac17cc7b",
+          "revision": "feea324bae6c06c9d129ce39e188a75478ccdbbc",
           "path": "models/esm2-t12-35m-ur50d-f32-af32"
         }
       },
@@ -329,8 +329,7 @@
       "label": "Gemma 3 1B Instruct (Q4K/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-1b-it",
       "workloadMode": "generation",
@@ -390,11 +389,10 @@
       "label": "Gemma 3 270M Instruct (F16/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-270m-it",
-      "workloadMode": "support",
+      "workloadMode": "text",
       "surface": null,
       "workloadId": null,
       "decodeProfile": null,
@@ -446,8 +444,7 @@
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "workloadMode": "generation",
@@ -520,8 +517,7 @@
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "workloadMode": "generation",
@@ -594,8 +590,7 @@
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "workloadMode": "generation",
@@ -666,8 +661,7 @@
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "workloadMode": "generation",
@@ -740,8 +734,7 @@
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "workloadMode": "generation",
@@ -814,8 +807,7 @@
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "workloadMode": "generation",
@@ -886,8 +878,7 @@
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "workloadMode": "generation",
@@ -960,8 +951,7 @@
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "workloadMode": "generation",
@@ -1034,8 +1024,7 @@
       "label": "Gemma 3 270M Instruct (Q4K/F32a)",
       "family": "gemma3",
       "modes": [
-        "text",
-        "vision"
+        "text"
       ],
       "sourceCheckpointId": "google/gemma-3-270m-it",
       "workloadMode": "generation",

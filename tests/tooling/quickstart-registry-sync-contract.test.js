@@ -5,6 +5,13 @@ function quickstartModel(overrides = {}) {
   return {
     modelId: 'verified-text-model',
     family: 'gemma3',
+    classification: {
+      domain: 'language',
+      tasks: ['generation'],
+      architectureRole: 'autoregressive-decoder',
+      inputs: ['text'],
+      outputs: ['text'],
+    },
     modes: ['text'],
     aliases: ['verified-text'],
     quickstart: true,
@@ -57,6 +64,17 @@ function quickstartModel(overrides = {}) {
   assert.equal(payload.models.length, 1);
   assert.equal(payload.models[0].modelId, 'verified-text-model');
   assert.equal(payload.models[0].artifactCompleteness, 'complete');
+  assert.deepEqual(payload.models[0].classification, {
+    domain: 'language',
+    tasks: ['generation'],
+    architectureRole: 'autoregressive-decoder',
+    inputs: ['text'],
+    outputs: ['text'],
+  });
+  assert.deepEqual(payload.models[0].typeCluster, {
+    id: 'text-generators',
+    label: 'Text generators',
+  });
   assert.deepEqual(payload.models[0].vendorBenchmark, {
     transformersjs: {
       repoId: 'onnx-community/verified-text-model-ONNX',

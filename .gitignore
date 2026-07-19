@@ -58,6 +58,7 @@ downloads/
 /models/*
 !/models/catalog.json
 !/models/gemma4-targets.json
+!/models/model-type-taxonomy.json
 !/models/GUIDE.md
 !/models/local/
 /models/local/**

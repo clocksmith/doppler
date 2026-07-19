@@ -22,6 +22,27 @@ is experimental.
 npx doppler-gpu
 ```
 
+<!-- model-type-clusters:start -->
+
+## Supported RDRR model types
+
+Doppler classifies artifacts by what they consume and produce. This is separate from lineage (`family`), runtime implementation (`modelType`), and artifact-size tier.
+
+| Type | Input → output | Runtime-verified / cataloged | Representative lanes |
+| --- | --- | --- | --- |
+| Text generators | text → text | 12 / 14 | gemma-3-1b-it-q4k-ehf16-af32<br>gemma-3-270m-it-f16-af32<br>gemma-3-270m-it-q4k-ehf16-af32<br>+11 more |
+| Multimodal generators | audio + image + text → text | 3 / 3 | gemma-4-e2b-it-q4k-ehf16-af16-int4ple<br>gemma-4-e2b-it-q4k-ehf16-af32<br>gemma-4-e2b-it-q4k-ehf16-af32-int4ple |
+| Diffusion language models | text → text | 0 / 1 | diffusiongemma-26b-a4b-it-q4k-ehf16-af16 |
+| Translation specialists | text → text | 2 / 2 | translategemma-4b-1b-enes-q4k-ehf16-af32<br>translategemma-4b-it-q4k-ehf16-af32 |
+| Language embedders | text → pooled-embedding | 2 / 2 | google-embeddinggemma-300m-q4k-ehf16-af32<br>qwen-3-embedding-0-6b-q4k-ehf16-af32 |
+| Rerankers | text-pair → relevance-score | 2 / 2 | qwen-3-reranker-0-6b-f16-af32<br>qwen-3-reranker-0-6b-q4k-ehf16-af32 |
+| Protein encoders | protein-sequence → pooled-embedding + token-embedding + token-logits | 3 / 3 | amplify-120m-f16-af32<br>esm2-t12-35m-ur50d-f32-af32<br>esmc-300m-f32-af32 |
+| Nucleotide encoders | dna-sequence → pooled-embedding + token-embedding | 1 / 1 | nucleotide-transformer-v2-50m-f32-af32 |
+
+The [full model-support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md) lists every lane and its lifecycle evidence. Classification says what an artifact is shaped to do; only lifecycle receipts establish what is verified, and a runtime pass does not by itself qualify every declared input modality.
+
+<!-- model-type-clusters:end -->
+
 ## Evidence
 
 Doppler has higher steady-state inference throughput than Transformers.js in each

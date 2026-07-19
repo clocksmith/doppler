@@ -21,6 +21,13 @@ const catalogIdentity = {
   runtimePromotionState: 'manifest-owned',
   weightsRefAllowed: false,
 };
+const modelClassification = {
+  domain: 'language',
+  tasks: ['generation'],
+  architectureRole: 'autoregressive-decoder',
+  inputs: ['text'],
+  outputs: ['text'],
+};
 
 const manifest = {
   modelId: 'toy-model',
@@ -65,6 +72,7 @@ const registryPayload = {
     {
       modelId: 'toy-model',
       ...catalogIdentity,
+      classification: modelClassification,
       modes: ['run'],
       baseUrl: '/models/toy-model',
     },
@@ -80,6 +88,7 @@ const localCatalog = {
       modelId: 'toy-model',
       family: 'gemma3',
       ...catalogIdentity,
+      classification: modelClassification,
       hf: {
         repoId: 'Clocksmith/rdrr',
         revision: 'abc123',
@@ -172,6 +181,7 @@ try {
       {
         modelId: 'toy-model',
         ...catalogIdentity,
+        classification: modelClassification,
         baseUrl: `${baseUrl}/models/toy-model`,
       },
     ],
@@ -180,6 +190,7 @@ try {
       {
         modelId: 'toy-model',
         ...catalogIdentity,
+        classification: modelClassification,
         baseUrl: `${baseUrl}/models/toy-model`,
         lifecycle: {
           availability: {
@@ -207,6 +218,41 @@ try {
     ],
   });
   assert.deepEqual(remoteValidation.errors, []);
+
+  const classificationDriftValidation = await validateRemoteRegistry({
+    models: [
+      {
+        modelId: 'toy-model',
+        ...catalogIdentity,
+        classification: {
+          ...modelClassification,
+          inputs: ['image'],
+        },
+        baseUrl: `${baseUrl}/models/toy-model`,
+      },
+    ],
+  }, `${baseUrl}/registry/catalog.json`, {
+    models: [
+      {
+        modelId: 'toy-model',
+        ...catalogIdentity,
+        classification: modelClassification,
+        baseUrl: `${baseUrl}/models/toy-model`,
+        lifecycle: {
+          availability: {
+            hf: true,
+          },
+          status: {
+            runtime: 'active',
+            tested: 'verified',
+          },
+        },
+      },
+    ],
+  });
+  assert.deepEqual(classificationDriftValidation.errors, [
+    'toy-model: local classification does not match remote registry',
+  ]);
 
   const remoteDriftValidation = await validateRemoteRegistry({
     models: [

@@ -21,6 +21,13 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
       {
         modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
         family: 'gemma3',
+        classification: {
+          domain: 'language',
+          tasks: ['generation'],
+          architectureRole: 'autoregressive-decoder',
+          inputs: ['text'],
+          outputs: ['text'],
+        },
         artifact: {
           format: 'rdrr',
         },
@@ -94,6 +101,8 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     'broken-model: family is required',
     'broken-model: artifact.format is required',
     'broken-model: lifecycle.status.demo=local requires a local baseUrl',
+    'broken-model: classification must be an object',
+    'broken-model: classification must be an object',
   ]);
 }
 
@@ -833,11 +842,19 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
 }
 
 {
+  const textGeneratorClassification = {
+    domain: 'language',
+    tasks: ['generation'],
+    architectureRole: 'autoregressive-decoder',
+    inputs: ['text'],
+    outputs: ['text'],
+  };
   const buckets = buildCurrentInferenceStatusBuckets({
     catalogModels: [
       {
         modelId: 'verified-model',
         family: 'gemma3',
+        classification: textGeneratorClassification,
         modes: ['run'],
         sortOrder: 1,
         lifecycle: {
@@ -855,6 +872,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
       {
         modelId: 'unknown-model',
         family: 'gemma3',
+        classification: textGeneratorClassification,
         modes: ['run'],
         sortOrder: 2,
         lifecycle: {
@@ -867,6 +885,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
       {
         modelId: 'failing-model',
         family: 'qwen3',
+        classification: textGeneratorClassification,
         modes: ['run'],
         sortOrder: 3,
         lifecycle: {
