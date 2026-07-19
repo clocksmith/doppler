@@ -13,6 +13,21 @@ const EVALUATION_PATH =
 const OUTPUT_PATH =
   'reports/training/wgsl-writer/doppler-wgsl-writer-v3/evaluation/selection/selected-lane.json';
 
+function parseArgs(argv) {
+  const args = { policyPath: POLICY_PATH, evaluationPath: EVALUATION_PATH, outputPath: '' };
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token === '--policy') args.policyPath = argv[++index] || '';
+    else if (token === '--evaluation') args.evaluationPath = argv[++index] || '';
+    else if (token === '--out') args.outputPath = argv[++index] || '';
+    else throw new Error(`Unknown argument: ${token}`);
+  }
+  if (!args.policyPath || !args.evaluationPath) {
+    throw new Error('--policy and --evaluation require values.');
+  }
+  return args;
+}
+
 async function readJson(filePath) {
   return JSON.parse(await fs.readFile(filePath, 'utf8'));
 }
@@ -39,9 +54,14 @@ function compare(left, right) {
   return left.candidateId.localeCompare(right.candidateId);
 }
 
-export async function selectWgslWriterV3Lane() {
-  const policy = await readJson(POLICY_PATH);
-  const evaluation = await readJson(EVALUATION_PATH);
+export async function selectWgslWriterV3Lane(options = {}) {
+  const policyPath = options.policyPath || POLICY_PATH;
+  const evaluationPath = options.evaluationPath || EVALUATION_PATH;
+  const policy = await readJson(policyPath);
+  const evaluation = await readJson(evaluationPath);
+  const outputPath = options.outputPath
+    || policy.evaluation.selectionReceiptPath
+    || OUTPUT_PATH;
   const candidates = evaluation.candidates
     .filter((candidate) => candidate.capabilityAuthority === true)
     .sort(compare);
@@ -52,8 +72,8 @@ export async function selectWgslWriterV3Lane() {
   const core = {
     schema: 'doppler.wgsl-writer-v3-lane-selection/v1',
     experimentId: policy.experimentId,
-    policy: { path: POLICY_PATH, sha256: await sha256File(POLICY_PATH) },
-    evaluation: { path: EVALUATION_PATH, sha256: await sha256File(EVALUATION_PATH) },
+    policy: { path: policyPath, sha256: await sha256File(policyPath) },
+    evaluation: { path: evaluationPath, sha256: await sha256File(evaluationPath) },
     ranking: candidates.map((candidate, index) => ({
       rank: index + 1,
       candidateId: candidate.candidateId,
@@ -73,13 +93,13 @@ export async function selectWgslWriterV3Lane() {
     claimBoundary: policy.claimBoundary,
   };
   const receipt = { ...core, receiptHash: hashWgslSemanticEvidenceValue(core) };
-  await fs.mkdir(path.dirname(OUTPUT_PATH), { recursive: true });
-  await fs.writeFile(OUTPUT_PATH, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
-  return { outputPath: OUTPUT_PATH, receipt };
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  await fs.writeFile(outputPath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
+  return { outputPath, receipt };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  selectWgslWriterV3Lane().then((result) => {
+  selectWgslWriterV3Lane(parseArgs(process.argv.slice(2))).then((result) => {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     if (!result.receipt.seedConfirmationAuthority) process.exitCode = 1;
   }).catch((error) => {

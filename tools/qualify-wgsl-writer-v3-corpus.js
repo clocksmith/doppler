@@ -11,20 +11,22 @@ import { buildWgslAuthorExecutionPlan } from './lib/wgsl-author-execution-plan.j
 import { evaluateWgslWriterV3Oracle } from './lib/wgsl-writer-v3-oracles.js';
 
 const DEFAULT_POLICY = 'tools/policies/wgsl-writer-v3-corpus-policy.json';
-const DEFAULT_OUTPUT =
-  'reports/training/wgsl-writer/doppler-wgsl-writer-v3/corpus-v1/reference-qualification.json';
+const POLICY_IDS = new Set([
+  'doppler-wgsl-writer-v3-corpus',
+  'doppler-wgsl-writer-v3-corpus-diversity-repair',
+  'doppler-wgsl-writer-v3-explicit-semantic-repair',
+  'doppler-wgsl-writer-v3-explicit-output-budget',
+]);
 
 function parseArgs(argv) {
-  const args = { policyPath: DEFAULT_POLICY, outputPath: DEFAULT_OUTPUT };
+  const args = { policyPath: DEFAULT_POLICY, outputPath: '' };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === '--policy') args.policyPath = argv[++index] || '';
     else if (token === '--out') args.outputPath = argv[++index] || '';
     else throw new Error(`Unknown argument: ${token}`);
   }
-  if (!args.policyPath || !args.outputPath) {
-    throw new Error('--policy and --out require values.');
-  }
+  if (!args.policyPath) throw new Error('--policy requires a value.');
   return args;
 }
 
@@ -67,13 +69,22 @@ function summarizeReplay(runs, requiredRuns) {
   };
 }
 
+export function resolveQualificationOutputPath(policy, requestedOutputPath = '') {
+  if (requestedOutputPath) return requestedOutputPath;
+  if (typeof policy?.corpus?.outputRoot !== 'string' || !policy.corpus.outputRoot) {
+    throw new Error('WGSL writer v3 qualification requires corpus.outputRoot.');
+  }
+  return path.join(policy.corpus.outputRoot, 'reference-qualification.json');
+}
+
 export async function qualifyWgslWriterV3Corpus(args) {
   const policy = await readJson(args.policyPath);
-  if (policy.policyId !== 'doppler-wgsl-writer-v3-corpus'
+  if (!POLICY_IDS.has(policy.policyId)
     || policy.status !== 'frozen_before_materialization') {
     throw new Error('WGSL writer v3 qualification requires the frozen corpus policy.');
   }
   const corpusManifestPath = path.join(policy.corpus.outputRoot, 'corpus-manifest.json');
+  const outputPath = resolveQualificationOutputPath(policy, args.outputPath);
   const corpusManifest = await readJson(corpusManifestPath);
   requireInternalHash(corpusManifest, 'manifestSha256', 'WGSL writer v3 corpus manifest');
   await Promise.all([
@@ -211,20 +222,24 @@ export async function qualifyWgslWriterV3Corpus(args) {
     productizationAllowed: false,
     claimBoundary: 'A pass admits the 20-family development corpus to training by proving its human-authored packages, quality gates, dispatches/draws, CPU/raster oracles, deterministic replay, and cleanup on the bound Chromium WebGPU identity. It contains no model capability or external promotion evidence.',
   };
-  return { ...core, receiptHash: hashWgslSemanticEvidenceValue(core) };
+  return {
+    receipt: { ...core, receiptHash: hashWgslSemanticEvidenceValue(core) },
+    outputPath,
+  };
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const receipt = await qualifyWgslWriterV3Corpus(args);
-  await fs.mkdir(path.dirname(path.resolve(args.outputPath)), { recursive: true });
-  await fs.writeFile(path.resolve(args.outputPath), `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
+  const result = await qualifyWgslWriterV3Corpus(args);
+  const { receipt, outputPath } = result;
+  await fs.mkdir(path.dirname(path.resolve(outputPath)), { recursive: true });
+  await fs.writeFile(path.resolve(outputPath), `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
   process.stdout.write(`${JSON.stringify({
     decision: receipt.decision,
     summary: receipt.summary,
     runtime: receipt.runtime.identity,
     receiptHash: receipt.receiptHash,
-    outputPath: args.outputPath,
+    outputPath,
   }, null, 2)}\n`);
   if (!receipt.trainingAdmission) process.exitCode = 1;
 }

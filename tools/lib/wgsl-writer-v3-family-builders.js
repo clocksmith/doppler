@@ -338,8 +338,10 @@ fn compute_main(
 }
 
 function atomicHistogram(family, variant) {
-  const { length, workgroupSize } = computeShape(variant);
+  const shape = computeShape(variant);
   const binCount = 4;
+  const { length } = shape;
+  const workgroupSize = Math.max(shape.workgroupSize, binCount);
   const input = Array.from({ length }, (_, index) => (index * 3 + variant) % binCount);
   const expected = Array(binCount).fill(0);
   for (const value of input) expected[value] += 1;
