@@ -165,8 +165,8 @@ async function executeCase(gateBValues, label) {
   const gateWeight = makeTensor(gateWeightBits, 'f16', [dims.K, dims.N], `${label}_gate_weight`);
   const upWeight = makeTensor(upWeightBits, 'f16', [dims.K, dims.N], `${label}_up_weight`);
   const gradOutput = makeTensor(gradOutputValues, 'f32', [dims.M, dims.N], `${label}_grad_output`);
-  const gateAdapter = new LoraAdapter({ inDim: dims.K, outDim: dims.N, rank: dims.rank, alpha: dims.alpha });
-  const upAdapter = new LoraAdapter({ inDim: dims.K, outDim: dims.N, rank: dims.rank, alpha: dims.alpha });
+  const gateAdapter = new LoraAdapter({ inDim: dims.K, outDim: dims.N, rank: dims.rank, alpha: dims.alpha, dtype: 'f32' });
+  const upAdapter = new LoraAdapter({ inDim: dims.K, outDim: dims.N, rank: dims.rank, alpha: dims.alpha, dtype: 'f32' });
   uploadData(gateAdapter.A.buffer, gateAValues);
   uploadData(gateAdapter.B.buffer, gateBValues);
   uploadData(upAdapter.A.buffer, upAValues);

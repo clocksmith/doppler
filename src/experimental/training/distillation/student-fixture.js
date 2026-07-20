@@ -186,6 +186,7 @@ function createTransformerLoraAdapters(config, dims) {
       outDim: shape.outDim,
       rank: config.rank,
       alpha: config.alpha,
+      dtype: 'f32',
     });
   }
   return adapters;

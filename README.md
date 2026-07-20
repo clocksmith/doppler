@@ -49,6 +49,18 @@ modality.
 
 <!-- model-type-clusters:end -->
 
+## Supported LoRA adapters (PEFT)
+
+Doppler supports runtime loading and hot-swapping of LoRA adapters (in SafeTensors format) bound to specific base models. 
+
+| Adapter ID | Base Model ID | HF Repository | Lifecycle & Purpose |
+| --- | --- | --- | --- |
+| `doppler-wgsl-qwen35-9b-v12-external20-seed11` | `qwen-3-5-9b-f16-af32` | [clocksmith/lora](https://huggingface.co/clocksmith/lora/blob/5662f8f7e3dbcf1e2ec353b5a04d0d4f2f5254ce/adapters/seed11/adapter_model.safetensors) | Preserved portable adapter (v12) |
+| `doppler-wgsl-qwen35-9b-v12-external20-seed29` | `qwen-3-5-9b-f16-af32` | [clocksmith/lora](https://huggingface.co/clocksmith/lora/blob/5662f8f7e3dbcf1e2ec353b5a04d0d4f2f5254ce/adapters/seed29/adapter_model.safetensors) | Candidate adapter for repair validation (v12) |
+| `doppler-wgsl-qwen35-9b-v12-external20-seed47` | `qwen-3-5-9b-f16-af32` | [clocksmith/lora](https://huggingface.co/clocksmith/lora/blob/5662f8f7e3dbcf1e2ec353b5a04d0d4f2f5254ce/adapters/seed47/adapter_model.safetensors) | Preserved portable adapter (v12) |
+
+Active adapters are registered in [models/adapters/catalog.json](models/adapters/catalog.json). See the [LoRA Format specification](docs/lora-format.md) for details on the adapter manifest schema.
+
 ## Evidence
 
 Doppler has higher steady-state inference throughput than Transformers.js in each

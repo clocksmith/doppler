@@ -264,6 +264,24 @@ assert.deepEqual(
 );
 assert.equal(qwenCapabilities.backends.external.supported, true);
 
+const qwenNativeWorkload = {
+  ...qwenWorkload,
+  id: 'qwen-q4k-native-final-down',
+  pipeline: {
+    ...qwenWorkload.pipeline,
+    trainer: null,
+    nativeTarget: { module: 'down_proj', layer: 'last' },
+    adapter: {
+      ...qwenWorkload.pipeline.adapter,
+      targetModules: ['down_proj'],
+    },
+  },
+};
+const qwenNativeCapabilities = getTrainingCapabilities(qwenNativeWorkload);
+assert.equal(qwenNativeCapabilities.backends.webgpuNative.supported, true);
+assert.deepEqual(qwenNativeCapabilities.operatorSurfaces, ['browser', 'node', 'bun']);
+assert.deepEqual(qwenNativeCapabilities.nativeTarget, { module: 'down_proj', layer: 'last' });
+
 const qwenResult = await trainSftLoRA({
   backend: 'external',
   loadedWorkload: {

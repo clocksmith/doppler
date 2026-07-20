@@ -337,6 +337,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `AdamOptimizer`
   - `assertTrainingBackend`
   - `AutogradTape`
+  - `bootstrapNativeTrainingHost`
   - `buildAttentionSoftmaxCache`
   - `CausalLmLoraTrainer`
   - `CausalLmLoraTrainerInput`
@@ -344,6 +345,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `CausalLmLoraTrainerTensor`
   - `clipGradients`
   - `compareLoraRun`
+  - `createNativeQwenLoRATrainer`
   - `crossEntropyLoss`
   - `DataLoader`
   - `detectOverflow`
@@ -355,16 +357,23 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `getTrainingCapabilities`
   - `loadCheckpoint`
   - `LoadedTrainingWorkload`
+  - `loadNativeQwenTrainingPipeline`
   - `loadTrainingWorkloadPack`
   - `LORA_RUNNER_BASE_MODEL_REGISTRY`
   - `LORA_RUNNER_DATASET_FORMAT_REGISTRY`
   - `LORA_RUNNER_SUPPORT_CONTRACT`
   - `LoraAdapter`
   - `LoRAWorkloadPipelineConfig`
+  - `NativeQwenLoRACheckpoint`
+  - `NativeQwenLoRAStepResult`
+  - `NativeQwenLoRATrainer`
+  - `NativeQwenLoRATrainerOptions`
+  - `NativeQwenSftLoRAOptions`
   - `normalizeTrainingWorkloadPack`
   - `OpType`
   - `qualityGateLoraRun`
   - `recordAttentionForward`
+  - `releaseNativeTrainingHost`
   - `runTraining`
   - `saveCheckpoint`
   - `serializeLoRASafetensors`
@@ -375,6 +384,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `TrainingCapabilities`
   - `TrainingRunner`
   - `TrainingWorkloadPack`
+  - `trainNativeQwenSftLoRA`
   - `trainSftLoRA`
   - `TrainSftLoRAOptions`
   - `trainStep`

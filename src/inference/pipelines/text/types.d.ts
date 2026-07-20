@@ -34,6 +34,7 @@ import type { LinearAttentionRuntime } from './linear-attention.js';
 import type { TokenizerLoadTiming } from '../../tokenizer.js';
 import type { LoaderLoadTiming, PerLayerInputWeights } from '../../../loader/loader-types.js';
 import type { UniformCacheStats } from '../../../gpu/uniform-cache.js';
+import type { Tensor } from '../../../gpu/tensor.js';
 
 // ============================================================================
 // Core Context Types
@@ -85,6 +86,19 @@ export interface LayerContext {
   debug: boolean;
   /** Config-driven probes */
   debugProbes?: ProbeConfigSchema[];
+  /** Internal native-LoRA activation capture owned by the training operator. */
+  trainingCapture?: {
+    layerIdx: number;
+    stage: 'ffn_act';
+    capture: (capture: {
+      layerIdx: number;
+      stage: 'ffn_act';
+      tensor: Tensor;
+      numTokens: number;
+      hiddenSize: number;
+      recorder: CommandRecorder | null;
+    }) => Promise<void>;
+  } | null;
   /** Layers to debug (null = none, undefined/empty = layer 0 only for backward compat) */
   debugLayers?: number[] | null;
   /** Optional GPU buffer readback helper for debug checks */
@@ -396,6 +410,20 @@ export interface GenerateOptions {
 
   /** @internal Return full per-token vocabulary logits. */
   __returnSequenceLogits?: boolean;
+}
+
+export interface NativeLoRAPrefillOptions extends GenerateOptions {
+  layerIdx: number;
+  module: 'down_proj';
+}
+
+export interface NativeLoRAPrefillResult {
+  inputIds: number[];
+  layerIdx: number;
+  module: 'down_proj';
+  activation: Tensor;
+  baseHidden: Tensor;
+  dispose(): void;
 }
 
 /**

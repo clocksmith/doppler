@@ -196,7 +196,19 @@ export function resolveMatmulBackwardDxVariant(weight) {
   const dtype = String(weight?.dtype || 'f32').toLowerCase();
   if (dtype === 'f16') return 'f16_weight';
   if (dtype === 'f32') return 'default';
+  if (dtype === 'q4k') return 'q4k_weight';
   throw new Error(`matmul backward dX does not support weight dtype "${dtype}".`);
+}
+
+function resolveMatmulBackwardDxDispatch(weight, K, transposeB) {
+  const variant = resolveMatmulBackwardDxVariant(weight);
+  if (variant === 'q4k_weight' && !transposeB) {
+    throw new Error('matmul backward dX requires transposeB=true for row-wise Q4K weights [N,K].');
+  }
+  return {
+    variant,
+    numBlocksPerRow: variant === 'q4k_weight' ? Math.ceil(K / 256) : 0,
+  };
 }
 
 export async function runMatmulBackwardDx(dY, W, M, K, N, options = {}) {
@@ -204,8 +216,8 @@ export async function runMatmulBackwardDx(dY, W, M, K, N, options = {}) {
   const device = getDevice();
   const outputSize = M * K * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_backward_dx_output');
-
-  const pipeline = await createPipeline('matmul_backward', resolveMatmulBackwardDxVariant(W));
+  const dispatchConfig = resolveMatmulBackwardDxDispatch(W, K, transposeB);
+  const pipeline = await createPipeline('matmul_backward', dispatchConfig.variant);
 
   const uniformBuffer = createUniformBufferWithView(
     'matmul_backward_uniforms',
@@ -216,6 +228,7 @@ export async function runMatmulBackwardDx(dY, W, M, K, N, options = {}) {
       view.setUint32(8, K, true);
       view.setFloat32(12, alpha, true);
       view.setUint32(16, transposeB ? 1 : 0, true);
+      view.setUint32(20, dispatchConfig.numBlocksPerRow, true);
     },
     null,
     device
@@ -250,8 +263,8 @@ export async function recordMatmulBackwardDx(recorder, dY, W, M, K, N, options =
   const device = recorder.device;
   const outputSize = M * K * 4;
   const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'matmul_backward_dx_output');
-
-  const pipeline = await createPipeline('matmul_backward', resolveMatmulBackwardDxVariant(W));
+  const dispatchConfig = resolveMatmulBackwardDxDispatch(W, K, transposeB);
+  const pipeline = await createPipeline('matmul_backward', dispatchConfig.variant);
 
   const uniformBuffer = createUniformBufferWithView(
     'matmul_backward_uniforms',
@@ -262,6 +275,7 @@ export async function recordMatmulBackwardDx(recorder, dY, W, M, K, N, options =
       view.setUint32(8, K, true);
       view.setFloat32(12, alpha, true);
       view.setUint32(16, transposeB ? 1 : 0, true);
+      view.setUint32(20, dispatchConfig.numBlocksPerRow, true);
     },
     recorder
   );

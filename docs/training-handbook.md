@@ -102,7 +102,9 @@ Action requirements:
 
 ## Current Implementation Notes
 
-- `lora` and `distill` are currently Node-only in the command API and fail closed on browser surfaces.
+- `lora` and `distill` remain Node-only in the command API. The public
+  `doppler-gpu/training` library separately exposes native Qwen LoRA training
+  to browser, Node, and Bun callers that already own a loaded text pipeline.
 - `lora run` executes the built-in `baseModelId="training-toy"` /
   `datasetFormat="toy_linear_classification_jsonl"` fixture, the native
   full-graph causal-LM runner for `gemma-3-270m-it-f16-af32`, and the
@@ -133,9 +135,14 @@ Action requirements:
   Split SiLU MLP weights can retain distinct `gate_proj` and `up_proj` LoRA
   tensors; their gated activation has an explicit two-input backward contract.
   That path still requires a block-level GPU oracle before Qwen qualification.
-  q4k bases require `runLoraPipeline({ causalLmTrainer })` or
-  `lora.trainer.modulePath`; the internal full-graph runner does not train
-  packed q4k base weights. Causal-LM workloads must declare
+  The exact final-layer `down_proj` target on
+  `qwen-3-5-0-8b-q4k-ehaf16` is native: the production frozen Q4K forward
+  captures the final FFN activation, and Doppler backpropagates through the
+  LoRA suffix, final RMSNorm, and row-wise Q4K LM head into LoRA matrices only.
+  It supports AdamW, checkpoint/resume, evaluation steps, and runtime-loadable
+  safetensors export in browser, Node, and Bun. Other q4k targets require
+  `runLoraPipeline({ causalLmTrainer })` or `lora.trainer.modulePath`; Doppler
+  does not update packed base weights. Causal-LM workloads must declare
   `training.batchSize=1`, `lora.maxLength` or `lora.sequenceLength`, and
   `lora.joinWith`. A browser/Dream trainer must return named LoRA `lora_a` /
   `lora_b` tensors for every requested target module.
@@ -153,7 +160,7 @@ Action requirements:
 - Provider-backed q4k Gemma/Qwen trainers may return `evalReports`; Doppler
   materializes those reports under `eval/`, adds them to the scoreboard, and
   includes them in compare/quality-gate artifacts. This is the supported path
-  for q4k student receipts until a native packed-q4k trainer exists.
+  for targets outside the qualified final Qwen 0.8B `down_proj` lane.
 - Sampled rollout groups declare `rolloutPurpose`. Training groups require
   policy and reference token log-probabilities. Evaluation groups may omit
   those unused scores, but the artifact validator prevents them from producing

@@ -1,6 +1,5 @@
 import { acquireBuffer, releaseBuffer, uploadData, BufferUsage } from '../../memory/buffer-pool.js';
 import { createTensor, tensorBytes } from '../../gpu/tensor.js';
-import { getTrainingConfig } from '../../config/training-defaults.js';
 import { runMatmul, runScale } from '../../gpu/kernels/index.js';
 import { OpType } from './autograd.js';
 import { f32ToF16Array } from '../../inference/kv-cache/types.js';
@@ -25,8 +24,10 @@ function uploadLoraInit(buffer, dtype, values) {
 
 export class LoraAdapter {
   constructor(config) {
-    const { inDim, outDim, rank, alpha } = config;
-    const { loraParams: dtype } = getTrainingConfig().training.precision;
+    const { inDim, outDim, rank, alpha, dtype } = config;
+    if (dtype !== 'f16' && dtype !== 'f32') {
+      throw new Error(`LoraAdapter dtype must be f16 or f32; got ${String(dtype)}.`);
+    }
 
     const aBytes = tensorBytes([inDim, rank], dtype);
     const bBytes = tensorBytes([rank, outDim], dtype);

@@ -400,7 +400,7 @@ configurePerfGuards({
   setDevice(device, { platformConfig: null });
 
   assert.throws(
-    () => new LoraAdapter({ inDim: 4, outDim: 4, rank: 2, alpha: 8 }),
+    () => new LoraAdapter({ inDim: 4, outDim: 4, rank: 2, alpha: 8, dtype: 'f32' }),
     /createBuffer failed at 2/
   );
   assertPoolIsClean();

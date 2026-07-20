@@ -8,6 +8,7 @@ export interface AdamOptions {
   beta1: number;
   beta2: number;
   eps: number;
+  weightDecay?: number;
 }
 
 export declare function runAdam(

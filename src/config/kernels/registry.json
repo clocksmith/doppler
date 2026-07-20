@@ -3162,13 +3162,18 @@
             "offset": 16
           },
           {
+            "name": "num_blocks_per_row",
+            "type": "u32",
+            "offset": 20
+          },
+          {
             "name": "logit_softcap",
             "type": "f32",
             "offset": 20
           },
           {
-            "name": "_pad0",
-            "type": "u32",
+            "name": "weightDecay",
+            "type": "f32",
             "offset": 24
           },
           {
@@ -8443,6 +8448,20 @@
           "workgroup": [16,16,1],
           "requires": [],
           "weightDtype": "f16",
+          "reachability": {
+            "status": "unused",
+            "inlineConfigs": [],
+            "ruleChains": [],
+            "wgslOnDisk": true
+          }
+        },
+        "q4k_weight": {
+          "wgsl": "backward/matmul_backward_q4k.wgsl",
+          "entryPoint": "main",
+          "workgroup": [16,16,1],
+          "requires": [],
+          "weightDtype": "q4k",
+          "description": "Input gradient through a frozen row-wise Q4_K weight stored as [N,K]",
           "reachability": {
             "status": "unused",
             "inlineConfigs": [],

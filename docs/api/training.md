@@ -4,16 +4,19 @@
 
 ```js
 import {
+  bootstrapNativeTrainingHost,
   getTrainingCapabilities,
+  loadNativeQwenTrainingPipeline,
   loadTrainingWorkloadPack,
+  releaseNativeTrainingHost,
   trainSftLoRA,
 } from 'doppler-gpu/training';
 ```
 
 `doppler-gpu/training` is the public experimental library for Doppler's
-completion-masked SFT/LoRA engine. The operator lifecycle runs in Node. The
-export also exposes the WebGPU autograd, optimizer, loss, checkpoint, and LoRA
-serialization primitives used by the native runner.
+completion-masked SFT/LoRA engine. Native WebGPU primitives and the bounded
+Qwen runner are available in browsers, Node, and Bun. The Node entry point also
+exports workload-file and report orchestration APIs.
 
 ## Capability Gate
 
@@ -37,18 +40,27 @@ adapter package. Unsupported combinations fail before training starts.
 
 ```js
 const result = await trainSftLoRA({
-  backend: 'external',
+  backend: 'webgpu_native',
   loadedWorkload,
-  causalLmTrainer,
-  runRoot: './reports/my-run',
+  pipeline: loadedQwenPipeline,
+  samples: tokenizedCompletionMaskedSamples,
+  export: { id: 'my-adapter', name: 'My adapter', weightsPath: 'adapter.safetensors' },
 });
 ```
 
-The native full-graph backend currently supports the declared native fixtures,
-including `gemma-3-270m-it-f16-af32`. Registered packed Q4K Gemma and Qwen
-workloads require `external` plus `causalLmTrainer` or the workload's explicit
-`pipeline.trainer` module. Registration alone never implies native backward
-support.
+The native backend supports the declared native fixtures and one exact packed
+Q4K production target: the final `down_proj` in
+`qwen-3-5-0-8b-q4k-ehaf16`. Its workload must declare
+`pipeline.nativeTarget={"module":"down_proj","layer":"last"}` and request
+only `down_proj`. Doppler freezes the Q4K base, runs the production Qwen
+forward, and optimizes only LoRA A/B matrices with AdamW. Other packed Q4K
+targets still require `external`; registration alone never implies native
+backward support.
+
+Node and Bun callers should bracket their work with
+`bootstrapNativeTrainingHost()` and `releaseNativeTrainingHost()`. Browser
+callers use the browser's WebGPU provider directly. All surfaces can load the
+same HTTP-hosted RDRR model with `loadNativeQwenTrainingPipeline(modelUrl)`.
 
 ## Output
 
