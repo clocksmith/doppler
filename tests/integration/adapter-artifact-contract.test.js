@@ -29,7 +29,7 @@ const record = {
     weightsSize: 128,
   },
   trainingBase: {
-    repoId: 'Clocksmith/unit-source',
+    repoId: 'clocksmith/unit-source',
     revision: '1'.repeat(40),
   },
   runtimeBase: {
@@ -61,14 +61,14 @@ assert.equal(
 
 const huggingFaceOrigin = {
   provider: 'huggingface',
-  repoId: 'Clocksmith/lora-unit',
+  repoId: 'clocksmith/lora-unit',
   revision: '2'.repeat(40),
   path: 'adapters/unit/adapter_model.safetensors',
 };
 assert.equal(validateAdapterArtifactOrigin(huggingFaceOrigin).valid, true);
 assert.equal(
   buildImmutableArtifactUrl(huggingFaceOrigin),
-  `https://huggingface.co/Clocksmith/lora-unit/resolve/${'2'.repeat(40)}/adapters/unit/adapter_model.safetensors`
+  `https://huggingface.co/clocksmith/lora-unit/resolve/${'2'.repeat(40)}/adapters/unit/adapter_model.safetensors`
 );
 
 assert.equal(validateAdapterArtifactRecord({ ...record, primaryOrigin: null }).valid, false);

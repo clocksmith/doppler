@@ -10,7 +10,7 @@ Three surfaces, one direction:
 
 1. **External volume** (`$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/`) — source of truth for RDRR artifact bytes and local complete artifact directories.
 2. **`models/catalog.json`** (repo) — source of truth for repo-visible model registry metadata: labels, aliases, lifecycle, artifact identity, benchmark mapping, benchmark evidence citations, quickstart/demo visibility, and HF coordinates.
-3. **HF `Clocksmith/rdrr`** — published subset generated from approved catalog entries and verified artifact directories.
+3. **HF `clocksmith/rdrr`** — published subset generated from approved catalog entries and verified artifact directories.
 
 ```
 External volume scan → artifact-identity inventory (what's physically on disk)
@@ -79,7 +79,7 @@ metadata without creating another registry file.
 
 ## Publish a hosted model to Hugging Face
 
-Publish a canonically approved artifact directory and rebuild the remote `Clocksmith/rdrr` registry from the approved hosted set in one workflow:
+Publish a canonically approved artifact directory and rebuild the remote `clocksmith/rdrr` registry from the approved hosted set in one workflow:
 
 ```bash
 npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32
@@ -142,7 +142,7 @@ this.
 
 ## Repair all approved hosted entries
 
-If `Clocksmith/rdrr` drifted behind the local catalog or manifest contract, first validate the exact repair set without uploading:
+If `clocksmith/rdrr` drifted behind the local catalog or manifest contract, first validate the exact repair set without uploading:
 
 ```bash
 npm run registry:publish:hf:all -- --local-root models/local --shard-root models/local --dry-run

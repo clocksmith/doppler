@@ -33,7 +33,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
         },
         baseUrl: './local/gemma-3-270m-it-q4k-ehf16-af32',
         hf: {
-          repoId: 'Clocksmith/rdrr',
+          repoId: 'clocksmith/rdrr',
           revision: '4efe64a914892e98be50842aeb16c3b648cc68a5',
           path: 'models/gemma-3-270m-it-q4k-ehf16-af32',
         },
@@ -63,7 +63,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
         },
         baseUrl: null,
         hf: {
-          repoId: 'Clocksmith/rdrr',
+          repoId: 'clocksmith/rdrr',
           revision: '',
           path: '',
         },

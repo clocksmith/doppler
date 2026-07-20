@@ -29,7 +29,7 @@ Treat these locations as separate roles, not interchangeable copies:
 3. External-volume canonical RDRR artifact (source of truth for weights)
    Example: `/media/x/models/rdrr/<model-id>`
 4. Hugging Face hosted artifact (verified subset)
-   Example: `Clocksmith/rdrr`
+   Example: `clocksmith/rdrr`
 5. Repo metadata (catalog only, no weights)
    Example: `models/catalog.json`
 
@@ -47,7 +47,7 @@ Before converting or promoting, settle the canonical model ID. The ID must agree
 1. `output.modelBaseId` in the conversion config (`src/config/conversion/<family>/<model>.json`)
 2. External-volume artifact directory: `/media/x/models/rdrr/<canonical-id>/`
 3. `models/catalog.json` entry `modelId`
-4. HF path: `models/<canonical-id>` under `Clocksmith/rdrr`
+4. HF path: `models/<canonical-id>` under `clocksmith/rdrr`
 
 The publish tool (`tools/publish-hf-registry-model.js`) uploads from the external-volume artifact path by default. Always pass `--local-dir /media/x/models/rdrr/<model-id>` explicitly to ensure the correct artifact is uploaded.
 

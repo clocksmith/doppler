@@ -17,8 +17,8 @@ import {
 
 {
   assert.equal(
-    buildHfResolveUrl('Clocksmith/rdrr', 'abc123', 'models/demo-model'),
-    'https://huggingface.co/Clocksmith/rdrr/resolve/abc123/models/demo-model'
+    buildHfResolveUrl('clocksmith/rdrr', 'abc123', 'models/demo-model'),
+    'https://huggingface.co/clocksmith/rdrr/resolve/abc123/models/demo-model'
   );
   assert.equal(buildManifestUrl('https://host/models/demo-model/'), 'https://host/models/demo-model/manifest.json');
   assert.equal(
@@ -31,7 +31,7 @@ import {
   const entry = {
     modelId: 'translategemma-4b-it-q4k-ehf16-af32',
     hf: {
-      repoId: 'Clocksmith/rdrr',
+      repoId: 'clocksmith/rdrr',
       revision: null,
       path: 'models/translategemma-4b-it-q4k-ehf16-af32',
     },
@@ -60,7 +60,7 @@ import {
     () => buildPublishedRegistryEntry({
       modelId: 'missing-hf-path',
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: null,
         path: '',
       },
@@ -73,7 +73,7 @@ import {
   const bad = {
     modelId: 'bad-model',
     hf: {
-      repoId: 'Clocksmith/rdrr',
+      repoId: 'clocksmith/rdrr',
       revision: null,
       path: '',
     },
@@ -119,16 +119,16 @@ import {
   const remoteHfEntry = {
     modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
     hf: {
-      repoId: 'Clocksmith/rdrr',
+      repoId: 'clocksmith/rdrr',
       revision: 'cd6c12be0e83e92d6dbd92598a0aa94391ec7e94',
       path: 'models/gemma-3-270m-it-q4k-ehf16-af32',
     },
     baseUrl: './local/gemma-3-270m-it-q4k-ehf16-af32',
   };
-  assert.equal(shouldDemoSurfaceRemoteRegistryEntry(remoteHfEntry, 'https://huggingface.co/Clocksmith/rdrr/resolve/main/registry/catalog.json'), true);
+  assert.equal(shouldDemoSurfaceRemoteRegistryEntry(remoteHfEntry, 'https://huggingface.co/clocksmith/rdrr/resolve/main/registry/catalog.json'), true);
   assert.equal(
-    resolveDemoRegistryEntryBaseUrl(remoteHfEntry, 'https://huggingface.co/Clocksmith/rdrr/resolve/main/registry/catalog.json'),
-    'https://huggingface.co/Clocksmith/rdrr/resolve/cd6c12be0e83e92d6dbd92598a0aa94391ec7e94/models/gemma-3-270m-it-q4k-ehf16-af32'
+    resolveDemoRegistryEntryBaseUrl(remoteHfEntry, 'https://huggingface.co/clocksmith/rdrr/resolve/main/registry/catalog.json'),
+    'https://huggingface.co/clocksmith/rdrr/resolve/cd6c12be0e83e92d6dbd92598a0aa94391ec7e94/models/gemma-3-270m-it-q4k-ehf16-af32'
   );
 }
 
@@ -136,13 +136,13 @@ import {
   const nonFetchableRemoteEntry = {
     modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
     hf: {
-      repoId: 'Clocksmith/rdrr',
+      repoId: 'clocksmith/rdrr',
       revision: null,
       path: 'models/qwen-3-5-0-8b-q4k-ehaf16',
     },
     baseUrl: null,
   };
-  assert.equal(shouldDemoSurfaceRemoteRegistryEntry(nonFetchableRemoteEntry, 'https://huggingface.co/Clocksmith/rdrr/resolve/main/registry/catalog.json'), false);
+  assert.equal(shouldDemoSurfaceRemoteRegistryEntry(nonFetchableRemoteEntry, 'https://huggingface.co/clocksmith/rdrr/resolve/main/registry/catalog.json'), false);
 }
 
 {
@@ -155,7 +155,7 @@ import {
         modelId: 'failing-qwen',
         sortOrder: 2,
         hf: {
-          repoId: 'Clocksmith/rdrr',
+          repoId: 'clocksmith/rdrr',
           revision: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           path: 'models/failing-qwen',
         },
@@ -179,7 +179,7 @@ import {
         runtimePromotionState: 'manifest-owned',
         weightsRefAllowed: false,
         hf: {
-          repoId: 'Clocksmith/rdrr',
+          repoId: 'clocksmith/rdrr',
           revision: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           path: 'models/verified-gemma',
         },
@@ -214,7 +214,7 @@ import {
         runtimePromotionState: 'manifest-owned',
         weightsRefAllowed: false,
         hf: {
-          repoId: 'Clocksmith/rdrr',
+          repoId: 'clocksmith/rdrr',
           revision: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           path: 'models/verified-primary',
         },
@@ -238,7 +238,7 @@ import {
         runtimePromotionState: 'manifest-owned',
         weightsRefAllowed: true,
         hf: {
-          repoId: 'Clocksmith/rdrr',
+          repoId: 'clocksmith/rdrr',
           revision: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           path: 'models/verified-variant',
         },
@@ -277,7 +277,7 @@ import {
           runtimePromotionState: 'manifest-owned',
           weightsRefAllowed: true,
           hf: {
-            repoId: 'Clocksmith/rdrr',
+            repoId: 'clocksmith/rdrr',
             revision: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
             path: 'models/orphan-variant',
           },
@@ -299,7 +299,7 @@ import {
 
 {
   assert.equal(
-    extractCommitShaFromUrl('https://huggingface.co/Clocksmith/rdrr/commit/f3bac04695d52b4bf075d23ce094a7b73c17a913'),
+    extractCommitShaFromUrl('https://huggingface.co/clocksmith/rdrr/commit/f3bac04695d52b4bf075d23ce094a7b73c17a913'),
     'f3bac04695d52b4bf075d23ce094a7b73c17a913'
   );
   assert.deepEqual(
@@ -320,7 +320,7 @@ import {
   });
   try {
     assert.equal(
-      await fetchRepoHeadSha('Clocksmith/rdrr'),
+      await fetchRepoHeadSha('clocksmith/rdrr'),
       'f3bac04695d52b4bf075d23ce094a7b73c17a913'
     );
   } finally {

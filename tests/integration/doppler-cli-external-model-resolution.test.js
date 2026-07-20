@@ -80,7 +80,7 @@ try {
   );
   assert.equal(catalogResolved.modelId, 'gemma3-270m');
   assert.ok(
-    catalogResolved.modelUrl.startsWith('https://huggingface.co/Clocksmith/rdrr/resolve/'),
+    catalogResolved.modelUrl.startsWith('https://huggingface.co/clocksmith/rdrr/resolve/'),
     `Expected HF URL, got: ${catalogResolved.modelUrl}`
   );
   assert.ok(
@@ -107,7 +107,7 @@ try {
     { staticRootDir: staticRoot, rdrrRoot }
   );
   assert.ok(
-    browserCatalogResolved.modelUrl.startsWith('https://huggingface.co/Clocksmith/rdrr/resolve/'),
+    browserCatalogResolved.modelUrl.startsWith('https://huggingface.co/clocksmith/rdrr/resolve/'),
     `Expected HF URL for browser catalog fallback, got: ${browserCatalogResolved.modelUrl}`
   );
 

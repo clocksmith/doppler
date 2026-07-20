@@ -8,7 +8,7 @@ import { createFamily } from './family.js';
 
 const family = createFamily({
   familyId: 'qwen3',
-  hfRepoId: 'Clocksmith/rdrr',
+  hfRepoId: 'clocksmith/rdrr',
   knownModels: [
     {
       modelId: 'qwen-3-5-0-8b-q4k-ehaf16',

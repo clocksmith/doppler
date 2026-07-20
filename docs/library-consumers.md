@@ -78,7 +78,7 @@ After `registerShaderSources` runs, the runtime bypasses the HTTP fetch path ent
 ## Model artifacts
 
 Model shards (hundreds of MB to several GB) are **not** in the npm package.
-Hosted quickstart artifacts live on Hugging Face at `Clocksmith/rdrr`; catalog
+Hosted quickstart artifacts live on Hugging Face at `clocksmith/rdrr`; catalog
 lanes marked local-only must be supplied from your own artifact location. Use
 one of:
 

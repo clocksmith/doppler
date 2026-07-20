@@ -4,7 +4,7 @@ import { createFamily } from './family.js';
 
 const family = createFamily({
   familyId: 'embeddinggemma',
-  hfRepoId: 'Clocksmith/rdrr',
+  hfRepoId: 'clocksmith/rdrr',
   knownModels: [
     {
       modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',

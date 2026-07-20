@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const DEFAULT_REGISTRY_URL = process.env.DOPPLER_HF_REGISTRY_URL
-  || 'https://huggingface.co/Clocksmith/rdrr/resolve/main/registry/catalog.json';
+  || 'https://huggingface.co/clocksmith/rdrr/resolve/main/registry/catalog.json';
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.resolve(path.dirname(THIS_FILE), '..');
 const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');

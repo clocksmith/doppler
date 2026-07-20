@@ -9,7 +9,7 @@ import {
 } from '../../tools/run-registry-verify.js';
 
 const hf = {
-  repoId: 'Clocksmith/rdrr',
+  repoId: 'clocksmith/rdrr',
   revision: 'abc123',
   path: 'models/example',
 };
@@ -71,7 +71,7 @@ const hf = {
   assert.equal(request.modelId, 'google-embeddinggemma-300m-q4k-ehf16-af32');
   assert.equal(
     request.modelUrl,
-    'https://huggingface.co/Clocksmith/rdrr/resolve/abc123/models/example'
+    'https://huggingface.co/clocksmith/rdrr/resolve/abc123/models/example'
   );
 }
 

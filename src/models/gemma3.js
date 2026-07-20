@@ -5,7 +5,7 @@ import { createFamily } from './family.js';
 
 const family = createFamily({
   familyId: 'gemma3',
-  hfRepoId: 'Clocksmith/rdrr',
+  hfRepoId: 'clocksmith/rdrr',
   knownModels: [
     {
       modelId: 'gemma-3-270m-it-q4k-ehf16-af32',

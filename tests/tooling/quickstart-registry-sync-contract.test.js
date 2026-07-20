@@ -17,7 +17,7 @@ function quickstartModel(overrides = {}) {
     quickstart: true,
     sortOrder: 1,
     hf: {
-      repoId: 'Clocksmith/rdrr',
+      repoId: 'clocksmith/rdrr',
       revision: 'abc123',
       path: 'models/verified-text-model',
     },

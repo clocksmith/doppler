@@ -18,7 +18,7 @@ const bootstrapEntry = {
   runtimePromotionState: 'manifest-owned',
   weightsRefAllowed: false,
   hf: {
-    repoId: 'Clocksmith/rdrr',
+    repoId: 'clocksmith/rdrr',
     revision: null,
     path: 'models/unit-bootstrap-model',
   },

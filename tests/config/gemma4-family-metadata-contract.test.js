@@ -22,7 +22,7 @@ for (const catalogModel of verifiedHostedGemma4Models) {
   assert.equal(resolveModel(catalogModel.modelId), entry, `${catalogModel.modelId}: resolveModel must return the known entry`);
   assert.equal(
     resolveHfBaseUrl(catalogModel.modelId, 'main'),
-    `https://huggingface.co/Clocksmith/rdrr/resolve/main/${catalogModel.hf.path}`,
+    `https://huggingface.co/clocksmith/rdrr/resolve/main/${catalogModel.hf.path}`,
     `${catalogModel.modelId}: resolveHfBaseUrl must point at the hosted artifact path`
   );
 }
