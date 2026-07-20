@@ -16,6 +16,8 @@ in browser and Node. Doppler runs text generation, embeddings, and reranking
 locally, with CLI and OpenAI-compatible server entry points. Bun WebGPU support
 is experimental.
 
+**Read this first:** [getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md) → [Root API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md) → [open source evidence](https://github.com/clocksmith/doppler/blob/main/docs/model-competition-scoreboard.md)
+
 **[Try the live demo](https://d4da.com/doppler)** | **[npm](https://www.npmjs.com/package/doppler-gpu)** | **[docs](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)**
 
 ```bash
@@ -30,16 +32,16 @@ Doppler classifies artifacts by what they consume and produce. This is
 separate from lineage (`family`), runtime implementation (`modelType`), and
 artifact-size tier.
 
-| Type | Input → output | Runtime-verified / cataloged | Representative lanes |
-| --- | --- | --- | --- |
-| Text generators | text → text | 12 / 14 | gemma-3-1b-it-q4k-ehf16-af32<br>gemma-3-270m-it-f16-af32<br>gemma-3-270m-it-q4k-ehf16-af32<br>+11 more |
-| Multimodal generators | audio + image + text → text | 3 / 3 | gemma-4-e2b-it-q4k-ehf16-af16-int4ple<br>gemma-4-e2b-it-q4k-ehf16-af32<br>gemma-4-e2b-it-q4k-ehf16-af32-int4ple |
-| Diffusion language models | text → text | 0 / 1 | diffusiongemma-26b-a4b-it-q4k-ehf16-af16 |
-| Translation specialists | text → text | 2 / 2 | translategemma-4b-1b-enes-q4k-ehf16-af32<br>translategemma-4b-it-q4k-ehf16-af32 |
-| Language embedders | text → pooled-embedding | 2 / 2 | google-embeddinggemma-300m-q4k-ehf16-af32<br>qwen-3-embedding-0-6b-q4k-ehf16-af32 |
-| Rerankers | text-pair → relevance-score | 2 / 2 | qwen-3-reranker-0-6b-f16-af32<br>qwen-3-reranker-0-6b-q4k-ehf16-af32 |
-| Protein encoders | protein-sequence → pooled-embedding + token-embedding + token-logits | 3 / 3 | amplify-120m-f16-af32<br>esm2-t12-35m-ur50d-f32-af32<br>esmc-300m-f32-af32 |
-| Nucleotide encoders | dna-sequence → pooled-embedding + token-embedding | 1 / 1 | nucleotide-transformer-v2-50m-f32-af32 |
+| Type | Verified / Cataloged | What it does |
+| --- | --- | --- |
+| Text generators | 12 / 14 | `text → text` |
+| Multimodal generators | 3 / 3 | `audio + image + text → text` |
+| Diffusion language models | 0 / 1 | `text → text` |
+| Translation specialists | 2 / 2 | `text → text` |
+| Language embedders | 2 / 2 | `text → embedding` |
+| Rerankers | 2 / 2 | `text-pair → relevance-score` |
+| Protein encoders | 3 / 3 | `sequence → embedding + token outputs` |
+| Nucleotide encoders | 1 / 1 | `dna-seq → embedding` |
 
 The [full model-support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
 lists every lane and its lifecycle evidence. Classification says what an
@@ -49,22 +51,46 @@ modality.
 
 <!-- model-type-clusters:end -->
 
-## Supported LoRA adapters (PEFT)
+## LoRA: runtime loading and training
 
-Doppler supports runtime loading and hot-swapping of LoRA adapters (in SafeTensors format) bound to specific base models. 
+Doppler supports:
 
-| Adapter ID | Base Model ID | HF Repository | Lifecycle & Purpose |
-| --- | --- | --- | --- |
-| `doppler-wgsl-qwen35-9b-v12-external20-seed11` | `qwen-3-5-9b-f16-af32` | [clocksmith/lora](https://huggingface.co/clocksmith/lora/blob/5662f8f7e3dbcf1e2ec353b5a04d0d4f2f5254ce/adapters/seed11/adapter_model.safetensors) | Preserved portable adapter (v12) |
-| `doppler-wgsl-qwen35-9b-v12-external20-seed29` | `qwen-3-5-9b-f16-af32` | [clocksmith/lora](https://huggingface.co/clocksmith/lora/blob/5662f8f7e3dbcf1e2ec353b5a04d0d4f2f5254ce/adapters/seed29/adapter_model.safetensors) | Candidate adapter for repair validation (v12) |
-| `doppler-wgsl-qwen35-9b-v12-external20-seed47` | `qwen-3-5-9b-f16-af32` | [clocksmith/lora](https://huggingface.co/clocksmith/lora/blob/5662f8f7e3dbcf1e2ec353b5a04d0d4f2f5254ce/adapters/seed47/adapter_model.safetensors) | Preserved portable adapter (v12) |
+- SafeTensors LoRA loading and hot-swap at runtime.
+- Experimental SFT/LoRA training in Node, Bun, and browser via `doppler-gpu/training`.
+- Native packed-Q4K LoRA for `qwen-3-5-0-8b-q4k-ehaf16` in `webgpu_native` (frozen base, LoRA A/B updates only).
+- External backends for other packed-Q4K training targets.
 
-Active adapters are registered in [models/adapters/catalog.json](models/adapters/catalog.json). See the [LoRA Format specification](docs/lora-format.md) for details on the adapter manifest schema.
+```bash
+npx doppler-gpu lora --config ./workload.json --surface node
+```
+
+```js
+import { trainSftLoRA, getTrainingCapabilities, loadTrainingWorkloadPack } from 'doppler-gpu/training';
+
+const workload = await loadTrainingWorkloadPack('./workload.json');
+const caps = getTrainingCapabilities(workload.workload);
+const result = await trainSftLoRA({
+  backend: caps.backends.webgpuNative.supported ? 'webgpu_native' : 'external',
+  loadedWorkload: workload,
+  samples: tokenizedCompletionMaskedSamples,
+  export: { id: 'my-adapter', name: 'My adapter', weightsPath: 'adapter.safetensors' },
+});
+```
+
+Active adapters are registered in [models/adapters/catalog.json](models/adapters/catalog.json).
+
+| Adapter family | Base model | Status |
+| --- | --- | --- |
+| WGSL Repair v12 candidates | `qwen-3-5-9b-f16-af32` | Preserved + candidate artifacts in catalog |
+| Production adapters | `qwen-3-5-0-8b-q4k-ehaf16` | Native LoRA contract and export pipeline |
+
+See the [LoRA Format specification](docs/lora-format.md), [Training handbook](docs/training-handbook.md), and [Training API](docs/api/training.md).
 
 ## Evidence
 
-Doppler has higher steady-state inference throughput than Transformers.js in each
-of the comparable browser WebGPU results indexed below.
+Doppler has higher throughput than Transformers.js in accepted,
+throughput-comparable browser WebGPU comparisons indexed below where the
+throughput gate passes.
 
 ![Metal and Vulkan browser WebGPU throughput distributions](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-webgpu-evidence.svg)
 
@@ -77,33 +103,29 @@ receipt, and the [methodology](https://github.com/clocksmith/doppler/blob/main/d
 
 ## Why these lanes are faster
 
-Doppler authors the WGSL path and pins it in RDRR. Runtime profiles pin session
-cadence. The measured wins come from different mechanisms in different phases:
+Doppler speedups come from specific, explicit runtime changes:
 
-| Lever | Affected phase | Measured receipt |
-| --- | --- | --- |
-| Fused Q4_K projection and FFN work removes separate dispatches | Text decode | [Qwen 3.5 0.8B Metal](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json) |
-| Fixed `head_dim=128` attention avoids the generic prefill path | Retrieval attention | [embedding](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json), [reranking](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json) |
-| Batch-four decode amortizes one readback across four tokens | Submit and map waits | [Qwen 3.5 2B Vulkan](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T161623.json) |
-| INT4-PLE and Q4_K layouts lower projection traffic | Text decode | [Gemma 4 Vulkan](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T170557.json) |
+- **Fusion:** projection + FFN path reductions reduce kernel count.
+- **Attention/layout tuning:** lowers prefill overhead.
+- **Batched decode:** amortizes readback overhead.
+- **Packed kernels:** Q4_K + INT4-PLE reduce projection traffic.
 
-The Gemma 4 comparison uses its declared product-format output policy. It does
-not claim exact greedy token parity.
+Evidence receipts:
 
-Parity and comparable benchmark gates decide what is retained. The
-[challenger framework](https://github.com/clocksmith/doppler/blob/main/docs/local-gpu-challenger-framework.md)
-records accepted and rejected trials, and each verdict's receipt binds it to a
-model, profile, workload, and device; the
-[negative-results findings](https://github.com/clocksmith/doppler/blob/main/docs/developer-guides/16-kernel-performance-optimization.md#what-we-ruled-out)
-keep the dead ends.
+- [Qwen 3.5 0.8B (Metal)](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json)
+- [Qwen embedding + rerank](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260709T180853.json), [Qwen rerank](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260709T192830.json)
+- [Qwen 3.5 2B (Vulkan)](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T161623.json)
+- [Gemma 4 (Vulkan)](https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T170557.json)
+
+Retention is gated: a lane moves forward only when both parity and benchmark
+receipts pass in the
+[challenger framework](https://github.com/clocksmith/doppler/blob/main/docs/local-gpu-challenger-framework.md).
 
 ### Long-term direction
 
-Humans run this loop today. The WGSL-distillation workload is experimental.
-Automated kernel generation and autotuning are directions, not shipped product
-paths. Doppler aims to reduce the manual steps between a new checkpoint or GPU
-and a verified runtime lane. Automated proposals will face the same parity and
-benchmark gates.
+Humans run this loop today. WGSL-distillation is experimental.
+Automation in kernel generation/autotuning is a roadmap item, not shipped yet.
+New checkpoints and GPUs still go through the same parity and benchmark gate flow.
 
 ## How it works
 
@@ -232,12 +254,12 @@ Registry IDs resolve to hosted RDRR artifacts from `clocksmith/rdrr` by default.
 
 ## Start here
 
-| Reader | Entry points |
-| --- | --- |
-| Application developers | [Getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md), [Root API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md), and the [OpenAI-compatible server](#openai-compatible-server) |
-| Model integrators | [RDRR format](https://github.com/clocksmith/doppler/blob/main/docs/rdrr-format.md), [model support](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md), and [Program Bundles](https://github.com/clocksmith/doppler/blob/main/docs/integration/program-bundle.md) |
-| Runtime and kernel engineers | [Architecture](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md), [kernel optimization](https://github.com/clocksmith/doppler/blob/main/docs/developer-guides/16-kernel-performance-optimization.md), and the [challenger framework](https://github.com/clocksmith/doppler/blob/main/docs/local-gpu-challenger-framework.md) |
-| Evidence reviewers | [Competition scoreboard](https://github.com/clocksmith/doppler/blob/main/docs/model-competition-scoreboard.md), [benchmark methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md), and [release matrix](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md) |
+### Pick a path
+
+- **Application builders:** start with [getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md), [Root API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md), and the [OpenAI-compatible server](#openai-compatible-server).
+- **Integrators:** use the [RDRR format](https://github.com/clocksmith/doppler/blob/main/docs/rdrr-format.md), [support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md), and [Program Bundles](https://github.com/clocksmith/doppler/blob/main/docs/integration/program-bundle.md).
+- **Kernel/inference engineers:** follow [architecture](https://github.com/clocksmith/doppler/blob/main/docs/architecture.md), [performance optimization](https://github.com/clocksmith/doppler/blob/main/docs/developer-guides/16-kernel-performance-optimization.md), and the [challenger framework](https://github.com/clocksmith/doppler/blob/main/docs/local-gpu-challenger-framework.md).
+- **Evidence reviewers:** review the [scoreboard](https://github.com/clocksmith/doppler/blob/main/docs/model-competition-scoreboard.md), [methodology](https://github.com/clocksmith/doppler/blob/main/docs/benchmark-methodology.md), and [release matrix](https://github.com/clocksmith/doppler/blob/main/docs/release-matrix.md).
 
 The [docs index](https://github.com/clocksmith/doppler/blob/main/docs/INDEX.md)
 owns the complete model, subsystem, API, architecture, and operator inventory.
