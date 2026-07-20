@@ -6,6 +6,7 @@ export interface LoraAdapterConfig {
   outDim: number;
   rank: number;
   alpha: number;
+  dtype: 'f16' | 'f32';
 }
 
 export declare class LoraAdapter {

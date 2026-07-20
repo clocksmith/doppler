@@ -1624,6 +1624,10 @@ export class InferencePipeline extends PipelineState {
     return this.generator.prefillKVOnly(prompt, options);
   }
 
+  prefillForLoRATraining(inputIds, options) {
+    return this.generator.prefillForLoRATraining(inputIds, options);
+  }
+
   computeDiffusionGemmaCanvasLogits(args, options = {}) {
     assertNotAborted(options?.signal);
     return this.generator.computeDiffusionGemmaCanvasLogits(args, options);

@@ -122,6 +122,7 @@ export class AdamOptimizer {
         beta1: opt.beta1,
         beta2: opt.beta2,
         eps: opt.eps,
+        weightDecay: opt.weightDecay,
       });
     }
 

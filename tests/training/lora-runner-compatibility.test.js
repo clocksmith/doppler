@@ -66,6 +66,10 @@ assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['gemma-3-270m-it-f16-af32'].family,
 assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['gemma-3-270m-it-q4k-ehf16-af32'].family, 'gemma3');
 assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['qwen-3-5-0-8b-q4k-ehaf16'].family, 'qwen3');
 assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['qwen-3-5-0-8b-q4k-ehaf16'].requiresExternalTrainer, true);
+assert.deepEqual(
+  LORA_RUNNER_BASE_MODEL_REGISTRY['qwen-3-5-0-8b-q4k-ehaf16'].nativeLoraTargets,
+  [{ module: 'down_proj', layer: 'last' }]
+);
 assert.equal(LORA_RUNNER_BASE_MODEL_REGISTRY['qwen-3-5-9b-hf-bf16'].requiresExternalTrainer, true);
 assert.equal(LORA_RUNNER_DATASET_FORMAT_REGISTRY['text-pairs'].datasetKind, 'causal_lm_text_pairs');
 

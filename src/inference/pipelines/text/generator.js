@@ -2115,6 +2115,111 @@ export class PipelineGenerator {
     }
   }
 
+  async prefillForLoRATraining(inputIds, options = {}) {
+    if (!this.#state.isLoaded) throw new Error('Model not loaded');
+    if (this.#state.isGenerating) throw new Error('Generation already in progress');
+    if (!Array.isArray(inputIds) && !(inputIds instanceof Int32Array) && !(inputIds instanceof Uint32Array)) {
+      throw new Error('prefillForLoRATraining requires token IDs.');
+    }
+    const tokens = Array.from(inputIds, (value) => Number(value));
+    if (tokens.length === 0) throw new Error('prefillForLoRATraining requires at least one token.');
+    this._assertTokenIdsInRange(tokens, 'prefillForLoRATraining.inputIds');
+
+    const config = this.#state.modelConfig;
+    const layerIdx = Number(options.layerIdx);
+    if (!Number.isInteger(layerIdx) || layerIdx !== config.numLayers - 1) {
+      throw new Error(`native_lora_target_not_supported: layerIdx must be the final layer (${config.numLayers - 1}).`);
+    }
+    if (options.module !== 'down_proj') {
+      throw new Error('native_lora_target_not_supported: module must be down_proj.');
+    }
+    if (config.layerTypes?.[layerIdx] !== 'full_attention') {
+      throw new Error('native_lora_target_not_supported: final layer must be full_attention.');
+    }
+    if (config.postFeedforwardNorm === true) {
+      throw new Error('native_lora_target_not_supported: final-layer post-feedforward normalization is not supported.');
+    }
+    if (this.#state.lora) {
+      throw new Error('native_lora_base_capture_requires_inactive_adapter.');
+    }
+
+    this.resetToSeqLen(0);
+    this._resetDecodeRuntimeState();
+    const opts = resolvePrefillOptions(this.#state, {
+      ...options,
+      inputIds: tokens,
+      useChatTemplate: false,
+    });
+    let activationTensor = null;
+    let hiddenTensor = null;
+    let disposed = false;
+    const releaseOwned = () => {
+      if (disposed) return;
+      disposed = true;
+      if (activationTensor?.buffer) releaseBuffer(activationTensor.buffer);
+      if (hiddenTensor?.buffer) releaseBuffer(hiddenTensor.buffer);
+    };
+    const capture = async ({ tensor, numTokens, hiddenSize, recorder }) => {
+      if (activationTensor) {
+        throw new Error('native_lora_training_capture_duplicated.');
+      }
+      const bytesPerElement = tensor.dtype === 'f16' ? 2 : 4;
+      const byteLength = Math.ceil((numTokens * hiddenSize * bytesPerElement) / 4) * 4;
+      const buffer = acquireBuffer(byteLength, undefined, `L${layerIdx}.native_lora_ffn_act`);
+      if (recorder) {
+        recorder.getEncoder().copyBufferToBuffer(tensor.buffer, 0, buffer, 0, byteLength);
+      } else {
+        const device = getDevice();
+        const encoder = device.createCommandEncoder({ label: `L${layerIdx}.native_lora_capture` });
+        encoder.copyBufferToBuffer(tensor.buffer, 0, buffer, 0, byteLength);
+        device.queue.submit([encoder.finish()]);
+      }
+      activationTensor = createTensor(
+        buffer,
+        tensor.dtype,
+        [numTokens, hiddenSize],
+        `L${layerIdx}.native_lora_ffn_act`
+      );
+    };
+
+    try {
+      const prefill = await this._prefillToHidden(tokens, {
+        ...opts,
+        _trainingCapture: { layerIdx, stage: 'ffn_act', capture },
+      });
+      if (prefill.currentRecorder) {
+        recordPrefillRecorderStats(this.#state, prefill.currentRecorder);
+        await prefill.currentRecorder.submitAndWait();
+        await prefill.recordProfile(prefill.currentRecorder);
+      } else {
+        await getDevice().queue.onSubmittedWorkDone();
+      }
+      if (!activationTensor) {
+        releaseBuffer(prefill.currentHiddenBuffer);
+        throw new Error('native_lora_training_activation_not_captured.');
+      }
+      hiddenTensor = createTensor(
+        prefill.currentHiddenBuffer,
+        prefill.activationDtype,
+        [prefill.numTokens, config.hiddenSize],
+        `L${layerIdx}.native_lora_base_hidden`
+      );
+      this.resetToSeqLen(0);
+      return {
+        inputIds: tokens,
+        layerIdx,
+        module: 'down_proj',
+        activation: activationTensor,
+        baseHidden: hiddenTensor,
+        dispose: releaseOwned,
+      };
+    } catch (error) {
+      releaseOwned();
+      this.resetToSeqLen(0);
+      throw error;
+    }
+  }
+
   async prefillWithEmbedding(prompt, options = {}) {
     if (!this.#state.isLoaded) throw new Error('Model not loaded');
     if (this.#state.isGenerating && options.__internalGenerate !== true) {
@@ -3179,6 +3284,7 @@ export class PipelineGenerator {
       debugCheckBuffer,
       opts.executionPlan
     );
+    context.trainingCapture = opts?._trainingCapture ?? null;
     context.currentTokenIds = inputIds;
     context.diffusionGemmaDecoder = opts?._diffusionGemmaDecoder === true;
     context.skipKVCacheWrites = returnHidden

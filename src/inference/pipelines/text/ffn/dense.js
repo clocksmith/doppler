@@ -49,6 +49,19 @@ function resolveActivationOp(hiddenActivation) {
   return selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation });
 }
 
+async function captureTrainingActivation(context, layerIdx, tensor, numTokens, hiddenSize) {
+  const capture = context.trainingCapture;
+  if (!capture || capture.layerIdx !== layerIdx || capture.stage !== 'ffn_act') return;
+  await capture.capture({
+    layerIdx,
+    stage: 'ffn_act',
+    tensor,
+    numTokens,
+    hiddenSize,
+    recorder: context.recorder ?? null,
+  });
+}
+
 function hasQ4KMaterialization(weight) {
   return isWeightBuffer(weight) && !!weight.materializations?.q4k?.buffer;
 }
@@ -830,6 +843,7 @@ export async function runDenseFFNGPU(
       });
     }
     enqueueRecordedDenseHealth(context, layerIdx, 'ffn_act', activatedOutput, numTokens * intermediateSize);
+    await captureTrainingActivation(context, layerIdx, activatedOutput, numTokens, intermediateSize);
 
     if (recorder) {
       recorder.trackTemporaryBuffer(gateUpOutput.buffer);
@@ -1056,6 +1070,7 @@ export async function runDenseFFNGPU(
       dtype: fusedOutput.dtype,
     });
     enqueueRecordedDenseHealth(context, layerIdx, 'ffn_fused_gate_up', fusedOutput, numTokens * intermediateSize);
+    await captureTrainingActivation(context, layerIdx, fusedOutput, numTokens, intermediateSize);
 
     let downInput = fusedOutput;
     if (downInputDtype && fusedOutput.dtype !== downInputDtype) {
@@ -1469,6 +1484,7 @@ export async function runDenseFFNGPU(
     dtype: activatedOutput.dtype,
   });
   enqueueRecordedDenseHealth(context, layerIdx, 'ffn_act', activatedOutput, numTokens * intermediateSize);
+  await captureTrainingActivation(context, layerIdx, activatedOutput, numTokens, intermediateSize);
 
   if (recorder) {
     recorder.trackTemporaryBuffer(gateOutput.buffer);

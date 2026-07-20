@@ -8,6 +8,31 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.14] - 2026-07-19
+
+### Added
+
+- Added native browser, Node, and Bun LoRA training for the final Qwen 3.5
+  0.8B `down_proj` over frozen row-wise Q4K base weights. The bounded native
+  path uses completion-masked causal-LM loss, AdamW, deterministic
+  checkpoint/resume, and runtime-loadable safetensors/RDRR export.
+- Added Q4K frozen-weight input gradients for the native LoRA suffix and a
+  production inference capture contract for the final feed-forward activation.
+
+### Fixed
+
+- Replaced the Qwen capability gate that incorrectly treated frozen Q4K base
+  weights as preventing native LoRA optimization. Other Qwen targets remain
+  unavailable on the native backend until their full backward graphs exist.
+- Added explicit provider teardown to the validated Bun operator sequence;
+  model unload alone does not release Dawn's host-owned callback pump.
+
+### Release status
+
+- `0.4.13` was tagged but never published. Its tarball is an invalid release
+  candidate because it rejects the supported native Qwen target. `0.4.14`
+  supersedes it; npm `latest` must not be updated with the `0.4.13` tarball.
+
 ## [0.4.13] - 2026-07-19
 
 ### Added

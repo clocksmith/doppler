@@ -9,7 +9,7 @@
 
 import type { CommandRecorder, ProfileTimings } from '../../../gpu/command-recorder.js';
 import type { PipelineState } from './state.js';
-import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerContext, WorkloadPhaseTiming } from './types.js';
+import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerContext, WorkloadPhaseTiming, NativeLoRAPrefillOptions, NativeLoRAPrefillResult } from './types.js';
 import type { LogitsConfig, LogitsWeights } from './logits/index.js';
 import type { WeightBufferConfig } from './weights.js';
 import type { ChatMessage } from './chat-format.js';
@@ -65,6 +65,10 @@ export declare class PipelineGenerator {
   resetGenerationState(): void;
   resetToSeqLen(seqLen: number): void;
   prefillKVOnly(prompt: PromptInput, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+  prefillForLoRATraining(
+    inputIds: readonly number[] | Int32Array | Uint32Array,
+    options: NativeLoRAPrefillOptions
+  ): Promise<NativeLoRAPrefillResult>;
   computeDiffusionGemmaCanvasLogits(
     args: DiffusionGemmaCanvasLogitsInput,
     options?: GenerateOptions & { __internalGenerate?: boolean }

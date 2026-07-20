@@ -122,6 +122,9 @@ export const LORA_RUNNER_BASE_MODEL_REGISTRY = Object.freeze({
     family: 'qwen3',
     runnerKind: 'causal_lm_text_generation',
     requiresExternalTrainer: true,
+    nativeLoraTargets: Object.freeze([
+      Object.freeze({ module: 'down_proj', layer: 'last' }),
+    ]),
   }),
   'qwen-3-5-2b-q4k-ehaf16': Object.freeze({
     baseModelId: 'qwen-3-5-2b-q4k-ehaf16',
@@ -238,6 +241,7 @@ export function getLoraRunnerCompatibility(workload) {
       baseModelFamily: baseModel?.family || null,
       baseModelRunnerKind: baseModel?.runnerKind || null,
       requiresExternalTrainer: baseModel?.requiresExternalTrainer === true,
+      nativeLoraTargets: baseModel?.nativeLoraTargets || Object.freeze([]),
       datasetKind: dataset?.datasetKind || null,
       registeredBaseModel: Boolean(baseModel),
       registeredDatasetFormat: Boolean(dataset),
@@ -401,6 +405,7 @@ function createToyLoraModel(workload) {
     outDim: 2,
     rank: workload.pipeline.adapter.rank,
     alpha: workload.pipeline.adapter.alpha,
+    dtype: 'f32',
   });
   const model = {
     adapter,

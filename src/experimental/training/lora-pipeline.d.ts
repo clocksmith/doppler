@@ -14,6 +14,7 @@ export declare const LORA_RUNNER_BASE_MODEL_REGISTRY: Readonly<Record<string, Re
   family: string;
   runnerKind: string;
   requiresExternalTrainer?: boolean;
+  nativeLoraTargets?: readonly Readonly<{ module: 'down_proj'; layer: 'last' }>[];
 }>>>;
 
 export declare const LORA_RUNNER_DATASET_FORMAT_REGISTRY: Readonly<Record<string, Readonly<{
@@ -33,6 +34,7 @@ export declare function getLoraRunnerCompatibility(workload: unknown): {
     baseModelFamily: string | null;
     baseModelRunnerKind: string | null;
     requiresExternalTrainer: boolean;
+    nativeLoraTargets: readonly Readonly<{ module: 'down_proj'; layer: 'last' }>[];
     datasetKind: string | null;
     registeredBaseModel: boolean;
     registeredDatasetFormat: boolean;
@@ -52,6 +54,7 @@ export declare function assertLoraRunnerCompatibility(workload: unknown): {
     baseModelFamily: string | null;
     baseModelRunnerKind: string | null;
     requiresExternalTrainer: boolean;
+    nativeLoraTargets: readonly Readonly<{ module: 'down_proj'; layer: 'last' }>[];
     datasetKind: string | null;
     registeredBaseModel: boolean;
     registeredDatasetFormat: boolean;

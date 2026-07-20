@@ -21,6 +21,18 @@ export { TrainingRunner, runTraining } from './experimental/training/runner.js';
 export { DataLoader } from './experimental/training/dataloader.js';
 export { saveCheckpoint, loadCheckpoint } from './experimental/training/checkpoint.js';
 export {
+  NativeQwenLoRATrainer,
+  createNativeQwenLoRATrainer,
+  loadNativeQwenTrainingPipeline,
+  trainNativeQwenSftLoRA,
+} from './experimental/training/native-qwen-lora.js';
+export type {
+  NativeQwenLoRATrainerOptions,
+  NativeQwenLoRACheckpoint,
+  NativeQwenLoRAStepResult,
+  NativeQwenSftLoRAOptions,
+} from './experimental/training/native-qwen-lora.js';
+export {
   LORA_RUNNER_BASE_MODEL_REGISTRY,
   LORA_RUNNER_DATASET_FORMAT_REGISTRY,
   LORA_RUNNER_SUPPORT_CONTRACT,
@@ -60,7 +72,7 @@ export interface TrainingCapabilities {
   schemaVersion: 1;
   scope: 'completion_masked_sft_lora';
   supported: boolean;
-  operatorSurface: 'node';
+  operatorSurfaces: readonly ['browser', 'node', 'bun'];
   runnerKey: string;
   baseModelId: string;
   baseModelFamily: string | null;
@@ -76,6 +88,7 @@ export interface TrainingCapabilities {
     runtimeLoadable: true;
   }>;
   compatibility: ReturnType<typeof import('./experimental/training/lora-pipeline.js').getLoraRunnerCompatibility>;
+  nativeTarget: Readonly<{ module: 'down_proj'; layer: 'last' }> | null;
   blockedReasons: readonly string[];
 }
 
@@ -87,9 +100,28 @@ export interface TrainSftLoRAOptions {
   causalLmTrainer?: CausalLmLoraTrainer;
   fetch?: (url: string) => Promise<string>;
   readFile?: (path: string) => Promise<string>;
+  pipeline?: import('./inference/pipelines/text.js').InferencePipeline;
+  samples?: Array<{
+    inputIds: readonly number[];
+    targetIds: readonly number[];
+    supervisedTokenCount: number;
+  }>;
+  export?: { id: string; name: string; weightsPath: string } | null;
 }
 
 export declare const TRAINING_BACKENDS: readonly TrainingBackend[];
+
+export declare function bootstrapNativeTrainingHost(): Promise<{
+  ok: true;
+  provider: string;
+  detail: null;
+}>;
+
+export declare function releaseNativeTrainingHost(): Promise<{
+  released: boolean;
+  provider: string | null;
+  reason: string | null;
+}>;
 
 export declare function getTrainingCapabilities(
   workload: TrainingWorkloadPack | Record<string, unknown>

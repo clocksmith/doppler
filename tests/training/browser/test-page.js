@@ -39,6 +39,9 @@ import { computeSampleStats } from '../../../src/debug/stats.js';
 import { resetSubmitStats, setTrackSubmits, getSubmitStats } from '../../../src/gpu/submit-tracker.js';
 import { getRuntimeConfig } from '../../../src/config/runtime.js';
 import { f16ToF32Array, f32ToF16Array } from '../../../src/inference/kv-cache/types.js';
+import { dequantizeQ4KMRowWise, quantizeToQ4KMRowWise } from '../../../src/converter/quantizer.js';
+import { createWeightBuffer } from '../../../src/gpu/weight-buffer.js';
+import { createNativeQwenLoRATrainer } from '../../../src/experimental/training/native-qwen-lora.js';
 
 function toFloat32(arrayBuffer) {
   return new Float32Array(arrayBuffer);
@@ -63,6 +66,12 @@ function makeTensorFromUint32(values, shape, label) {
   const buf = acquireBuffer(data.byteLength, undefined, label || 'train_tokens');
   uploadData(buf, data);
   return createTensor(buf, 'f32', shape, label || 'train_tokens');
+}
+
+function makeTensorFromQ4K(values, shape, label) {
+  const buf = acquireBuffer(values.byteLength, undefined, label || 'train_tensor_q4k');
+  uploadData(buf, values);
+  return createTensor(buf, 'q4k', shape, label || 'train_tensor_q4k');
 }
 
 function softmaxCpu(logits, rows, cols) {
@@ -345,7 +354,161 @@ async function testMatmulBackwardGradient() {
   const inputPassT = compareArrays(gradInputGPUT, gradInputCPU, KERNEL_TOLERANCES.matmul).passed;
   const weightPassT = compareArrays(gradWeightGPUT, gradWeightCPUStoredT, KERNEL_TOLERANCES.matmul).passed;
 
-  return inputPassT && weightPassT;
+  const quantizedWeight = quantizeToQ4KMRowWise(weightStoredT, [N, K]);
+  const roundedQ4KWeight = dequantizeQ4KMRowWise(quantizedWeight.quantized, [N, K]);
+  const weightTensorQ4K = makeTensorFromQ4K(quantizedWeight.quantized, [N, K], 'matmul_weight_q4k');
+  const q4kGrads = await runMatmulBackward(inputTensor, weightTensorQ4K, gradTensor, {
+    M,
+    N,
+    K,
+    transposeB: true,
+    computeGradWeight: false,
+  });
+  const gradInputQ4KGPU = await readTensor(q4kGrads.gradInput);
+  const gradInputQ4KCPU = new Float32Array(M * K);
+  for (let m = 0; m < M; m += 1) {
+    for (let k = 0; k < K; k += 1) {
+      let sum = 0;
+      for (let n = 0; n < N; n += 1) {
+        sum += gradOutput[m * N + n] * roundedQ4KWeight[n * K + k];
+      }
+      gradInputQ4KCPU[m * K + k] = sum;
+    }
+  }
+  const q4kInputPass = compareArrays(
+    gradInputQ4KGPU,
+    gradInputQ4KCPU,
+    KERNEL_TOLERANCES.matmul
+  ).passed;
+
+  return inputPassT && weightPassT && q4kInputPass;
+}
+
+async function testNativeQwenLoRASuffix() {
+  await initGPU();
+  const hiddenSize = 4;
+  const intermediateSize = 6;
+  const vocabSize = 8;
+  const inputIds = [1, 3, 4];
+  const targetIds = [0xffffffff, 4, 2];
+  const activationValues = new Float32Array(inputIds.length * intermediateSize);
+  const hiddenValues = new Float32Array(inputIds.length * hiddenSize);
+  const lmHeadValues = new Float32Array(vocabSize * hiddenSize);
+  for (let index = 0; index < activationValues.length; index += 1) {
+    activationValues[index] = Math.sin(index * 0.31) * 0.6;
+  }
+  for (let index = 0; index < hiddenValues.length; index += 1) {
+    hiddenValues[index] = Math.cos(index * 0.23) * 0.4;
+  }
+  for (let index = 0; index < lmHeadValues.length; index += 1) {
+    lmHeadValues[index] = Math.sin(index * 0.17) * 0.35;
+  }
+
+  const finalNormTensor = makeTensorFromFloat32(
+    new Float32Array(hiddenSize).fill(1),
+    [hiddenSize],
+    'native_qwen_final_norm_fixture'
+  );
+  const finalNormWeight = createWeightBuffer(
+    finalNormTensor.buffer,
+    'f32',
+    'row',
+    [hiddenSize],
+    'native_qwen_final_norm_fixture'
+  );
+  const quantizedLmHead = quantizeToQ4KMRowWise(lmHeadValues, [vocabSize, hiddenSize]);
+  const lmHeadBuffer = acquireBuffer(quantizedLmHead.quantized.byteLength, undefined, 'native_qwen_lm_head_fixture');
+  uploadData(lmHeadBuffer, quantizedLmHead.quantized);
+  const lmHeadWeight = createWeightBuffer(
+    lmHeadBuffer,
+    'q4k',
+    'row',
+    [vocabSize, hiddenSize],
+    'native_qwen_lm_head_fixture'
+  );
+  const pipeline = {
+    manifest: { modelId: 'qwen-3-5-0-8b-q4k-ehaf16-fixture' },
+    modelConfig: {
+      numLayers: 1,
+      layerTypes: ['full_attention'],
+      postFeedforwardNorm: false,
+      hiddenSize,
+      intermediateSize,
+      vocabSize,
+      rmsNormEps: 1e-6,
+      rmsNormWeightOffset: false,
+      useTiedEmbeddings: false,
+    },
+    weights: new Map([
+      ['final_norm', finalNormWeight],
+      ['lm_head', lmHeadWeight],
+    ]),
+    async prefillForLoRATraining(tokens) {
+      const activation = makeTensorFromFloat32(
+        activationValues,
+        [tokens.length, intermediateSize],
+        'native_qwen_activation_fixture'
+      );
+      const baseHidden = makeTensorFromFloat32(
+        hiddenValues,
+        [tokens.length, hiddenSize],
+        'native_qwen_hidden_fixture'
+      );
+      let disposed = false;
+      return {
+        inputIds: [...tokens],
+        layerIdx: 0,
+        module: 'down_proj',
+        activation,
+        baseHidden,
+        dispose() {
+          if (disposed) return;
+          disposed = true;
+          releaseBuffer(activation.buffer);
+          releaseBuffer(baseHidden.buffer);
+        },
+      };
+    },
+  };
+
+  const trainer = createNativeQwenLoRATrainer({
+    pipeline,
+    baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    layerIdx: 0,
+    module: 'down_proj',
+    rank: 2,
+    alpha: 4,
+    optimizer: {
+      type: 'adamw',
+      lr: 0.05,
+      beta1: 0.9,
+      beta2: 0.999,
+      eps: 1e-8,
+      weightDecay: 0,
+      scheduler: { enabled: false },
+    },
+    gradient: { maxNorm: 0 },
+    precision: { activations: 'f32', gradients: 'f32', loraParams: 'f32' },
+  });
+  try {
+    const beforeBytes = await readBuffer(trainer.adapter.B.buffer);
+    const before = new Float32Array(beforeBytes);
+    const result = await trainer.trainStep(inputIds, targetIds, 2);
+    const afterBytes = await readBuffer(trainer.adapter.B.buffer);
+    const after = new Float32Array(afterBytes);
+    let maxUpdate = 0;
+    for (let index = 0; index < after.length; index += 1) {
+      maxUpdate = Math.max(maxUpdate, Math.abs(after[index] - before[index]));
+    }
+    return Number.isFinite(result.loss)
+      && Number.isFinite(result.gradientNorm)
+      && result.gradientNorm > 0
+      && maxUpdate > 0;
+  } finally {
+    trainer.dispose();
+    releaseBuffer(finalNormWeight.buffer);
+    releaseBuffer(lmHeadWeight.buffer);
+  }
 }
 
 async function testEmbedBackwardScatterAdd() {
@@ -1028,6 +1191,7 @@ const TESTS = {
   'layernorm-backward': testLayernormBackward,
   'conv2d-backward': testConv2DBackward,
   'matmul-backward': testMatmulBackwardGradient,
+  'native-qwen-lora-suffix': testNativeQwenLoRASuffix,
   'embed-backward': testEmbedBackwardScatterAdd,
   'ebm-state-optimize': testEBMStateOptimizeSmoke,
   'ebm-recorded-bench': testEBMRecordedBench,

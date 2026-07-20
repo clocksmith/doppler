@@ -15,7 +15,7 @@ import { PipelineState } from './text/state.js';
 import { PipelineGenerator } from './text/generator.js';
 import type { Manifest } from './text/config.js';
 import type { WeightLoadResult, PipelineContexts } from './text/init.js';
-import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, SequenceEncodeOptions, SequenceEncodeResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats, WorkloadPhaseTiming } from './text/types.js';
+import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, SequenceEncodeOptions, SequenceEncodeResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats, WorkloadPhaseTiming, NativeLoRAPrefillOptions, NativeLoRAPrefillResult } from './text/types.js';
 import type { ChatMessage } from './text/chat-format.js';
 import type { LoRAAdapter } from './text/lora.js';
 import type { DiffusionPipeline } from './diffusion/pipeline.js';
@@ -31,7 +31,7 @@ import type {
 } from './text/generator.js';
 
 // Re-export types for external use
-export type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, SequenceEncodeOptions, SequenceEncodeResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats };
+export type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, SequenceEncodeOptions, SequenceEncodeResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats, NativeLoRAPrefillOptions, NativeLoRAPrefillResult };
 export type { PipelineContexts };
 
 export interface ChatRequestInput {
@@ -102,6 +102,11 @@ export declare class InferencePipeline extends PipelineState {
   advanceWithTokenAndEmbedding(tokenId: number, options?: GenerateOptions): Promise<AdvanceEmbeddingResult>;
 
   prefillKVOnly(prompt: PromptInput, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+
+  prefillForLoRATraining(
+    inputIds: readonly number[] | Int32Array | Uint32Array,
+    options: NativeLoRAPrefillOptions
+  ): Promise<NativeLoRAPrefillResult>;
 
   computeDiffusionGemmaCanvasLogits(
     args: DiffusionGemmaCanvasLogitsInput,
