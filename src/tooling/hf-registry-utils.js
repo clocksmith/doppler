@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 
-const DEFAULT_HF_REPO_ID = 'Clocksmith/rdrr';
+const DEFAULT_HF_REPO_ID = 'clocksmith/rdrr';
 export const DEFAULT_HF_REGISTRY_PATH = 'registry/catalog.json';
 export const DEFAULT_HF_REGISTRY_URL = `https://huggingface.co/${DEFAULT_HF_REPO_ID}/resolve/main/${DEFAULT_HF_REGISTRY_PATH}`;
 

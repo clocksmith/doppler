@@ -39,7 +39,7 @@ Release-facing model claims follow the same rule:
 - The external models volume is the source of truth for RDRR artifact bytes
   (manifests, shards, origin metadata). `npm run artifact-identity:check`
   cross-validates it against catalog identity.
-- HF `Clocksmith/rdrr` is a published subset of the catalog, filtered to approved entries.
+- HF `clocksmith/rdrr` is a published subset of the catalog, filtered to approved entries.
 - A model must not be surfaced as verified/release-ready unless its claim is backed by explicit smoke evidence (for example a registry verify record or committed manual-review report artifact).
 
 Gitignored local artifacts are never a canonical CI source:

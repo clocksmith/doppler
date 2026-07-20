@@ -210,7 +210,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "feea324bae6c06c9d129ce39e188a75478ccdbbc",
             "path": "models/esm2-t12-35m-ur50d-f32-af32"
           },
@@ -322,7 +322,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "a5703ef6971cc883438a393d73f2f54dccf94976",
             "path": "models/nucleotide-transformer-v2-50m-f32-af32"
           },
@@ -436,7 +436,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "990de206946a0972cc92e9dbcc9726399d257cac",
             "path": "models/amplify-120m-f16-af32"
           },
@@ -548,7 +548,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
             "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
           },
@@ -670,7 +670,7 @@
           },
           "hf": {
             "published": false,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": null,
             "path": "models/gemma-3-270m-it-f16-af32"
           },
@@ -824,7 +824,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "95f0b29ec73dea70394c6bcfa8407bc6796df6c9",
             "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
           },
@@ -1218,7 +1218,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
             "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32"
           },
@@ -1232,7 +1232,7 @@
               "tjsDtype": "q4",
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
-              "laneReason": "Hosted Clocksmith/rdrr Doppler reranker artifact compared against the browser WebGPU Transformers.js ONNX Qwen3 reranker baseline with identical Qwen yes/no-logit scoring prompts."
+              "laneReason": "Hosted clocksmith/rdrr Doppler reranker artifact compared against the browser WebGPU Transformers.js ONNX Qwen3 reranker baseline with identical Qwen yes/no-logit scoring prompts."
             },
             "benchmarkComparable": true,
             "benchmarkEvidenceOk": false
@@ -1317,7 +1317,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "cc1fafff8cda609372b608cd92e487f6a2c32bc8",
             "path": "models/qwen-3-reranker-0-6b-f16-af32"
           },
@@ -1429,7 +1429,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "1e2c047357f07dfe45a8effc2fa915acd73999ee",
             "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32"
           },
@@ -1549,7 +1549,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "7c3d30e300bcb02cbd68fb0db3eee64fbf738f99",
             "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
           },
@@ -1702,7 +1702,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "80d7716270b6371d541de979eff3370edaf34e13",
             "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
           },
@@ -1854,7 +1854,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
             "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
           },
@@ -1868,7 +1868,7 @@
               "tjsDtype": "q4f16",
               "tjsFormat": "onnx",
               "lane": "performance_comparable",
-              "laneReason": "Hosted Clocksmith/rdrr Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline with the shared semantic fixture."
+              "laneReason": "Hosted clocksmith/rdrr Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline with the shared semantic fixture."
             },
             "benchmarkComparable": true,
             "benchmarkEvidenceOk": false
@@ -1981,7 +1981,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "8354795dc544798ca7a4419bf00f844648f4b6f0",
             "path": "models/esmc-300m-f32-af32"
           },
@@ -2093,7 +2093,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
             "path": "models/qwen-3-5-2b-q4k-ehaf16"
           },
@@ -2245,7 +2245,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "6fc46049882e961a57d1690ba1ffde21677d001a",
             "path": "models/translategemma-4b-it-q4k-ehf16-af32"
           },
@@ -2400,7 +2400,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "2d326649ae3d04b83323de0e6247e1e42fb1d9af",
             "path": "models/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
           },
@@ -2529,7 +2529,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "16256bf16dc8f92b8fe5105b07628cef91587f0a",
             "path": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
           },
@@ -2656,7 +2656,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "2070777c77047d54e6eae105f6dcb1891cf6f21a",
             "path": "models/gemma-4-e2b-it-q4k-ehf16-af32"
           },
@@ -2808,7 +2808,7 @@
           },
           "hf": {
             "published": false,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": null,
             "path": "models/gemma-4-12b-it-text-q4k-ehf16-af16"
           },
@@ -2893,7 +2893,7 @@
           },
           "hf": {
             "published": false,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": null,
             "path": "models/gemma-4-12b-it-text-q4k-ehf16-af32"
           },
@@ -3005,7 +3005,7 @@
           },
           "hf": {
             "published": false,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": null,
             "path": "models/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
           },
@@ -3230,7 +3230,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "3dee21b3b12d65ac7fef9b24cbf759cacc953a67",
             "path": "models/qwen-3-6-27b-q4k-eaf16"
           },
@@ -3314,7 +3314,7 @@
           },
           "hf": {
             "published": true,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": "b402f6f27837857d51636da5f78c12bcd47e2a03",
             "path": "models/qwen-3-6-27b-q4k-ehaf16"
           },
@@ -3425,7 +3425,7 @@
           },
           "hf": {
             "published": false,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": null,
             "path": "models/gemma-4-31b-it-text-q4k-ehf16-af16"
           },
@@ -3510,7 +3510,7 @@
           },
           "hf": {
             "published": false,
-            "repoId": "Clocksmith/rdrr",
+            "repoId": "clocksmith/rdrr",
             "revision": null,
             "path": "models/gemma-4-31b-it-text-q4k-ehf16-af32"
           },

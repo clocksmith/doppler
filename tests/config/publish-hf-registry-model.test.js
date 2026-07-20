@@ -135,13 +135,13 @@ async function writeCatalog(root, entries) {
   const plan = buildArtifactUploadPlan({
     modelId: 'translategemma-4b-it-q4k-ehf16-af32',
     hf: {
-      repoId: 'Clocksmith/rdrr',
+      repoId: 'clocksmith/rdrr',
       path: 'models/translategemma-4b-it-q4k-ehf16-af32',
     },
   }, {
     localDir: '/tmp/translategemma',
   });
-  assert.equal(plan.repoId, 'Clocksmith/rdrr');
+  assert.equal(plan.repoId, 'clocksmith/rdrr');
   assert.equal(plan.targetPath, 'models/translategemma-4b-it-q4k-ehf16-af32');
   assert.equal(plan.manifestDir, '/tmp/translategemma');
 }
@@ -151,7 +151,7 @@ async function writeCatalog(root, entries) {
     () => buildArtifactUploadPlan({
       modelId: 'translategemma-4b-it-q4k-ehf16-af32',
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         path: '',
       },
     }),
@@ -299,7 +299,7 @@ async function writeCatalog(root, entries) {
     weightPackId: 'gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1',
     manifestVariantId: 'gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1',
     hf: {
-      repoId: 'Clocksmith/rdrr',
+      repoId: 'clocksmith/rdrr',
       revision: 'old-revision',
       path: 'models/gemma-4-e2b-it-q4k-ehf16-af32',
     },
@@ -340,7 +340,7 @@ async function writeCatalog(root, entries) {
     weightPackId: 'missing-shard-wp-catalog-v1',
     manifestVariantId: 'missing-shard-mv-exec-v1',
     hf: {
-      repoId: 'Clocksmith/rdrr',
+      repoId: 'clocksmith/rdrr',
       revision: 'old-revision',
       path: 'models/missing-shard-model',
     },
@@ -373,21 +373,21 @@ async function writeCatalog(root, entries) {
     sourceCheckpointId: 'unit/alpha',
     weightPackId: 'alpha-wp-catalog-v1',
     manifestVariantId: 'alpha-mv-exec-v1',
-    hf: { repoId: 'Clocksmith/rdrr', revision: 'old-alpha', path: 'models/alpha-model' },
+    hf: { repoId: 'clocksmith/rdrr', revision: 'old-alpha', path: 'models/alpha-model' },
   });
   const beta = promotionReadyEntry({
     modelId: 'beta-model',
     sourceCheckpointId: 'unit/beta',
     weightPackId: 'beta-wp-catalog-v1',
     manifestVariantId: 'beta-mv-exec-v1',
-    hf: { repoId: 'Clocksmith/rdrr', revision: 'old-beta', path: 'models/beta-model' },
+    hf: { repoId: 'clocksmith/rdrr', revision: 'old-beta', path: 'models/beta-model' },
   });
   const blocked = promotionReadyEntry({
     modelId: 'blocked-model',
     sourceCheckpointId: 'unit/blocked',
     weightPackId: 'blocked-wp-catalog-v1',
     manifestVariantId: 'blocked-mv-exec-v1',
-    hf: { repoId: 'Clocksmith/rdrr', revision: 'old-blocked', path: 'models/blocked-model' },
+    hf: { repoId: 'clocksmith/rdrr', revision: 'old-blocked', path: 'models/blocked-model' },
     lifecycle: {
       availability: { hf: true },
       status: { runtime: 'active', tested: 'failing' },
@@ -429,12 +429,12 @@ async function writeCatalog(root, entries) {
     models: [
       {
         modelId: 'alpha',
-        hf: { repoId: 'Clocksmith/rdrr', revision: 'OLD', path: 'models/alpha' },
+        hf: { repoId: 'clocksmith/rdrr', revision: 'OLD', path: 'models/alpha' },
         lifecycle: { availability: { hf: true }, status: { runtime: 'active', tested: 'verified' } },
       },
       {
         modelId: 'beta',
-        hf: { repoId: 'Clocksmith/rdrr', revision: 'BETA_OLD', path: 'models/beta' },
+        hf: { repoId: 'clocksmith/rdrr', revision: 'BETA_OLD', path: 'models/beta' },
       },
     ],
   };
@@ -443,7 +443,7 @@ async function writeCatalog(root, entries) {
     await writeBackLocalCatalog(catalogFile, 'alpha', 'deadbeef');
     const written = JSON.parse(await readFile(catalogFile, 'utf8'));
     assert.equal(written.models[0].hf.revision, 'deadbeef');
-    assert.equal(written.models[0].hf.repoId, 'Clocksmith/rdrr');
+    assert.equal(written.models[0].hf.repoId, 'clocksmith/rdrr');
     assert.equal(written.models[0].hf.path, 'models/alpha');
     assert.equal(written.models[0].lifecycle.availability.hf, true);
     assert.equal(written.models[1].hf.revision, 'BETA_OLD', 'other entries unchanged');

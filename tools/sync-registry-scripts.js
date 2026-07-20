@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 
 const DEFAULT_REGISTRY_URL = process.env.DOPPLER_HF_REGISTRY_URL
-  || 'https://huggingface.co/Clocksmith/rdrr/resolve/main/registry/catalog.json';
+  || 'https://huggingface.co/clocksmith/rdrr/resolve/main/registry/catalog.json';
 const DEFAULT_PACKAGE_FILE = 'package.json';
 const GENERATED_SCRIPT_PREFIX = 'verify:';
 const GENERATED_SCRIPT_COMMAND_PREFIX = 'node tools/run-registry-verify.js ';

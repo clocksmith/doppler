@@ -66,7 +66,7 @@ for (const entry of models) {
 {
   const entry = await resolveQuickstartModel('gemma4-e2b-int4ple');
   assert.ok(entry.hf);
-  assert.equal(entry.hf.repoId, 'Clocksmith/rdrr');
+  assert.equal(entry.hf.repoId, 'clocksmith/rdrr');
   assert.ok(entry.hf.revision.length > 0);
   assert.ok(entry.hf.path.includes('gemma-4-e2b'));
 }
@@ -75,7 +75,7 @@ for (const entry of models) {
   const entry = await resolveQuickstartModel('qwen3-0.8b');
   assert.equal(entry.modelId, 'qwen-3-5-0-8b-q4k-ehaf16');
   assert.ok(entry.modes.includes('text'));
-  assert.equal(entry.hf.repoId, 'Clocksmith/rdrr');
+  assert.equal(entry.hf.repoId, 'clocksmith/rdrr');
   assert.ok(entry.hf.path.includes('qwen-3-5-0-8b'));
 }
 
@@ -83,7 +83,7 @@ for (const entry of models) {
   const entry = await resolveQuickstartModel('qwen3-2b');
   assert.equal(entry.modelId, 'qwen-3-5-2b-q4k-ehaf16');
   assert.ok(entry.modes.includes('text'));
-  assert.equal(entry.hf.repoId, 'Clocksmith/rdrr');
+  assert.equal(entry.hf.repoId, 'clocksmith/rdrr');
   assert.ok(entry.hf.path.includes('qwen-3-5-2b'));
 }
 

@@ -36,7 +36,7 @@
       "dopplerVerifyRuntimeProfile": "profiles/qwen-3-embedding-0-6b-metal-stability",
       "compareLane": "performance_comparable",
       "releaseClaimable": true,
-      "compareLaneReason": "Hosted Clocksmith/rdrr Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline with the shared semantic fixture."
+      "compareLaneReason": "Hosted clocksmith/rdrr Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline with the shared semantic fixture."
     }
   ]
 }

@@ -5,7 +5,7 @@ import { createFamily } from './family.js';
 
 const family = createFamily({
   familyId: 'diffusiongemma',
-  hfRepoId: 'Clocksmith/rdrr',
+  hfRepoId: 'clocksmith/rdrr',
   knownModels: [
     {
       modelId: 'diffusiongemma-26b-a4b-it-q4k-ehf16-af16',

@@ -166,7 +166,7 @@ Objective: find every current drift case before changing runtime behavior.
 
 - [ ] Inventory every `models/local/**/manifest.json`.
 - [ ] Inventory every external RDRR root artifact if present.
-- [ ] Inventory every HF `Clocksmith/rdrr` model folder.
+- [ ] Inventory every HF `clocksmith/rdrr` model folder.
 - [ ] For each manifest with `shards[]`, check all referenced files exist.
 - [ ] For each manifest without local shards, classify as invalid unless it has `weightsRef`.
 - [ ] Detect sidecar manifests such as `manifest-no-ple.json`.
@@ -520,7 +520,7 @@ Known remaining artifact work:
 ## Legacy Issues to Track
 
 - [ ] `models/local/**` can contain developer-local partial artifacts.
-- [ ] HF `Clocksmith/rdrr` can currently contain manifest-only folders.
+- [ ] HF `clocksmith/rdrr` can currently contain manifest-only folders.
 - [ ] `manifest-no-ple.json` style sidecars are not first-class variants.
 - [ ] `rebuild-vN` names encode process history instead of contract identity.
 - [ ] `int4ple` names encode materialization details not exposed structurally.

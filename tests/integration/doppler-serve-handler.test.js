@@ -16,7 +16,7 @@ const mockTextModel = {
   aliases: ['gemma3-270m'],
   modes: ['text', 'vision'],
   hf: {
-    repoId: 'Clocksmith/rdrr',
+    repoId: 'clocksmith/rdrr',
     revision: 'abc123',
     path: 'models/gemma-3-270m-it-q4k-ehf16-af32',
   },
@@ -32,7 +32,7 @@ const mockEmbeddingModel = {
   aliases: ['embeddinggemma-300m'],
   modes: ['embedding'],
   hf: {
-    repoId: 'Clocksmith/rdrr',
+    repoId: 'clocksmith/rdrr',
     revision: 'def456',
     path: 'models/google-embeddinggemma-300m-q4k-ehf16-af32',
   },
@@ -450,7 +450,7 @@ function createLoadFailure() {
   assert.equal(body.doppler_receipt.requestedModel, 'gemma3-270m');
   assert.equal(body.doppler_receipt.resolvedModel, mockTextModel.modelId);
   assert.equal(body.doppler_receipt.artifact.weightPackId, mockTextModel.weightPackId);
-  assert.equal(body.doppler_receipt.artifact.hf.repoId, 'Clocksmith/rdrr');
+  assert.equal(body.doppler_receipt.artifact.hf.repoId, 'clocksmith/rdrr');
   assert.equal(body.doppler_receipt.request.messages.count, 1);
   assert.equal(body.doppler_receipt.request.messages.digest.algorithm, 'sha256');
   assert.match(body.doppler_receipt.request.messages.digest.value, /^[0-9a-f]{64}$/);

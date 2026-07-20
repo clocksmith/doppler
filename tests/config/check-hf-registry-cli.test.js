@@ -90,7 +90,7 @@ const localCatalog = {
       ...catalogIdentity,
       classification: modelClassification,
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/toy-model',
       },
@@ -109,7 +109,7 @@ const localCatalog = {
       modelId: 'failing-qwen',
       family: 'qwen3',
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'def456',
         path: 'models/failing-qwen',
       },

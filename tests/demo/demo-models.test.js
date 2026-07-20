@@ -123,7 +123,7 @@ function readManifest(modelId) {
       demoVisible: true,
       modes: ['text'],
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/gemma-3-1b-it-q4k-ehf16-af32',
       },
@@ -136,7 +136,7 @@ function readManifest(modelId) {
       demoVisible: false,
       modes: ['text'],
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/hidden-hosted-text-model',
       },
@@ -149,7 +149,7 @@ function readManifest(modelId) {
       demoVisible: true,
       modes: ['text'],
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/qwen-3-6-27b-q4k-ehaf16',
       },
@@ -248,7 +248,7 @@ function readManifest(modelId) {
       weightPackId: 'experimental-enes-translator-wp-v1',
       demoWarningBadges: ['Experimental', 'EN ↔ ES only'],
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/experimental-enes-translator',
       },
@@ -326,7 +326,7 @@ function readManifest(modelId) {
       demoVisible: true,
       modes: ['text'],
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/hf-backed-text-model',
       },
@@ -353,7 +353,7 @@ function readManifest(modelId) {
       demoVisible: true,
       modes: ['text'],
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/gemma-4-31b-it-text-q4k-ehf16-af32',
       },
@@ -371,7 +371,7 @@ function readManifest(modelId) {
       demoVisible: false,
       modes: ['text'],
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/gemma-4-31b-it-text-q4k-ehf16-af16',
       },
@@ -434,7 +434,7 @@ function readManifest(modelId) {
       demoVisible: true,
       modes: ['text'],
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/gemma-4-31b-it-text-q4k-ehf16-af32',
       },
@@ -454,7 +454,7 @@ function readManifest(modelId) {
       demoVisible: true,
       modes: ['text'],
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/gemma-4-31b-it-text-q4k-ehf16-af16',
       },
@@ -484,7 +484,7 @@ function readManifest(modelId) {
       demoVisible: true,
       modes: ['text'],
       hf: {
-        repoId: 'Clocksmith/rdrr',
+        repoId: 'clocksmith/rdrr',
         revision: 'abc123',
         path: 'models/orphan-af16',
       },
@@ -561,7 +561,7 @@ function readManifest(modelId) {
     modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
     localBaseUrl,
     hf: {
-      repoId: 'Clocksmith/rdrr',
+      repoId: 'clocksmith/rdrr',
       revision: 'abc123',
       path: 'models/gemma-4-e2b-it-q4k-ehf16-af32',
     },

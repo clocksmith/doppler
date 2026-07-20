@@ -216,7 +216,7 @@ const response = await client.chat.completions.create({
 });
 ```
 
-Registry IDs resolve to hosted RDRR artifacts from `Clocksmith/rdrr` by default. See the [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
+Registry IDs resolve to hosted RDRR artifacts from `clocksmith/rdrr` by default. See the [Root API guide](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
 ## Start here
 

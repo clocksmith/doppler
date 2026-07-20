@@ -147,7 +147,7 @@ const QUICK_MODEL_CATALOG_LOCAL_BASE_URL = typeof window === 'object' && window.
   : new URL('../models/catalog.json', import.meta.url).toString();
 const QUICK_MODEL_CATALOG_CACHE_BUST = 'catalog-v2';
 const QUICK_MODEL_CATALOG_LOCAL_URL = `${QUICK_MODEL_CATALOG_LOCAL_BASE_URL}?cacheBust=${QUICK_MODEL_CATALOG_CACHE_BUST}`;
-const QUICK_MODEL_CATALOG_DEFAULT_HF_REPO_ID = 'Clocksmith/rdrr';
+const QUICK_MODEL_CATALOG_DEFAULT_HF_REPO_ID = 'clocksmith/rdrr';
 const QUICK_MODEL_CATALOG_DEFAULT_HF_REVISION = 'main';
 const QUICK_MODEL_CATALOG_DEFAULT_HF_PATH = 'registry/catalog.json';
 const QUICK_MODEL_CATALOG_OVERRIDE_URL = readGlobalString('__DOPPLER_QUICK_MODEL_CATALOG_URL');

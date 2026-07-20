@@ -102,7 +102,7 @@ Artifact bytes have a separate source of truth:
 - external volume: complete local RDRR artifacts and shards
 - `models/local/**`: developer-local manifest/tokenizer cache, not a release or
   CI source
-- Hugging Face `Clocksmith/rdrr`: published subset generated from approved
+- Hugging Face `clocksmith/rdrr`: published subset generated from approved
   catalog entries
 
 Generated model mirrors:

@@ -14,7 +14,7 @@ Generated mirrors include:
 - `src/client/doppler-registry.json`
 - `docs/model-support-matrix.md`
 - `docs/model-support-inventory.md`
-- HF `Clocksmith/rdrr` `registry/catalog.json`
+- HF `clocksmith/rdrr` `registry/catalog.json`
 
 Use `npm run ci:catalog:check` after catalog or hosted registry changes.
 
@@ -52,7 +52,7 @@ Supporting directories:
 
 ### Hugging Face (hosted artifacts)
 
-Repo: `Clocksmith/rdrr`
+Repo: `clocksmith/rdrr`
 Path: `models/<model-id>` within the repo
 
 The verified, promotion-ready subset is published here. See [registry-workflow.md](../docs/registry-workflow.md).
