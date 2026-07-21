@@ -74,9 +74,9 @@ The training API, workload schema, and adapter families live in the
 
 ## Evidence
 
-Doppler has higher throughput than Transformers.js in accepted,
-throughput-comparable browser WebGPU comparisons indexed below where the
-throughput gate passes.
+Doppler has higher steady-state inference throughput than Transformers.js in
+accepted, throughput-comparable browser WebGPU comparisons indexed below where
+the throughput gate passes.
 
 ![Metal and Vulkan browser WebGPU throughput distributions](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-webgpu-evidence.svg)
 
