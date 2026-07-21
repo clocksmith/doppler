@@ -63,27 +63,10 @@ Doppler supports:
 npx doppler-gpu lora --config ./workload.json --surface node
 ```
 
-```js
-import { trainSftLoRA, getTrainingCapabilities, loadTrainingWorkloadPack } from 'doppler-gpu/training';
-
-const workload = await loadTrainingWorkloadPack('./workload.json');
-const caps = getTrainingCapabilities(workload.workload);
-const result = await trainSftLoRA({
-  backend: caps.backends.webgpuNative.supported ? 'webgpu_native' : 'external',
-  loadedWorkload: workload,
-  samples: tokenizedCompletionMaskedSamples,
-  export: { id: 'my-adapter', name: 'My adapter', weightsPath: 'adapter.safetensors' },
-});
-```
-
 Active adapters are registered in [models/adapters/catalog.json](models/adapters/catalog.json).
-
-| Adapter family | Base model | Status |
-| --- | --- | --- |
-| WGSL Repair v12 candidates | `qwen-3-5-9b-f16-af32` | Preserved + candidate artifacts in catalog |
-| Production adapters | `qwen-3-5-0-8b-q4k-ehaf16` | Native LoRA contract and export pipeline |
-
-See the [LoRA Format specification](docs/lora-format.md), [Training handbook](docs/training-handbook.md), and [Training API](docs/api/training.md).
+The training API, workload schema, and adapter families live in the
+[LoRA Format specification](docs/lora-format.md),
+[Training handbook](docs/training-handbook.md), and [Training API](docs/api/training.md).
 
 ## Evidence
 
