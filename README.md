@@ -6,15 +6,14 @@
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/clocksmith/doppler/pulls)
 
 Doppler turns inference engineering into a verifiable search problem. Optimizers
-edit RDRR manifests, execution plans, and kernels; parity and benchmark gates
+edit JSON manifests, execution plans, and WGSL kernels; parity and benchmark gates
 accept or reject each candidate against correctness and speed.
 
-Today engineers use these contracts and gates to tune a JavaScript/WGSL WebGPU
+These contracts and gates are used by operators to tune a configurable and pure JavaScript and WGSL sourced WebGPU
 runtime for supported
 [RDRR artifacts](https://github.com/clocksmith/doppler/blob/main/docs/rdrr-format.md)
-in browser and Node. Doppler runs text generation, embeddings, and reranking
-locally, with CLI and OpenAI-compatible server entry points. Bun WebGPU support
-is experimental.
+in browser, Node, and Bun. Doppler runs text generation, embeddings, and reranking
+locally, with CLI and OpenAI-compatible server entry points. 
 
 **Read this first:** [getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md) → [Root API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md) → [open source evidence](https://github.com/clocksmith/doppler/blob/main/docs/model-competition-scoreboard.md)
 
