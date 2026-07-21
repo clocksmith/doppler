@@ -1,17 +1,10 @@
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 1024 544" role="img" aria-label="doppler">
 <defs>
- <linearGradient id="dop-base" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1024" y2="544">
+ <linearGradient id="dop-rb" gradientUnits="userSpaceOnUse" x1="0" y1="272" x2="1024" y2="272" gradientTransform="rotate(-8 512 272)">
   <stop offset="0" stop-color="#ff1f3d"/>
-  <stop offset="1" stop-color="#315bff"/>
- </linearGradient>
- <linearGradient id="dop-sweep" gradientUnits="userSpaceOnUse" x1="0" y1="544" x2="1024" y2="0" gradientTransform="rotate(-9 512 272)">
-  <stop offset="0" stop-color="#315bff"/>
-  <stop offset="0.5" stop-color="#c026d3"/>
-  <stop offset="1" stop-color="#ff1f3d"/>
- </linearGradient>
- <linearGradient id="dop-tint" gradientUnits="userSpaceOnUse" x1="0" y1="272" x2="1024" y2="272" gradientTransform="rotate(14 512 272)">
-  <stop offset="0" stop-color="#ff1f3d"/>
-  <stop offset="1" stop-color="#315bff"/>
+  <stop offset="0.44" stop-color="#ff1f3d"/>
+  <stop offset="0.56" stop-color="#2f6bff"/>
+  <stop offset="1" stop-color="#2f6bff"/>
  </linearGradient>
  <clipPath id="dop-clip" clipPathUnits="userSpaceOnUse">
   <path d="M915.177551,43.073151 
@@ -254,8 +247,6 @@ z"/>
  </clipPath>
 </defs>
 <g clip-path="url(#dop-clip)">
- <rect x="0" y="0" width="1024" height="544" fill="url(#dop-base)"/>
- <rect x="0" y="0" width="1024" height="544" fill="url(#dop-sweep)" opacity="0.5"/>
- <rect x="0" y="0" width="1024" height="544" fill="url(#dop-tint)" opacity="0.3"/>
+ <rect x="0" y="0" width="1024" height="544" fill="url(#dop-rb)"/>
 </g>
 </svg>

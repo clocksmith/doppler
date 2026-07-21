@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/doppler-logo.svg" alt="doppler" width="380" />
+  <img src="assets/doppler-logo.svg" alt="doppler" width="190" />
 </p>
 
 # doppler-gpu
