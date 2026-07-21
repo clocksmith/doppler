@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/doppler-logo.svg" alt="doppler" width="380" />
+</p>
+
 # doppler-gpu
 
 [![Build](https://img.shields.io/github/actions/workflow/status/clocksmith/doppler/check-green.yml?branch=main&label=build)](https://github.com/clocksmith/doppler/actions/workflows/check-green.yml)
