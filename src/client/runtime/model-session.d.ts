@@ -2,11 +2,78 @@ import type { InferencePipeline, KVCacheSnapshot, PromptInput } from '../../infe
 import type { ChatMessage } from '../../inference/pipelines/text/chat-format.js';
 import type { GenerateOptions } from '../../generation/index.js';
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
-import type { LogitsStepResult, PrefillResult, SequenceEncodeOptions, SequenceEncodeResult } from '../../inference/pipelines/text/types.d.ts';
+import type { LogitsStepResult, PipelineStats, PrefillResult, SequenceEncodeOptions, SequenceEncodeResult } from '../../inference/pipelines/text/types.d.ts';
 import type { LoRAManifest } from './types.js';
 import type { LoRALoadOptions } from './lora.js';
 
 export type DopplerGenerateOptions = Omit<GenerateOptions, 'stopTokens'>;
+
+export interface DopplerGenerationConfigEvidence {
+  maxTokens: number;
+  temperature: number;
+  topP: number;
+  topK: number;
+  repetitionPenalty: number;
+  repetitionPenaltyWindow: number;
+  greedyThreshold: number;
+  suppressSpecialTokens: boolean;
+  suppressSpecialLikeTokens: boolean;
+  suppressTokenIds: number[];
+  stopSequences: string[];
+  useChatTemplate: boolean;
+  useSpeculative: boolean;
+  seed: number | null;
+}
+
+export interface DopplerGenerationBackendIdentity {
+  backend: 'webgpu';
+  adapter: {
+    vendor: string | null;
+    architecture: string | null;
+    device: string | null;
+    description: string | null;
+  };
+  hasF16: boolean;
+  hasSubgroups: boolean;
+  maxBufferSize: number;
+  deviceEpoch: number;
+  kernelPathId: string | null;
+  kernelPathSource: string | null;
+  executionPlanId: string | null;
+  activationDtype: string | null;
+}
+
+export interface DopplerGenerationEvidence {
+  schema: 'doppler_generation_evidence/v1';
+  outputText: string;
+  tokenIds: number[];
+  transcript: {
+    schema: 'doppler_generation_transcript/v1';
+    outputText: string;
+    tokenIds: number[];
+  };
+  transcriptHash: string;
+  generationConfig: DopplerGenerationConfigEvidence;
+  generationConfigHash: string;
+  runtimeProfile: {
+    schema: 'doppler_runtime_profile/v1';
+    runtime: {
+      package: 'doppler-gpu';
+      version: string;
+      surface: 'node' | 'browser';
+    };
+    model: {
+      modelId: string | null;
+      manifestHash: string | null;
+      activeAdapter: string | null;
+    };
+    backendIdentity: DopplerGenerationBackendIdentity;
+  };
+  runtimeProfileHash: string;
+  backendIdentity: DopplerGenerationBackendIdentity;
+  backendIdentityHash: string;
+  stats: PipelineStats | null;
+}
 
 export interface DopplerChatResponse {
   content: string;
@@ -20,6 +87,7 @@ export interface DopplerChatResponse {
 export interface DopplerModelHandle {
   generate(prompt: string, options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   generateText(prompt: string, options?: DopplerGenerateOptions): Promise<string>;
+  generateWithEvidence(prompt: string, options?: DopplerGenerateOptions): Promise<DopplerGenerationEvidence>;
   chat(messages: ChatMessage[], options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   chatText(messages: ChatMessage[], options?: DopplerGenerateOptions): Promise<DopplerChatResponse>;
   encodeSequence(sequence: string, options?: SequenceEncodeOptions): Promise<SequenceEncodeResult>;
