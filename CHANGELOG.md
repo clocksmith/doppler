@@ -8,6 +8,15 @@ docs so the `0.1.x` line has one conventional npm-visible history surface.
 
 ## [Unreleased]
 
+## [0.4.15] - 2026-07-24
+
+### Added
+
+- Added `generateWithEvidence()` to loaded model handles. The browser-safe
+  result binds generated token IDs, transcript, resolved generation config,
+  runtime profile, WebGPU backend identity, and execution-plan identity with
+  canonical SHA-256 hashes.
+
 ## [0.4.14] - 2026-07-19
 
 ### Added
