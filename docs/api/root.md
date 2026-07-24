@@ -78,6 +78,7 @@ Returns a `DopplerModel` instance with:
 
 - `generate(...)`
 - `generateText(...)`
+- `generateWithEvidence(...)`
 - `chat(...)`
 - `chatText(...)`
 - experimental `loadLoRA(...)`
@@ -145,6 +146,36 @@ const reply = await model.chatText([
 console.log(reply.content);
 await model.unload();
 ```
+
+## Generation Evidence Example
+
+Use `generateWithEvidence()` when a caller needs the generated output and a
+browser-safe receipt that binds the transcript to the resolved generation
+config, runtime profile, WebGPU backend, and execution-plan identity.
+
+```js
+import { dr } from 'doppler-gpu';
+
+const model = await dr.load('qwen3-0.8b');
+const evidence = await model.generateWithEvidence('Describe WebGPU briefly', {
+  maxTokens: 64,
+  temperature: 0,
+});
+
+console.log({
+  outputText: evidence.outputText,
+  tokenIds: evidence.tokenIds,
+  transcriptHash: evidence.transcriptHash,
+  generationConfigHash: evidence.generationConfigHash,
+  runtimeProfileHash: evidence.runtimeProfileHash,
+  backendIdentityHash: evidence.backendIdentityHash,
+});
+
+await model.unload();
+```
+
+The receipt records what ran. It does not by itself establish semantic
+correctness or output quality.
 
 ## Advanced Telemetry Example
 
