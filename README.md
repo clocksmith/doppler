@@ -217,7 +217,21 @@ for await (const token of model.generate('Describe WebGPU briefly')) {
 
 // One-shot
 const text = await model.generateText('Explain WebGPU in one sentence');
+
+// One-shot with a hash-bound execution receipt
+const evidence = await model.generateWithEvidence('Explain WebGPU in one sentence', {
+  maxTokens: 64,
+  temperature: 0,
+});
+console.log(evidence.outputText, evidence.transcriptHash);
+
+await model.unload();
 ```
+
+`generateWithEvidence()` returns the text and token IDs together with canonical
+SHA-256 hashes for the transcript, resolved generation config, runtime profile,
+WebGPU backend, and execution-plan identity. The receipt records what ran; it
+does not by itself establish output correctness.
 
 ### OpenAI-compatible server
 
