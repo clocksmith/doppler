@@ -23,7 +23,7 @@ const result = await runBrowserCommandInNode({
     model: 'translategemma-4b-it-q4k-ehf16-af32',
     runtime: {
       shared: {
-        tooling: { intent: 'verify' },
+        tooling: { diagnostics: 'always' },
         debug: {
           logLevel: { defaultLogLevel: 'debug' },
           trace: { enabled: true, categories: ['attn', 'ffn', 'embed', 'logits'] },

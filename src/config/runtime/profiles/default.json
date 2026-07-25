@@ -3,6 +3,7 @@
   "name": "default",
   "description": "Baseline runtime defaults from schema",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-02-25T00:00:00Z",

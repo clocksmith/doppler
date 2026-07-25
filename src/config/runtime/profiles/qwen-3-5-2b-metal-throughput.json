@@ -3,6 +3,7 @@
   "name": "qwen-3-5-2b-metal-throughput",
   "description": "Qwen 3.5 2B browser/Metal throughput profile. Uses 16-lane Q4_K decode projections, fused gate/up, and exact linear-attention fusions while preserving the manifest f32 compute lane.",
   "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-07-07T00:00:00Z",

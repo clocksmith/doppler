@@ -101,6 +101,8 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
     sharedAttentionState: context.sharedAttentionState ?? null,
     kvCache: ((kvCache)),
     linearRuntime: context.linearAttentionRuntime ?? null,
+    resolvedRuntimeSession: context.resolvedRuntimeSession,
+    observationContext: context.observationContext ?? null,
     operatorDiagnostics: context.operatorDiagnostics,
     executionPolicies: context.executionPolicies ?? null,
   };

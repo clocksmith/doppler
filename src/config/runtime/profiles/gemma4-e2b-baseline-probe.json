@@ -3,6 +3,7 @@
   "name": "gemma4-e2b-baseline-probe",
   "description": "One-off diagnostic profile with layer-0 kernel-debug dumps. Baseline (no RMSNorm+Q4K fusion) for comparison against gemma4-e2b-fused-rmsnorm-probe. Not for perf measurement — only correctness probe.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-18T00:00:00Z",
@@ -10,9 +11,6 @@
   "model": "gemma-4-e2b-it-q4k-ehf16-af32",
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "investigate"
-      },
       "debug": {
         "logLevel": {
           "defaultLogLevel": "debug"

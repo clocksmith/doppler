@@ -30,7 +30,7 @@ function assertCallBlocksContain(source, marker, needle, label) {
 }
 
 const probeForwardingFiles = [
-  'src/inference/pipelines/text/attention/run.js',
+  'src/inference/pipelines/text/attention/interpreter.js',
   'src/inference/pipelines/text/layer.js',
   'src/inference/pipelines/text/ffn/standard.js',
   'src/inference/pipelines/text/ffn/sandwich.js',

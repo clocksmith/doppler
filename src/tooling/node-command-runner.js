@@ -203,8 +203,8 @@ export async function runNodeCommand(commandRequest, options = {}) {
     const modules = await loadRuntimeModules();
     const runtimeBridge = {
       loadRuntimeConfigFromRef,
-      applyRuntimeProfile: modules.harness.applyRuntimeProfile,
-      applyRuntimeConfigFromUrl: modules.harness.applyRuntimeConfigFromUrl,
+      loadRuntimeProfile: modules.harness.loadRuntimeProfile,
+      loadRuntimeConfigFromUrl: modules.harness.loadRuntimeConfigFromUrl,
       getRuntimeConfig: modules.runtime.getRuntimeConfig,
       setRuntimeConfig: modules.runtime.setRuntimeConfig,
       resetRuntimeConfig: modules.runtime.resetRuntimeConfig,

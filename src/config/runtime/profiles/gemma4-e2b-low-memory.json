@@ -3,6 +3,7 @@
   "name": "gemma4-e2b-low-memory",
   "description": "Model-scoped Gemma 4 E2B low-memory profile with explicit contiguous TurboQuant KV compression and shorter context.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-06T00:00:00Z",

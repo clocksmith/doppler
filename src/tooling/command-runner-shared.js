@@ -1,4 +1,9 @@
-import { applyOrderedRuntimeInputs } from './runtime-input-composition.js';
+import { resolveOrderedRuntimeInputs } from './runtime-input-composition.js';
+import { createCommandContext } from './command-context.js';
+import {
+  assertRuntimeInputIntentCompatibility,
+  stripLegacyRuntimeIntent,
+} from './runtime-intent.js';
 
 function cloneRuntimeConfig(runtimeConfig) {
   if (runtimeConfig == null) return runtimeConfig;
@@ -116,17 +121,26 @@ function resolveExpectedModelType(request) {
 
 export async function applyRuntimeInputs(request, runtimeBridge, options = {}) {
   resetRuntimeState(runtimeBridge);
-  await applyOrderedRuntimeInputs(runtimeBridge, {
+  const resolved = await resolveOrderedRuntimeInputs(runtimeBridge.getRuntimeConfig(), {
     configChain: request.configChain ?? null,
     runtimeProfile: request.runtimeProfile ?? null,
     runtimeConfigUrl: request.runtimeConfigUrl ?? null,
     runtimeConfig: request.runtimeConfig ?? null,
   }, {
     loadRuntimeConfigFromRef: runtimeBridge.loadRuntimeConfigFromRef?.bind(runtimeBridge),
-    applyRuntimeProfile: runtimeBridge.applyRuntimeProfile?.bind(runtimeBridge),
-    applyRuntimeConfigFromUrl: runtimeBridge.applyRuntimeConfigFromUrl?.bind(runtimeBridge),
+    loadRuntimeProfile: runtimeBridge.loadRuntimeProfile?.bind(runtimeBridge),
+    loadRuntimeConfigFromUrl: runtimeBridge.loadRuntimeConfigFromUrl?.bind(runtimeBridge),
   }, options);
-  assertCalibrateRuntimeCompatibility(request, runtimeBridge.getRuntimeConfig());
+  assertRuntimeInputIntentCompatibility(request.intent, resolved.documents);
+  const runtimeConfig = stripLegacyRuntimeIntent(resolved.runtime);
+  assertCalibrateRuntimeCompatibility(request, runtimeConfig);
+  if (resolved.documents.length > 0) {
+    runtimeBridge.setRuntimeConfig(runtimeConfig);
+  }
+  return {
+    runtimeConfig,
+    documents: resolved.documents,
+  };
 }
 
 export async function runWithRuntimeIsolation(runtimeBridge, run) {
@@ -143,10 +157,13 @@ export function buildSuiteOptions(request, surface = null) {
     ? surface.trim()
     : null;
   const expectedModelType = resolveExpectedModelType(request);
+  const commandContext = createCommandContext(request);
   return {
     mode: resolveExecutionMode(request),
     workload: request.workload,
     command: request.command,
+    intent: commandContext.intent,
+    commandContext,
     surface: normalizedSurface,
     ...(expectedModelType ? { expectedModelType } : {}),
     inferenceInput: request.inferenceInput ?? undefined,

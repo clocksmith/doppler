@@ -10,6 +10,8 @@ import type { CommandRecorder } from '../../../../gpu/kernel-selector.js';
 import type { KVCacheInterface } from '../types.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { LinearAttentionRuntime } from '../linear-attention.js';
+import type { ResolvedRuntimeSession } from '../resolved-runtime-session.js';
+import type { ObservationContext } from '../../../observation-context.js';
 import type { ExecutionV1PoliciesSchema } from '../../../../config/schema/execution-v1.schema.js';
 
 /**
@@ -83,6 +85,8 @@ export interface AttentionState {
   ropeFreqsSin: GPUBuffer | null;
   kvCache: KVCacheInterface;
   linearRuntime?: LinearAttentionRuntime | null;
+  resolvedRuntimeSession: ResolvedRuntimeSession;
+  observationContext?: ObservationContext | null;
   executionPolicies?: ExecutionV1PoliciesSchema | null;
   skipKVCacheWrites?: boolean;
 }

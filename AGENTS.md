@@ -167,7 +167,9 @@ Use runtime profiles/config payloads, not ad-hoc per-field flags.
 - Runtime profiles: `src/config/runtime/profiles/`
 - Conversion configs: `src/config/conversion/` (v1 format with inline execution graph)
 - Read tunables via `getRuntimeConfig()`; avoid hardcoded defaults in runtime paths.
-- `runtime.shared.tooling.intent` is required for harnessed debug/bench/test flows.
+- `request.intent` is the sole active-run intent authority and is normalized from
+  command metadata. Runtime profiles declare top-level `compatibleIntents`;
+  `runtime.shared.tooling.intent` is removed and must not be authored.
 - Experimental model-scoped dtype lanes must be expressed as a runtime profile
   plus an execution-v1 capability transform. Do not change catalog/release
   metadata for the lane until the matching browser/WebGPU transcript or parity

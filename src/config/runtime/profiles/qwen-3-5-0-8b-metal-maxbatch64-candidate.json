@@ -3,6 +3,7 @@
   "name": "qwen-3-5-0-8b-metal-maxbatch64-candidate",
   "description": "Investigation candidate for Qwen 3.5 0.8B browser/Metal throughput. Copies the baseline Metal profile and changes only maxBatchDecodeTokens from 128 to 64.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-07-08T00:00:00Z",

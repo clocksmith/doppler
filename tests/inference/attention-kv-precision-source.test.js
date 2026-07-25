@@ -1,28 +1,28 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const runSource = readFileSync(new URL('../../src/inference/pipelines/text/attention/run.js', import.meta.url), 'utf8');
-const recordSource = readFileSync(new URL('../../src/inference/pipelines/text/attention/record.js', import.meta.url), 'utf8');
+const runSource = readFileSync(new URL('../../src/inference/pipelines/text/attention/executor-immediate.js', import.meta.url), 'utf8');
+const interpreterSource = readFileSync(new URL('../../src/inference/pipelines/text/attention/interpreter.js', import.meta.url), 'utf8');
 
 assert.match(
   runSource,
-  /resolveAttentionPrecisionContract\(config, state\)/,
-  'run.js must resolve the explicit attention precision contract before KV-cache narrowing'
+  /interpretAttentionWithRecorder\(/,
+  'the immediate adapter must delegate precision and KV-cache decisions to the canonical interpreter'
 );
-assert.match(
+assert.doesNotMatch(
   runSource,
-  /isAttentionKvDtypeExplicit\(attentionPrecisionContract, 'f16'\)/,
-  'run.js must treat explicit f16 KV-cache narrowing as manifest-owned'
+  /resolveAttentionPrecisionContract|isAttentionKvDtypeExplicit/,
+  'the immediate adapter must not duplicate attention precision decisions'
 );
 assert.match(
-  recordSource,
+  interpreterSource,
   /resolveAttentionPrecisionContract\(config, state\)/,
-  'record.js must resolve the explicit attention precision contract before KV-cache narrowing'
+  'the canonical executor must resolve the explicit attention precision contract before KV-cache narrowing'
 );
 assert.match(
-  recordSource,
+  interpreterSource,
   /isAttentionKvDtypeExplicit\(attentionPrecisionContract, 'f16'\)/,
-  'record.js must treat explicit f16 KV-cache narrowing as manifest-owned'
+  'the canonical executor must treat explicit f16 KV-cache narrowing as manifest-owned'
 );
 
 console.log('attention-kv-precision-source.test: ok');

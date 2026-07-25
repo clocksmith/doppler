@@ -374,7 +374,8 @@ Key files:
 - [`src/config/conversion/qwen3/qwen-3-5-0-8b-f16.json`](../src/config/conversion/qwen3/qwen-3-5-0-8b-f16.json)
 - `models/local/qwen-3-5-0-8b-f16/manifest.json`
 - [`src/inference/pipelines/text/linear-attention.js`](../src/inference/pipelines/text/linear-attention.js)
-- [`src/inference/pipelines/text/attention/run.js`](../src/inference/pipelines/text/attention/run.js)
+- [`src/inference/pipelines/text/attention/plan.js`](../src/inference/pipelines/text/attention/plan.js)
+- [`src/inference/pipelines/text/attention/interpreter.js`](../src/inference/pipelines/text/attention/interpreter.js)
 - [`tests/inference/linear-attention-contract.test.js`](../tests/inference/linear-attention-contract.test.js)
 - [`tests/inference/qwen-manifest-completeness.test.js`](../tests/inference/qwen-manifest-completeness.test.js)
 - [`tests/inference/qwen-rope-runtime-config.test.js`](../tests/inference/qwen-rope-runtime-config.test.js)

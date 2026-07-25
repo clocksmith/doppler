@@ -17,7 +17,7 @@ assert.equal(
   true
 );
 assert.equal(
-  artifact.checks.some((entry) => entry.id === 'runtime.schema.calibrate_does_not_mutate_kernel_warmup_defaults' && entry.ok && entry.mode === 'actual'),
+  artifact.checks.some((entry) => entry.id === 'runtime.schema.observation_does_not_mutate_kernel_warmup_defaults' && entry.ok && entry.mode === 'actual'),
   true
 );
 assert.equal(

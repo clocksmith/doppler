@@ -124,7 +124,7 @@ test -f /tmp/<model-id>-rebuild/manifest.json
 ```bash
 node src/cli/doppler-cli.js debug \
   --config '{"request":{"modelId":"<model-id>","modelUrl":"file:///tmp/<model-id>-rebuild","loadMode":"http","captureOutput":true},"run":{"surface":"node"}}' \
-  --runtime-config '{"shared":{"tooling":{"intent":"investigate"}},"inference":{"prompt":"What color is the sky on a clear day? Answer in one word.","batching":{"maxTokens":4},"sampling":{"temperature":0,"topP":1,"topK":1,"repetitionPenalty":1,"greedyThreshold":0}}}' \
+  --runtime-config '{"shared":{"tooling":{"diagnostics":"always"}},"inference":{"prompt":"What color is the sky on a clear day? Answer in one word.","batching":{"maxTokens":4},"sampling":{"temperature":0,"topP":1,"topK":1,"repetitionPenalty":1,"greedyThreshold":0}}}' \
   --json
 ```
 

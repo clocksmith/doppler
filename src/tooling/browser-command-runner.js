@@ -1,7 +1,7 @@
 import {
-  applyRuntimeProfile,
-  applyRuntimeConfigFromUrl,
   loadRuntimeConfigFromRef,
+  loadRuntimeConfigFromUrl,
+  loadRuntimeProfile,
 } from '../inference/browser-harness-runtime-helpers.js';
 import {
   getRuntimeConfig,
@@ -84,8 +84,8 @@ export async function runBrowserCommand(commandRequest, options = {}) {
 
     const runtimeBridge = {
       loadRuntimeConfigFromRef,
-      applyRuntimeProfile,
-      applyRuntimeConfigFromUrl,
+      loadRuntimeProfile,
+      loadRuntimeConfigFromUrl,
       getRuntimeConfig,
       setRuntimeConfig,
       resetRuntimeConfig,

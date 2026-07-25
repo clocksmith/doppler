@@ -68,6 +68,7 @@ import {
 import { collectTrainingArtifactsFromSuiteResult } from './browser-harness-report-helpers.js';
 import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
+import { assertCommandContextMatchesOptions } from '../tooling/command-context.js';
 
 const TRAINING_SUITE_MODULE_PATH = '../experimental/training/suite.js';
 let trainingSuiteModulePromise = null;
@@ -1997,6 +1998,9 @@ async function withHarnessPhase(phase, context, run) {
 
 export async function runBrowserSuite(options = {}) {
   return runWithRuntimeIsolationForSuite(async () => {
+    if (options.commandContext) {
+      assertCommandContextMatchesOptions(options.commandContext, options);
+    }
     const suiteTimestamp = resolveReportTimestamp(options.timestamp, 'runBrowserSuite timestamp');
     const harnessContext = resolveHarnessContext(options);
     const mode = resolveHarnessMode(options, harnessContext);

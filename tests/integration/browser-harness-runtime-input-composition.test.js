@@ -51,6 +51,13 @@ try {
       },
     }],
     ['https://example.test/runtime/profiles/verbose-trace.json', {
+      id: 'profiles/verbose-trace',
+      name: 'verbose-trace',
+      intent: 'investigate',
+      compatibleIntents: ['investigate'],
+      stability: 'experimental',
+      owner: 'test',
+      createdAtUtc: '2026-01-01T00:00:00Z',
       runtime: {
         inference: {
           prompt: 'profile',
@@ -107,7 +114,7 @@ try {
   });
 
   await applyRuntimeForRun({
-    command: 'verify',
+    command: 'debug',
     workload: 'inference',
     modelId: 'gemma3-270m',
     configChain: ['https://example.test/runtime/base.json'],

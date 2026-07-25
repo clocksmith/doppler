@@ -3,6 +3,7 @@
   "name": "Gemma 4 — 128 GB tier (unified memory APU)",
   "description": "Gemma 4 MoE runtime tier for 128 GB unified memory systems (e.g., Ryzen AI MAX+ 395). Generous expert cache, contiguous KV, extended context. Budget leaves headroom for system and replay-prefill intermediates.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-04T00:00:00Z",

@@ -3,6 +3,7 @@
   "name": "turboquant-contiguous",
   "description": "Experimental contiguous TurboQuant profile for full-attention decode with execution-v1-native session wiring.",
   "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
   "stability": "experimental",
   "owner": "inference",
   "createdAtUtc": "2026-03-25T00:00:00Z",

@@ -3,17 +3,13 @@
   "name": "gemma4-e2b-int4ple-f16a-probe",
   "description": "Experimental Gemma 4 E2B INT4 PLE profile that requests f16 activation narrowing against the existing execution-v1 manifest. Stage-1 probe only; do not use for release claims until correctness and perf gates pass.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-20T00:00:00Z",
   "extends": "profiles/throughput",
   "model": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
   "runtime": {
-    "shared": {
-      "tooling": {
-        "intent": "investigate"
-      }
-    },
     "inference": {
       "compute": {
         "activationDtype": "f16"

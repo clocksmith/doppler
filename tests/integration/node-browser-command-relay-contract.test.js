@@ -17,7 +17,7 @@ const KERNELS_REQUEST = {
   runtimeConfig: {
     shared: {
       tooling: {
-        intent: 'verify',
+        diagnostics: 'off',
       },
     },
     inference: {
@@ -134,7 +134,7 @@ const KERNELS_REQUEST = {
     runtime: {
       shared: {
         tooling: {
-          intent: 'verify',
+          diagnostics: 'off',
         },
       },
     },

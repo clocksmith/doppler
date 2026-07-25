@@ -165,6 +165,17 @@ function createConfig() {
   };
 }
 
+function createAttentionState() {
+  return {
+    resolvedRuntimeSession: {
+      schema: 'doppler.resolved-runtime-session/v1',
+      runtime: {
+        session: {},
+      },
+    },
+  };
+}
+
 function assertPoolIsClean() {
   assert.equal(getBufferPool().getStats().activeBuffers, 0);
 }
@@ -176,9 +187,9 @@ try {
       createInputTensor(),
       createLayerWeights(),
       createConfig(),
-      {},
+      createAttentionState(),
       false,
-      {},
+      createAttentionState(),
       (weight) => weight,
       null,
       null,

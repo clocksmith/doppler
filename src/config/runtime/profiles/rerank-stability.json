@@ -3,15 +3,13 @@
   "name": "rerank-stability",
   "description": "Stable rerank validation profile with deterministic scoring and quiet tracing.",
   "intent": "verify",
+  "compatibleIntents": ["verify"],
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-07-06T00:00:00Z",
   "extends": "profiles/default",
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "verify"
-      },
       "debug": {
         "logLevel": {
           "defaultLogLevel": "silent"

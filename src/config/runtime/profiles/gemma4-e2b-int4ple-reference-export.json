@@ -3,6 +3,7 @@
   "name": "gemma4-e2b-int4ple-reference-export",
   "description": "Gemma 4 E2B INT4 PLE reference-export profile for constrained Node WebGPU hosts. Keeps low-memory loading caps while preserving plain contiguous KV cache required by the execution-v1 INT4 PLE path.",
   "intent": "verify",
+  "compatibleIntents": ["verify"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-25T00:00:00Z",
@@ -10,9 +11,6 @@
   "model": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "verify"
-      },
       "bufferPool": {
         "budget": {
           "maxTotalBytes": 13958643712,

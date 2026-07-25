@@ -8,9 +8,15 @@ import {
 } from '../config/kernel-path-loader.js';
 import { mergeRuntimeValues } from '../config/runtime-merge.js';
 import {
-  applyOrderedRuntimeInputs,
+  resolveOrderedRuntimeInputs,
   resolveRuntimeFromConfig,
 } from '../tooling/runtime-input-composition.js';
+import { validateRuntimeProfileMetadata } from '../config/schema/runtime-profile.schema.js';
+import { resolveCommandRuntimeContract } from '../tooling/command-api-helpers.js';
+import {
+  assertRuntimeInputIntentCompatibility,
+  stripLegacyRuntimeIntent,
+} from '../tooling/runtime-intent.js';
 
 function parseReportTimestamp(rawTimestamp, label = 'timestamp') {
   if (rawTimestamp == null) {
@@ -305,7 +311,7 @@ export async function loadRuntimeConfigFromUrl(url, options = {}) {
 
 export async function applyRuntimeConfigFromUrl(url, options = {}) {
   const { runtime } = await loadRuntimeConfigFromUrl(url, options);
-  const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), runtime);
+  const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), stripLegacyRuntimeIntent(runtime));
   setRuntimeConfig(mergedRuntime);
   return mergedRuntime;
 }
@@ -317,12 +323,15 @@ export async function loadRuntimeProfile(profileId, options = {}) {
     throw new Error('runtime profile id is required');
   }
   const url = `${baseUrl.replace(/\/$/, '')}/${normalized}`;
-  return loadRuntimeConfigFromUrl(url, { ...options, profileBaseUrl: baseUrl });
+  const loaded = await loadRuntimeConfigFromUrl(url, { ...options, profileBaseUrl: baseUrl });
+  validateRuntimeProfileMetadata(loaded.config, `runtime profile "${profileId}"`);
+  return loaded;
 }
 
 export async function applyRuntimeProfile(profileId, options = {}) {
   const { runtime } = await loadRuntimeProfile(profileId, options);
-  const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), runtime);
+  const normalizedRuntime = stripLegacyRuntimeIntent(runtime);
+  const mergedRuntime = mergeRuntimeValues(getRuntimeConfig(), normalizedRuntime);
   setRuntimeConfig(mergedRuntime);
   return mergedRuntime;
 }
@@ -342,19 +351,25 @@ export async function applyRuntimeForRun(run, options = {}) {
     ?? run.runtime?.configChain
     ?? options.runtime?.configChain
   );
-  await applyOrderedRuntimeInputs({
-    getRuntimeConfig,
-    setRuntimeConfig,
-  }, {
+  const resolved = await resolveOrderedRuntimeInputs(getRuntimeConfig(), {
     configChain,
     runtimeProfile: run.runtimeProfile ?? null,
     runtimeConfigUrl: run.runtimeConfigUrl ?? null,
     runtimeConfig: run.runtimeConfig ?? null,
   }, {
     loadRuntimeConfigFromRef: (ref, runtimeOptions) => loadRuntimeConfigFromRef(ref, runtimeOptions),
-    applyRuntimeProfile,
-    applyRuntimeConfigFromUrl,
+    loadRuntimeProfile,
+    loadRuntimeConfigFromUrl,
   }, options);
+  const commandIntent = run.command
+    ? resolveCommandRuntimeContract(run.command).intent
+    : null;
+  if (commandIntent !== null) {
+    assertRuntimeInputIntentCompatibility(commandIntent, resolved.documents);
+  }
+  if (resolved.documents.length > 0) {
+    setRuntimeConfig(stripLegacyRuntimeIntent(resolved.runtime));
+  }
 }
 
 export function normalizeManifest(manifest) {

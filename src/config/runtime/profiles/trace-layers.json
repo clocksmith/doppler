@@ -3,15 +3,13 @@
   "name": "trace-layers",
   "description": "Trace layer outputs for F16 vs Q4K comparison",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-02-25T00:00:00Z",
   "extends": "profiles/default",
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "investigate"
-      },
       "debug": {
         "trace": {
           "enabled": true,

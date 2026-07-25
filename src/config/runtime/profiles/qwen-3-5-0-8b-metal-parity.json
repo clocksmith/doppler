@@ -3,6 +3,7 @@
   "name": "qwen-3-5-0-8b-metal-parity",
   "description": "Qwen 3.5 0.8B browser/Metal parity profile. Preserves the release 4x4 decode cadence while enabling exact-safe decode fusions and overlapped readback on Apple Metal.",
   "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-07-08T00:00:00Z",

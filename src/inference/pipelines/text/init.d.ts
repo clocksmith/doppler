@@ -33,6 +33,7 @@ import { Tokenizer, type ModelManifest as TokenizerManifest } from '../../tokeni
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
 import type { LayerWeights, RouterWeights } from './types.js';
+import type { CommandContext } from '../../../tooling/command-context.js';
 import type {
   KVCacheConfigSchema,
   RuntimeConfigSchema,
@@ -86,6 +87,8 @@ export function createNodeFileShardStorageContext(
  * External contexts that can be injected into the pipeline.
  */
 export interface PipelineContexts {
+  /** Immutable normalized command identity; observation-only, never numeric policy */
+  commandContext?: CommandContext | null;
   /** GPU context (device, capabilities) */
   gpu?: { device?: GPUDevice; capabilities?: KernelCapabilities };
   /** Memory context for allocation */

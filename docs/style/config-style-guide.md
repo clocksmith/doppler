@@ -240,13 +240,17 @@ Calibration comparisons are invalid if shared-contract fields differ across engi
 Runtime profiles must carry lifecycle metadata in the profile object or registry:
 
 - `id`
-- `intent` (`verify` | `investigate` | `calibrate`)
+- `intent` (`verify` | `investigate` | `calibrate`) as the profile's primary classification
+- `compatibleIntents` (non-empty subset of `verify` | `investigate` | `calibrate`)
 - `stability` (`canonical` | `experimental` | `deprecated`)
 - `owner`
 - `createdAtUtc`
 - optional: `supersedes`, `deprecatedAtUtc`, `replacementId`
 
-Agents should resolve profiles by metadata/intent, not filename heuristics.
+The normalized command request owns the active intent. Profile metadata may
+classify and constrain a profile, but it cannot select the active intent.
+Agents should resolve profiles by metadata and `compatibleIntents`, not filename
+heuristics.
 Use `node src/cli/doppler-cli.js profiles --json` to inspect checked-in profile
 metadata before selecting a profile in a command. CLI `--runtime-profile <id>`
 is only a shorthand for `request.runtimeProfile`; it must not introduce

@@ -10,6 +10,8 @@ import type { DiffusionPipeline } from './pipelines/diffusion/pipeline.js';
 import type { EnergyPipeline } from './pipelines/energy/pipeline.js';
 import type { SavedReportInfo, SaveReportOptions } from '../storage/reports.js';
 import type { DebugSnapshot } from '../debug/history.js';
+import type { CommandContext } from '../tooling/command-context.js';
+import type { ToolingIntent } from '../tooling/command-api.js';
 
 
 export interface RuntimeConfigLoadOptions {
@@ -63,6 +65,8 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   workload?: BrowserWorkload;
   suite?: BrowserSuite;
   command?: string;
+  intent?: ToolingIntent;
+  commandContext?: CommandContext;
   surface?: string;
   expectedModelType?: 'embedding' | 'rerank';
   modelUrl?: string;

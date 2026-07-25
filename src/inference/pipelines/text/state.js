@@ -44,6 +44,7 @@ export class PipelineState {
     this.kernelPathSource = 'none';
 
     this.executionPlanState = null;
+    this.resolvedRuntimeSession = null;
 
     this.disableRecordedLogits = false;
 
@@ -70,6 +71,8 @@ export class PipelineState {
     this.currentTokenIds = null;
 
     this.runtimeConfig = getRuntimeConfig();
+    this.commandContext = null;
+    this.observationContext = null;
     this.operatorDiagnostics = null;
 
     // DopplerLoader instance

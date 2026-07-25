@@ -153,6 +153,8 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     runtimeComputeConfig: effectiveComputeConfig,
     activationDtype: effectiveActivationDtype,
     kernelPath: activeKernelPath,
+    resolvedRuntimeSession: state.resolvedRuntimeSession,
+    observationContext: state.observationContext,
     executionPolicies: state.executionV1State?.policies ?? null,
     debugLayers: resolvedDebugLayers,
     finitenessBuffer: state.finitenessBuffer,

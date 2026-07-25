@@ -61,7 +61,7 @@ node tools/run-program-bundle-reference.js \
   --tsir-fixture-layers 3
 ```
 
-`--tsir-fixture-layers 3` captures only L=3, the first standard-attention layer in the checked-in Qwen 3.6 27B manifest. That layer carries `self_attn.{q,k,v,o}_proj` plus `q_norm` and `k_norm` for queryKeyNorm; the standard-attention probe-emit sites at `attention/run.js` and `layer.js` cover all four boundaries.
+`--tsir-fixture-layers 3` captures only L=3, the first standard-attention layer in the checked-in Qwen 3.6 27B manifest. That layer carries `self_attn.{q,k,v,o}_proj` plus `q_norm` and `k_norm` for queryKeyNorm; the standard-attention probe-emit sites in `attention/interpreter.js` and `layer.js` cover all four boundaries.
 
 Once captured, the Doe-side test verifies schema, artifact hashes, recomputed fixture digest, recognized Qwen modelId, and the probe coverage at L=3.
 
@@ -91,10 +91,10 @@ The fixture writer's `STAGE_TO_TSIR` map covers every stage Doppler currently em
 | Doppler stage | TSIR boundary | Emit site |
 |---|---|---|
 | `layer_in` | `pre_layer_input` | `layer.js` |
-| `post_input_norm` | `post_rmsnorm` | `attention/run.js`, `attention/record.js` |
+| `post_input_norm` | `post_rmsnorm` | `attention/interpreter.js` |
 | `linear_qkv_proj` | `post_qkv` (fused) | `linear-attention.js` (Qwen linear-attn layers) |
-| `q_proj`+`k_proj`+`v_proj` | `post_qkv` (split, synthesized) | `attention/run.js`, `attention/record.js` |
-| `q_norm`, `k_norm` | `post_qnorm`, `post_knorm` (debug) | `attention/run.js` (queryKeyNorm path) |
+| `q_proj`+`k_proj`+`v_proj` | `post_qkv` (split, synthesized) | `attention/interpreter.js` |
+| `q_norm`, `k_norm` | `post_qnorm`, `post_knorm` (debug) | `attention/interpreter.js` (queryKeyNorm path) |
 | `post_attn` | `post_attn` | `layer.js` |
 | `layer_out` | `post_ffn` | `layer.js`, `ffn/standard.js`, `ffn/sandwich.js` |
 

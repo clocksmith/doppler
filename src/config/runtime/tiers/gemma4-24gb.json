@@ -3,6 +3,7 @@
   "name": "Gemma 4 — 24 GB tier",
   "description": "Gemma 4 MoE runtime tier for 24 GB GPU memory. Moderate expert cache, contiguous KV, reduced context length.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-03-17T00:00:00Z",

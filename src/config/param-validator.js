@@ -1,6 +1,9 @@
 import { log } from '../debug/index.js';
 import { PARAM_CATEGORIES, CategoryRules } from './param-categories.js';
-import { TOOLING_INTENTS, TOOLING_DIAGNOSTICS } from './schema/tooling.schema.js';
+import {
+  REFACTOR_RECEIPT_POLICIES,
+  TOOLING_DIAGNOSTICS,
+} from './schema/tooling.schema.js';
 import { validateEcosystemConfig } from './schema/ecosystem.schema.js';
 import { isPlainObject } from '../utils/plain-object.js';
 
@@ -50,6 +53,12 @@ export function validateRuntimeOverrides(overrides) {
     assertRuntimeOverrideObject(overrides?.inference, key, 'runtime.inference');
   }
   validateRuntimeKernelPath('runtime.inference.kernelPath', overrides?.inference?.kernelPath);
+  if (overrides?.shared?.tooling?.intent !== undefined) {
+    throw new Error(
+      'DopplerConfigError: runtime.shared.tooling.intent is removed. ' +
+      'Command intent is normalized from the command request.'
+    );
+  }
 
   const modelOverrides = overrides?.inference?.modelOverrides;
   validateModelOverrides(modelOverrides, 'runtime.inference.modelOverrides');
@@ -155,7 +164,7 @@ export function validateRuntimeConfig(runtimeConfig) {
     );
   }
 
-  validateToolingIntent(runtimeConfig);
+  validateToolingDiagnostics(runtimeConfig);
   validateEcosystemConfig(runtimeConfig.shared?.ecosystem);
 
   const debug = runtimeConfig.shared?.debug;
@@ -188,17 +197,9 @@ function validateRuntimeKernelPath(label, value) {
   }
 }
 
-function validateToolingIntent(runtimeConfig) {
+function validateToolingDiagnostics(runtimeConfig) {
   const tooling = runtimeConfig.shared?.tooling;
-  const intent = tooling?.intent ?? null;
   const diagnostics = tooling?.diagnostics ?? null;
-
-  if (intent !== null && !TOOLING_INTENTS.includes(intent)) {
-    throw new Error(
-      `DopplerConfigError: runtime.shared.tooling.intent must be one of ` +
-      `${TOOLING_INTENTS.join(', ')} or null.`
-    );
-  }
 
   if (diagnostics !== null && !TOOLING_DIAGNOSTICS.includes(diagnostics)) {
     throw new Error(
@@ -206,32 +207,16 @@ function validateToolingIntent(runtimeConfig) {
       `${TOOLING_DIAGNOSTICS.join(', ')}.`
     );
   }
-
-  if (intent !== 'calibrate') return;
-
-  const debug = runtimeConfig.shared?.debug;
-  const benchmarkRun = runtimeConfig.shared?.benchmark?.run;
-  const violations = [];
-
-  if (debug?.trace?.enabled) violations.push('runtime.shared.debug.trace.enabled');
-  if (debug?.pipeline?.enabled) violations.push('runtime.shared.debug.pipeline.enabled');
-  if (debug?.probes?.length) violations.push('runtime.shared.debug.probes');
-  if (debug?.profiler?.enabled) violations.push('runtime.shared.debug.profiler.enabled');
-  if (benchmarkRun?.debug) violations.push('runtime.shared.benchmark.run.debug');
-  if (benchmarkRun?.profile) violations.push('runtime.shared.benchmark.run.profile');
-  if (benchmarkRun?.captureMemoryTimeSeries) {
-    violations.push('runtime.shared.benchmark.run.captureMemoryTimeSeries');
+  const refactorReceipts = tooling?.refactorReceipts ?? null;
+  if (
+    refactorReceipts !== null
+    && !REFACTOR_RECEIPT_POLICIES.includes(refactorReceipts)
+  ) {
+    throw new Error(
+      'DopplerConfigError: runtime.shared.tooling.refactorReceipts must be one of ' +
+      `${REFACTOR_RECEIPT_POLICIES.join(', ')}.`
+    );
   }
-
-  if (violations.length === 0) return;
-
-  throw new Error(
-    'DopplerConfigError: runtime.shared.tooling.intent="calibrate" forbids ' +
-    'investigation instrumentation.\n' +
-    `Disable ${violations.join(', ')} or set runtime.shared.tooling.intent="investigate".\n` +
-    'If this run is launched via "bench", use "debug" for profiling/trace profiles because ' +
-    '"bench" enforces intent="calibrate".'
-  );
 }
 
 function flattenObject(obj, prefix = '') {

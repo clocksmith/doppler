@@ -2,7 +2,7 @@ import { log } from '../../../../debug/index.js';
 
 /**
  * Required fields that must not be undefined on every AttnConfig instance.
- * These are the fields destructured by both run.js and record.js attention
+ * These are the fields consumed by both attention executor adapters
  * entry points. Optional fields (skipInputNorm, tokenIds, kernelPath,
  * disableRoPE) have defaults in the destructuring and are excluded.
  */

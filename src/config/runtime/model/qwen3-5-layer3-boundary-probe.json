@@ -3,6 +3,7 @@
   "name": "qwen3-5-layer3-boundary-probe",
   "description": "Capture full-attention boundary checkpoints around layer 3 to isolate Q/K norm and partial RoPE behavior.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-03-23T00:00:00Z",

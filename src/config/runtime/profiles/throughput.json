@@ -3,15 +3,13 @@
   "name": "throughput",
   "description": "Calibration profile with quiet logging and throughput-oriented sampling defaults.",
   "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-03-20T00:00:00Z",
   "extends": "profiles/default",
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "calibrate"
-      },
       "debug": {
         "logOutput": {
           "stdout": true,

@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { resolveConvertedModelId } from '../src/converter/conversion-plan.js';
 import { buildQuantizationInfo } from '../src/converter/quantization-info.js';
 import { checkProgramBundleFile } from '../src/tooling/program-bundle.js';
+import { validateRuntimeProfileMetadata } from '../src/config/schema/runtime-profile.schema.js';
 import { generateWgslVariants } from './wgsl-variant-generator.js';
 import {
   isObject,
@@ -954,6 +955,11 @@ async function validateRuntimeProfiles(root, issues, context) {
     if (!assertString(profileData.name, `${filePath}.name`)) {
       issues.push(toIssue(WARN, 'RUNTIME_PROFILE_NAME_MISSING', filePath, `runtime profile "${profileId}" missing name`));
     }
+    try {
+      validateRuntimeProfileMetadata(profileData, `runtime profile "${profileId}"`);
+    } catch (error) {
+      issues.push(toIssue(ERROR, 'RUNTIME_PROFILE_METADATA', filePath, error.message));
+    }
 
     if (profileData.extends != null && !assertString(profileData.extends, `${filePath}.extends`)) {
       issues.push(toIssue(
@@ -1416,8 +1422,14 @@ function renderBehaviorTemplate(id, scope = null, policy = getActivePolicy()) {
   const scopeDefault = resolveText(behaviorDefaults.scope, 'profiles');
   const safeScope = normalizeId(scope, { defaultValue: scopeDefault });
   return {
+    id: `${safeScope}/${safeId}`,
     name: safeId,
     description: `Runtime profile for ${safeId}`,
+    intent: 'investigate',
+    compatibleIntents: ['investigate'],
+    stability: 'experimental',
+    owner: 'doppler-core',
+    createdAtUtc: new Date().toISOString(),
     extends: `${safeScope}/default`,
     runtime: {
       inference: {
@@ -1432,11 +1444,6 @@ function renderBehaviorTemplate(id, scope = null, policy = getActivePolicy()) {
       },
       kvcache: {
         pageSize: 32,
-      },
-      shared: {
-        tooling: {
-          profile: safeId,
-        },
       },
     },
   };

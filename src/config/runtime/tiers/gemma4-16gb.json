@@ -3,6 +3,7 @@
   "name": "Gemma 4 — 16 GB tier (constrained)",
   "description": "Gemma 4 MoE runtime tier for 16 GB GPU memory. Aggressively constrained: short context, minimal expert cache, hard budget enforcement. Fail-closed if budget is not met.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-03-17T00:00:00Z",

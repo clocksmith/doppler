@@ -156,6 +156,7 @@ async function initializeInferenceFromStorage(modelId, options = {}) {
       : `Using default shard-store context for "${modelId}"`
   );
   const pipeline = await createPipeline(manifest, {
+    commandContext: options.commandContext ?? null,
     gpu: { device },
     runtime: options.runtime,
     ...(storage ? { storage } : {}),
@@ -209,6 +210,7 @@ async function initializeInferenceFromSourcePath(sourcePath, options = {}) {
 
   onProgress?.('pipeline', 0.3, 'Creating pipeline...');
   const pipeline = await createPipeline(sourceBundle.manifest, {
+    commandContext: options.commandContext ?? null,
     gpu: { device },
     runtime: effectiveRuntime,
     storage: sourceBundle.storageContext,
@@ -345,6 +347,8 @@ export async function initializeSuiteModel(options = {}) {
       onProgress: options.onProgress,
       log: options.log,
       loadMode,
+      modelId: options.modelId ?? null,
+      commandContext: options.commandContext ?? null,
     });
   }
   const modelLoadMs = Math.max(0, performance.now() - loadStart);
