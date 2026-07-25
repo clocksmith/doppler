@@ -5,6 +5,7 @@ import { state } from './ui/state.js';
 function $(id) { return document.getElementById(id); }
 
 const DEMO_DEFAULT_MAX_TOKENS = 1024;
+const TOKEN_PRESS_STORAGE_KEY = 'doppler.demo.token-perplexity-enabled';
 
 const GENERATION_FIELDS = [
   { key: 'temperature', id: 'set-temperature', path: ['inference', 'sampling', 'temperature'], parse: parseFiniteNumber },
@@ -62,6 +63,28 @@ function writeField(el, value) {
     el.value = String(value);
   } else {
     el.value = '';
+  }
+}
+
+function readBooleanPreference(key) {
+  try {
+    if (typeof localStorage !== 'object') return null;
+    const value = localStorage.getItem(key);
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+  } catch {
+    // UI preferences are optional.
+  }
+  return null;
+}
+
+function writeBooleanPreference(key, value) {
+  try {
+    if (typeof localStorage === 'object') {
+      localStorage.setItem(key, String(value === true));
+    }
+  } catch {
+    // UI preferences are optional.
   }
 }
 
@@ -135,6 +158,19 @@ export function getSettings() {
 }
 
 export async function initSettings({ requireDefaultProfile = false } = {}) {
+  const tokenPressToggle = $('set-token-press');
+  if (tokenPressToggle) {
+    const savedTokenPress = readBooleanPreference(TOKEN_PRESS_STORAGE_KEY);
+    if (savedTokenPress != null) {
+      tokenPressToggle.checked = savedTokenPress;
+    }
+    state.tokenPressEnabled = tokenPressToggle.checked;
+    tokenPressToggle.addEventListener('change', () => {
+      state.tokenPressEnabled = tokenPressToggle.checked;
+      writeBooleanPreference(TOKEN_PRESS_STORAGE_KEY, tokenPressToggle.checked);
+    });
+  }
+
   // Toggle panel visibility
   const toggle = $('settings-toggle');
   const panel = $('settings-panel');

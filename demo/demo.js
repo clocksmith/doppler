@@ -12,10 +12,21 @@ import { flushPwaLaunchState, initPwa } from './pwa.js';
 function $(id) { return document.getElementById(id); }
 
 function refreshRuntimeNotice() {
+  const xrayEnabled = $('xray-toggle-all')?.checked === true;
+  const tokenPerplexityEnabled = $('set-token-press')?.checked === true;
+  const summary = document.querySelector('.chat-controls-summary-state');
+  if (summary) {
+    summary.textContent = `X-Ray ${xrayEnabled ? 'on' : 'off'} · Perplexity ${tokenPerplexityEnabled ? 'on' : 'off'}`;
+  }
+  const xraySummary = $('xray-summary-state');
+  if (xraySummary) {
+    xraySummary.textContent = xrayEnabled ? 'Enabled · 7 panels' : 'Disabled';
+  }
+
   const el = $('runtime-notice');
   if (!el) return;
   const text = getXrayRuntimeNoticeText({
-    tokenPressEnabled: $('set-token-press')?.checked === true,
+    tokenPressEnabled: tokenPerplexityEnabled,
     traceEnabled: $('set-trace')?.checked === true,
     profilingEnabled: isXrayProfilingNeeded(),
   });

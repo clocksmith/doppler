@@ -184,26 +184,54 @@
     </header>
 
     <!-- Model picker -->
-    <section id="model-picker" class="model-picker">
-      <div class="type-label">Model</div>
-      <p class="model-picker-help">Choose a model to run in your browser. Note the download size.</p>
-      <div id="model-cards" class="model-cards"></div>
+    <section id="model-picker" class="model-picker" aria-labelledby="model-picker-label">
+      <div class="model-picker-heading">
+        <div>
+          <label id="model-picker-label" class="type-label" for="model-select">Model</label>
+          <p id="model-picker-help" class="model-picker-help">Runs locally in this browser. The first use downloads the selected model.</p>
+        </div>
+        <span id="model-select-status" class="model-select-status" aria-live="polite">Loading catalog...</span>
+      </div>
+      <div class="model-select-row">
+        <select id="model-select" aria-describedby="model-picker-help" disabled>
+          <option value="">Loading models...</option>
+        </select>
+        <button id="model-select-action" class="btn" type="button" disabled>Load model</button>
+        <button id="model-select-remove" class="btn btn-ghost" type="button" hidden>Remove</button>
+      </div>
+      <div id="model-select-detail" class="model-select-detail"></div>
+      <div id="model-select-progress-row" class="model-card-progress-row model-select-progress-row" hidden>
+        <div id="model-select-progress" class="model-card-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="model-card-progress-fill"></div>
+        </div>
+        <span id="model-select-progress-label" class="model-card-progress-percent">0%</span>
+      </div>
+      <details id="model-browser" class="model-browser">
+        <summary><span>Compare available models</span><span id="model-browser-count" class="model-browser-count"></span></summary>
+        <div id="model-cards" class="model-cards"></div>
+      </details>
     </section>
 
     <section class="chat-workspace" aria-labelledby="chat-heading">
       <h2 id="chat-heading" class="type-label chat-heading">Chat</h2>
       <div class="chat-toolbar">
-        <div class="chat-toolbar-main">
-          <label class="chat-toggle" title="Show every inference-internals panel.">
-            <span class="chat-toggle-label">X-Ray</span>
-            <input id="xray-toggle-all" type="checkbox">
-          </label>
-          <label class="chat-toggle" title="Run stepwise generation with token choices and confidence underlines.">
-            <span class="chat-toggle-label">Token logits</span>
-            <input id="set-token-press" type="checkbox">
-          </label>
-          <button id="settings-toggle" class="btn btn-ghost btn-small" type="button" aria-expanded="false" aria-controls="settings-panel">More settings</button>
-        </div>
+        <details id="chat-controls" class="chat-controls">
+          <summary>
+            <span>Controls</span>
+            <span class="chat-controls-summary-state">X-Ray on · Perplexity on</span>
+          </summary>
+          <div class="chat-toolbar-main">
+            <label class="chat-toggle" title="Show every inference-internals panel.">
+              <span class="chat-toggle-label">X-Ray</span>
+              <input id="xray-toggle-all" type="checkbox" checked>
+            </label>
+            <label class="chat-toggle" title="Color tokens by perplexity and show candidate logits on hover or focus.">
+              <span class="chat-toggle-label">Token perplexity</span>
+              <input id="set-token-press" type="checkbox" checked>
+            </label>
+            <button id="settings-toggle" class="btn btn-ghost btn-small" type="button" aria-expanded="false" aria-controls="settings-panel">Advanced</button>
+          </div>
+        </details>
         <div class="chat-toolbar-run" aria-live="polite">
           <span id="output-phase" class="output-phase"></span>
           <span id="output-toks" class="output-toks"></span>
@@ -315,7 +343,13 @@
       </section>
     </section>
 
-    <div id="xray-container" hidden></div>
+    <details id="xray-shell" class="xray-shell" hidden>
+      <summary>
+        <span>Inference X-Ray</span>
+        <span id="xray-summary-state" class="xray-summary-state">Enabled · 7 panels</span>
+      </summary>
+      <div id="xray-container" hidden></div>
+    </details>
 
     <!-- Report -->
     <div class="report-bar">

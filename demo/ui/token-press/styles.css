@@ -9,11 +9,13 @@
 /* Container */
 .tp-container {
   position: relative;
+  min-width: 0;
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 14px;
   line-height: 1.7;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 /* Base token */
@@ -61,11 +63,9 @@
 /* Alternatives tooltip */
 .tp-alternatives {
   display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
+  position: fixed;
+  inset: auto;
+  z-index: calc(var(--z-modal, 1000) + 1);
   background: var(--bg);
   color: var(--fg);
   border: var(--border-md) solid var(--fg);
@@ -206,4 +206,16 @@
 /* Trail zone — slight glow on the leading edge */
 .tp-trail-zone .tp-token:last-child {
   border-bottom-width: 4px;
+}
+
+@media (max-width: 600px) {
+  .tp-alternatives {
+    width: min(280px, calc(100vw - (2 * var(--space-sm))));
+    min-width: 0;
+    max-width: calc(100vw - (2 * var(--space-sm)));
+  }
+
+  .tp-controls {
+    flex-wrap: wrap;
+  }
 }

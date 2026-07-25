@@ -51,6 +51,7 @@ let selectedExplainKey = null;
 const MAX_WATERFALL_STEPS = 32;
 const MAX_MEMORY_ROWS = 12;
 const MAX_KERNEL_ROWS = 24;
+const XRAY_STORAGE_KEY = 'doppler.demo.xray-enabled';
 
 // ---------------------------------------------------------------------------
 // URL ↔ checkbox sync
@@ -67,6 +68,36 @@ function parseXrayFlags() {
   if (trimmed === 'all') return new Set(Object.keys(PANELS));
   const keys = trimmed.split(',').map(s => s.trim()).filter(s => s in PANELS);
   return new Set(keys);
+}
+
+function hasXrayUrlFlag() {
+  if (typeof window === 'undefined') return false;
+  const query = new URLSearchParams(window.location.search);
+  const hashRaw = (window.location.hash || '').replace(/^#/, '').replace(/^\?/, '');
+  const hash = new URLSearchParams(hashRaw);
+  return query.has('xray') || hash.has('xray');
+}
+
+function readXrayPreference() {
+  try {
+    if (typeof localStorage !== 'object') return null;
+    const value = localStorage.getItem(XRAY_STORAGE_KEY);
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+  } catch {
+    // UI preferences are optional.
+  }
+  return null;
+}
+
+function writeXrayPreference(value) {
+  try {
+    if (typeof localStorage === 'object') {
+      localStorage.setItem(XRAY_STORAGE_KEY, String(value === true));
+    }
+  } catch {
+    // UI preferences are optional.
+  }
 }
 
 function pushXrayToUrl(active) {
@@ -104,8 +135,18 @@ export function initXray({ onChange } = {}) {
   // Seed the all-panels switch from any recognized legacy or canonical flag.
   const toggle = $('xray-toggle-all');
   if (toggle) {
-    toggle.checked = urlFlags.size > 0;
-    toggle.addEventListener('change', () => syncXrayState());
+    if (hasXrayUrlFlag()) {
+      toggle.checked = urlFlags.size > 0;
+    } else {
+      const savedPreference = readXrayPreference();
+      if (savedPreference != null) {
+        toggle.checked = savedPreference;
+      }
+    }
+    toggle.addEventListener('change', () => {
+      writeXrayPreference(toggle.checked);
+      syncXrayState();
+    });
   }
 
   // Build panel DOM for all panels (hidden by default, toggled by checkbox)
@@ -166,6 +207,7 @@ export function initXray({ onChange } = {}) {
 function syncXrayState() {
   const container = $('xray-container');
   if (!container) return;
+  const shell = $('xray-shell');
 
   const active = getActivePanels();
   state.xrayEnabled = active.size > 0;
@@ -174,6 +216,7 @@ function syncXrayState() {
     if (entry) entry.section.hidden = !active.has(key);
   }
   container.hidden = active.size === 0;
+  if (shell) shell.hidden = active.size === 0;
   pushXrayToUrl(active);
   ensureKernelBuilderIndexForXray(active);
   if (onChangeCallback) onChangeCallback();

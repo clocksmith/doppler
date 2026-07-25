@@ -6,20 +6,38 @@ const xraySource = readFileSync(new URL('../../demo/ui/xray/index.js', import.me
 const reportSource = readFileSync(new URL('../../demo/report.js', import.meta.url), 'utf8');
 const settingsSource = readFileSync(new URL('../../demo/settings.js', import.meta.url), 'utf8');
 const inputSource = readFileSync(new URL('../../demo/input.js', import.meta.url), 'utf8');
+const modelsSource = readFileSync(new URL('../../demo/models.js', import.meta.url), 'utf8');
+const tokenPressRendererSource = readFileSync(
+  new URL('../../demo/ui/token-press/renderer.js', import.meta.url),
+  'utf8'
+);
 const appStyles = readFileSync(new URL('../../demo/ui/styles/app.css', import.meta.url), 'utf8');
+const tokenPressStyles = readFileSync(
+  new URL('../../demo/ui/token-press/styles.css', import.meta.url),
+  'utf8'
+);
 const componentStyles = readFileSync(new URL('../../demo/styles/rd-components.css', import.meta.url), 'utf8');
 
 assert.match(html, /Local WebGPU inference, inspected in your browser\./);
 assert.match(html, /href="https:\/\/github\.com\/clocksmith\/doppler"/);
 assert.match(html, /href="https:\/\/www\.npmjs\.com\/package\/doppler-gpu"/);
-assert.match(html, /Choose a model to run in your browser\. Note the download size\./);
+assert.match(html, /Runs locally in this browser\. The first use downloads the selected model\./);
+assert.match(html, /id="model-select"/);
+assert.match(html, /id="model-select-action"/);
+assert.match(html, /id="model-browser" class="model-browser"/);
+assert.match(modelsSource, /function renderModelSelector\(\)/);
+assert.match(modelsSource, /getModelActionLabel\(status\)/);
 
 assert.equal((html.match(/id="xray-toggle-all"/g) ?? []).length, 1);
 assert.doesNotMatch(html, /id="xray-toggle-(?:decode|kv|kernel|gpu|exec|mem|batch)"/);
-assert.match(html, /<span class="chat-toggle-label">X-Ray<\/span>\s*<input id="xray-toggle-all"/);
-assert.match(html, /<span class="chat-toggle-label">Token logits<\/span>\s*<input id="set-token-press"/);
+assert.match(html, /<span class="chat-toggle-label">X-Ray<\/span>\s*<input id="xray-toggle-all" type="checkbox" checked>/);
+assert.match(html, /<span class="chat-toggle-label">Token perplexity<\/span>\s*<input id="set-token-press" type="checkbox" checked>/);
 assert.doesNotMatch(html, /all internals|choices \+ confidence/);
 assert.match(html, /class="chat-toolbar"/);
+assert.match(html, /id="chat-controls" class="chat-controls"/);
+assert.match(html, /X-Ray on · Perplexity on/);
+assert.match(html, /id="xray-shell" class="xray-shell" hidden/);
+assert.match(html, /id="xray-summary-state"[^>]*>Enabled · 7 panels<\/span>/);
 assert.ok(html.indexOf('id="chat-heading"') < html.indexOf('class="chat-toolbar"'));
 assert.ok(html.indexOf('id="xray-toggle-all"') < html.indexOf('id="output-toks"'));
 assert.ok(html.indexOf('id="settings-toggle"') < html.indexOf('id="output-toks"'));
@@ -30,6 +48,13 @@ assert.match(componentStyles, /input\[type="checkbox"\]:checked::before\s*\{\s*t
 assert.match(appStyles, /\.chat-toggle:has\(input:checked\)/);
 assert.match(appStyles, /grid-auto-rows: 1fr/);
 assert.match(appStyles, /\.model-card\s*\{[\s\S]*?height: 100%/);
+assert.match(appStyles, /\.input-row textarea\s*\{[\s\S]*?overflow-y: auto/);
+assert.match(appStyles, /\.chat-surface\s*\{[\s\S]*?overflow: auto/);
+assert.match(tokenPressStyles, /\.tp-alternatives\s*\{[\s\S]*?position: fixed/);
+assert.match(tokenPressRendererSource, /function positionAlternativesTooltip\(span\)/);
+assert.match(tokenPressRendererSource, /viewportWidth - tooltipRect\.width/);
+assert.match(settingsSource, /doppler\.demo\.token-perplexity-enabled/);
+assert.match(xraySource, /doppler\.demo\.xray-enabled/);
 
 assert.match(html, /id="set-max-tokens"[^>]*value="1024"/);
 assert.match(settingsSource, /DEMO_DEFAULT_MAX_TOKENS = 1024/);
