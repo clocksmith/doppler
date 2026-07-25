@@ -24,7 +24,7 @@ Canonical guide for running Doppler tests.
 ```json
 {
   "shared": {
-    "tooling": { "intent": "verify" },
+    "tooling": { "diagnostics": "on_failure" },
     "harness": {
       "mode": "kernels",
       "autorun": true
@@ -38,7 +38,7 @@ Canonical guide for running Doppler tests.
 ```json
 {
   "shared": {
-    "tooling": { "intent": "verify" },
+    "tooling": { "diagnostics": "on_failure" },
     "harness": {
       "mode": "inference",
       "autorun": true,

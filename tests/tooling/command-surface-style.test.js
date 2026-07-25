@@ -104,11 +104,28 @@ const convertRequest = {
         },
       };
     },
-    async applyRuntimeProfile(runtimeProfile) {
+    async loadRuntimeProfile(runtimeProfile) {
       calls.push(`profile:${runtimeProfile}`);
+      return {
+        config: {
+          id: runtimeProfile,
+          name: runtimeProfile,
+          intent: 'verify',
+          compatibleIntents: ['verify'],
+          stability: 'experimental',
+          owner: 'test',
+          createdAtUtc: '2026-01-01T00:00:00Z',
+          runtime: {},
+        },
+        runtime: {},
+      };
     },
-    async applyRuntimeConfigFromUrl(runtimeConfigUrl) {
+    async loadRuntimeConfigFromUrl(runtimeConfigUrl) {
       calls.push(`url:${runtimeConfigUrl}`);
+      return {
+        config: { runtime: {} },
+        runtime: {},
+      };
     },
     getRuntimeConfig() {
       return runtime;

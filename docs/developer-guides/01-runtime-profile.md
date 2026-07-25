@@ -21,7 +21,7 @@ Add a named runtime profile that changes behavior through JSON only.
 ## Recommended Order
 
 1. Copy the closest existing profile under `src/config/runtime/profiles/`.
-2. Set `id`, `name`, `description`, `intent`, `stability`, `owner`, `createdAtUtc`, and `extends`.
+2. Set `id`, `name`, `description`, `intent`, `compatibleIntents`, `stability`, `owner`, `createdAtUtc`, and `extends`.
 3. Keep the `runtime` block minimal. Only set fields that differ from defaults or the parent profile.
 4. Confirm discovery lists the new ID with `node src/cli/doppler-cli.js profiles --json`.
 5. Use the new ID through `request.runtimeProfile` in a CLI or harness run.
@@ -53,7 +53,8 @@ node src/cli/doppler-cli.js debug \
 ## Common Misses
 
 - Copying `default.json` wholesale instead of keeping the profile as a small override.
-- Setting the wrong intent. Harnessed flows expect `runtime.shared.tooling.intent` to match the command contract.
+- Omitting `compatibleIntents` or selecting a profile whose compatibility metadata excludes the normalized `request.intent`.
+- Authoring `runtime.shared.tooling.intent`. Active intent belongs only to the normalized command request.
 - Putting behavior defaults in JS instead of schema or checked-in config JSON.
 - Adding ad hoc URL/UI knobs when the setting belongs in runtime config.
 

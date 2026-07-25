@@ -3,6 +3,7 @@
   "name": "gemma4-12b-rdrr-safe-b4",
   "description": "Deprecated Gemma 4 12B RDRR safe profile alias. Use profiles/gemma4-12b-rdrr-safe-single for coherent local QAT runs.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "deprecated",
   "owner": "doppler-core",
   "createdAtUtc": "2026-06-07T00:00:00Z",
@@ -11,9 +12,6 @@
   "extends": "profiles/default",
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "investigate"
-      },
       "debug": {
         "logLevel": {
           "defaultLogLevel": "info"

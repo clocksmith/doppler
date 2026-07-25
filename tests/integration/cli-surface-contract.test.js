@@ -165,7 +165,7 @@ await assert.rejects(
 {
   const fixture = makeTempDir();
   const runtimeConfigPath = path.join(fixture, 'runtime-config.json');
-  writeFileSync(runtimeConfigPath, JSON.stringify({ shared: { tooling: { intent: 'verify' } } }), 'utf8');
+  writeFileSync(runtimeConfigPath, JSON.stringify({ shared: { tooling: { diagnostics: 'off' } } }), 'utf8');
   const result = await buildRequest({
     command: 'verify',
     flags: {
@@ -184,7 +184,7 @@ await assert.rejects(
 
 {
   const mock = await startMockConfigServer({
-    shared: { tooling: { intent: 'investigate' } },
+    shared: { tooling: { diagnostics: 'always' } },
   });
   try {
     const result = await buildRequest({
@@ -256,7 +256,7 @@ await assert.rejects(
           },
         }),
         'runtime-profile': 'profiles/verbose-trace',
-        'runtime-config': '{"shared":{"tooling":{"intent":"investigate"}}}',
+        'runtime-config': '{"shared":{"tooling":{"diagnostics":"always"}}}',
       },
     }, TEST_CLI_POLICY),
     /--runtime-profile cannot be combined with --runtime-config/
@@ -287,17 +287,11 @@ await assert.rejects(
       config: JSON.stringify({
         workload: 'inference',
         modelId: 'toy-model',
-        runtimeConfig: {
-          shared: {
-            tooling: {
-              intent: 'verify',
-            },
-          },
-        },
       }),
     },
   }, TEST_CLI_POLICY);
-  assert.equal(result.request.runtimeConfig?.shared?.tooling?.intent, 'verify');
+  assert.equal(result.request.intent, 'verify');
+  assert.equal(result.request.runtimeConfig, null);
 }
 
 {
@@ -813,7 +807,7 @@ await assert.rejects(
       },
     }),
     '--runtime-config',
-    '{"shared":{"tooling":{"intent":"investigate"}}}',
+    '{"shared":{"tooling":{"diagnostics":"always"}}}',
   ]);
   assert.equal(result.code, 1);
   assert.match(

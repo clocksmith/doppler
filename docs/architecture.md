@@ -1110,7 +1110,9 @@ User prompt: "Hello"
 
 ### 1. GPU-Native Pipeline
 Hot-path tensor operations execute on GPU, with readback cadence controlled by runtime batching policy. This minimizes CPU↔GPU transfers during decode.  
-Source: `src/inference/pipelines/text/generator-steps.js`, `src/inference/pipelines/text/attention/run.js`
+Source: `src/inference/pipelines/text/generator-steps.js`,
+`src/inference/pipelines/text/attention/plan.js`,
+`src/inference/pipelines/text/attention/interpreter.js`
 
 ### 2. Q4_K Quantization
 4-bit quantization significantly reduces storage footprint relative to f16/f32 weights, with quality/perf tradeoffs depending on workload and model.  

@@ -894,6 +894,8 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       debugProbes: context.debugProbes,
       operatorDiagnostics: context.operatorDiagnostics,
       linearRuntime: context.linearAttentionRuntime ?? null,
+      resolvedRuntimeSession: context.resolvedRuntimeSession,
+      observationContext: context.observationContext ?? null,
       executionPolicies: context.executionPolicies ?? null,
       skipKVCacheWrites: context.skipKVCacheWrites === true,
     };

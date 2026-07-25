@@ -59,7 +59,7 @@ for (const model of MODELS) {
       modelUrl: `file://${localPath}`,
       cacheMode: 'warm',
       runtimeConfig: {
-        shared: { tooling: { intent: 'investigate' } },
+        shared: { tooling: { diagnostics: 'always' } },
         inference: {
           ...(model.runtimeConfigOverrides.inference || {}),
           generation: { maxTokens: 24 },

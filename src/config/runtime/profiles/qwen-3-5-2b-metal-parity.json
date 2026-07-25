@@ -3,6 +3,7 @@
   "name": "qwen-3-5-2b-metal-parity",
   "description": "Qwen 3.5 2B browser/Metal parity profile. Preserves the release 4x4 decode cadence while inheriting the exact Metal Q4 GEMV and decode fusions from the throughput profile.",
   "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-07-10T00:00:00Z",

@@ -17,6 +17,7 @@ import { type RDRRManifest } from '../formats/rdrr/index.js';
 import { type Pipeline } from './pipelines/text.js';
 import type { RuntimeConfigSchema } from '../config/schema/index.js';
 import type { PipelineStorageContext } from './pipelines/text/init.js';
+import type { CommandContext } from '../tooling/command-context.js';
 
 // ============================================================================
 // Types
@@ -49,6 +50,8 @@ export interface RuntimeOverrides {
  * Options for pipeline initialization
  */
 export interface InferenceHarnessOptions {
+  /** Immutable normalized command identity */
+  commandContext?: CommandContext | null;
   /** Base URL for model files (default: inferred from model URL) */
   baseUrl?: string;
   /** Runtime overrides for kernel selection */

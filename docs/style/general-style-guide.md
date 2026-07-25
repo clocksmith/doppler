@@ -80,7 +80,7 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 |--------|-------------|
 | **Runtime compilation** | JS/WGSL/JSON changes compile without rebuild; hot-swap plumbing is planned |
 | **No generation quality difference** | No benchmarks show LLMs generate better TS than JS [1][2] |
-| **Tests are the type system** | Comprehensive tests catch type errors pre-production |
+| **Layered contract protection** | Runtime validation, declarations, and tests protect different boundaries |
 | **Simpler toolchain** | Edit JS/WGSL/JSON and run directly; `tsc` only emits/validates `.d.ts` |
 
 ### Why .d.ts Files
@@ -91,10 +91,14 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 | **Consumer compatibility** | Type-aware consumers can import Doppler with full type safety via `.d.ts` |
 | **Self-documenting** | Types describe interfaces without runtime cost |
 
-### The Test Equivalence Principle
+### Contract Protection Layers
 
-> With comprehensive tests, compile-time errors become test-time errors.
-> Both block bad code before production. The difference is tooling, not safety.
+> Runtime validation protects untrusted boundaries; declarations protect
+> consumers and refactors; tests protect behavior.
+
+No one layer substitutes for the others. Runtime validation must fail fast on
+malformed external data, `.d.ts` declarations must precisely describe consumer
+and internal refactor contracts, and tests must preserve observable behavior.
 
 ### File Format Summary
 

@@ -95,8 +95,6 @@ function compareProfiles(a, b) {
 
 function toProfileSummary(profile, filePath, rootDir) {
   const runtime = profile.runtime;
-  const shared = isPlainObject(runtime?.shared) ? runtime.shared : {};
-  const tooling = isPlainObject(shared.tooling) ? shared.tooling : {};
   const relativePath = path.relative(process.cwd(), filePath).split(path.sep).join('/');
   const rootRelativePath = path.relative(rootDir, filePath).split(path.sep).join('/');
   const signals = summarizeSignals(runtime);
@@ -109,11 +107,9 @@ function toProfileSummary(profile, filePath, rootDir) {
         : null
     ),
     intent: typeof profile.intent === 'string' && profile.intent.trim() ? profile.intent.trim() : null,
-    toolingIntent: (
-      typeof tooling.intent === 'string' && tooling.intent.trim()
-        ? tooling.intent.trim()
-        : null
-    ),
+    compatibleIntents: Array.isArray(profile.compatibleIntents)
+      ? profile.compatibleIntents.filter((intent) => typeof intent === 'string' && intent.trim())
+      : [],
     stability: (
       typeof profile.stability === 'string' && profile.stability.trim()
         ? profile.stability.trim()

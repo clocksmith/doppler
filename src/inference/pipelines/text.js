@@ -49,6 +49,8 @@ import {
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
+import { createObservationContext } from '../observation-context.js';
+import { createResolvedRuntimeSession } from './text/resolved-runtime-session.js';
 
 // AbortSignal contract: every public inference primitive on this pipeline
 // accepts `options.signal` (or `args.signal`). When the signal aborts the
@@ -340,6 +342,11 @@ export class InferencePipeline extends PipelineState {
       assignStorageContext: true,
     });
     this.runtimeConfig = runtimeConfig;
+    this.commandContext = contexts.commandContext ?? null;
+    this.observationContext = createObservationContext({
+      runtimeConfig,
+      commandContext: this.commandContext,
+    });
     this.dopplerLoader = contexts.loader || null;
     this.ownsDopplerLoader = contexts.ownsLoader === true;
     this.runtimeOverrides = contexts.runtimeConfig == null
@@ -619,6 +626,15 @@ export class InferencePipeline extends PipelineState {
         `but kernel path "${this.resolvedKernelPath.id}" declares activationDtype="${kpActivation}".`
       );
     }
+    this.resolvedRuntimeSession = createResolvedRuntimeSession({
+      manifest,
+      modelConfig: this.modelConfig,
+      runtimeConfig: this.runtimeConfig,
+      resolvedKernelPath: this.resolvedKernelPath,
+      kernelPathSource: this.kernelPathSource,
+      executionV1State: this.executionV1State,
+      executionPlanState: this.executionPlanState,
+    });
 
     // Initialize MoE router if needed
     if (this.modelConfig.useMoE) {

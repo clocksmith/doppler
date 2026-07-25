@@ -82,7 +82,7 @@ await assert.rejects(
     runtimeConfig: {
       shared: {
         tooling: {
-          intent: 'verify',
+          diagnostics: 'off',
         },
       },
     },

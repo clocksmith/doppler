@@ -3,6 +3,7 @@
   "name": "turboquant",
   "description": "Experimental tiered TurboQuant profile with execution-v1-native session KV cache settings.",
   "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
   "stability": "experimental",
   "owner": "inference",
   "createdAtUtc": "2026-03-25T00:00:00Z",

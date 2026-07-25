@@ -3,6 +3,7 @@
   "name": "qwen3-5-linear-attn-debug",
   "description": "Probe linear attention intermediates in Qwen 3.5 layer 0 for comparison with HF reference.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-03-13T00:00:00Z",

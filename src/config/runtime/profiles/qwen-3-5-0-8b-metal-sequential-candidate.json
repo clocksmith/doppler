@@ -3,6 +3,7 @@
   "name": "qwen-3-5-0-8b-metal-sequential-candidate",
   "description": "Investigation candidate for Qwen 3.5 0.8B browser/Metal throughput. Copies the baseline Metal profile and changes only readback mode/ring sizing from overlapped to sequential.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-07-08T00:00:00Z",

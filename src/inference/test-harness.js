@@ -425,6 +425,7 @@ export async function initializeInference(modelUrl, options = {}) {
     'createPipeline',
     { modelUrl, modelId: manifest.modelId ?? null },
     () => createPipeline( ( (manifest)), {
+      commandContext: options.commandContext ?? null,
       storage: storageContext,
       gpu: { device },
       runtime,

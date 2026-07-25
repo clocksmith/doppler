@@ -3,6 +3,7 @@
   "name": "gemma4-e2b-browser-diagnose-q4k",
   "description": "Browser/Chromium investigation profile for Gemma 4 E2B Q4K that preserves compare-like runtime conditions while enabling GPU profiling and low-overhead operator diagnostics. Mirrors gemma3-browser-diagnose-q4k. Use for classifying the prefill wall (GPU compute vs submit/readback/orchestration) before any kernel edit.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-17T00:00:00Z",
@@ -11,7 +12,6 @@
   "runtime": {
     "shared": {
       "tooling": {
-        "intent": "investigate",
         "diagnostics": "always"
       },
       "debug": {

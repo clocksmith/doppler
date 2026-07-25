@@ -251,8 +251,13 @@ export {
 export {
   TOOLING_INTENTS,
   TOOLING_DIAGNOSTICS,
+  REFACTOR_RECEIPT_POLICIES,
   DEFAULT_TOOLING_CONFIG,
 } from './tooling.schema.js';
+export {
+  validateRuntimeProfileMetadata,
+  assertRuntimeProfileIntentCompatibility,
+} from './runtime-profile.schema.js';
 
 // =============================================================================
 // Ecosystem Schema

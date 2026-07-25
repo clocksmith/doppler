@@ -6,8 +6,8 @@ Comprehensive debugging strategies for Doppler WebGPU inference issues. Written 
 
 **Note:** Doppler supports browser and Node workflows. Use the demo diagnostics
 UI or `tests/harness.html` for interactive/browser suites, and use the Node CLI
-for scripted runs. Runtime behavior is controlled via `runtime.*` and
-`runtime.shared.tooling.intent`.
+for scripted runs. Runtime behavior is controlled via `runtime.*`; active intent
+is normalized from the command into `request.intent`.
 
 ## Quick Troubleshooting
 
@@ -21,7 +21,8 @@ for scripted runs. Runtime behavior is controlled via `runtime.*` and
 ## Quick Start: Systematic Debug Workflow
 
 ### 1. Run Kernel Tests First
-Open `tests/harness.html` in `kernels` mode (runtime config sets `runtime.shared.tooling.intent = "verify"`).
+Run the `verify` command with workload `kernels`; command metadata normalizes
+`request.intent = "verify"`.
 If any kernel fails, **fix it first**. Expected: all listed kernel checks PASS.
 If `scatter_add` is the only failure, treat it as a targeted MoE kernel issue
 before debugging broader inference behavior.
@@ -741,26 +742,23 @@ console.log('[Pool]', getPoolStats());
 
 ## 11. Test Runs (Browser)
 
-All test flows run via `tests/harness.html` or the demo UI. Input payloads use
-top-level `shared.tooling.intent`; after normalization the same field is tracked
-internally as `runtime.shared.tooling.intent`. Set that intent to match the
-workload (verify/investigate/calibrate).
+All test flows run through the browser or Node command surface. The command
+contract derives the sole active `request.intent`; runtime profiles may declare
+`compatibleIntents` but cannot author active intent.
 
 Example configs:
 
 ```json
 {
-  "shared": {
-    "tooling": { "intent": "verify" },
-    "harness": { "mode": "kernels", "autorun": true }
-  }
+  "request": { "workload": "kernels" },
+  "run": { "surface": "browser" }
 }
 ```
 
 ```json
 {
   "shared": {
-    "tooling": { "intent": "verify" },
+    "tooling": { "diagnostics": "on_failure" },
     "debug": { "logLevel": { "defaultLogLevel": "verbose" } },
     "harness": { "mode": "inference", "autorun": true, "modelId": "gemma-3-270m-it-q4k-ehf16-af32" }
   },

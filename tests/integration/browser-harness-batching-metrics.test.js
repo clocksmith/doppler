@@ -80,7 +80,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
     },
     shared: {
       tooling: {
-        intent: 'calibrate',
+        diagnostics: 'off',
       },
     },
   });
@@ -564,7 +564,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
       generation: { maxTokens: 1 },
       sampling: { temperature: 0, topK: 1, topP: 1 },
     },
-    shared: { tooling: { intent: 'calibrate' } },
+    shared: { tooling: { diagnostics: 'off' } },
   });
 
   assert.equal(result.phase.gpu?.decodeOrchestrationMs, 0);
@@ -576,7 +576,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
     runtime: {
       shared: {
         tooling: {
-          intent: 'investigate',
+          diagnostics: 'always',
         },
         debug: {
           profiler: {

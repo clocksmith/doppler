@@ -11,7 +11,7 @@ export interface RuntimeProfileSummary {
   name: string | null;
   description: string | null;
   intent: string | null;
-  toolingIntent: string | null;
+  compatibleIntents: string[];
   stability: string | null;
   owner: string | null;
   createdAtUtc: string | null;

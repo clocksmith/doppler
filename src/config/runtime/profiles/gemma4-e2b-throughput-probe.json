@@ -3,6 +3,7 @@
   "name": "gemma4-e2b-throughput-probe",
   "description": "Throughput probe with a longer-prompt override (prefill≥64 tokens) for apples-to-apples baseline measurement against gemma4-e2b-fused-rmsnorm-test. Model fast-path settings come from the converted manifest.",
   "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-18T00:00:00Z",

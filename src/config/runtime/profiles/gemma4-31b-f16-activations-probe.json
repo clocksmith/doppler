@@ -3,17 +3,13 @@
   "name": "gemma4-31b-f16-activations-probe",
   "description": "Experimental Gemma 4 31B text profile that requests the execution-v1 f16 compute lane against the f16 activation manifest variant sharing the existing Q4K weight pack. Use for browser/WebGPU proof only after transcript parity is captured.",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-04-28T00:00:00Z",
   "extends": "profiles/default",
   "model": "gemma-4-31b-it-text-q4k-ehf16-af16",
   "runtime": {
-    "shared": {
-      "tooling": {
-        "intent": "investigate"
-      }
-    },
     "inference": {
       "compute": {
         "activationDtype": "f16"

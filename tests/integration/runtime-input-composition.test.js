@@ -109,9 +109,13 @@ await assert.rejects(
   await applyOrderedRuntimeInputs(bridge, {
     runtimeProfile: 'profiles/default',
   }, {
-    applyRuntimeProfile: async (name) => { profileApplied = name; },
+    loadRuntimeProfile: async (name) => {
+      profileApplied = name;
+      return { runtime: { inference: { prompt: 'profile' } } };
+    },
   });
   assert.equal(profileApplied, 'profiles/default');
+  assert.equal(bridge.current.inference?.prompt, 'profile');
 }
 
 // runtimeConfigUrl without handler throws
@@ -133,8 +137,14 @@ await assert.rejects(
     runtimeConfig: { inference: { prompt: 'test' } },
   }, {
     loadRuntimeConfigFromRef: async () => { order.push('configChain'); return { inference: {} }; },
-    applyRuntimeProfile: async () => { order.push('runtimeProfile'); },
-    applyRuntimeConfigFromUrl: async () => { order.push('runtimeConfigUrl'); },
+    loadRuntimeProfile: async () => {
+      order.push('runtimeProfile');
+      return { runtime: { inference: {} } };
+    },
+    loadRuntimeConfigFromUrl: async () => {
+      order.push('runtimeConfigUrl');
+      return { runtime: { inference: {} } };
+    },
   });
   assert.deepEqual(order, ['configChain', 'runtimeProfile', 'runtimeConfigUrl']);
   assert.equal(bridge.current.inference?.prompt, 'test');

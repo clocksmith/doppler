@@ -767,6 +767,12 @@ export interface PipelineStats {
   } | null;
   kernelPathId?: string | null;
   kernelPathSource?: string | null;
+  /** Immutable semantic attention plans captured by observation policy */
+  attentionPlans?: Array<import('./attention/plan.js').SemanticAttentionPlan>;
+  /** Tagged attention ownership/lifetime events */
+  attentionResourceEvents?: Array<import('../../resource-scope.js').ResourceEvent>;
+  /** Canonical behavior receipts captured by observation policy */
+  refactorReceipts?: Array<import('../../refactor-receipt.js').RefactorReceipt>;
   prefillProfileSteps?: Array<{
     label?: string;
     timings: Record<string, number>;

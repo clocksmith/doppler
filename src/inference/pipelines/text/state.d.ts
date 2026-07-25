@@ -37,6 +37,9 @@ import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { EmulationContext, PipelineStorageContext } from './init.js';
 import type { LinearAttentionRuntime } from './linear-attention.js';
 import type { PerLayerInputWeights } from '../../../loader/loader-types.js';
+import type { CommandContext } from '../../../tooling/command-context.js';
+import type { ObservationContext } from '../../observation-context.js';
+import type { ResolvedRuntimeSession } from './resolved-runtime-session.js';
 
 export class PipelineState {
   // Components
@@ -60,6 +63,7 @@ export class PipelineState {
   kernelPathSource: KernelPathSource;
   executionPlanState: ExecutionPlanState | null;
   executionV1State: ExecutionV1CompiledState | null;
+  resolvedRuntimeSession: ResolvedRuntimeSession | null;
   disableRecordedLogits: boolean;
   disableFusedDecode: boolean;
 
@@ -75,6 +79,8 @@ export class PipelineState {
   currentSeqLen: number;
   currentTokenIds: number[] | null;
   runtimeConfig: RuntimeConfigSchema;
+  commandContext: CommandContext | null;
+  observationContext: ObservationContext | null;
 
   // DopplerLoader instance
   dopplerLoader: DopplerLoader | null;

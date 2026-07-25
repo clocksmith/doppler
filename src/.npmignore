@@ -273,12 +273,17 @@ inference/pipelines/text/attention.d.ts
 inference/pipelines/text/attention.js
 inference/pipelines/text/attention/attn-config.d.ts
 inference/pipelines/text/attention/dispatch-params.d.ts
+inference/pipelines/text/attention/executor-immediate.d.ts
+inference/pipelines/text/attention/executor-recorded.d.ts
 inference/pipelines/text/attention/index.d.ts
+inference/pipelines/text/attention/interpreter.d.ts
 inference/pipelines/text/attention/output-gate-fusion.d.ts
+inference/pipelines/text/attention/output-gate-fusion.js
 inference/pipelines/text/attention/output-projection.d.ts
 inference/pipelines/text/attention/precision-contract.d.ts
 inference/pipelines/text/attention/projections.d.ts
 inference/pipelines/text/attention/quant-options.d.ts
+inference/pipelines/text/attention/receipt.d.ts
 inference/pipelines/text/attention/record.d.ts
 inference/pipelines/text/attention/rmsnorm-fusion-gate.d.ts
 inference/pipelines/text/attention/run.d.ts
@@ -397,6 +402,7 @@ tooling/precision-replay-math.js
 tooling/program-bundle-host.d.ts
 tooling/program-bundle-host.js
 tooling/runtime-input-composition.d.ts
+tooling/runtime-intent.d.ts
 tooling/source-package-profiles.d.ts
 tooling/source-runtime-converter-config.d.ts
 tooling/source-runtime-materializer.d.ts

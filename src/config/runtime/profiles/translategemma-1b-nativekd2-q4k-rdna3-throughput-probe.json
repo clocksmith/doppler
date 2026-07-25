@@ -3,6 +3,7 @@
   "name": "translategemma-1b-nativekd2-q4k-rdna3-throughput-probe",
   "description": "Experimental TranslateGemma 1B NativeKD2 EN/ES calibration profile for AMD RDNA3/Vulkan evidence. Preserves the manifest 4x1 sequential decode cadence while retaining Q4K materialization, selecting wide-tile Q4K prefill, and enabling exact-safe packed-QKV and RMSNorm-pair fusions.",
   "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-07-11T00:00:00Z",

@@ -3,6 +3,7 @@
   "name": "gemma3-270m-q4k-throughput-overlapped-probe",
   "description": "Gemma 3 270M calibration profile that uses the Q4K 8x8 throughput cadence, overlapped decode readback, fused packed-QKV QK-norm/RoPE decode path, and sandwich RMSNorm-pair fusion for readback-bound browser diagnostics. Used to reduce decode readback submissions and dispatch count without changing shared prompt or sampling semantics.",
   "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-06-26T00:00:00Z",

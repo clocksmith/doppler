@@ -55,7 +55,7 @@ node src/cli/doppler-cli.js bench \
 ```
 node src/cli/doppler-cli.js debug \
   --config '{"request":{"workload":"inference","modelId":"gemma-4-e2b-it-q4k-ehf16-af32-int4ple"},"run":{"surface":"auto"}}' \
-  --runtime-config '{"shared":{"tooling":{"intent":"investigate"},"debug":{"profiler":{"enabled":true}}},"inference":{"prompt":"<long enough to fill prefill chunks>","sampling":{"temperature":0,"topK":1},"batching":{"maxTokens":8}}}' \
+  --runtime-config '{"shared":{"tooling":{"diagnostics":"always"},"debug":{"profiler":{"enabled":true}}},"inference":{"prompt":"<long enough to fill prefill chunks>","sampling":{"temperature":0,"topK":1},"batching":{"maxTokens":8}}}' \
   --json
 ```
 

@@ -3,6 +3,7 @@
   "name": "qwen3-bench-q4k-alt",
   "description": "Qwen 3.5 0.8B Q4K alternate throughput profile for batched decode tuning.",
   "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-03-25T01:45:00Z",

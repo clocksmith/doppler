@@ -142,20 +142,20 @@ export function buildMergeContractArtifact() {
     'actual'
   );
 
-  const calibrateConfig = createDopplerConfig({
+  const observationConfig = createDopplerConfig({
     runtime: {
       shared: {
         tooling: {
-          intent: 'calibrate',
+          diagnostics: 'always',
         },
       },
     },
   });
   recordCheck(
     checks,
-    'runtime.schema.calibrate_does_not_mutate_kernel_warmup_defaults',
-    calibrateConfig.runtime.shared.kernelWarmup.prewarm === false,
-    `prewarm=${String(calibrateConfig.runtime.shared.kernelWarmup.prewarm)}`,
+    'runtime.schema.observation_does_not_mutate_kernel_warmup_defaults',
+    observationConfig.runtime.shared.kernelWarmup.prewarm === false,
+    `prewarm=${String(observationConfig.runtime.shared.kernelWarmup.prewarm)}`,
     'actual'
   );
 

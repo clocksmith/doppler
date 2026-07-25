@@ -17,6 +17,8 @@ Rules that cause bugs when violated. Each has a fuller section below with ration
 - **Runtime Performance Invariants** — no hardcoded `f32` fallbacks when `shader-f16` is available; if `f32` is required, gate on explicit config and log once. Dtype decisions live in rule maps, not conditionals. See [Runtime Configuration (Performance Invariants)](#runtime-configuration-performance-invariants).
 - **Failure-Path Ownership** — every acquired resource has one owner and one deterministic cleanup path. `createBuffer()`, pooled acquires, `mapAsync()`, staging readback all release on every throw. Use `try/finally` or shared helpers. See [Runtime Failure-Path Invariants](#runtime-failure-path-invariants).
 - **Harness Override Rules** — runtime tunables are config-only. Harness URLs accept only `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, `configChain`. See [Harness Override Rules](#harness-override-rules).
+- **Command/Session/Observation Boundaries** — `request.intent` is the sole active command authority; resolved sessions are immutable numeric policy; observation context controls evidence only. See [Inference Contract Boundaries](#inference-contract-boundaries).
+- **Semantic Plan Purity** — operation plans are deterministic, immutable, and JSON-safe; GPU objects enter only at binding. See [Inference Contract Boundaries](#inference-contract-boundaries).
 
 ## Core Principle: Config as Code
 
@@ -27,6 +29,37 @@ Model Manifest → ModelConfig → PipelineSpec → KernelSpec → Execution
      ↓              ↓              ↓              ↓              ↓
  manifest.json   .d.ts types    Op sequence   GPU params    Dispatch
 ```
+
+## Inference Contract Boundaries
+
+These stable invariant IDs are normative:
+
+| ID | Invariant | Mechanical enforcement |
+|---|---|---|
+| `INV-CMD-001` | `request.intent` is the sole active-run intent authority. Profiles declare `compatibleIntents`; runtime config never authors or mirrors active intent. | command-surface and runtime-profile schema tests |
+| `INV-SESSION-002` | Numeric inference consumes one immutable resolved runtime session constructed after manifest, execution-v1, capability, kernel-path, and dtype resolution. | resolved-session tests |
+| `INV-ATTN-003` | Attention code must not read module-global runtime config. | `npm run inference:boundaries:check` |
+| `INV-PLAN-004` | A semantic operation plan is immutable, deterministic, JSON-safe, and contains no GPU buffers, recorders, closures, or cleanup callbacks. | attention-plan tests |
+| `INV-PARITY-005` | Immediate and recorded execution consume the same semantic plan. Executors may differ only in submission, retention, completion tasks, and readback scheduling. | plan parity tests |
+| `INV-RESOURCE-006` | Every concrete resource has tagged ownership: `borrowed`, `scopeOwned`, `submitOwned`, `transferred`, or `retained`. Ownership changes use explicit scope operations. | resource-scope failure and alias tests |
+| `INV-RECEIPT-007` | Structural refactors preserve canonical behavior receipts containing command, session, plan, operation order, dtype transitions, resource events, and first failure boundary. | refactor-receipt tests |
+
+The contract layering is:
+
+```text
+CommandContext + ResolvedRuntimeSession + ObservationContext
+                         ↓
+               Semantic Operation Plan
+                         ↓ bind resources
+                 Bound Operation Plan
+                         ↓
+                      Executor
+```
+
+Intent may govern permitted observation and evidence requirements. It must not
+change dtype, kernel, fusion, geometry, layout, or numeric inference behavior.
+Runtime validation protects untrusted boundaries; declarations protect
+consumers and refactors; tests protect behavior.
 
 ## Role Boundaries (JSON, JS, WGSL)
 
@@ -328,7 +361,9 @@ export function runKernel(
 
 ## run/record Function Parity
 
-Kernels that support both immediate (`run*`) and batched (`record*`) execution MUST keep both implementations in sync.
+Kernels that support both immediate (`run*`) and recorded (`record*`) execution
+must consume one semantic plan and one interpreter. Executor adapters may differ
+only in submission, resource retention, completion tasks, and readback.
 
 ```javascript
 // DON'T: Divergent implementations
@@ -339,7 +374,7 @@ export async function recordGather(...args) {
   const workgroups = Math.ceil(numElements / 256);  // Different constant!
 }
 
-// DO: Share the calculation
+// Transitional minimum: share the calculation
 const GATHER_ELEMENTS_PER_WG = WORKGROUP_SIZES.VEC4_THREADS * 4;  // 64 × 4 = 256
 
 export async function runGather(...) {
@@ -351,9 +386,12 @@ export async function recordGather(...) {
 ```
 
 **Checklist when editing `run*` functions:**
+
 1. Does a corresponding `record*` function exist?
-2. Are both using the same constants?
-3. Are both producing identical GPU dispatches?
+2. Do both consume the same immutable semantic plan?
+3. Is every numeric/kernel/fusion/layout choice made before executor selection?
+4. Are ownership differences expressed by immediate/recorded resource scopes?
+5. Does the normalized-plan parity test fail when one semantic decision changes?
 
 ---
 

@@ -2,6 +2,7 @@
   "id": "experiments/verify/gemma3-verify",
   "name": "gemma3-verify",
   "intent": "verify",
+  "compatibleIntents": ["verify"],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-02-25T00:00:00Z",
@@ -9,9 +10,6 @@
   "model": "gemma-3-1b-it-f16-af32",
   "runtime": {
     "shared": {
-      "tooling": {
-        "intent": "verify"
-      },
       "debug": {
         "logLevel": {
           "defaultLogLevel": "warn"

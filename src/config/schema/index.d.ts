@@ -768,14 +768,22 @@ export {
   type ToolingConfigSchema,
   type ToolingIntent,
   type ToolingDiagnosticsMode,
+  type RefactorReceiptPolicy,
 
   // Constants
   TOOLING_INTENTS,
   TOOLING_DIAGNOSTICS,
+  REFACTOR_RECEIPT_POLICIES,
 
   // Defaults
   DEFAULT_TOOLING_CONFIG,
 } from './tooling.schema.js';
+export {
+  type RuntimeProfileMetadata,
+  type RuntimeProfileStability,
+  validateRuntimeProfileMetadata,
+  assertRuntimeProfileIntentCompatibility,
+} from './runtime-profile.schema.js';
 
 // =============================================================================
 // Ecosystem Schema

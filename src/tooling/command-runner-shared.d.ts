@@ -1,19 +1,20 @@
 import type { RuntimeConfigLoadOptions } from '../inference/browser-harness.js';
 import type { ToolingCommandRequest } from './command-api.js';
+import type { CommandContext } from './command-context.js';
 
 export interface RuntimeBridge {
   loadRuntimeConfigFromRef?: (
     ref: string,
     options?: RuntimeConfigLoadOptions
   ) => Promise<Record<string, unknown>>;
-  applyRuntimeProfile: (
+  loadRuntimeProfile: (
     runtimeProfile: string,
     options?: RuntimeConfigLoadOptions
-  ) => Promise<void>;
-  applyRuntimeConfigFromUrl: (
+  ) => Promise<{ config: Record<string, unknown>; runtime: Record<string, unknown> }>;
+  loadRuntimeConfigFromUrl: (
     runtimeConfigUrl: string,
     options?: RuntimeConfigLoadOptions
-  ) => Promise<void>;
+  ) => Promise<{ config: Record<string, unknown>; runtime: Record<string, unknown> }>;
   getRuntimeConfig: () => Record<string, unknown>;
   setRuntimeConfig: (runtimeConfig: Record<string, unknown> | null) => void;
   getActiveKernelPath?: () => unknown;
@@ -26,7 +27,10 @@ export declare function applyRuntimeInputs(
   request: ToolingCommandRequest,
   runtimeBridge: RuntimeBridge,
   options?: RuntimeConfigLoadOptions
-): Promise<void>;
+): Promise<{
+  runtimeConfig: Record<string, unknown> | null;
+  documents: ReadonlyArray<Record<string, unknown>>;
+}>;
 
 /**
  * Run `run` with the runtime bridge's current state snapshotted, and
@@ -45,6 +49,8 @@ export declare function buildSuiteOptions(
   mode: ToolingCommandRequest['command'];
   workload: ToolingCommandRequest['workload'];
   command: ToolingCommandRequest['command'];
+  intent: ToolingCommandRequest['intent'];
+  commandContext: CommandContext;
   surface: string | null;
   expectedModelType?: 'embedding' | 'rerank';
   modelId?: string;

@@ -16,7 +16,7 @@ const manifestPath = path.join(modelDir, 'manifest.json');
 const runtimeConfig = JSON.stringify({
   shared: {
     tooling: {
-      intent: 'investigate',
+      diagnostics: 'always',
     },
   },
   inference: {

@@ -11,13 +11,32 @@ function createRuntimeBridge(initialRuntime = {}, overlays = {}) {
   return {
     calls,
     bridge: {
-      async applyRuntimeProfile(runtimeProfile, options) {
+      async loadRuntimeProfile(runtimeProfile, options) {
         calls.push({ type: 'profile', runtimeProfile, options: options || {} });
-        runtime = mergeRuntime(runtime, overlays.profiles?.[runtimeProfile] ?? null);
+        const profileRuntime = overlays.profiles?.[runtimeProfile] ?? null;
+        return {
+          config: {
+            id: runtimeProfile,
+            name: runtimeProfile,
+            intent: overlays.profileIntents?.[runtimeProfile] ?? 'investigate',
+            compatibleIntents: [
+              overlays.profileIntents?.[runtimeProfile] ?? 'investigate',
+            ],
+            stability: 'experimental',
+            owner: 'test',
+            createdAtUtc: '2026-01-01T00:00:00Z',
+            runtime: profileRuntime,
+          },
+          runtime: profileRuntime,
+        };
       },
-      async applyRuntimeConfigFromUrl(runtimeConfigUrl, options) {
+      async loadRuntimeConfigFromUrl(runtimeConfigUrl, options) {
         calls.push({ type: 'config-url', runtimeConfigUrl, options: options || {} });
-        runtime = mergeRuntime(runtime, overlays.urls?.[runtimeConfigUrl] ?? null);
+        const urlRuntime = overlays.urls?.[runtimeConfigUrl] ?? null;
+        return {
+          config: { runtime: urlRuntime },
+          runtime: urlRuntime,
+        };
       },
       getRuntimeConfig() {
         return runtime;
@@ -87,9 +106,9 @@ function mergeRuntime(base, patch) {
   });
 
   await applyRuntimeInputs({
-    command: 'verify',
+    command: 'debug',
     workload: 'inference',
-    intent: 'verify',
+    intent: 'investigate',
     modelId: 'gemma-3-270m-it-f16-af32',
     runtimeProfile: 'profiles/verbose-trace',
     runtimeConfigUrl: '/runtime/custom.json',
@@ -197,6 +216,13 @@ function mergeRuntime(base, patch) {
     mode: 'verify',
     workload: 'inference',
     command: 'verify',
+    intent: null,
+    commandContext: {
+      schemaVersion: 1,
+      command: 'verify',
+      workload: 'inference',
+      intent: null,
+    },
     surface: 'node',
     inferenceInput: {
       prompt: 'Describe the image.',
@@ -387,6 +413,13 @@ function mergeRuntime(base, patch) {
     mode: 'verify',
     workload: 'training',
     command: 'verify',
+    intent: null,
+    commandContext: {
+      schemaVersion: 1,
+      command: 'verify',
+      workload: 'training',
+      intent: null,
+    },
     surface: 'node',
     inferenceInput: undefined,
     modelId: undefined,
@@ -488,7 +521,7 @@ function mergeRuntime(base, patch) {
   let runtime = {
     shared: {
       tooling: {
-        intent: 'verify',
+        diagnostics: 'off',
       },
     },
   };
@@ -523,7 +556,7 @@ function mergeRuntime(base, patch) {
       bridge.setRuntimeConfig({
         shared: {
           tooling: {
-            intent: 'mutated',
+            diagnostics: 'always',
           },
         },
       });
@@ -536,7 +569,7 @@ function mergeRuntime(base, patch) {
   assert.deepEqual(runtime, {
     shared: {
       tooling: {
-        intent: 'verify',
+        diagnostics: 'off',
       },
     },
   });
@@ -555,8 +588,8 @@ function mergeRuntime(base, patch) {
       converterConfig: {},
     },
   }, {
-    async applyRuntimeProfile() {},
-    async applyRuntimeConfigFromUrl() {},
+    async loadRuntimeProfile() {},
+    async loadRuntimeConfigFromUrl() {},
     getRuntimeConfig() {
       return {
         inference: {

@@ -3,6 +3,7 @@
   "name": "gemma2-pipeline",
   "description": "Gemma 2 explicit layer pipeline (all norms as separate steps)",
   "intent": "investigate",
+  "compatibleIntents": ["investigate"],
   "stability": "canonical",
   "owner": "doppler-core",
   "createdAtUtc": "2026-02-25T00:00:00Z",

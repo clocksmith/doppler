@@ -27,7 +27,7 @@ const PROMPT = Object.freeze({
 const RUNTIME_CONFIG = Object.freeze({
   shared: {
     tooling: {
-      intent: 'investigate',
+      diagnostics: 'always',
     },
   },
   inference: {
