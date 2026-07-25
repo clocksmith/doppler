@@ -47,6 +47,7 @@ const LAST_USED_MODEL_STORAGE_KEY = 'doppler.demo.last-used-model';
 let catalog = [];
 let onModelLoaded = null;
 let onProgress = null;
+let selectedCatalogModelId = null;
 
 function $(id) { return document.getElementById(id); }
 function isPlainObject(value) { return value != null && typeof value === 'object' && !Array.isArray(value); }
@@ -84,6 +85,12 @@ function getDemoWarningBadges(entry) {
 
 function getDemoWarningText(entry) {
   return typeof entry?.demoWarningText === 'string' ? entry.demoWarningText.trim() : '';
+}
+
+function getDemoModelLabel(entry) {
+  return typeof entry?.demoLabel === 'string' && entry.demoLabel.trim()
+    ? entry.demoLabel.trim()
+    : entry?.label || entry?.modelId || 'Unknown model';
 }
 
 export function canRemoveModelStatus(status) {
@@ -691,6 +698,134 @@ export async function loadDefaultStoredModel() {
   }
 }
 
+function findCatalogCard(modelId) {
+  if (typeof modelId !== 'string' || !modelId) return null;
+  return catalog.find((entry) => laneIdsForCard(entry).includes(modelId)) ?? null;
+}
+
+function getModelActionLabel(status) {
+  if (status === 'loaded') return 'Loaded';
+  if (status === 'loading') return 'Loading...';
+  if (status === 'stored') return 'Load model';
+  if (status === 'downloading') return 'Downloading...';
+  return 'Download & load';
+}
+
+function getModelStatusLabel(status) {
+  if (status === 'loaded') return 'Loaded on GPU';
+  if (status === 'loading') return 'Loading on GPU';
+  if (status === 'stored') return 'Ready in browser storage';
+  if (status === 'downloading') return 'Downloading';
+  return 'Available to download';
+}
+
+function updateModelSelectProgress(percent) {
+  const safePercent = Number.isFinite(percent)
+    ? Math.max(0, Math.min(100, percent))
+    : 0;
+  const row = $('model-select-progress-row');
+  const bar = $('model-select-progress');
+  const label = $('model-select-progress-label');
+  if (row) row.hidden = false;
+  if (bar) {
+    bar.setAttribute('aria-valuenow', String(Math.round(safePercent)));
+    const fill = bar.querySelector('.model-card-progress-fill');
+    if (fill) fill.style.width = `${safePercent}%`;
+  }
+  if (label) label.textContent = `${Math.round(safePercent)}%`;
+}
+
+function renderModelSelector() {
+  const select = $('model-select');
+  const action = $('model-select-action');
+  const remove = $('model-select-remove');
+  const detail = $('model-select-detail');
+  const statusEl = $('model-select-status');
+  const countEl = $('model-browser-count');
+  const progressRow = $('model-select-progress-row');
+  if (!select || !action || !remove || !detail || !statusEl) return;
+
+  if (countEl) {
+    countEl.textContent = `${catalog.length} ${catalog.length === 1 ? 'model' : 'models'}`;
+  }
+
+  if (catalog.length === 0) {
+    select.innerHTML = '<option value="">No models available</option>';
+    select.disabled = true;
+    action.disabled = true;
+    remove.hidden = true;
+    detail.textContent = 'No verified demo models are currently reachable.';
+    statusEl.textContent = 'Catalog unavailable';
+    if (progressRow) progressRow.hidden = true;
+    return;
+  }
+
+  const activeCard = findCatalogCard(state.modelId);
+  const selectedCard = findCatalogCard(selectedCatalogModelId);
+  const selected = selectedCard
+    ?? activeCard
+    ?? catalog.find((entry) => entry?.recommended === true)
+    ?? catalog[0];
+  selectedCatalogModelId = selected.modelId;
+
+  select.innerHTML = '';
+  for (const entry of catalog) {
+    const option = document.createElement('option');
+    const entryStatus = state.modelStatus[entry.modelId] || 'available';
+    const entryDetail = buildModelCardDetail(entry, entryStatus);
+    option.value = entry.modelId;
+    option.textContent = entryDetail
+      ? `${getDemoModelLabel(entry)} — ${entryDetail}`
+      : getDemoModelLabel(entry);
+    select.appendChild(option);
+  }
+  select.value = selected.modelId;
+  select.disabled = false;
+
+  const status = state.modelStatus[selected.modelId] || 'available';
+  const warningBadges = getDemoWarningBadges(selected);
+  const description = [
+    typeof selected.demoRole === 'string' ? selected.demoRole.trim() : '',
+    getDemoWarningText(selected),
+    warningBadges.length > 0 ? warningBadges.join(' · ') : '',
+  ].filter(Boolean).join(' — ');
+  detail.textContent = description || buildModelCardDetail(selected, status);
+  statusEl.textContent = getModelStatusLabel(status);
+
+  action.textContent = getModelActionLabel(status);
+  action.disabled = status === 'loaded' || status === 'loading' || status === 'downloading';
+  remove.hidden = !canRemoveModelStatus(status);
+  remove.disabled = state.generating || state.prefilling;
+
+  if (status === 'downloading') {
+    updateModelSelectProgress(Number(state.downloadProgress?.percent));
+  } else if (progressRow) {
+    progressRow.hidden = true;
+  }
+
+  if (select.dataset.modelSelectorBound !== 'true') {
+    select.dataset.modelSelectorBound = 'true';
+    select.addEventListener('change', () => {
+      selectedCatalogModelId = select.value;
+      renderModelSelector();
+    });
+    action.addEventListener('click', () => {
+      const entry = findCatalogCard(selectedCatalogModelId);
+      if (!entry) return;
+      void handleCardClick(entry).catch((error) => {
+        log.error('DemoModels', `Failed to load model ${entry.modelId}`, error);
+      });
+    });
+    remove.addEventListener('click', () => {
+      const entry = findCatalogCard(selectedCatalogModelId);
+      if (!entry) return;
+      void removeStoredModel(entry).catch((error) => {
+        log.error('DemoModels', `Could not remove ${entry.modelId} from OPFS`, error);
+      });
+    });
+  }
+}
+
 export function renderModelCards() {
   const container = $('model-cards');
   if (!container) return;
@@ -715,9 +850,7 @@ export function renderModelCards() {
 
     const name = document.createElement('div');
     name.className = 'model-card-name';
-    name.textContent = typeof entry.demoLabel === 'string' && entry.demoLabel.trim()
-      ? entry.demoLabel.trim()
-      : entry.label;
+    name.textContent = getDemoModelLabel(entry);
 
     const detail = document.createElement('div');
     detail.className = 'model-card-detail';
@@ -797,12 +930,17 @@ export function renderModelCards() {
     }
 
     card.addEventListener('click', () => {
+      selectedCatalogModelId = entry.modelId;
+      renderModelSelector();
+      const browser = $('model-browser');
+      if (browser) browser.open = false;
       void handleCardClick(entry).catch((error) => {
         log.error('DemoModels', `Failed to load model ${entry.modelId}`, error);
       });
     });
     container.appendChild(card);
   }
+  renderModelSelector();
 }
 
 let loadingLock = false;
@@ -1053,6 +1191,11 @@ function updateProgressBar(modelId, percent) {
   }
   const label = $(`progress-label-${modelId}`);
   if (label) label.textContent = `${Math.round(safePercent)}%`;
+
+  const selectedEntry = findCatalogCard(selectedCatalogModelId);
+  if (selectedEntry && laneIdsForCard(selectedEntry).includes(modelId)) {
+    updateModelSelectProgress(safePercent);
+  }
 }
 
 async function fetchText(url, signal) {

@@ -106,6 +106,36 @@ function syncAlternativesTooltip(tooltip, confidence, perplexityStats) {
   }
 }
 
+function positionAlternativesTooltip(span) {
+  const tooltip = span?.querySelector?.('.tp-alternatives');
+  if (!tooltip || typeof window === 'undefined') return;
+
+  tooltip.style.visibility = 'hidden';
+  tooltip.style.left = '0px';
+  tooltip.style.top = '0px';
+  tooltip.style.bottom = 'auto';
+
+  const anchorRect = span.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const viewportWidth = document.documentElement.clientWidth;
+  const viewportHeight = document.documentElement.clientHeight;
+  const margin = 8;
+  const gap = 8;
+  const maxLeft = Math.max(margin, viewportWidth - tooltipRect.width - margin);
+  const left = Math.min(
+    maxLeft,
+    Math.max(margin, anchorRect.left + (anchorRect.width - tooltipRect.width) / 2)
+  );
+  const above = anchorRect.top - tooltipRect.height - gap;
+  const below = anchorRect.bottom + gap;
+  const maxTop = Math.max(margin, viewportHeight - tooltipRect.height - margin);
+  const top = above >= margin ? above : Math.min(maxTop, below);
+
+  tooltip.style.left = `${Math.round(left)}px`;
+  tooltip.style.top = `${Math.round(top)}px`;
+  tooltip.style.visibility = 'visible';
+}
+
 function applyColor(span, prob, minPpl, maxPpl) {
   const color = confidenceToColor(prob, minPpl, maxPpl);
   span.style.setProperty('--conf-color', color);
@@ -131,12 +161,14 @@ function createTokenSpan(record, cssClass, trailFade, minPpl, maxPpl, perplexity
     span.classList.add('tp-has-alts');
     span.addEventListener('pointerenter', () => {
       span.dataset.tooltipOpen = 'true';
+      positionAlternativesTooltip(span);
     });
     span.addEventListener('pointerleave', () => {
       delete span.dataset.tooltipOpen;
     });
     span.addEventListener('focus', () => {
       span.dataset.tooltipOpen = 'true';
+      positionAlternativesTooltip(span);
     });
     span.addEventListener('blur', () => {
       delete span.dataset.tooltipOpen;
@@ -164,6 +196,16 @@ export function createTokenPressRenderer(container, options = {}) {
   let currentMinPpl = 1;
   let currentMaxPpl = 1;
   let currentPerplexityStats = summarizePerplexityRecords([]);
+  const scrollContainer = container.closest('.chat-surface');
+
+  function closeOpenTooltips() {
+    for (const span of container.querySelectorAll('.tp-token[data-tooltip-open]')) {
+      delete span.dataset.tooltipOpen;
+    }
+  }
+
+  scrollContainer?.addEventListener('scroll', closeOpenTooltips, { passive: true });
+  window.addEventListener('resize', closeOpenTooltips, { passive: true });
 
   // Recolor all existing spans when the range changes
   function recolorAll(committed, cursor) {
@@ -220,6 +262,9 @@ export function createTokenPressRenderer(container, options = {}) {
     if (record.topK && record.topK.length > 1) {
       span.append(createAlternativesTooltip(record.topK, record.confidence, currentPerplexityStats));
       span.classList.add('tp-has-alts');
+      if (span.dataset.tooltipOpen === 'true') {
+        positionAlternativesTooltip(span);
+      }
     }
     span.dataset.confidence = record.confidence.toFixed(6);
   }
@@ -309,6 +354,7 @@ export function createTokenPressRenderer(container, options = {}) {
   }
 
   function clear() {
+    closeOpenTooltips();
     settledZone.innerHTML = '';
     trailZone.innerHTML = '';
     settledCount = 0;
@@ -320,6 +366,8 @@ export function createTokenPressRenderer(container, options = {}) {
 
   function dispose() {
     clear();
+    scrollContainer?.removeEventListener('scroll', closeOpenTooltips);
+    window.removeEventListener('resize', closeOpenTooltips);
     container.classList.remove('tp-container');
   }
 
