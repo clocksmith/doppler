@@ -3,6 +3,11 @@
   "source": "doppler",
   "policies": [
     {
+      "id": "observation-policy-registry",
+      "policyPath": "src/config/inspection/observation-policies.json",
+      "schemaPath": "src/config/schema/observation-policy-registry.schema.json"
+    },
+    {
       "id": "claim-evidence-contract",
       "policyPath": "tools/policies/claim-evidence-contract.json",
       "schemaPath": "src/config/schema/claim-evidence-contract.schema.json"

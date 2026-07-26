@@ -1,4 +1,3 @@
-import { isWebGPUAvailable, initDevice } from 'doppler-gpu/tooling';
 import { state } from './ui/state.js';
 import {
   loadCatalog,
@@ -38,28 +37,24 @@ export async function boot() {
   try {
     // Step 1: WebGPU check
     setBootStatus('Checking WebGPU...');
-    if (!isWebGPUAvailable()) {
+    if (!globalThis.navigator?.gpu) {
       throw new Error('WebGPU is not available in this browser. Try Chrome 113+ or Edge 113+.');
     }
 
-    // Step 2: Init device
-    setBootStatus('Initializing GPU...');
-    await initDevice();
-
-    // Step 3: Load catalog
+    // Step 2: Load catalog
     setBootStatus('Loading model catalog...');
     await loadCatalog();
 
-    // Step 4: Check OPFS for stored models
+    // Step 3: Check OPFS for stored models
     setBootStatus('Checking stored models...');
     await checkStoredModels();
 
-    // Step 5: Reuse a saved model before offering remote downloads
+    // Step 4: Reuse a saved model before offering remote downloads
     renderModelCards();
     setBootStatus('Loading saved model...');
     await loadDefaultStoredModel();
 
-    // Step 6: Show the ready chat surface
+    // Step 5: Show the ready chat surface
     state.phase = 'ready';
     hideOverlay();
   } catch (err) {

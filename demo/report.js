@@ -4,7 +4,7 @@ import {
   renderImportedChat,
   setFinalStats,
   setPhase,
-  showTokenPress,
+  showWordQuality,
 } from './output.js';
 
 function $(id) { return document.getElementById(id); }
@@ -20,7 +20,7 @@ export function buildReport() {
     modelId: state.modelId,
     settings: { ...state.settings },
     preset: state.preset,
-    generationMode: run.tokenPress?.enabled ? 'token_press' : 'plain',
+    generationMode: run.wordQuality?.enabled ? 'guided_quality' : 'plain',
     prefillMs: run.prefillMs ?? null,
     decodeMs: run.decodeMs ?? null,
     totalTokens: run.totalTokens ?? 0,
@@ -31,7 +31,9 @@ export function buildReport() {
     promptInput: run.promptInput ?? null,
     conversation: run.conversation ?? null,
     perplexity: run.perplexity ?? null,
-    tokenPress: run.tokenPress ?? null,
+    wordQuality: run.wordQuality ?? null,
+    observationPolicy: run.observationPolicy ?? null,
+    comparisonFingerprint: run.comparisonFingerprint ?? null,
     config: run.config ?? null,
     kernelPath: run.kernelPath ?? null,
     memorySnapshot: run.memorySnapshot ?? null,
@@ -81,7 +83,9 @@ export function importReportData(value) {
   const output = getReportOutput(report);
   state.lastImportedReport = report;
   state.lastRun = {
-    mode: report.generationMode === 'token_press' ? 'token-press' : 'plain',
+    mode: ['guided_quality', 'token_press'].includes(report.generationMode)
+      ? 'guided-quality'
+      : 'plain',
     prefillMs: Number.isFinite(report.prefillMs) ? report.prefillMs : null,
     decodeMs: Number.isFinite(report.decodeMs) ? report.decodeMs : null,
     totalTokens: Number.isFinite(report.totalTokens) ? report.totalTokens : 0,
@@ -90,7 +94,7 @@ export function importReportData(value) {
     output,
     imported: true,
   };
-  showTokenPress(false);
+  showWordQuality(false);
   if (Array.isArray(report.conversation?.messages)) {
     restoreConversationHistory(report.conversation.messages);
   } else {
@@ -125,27 +129,13 @@ export function exportReport() {
   downloadJSON(report, name);
 }
 
-export function exportReferenceTranscript() {
-  const transcript = state.lastReferenceTranscript;
-  if (!transcript) return;
-  const modelId = state.modelId || 'run';
-  const name = `doppler-reference-transcript-${modelId}-${Date.now()}.json`;
-  downloadJSON(transcript, name);
-}
-
 export function setExportEnabled(enabled) {
   const btn = $('export-btn');
   if (btn) btn.disabled = !enabled;
 }
 
-export function setTranscriptExportEnabled(enabled) {
-  const btn = $('export-transcript-btn');
-  if (btn) btn.disabled = !enabled;
-}
-
 export function initReport() {
   $('export-btn')?.addEventListener('click', exportReport);
-  $('export-transcript-btn')?.addEventListener('click', exportReferenceTranscript);
   const importButton = $('import-btn');
   const importFile = $('import-file');
   importButton?.addEventListener('click', () => importFile?.click());
@@ -158,11 +148,4 @@ export function initReport() {
       importFile.value = '';
     }
   });
-  const captureToggle = $('capture-transcript-toggle');
-  if (captureToggle) {
-    captureToggle.checked = state.captureTranscriptEnabled === true;
-    captureToggle.addEventListener('change', (e) => {
-      state.captureTranscriptEnabled = e.target.checked === true;
-    });
-  }
 }

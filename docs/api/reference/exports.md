@@ -155,6 +155,54 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `parseManifest`
   - `setManifest`
 
+## `doppler-gpu/tooling/runtime`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/tooling-exports/runtime.d.ts](../../../src/tooling-exports/runtime.d.ts)
+- Implementation: [src/tooling-exports/runtime.js](../../../src/tooling-exports/runtime.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `applyRuntimeConfigFromUrl`
+  - `applyRuntimeProfile`
+  - `getRuntimeConfig`
+  - `loadRuntimeConfigFromUrl`
+  - `loadRuntimeProfile`
+  - `setRuntimeConfig`
+
+## `doppler-gpu/tooling/evidence`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/tooling-exports/evidence.d.ts](../../../src/tooling-exports/evidence.d.ts)
+- Implementation: [src/tooling-exports/evidence.js](../../../src/tooling-exports/evidence.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `assertComparableFingerprints`
+  - `BOUNDARY_COMPARISON_RECEIPT_SCHEMA`
+  - `BOUNDARY_PROVIDER_CAPTURE_SCHEMA`
+  - `buildComparisonFingerprint`
+  - `buildDeterministicTokenEvidenceFromReferenceTranscript`
+  - `buildModeScoreMaps`
+  - `buildRuntimeBoundaryCapture`
+  - `buildSourceBoundaryPack`
+  - `buildSourceBoundaryPackFromProviderCapture`
+  - `buildTokenCostLedger`
+  - `classifyTokenCostLedger`
+  - `compareBoundaryEvidence`
+  - `DEMO_CONTRACT_RECEIPT_SCHEMA`
+  - `DEMO_HARDWARE_RECEIPT_SCHEMA`
+  - `DETERMINISTIC_TOKEN_EVIDENCE_SCHEMA`
+  - `isExecutionObservationRequested`
+  - `listObservationPolicies`
+  - `resolveObservationPolicy`
+  - `RUNTIME_BOUNDARY_CAPTURE_SCHEMA`
+  - `sortTokenIdsByScore`
+  - `SOURCE_BOUNDARY_PACK_SCHEMA`
+  - `TOKEN_COST_LEDGER_SCHEMA`
+  - `validateDemoContractReceipt`
+  - `validateDemoHardwareReceipt`
+
 ## `doppler-gpu/structured`
 
 - Audience: unspecified

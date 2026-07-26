@@ -1,33 +1,7 @@
-const CACHE_NAME = 'doppler-demo-shell-v6';
-const APP_SHELL = [
-  '/demo/index.html',
-  '/demo/pwa-manifest.json',
-  '/demo/favicon.svg',
-  '/demo/styles/rd.css',
-  '/demo/styles/rd-tokens.css',
-  '/demo/styles/rd-primitives.css',
-  '/demo/styles/rd-components.css',
-  '/demo/ui/styles/app.css',
-  '/demo/ui/token-press/styles.css',
-  '/demo/ui/xray/styles.css',
-  '/demo/demo.js',
-  '/demo/boot.js',
-  '/demo/core.js',
-  '/demo/input.js',
-  '/demo/models.js',
-  '/demo/output.js',
-  '/demo/pwa.js',
-  '/demo/report.js',
-  '/demo/settings.js',
-  '/demo/ui/token-press/metrics.js',
-  '/demo/examples.json',
-  '/demo/assets/pwa/icon-192.png',
-  '/demo/assets/pwa/icon-512.png',
-  '/demo/assets/pwa/icon-maskable-512.png',
-  '/demo/assets/pwa/shortcut-new-96.png',
-  '/demo/assets/pwa/shortcut-xray-96.png',
-  '/demo/assets/pwa/screenshot-desktop.png',
-];
+import {
+  APP_SHELL,
+  CACHE_NAME,
+} from './generated-shell-manifest.js';
 
 function isDemoAsset(url) {
   return url.origin === self.location.origin
@@ -78,7 +52,7 @@ self.addEventListener('activate', (event) => {
     const keys = await caches.keys();
     await Promise.all(
       keys
-        .filter((key) => key !== CACHE_NAME)
+        .filter((key) => key.startsWith('doppler-demo-shell-') && key !== CACHE_NAME)
         .map((key) => caches.delete(key))
     );
     await self.clients.claim();
@@ -87,13 +61,9 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
-  if (request.method !== 'GET') {
-    return;
-  }
+  if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (!isDemoAsset(url)) {
-    return;
-  }
+  if (!isDemoAsset(url)) return;
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstNavigation(request));
     return;

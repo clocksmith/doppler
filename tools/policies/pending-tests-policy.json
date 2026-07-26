@@ -25,19 +25,6 @@
         "src/client/doppler-api.browser.js advanced.decodeStepLogits",
         "src/client/doppler-api.d.ts prefillWithLogits / decodeStepLogits type signatures"
       ]
-    },
-    {
-      "path": "tests/integration/demo-import-surface.pending.test.js",
-      "feature": "Rename of the demo/examples import specifier from @doppler/core to @simulatte/doppler, plus the browser-chat.html import-map entry pointing at d4da.com.",
-      "owner": "doppler-cleanup",
-      "created": "2026-04-19",
-      "expires": "2026-10-19",
-      "expectedMissing": [
-        "demo/ui/downloads/index.js must import from '@simulatte/doppler'",
-        "examples/minimal-chat.js import specifier",
-        "examples/pii-redaction.js import specifier",
-        "examples/browser-chat.html import-map entry"
-      ]
     }
   ]
 }

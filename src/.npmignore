@@ -36,12 +36,15 @@ config/runtime-merge.d.ts
 config/schema/capability-transform-policy.schema.json
 config/schema/claim-evidence-contract.schema.json
 config/schema/command-surface-contract.schema.json
+config/schema/demo-contract-receipt.schema.json
+config/schema/demo-hardware-receipt.schema.json
 config/schema/goal-completion-matrix.schema.json
 config/schema/host-teacher-output.schema.json
 config/schema/host-teacher-qualification-policy.schema.json
 config/schema/host-teacher-qualification-receipt.schema.json
 config/schema/host-teacher-task-bank.schema.json
 config/schema/model-artifact-contract.schema.json
+config/schema/observation-policy-registry.schema.json
 config/schema/optimization-candidate.schema.json
 config/schema/optimization-contract.schema.json
 config/schema/optimization-receipt.schema.json
@@ -392,7 +395,6 @@ tooling/node-converter.d.ts
 tooling/node-file-fetch.d.ts
 tooling/node-source-runtime.d.ts
 tooling/node-webgpu.d.ts
-tooling/precision-replay-math.js
 tooling/program-bundle-host.d.ts
 tooling/program-bundle-host.js
 tooling/runtime-input-composition.d.ts

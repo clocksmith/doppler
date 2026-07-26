@@ -508,3 +508,43 @@ export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null
     };
   });
 }
+
+export function loadPersistentModelSource(modelId) {
+  return runCacheOperation(async () => {
+    if (!isOPFSAvailable() || !await modelExists(modelId)) {
+      return null;
+    }
+    const cachedManifest = await loadCachedManifest(modelId);
+    if (!cachedManifest.text || !cachedManifest.manifest) {
+      return null;
+    }
+    const integrity = await verifyCachedArtifact(cachedManifest.manifest);
+    if (!integrity.valid) {
+      return null;
+    }
+    const manifestHash = await sha256Text(cachedManifest.text);
+    const runtime = getRuntimeConfig();
+    const opfsPath = runtime.loading.opfsPath;
+    const opfs = runtime.loading.storage.backend.opfs;
+    const storageContext = await createOpfsArtifactStorageContext(modelId, cachedManifest.manifest, {
+      opfsRootDir: opfsPath.opfsRootDir,
+      useSyncAccessHandle: opfs.useSyncAccessHandle,
+      maxConcurrentHandles: opfs.maxConcurrentHandles,
+      verifyHashes: false,
+      hashesTrusted: true,
+    });
+    return {
+      cached: true,
+      fromCache: true,
+      cacheState: 'verified-hit',
+      modelId,
+      error: null,
+      manifest: cachedManifest.manifest,
+      manifestText: cachedManifest.text,
+      manifestHash,
+      storageContext,
+      storageBackend: 'opfs',
+      totalBytes: manifestTotalBytes(cachedManifest.manifest),
+    };
+  });
+}

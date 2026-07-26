@@ -386,6 +386,7 @@ function validateRowReferences(row, rowId, packageJson, subsystemById, errors) {
   const packageBin = validateNullableString(row.packageBin, `${rowId}: packageBin`, errors);
   const packageExport = validateNullableString(row.packageExport, `${rowId}: packageExport`, errors);
   const smokeCommand = validateNullableString(row.smokeCommand, `${rowId}: smokeCommand`, errors);
+  const smokeCommands = row.smokeCommands == null ? [] : row.smokeCommands;
   const bins = packageBins(packageJson);
   const exportsMap = packageExports(packageJson);
   const scripts = packageScripts(packageJson);
@@ -414,7 +415,31 @@ function validateRowReferences(row, rowId, packageJson, subsystemById, errors) {
       errors.push(`${rowId}: smokeCommand script ${scriptName} is not declared in package.json`);
     }
   }
-  return { smokeCommand };
+  if (!Array.isArray(smokeCommands)) {
+    errors.push(`${rowId}: smokeCommands must be an array when declared`);
+  } else {
+    const seenKinds = new Set();
+    for (const entry of smokeCommands) {
+      const kind = normalizeText(entry?.kind);
+      const command = normalizeText(entry?.command);
+      const receiptSchema = normalizeText(entry?.receiptSchema);
+      if (kind !== 'contract' && kind !== 'hardware') {
+        errors.push(`${rowId}: smokeCommands kind must be contract or hardware`);
+      } else if (seenKinds.has(kind)) {
+        errors.push(`${rowId}: duplicate smokeCommands kind ${kind}`);
+      } else {
+        seenKinds.add(kind);
+      }
+      const scriptName = parseNpmRunScript(command);
+      if (!scriptName || !Object.prototype.hasOwnProperty.call(scripts, scriptName)) {
+        errors.push(`${rowId}: smokeCommands entry must name a declared npm script (${command})`);
+      }
+      if (!receiptSchema) {
+        errors.push(`${rowId}: smokeCommands receiptSchema is required`);
+      }
+    }
+  }
+  return { smokeCommand, smokeCommands };
 }
 
 async function validateRow(row, goalId, context) {
@@ -451,11 +476,27 @@ async function validateRow(row, goalId, context) {
     errors.push(`${rowId}: status ${status || '<missing>'} requires blocker codes`);
   }
   const references = validateRowReferences(row, rowId, packageJson, subsystemById, errors);
-  if (row?.claimAllowed === true && !references.smokeCommand) {
-    errors.push(`${rowId}: claimAllowed rows must declare a smokeCommand`);
+  if (
+    row?.claimAllowed === true
+    && !references.smokeCommand
+    && references.smokeCommands.length === 0
+  ) {
+    errors.push(`${rowId}: claimAllowed rows must declare smokeCommand or smokeCommands`);
   }
-  if (row?.claimAllowed === false && references.smokeCommand !== null) {
-    errors.push(`${rowId}: non-claimable rows must set smokeCommand to null`);
+  if (
+    row?.claimAllowed === false
+    && (references.smokeCommand !== null || references.smokeCommands.length > 0)
+  ) {
+    errors.push(`${rowId}: non-claimable rows must not declare smoke commands`);
+  }
+  if (rowId === 'hosted-browser-demo') {
+    const byKind = new Map(references.smokeCommands.map((entry) => [entry.kind, entry]));
+    if (
+      byKind.get('contract')?.receiptSchema !== 'doppler.demo-contract-receipt/v1'
+      || byKind.get('hardware')?.receiptSchema !== 'doppler.demo-hardware-receipt/v1'
+    ) {
+      errors.push(`${rowId}: must require distinct contract and hardware receipt schemas`);
+    }
   }
   await validateEvidencePaths(repoRoot, row?.evidencePaths, `${rowId}: row`, errors);
 }

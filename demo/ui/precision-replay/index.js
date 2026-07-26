@@ -1,7 +1,7 @@
 import {
   buildModeScoreMaps,
   sortTokenIdsByScore,
-} from '../../../src/tooling/precision-replay-math.js';
+} from 'doppler-gpu/tooling/evidence';
 import { setPromptValue } from '../../input.js';
 
 const DATA_ROOT = new URL('../../data/f16-precision-collapse/', import.meta.url);
@@ -322,26 +322,46 @@ export async function initPrecisionReplay() {
 
   setPanelOpen(false);
 
-  renderStatus('Loading checked-in evidence...');
-  try {
-    replayState.manifest = await fetchJson('manifest.json');
-    replayState.curated = await fetchJson('curated/summary.json');
-    replayState.selectedPromptId = replayState.manifest?.curated?.defaultPromptId ?? replayState.curated?.prompts?.[0]?.id ?? null;
+  let loading = null;
+  const ensureLoaded = async () => {
+    if (replayState.manifest && replayState.curated) return;
+    if (loading) return loading;
+    renderStatus('Loading digest-bound evidence index…');
+    loading = (async () => {
+      replayState.manifest = await fetchJson('manifest.json');
+      replayState.curated = await fetchJson('curated/summary.json');
+      replayState.selectedPromptId = replayState.manifest?.curated?.defaultPromptId
+        ?? replayState.curated?.prompts?.[0]?.id
+        ?? null;
+      renderStats();
+      renderPromptSelect();
+      renderModeGroup();
+      renderBroadFlips();
+      await renderSelectedPrompt();
+      const aggregate = replayState.manifest.broad.aggregate;
+      const digest = replayState.manifest?.curated?.summarySha256
+        ?? replayState.manifest?.curated?.digest
+        ?? 'digest recorded in manifest';
+      renderStatus(`${aggregate.f16VsF32FlipCount}/${aggregate.promptCount} prompts changed top token in F16 · ${digest}`);
+    })();
+    try {
+      await loading;
+    } catch (error) {
+      toggleEl.disabled = true;
+      renderStatus(`Precision replay unavailable: ${error.message}`);
+      throw error;
+    } finally {
+      loading = null;
+    }
+  };
 
-    renderStats();
-    renderPromptSelect();
-    renderModeGroup();
-    renderBroadFlips();
-    await renderSelectedPrompt();
-    renderStatus(`${replayState.manifest.broad.aggregate.f16VsF32FlipCount}/${replayState.manifest.broad.aggregate.promptCount} prompts changed top token in F16.`);
-  } catch (error) {
-    toggleEl.disabled = true;
-    renderStatus(`Precision replay unavailable: ${error.message}`);
-    return;
-  }
-
-  toggleEl.addEventListener('click', () => {
-    setPanelOpen(toggleEl.getAttribute('aria-expanded') !== 'true');
+  renderStatus('Evidence loads only when opened.');
+  toggleEl.addEventListener('click', async () => {
+    const open = toggleEl.getAttribute('aria-expanded') !== 'true';
+    setPanelOpen(open);
+    if (open) {
+      await ensureLoaded().catch(() => {});
+    }
   });
 
   selectEl.addEventListener('change', async () => {

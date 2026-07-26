@@ -164,8 +164,9 @@ export function setRunHandler(handler) {
   onRun = handler;
 }
 
-export function isSendReady({ pipeline, prompt, generating = false, prefilling = false }) {
-  return pipeline != null
+export function isSendReady({ model, pipeline, prompt, generating = false, prefilling = false }) {
+  const activeModel = model ?? pipeline ?? null;
+  return activeModel != null
     && typeof prompt === 'string'
     && prompt.trim().length > 0
     && generating !== true
@@ -178,7 +179,7 @@ export function syncSendButton(options = {}) {
   const generating = options.generating ?? state.generating;
   const prefilling = options.prefilling ?? state.prefilling;
   const ready = isSendReady({
-    pipeline: state.pipeline,
+    model: state.model,
     prompt,
     generating,
     prefilling,
@@ -186,7 +187,7 @@ export function syncSendButton(options = {}) {
   if (!btn) return ready;
 
   btn.disabled = !ready;
-  if (state.pipeline == null) {
+  if (state.model == null) {
     btn.title = 'Load a model to send';
   } else if (!prompt) {
     btn.title = 'Enter a message to send';

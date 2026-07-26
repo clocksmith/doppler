@@ -4,47 +4,47 @@ import { getXrayRuntimeNoticeText } from '../../demo/ui/xray/index.js';
 
 assert.equal(
   getXrayRuntimeNoticeText({
-    tokenPressEnabled: true,
+    wordQualityEnabled: true,
     profilingEnabled: true,
     traceEnabled: false,
   }),
-  'Token logits runs stepwise; X-Ray profiling is on. Batch view is unavailable.'
+  'Deep X-Ray modifies execution and enables GPU timestamp queries. Its timings are diagnostic, not representative throughput.'
 );
 
 assert.equal(
   getXrayRuntimeNoticeText({
-    tokenPressEnabled: true,
+    wordQualityEnabled: true,
     profilingEnabled: false,
     traceEnabled: false,
   }),
-  'Token logits runs stepwise. Batch view is unavailable.'
+  'Guided quality inspection captures token probabilities and changes execution. Compare quality only when the canonical fingerprint matches.'
 );
 
 assert.equal(
   getXrayRuntimeNoticeText({
-    tokenPressEnabled: false,
+    wordQualityEnabled: false,
     profilingEnabled: true,
     traceEnabled: true,
   }),
-  'X-Ray profiling is on. Trace logging is separate.'
+  'Deep X-Ray modifies execution and enables GPU timestamp queries. Its timings are diagnostic, not representative throughput.'
 );
 
 assert.equal(
   getXrayRuntimeNoticeText({
-    tokenPressEnabled: false,
+    wordQualityEnabled: false,
     profilingEnabled: false,
     traceEnabled: true,
   }),
-  'Trace logging is on; X-Ray selection is unchanged.'
+  'Always-on evidence records existing wall timing without GPU timestamp queries. This is the performance-representative observation tier.'
 );
 
 assert.equal(
   getXrayRuntimeNoticeText({
-    tokenPressEnabled: false,
+    wordQualityEnabled: false,
     profilingEnabled: false,
     traceEnabled: false,
   }),
-  null
+  'Always-on evidence records existing wall timing without GPU timestamp queries. This is the performance-representative observation tier.'
 );
 
 console.log('xray-runtime-notice.test: ok');

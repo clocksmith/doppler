@@ -4,6 +4,14 @@ import { resolveSamplingConfig } from '../../inference/pipelines/text/sampling-c
 import { DOPPLER_VERSION } from '../../version.js';
 import { isNodeRuntime } from '../../utils/runtime-env.js';
 import {
+  MODEL_INSPECTION_RECEIPT_SCHEMA,
+  aggregateWordPerplexity,
+  buildComparisonFingerprint,
+  buildInspectionTokenRecords,
+  listObservationPolicies,
+  resolveObservationPolicy,
+} from '../inspection.js';
+import {
   activateLoRAFromTrainingOutputForPipeline,
   getActiveLoRAForPipeline,
   loadLoRAAdapterForPipeline,
@@ -230,9 +238,9 @@ function resolveGenerationConfigEvidence(pipeline, options) {
   if (!Array.isArray(stopSequences) || stopSequences.some((value) => typeof value !== 'string')) {
     throw new Error('Resolved Doppler stopSequences must be an array of strings.');
   }
-  const useSpeculative = options.useSpeculative ?? generation.useSpeculative;
-  if (typeof useSpeculative !== 'boolean') {
-    throw new Error('Resolved Doppler useSpeculative must be a boolean.');
+  const useSpeculative = options.useSpeculative ?? generation.useSpeculative ?? null;
+  if (useSpeculative !== null && typeof useSpeculative !== 'boolean') {
+    throw new Error('Resolved Doppler useSpeculative must be a boolean or null.');
   }
   const seed = options.seed ?? null;
   if (seed !== null && (!Number.isFinite(seed) || seed < 0)) {
@@ -263,8 +271,72 @@ function decodeGeneratedTokens(pipeline, tokenIds) {
   return String(pipeline.tokenizer.decode(tokenIds, true, false));
 }
 
-export function createModelHandle(pipeline, resolved) {
+function resolveInspectionBrowserIdentity() {
+  const navigatorValue = globalThis.navigator;
   return {
+    userAgent: navigatorValue?.userAgent ?? '',
+    platform: navigatorValue?.platform ?? '',
+    language: navigatorValue?.language ?? '',
+  };
+}
+
+function resolveTokenizerContract(pipeline) {
+  const contract = pipeline?.manifest?.tokenizer;
+  if (!contract || typeof contract !== 'object' || Array.isArray(contract)) {
+    throw new Error('Loaded Doppler manifest does not expose tokenizer identity.');
+  }
+  return contract;
+}
+
+function resolveInspectionGenerationOptions(options, policy) {
+  const generation = options?.generation ?? {};
+  if (!generation || typeof generation !== 'object' || Array.isArray(generation)) {
+    throw new Error('Doppler inspection generation options must be an object.');
+  }
+  for (const field of ['onToken', 'onLogits', 'profile', 'disableCommandBatching']) {
+    if (Object.prototype.hasOwnProperty.call(generation, field)) {
+      throw new Error(`Doppler inspection owns generation.${field} through its observation policy.`);
+    }
+  }
+  const resolved = { ...generation };
+  if (policy.modifiesExecution) {
+    resolved.disableCommandBatching = true;
+  }
+  if (policy.gpuTimestampQueries) {
+    resolved.profile = true;
+  }
+  return resolved;
+}
+
+export function createModelHandle(pipeline, resolved) {
+  async function generateWithEvidence(prompt, options = {}) {
+    assertSupportedGenerationOptions(options);
+    const generationConfig = resolveGenerationConfigEvidence(pipeline, options);
+    const result = await pipeline.generateTokenIds(prompt, options);
+    const tokenIds = Array.from(result?.tokenIds || [], Number);
+    const outputText = decodeGeneratedTokens(pipeline, tokenIds);
+    const stats = result?.stats || pipeline.getStats?.() || null;
+    const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
+      ? pipeline.getKernelCapabilities()
+      : getKernelCapabilities();
+    const backendIdentity = buildGenerationBackendIdentity({
+      deviceInfo: kernelCapabilities?.adapterInfo || null,
+      kernelCapabilities,
+      stats,
+    });
+    return buildGenerationEvidence({
+      outputText,
+      tokenIds,
+      generationConfig,
+      modelId: resolved.modelId,
+      manifestHash: resolved.manifestHash || null,
+      activeAdapter: getActiveLoRAForPipeline(pipeline),
+      backendIdentity,
+      stats,
+    });
+  }
+
+  const handle = {
     generate(prompt, options = {}) {
       assertSupportedGenerationOptions(options);
       return pipeline.generate(prompt, options);
@@ -273,32 +345,7 @@ export function createModelHandle(pipeline, resolved) {
       assertSupportedGenerationOptions(options);
       return collectText(pipeline.generate(prompt, options));
     },
-    async generateWithEvidence(prompt, options = {}) {
-      assertSupportedGenerationOptions(options);
-      const generationConfig = resolveGenerationConfigEvidence(pipeline, options);
-      const result = await pipeline.generateTokenIds(prompt, options);
-      const tokenIds = Array.from(result?.tokenIds || [], Number);
-      const outputText = decodeGeneratedTokens(pipeline, tokenIds);
-      const stats = result?.stats || pipeline.getStats?.() || null;
-      const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
-        ? pipeline.getKernelCapabilities()
-        : getKernelCapabilities();
-      const backendIdentity = buildGenerationBackendIdentity({
-        deviceInfo: kernelCapabilities?.adapterInfo || null,
-        kernelCapabilities,
-        stats,
-      });
-      return buildGenerationEvidence({
-        outputText,
-        tokenIds,
-        generationConfig,
-        modelId: resolved.modelId,
-        manifestHash: resolved.manifestHash || null,
-        activeAdapter: getActiveLoRAForPipeline(pipeline),
-        backendIdentity,
-        stats,
-      });
-    },
+    generateWithEvidence,
     chat(messages, options = {}) {
       assertSupportedGenerationOptions(options);
       return pipeline.generate(messages, options);
@@ -432,4 +479,73 @@ export function createModelHandle(pipeline, resolved) {
       },
     },
   };
+
+  handle.inspect = {
+    listPolicies() {
+      return listObservationPolicies();
+    },
+    async generate(prompt, options = {}) {
+      if (typeof prompt !== 'string' || !prompt.trim()) {
+        throw new Error('Doppler model.inspect.generate requires a non-empty string prompt.');
+      }
+      const policy = resolveObservationPolicy(options.policyId);
+      const generationOptions = resolveInspectionGenerationOptions(options, policy);
+      assertSupportedGenerationOptions(generationOptions);
+      const logitsByStep = [];
+      if (policy.requiredCaptures.includes('selected-token-probabilities')) {
+        generationOptions.onLogits = (logits) => {
+          logitsByStep.push(Float32Array.from(logits));
+        };
+      }
+      const startedAt = performance.now();
+      const evidence = await generateWithEvidence(prompt, generationOptions);
+      const completedAt = performance.now();
+      const promptTokenIds = tokenizeText(pipeline, prompt);
+      const tokenRecords = policy.perplexity
+        ? buildInspectionTokenRecords(
+          evidence.tokenIds,
+          logitsByStep,
+          pipeline.tokenizer,
+          Number.isInteger(options.topKSize) ? options.topKSize : 5
+        )
+        : [];
+      const quality = policy.perplexity
+        ? aggregateWordPerplexity(tokenRecords, {
+          windowUnit: policy.perplexity.rollingWindow.unit,
+          windowSize: policy.perplexity.rollingWindow.size,
+        })
+        : null;
+      const fingerprint = buildComparisonFingerprint({
+        artifact: {
+          modelId: resolved.modelId,
+          manifestHash: resolved.manifestHash,
+        },
+        tokenizer: resolveTokenizerContract(pipeline),
+        promptTokenIds,
+        sampling: evidence.generationConfig,
+        observationPolicyId: policy.id,
+        execution: evidence.backendIdentity,
+        browser: resolveInspectionBrowserIdentity(),
+        adapter: evidence.backendIdentity.adapter,
+      });
+      const receipt = {
+        schema: MODEL_INSPECTION_RECEIPT_SCHEMA,
+        policy,
+        fingerprint,
+        outputText: evidence.outputText,
+        generatedTokenIds: [...evidence.tokenIds],
+        wallTimingMs: completedAt - startedAt,
+        performanceRepresentative: policy.performanceRepresentative,
+        tokens: tokenRecords,
+        quality,
+        generationEvidence: evidence,
+      };
+      if (typeof options.onEvent === 'function') {
+        options.onEvent({ type: 'inspection-complete', receipt });
+      }
+      return receipt;
+    },
+  };
+
+  return handle;
 }

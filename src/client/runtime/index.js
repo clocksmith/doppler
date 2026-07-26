@@ -14,7 +14,16 @@ import {
   createHttpArtifactStorageContext,
   createNodeFileArtifactStorageContext,
 } from '../../storage/artifact-storage-context.js';
-import { ensureModelCachedSource } from '../../storage/model-cache.js';
+import {
+  ensureModelCachedSource,
+  loadPersistentModelSource,
+} from '../../storage/model-cache.js';
+import { deleteModel } from '../../storage/shard-manager.js';
+import {
+  listRegisteredModels,
+  registerModel,
+  removeRegisteredModel,
+} from '../../storage/registry.js';
 import { isNodeRuntime } from '../../utils/runtime-env.js';
 import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
@@ -167,7 +176,16 @@ export function createDopplerRuntimeService({
     await ensureWebGPUAvailable();
 
     emitLoadProgress(userProgress, 'manifest', 15, 'Fetching manifest');
-    const manifestPayload = resolved.manifest
+    const persistentSource = options.cache === 'opfs' && !isNodeRuntime()
+      ? await loadPersistentModelSource(resolved.modelId)
+      : null;
+    const manifestPayload = persistentSource
+      ? {
+        text: persistentSource.manifestText,
+        manifest: persistentSource.manifest,
+        manifestHash: persistentSource.manifestHash,
+      }
+      : resolved.manifest
       ? await (async () => {
         const text = resolved.manifestText ?? JSON.stringify(resolved.manifest);
         const manifestHash = await sha256ManifestText(text);
@@ -179,7 +197,21 @@ export function createDopplerRuntimeService({
         return { text, manifest: resolved.manifest, manifestHash };
       })()
       : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);
-    const resolvedArtifactSource = await resolveManifestArtifactSource(resolved, manifestPayload);
+    const resolvedArtifactSource = persistentSource
+      ? {
+        ...resolved,
+        manifest: persistentSource.manifest,
+        manifestText: persistentSource.manifestText,
+        storageContext: persistentSource.storageContext,
+        persistentCache: {
+          backend: 'opfs',
+          state: 'verified-hit',
+          fromCache: true,
+          manifestHash: persistentSource.manifestHash,
+          totalBytes: persistentSource.totalBytes,
+        },
+      }
+      : await resolveManifestArtifactSource(resolved, manifestPayload);
     await initDevice();
     const embeddingLimitError = resolveManifestGpuResidentEmbeddingLimitError(
       resolvedArtifactSource.manifest,
@@ -200,9 +232,16 @@ export function createDopplerRuntimeService({
       : null;
     const loadSource = await resolvePersistentBrowserLoadSource(
       cachedResolved ?? resolvedArtifactSource,
-      options.cache,
+      persistentSource ? false : options.cache,
       userProgress
     );
+    if (options.cache === 'opfs' && !isNodeRuntime()) {
+      await registerModel({
+        modelId: resolved.modelId,
+        manifestHash: manifestPayload.manifestHash,
+        backend: 'opfs',
+      });
+    }
     const nodeStorageContext = await resolveNodeArtifactStorageContext(loadSource);
     const storageContext = nodeStorageContext ?? resolveArtifactStorageContext(loadSource);
     await storageContext?.preflight?.();
@@ -331,6 +370,25 @@ export function createDopplerRuntimeService({
   doppler.listModels = async function listModels() {
     const models = await listQuickstartModels();
     return models.map((entry) => entry.modelId);
+  };
+  doppler.listModelDetails = async function listModelDetails() {
+    return listQuickstartModels();
+  };
+  doppler.listPersistentModels = async function listPersistentModels() {
+    if (isNodeRuntime()) {
+      return [];
+    }
+    return listRegisteredModels();
+  };
+  doppler.removePersistentModel = async function removePersistentModel(model) {
+    if (isNodeRuntime()) {
+      throw new Error('doppler.removePersistentModel() is browser-only.');
+    }
+    const resolved = await resolveModelSource(model);
+    await doppler.evict(resolved.modelId);
+    const removed = await deleteModel(resolved.modelId);
+    await removeRegisteredModel(resolved.modelId);
+    return removed;
   };
 
   return {

@@ -82,7 +82,6 @@
     "dist",
     "**/node_modules",
     "benchmarks/**/*",
-    "demo/archive/**/*",
     "**/*.spec.js",
     "**/*.test.js",
     "tests/**/*",

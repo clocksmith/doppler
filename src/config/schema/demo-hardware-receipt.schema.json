@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/demo-hardware-receipt-v1.schema.json",
+  "title": "Doppler demo hardware receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "createdAtUtc",
+    "executionClass",
+    "browser",
+    "adapter",
+    "artifact",
+    "online",
+    "offline",
+    "lifecycle",
+    "fingerprint"
+  ],
+  "properties": {
+    "schema": {
+      "const": "doppler.demo-hardware-receipt/v1"
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed"
+      ]
+    },
+    "createdAtUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "executionClass": {
+      "enum": [
+        "software-webgpu",
+        "hardware-webgpu"
+      ]
+    },
+    "browser": {
+      "type": "object"
+    },
+    "adapter": {
+      "type": "object"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "modelId",
+        "manifestHash"
+      ],
+      "properties": {
+        "modelId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifestHash": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    },
+    "online": {
+      "$ref": "#/$defs/generation"
+    },
+    "offline": {
+      "$ref": "#/$defs/generation"
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allPagesClosed",
+        "networkDisabled",
+        "persistentCacheRestored",
+        "upgradeChecked",
+        "partialCacheFailureChecked"
+      ],
+      "properties": {
+        "allPagesClosed": {
+          "type": "boolean"
+        },
+        "networkDisabled": {
+          "type": "boolean"
+        },
+        "persistentCacheRestored": {
+          "type": "boolean"
+        },
+        "upgradeChecked": {
+          "type": "boolean"
+        },
+        "partialCacheFailureChecked": {
+          "type": "boolean"
+        }
+      }
+    },
+    "fingerprint": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outputText",
+        "tokenIds",
+        "transcriptHash"
+      ],
+      "properties": {
+        "outputText": {
+          "type": "string"
+        },
+        "tokenIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "transcriptHash": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    }
+  }
+}

@@ -1,11 +1,10 @@
-import { applyRuntimeProfile, getRuntimeConfig } from 'doppler-gpu/tooling';
-import { log } from '../src/debug/index.js';
+import { applyRuntimeProfile, getRuntimeConfig } from 'doppler-gpu/tooling/runtime';
 import { state } from './ui/state.js';
 
 function $(id) { return document.getElementById(id); }
 
 const DEMO_DEFAULT_MAX_TOKENS = 1024;
-const TOKEN_PRESS_STORAGE_KEY = 'doppler.demo.token-perplexity-enabled';
+const WORD_QUALITY_STORAGE_KEY = 'doppler.demo.word-quality-enabled';
 
 const GENERATION_FIELDS = [
   { key: 'temperature', id: 'set-temperature', path: ['inference', 'sampling', 'temperature'], parse: parseFiniteNumber },
@@ -121,7 +120,7 @@ async function applyProfile(profileId, { required = false } = {}) {
       profileSelect.value = previousProfile;
     }
     state.settings.runtimeProfile = previousProfile;
-    log.warn('DemoSettings', `Failed to load runtime profile: ${error?.message || error}`);
+    console.warn(`DemoSettings: failed to load runtime profile: ${error?.message || error}`);
     return false;
   }
 
@@ -142,7 +141,7 @@ function readGenerationSettings() {
 }
 
 export function getSettings() {
-  state.tokenPressEnabled = $('set-token-press')?.checked ?? false;
+  state.wordQualityEnabled = $('set-word-quality')?.checked ?? false;
   state.liveTokSec = $('set-live-toks')?.checked ?? true;
 
   const generationSettings = readGenerationSettings();
@@ -158,16 +157,16 @@ export function getSettings() {
 }
 
 export async function initSettings({ requireDefaultProfile = false } = {}) {
-  const tokenPressToggle = $('set-token-press');
-  if (tokenPressToggle) {
-    const savedTokenPress = readBooleanPreference(TOKEN_PRESS_STORAGE_KEY);
-    if (savedTokenPress != null) {
-      tokenPressToggle.checked = savedTokenPress;
+  const wordQualityToggle = $('set-word-quality');
+  if (wordQualityToggle) {
+    const savedWordQuality = readBooleanPreference(WORD_QUALITY_STORAGE_KEY);
+    if (savedWordQuality != null) {
+      wordQualityToggle.checked = savedWordQuality;
     }
-    state.tokenPressEnabled = tokenPressToggle.checked;
-    tokenPressToggle.addEventListener('change', () => {
-      state.tokenPressEnabled = tokenPressToggle.checked;
-      writeBooleanPreference(TOKEN_PRESS_STORAGE_KEY, tokenPressToggle.checked);
+    state.wordQualityEnabled = wordQualityToggle.checked;
+    wordQualityToggle.addEventListener('change', () => {
+      state.wordQualityEnabled = wordQualityToggle.checked;
+      writeBooleanPreference(WORD_QUALITY_STORAGE_KEY, wordQualityToggle.checked);
     });
   }
 

@@ -1,0 +1,12 @@
+.word-quality {
+  --word-surprisal: 0;
+  display: inline-block;
+  padding: 0.08rem 0.14rem;
+  border-bottom: calc(1px + 5px * var(--word-surprisal)) solid
+    color-mix(
+      in srgb,
+      var(--rd-accent, #7c9cff) calc(25% + 70% * var(--word-surprisal)),
+      transparent
+    );
+  cursor: help;
+}
