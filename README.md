@@ -212,6 +212,12 @@ The `dr` facade is the primary app API. Advanced APIs use package subpaths.
 ```js
 import { dr } from 'doppler-gpu';
 
+// Explicit scoped API with a stable result envelope
+const session = await dr.open('qwen3-0.8b');
+const result = await session.generate('Describe WebGPU briefly');
+console.log(result.outputText, result.fingerprint);
+await session.close();
+
 // Stream tokens
 const model = await dr.load('qwen3-0.8b');
 for await (const token of model.generate('Describe WebGPU briefly')) {

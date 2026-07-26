@@ -26,6 +26,8 @@ instance features such as LoRA loading relate to the tier1 contract.
 - `dr`
 - `doppler` (compatibility alias)
 - `dr.load(model, options)`
+- `dr.open(model, options)`
+- `dr.generate(model, input, options)`
 - `dr.text(prompt, options)`
 - `dr.chat(messages, options)`
 - `dr.chatText(messages, options)`
@@ -109,6 +111,39 @@ Returns a `DopplerModel` instance with:
 The text generation and `advanced.*` telemetry helpers are part of the promoted
 root-facade story. LoRA instance methods are available on the same model object,
 but remain outside the tier1 proof contract.
+
+### `dr.open(model, options)`
+
+Returns a scoped session with explicit ownership and capability discovery:
+
+```js
+const session = await dr.open('qwen3-0.8b', { cache: 'opfs' });
+session.require('generate');
+
+const result = await session.generate('Describe WebGPU briefly');
+console.log(result.outputText, result.fingerprint);
+
+await session.close();
+```
+
+The session exposes `generate`, `stream`, `embed`, `encodeSequence`, `inspect`,
+`supports`, `require`, and idempotent `close`. Unsupported capabilities fail
+before execution. `generate` always returns
+`doppler.generation-result/v1`; `stream` always emits versioned semantic events.
+The observation policy is explicit and recorded in the result fingerprint.
+
+`always` records identity and coarse execution evidence without requesting
+additional logits. `guided-quality` and `deep-xray` label the requested
+inspection tier and report unavailable observations instead of inventing them.
+The result's `executionChanged` field states whether observation changed the
+execution path.
+
+### `dr.generate(model, input, options)`
+
+One-shot scoped generation. Doppler opens the model, returns the same stable
+generation result as `session.generate`, and closes the GPU session in a
+`finally` block. Use `dr.open` when multiple calls should share one loaded
+session.
 
 ### `dr(prompt, options)`
 

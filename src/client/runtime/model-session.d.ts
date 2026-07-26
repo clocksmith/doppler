@@ -97,6 +97,8 @@ export interface DopplerModelHandle {
   generateWithEvidence(prompt: string, options?: DopplerGenerateOptions): Promise<DopplerGenerationEvidence>;
   chat(messages: ChatMessage[], options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   chatText(messages: ChatMessage[], options?: DopplerGenerateOptions): Promise<DopplerChatResponse>;
+  embed(prompt: string, options?: Record<string, unknown>): Promise<unknown>;
+  embedBatch(prompts: string[], options?: Record<string, unknown>): Promise<unknown>;
   encodeSequence(sequence: string, options?: SequenceEncodeOptions): Promise<SequenceEncodeResult>;
   resetGenerationState(): void;
   loadLoRA(adapter: LoRAManifest | RDRRManifest | string, loadOptions?: LoRALoadOptions): Promise<void>;
@@ -128,6 +130,9 @@ export interface DopplerModelHandle {
   readonly manifest: unknown;
   readonly deviceInfo: Record<string, unknown> | null;
   readonly supportsSequence: boolean;
+  readonly supportsEmbedding: boolean;
+  readonly supportsTranscription: boolean;
+  readonly supportsVision: boolean;
   readonly inspect: {
     listPolicies(): DopplerObservationPolicy[];
     generate(
