@@ -1,6 +1,6 @@
 
 
-import { autoTuneKernels, prewarmKernels, clearKernelCaches } from './kernels/utils.js';
+import { prewarmKernels, clearKernelCaches } from './kernels/utils.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
 
@@ -14,19 +14,11 @@ export async function prepareKernelRuntime(
   const {
     prewarm = kernelWarmup.prewarm,
     prewarmMode = kernelWarmup.prewarmMode,
-    autoTune = kernelWarmup.autoTune,
     clearCaches = false,
-    modelConfig = {},
   } = options;
 
   if (clearCaches) {
     clearKernelCaches();
-  }
-
-  let tuned = false;
-  if (autoTune) {
-    await autoTuneKernels(modelConfig);
-    tuned = true;
   }
 
   let warmed = false;
@@ -35,5 +27,5 @@ export async function prepareKernelRuntime(
     warmed = true;
   }
 
-  return { warmed, tuned };
+  return { warmed };
 }

@@ -15,6 +15,8 @@ client/doppler-registry.d.ts
 client/runtime/node-quickstart-cache.d.ts
 client/runtime/source-runtime.d.ts
 client/runtime/storage.d.ts
+config/evidence/token-cost-classifier-policy.json
+config/evidence/workflow-ownership-policy.json
 config/goal-completion-matrix.json
 config/kernels/kernel-ref-digests.d.ts
 config/kernels/moe/gpt-oss.paths.json
@@ -206,13 +208,6 @@ formats/tokenizer/types.d.ts
 gpu/kernel-runtime.d.ts
 gpu/kernel-selection-cache.d.ts
 gpu/kernel-selection-log.d.ts
-gpu/kernel-tuner.d.ts
-gpu/kernel-tuner/benchmarks.d.ts
-gpu/kernel-tuner/cache.d.ts
-gpu/kernel-tuner/index.d.ts
-gpu/kernel-tuner/tuner.d.ts
-gpu/kernel-tuner/types.d.ts
-gpu/kernel-tuner/types.js
 gpu/kernels/check-finiteness.d.ts
 gpu/kernels/check-hot-vocab-stop.d.ts
 gpu/kernels/check-stop.d.ts
@@ -228,7 +223,6 @@ gpu/kernels/rule-matcher.d.ts
 gpu/kernels/rule-registry.d.ts
 gpu/kernels/types.js
 gpu/perf-guards.d.ts
-gpu/profiler.d.ts
 gpu/readback-utils.d.ts
 gpu/readback-utils.js
 gpu/submit-probe.d.ts

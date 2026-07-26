@@ -3,7 +3,6 @@ import { DEFAULT_KERNEL_THRESHOLDS } from './kernel-thresholds.schema.js';
 import { DEFAULT_BUFFER_POOL_CONFIG } from './buffer-pool.schema.js';
 import { DEFAULT_GPU_CACHE_CONFIG } from './gpu-cache.schema.js';
 import { DEFAULT_MEMORY_LIMITS_CONFIG } from './memory-limits.schema.js';
-import { DEFAULT_TUNER_CONFIG } from './tuner.schema.js';
 import { DEFAULT_KERNEL_WARMUP_CONFIG } from './kernel-warmup.schema.js';
 import { DEFAULT_HOTSWAP_CONFIG } from './hotswap.schema.js';
 import { DEFAULT_BRIDGE_CONFIG } from './bridge.schema.js';
@@ -38,7 +37,6 @@ export const DEFAULT_SHARED_RUNTIME_CONFIG = {
   bufferPool: DEFAULT_BUFFER_POOL_CONFIG,
   gpuCache: DEFAULT_GPU_CACHE_CONFIG,
   memory: DEFAULT_MEMORY_LIMITS_CONFIG,
-  tuner: DEFAULT_TUNER_CONFIG,
   hotSwap: DEFAULT_HOTSWAP_CONFIG,
   intentBundle: DEFAULT_INTENT_BUNDLE_CONFIG,
   bridge: DEFAULT_BRIDGE_CONFIG,

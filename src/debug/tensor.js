@@ -3,6 +3,7 @@
 import { gpuDevice } from './config.js';
 import { log } from './log.js';
 import { computeArrayStats } from './stats.js';
+import { sha256BytesHex } from '../utils/sha256.js';
 
 // ============================================================================
 // Internal Helpers
@@ -251,6 +252,8 @@ export async function snapshotTensor(buffer, shape, dtype = 'f32', options = {})
       dtype,
       stats: { min: 0, max: 0, maxAbs: 0, mean: 0, std: 0 },
       sample: [],
+      sampleCoordinates: [],
+      fullTensorDigest: null,
       hasNaN: false,
       hasInf: false,
     };
@@ -259,10 +262,24 @@ export async function snapshotTensor(buffer, shape, dtype = 'f32', options = {})
 
 export function snapshotFromArray(arr, shape, dtype = 'f32', options = {}) {
   const numElements = shape.reduce((a, b) => a * b, 1);
-  const stats = computeArrayStats(arr, Math.min(arr.length, numElements));
+  const capturedElements = Math.min(arr.length, numElements);
+  const stats = computeArrayStats(arr, capturedElements);
   const data = options.includeData === true
     ? Array.from(arr.slice(0, numElements))
     : undefined;
+  const sampleLength = Math.min(8, capturedElements);
+  const sampleCoordinates = [];
+  for (let flatIndex = 0; flatIndex < sampleLength; flatIndex += 1) {
+    let remainder = flatIndex;
+    const coordinate = new Array(shape.length);
+    for (let axis = shape.length - 1; axis >= 0; axis -= 1) {
+      coordinate[axis] = remainder % shape[axis];
+      remainder = Math.floor(remainder / shape[axis]);
+    }
+    sampleCoordinates.push(coordinate);
+  }
+  const byteLength = capturedElements * arr.BYTES_PER_ELEMENT;
+  const digestBytes = new Uint8Array(arr.buffer, arr.byteOffset, byteLength);
 
   const snapshot = {
     ok: true,
@@ -276,7 +293,9 @@ export function snapshotFromArray(arr, shape, dtype = 'f32', options = {}) {
       mean: stats.mean,
       std: stats.std,
     },
-    sample: Array.from(arr.slice(0, 8)),
+    sample: Array.from(arr.slice(0, sampleLength)),
+    sampleCoordinates,
+    fullTensorDigest: `sha256:${sha256BytesHex(digestBytes)}`,
     hasNaN: stats.nanCount > 0,
     hasInf: stats.infCount > 0,
   };

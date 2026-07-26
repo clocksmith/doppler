@@ -1,5 +1,5 @@
-// Integration test for the `parity` stage the bundle CLI now writes after
-// receipt. Uses the committed Gemma 3 270M example program bundle to exercise
+// Integration test for the portability-only `parity` stage the bundle CLI
+// writes. Uses the committed Gemma 3 270M example program bundle to exercise
 // the same call the CLI makes (checkProgramBundleParity in contract mode) and
 // asserts the artifact shape + file serialization round-trip.
 
@@ -35,6 +35,8 @@ try {
   const roundTripped = JSON.parse(readFileSync(parityOutputPath, 'utf8'));
 
   assert.equal(roundTripped.schema, PROGRAM_BUNDLE_PARITY_SCHEMA_ID);
+  assert.equal(roundTripped.authority, 'portability-diagnostic-only');
+  assert.equal(roundTripped.modelPromotionAuthority, false);
   assert.equal(roundTripped.mode, 'contract');
   assert.equal(typeof roundTripped.ok, 'boolean');
   assert.equal(typeof roundTripped.bundleId, 'string');

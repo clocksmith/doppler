@@ -1,6 +1,12 @@
 
 // Shared browser-safe tooling exports.
 export * from './tooling-exports.shared.js';
+export {
+  SOURCE_INTAKE_SCHEMA,
+  SOURCE_INTAKE_CONVERSION_SKELETON_SCHEMA,
+  SOURCE_INTAKE_CONTRACT_TEST_SCHEMA,
+  inspectSourceModel,
+} from './tooling/source-intake.js';
 
 // Node-only tooling exports.
 export { runNodeCommand, normalizeNodeCommand, hasNodeWebGPUSupport } from './tooling/node-command-runner.js';
@@ -10,9 +16,6 @@ export {
   writeProgramBundle,
   loadProgramBundle,
   checkProgramBundleFile,
-  exportReferenceReceipt,
-  writeReferenceReceipt,
-  REFERENCE_RECEIPT_SCHEMA_ID,
 } from './tooling/program-bundle.js';
 export {
   PROGRAM_BUNDLE_PARITY_SCHEMA_ID,

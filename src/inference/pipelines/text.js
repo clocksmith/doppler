@@ -535,7 +535,6 @@ export class InferencePipeline extends PipelineState {
       () => runKernelWarmup({
         useGPU: this.useGPU,
         kernelWarmup: this.runtimeConfig.shared?.kernelWarmup,
-        modelConfig: this.modelConfig,
       })
     );
 

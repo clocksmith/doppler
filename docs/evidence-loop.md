@@ -1,0 +1,205 @@
+# Model and Kernel Evidence Loop
+
+Doppler treats “optimal” as a digest-bound, evidence-backed selection for one
+artifact, execution graph, browser, adapter capability fingerprint, phase, and
+shape class. It does not mean one universal best kernel.
+
+This workflow extends existing manifests, operator diagnostics, benchmark
+receipts, and runtime optimization contracts. It does not create a second
+execution architecture.
+
+## 1. Inspect Source Material Before Conversion
+
+Run:
+
+```bash
+doppler onboard inspect \
+  --source /path/to/source-checkpoint \
+  --out artifacts/onboarding/model-id
+```
+
+The command reads `config.json`, optional generation and tokenizer configs, and
+SafeTensors headers without reading tensor payloads. It writes:
+
+- `source-intake.json` using `doppler.source-intake/v1`
+- `conversion-config.skeleton.json`
+- `contract-tests.plan.json`
+
+Every fact records its source file and JSON pointer, Doppler owner, proposal,
+confidence, status, and verification method. Confidence is one of `direct`,
+`derived`, `family-inferred`, `ambiguous`, or `unsupported`. Only accepted
+direct or derived facts enter the skeleton. Neighboring-family values remain
+unresolved proposals:
+
+```bash
+doppler onboard inspect \
+  --source /path/to/variant \
+  --family-intake artifacts/onboarding/family/source-intake.json \
+  --out artifacts/onboarding/variant
+```
+
+This command is pre-conversion. The existing `doppler intake` command remains
+the post-conversion manifest and execution-contract check.
+
+## 2. Compare Semantic Boundaries
+
+Source runtimes first emit `doppler.boundary-provider-capture/v1`. Bind that
+provider output into the sole source-pack contract:
+
+```bash
+doppler boundary source-pack \
+  --provider-capture artifacts/provider-boundaries.json \
+  --out artifacts/source-boundaries.json
+```
+
+The resulting `doppler.source-boundary-pack/v1` includes:
+
+- semantic boundary ID
+- shape and dtype
+- deterministic sample coordinates and values
+- full-tensor SHA-256 digest
+- numerical statistics
+- tolerance-policy ID
+
+Boundary IDs describe model semantics, for example:
+
+```text
+layer.0.attention.q.pre_rope
+layer.0.attention.q.post_rope
+layer.0.attention.output
+layer.0.ffn.output
+model.logits
+```
+
+Capture a Doppler runtime report produced with operator diagnostics:
+
+```bash
+doppler boundary capture \
+  --report artifacts/diagnose-report.json \
+  --out artifacts/runtime-boundaries.json
+```
+
+Compare it with the source pack:
+
+```bash
+doppler boundary token-evidence \
+  --reference-transcript artifacts/reference-transcript.json \
+  --out artifacts/greedy-128-token-evidence.json
+
+doppler boundary compare \
+  --source-pack artifacts/source-boundaries.json \
+  --runtime-capture artifacts/runtime-boundaries.json \
+  --token-evidence artifacts/greedy-128-token-evidence.json \
+  --out artifacts/boundary-comparison.json
+```
+
+The comparison receipt uses `doppler.boundary-comparison-receipt/v1` and stops
+at the first divergent semantic boundary. Quantized comparisons additionally
+require `--artifact-precision quantized --source-control <f16-receipt>`.
+Promotion requires compatible boundaries and exact deterministic parity for at
+least 128 generated tokens.
+
+## 3. Emit a Calibrate-Safe Token Cost Ledger
+
+Enable the standard execution observer:
+
+```json
+{
+  "shared": {
+    "benchmark": {
+      "run": {
+        "executionObserver": {
+          "enabled": true,
+          "includeDispatchGeometry": true,
+          "estimateBytesMoved": false
+        }
+      }
+    }
+  }
+}
+```
+
+Both `shared.benchmark.run.executionObserver` and `shared.debug.profiler`
+activate the same `CommandRecorder` observation path and emit the same
+`doppler.token-cost-ledger/v1` at `result.metrics.tokenCostLedger`. Calibrate
+intent uses the standard execution-observer flag because debug profiling is
+intentionally forbidden there; debug intent may use the profiler flag. There
+is no second profiler implementation.
+
+The ledger separates prefill and decode. It records timestamp or CPU-estimated
+measurement source, attributed and unattributed time, timestamp coverage,
+dispatches, known workgroups, command-buffer submissions, observer readbacks,
+selected execution information, and digest identities. Bytes moved are labeled
+estimated and remain unavailable unless an estimator supplies them. Summed GPU
+operation durations are never asserted to equal wall time.
+
+For browser inference, `artifactDigest` binds the declared artifact identity,
+ordered shard hashes, tokenizer contract, and total size. `wrapperDigest` binds
+the versioned text-execution wrapper contract, resolved execution plan, kernel
+path, phase operation maps, and execution policies. It is distinct from
+`kernelSetDigest`, which binds the registered WGSL entries.
+
+The classifier policy in
+`src/config/evidence/token-cost-classifier-policy.json` maps operation labels to
+projection, attention, sampling, and memory walls. Every optimization
+hypothesis should name the ledger entry it expects to reduce.
+
+## 4. Calibrate Registered Variants
+
+`calibrateRegisteredVariants()` consumes:
+
+- resolved artifact, manifest, and execution-graph digests
+- browser and adapter digests plus capability set
+- baseline and candidate references from the kernel registry
+- complete shape signatures
+- callbacks that run actual operator, boundary, token, and performance checks
+
+A shape signature includes phase, sequence length, batch, query/KV head
+geometry, tail class, layouts, storage/materialization/accumulation dtypes,
+fusion role, and quantization format.
+
+The synthetic runtime tuner has been removed. Registered execution variants
+running their real WGSL and wrappers are the only kernel-selection candidates.
+
+Registered calibration gates candidates in this order:
+
+1. operator/reference correctness for every mandatory shape
+2. semantic boundary-pack compatibility, including the source-precision control
+3. exact deterministic parity for at least 128 tokens
+4. end-to-end performance through the runtime optimization evaluator
+
+Successful calibration emits a proposed runtime profile or registered
+execution-graph patch. It never activates a runtime mutation.
+
+## 5. Promote Through the Existing Evaluator
+
+`doppler.runtime-optimization-contract/v1` supports:
+
+- `runtime-profile` (`runtime_profile` remains a compatibility spelling)
+- `registered-kernel-variant`
+- `registered-execution-graph-patch`
+
+Ordinary runtime-profile candidates retain the runtime-owned mutation allowlist.
+Registered kernel and graph candidates contain no inline patch. They reference a
+digest-bound entry under
+`src/config/runtime/optimization-candidates/`, and the evaluator verifies the
+entry payload digest before materialization.
+
+Measurement can use balanced randomized blocks. Optional sequential decisions
+use predeclared Bonferroni fixed looks, preventing ordinary confidence-interval
+peeking. Neighboring-workload guards run parity and paired regression checks
+before acceptance.
+
+Build the queryable accepted/rejected evidence index from saved receipts:
+
+```bash
+npm run optimization:index -- \
+  --receipts artifacts/optimization-receipts \
+  --out artifacts/runtime-optimization-results-index.json
+```
+
+The index is derived evidence. Do not hand-edit it.
+
+Run `npm run evidence:workflows:check` to verify that each job above still has
+one canonical owner and that retired synthetic-selection, duplicate-profiler,
+and standalone-receipt surfaces have not returned.

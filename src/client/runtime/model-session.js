@@ -390,6 +390,9 @@ export function createModelHandle(pipeline, resolved) {
     get manifestHash() {
       return resolved.manifestHash || null;
     },
+    get persistentCache() {
+      return resolved.persistentCache || null;
+    },
     get manifest() {
       return pipeline.manifest;
     },

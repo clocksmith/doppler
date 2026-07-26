@@ -157,6 +157,11 @@ export declare class CommandRecorder {
   getStats(): {
     opCount: number;
     opLabelCounts: Record<string, number>;
+    dispatches: Array<{
+      label: string;
+      kind: 'direct' | 'indirect';
+      workgroups: number[] | null;
+    }>;
     computePassCount: number;
     tempBufferCount: number;
     pooledBufferCount: number;

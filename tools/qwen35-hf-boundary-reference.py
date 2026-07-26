@@ -37,14 +37,29 @@ def tensor_summary(tensor: Any) -> dict[str, Any]:
     import torch
 
     value = tensor.detach().to(device="cpu", dtype=torch.float32).contiguous()
+    if value.ndim >= 2 and value.shape[0] == 1:
+        value = value.squeeze(0).contiguous()
     flat = value.reshape(-1)
+    samples = []
+    for flat_index, item in enumerate(flat[:8].tolist()):
+        remainder = flat_index
+        coordinate = []
+        for dimension in reversed(value.shape):
+            coordinate.append(remainder % int(dimension))
+            remainder //= int(dimension)
+        samples.append({
+            "coordinate": list(reversed(coordinate)),
+            "flatIndex": flat_index,
+            "value": float(item),
+        })
     return {
         "shape": list(value.shape),
         "sourceDtype": str(tensor.dtype).removeprefix("torch."),
         "dtype": "float32",
         "elementCount": int(flat.numel()),
-        "sample": [float(item) for item in flat[:8].tolist()],
-        "stats": {
+        "samples": samples,
+        "fullTensorDigest": "sha256:" + hashlib.sha256(value.numpy().tobytes()).hexdigest(),
+        "statistics": {
             "min": float(flat.min().item()),
             "max": float(flat.max().item()),
             "maxAbs": float(flat.abs().max().item()),
@@ -135,34 +150,13 @@ def main() -> None:
 
         return hook
 
-    def capture_input(name: str):
-        def hook(_module: Any, inputs: Any) -> None:
-            captures[name] = tensor_summary(output_tensor(inputs))
-
-        return hook
-
     module_outputs = {
         "embed.out": text_model.embed_tokens,
-        f"layer.{args.layer}.attn.qkv_proj": layer.linear_attn.in_proj_qkv,
-        f"layer.{args.layer}.attn.linear_z_proj": layer.linear_attn.in_proj_z,
-        f"layer.{args.layer}.attn.linear_a_proj": layer.linear_attn.in_proj_a,
-        f"layer.{args.layer}.attn.linear_b_proj": layer.linear_attn.in_proj_b,
-        f"layer.{args.layer}.attn.linear_core_out": layer.linear_attn.norm,
         f"layer.{args.layer}.attn.out": layer.linear_attn.out_proj,
-        f"layer.{args.layer}.ffn.in": layer.post_attention_layernorm,
-        f"layer.{args.layer}.ffn.gate": layer.mlp.gate_proj,
-        f"layer.{args.layer}.ffn.up": layer.mlp.up_proj,
         f"layer.{args.layer}.ffn.out": layer.mlp.down_proj,
-        f"layer.{args.layer}.layer.out": layer,
     }
     for name, module in module_outputs.items():
         handles.append(module.register_forward_hook(capture_output(name)))
-    handles.append(layer.post_attention_layernorm.register_forward_pre_hook(
-        capture_input(f"layer.{args.layer}.attn.residual_out")
-    ))
-    handles.append(layer.mlp.down_proj.register_forward_pre_hook(
-        capture_input(f"layer.{args.layer}.ffn.act")
-    ))
 
     try:
         with torch.inference_mode():
@@ -172,21 +166,51 @@ def main() -> None:
                 use_cache=False,
                 return_dict=True,
             )
+        captures["model.logits"] = tensor_summary(outputs.logits[:, -1:, :])
         selected_token_id = int(outputs.logits[0, -1].float().argmax().item())
     finally:
         for handle in handles:
             handle.remove()
 
-    ordered_names = [name for name in module_outputs if name in captures]
-    residual_name = f"layer.{args.layer}.attn.residual_out"
-    if residual_name in captures:
-        ordered_names.insert(7, residual_name)
-    activation_name = f"layer.{args.layer}.ffn.act"
-    if activation_name in captures:
-        ordered_names.insert(11, activation_name)
+    boundary_capture_names = {
+        "embed.out": "model.embedding.output",
+        f"layer.{args.layer}.attn.out": f"layer.{args.layer}.attention.output",
+        f"layer.{args.layer}.ffn.out": f"layer.{args.layer}.ffn.output",
+        "model.logits": "model.logits",
+    }
+    tolerance_policy = (
+        "doppler.boundary-tolerance/source-f32-v1"
+        if args.dtype == "float32"
+        else "doppler.boundary-tolerance/source-f16-v1"
+    )
+    boundaries = []
+    for capture_name, boundary_id in boundary_capture_names.items():
+        capture = captures.get(capture_name)
+        if capture is None:
+            raise RuntimeError(f"required semantic boundary was not captured: {capture_name}")
+        boundaries.append({
+            "boundaryId": boundary_id,
+            "phase": "prefill",
+            "tokenIndex": None,
+            "layerIndex": args.layer if boundary_id.startswith("layer.") else None,
+            "occurrence": 0,
+            "shape": capture["shape"],
+            "dtype": capture["dtype"],
+            "samples": capture["samples"],
+            "fullTensorDigest": capture["fullTensorDigest"],
+            "statistics": capture["statistics"],
+            "tolerancePolicyId": tolerance_policy,
+        })
     receipt = {
-        "schema": "doppler.qwen35-hf-boundary-reference/v1",
-        "ok": True,
+        "schema": "doppler.boundary-provider-capture/v1",
+        "provider": "transformers",
+        "identity": {
+            "sourceRevision": args.model_revision,
+            "dtype": args.dtype,
+            "promptDigest": "sha256:" + sha256_text(prompt),
+            "modelConfigDigest": "sha256:" + sha256_file(model_path / "config.json"),
+            "referenceScriptDigest": "sha256:" + sha256_file(Path(__file__).resolve()),
+        },
         "runtime": {
             "python": platform.python_version(),
             "torch": torch.__version__,
@@ -213,11 +237,7 @@ def main() -> None:
         },
         "layer": args.layer,
         "selectedTokenId": selected_token_id,
-        "captures": [{"opId": name, **captures[name]} for name in ordered_names],
-        "claimBoundary": (
-            "Transformers boundary diagnostics only; this does not establish Doppler parity, "
-            "adapter portability, checkpoint selection, semantic correctness, or promotion."
-        ),
+        "boundaries": boundaries,
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")

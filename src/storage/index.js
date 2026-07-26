@@ -110,6 +110,11 @@ export {
   persistDownloadedShardIfNeeded,
 } from './downloader.js';
 
+export {
+  ensureModelCached,
+  ensureModelCachedSource,
+} from './model-cache.js';
+
 // ============================================================================
 // Artifact Runtime
 // ============================================================================

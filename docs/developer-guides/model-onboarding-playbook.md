@@ -215,6 +215,17 @@ For MoE storage research, the first clean target is expert paging:
 
 2. Build a research packet from source material before editing.
 
+   Start the machine-readable packet with:
+
+   ```bash
+   doppler onboard inspect --source <checkpoint-dir> --out <artifact-dir>
+   ```
+
+   This is the pre-conversion `doppler.source-intake/v1` stage. It is distinct
+   from the post-conversion `doppler intake` manifest check. Resolve ambiguous
+   and unsupported facts before treating the generated skeleton as conversion
+   input. See [Model and Kernel Evidence Loop](../evidence-loop.md).
+
    Collect and save, at minimum:
 
    - official model card or technical report
@@ -437,8 +448,11 @@ For MoE storage research, the first clean target is expert paging:
    - conversion is reproducible from a checked-in config
    - manifest matches the config
    - deterministic verify succeeds
-   - debug evidence is clean enough that you trust the path
+   - the canonical semantic boundary comparison gate passes, including the F16
+     control for quantized artifacts
+   - exact deterministic token evidence covers at least 128 generated tokens
    - Program Bundle export succeeds with a browser/WebGPU reference transcript
+     when the model needs cross-runtime portability
    - any benchmark claim points to one saved artifact and one reproducible command
    - a human has reviewed output coherence if the artifact is to be reused or
      published

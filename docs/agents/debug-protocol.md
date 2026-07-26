@@ -35,11 +35,20 @@ Compare this sequence and stop at the first divergent boundary:
 - FFN output
 - final logits
 
+Use `doppler boundary capture` and `doppler boundary compare` to turn operator
+diagnostics into the semantic artifacts described in
+[`docs/evidence-loop.md`](../evidence-loop.md). A boundary record must include
+sample coordinates and values, a full-tensor digest, statistics, and a
+versioned tolerance-policy ID.
+
 ## 4. Quantized failure control
 
 Run one F16 or source-precision control before touching quantized kernels:
 - F16/source-precision good + quantized bad => quantized path issue
 - F16/source-precision bad + quantized bad => shared conversion/layout/runtime issue
+
+The quantized boundary promotion gate requires the passing source-precision
+comparison receipt; a token-only match does not replace it.
 
 ## 5. Stop prompt/harness churn once token IDs match
 

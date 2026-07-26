@@ -1,0 +1,54 @@
+{
+  "schema": "doppler.boundary-evidence-policy/v1",
+  "boundaries": [
+    {
+      "idTemplate": "model.embedding.output",
+      "stages": ["embed.out"]
+    },
+    {
+      "idTemplate": "layer.{L}.attention.q.pre_rope",
+      "stages": ["attn.q_norm", "attn.q_proj"]
+    },
+    {
+      "idTemplate": "layer.{L}.attention.k.pre_rope",
+      "stages": ["attn.k_norm", "attn.k_proj"]
+    },
+    {
+      "idTemplate": "layer.{L}.attention.q.post_rope",
+      "stages": ["attn.q_rope"]
+    },
+    {
+      "idTemplate": "layer.{L}.attention.k.post_rope",
+      "stages": ["attn.k_rope"]
+    },
+    {
+      "idTemplate": "layer.{L}.attention.output",
+      "stages": ["attn.out", "attn.o_proj", "attn.core_out"]
+    },
+    {
+      "idTemplate": "layer.{L}.ffn.output",
+      "stages": ["ffn.out"]
+    },
+    {
+      "idTemplate": "model.logits",
+      "stages": ["logits.final", "logits.out"]
+    }
+  ],
+  "tolerancePolicies": {
+    "doppler.boundary-tolerance/source-f32-v1": {
+      "absolute": 0.00001,
+      "relative": 0.00001,
+      "requireDtypeMatch": true
+    },
+    "doppler.boundary-tolerance/source-f16-v1": {
+      "absolute": 0.002,
+      "relative": 0.002,
+      "requireDtypeMatch": false
+    },
+    "doppler.boundary-tolerance/quantized-v1": {
+      "absolute": 0.05,
+      "relative": 0.05,
+      "requireDtypeMatch": false
+    }
+  }
+}

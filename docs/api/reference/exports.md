@@ -63,6 +63,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `checkProgramBundleParity`
   - `exportProgramBundle`
   - `hasNodeWebGPUSupport`
+  - `inspectSourceModel`
   - `loadProgramBundle`
   - `NodeBrowserCommandRunOptions`
   - `NodeCommandRunOptions`
@@ -78,6 +79,12 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `refreshManifestIntegrity`
   - `runBrowserCommandInNode`
   - `runNodeCommand`
+  - `SOURCE_INTAKE_CONTRACT_TEST_SCHEMA`
+  - `SOURCE_INTAKE_CONVERSION_SKELETON_SCHEMA`
+  - `SOURCE_INTAKE_SCHEMA`
+  - `SourceIntakeFact`
+  - `SourceIntakePolicy`
+  - `SourceIntakeReport`
   - `writeProgramBundle`
 
 ## `doppler-gpu/tooling/storage`
@@ -174,7 +181,6 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `getPipeline`
   - `loadModel`
   - `readOPFSFile`
-  - `shouldAutoTuneKernels`
   - `verifyExplicitModelUrlMatch`
   - `writeOPFSFile`
 

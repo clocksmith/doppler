@@ -43,6 +43,8 @@ export class CommandRecorder {
 
   #opLabelCounts;
 
+  #dispatchRecords;
+
   #recordLabels;
 
   #computePassCount;
@@ -96,6 +98,7 @@ export class CommandRecorder {
     this.#opCount = 0;
     this.#recordLabels = options.recordLabels !== false;
     this.#opLabelCounts = this.#recordLabels ? Object.create(null) : null;
+    this.#dispatchRecords = [];
     this.#computePassCount = 0;
     this.#activeComputePass = null;
     // Initialize profiling if requested and available
@@ -316,6 +319,11 @@ export class CommandRecorder {
       throw new Error('[CommandRecorder] Cannot record dispatch after submit');
     }
     const opLabel = this.#recordDispatchOperation(label);
+    this.#dispatchRecords.push({
+      label: opLabel ?? this.#normalizeOperationLabel(label),
+      kind: 'direct',
+      workgroups: Array.from(workgroups),
+    });
     if (this.#profilingEnabled) {
       const pass = this.#beginRawComputePass(opLabel);
       pass.setPipeline(pipeline);
@@ -335,6 +343,11 @@ export class CommandRecorder {
       throw new Error('[CommandRecorder] Cannot record dispatch after submit');
     }
     const opLabel = this.#recordDispatchOperation(label);
+    this.#dispatchRecords.push({
+      label: opLabel ?? this.#normalizeOperationLabel(label),
+      kind: 'indirect',
+      workgroups: null,
+    });
     if (this.#profilingEnabled) {
       const pass = this.#beginRawComputePass(opLabel);
       pass.setPipeline(pipeline);
@@ -524,6 +537,10 @@ export class CommandRecorder {
     return {
       opCount: this.#opCount,
       opLabelCounts,
+      dispatches: this.#dispatchRecords.map((record) => ({
+        ...record,
+        workgroups: record.workgroups ? [...record.workgroups] : null,
+      })),
       computePassCount: this.#computePassCount,
       tempBufferCount: this.#tempBuffers.length,
       pooledBufferCount: this.#pooledBuffers.length,

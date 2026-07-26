@@ -72,10 +72,41 @@ export {
   RUNTIME_OPTIMIZATION_CONTRACT_SCHEMA,
   RUNTIME_OPTIMIZATION_CANDIDATE_SCHEMA,
   RUNTIME_OPTIMIZATION_RECEIPT_SCHEMA,
+  RUNTIME_OPTIMIZATION_CANDIDATE_REGISTRY_SCHEMA,
   validateRuntimeOptimizationContract,
   hashRuntimeOptimizationContract,
   enumerateRuntimeOptimizationCandidates,
   validateRuntimeOptimizationCandidate,
   materializeRuntimeOptimizationCandidate,
+  validateRuntimeOptimizationCandidateRegistry,
   evaluateBrowserRuntimeOptimizationCandidate,
 } from './tooling/runtime-optimization.js';
+export {
+  RUNTIME_OPTIMIZATION_RESULTS_INDEX_SCHEMA,
+  buildRuntimeOptimizationResultsIndex,
+} from './tooling/runtime-optimization-index.js';
+export {
+  SOURCE_BOUNDARY_PACK_SCHEMA,
+  RUNTIME_BOUNDARY_CAPTURE_SCHEMA,
+  BOUNDARY_COMPARISON_RECEIPT_SCHEMA,
+  DETERMINISTIC_TOKEN_EVIDENCE_SCHEMA,
+  BOUNDARY_PROVIDER_CAPTURE_SCHEMA,
+  buildRuntimeBoundaryCapture,
+  buildSourceBoundaryPack,
+  buildSourceBoundaryPackFromProviderCapture,
+  buildDeterministicTokenEvidenceFromReferenceTranscript,
+  compareBoundaryEvidence,
+} from './tooling/boundary-evidence.js';
+export {
+  TOKEN_COST_LEDGER_SCHEMA,
+  isExecutionObservationRequested,
+  buildTokenCostLedger,
+  classifyTokenCostLedger,
+} from './tooling/execution-cost-ledger.js';
+export {
+  REGISTERED_VARIANT_CALIBRATION_PLAN_SCHEMA,
+  REGISTERED_VARIANT_CALIBRATION_RECEIPT_SCHEMA,
+  digestRegisteredVariantDescriptor,
+  validateRegisteredVariantCalibrationPlan,
+  calibrateRegisteredVariants,
+} from './tooling/registered-variant-calibration.js';

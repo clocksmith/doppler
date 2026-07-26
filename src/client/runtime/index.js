@@ -14,6 +14,7 @@ import {
   createHttpArtifactStorageContext,
   createNodeFileArtifactStorageContext,
 } from '../../storage/artifact-storage-context.js';
+import { ensureModelCachedSource } from '../../storage/model-cache.js';
 import { isNodeRuntime } from '../../utils/runtime-env.js';
 import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
@@ -32,11 +33,78 @@ function assertDopplerOptions(options, apiName) {
     options.runtimeConfig !== undefined
     || options.runtimeProfile !== undefined
     || options.runtimeConfigUrl !== undefined
+    || options.cache !== undefined
   ) {
     throw new Error(
       `${apiName} does not accept load-affecting options. Use doppler.load(model, options) instead.`
     );
   }
+}
+
+function assertPersistentCacheMode(cache) {
+  if (cache === undefined || cache === false || cache === 'opfs') {
+    if (cache === 'opfs' && isNodeRuntime()) {
+      throw new Error('doppler.load options.cache="opfs" is browser-only.');
+    }
+    return;
+  }
+  throw new Error('doppler.load options.cache must be false or "opfs".');
+}
+
+function emitPersistentCacheProgress(callback, event) {
+  const percent = Number.isFinite(event?.percent)
+    ? Math.max(0, Math.min(100, Number(event.percent)))
+    : 0;
+  emitLoadProgress(
+    callback,
+    'cache',
+    15 + Math.round(percent * 0.1),
+    event?.message || 'Preparing persistent model cache'
+  );
+}
+
+export async function resolvePersistentBrowserLoadSource(
+  loadSource,
+  cache,
+  onProgress = null,
+  cacheSource = ensureModelCachedSource
+) {
+  assertPersistentCacheMode(cache);
+  if (cache !== 'opfs') {
+    return loadSource;
+  }
+  if (isNodeRuntime()) {
+    throw new Error('doppler.load options.cache="opfs" is browser-only.');
+  }
+  const storageBaseUrl = loadSource?.storageBaseUrl ?? loadSource?.baseUrl;
+  const storageManifest = loadSource?.storageManifest ?? loadSource?.manifest;
+  const storageManifestText = loadSource?.storageManifestText
+    ?? (storageManifest ? JSON.stringify(storageManifest) : null);
+  const storageModelId = storageManifest?.modelId;
+  if (!storageBaseUrl || !storageManifest || !storageManifestText || !storageModelId) {
+    throw new Error(
+      'doppler.load options.cache="opfs" requires a URL-backed artifact with a manifest modelId.'
+    );
+  }
+  const expectedManifestHash = await sha256ManifestText(storageManifestText);
+  const cached = await cacheSource(
+    storageModelId,
+    storageBaseUrl,
+    (event) => emitPersistentCacheProgress(onProgress, event),
+    { expectedManifestHash }
+  );
+  return {
+    ...loadSource,
+    storageContext: cached.storageContext,
+    storage: cached.storageContext,
+    persistentCache: {
+      backend: cached.storageBackend,
+      state: cached.cacheState,
+      fromCache: cached.fromCache,
+      manifestHash: cached.manifestHash,
+      totalBytes: cached.totalBytes,
+    },
+  };
 }
 
 async function resolveCachedNodeQuickstartSource(resolved, manifestPayload, onProgress) {
@@ -91,6 +159,7 @@ export function createDopplerRuntimeService({
   }
 
   async function load(model, options = {}) {
+    assertPersistentCacheMode(options.cache);
     const { userProgress, pipelineProgress } = resolveLoadProgressHandlers(options, defaultLoadProgressLogger);
 
     emitLoadProgress(userProgress, 'resolve', 5, 'Resolving model');
@@ -129,7 +198,11 @@ export function createDopplerRuntimeService({
         userProgress
       )
       : null;
-    const loadSource = cachedResolved ?? resolvedArtifactSource;
+    const loadSource = await resolvePersistentBrowserLoadSource(
+      cachedResolved ?? resolvedArtifactSource,
+      options.cache,
+      userProgress
+    );
     const nodeStorageContext = await resolveNodeArtifactStorageContext(loadSource);
     const storageContext = nodeStorageContext ?? resolveArtifactStorageContext(loadSource);
     await storageContext?.preflight?.();
@@ -139,26 +212,37 @@ export function createDopplerRuntimeService({
       ? createDopplerLoader(options.runtimeConfig?.loading)
       : null;
     emitLoadProgress(userProgress, 'load', 25, 'Loading weights');
-    const pipeline = await createPipeline(loadSource.manifest, {
-      baseUrl: effectiveBaseUrl ?? undefined,
-      storage: storageContext ?? undefined,
-      runtimeConfig: options.runtimeConfig,
-      loader: isolatedLoader ?? undefined,
-      ownsLoader: Boolean(isolatedLoader),
-      onProgress: pipelineProgress
-        ? (progress) => emitLoadProgress(
-          pipelineProgress,
-          'load',
-          Math.max(25, Math.min(99, Math.round(progress.percent))),
-          progress.message || 'Loading weights'
-        )
-        : undefined,
-    });
+    let pipeline;
+    try {
+      pipeline = await createPipeline(loadSource.manifest, {
+        baseUrl: effectiveBaseUrl ?? undefined,
+        storage: storageContext ?? undefined,
+        runtimeConfig: options.runtimeConfig,
+        loader: isolatedLoader ?? undefined,
+        ownsLoader: Boolean(isolatedLoader),
+        onProgress: pipelineProgress
+          ? (progress) => emitLoadProgress(
+            pipelineProgress,
+            'load',
+            Math.max(25, Math.min(99, Math.round(progress.percent))),
+            progress.message || 'Loading weights'
+          )
+          : undefined,
+      });
+    } catch (error) {
+      try {
+        await storageContext?.close?.();
+      } catch {
+        // Preserve the original pipeline construction error.
+      }
+      throw error;
+    }
 
     emitLoadProgress(userProgress, 'ready', 100, 'Model ready');
     return createModelHandle(pipeline, {
       ...resolved,
       manifestHash: manifestPayload.manifestHash,
+      persistentCache: loadSource.persistentCache ?? null,
     });
   }
 

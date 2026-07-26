@@ -5,7 +5,9 @@ import {
   hashRuntimeOptimizationContract,
   materializeRuntimeOptimizationCandidate,
   validateRuntimeOptimizationContract,
+  validateRuntimeOptimizationCandidateRegistry,
 } from '../../src/tooling/runtime-optimization.js';
+import { computeCanonicalSha256 } from '../../src/utils/canonical-hash.js';
 
 function createContract(overrides = {}) {
   return {
@@ -152,6 +154,135 @@ function responseFor(request, options = {}) {
   assert.equal(receipt.decision.accepted, false);
   assert.deepEqual(receipt.decision.reasons, ['candidate_parity_failed']);
   assert.equal(benchCalls, 0);
+}
+
+{
+  const runtimeInputs = {
+    runtimeProfile: null,
+    runtimeConfig: {
+      inference: {
+        executionPatch: {
+          graphPatchId: 'checked-in-test-patch',
+        },
+      },
+    },
+  };
+  const registryId = 'test-registered-kernel';
+  const kind = 'registered-kernel-variant';
+  const evidenceScope = {
+    artifactDigest: `sha256:${'1'.repeat(64)}`,
+    executionGraphDigest: `sha256:${'2'.repeat(64)}`,
+  };
+  const checkedInPath =
+    'src/config/runtime/optimization-candidates/test-registered-kernel.json';
+  const digest = computeCanonicalSha256({
+    registryId,
+    kind,
+    runtimeInputs,
+    evidenceScope,
+    checkedInPath,
+  });
+  const registry = validateRuntimeOptimizationCandidateRegistry({
+    schema: 'doppler.runtime-optimization-candidate-registry/v1',
+    entries: {
+      [registryId]: {
+        registryId,
+        kind,
+        digest,
+        runtimeInputs,
+        evidenceScope,
+        checkedInPath,
+      },
+    },
+  });
+  const contract = createContract({
+    kind,
+    mutationPolicy: {
+      references: [{ registryId, digest }],
+      maxCandidates: 1,
+    },
+  });
+  const [candidate] = enumerateRuntimeOptimizationCandidates(contract);
+  assert.equal(candidate.kind, kind);
+  assert.deepEqual(
+    materializeRuntimeOptimizationCandidate(contract, candidate, {
+      candidateRegistry: registry,
+    }),
+    runtimeInputs
+  );
+  assert.throws(
+    () => materializeRuntimeOptimizationCandidate(contract, candidate),
+    /require candidateRegistry/
+  );
+}
+
+{
+  const contract = createContract();
+  contract.measurement = {
+    ...contract.measurement,
+    pairCount: 6,
+    minValidPairs: 2,
+    orderPolicy: {
+      kind: 'randomized-blocks',
+      seed: 17,
+      blockSize: 2,
+    },
+    sequentialDecision: {
+      kind: 'bonferroni-fixed-looks',
+      lookEveryPairs: 2,
+      minimumPairs: 2,
+      maximumLooks: 3,
+      alpha: 0.05,
+    },
+  };
+  const [candidate] = enumerateRuntimeOptimizationCandidates(contract);
+  const receipt = await evaluateBrowserRuntimeOptimizationCandidate(contract, candidate, {
+    runCommand: async (request) => responseFor(request),
+  });
+  assert.equal(receipt.decision.accepted, true);
+  assert.equal(receipt.measurement.completedPairs, 2);
+  assert.equal(receipt.measurement.sequentialDecision.stoppedEarly, true);
+  assert.equal(receipt.measurement.sequentialDecision.stopDecision, 'accept');
+  assert.notDeepEqual(
+    receipt.measurement.pairs[0].order,
+    receipt.measurement.pairs[1].order
+  );
+}
+
+{
+  const contract = createContract({
+    neighboringWorkloads: [{
+      guardId: 'prefill-neighbor',
+      workload: {
+        type: 'inference',
+        request: {
+          inferenceInput: { prompt: 'neighbor', maxTokens: 8 },
+          cacheMode: 'warm',
+          loadMode: 'opfs',
+        },
+      },
+      metricPath: 'result.metrics.decodeTokensPerSec',
+      direction: 'maximize',
+      maxRegressionPercent: 5,
+      pairCount: 1,
+    }],
+  });
+  const [candidate] = enumerateRuntimeOptimizationCandidates(contract);
+  const receipt = await evaluateBrowserRuntimeOptimizationCandidate(contract, candidate, {
+    runCommand: async (request) => {
+      const response = responseFor(request);
+      const isNeighbor = request.inferenceInput?.prompt === 'neighbor';
+      const batchSize = request.runtimeConfig.runtime.inference.session.decodeLoop.batchSize;
+      if (isNeighbor && batchSize > 1 && request.command === 'bench') {
+        response.result.metrics.decodeTokensPerSec = 80;
+        response.result.timing = { decodeTokensPerSec: 80 };
+      }
+      return response;
+    },
+  });
+  assert.equal(receipt.decision.accepted, false);
+  assert.ok(receipt.decision.reasons.includes('neighboring_workload_guard_failed'));
+  assert.equal(receipt.neighboringWorkloadGuards.results[0].passed, false);
 }
 
 console.log('runtime-optimization.test: ok');

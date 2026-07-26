@@ -2,6 +2,13 @@
 
 This is the Doppler-side reference for capturing frozen-Doppler-reference fixtures consumed by the Doe Cerebras-lane evidence trail. The fixtures pin per-token activations at the Doppler-to-CSL handoff point (`pre_layer_input`) and the TSIR boundary points (`post_rmsnorm`, `post_qkv`, `post_attn`, `post_ffn`) from a deterministic Doppler reference inference run; the Doe builder, validator, and splice receipts bind to these `.npy` files by sha256.
 
+This writer is a Doe handoff adapter. TSIR fixtures prove downstream portability
+at that handoff; they are not a second Doppler model-correctness or promotion
+gate. Doppler promotion uses `doppler boundary capture` and
+`doppler boundary compare`. A run may produce both artifacts from the same
+operator observations, but only the semantic boundary-comparison receipt owns
+the Doppler correctness decision.
+
 The fixture writer at [`src/inference/pipelines/text/tsir-fixture-writer.js`](../src/inference/pipelines/text/tsir-fixture-writer.js) is fully model-agnostic. The stage→TSIR boundary map already covers all the stages emitted by both standard attention (Gemma 4 31B, Qwen 3.6 27B standard-attention layers) and Qwen non-attention layers via `linear_qkv_proj`. No per-model code change is required to capture a new model — only the canonical invocation differs.
 
 `.npy` fixture capture requires `--surface node`, because the writer uses the Node filesystem. Browser runs can still produce reference transcripts and coherence evidence, but they do not write Doe fixture files without a separate filesystem relay.

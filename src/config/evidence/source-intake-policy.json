@@ -1,0 +1,122 @@
+{
+  "schema": "doppler.source-intake-policy/v1",
+  "facts": [
+    {
+      "factId": "architecture.model_type",
+      "sourcePointers": ["/model_type", "/text_config/model_type"],
+      "owner": "conversion.modelType"
+    },
+    {
+      "factId": "architecture.hidden_size",
+      "sourcePointers": ["/hidden_size", "/text_config/hidden_size"],
+      "owner": "manifest.architecture.hiddenSize"
+    },
+    {
+      "factId": "architecture.intermediate_size",
+      "sourcePointers": ["/intermediate_size", "/text_config/intermediate_size"],
+      "owner": "manifest.architecture.intermediateSize"
+    },
+    {
+      "factId": "architecture.layer_count",
+      "sourcePointers": ["/num_hidden_layers", "/text_config/num_hidden_layers"],
+      "owner": "manifest.architecture.numLayers"
+    },
+    {
+      "factId": "architecture.attention.query_heads",
+      "sourcePointers": ["/num_attention_heads", "/text_config/num_attention_heads"],
+      "owner": "manifest.architecture.numAttentionHeads"
+    },
+    {
+      "factId": "architecture.attention.kv_heads",
+      "sourcePointers": ["/num_key_value_heads", "/text_config/num_key_value_heads"],
+      "owner": "manifest.architecture.numKeyValueHeads"
+    },
+    {
+      "factId": "architecture.attention.head_dim",
+      "sourcePointers": ["/head_dim", "/text_config/head_dim"],
+      "owner": "manifest.architecture.headDim"
+    },
+    {
+      "factId": "architecture.vocab_size",
+      "sourcePointers": ["/vocab_size", "/text_config/vocab_size"],
+      "owner": "manifest.architecture.vocabSize"
+    },
+    {
+      "factId": "architecture.max_position_embeddings",
+      "sourcePointers": ["/max_position_embeddings", "/text_config/max_position_embeddings"],
+      "owner": "manifest.architecture.maxSeqLen"
+    },
+    {
+      "factId": "architecture.activation",
+      "sourcePointers": ["/hidden_act", "/hidden_activation", "/text_config/hidden_act", "/text_config/hidden_activation"],
+      "owner": "manifest.inference.ffn.activation",
+      "verificationBoundary": "layer.0.ffn.output"
+    },
+    {
+      "factId": "architecture.normalization.epsilon",
+      "sourcePointers": ["/rms_norm_eps", "/layer_norm_eps", "/text_config/rms_norm_eps", "/text_config/layer_norm_eps"],
+      "owner": "manifest.inference.normalization.epsilon",
+      "verificationBoundary": "layer.0.attention.q.pre_rope"
+    },
+    {
+      "factId": "architecture.rope.theta",
+      "sourcePointers": ["/rope_theta", "/text_config/rope_theta"],
+      "owner": "manifest.inference.rope.ropeTheta",
+      "verificationBoundary": "layer.0.attention.q.post_rope"
+    },
+    {
+      "factId": "architecture.rope.scaling",
+      "sourcePointers": ["/rope_scaling", "/text_config/rope_scaling"],
+      "owner": "manifest.inference.rope.scaling",
+      "verificationBoundary": "layer.0.attention.q.post_rope"
+    },
+    {
+      "factId": "architecture.attention.sliding_window",
+      "sourcePointers": ["/sliding_window", "/text_config/sliding_window"],
+      "owner": "manifest.inference.attention.slidingWindow",
+      "verificationBoundary": "layer.0.attention.output"
+    },
+    {
+      "factId": "architecture.attention.bias",
+      "sourcePointers": ["/attention_bias", "/text_config/attention_bias"],
+      "owner": "manifest.inference.attention.attentionBias",
+      "verificationBoundary": "layer.0.attention.output"
+    },
+    {
+      "factId": "architecture.layer_pattern",
+      "sourcePointers": ["/layer_types", "/text_config/layer_types"],
+      "owner": "manifest.inference.layerPattern.layerTypes",
+      "verificationBoundary": "layer.0.attention.output"
+    },
+    {
+      "factId": "architecture.tie_word_embeddings",
+      "sourcePointers": ["/tie_word_embeddings", "/text_config/tie_word_embeddings"],
+      "owner": "manifest.inference.output.tieWordEmbeddings",
+      "verificationBoundary": "model.logits"
+    },
+    {
+      "factId": "tokenizer.bos_token_id",
+      "sourcePointers": ["/bos_token_id"],
+      "owner": "manifest.tokenizer.bosTokenId"
+    },
+    {
+      "factId": "tokenizer.eos_token_id",
+      "sourcePointers": ["/eos_token_id"],
+      "owner": "manifest.tokenizer.eosTokenId"
+    },
+    {
+      "factId": "tokenizer.pad_token_id",
+      "sourcePointers": ["/pad_token_id"],
+      "owner": "manifest.tokenizer.padTokenId"
+    }
+  ],
+  "requiredFacts": [
+    "architecture.model_type",
+    "architecture.hidden_size",
+    "architecture.intermediate_size",
+    "architecture.layer_count",
+    "architecture.attention.query_heads",
+    "architecture.vocab_size"
+  ],
+  "architectureKeyPattern": "(attention|head|hidden|layer|norm|rope|rotary|position|sliding|activation|expert|moe|vocab|embedding|architecture|model_type)"
+}

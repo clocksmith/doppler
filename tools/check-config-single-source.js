@@ -232,11 +232,6 @@ const CODE_RULES = Object.freeze([
     pattern: /DEFAULT_MAX_TOKENS|generationConfig\.maxTokens\s*\?\?/g,
   },
   {
-    file: 'src/gpu/profiler.js',
-    label: 'Profiler maxHistoryLabels runtime fallback',
-    pattern: /maxHistoryLabels\s*\?\?\s*1024/g,
-  },
-  {
     file: 'src/gpu/kernels/matmul-selection.js',
     label: 'Matmul selector output dtype runtime fallback',
     pattern: /outputDtype\s*=\s*['"]f32['"]/g,

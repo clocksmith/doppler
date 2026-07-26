@@ -5,6 +5,7 @@ import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { LogitsStepResult, PipelineStats, PrefillResult, SequenceEncodeOptions, SequenceEncodeResult } from '../../inference/pipelines/text/types.d.ts';
 import type { LoRAManifest } from './types.js';
 import type { LoRALoadOptions } from './lora.js';
+import type { DopplerPersistentCacheReceipt } from './model-source.js';
 
 export type DopplerGenerateOptions = Omit<GenerateOptions, 'stopTokens'>;
 
@@ -117,6 +118,7 @@ export interface DopplerModelHandle {
   readonly loaded: boolean;
   readonly modelId: string;
   readonly manifestHash: string | null;
+  readonly persistentCache: DopplerPersistentCacheReceipt | null;
   readonly manifest: unknown;
   readonly deviceInfo: Record<string, unknown> | null;
   readonly supportsSequence: boolean;
@@ -170,5 +172,6 @@ export declare function createModelHandle(
   resolved: {
     modelId: string;
     manifestHash?: string | null;
+    persistentCache?: DopplerPersistentCacheReceipt | null;
   }
 ): DopplerModelHandle;

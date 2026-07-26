@@ -16,10 +16,6 @@ export declare function verifyExplicitModelUrlMatch(
   fetchRemoteManifest?: (modelUrl: string) => Promise<RDRRManifest | Record<string, unknown> | null>
 ): Promise<void>;
 
-export declare function shouldAutoTuneKernels(
-  runtimeConfig?: Record<string, unknown> | null
-): boolean;
-
 export declare function extractTextModelConfig(manifest: RDRRManifest): TextModelConfig;
 
 export declare function readOPFSFile(path: string): Promise<ArrayBuffer>;

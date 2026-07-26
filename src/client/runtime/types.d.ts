@@ -78,7 +78,6 @@ export interface DopplerCapabilitiesType {
   initialized: boolean;
   currentModelId: string | null;
   kernelsWarmed: boolean;
-  kernelsTuned: boolean;
   lastModelEstimate: ModelEstimate | null;
   bridgeClient?: ExtensionBridgeClient | null;
   localPath?: string | null;

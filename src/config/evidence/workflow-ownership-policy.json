@@ -1,0 +1,65 @@
+{
+  "schema": "doppler.evidence-workflow-ownership-policy/v1",
+  "jobs": [
+    {
+      "job": "source-model-intake",
+      "canonicalOwner": "src/tooling/source-intake.js",
+      "canonicalCommand": "doppler onboard inspect",
+      "adapters": []
+    },
+    {
+      "job": "model-correctness",
+      "canonicalOwner": "src/tooling/boundary-evidence.js",
+      "canonicalCommand": "doppler boundary compare",
+      "adapters": [
+        "doppler boundary source-pack",
+        "doppler boundary token-evidence"
+      ]
+    },
+    {
+      "job": "execution-observation",
+      "canonicalOwner": "src/gpu/command-recorder.js",
+      "canonicalCommand": "doppler bench",
+      "adapters": [
+        "shared.benchmark.run.executionObserver",
+        "shared.debug.profiler"
+      ]
+    },
+    {
+      "job": "registered-variant-calibration",
+      "canonicalOwner": "src/tooling/registered-variant-calibration.js",
+      "canonicalCommand": null,
+      "adapters": []
+    },
+    {
+      "job": "optimization-promotion",
+      "canonicalOwner": "src/tooling/runtime-optimization.js",
+      "canonicalCommand": null,
+      "adapters": [
+        "src/tooling/runtime-optimization-index.js"
+      ]
+    },
+    {
+      "job": "portable-program-export",
+      "canonicalOwner": "src/tooling/program-bundle.js",
+      "canonicalCommand": "doppler program-bundle",
+      "adapters": [
+        "src/tooling/program-bundle-parity.js"
+      ]
+    }
+  ],
+  "forbiddenPaths": [
+    "src/gpu/kernel-tuner.js",
+    "src/gpu/kernel-tuner",
+    "src/gpu/kernels/kernel-tuning.js",
+    "src/gpu/profiler.js",
+    "src/config/schema/tuner.schema.js"
+  ],
+  "forbiddenActiveSymbols": [
+    "REFERENCE_RECEIPT_SCHEMA_ID",
+    "writeReferenceReceipt",
+    "exportReferenceReceipt",
+    "shouldAutoTuneKernels",
+    "autoTuneKernels"
+  ]
+}

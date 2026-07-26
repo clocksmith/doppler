@@ -209,13 +209,6 @@ export {
 } from './gpu-cache.schema.js';
 
 // =============================================================================
-// Tuner Schema
-// =============================================================================
-export {
-  DEFAULT_TUNER_CONFIG,
-} from './tuner.schema.js';
-
-// =============================================================================
 // Debug Schema
 // =============================================================================
 export {
@@ -444,7 +437,6 @@ export {
   DEFAULT_ROPE_DEFAULTS,
   DEFAULT_ATTENTION_THRESHOLDS,
   DEFAULT_CAST_THRESHOLDS,
-  DEFAULT_TUNER_LIMITS,
   DEFAULT_KERNEL_THRESHOLDS,
 
   // Functions

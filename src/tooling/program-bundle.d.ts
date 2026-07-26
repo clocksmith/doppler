@@ -1,9 +1,4 @@
-import type {
-  ProgramBundle,
-  ProgramBundleReferenceTranscript,
-} from '../config/schema/program-bundle.schema.js';
-
-export declare const REFERENCE_RECEIPT_SCHEMA_ID: 'doppler.reference-receipt/v1';
+import type { ProgramBundle } from '../config/schema/program-bundle.schema.js';
 
 export interface ProgramBundleExportOptions {
   repoRoot?: string;
@@ -54,46 +49,6 @@ export interface ProgramBundleStorageArtifact {
   manifestRaw: string | null;
 }
 
-export interface ReferenceReceiptExportOptions {
-  repoRoot?: string;
-  manifestPath?: string | null;
-  modelDir?: string | null;
-  referenceTranscriptPath?: string | null;
-  referenceTranscript?: ProgramBundleReferenceTranscript | null;
-  outputPath?: string | null;
-  receiptId?: string | null;
-  createdAtUtc?: string | null;
-}
-
-export interface ProgramBundleReferenceReceipt {
-  schema: typeof REFERENCE_RECEIPT_SCHEMA_ID;
-  receiptId: string;
-  modelId: string;
-  createdAtUtc: string;
-  sources: {
-    manifest: {
-      path: string;
-      hash: string;
-      sizeBytes: number;
-    };
-    executionGraph: {
-      schema: string | null;
-      hash: string;
-      expandedStepHash: string;
-    };
-    weightSetHash: string | null;
-    referenceTranscript: {
-      path: string | null;
-    };
-  };
-  referenceTranscript: ProgramBundleReferenceTranscript;
-}
-
-export interface ReferenceReceiptWriteResult {
-  outputPath: string;
-  receipt: ProgramBundleReferenceReceipt;
-}
-
 export declare function resolveProgramBundleStorageArtifact(
   manifest: Record<string, unknown>,
   modelDir: string
@@ -104,9 +59,3 @@ export declare function writeProgramBundle(options?: ProgramBundleExportOptions)
 export declare function loadProgramBundle(bundlePath: string): Promise<ProgramBundle>;
 export declare function checkProgramBundleFile(bundlePath: string): Promise<ProgramBundleCheckResult>;
 export declare function createProgramBundleCliDefaults(metaUrl: string): { repoRoot: string };
-export declare function exportReferenceReceipt(
-  options?: ReferenceReceiptExportOptions
-): Promise<ProgramBundleReferenceReceipt>;
-export declare function writeReferenceReceipt(
-  options?: ReferenceReceiptExportOptions
-): Promise<ReferenceReceiptWriteResult>;

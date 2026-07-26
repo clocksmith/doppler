@@ -13,12 +13,15 @@ export interface ProgramBundleParityOptions {
 
 export interface ProgramBundleParityResult {
   schema: typeof PROGRAM_BUNDLE_PARITY_SCHEMA_ID;
+  authority: 'portability-diagnostic-only';
+  modelPromotionAuthority: false;
   ok: boolean;
   mode: 'contract' | 'execute';
   bundleId: string;
   modelId: string;
   executionGraphHash: string;
   reference: Record<string, unknown>;
+  tokenEvidence: Record<string, unknown>;
   providers: Array<Record<string, unknown>>;
   parityHash: string;
 }

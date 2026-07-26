@@ -2,9 +2,17 @@ import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { SourceStorageContext } from '../../tooling/source-runtime-bundle.js';
 
 export interface DopplerLoadProgress {
-  phase: 'resolve' | 'manifest' | 'load' | 'ready';
+  phase: 'resolve' | 'manifest' | 'cache' | 'load' | 'ready';
   percent: number;
   message: string;
+}
+
+export interface DopplerPersistentCacheReceipt {
+  backend: 'opfs';
+  state: 'hit' | 'verified-hit' | 'manifest-refresh' | 'imported';
+  fromCache: boolean;
+  manifestHash: string;
+  totalBytes: number;
 }
 
 export interface DopplerModelSourceResolution {
@@ -46,6 +54,7 @@ export interface DopplerLoadOptions {
   onProgress?: (event: DopplerLoadProgress) => void;
   runtimeConfig?: Record<string, unknown>;
   isolatedLoader?: boolean;
+  cache?: false | 'opfs';
 }
 
 export declare function createDefaultNodeLoadProgressLogger(): (event: DopplerLoadProgress) => void;

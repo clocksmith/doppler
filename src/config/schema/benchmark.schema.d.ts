@@ -18,7 +18,14 @@ export interface BenchmarkRunConfig {
   };
   debug: boolean;
   profile: boolean;
+  executionObserver: {
+    enabled: boolean;
+    includeDispatchGeometry: boolean;
+    estimateBytesMoved: boolean;
+  };
   useChatTemplate?: boolean;
+  captureMemoryTimeSeries: boolean;
+  memoryTimeSeriesIntervalMs: number;
 }
 
 export interface BenchmarkStatsConfig {
