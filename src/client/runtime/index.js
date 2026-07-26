@@ -28,6 +28,7 @@ import { isNodeRuntime } from '../../utils/runtime-env.js';
 import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { initDevice } from '../../gpu/device.js';
+import { createScopedModelSession } from './scoped-session.js';
 
 function emitLoadProgress(callback, phase, percent, message) {
   if (typeof callback !== 'function') return;
@@ -308,6 +309,31 @@ export function createDopplerRuntimeService({
     return inFlightLoadCache.get(cacheKey);
   }
 
+  async function open(model, options = {}) {
+    return createScopedModelSession(await load(model, options));
+  }
+
+  async function generate(model, input, options = {}) {
+    const {
+      cache,
+      isolatedLoader,
+      onProgress,
+      runtimeConfig,
+      ...generationOptions
+    } = options;
+    const session = await open(model, {
+      cache,
+      isolatedLoader,
+      onProgress,
+      runtimeConfig,
+    });
+    try {
+      return await session.generate(input, generationOptions);
+    } finally {
+      await session.close();
+    }
+  }
+
   async function* dopplerGenerate(prompt, options = {}) {
     if (!options || typeof options !== 'object' || options.model == null) {
       throw new Error('doppler() requires options.model.');
@@ -323,6 +349,8 @@ export function createDopplerRuntimeService({
   }
 
   doppler.load = load;
+  doppler.open = open;
+  doppler.generate = generate;
   doppler.text = async function text(prompt, options = {}) {
     if (!options || typeof options !== 'object' || options.model == null) {
       throw new Error('doppler.text() requires options.model.');
@@ -394,6 +422,8 @@ export function createDopplerRuntimeService({
   return {
     doppler,
     load,
+    open,
+    generate,
     clearModelCache,
     resolveLoadProgressHandlers(options = {}) {
       return resolveLoadProgressHandlers(options, defaultLoadProgressLogger);

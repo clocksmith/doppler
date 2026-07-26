@@ -16,7 +16,14 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `createDopplerProvider`
   - `doppler`
   - `DOPPLER_VERSION`
+  - `DopplerGenerationResult`
+  - `DopplerPromptInput`
+  - `DopplerScopedGenerateOptions`
+  - `DopplerScopedModelSession`
   - `dr`
+  - `generate`
+  - `load`
+  - `open`
 
 ## `doppler-gpu/provider`
 

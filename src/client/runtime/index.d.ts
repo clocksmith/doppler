@@ -9,6 +9,12 @@ import type {
   DopplerPersistentCacheReceipt,
 } from './model-source.js';
 import type { DopplerModelHandle } from './model-session.js';
+import type {
+  DopplerGenerationResult,
+  DopplerPromptInput,
+  DopplerScopedGenerateOptions,
+  DopplerScopedModelSession,
+} from './scoped-session.js';
 
 export type DopplerGenerateOptions = Omit<GenerateOptions, 'stopTokens'>;
 
@@ -24,6 +30,12 @@ export interface DopplerChatResponse {
 export interface DopplerNamespace {
   (prompt: string, options: DopplerCallOptions): AsyncGenerator<string, void, void>;
   load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
+  open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
+  generate(
+    model: DopplerModelSource,
+    input: DopplerPromptInput,
+    options?: DopplerLoadOptions & DopplerScopedGenerateOptions
+  ): Promise<DopplerGenerationResult>;
   text(prompt: string, options: DopplerCallOptions): Promise<string>;
   chat(messages: ChatMessage[], options: DopplerCallOptions): AsyncGenerator<string, void, void>;
   chatText(messages: ChatMessage[], options: DopplerCallOptions): Promise<DopplerChatResponse>;
@@ -43,6 +55,12 @@ export interface DopplerCallOptions extends DopplerGenerateOptions {
 export interface DopplerRuntimeService {
   doppler: DopplerNamespace;
   load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
+  open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
+  generate(
+    model: DopplerModelSource,
+    input: DopplerPromptInput,
+    options?: DopplerLoadOptions & DopplerScopedGenerateOptions
+  ): Promise<DopplerGenerationResult>;
   clearModelCache(): void;
   resolveLoadProgressHandlers(options?: DopplerLoadOptions): {
     userProgress: ((event: DopplerLoadProgress) => void) | null;
@@ -86,5 +104,14 @@ export type {
 } from './model-source.js';
 
 export type { DopplerModelHandle } from './model-session.js';
+export type {
+  DopplerGenerationEvent,
+  DopplerGenerationResult,
+  DopplerObservationPolicyId,
+  DopplerObservationTier,
+  DopplerPromptInput,
+  DopplerScopedGenerateOptions,
+  DopplerScopedModelSession,
+} from './scoped-session.js';
 export type { PrefillResult, LogitsStepResult } from '../../inference/pipelines/text/types.d.ts';
 export type { LoRAManifest, ExtensionBridgeClient } from './types.js';

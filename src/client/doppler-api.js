@@ -23,6 +23,8 @@ const runtime = createDopplerRuntimeService({
 
 export const doppler = runtime.doppler;
 export const load = runtime.load;
+export const open = runtime.open;
+export const generate = runtime.generate;
 export const clearModelCache = runtime.clearModelCache;
 export { createDefaultNodeLoadProgressLogger };
 
