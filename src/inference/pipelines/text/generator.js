@@ -3299,21 +3299,26 @@ export class PipelineGenerator {
     let gpuTimePrefillMs = 0;
     let hasGpuTimePrefill = false;
     const recordProfile = async (rec) => {
-      if (!opts.profile || !rec?.isProfilingEnabled()) return;
-      const timings = await rec.resolveProfileTimings();
+      if (!opts.profile || !rec) return;
+      const timings = rec.isProfilingEnabled()
+        ? await rec.resolveProfileTimings()
+        : null;
       const total = sumProfileTimings(timings);
       if (total !== null) {
         gpuTimePrefillMs += total;
         hasGpuTimePrefill = true;
       }
-      if (timings) {
+      if (timings || opts.executionObserver) {
         recordPrefillProfileStep(this.#state, {
           label: rec.label,
           timings,
           totalMs: total ?? undefined,
+          recorderStats: rec.getStats(),
         });
-        log.warn('Profile', `Prefill (${rec.label}):`);
-        log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+        if (!opts.executionObserver) {
+          log.warn('Profile', `Prefill (${rec.label}):`);
+          log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+        }
       }
     };
 

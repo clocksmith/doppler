@@ -19,8 +19,6 @@ export {
   clearKernelCaches,
   clearPipelineCache,
   getCacheStats,
-  getTunedWorkgroupSize,
-  autoTuneKernels,
   prewarmKernels,
   type KernelConfig,
 } from './utils.js';

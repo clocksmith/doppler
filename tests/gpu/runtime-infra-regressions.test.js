@@ -28,13 +28,6 @@ const {
   setTrackSubmits,
   wrapQueueForTracking,
 } = await import('../../src/gpu/submit-tracker.js');
-const {
-  generateCacheKey,
-  getDeviceSignature,
-  loadCache,
-} = await import('../../src/gpu/kernel-tuner/cache.js');
-const { tuneSoftmax } = await import('../../src/gpu/kernel-tuner/benchmarks.js');
-const { getKernelTuner } = await import('../../src/gpu/kernel-tuner/tuner.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 const { getPerfConfig } = await import('../../src/gpu/perf-guards.js');
@@ -122,26 +115,7 @@ function createBaseDevice(overrides = {}) {
   };
 }
 
-function createCacheStorage() {
-  const store = new Map();
-  return {
-    getItem(key) {
-      return store.has(key) ? store.get(key) : null;
-    },
-    setItem(key, value) {
-      store.set(key, String(value));
-    },
-    removeItem(key) {
-      store.delete(key);
-    },
-    clear() {
-      store.clear();
-    },
-  };
-}
-
 const originalRuntimeConfig = getRuntimeConfig();
-const originalLocalStorage = globalThis.localStorage;
 
 setRuntimeConfig({
   shared: {
@@ -151,11 +125,6 @@ setRuntimeConfig({
         maxSamples: 4,
         maxDurationMs: 1000,
       },
-    },
-    tuner: {
-      cacheKeyPrefix: 'test_tuner_',
-      defaultWarmupIterations: 0,
-      defaultTimedIterations: 1,
     },
     bufferPool: {
       enablePooling: false,
@@ -203,109 +172,6 @@ try {
   }
 
   {
-    const storage = createCacheStorage();
-    globalThis.localStorage = storage;
-
-    const fallbackSignature = getDeviceSignature({
-      adapterInfo: { vendor: 'unknown', architecture: 'unknown', device: 'unknown' },
-      hasF16: true,
-      hasSubgroups: false,
-      hasSubgroupsF16: false,
-      hasTimestampQuery: false,
-      maxBufferSize: 4096,
-      maxWorkgroupSize: 128,
-      maxWorkgroupStorageSize: 8192,
-    });
-    assert.match(fallbackSignature, /f16/);
-    assert.doesNotMatch(fallbackSignature, /^unknown_unknown_unknown$/);
-
-    const invalidCacheKey = 'test_tuner_' + fallbackSignature;
-    storage.setItem(invalidCacheKey, JSON.stringify({
-      bad_record: {
-        optimalWorkgroupSize: [64, 1, 1],
-        optimalTileSize: 64,
-        throughput: 1,
-        timeMs: 'bad',
-      },
-    }));
-
-    const loaded = loadCache({
-      adapterInfo: { vendor: 'unknown', architecture: 'unknown', device: 'unknown' },
-      hasF16: true,
-      hasSubgroups: false,
-      hasSubgroupsF16: false,
-      hasTimestampQuery: false,
-      maxBufferSize: 4096,
-      maxWorkgroupSize: 128,
-      maxWorkgroupStorageSize: 8192,
-    });
-    assert.equal(loaded.size, 0);
-    assert.equal(storage.getItem(invalidCacheKey), null);
-  }
-
-  {
-    const storage = createCacheStorage();
-    globalThis.localStorage = storage;
-
-    const cacheKey = generateCacheKey('softmax', { innerSize: 8, outerSize: 1 });
-    storage.setItem('test_tuner_vendor_arch_devA', JSON.stringify({
-      [cacheKey]: {
-        optimalWorkgroupSize: [64, 1, 1],
-        optimalTileSize: 64,
-        throughput: 10,
-        timeMs: 4,
-        deviceInfo: { vendor: 'vendor', architecture: 'arch', device: 'devA' },
-      },
-    }));
-    storage.setItem('test_tuner_vendor_arch_devB', JSON.stringify({
-      [cacheKey]: {
-        optimalWorkgroupSize: [128, 1, 1],
-        optimalTileSize: 128,
-        throughput: 20,
-        timeMs: 2,
-        deviceInfo: { vendor: 'vendor', architecture: 'arch', device: 'devB' },
-      },
-    }));
-
-    setDevice(createBaseDevice(), {
-      platformConfig: null,
-      adapterInfo: { vendor: 'vendor', architecture: 'arch', device: 'devA' },
-    });
-    const tunerA = await getKernelTuner();
-    assert.deepEqual(tunerA.getCachedResult('softmax', { innerSize: 8, outerSize: 1 })?.optimalWorkgroupSize, [64, 1, 1]);
-
-    setDevice(createBaseDevice(), {
-      platformConfig: null,
-      adapterInfo: { vendor: 'vendor', architecture: 'arch', device: 'devB' },
-    });
-    const tunerB = await getKernelTuner();
-    assert.equal(tunerA, tunerB);
-    assert.deepEqual(tunerB.getCachedResult('softmax', { innerSize: 8, outerSize: 1 })?.optimalWorkgroupSize, [128, 1, 1]);
-  }
-
-  {
-    const device = createBaseDevice({
-      createBindGroup() {
-        throw new Error('createBindGroup failed');
-      },
-    });
-
-    const result = await tuneSoftmax(
-      device,
-      { innerSize: 16, outerSize: 1 },
-      [[64, 1, 1]],
-      0,
-      1,
-      { adapterInfo: { vendor: 'vendor', architecture: 'arch', device: 'dev' } }
-    );
-
-    assert.equal(result.optimalTileSize, 256);
-    for (const buffer of device.createdBuffers) {
-      assert.equal(buffer.destroyed, true);
-    }
-  }
-
-  {
     const device = createBaseDevice();
     setDevice(device, { platformConfig: null });
     const cache = new UniformBufferCache(8, 1000);
@@ -330,7 +196,6 @@ try {
     assert.deepEqual(getPerfConfig(), DEFAULT_PERF_GUARDS_CONFIG);
   }
 } finally {
-  globalThis.localStorage = originalLocalStorage;
   setRuntimeConfig(originalRuntimeConfig);
   destroyBufferPool();
   setDevice(null);

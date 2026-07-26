@@ -75,6 +75,8 @@ export interface TensorSnapshot {
     std: number;
   };
   sample: number[];
+  sampleCoordinates: number[][];
+  fullTensorDigest: string | null;
   data?: number[];
   hasNaN: boolean;
   hasInf: boolean;

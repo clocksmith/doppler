@@ -6,9 +6,16 @@ import { runBrowserCommand } from './browser-command-runner.js';
 export const RUNTIME_OPTIMIZATION_CONTRACT_SCHEMA = 'doppler.runtime-optimization-contract/v1';
 export const RUNTIME_OPTIMIZATION_CANDIDATE_SCHEMA = 'doppler.runtime-optimization-candidate/v1';
 export const RUNTIME_OPTIMIZATION_RECEIPT_SCHEMA = 'doppler.runtime-optimization-receipt/v1';
+export const RUNTIME_OPTIMIZATION_CANDIDATE_REGISTRY_SCHEMA =
+  'doppler.runtime-optimization-candidate-registry/v1';
 
 const WORKLOADS = new Set(['inference', 'embedding', 'rerank']);
 const DIRECTIONS = new Set(['maximize', 'minimize']);
+const CANDIDATE_KINDS = new Set([
+  'runtime-profile',
+  'registered-kernel-variant',
+  'registered-execution-graph-patch',
+]);
 const DIGEST_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const SAFE_MUTATION_PREFIXES = Object.freeze([
   '/loading/shardCache',
@@ -111,6 +118,28 @@ function assertJsonValue(value, label) {
   return value;
 }
 
+function normalizeCandidateKind(value) {
+  const normalized = value === 'runtime_profile' ? 'runtime-profile' : value;
+  if (!CANDIDATE_KINDS.has(normalized)) {
+    throw new Error(
+      'runtime optimization: contract.kind must be runtime-profile, ' +
+      'registered-kernel-variant, or registered-execution-graph-patch.'
+    );
+  }
+  return normalized;
+}
+
+function validateRegisteredReference(reference, label) {
+  assertObject(reference, label);
+  assertExactKeys(reference, ['registryId', 'digest'], label);
+  assertString(reference.registryId, `${label}.registryId`);
+  assertDigestOrNull(reference.digest, `${label}.digest`);
+  if (reference.digest === null) {
+    throw new Error(`runtime optimization: ${label}.digest must not be null.`);
+  }
+  return reference;
+}
+
 function pointerMatchesPrefix(path, prefix) {
   return path === prefix || path.startsWith(`${prefix}/`);
 }
@@ -197,15 +226,13 @@ export function validateRuntimeOptimizationContract(input) {
   const contract = cloneJsonValue(assertObject(input, 'contract'));
   assertExactKeys(contract, [
     'schema', 'contractId', 'kind', 'model', 'baseline', 'workload',
-    'mutationPolicy', 'verification', 'measurement',
+    'mutationPolicy', 'verification', 'measurement', 'neighboringWorkloads',
   ], 'contract');
   if (contract.schema !== RUNTIME_OPTIMIZATION_CONTRACT_SCHEMA) {
     throw new Error(`runtime optimization: contract.schema must be "${RUNTIME_OPTIMIZATION_CONTRACT_SCHEMA}".`);
   }
   assertString(contract.contractId, 'contract.contractId');
-  if (contract.kind !== 'runtime_profile') {
-    throw new Error('runtime optimization: contract.kind must be "runtime_profile".');
-  }
+  const candidateKind = normalizeCandidateKind(contract.kind);
 
   assertObject(contract.model, 'contract.model');
   assertExactKeys(contract.model, ['modelId', 'modelUrl', 'expectedExecutionContractHash'], 'contract.model');
@@ -238,28 +265,48 @@ export function validateRuntimeOptimizationContract(input) {
   validateWorkloadRequest(contract.workload.request, contract.workload.type);
 
   assertObject(contract.mutationPolicy, 'contract.mutationPolicy');
-  assertExactKeys(contract.mutationPolicy, ['dimensions', 'maxCandidates'], 'contract.mutationPolicy');
-  if (!Array.isArray(contract.mutationPolicy.dimensions) || contract.mutationPolicy.dimensions.length === 0) {
-    throw new Error('runtime optimization: mutationPolicy.dimensions must be non-empty.');
-  }
-  const seenPaths = new Set();
-  contract.mutationPolicy.dimensions.forEach((dimension, index) => (
-    validateDimension(dimension, index, seenPaths)
-  ));
-  const maxCandidates = assertIntegerRange(
-    contract.mutationPolicy.maxCandidates,
-    'contract.mutationPolicy.maxCandidates',
-    1,
-    256
-  );
-  const candidateCount = contract.mutationPolicy.dimensions.reduce(
-    (count, dimension) => count * dimension.values.length,
-    1
-  );
-  if (candidateCount > maxCandidates) {
-    throw new Error(
-      `runtime optimization: search grid has ${candidateCount} candidates, exceeding maxCandidates=${maxCandidates}.`
+  if (candidateKind === 'runtime-profile') {
+    assertExactKeys(contract.mutationPolicy, ['dimensions', 'maxCandidates'], 'contract.mutationPolicy');
+    if (!Array.isArray(contract.mutationPolicy.dimensions) || contract.mutationPolicy.dimensions.length === 0) {
+      throw new Error('runtime optimization: mutationPolicy.dimensions must be non-empty.');
+    }
+    const seenPaths = new Set();
+    contract.mutationPolicy.dimensions.forEach((dimension, index) => (
+      validateDimension(dimension, index, seenPaths)
+    ));
+    const maxCandidates = assertIntegerRange(
+      contract.mutationPolicy.maxCandidates,
+      'contract.mutationPolicy.maxCandidates',
+      1,
+      256
     );
+    const candidateCount = contract.mutationPolicy.dimensions.reduce(
+      (count, dimension) => count * dimension.values.length,
+      1
+    );
+    if (candidateCount > maxCandidates) {
+      throw new Error(
+        `runtime optimization: search grid has ${candidateCount} candidates, exceeding maxCandidates=${maxCandidates}.`
+      );
+    }
+  } else {
+    assertExactKeys(contract.mutationPolicy, ['references', 'maxCandidates'], 'contract.mutationPolicy');
+    if (!Array.isArray(contract.mutationPolicy.references)
+      || contract.mutationPolicy.references.length === 0) {
+      throw new Error('runtime optimization: mutationPolicy.references must be non-empty.');
+    }
+    contract.mutationPolicy.references.forEach((reference, index) => (
+      validateRegisteredReference(reference, `mutationPolicy.references[${index}]`)
+    ));
+    const maxCandidates = assertIntegerRange(
+      contract.mutationPolicy.maxCandidates,
+      'contract.mutationPolicy.maxCandidates',
+      1,
+      256
+    );
+    if (contract.mutationPolicy.references.length > maxCandidates) {
+      throw new Error('runtime optimization: registered references exceed maxCandidates.');
+    }
   }
 
   assertObject(contract.verification, 'contract.verification');
@@ -287,6 +334,7 @@ export function validateRuntimeOptimizationContract(input) {
   assertExactKeys(contract.measurement, [
     'metricPath', 'direction', 'pairCount', 'minValidPairs',
     'minImprovementPercent', 'requirePositiveConfidence', 'maxRelativeStdDevPercent',
+    'orderPolicy', 'sequentialDecision',
   ], 'contract.measurement');
   if (!SAFE_METRIC_PATHS.has(contract.measurement.metricPath)) {
     throw new Error(`runtime optimization: unsupported metric path "${contract.measurement.metricPath}".`);
@@ -317,6 +365,92 @@ export function validateRuntimeOptimizationContract(input) {
       throw new Error('runtime optimization: measurement.maxRelativeStdDevPercent must be non-negative or null.');
     }
   }
+  if (contract.measurement.orderPolicy !== undefined) {
+    const order = assertObject(contract.measurement.orderPolicy, 'measurement.orderPolicy');
+    assertExactKeys(order, ['kind', 'seed', 'blockSize'], 'measurement.orderPolicy');
+    if (order.kind !== 'randomized-blocks') {
+      throw new Error('runtime optimization: measurement.orderPolicy.kind must be "randomized-blocks".');
+    }
+    assertIntegerRange(order.seed, 'measurement.orderPolicy.seed', 0, 0xffffffff);
+    if (order.blockSize !== 2) {
+      throw new Error('runtime optimization: measurement.orderPolicy.blockSize must be 2.');
+    }
+  }
+  if (contract.measurement.sequentialDecision !== undefined) {
+    const sequential = assertObject(
+      contract.measurement.sequentialDecision,
+      'measurement.sequentialDecision'
+    );
+    assertExactKeys(
+      sequential,
+      ['kind', 'lookEveryPairs', 'minimumPairs', 'maximumLooks', 'alpha'],
+      'measurement.sequentialDecision'
+    );
+    if (sequential.kind !== 'bonferroni-fixed-looks') {
+      throw new Error(
+        'runtime optimization: measurement.sequentialDecision.kind must be "bonferroni-fixed-looks".'
+      );
+    }
+    const lookEveryPairs = assertIntegerRange(
+      sequential.lookEveryPairs,
+      'measurement.sequentialDecision.lookEveryPairs',
+      1,
+      pairCount
+    );
+    assertIntegerRange(
+      sequential.minimumPairs,
+      'measurement.sequentialDecision.minimumPairs',
+      minValidPairs,
+      pairCount
+    );
+    const expectedLooks = Math.ceil(pairCount / lookEveryPairs);
+    if (sequential.maximumLooks !== expectedLooks) {
+      throw new Error(
+        `runtime optimization: measurement.sequentialDecision.maximumLooks must be ${expectedLooks}.`
+      );
+    }
+    if (!Number.isFinite(sequential.alpha) || sequential.alpha <= 0 || sequential.alpha >= 0.5) {
+      throw new Error('runtime optimization: measurement.sequentialDecision.alpha must be in (0, 0.5).');
+    }
+  }
+  if (contract.neighboringWorkloads !== undefined) {
+    if (!Array.isArray(contract.neighboringWorkloads)) {
+      throw new Error('runtime optimization: neighboringWorkloads must be an array.');
+    }
+    const ids = new Set();
+    contract.neighboringWorkloads.forEach((guard, index) => {
+      const label = `neighboringWorkloads[${index}]`;
+      assertObject(guard, label);
+      assertExactKeys(
+        guard,
+        ['guardId', 'workload', 'metricPath', 'direction', 'maxRegressionPercent', 'pairCount'],
+        label
+      );
+      const guardId = assertString(guard.guardId, `${label}.guardId`);
+      if (ids.has(guardId)) throw new Error(`runtime optimization: duplicate guardId "${guardId}".`);
+      ids.add(guardId);
+      assertObject(guard.workload, `${label}.workload`);
+      assertExactKeys(guard.workload, ['type', 'request'], `${label}.workload`);
+      if (!WORKLOADS.has(guard.workload.type)) {
+        throw new Error(`runtime optimization: unsupported neighboring workload "${guard.workload.type}".`);
+      }
+      validateWorkloadRequest(guard.workload.request, guard.workload.type);
+      if (!SAFE_METRIC_PATHS.has(guard.metricPath)) {
+        throw new Error(`runtime optimization: unsupported neighboring metric "${guard.metricPath}".`);
+      }
+      if (!DIRECTIONS.has(guard.direction)) {
+        throw new Error(`runtime optimization: ${label}.direction is invalid.`);
+      }
+      const maxRegression = assertFiniteNumber(
+        guard.maxRegressionPercent,
+        `${label}.maxRegressionPercent`
+      );
+      if (maxRegression < 0) {
+        throw new Error(`runtime optimization: ${label}.maxRegressionPercent must be non-negative.`);
+      }
+      assertIntegerRange(guard.pairCount, `${label}.pairCount`, 1, 16);
+    });
+  }
   return contract;
 }
 
@@ -331,26 +465,36 @@ function buildParentHash(contract) {
   });
 }
 
-function buildCandidate(contract, patch) {
+function buildCandidate(contract, patch, registeredReference = null) {
   const contractHash = computeCanonicalSha256(contract);
   const parentHash = buildParentHash(contract);
+  const kind = normalizeCandidateKind(contract.kind);
   const identity = computeCanonicalSha256({
     schema: RUNTIME_OPTIMIZATION_CANDIDATE_SCHEMA,
     contractHash,
     parentHash,
+    kind,
     patch,
+    registeredReference,
   });
   return {
     schema: RUNTIME_OPTIMIZATION_CANDIDATE_SCHEMA,
     candidateId: `candidate-${identity.slice('sha256:'.length, 'sha256:'.length + 12)}`,
     contractHash,
     parentHash,
+    kind,
     patch,
+    ...(registeredReference ? { registeredReference } : {}),
   };
 }
 
 export function enumerateRuntimeOptimizationCandidates(input) {
   const contract = validateRuntimeOptimizationContract(input);
+  if (normalizeCandidateKind(contract.kind) !== 'runtime-profile') {
+    return contract.mutationPolicy.references.map((reference) => (
+      buildCandidate(contract, [], cloneJsonValue(reference))
+    ));
+  }
   let patches = [[]];
   for (const dimension of contract.mutationPolicy.dimensions) {
     const next = [];
@@ -374,7 +518,10 @@ function findDimension(contract, path) {
 export function validateRuntimeOptimizationCandidate(candidateInput, contractInput) {
   const contract = validateRuntimeOptimizationContract(contractInput);
   const candidate = cloneJsonValue(assertObject(candidateInput, 'candidate'));
-  assertExactKeys(candidate, ['schema', 'candidateId', 'contractHash', 'parentHash', 'patch'], 'candidate');
+  assertExactKeys(candidate, [
+    'schema', 'candidateId', 'contractHash', 'parentHash', 'kind', 'patch',
+    'registeredReference',
+  ], 'candidate');
   if (candidate.schema !== RUNTIME_OPTIMIZATION_CANDIDATE_SCHEMA) {
     throw new Error(`runtime optimization: candidate.schema must be "${RUNTIME_OPTIMIZATION_CANDIDATE_SCHEMA}".`);
   }
@@ -386,6 +533,28 @@ export function validateRuntimeOptimizationCandidate(candidateInput, contractInp
   const expectedParentHash = buildParentHash(contract);
   if (candidate.parentHash !== expectedParentHash) {
     throw new Error('runtime optimization: candidate.parentHash does not match the baseline runtime inputs.');
+  }
+  const contractKind = normalizeCandidateKind(contract.kind);
+  const candidateKind = candidate.kind === undefined
+    ? 'runtime-profile'
+    : normalizeCandidateKind(candidate.kind);
+  if (candidateKind !== contractKind) {
+    throw new Error('runtime optimization: candidate.kind does not match contract.kind.');
+  }
+  if (contractKind !== 'runtime-profile') {
+    if (!Array.isArray(candidate.patch) || candidate.patch.length !== 0) {
+      throw new Error('runtime optimization: registered candidates must not contain inline patches.');
+    }
+    validateRegisteredReference(candidate.registeredReference, 'candidate.registeredReference');
+    const referenceMatch = contract.mutationPolicy.references.some((reference) => (
+      reference.registryId === candidate.registeredReference.registryId
+      && reference.digest === candidate.registeredReference.digest
+    ));
+    if (!referenceMatch) {
+      throw new Error('runtime optimization: candidate reference is outside the frozen registry domain.');
+    }
+    candidate.kind = candidateKind;
+    return candidate;
   }
   if (!Array.isArray(candidate.patch) || candidate.patch.length !== contract.mutationPolicy.dimensions.length) {
     throw new Error('runtime optimization: candidate.patch must set every frozen mutation dimension exactly once.');
@@ -411,6 +580,7 @@ export function validateRuntimeOptimizationCandidate(candidateInput, contractInp
       throw new Error(`runtime optimization: candidate value for "${path}" is outside the frozen domain.`);
     }
   });
+  candidate.kind = candidateKind;
   return candidate;
 }
 
@@ -430,9 +600,104 @@ function setPointerValue(target, path, value) {
   cursor[segments.at(-1)] = cloneJsonValue(value);
 }
 
-export function materializeRuntimeOptimizationCandidate(contractInput, candidateInput) {
+export function validateRuntimeOptimizationCandidateRegistry(registryInput) {
+  const registry = cloneJsonValue(assertObject(registryInput, 'candidate registry'));
+  assertExactKeys(registry, ['$schema', 'schema', 'entries'], 'candidate registry');
+  if (
+    registry.$schema !== undefined
+    && registry.$schema !== RUNTIME_OPTIMIZATION_CANDIDATE_REGISTRY_SCHEMA
+  ) {
+    throw new Error(
+      `runtime optimization: candidate registry $schema must be ` +
+      `"${RUNTIME_OPTIMIZATION_CANDIDATE_REGISTRY_SCHEMA}".`
+    );
+  }
+  if (registry.schema !== RUNTIME_OPTIMIZATION_CANDIDATE_REGISTRY_SCHEMA) {
+    throw new Error(
+      `runtime optimization: candidate registry schema must be ` +
+      `"${RUNTIME_OPTIMIZATION_CANDIDATE_REGISTRY_SCHEMA}".`
+    );
+  }
+  assertObject(registry.entries, 'candidate registry.entries');
+  for (const [registryId, entry] of Object.entries(registry.entries)) {
+    const label = `candidate registry.entries.${registryId}`;
+    assertObject(entry, label);
+    assertExactKeys(
+      entry,
+      ['registryId', 'kind', 'digest', 'runtimeInputs', 'evidenceScope', 'checkedInPath'],
+      label
+    );
+    if (entry.registryId !== registryId) {
+      throw new Error(`runtime optimization: ${label}.registryId must match its registry key.`);
+    }
+    const kind = normalizeCandidateKind(entry.kind);
+    if (kind === 'runtime-profile') {
+      throw new Error(`runtime optimization: ${label}.kind must be a registered candidate kind.`);
+    }
+    assertObject(entry.runtimeInputs, `${label}.runtimeInputs`);
+    assertExactKeys(entry.runtimeInputs, ['runtimeProfile', 'runtimeConfig'], `${label}.runtimeInputs`);
+    if (entry.runtimeInputs.runtimeProfile !== null) {
+      throw new Error(`runtime optimization: ${label}.runtimeInputs.runtimeProfile must be null.`);
+    }
+    assertJsonValue(
+      assertObject(entry.runtimeInputs.runtimeConfig, `${label}.runtimeInputs.runtimeConfig`),
+      `${label}.runtimeInputs.runtimeConfig`
+    );
+    assertJsonValue(
+      assertObject(entry.evidenceScope, `${label}.evidenceScope`),
+      `${label}.evidenceScope`
+    );
+    const checkedInPath = assertString(entry.checkedInPath, `${label}.checkedInPath`);
+    if (
+      !checkedInPath.startsWith('src/config/runtime/optimization-candidates/')
+      || checkedInPath.includes('..')
+    ) {
+      throw new Error(
+        `runtime optimization: ${label}.checkedInPath must be under ` +
+        'src/config/runtime/optimization-candidates/.'
+      );
+    }
+    assertDigestOrNull(entry.digest, `${label}.digest`);
+    const expectedDigest = computeCanonicalSha256({
+      registryId,
+      kind,
+      runtimeInputs: entry.runtimeInputs,
+      evidenceScope: entry.evidenceScope,
+      checkedInPath,
+    });
+    if (entry.digest !== expectedDigest) {
+      throw new Error(`runtime optimization: ${label}.digest does not match its frozen payload.`);
+    }
+    entry.kind = kind;
+  }
+  return registry;
+}
+
+function materializeRegisteredCandidate(contract, candidate, registryInput) {
+  if (!registryInput) {
+    throw new Error('runtime optimization: registered candidates require candidateRegistry.');
+  }
+  const registry = validateRuntimeOptimizationCandidateRegistry(registryInput);
+  const entry = registry.entries[candidate.registeredReference.registryId];
+  if (!entry || entry.digest !== candidate.registeredReference.digest) {
+    throw new Error('runtime optimization: registered candidate is missing or has a digest mismatch.');
+  }
+  if (entry.kind !== normalizeCandidateKind(contract.kind)) {
+    throw new Error('runtime optimization: registered candidate kind does not match the contract.');
+  }
+  return cloneJsonValue(entry.runtimeInputs);
+}
+
+export function materializeRuntimeOptimizationCandidate(
+  contractInput,
+  candidateInput,
+  options = {}
+) {
   const contract = validateRuntimeOptimizationContract(contractInput);
   const candidate = validateRuntimeOptimizationCandidate(candidateInput, contract);
+  if (normalizeCandidateKind(contract.kind) !== 'runtime-profile') {
+    return materializeRegisteredCandidate(contract, candidate, options.candidateRegistry);
+  }
   const runtimeConfig = cloneJsonValue(contract.baseline.runtimeConfig);
   for (const operation of candidate.patch) {
     setPointerValue(runtimeConfig, operation.path, operation.value);
@@ -498,11 +763,11 @@ function summarizeRun(envelope, metricPath = null) {
   };
 }
 
-function buildCommandRequest(contract, runtimeInputs, command) {
-  const request = contract.workload.request;
+function buildCommandRequest(contract, runtimeInputs, command, workload = contract.workload) {
+  const request = workload.request;
   return {
     command,
-    workload: contract.workload.type,
+    workload: workload.type,
     modelId: contract.model.modelId,
     ...(contract.model.modelUrl === null ? {} : { modelUrl: contract.model.modelUrl }),
     ...(request.inferenceInput == null ? {} : { inferenceInput: cloneJsonValue(request.inferenceInput) }),
@@ -561,11 +826,50 @@ function median(values) {
     : sorted[midpoint];
 }
 
-function sampleStats(values) {
+function inverseNormalCdf(probability) {
+  const a = [-39.6968302866538, 220.946098424521, -275.928510446969,
+    138.357751867269, -30.6647980661472, 2.50662827745924];
+  const b = [-54.4760987982241, 161.585836858041, -155.698979859887,
+    66.8013118877197, -13.2806815528857];
+  const c = [-0.00778489400243029, -0.322396458041136, -2.40075827716184,
+    -2.54973253934373, 4.37466414146497, 2.93816398269878];
+  const d = [0.00778469570904146, 0.32246712907004, 2.445134137143,
+    3.75440866190742];
+  const low = 0.02425;
+  const high = 1 - low;
+  if (probability < low) {
+    const q = Math.sqrt(-2 * Math.log(probability));
+    return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5])
+      / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  if (probability > high) {
+    const q = Math.sqrt(-2 * Math.log(1 - probability));
+    return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5])
+      / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  const q = probability - 0.5;
+  const r = q * q;
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q
+    / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+
+function studentTCritical(confidenceLevel, degrees) {
+  if (confidenceLevel === 0.95) return STUDENT_T_95[degrees] ?? 1.96;
+  const z = inverseNormalCdf(0.5 + confidenceLevel / 2);
+  const z2 = z * z;
+  const first = (z ** 3 + z) / (4 * degrees);
+  const second = (5 * z ** 5 + 16 * z ** 3 + 3 * z) / (96 * degrees ** 2);
+  const third = (3 * z ** 7 + 19 * z ** 5 + 17 * z ** 3 - 15 * z)
+    / (384 * degrees ** 3);
+  return z + first + second + third;
+}
+
+function sampleStats(values, confidenceLevel = 0.95) {
   if (values.length === 0) {
     return {
       count: 0, min: null, max: null, mean: null, median: null,
       stdDev: null, relativeStdDevPercent: null, confidence95: null,
+      decisionConfidence: null,
     };
   }
   const count = values.length;
@@ -576,11 +880,19 @@ function sampleStats(values) {
   const stdDev = Math.sqrt(variance);
   const relativeStdDevPercent = mean === 0 ? null : Math.abs((stdDev / mean) * 100);
   let confidence95 = null;
+  let decisionConfidence = null;
   if (count > 1) {
     const degrees = count - 1;
-    const critical = STUDENT_T_95[degrees] ?? 1.96;
+    const critical = studentTCritical(0.95, degrees);
     const halfWidth = critical * stdDev / Math.sqrt(count);
     confidence95 = { low: mean - halfWidth, high: mean + halfWidth };
+    const decisionCritical = studentTCritical(confidenceLevel, degrees);
+    const decisionHalfWidth = decisionCritical * stdDev / Math.sqrt(count);
+    decisionConfidence = {
+      level: confidenceLevel,
+      low: mean - decisionHalfWidth,
+      high: mean + decisionHalfWidth,
+    };
   }
   return {
     count,
@@ -591,7 +903,18 @@ function sampleStats(values) {
     stdDev,
     relativeStdDevPercent,
     confidence95,
+    decisionConfidence,
   };
+}
+
+function randomizedBlockOrder(pairIndex, seed, candidateHash) {
+  const blockIndex = Math.floor(pairIndex / 2);
+  const seedHash = computeCanonicalSha256({ seed, candidateHash, blockIndex });
+  const firstBaseline = Number.parseInt(seedHash.slice(7, 15), 16) % 2 === 0;
+  const baselineFirst = pairIndex % 2 === 0 ? firstBaseline : !firstBaseline;
+  return baselineFirst
+    ? ['baseline', 'candidate']
+    : ['candidate', 'baseline'];
 }
 
 function computeImprovementPercent(baseline, candidate, direction) {
@@ -638,6 +961,8 @@ function baseReceipt(contract, candidate, runtimeInputs) {
     contractHash: candidate.contractHash,
     candidateId: candidate.candidateId,
     candidateHash: computeCanonicalSha256(candidate),
+    candidateKind: candidate.kind,
+    registeredReference: cloneJsonValue(candidate.registeredReference ?? null),
     parentHash: candidate.parentHash,
     model: cloneJsonValue(contract.model),
     runtimeInputs: {
@@ -668,6 +993,121 @@ function rejectedReceipt(base, verification, measurement, reasons, status = 'rej
   });
 }
 
+async function evaluateNeighboringWorkloadGuards({
+  contract,
+  baselineInputs,
+  runtimeInputs,
+  runCommand,
+  options,
+}) {
+  const results = [];
+  for (const guard of contract.neighboringWorkloads ?? []) {
+    const baselineVerify = await runCommandSafely(
+      runCommand,
+      buildCommandRequest(contract, baselineInputs, 'verify', guard.workload),
+      options,
+      `neighbor:${guard.guardId}:verification:baseline`
+    );
+    const candidateVerify = await runCommandSafely(
+      runCommand,
+      buildCommandRequest(contract, runtimeInputs, 'verify', guard.workload),
+      options,
+      `neighbor:${guard.guardId}:verification:candidate`
+    );
+    let verification = null;
+    try {
+      if (!baselineVerify.ok || !candidateVerify.ok) {
+        throw new Error('neighbor verification command failed');
+      }
+      assertRunEnvelope(baselineVerify.envelope, 'neighbor baseline verification', contract.model.modelId);
+      assertRunEnvelope(candidateVerify.envelope, 'neighbor candidate verification', contract.model.modelId);
+      verification = compareVerificationRuns(
+        contract,
+        baselineVerify.envelope,
+        candidateVerify.envelope
+      );
+    } catch (error) {
+      results.push({
+        guardId: guard.guardId,
+        passed: false,
+        verification: { passed: false, error: summarizeError(error) },
+        pairs: [],
+        reason: 'neighbor_verification_failed',
+      });
+      continue;
+    }
+    if (!verification.passed) {
+      results.push({
+        guardId: guard.guardId,
+        passed: false,
+        verification,
+        pairs: [],
+        reason: 'neighbor_parity_failed',
+      });
+      continue;
+    }
+    const improvements = [];
+    const pairs = [];
+    for (let pairIndex = 0; pairIndex < guard.pairCount; pairIndex += 1) {
+      const order = pairIndex % 2 === 0
+        ? ['baseline', 'candidate']
+        : ['candidate', 'baseline'];
+      const runs = {};
+      for (const role of order) {
+        runs[role] = await runCommandSafely(
+          runCommand,
+          buildCommandRequest(
+            contract,
+            role === 'baseline' ? baselineInputs : runtimeInputs,
+            'bench',
+            guard.workload
+          ),
+          options,
+          `neighbor:${guard.guardId}:measurement:${pairIndex}:${role}`
+        );
+      }
+      const pair = { index: pairIndex, order, valid: false };
+      try {
+        if (!runs.baseline.ok || !runs.candidate.ok) {
+          throw new Error('neighbor paired command failed');
+        }
+        assertRunEnvelope(runs.baseline.envelope, 'neighbor baseline benchmark', contract.model.modelId);
+        assertRunEnvelope(runs.candidate.envelope, 'neighbor candidate benchmark', contract.model.modelId);
+        const baselineValue = valueAtPath(runs.baseline.envelope, guard.metricPath);
+        const candidateValue = valueAtPath(runs.candidate.envelope, guard.metricPath);
+        const improvement = computeImprovementPercent(
+          baselineValue,
+          candidateValue,
+          guard.direction
+        );
+        if (improvement === null) throw new Error('neighbor metric is invalid');
+        pair.valid = true;
+        pair.improvementPercent = improvement;
+        improvements.push(improvement);
+      } catch (error) {
+        pair.error = summarizeError(error);
+      }
+      pairs.push(pair);
+    }
+    const stats = sampleStats(improvements);
+    const passed = improvements.length === guard.pairCount
+      && stats.median >= -guard.maxRegressionPercent;
+    results.push({
+      guardId: guard.guardId,
+      passed,
+      verification,
+      pairs,
+      improvementPercent: stats,
+      maxRegressionPercent: guard.maxRegressionPercent,
+      reason: passed ? null : 'neighbor_regression_exceeded',
+    });
+  }
+  return {
+    passed: results.every((result) => result.passed),
+    results,
+  };
+}
+
 export async function evaluateBrowserRuntimeOptimizationCandidate(
   contractInput,
   candidateInput,
@@ -675,7 +1115,9 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
 ) {
   const contract = validateRuntimeOptimizationContract(contractInput);
   const candidate = validateRuntimeOptimizationCandidate(candidateInput, contract);
-  const runtimeInputs = materializeRuntimeOptimizationCandidate(contract, candidate);
+  const runtimeInputs = materializeRuntimeOptimizationCandidate(contract, candidate, {
+    candidateRegistry: options.candidateRegistry,
+  });
   const baselineInputs = cloneJsonValue(contract.baseline);
   const runCommand = options.runCommand ?? runBrowserCommand;
   if (typeof runCommand !== 'function') {
@@ -757,10 +1199,20 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
   const baselineValues = [];
   const candidateValues = [];
   const improvements = [];
+  const sequentialLooks = [];
+  let sequentialStop = null;
   for (let pairIndex = 0; pairIndex < contract.measurement.pairCount; pairIndex += 1) {
-    const order = pairIndex % 2 === 0
-      ? ['baseline', 'candidate']
-      : ['candidate', 'baseline'];
+    const order = contract.measurement.orderPolicy
+      ? randomizedBlockOrder(
+        pairIndex,
+        contract.measurement.orderPolicy.seed,
+        base.candidateHash
+      )
+      : (
+        pairIndex % 2 === 0
+          ? ['baseline', 'candidate']
+          : ['candidate', 'baseline']
+      );
     const pairRuns = {};
     for (const role of order) {
       const request = role === 'baseline' ? baselineBenchRequest : candidateBenchRequest;
@@ -810,11 +1262,53 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
     }
     pairs.push(pair);
     options.onEvent?.({ type: 'measurement:pair', candidateId: candidate.candidateId, pair });
+    const sequential = contract.measurement.sequentialDecision;
+    const isScheduledLook = sequential
+      && (
+        (pairIndex + 1) % sequential.lookEveryPairs === 0
+        || pairIndex + 1 === contract.measurement.pairCount
+      );
+    if (isScheduledLook && improvements.length >= sequential.minimumPairs) {
+      const adjustedAlpha = sequential.alpha / sequential.maximumLooks;
+      const lookStats = sampleStats(improvements, 1 - adjustedAlpha);
+      const look = {
+        look: sequentialLooks.length + 1,
+        completedPairs: pairIndex + 1,
+        validPairs: improvements.length,
+        adjustedAlpha,
+        confidence: lookStats.decisionConfidence,
+        decision: 'continue',
+      };
+      if (
+        lookStats.decisionConfidence
+        && lookStats.decisionConfidence.low >= contract.measurement.minImprovementPercent
+      ) {
+        look.decision = 'accept';
+        sequentialStop = 'accept';
+      } else if (
+        lookStats.decisionConfidence
+        && lookStats.decisionConfidence.high < contract.measurement.minImprovementPercent
+      ) {
+        look.decision = 'reject';
+        sequentialStop = 'reject';
+      }
+      sequentialLooks.push(look);
+      options.onEvent?.({
+        type: 'measurement:sequential-look',
+        candidateId: candidate.candidateId,
+        look,
+      });
+      if (sequentialStop) break;
+    }
   }
 
   const baselineStats = sampleStats(baselineValues);
   const candidateStats = sampleStats(candidateValues);
-  const improvementStats = sampleStats(improvements);
+  const sequential = contract.measurement.sequentialDecision;
+  const decisionConfidenceLevel = sequential
+    ? 1 - (sequential.alpha / sequential.maximumLooks)
+    : 0.95;
+  const improvementStats = sampleStats(improvements, decisionConfidenceLevel);
   const measurement = {
     metricPath: contract.measurement.metricPath,
     direction: contract.measurement.direction,
@@ -824,6 +1318,15 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
     baseline: baselineStats,
     candidate: candidateStats,
     improvementPercent: improvementStats,
+    orderPolicy: contract.measurement.orderPolicy ?? { kind: 'alternating' },
+    sequentialDecision: sequential
+      ? {
+        policy: cloneJsonValue(sequential),
+        looks: sequentialLooks,
+        stoppedEarly: pairs.length < contract.measurement.pairCount,
+        stopDecision: sequentialStop,
+      }
+      : null,
   };
   const reasons = [];
   if (improvements.length < contract.measurement.minValidPairs) {
@@ -837,11 +1340,14 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
   }
   if (contract.measurement.requirePositiveConfidence) {
     if (
-      improvementStats.confidence95 === null
-      || improvementStats.confidence95.low < contract.measurement.minImprovementPercent
+      improvementStats.decisionConfidence === null
+      || improvementStats.decisionConfidence.low < contract.measurement.minImprovementPercent
     ) {
       reasons.push('confidence_interval_below_threshold');
     }
+  }
+  if (sequentialStop === 'reject') {
+    reasons.push('sequential_evidence_below_threshold');
   }
   if (
     contract.measurement.maxRelativeStdDevPercent !== null
@@ -852,10 +1358,23 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
   ) {
     reasons.push('candidate_variance_above_threshold');
   }
+  const neighboringWorkloadGuards = reasons.length === 0
+    ? await evaluateNeighboringWorkloadGuards({
+      contract,
+      baselineInputs,
+      runtimeInputs,
+      runCommand,
+      options,
+    })
+    : { passed: true, results: [], skipped: 'primary_candidate_rejected' };
+  if (!neighboringWorkloadGuards.passed) {
+    reasons.push('neighboring_workload_guard_failed');
+  }
   const receipt = finalizeReceipt({
     ...base,
     verification,
     measurement,
+    neighboringWorkloadGuards,
     decision: {
       accepted: reasons.length === 0,
       status: reasons.length === 0 ? 'accepted' : 'rejected',

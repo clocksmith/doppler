@@ -1,0 +1,25 @@
+{
+  "schema": "doppler.token-cost-classifier-policy/v1",
+  "walls": [
+    {
+      "id": "projection-dominated",
+      "patterns": ["matmul", "proj", "ffn", "lm_head"],
+      "experiments": ["decomposition", "tiling", "fused-ffn"]
+    },
+    {
+      "id": "attention-dominated",
+      "patterns": ["attention", "attn", "softmax", "rope", "kv_cache"],
+      "experiments": ["kv-layout", "access-stride", "rope", "softmax"]
+    },
+    {
+      "id": "sampling-dominated",
+      "patterns": ["sample", "topk", "argmax", "rep_penalty"],
+      "experiments": ["gated-greedy-specialization"]
+    },
+    {
+      "id": "memory-dominated",
+      "patterns": ["copy", "material", "cache", "upload", "gather"],
+      "experiments": ["materialization", "cache-traffic"]
+    }
+  ]
+}

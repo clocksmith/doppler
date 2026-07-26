@@ -36,6 +36,7 @@ const REQUIRED_COMPARE_TIMING_METRICS = Object.freeze([
 ]);
 const RUNTIME_NON_PROFILE_SCHEMAS = new Set([
   'drift-policies-v1',
+  'doppler.runtime-optimization-candidate-registry/v1',
 ]);
 const ONBOARDING_POLICY_PATH = fileURLToPath(new URL('./policies/onboarding-tooling-policy.json', import.meta.url));
 const DEFAULT_ONBOARDING_POLICY = Object.freeze({

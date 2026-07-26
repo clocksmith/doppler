@@ -102,8 +102,8 @@ function runCli(args, options = {}) {
 }
 
 // End-to-end skip-capture happy path: fixture report + synthesized transcript
-// exercises intake → (skip capture) → bundle → receipt and lands all four
-// artifacts under --out.
+// exercises intake → (skip capture) → bundle and lands the canonical artifacts
+// under --out.
 {
   const { resolveExecutionGraphHash } = await import('../../src/inference/browser-harness.js');
   const FIXTURE_REPORT = path.join(
@@ -179,19 +179,14 @@ function runCli(args, options = {}) {
     assert.equal(summary.ok, true);
     assert.equal(result.status, 0, 'bundle should exit 0 on happy path');
 
-    // All four output artifacts must exist.
-    for (const key of ['intakeReport', 'programBundle', 'referenceReceipt']) {
+    for (const key of ['intakeReport', 'programBundle']) {
       assert.ok(summary.artifactPaths[key], `${key} must be recorded in artifactPaths`);
     }
 
-    // Program bundle and receipt should both reference the same executionGraphHash.
     const bundle = JSON.parse(readFileSync(path.join(outDir, 'program-bundle.json'), 'utf8'));
-    const receipt = JSON.parse(readFileSync(path.join(outDir, 'reference-receipt.json'), 'utf8'));
     assert.equal(bundle.sources.executionGraph.hash, executionGraphHash);
-    assert.equal(receipt.schema, 'doppler.reference-receipt/v1');
-    assert.equal(receipt.sources.executionGraph.hash, executionGraphHash);
-    assert.equal(receipt.referenceTranscript.schema, 'doppler.reference-transcript/v1');
-    assert.equal(receipt.referenceTranscript.executionGraphHash, executionGraphHash);
+    assert.equal(bundle.referenceTranscript.schema, 'doppler.reference-transcript/v1');
+    assert.equal(bundle.referenceTranscript.executionGraphHash, executionGraphHash);
   } finally {
     rmSync(outDir, { recursive: true, force: true });
   }

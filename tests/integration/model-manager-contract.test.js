@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 
 const {
   extractTextModelConfig,
-  shouldAutoTuneKernels,
   verifyExplicitModelUrlMatch,
 } = await import('../../src/client/runtime/model-manager.js');
 
@@ -40,18 +39,6 @@ const {
     }),
     /Manifest is missing quantization; re-convert the model\./
   );
-}
-
-{
-  assert.equal(shouldAutoTuneKernels(null), false);
-  assert.equal(shouldAutoTuneKernels({ shared: {} }), false);
-  assert.equal(shouldAutoTuneKernels({
-    shared: {
-      kernelWarmup: {
-        autoTune: true,
-      },
-    },
-  }), true);
 }
 
 {

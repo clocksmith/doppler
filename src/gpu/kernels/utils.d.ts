@@ -62,14 +62,12 @@ export {
 } from './feature-check.js';
 
 // ============================================================================
-// Re-exports from kernel-tuning
+// Re-exports from kernel prewarming
 // ============================================================================
 
 export {
-  getTunedWorkgroupSize,
-  autoTuneKernels,
   prewarmKernels,
-} from './kernel-tuning.js';
+} from './kernel-prewarm.js';
 
 // ============================================================================
 // Re-exports from uniform-utils

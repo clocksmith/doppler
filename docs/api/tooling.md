@@ -68,7 +68,8 @@ Maintenance/export path:
 - `program-bundle` is a CLI/tool script for exporting `doppler.program-bundle/v1`.
   It is intentionally outside `normalizeToolingCommandRequest(...)` because it
   reads local artifacts and does not have browser command semantics.
-- `program-bundle:reference` is the one-click proof lane for fresh bundles. It
+- `program-bundle:reference` is the one-click portable reference-capture lane
+  for fresh bundles. It
   runs a bounded `verify`, writes the returned report locally, and calls the
   Program Bundle exporter with that report.
 - `profiles` is a CLI-local discovery path for checked-in runtime profile IDs.

@@ -16,6 +16,9 @@ const result = await checkProgramBundleParity({
 });
 
 assert.equal(result.schema, PROGRAM_BUNDLE_PARITY_SCHEMA_ID);
+assert.equal(result.authority, 'portability-diagnostic-only');
+assert.equal(result.modelPromotionAuthority, false);
+assert.equal(result.tokenEvidence.schema, 'doppler.deterministic-token-evidence/v1');
 assert.equal(result.ok, true);
 assert.equal(result.mode, 'contract');
 assert.equal(result.providers.length, 2);

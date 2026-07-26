@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runNodeCommand } from '../tooling/node-command-runner.js';
 import { runBrowserCommandInNode } from '../tooling/node-browser-command-runner.js';
-import { writeProgramBundle, writeReferenceReceipt } from '../tooling/program-bundle.js';
+import { writeProgramBundle } from '../tooling/program-bundle.js';
 import {
   TOOLING_COMMANDS,
   normalizeToolingCommandRequest,
@@ -86,8 +86,11 @@ function usage() {
     '  doppler distill --config <path|url|json> [--surface auto|node]',
     '  doppler program-bundle --config <path|json>',
     '  doppler program-bundle --manifest <path> --reference-report <path> --out <path> [--conversion-config <path>]',
-    '  doppler reference-receipt --config <path|json>',
-    '  doppler reference-receipt --manifest <path> --reference-transcript <path> --out <path>',
+    '  doppler onboard inspect --source <checkpoint-dir> --out <dir> [--family-intake <source-intake.json>]',
+    '  doppler boundary capture --report <diagnose-report.json> --out <runtime-boundaries.json>',
+    '  doppler boundary source-pack --provider-capture <provider-capture.json> --out <source-boundaries.json>',
+    '  doppler boundary token-evidence --reference-transcript <reference-transcript.json> --out <token-evidence.json>',
+    '  doppler boundary compare --source-pack <source-boundaries.json> --runtime-capture <runtime-boundaries.json> --token-evidence <json> --out <receipt.json>',
     '  doppler intake --convert-config <path|json> [--manifest <path>] [--out <intake-report.json>]',
     '  doppler bundle --manifest <path> --out <dir> [--prompt <text>] [--max-tokens <n>] [--surface node|browser]',
     '  doppler bundle --convert-config <path|json> --out <dir>',
@@ -123,6 +126,7 @@ function usage() {
 function parseArgs(argv) {
   const out = {
     command: null,
+    action: null,
     flags: {},
   };
 
@@ -139,6 +143,10 @@ function parseArgs(argv) {
       throw new Error(`Unsupported short flag "${token}". Use long-form flags (for example --help).`);
     }
     if (!token.startsWith('--')) {
+      if ((out.command === 'onboard' || out.command === 'boundary') && out.action === null) {
+        out.action = token;
+        continue;
+      }
       throw new Error('Positional arguments are not supported. Use --config for command payloads.');
     }
 
@@ -280,6 +288,120 @@ function validateIntakeFlags(parsed) {
   }
 }
 
+function validateOnboardFlags(parsed) {
+  if (parsed.action !== 'inspect') {
+    throw new Error('onboard: expected the action "inspect".');
+  }
+  const allowedFlags = new Set([
+    'source',
+    'out',
+    'family-intake',
+    'pretty',
+    'json',
+    'help',
+    'h',
+  ]);
+  for (const key of Object.keys(parsed.flags || {})) {
+    if (allowedFlags.has(key)) continue;
+    throw new Error(`Unknown flag --${key} for "onboard inspect".`);
+  }
+  if (!asStringOrNull(parsed.flags.source)) {
+    throw new Error('onboard inspect: --source <checkpoint-dir> is required.');
+  }
+  if (!asStringOrNull(parsed.flags.out)) {
+    throw new Error('onboard inspect: --out <dir> is required.');
+  }
+}
+
+function validateBoundaryFlags(parsed) {
+  const captureFlags = new Set([
+    'report',
+    'out',
+    'tolerance-policy',
+    'pretty',
+    'json',
+    'help',
+    'h',
+  ]);
+  const compareFlags = new Set([
+    'source-pack',
+    'runtime-capture',
+    'source-control',
+    'token-evidence',
+    'artifact-precision',
+    'out',
+    'pretty',
+    'json',
+    'help',
+    'h',
+  ]);
+  const tokenEvidenceFlags = new Set([
+    'reference-transcript',
+    'out',
+    'pretty',
+    'json',
+    'help',
+    'h',
+  ]);
+  const sourcePackFlags = new Set([
+    'provider-capture',
+    'out',
+    'pretty',
+    'json',
+    'help',
+    'h',
+  ]);
+  const allowedFlags = parsed.action === 'capture'
+    ? captureFlags
+    : (
+      parsed.action === 'compare'
+        ? compareFlags
+        : (
+          parsed.action === 'token-evidence'
+            ? tokenEvidenceFlags
+            : (parsed.action === 'source-pack' ? sourcePackFlags : null)
+        )
+    );
+  if (!allowedFlags) {
+    throw new Error(
+      'boundary: expected "capture", "source-pack", "token-evidence", or "compare".'
+    );
+  }
+  for (const key of Object.keys(parsed.flags || {})) {
+    if (allowedFlags.has(key)) continue;
+    throw new Error(`Unknown flag --${key} for "boundary ${parsed.action}".`);
+  }
+  if (!asStringOrNull(parsed.flags.out)) {
+    throw new Error(`boundary ${parsed.action}: --out <path> is required.`);
+  }
+  if (parsed.action === 'capture' && !asStringOrNull(parsed.flags.report)) {
+    throw new Error('boundary capture: --report <diagnose-report.json> is required.');
+  }
+  if (
+    parsed.action === 'source-pack'
+    && !asStringOrNull(parsed.flags['provider-capture'])
+  ) {
+    throw new Error(
+      'boundary source-pack: --provider-capture <provider-capture.json> is required.'
+    );
+  }
+  if (
+    parsed.action === 'token-evidence'
+    && !asStringOrNull(parsed.flags['reference-transcript'])
+  ) {
+    throw new Error(
+      'boundary token-evidence: --reference-transcript <reference-transcript.json> is required.'
+    );
+  }
+  if (parsed.action === 'compare') {
+    for (const key of ['source-pack', 'runtime-capture', 'token-evidence']) {
+      if (!asStringOrNull(parsed.flags[key])) {
+        throw new Error(`boundary compare: --${key} <path> is required.`);
+      }
+    }
+  }
+}
+
 function validateBundleFlags(parsed) {
   const allowedFlags = new Set([
     'convert-config',
@@ -293,7 +415,6 @@ function validateBundleFlags(parsed) {
     'runtime-config',
     'out',
     'bundle-id',
-    'receipt-id',
     'created-at',
     'skip-convert',
     'skip-capture',
@@ -307,26 +428,6 @@ function validateBundleFlags(parsed) {
   for (const key of Object.keys(parsed.flags || {})) {
     if (allowedFlags.has(key)) continue;
     throw new Error(`Unknown flag --${key} for "bundle".`);
-  }
-}
-
-function validateReferenceReceiptFlags(parsed) {
-  const allowedFlags = new Set([
-    'config',
-    'manifest',
-    'model-dir',
-    'reference-transcript',
-    'out',
-    'receipt-id',
-    'created-at',
-    'pretty',
-    'json',
-    'help',
-    'h',
-  ]);
-  for (const key of Object.keys(parsed.flags || {})) {
-    if (allowedFlags.has(key)) continue;
-    throw new Error(`Unknown flag --${key} for "reference-receipt".`);
   }
 }
 
@@ -703,44 +804,130 @@ async function runIntakeCommand(parsed, jsonOutput) {
   }
 }
 
-async function buildReferenceReceiptOptions(parsed) {
-  const repoRoot = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
-  const configValue = asStringOrNull(parsed.flags.config);
-  const config = configValue
-    ? await readJsonObjectInput(configValue, '--config')
-    : {};
-  return {
-    repoRoot,
-    ...config,
-    manifestPath: parsed.flags.manifest ?? config.manifestPath ?? null,
-    modelDir: parsed.flags['model-dir'] ?? config.modelDir ?? null,
-    referenceTranscriptPath:
-      parsed.flags['reference-transcript'] ?? config.referenceTranscriptPath ?? null,
-    outputPath: parsed.flags.out ?? config.outputPath ?? config.out ?? null,
-    receiptId: parsed.flags['receipt-id'] ?? config.receiptId ?? null,
-    createdAtUtc: parsed.flags['created-at'] ?? config.createdAtUtc ?? null,
+async function runOnboardInspectCommand(parsed, jsonOutput) {
+  const { inspectSourceModel } = await import('../tooling/source-intake.js');
+  const policyPath = fileURLToPath(
+    new URL('../config/evidence/source-intake-policy.json', import.meta.url)
+  );
+  const policy = await readJsonObjectFile(policyPath, 'source intake policy');
+  const familyIntakePath = asStringOrNull(parsed.flags['family-intake']);
+  const familyIntake = familyIntakePath
+    ? await readJsonObjectFile(path.resolve(familyIntakePath), '--family-intake')
+    : null;
+  const result = await inspectSourceModel({
+    sourceDir: path.resolve(parsed.flags.source),
+    policy,
+    familyIntake,
+  });
+  const outputDir = path.resolve(parsed.flags.out);
+  await fs.mkdir(outputDir, { recursive: true });
+  const outputs = {
+    intake: path.join(outputDir, 'source-intake.json'),
+    conversion: path.join(outputDir, 'conversion-config.skeleton.json'),
+    contractTests: path.join(outputDir, 'contract-tests.plan.json'),
   };
-}
-
-async function runReferenceReceiptCommand(parsed, jsonOutput) {
-  const result = await writeReferenceReceipt(await buildReferenceReceiptOptions(parsed));
+  await Promise.all([
+    fs.writeFile(outputs.intake, `${JSON.stringify(result.report, null, 2)}\n`, 'utf8'),
+    fs.writeFile(outputs.conversion, `${JSON.stringify(result.artifacts.conversion, null, 2)}\n`, 'utf8'),
+    fs.writeFile(outputs.contractTests, `${JSON.stringify(result.artifacts.contractTests, null, 2)}\n`, 'utf8'),
+  ]);
   const summary = {
-    ok: true,
-    outputPath: path.relative(process.cwd(), result.outputPath),
-    modelId: result.receipt.modelId,
-    receiptId: result.receipt.receiptId,
-    executionGraphHash: result.receipt.sources.executionGraph.hash,
-    tokensGenerated: result.receipt.referenceTranscript?.output?.tokensGenerated ?? null,
-    stopReason: result.receipt.referenceTranscript?.output?.stopReason ?? null,
+    ...result.report,
+    outputPaths: Object.fromEntries(
+      Object.entries(outputs).map(([key, value]) => [key, path.relative(process.cwd(), value)])
+    ),
   };
   if (jsonOutput) {
     console.log(JSON.stringify(summary, null, 2));
-    return;
+  } else {
+    const status = result.report.ok ? 'ok' : 'review';
+    console.log(
+      `[${status}] source intake wrote ${path.relative(process.cwd(), outputDir)} ` +
+      `(${result.report.summary.accepted} accepted, ${result.report.summary.unresolved} unresolved)`
+    );
   }
-  console.log(
-    `[ok] wrote ${summary.outputPath} ` +
-    `(modelId=${summary.modelId}, tokens=${summary.tokensGenerated}, stopReason=${summary.stopReason})`
+  if (!result.report.ok) process.exitCode = 1;
+}
+
+async function runBoundaryCommand(parsed, jsonOutput) {
+  const {
+    buildDeterministicTokenEvidenceFromReferenceTranscript,
+    buildRuntimeBoundaryCapture,
+    buildSourceBoundaryPackFromProviderCapture,
+    compareBoundaryEvidence,
+  } = await import('../tooling/boundary-evidence.js');
+  const policyPath = fileURLToPath(
+    new URL('../config/evidence/boundary-evidence-policy.json', import.meta.url)
   );
+  const policy = await readJsonObjectFile(policyPath, 'boundary evidence policy');
+  let result;
+  if (parsed.action === 'capture') {
+    const report = await readJsonObjectFile(
+      path.resolve(parsed.flags.report),
+      '--report'
+    );
+    result = buildRuntimeBoundaryCapture({
+      report,
+      policy,
+      tolerancePolicyId: asStringOrNull(parsed.flags['tolerance-policy'])
+        ?? 'doppler.boundary-tolerance/source-f16-v1',
+    });
+  } else if (parsed.action === 'source-pack') {
+    const providerCapture = await readJsonObjectFile(
+      path.resolve(parsed.flags['provider-capture']),
+      '--provider-capture'
+    );
+    result = buildSourceBoundaryPackFromProviderCapture(providerCapture);
+  } else if (parsed.action === 'token-evidence') {
+    const transcript = await readJsonObjectFile(
+      path.resolve(parsed.flags['reference-transcript']),
+      '--reference-transcript'
+    );
+    result = buildDeterministicTokenEvidenceFromReferenceTranscript(transcript);
+  } else {
+    const [sourcePack, runtimeCapture, tokenEvidence] = await Promise.all([
+      readJsonObjectFile(path.resolve(parsed.flags['source-pack']), '--source-pack'),
+      readJsonObjectFile(path.resolve(parsed.flags['runtime-capture']), '--runtime-capture'),
+      readJsonObjectFile(path.resolve(parsed.flags['token-evidence']), '--token-evidence'),
+    ]);
+    const sourceControlPath = asStringOrNull(parsed.flags['source-control']);
+    const sourcePrecisionControlReceipt = sourceControlPath
+      ? await readJsonObjectFile(path.resolve(sourceControlPath), '--source-control')
+      : null;
+    result = compareBoundaryEvidence({
+      sourcePack,
+      runtimeCapture,
+      policy,
+      artifactPrecision: asStringOrNull(parsed.flags['artifact-precision']) ?? 'source',
+      sourcePrecisionControlReceipt,
+      deterministicTokenEvidence: tokenEvidence,
+    });
+  }
+  const outputPath = path.resolve(parsed.flags.out);
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  await fs.writeFile(outputPath, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
+  if (jsonOutput) {
+    console.log(JSON.stringify({ ...result, outputPath: path.relative(process.cwd(), outputPath) }, null, 2));
+  } else if (parsed.action === 'capture') {
+    console.log(`[ok] captured ${result.boundaries.length} semantic boundaries`);
+  } else if (parsed.action === 'source-pack') {
+    console.log(`[ok] source pack contains ${result.boundaries.length} semantic boundaries`);
+  } else if (parsed.action === 'token-evidence') {
+    const status = result.exact ? 'ok' : 'fail';
+    console.log(`[${status}] token evidence covers ${result.tokenCount} tokens`);
+  } else {
+    const status = result.promotionGate.passed ? 'ok' : 'fail';
+    console.log(
+      `[${status}] boundary comparison ` +
+      `(first divergence: ${result.firstDivergence?.boundaryId ?? 'none'})`
+    );
+  }
+  if (
+    (parsed.action === 'compare' && !result.promotionGate.passed)
+    || (parsed.action === 'token-evidence' && !result.exact)
+  ) {
+    process.exitCode = 1;
+  }
 }
 
 async function runProfilesCommand(jsonOutput) {
@@ -845,7 +1032,7 @@ async function runBundleCommand(parsed, jsonOutput) {
     writeReferenceTranscript,
     normalizeModelUrl,
   } = await import('../tooling/reference-verify.js');
-  const { writeProgramBundle, writeReferenceReceipt } = await import('../tooling/program-bundle.js');
+  const { writeProgramBundle } = await import('../tooling/program-bundle.js');
   const fsMod = await import('node:fs/promises');
 
   const outDir = asStringOrNull(parsed.flags.out);
@@ -1010,39 +1197,6 @@ async function runBundleCommand(parsed, jsonOutput) {
       error: error?.message || String(error),
     };
     blockers.push({ stage: 'bundle', code: 'bundle_export_failed', message: error?.message || String(error) });
-    return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
-  }
-
-  stages.push({ stage: 'receipt', status: 'starting' });
-  try {
-    const receiptOutputPath = path.join(resolvedOut, 'reference-receipt.json');
-    const receiptResult = await writeReferenceReceipt({
-      repoRoot,
-      manifestPath,
-      modelDir: modelDirResolved,
-      referenceTranscriptPath: artifactPaths.referenceTranscript
-        ? path.resolve(artifactPaths.referenceTranscript)
-        : referenceTranscriptPath,
-      outputPath: receiptOutputPath,
-      receiptId: asStringOrNull(parsed.flags['receipt-id']),
-      createdAtUtc: asStringOrNull(parsed.flags['created-at']),
-    });
-    artifactPaths.referenceReceipt = path.relative(process.cwd(), receiptResult.outputPath);
-    stages[stages.length - 1] = {
-      stage: 'receipt',
-      status: 'succeeded',
-      receiptId: receiptResult.receipt.receiptId,
-      executionGraphHash: receiptResult.receipt.sources.executionGraph.hash,
-      tokensGenerated: receiptResult.receipt.referenceTranscript?.output?.tokensGenerated ?? null,
-      stopReason: receiptResult.receipt.referenceTranscript?.output?.stopReason ?? null,
-    };
-  } catch (error) {
-    stages[stages.length - 1] = {
-      stage: 'receipt',
-      status: 'failed',
-      error: error?.message || String(error),
-    };
-    blockers.push({ stage: 'receipt', code: 'receipt_write_failed', message: error?.message || String(error) });
     return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
   }
 
@@ -1715,14 +1869,19 @@ async function main() {
       await runProgramBundleCommand(parsed, parsed.flags.pretty !== true);
       return;
     }
-    if (parsed.command === 'reference-receipt') {
-      validateReferenceReceiptFlags(parsed);
-      await runReferenceReceiptCommand(parsed, parsed.flags.pretty !== true);
-      return;
-    }
     if (parsed.command === 'profiles') {
       validateProfilesFlags(parsed);
       await runProfilesCommand(parsed.flags.pretty !== true);
+      return;
+    }
+    if (parsed.command === 'onboard') {
+      validateOnboardFlags(parsed);
+      await runOnboardInspectCommand(parsed, parsed.flags.pretty !== true);
+      return;
+    }
+    if (parsed.command === 'boundary') {
+      validateBoundaryFlags(parsed);
+      await runBoundaryCommand(parsed, parsed.flags.pretty !== true);
       return;
     }
     if (parsed.command === 'intake') {

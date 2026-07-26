@@ -241,6 +241,24 @@ console.log(hits.slice(0, 200));
 OPFS is persisted per browser profile. For warm runs, reuse the same profile or
 keep a tab open. For cold runs, clear OPFS or use a fresh profile/incognito.
 
+The root browser API populates and reopens the verified cache explicitly:
+
+```javascript
+import { dr } from 'doppler-gpu';
+
+const model = await dr.load('qwen3-0.8b', {
+  cache: 'opfs',
+  onProgress: ({ phase, message }) => console.log(phase, message),
+});
+
+console.log(model.persistentCache);
+```
+
+`cache: 'opfs'` never silently degrades to HTTP-only loading. If OPFS is
+unavailable, persistence or integrity validation fails and the load rejects.
+Use `cache: false` or omit `cache` when streaming directly from the artifact
+host is intentional.
+
 ```javascript
 const { listModels, deleteModel } = await import('../src/storage/shard-manager.js');
 for (const modelId of await listModels()) {

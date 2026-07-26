@@ -102,10 +102,6 @@ export async function verifyExplicitModelUrlMatch(
   }
 }
 
-export function shouldAutoTuneKernels(runtimeConfig = getRuntimeConfig()) {
-  return runtimeConfig?.shared?.kernelWarmup?.autoTune === true;
-}
-
 export function getPipeline() {
   return pipeline;
 }
@@ -449,30 +445,6 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
       onProgress?.({ stage: 'warming', message: 'Warming GPU kernels...' });
       await prepareKernelRuntime({ prewarm: true, prewarmMode: 'sequential' });
       DopplerCapabilities.kernelsWarmed = true;
-    }
-
-    if (
-      !DopplerCapabilities.kernelsTuned
-      && shouldAutoTuneKernels()
-      && typeof setTimeout !== 'undefined'
-    ) {
-      DopplerCapabilities.kernelsTuned = true;
-      const tuneConfig = extractTextModelConfig(runtimeModel);
-      setTimeout(() => {
-        prepareKernelRuntime({
-          prewarm: false,
-          autoTune: true,
-          modelConfig: {
-            hiddenSize: tuneConfig.hiddenSize,
-            intermediateSize: tuneConfig.intermediateSize,
-            numHeads: tuneConfig.numHeads,
-            numKVHeads: tuneConfig.numKVHeads,
-            headDim: tuneConfig.headDim,
-          },
-        }).catch((e) => {
-          log.warn('DopplerProvider', 'Kernel auto-tune failed', e);
-        });
-      }, 0);
     }
 
     const gpuCaps = getKernelCapabilities();

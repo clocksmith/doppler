@@ -1,7 +1,7 @@
 /**
  * Kernel Warmup Config Schema
  *
- * Controls optional kernel prewarming and auto-tuning.
+ * Controls optional kernel prewarming.
  *
  * @module config/schema/kernel-warmup
  */
@@ -11,8 +11,6 @@ export interface KernelWarmupConfigSchema {
   prewarm: boolean;
   /** Prewarm scheduling mode (parallel or sequential). */
   prewarmMode: 'parallel' | 'sequential';
-  /** Auto-tune kernel workgroup sizes for the active model config. */
-  autoTune: boolean;
 }
 
 /** Default kernel warmup configuration */

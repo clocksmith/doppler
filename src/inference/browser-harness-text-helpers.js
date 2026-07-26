@@ -6,6 +6,7 @@ import { isPlainObject } from '../utils/plain-object.js';
 import { cloneJsonValue } from '../utils/clone-json.js';
 import { sha256BytesHex } from '../utils/sha256.js';
 import { resolvePromptInput } from './pipelines/text/generator-prefill-helpers.js';
+import { isExecutionObservationRequested } from '../tooling/execution-cost-ledger.js';
 
 const DEFAULT_IMAGE_TRANSCRIPTION_PROMPT = 'Describe the image in one short sentence.';
 const DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET = 70;
@@ -2037,7 +2038,8 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
       ? Math.max(0, Math.floor(sampling.seed))
       : null;
   const debugProbes = runtimeConfig.shared?.debug?.probes || [];
-  const profile = runtimeConfig.shared?.debug?.profiler?.enabled === true;
+  const executionObserverEnabled = isExecutionObservationRequested(runtimeConfig);
+  const profile = executionObserverEnabled;
   const explicitDiagnosticsEnabled = runtimeConfig.shared?.harness?.mode === 'diagnose'
     || shouldEnableReferenceTranscriptDiagnostics(runOverrides, runtimeConfig);
   const disableCommandBatchingForDiagnostics = explicitDiagnosticsEnabled
@@ -2057,6 +2059,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     useChatTemplate,
     benchmark: runOverrides?.benchmark === true,
     profile,
+    executionObserver: executionObserverEnabled,
     ...(disableCommandBatchingForDiagnostics ? { disableCommandBatching: true } : {}),
     diagnostics,
     ...(captureLogits ? {

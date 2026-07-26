@@ -340,6 +340,10 @@ async function buildDiagnosticCapture(level, buffer, options) {
     shape: snapshot.shape,
     dtype: snapshot.dtype,
     sample: Array.isArray(snapshot.sample) ? snapshot.sample : null,
+    sampleCoordinates: Array.isArray(snapshot.sampleCoordinates)
+      ? snapshot.sampleCoordinates
+      : null,
+    fullTensorDigest: snapshot.fullTensorDigest ?? null,
     stats: snapshot.stats ?? null,
     hasNaN: snapshot.hasNaN === true,
     hasInf: snapshot.hasInf === true,
@@ -366,6 +370,8 @@ function createDeferredDiagnosticCapture(level, buffer, options) {
     shape,
     dtype,
     sample: null,
+    sampleCoordinates: null,
+    fullTensorDigest: null,
     stats: null,
     hasNaN: false,
     hasInf: false,
@@ -385,6 +391,10 @@ function createDeferredDiagnosticCapture(level, buffer, options) {
       capture.shape = snapshot.shape;
       capture.dtype = snapshot.dtype;
       capture.sample = Array.isArray(snapshot.sample) ? snapshot.sample : null;
+      capture.sampleCoordinates = Array.isArray(snapshot.sampleCoordinates)
+        ? snapshot.sampleCoordinates
+        : null;
+      capture.fullTensorDigest = snapshot.fullTensorDigest ?? null;
       capture.stats = snapshot.stats ?? null;
       capture.hasNaN = snapshot.hasNaN === true;
       capture.hasInf = snapshot.hasInf === true;

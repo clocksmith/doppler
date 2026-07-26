@@ -12,11 +12,9 @@ resetKernelThresholds();
 {
   const snapshot = getKernelThresholds();
   snapshot.attention.chunkedMaxKVLen = 123;
-  snapshot.tuner.maxComputeWorkgroupSizeX = 42;
 
   const freshSnapshot = getKernelThresholds();
   assert.equal(freshSnapshot.attention.chunkedMaxKVLen, DEFAULT_KERNEL_THRESHOLDS.attention.chunkedMaxKVLen);
-  assert.equal(freshSnapshot.tuner.maxComputeWorkgroupSizeX, DEFAULT_KERNEL_THRESHOLDS.tuner.maxComputeWorkgroupSizeX);
 }
 
 {

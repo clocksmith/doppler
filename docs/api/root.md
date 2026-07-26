@@ -54,6 +54,10 @@ A bare string is treated as a bundled/known registry ID, not a path heuristic.
 - `dr.load()` creates an explicit model instance
 - instance ownership is explicit; call `model.unload()` when done
 - Node quick-start runs emit basic progress logs by default
+- browser callers can set `options.cache: 'opfs'` to download and verify the
+  complete RDRR artifact before loading it from persistent browser storage
+- `options.cache: false` keeps the streaming HTTP load path; unsupported cache
+  values and Node-side OPFS requests fail before model resolution
 
 ### Convenience calls
 
@@ -68,6 +72,8 @@ A bare string is treated as a bundled/known registry ID, not a path heuristic.
 - `dr()`, `dr.text()`, `dr.chat()`, and `dr.chatText()` all require `options.model`
 - load-affecting options belong on `dr.load()`, not the convenience call
 - `runtimeConfig`, `runtimeProfile`, and `runtimeConfigUrl` are rejected on the convenience-call surface
+- `cache` is rejected on the convenience-call surface; persistent caching is
+  explicit model-instance policy on `dr.load()`
 - unsupported resolution inputs fail fast rather than silently falling back
 
 ## Primary Symbol Notes
@@ -85,6 +91,7 @@ Returns a `DopplerModel` instance with:
 - experimental `unloadLoRA()`
 - `unload()`
 - `manifestHash`
+- `persistentCache` (`null` or the verified OPFS cache receipt)
 - `advanced.tokenizeText(...)`
 - `advanced.prefillKV(...)`
 - `advanced.resetToSeqLen(...)`
@@ -136,6 +143,7 @@ for await (const token of model.generate('Describe WebGPU briefly')) {
 import { dr } from 'doppler-gpu';
 
 const model = await dr.load('qwen3-0.8b', {
+  cache: 'opfs',
   onProgress: ({ message }) => console.log(`[dr] ${message}`),
 });
 

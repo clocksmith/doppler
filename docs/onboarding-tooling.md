@@ -1,6 +1,6 @@
 # Doppler Onboarding Tooling
 
-This page is for onboarding automation (`check` + `scaffold`).
+This page is for onboarding automation (`inspect` + `check` + `scaffold`).
 
 For first-run convert/verify/bench workflow, use [getting-started.md](getting-started.md).
 
@@ -12,6 +12,19 @@ New model and config onboarding should be:
 - fail-fast on cross-file drift
 
 Implemented by `tools/onboarding-tooling.js`.
+
+## source inspect mode
+
+Before conversion, inspect the source checkpoint:
+
+```bash
+doppler onboard inspect --source <checkpoint-dir> --out <artifact-dir>
+```
+
+This produces a provenance-bearing `doppler.source-intake/v1` report, a
+conservative conversion-config skeleton, and a focused contract-test plan.
+Unknown, ambiguous, unsupported, and family-inferred values remain unresolved.
+See [evidence-loop.md](evidence-loop.md).
 
 ## check mode
 
@@ -48,10 +61,12 @@ Kinds:
 
 ## Canonical operational sequence
 
-1. Run `check`.
-2. Scaffold missing assets.
-3. Run `check` again in `--strict` mode.
-4. Execute workflow from [getting-started.md](getting-started.md).
+1. Run `doppler onboard inspect` against source material.
+2. Resolve the intake report's ambiguous and unsupported facts.
+3. Run `check`.
+4. Scaffold missing assets.
+5. Run `check` again in `--strict` mode.
+6. Execute workflow from [getting-started.md](getting-started.md).
 
 ## Related
 

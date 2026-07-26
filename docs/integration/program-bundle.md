@@ -27,6 +27,10 @@ made from:
 - model artifacts and hashes
 - a browser/WebGPU reference transcript
 
+It owns portable program export, not Doppler model promotion. Semantic boundary
+comparison is the sole model-correctness gate. Program Bundle parity is a
+portability diagnostic and reports `modelPromotionAuthority: false`.
+
 Doppler owns the model program. Doe owns capture, HostPlan generation,
 WGSL-to-CSL lowering, and backend execution.
 
@@ -42,9 +46,9 @@ Doe may execute the JS entrypoint through a provider for capture and
 validation, but portable lowering is based on the declared execution-v1 graph,
 declared WGSL modules, and declared artifacts.
 
-In one sentence: the Program Bundle is the single source of truth; Doppler
-executes it on WebGPU, and Doe lowers the same declared program into backend
-artifacts such as HostPlan and CSL.
+In one sentence: the Program Bundle is the single source of truth for the
+portable program; Doppler executes it on WebGPU, and Doe lowers the same
+declared program into backend artifacts such as HostPlan and CSL.
 
 ## Contract
 
@@ -257,7 +261,7 @@ node src/cli/doppler-cli.js bundle \
   --surface browser
 ```
 
-`doppler bundle` is the WS1 exit-condition command. It chains the four
+`doppler bundle` is the WS1 exit-condition command. It chains the three
 stages that previously required separate invocations:
 
 | Stage | Emits | Schema |
@@ -265,7 +269,6 @@ stages that previously required separate invocations:
 | intake | `intake-report.json` | `doppler.intake-report/v1` |
 | capture | `reference-report.json`, `reference-transcript.json` | verify report; `doppler.reference-transcript/v1` |
 | bundle | `program-bundle.json` | `doppler.program-bundle/v1` |
-| receipt | `reference-receipt.json` | `doppler.reference-receipt/v1` |
 
 A top-level `bundle-summary.json` (`doppler.bundle-summary/v1`) names
 every emitted artifact and records per-stage status and blockers. A
@@ -288,9 +291,8 @@ node src/cli/doppler-cli.js program-bundle --config '{
 }'
 ```
 
-`doppler intake` and `doppler reference-receipt` are the stage-level
-subcommands; `doppler bundle` calls them in sequence via the shared
-`performIntake` helper and the shared
+`doppler intake` is the stage-level validation subcommand; `doppler bundle`
+calls the shared `performIntake` helper and the shared
 `src/tooling/reference-verify.js` capture helpers.
 
 Equivalent tool scripts:
@@ -303,12 +305,13 @@ npm run program-bundle:check
 npm run program-bundle:parity
 ```
 
-`program-bundle:reference` is the clean proof lane. It runs one bounded
+`program-bundle:reference` is the portable reference-capture lane. It runs one bounded
 `verify` request with a fixed prompt and token budget, captures the actual
 `result.report` object returned by the selected provider, writes that report to
 `reports/program-bundles/<modelId>/...reference.json`, and immediately exports
 the closed bundle from that report. A manual receipt without transcript metrics
-is rejected.
+is rejected. This establishes a replayable portability reference; it does not
+replace the semantic boundary promotion gate.
 
 Program Bundle parity also works through the shared command contract:
 

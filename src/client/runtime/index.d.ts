@@ -5,6 +5,8 @@ import type {
   DopplerLoadOptions,
   DopplerLoadProgress,
   DopplerModelSource,
+  DopplerModelSourceResolution,
+  DopplerPersistentCacheReceipt,
 } from './model-source.js';
 import type { DopplerModelHandle } from './model-session.js';
 
@@ -51,9 +53,31 @@ export declare function createDopplerRuntimeService(options: {
   defaultLoadProgressLogger?: ((event: DopplerLoadProgress) => void) | null;
 }): DopplerRuntimeService;
 
+export declare function resolvePersistentBrowserLoadSource(
+  loadSource: DopplerModelSourceResolution,
+  cache: false | 'opfs' | undefined,
+  onProgress?: ((event: DopplerLoadProgress) => void) | null,
+  cacheSource?: (
+    modelId: string,
+    modelBaseUrl: string,
+    onProgress: ((event: Record<string, unknown>) => void) | null,
+    options: { expectedManifestHash: string }
+  ) => Promise<{
+    storageContext: Record<string, unknown>;
+    storageBackend: 'opfs';
+    cacheState: 'hit' | 'verified-hit' | 'manifest-refresh' | 'imported';
+    fromCache: boolean;
+    manifestHash: string;
+    totalBytes: number;
+  }>
+): Promise<DopplerModelSourceResolution & {
+  persistentCache?: DopplerPersistentCacheReceipt;
+}>;
+
 export type {
   DopplerLoadOptions,
   DopplerLoadProgress,
+  DopplerPersistentCacheReceipt,
   DopplerModelSource,
   DopplerModelSourceResolution,
 } from './model-source.js';

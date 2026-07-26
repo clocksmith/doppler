@@ -118,17 +118,6 @@ export interface RopeDefaultsSchema {
 export declare const DEFAULT_ROPE_DEFAULTS: RopeDefaultsSchema;
 
 /**
- * Defaults for kernel tuner limits when device limits are unavailable.
- */
-export interface TunerLimitsSchema {
-  maxComputeWorkgroupSizeX: number;
-  maxComputeWorkgroupSizeY: number;
-  maxComputeInvocationsPerWorkgroup: number;
-}
-
-export declare const DEFAULT_TUNER_LIMITS: TunerLimitsSchema;
-
-/**
  * Thresholds for attention kernel variant selection.
  */
 export interface AttentionThresholdsSchema {
@@ -279,7 +268,6 @@ export interface KernelThresholdsConfigSchema {
   attention: AttentionThresholdsSchema;
   fusedMatmul: FusedMatmulThresholdsSchema;
   cast: CastThresholdsSchema;
-  tuner: TunerLimitsSchema;
 }
 
 export declare const DEFAULT_KERNEL_THRESHOLDS: KernelThresholdsConfigSchema;

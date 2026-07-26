@@ -9,6 +9,13 @@ Add a new top-level command to Doppler's browser and Node tooling surface.
 - The feature belongs next to `convert`, `refresh-integrity`, `debug`, `bench`, `verify`, `lora`, or `distill`.
 - The command is part of the public command contract rather than an ad hoc script.
 
+Node-local artifact maintenance commands such as `onboard inspect`, `boundary
+source-pack`, `boundary capture`, `boundary token-evidence`, `boundary compare`,
+`program-bundle`, and `profiles` are outside the
+cross-surface harness contract. They must be documented as local, validate
+their own flags, and operate on explicit files. Do not add a browser command
+that silently performs different work.
+
 ## Blast Radius
 
 - Cross-surface JS + docs

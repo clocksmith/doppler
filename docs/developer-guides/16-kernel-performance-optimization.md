@@ -59,6 +59,10 @@ Before changing a kernel:
 7. Close the comparison with the paired statistical protocol in
    [Benchmark Methodology](../benchmark-methodology.md).
 
+For the executable intake, boundary, cost-ledger, registered-variant, and
+promotion contracts, follow
+[Model and Kernel Evidence Loop](../evidence-loop.md).
+
 ## Optimization Levers
 
 ### Q4_K Decomposition
@@ -180,6 +184,12 @@ hosts rather than becoming CI requirements.
 - Using zero as an argmax tail value or reduction identity.
 - Letting a greedy-only fused path run for probabilistic sampling.
 - Reporting a point estimate when the paired confidence interval crosses zero.
+- Reintroducing synthetic workgroup shaders as a runtime selection authority.
+  Calibrate only checked-in registered variants through the canonical evaluator.
+- Enabling the debug profiler during calibrate instead of the standard
+  `shared.benchmark.run.executionObserver`.
+- Repeatedly checking an ordinary confidence interval and stopping when it
+  becomes favorable. Use predeclared fixed looks with alpha spending.
 - Re-running a disproved projection variant after the residual moved to launch or
   attention cost.
 

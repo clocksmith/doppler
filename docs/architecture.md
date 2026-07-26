@@ -1155,7 +1155,7 @@ See `config.md` for kernel selection rules and runtime overrides.
 | `src/loader/doppler-loader.js` | Weight loading and dequant |
 | `src/gpu/device.js` | WebGPU initialization |
 | `src/gpu/kernels/index.js` | Kernel selection and dispatch exports |
-| `src/gpu/kernel-tuner.js` | Kernel tuning harness |
+| `src/tooling/registered-variant-calibration.js` | Evidence-gated registered kernel calibration |
 | `src/memory/buffer-pool.js` | Buffer pooling |
 | `src/formats/rdrr/manifest.js` | RDRR manifest parsing |
 | `src/storage/shard-manager.js` | OPFS shard management |

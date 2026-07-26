@@ -69,6 +69,10 @@ import { collectTrainingArtifactsFromSuiteResult } from './browser-harness-repor
 import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
 import { assertCommandContextMatchesOptions } from '../tooling/command-context.js';
+import {
+  buildTokenCostLedger,
+  isExecutionObservationRequested,
+} from '../tooling/execution-cost-ledger.js';
 
 const TRAINING_SUITE_MODULE_PATH = '../experimental/training/suite.js';
 let trainingSuiteModulePromise = null;
@@ -433,6 +437,79 @@ export function resolveExecutionGraphHash(manifest) {
     return null;
   }
   return hashStableJson(execution);
+}
+
+function resolveArtifactHash(manifest) {
+  const declaredDigest = manifest?.artifactIdentity?.artifactDigest;
+  if (typeof declaredDigest === 'string' && declaredDigest.trim()) {
+    return declaredDigest;
+  }
+  if (!Array.isArray(manifest?.shards) || manifest.shards.length === 0) {
+    return null;
+  }
+  return hashStableJson({
+    modelId: manifest.modelId ?? null,
+    artifactIdentity: manifest.artifactIdentity ?? null,
+    hashAlgorithm: manifest.hashAlgorithm ?? null,
+    totalSize: manifest.totalSize ?? null,
+    shards: manifest.shards.map((shard) => ({
+      index: shard?.index ?? null,
+      filename: shard?.filename ?? null,
+      size: shard?.size ?? null,
+      hash: shard?.hash ?? null,
+      blake3: shard?.blake3 ?? null,
+      offset: shard?.offset ?? null,
+    })),
+    tokenizer: manifest.tokenizer ?? null,
+  });
+}
+
+function resolveWrapperHash(manifest, metrics) {
+  const execution = manifest?.inference?.execution;
+  if (!execution || typeof execution !== 'object') {
+    return null;
+  }
+  return hashStableJson({
+    wrapperContract: 'doppler.text-execution-wrapper/v1',
+    kernelPathId: metrics?.kernelPathId ?? null,
+    kernelPathSource: metrics?.kernelPathSource ?? null,
+    executionPlan: metrics?.executionPlan ?? null,
+    preLayer: execution.preLayer ?? null,
+    prefill: execution.prefill ?? null,
+    decode: execution.decode ?? null,
+    postLayer: execution.postLayer ?? null,
+    policies: execution.policies ?? null,
+  });
+}
+
+function attachExecutionCostLedger(metrics, runtimeConfig, manifest) {
+  if (!isExecutionObservationRequested(runtimeConfig)) {
+    return metrics;
+  }
+  const device = resolveDeviceInfo();
+  const browser = {
+    userAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
+    platform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
+    vendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
+  };
+  return {
+    ...metrics,
+    tokenCostLedger: buildTokenCostLedger({
+      metrics,
+      identity: {
+        artifactDigest: resolveArtifactHash(manifest),
+        manifestDigest: hashStableJson(manifest),
+        executionGraphDigest: resolveExecutionGraphHash(manifest),
+        runtimeConfigDigest: hashStableJson(runtimeConfig),
+        kernelSetDigest: manifest?.inference?.execution?.kernels
+          ? hashStableJson(manifest.inference.execution.kernels)
+          : null,
+        wrapperDigest: resolveWrapperHash(manifest, metrics),
+      },
+      device,
+      browser,
+    }),
+  };
 }
 
 function buildPerStepTokenProof(tokenIds) {
@@ -890,13 +967,13 @@ async function runInferenceSuite(options = {}) {
     firstTokenMs: timing.firstTokenMs,
     firstResponseMs: timing.firstResponseMs,
   });
-  const metricsWithContracts = buildSuiteContractMetrics(
+  const metricsWithContracts = attachExecutionCostLedger(buildSuiteContractMetrics(
     options.suiteName || 'inference',
     loadDiagnostics
       ? { ...metricsWithTimingDiagnostics, load: loadDiagnostics }
       : metricsWithTimingDiagnostics,
     harness.manifest
-  );
+  ), runtimeConfig, harness.manifest);
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',
@@ -1483,6 +1560,8 @@ async function runBenchSuite(options = {}) {
     let lastDecodeMode = null;
     let lastBatchGuardReason = null;
     let lastExecutionPlan = null;
+    let lastPrefillProfileSteps = null;
+    let lastDecodeProfileSteps = null;
     let lastGpuUniformCache = null;
     for (let i = 0; i < warmupRuns + timedRuns; i++) {
       harness.pipeline.reset?.();
@@ -1513,6 +1592,8 @@ async function runBenchSuite(options = {}) {
         lastDecodeMode = run?.phase?.decodeMode ?? null;
         lastBatchGuardReason = run?.phase?.batchGuardReason ?? null;
         lastExecutionPlan = run?.phase?.executionPlan ?? null;
+        lastPrefillProfileSteps = run?.phase?.prefillProfileSteps ?? null;
+        lastDecodeProfileSteps = run?.phase?.decodeProfileSteps ?? null;
       }
       if (i >= warmupRuns) {
         const phase = run?.phase ?? {};
@@ -1825,6 +1906,8 @@ async function runBenchSuite(options = {}) {
       decodeMode: lastDecodeMode,
       batchGuardReason: lastBatchGuardReason,
       executionPlan: lastExecutionPlan,
+      prefillProfileSteps: lastPrefillProfileSteps,
+      decodeProfileSteps: lastDecodeProfileSteps,
       generatedText,
       referenceTranscript: generatedReferenceTranscript,
       promptInput: generatedPromptInput,
@@ -1883,11 +1966,11 @@ async function runBenchSuite(options = {}) {
     firstTokenMs: timing.firstTokenMs,
     firstResponseMs: timing.firstResponseMs,
   });
-  const metricsWithContracts = buildSuiteContractMetrics(
+  const metricsWithContracts = attachExecutionCostLedger(buildSuiteContractMetrics(
     'bench',
     loadDiagnostics ? { ...metrics, load: loadDiagnostics } : metrics,
     harness.manifest
-  );
+  ), runtimeConfig, harness.manifest);
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',

@@ -11,7 +11,6 @@ import type { PipelineStorageContext } from './init.js';
 export interface KernelWarmupOptions {
   useGPU: boolean;
   kernelWarmup?: KernelWarmupConfigSchema | null;
-  modelConfig: ParsedModelConfig;
 }
 
 export interface KernelPathResolutionOptions {

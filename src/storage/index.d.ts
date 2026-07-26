@@ -148,6 +148,17 @@ export type {
   ProgressCallback,
 } from './downloader.js';
 
+export {
+  ensureModelCached,
+  ensureModelCachedSource,
+} from './model-cache.js';
+export type {
+  CacheProgressEvent,
+  CachedModelSourceResult,
+  EnsureModelCachedResult,
+  EnsureModelCachedSourceOptions,
+} from './model-cache.js';
+
 // ============================================================================
 // Artifact Runtime
 // ============================================================================

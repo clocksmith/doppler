@@ -1,6 +1,9 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadProgramBundle } from './program-bundle.js';
+import {
+  buildDeterministicTokenEvidenceFromReferenceTranscript,
+} from './boundary-evidence.js';
 import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
 
@@ -189,12 +192,17 @@ export async function checkProgramBundleParity(options = {}) {
   const ok = results.every((result) => result.ok === true);
   return {
     schema: PROGRAM_BUNDLE_PARITY_SCHEMA_ID,
+    authority: 'portability-diagnostic-only',
+    modelPromotionAuthority: false,
     ok,
     mode,
     bundleId: bundle.bundleId,
     modelId: bundle.modelId,
     executionGraphHash: bundle.sources.executionGraph.hash,
     reference: summarizeReference(bundle),
+    tokenEvidence: buildDeterministicTokenEvidenceFromReferenceTranscript(
+      bundle.referenceTranscript
+    ),
     providers: results,
     parityHash: hashStableJson({
       bundleId: bundle.bundleId,

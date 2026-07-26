@@ -9,7 +9,7 @@ import {
   getKernelPathKVDtype,
   setActiveKernelPath,
 } from '../../../config/kernel-path-loader.js';
-import { autoTuneKernels, prewarmKernels } from '../../../gpu/kernels/index.js';
+import { prewarmKernels } from '../../../gpu/kernels/index.js';
 import { KERNEL_CONFIGS } from '../../../gpu/kernels/kernel-configs.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
@@ -312,7 +312,7 @@ export function applyModelBatchingRuntimeDefaults(runtimeConfig, manifest, model
 }
 
 export async function runKernelWarmup(options) {
-  const { useGPU, kernelWarmup, modelConfig } = options;
+  const { useGPU, kernelWarmup } = options;
   if (!useGPU || !kernelWarmup) {
     return;
   }
@@ -325,15 +325,6 @@ export async function runKernelWarmup(options) {
       markKernelCacheWarmed();
     } catch (e) {
       log.warn('Pipeline', `Kernel prewarm failed: ${ (e).message}`);
-    }
-  }
-  if (kernelWarmup.autoTune) {
-    log.info('Pipeline', 'Kernel auto-tune enabled');
-    try {
-      await autoTuneKernels(modelConfig);
-      markKernelCacheWarmed();
-    } catch (e) {
-      log.warn('Pipeline', `Kernel auto-tune failed: ${ (e).message}`);
     }
   }
 }

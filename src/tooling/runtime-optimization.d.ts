@@ -1,10 +1,15 @@
 export type RuntimeOptimizationWorkload = 'inference' | 'embedding' | 'rerank';
 export type RuntimeOptimizationDirection = 'maximize' | 'minimize';
+export type RuntimeOptimizationCandidateKind =
+  | 'runtime_profile'
+  | 'runtime-profile'
+  | 'registered-kernel-variant'
+  | 'registered-execution-graph-patch';
 
 export interface RuntimeOptimizationContract {
   schema: 'doppler.runtime-optimization-contract/v1';
   contractId: string;
-  kind: 'runtime_profile';
+  kind: RuntimeOptimizationCandidateKind;
   model: {
     modelId: string;
     modelUrl: string | null;
@@ -22,10 +27,15 @@ export interface RuntimeOptimizationContract {
       loadMode?: 'opfs' | 'http' | 'memory' | 'file' | null;
     };
   };
-  mutationPolicy: {
-    dimensions: Array<{ path: string; values: unknown[] }>;
-    maxCandidates: number;
-  };
+  mutationPolicy:
+    | {
+      dimensions: Array<{ path: string; values: unknown[] }>;
+      maxCandidates: number;
+    }
+    | {
+      references: Array<{ registryId: string; digest: `sha256:${string}` }>;
+      maxCandidates: number;
+    };
   verification: {
     comparisons: Array<{
       path: 'result.output'
@@ -46,7 +56,27 @@ export interface RuntimeOptimizationContract {
     minImprovementPercent: number;
     requirePositiveConfidence: boolean;
     maxRelativeStdDevPercent: number | null;
+    orderPolicy?: {
+      kind: 'randomized-blocks';
+      seed: number;
+      blockSize: 2;
+    };
+    sequentialDecision?: {
+      kind: 'bonferroni-fixed-looks';
+      lookEveryPairs: number;
+      minimumPairs: number;
+      maximumLooks: number;
+      alpha: number;
+    };
   };
+  neighboringWorkloads?: Array<{
+    guardId: string;
+    workload: RuntimeOptimizationContract['workload'];
+    metricPath: RuntimeOptimizationContract['measurement']['metricPath'];
+    direction: RuntimeOptimizationDirection;
+    maxRegressionPercent: number;
+    pairCount: number;
+  }>;
 }
 
 export interface RuntimeOptimizationCandidate {
@@ -54,7 +84,9 @@ export interface RuntimeOptimizationCandidate {
   candidateId: string;
   contractHash: `sha256:${string}`;
   parentHash: `sha256:${string}`;
+  kind: Exclude<RuntimeOptimizationCandidateKind, 'runtime_profile'>;
   patch: Array<{ op: 'set'; path: string; value: unknown }>;
+  registeredReference?: { registryId: string; digest: `sha256:${string}` };
 }
 
 export interface RuntimeOptimizationReceipt {
@@ -64,6 +96,8 @@ export interface RuntimeOptimizationReceipt {
   candidateId: string;
   candidateHash: `sha256:${string}`;
   parentHash: `sha256:${string}`;
+  candidateKind: string;
+  registeredReference: { registryId: string; digest: `sha256:${string}` } | null;
   model: RuntimeOptimizationContract['model'];
   runtimeInputs: Record<string, unknown>;
   verification: Record<string, unknown>;
@@ -79,6 +113,7 @@ export interface RuntimeOptimizationReceipt {
 export interface RuntimeOptimizationEvaluationOptions {
   runCommand?: (request: Record<string, unknown>, options?: Record<string, unknown>) => Promise<Record<string, unknown>>;
   commandOptions?: Record<string, unknown>;
+  candidateRegistry?: Record<string, unknown>;
   signal?: AbortSignal | null;
   onEvent?: (event: Record<string, unknown>) => void;
 }
@@ -86,6 +121,8 @@ export interface RuntimeOptimizationEvaluationOptions {
 export declare const RUNTIME_OPTIMIZATION_CONTRACT_SCHEMA: 'doppler.runtime-optimization-contract/v1';
 export declare const RUNTIME_OPTIMIZATION_CANDIDATE_SCHEMA: 'doppler.runtime-optimization-candidate/v1';
 export declare const RUNTIME_OPTIMIZATION_RECEIPT_SCHEMA: 'doppler.runtime-optimization-receipt/v1';
+export declare const RUNTIME_OPTIMIZATION_CANDIDATE_REGISTRY_SCHEMA:
+  'doppler.runtime-optimization-candidate-registry/v1';
 
 export declare function validateRuntimeOptimizationContract(
   input: RuntimeOptimizationContract
@@ -100,8 +137,12 @@ export declare function validateRuntimeOptimizationCandidate(
 ): RuntimeOptimizationCandidate;
 export declare function materializeRuntimeOptimizationCandidate(
   contract: RuntimeOptimizationContract,
-  candidate: RuntimeOptimizationCandidate
+  candidate: RuntimeOptimizationCandidate,
+  options?: { candidateRegistry?: Record<string, unknown> }
 ): { runtimeProfile: null; runtimeConfig: Record<string, unknown> };
+export declare function validateRuntimeOptimizationCandidateRegistry(
+  registry: Record<string, unknown>
+): Record<string, unknown>;
 export declare function evaluateBrowserRuntimeOptimizationCandidate(
   contract: RuntimeOptimizationContract,
   candidate: RuntimeOptimizationCandidate,

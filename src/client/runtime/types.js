@@ -12,6 +12,5 @@ export const DopplerCapabilities = {
   initialized: false,
   currentModelId: null,
   kernelsWarmed: false,
-  kernelsTuned: false,
   lastModelEstimate: null,
 };

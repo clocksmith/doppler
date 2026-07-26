@@ -79,7 +79,10 @@ export async function primePleDecodeRuntimeCache(state, seedTokenIds = null) {
 }
 
 export function recordPrefillProfileStep(state, entry) {
-  if (!entry?.timings || Object.keys(entry.timings).length === 0) return;
+  if (
+    (!entry?.timings || Object.keys(entry.timings).length === 0)
+    && !entry?.recorderStats
+  ) return;
   if (!state.stats.prefillProfileSteps) {
     state.stats.prefillProfileSteps = [];
   }
