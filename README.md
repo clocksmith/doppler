@@ -193,6 +193,9 @@ preserve program identity for downstream backends.
 ### Browser
 
 The live demo runs locally and works offline after its first model download.
+Its public API boundary, observation tiers, generated PWA shell, and independent
+contract/hardware smoke receipts are documented in
+[demo/README.md](demo/README.md).
 
 ### CLI
 

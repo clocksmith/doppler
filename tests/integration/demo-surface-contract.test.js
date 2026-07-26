@@ -1,25 +1,21 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const demoSource = readFileSync(new URL('../../demo/demo-core.js', import.meta.url), 'utf8');
-const downloadsSource = readFileSync(new URL('../../demo/ui/downloads/index.js', import.meta.url), 'utf8');
-const storageInspectorSource = readFileSync(new URL('../../demo/ui/storage/inspector.js', import.meta.url), 'utf8');
-const diagnosticsSource = readFileSync(new URL('../../demo/diagnostics-controller.js', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../../demo/index.html', import.meta.url), 'utf8');
+const demo = readFileSync(new URL('../../demo/demo.js', import.meta.url), 'utf8');
+const core = readFileSync(new URL('../../demo/core.js', import.meta.url), 'utf8');
+const models = readFileSync(new URL('../../demo/models.js', import.meta.url), 'utf8');
 
-assert.match(downloadsSource, /listStorageInventory/);
-assert.match(downloadsSource, /deleteStorageEntry/);
-assert.match(downloadsSource, /async function cleanupPartialImport\(modelId\)/);
-assert.match(downloadsSource, /await cleanupPartialImport\(working\.modelId\)/);
-
-assert.match(demoSource, /runtimeConfig: getRuntimeConfig\(\),/);
-assert.match(demoSource, /function isRunnableStorageEntry\(entry\)/);
-assert.match(demoSource, /const isInOpfs = isRunnableStorageEntry\(storageEntry\)/);
-assert.match(demoSource, /Imported \$\{modelId\} to \$\{describeImportedStorage\(modelId\)\}\./);
-assert.doesNotMatch(demoSource, /Imported \$\{modelId\} to OPFS\./);
-
-assert.match(storageInspectorSource, /if \(entry\.hasManifest\) \{/);
-
-assert.match(diagnosticsSource, /does not accept configChain/);
-assert.match(diagnosticsSource, /runtimeProfile:\s*options\.runtimeProfile\s*\?\?\s*null/);
+assert.match(html, /src="\/demo\/demo\.js"/);
+assert.doesNotMatch(html, /translate-compare-shell/);
+assert.doesNotMatch(html, /id="xray-toggle-all"[^>]*checked/);
+assert.doesNotMatch(html, /id="set-word-quality"[^>]*checked/);
+assert.match(demo, /from '\.\/core\.js'/);
+assert.match(models, /from 'doppler-gpu'/);
+assert.match(core, /model\.inspect\.generate/);
+assert.match(core, /demo\/always-on/);
+assert.match(core, /demo\/guided-quality/);
+assert.match(core, /demo\/deep-xray/);
+assert.doesNotMatch(`${demo}\n${core}\n${models}`, /(?:\.\.\/)+src\//);
 
 console.log('demo-surface-contract.test: ok');

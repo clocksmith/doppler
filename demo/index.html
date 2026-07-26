@@ -126,15 +126,14 @@
   </style>
   <link rel="stylesheet" href="/demo/styles/rd.css">
   <link rel="stylesheet" href="/demo/ui/styles/app.css">
-  <link rel="stylesheet" href="/demo/ui/token-press/styles.css">
+  <link rel="stylesheet" href="/demo/ui/word-quality/styles.css">
   <link rel="stylesheet" href="/demo/ui/xray/styles.css">
   <script type="importmap">
     {
       "imports": {
         "doppler-gpu": "/src/index-browser.js",
-        "doppler-gpu/tooling": "/src/tooling-exports.browser.js",
-        "doppler-gpu/tooling-experimental": "/src/tooling-experimental-exports.browser.js",
-        "doppler-gpu/generation": "/src/generation/index.js"
+        "doppler-gpu/tooling/runtime": "/src/tooling-exports/runtime.js",
+        "doppler-gpu/tooling/evidence": "/src/tooling-exports/evidence.js"
       }
     }
   </script>
@@ -218,16 +217,16 @@
         <details id="chat-controls" class="chat-controls">
           <summary>
             <span>Controls</span>
-            <span class="chat-controls-summary-state">X-Ray on · Perplexity on</span>
+            <span class="chat-controls-summary-state">X-Ray off · Word quality off</span>
           </summary>
           <div class="chat-toolbar-main">
             <label class="chat-toggle" title="Show every inference-internals panel.">
               <span class="chat-toggle-label">X-Ray</span>
-              <input id="xray-toggle-all" type="checkbox" checked>
+              <input id="xray-toggle-all" type="checkbox">
             </label>
-            <label class="chat-toggle" title="Color tokens by perplexity and show candidate logits on hover or focus.">
-              <span class="chat-toggle-label">Token perplexity</span>
-              <input id="set-token-press" type="checkbox" checked>
+            <label class="chat-toggle" title="Show summed word surprisal, rolling perplexity, and cumulative sequence perplexity.">
+              <span class="chat-toggle-label">Word quality</span>
+              <input id="set-word-quality" type="checkbox">
             </label>
             <button id="settings-toggle" class="btn btn-ghost btn-small" type="button" aria-expanded="false" aria-controls="settings-panel">Advanced</button>
           </div>
@@ -323,8 +322,7 @@
             <div class="chat-role">Doppler</div>
             <div id="output-text" class="output-text"></div>
             <!-- Token logits container (optional) -->
-            <div id="token-press-output" hidden></div>
-            <div id="token-press-controls" hidden></div>
+            <div id="word-quality-output" hidden></div>
           </article>
         </div>
       </section>
@@ -346,7 +344,7 @@
     <details id="xray-shell" class="xray-shell" hidden>
       <summary>
         <span>Inference X-Ray</span>
-        <span id="xray-summary-state" class="xray-summary-state">Enabled · 7 panels</span>
+        <span id="xray-summary-state" class="xray-summary-state">Enabled · 5 evidence panels</span>
       </summary>
       <div id="xray-container" hidden></div>
     </details>
@@ -357,14 +355,9 @@
         <button id="export-btn" class="btn btn-ghost" disabled>Export JSON</button>
         <button id="import-btn" class="btn btn-ghost" type="button">Import JSON</button>
         <input id="import-file" type="file" accept="application/json,.json" hidden>
-        <button id="export-transcript-btn" class="btn btn-ghost" disabled title="Export a doppler.reference-transcript/v1 receipt for the last run. Capture must be enabled before running.">Export transcript</button>
         <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Expand checked-in precision evidence.">Precision replay</button>
         <span id="precision-replay-status" class="precision-replay-status">Loading evidence...</span>
       </div>
-      <label class="report-bar-toggle">
-        <input id="capture-transcript-toggle" type="checkbox" />
-        <span>Capture reference transcript</span>
-      </label>
     </div>
 
     <section class="precision-replay-area">
@@ -416,22 +409,6 @@
       </div>
     </section>
 
-    <section id="translate-compare-shell" hidden>
-      <div id="translate-compare-layout"></div>
-      <button id="translate-compare-run-btn" type="button">Run Compare</button>
-      <button id="translate-compare-export-btn" type="button">Export Compare</button>
-      <button id="translate-compare-export-latest-btn" type="button">Export Latest Compare</button>
-      <div id="translate-history-list"></div>
-      <div id="translate-left-engine"></div>
-      <div id="translate-right-engine"></div>
-      <div id="translate-compare-receipts"></div>
-      <div id="translate-smoke-panel"></div>
-      <div id="translate-smoke-grid"></div>
-      <button data-compare-history-filter="all" type="button">All</button>
-      <button data-compare-history-filter="same-model" type="button">Same Model</button>
-      <button data-compare-history-filter="same-engine" type="button">Same Engine</button>
-      <button data-compare-history-filter="proof" type="button">Proof</button>
-    </section>
   </div>
 
   <dialog id="remove-model-dialog" class="confirm-dialog">

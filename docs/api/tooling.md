@@ -15,6 +15,22 @@ import {
 } from 'doppler-gpu/tooling';
 ```
 
+Prefer narrow job-owned imports in browser applications:
+
+```js
+import { loadRuntimeProfile } from 'doppler-gpu/tooling/runtime';
+import {
+  assertComparableFingerprints,
+  validateDemoContractReceipt,
+} from 'doppler-gpu/tooling/evidence';
+import { ensureModelCachedSource } from 'doppler-gpu/tooling/storage';
+import { parseManifest } from 'doppler-gpu/tooling/manifest';
+import { getKernelCapabilities } from 'doppler-gpu/tooling/device';
+```
+
+The umbrella tooling path remains a compatibility facade. New demo imports are
+restricted to the root API plus the runtime and evidence slices.
+
 ## Audience
 
 Tool builders, harness code, demos, and consumers that need browser/CLI command parity or direct access to the normalized command contract.

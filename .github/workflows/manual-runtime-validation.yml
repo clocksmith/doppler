@@ -12,6 +12,7 @@ on:
           - browser-kernels
           - opfs-text
           - opfs-embedding
+          - demo-hardware
 
 permissions:
   contents: read
@@ -109,3 +110,7 @@ jobs:
           --expected-semantic-style "embeddinggemma"
           --allow-capability-skip
           --timeout-ms 300000
+
+      - name: Run demo hardware and offline PWA smoke
+        if: inputs.lane == 'demo-hardware'
+        run: npm run test:demo:hardware

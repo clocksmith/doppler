@@ -3,15 +3,15 @@ import assert from 'node:assert/strict';
 import { isSendReady, syncSendButton } from '../../demo/input.js';
 import { state } from '../../demo/ui/state.js';
 
-assert.equal(isSendReady({ pipeline: null, prompt: 'Hello' }), false);
-assert.equal(isSendReady({ pipeline: {}, prompt: '' }), false);
-assert.equal(isSendReady({ pipeline: {}, prompt: '   ' }), false);
-assert.equal(isSendReady({ pipeline: {}, prompt: 'Hello' }), true);
-assert.equal(isSendReady({ pipeline: {}, prompt: 'Hello', generating: true }), false);
-assert.equal(isSendReady({ pipeline: {}, prompt: 'Hello', prefilling: true }), false);
+assert.equal(isSendReady({ model: null, prompt: 'Hello' }), false);
+assert.equal(isSendReady({ model: {}, prompt: '' }), false);
+assert.equal(isSendReady({ model: {}, prompt: '   ' }), false);
+assert.equal(isSendReady({ model: {}, prompt: 'Hello' }), true);
+assert.equal(isSendReady({ model: {}, prompt: 'Hello', generating: true }), false);
+assert.equal(isSendReady({ model: {}, prompt: 'Hello', prefilling: true }), false);
 
 const originalDocument = globalThis.document;
-const originalPipeline = state.pipeline;
+const originalModel = state.model;
 const originalGenerating = state.generating;
 const originalPrefilling = state.prefilling;
 const promptInput = { value: 'Hello' };
@@ -25,7 +25,7 @@ globalThis.document = {
 };
 
 try {
-  state.pipeline = {};
+  state.model = {};
   state.generating = false;
   state.prefilling = false;
   assert.equal(syncSendButton(), true);
@@ -38,11 +38,11 @@ try {
   assert.equal(sendButton.title, 'Enter a message to send');
 
   promptInput.value = 'Hello';
-  state.pipeline = null;
+  state.model = null;
   assert.equal(syncSendButton(), false);
   assert.equal(sendButton.title, 'Load a model to send');
 } finally {
-  state.pipeline = originalPipeline;
+  state.model = originalModel;
   state.generating = originalGenerating;
   state.prefilling = originalPrefilling;
   globalThis.document = originalDocument;

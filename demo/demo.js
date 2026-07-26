@@ -1,4 +1,3 @@
-import { log } from 'doppler-gpu/tooling';
 import { boot } from './boot.js';
 import { setModelCallbacks } from './models.js';
 import { initInput, setRunHandler } from './input.js';
@@ -13,20 +12,20 @@ function $(id) { return document.getElementById(id); }
 
 function refreshRuntimeNotice() {
   const xrayEnabled = $('xray-toggle-all')?.checked === true;
-  const tokenPerplexityEnabled = $('set-token-press')?.checked === true;
+  const wordQualityEnabled = $('set-word-quality')?.checked === true;
   const summary = document.querySelector('.chat-controls-summary-state');
   if (summary) {
-    summary.textContent = `X-Ray ${xrayEnabled ? 'on' : 'off'} · Perplexity ${tokenPerplexityEnabled ? 'on' : 'off'}`;
+    summary.textContent = `X-Ray ${xrayEnabled ? 'on' : 'off'} · Word quality ${wordQualityEnabled ? 'on' : 'off'}`;
   }
   const xraySummary = $('xray-summary-state');
   if (xraySummary) {
-    xraySummary.textContent = xrayEnabled ? 'Enabled · 7 panels' : 'Disabled';
+    xraySummary.textContent = xrayEnabled ? 'Enabled · 5 evidence panels' : 'Disabled';
   }
 
   const el = $('runtime-notice');
   if (!el) return;
   const text = getXrayRuntimeNoticeText({
-    tokenPressEnabled: tokenPerplexityEnabled,
+    wordQualityEnabled,
     traceEnabled: $('set-trace')?.checked === true,
     profilingEnabled: isXrayProfilingNeeded(),
   });
@@ -59,7 +58,7 @@ async function init() {
   } catch {
     // xray init is optional
   }
-  $('set-token-press')?.addEventListener('change', refreshRuntimeNotice);
+  $('set-word-quality')?.addEventListener('change', refreshRuntimeNotice);
   $('set-trace')?.addEventListener('change', refreshRuntimeNotice);
   refreshRuntimeNotice();
 
@@ -86,6 +85,6 @@ function showInitError(message) {
 }
 
 init().catch((err) => {
-  log.error('Demo', `Init failed: ${err.message}`);
+  console.error(`Demo initialization failed: ${err.message}`);
   showInitError(err?.message || String(err));
 });

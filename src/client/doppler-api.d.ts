@@ -29,6 +29,9 @@ export interface DopplerNamespace {
   evict(model: DopplerModelSource): Promise<boolean>;
   evictAll(): Promise<void>;
   listModels(): Promise<string[]>;
+  listModelDetails(): Promise<Array<Record<string, unknown> & { modelId: string }>>;
+  listPersistentModels(): Promise<Array<Record<string, unknown> & { modelId: string }>>;
+  removePersistentModel(model: DopplerModelSource): Promise<boolean>;
 }
 
 export declare function load(

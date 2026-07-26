@@ -1,81 +1,46 @@
 import assert from 'node:assert/strict';
 
-const { DiagnosticsController } = await import('../../demo/diagnostics-controller.js');
+import {
+  assertComparableFingerprints,
+  buildComparisonFingerprint,
+  listObservationPolicies,
+} from '../../src/client/inspection.js';
 
-const calls = [];
-const controller = new DiagnosticsController({
-  async runCommand(request) {
-    calls.push(request);
-    if (request.workload !== 'kernels' && !request.modelId) {
-      throw new Error('modelId is required for this workload. modelUrl is optional when you need an explicit source.');
-    }
-    if (
-      request.command === 'bench'
-      && Array.isArray(request.runtimeConfig?.shared?.debug?.probes)
-      && request.runtimeConfig.shared.debug.probes.length > 0
-    ) {
-      throw new Error('calibrate intent forbids investigation instrumentation.');
-    }
-    return {
-      ok: true,
-      schemaVersion: 1,
-      surface: 'browser',
-      request,
-      result: {
-        suite: request.workload ?? request.command,
-        report: { timestamp: '2026-03-08T00:00:00.000Z' },
-        metrics: { ok: true },
-        reportInfo: null,
-      },
-    };
+const policies = listObservationPolicies();
+assert.deepEqual(
+  policies.map((policy) => policy.id),
+  ['demo/always-on', 'demo/guided-quality', 'demo/deep-xray']
+);
+assert.equal(
+  policies.find((policy) => policy.id === 'demo/always-on').gpuTimestampQueries,
+  false
+);
+assert.equal(
+  policies.find((policy) => policy.id === 'demo/deep-xray').allowedClaimTypes.includes('diagnostic'),
+  true
+);
+
+const base = {
+  artifact: {
+    modelId: 'toy-model',
+    manifestHash: `sha256:${'a'.repeat(64)}`,
   },
+  tokenizer: { type: 'bpe', revision: 'one' },
+  promptTokenIds: [1, 2],
+  sampling: { temperature: 0 },
+  observationPolicyId: 'demo/always-on',
+  execution: { backend: 'webgpu', executionPlanId: 'plan-one' },
+  browser: { userAgent: 'browser-one' },
+  adapter: { vendor: 'vendor-one' },
+};
+const first = buildComparisonFingerprint(base);
+const changedPlan = buildComparisonFingerprint({
+  ...base,
+  execution: { backend: 'webgpu', executionPlanId: 'plan-two' },
 });
-
-await assert.rejects(
-  () => controller.runSuite(null, {
-    workload: 'inference',
-    modelUrl: 'https://example.com/model',
-  }),
-  /modelId is required for this workload/
-);
-
-await assert.rejects(
-  () => controller.runSuite({ modelId: 'toy-model' }, {
-    workload: 'bench',
-    runtimeConfig: {
-      shared: {
-        debug: {
-          probes: ['decode-latency'],
-        },
-      },
-    },
-  }),
-  /forbids investigation instrumentation/
-);
-
-{
-  const result = await controller.verifySuite({ modelId: 'toy-model' }, {
-    workload: 'inference',
-    runtimeProfile: 'profiles/verbose-trace',
-    runtimeConfigUrl: 'https://example.test/runtime.json',
-    modelUrl: 'https://example.test/model',
-  });
-  assert.equal(result.suite, 'inference');
-  const lastCall = calls.at(-1);
-  assert.equal(lastCall.command, 'verify');
-  assert.equal(lastCall.workload, 'inference');
-  assert.equal(lastCall.configChain, undefined);
-  assert.equal(lastCall.runtimeProfile, 'profiles/verbose-trace');
-  assert.equal(lastCall.runtimeConfigUrl, 'https://example.test/runtime.json');
-  assert.equal(lastCall.modelId, 'toy-model');
-}
-
-await assert.rejects(
-  () => controller.verifySuite({ modelId: 'toy-model' }, {
-    workload: 'inference',
-    configChain: ['runtime/base'],
-  }),
-  /does not accept configChain/
+assert.throws(
+  () => assertComparableFingerprints('performance', first, changedPlan),
+  /performance fingerprints differ/
 );
 
 console.log('diagnostics-controller-contract.test: ok');

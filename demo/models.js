@@ -1,1211 +1,244 @@
-import {
-  openModelStore,
-  parseManifest,
-  saveManifest,
-  saveTensorsToStore,
-  saveTokenizer,
-  saveTokenizerModel,
-  writeShard,
-  loadManifestFromStore,
-  loadTensorsFromStore,
-  loadTokenizerFromStore,
-  loadTokenizerModelFromStore,
-  listRegisteredModels,
-  registerModel,
-  removeRegisteredModel,
-  deleteModel,
-  initDevice,
-  getKernelCapabilities,
-  formatBytes,
-  DEFAULT_MANIFEST_INFERENCE,
-} from 'doppler-gpu/tooling';
-import { createPipeline } from 'doppler-gpu/generation';
-import {
-  DEFAULT_EXECUTION_V1_SESSION,
-  EXECUTION_V1_SCHEMA_ID,
-} from '../src/config/schema/index.js';
-import {
-  findPrimaryForWeightPack as findCatalogPrimaryForWeightPack,
-  findRegisteredSiblingsOf as findCatalogRegisteredSiblingsOf,
-  isWeightsRefLane,
-  selectCatalogModelLanes,
-} from '../src/config/model-lanes/catalog-lane-resolver.js';
-import {
-  assertExecutionLaneManifestSupported,
-  selectExecutionLaneForCapabilities,
-} from '../src/inference/model-lanes/execution-lane-resolver.js';
-import { log } from '../src/debug/index.js';
+import { dr } from 'doppler-gpu';
 import { state } from './ui/state.js';
 import { syncSendButton } from './input.js';
 import { clearOutput } from './output.js';
 import { setExportEnabled } from './report.js';
 
-const HF_RESOLVE_BASE = 'https://huggingface.co';
-const CATALOG_URL = new URL('../models/catalog.json', import.meta.url).toString();
 const LAST_USED_MODEL_STORAGE_KEY = 'doppler.demo.last-used-model';
 
 let catalog = [];
+let selectedModelId = null;
 let onModelLoaded = null;
 let onProgress = null;
-let selectedCatalogModelId = null;
 
-function $(id) { return document.getElementById(id); }
-function isPlainObject(value) { return value != null && typeof value === 'object' && !Array.isArray(value); }
-
-function normalizeBaseUrl(value) {
-  return typeof value === 'string' && value.trim().length > 0
-    ? value.trim().replace(/\/$/, '')
-    : null;
+function $(id) {
+  return document.getElementById(id);
 }
 
-function hfUrl(repoId, revision, path, file) {
-  return `${HF_RESOLVE_BASE}/${repoId}/resolve/${revision}/${path}/${file}`;
+function modelLabel(entry) {
+  return entry?.label || entry?.modelId || 'Unknown model';
 }
 
-function sizeLabel(bytes) {
-  if (!bytes) return '';
-  const mb = bytes / (1024 * 1024);
-  return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb.toFixed(0)} MB`;
+function setStatus(text, busy = false) {
+  const dot = $('status-dot');
+  const label = $('status-text');
+  dot?.classList.toggle('is-ready', !busy);
+  dot?.classList.toggle('is-busy', busy);
+  if (label) label.textContent = text;
 }
 
-function isDemoVisibleEntry(entry) {
-  if (entry?.demoVisible === false) {
-    return false;
+function setProgress(event) {
+  state.downloadProgress = event ?? null;
+  const row = $('model-select-progress-row');
+  const bar = $('model-select-progress');
+  const fill = bar?.querySelector('.model-card-progress-fill');
+  const label = $('model-select-progress-label');
+  const percent = Math.max(0, Math.min(100, Number(event?.percent ?? 0)));
+  if (row) row.hidden = !event;
+  if (bar) bar.setAttribute('aria-valuenow', String(Math.round(percent)));
+  if (fill) fill.style.width = `${percent}%`;
+  if (label) label.textContent = `${Math.round(percent)}%`;
+  onProgress?.(event);
+}
+
+function selectedEntry() {
+  return catalog.find((entry) => entry.modelId === selectedModelId) ?? null;
+}
+
+function syncSelectedControls() {
+  const entry = selectedEntry();
+  const status = entry ? (state.modelStatus[entry.modelId] ?? 'available') : null;
+  const action = $('model-select-action');
+  const remove = $('model-select-remove');
+  const detail = $('model-select-detail');
+  if (action) {
+    action.disabled = !entry || status === 'loading';
+    action.textContent = status === 'loaded'
+      ? 'Loaded'
+      : (status === 'stored' ? 'Load saved model' : 'Download and load');
   }
-  return entry?.quickstart === true || entry?.demoVisible === true;
+  if (remove) {
+    remove.hidden = status !== 'stored' && status !== 'loaded';
+    remove.disabled = state.generating || status === 'loading';
+  }
+  if (detail) {
+    detail.textContent = entry
+      ? `${entry.modelId} · ${status === 'stored' ? 'verified in browser storage' : status}`
+      : '';
+  }
 }
 
-function getDemoWarningBadges(entry) {
-  return Array.isArray(entry?.demoWarningBadges)
-    ? entry.demoWarningBadges
-      .map((badge) => (typeof badge === 'string' ? badge.trim() : ''))
-      .filter((badge) => badge.length > 0)
-    : [];
+function createModelCard(entry) {
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.className = 'model-card';
+  card.dataset.modelId = entry.modelId;
+  card.textContent = modelLabel(entry);
+  card.addEventListener('click', () => {
+    selectedModelId = entry.modelId;
+    const select = $('model-select');
+    if (select) select.value = entry.modelId;
+    syncSelectedControls();
+  });
+  return card;
 }
 
-function getDemoWarningText(entry) {
-  return typeof entry?.demoWarningText === 'string' ? entry.demoWarningText.trim() : '';
+async function loadSelectedModel() {
+  const entry = selectedEntry();
+  if (!entry || state.generating) return;
+  state.modelStatus[entry.modelId] = 'loading';
+  syncSelectedControls();
+  setStatus('Loading model…', true);
+  setProgress({ percent: 0, message: 'Preparing model' });
+  try {
+    const model = await dr.load(entry.modelId, {
+      cache: 'opfs',
+      onProgress: setProgress,
+    });
+    if (state.model && state.model !== model) {
+      await state.model.unload().catch(() => {});
+    }
+    for (const modelId of Object.keys(state.modelStatus)) {
+      if (state.modelStatus[modelId] === 'loaded') state.modelStatus[modelId] = 'stored';
+    }
+    state.model = model;
+    state.modelId = model.modelId;
+    state.modelStatus[entry.modelId] = 'loaded';
+    localStorage.setItem(LAST_USED_MODEL_STORAGE_KEY, entry.modelId);
+    setStatus('Ready');
+    onModelLoaded?.(model, entry.modelId);
+  } catch (error) {
+    state.modelStatus[entry.modelId] = 'available';
+    setStatus('Load failed');
+    throw error;
+  } finally {
+    setProgress(null);
+    renderModelCards();
+  }
 }
 
-function getDemoModelLabel(entry) {
-  return typeof entry?.demoLabel === 'string' && entry.demoLabel.trim()
-    ? entry.demoLabel.trim()
-    : entry?.label || entry?.modelId || 'Unknown model';
+async function removeSelectedModel() {
+  const entry = selectedEntry();
+  if (!entry || state.generating) return;
+  const removed = await dr.removePersistentModel(entry.modelId);
+  if (!removed) return;
+  if (state.modelId === entry.modelId) {
+    state.model = null;
+    state.modelId = null;
+    state.lastRun = null;
+    clearOutput();
+    setExportEnabled(false);
+    syncSendButton();
+  }
+  state.modelStatus[entry.modelId] = 'available';
+  localStorage.removeItem(LAST_USED_MODEL_STORAGE_KEY);
+  renderModelCards();
+}
+
+function bindModelControls() {
+  const select = $('model-select');
+  if (select && select.dataset.bound !== 'true') {
+    select.dataset.bound = 'true';
+    select.addEventListener('change', () => {
+      selectedModelId = select.value || null;
+      syncSelectedControls();
+    });
+  }
+  const action = $('model-select-action');
+  if (action && action.dataset.bound !== 'true') {
+    action.dataset.bound = 'true';
+    action.addEventListener('click', () => {
+      loadSelectedModel().catch((error) => setStatus(`Load failed: ${error.message}`));
+    });
+  }
+  const remove = $('model-select-remove');
+  if (remove && remove.dataset.bound !== 'true') {
+    remove.dataset.bound = 'true';
+    remove.addEventListener('click', () => {
+      removeSelectedModel().catch((error) => setStatus(`Remove failed: ${error.message}`));
+    });
+  }
 }
 
 export function canRemoveModelStatus(status) {
   return status === 'stored' || status === 'loaded';
 }
 
-function isWeightsRefEntry(entry) {
-  return isWeightsRefLane(entry);
-}
-
-export function assertDemoExecutionManifestSupported(entry, manifest, capabilities) {
-  assertExecutionLaneManifestSupported(entry, manifest, capabilities, {
-    normalizeManifest: patchManifestCompat,
-  });
-}
-
-export function selectDemoExecutionEntryForCapabilities(entry, manifestByModelId, capabilities) {
-  return selectExecutionLaneForCapabilities(entry, {
-    manifestByModelId,
-    capabilities,
-    normalizeManifest: patchManifestCompat,
-  }).entry;
-}
-
-// Locate the catalog entry for the primary lane that owns a given weight pack.
-// A primary lane is artifactCompleteness=complete + weightsRefAllowed=false.
-// Exported for tests; used by the download and load paths to follow weightsRef
-// onto the OPFS slot that actually holds the shared bytes. After the demo
-// surfaces an af16 sibling as the visible card, the af32 primary lives nested
-// inside that card's demoFallbackVariant — walk both shapes so lookup works
-// against either the raw catalog or the post-selection surfaced view.
-export function findPrimaryForWeightPack(catalogEntries, weightPackId) {
-  return findCatalogPrimaryForWeightPack(catalogEntries, weightPackId);
-}
-
-// Verify that a weights-ref sibling can be downloaded. The primary lane must
-// be in the catalog and already stored in OPFS; without it, neither the
-// download (manifest-only HF publish has no shards) nor the load (OPFS slot
-// is empty) can succeed. Throws a typed error with the primary modelId so
-// the UX can tell the user exactly what to download first.
-export function assertWeightsRefPrimaryAvailable(entry, catalogEntries, storedModelIds) {
-  if (!isWeightsRefEntry(entry)) return null;
-  const primary = findPrimaryForWeightPack(catalogEntries, entry?.weightPackId);
-  if (!primary) {
-    throw new Error(
-      `${entry?.modelId ?? 'unknown'}: weights-ref sibling has no primary lane in the ` +
-      `catalog (weightPackId=${entry?.weightPackId ?? 'unknown'}).`
-    );
-  }
-  const storedSet = storedModelIds instanceof Set
-    ? storedModelIds
-    : new Set(Array.isArray(storedModelIds) ? storedModelIds : []);
-  if (!storedSet.has(primary.modelId)) {
-    throw new Error(
-      `${entry?.modelId ?? 'unknown'} shares weights with ${primary.modelId}. ` +
-      `Download ${primary.modelId} first; the sibling reuses those bytes.`
-    );
-  }
-  return primary;
-}
-
-export function buildRemoveConfirmText(entry) {
-  // A surfaced af16 card (weights-ref shape with a fallback variant) owns
-  // both the af16 manifest and the af32 weight pack — removing it wipes
-  // both, not just the manifest. Treat it like a regular sized download.
-  if (isWeightsRefEntry(entry) && !entry?.demoFallbackVariant) {
-    return 'Remove this manifest from OPFS? Shared weights remain.';
-  }
-  const sizeTxt = sizeLabel(entry?.sizeBytes);
-  return sizeTxt ? `Remove ${sizeTxt} from OPFS?` : 'Remove this model from OPFS?';
-}
-
 export function buildModelCardDetail(entry, status) {
-  const sizeTxt = (isWeightsRefEntry(entry) && !entry?.demoFallbackVariant)
-    ? (entry?.weightsRefPrimary
-      ? `Shared with ${entry.weightsRefPrimary}`
-      : 'Shared weights')
-    : sizeLabel(entry?.sizeBytes);
-  const STATUS_LABELS = {
-    loaded: 'Loaded',
-    loading: 'Loading to GPU...',
-    stored: 'Downloaded',
-    downloading: 'Downloading...',
-  };
-  const statusLabel = STATUS_LABELS[status];
-  if (!statusLabel) {
-    return sizeTxt;
-  }
-  if (!sizeTxt || status === 'loading' || status === 'downloading') {
-    return statusLabel;
-  }
-  return `${statusLabel} · ${sizeTxt}`;
+  const label = status === 'loaded'
+    ? 'Loaded'
+    : (status === 'stored' ? 'Downloaded' : 'Available');
+  return `${label} · ${entry?.modelId ?? 'unknown'}`;
 }
 
-function setIdleStatus(text = 'Select model') {
-  const dot = $('status-dot');
-  const statusText = $('status-text');
-  if (dot) {
-    dot.classList.remove('is-ready', 'is-busy');
-  }
-  if (statusText) {
-    statusText.textContent = text;
-  }
-}
-
-function clearLoadedModelState() {
-  state.modelId = null;
-  state.pipeline = null;
-  state.lastRun = null;
-  state.downloadProgress = null;
-  syncSendButton();
-  setExportEnabled(false);
-  clearOutput();
-  setIdleStatus();
-}
-
-async function confirmRemoveModel(entry) {
-  const message = buildRemoveConfirmText(entry);
-  const detailText = isWeightsRefEntry(entry)
-    ? (entry?.label
-      ? `${entry.label} manifest will be removed from OPFS. Shared weights remain.`
-      : 'This manifest will be removed from OPFS. Shared weights remain.')
-    : (entry?.label
-      ? `${entry.label} will be removed from OPFS and will need to be downloaded again.`
-      : 'This model will be removed from OPFS and will need to be downloaded again.');
-  const dialog = $('remove-model-dialog');
-  const messageEl = $('remove-model-message');
-  const detailEl = $('remove-model-detail');
-
-  if (!dialog || typeof dialog.showModal !== 'function') {
-    return typeof window === 'object' && typeof window.confirm === 'function'
-      ? window.confirm(message)
-      : false;
-  }
-
-  if (messageEl) {
-    messageEl.textContent = message;
-  }
-  if (detailEl) {
-    detailEl.textContent = detailText;
-  }
-
-  if (dialog.open) {
-    dialog.close('cancel');
-  }
-
-  return new Promise((resolve) => {
-    const handleClose = () => {
-      resolve(dialog.returnValue === 'confirm');
-    };
-    dialog.addEventListener('close', handleClose, { once: true });
-    dialog.showModal();
-  });
-}
-
-// Find weights-ref siblings (across the live catalog) that depend on the
-// given primary's weight pack and are currently registered in OPFS.
-// Exported for tests.
-export function findRegisteredSiblingsOf(primaryEntry, catalogEntries, storedModelIds) {
-  return findCatalogRegisteredSiblingsOf(primaryEntry, catalogEntries, storedModelIds);
-}
-
-async function removeStoredModel(entry) {
-  if (!entry?.modelId || state.generating || state.prefilling) {
-    return;
-  }
-
-  // A surfaced af16 card aliases two storage lanes (the af16 manifest and the
-  // af32 weight pack). Either or both may be in OPFS depending on which lane
-  // ran last. Walk the lane group, refuse to remove an af32 primary that
-  // backs registered af16 siblings outside this card's group, then wipe what
-  // is actually stored.
-  const lanes = [entry];
-  if (entry.demoFallbackVariant) lanes.push(entry.demoFallbackVariant);
-  const ownLaneIds = new Set(lanes.map((lane) => lane.modelId));
-
-  const registered = await listRegisteredModels();
-  const storedIds = new Set(registered.map((r) => r.modelId));
-  const stored = lanes.filter((lane) => storedIds.has(lane.modelId));
-
-  if (stored.length === 0) {
-    for (const lane of lanes) {
-      state.modelStatus[lane.modelId] = 'available';
-    }
-    renderModelCards();
-    return;
-  }
-
-  for (const lane of stored) {
-    if (lane.artifactCompleteness === 'complete' && lane.weightsRefAllowed === false) {
-      const siblings = findRegisteredSiblingsOf(lane, catalog, storedIds)
-        .filter((sibling) => !ownLaneIds.has(sibling.modelId));
-      if (siblings.length > 0) {
-        const ids = siblings.map((s) => s.modelId).join(', ');
-        throw new Error(
-          `${lane.modelId} backs the registered manifest-only sibling${siblings.length > 1 ? 's' : ''} ${ids}. ` +
-          `Remove the sibling${siblings.length > 1 ? 's' : ''} first, then ${lane.modelId}.`
-        );
-      }
-    }
-  }
-
-  const confirmed = await confirmRemoveModel(entry);
-  if (!confirmed) {
-    return;
-  }
-
-  for (const lane of stored) {
-    const removed = await deleteModel(lane.modelId);
-    if (!removed) {
-      throw new Error(`Could not remove ${lane.modelId} from OPFS.`);
-    }
-    await removeRegisteredModel(lane.modelId);
-  }
-
-  const cardWasLoaded = lanes.some((lane) =>
-    state.modelId === lane.modelId
-    || state.modelStatus[lane.modelId] === 'loaded'
-  );
-  if (cardWasLoaded) {
-    clearLoadedModelState();
-  }
-  for (const lane of lanes) {
-    state.modelStatus[lane.modelId] = 'available';
-  }
-  renderModelCards();
-}
-
-export function setModelCallbacks({ onLoaded, onDownloadProgress }) {
-  onModelLoaded = onLoaded ?? null;
-  onProgress = onDownloadProgress ?? null;
-}
-
-export function buildLocalModelBaseUrl(modelId, origin = null) {
-  const normalizedOrigin = typeof origin === 'string' && origin.trim().length > 0 ? origin.trim() : null;
-  if (!normalizedOrigin || typeof modelId !== 'string' || modelId.trim().length === 0) {
-    return null;
-  }
-  return new URL(`/models/local/${encodeURIComponent(modelId.trim())}`, normalizedOrigin).toString().replace(/\/$/, '');
-}
-
-function buildHfModelBaseUrl(entry) {
-  const repoId = entry?.hf?.repoId;
-  const revision = entry?.hf?.revision;
-  const repoPath = entry?.hf?.path;
-  if (!repoId || !revision || !repoPath) {
-    return null;
-  }
-  return hfUrl(repoId, revision, repoPath, '').replace(/\/$/, '');
-}
-
-function buildArtifactUrl(baseUrl, path) {
-  return new URL(path, `${baseUrl.replace(/\/$/, '')}/`).toString();
-}
-
-async function probeManifestBaseUrl(baseUrl, fetchImpl = fetch) {
-  if (!baseUrl) {
-    return false;
-  }
-  const probeUrl = `${buildArtifactUrl(baseUrl, 'manifest.json')}?probe=${Date.now()}`;
-  try {
-    const head = await fetchImpl(probeUrl, {
-      method: 'HEAD',
-      cache: 'no-store',
-    });
-    if (head.ok) {
-      return true;
-    }
-    if (head.status !== 405) {
-      return false;
-    }
-  } catch {
-    return false;
-  }
-  try {
-    const get = await fetchImpl(probeUrl, {
-      cache: 'no-store',
-    });
-    return get.ok;
-  } catch {
-    return false;
-  }
-}
-
-async function resolveLocalCatalogSourceMap(entries, fetchImpl = fetch, origin = null) {
-  const localBaseUrls = new Map();
-  await Promise.all(entries.map(async (entry) => {
-    const localBaseUrl = buildLocalModelBaseUrl(entry?.modelId, origin);
-    if (!localBaseUrl) {
-      return;
-    }
-    if (await probeManifestBaseUrl(localBaseUrl, fetchImpl)) {
-      localBaseUrls.set(entry.modelId, localBaseUrl);
-    }
-  }));
-  return localBaseUrls;
-}
-
-// Demo surfaces one card per model. The card identity prefers the af16
-// weights-ref sibling and falls back to the af32 primary when the device
-// can't run f16. Two shapes can produce a card:
-//   - af32 primary alone (artifactCompleteness=complete, weightsRefAllowed=
-//     =false). Used when no verified+reachable af16 sibling opts in.
-//   - af16 weights-ref sibling (artifactCompleteness=weights-ref,
-//     weightsRefAllowed=true) surfaced over its primary, with the primary
-//     attached as `demoFallbackVariant`. The primary opts in by setting
-//     `demoPreferredVariantId` to the af16's modelId. Surfacing requires
-//     the af16 to be verified-runtime + reachable; the primary owns the
-//     demo editorial (warningBadges, warningText, recommended, sortOrder,
-//     sizeBytes) when the af16 is silent on those fields.
-function resolveEntrySource(entry, localBaseUrls) {
-  if (localBaseUrls.has(entry?.modelId)) return localBaseUrls.get(entry.modelId);
-  const catalogBase = normalizeBaseUrl(entry?.baseUrl);
-  if (catalogBase) return catalogBase;
-  try {
-    return normalizeBaseUrl(buildHfModelBaseUrl(entry));
-  } catch {
-    return null;
-  }
-}
-
-export function selectDemoCatalogEntries(models, options = {}) {
-  return selectCatalogModelLanes(models, {
-    ...options,
-    supportedModes: ['text', 'translate'],
-    isVisibleEntry: isDemoVisibleEntry,
-    hasSource: (entry) => Boolean(resolveEntrySource(
-      entry,
-      options.localBaseUrls instanceof Map ? options.localBaseUrls : new Map()
-    )),
-  });
-}
-
-// Returns the lane that should actually run for a clicked card. Surfaced
-// af16 cards return themselves when the device reports f16 + subgroups; they
-// fall back to the attached af32 variant otherwise. Non-surfaced (af32-only)
-// cards return as-is.
-async function resolveDemoExecutionEntry(entry) {
-  const fallback = entry?.demoFallbackVariant;
-  await initDevice();
-  const capabilities = getKernelCapabilities();
-  const manifestByModelId = new Map();
-  const loadPreflightManifest = async (candidate) => {
-    const source = await resolveManifestSource(candidate, undefined, {
-      manifestOnly: isWeightsRefEntry(candidate),
-    });
-    manifestByModelId.set(candidate.modelId, source.manifest);
-  };
-  await loadPreflightManifest(entry);
-  if (fallback) {
-    await loadPreflightManifest(fallback);
-  }
-  return selectDemoExecutionEntryForCapabilities(entry, manifestByModelId, capabilities);
-}
-
-export function buildModelSourceCandidates(entry) {
-  const candidates = [];
-  const seen = new Set();
-  const pushCandidate = (kind, baseUrl) => {
-    const normalized = normalizeBaseUrl(baseUrl);
-    if (!normalized || seen.has(normalized)) {
-      return;
-    }
-    seen.add(normalized);
-    candidates.push({ kind, baseUrl: normalized });
-  };
-
-  pushCandidate('local', entry?.localBaseUrl);
-  pushCandidate('catalog', entry?.baseUrl);
-  pushCandidate('hf', buildHfModelBaseUrl(entry));
-  return candidates;
-}
-
-async function resolveManifestSource(entry, signal, options = {}) {
-  const candidates = buildModelSourceCandidates(entry);
-  if (candidates.length === 0) {
-    throw new Error(`Model "${entry?.modelId ?? 'unknown'}" does not have a downloadable source.`);
-  }
-
-  const errors = [];
-  for (const candidate of candidates) {
-    const manifestUrl = buildArtifactUrl(candidate.baseUrl, 'manifest.json');
-    try {
-      const manifestText = await fetchText(manifestUrl, signal);
-      const manifest = parseManifest(manifestText);
-      const missingArtifacts = options.manifestOnly === true || manifest?.weightsRef != null
-        ? []
-        : await validateManifestArtifacts(candidate.baseUrl, manifest, signal);
-      if (missingArtifacts.length > 0) {
-        errors.push(`${candidate.kind}: missing files [${missingArtifacts.join(', ')}]`);
-        continue;
-      }
-      return {
-        kind: candidate.kind,
-        baseUrl: candidate.baseUrl,
-        manifestText,
-        manifest,
-      };
-    } catch (error) {
-      errors.push(`${candidate.kind}: ${error.message}`);
-    }
-  }
-
-  throw new Error(
-    `Could not fetch manifest for "${entry?.modelId ?? 'unknown'}" from any configured source. ` +
-    errors.join(' | ')
-  );
-}
-
-async function validateManifestArtifacts(baseUrl, manifest, signal) {
-  const requiredFiles = [];
-  if (typeof manifest?.tokenizer?.file === 'string' && manifest.tokenizer.file.trim().length > 0) {
-    requiredFiles.push(manifest.tokenizer.file.trim());
-  }
-  if (
-    typeof manifest?.tokenizer?.sentencepieceModel === 'string'
-    && manifest.tokenizer.sentencepieceModel.trim().length > 0
-  ) {
-    requiredFiles.push(manifest.tokenizer.sentencepieceModel.trim());
-  }
-  if (typeof manifest?.tensorsFile === 'string' && manifest.tensorsFile.trim().length > 0) {
-    requiredFiles.push(manifest.tensorsFile.trim());
-  }
-  if (Array.isArray(manifest?.shards)) {
-    for (const shard of manifest.shards) {
-      if (typeof shard?.filename === 'string' && shard.filename.trim().length > 0) {
-        requiredFiles.push(shard.filename.trim());
-      }
-    }
-  }
-
-  if (requiredFiles.length === 0) {
-    return [];
-  }
-
-  const checks = await Promise.all(requiredFiles.map(async (file) => ({
-    file,
-    present: await probeManifestAsset(baseUrl, file, signal),
-  })));
-  return checks.filter((entry) => !entry.present).map((entry) => entry.file);
-}
-
-async function probeManifestAsset(baseUrl, path, signal, fetchImpl = fetch) {
-  if (!baseUrl || typeof path !== 'string' || path.trim().length === 0) {
-    return false;
-  }
-  const url = `${buildArtifactUrl(baseUrl, path.trim())}?probe=${Date.now()}`;
-  try {
-    const head = await fetchImpl(url, {
-      method: 'HEAD',
-      signal,
-      cache: 'no-store',
-    });
-    if (head.ok) {
-      return true;
-    }
-    if (head.status !== 405) {
-      return false;
-    }
-  } catch {
-    return false;
-  }
-  try {
-    const get = await fetchImpl(url, { signal, cache: 'no-store' });
-    return get.ok;
-  } catch {
-    return false;
-  }
+export function setModelCallbacks(callbacks = {}) {
+  onModelLoaded = callbacks.onLoaded ?? null;
+  onProgress = callbacks.onDownloadProgress ?? null;
 }
 
 export async function loadCatalog() {
-  try {
-    const res = await fetch(`${CATALOG_URL}?t=${Date.now()}`);
-    const data = await res.json();
-    const models = Array.isArray(data?.models) ? data.models : [];
-    const origin = typeof window === 'object' && window.location?.origin
-      ? window.location.origin
-      : null;
-    const localBaseUrls = await resolveLocalCatalogSourceMap(models, fetch, origin);
-    catalog = selectDemoCatalogEntries(models, { localBaseUrls });
-  } catch {
-    catalog = [];
-  }
-}
-
-function laneIdsForCard(entry) {
-  const ids = [entry?.modelId].filter(Boolean);
-  const fallbackId = entry?.demoFallbackVariant?.modelId;
-  if (fallbackId && fallbackId !== entry?.modelId) ids.push(fallbackId);
-  return ids;
+  const entries = await dr.listModelDetails();
+  catalog = entries.map((entry) => ({ ...entry }));
+  selectedModelId = catalog[0]?.modelId ?? null;
+  state.quickModelCatalog = catalog.map((entry) => ({ ...entry }));
+  bindModelControls();
+  renderModelCards();
+  return catalog.map((entry) => ({ ...entry }));
 }
 
 export function selectDefaultStoredModel(catalogEntries, registeredEntries, preferredModelId = null) {
-  const cards = Array.isArray(catalogEntries) ? catalogEntries : [];
-  const registrations = Array.isArray(registeredEntries) ? registeredEntries : [];
-  const cardByLaneId = new Map();
-  for (const card of cards) {
-    for (const modelId of laneIdsForCard(card)) {
-      cardByLaneId.set(modelId, card);
-    }
+  const stored = new Set(
+    (Array.isArray(registeredEntries) ? registeredEntries : [])
+      .map((entry) => entry?.modelId)
+      .filter(Boolean)
+  );
+  if (preferredModelId && stored.has(preferredModelId)) {
+    return catalogEntries.find((entry) => entry.modelId === preferredModelId) ?? null;
   }
-
-  const candidates = registrations
-    .map((registration, index) => {
-      const modelId = typeof registration?.modelId === 'string' ? registration.modelId : '';
-      const card = cardByLaneId.get(modelId);
-      if (!modelId || !card) return null;
-      const savedAt = registration.savedAtUtc ?? registration.createdAt ?? null;
-      const timestamp = typeof savedAt === 'string' ? Date.parse(savedAt) : Number.NaN;
-      return {
-        modelId,
-        displayModelId: card.modelId,
-        timestamp: Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY,
-        index,
-      };
-    })
-    .filter(Boolean);
-
-  const preferred = typeof preferredModelId === 'string' && preferredModelId.trim()
-    ? preferredModelId.trim()
-    : null;
-  if (preferred) {
-    const preferredCandidate = candidates.find((candidate) => candidate.modelId === preferred);
-    if (preferredCandidate) {
-      return {
-        modelId: preferredCandidate.modelId,
-        displayModelId: preferredCandidate.displayModelId,
-      };
-    }
-  }
-
-  candidates.sort((a, b) => b.timestamp - a.timestamp || b.index - a.index);
-  const selected = candidates[0];
-  return selected
-    ? { modelId: selected.modelId, displayModelId: selected.displayModelId }
-    : null;
-}
-
-function readLastUsedModelId() {
-  try {
-    return typeof localStorage === 'object'
-      ? localStorage.getItem(LAST_USED_MODEL_STORAGE_KEY)
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function rememberLastUsedModelId(modelId) {
-  if (typeof modelId !== 'string' || !modelId) return;
-  try {
-    if (typeof localStorage === 'object') {
-      localStorage.setItem(LAST_USED_MODEL_STORAGE_KEY, modelId);
-    }
-  } catch {
-    // Browser storage preferences are optional; OPFS remains canonical.
-  }
+  return catalogEntries.find((entry) => stored.has(entry.modelId)) ?? null;
 }
 
 export async function checkStoredModels() {
-  try {
-    const registered = await listRegisteredModels();
-    const storedIds = new Set(registered.map((r) => r.modelId));
-    for (const entry of catalog) {
-      const lanes = laneIdsForCard(entry);
-      const cardStored = lanes.some((id) => storedIds.has(id));
-      state.modelStatus[entry.modelId] = cardStored ? 'stored' : 'available';
-      // Key per-lane status as well so download/load gates can branch on the
-      // execution lane (e.g., the af32 fallback) without re-scanning OPFS.
-      for (const id of lanes) {
-        state.modelStatus[id] = storedIds.has(id) ? 'stored' : 'available';
-      }
-    }
-  } catch {
-    // OPFS unavailable; mark all as available for download
-    for (const entry of catalog) {
-      for (const id of laneIdsForCard(entry)) {
-        state.modelStatus[id] = 'available';
-      }
-    }
+  const registered = await dr.listPersistentModels();
+  const stored = new Set(registered.map((entry) => entry.modelId));
+  for (const entry of catalog) {
+    state.modelStatus[entry.modelId] = stored.has(entry.modelId) ? 'stored' : 'available';
   }
+  renderModelCards();
+  return registered;
 }
 
 export async function loadDefaultStoredModel() {
-  let registered;
-  try {
-    registered = await listRegisteredModels();
-  } catch {
-    return false;
-  }
-  const selected = selectDefaultStoredModel(catalog, registered, readLastUsedModelId());
-  if (!selected || loadingLock) return false;
-
-  loadingLock = true;
-  try {
-    await loadModelFromStorage(selected.modelId, { displayModelId: selected.displayModelId });
-    return true;
-  } catch (error) {
-    log.warn('DemoModels', `Could not load saved model ${selected.modelId}`, error);
-    await checkStoredModels();
-    renderModelCards();
-    return false;
-  } finally {
-    loadingLock = false;
-  }
-}
-
-function findCatalogCard(modelId) {
-  if (typeof modelId !== 'string' || !modelId) return null;
-  return catalog.find((entry) => laneIdsForCard(entry).includes(modelId)) ?? null;
-}
-
-function getModelActionLabel(status) {
-  if (status === 'loaded') return 'Loaded';
-  if (status === 'loading') return 'Loading...';
-  if (status === 'stored') return 'Load model';
-  if (status === 'downloading') return 'Downloading...';
-  return 'Download & load';
-}
-
-function getModelStatusLabel(status) {
-  if (status === 'loaded') return 'Loaded on GPU';
-  if (status === 'loading') return 'Loading on GPU';
-  if (status === 'stored') return 'Ready in browser storage';
-  if (status === 'downloading') return 'Downloading';
-  return 'Available to download';
-}
-
-function updateModelSelectProgress(percent) {
-  const safePercent = Number.isFinite(percent)
-    ? Math.max(0, Math.min(100, percent))
-    : 0;
-  const row = $('model-select-progress-row');
-  const bar = $('model-select-progress');
-  const label = $('model-select-progress-label');
-  if (row) row.hidden = false;
-  if (bar) {
-    bar.setAttribute('aria-valuenow', String(Math.round(safePercent)));
-    const fill = bar.querySelector('.model-card-progress-fill');
-    if (fill) fill.style.width = `${safePercent}%`;
-  }
-  if (label) label.textContent = `${Math.round(safePercent)}%`;
-}
-
-function renderModelSelector() {
-  const select = $('model-select');
-  const action = $('model-select-action');
-  const remove = $('model-select-remove');
-  const detail = $('model-select-detail');
-  const statusEl = $('model-select-status');
-  const countEl = $('model-browser-count');
-  const progressRow = $('model-select-progress-row');
-  if (!select || !action || !remove || !detail || !statusEl) return;
-
-  if (countEl) {
-    countEl.textContent = `${catalog.length} ${catalog.length === 1 ? 'model' : 'models'}`;
-  }
-
-  if (catalog.length === 0) {
-    select.innerHTML = '<option value="">No models available</option>';
-    select.disabled = true;
-    action.disabled = true;
-    remove.hidden = true;
-    detail.textContent = 'No verified demo models are currently reachable.';
-    statusEl.textContent = 'Catalog unavailable';
-    if (progressRow) progressRow.hidden = true;
-    return;
-  }
-
-  const activeCard = findCatalogCard(state.modelId);
-  const selectedCard = findCatalogCard(selectedCatalogModelId);
-  const selected = selectedCard
-    ?? activeCard
-    ?? catalog.find((entry) => entry?.recommended === true)
-    ?? catalog[0];
-  selectedCatalogModelId = selected.modelId;
-
-  select.innerHTML = '';
-  for (const entry of catalog) {
-    const option = document.createElement('option');
-    const entryStatus = state.modelStatus[entry.modelId] || 'available';
-    const entryDetail = buildModelCardDetail(entry, entryStatus);
-    option.value = entry.modelId;
-    option.textContent = entryDetail
-      ? `${getDemoModelLabel(entry)} — ${entryDetail}`
-      : getDemoModelLabel(entry);
-    select.appendChild(option);
-  }
-  select.value = selected.modelId;
-  select.disabled = false;
-
-  const status = state.modelStatus[selected.modelId] || 'available';
-  const warningBadges = getDemoWarningBadges(selected);
-  const description = [
-    typeof selected.demoRole === 'string' ? selected.demoRole.trim() : '',
-    getDemoWarningText(selected),
-    warningBadges.length > 0 ? warningBadges.join(' · ') : '',
-  ].filter(Boolean).join(' — ');
-  detail.textContent = description || buildModelCardDetail(selected, status);
-  statusEl.textContent = getModelStatusLabel(status);
-
-  action.textContent = getModelActionLabel(status);
-  action.disabled = status === 'loaded' || status === 'loading' || status === 'downloading';
-  remove.hidden = !canRemoveModelStatus(status);
-  remove.disabled = state.generating || state.prefilling;
-
-  if (status === 'downloading') {
-    updateModelSelectProgress(Number(state.downloadProgress?.percent));
-  } else if (progressRow) {
-    progressRow.hidden = true;
-  }
-
-  if (select.dataset.modelSelectorBound !== 'true') {
-    select.dataset.modelSelectorBound = 'true';
-    select.addEventListener('change', () => {
-      selectedCatalogModelId = select.value;
-      renderModelSelector();
-    });
-    action.addEventListener('click', () => {
-      const entry = findCatalogCard(selectedCatalogModelId);
-      if (!entry) return;
-      void handleCardClick(entry).catch((error) => {
-        log.error('DemoModels', `Failed to load model ${entry.modelId}`, error);
-      });
-    });
-    remove.addEventListener('click', () => {
-      const entry = findCatalogCard(selectedCatalogModelId);
-      if (!entry) return;
-      void removeStoredModel(entry).catch((error) => {
-        log.error('DemoModels', `Could not remove ${entry.modelId} from OPFS`, error);
-      });
-    });
-  }
+  const registered = await dr.listPersistentModels();
+  const preferred = localStorage.getItem(LAST_USED_MODEL_STORAGE_KEY);
+  const entry = selectDefaultStoredModel(catalog, registered, preferred);
+  if (!entry) return null;
+  selectedModelId = entry.modelId;
+  renderModelCards();
+  await loadSelectedModel();
+  return state.model;
 }
 
 export function renderModelCards() {
-  const container = $('model-cards');
-  if (!container) return;
-  container.innerHTML = '';
-
-  for (const entry of catalog) {
-    const card = document.createElement('div');
-    card.className = 'model-card';
-    card.dataset.modelId = entry.modelId;
-
-    const status = state.modelStatus[entry.modelId] || 'available';
-    if (status === 'loaded') card.classList.add('is-active');
-    else if (status === 'loading') card.classList.add('is-loading');
-    else if (status === 'stored') card.classList.add('is-stored');
-    else if (status === 'downloading') card.classList.add('is-downloading');
-
-    const top = document.createElement('div');
-    top.className = 'model-card-top';
-
-    const copy = document.createElement('div');
-    copy.className = 'model-card-copy';
-
-    const name = document.createElement('div');
-    name.className = 'model-card-name';
-    name.textContent = getDemoModelLabel(entry);
-
-    const detail = document.createElement('div');
-    detail.className = 'model-card-detail';
-    detail.textContent = buildModelCardDetail(entry, status);
-
-    copy.appendChild(name);
-    copy.appendChild(detail);
-
-    const warningBadges = getDemoWarningBadges(entry);
-    if (warningBadges.length > 0) {
-      const badges = document.createElement('div');
-      badges.className = 'model-card-badges';
-      for (const warningBadge of warningBadges) {
-        const badge = document.createElement('span');
-        badge.className = 'model-card-badge';
-        badge.textContent = warningBadge;
-        badges.appendChild(badge);
-      }
-      copy.appendChild(badges);
+  const select = $('model-select');
+  if (select) {
+    select.replaceChildren();
+    for (const entry of catalog) {
+      const option = document.createElement('option');
+      option.value = entry.modelId;
+      option.textContent = modelLabel(entry);
+      select.append(option);
     }
-
-    const roleText = typeof entry.demoRole === 'string' ? entry.demoRole.trim() : '';
-    const warningText = getDemoWarningText(entry);
-    const description = [roleText, warningText].filter(Boolean).join('. ');
-    if (description) {
-      card.title = description;
-      card.setAttribute('aria-description', description);
-    }
-    top.appendChild(copy);
-
-    if (canRemoveModelStatus(status)) {
-      const removeButton = document.createElement('button');
-      removeButton.type = 'button';
-      removeButton.className = 'btn btn-ghost model-card-remove';
-      removeButton.textContent = 'Remove';
-      removeButton.setAttribute('aria-label', `Remove ${entry.label} from OPFS`);
-      removeButton.addEventListener('click', async (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        try {
-          await removeStoredModel(entry);
-        } catch (error) {
-          log.error('DemoModels', `Could not remove ${entry.modelId} from OPFS`, error);
-        }
-      });
-      top.appendChild(removeButton);
-    }
-
-    card.appendChild(top);
-
-    if (status === 'downloading') {
-      const percent = Number(state.downloadProgress?.percent);
-      const safePercent = Number.isFinite(percent)
-        ? Math.max(0, Math.min(100, percent))
-        : 0;
-      const progressRow = document.createElement('div');
-      progressRow.className = 'model-card-progress-row';
-      const bar = document.createElement('div');
-      bar.className = 'model-card-progress';
-      bar.id = `progress-${entry.modelId}`;
-      bar.setAttribute('role', 'progressbar');
-      bar.setAttribute('aria-valuemin', '0');
-      bar.setAttribute('aria-valuemax', '100');
-      bar.setAttribute('aria-valuenow', String(Math.round(safePercent)));
-      bar.style.setProperty('--model-progress-percent', `${safePercent}%`);
-      const fill = document.createElement('div');
-      fill.className = 'model-card-progress-fill';
-      fill.style.width = `${safePercent}%`;
-      bar.appendChild(fill);
-      const percentLabel = document.createElement('span');
-      percentLabel.className = 'model-card-progress-percent';
-      percentLabel.id = `progress-label-${entry.modelId}`;
-      percentLabel.textContent = `${Math.round(safePercent)}%`;
-      progressRow.appendChild(bar);
-      progressRow.appendChild(percentLabel);
-      card.appendChild(progressRow);
-    }
-
-    card.addEventListener('click', () => {
-      selectedCatalogModelId = entry.modelId;
-      renderModelSelector();
-      const browser = $('model-browser');
-      if (browser) browser.open = false;
-      void handleCardClick(entry).catch((error) => {
-        log.error('DemoModels', `Failed to load model ${entry.modelId}`, error);
-      });
-    });
-    container.appendChild(card);
+    select.disabled = catalog.length === 0;
+    select.value = selectedModelId ?? '';
   }
-  renderModelSelector();
-}
-
-let loadingLock = false;
-
-async function handleCardClick(entry) {
-  if (loadingLock) return;
-  const status = state.modelStatus[entry.modelId];
-  if (status === 'downloading' || status === 'loaded') return;
-
-  loadingLock = true;
-  try {
-    const executionEntry = await resolveDemoExecutionEntry(entry);
-    const executionStatus = state.modelStatus[executionEntry.modelId];
-    if (executionStatus === 'stored') {
-      await loadModelFromStorage(executionEntry.modelId, { displayModelId: entry.modelId });
-    } else {
-      await downloadAndLoad(executionEntry, { displayEntry: entry });
-    }
-  } finally {
-    loadingLock = false;
+  const cards = $('model-cards');
+  if (cards) {
+    cards.replaceChildren(...catalog.map(createModelCard));
   }
-}
-
-async function downloadToStorage(entry, options = {}) {
-  const { modelId } = entry;
-  const isWeightsRef = isWeightsRefEntry(entry);
-  const displayModelId = options.displayModelId || modelId;
-
-  if (state.modelStatus[modelId] === 'stored' || state.modelStatus[modelId] === 'loaded') {
-    return;
-  }
-
-  state.modelStatus[displayModelId] = 'downloading';
-  state.modelStatus[modelId] = 'downloading';
-  renderModelCards();
-
-  const abort = new AbortController();
-  const signal = abort.signal;
-
-  try {
-    const resolvedSource = await resolveManifestSource(entry, signal, { manifestOnly: isWeightsRef });
-
-    // Fetch manifest and patch compat fields before storing
-    const manifest = patchManifestCompat(resolvedSource.manifest ?? parseManifest(resolvedSource.manifestText));
-    manifest.modelId = modelId;
-
-    await openModelStore(modelId);
-    await saveManifest(JSON.stringify(manifest, null, 2));
-
-    if (!isWeightsRef) {
-      // Tokenizer
-      const tokFile = manifest?.tokenizer?.file;
-      if (tokFile) {
-        if (tokFile.endsWith('.model')) {
-          const bytes = await fetchBytes(buildArtifactUrl(resolvedSource.baseUrl, tokFile), signal);
-          await saveTokenizerModel(bytes.buffer);
-        } else {
-          const text = await fetchText(buildArtifactUrl(resolvedSource.baseUrl, tokFile), signal);
-          await saveTokenizer(text);
-        }
-      }
-
-      // Tensors map
-      if (manifest.tensorsFile) {
-        const text = await fetchText(buildArtifactUrl(resolvedSource.baseUrl, manifest.tensorsFile), signal);
-        await saveTensorsToStore(text);
-      }
-
-      // Shards
-      const shards = manifest.shards || [];
-      for (let i = 0; i < shards.length; i++) {
-        const shard = shards[i];
-        const bytes = await fetchBytes(buildArtifactUrl(resolvedSource.baseUrl, shard.filename), signal);
-        await writeShard(shard.index, bytes, { verify: true });
-
-        const percent = ((i + 1) / shards.length) * 100;
-        state.downloadProgress = { percent, currentShard: i + 1, totalShards: shards.length };
-        updateProgressBar(modelId, percent);
-        if (onProgress) onProgress({ modelId, percent, currentShard: i + 1, totalShards: shards.length });
-      }
-    } else {
-      // Sibling slot owns just the manifest. Tokenizer, tensors map, and
-      // shards are read from the primary's slot at load time.
-      state.downloadProgress = { percent: 100, currentShard: 0, totalShards: 0 };
-      updateProgressBar(modelId, 100);
-      if (onProgress) onProgress({ modelId, percent: 100, currentShard: 0, totalShards: 0 });
-    }
-
-    await registerModel({ modelId });
-    state.modelStatus[modelId] = 'stored';
-    state.modelStatus[displayModelId] = 'stored';
-    state.downloadProgress = null;
-    renderModelCards();
-  } catch (err) {
-    state.modelStatus[modelId] = 'available';
-    state.modelStatus[displayModelId] = 'available';
-    state.downloadProgress = null;
-    renderModelCards();
-    throw err;
-  }
-}
-
-async function downloadAndLoad(entry, options = {}) {
-  const { modelId } = entry;
-  const displayEntry = options.displayEntry || entry;
-  const displayModelId = displayEntry.modelId || modelId;
-
-  if (isWeightsRefEntry(entry)) {
-    const primary = findPrimaryForWeightPack(catalog, entry?.weightPackId);
-    if (!primary) {
-      throw new Error(
-        `${entry?.modelId ?? 'unknown'}: weights-ref sibling has no primary lane in the ` +
-        `catalog (weightPackId=${entry?.weightPackId ?? 'unknown'}).`
-      );
-    }
-    const registered = await listRegisteredModels();
-    const storedIds = new Set(registered.map((r) => r.modelId));
-    if (!storedIds.has(primary.modelId)) {
-      await downloadToStorage(primary, { displayModelId });
-    }
-    assertWeightsRefPrimaryAvailable(entry, catalog, new Set((await listRegisteredModels()).map((r) => r.modelId)));
-  }
-
-  await downloadToStorage(entry, { displayModelId });
-  await loadModelFromStorage(modelId, { displayModelId });
-}
-
-export function patchManifestCompat(manifest) {
-  // Fill missing nullable-required inference fields with schema defaults
-  // so older HF manifests pass validation without re-conversion.
-  const defaults = DEFAULT_MANIFEST_INFERENCE;
-  if (!manifest.inference) manifest.inference = {};
-  const inf = manifest.inference;
-
-  const fillMissingFields = (target, source, options = {}) => {
-    const treatNullAsMissing = options.treatNullAsMissing === true;
-    if (!isPlainObject(source)) {
-      return target;
-    }
-    if (!isPlainObject(target)) {
-      target = {};
-    }
-    for (const [key, defaultValue] of Object.entries(source)) {
-      const currentValue = target[key];
-      const missing = currentValue === undefined || (treatNullAsMissing && currentValue === null);
-      if (isPlainObject(defaultValue)) {
-        if (missing || !isPlainObject(currentValue)) {
-          target[key] = fillMissingFields({}, defaultValue, options);
-          continue;
-        }
-        target[key] = fillMissingFields(currentValue, defaultValue, options);
-        continue;
-      }
-      if (missing) {
-        target[key] = defaultValue;
-      }
-    }
-    return target;
-  };
-
-  for (const section of ['attention', 'normalization', 'ffn', 'rope', 'output', 'layerPattern', 'chatTemplate']) {
-    inf[section] = fillMissingFields(inf[section], defaults[section]);
-  }
-
-  if (inf.schema === EXECUTION_V1_SCHEMA_ID) {
-    inf.session = fillMissingFields(inf.session, DEFAULT_EXECUTION_V1_SESSION, { treatNullAsMissing: true });
-  }
-  return manifest;
-}
-
-async function loadModelFromStorage(modelId, options = {}) {
-  const displayModelId = options.displayModelId || modelId;
-  state.modelStatus[displayModelId] = 'loading';
-  state.modelStatus[modelId] = 'loading';
-  renderModelCards();
-
-  await openModelStore(modelId);
-  const manifestText = await loadManifestFromStore();
-  if (!manifestText) throw new Error(`No manifest for ${modelId}`);
-
-  const manifest = patchManifestCompat(parseManifest(manifestText));
-  // Re-save patched manifest so the loader reads compat fields from OPFS
-  await saveManifest(JSON.stringify(manifest, null, 2));
-
-  // For a weights-ref sibling, switch the active OPFS slot to the primary
-  // so subsequent tokenizer/tensors/shard reads land on the shared bytes.
-  // The af16 manifest is already in scope (parsed above); shard reads are
-  // driven by the loader against the currently-open slot.
-  if (manifest.weightsRef) {
-    const primary = findPrimaryForWeightPack(catalog, manifest.weightsRef.weightPackId);
-    if (!primary || primary.modelId === modelId) {
-      throw new Error(
-        `${modelId}: manifest declares weightsRef but no primary lane was found in the ` +
-        `catalog (weightPackId=${manifest.weightsRef.weightPackId}). ` +
-        'Re-import or re-download the primary model.'
-      );
-    }
-    const registered = await listRegisteredModels();
-    if (!registered.some((r) => r.modelId === primary.modelId)) {
-      throw new Error(
-        `${modelId} shares weights with ${primary.modelId}, but ${primary.modelId} ` +
-        'is not in OPFS. Download the primary model first.'
-      );
-    }
-    await openModelStore(primary.modelId);
-  }
-
-  await initDevice();
-
-  const tensorsText = await loadTensorsFromStore();
-  const tokenizerText = await loadTokenizerFromStore();
-  const tokenizerModel = await loadTokenizerModelFromStore();
-
-  const pipeline = await createPipeline(manifest, {
-    tensorsJson: tensorsText ?? undefined,
-    tokenizerJson: tokenizerText ?? undefined,
-    tokenizerModel: tokenizerModel ?? undefined,
-  });
-
-  // Mark all models as not-loaded, then mark this one
-  for (const id of Object.keys(state.modelStatus)) {
-    if (state.modelStatus[id] === 'loaded') state.modelStatus[id] = 'stored';
-  }
-  state.modelId = modelId;
-  state.modelStatus[modelId] = 'loaded';
-  state.modelStatus[displayModelId] = 'loaded';
-  state.pipeline = pipeline;
-  rememberLastUsedModelId(modelId);
-  renderModelCards();
-
-  if (onModelLoaded) onModelLoaded(pipeline, modelId);
-}
-
-function updateProgressBar(modelId, percent) {
-  const safePercent = Number.isFinite(percent)
-    ? Math.max(0, Math.min(100, percent))
-    : 0;
-  const bar = $(`progress-${modelId}`);
-  if (bar) {
-    bar.setAttribute('aria-valuenow', String(Math.round(safePercent)));
-    bar.style.setProperty('--model-progress-percent', `${safePercent}%`);
-    const fill = bar.querySelector('.model-card-progress-fill');
-    if (fill) {
-      fill.style.width = `${safePercent}%`;
-    } else {
-      bar.style.width = `${safePercent}%`;
-    }
-  }
-  const label = $(`progress-label-${modelId}`);
-  if (label) label.textContent = `${Math.round(safePercent)}%`;
-
-  const selectedEntry = findCatalogCard(selectedCatalogModelId);
-  if (selectedEntry && laneIdsForCard(selectedEntry).includes(modelId)) {
-    updateModelSelectProgress(safePercent);
-  }
-}
-
-async function fetchText(url, signal) {
-  const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
-  return res.text();
-}
-
-async function fetchBytes(url, signal) {
-  const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
-  return new Uint8Array(await res.arrayBuffer());
+  const count = $('model-browser-count');
+  if (count) count.textContent = `${catalog.length} models`;
+  const status = $('model-select-status');
+  if (status) status.textContent = catalog.length ? 'Ready' : 'No supported models';
+  syncSelectedControls();
 }

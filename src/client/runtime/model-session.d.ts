@@ -6,6 +6,12 @@ import type { LogitsStepResult, PipelineStats, PrefillResult, SequenceEncodeOpti
 import type { LoRAManifest } from './types.js';
 import type { LoRALoadOptions } from './lora.js';
 import type { DopplerPersistentCacheReceipt } from './model-source.js';
+import type {
+  DopplerComparisonFingerprint,
+  DopplerInspectionTokenRecord,
+  DopplerObservationPolicy,
+  DopplerWordQualityRecord,
+} from '../inspection.js';
 
 export type DopplerGenerateOptions = Omit<GenerateOptions, 'stopTokens'>;
 
@@ -22,7 +28,7 @@ export interface DopplerGenerationConfigEvidence {
   suppressTokenIds: number[];
   stopSequences: string[];
   useChatTemplate: boolean;
-  useSpeculative: boolean;
+  useSpeculative: boolean | null;
   seed: number | null;
 }
 
@@ -122,6 +128,21 @@ export interface DopplerModelHandle {
   readonly manifest: unknown;
   readonly deviceInfo: Record<string, unknown> | null;
   readonly supportsSequence: boolean;
+  readonly inspect: {
+    listPolicies(): DopplerObservationPolicy[];
+    generate(
+      prompt: string,
+      options?: {
+        policyId?: string;
+        generation?: DopplerGenerateOptions;
+        topKSize?: number;
+        onEvent?: (event: {
+          type: 'inspection-complete';
+          receipt: DopplerModelInspectionReceipt;
+        }) => void;
+      }
+    ): Promise<DopplerModelInspectionReceipt>;
+  };
   readonly advanced: {
     tokenizeText(text: string): number[];
     prefillKV(prompt: string, options?: DopplerGenerateOptions): Promise<KVCacheSnapshot>;
@@ -163,6 +184,24 @@ export interface DopplerModelHandle {
       options?: DopplerGenerateOptions
     ): AsyncGenerator<string, void, void>;
   };
+}
+
+export interface DopplerModelInspectionReceipt {
+  schema: 'doppler.model-inspection-receipt/v1';
+  policy: DopplerObservationPolicy;
+  fingerprint: DopplerComparisonFingerprint;
+  outputText: string;
+  generatedTokenIds: number[];
+  wallTimingMs: number;
+  performanceRepresentative: boolean;
+  tokens: DopplerInspectionTokenRecord[];
+  quality: null | {
+    wordSegmentation: 'doppler.word-segmentation/unicode-whitespace-v1';
+    aggregation: 'doppler.perplexity/summed-word-surprisal-v1';
+    rollingWindow: { unit: 'words' | 'tokens'; size: number };
+    words: DopplerWordQualityRecord[];
+  };
+  generationEvidence: DopplerGenerationEvidence;
 }
 
 export declare function assertSupportedGenerationOptions(options?: Record<string, unknown>): void;

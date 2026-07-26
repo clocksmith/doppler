@@ -3,7 +3,7 @@
    Built on RD design tokens (rd-tokens.css)
    ============================================ */
 
-/* --- Project color tokens (perplexity gradient for token-press) --- */
+/* --- Project color tokens --- */
 :root {
   --doppler-blue: #3b82f6;
   --doppler-purple: #8b5cf6;
@@ -705,8 +705,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   word-break: normal;
 }
 
-#token-press-output,
-#token-press-controls {
+#word-quality-output {
   grid-column: 2;
   min-width: 0;
 }
@@ -1262,8 +1261,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
     gap: var(--space-xs);
   }
 
-  #token-press-output,
-  #token-press-controls {
+  #word-quality-output {
     grid-column: 1;
   }
 }

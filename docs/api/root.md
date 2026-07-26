@@ -32,6 +32,9 @@ instance features such as LoRA loading relate to the tier1 contract.
 - `dr.evict(model)`
 - `dr.evictAll()`
 - `dr.listModels()`
+- `dr.listModelDetails()`
+- `dr.listPersistentModels()` (browser)
+- `dr.removePersistentModel(model)` (browser)
 
 Advanced runtime helpers now live on dedicated subpaths such as
 `doppler-gpu/loaders`, `doppler-gpu/orchestration`, `doppler-gpu/generation`,
@@ -92,6 +95,8 @@ Returns a `DopplerModel` instance with:
 - `unload()`
 - `manifestHash`
 - `persistentCache` (`null` or the verified OPFS cache receipt)
+- `inspect.listPolicies()`
+- `inspect.generate(prompt, options)`
 - `advanced.tokenizeText(...)`
 - `advanced.prefillKV(...)`
 - `advanced.resetToSeqLen(...)`
@@ -184,6 +189,34 @@ await model.unload();
 
 The receipt records what ran. It does not by itself establish semantic
 correctness or output quality.
+
+## Inspection contract
+
+`model.inspect.generate()` resolves a checked-in observation policy and returns
+`doppler.model-inspection-receipt/v1`. It binds artifact, tokenizer, prompt
+token IDs, sampling, observation policy, execution plan, browser, and adapter
+into canonical comparison fingerprints.
+
+```js
+const receipt = await model.inspect.generate('Describe WebGPU briefly', {
+  policyId: 'demo/guided-quality',
+  generation: {
+    maxTokens: 64,
+    temperature: 0,
+  },
+});
+
+console.log(receipt.quality.words.map((word) => ({
+  word: word.text,
+  summedSurprisal: word.summedSurprisal,
+  rollingPerplexity: word.rollingPerplexity,
+  cumulativePerplexity: word.cumulativePerplexity,
+})));
+```
+
+The always-on policy is the only demo policy whose wall timing is performance
+representative. Guided quality and Deep X-Ray modify execution. Perplexity
+comparisons fail closed when tokenizer identity differs.
 
 ## Advanced Telemetry Example
 

@@ -1,0 +1,80 @@
+{
+  "$schema": "../schema/observation-policy-registry.schema.json",
+  "schema": "doppler.observation-policy-registry/v1",
+  "defaultPolicyId": "demo/always-on",
+  "policies": [
+    {
+      "id": "demo/always-on",
+      "label": "Always-on evidence",
+      "modifiesExecution": false,
+      "performanceRepresentative": true,
+      "requiredCaptures": [
+        "artifact-identity",
+        "prompt-token-ids",
+        "generated-token-ids",
+        "wall-timing"
+      ],
+      "allowedClaimTypes": [
+        "execution-identity",
+        "coarse-performance"
+      ],
+      "gpuTimestampQueries": false,
+      "perplexity": null
+    },
+    {
+      "id": "demo/guided-quality",
+      "label": "Guided quality inspection",
+      "modifiesExecution": true,
+      "performanceRepresentative": false,
+      "requiredCaptures": [
+        "artifact-identity",
+        "prompt-token-ids",
+        "generated-token-ids",
+        "selected-token-probabilities",
+        "top-candidates",
+        "word-quality"
+      ],
+      "allowedClaimTypes": [
+        "quality-inspection"
+      ],
+      "gpuTimestampQueries": false,
+      "perplexity": {
+        "wordSegmentation": "doppler.word-segmentation/unicode-whitespace-v1",
+        "aggregation": "doppler.perplexity/summed-word-surprisal-v1",
+        "rollingWindow": {
+          "unit": "words",
+          "size": 8
+        }
+      }
+    },
+    {
+      "id": "demo/deep-xray",
+      "label": "Deep X-Ray",
+      "modifiesExecution": true,
+      "performanceRepresentative": false,
+      "requiredCaptures": [
+        "artifact-identity",
+        "prompt-token-ids",
+        "generated-token-ids",
+        "selected-token-probabilities",
+        "top-candidates",
+        "word-quality",
+        "execution-plan",
+        "operator-diagnostics",
+        "gpu-timestamps"
+      ],
+      "allowedClaimTypes": [
+        "diagnostic"
+      ],
+      "gpuTimestampQueries": true,
+      "perplexity": {
+        "wordSegmentation": "doppler.word-segmentation/unicode-whitespace-v1",
+        "aggregation": "doppler.perplexity/summed-word-surprisal-v1",
+        "rollingWindow": {
+          "unit": "words",
+          "size": 8
+        }
+      }
+    }
+  ]
+}

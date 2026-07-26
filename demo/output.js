@@ -34,7 +34,7 @@ function resetLiveAssistant() {
   const output = $('output-text');
   if (output) output.textContent = '';
   if (liveMessage) liveMessage.hidden = true;
-  showTokenPress(false);
+  showWordQuality(false);
 }
 
 export function renderChatMessages(messages) {
@@ -114,15 +114,36 @@ export function clearOutput() {
   clearTokSec();
 }
 
-export function showTokenPress(show) {
+export function showWordQuality(show) {
   const plain = $('output-text');
-  const tpOut = $('token-press-output');
-  const tpCtrl = $('token-press-controls');
+  const qualityOutput = $('word-quality-output');
   const liveMessage = $('live-assistant-message');
   if (liveMessage && show) liveMessage.hidden = false;
   if (plain) plain.hidden = show;
-  if (tpOut) tpOut.hidden = !show;
-  if (tpCtrl) tpCtrl.hidden = !show;
+  if (qualityOutput) qualityOutput.hidden = !show;
+}
+
+export function renderWordQuality(quality) {
+  const output = $('word-quality-output');
+  if (!output) return;
+  output.replaceChildren();
+  const words = Array.isArray(quality?.words) ? quality.words : [];
+  for (const word of words) {
+    const span = document.createElement('span');
+    span.className = 'word-quality';
+    span.textContent = word.text;
+    const height = Number.isFinite(word.rollingPerplexity)
+      ? Math.min(1, Math.log1p(word.rollingPerplexity) / 8)
+      : 0;
+    span.style.setProperty('--word-surprisal', String(height));
+    span.title = [
+      `Summed word surprisal: ${Number.isFinite(word.summedSurprisal) ? word.summedSurprisal.toFixed(4) : 'unavailable'}`,
+      `Rolling perplexity (${word.rollingWindow.size} ${word.rollingWindow.unit}): ${Number.isFinite(word.rollingPerplexity) ? word.rollingPerplexity.toFixed(4) : 'unavailable'}`,
+      `Cumulative sequence perplexity: ${Number.isFinite(word.cumulativePerplexity) ? word.cumulativePerplexity.toFixed(4) : 'unavailable'}`,
+      `Subword tokens: ${word.tokenCount}`,
+    ].join('\n');
+    output.append(span, document.createTextNode(' '));
+  }
 }
 
 export function setFinalStats(stats) {

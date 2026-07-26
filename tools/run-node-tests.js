@@ -9,8 +9,10 @@ const ROOT_DIR = process.cwd();
 
 const suites = {
   unit: [
+    'tests/client',
     'tests/config',
     'tests/converter',
+    'tests/demo',
     'tests/integration',
     'tests/inference',
   ],
@@ -18,8 +20,10 @@ const suites = {
     'tests/kernels',
   ],
   all: [
+    'tests/client',
     'tests/config',
     'tests/converter',
+    'tests/demo',
     'tests/integration',
     'tests/inference',
     'tests/kernels',

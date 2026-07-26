@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/demo-contract-receipt-v1.schema.json",
+  "title": "Doppler demo contract receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "createdAtUtc",
+    "entrypoint",
+    "executionClass",
+    "journey",
+    "shellManifestDigest",
+    "fatalConsoleErrors"
+  ],
+  "properties": {
+    "schema": {
+      "const": "doppler.demo-contract-receipt/v1"
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed"
+      ]
+    },
+    "createdAtUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "entrypoint": {
+      "const": "/demo/index.html"
+    },
+    "executionClass": {
+      "enum": [
+        "mocked-contract",
+        "software-webgpu",
+        "hardware-webgpu"
+      ]
+    },
+    "journey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalogRendered",
+        "modelSelected",
+        "modelLoaded",
+        "generationCompleted"
+      ],
+      "properties": {
+        "catalogRendered": {
+          "type": "boolean"
+        },
+        "modelSelected": {
+          "type": "boolean"
+        },
+        "modelLoaded": {
+          "type": "boolean"
+        },
+        "generationCompleted": {
+          "type": "boolean"
+        }
+      }
+    },
+    "shellManifestDigest": {
+      "$ref": "#/$defs/digest"
+    },
+    "fatalConsoleErrors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

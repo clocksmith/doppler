@@ -30,8 +30,14 @@ jobs:
       - name: Install dependencies
         run: npm ci --omit=optional
 
+      - name: Install contract browser
+        run: npx playwright install --with-deps chromium
+
       - name: Sync package source closure
         run: npm run package:closure:sync
 
       - name: Run deterministic CPU contract
         run: npm run ci:check
+
+      - name: Run demo UI and PWA contract
+        run: npm run test:demo:contract

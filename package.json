@@ -71,6 +71,11 @@
     "test:coverage": "node tools/run-node-coverage.js",
     "test:coverage:report": "node tools/run-node-coverage.js --no-threshold",
     "test:gpu:browser": "node src/cli/doppler-cli.js verify --config '{\"request\":{\"workload\":\"kernels\"},\"run\":{\"surface\":\"browser\",\"browser\":{\"opfsCache\":false,\"headless\":true,\"channel\":\"chromium\",\"browserArgs\":[\"--use-angle=swiftshader\",\"--disable-vulkan-surface\"],\"console\":true}}}'",
+    "demo:shell:generate": "node tools/generate-demo-shell-manifest.js",
+    "demo:shell:check": "node tools/generate-demo-shell-manifest.js --check",
+    "demo:reachability:check": "node tools/check-demo-reachability.js",
+    "test:demo:contract": "node tools/demo-contract-smoke.js",
+    "test:demo:hardware": "node tools/demo-hardware-smoke.js",
     "agents:verify": "node tools/verify-agent-parity.js",
     "agents:freshness": "node tools/verify-agent-freshness.js",
     "agents:freshness:strict": "node tools/verify-agent-freshness.js --strict",
@@ -244,6 +249,14 @@
     "./tooling/manifest": {
       "types": "./src/tooling-exports/manifest.d.ts",
       "import": "./src/tooling-exports/manifest.js"
+    },
+    "./tooling/runtime": {
+      "types": "./src/tooling-exports/runtime.d.ts",
+      "import": "./src/tooling-exports/runtime.js"
+    },
+    "./tooling/evidence": {
+      "types": "./src/tooling-exports/evidence.d.ts",
+      "import": "./src/tooling-exports/evidence.js"
     },
     "./structured": {
       "types": "./src/tooling-exports/structured.d.ts",

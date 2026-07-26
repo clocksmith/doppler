@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "doppler",
-  "updatedAtUtc": "2026-06-29T00:00:00.000Z",
+  "updatedAtUtc": "2026-07-26T00:00:00.000Z",
   "goals": [
     {
       "id": "local-webgpu-product-surface",
@@ -26,10 +26,28 @@
           "supportSubsystemId": "demo.browser-workspace",
           "packageBin": null,
           "packageExport": null,
-          "smokeCommand": "npm run test:gpu:browser",
+          "smokeCommand": null,
+          "smokeCommands": [
+            {
+              "kind": "contract",
+              "command": "npm run test:demo:contract",
+              "receiptSchema": "doppler.demo-contract-receipt/v1"
+            },
+            {
+              "kind": "hardware",
+              "command": "npm run test:demo:hardware",
+              "receiptSchema": "doppler.demo-hardware-receipt/v1"
+            }
+          ],
           "evidencePaths": [
             "README.md",
             "demo/index.html",
+            "demo/README.md",
+            "demo/generated-shell-budget.json",
+            "src/config/schema/demo-contract-receipt.schema.json",
+            "src/config/schema/demo-hardware-receipt.schema.json",
+            "tools/demo-contract-smoke.js",
+            "tools/demo-hardware-smoke.js",
             "src/config/support-tiers/subsystems.json",
             "tools/policies/subsystem-support-contract.json",
             "tools/check-subsystem-support-contract.js"
