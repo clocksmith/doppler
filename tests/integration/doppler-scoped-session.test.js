@@ -25,6 +25,7 @@ function makeHandle(overrides = {}) {
   const handle = {
     modelId: 'fixture-model',
     manifestHash: 'sha256:manifest',
+    manifest: { modelId: 'fixture-model' },
     loaded: true,
     supportsEmbedding: true,
     supportsSequence: false,
@@ -94,6 +95,7 @@ test('scoped session exposes explicit capabilities and stable results', async ()
   assert.equal(result.observation.executionClassification, 'representative');
   assert.equal(result.observation.executionChanged, false);
   assert.equal(result.fingerprint.executionPlanId, 'primary');
+  assert.equal(session.manifest.modelId, 'fixture-model');
 });
 
 test('stream emits semantic events instead of return-dependent unions', async () => {

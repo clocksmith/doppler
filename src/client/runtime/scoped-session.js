@@ -237,6 +237,9 @@ export function createScopedModelSession(handle) {
     get persistentCache() {
       return handle.persistentCache ?? null;
     },
+    get manifest() {
+      return handle.manifest ?? null;
+    },
     get activeLoRA() {
       return handle.activeLoRA ?? null;
     },

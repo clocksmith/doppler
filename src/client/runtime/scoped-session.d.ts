@@ -82,6 +82,7 @@ export interface DopplerScopedModelSession {
   readonly modelId: string;
   readonly manifestHash: string | null;
   readonly persistentCache: DopplerPersistentCacheReceipt | null;
+  readonly manifest: unknown;
   readonly activeLoRA: string | null;
   readonly deviceInfo: Record<string, unknown> | null;
   readonly advanced: DopplerModelHandle['advanced'];
