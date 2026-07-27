@@ -29,6 +29,17 @@ export {
   classifyTokenCostLedger,
 } from '../tooling/execution-cost-ledger.js';
 export {
+  REGISTERED_VARIANT_CALIBRATION_PLAN_SCHEMA,
+  REGISTERED_VARIANT_CALIBRATION_RECEIPT_SCHEMA,
+  calibrateRegisteredVariants,
+  digestRegisteredVariantDescriptor,
+  validateRegisteredVariantCalibrationPlan,
+} from '../tooling/registered-variant-calibration.js';
+export {
+  REGISTERED_VARIANT_CALIBRATION_JOB_SCHEMA,
+  runRegisteredVariantCalibrationJob,
+} from '../tooling/registered-variant-calibration-job.js';
+export {
   buildModeScoreMaps,
   sortTokenIdsByScore,
 } from '../tooling/precision-replay-math.js';

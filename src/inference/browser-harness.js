@@ -482,8 +482,8 @@ function resolveWrapperHash(manifest, metrics) {
   });
 }
 
-function attachExecutionCostLedger(metrics, runtimeConfig, manifest) {
-  if (!isExecutionObservationRequested(runtimeConfig)) {
+function attachExecutionCostLedger(metrics, runtimeConfig, manifest, options = {}) {
+  if (options.force !== true && !isExecutionObservationRequested(runtimeConfig)) {
     return metrics;
   }
   const device = resolveDeviceInfo();
@@ -1125,7 +1125,11 @@ async function runBenchSuite(options = {}) {
   );
   const benchRun = options.workload === 'rerank'
     ? iterationSettings
-    : resolveBenchmarkRunSettings(runtimeConfig, harness.pipeline ?? harness);
+    : resolveBenchmarkRunSettings(
+      runtimeConfig,
+      harness.pipeline ?? harness,
+      options.inferenceInput ?? null
+    );
   const modelType = harness.manifest?.modelType || 'transformer';
   const supportsEmbedding = modelSupportsEmbedding(harness.manifest);
   const supportsRerank = modelSupportsRerank(harness.manifest);
@@ -1970,7 +1974,7 @@ async function runBenchSuite(options = {}) {
     'bench',
     loadDiagnostics ? { ...metrics, load: loadDiagnostics } : metrics,
     harness.manifest
-  ), runtimeConfig, harness.manifest);
+  ), runtimeConfig, harness.manifest, { force: true });
   return {
     ...summary,
     modelId: options.modelId || harness.manifest?.modelId || 'unknown',

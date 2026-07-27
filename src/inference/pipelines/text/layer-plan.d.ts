@@ -42,8 +42,15 @@ export interface LayerPipelineOverride {
 }
 
 export interface CompiledLayerPipeline {
-  steps: CompiledLayerPipelineStep[];
-  overrides: LayerPipelineOverride[];
+  steps: ReadonlyArray<CompiledLayerPipelineStep>;
+  overrides: ReadonlyArray<{
+    layers: ReadonlyArray<number>;
+    steps: ReadonlyArray<CompiledLayerPipelineStep>;
+  }>;
+  stepsByLayer: ReadonlyArray<{
+    prefill: ReadonlyArray<CompiledLayerPipelineStep>;
+    decode: ReadonlyArray<CompiledLayerPipelineStep>;
+  }>;
   source: 'model' | 'runtime';
 }
 
@@ -53,9 +60,18 @@ export function resolveLayerPipeline(
   numLayers: number
 ): CompiledLayerPipeline | null;
 
-export function getLayerPlanSteps(plan: CompiledLayerPipeline, layerIdx: number): CompiledLayerPipelineStep[];
+export function getLayerPlanSteps(
+  plan: CompiledLayerPipeline,
+  layerIdx: number
+): ReadonlyArray<CompiledLayerPipelineStep> | {
+  prefill: ReadonlyArray<CompiledLayerPipelineStep>;
+  decode: ReadonlyArray<CompiledLayerPipelineStep>;
+};
 
 export function filterLayerPlanStepsByPhase(
-  steps: CompiledLayerPipelineStep[],
+  steps: ReadonlyArray<CompiledLayerPipelineStep> | {
+    prefill: ReadonlyArray<CompiledLayerPipelineStep>;
+    decode: ReadonlyArray<CompiledLayerPipelineStep>;
+  },
   isPrefill: boolean
-): CompiledLayerPipelineStep[];
+): ReadonlyArray<CompiledLayerPipelineStep>;

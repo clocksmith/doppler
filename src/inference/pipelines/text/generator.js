@@ -3267,9 +3267,14 @@ export class PipelineGenerator {
     );
     const createRecorder = (label) => {
       if (!device || disableCommandBatching) return undefined;
+      const recorderOptions = {
+        recordLabels: opts.debug === true || opts.benchmark === true || opts.executionObserver === true,
+        recordDispatches: opts.debug === true || opts.executionObserver === true,
+        aggregateDispatches: opts.executionObserver === true,
+      };
       return opts.profile
-        ? createProfilingRecorder(label, device)
-        : createCommandRecorder(label, { recordLabels: opts.debug === true || opts.benchmark === true }, device);
+        ? createProfilingRecorder(label, device, recorderOptions)
+        : createCommandRecorder(label, recorderOptions, device);
     };
     const recorder = createRecorder('prefill');
     const debugCheckBuffer = this.#state.debug

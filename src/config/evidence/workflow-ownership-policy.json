@@ -27,9 +27,12 @@
     },
     {
       "job": "registered-variant-calibration",
-      "canonicalOwner": "src/tooling/registered-variant-calibration.js",
-      "canonicalCommand": null,
-      "adapters": []
+      "canonicalOwner": "src/tooling/registered-variant-calibration-job.js",
+      "canonicalCommand": "npm run calibrate:registered",
+      "adapters": [
+        "src/tooling/registered-variant-calibration.js",
+        "tools/calibrate-registered-variants.js"
+      ]
     },
     {
       "job": "optimization-promotion",

@@ -165,6 +165,10 @@ export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, de
     operatorDiagnostics: state.operatorDiagnostics,
     useFusedGateUpGelu: state.runtimeConfig?.inference?.session?.useFusedGateUpGelu === true,
     useLargeBatchF16F32FusedGateUp: state.runtimeConfig?.inference?.session?.useLargeBatchF16F32FusedGateUp === true,
+    useSandwichRMSNormPairFusion:
+      state.runtimeConfig?.inference?.session?.useSandwichRMSNormPairFusion === true,
+    usePostFfnNextInputRMSNormPairFusion:
+      state.runtimeConfig?.inference?.session?.usePostFfnNextInputRMSNormPairFusion === true,
     skipKVCacheWrites: false,
   };
 }

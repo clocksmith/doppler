@@ -125,6 +125,21 @@ lose despite doing less work per row. Once projection math is competitive,
 compare encoded dispatch counts with the reference engine. A lower reference
 count points to operation fusion, not another Q4_K inner-loop rewrite.
 
+Separate three host walls before changing WGSL:
+
+- `decodeRecordMs`: JavaScript planning, descriptor construction, and command
+  encoding.
+- `decodeSubmitWaitMs` / `decodeReadbackWaitMs`: overlapping observations of
+  the same GPU fence; compare their maximum.
+- `decodeReadbackMapWaitMs`, cleanup, and copy: a nested readback breakdown.
+
+The token cost ledger performs this accounting without double-counting. In
+ordinary runs, recorder labels and dispatch-geometry objects are disabled.
+Execution-observer runs opt into them explicitly. Layer execution uses the
+immutable per-layer phase plan compiled at session resolution; a kernel wrapper
+must not rescan execution policy or read live global config to repair stale
+state.
+
 ### Attention
 
 Projection tuning does not cover RoPE, softmax, KV-cache reads, or attention
@@ -150,6 +165,14 @@ negative evidence for that shape, not universal bans.
 Do not hand-copy these numbers into the generated competition scoreboard. Saved
 benchmark receipts remain the source for generated model/platform results.
 
+Device-specific screening failures belong in
+`benchmarks/kernels/negative-results.json`. A deterministic token match alone
+does not promote an F16 lane: the candidate must also beat the baseline and pass
+the source-bound boundary and neighboring-workload gates. Once an F16 candidate
+passes those gates, it is required for its bound compatible
+model/device/browser/phase/shape scope; capability absence or revoked evidence
+are the only automatic reasons to retain the baseline.
+
 ## Verification
 
 Minimum kernel gates:
@@ -159,6 +182,18 @@ Minimum kernel gates:
 - comparison with the established GPU kernel where one exists
 - exact 128-token greedy output parity after profile wiring
 - an interleaved long-form paired comparison before a parity or win claim
+
+Before opening a new shader experiment, run:
+
+```bash
+npm run routing:audit
+```
+
+Use its exact-head, tiled-prefill, and F16-output findings to build a registered
+calibration job. Then run `npm run calibrate:registered -- --job ... --out ...`.
+The job must bind operator references, a boundary receipt, 128-token parity, and
+the checked-in candidate registry entry before the real Node/Bun or Chromium
+tournament begins.
 
 Current SIMD16 regression anchors:
 

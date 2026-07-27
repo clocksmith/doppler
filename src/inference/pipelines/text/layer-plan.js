@@ -217,7 +217,32 @@ function compileLayerPipeline(plan, numLayers) {
     overrides.push({ layers, steps: compiledOverrideSteps });
   }
 
-  return { steps: compiledSteps, overrides };
+  const overrideByLayer = new Map();
+  for (const override of overrides) {
+    for (const layer of override.layers) {
+      if (!overrideByLayer.has(layer)) {
+        overrideByLayer.set(layer, override.steps);
+      }
+    }
+  }
+  const stepsByLayer = Array.from({ length: numLayers }, (_, layerIdx) => {
+    const steps = overrideByLayer.get(layerIdx) ?? compiledSteps;
+    return Object.freeze({
+      prefill: Object.freeze(filterLayerPlanStepsByPhase(steps, true)),
+      decode: Object.freeze(filterLayerPlanStepsByPhase(steps, false)),
+    });
+  });
+
+  return Object.freeze({
+    steps: Object.freeze(compiledSteps),
+    overrides: Object.freeze(
+      overrides.map((override) => Object.freeze({
+        layers: Object.freeze(override.layers),
+        steps: Object.freeze(override.steps),
+      }))
+    ),
+    stepsByLayer: Object.freeze(stepsByLayer),
+  });
 }
 
 
@@ -226,10 +251,16 @@ export function resolveLayerPipeline(modelPlan, runtimePlan, numLayers) {
   const modelHasSteps = modelPlan?.steps && modelPlan.steps.length > 0;
 
   if (runtimeHasSteps) {
-    return { ...compileLayerPipeline( (runtimePlan), numLayers), source: 'runtime' };
+    return Object.freeze({
+      ...compileLayerPipeline((runtimePlan), numLayers),
+      source: 'runtime',
+    });
   }
   if (modelHasSteps) {
-    return { ...compileLayerPipeline( (modelPlan), numLayers), source: 'model' };
+    return Object.freeze({
+      ...compileLayerPipeline((modelPlan), numLayers),
+      source: 'model',
+    });
   }
 
   return null;
@@ -237,6 +268,10 @@ export function resolveLayerPipeline(modelPlan, runtimePlan, numLayers) {
 
 
 export function getLayerPlanSteps(plan, layerIdx) {
+  const compiled = plan.stepsByLayer?.[layerIdx];
+  if (compiled) {
+    return compiled;
+  }
   for (const override of plan.overrides) {
     if (override.layers.includes(layerIdx)) {
       return override.steps;
@@ -246,6 +281,13 @@ export function getLayerPlanSteps(plan, layerIdx) {
 }
 
 export function filterLayerPlanStepsByPhase(steps, isPrefill) {
+  if (!Array.isArray(steps)) {
+    const phaseSteps = isPrefill ? steps?.prefill : steps?.decode;
+    if (!Array.isArray(phaseSteps)) {
+      throw new Error('Compiled layer pipeline is missing phase steps.');
+    }
+    return phaseSteps;
+  }
   const phase = isPrefill ? 'prefill' : 'decode';
   return steps.filter((step) => step.phase === 'both' || step.phase === phase);
 }

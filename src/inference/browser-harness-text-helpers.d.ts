@@ -13,7 +13,11 @@ export declare function getDefaultRerankSemanticFixtures(): {
 };
 export declare function resolveBenchmarkRunSettings(
   runtimeConfig: Record<string, unknown>,
-  source?: Record<string, unknown> | null
+  source?: Record<string, unknown> | null,
+  runOverrides?: {
+    prompt?: string;
+    maxTokens?: number;
+  } | null
 ): {
   warmupRuns: number;
   timedRuns: number;

@@ -129,9 +129,13 @@ is no second profiler implementation.
 The ledger separates prefill and decode. It records timestamp or CPU-estimated
 measurement source, attributed and unattributed time, timestamp coverage,
 dispatches, known workgroups, command-buffer submissions, observer readbacks,
-selected execution information, and digest identities. Bytes moved are labeled
-estimated and remain unavailable unless an estimator supplies them. Summed GPU
-operation durations are never asserted to equal wall time.
+selected execution information, digest identities, command-recording time, and
+submit/readback fence observations. `submitWaitMs` and `readbackWaitMs` may
+observe the same GPU work, so `fenceWaitMs` is their maximum rather than their
+sum. Map, cleanup, and copy measurements are a nested readback breakdown and
+are not added again. Bytes moved are labeled estimated and remain unavailable
+unless an estimator supplies them. Summed GPU operation durations are never
+asserted to equal wall time.
 
 For browser inference, `artifactDigest` binds the declared artifact identity,
 ordered shard hashes, tokenizer contract, and total size. `wrapperDigest` binds
@@ -142,9 +146,25 @@ path, phase operation maps, and execution policies. It is distinct from
 The classifier policy in
 `src/config/evidence/token-cost-classifier-policy.json` maps operation labels to
 projection, attention, sampling, and memory walls. Every optimization
-hypothesis should name the ledger entry it expects to reduce.
+hypothesis should name the ledger entry it expects to reduce. The classifier
+also compares those GPU walls with built-in command-recording,
+submit/readback-fence, and host-orchestration walls, then returns experiments
+appropriate to the largest observed cost.
 
 ## 4. Calibrate Registered Variants
+
+First materialize the routing inventory:
+
+```bash
+npm run routing:audit
+npm run routing:audit:check
+```
+
+The generated
+`benchmarks/kernels/execution-routing-audit.json` verifies every pinned kernel
+digest it can resolve and lists exact-head prefill, tiled prefill, and F16-output
+alternatives. Every alternative is marked `calibration-required`; the audit
+does not rewrite a manifest or runtime profile.
 
 `calibrateRegisteredVariants()` consumes:
 
@@ -170,6 +190,47 @@ Registered calibration gates candidates in this order:
 
 Successful calibration emits a proposed runtime profile or registered
 execution-graph patch. It never activates a runtime mutation.
+
+F16 selection follows one strict rule: hardware support makes an F16 candidate
+eligible, while source-bound accuracy and positive paired performance make it
+mandatory. After promotion, the F16 route is the default for its bound adapter,
+execution engine, artifact, execution graph, phase, and shape scope. F32 remains legal
+only when shader-f16 is unavailable, a declared stable boundary requires F32,
+the F16 result is not faster, or its evidence has been revoked. Capability
+alone never promotes an unverified precision change.
+
+Run a digest-bound job through the actual command surface:
+
+```bash
+npm run calibrate:registered -- \
+  --job artifacts/calibration/job.json \
+  --out artifacts/calibration/receipt.json
+
+bun tools/calibrate-registered-variants.js \
+  --job artifacts/calibration/job.json \
+  --out artifacts/calibration/bun-receipt.json
+```
+
+Set `surface` in the job to `node` for the Node/Bun WebGPU command runner or
+`browser` for the Playwright Chromium relay. A job embeds the calibration plan,
+correctness-evidence bindings, one checked-in candidate registry, one runtime
+optimization contract per candidate, and optional command-runner settings.
+Each correctness binding must repeat the artifact, execution-graph, descriptor,
+kernel, execution-engine, browser, and adapter digests. The candidate registry
+evidence scope must repeat the same seven values. The job also checks candidate
+and baseline kernel digests against
+the current WGSL digest registry. `executionEngineDigest` is the canonical hash
+of the active surface and engine string; every benchmark result must also match
+the plan's artifact, execution graph, adapter, and browser digest through its
+token-cost-ledger identity. Missing, historical, or mismatched evidence fails
+before benchmarking; historical manifest pins remain visible in the routing
+audit until those artifacts are requalified rather than silently re-signed.
+
+The command executes verify, interleaved paired measurement, and declared
+neighboring-workload guards through Doppler's normal command envelopes. Its
+receipt records the execution surface, concrete Node/Bun/browser engine, and
+job digest. There is no fixture-only success path and no generated hardware
+result in CI.
 
 ## 5. Promote Through the Existing Evaluator
 
@@ -203,3 +264,15 @@ The index is derived evidence. Do not hand-edit it.
 Run `npm run evidence:workflows:check` to verify that each job above still has
 one canonical owner and that retired synthetic-selection, duplicate-profiler,
 and standalone-receipt surfaces have not returned.
+
+## 6. Keep the Runtime Path Cheap
+
+Ordinary generation does not retain per-dispatch geometry or label histograms.
+Those objects are enabled only for the execution observer, benchmark, or debug
+inspection. Layer-pipeline phase selection is compiled once into immutable
+per-layer prefill/decode step arrays; token execution consumes those arrays
+without rescanning overrides or allocating filtered plans.
+
+Canonical rule JSON remains split by policy owner. Runtime loads the generated
+`src/rules/generated/rule-bundle.json` so a browser does not fetch every rule
+file independently. `npm run rules:bundle:check` proves that mirror is current.

@@ -195,20 +195,27 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `buildSourceBoundaryPack`
   - `buildSourceBoundaryPackFromProviderCapture`
   - `buildTokenCostLedger`
+  - `calibrateRegisteredVariants`
   - `classifyTokenCostLedger`
   - `compareBoundaryEvidence`
   - `DEMO_CONTRACT_RECEIPT_SCHEMA`
   - `DEMO_HARDWARE_RECEIPT_SCHEMA`
   - `DETERMINISTIC_TOKEN_EVIDENCE_SCHEMA`
+  - `digestRegisteredVariantDescriptor`
   - `isExecutionObservationRequested`
   - `listObservationPolicies`
+  - `REGISTERED_VARIANT_CALIBRATION_JOB_SCHEMA`
+  - `REGISTERED_VARIANT_CALIBRATION_PLAN_SCHEMA`
+  - `REGISTERED_VARIANT_CALIBRATION_RECEIPT_SCHEMA`
   - `resolveObservationPolicy`
+  - `runRegisteredVariantCalibrationJob`
   - `RUNTIME_BOUNDARY_CAPTURE_SCHEMA`
   - `sortTokenIdsByScore`
   - `SOURCE_BOUNDARY_PACK_SCHEMA`
   - `TOKEN_COST_LEDGER_SCHEMA`
   - `validateDemoContractReceipt`
   - `validateDemoHardwareReceipt`
+  - `validateRegisteredVariantCalibrationPlan`
 
 ## `doppler-gpu/structured`
 

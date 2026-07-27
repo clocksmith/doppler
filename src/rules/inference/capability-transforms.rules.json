@@ -54,7 +54,7 @@
         "hasF16": true
       },
       "transforms": ["useQwenF16PrimaryMatmuls"],
-      "reason": "Runtime requested the promoted f16 primary lane for Qwen 3.5 small execution-v1 Q4K models with the shared linear/full attention graph.",
+      "reason": "Runtime explicitly requested the selective f16 probe lane for Qwen 3.5 small execution-v1 Q4K models with the shared linear/full attention graph. Promotion remains device- and evidence-specific.",
       "evidence": [
         "tests/integration/qwen-execution-v1-linear-decode-f16.test.js",
         "tests/integration/execution-graph-transforms.test.js"

@@ -1427,7 +1427,7 @@ function resolveAutomaticGenerationDiagnostics(runtimeConfig, runOverrides = nul
   };
 }
 
-export function resolveBenchmarkRunSettings(runtimeConfig, source = null) {
+export function resolveBenchmarkRunSettings(runtimeConfig, source = null, runOverrides = null) {
   const benchConfig = runtimeConfig?.shared?.benchmark?.run || {};
   const runtimeSampling = isPlainObject(runtimeConfig?.inference?.sampling)
     ? runtimeConfig.inference.sampling
@@ -1449,12 +1449,16 @@ export function resolveBenchmarkRunSettings(runtimeConfig, source = null) {
     : benchSeed != null
       ? benchSeed
       : runtimeSeed;
-  const promptInput = typeof benchConfig.customPrompt === 'string' && benchConfig.customPrompt.trim()
-    ? benchConfig.customPrompt
-    : resolveGenerationPromptInput(runtimeConfig, null, source);
-  const maxTokens = Number.isFinite(benchConfig.maxNewTokens)
-    ? Math.max(1, Math.floor(benchConfig.maxNewTokens))
-    : resolveMaxTokens(runtimeConfig);
+  const promptInput = runOverrides?.prompt != null
+    ? resolveGenerationPromptInput(runtimeConfig, runOverrides, source)
+    : typeof benchConfig.customPrompt === 'string' && benchConfig.customPrompt.trim()
+      ? benchConfig.customPrompt
+      : resolveGenerationPromptInput(runtimeConfig, null, source);
+  const maxTokens = Number.isFinite(runOverrides?.maxTokens)
+    ? Math.max(1, Math.floor(runOverrides.maxTokens))
+    : Number.isFinite(benchConfig.maxNewTokens)
+      ? Math.max(1, Math.floor(benchConfig.maxNewTokens))
+      : resolveMaxTokens(runtimeConfig);
   const sampling = {
     ...runtimeSampling,
     ...benchSampling,

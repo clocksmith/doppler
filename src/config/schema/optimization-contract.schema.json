@@ -18,7 +18,14 @@
   "properties": {
     "schema": { "const": "doppler.runtime-optimization-contract/v1" },
     "contractId": { "type": "string", "minLength": 1 },
-    "kind": { "const": "runtime_profile" },
+    "kind": {
+      "enum": [
+        "runtime_profile",
+        "runtime-profile",
+        "registered-kernel-variant",
+        "registered-execution-graph-patch"
+      ]
+    },
     "model": {
       "type": "object",
       "additionalProperties": false,
@@ -61,25 +68,50 @@
       }
     },
     "mutationPolicy": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["dimensions", "maxCandidates"],
-      "properties": {
-        "dimensions": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["path", "values"],
-            "properties": {
-              "path": { "type": "string", "pattern": "^/" },
-              "values": { "type": "array", "minItems": 1 }
-            }
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dimensions", "maxCandidates"],
+          "properties": {
+            "dimensions": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path", "values"],
+                "properties": {
+                  "path": { "type": "string", "pattern": "^/" },
+                  "values": { "type": "array", "minItems": 1 }
+                }
+              }
+            },
+            "maxCandidates": { "type": "integer", "minimum": 1, "maximum": 256 }
           }
         },
-        "maxCandidates": { "type": "integer", "minimum": 1, "maximum": 256 }
-      }
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["references", "maxCandidates"],
+          "properties": {
+            "references": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["registryId", "digest"],
+                "properties": {
+                  "registryId": { "type": "string", "minLength": 1 },
+                  "digest": { "$ref": "#/$defs/digest" }
+                }
+              }
+            },
+            "maxCandidates": { "type": "integer", "minimum": 1, "maximum": 256 }
+          }
+        }
+      ]
     },
     "verification": {
       "type": "object",
@@ -94,7 +126,13 @@
             "additionalProperties": false,
             "required": ["path", "mode"],
             "properties": {
-              "path": { "type": "string", "minLength": 1 },
+              "path": {
+                "enum": [
+                  "result.output",
+                  "result.metrics.referenceTranscript.tokens.generatedTokenIdsHash",
+                  "result.metrics.referenceTranscript.output.textHash"
+                ]
+              },
               "mode": { "const": "canonical_exact" }
             }
           }
@@ -114,16 +152,114 @@
         "maxRelativeStdDevPercent"
       ],
       "properties": {
-        "metricPath": { "type": "string", "minLength": 1 },
+        "metricPath": {
+          "enum": [
+            "result.metrics.decodeTokensPerSec",
+            "result.metrics.embeddingMs",
+            "result.metrics.rerankMs",
+            "result.timing.decodeTokensPerSec",
+            "result.timing.totalRunMs"
+          ]
+        },
         "direction": { "enum": ["maximize", "minimize"] },
         "pairCount": { "type": "integer", "minimum": 1, "maximum": 64 },
         "minValidPairs": { "type": "integer", "minimum": 1, "maximum": 64 },
         "minImprovementPercent": { "type": "number" },
         "requirePositiveConfidence": { "type": "boolean" },
-        "maxRelativeStdDevPercent": { "type": ["number", "null"], "minimum": 0 }
+        "maxRelativeStdDevPercent": { "type": ["number", "null"], "minimum": 0 },
+        "orderPolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "seed", "blockSize"],
+          "properties": {
+            "kind": { "const": "randomized-blocks" },
+            "seed": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+            "blockSize": { "const": 2 }
+          }
+        },
+        "sequentialDecision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "lookEveryPairs", "minimumPairs", "maximumLooks", "alpha"],
+          "properties": {
+            "kind": { "const": "bonferroni-fixed-looks" },
+            "lookEveryPairs": { "type": "integer", "minimum": 1, "maximum": 64 },
+            "minimumPairs": { "type": "integer", "minimum": 1, "maximum": 64 },
+            "maximumLooks": { "type": "integer", "minimum": 1, "maximum": 64 },
+            "alpha": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 0.5 }
+          }
+        }
+      }
+    },
+    "neighboringWorkloads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "guardId",
+          "workload",
+          "metricPath",
+          "direction",
+          "maxRegressionPercent",
+          "pairCount"
+        ],
+        "properties": {
+          "guardId": { "type": "string", "minLength": 1 },
+          "workload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "request"],
+            "properties": {
+              "type": { "enum": ["inference", "embedding", "rerank"] },
+              "request": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "inferenceInput": { "type": ["object", "null"] },
+                  "cacheMode": { "enum": ["cold", "warm", null] },
+                  "loadMode": { "enum": ["opfs", "http", "memory", "file", null] }
+                }
+              }
+            }
+          },
+          "metricPath": {
+            "enum": [
+              "result.metrics.decodeTokensPerSec",
+              "result.metrics.embeddingMs",
+              "result.metrics.rerankMs",
+              "result.timing.decodeTokensPerSec",
+              "result.timing.totalRunMs"
+            ]
+          },
+          "direction": { "enum": ["maximize", "minimize"] },
+          "maxRegressionPercent": { "type": "number", "minimum": 0 },
+          "pairCount": { "type": "integer", "minimum": 1, "maximum": 16 }
+        }
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": ["runtime_profile", "runtime-profile"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "mutationPolicy": { "required": ["dimensions"] }
+        }
+      },
+      "else": {
+        "properties": {
+          "mutationPolicy": { "required": ["references"] }
+        }
+      }
+    }
+  ],
   "$defs": {
     "digest": {
       "type": "string",

@@ -11,6 +11,10 @@ export interface RecorderOptions {
   profile?: boolean;
   /** Collect per-label operation counts for diagnostics. Defaults to true. */
   recordLabels?: boolean;
+  /** Collect per-dispatch geometry for evidence ledgers. Defaults to true. */
+  recordDispatches?: boolean;
+  /** Aggregate identical label/kind/geometry records in-place to reduce observer overhead. */
+  aggregateDispatches?: boolean;
 }
 
 /** Profiling result - maps kernel label to time in milliseconds */
@@ -161,6 +165,7 @@ export declare class CommandRecorder {
       label: string;
       kind: 'direct' | 'indirect';
       workgroups: number[] | null;
+      count?: number;
     }>;
     computePassCount: number;
     tempBufferCount: number;
@@ -219,6 +224,10 @@ export function createCommandRecorder(
  * @param label - Label for debugging
  * @returns CommandRecorder with profiling enabled
  */
-export function createProfilingRecorder(label?: string, device?: GPUDevice | null): CommandRecorder;
+export function createProfilingRecorder(
+  label?: string,
+  device?: GPUDevice | null,
+  options?: Omit<RecorderOptions, 'profile'>
+): CommandRecorder;
 
 export default CommandRecorder;
