@@ -465,6 +465,35 @@ function createHarnessOverride(records) {
     renderedPrompt,
     'runtime inference prompt must preserve exact rendered prompt bytes'
   );
+
+  const settingsCommandInput = resolveBenchmarkRunSettings(
+    {
+      shared: {
+        benchmark: {
+          run: {
+            customPrompt: 'runtime benchmark prompt',
+            maxNewTokens: 99,
+          },
+        },
+      },
+      inference: {},
+    },
+    null,
+    {
+      prompt: 'command prompt',
+      maxTokens: 16,
+    }
+  );
+  assert.equal(
+    settingsCommandInput.prompt,
+    'command prompt',
+    'explicit command prompt must take precedence over runtime benchmark prompt'
+  );
+  assert.equal(
+    settingsCommandInput.maxTokens,
+    16,
+    'explicit command maxTokens must take precedence over runtime benchmark maxNewTokens'
+  );
 }
 
 console.log('browser-harness-generation-diagnostics.test: ok');

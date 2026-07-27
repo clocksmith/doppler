@@ -45,6 +45,12 @@ export class CommandRecorder {
 
   #dispatchRecords;
 
+  #recordDispatches;
+
+  #aggregateDispatches;
+
+  #dispatchRecordIndex;
+
   #recordLabels;
 
   #computePassCount;
@@ -97,8 +103,13 @@ export class CommandRecorder {
     // Operation count for debugging
     this.#opCount = 0;
     this.#recordLabels = options.recordLabels !== false;
+    this.#recordDispatches = options.recordDispatches !== false;
+    this.#aggregateDispatches = options.aggregateDispatches === true;
     this.#opLabelCounts = this.#recordLabels ? Object.create(null) : null;
-    this.#dispatchRecords = [];
+    this.#dispatchRecords = this.#recordDispatches ? [] : null;
+    this.#dispatchRecordIndex = this.#recordDispatches && this.#aggregateDispatches
+      ? new Map()
+      : null;
     this.#computePassCount = 0;
     this.#activeComputePass = null;
     // Initialize profiling if requested and available
@@ -260,6 +271,39 @@ export class CommandRecorder {
     return opLabel;
   }
 
+  #recordDispatchGeometry(label, kind, workgroups) {
+    if (!this.#recordDispatches) {
+      return;
+    }
+    const normalizedWorkgroups = workgroups === null
+      ? null
+      : [workgroups[0], workgroups[1], workgroups[2]];
+    if (!this.#aggregateDispatches) {
+      this.#dispatchRecords.push({
+        label,
+        kind,
+        workgroups: normalizedWorkgroups,
+      });
+      return;
+    }
+    const geometryKey = normalizedWorkgroups === null
+      ? 'indirect'
+      : normalizedWorkgroups.join(',');
+    const key = `${label}\u0000${kind}\u0000${geometryKey}`;
+    const existingIndex = this.#dispatchRecordIndex.get(key);
+    if (existingIndex !== undefined) {
+      this.#dispatchRecords[existingIndex].count += 1;
+      return;
+    }
+    this.#dispatchRecordIndex.set(key, this.#dispatchRecords.length);
+    this.#dispatchRecords.push({
+      label,
+      kind,
+      workgroups: normalizedWorkgroups,
+      count: 1,
+    });
+  }
+
   #beginRawComputePass(opLabel) {
     this.#computePassCount++;
     const passLabel = `${this.label}_${opLabel}_${this.#computePassCount}`;
@@ -319,11 +363,11 @@ export class CommandRecorder {
       throw new Error('[CommandRecorder] Cannot record dispatch after submit');
     }
     const opLabel = this.#recordDispatchOperation(label);
-    this.#dispatchRecords.push({
-      label: opLabel ?? this.#normalizeOperationLabel(label),
-      kind: 'direct',
-      workgroups: Array.from(workgroups),
-    });
+    this.#recordDispatchGeometry(
+      opLabel ?? this.#normalizeOperationLabel(label),
+      'direct',
+      workgroups
+    );
     if (this.#profilingEnabled) {
       const pass = this.#beginRawComputePass(opLabel);
       pass.setPipeline(pipeline);
@@ -343,11 +387,11 @@ export class CommandRecorder {
       throw new Error('[CommandRecorder] Cannot record dispatch after submit');
     }
     const opLabel = this.#recordDispatchOperation(label);
-    this.#dispatchRecords.push({
-      label: opLabel ?? this.#normalizeOperationLabel(label),
-      kind: 'indirect',
-      workgroups: null,
-    });
+    this.#recordDispatchGeometry(
+      opLabel ?? this.#normalizeOperationLabel(label),
+      'indirect',
+      null
+    );
     if (this.#profilingEnabled) {
       const pass = this.#beginRawComputePass(opLabel);
       pass.setPipeline(pipeline);
@@ -537,7 +581,7 @@ export class CommandRecorder {
     return {
       opCount: this.#opCount,
       opLabelCounts,
-      dispatches: this.#dispatchRecords.map((record) => ({
+      dispatches: (this.#dispatchRecords ?? []).map((record) => ({
         ...record,
         workgroups: record.workgroups ? [...record.workgroups] : null,
       })),
@@ -681,8 +725,8 @@ export function createCommandRecorder(label = 'command_recorder', options, devic
 }
 
 
-export function createProfilingRecorder(label = 'profiled_recorder', device = null) {
-  return new CommandRecorder(device, label, { profile: true });
+export function createProfilingRecorder(label = 'profiled_recorder', device = null, options = {}) {
+  return new CommandRecorder(device, label, { ...options, profile: true });
 }
 
 export default CommandRecorder;

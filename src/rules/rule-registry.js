@@ -3,60 +3,63 @@ import { buildInferenceExecutionRulesContractArtifact } from './execution-rules-
 import { buildLayerPatternContractArtifact } from './layer-pattern-contract-check.js';
 import { cloneJsonValue as cloneRuleValue } from '../utils/clone-json.js';
 
-// Rule files imported statically (JSON import attributes). Sync at module
-// load time, no top-level await, and bundle-friendly. Requires Node >=22
-// and any bundler with JSON-module support (Vite/Rollup/esbuild/webpack5).
-import attentionRules from './kernels/attention.rules.json' with { type: 'json' };
-import conv2dRules from './kernels/conv2d.rules.json' with { type: 'json' };
-import depthwiseConv2dRules from './kernels/depthwise-conv2d.rules.json' with { type: 'json' };
-import dequantRules from './kernels/dequant.rules.json' with { type: 'json' };
-import energyRules from './kernels/energy.rules.json' with { type: 'json' };
-import fusedFfnRules from './kernels/fused-ffn.rules.json' with { type: 'json' };
-import fusedMatmulResidualRules from './kernels/fused-matmul-residual.rules.json' with { type: 'json' };
-import fusedMatmulRmsnormRules from './kernels/fused-matmul-rmsnorm.rules.json' with { type: 'json' };
-import gatherRules from './kernels/gather.rules.json' with { type: 'json' };
-import geluRules from './kernels/gelu.rules.json' with { type: 'json' };
-import groupedPointwiseConv2dRules from './kernels/grouped-pointwise-conv2d.rules.json' with { type: 'json' };
-import groupnormRules from './kernels/groupnorm.rules.json' with { type: 'json' };
-import kvQuantizeRules from './kernels/kv_quantize.rules.json' with { type: 'json' };
-import layernormRules from './kernels/layernorm.rules.json' with { type: 'json' };
-import lmHeadArgmaxRules from './kernels/lm-head-argmax.rules.json' with { type: 'json' };
-import matmulRules from './kernels/matmul.rules.json' with { type: 'json' };
-import kernelMoeRules from './kernels/moe.rules.json' with { type: 'json' };
-import kernelMoeGptOssRules from './kernels/moe.rules.gptoss.json' with { type: 'json' };
-import kernelMoeMixtralRules from './kernels/moe.rules.mixtral.json' with { type: 'json' };
-import modulateRules from './kernels/modulate.rules.json' with { type: 'json' };
-import pixelShuffleRules from './kernels/pixel_shuffle.rules.json' with { type: 'json' };
-import repeatChannelsRules from './kernels/repeat-channels.rules.json' with { type: 'json' };
-import repPenaltyRules from './kernels/rep-penalty.rules.json' with { type: 'json' };
-import reluRules from './kernels/relu.rules.json' with { type: 'json' };
-import residualRules from './kernels/residual.rules.json' with { type: 'json' };
-import rmsnormRules from './kernels/rmsnorm.rules.json' with { type: 'json' };
-import rmsnormQkRules from './kernels/rmsnorm-qk.rules.json' with { type: 'json' };
-import ropeQkRules from './kernels/rope-qk.rules.json' with { type: 'json' };
-import ropeRules from './kernels/rope.rules.json' with { type: 'json' };
-import linearAttentionRules from './kernels/linear-attention.rules.json' with { type: 'json' };
-import sampleRules from './kernels/sample.rules.json' with { type: 'json' };
-import scaleRules from './kernels/scale.rules.json' with { type: 'json' };
-import siluRules from './kernels/silu.rules.json' with { type: 'json' };
-import splitQkvRules from './kernels/split-qkv.rules.json' with { type: 'json' };
-import splitQgRules from './kernels/split-qg.rules.json' with { type: 'json' };
-import softmaxRules from './kernels/softmax.rules.json' with { type: 'json' };
-import upsample2dRules from './kernels/upsample2d.rules.json' with { type: 'json' };
-import configRules from './inference/config.rules.json' with { type: 'json' };
-import inferenceExecutionRules from './inference/execution.rules.json' with { type: 'json' };
-import inferenceAttentionRules from './inference/attention.rules.json' with { type: 'json' };
-import dtypeRules from './inference/dtype.rules.json' with { type: 'json' };
-import ffnRules from './inference/ffn.rules.json' with { type: 'json' };
-import layerRules from './inference/layer.rules.json' with { type: 'json' };
-import layerPatternRules from './inference/layer-pattern.rules.json' with { type: 'json' };
-import inferenceMoeRules from './inference/moe.rules.json' with { type: 'json' };
-import tokenizerRules from './converter/tokenizer.rules.json' with { type: 'json' };
-import tensorRolesRules from './converter/tensor-roles.rules.json' with { type: 'json' };
-import converterExecutionRules from './converter/execution.rules.json' with { type: 'json' };
-import loaderWeightRules from './loader/weights.rules.json' with { type: 'json' };
-import tensorLoaderRules from './loader/tensor-loader.rules.json' with { type: 'json' };
-import toolingCommandRuntimeRules from './tooling/command-runtime.rules.json' with { type: 'json' };
+// Canonical policy remains in the individual rule files. This generated mirror
+// collapses browser startup to one JSON module; CI proves it matches its sources.
+import ruleBundle from './generated/rule-bundle.json' with { type: 'json' };
+
+const {
+  'kernels/attention.rules.json': attentionRules,
+  'kernels/conv2d.rules.json': conv2dRules,
+  'kernels/depthwise-conv2d.rules.json': depthwiseConv2dRules,
+  'kernels/dequant.rules.json': dequantRules,
+  'kernels/energy.rules.json': energyRules,
+  'kernels/fused-ffn.rules.json': fusedFfnRules,
+  'kernels/fused-matmul-residual.rules.json': fusedMatmulResidualRules,
+  'kernels/fused-matmul-rmsnorm.rules.json': fusedMatmulRmsnormRules,
+  'kernels/gather.rules.json': gatherRules,
+  'kernels/gelu.rules.json': geluRules,
+  'kernels/grouped-pointwise-conv2d.rules.json': groupedPointwiseConv2dRules,
+  'kernels/groupnorm.rules.json': groupnormRules,
+  'kernels/kv_quantize.rules.json': kvQuantizeRules,
+  'kernels/layernorm.rules.json': layernormRules,
+  'kernels/lm-head-argmax.rules.json': lmHeadArgmaxRules,
+  'kernels/matmul.rules.json': matmulRules,
+  'kernels/moe.rules.json': kernelMoeRules,
+  'kernels/moe.rules.gptoss.json': kernelMoeGptOssRules,
+  'kernels/moe.rules.mixtral.json': kernelMoeMixtralRules,
+  'kernels/modulate.rules.json': modulateRules,
+  'kernels/pixel_shuffle.rules.json': pixelShuffleRules,
+  'kernels/repeat-channels.rules.json': repeatChannelsRules,
+  'kernels/rep-penalty.rules.json': repPenaltyRules,
+  'kernels/relu.rules.json': reluRules,
+  'kernels/residual.rules.json': residualRules,
+  'kernels/rmsnorm.rules.json': rmsnormRules,
+  'kernels/rmsnorm-qk.rules.json': rmsnormQkRules,
+  'kernels/rope-qk.rules.json': ropeQkRules,
+  'kernels/rope.rules.json': ropeRules,
+  'kernels/linear-attention.rules.json': linearAttentionRules,
+  'kernels/sample.rules.json': sampleRules,
+  'kernels/scale.rules.json': scaleRules,
+  'kernels/silu.rules.json': siluRules,
+  'kernels/split-qkv.rules.json': splitQkvRules,
+  'kernels/split-qg.rules.json': splitQgRules,
+  'kernels/softmax.rules.json': softmaxRules,
+  'kernels/upsample2d.rules.json': upsample2dRules,
+  'inference/config.rules.json': configRules,
+  'inference/execution.rules.json': inferenceExecutionRules,
+  'inference/attention.rules.json': inferenceAttentionRules,
+  'inference/dtype.rules.json': dtypeRules,
+  'inference/ffn.rules.json': ffnRules,
+  'inference/layer.rules.json': layerRules,
+  'inference/layer-pattern.rules.json': layerPatternRules,
+  'inference/moe.rules.json': inferenceMoeRules,
+  'converter/tokenizer.rules.json': tokenizerRules,
+  'converter/tensor-roles.rules.json': tensorRolesRules,
+  'converter/execution.rules.json': converterExecutionRules,
+  'loader/weights.rules.json': loaderWeightRules,
+  'loader/tensor-loader.rules.json': tensorLoaderRules,
+  'tooling/command-runtime.rules.json': toolingCommandRuntimeRules,
+} = ruleBundle.files;
 
 
 // deepFreeze assumes all values in the tree are plain objects, arrays, or

@@ -93,6 +93,26 @@ function resolveVariant(registry, reference, capabilities) {
   };
 }
 
+function buildSelectionPolicy(candidate) {
+  const requiredCapabilities = [...(candidate.descriptor.requires ?? [])].sort();
+  const precision = candidate.descriptor.precision ?? {};
+  const usesF16 = requiredCapabilities.includes('shader-f16')
+    || candidate.descriptor.inputDtype === 'f16'
+    || candidate.descriptor.outputDtype === 'f16'
+    || precision.inputDtype === 'f16'
+    || precision.outputDtype === 'f16'
+    || precision.activationDtype === 'f16';
+  return {
+    precisionPreference: usesF16 ? 'f16' : 'best-proven',
+    afterPromotion: usesF16
+      ? 'required-on-compatible-hardware'
+      : 'selected-for-matching-evidence-scope',
+    requiredCapabilities,
+    fallback:
+      'baseline-only-when-capability-incompatible-or-promoted-evidence-is-revoked',
+  };
+}
+
 export function validateRegisteredVariantCalibrationPlan(plan, registry) {
   if (plan?.schema !== REGISTERED_VARIANT_CALIBRATION_PLAN_SCHEMA) {
     throw new Error(
@@ -103,6 +123,7 @@ export function validateRegisteredVariantCalibrationPlan(plan, registry) {
     'artifactDigest',
     'manifestDigest',
     'executionGraphDigest',
+    'executionEngineDigest',
     'browserDigest',
     'adapterDigest',
     'wrapperDigest',
@@ -125,6 +146,18 @@ export function validateRegisteredVariantCalibrationPlan(plan, registry) {
   const baseline = resolveVariant(registry, plan.baseline, plan.identity.capabilities);
   if (!baseline.compatible) {
     throw new Error('registered calibration: baseline is incompatible with capability fingerprint');
+  }
+  const baselineKey = `${baseline.reference.operation}/${baseline.reference.variantId}`;
+  const candidateKeys = new Set();
+  for (const candidate of resolvedCandidates) {
+    const key = `${candidate.reference.operation}/${candidate.reference.variantId}`;
+    if (key === baselineKey) {
+      throw new Error('registered calibration: candidate must differ from baseline');
+    }
+    if (candidateKeys.has(key)) {
+      throw new Error(`registered calibration: duplicate candidate ${key}`);
+    }
+    candidateKeys.add(key);
   }
   return {
     ...plan,
@@ -238,6 +271,7 @@ export async function calibrateRegisteredVariants(planInput, options) {
       scope: {
         artifactDigest: plan.identity.artifactDigest,
         executionGraphDigest: plan.identity.executionGraphDigest,
+        executionEngineDigest: plan.identity.executionEngineDigest,
         browserDigest: plan.identity.browserDigest,
         adapterDigest: plan.identity.adapterDigest,
         shapeSignatures: plan.shapeSuite,
@@ -267,6 +301,7 @@ export async function calibrateRegisteredVariants(planInput, options) {
           kind: plan.outputKind ?? 'registered-execution-graph-patch',
           activation: 'manual-promotion-required',
           candidate: typedCandidate,
+          selectionPolicy: buildSelectionPolicy(candidate),
         }
         : null,
       reason: accepted ? null : 'performance_evidence_failed',
@@ -280,6 +315,21 @@ export async function calibrateRegisteredVariants(planInput, options) {
     proposedSelections: results
       .filter((result) => result.decision === 'proposed')
       .map((result) => result.proposal),
+    precisionSelectionPolicy: {
+      policy: 'prefer-proven-f16',
+      rule:
+        'On shader-f16 hardware, a promoted F16 candidate is required for its ' +
+        'bound artifact, execution graph, adapter, execution engine, browser when present, ' +
+        'phase, and shape scope.',
+      gates: [
+        'compatible-hardware',
+        'operator-reference',
+        'source-boundary-pack',
+        'exact-128-token-parity',
+        'positive-paired-performance',
+        'neighboring-workload-guards',
+      ],
+    },
     runtimeMutationApplied: false,
   };
   return { ...core, digest: computeCanonicalSha256(core) };

@@ -66,18 +66,31 @@ function createStagingBuffer(words, options = {}) {
 }
 
 {
-  assert.ok(
-    generatorStepsSource.includes("createCommandRecorder('decode', { recordLabels: opts.debug === true || opts.benchmark === true }, device)"),
-    'single-token decode recorder must collect labels only for debug and benchmark runs'
-  );
-  assert.ok(
-    generatorStepsSource.includes("createCommandRecorder('batch_decode', { recordLabels: opts.debug === true || opts.benchmark === true }, device)"),
-    'batch decode recorder must collect labels only for debug and benchmark runs'
+  assert.equal(
+    generatorStepsSource.match(
+      /recordLabels: opts\.debug === true \|\| opts\.benchmark === true \|\| opts\.executionObserver === true/g
+    )?.length,
+    2,
+    'decode recorders must collect labels only for explicit observation runs'
   );
   assert.equal(
-    generatorStepsSource.includes("createProfilingRecorder('batch_decode', device)"),
+    generatorStepsSource.match(
+      /recordDispatches: opts\.debug === true \|\| opts\.executionObserver === true/g
+    )?.length,
+    2,
+    'decode recorders must retain dispatch geometry only for debug or observer runs'
+  );
+  assert.equal(
+    generatorStepsSource.includes("createProfilingRecorder('batch_decode', device, recorderOptions)"),
     true,
     'batch decode profiling must keep labeled profile recorder path'
+  );
+  assert.equal(
+    generatorStepsSource.match(
+      /aggregateDispatches: opts\.executionObserver === true/g
+    )?.length,
+    2,
+    'decode evidence recorders must aggregate repeated dispatch geometry'
   );
   assert.ok(
     generatorStepsSource.includes('tokens.subarray(0, actualCount)'),

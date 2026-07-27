@@ -283,6 +283,51 @@ configurePerfGuards({
 }
 
 {
+  const device = createFakeDevice();
+  const recorder = new CommandRecorder(device, 'without_dispatch_metadata', {
+    recordLabels: false,
+    recordDispatches: false,
+  });
+  const pipeline = {};
+  const bindGroup = {};
+
+  recorder.recordDispatch(pipeline, bindGroup, [3, 2, 1], 'unretained');
+
+  assert.equal(recorder.getStats().opCount, 1);
+  assert.deepEqual(recorder.getStats().dispatches, []);
+  assert.deepEqual(device.computePasses[0].dispatches, [
+    { type: 'direct', x: 3, y: 2, z: 1 },
+  ]);
+
+  recorder.abort();
+}
+
+{
+  const device = createFakeDevice();
+  const recorder = new CommandRecorder(device, 'aggregate_dispatch_metadata', {
+    aggregateDispatches: true,
+  });
+  const pipeline = {};
+  const bindGroup = {};
+  const indirect = new FakeBuffer({ size: 12, usage: GPUBufferUsage.INDIRECT });
+
+  recorder.recordDispatch(pipeline, bindGroup, [3, 2, 1], 'repeated');
+  recorder.recordDispatch(pipeline, bindGroup, [3, 2, 1], 'repeated');
+  recorder.recordDispatch(pipeline, bindGroup, [4, 2, 1], 'repeated');
+  recorder.recordDispatchIndirect(pipeline, bindGroup, indirect, 0, 'indirect');
+  recorder.recordDispatchIndirect(pipeline, bindGroup, indirect, 4, 'indirect');
+
+  assert.deepEqual(recorder.getStats().dispatches, [
+    { label: 'repeated', kind: 'direct', workgroups: [3, 2, 1], count: 2 },
+    { label: 'repeated', kind: 'direct', workgroups: [4, 2, 1], count: 1 },
+    { label: 'indirect', kind: 'indirect', workgroups: null, count: 2 },
+  ]);
+  assert.equal(recorder.getStats().opCount, 5);
+
+  recorder.abort();
+}
+
+{
   setRuntimeConfig({
     shared: {
       debug: {

@@ -1,0 +1,76 @@
+{
+  "$schema": "doppler.kernel-negative-results/v1",
+  "schema": "doppler.kernel-negative-results/v1",
+  "entries": [
+    {
+      "id": "qwen-3-5-0-8b-selective-f16-amd-rdna3-node22-20260727",
+      "recordedAtUtc": "2026-07-27T16:21:47Z",
+      "hypothesis": "The selective F16 Qwen decode lane should replace the F32 activation lane when shader-f16 and subgroups are available.",
+      "scope": {
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "candidate": "useQwenF16PrimaryMatmuls",
+        "surface": "node-webgpu",
+        "runtime": "Node.js/22",
+        "phase": "decode",
+        "adapterDigest": "sha256:061268f4db627cde2ee6c032dd277a4d2c2c5c7b38ec63f171a64775deef931a",
+        "adapter": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "radeon-8060s-graphics-radv-strix-halo-",
+          "description": "radv: Mesa 26.0.3-1ubuntu1"
+        },
+        "executionGraphDigest": "sha256:dd2a8d0f007ae825348c9b56bfac089b5d83834e5c635bf2223122f82037c5e3",
+        "artifactDigest": "sha256:e0a331a03bd8ec3ea3b379c1e43d95ade282a25b61d430265b69a9f687697891",
+        "promptTokenCount": 22,
+        "generatedTokenCount": 64
+      },
+      "correctness": {
+        "exactTokenParity": true,
+        "generatedTokenIdsHash": "sha256:7b7793f27503b446550a0ecd78342bc81b7a739431aaf93d6c9b06494d0cde37",
+        "generatedTextHash": "sha256:254445dfbcda5dd4c12d72c26073fa2fb8ac721c390ef408780ed18025b3ce9d",
+        "sourceBoundaryPackPassed": false,
+        "promotionEligible": false,
+        "qualification": "deterministic-screen-only"
+      },
+      "measurement": {
+        "order": [
+          "baseline",
+          "candidate",
+          "baseline"
+        ],
+        "baselineDecodeTokensPerSec": [
+          47.47,
+          47.2
+        ],
+        "candidateDecodeTokensPerSec": [
+          39.85
+        ],
+        "baselineMeanDecodeTokensPerSec": 47.335,
+        "candidateMeanDecodeTokensPerSec": 39.85,
+        "throughputDeltaPercent": -15.812823492130557,
+        "baselineMeanDecodeMs": 1352.025,
+        "candidateMeanDecodeMs": 1605.93,
+        "decodeTimeDeltaPercent": 18.77960836522994,
+        "baselineMeanRecordMs": 803.5623390000005,
+        "candidateMeanRecordMs": 964.7698929999997,
+        "recordTimeDeltaPercent": 20.06161142402656,
+        "rawEnvelopeSha256": {
+          "baselineFirst": "sha256:dec98d8ed15f8e1a85e8ae5d87f87821b9562c49172968ece8a733d80a461e2e",
+          "candidate": "sha256:9e6e6ed14bd84ec9cda8f09990dcd1dd68d6d535c3e76d308239f443b0212d25",
+          "baselineSecond": "sha256:075ebde1559822d325171a8be3dc36ea23e0d71c640c32de7664165f5e165bf3"
+        }
+      },
+      "decision": {
+        "status": "rejected",
+        "reason": "F16 passed this deterministic token screen but was materially slower on the bound AMD RDNA3 lane.",
+        "runtimeMutationApplied": false,
+        "retryOnlyWhen": [
+          "kernel implementation changes",
+          "browser or WebGPU implementation changes",
+          "adapter or driver identity changes",
+          "shape or model identity changes"
+        ]
+      }
+    }
+  ]
+}

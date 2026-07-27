@@ -197,6 +197,10 @@ export interface LayerContext {
   useFusedGateUpGelu?: boolean;
   /** Opt into large-batch f16-weight/f32-activation fused gate/up prefill. */
   useLargeBatchF16F32FusedGateUp?: boolean;
+  /** Opt into paired post-attention/pre-FFN RMSNorm execution. */
+  useSandwichRMSNormPairFusion?: boolean;
+  /** Opt into paired post-FFN/next-layer-input RMSNorm execution. */
+  usePostFfnNextInputRMSNormPairFusion?: boolean;
   /** Skip KV cache writes for hidden-state-only prefill routes. */
   skipKVCacheWrites?: boolean;
 }

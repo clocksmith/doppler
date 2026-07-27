@@ -109,9 +109,12 @@ receipts pass in the
 
 ### Long-term direction
 
-Humans run this loop today. WGSL-distillation is experimental.
-Automation in kernel generation/autotuning is a roadmap item, not shipped yet.
-New checkpoints and GPUs still go through the same parity and benchmark gate flow.
+Registered-variant calibration is executable, but selection remains
+evidence-gated and human-promoted. `npm run routing:audit` inventories existing
+exact-head, tiled-prefill, and F16 candidates; `npm run calibrate:registered`
+runs digest-bound correctness and paired performance gates on Node, Bun, or the
+Chromium relay. WGSL distillation remains experimental. New checkpoints and
+GPUs still pass boundary, deterministic parity, and benchmark gates.
 
 ## How it works
 

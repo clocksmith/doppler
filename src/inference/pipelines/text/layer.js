@@ -1,7 +1,6 @@
 
 
 import { log, trace } from '../../../debug/index.js';
-import { getRuntimeConfig } from '../../../config/runtime.js';
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
@@ -58,8 +57,7 @@ function shouldUseSandwichRMSNormPairFusion({
   inputTensor,
 }) {
   if (context.config?.normalizationType === 'layernorm') return false;
-  const mergedSession = getRuntimeConfig()?.inference?.session;
-  if (mergedSession?.useSandwichRMSNormPairFusion !== true) {
+  if (context.useSandwichRMSNormPairFusion !== true) {
     return false;
   }
   if (numTokens !== 1) {
@@ -125,8 +123,7 @@ function shouldUsePostFfnNextInputRMSNormPairFusion({
   layerScalar,
 }) {
   if (config.normalizationType === 'layernorm') return false;
-  const mergedSession = getRuntimeConfig()?.inference?.session;
-  if (mergedSession?.usePostFfnNextInputRMSNormPairFusion !== true) {
+  if (context.usePostFfnNextInputRMSNormPairFusion !== true) {
     return false;
   }
   if (numTokens !== 1 || context.phase !== 'decode' || context.diffusionGemmaDecoder === true) {
@@ -179,8 +176,7 @@ function shouldUseStandardPostFfnNextInputRMSNormPairFusion({
   residualBranchScale,
 }) {
   if (config.normalizationType === 'layernorm') return false;
-  const mergedSession = getRuntimeConfig()?.inference?.session;
-  if (mergedSession?.usePostFfnNextInputRMSNormPairFusion !== true) {
+  if (context.usePostFfnNextInputRMSNormPairFusion !== true) {
     return false;
   }
   if (numTokens !== 1 || context.phase !== 'decode' || context.diffusionGemmaDecoder === true) {

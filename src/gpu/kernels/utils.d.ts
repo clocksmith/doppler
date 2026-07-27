@@ -85,19 +85,6 @@ export {
 // Combined Cache Management
 // ============================================================================
 
-/** Whether debug-only kernel record-stage timing is enabled for this process. */
-export declare const RECORD_STAGE_DEBUG_ENABLED: boolean;
-
-/** Debug-only kernel timing recorder enabled by DOPPLER_DBG_RECORD. */
-export declare function __dbgRecord(
-  op: string,
-  variant: string,
-  pipelineMs: number,
-  prepMs: number,
-  bgMs: number,
-  dispatchMs: number
-): void;
-
 /**
  * Unified kernel dispatch helper. Resolves the kernel config and pipeline
  * for `opName`/`variant`, creates a uniform buffer from `uniforms`, and

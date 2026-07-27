@@ -1661,8 +1661,8 @@ export function useQwenDecodeF16Matmuls(graph, ctx) {
 // =============================================================================
 
 /*
- * Promote the Qwen 3.5 0.8B execution graph onto its selective f16 primary
- * lane when the runtime explicitly requests f16 activations.
+ * Select the Qwen 3.5 small-model execution graph's selective f16 probe lane
+ * when the runtime explicitly requests f16 activations.
  *
  * This transform narrows the decode projection and LM-head path while keeping
  * `o_proj` on the stable manifest-owned f32-output kernel. The prefill path is

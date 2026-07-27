@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   calibrateRegisteredVariants,
   digestRegisteredVariantDescriptor,
+  validateRegisteredVariantCalibrationPlan,
 } from '../../src/tooling/registered-variant-calibration.js';
 
 const baselineDescriptor = {
@@ -46,6 +47,7 @@ const plan = {
     artifactDigest: digest('1'),
     manifestDigest: digest('2'),
     executionGraphDigest: digest('3'),
+    executionEngineDigest: digest('4'),
     browserDigest: digest('4'),
     adapterDigest: digest('5'),
     wrapperDigest: digest('9'),
@@ -109,7 +111,12 @@ const receipt = await calibrateRegisteredVariants(plan, {
 assert.deepEqual(calls, ['operator-reference', 'boundary-pack', 'token-parity']);
 assert.equal(receipt.results[0].decision, 'proposed');
 assert.equal(receipt.results[0].proposal.activation, 'manual-promotion-required');
+assert.equal(
+  receipt.results[0].proposal.selectionPolicy.afterPromotion,
+  'selected-for-matching-evidence-scope'
+);
 assert.equal(receipt.results[1].decision, 'incompatible');
+assert.equal(receipt.precisionSelectionPolicy.policy, 'prefer-proven-f16');
 assert.equal(receipt.runtimeMutationApplied, false);
 
 await assert.rejects(
@@ -136,6 +143,21 @@ await assert.rejects(
     evaluatePerformance: async () => ({ decision: { accepted: true } }),
   }),
   /must return doppler\.runtime-optimization-receipt\/v1/
+);
+
+assert.throws(
+  () => validateRegisteredVariantCalibrationPlan({
+    ...plan,
+    candidates: [plan.baseline],
+  }, registry),
+  /candidate must differ from baseline/
+);
+assert.throws(
+  () => validateRegisteredVariantCalibrationPlan({
+    ...plan,
+    candidates: [plan.candidates[0], plan.candidates[0]],
+  }, registry),
+  /duplicate candidate matmul\/subgroup/
 );
 
 console.log('registered-variant-calibration.test: ok');
