@@ -124,6 +124,10 @@ export function checkFileExistsInBackend(
   storageBackend: Record<string, unknown>,
   filename: string
 ): Promise<boolean>;
+export function getFileSizeInBackend(
+  storageBackend: Record<string, unknown>,
+  filename: string
+): Promise<number | null>;
 export function shardExists(shardIndex: number): Promise<boolean>;
 export function getShardStoredSize(shardIndex: number): Promise<number>;
 export function verifyIntegrity(options?: { checkHashes?: boolean; checkTensorRoots?: boolean }): Promise<IntegrityResult>;
@@ -131,6 +135,7 @@ export function deleteShard(shardIndex: number): Promise<boolean>;
 export function deleteModel(modelId: string): Promise<boolean>;
 export function listModels(): Promise<string[]>;
 export function listFilesInStore(): Promise<string[]>;
+export function getFileStoredSize(filename: string): Promise<number | null>;
 export function loadFileFromStore(filename: string): Promise<ArrayBuffer>;
 export function loadFileRangeFromStore(
   filename: string,

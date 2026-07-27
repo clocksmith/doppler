@@ -616,24 +616,28 @@ export async function loadShardSync(shardIndex, offset = 0, length) {
 }
 
 export async function checkFileExistsInBackend(storageBackend, filename) {
+  return (await getFileSizeInBackend(storageBackend, filename)) !== null;
+}
+
+export async function getFileSizeInBackend(storageBackend, filename) {
   if (!storageBackend || typeof storageBackend !== 'object') {
-    throw new Error('checkFileExistsInBackend requires a storage backend object.');
+    throw new Error('getFileSizeInBackend requires a storage backend object.');
   }
   if (!filename || typeof filename !== 'string') {
-    throw new Error('checkFileExistsInBackend requires a filename.');
+    throw new Error('getFileSizeInBackend requires a filename.');
   }
 
   try {
     if (typeof storageBackend.getFileSize === 'function') {
-      await storageBackend.getFileSize(filename);
-      return true;
+      const size = await storageBackend.getFileSize(filename);
+      return Number.isFinite(size) ? Math.max(0, Math.floor(size)) : null;
     }
-    await storageBackend.readFile(filename);
-    return true;
+    const buffer = await storageBackend.readFile(filename);
+    return buffer.byteLength;
   } catch (error) {
     const message = String(error?.message || '');
     if (error?.name === 'NotFoundError' || message.toLowerCase().includes('not found')) {
-      return false;
+      return null;
     }
     throw error;
   }
@@ -771,6 +775,12 @@ export async function listFilesInStore() {
     throw new Error('Storage backend does not support listing files');
   }
   return backend.listFiles();
+}
+
+export async function getFileStoredSize(filename) {
+  await ensureBackend();
+  requireModel();
+  return getFileSizeInBackend(backend, filename);
 }
 
 export async function loadFileFromStore(filename) {
