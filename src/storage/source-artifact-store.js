@@ -8,6 +8,7 @@ import {
 } from '../tooling/source-runtime-bundle.js';
 import {
   computeHash,
+  getFileStoredSize,
   loadAuxText,
   loadFileFromStore,
   loadFileRangeFromStore,
@@ -284,12 +285,21 @@ export async function verifyStoredSourceArtifact(manifest, options = {}) {
   const files = listSourceArtifactFiles(manifest);
 
   for (const entry of files) {
+    if (!checkHashes) {
+      const storedSize = await getFileStoredSize(entry.path);
+      if (storedSize == null) {
+        missingFiles.push(entry.path);
+      } else if (Number.isFinite(Number(entry.size)) && storedSize !== Number(entry.size)) {
+        corruptFiles.push(entry.path);
+      }
+      continue;
+    }
     const payload = await loadStoreFile(entry.path);
     if (!(payload instanceof ArrayBuffer)) {
       missingFiles.push(entry.path);
       continue;
     }
-    if (!checkHashes || !entry.hash) {
+    if (!entry.hash) {
       continue;
     }
     const isTextAsset = entry.kind === 'config'
@@ -305,7 +315,7 @@ export async function verifyStoredSourceArtifact(manifest, options = {}) {
   }
 
   return {
-    valid: missingFiles.length === 0 && (!checkHashes || corruptFiles.length === 0),
+    valid: missingFiles.length === 0 && corruptFiles.length === 0,
     missingFiles,
     corruptFiles,
   };

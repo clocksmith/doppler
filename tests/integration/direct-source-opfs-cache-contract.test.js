@@ -165,6 +165,10 @@ try {
   assert.equal(integrity.valid, true);
   assert.deepEqual(integrity.missingFiles, []);
   assert.deepEqual(integrity.corruptFiles, []);
+  const metadataIntegrity = await verifyStoredSourceArtifact(storedManifest, { checkHashes: false });
+  assert.equal(metadataIntegrity.valid, true);
+  assert.deepEqual(metadataIntegrity.missingFiles, []);
+  assert.deepEqual(metadataIntegrity.corruptFiles, []);
 
   const storageContext = createStoredSourceArtifactContext(storedManifest, { verifyHashes: true });
   const shardBuffer = await storageContext.loadShard(0);

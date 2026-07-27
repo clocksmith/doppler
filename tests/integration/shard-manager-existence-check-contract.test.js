@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 
-import { checkFileExistsInBackend } from '../../src/storage/shard-manager.js';
+import {
+  checkFileExistsInBackend,
+  getFileSizeInBackend,
+} from '../../src/storage/shard-manager.js';
 
 {
   let getFileSizeCalls = 0;
@@ -19,7 +22,9 @@ import { checkFileExistsInBackend } from '../../src/storage/shard-manager.js';
 
   const exists = await checkFileExistsInBackend(backend, 'model-00001-of-00001.bin');
   assert.equal(exists, true);
-  assert.equal(getFileSizeCalls, 1);
+  const size = await getFileSizeInBackend(backend, 'model-00001-of-00001.bin');
+  assert.equal(size, 1234);
+  assert.equal(getFileSizeCalls, 2);
   assert.equal(readFileCalls, 0);
 }
 
@@ -41,7 +46,9 @@ import { checkFileExistsInBackend } from '../../src/storage/shard-manager.js';
 
   const exists = await checkFileExistsInBackend(backend, 'missing.bin');
   assert.equal(exists, false);
-  assert.equal(getFileSizeCalls, 1);
+  const size = await getFileSizeInBackend(backend, 'missing.bin');
+  assert.equal(size, null);
+  assert.equal(getFileSizeCalls, 2);
   assert.equal(readFileCalls, 0);
 }
 
@@ -57,7 +64,9 @@ import { checkFileExistsInBackend } from '../../src/storage/shard-manager.js';
 
   const exists = await checkFileExistsInBackend(backend, 'fallback.bin');
   assert.equal(exists, true);
-  assert.equal(readFileCalls, 1);
+  const size = await getFileSizeInBackend(backend, 'fallback.bin');
+  assert.equal(size, 16);
+  assert.equal(readFileCalls, 2);
 }
 
 console.log('shard-manager-existence-check-contract.test: ok');
