@@ -11,7 +11,11 @@ import {
   getActiveKernelPathPolicy,
 } from '../config/kernel-path-loader.js';
 import { validateTrainingMetricsReport } from '../config/schema/training-metrics.schema.js';
-import { modelSupportsEmbedding, modelSupportsRerank } from '../config/schema/manifest.schema.js';
+import {
+  modelSupportsEmbedding,
+  modelSupportsRerank,
+  modelSupportsSequence,
+} from '../config/schema/manifest.schema.js';
 import {
   resolveReportTimestamp,
   resolveRuntime,
@@ -56,6 +60,7 @@ import {
   runEmbeddingSemanticChecks,
   runRerank,
   runRerankSemanticChecks,
+  runSequenceEncoding,
   isCoherentOutput,
   runTextInference,
   runEmbedding,
@@ -90,6 +95,36 @@ function resolvePipelineLoadTimings(pipeline) {
   } catch {
     return { loadTiming: null, pipelineLoadTiming: null };
   }
+}
+
+function allFinite(values) {
+  if (!ArrayBuffer.isView(values)) {
+    return false;
+  }
+  for (const value of values) {
+    if (!Number.isFinite(value)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function serializeSequenceProbeRows(tokenEmbeddings, embeddingDim, positions) {
+  if (!ArrayBuffer.isView(tokenEmbeddings) || !Number.isInteger(embeddingDim) || embeddingDim <= 0) {
+    return [];
+  }
+  const uniquePositions = Array.isArray(positions) ? [...new Set(positions)] : [];
+  return uniquePositions.map((position) => {
+    const start = position * embeddingDim;
+    const end = start + embeddingDim;
+    if (!Number.isInteger(position) || position < 0 || end > tokenEmbeddings.length) {
+      throw new Error(`Sequence probe position ${position} is outside the returned token embedding range.`);
+    }
+    return {
+      position,
+      values: Array.from(tokenEmbeddings.subarray(start, end)),
+    };
+  });
 }
 
 function getNestedSampleValue(sample, key) {
@@ -766,6 +801,83 @@ async function runInferenceSuite(options = {}) {
       semanticDetails: {
         pairs: semantic.pairs,
       },
+      modelLoadMs: safeModelLoadMs,
+      endToEndMs: safeToFixed(safeModelLoadMs + run.durationMs),
+    };
+  } else if (options.inferenceInput?.sequence != null) {
+    if (!modelSupportsSequence(harness.manifest)) {
+      throw new Error(
+        `Model "${harness.manifest?.modelId || options.modelId || 'unknown'}" does not declare sequence encoding support.`
+      );
+    }
+    const declaredAlphabet = harness.manifest?.inference?.sequence?.alphabet ?? null;
+    if (
+      options.inferenceInput.sequenceAlphabet != null
+      && options.inferenceInput.sequenceAlphabet !== declaredAlphabet
+    ) {
+      throw new Error(
+        `Sequence alphabet mismatch: request declares "${options.inferenceInput.sequenceAlphabet}" but model declares "${declaredAlphabet}".`
+      );
+    }
+    const run = await runSequenceEncoding(harness.pipeline, options.inferenceInput);
+    const pooledEmbeddingFinite = allFinite(run.pooledEmbedding);
+    const tokenEmbeddingsFinite = run.tokenEmbeddings == null || allFinite(run.tokenEmbeddings);
+    const logitsFinite = run.logits == null || allFinite(run.logits);
+    const isValidSequence = Array.isArray(run.tokens)
+      && run.tokens.length > 0
+      && Number.isInteger(run.embeddingDim)
+      && run.embeddingDim > 0
+      && pooledEmbeddingFinite
+      && tokenEmbeddingsFinite
+      && logitsFinite;
+    output = {
+      mode: 'sequence',
+      model: {
+        modelId: harness.manifest?.modelId ?? null,
+        sourceCheckpointId: harness.manifest?.artifactIdentity?.sourceCheckpointId ?? null,
+      },
+      input: {
+        sequence: run.sequence,
+        alphabet: run.alphabet,
+      },
+      tokens: Array.from(run.tokens ?? []),
+      tokenMask: Array.from(run.tokenMask ?? []),
+      includedTokenCount: run.includedTokenCount,
+      embeddingDim: run.embeddingDim,
+      vocabSize: run.vocabSize,
+      pooledEmbedding: Array.from(run.pooledEmbedding ?? []),
+      tokenEmbeddingProbes: serializeSequenceProbeRows(
+        run.tokenEmbeddings,
+        run.embeddingDim,
+        options.inferenceInput.probePositions
+      ),
+      logits: run.logits == null ? null : Array.from(run.logits),
+      finite: {
+        pooledEmbedding: pooledEmbeddingFinite,
+        tokenEmbeddings: tokenEmbeddingsFinite,
+        logits: logitsFinite,
+      },
+    };
+    results = [
+      {
+        name: 'sequence-encoding',
+        passed: isValidSequence,
+        duration: run.durationMs,
+        error: isValidSequence
+          ? undefined
+          : 'Sequence encoding must return finite pooled, requested token, and requested logit outputs.',
+      },
+    ];
+    metrics = {
+      sequence: run.sequence,
+      sequenceAlphabet: run.alphabet,
+      sequenceTokens: run.tokens?.length ?? 0,
+      sequenceEmbeddingDim: run.embeddingDim,
+      sequenceIncludedTokenCount: run.includedTokenCount,
+      sequenceTokenEmbeddingsRequested: run.tokenEmbeddings != null,
+      sequenceLogitsRequested: run.logits != null,
+      sequenceEncodingMs: Number(run.durationMs.toFixed(2)),
+      sequenceFinite: output.finite,
       modelLoadMs: safeModelLoadMs,
       endToEndMs: safeToFixed(safeModelLoadMs + run.durationMs),
     };

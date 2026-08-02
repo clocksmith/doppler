@@ -127,6 +127,23 @@ function normalizeInferenceImage(value, label) {
   };
 }
 
+function normalizeSequenceProbePositions(value, label) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (!Array.isArray(value)) {
+    throw new Error(`tooling command: ${label} must be an array when provided.`);
+  }
+  const positions = value.map((entry, index) => {
+    const position = Number(entry);
+    if (!Number.isInteger(position) || position < 0) {
+      throw new Error(`tooling command: ${label}[${index}] must be a non-negative integer.`);
+    }
+    return position;
+  });
+  return [...new Set(positions)];
+}
+
 function normalizeInferenceInput(value, workload) {
   const inferenceInput = asOptionalObject(value, 'inferenceInput');
   if (!inferenceInput) {
@@ -136,11 +153,65 @@ function normalizeInferenceInput(value, workload) {
     throw new Error('tooling command: inferenceInput requires workload="inference".');
   }
 
-  const allowedKeys = new Set(['prompt', 'image', 'maxTokens', 'softTokenBudget']);
+  const allowedKeys = new Set([
+    'prompt',
+    'image',
+    'maxTokens',
+    'softTokenBudget',
+    'sequence',
+    'sequenceAlphabet',
+    'includeTokenEmbeddings',
+    'includeLogits',
+    'probePositions',
+  ]);
   for (const key of Object.keys(inferenceInput)) {
     if (!allowedKeys.has(key)) {
       throw new Error(`tooling command: inferenceInput.${key} is not supported.`);
     }
+  }
+
+  const sequence = asOptionalString(inferenceInput.sequence, 'inferenceInput.sequence');
+  if (sequence != null) {
+    const conflictingFields = ['prompt', 'image', 'maxTokens', 'softTokenBudget']
+      .filter((key) => inferenceInput[key] !== undefined && inferenceInput[key] !== null);
+    if (conflictingFields.length > 0) {
+      throw new Error(
+        `tooling command: inferenceInput.sequence cannot be combined with ${conflictingFields.join(', ')}.`
+      );
+    }
+    const sequenceAlphabet = asOptionalString(
+      inferenceInput.sequenceAlphabet,
+      'inferenceInput.sequenceAlphabet'
+    );
+    if (sequenceAlphabet != null && sequenceAlphabet !== 'amino_acid' && sequenceAlphabet !== 'nucleotide') {
+      throw new Error(
+        'tooling command: inferenceInput.sequenceAlphabet must be "amino_acid" or "nucleotide" when provided.'
+      );
+    }
+    return {
+      sequence,
+      sequenceAlphabet,
+      includeTokenEmbeddings: asOptionalBoolean(
+        inferenceInput.includeTokenEmbeddings,
+        'inferenceInput.includeTokenEmbeddings'
+      ),
+      includeLogits: asOptionalBoolean(inferenceInput.includeLogits, 'inferenceInput.includeLogits'),
+      probePositions: normalizeSequenceProbePositions(
+        inferenceInput.probePositions,
+        'inferenceInput.probePositions'
+      ),
+    };
+  }
+
+  if (
+    inferenceInput.sequenceAlphabet !== undefined
+    || inferenceInput.includeTokenEmbeddings !== undefined
+    || inferenceInput.includeLogits !== undefined
+    || inferenceInput.probePositions !== undefined
+  ) {
+    throw new Error(
+      'tooling command: sequenceAlphabet, includeTokenEmbeddings, includeLogits, and probePositions require inferenceInput.sequence.'
+    );
   }
 
   const prompt = normalizeInferencePrompt(inferenceInput.prompt, 'inferenceInput.prompt');

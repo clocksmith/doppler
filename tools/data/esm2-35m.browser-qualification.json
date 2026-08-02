@@ -1,0 +1,19 @@
+{
+  "schema": "doppler.browserProteinQualificationFixture.v1",
+  "id": "esm2-35m",
+  "modelId": "esm2-t12-35m-ur50d-f32-af32",
+  "reference": "esm2-t12-35m-ur50d-sequence-reference.json",
+  "expectedEmbeddingDim": 480,
+  "runtimeConfig": {
+    "inference": {
+      "kvcache": {
+        "kvDtype": "f32"
+      },
+      "session": {
+        "kvcache": {
+          "kvDtype": "f32"
+        }
+      }
+    }
+  }
+}

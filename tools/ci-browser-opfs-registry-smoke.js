@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { promises as fs } from 'node:fs';
+import { createHash } from 'node:crypto';
 
 import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
 import { parseManifest } from '../src/formats/rdrr/index.js';
@@ -13,6 +14,7 @@ import {
   findCatalogEntry,
   loadJsonFile,
 } from '../src/tooling/hf-registry-utils.js';
+import { validateSequenceReference } from './lib/sequence-model-qualification.js';
 
 const DEFAULT_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';
 const DEFAULT_CATALOG_FILE = path.join(process.cwd(), 'models', 'catalog.json');
@@ -25,6 +27,7 @@ const DEFAULT_GENERATION_PROMPT = Object.freeze({
   ]),
 });
 const DEFAULT_EMBEDDING_PROMPT = 'Search query: local-first AI with WebGPU inference.';
+const DEFAULT_PROTEIN_FIXTURE_DIR = path.join(process.cwd(), 'tools', 'data');
 const DEFAULT_EXPECTED_FIRST_TOKEN = '4';
 const DEFAULT_EXPECT_MODE = 'generation';
 const DEFAULT_MAX_TOKENS = 8;
@@ -56,14 +59,19 @@ function usage() {
     + '[--channel <name>] [--timeout-ms <ms>] [--prompt <json>] [--expect-mode <generation|embedding>] '
     + '[--runtime-profile <id>] '
     + '[--expected-first-token <token>] [--expected-embedding-dim <n>] [--expected-semantic-style <id>] '
+    + '[--protein-fixture <id>] '
     + '[--kernel-path <id>] [--activation-dtype <f16|f32>] [--kv-dtype <f16|f32>] '
-    + '[--output-dtype <f16|f32>] '
+    + '[--output-dtype <f16|f32>] [--hardware-gpu] '
     + '[--keep-opfs-profile] [--json]'
   );
 }
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function sha256Json(value) {
+  return `sha256:${createHash('sha256').update(JSON.stringify(value)).digest('hex')}`;
 }
 
 function parsePositiveInt(value, label, defaultValue) {
@@ -78,18 +86,19 @@ function parsePositiveInt(value, label, defaultValue) {
 function normalizeExpectMode(value) {
   const normalized = normalizeText(value).toLowerCase();
   if (!normalized) return DEFAULT_EXPECT_MODE;
-  if (normalized !== 'generation' && normalized !== 'embedding') {
-    throw new Error('--expect-mode must be "generation" or "embedding".');
+  if (normalized !== 'generation' && normalized !== 'embedding' && normalized !== 'sequence') {
+    throw new Error('--expect-mode must be "generation", "embedding", or "sequence".');
   }
   return normalized;
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const out = {
     modelId: DEFAULT_MODEL_ID,
     catalogFile: DEFAULT_CATALOG_FILE,
     cacheRoot: path.join(os.homedir(), '.cache', 'doppler', 'ci-rdrr'),
-    profileDir: path.join(os.homedir(), '.cache', 'doppler', 'ci-opfs', DEFAULT_MODEL_ID),
+    profileDir: null,
+    profileDirExplicit: false,
     channel: 'chromium',
     timeoutMs: DEFAULT_TIMEOUT_MS,
     prompt: null,
@@ -99,11 +108,13 @@ function parseArgs(argv) {
     expectedFirstToken: DEFAULT_EXPECTED_FIRST_TOKEN,
     expectedEmbeddingDim: null,
     expectedSemanticStyle: null,
+    proteinFixture: null,
     kernelPath: null,
     activationDtype: null,
     kvDtype: null,
     outputDtype: null,
     allowCapabilitySkip: false,
+    hardwareGpu: false,
     keepOpfsProfile: false,
     json: false,
   };
@@ -133,6 +144,7 @@ function parseArgs(argv) {
     }
     if (arg === '--profile-dir') {
       out.profileDir = path.resolve(readValue());
+      out.profileDirExplicit = true;
       continue;
     }
     if (arg === '--channel') {
@@ -168,6 +180,10 @@ function parseArgs(argv) {
       out.expectedSemanticStyle = normalizeText(readValue()) || null;
       continue;
     }
+    if (arg === '--protein-fixture') {
+      out.proteinFixture = normalizeText(readValue()) || null;
+      continue;
+    }
     if (arg === '--kernel-path') {
       out.kernelPath = normalizeText(readValue()) || null;
       continue;
@@ -188,6 +204,10 @@ function parseArgs(argv) {
       out.allowCapabilitySkip = true;
       continue;
     }
+    if (arg === '--hardware-gpu') {
+      out.hardwareGpu = true;
+      continue;
+    }
     if (arg === '--keep-opfs-profile') {
       out.keepOpfsProfile = true;
       continue;
@@ -203,7 +223,57 @@ function parseArgs(argv) {
     throw new Error(`Unknown flag: ${arg}`);
   }
 
+  // OPFS is origin and browser-profile scoped. A model-specific default is
+  // required so changing --model-id cannot silently reuse another model's
+  // persisted browser state. An explicit profile remains operator-owned.
+  if (!out.profileDirExplicit) {
+    out.profileDir = path.join(os.homedir(), '.cache', 'doppler', 'ci-opfs', out.modelId);
+  }
+
   return out;
+}
+
+async function loadProteinFixture(fixtureId) {
+  const normalizedId = normalizeText(fixtureId);
+  if (!normalizedId) {
+    return null;
+  }
+  if (!/^[a-z0-9][a-z0-9-]*$/u.test(normalizedId)) {
+    throw new Error('--protein-fixture must contain only lowercase letters, digits, and hyphens.');
+  }
+  const fixturePath = path.join(DEFAULT_PROTEIN_FIXTURE_DIR, `${normalizedId}.browser-qualification.json`);
+  const fixtureBytes = await fs.readFile(fixturePath, 'utf8').catch(() => {
+    throw new Error(`Unknown protein fixture "${normalizedId}".`);
+  });
+  const fixture = JSON.parse(fixtureBytes);
+  if (fixture?.schema !== 'doppler.browserProteinQualificationFixture.v1') {
+    throw new Error(`Protein fixture "${normalizedId}" has an unsupported schema.`);
+  }
+  if (fixture.id !== normalizedId || !normalizeText(fixture.modelId)) {
+    throw new Error(`Protein fixture "${normalizedId}" must bind its id and modelId.`);
+  }
+  if (!normalizeText(fixture.reference)) {
+    throw new Error(`Protein fixture "${normalizedId}" is missing reference.`);
+  }
+  const referencePath = path.resolve(DEFAULT_PROTEIN_FIXTURE_DIR, fixture.reference);
+  if (!referencePath.startsWith(`${DEFAULT_PROTEIN_FIXTURE_DIR}${path.sep}`)) {
+    throw new Error(`Protein fixture "${normalizedId}" reference must remain inside tools/data.`);
+  }
+  const reference = validateSequenceReference(JSON.parse(await fs.readFile(referencePath, 'utf8')));
+  if (reference.modelId !== fixture.modelId) {
+    throw new Error(`Protein fixture "${normalizedId}" reference modelId does not match fixture modelId.`);
+  }
+  if (!Number.isInteger(fixture.expectedEmbeddingDim) || fixture.expectedEmbeddingDim <= 0) {
+    throw new Error(`Protein fixture "${normalizedId}" must declare expectedEmbeddingDim.`);
+  }
+  if (!fixture.runtimeConfig || typeof fixture.runtimeConfig !== 'object' || Array.isArray(fixture.runtimeConfig)) {
+    throw new Error(`Protein fixture "${normalizedId}" must declare runtimeConfig.`);
+  }
+  return {
+    ...fixture,
+    referencePath,
+    reference,
+  };
 }
 
 export function classifyHostedCapabilitySkip(error) {
@@ -341,8 +411,188 @@ function assertEmbeddingSmokeResult(label, response, expectedEmbeddingDim, expec
   }
 }
 
+function assertExactIntegerArray(actual, expected, label) {
+  if (!Array.isArray(actual) || actual.length !== expected.length) {
+    throw new Error(`${label}: expected ${expected.length} entries but received ${actual?.length ?? 0}.`);
+  }
+  for (let index = 0; index < expected.length; index += 1) {
+    if (actual[index] !== expected[index]) {
+      throw new Error(`${label}: mismatch at ${index}; expected ${expected[index]}, received ${actual[index]}.`);
+    }
+  }
+}
+
+function assertFiniteArray(values, label) {
+  if (!Array.isArray(values) || values.length === 0) {
+    throw new Error(`${label}: expected a non-empty numeric array.`);
+  }
+  for (let index = 0; index < values.length; index += 1) {
+    if (!Number.isFinite(Number(values[index]))) {
+      throw new Error(`${label}: non-finite value at ${index}.`);
+    }
+  }
+}
+
+function assertIndexedProbe(values, indices, expectedValues, tolerance, label) {
+  assertFiniteArray(values, label);
+  if (indices.length !== expectedValues.length) {
+    throw new Error(`${label}: fixture indices and values have different lengths.`);
+  }
+  for (let index = 0; index < indices.length; index += 1) {
+    const coordinate = indices[index];
+    const actual = Number(values[coordinate]);
+    const expected = Number(expectedValues[index]);
+    if (!Number.isFinite(actual) || Math.abs(actual - expected) > tolerance) {
+      throw new Error(
+        `${label}: probe ${coordinate} differs from the frozen reference by ${Math.abs(actual - expected)} (tolerance ${tolerance}).`
+      );
+    }
+  }
+}
+
+export function assertProteinSequenceSmokeResult(label, response, fixture) {
+  if (!response?.ok || !response.result) {
+    throw new Error(`${label}: browser smoke did not return a successful result envelope.`);
+  }
+  const reference = fixture?.reference;
+  if (!reference) {
+    throw new Error(`${label}: protein fixture reference is required.`);
+  }
+  const output = response.result.output ?? {};
+  const metrics = response.result.metrics ?? {};
+  if (output.mode !== 'sequence') {
+    throw new Error(`${label}: expected sequence output mode but received ${JSON.stringify(output.mode)}.`);
+  }
+  if (output?.model?.modelId !== reference.modelId) {
+    throw new Error(`${label}: exact model identity does not match the protein fixture.`);
+  }
+  if (output?.model?.sourceCheckpointId !== reference?.source?.checkpointId) {
+    throw new Error(`${label}: source checkpoint identity does not match the protein fixture.`);
+  }
+  if (output?.input?.sequence !== reference?.input?.sequence) {
+    throw new Error(`${label}: executed sequence does not match the frozen protein fixture.`);
+  }
+  if (output?.input?.alphabet !== reference?.input?.alphabet) {
+    throw new Error(`${label}: sequence alphabet does not match the frozen protein fixture.`);
+  }
+  const embeddingDim = Number(output.embeddingDim);
+  if (!Number.isInteger(embeddingDim) || embeddingDim !== fixture.expectedEmbeddingDim) {
+    throw new Error(`${label}: expected embeddingDim ${fixture.expectedEmbeddingDim} but received ${output.embeddingDim}.`);
+  }
+  assertExactIntegerArray(output.tokens, reference.input.tokenIds, `${label}: tokenizer ids`);
+  assertFiniteArray(output.pooledEmbedding, `${label}: pooled embedding`);
+  assertIndexedProbe(
+    output.pooledEmbedding,
+    reference.probes.pooledEmbedding.indices,
+    reference.probes.pooledEmbedding.values,
+    reference.tolerances.pooledEmbeddingMaxAbs,
+    `${label}: pooled embedding parity`
+  );
+  const probeRows = new Map((output.tokenEmbeddingProbes ?? []).map((entry) => [entry.position, entry.values]));
+  for (const probe of reference.probes.tokenEmbeddings) {
+    const values = probeRows.get(probe.position);
+    if (!values) {
+      throw new Error(`${label}: missing residue embedding probe at token position ${probe.position}.`);
+    }
+    assertIndexedProbe(
+      values,
+      probe.indices,
+      probe.values,
+      reference.tolerances.tokenEmbeddingMaxAbs,
+      `${label}: residue embedding parity at token position ${probe.position}`
+    );
+  }
+  if (output?.finite?.pooledEmbedding !== true || output?.finite?.tokenEmbeddings !== true) {
+    throw new Error(`${label}: sequence embedding contains a non-finite output.`);
+  }
+  if (!Number.isFinite(metrics.modelLoadMs) || metrics.modelLoadMs < 0) {
+    throw new Error(`${label}: modelLoadMs must be finite.`);
+  }
+  if (!Number.isFinite(metrics.sequenceEncodingMs) || metrics.sequenceEncodingMs <= 0) {
+    throw new Error(`${label}: sequenceEncodingMs must be > 0.`);
+  }
+}
+
+function summarizeSequenceOutput(output, fixture) {
+  const reference = fixture?.reference;
+  if (!reference || output?.mode !== 'sequence') {
+    return output;
+  }
+  const pooledEmbedding = reference.probes.pooledEmbedding.indices.map((index) => output.pooledEmbedding?.[index] ?? null);
+  const probeRows = new Map((output.tokenEmbeddingProbes ?? []).map((entry) => [entry.position, entry.values]));
+  return {
+    mode: output.mode,
+    model: output.model,
+    input: output.input,
+    tokens: output.tokens,
+    embeddingDim: output.embeddingDim,
+    vocabSize: output.vocabSize,
+    includedTokenCount: output.includedTokenCount,
+    finite: output.finite,
+    pooledEmbeddingProbe: {
+      indices: reference.probes.pooledEmbedding.indices,
+      values: pooledEmbedding,
+    },
+    tokenEmbeddingProbes: reference.probes.tokenEmbeddings.map((probe) => ({
+      position: probe.position,
+      indices: probe.indices,
+      values: probe.indices.map((index) => probeRows.get(probe.position)?.[index] ?? null),
+    })),
+  };
+}
+
+function summarizeSmokeRun(run, proteinFixture = null) {
+  const metrics = run.metrics ?? {};
+  const request = run.request ?? {};
+  return {
+    label: run.label,
+    loadMode: run.loadMode,
+    outputHash: sha256Json(run.output),
+    resultHash: sha256Json({
+      output: run.output,
+      timing: run.timing,
+      metrics: run.metrics,
+      env: run.env,
+      deviceInfo: run.deviceInfo,
+      request: run.request,
+    }),
+    output: summarizeSequenceOutput(run.output, proteinFixture),
+    timing: run.timing,
+    metrics: {
+      sequenceAlphabet: metrics.sequenceAlphabet ?? null,
+      sequenceTokens: metrics.sequenceTokens ?? null,
+      sequenceEmbeddingDim: metrics.sequenceEmbeddingDim ?? null,
+      sequenceIncludedTokenCount: metrics.sequenceIncludedTokenCount ?? null,
+      sequenceTokenEmbeddingsRequested: metrics.sequenceTokenEmbeddingsRequested ?? null,
+      sequenceLogitsRequested: metrics.sequenceLogitsRequested ?? null,
+      sequenceEncodingMs: metrics.sequenceEncodingMs ?? null,
+      sequenceFinite: metrics.sequenceFinite ?? null,
+      modelLoadMs: metrics.modelLoadMs ?? null,
+      endToEndMs: metrics.endToEndMs ?? null,
+      loaderBytesLoaded: metrics.load?.loader?.bytesLoaded ?? null,
+      loaderTotalBytes: metrics.load?.loader?.totalBytes ?? null,
+      loaderShardsLoaded: metrics.load?.loader?.shardsLoaded ?? null,
+      loaderTotalShards: metrics.load?.loader?.totalShards ?? null,
+    },
+    env: run.env,
+    deviceInfo: run.deviceInfo,
+    request: {
+      runtimeProfile: request.runtimeProfile ?? null,
+      runtimeConfigUrl: request.runtimeConfigUrl ?? null,
+      inference: {
+        kvcache: request.runtimeConfig?.inference?.kvcache ?? null,
+        sessionKvcache: request.runtimeConfig?.inference?.session?.kvcache ?? null,
+      },
+    },
+  };
+}
+
 function assertSmokeResult(label, response, options = {}) {
   const expectMode = normalizeExpectMode(options.expectMode);
+  if (expectMode === 'sequence') {
+    assertProteinSequenceSmokeResult(label, response, options.proteinFixture);
+    return;
+  }
   if (expectMode === 'embedding') {
     assertEmbeddingSmokeResult(
       label,
@@ -594,6 +844,8 @@ async function runSmokeRequest({
   outputDtype,
   expectMode,
   runtimeProfile,
+  proteinFixture = null,
+  hardwareGpu = false,
 }) {
   const explicitInferenceOverride = {};
   if (activationDtype) {
@@ -601,9 +853,14 @@ async function runSmokeRequest({
   }
   if (kvDtype) {
     explicitInferenceOverride.kvcache = { kvDtype };
+    explicitInferenceOverride.session = {
+      ...(explicitInferenceOverride.session || {}),
+      kvcache: { kvDtype },
+    };
   }
   if (outputDtype) {
     explicitInferenceOverride.session = {
+      ...(explicitInferenceOverride.session || {}),
       compute: {
         defaults: {
           outputDtype,
@@ -621,7 +878,9 @@ async function runSmokeRequest({
   }
 
   const normalizedExpectMode = normalizeExpectMode(expectMode);
+  const fixtureInference = proteinFixture?.runtimeConfig?.inference ?? {};
   const inferenceConfig = {
+    ...fixtureInference,
     prompt,
     batching: {
       maxTokens: normalizedExpectMode === 'embedding' ? 1 : DEFAULT_MAX_TOKENS,
@@ -632,6 +891,8 @@ async function runSmokeRequest({
     inferenceConfig.generation = {
       embeddingMode: 'mean',
     };
+  } else if (normalizedExpectMode === 'sequence') {
+    delete inferenceConfig.prompt;
   } else if (sampling) {
     inferenceConfig.sampling = sampling;
   }
@@ -645,8 +906,18 @@ async function runSmokeRequest({
     captureOutput: true,
     runtimeProfile,
     runtimeConfig: {
+      ...(proteinFixture?.runtimeConfig ?? {}),
       inference: inferenceConfig,
     },
+    ...(normalizedExpectMode === 'sequence' ? {
+      inferenceInput: {
+        sequence: proteinFixture.reference.input.sequence,
+        sequenceAlphabet: proteinFixture.reference.input.alphabet,
+        includeTokenEmbeddings: true,
+        includeLogits: proteinFixture.reference.outputs?.logits !== false,
+        probePositions: proteinFixture.reference.probes.tokenEmbeddings.map((probe) => probe.position),
+      },
+    } : {}),
   }, {
     channel,
     headless: true,
@@ -654,7 +925,10 @@ async function runSmokeRequest({
     opfsCache: true,
     userDataDir: profileDir,
     wipeCacheBeforeLaunch,
-    browserArgs: [...DEFAULT_BROWSER_ARGS],
+    // SwiftShader is useful for a capability smoke but cannot support an
+    // authentic browser-GPU qualification. Hardware qualification opts out
+    // explicitly and lets Chromium select the host WebGPU adapter.
+    browserArgs: hardwareGpu ? [] : [...DEFAULT_BROWSER_ARGS],
     staticMounts: [
       {
         urlPrefix: '/models/external',
@@ -669,15 +943,38 @@ async function runSmokeRequest({
     output: response?.result?.output ?? null,
     timing: response?.result?.timing ?? null,
     metrics: response?.result?.metrics ?? null,
+    env: response?.result?.env ?? null,
+    deviceInfo: response?.result?.deviceInfo ?? null,
+    request: response?.result?.request ?? null,
     response,
   };
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const expectMode = normalizeExpectMode(args.expectMode);
+  const proteinFixture = await loadProteinFixture(args.proteinFixture);
+  if (proteinFixture && args.modelId !== DEFAULT_MODEL_ID && args.modelId !== proteinFixture.modelId) {
+    throw new Error(
+      `Protein fixture "${proteinFixture.id}" requires model "${proteinFixture.modelId}", not "${args.modelId}".`
+    );
+  }
+  if (proteinFixture) {
+    args.modelId = proteinFixture.modelId;
+    if (!args.profileDirExplicit) {
+      args.profileDir = path.join(os.homedir(), '.cache', 'doppler', 'ci-opfs', args.modelId);
+    }
+    if (args.expectMode !== DEFAULT_EXPECT_MODE && args.expectMode !== 'sequence') {
+      throw new Error(`Protein fixture "${proteinFixture.id}" requires --expect-mode sequence.`);
+    }
+    if (!args.hardwareGpu) {
+      throw new Error(`Protein fixture "${proteinFixture.id}" requires --hardware-gpu.`);
+    }
+  }
+  const expectMode = proteinFixture ? 'sequence' : normalizeExpectMode(args.expectMode);
   const prompt = normalizePrompt(
-    args.promptProvided
+    proteinFixture
+      ? proteinFixture.reference.input.sequence
+      : args.promptProvided
       ? args.prompt
       : (expectMode === 'embedding' ? DEFAULT_EMBEDDING_PROMPT : DEFAULT_GENERATION_PROMPT)
   );
@@ -715,12 +1012,15 @@ async function main() {
     outputDtype,
     expectMode,
     runtimeProfile: args.runtimeProfile,
+    proteinFixture,
+    hardwareGpu: args.hardwareGpu,
   });
   assertSmokeResult(primeRun.label, primeRun.response, {
     expectMode,
     expectedFirstToken: args.expectedFirstToken,
     expectedEmbeddingDim: args.expectedEmbeddingDim,
     expectedSemanticStyle: args.expectedSemanticStyle,
+    proteinFixture,
   });
 
   const checks = [];
@@ -743,12 +1043,15 @@ async function main() {
       outputDtype,
       expectMode,
       runtimeProfile: args.runtimeProfile,
+      proteinFixture,
+      hardwareGpu: args.hardwareGpu,
     });
     assertSmokeResult(run.label, run.response, {
       expectMode,
       expectedFirstToken: args.expectedFirstToken,
       expectedEmbeddingDim: args.expectedEmbeddingDim,
       expectedSemanticStyle: args.expectedSemanticStyle,
+      proteinFixture,
     });
     if (run.response?.result?.loadMode !== 'opfs' && run.response?.result?.timing?.loadMode !== 'opfs') {
       throw new Error(`${run.label}: browser smoke did not report loadMode=opfs.`);
@@ -764,26 +1067,21 @@ async function main() {
     rdrrRoot: modelCache.rdrrRoot,
     profileDir: args.profileDir,
     expectMode,
+    proteinFixture: proteinFixture?.id ?? null,
     prompt,
     expectedFirstToken: expectMode === 'generation' ? args.expectedFirstToken : null,
-    expectedEmbeddingDim: expectMode === 'embedding' ? args.expectedEmbeddingDim : null,
+    expectedEmbeddingDim: expectMode === 'embedding'
+      ? args.expectedEmbeddingDim
+      : (proteinFixture?.expectedEmbeddingDim ?? null),
     expectedSemanticStyle: expectMode === 'embedding' ? args.expectedSemanticStyle : null,
     runtimeProfile: args.runtimeProfile,
     kernelPath: args.kernelPath,
     activationDtype,
     kvDtype,
     outputDtype,
-    prime: {
-      label: primeRun.label,
-      output: primeRun.output,
-      timing: primeRun.timing,
-    },
-    checks: checks.map((run) => ({
-      label: run.label,
-      loadMode: run.loadMode,
-      output: run.output,
-      timing: run.timing,
-    })),
+    hardwareGpuRequested: args.hardwareGpu,
+    prime: summarizeSmokeRun(primeRun, proteinFixture),
+    checks: checks.map((run) => summarizeSmokeRun(run, proteinFixture)),
   };
 
   if (args.json) {
