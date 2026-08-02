@@ -846,6 +846,9 @@ async function runSmokeRequest({
   runtimeProfile,
   proteinFixture = null,
   hardwareGpu = false,
+  afterOpfsCachePrime = null,
+  sequenceQualificationAbort = null,
+  sequenceQualificationStaleAfterStart = false,
 }) {
   const explicitInferenceOverride = {};
   if (activationDtype) {
@@ -916,6 +919,8 @@ async function runSmokeRequest({
         includeTokenEmbeddings: true,
         includeLogits: proteinFixture.reference.outputs?.logits !== false,
         probePositions: proteinFixture.reference.probes.tokenEmbeddings.map((probe) => probe.position),
+        ...(sequenceQualificationAbort ? { sequenceQualificationAbort } : {}),
+        ...(sequenceQualificationStaleAfterStart ? { sequenceQualificationStaleAfterStart: true } : {}),
       },
     } : {}),
   }, {
@@ -935,6 +940,7 @@ async function runSmokeRequest({
         rootDir: rdrrRoot,
       },
     ],
+    afterOpfsCachePrime,
   });
 
   return {
@@ -947,6 +953,189 @@ async function runSmokeRequest({
     deviceInfo: response?.result?.deviceInfo ?? null,
     request: response?.result?.request ?? null,
     response,
+  };
+}
+
+async function assertProteinStaleResultRejection({
+  modelId,
+  modelUrl,
+  prompt,
+  timeoutMs,
+  profileDir,
+  rdrrRoot,
+  channel,
+  kernelPath,
+  activationDtype,
+  kvDtype,
+  outputDtype,
+  runtimeProfile,
+  proteinFixture,
+}) {
+  let rejection = null;
+  try {
+    await runSmokeRequest({
+      label: 'stale-after-start',
+      modelId,
+      modelUrl,
+      prompt,
+      timeoutMs,
+      profileDir,
+      rdrrRoot,
+      channel,
+      loadMode: 'opfs',
+      wipeCacheBeforeLaunch: false,
+      sampling: null,
+      kernelPath,
+      activationDtype,
+      kvDtype,
+      outputDtype,
+      expectMode: 'sequence',
+      runtimeProfile,
+      proteinFixture,
+      hardwareGpu: true,
+      sequenceQualificationStaleAfterStart: true,
+    });
+  } catch (error) {
+    rejection = String(error?.message || error);
+  }
+  if (!rejection || !/StaleResultError|superseded before publication/i.test(rejection)) {
+    throw new Error(`Protein stale-result scenario did not reject a superseded output: ${rejection || 'no rejection'}`);
+  }
+  return {
+    mode: 'after_start',
+    rejected: true,
+    rejection: 'StaleResultError before any sequence result envelope was published.',
+  };
+}
+
+async function assertProteinCancellation({
+  modelId,
+  modelUrl,
+  prompt,
+  timeoutMs,
+  profileDir,
+  rdrrRoot,
+  channel,
+  kernelPath,
+  activationDtype,
+  kvDtype,
+  outputDtype,
+  runtimeProfile,
+  proteinFixture,
+}) {
+  let rejection = null;
+  try {
+    await runSmokeRequest({
+      label: 'cancel-after-start',
+      modelId,
+      modelUrl,
+      prompt,
+      timeoutMs,
+      profileDir,
+      rdrrRoot,
+      channel,
+      loadMode: 'opfs',
+      wipeCacheBeforeLaunch: false,
+      sampling: null,
+      kernelPath,
+      activationDtype,
+      kvDtype,
+      outputDtype,
+      expectMode: 'sequence',
+      runtimeProfile,
+      proteinFixture,
+      hardwareGpu: true,
+      sequenceQualificationAbort: 'after_start',
+    });
+  } catch (error) {
+    rejection = String(error?.message || error);
+  }
+  if (!rejection || !/AbortError|cancelled after start/i.test(rejection)) {
+    throw new Error(`Protein cancellation scenario did not reject with AbortError: ${rejection || 'no rejection'}`);
+  }
+  return {
+    mode: 'after_start',
+    rejected: true,
+    rejection: 'AbortError before any sequence result envelope was published.',
+  };
+}
+
+async function assertProteinOpfsCorruptionRejected({
+  modelId,
+  modelUrl,
+  prompt,
+  timeoutMs,
+  profileDir,
+  rdrrRoot,
+  channel,
+  kernelPath,
+  activationDtype,
+  kvDtype,
+  outputDtype,
+  runtimeProfile,
+  proteinFixture,
+}) {
+  let corruption = null;
+  let cachedSourceAfterCorruption = undefined;
+  let rejection = null;
+  try {
+    await runSmokeRequest({
+      label: 'corrupt-opfs-rejection',
+      modelId,
+      modelUrl,
+      prompt,
+      timeoutMs,
+      profileDir,
+      rdrrRoot,
+      channel,
+      loadMode: 'opfs',
+      wipeCacheBeforeLaunch: false,
+      sampling: null,
+      kernelPath,
+      activationDtype,
+      kvDtype,
+      outputDtype,
+      expectMode: 'sequence',
+      runtimeProfile,
+      proteinFixture,
+      hardwareGpu: true,
+      afterOpfsCachePrime: async ({ page, modelId: cachedModelId }) => {
+        corruption = await page.evaluate(async (cachedId) => {
+          if (typeof globalThis.__dopplerCorruptCachedModelForQualification !== 'function') {
+            throw new Error('Browser qualification corruption helper is unavailable.');
+          }
+          if (typeof globalThis.__dopplerVerifyCachedModelForQualification !== 'function') {
+            throw new Error('Browser qualification cache verifier is unavailable.');
+          }
+          const corruption = await globalThis.__dopplerCorruptCachedModelForQualification(cachedId);
+          const cachedSource = await globalThis.__dopplerVerifyCachedModelForQualification(cachedId);
+          return { corruption, cachedSource };
+        }, cachedModelId);
+        cachedSourceAfterCorruption = corruption.cachedSource;
+        corruption = corruption.corruption;
+        if (cachedSourceAfterCorruption !== null) {
+          throw new Error('Corrupted OPFS artifact was accepted by the OPFS-only cache resolver.');
+        }
+        throw new Error('Qualification corruption completed before model execution.');
+      },
+    });
+  } catch (error) {
+    rejection = String(error?.message || error);
+  }
+  if (!corruption) {
+    throw new Error('Protein OPFS corruption scenario did not modify a cached artifact.');
+  }
+  if (!rejection) {
+    throw new Error('Protein OPFS corruption scenario unexpectedly accepted a corrupted cached artifact.');
+  }
+  if (cachedSourceAfterCorruption !== null) {
+    throw new Error('Protein OPFS corruption scenario did not reject the corrupted cached artifact.');
+  }
+  return {
+    corruptedFile: corruption.filename,
+    corruptedBytes: corruption.bytes,
+    rejected: true,
+    rejection: 'OPFS-only resolver returned no source after manifest-shard corruption.',
   };
 }
 
@@ -1059,6 +1248,123 @@ async function main() {
     checks.push(run);
   }
 
+  let staleResultRejection = null;
+  let cancellation = null;
+  let corruptionRecovery = null;
+  if (proteinFixture) {
+    staleResultRejection = await assertProteinStaleResultRejection({
+      modelId: modelCache.modelId,
+      modelUrl: modelCache.modelUrl,
+      prompt,
+      timeoutMs: args.timeoutMs,
+      profileDir: args.profileDir,
+      rdrrRoot: modelCache.rdrrRoot,
+      channel: args.channel,
+      kernelPath: args.kernelPath,
+      activationDtype,
+      kvDtype,
+      outputDtype,
+      runtimeProfile: args.runtimeProfile,
+      proteinFixture,
+    });
+    cancellation = await assertProteinCancellation({
+      modelId: modelCache.modelId,
+      modelUrl: modelCache.modelUrl,
+      prompt,
+      timeoutMs: args.timeoutMs,
+      profileDir: args.profileDir,
+      rdrrRoot: modelCache.rdrrRoot,
+      channel: args.channel,
+      kernelPath: args.kernelPath,
+      activationDtype,
+      kvDtype,
+      outputDtype,
+      runtimeProfile: args.runtimeProfile,
+      proteinFixture,
+    });
+    const corruption = await assertProteinOpfsCorruptionRejected({
+      modelId: modelCache.modelId,
+      modelUrl: modelCache.modelUrl,
+      prompt,
+      timeoutMs: args.timeoutMs,
+      profileDir: args.profileDir,
+      rdrrRoot: modelCache.rdrrRoot,
+      channel: args.channel,
+      kernelPath: args.kernelPath,
+      activationDtype,
+      kvDtype,
+      outputDtype,
+      runtimeProfile: args.runtimeProfile,
+      proteinFixture,
+    });
+
+    const recoveryPrime = await runSmokeRequest({
+      label: 'recover-http',
+      modelId: modelCache.modelId,
+      modelUrl: modelCache.modelUrl,
+      prompt,
+      timeoutMs: args.timeoutMs,
+      profileDir: args.profileDir,
+      rdrrRoot: modelCache.rdrrRoot,
+      channel: args.channel,
+      loadMode: 'http',
+      wipeCacheBeforeLaunch: false,
+      sampling: null,
+      kernelPath: args.kernelPath,
+      activationDtype,
+      kvDtype,
+      outputDtype,
+      expectMode,
+      runtimeProfile: args.runtimeProfile,
+      proteinFixture,
+      hardwareGpu: args.hardwareGpu,
+    });
+    assertSmokeResult(recoveryPrime.label, recoveryPrime.response, {
+      expectMode,
+      expectedFirstToken: args.expectedFirstToken,
+      expectedEmbeddingDim: args.expectedEmbeddingDim,
+      expectedSemanticStyle: args.expectedSemanticStyle,
+      proteinFixture,
+    });
+
+    const recoveryOpfs = await runSmokeRequest({
+      label: 'recover-opfs',
+      modelId: modelCache.modelId,
+      modelUrl: modelCache.modelUrl,
+      prompt,
+      timeoutMs: args.timeoutMs,
+      profileDir: args.profileDir,
+      rdrrRoot: modelCache.rdrrRoot,
+      channel: args.channel,
+      loadMode: 'opfs',
+      wipeCacheBeforeLaunch: false,
+      sampling: null,
+      kernelPath: args.kernelPath,
+      activationDtype,
+      kvDtype,
+      outputDtype,
+      expectMode,
+      runtimeProfile: args.runtimeProfile,
+      proteinFixture,
+      hardwareGpu: args.hardwareGpu,
+    });
+    assertSmokeResult(recoveryOpfs.label, recoveryOpfs.response, {
+      expectMode,
+      expectedFirstToken: args.expectedFirstToken,
+      expectedEmbeddingDim: args.expectedEmbeddingDim,
+      expectedSemanticStyle: args.expectedSemanticStyle,
+      proteinFixture,
+    });
+    if (recoveryOpfs.response?.result?.loadMode !== 'opfs' && recoveryOpfs.response?.result?.timing?.loadMode !== 'opfs') {
+      throw new Error('recover-opfs: browser smoke did not report loadMode=opfs.');
+    }
+    corruptionRecovery = {
+      ...corruption,
+      recoveryPrime: summarizeSmokeRun(recoveryPrime, proteinFixture),
+      recoveryOpfs: summarizeSmokeRun(recoveryOpfs, proteinFixture),
+    };
+  }
+
   const summary = {
     ok: true,
     modelId: modelCache.modelId,
@@ -1082,6 +1388,9 @@ async function main() {
     hardwareGpuRequested: args.hardwareGpu,
     prime: summarizeSmokeRun(primeRun, proteinFixture),
     checks: checks.map((run) => summarizeSmokeRun(run, proteinFixture)),
+    staleResultRejection,
+    cancellation,
+    corruptionRecovery,
   };
 
   if (args.json) {

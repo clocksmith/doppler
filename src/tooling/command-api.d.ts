@@ -47,6 +47,16 @@ export interface ToolingInferenceInput {
   image?: ToolingInferenceImageInput | null;
   maxTokens?: number | null;
   softTokenBudget?: number | null;
+  /** Exact biological sequence input; it cannot be combined with prompt or image input. */
+  sequence?: string | null;
+  sequenceAlphabet?: 'amino_acid' | 'nucleotide' | null;
+  includeTokenEmbeddings?: boolean | null;
+  includeLogits?: boolean | null;
+  probePositions?: number[] | null;
+  /** Qualification-only cancellation probe; not part of ordinary model input. */
+  sequenceQualificationAbort?: 'before_execution' | 'after_start' | null;
+  /** Qualification-only late-result probe; not part of ordinary model input. */
+  sequenceQualificationStaleAfterStart?: boolean | null;
 }
 
 export interface ToolingNormalizedInferenceInput {
@@ -54,6 +64,13 @@ export interface ToolingNormalizedInferenceInput {
   image: ToolingNormalizedInferenceImageInput | null;
   maxTokens: number | null;
   softTokenBudget: number | null;
+  sequence?: string | null;
+  sequenceAlphabet?: 'amino_acid' | 'nucleotide' | null;
+  includeTokenEmbeddings?: boolean | null;
+  includeLogits?: boolean | null;
+  probePositions?: number[] | null;
+  sequenceQualificationAbort?: 'before_execution' | 'after_start' | null;
+  sequenceQualificationStaleAfterStart?: boolean | null;
 }
 
 export interface ToolingCommandRequestInput {

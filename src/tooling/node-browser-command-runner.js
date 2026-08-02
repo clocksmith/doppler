@@ -1020,6 +1020,13 @@ export async function runBrowserCommandInNode(commandRequest, options = {}) {
                 loadMode: 'opfs',
               };
             }
+            if (typeof options.afterOpfsCachePrime === 'function') {
+              await options.afterOpfsCachePrime({
+                page,
+                modelId: relayRequest.modelId,
+                cacheResult,
+              });
+            }
           } else if (requireOpfsLoad) {
             const cacheError = cacheResult?.error || 'model not cached';
             throw new Error(

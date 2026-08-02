@@ -163,6 +163,8 @@ function normalizeInferenceInput(value, workload) {
     'includeTokenEmbeddings',
     'includeLogits',
     'probePositions',
+    'sequenceQualificationAbort',
+    'sequenceQualificationStaleAfterStart',
   ]);
   for (const key of Object.keys(inferenceInput)) {
     if (!allowedKeys.has(key)) {
@@ -188,6 +190,18 @@ function normalizeInferenceInput(value, workload) {
         'tooling command: inferenceInput.sequenceAlphabet must be "amino_acid" or "nucleotide" when provided.'
       );
     }
+    const sequenceQualificationAbort = (() => {
+      const value = asOptionalString(
+        inferenceInput.sequenceQualificationAbort,
+        'inferenceInput.sequenceQualificationAbort'
+      );
+      if (value != null && value !== 'before_execution' && value !== 'after_start') {
+        throw new Error(
+          'tooling command: inferenceInput.sequenceQualificationAbort must be "before_execution" or "after_start".'
+        );
+      }
+      return value;
+    })();
     return {
       sequence,
       sequenceAlphabet,
@@ -200,6 +214,15 @@ function normalizeInferenceInput(value, workload) {
         inferenceInput.probePositions,
         'inferenceInput.probePositions'
       ),
+      ...(sequenceQualificationAbort != null ? { sequenceQualificationAbort } : {}),
+      ...(inferenceInput.sequenceQualificationStaleAfterStart !== undefined
+        ? {
+          sequenceQualificationStaleAfterStart: asOptionalBoolean(
+            inferenceInput.sequenceQualificationStaleAfterStart,
+            'inferenceInput.sequenceQualificationStaleAfterStart'
+          ),
+        }
+        : {}),
     };
   }
 
@@ -208,9 +231,11 @@ function normalizeInferenceInput(value, workload) {
     || inferenceInput.includeTokenEmbeddings !== undefined
     || inferenceInput.includeLogits !== undefined
     || inferenceInput.probePositions !== undefined
+    || inferenceInput.sequenceQualificationAbort !== undefined
+    || inferenceInput.sequenceQualificationStaleAfterStart !== undefined
   ) {
     throw new Error(
-      'tooling command: sequenceAlphabet, includeTokenEmbeddings, includeLogits, and probePositions require inferenceInput.sequence.'
+      'tooling command: sequenceAlphabet, includeTokenEmbeddings, includeLogits, probePositions, sequenceQualificationAbort, and sequenceQualificationStaleAfterStart require inferenceInput.sequence.'
     );
   }
 

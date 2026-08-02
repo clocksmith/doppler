@@ -143,6 +143,8 @@ import {
       includeTokenEmbeddings: true,
       includeLogits: false,
       probePositions: [0, 1, 8, 1],
+      sequenceQualificationAbort: 'after_start',
+      sequenceQualificationStaleAfterStart: true,
     },
   });
   assert.deepEqual(request.inferenceInput, {
@@ -151,7 +153,24 @@ import {
     includeTokenEmbeddings: true,
     includeLogits: false,
     probePositions: [0, 1, 8],
+    sequenceQualificationAbort: 'after_start',
+    sequenceQualificationStaleAfterStart: true,
   });
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      workload: 'inference',
+      modelId: 'esm2-t12-35m-ur50d-f32-af32',
+      inferenceInput: {
+        sequence: 'MKTIIALSYIFCLVFADYKDDDDK',
+        sequenceQualificationAbort: 'eventually',
+      },
+    }),
+    /sequenceQualificationAbort must be "before_execution" or "after_start"/
+  );
 }
 
 {

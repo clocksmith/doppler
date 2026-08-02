@@ -199,9 +199,13 @@ async function loadCachedManifest(modelId) {
 
 async function verifyCachedArtifact(manifest) {
   if (resolveSourceArtifact(manifest)) {
-    return verifyStoredSourceArtifact(manifest, { checkHashes: false });
+    return verifyStoredSourceArtifact(manifest, { checkHashes: true });
   }
-  return verifyIntegrity({ checkHashes: false });
+  // A persistent cache hit is security-relevant: a matching filename and
+  // length do not establish that the bytes still match the immutable model
+  // contract. Verify the manifest-declared shard digests before exposing OPFS
+  // bytes to a runtime load or calling the cache a verified hit.
+  return verifyIntegrity({ checkHashes: true });
 }
 
 async function resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress) {

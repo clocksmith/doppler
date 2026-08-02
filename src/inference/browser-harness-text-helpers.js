@@ -2208,10 +2208,37 @@ export async function runSequenceEncoding(pipeline, runOverrides = null) {
     throw new Error('Sequence qualification requires inferenceInput.sequence.');
   }
   const start = performance.now();
+  const abortMode = runOverrides?.sequenceQualificationAbort ?? null;
+  const staleAfterStart = runOverrides?.sequenceQualificationStaleAfterStart === true;
+  const controller = abortMode ? new AbortController() : null;
+  let requestGeneration = 1;
+  if (abortMode === 'before_execution') {
+    controller.abort('Sequence qualification cancelled before execution.');
+  } else if (abortMode === 'after_start') {
+    // Queue the abort only after encodeSequence has entered its async path. The
+    // pipeline checks the signal at GPU synchronization boundaries and must
+    // drop the late result instead of publishing an output.
+    queueMicrotask(() => controller.abort('Sequence qualification cancelled after start.'));
+  }
+  if (staleAfterStart) {
+    // Model results must stay bound to the generation that initiated them.
+    // This qualification-only path supersedes the generation at the first
+    // asynchronous boundary and verifies that a late result never reaches the
+    // serialized command output.
+    queueMicrotask(() => {
+      requestGeneration = 2;
+    });
+  }
   const result = await pipeline.encodeSequence(sequence, {
     includeTokenEmbeddings: runOverrides?.includeTokenEmbeddings === true,
     includeLogits: runOverrides?.includeLogits === true,
+    signal: controller?.signal,
   });
+  if (staleAfterStart && requestGeneration !== 1) {
+    const error = new Error('Sequence qualification result was superseded before publication.');
+    error.name = 'StaleResultError';
+    throw error;
+  }
   const durationMs = Math.max(1, performance.now() - start);
   return {
     sequence,
