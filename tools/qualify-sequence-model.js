@@ -363,7 +363,7 @@ export async function qualifySequenceModel(args) {
               resetDeviceState();
             } finally {
               if (releaseBootstrappedProvider) {
-                releaseNodeWebGPU();
+                await releaseNodeWebGPU();
               }
             }
           }

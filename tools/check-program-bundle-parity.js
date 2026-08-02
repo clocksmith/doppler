@@ -6,7 +6,7 @@ function parseArgs(argv) {
   const args = {
     bundlePath: null,
     providers: null,
-    mode: 'contract',
+    mode: null,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -18,7 +18,7 @@ function parseArgs(argv) {
         .map((entry) => entry.trim())
         .filter(Boolean);
     } else if (arg === '--mode') {
-      args.mode = argv[++index] ?? 'contract';
+      args.mode = argv[++index] ?? null;
     } else if (!arg.startsWith('--') && !args.bundlePath) {
       args.bundlePath = arg;
     } else {
@@ -26,7 +26,13 @@ function parseArgs(argv) {
     }
   }
   if (!args.bundlePath) {
-    throw new Error('Usage: node tools/check-program-bundle-parity.js --bundle <bundle.json> [--providers browser-webgpu,node:webgpu,node:doe-gpu] [--mode contract|execute]');
+    throw new Error('Usage: node tools/check-program-bundle-parity.js --bundle <bundle.json> --providers <provider,...> --mode <contract|execute>');
+  }
+  if (!args.providers?.length) {
+    throw new Error('program bundle parity: --providers must explicitly select at least one implementation.');
+  }
+  if (!args.mode) {
+    throw new Error('program bundle parity: --mode must be explicit.');
   }
   return args;
 }

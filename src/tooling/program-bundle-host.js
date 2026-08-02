@@ -1,20 +1,12 @@
-import { PipelineGenerator } from '../inference/pipelines/text/generator.js';
-
-export const DOPPLER_PROGRAM_BUNDLE_HOST_SUBSET = 'doppler-webgpu-host/v1';
-
-export function createTextGenerationProgram(state) {
-  return new PipelineGenerator(state);
+function requireHostBridge(hostBridge) {
+  if (!hostBridge || typeof hostBridge.createTextGenerationProgram !== 'function') {
+    throw new Error(
+      'program bundle host: hostBridge.createTextGenerationProgram(bundle, options) is required.',
+    );
+  }
+  return hostBridge;
 }
 
-export function describeTextGenerationProgram() {
-  return {
-    schema: 'doppler.host-js/v1',
-    jsSubset: DOPPLER_PROGRAM_BUNDLE_HOST_SUBSET,
-    entrypoint: {
-      id: 'text-generation',
-      module: 'src/tooling/program-bundle-host.js',
-      export: 'createTextGenerationProgram',
-      role: 'model-orchestration',
-    },
-  };
+export function createTextGenerationProgram(hostBridge, bundle, options = {}) {
+  return requireHostBridge(hostBridge).createTextGenerationProgram(bundle, options);
 }

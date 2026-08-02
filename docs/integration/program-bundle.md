@@ -57,6 +57,7 @@ Schema: `doppler.program-bundle/v1`
 Implementation:
 
 - schema and validator: `src/config/schema/program-bundle.schema.js`
+- generated JSON Schema: `src/config/schema/program-bundle.schema.json`
 - Node exporter/checker API: `src/tooling/program-bundle.js`
 - CLI wrapper: `doppler program-bundle`
 - tools: `tools/export-program-bundle.js`, `tools/check-program-bundle.js`
@@ -68,6 +69,7 @@ The bundle must contain:
 
 | Field | Meaning |
 | --- | --- |
+| `package` | Hash-bound, bundle-relative WGSL and constrained host-JS source bytes |
 | `sources.manifest.hash` | SHA-256 of the exact manifest JSON |
 | `sources.executionGraph.hash` | Stable hash of `manifest.inference.execution` |
 | `sources.executionGraph.expandedStepHash` | Stable hash of expanded execution-v1 steps |
@@ -81,8 +83,10 @@ The bundle must contain:
 | `artifacts` | manifest, shard, tokenizer, conversion config, and reference report hashes |
 | `referenceTranscript` | prompt/output/token/phase/KV identity from a browser report |
 
-The bundle must be closed: no hidden imports, no implicit kernels, no
-runtime-discovered shader strings, and no undeclared model behavior.
+The bundle must be closed: every reachable WGSL source and constrained host-JS
+entrypoint is copied under `program/`, declared in `package.files`, and checked
+against its SHA-256 and byte size. There are no hidden imports, implicit
+kernels, runtime-discovered shader strings, or undeclared model behavior.
 Unsupported features must reject early when `unsupportedFeaturePolicy` is
 `fail`; there is no downgrade from portable program to best-effort capture.
 
@@ -303,6 +307,7 @@ npm run program-bundle:reference -- --manifest <manifest.json> --out <bundle.jso
 npm run program-bundle:reference:gemma4-int4ple
 npm run program-bundle:check
 npm run program-bundle:parity
+npm run program-bundle:schema:check
 ```
 
 `program-bundle:reference` is the portable reference-capture lane. It runs one bounded
@@ -321,15 +326,17 @@ node src/cli/doppler-cli.js verify --config '{
     "workload": "inference",
     "workloadType": "program-bundle",
     "programBundlePath": "examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json",
-    "parityProviders": ["browser-webgpu", "node:webgpu", "node:doe-gpu"]
+    "parityProviders": ["browser-webgpu", "node:webgpu", "node:doe-gpu"],
+    "programBundleParityMode": "contract"
   }
 }'
 ```
 
-Default parity mode is `contract`: browser WebGPU is treated as the reference
-transcript, Node/Dawn is planned for replay, and Doe.js availability is checked
-without assuming the optional package is installed. Set
-`programBundleParityMode: "execute"` to run the Node/WebGPU replay path.
+Parity mode and providers are required. `contract` validates the closed bundle
+and probes selected Node providers without claiming execution. `execute` runs
+selected executable providers. Every provider row reports `schemaValid`,
+`providerAvailable`, `executed`, and `transcriptMatched`; none of those facts is
+inferred from another.
 
 ## Failure Modes
 
@@ -340,11 +347,14 @@ The validator/exporter fails when:
 - a WGSL digest does not match the checked-in digest registry
 - a required artifact hash is missing
 - the host contract allows dynamic imports
+- a host entrypoint contains a static import and therefore is not self-contained
+- a packaged path escapes the bundle root or packaged bytes fail hash/size verification
 - a declared host entrypoint source file contains dynamic imports or DOM globals
 - the reference report lacks prompt/output/token transcript identity
 - the reference transcript graph hash does not match the bundle graph hash
 - a Program Bundle parity request lacks a replayable bundle or asks a browser
   surface to run Node/Doe providers
+- a Program Bundle parity request omits its mode or selected providers
 
 ## Ownership
 

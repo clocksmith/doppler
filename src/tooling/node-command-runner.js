@@ -189,8 +189,8 @@ export async function runNodeCommand(commandRequest, options = {}) {
       const result = await checkProgramBundleParity({
         bundle: request.programBundle ?? undefined,
         bundlePath: request.programBundlePath ?? undefined,
-        providers: request.parityProviders ?? undefined,
-        mode: request.programBundleParityMode ?? 'contract',
+        providers: request.parityProviders,
+        mode: request.programBundleParityMode,
       });
       return createToolingSuccessEnvelope({
         surface: 'node',

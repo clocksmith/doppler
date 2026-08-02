@@ -1,0 +1,33 @@
+{
+  "schema": "doe.webgpu-provider/v1",
+  "providers": [
+    {
+      "id": "pre-installed",
+      "kind": "global"
+    },
+    {
+      "id": "webgpu",
+      "kind": "module",
+      "module": "webgpu",
+      "gpu": {
+        "kind": "factory",
+        "path": "create",
+        "args": [
+          [
+            "enable-dawn-features=allow_unsafe_apis"
+          ]
+        ]
+      },
+      "globals": {
+        "GPUBufferUsage": "globals.GPUBufferUsage",
+        "GPUShaderStage": "globals.GPUShaderStage",
+        "GPUMapMode": "globals.GPUMapMode",
+        "GPUTextureUsage": "globals.GPUTextureUsage"
+      }
+    }
+  ],
+  "adapterOptions": null,
+  "globals": {
+    "mode": "replace"
+  }
+}

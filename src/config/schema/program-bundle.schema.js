@@ -1,4 +1,6 @@
 import { isExecutionV1Digest } from './execution-v1.schema.js';
+import { sha256Hex } from '../../utils/sha256.js';
+import { stableSortObject } from '../../utils/stable-sort-object.js';
 
 export const PROGRAM_BUNDLE_SCHEMA_VERSION = 1;
 export const PROGRAM_BUNDLE_SCHEMA_ID = 'doppler.program-bundle/v1';
@@ -6,6 +8,7 @@ export const PROGRAM_BUNDLE_HOST_SCHEMA_ID = 'doppler.host-js/v1';
 export const PROGRAM_BUNDLE_HOST_JS_SUBSET = 'doppler-webgpu-host/v1';
 export const PROGRAM_BUNDLE_CAPTURE_PROFILE_SCHEMA_ID = 'doppler.capture-profile/v1';
 export const PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID = 'doppler.reference-transcript/v1';
+export const PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID = 'doppler.program-bundle-package/v1';
 
 const ARTIFACT_ROLE_SET = new Set([
   'manifest',
@@ -15,8 +18,11 @@ const ARTIFACT_ROLE_SET = new Set([
   'runtime-config',
   'reference-report',
   'source',
+  'wgsl-source',
+  'host-source',
   'other',
 ]);
+const PACKAGE_FILE_ROLE_SET = new Set(['wgsl-source', 'host-source']);
 
 function assertPlainObject(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -71,6 +77,18 @@ function assertNullableString(value, label) {
   assertString(value, label);
 }
 
+function assertBundleRelativePath(value, label) {
+  assertString(value, label);
+  if (
+    value.includes('\\')
+    || value.startsWith('/')
+    || /^[A-Za-z][A-Za-z0-9+.-]*:/u.test(value)
+    || value.split('/').some((segment) => segment === '' || segment === '.' || segment === '..')
+  ) {
+    throw new Error(`program bundle: ${label} must be a normalized bundle-relative path.`);
+  }
+}
+
 function validateArtifact(artifact, index) {
   assertPlainObject(artifact, `artifacts[${index}]`);
   assertString(artifact.role, `artifacts[${index}].role`);
@@ -101,16 +119,19 @@ function validateHost(host) {
     assertString(entrypoint.module, `host.entrypoints[${index}].module`);
     assertString(entrypoint.export, `host.entrypoints[${index}].export`);
     assertString(entrypoint.role, `host.entrypoints[${index}].role`);
-    if (entrypoint.sourceHash !== undefined) {
-      assertDigest(entrypoint.sourceHash, `host.entrypoints[${index}].sourceHash`);
-    }
-    if (entrypoint.validation !== undefined) {
-      assertPlainObject(entrypoint.validation, `host.entrypoints[${index}].validation`);
-      if (entrypoint.validation.dynamicImport !== 'none-detected') {
-        throw new Error(`program bundle: host.entrypoints[${index}].validation.dynamicImport must be "none-detected".`);
-      }
-      if (entrypoint.validation.dom !== 'none-detected') {
-        throw new Error(`program bundle: host.entrypoints[${index}].validation.dom must be "none-detected".`);
+    assertBundleRelativePath(entrypoint.module, `host.entrypoints[${index}].module`);
+    assertDigest(entrypoint.sourceHash, `host.entrypoints[${index}].sourceHash`);
+    assertPlainObject(entrypoint.validation, `host.entrypoints[${index}].validation`);
+    for (const field of [
+      'dynamicImport',
+      'staticImport',
+      'dom',
+      'runtimeGlobals',
+      'network',
+      'dynamicCode',
+    ]) {
+      if (entrypoint.validation[field] !== 'none-detected') {
+        throw new Error(`program bundle: host.entrypoints[${index}].validation.${field} must be "none-detected".`);
       }
     }
   }
@@ -119,8 +140,17 @@ function validateHost(host) {
   if (host.constraints.dynamicImport !== 'disallowed') {
     throw new Error('program bundle: host.constraints.dynamicImport must be "disallowed".');
   }
+  if (host.constraints.staticImport !== 'disallowed') {
+    throw new Error('program bundle: host.constraints.staticImport must be "disallowed".');
+  }
   if (host.constraints.dom !== 'disallowed-in-model-path') {
     throw new Error('program bundle: host.constraints.dom must be "disallowed-in-model-path".');
+  }
+  if (host.constraints.runtimeGlobals !== 'disallowed') {
+    throw new Error('program bundle: host.constraints.runtimeGlobals must be "disallowed".');
+  }
+  if (host.constraints.dynamicCode !== 'disallowed') {
+    throw new Error('program bundle: host.constraints.dynamicCode must be "disallowed".');
   }
   if (host.constraints.filesystem !== 'declared-artifacts-only') {
     throw new Error('program bundle: host.constraints.filesystem must be "declared-artifacts-only".');
@@ -141,6 +171,8 @@ function validateWgslModules(modules) {
     assertString(module.file, `wgslModules[${index}].file`);
     assertString(module.entry, `wgslModules[${index}].entry`);
     assertDigest(module.digest, `wgslModules[${index}].digest`);
+    assertBundleRelativePath(module.sourcePath, `wgslModules[${index}].sourcePath`);
+    assertDigest(module.sourceHash, `wgslModules[${index}].sourceHash`);
     assertNullablePlainObject(module.metadata ?? null, `wgslModules[${index}].metadata`);
     if (module.metadata) {
       assertDigest(module.metadata.sourceMetadataHash, `wgslModules[${index}].metadata.sourceMetadataHash`);
@@ -174,6 +206,58 @@ function validateWgslModules(modules) {
     fileEntries.set(fileKey, module.digest);
   }
   return ids;
+}
+
+function validatePackage(packageContract, host, modules, artifacts) {
+  assertPlainObject(packageContract, 'package');
+  if (packageContract.schema !== PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID) {
+    throw new Error(`program bundle: package.schema must be "${PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID}".`);
+  }
+  if (packageContract.root !== '.') {
+    throw new Error('program bundle: package.root must be ".".');
+  }
+  assertNonEmptyArray(packageContract.files, 'package.files');
+  assertDigest(packageContract.fileSetHash, 'package.fileSetHash');
+  const expectedFileSetHash = `sha256:${sha256Hex(JSON.stringify(stableSortObject(packageContract.files)))}`;
+  if (packageContract.fileSetHash !== expectedFileSetHash) {
+    throw new Error('program bundle: package.fileSetHash must match package.files.');
+  }
+  const packageFiles = new Map();
+  for (let index = 0; index < packageContract.files.length; index += 1) {
+    const file = packageContract.files[index];
+    assertPlainObject(file, `package.files[${index}]`);
+    if (!PACKAGE_FILE_ROLE_SET.has(file.role)) {
+      throw new Error(`program bundle: package.files[${index}].role must be wgsl-source or host-source.`);
+    }
+    assertBundleRelativePath(file.path, `package.files[${index}].path`);
+    assertDigest(file.hash, `package.files[${index}].hash`);
+    assertNullableFiniteNumber(file.sizeBytes, `package.files[${index}].sizeBytes`);
+    if (packageFiles.has(file.path)) {
+      throw new Error(`program bundle: duplicate package file path "${file.path}".`);
+    }
+    packageFiles.set(file.path, file);
+    const artifact = artifacts.find((candidate) => (
+      candidate.role === file.role
+      && candidate.path === file.path
+      && candidate.hash === file.hash
+      && candidate.sizeBytes === file.sizeBytes
+    ));
+    if (!artifact) {
+      throw new Error(`program bundle: package file "${file.path}" is missing its matching artifact row.`);
+    }
+  }
+  for (const entrypoint of host.entrypoints) {
+    const file = packageFiles.get(entrypoint.module);
+    if (!file || file.role !== 'host-source' || file.hash !== entrypoint.sourceHash) {
+      throw new Error(`program bundle: host entrypoint "${entrypoint.id}" is not bound to a packaged host source.`);
+    }
+  }
+  for (const module of modules) {
+    const file = packageFiles.get(module.sourcePath);
+    if (!file || file.role !== 'wgsl-source' || file.hash !== module.sourceHash) {
+      throw new Error(`program bundle: WGSL module "${module.id}" is not bound to a packaged WGSL source.`);
+    }
+  }
 }
 
 function validateExecutionSteps(steps, moduleIds) {
@@ -388,6 +472,7 @@ export function validateProgramBundle(bundle) {
     artifactKeys.add(key);
   }
 
+  validatePackage(bundle.package, bundle.host, bundle.wgslModules, bundle.artifacts);
   validateReferenceTranscript(bundle.referenceTranscript, bundle.sources.executionGraph.hash);
   return bundle;
 }

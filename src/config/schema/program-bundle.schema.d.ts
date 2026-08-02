@@ -4,9 +4,10 @@ export declare const PROGRAM_BUNDLE_HOST_SCHEMA_ID: 'doppler.host-js/v1';
 export declare const PROGRAM_BUNDLE_HOST_JS_SUBSET: 'doppler-webgpu-host/v1';
 export declare const PROGRAM_BUNDLE_CAPTURE_PROFILE_SCHEMA_ID: 'doppler.capture-profile/v1';
 export declare const PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID: 'doppler.reference-transcript/v1';
+export declare const PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID: 'doppler.program-bundle-package/v1';
 
 export interface ProgramBundleArtifact {
-  role: 'manifest' | 'weight-shard' | 'tokenizer' | 'conversion-config' | 'runtime-config' | 'reference-report' | 'source' | 'other';
+  role: 'manifest' | 'weight-shard' | 'tokenizer' | 'conversion-config' | 'runtime-config' | 'reference-report' | 'source' | 'wgsl-source' | 'host-source' | 'other';
   path: string;
   hash: string;
   sizeBytes: number | null;
@@ -17,7 +18,8 @@ export interface ProgramBundleWgslModule {
   file: string;
   entry: string;
   digest: string;
-  sourcePath: string | null;
+  sourcePath: string;
+  sourceHash: string;
   reachable: boolean;
   metadata: {
     entry: string;
@@ -127,6 +129,17 @@ export interface ProgramBundle {
   bundleId: string;
   modelId: string;
   createdAtUtc: string;
+  package: {
+    schema: typeof PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID;
+    root: '.';
+    fileSetHash: string;
+    files: Array<{
+      role: 'wgsl-source' | 'host-source';
+      path: string;
+      hash: string;
+      sizeBytes: number;
+    }>;
+  };
   sources: {
     manifest: {
       path: string;
@@ -152,15 +165,22 @@ export interface ProgramBundle {
       module: string;
       export: string;
       role: string;
-      sourceHash?: string;
-      validation?: {
+      sourceHash: string;
+      validation: {
         dynamicImport: 'none-detected';
+        staticImport: 'none-detected';
         dom: 'none-detected';
+        runtimeGlobals: 'none-detected';
+        network: 'none-detected';
+        dynamicCode: 'none-detected';
       };
     }>;
     constraints: {
       dynamicImport: 'disallowed';
+      staticImport: 'disallowed';
       dom: 'disallowed-in-model-path';
+      runtimeGlobals: 'disallowed';
+      dynamicCode: 'disallowed';
       filesystem: 'declared-artifacts-only';
       network: 'declared-artifacts-only';
     };

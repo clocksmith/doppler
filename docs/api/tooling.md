@@ -61,7 +61,7 @@ The generated export inventory is the authoritative symbol list for this surface
 - `runBrowserCommand(...)` and `runNodeCommand(...)` return success envelopes on success and throw normalized command errors on failure
 - browser-conditioned shared exports for browser bundles, with Node-only helpers available on the default Node import path for the same subpath
 - intended for harnesses, diagnostics, demos, registry/storage workflows, and command runners
-- browser-conditioned imports expose Program Bundle validation only; Node imports also expose `exportProgramBundle(...)`, `writeProgramBundle(...)`, `loadProgramBundle(...)`, `checkProgramBundleFile(...)`, and `checkProgramBundleParity(...)`
+- browser-conditioned imports expose Program Bundle validation only; Node imports also expose `exportProgramBundle(...)`, `writeProgramBundle(...)`, `loadProgramBundle(...)`, `verifyClosedProgramBundle(...)`, `checkProgramBundleFile(...)`, and `checkProgramBundleParity(...)`
 
 ## Command Families
 
@@ -96,8 +96,9 @@ Program Bundle parity:
 
 - use `verify` with `workload="inference"` and `workloadType="program-bundle"`.
 - set `programBundle` or `programBundlePath`.
-- set optional `parityProviders`, for example `["browser-webgpu", "node:webgpu", "node:doe-gpu"]`.
-- default `programBundleParityMode` is `contract`; `execute` runs the Node/WebGPU replay path when the provider is available.
+- set explicit `parityProviders`, for example `["browser-webgpu", "node:webgpu", "node:doe-gpu"]`.
+- set explicit `programBundleParityMode` to `contract` or `execute`.
+- inspect `schemaValid`, `providerAvailable`, `executed`, and `transcriptMatched` independently for each provider.
 
 Operator command families:
 

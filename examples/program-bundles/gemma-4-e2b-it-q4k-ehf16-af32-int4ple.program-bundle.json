@@ -19,7 +19,7 @@
       "expandedStepHash": "sha256:63c791405e201cd077636ca7f7ff3c68c94b9d7d2a5912558b6f1ea5eaf20de9"
     },
     "weightSetHash": "sha256:54c2eb104625a2a4c0bd82e25be15c1330af765a92927445aa5e231b2668213d",
-    "artifactSetHash": "sha256:b0939afc5365b845a73d45f84ab41a650813a71f7bf4c258c2793b84a01a5888"
+    "artifactSetHash": "sha256:9603816e93cd4d42f7358d0a69b8ac85c86d5f4de8e57a7f993dc336de3ccc85"
   },
   "host": {
     "schema": "doppler.host-js/v1",
@@ -27,19 +27,26 @@
     "entrypoints": [
       {
         "id": "text-generation",
-        "module": "src/tooling/program-bundle-host.js",
+        "module": "program/host/text-generation-efe3ad193b2271bc.mjs",
         "export": "createTextGenerationProgram",
         "role": "model-orchestration",
-        "sourceHash": "sha256:fa549136f8d099cb4e86e8dd28df213a4a828da620039e0ae2aa6f6e567f6e5f",
+        "sourceHash": "sha256:efe3ad193b2271bc429926c0fea8b3615e46441b61598f93daa09159b846094f",
         "validation": {
           "dynamicImport": "none-detected",
-          "dom": "none-detected"
+          "staticImport": "none-detected",
+          "dom": "none-detected",
+          "runtimeGlobals": "none-detected",
+          "network": "none-detected",
+          "dynamicCode": "none-detected"
         }
       }
     ],
     "constraints": {
       "dynamicImport": "disallowed",
+      "staticImport": "disallowed",
       "dom": "disallowed-in-model-path",
+      "runtimeGlobals": "disallowed",
+      "dynamicCode": "disallowed",
       "filesystem": "declared-artifacts-only",
       "network": "declared-artifacts-only"
     }
@@ -50,7 +57,7 @@
       "file": "attention_decode_online_f16kv.wgsl",
       "entry": "main",
       "digest": "sha256:beee4722aa6281f58b74e1d055e192017b5555c189a58dd13dd158fe1511a7b8",
-      "sourcePath": "src/gpu/kernels/attention_decode_online_f16kv.wgsl",
+      "sourcePath": "program/wgsl/attn_decode-4feba111cc381d0a.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -119,14 +126,15 @@
         ],
         "requiresSubgroups": true,
         "sourceMetadataHash": "sha256:c77fe935b8af9efab7e059d71612360fafc03a90ef17de8676095a8c31abadd9"
-      }
+      },
+      "sourceHash": "sha256:4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035"
     },
     {
       "id": "attn_head256",
       "file": "attention_head256_f16kv.wgsl",
       "entry": "main",
       "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-      "sourcePath": "src/gpu/kernels/attention_head256_f16kv.wgsl",
+      "sourcePath": "program/wgsl/attn_head256-1e22c16dca7f877b.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -189,14 +197,15 @@
         ],
         "requiresSubgroups": false,
         "sourceMetadataHash": "sha256:498e37fdbe9acdeb666769224268cf87c841ebd378eedc19a8cc4be4d524c9bf"
-      }
+      },
+      "sourceHash": "sha256:1e22c16dca7f877bf9150c81ed11e7cc82fe681ffb81ae41d9a82cba21d0eadd"
     },
     {
       "id": "attn_head512",
       "file": "attention_head512_f16kv.wgsl",
       "entry": "main",
       "digest": "sha256:fe8bc99230a5ee4c969ba1cf9eca289ad936d14f1f87c12a7ca95640cdd8d89e",
-      "sourcePath": "src/gpu/kernels/attention_head512_f16kv.wgsl",
+      "sourcePath": "program/wgsl/attn_head512-5af4c186f81ebc73.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -259,14 +268,15 @@
         ],
         "requiresSubgroups": false,
         "sourceMetadataHash": "sha256:498e37fdbe9acdeb666769224268cf87c841ebd378eedc19a8cc4be4d524c9bf"
-      }
+      },
+      "sourceHash": "sha256:5af4c186f81ebc73d31fe2d3ea1b799a75229bfb772d4a34e1bdad2f1009325a"
     },
     {
       "id": "embed",
       "file": "gather.wgsl",
       "entry": "main",
       "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
-      "sourcePath": "src/gpu/kernels/gather.wgsl",
+      "sourcePath": "program/wgsl/embed-85b2d7fff9358bf4.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -314,14 +324,15 @@
         ],
         "requiresSubgroups": false,
         "sourceMetadataHash": "sha256:1ba09f607f40bfad8dc2b5872fb41536547ea96a10390b6b21d6964c9672c306"
-      }
+      },
+      "sourceHash": "sha256:85b2d7fff9358bf4087d9b3f0804803ba798111a3d728db9561b53789280032c"
     },
     {
       "id": "final_norm_stable",
       "file": "rmsnorm.wgsl",
       "entry": "main",
       "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45",
-      "sourcePath": "src/gpu/kernels/rmsnorm.wgsl",
+      "sourcePath": "program/wgsl/final_norm_stable-57c810ce293ec2ae.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -408,14 +419,15 @@
         ],
         "requiresSubgroups": true,
         "sourceMetadataHash": "sha256:53f84d7fd8b7c0c86a064e6556e3da550d978859b2108fea875c19c7a36c426c"
-      }
+      },
+      "sourceHash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
     },
     {
       "id": "gelu",
       "file": "gelu.wgsl",
       "entry": "main",
       "digest": "sha256:a9007ea08aaff98f9be08f1e0490a6bcf252883eac5513de876ab9ce918865e6",
-      "sourcePath": "src/gpu/kernels/gelu.wgsl",
+      "sourcePath": "program/wgsl/gelu-e6fb22edd25c1e21.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -473,14 +485,15 @@
         ],
         "requiresSubgroups": false,
         "sourceMetadataHash": "sha256:dda449dea87fcd256638151ac6dd1eca216eeb85abee3eb82602459fe8c7d0ed"
-      }
+      },
+      "sourceHash": "sha256:e6fb22edd25c1e210e7dfc61e0b67d31832c1d9d3caf985e4c56f61dd7b57ac6"
     },
     {
       "id": "gemv",
       "file": "matmul_gemv_subgroup.wgsl",
       "entry": "main_vec4",
       "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
-      "sourcePath": "src/gpu/kernels/matmul_gemv_subgroup.wgsl",
+      "sourcePath": "program/wgsl/gemv-04db4c712bc4f88c.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main_vec4",
@@ -538,14 +551,15 @@
         ],
         "requiresSubgroups": true,
         "sourceMetadataHash": "sha256:bce22187f56bc5ba9cd004cce6a930f74a0a66626ccf88974c8f9241521d7ffc"
-      }
+      },
+      "sourceHash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed"
     },
     {
       "id": "lm_head_gemv_stable",
       "file": "matmul_gemv_subgroup.wgsl",
       "entry": "main_multicol",
       "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
-      "sourcePath": "src/gpu/kernels/matmul_gemv_subgroup.wgsl",
+      "sourcePath": "program/wgsl/lm_head_gemv_stable-04db4c712bc4f88c.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main_multicol",
@@ -603,14 +617,15 @@
         ],
         "requiresSubgroups": true,
         "sourceMetadataHash": "sha256:0d49d96fdf2bbf1a2ec5dda3209d25bc390cce4f58c939e4cade0f3cac14c2d7"
-      }
+      },
+      "sourceHash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed"
     },
     {
       "id": "lm_head_prefill_stable",
       "file": "matmul_f16w_f32a.wgsl",
       "entry": "main",
       "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
-      "sourcePath": "src/gpu/kernels/matmul_f16w_f32a.wgsl",
+      "sourcePath": "program/wgsl/lm_head_prefill_stable-78b78ec9a73766b5.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -658,14 +673,15 @@
         ],
         "requiresSubgroups": false,
         "sourceMetadataHash": "sha256:61283724e18601a992574205826fd13f77af0bd8bf904e5d06af09fe7c0afab7"
-      }
+      },
+      "sourceHash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888"
     },
     {
       "id": "residual",
       "file": "residual.wgsl",
       "entry": "main",
       "digest": "sha256:f1abd88c959c5d8dd27b9353d487e37b2a96850ed9d90c365212e260399cc2a7",
-      "sourcePath": "src/gpu/kernels/residual.wgsl",
+      "sourcePath": "program/wgsl/residual-e5d606c42ae57cb7.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -713,14 +729,15 @@
         ],
         "requiresSubgroups": false,
         "sourceMetadataHash": "sha256:a5451187b8b2a19c25f13a652eb22bb0bc847a8ab26b06a1d050bca458b2b6f0"
-      }
+      },
+      "sourceHash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698"
     },
     {
       "id": "rmsnorm",
       "file": "rmsnorm.wgsl",
       "entry": "main",
       "digest": "sha256:c723c0300cc8f93396d79d1a274c0a90ccf1eb8ce82c0d778b8cd4659615fe45",
-      "sourcePath": "src/gpu/kernels/rmsnorm.wgsl",
+      "sourcePath": "program/wgsl/rmsnorm-57c810ce293ec2ae.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -807,14 +824,15 @@
         ],
         "requiresSubgroups": true,
         "sourceMetadataHash": "sha256:53f84d7fd8b7c0c86a064e6556e3da550d978859b2108fea875c19c7a36c426c"
-      }
+      },
+      "sourceHash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
     },
     {
       "id": "rope",
       "file": "rope.wgsl",
       "entry": "main",
       "digest": "sha256:e13c54f261d7ef00474b71e4fe7b3298fb5cc49161f50c7ea1854aa6672ebe71",
-      "sourcePath": "src/gpu/kernels/rope.wgsl",
+      "sourcePath": "program/wgsl/rope-a4472c7134a08c77.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -877,14 +895,15 @@
         ],
         "requiresSubgroups": false,
         "sourceMetadataHash": "sha256:fce2365e7756bb2568c6d2b6be32b49588d97ef2fbe1e98b79808e0d8017294d"
-      }
+      },
+      "sourceHash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d"
     },
     {
       "id": "sample",
       "file": "sample.wgsl",
       "entry": "sample_single_pass",
       "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-      "sourcePath": "src/gpu/kernels/sample.wgsl",
+      "sourcePath": "program/wgsl/sample-36437b17a1a7f624.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "sample_single_pass",
@@ -939,14 +958,15 @@
         ],
         "requiresSubgroups": false,
         "sourceMetadataHash": "sha256:9c5e9c0070c000b95a1c9673fd21c5f6ec8f8fb45abc04246badd0f482251c65"
-      }
+      },
+      "sourceHash": "sha256:36437b17a1a7f624ae31d3420ed8142df194b7b8ca800d30a1855fc52e754cd4"
     },
     {
       "id": "tiled",
       "file": "matmul_f16w_f32a.wgsl",
       "entry": "main",
       "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
-      "sourcePath": "src/gpu/kernels/matmul_f16w_f32a.wgsl",
+      "sourcePath": "program/wgsl/tiled-78b78ec9a73766b5.wgsl",
       "reachable": true,
       "metadata": {
         "entry": "main",
@@ -994,7 +1014,8 @@
         ],
         "requiresSubgroups": false,
         "sourceMetadataHash": "sha256:61283724e18601a992574205826fd13f77af0bd8bf904e5d06af09fe7c0afab7"
-      }
+      },
+      "sourceHash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888"
     }
   ],
   "execution": {
@@ -3828,6 +3849,12 @@
       "sizeBytes": 13464
     },
     {
+      "role": "host-source",
+      "path": "program/host/text-generation-efe3ad193b2271bc.mjs",
+      "hash": "sha256:efe3ad193b2271bc429926c0fea8b3615e46441b61598f93daa09159b846094f",
+      "sizeBytes": 448
+    },
+    {
       "role": "manifest",
       "path": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
       "hash": "sha256:d3bd97d3f9065d2950cbee4267b93f345eabbb626eb7b8b9c96c9b0f590b6264",
@@ -4204,6 +4231,90 @@
       "path": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/shard_00059.bin",
       "hash": "sha256:b94595dcf0e89ca67f05f2f75ca295c49834a8d28c5f27e13e9f45ce53d501a3",
       "sizeBytes": 36316102
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/attn_decode-4feba111cc381d0a.wgsl",
+      "hash": "sha256:4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
+      "sizeBytes": 7779
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/attn_head256-1e22c16dca7f877b.wgsl",
+      "hash": "sha256:1e22c16dca7f877bf9150c81ed11e7cc82fe681ffb81ae41d9a82cba21d0eadd",
+      "sizeBytes": 8805
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/attn_head512-5af4c186f81ebc73.wgsl",
+      "hash": "sha256:5af4c186f81ebc73d31fe2d3ea1b799a75229bfb772d4a34e1bdad2f1009325a",
+      "sizeBytes": 9014
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/embed-85b2d7fff9358bf4.wgsl",
+      "hash": "sha256:85b2d7fff9358bf4087d9b3f0804803ba798111a3d728db9561b53789280032c",
+      "sizeBytes": 2289
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/final_norm_stable-57c810ce293ec2ae.wgsl",
+      "hash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+      "sizeBytes": 15770
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/gelu-e6fb22edd25c1e21.wgsl",
+      "hash": "sha256:e6fb22edd25c1e210e7dfc61e0b67d31832c1d9d3caf985e4c56f61dd7b57ac6",
+      "sizeBytes": 1885
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/gemv-04db4c712bc4f88c.wgsl",
+      "hash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+      "sizeBytes": 16657
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/lm_head_gemv_stable-04db4c712bc4f88c.wgsl",
+      "hash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+      "sizeBytes": 16657
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/lm_head_prefill_stable-78b78ec9a73766b5.wgsl",
+      "hash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+      "sizeBytes": 2558
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+      "hash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+      "sizeBytes": 1712
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/rmsnorm-57c810ce293ec2ae.wgsl",
+      "hash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+      "sizeBytes": 15770
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/rope-a4472c7134a08c77.wgsl",
+      "hash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+      "sizeBytes": 12251
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/sample-36437b17a1a7f624.wgsl",
+      "hash": "sha256:36437b17a1a7f624ae31d3420ed8142df194b7b8ca800d30a1855fc52e754cd4",
+      "sizeBytes": 13789
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/tiled-78b78ec9a73766b5.wgsl",
+      "hash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+      "sizeBytes": 2558
     }
   ],
   "referenceTranscript": {
@@ -4714,5 +4825,102 @@
       "logitsPolicy": "exact sha256 digest per generated step over finalized f32 logits before sampling",
       "kvPolicy": "exact sha256 digest over used KV cache bytes by layer/key/value"
     }
+  },
+  "package": {
+    "schema": "doppler.program-bundle-package/v1",
+    "root": ".",
+    "files": [
+      {
+        "role": "host-source",
+        "path": "program/host/text-generation-efe3ad193b2271bc.mjs",
+        "hash": "sha256:efe3ad193b2271bc429926c0fea8b3615e46441b61598f93daa09159b846094f",
+        "sizeBytes": 448
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/attn_decode-4feba111cc381d0a.wgsl",
+        "hash": "sha256:4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
+        "sizeBytes": 7779
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/attn_head256-1e22c16dca7f877b.wgsl",
+        "hash": "sha256:1e22c16dca7f877bf9150c81ed11e7cc82fe681ffb81ae41d9a82cba21d0eadd",
+        "sizeBytes": 8805
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/attn_head512-5af4c186f81ebc73.wgsl",
+        "hash": "sha256:5af4c186f81ebc73d31fe2d3ea1b799a75229bfb772d4a34e1bdad2f1009325a",
+        "sizeBytes": 9014
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/embed-85b2d7fff9358bf4.wgsl",
+        "hash": "sha256:85b2d7fff9358bf4087d9b3f0804803ba798111a3d728db9561b53789280032c",
+        "sizeBytes": 2289
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/final_norm_stable-57c810ce293ec2ae.wgsl",
+        "hash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+        "sizeBytes": 15770
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/gelu-e6fb22edd25c1e21.wgsl",
+        "hash": "sha256:e6fb22edd25c1e210e7dfc61e0b67d31832c1d9d3caf985e4c56f61dd7b57ac6",
+        "sizeBytes": 1885
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/gemv-04db4c712bc4f88c.wgsl",
+        "hash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+        "sizeBytes": 16657
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/lm_head_gemv_stable-04db4c712bc4f88c.wgsl",
+        "hash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+        "sizeBytes": 16657
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/lm_head_prefill_stable-78b78ec9a73766b5.wgsl",
+        "hash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+        "sizeBytes": 2558
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+        "hash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+        "sizeBytes": 1712
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/rmsnorm-57c810ce293ec2ae.wgsl",
+        "hash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+        "sizeBytes": 15770
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/rope-a4472c7134a08c77.wgsl",
+        "hash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+        "sizeBytes": 12251
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/sample-36437b17a1a7f624.wgsl",
+        "hash": "sha256:36437b17a1a7f624ae31d3420ed8142df194b7b8ca800d30a1855fc52e754cd4",
+        "sizeBytes": 13789
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/tiled-78b78ec9a73766b5.wgsl",
+        "hash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+        "sizeBytes": 2558
+      }
+    ],
+    "fileSetHash": "sha256:17453c97dc094547fcf95a55044fd00ae960db454090db2a52df945b346efcba"
   }
 }

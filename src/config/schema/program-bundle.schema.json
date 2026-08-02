@@ -1,0 +1,642 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:program-bundle-schema:v1",
+  "title": "Doppler Program Bundle v1",
+  "description": "Portable Doppler program contract with packaged WGSL and constrained host-JS sources.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "bundleId",
+    "modelId",
+    "createdAtUtc",
+    "package",
+    "sources",
+    "host",
+    "wgslModules",
+    "execution",
+    "captureProfile",
+    "artifacts",
+    "referenceTranscript"
+  ],
+  "properties": {
+    "schema": {
+      "const": "doppler.program-bundle/v1"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "bundleId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "createdAtUtc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package": {
+      "$ref": "#/$defs/package"
+    },
+    "sources": {
+      "$ref": "#/$defs/sources"
+    },
+    "host": {
+      "$ref": "#/$defs/host"
+    },
+    "wgslModules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/wgslModule"
+      }
+    },
+    "execution": {
+      "$ref": "#/$defs/execution"
+    },
+    "captureProfile": {
+      "$ref": "#/$defs/captureProfile"
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "referenceTranscript": {
+      "$ref": "#/$defs/referenceTranscript"
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "bundlePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*\\\\).+$"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "path",
+        "hash",
+        "sizeBytes"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "manifest",
+            "weight-shard",
+            "tokenizer",
+            "conversion-config",
+            "runtime-config",
+            "reference-report",
+            "source",
+            "wgsl-source",
+            "host-source",
+            "other"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "sizeBytes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "packageFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "path",
+        "hash",
+        "sizeBytes"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "wgsl-source",
+            "host-source"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*\\\\).+$"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "root",
+        "files",
+        "fileSetHash"
+      ],
+      "properties": {
+        "schema": {
+          "const": "doppler.program-bundle-package/v1"
+        },
+        "root": {
+          "const": "."
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/packageFile"
+          }
+        },
+        "fileSetHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifest",
+        "conversionConfig",
+        "executionGraph",
+        "weightSetHash",
+        "artifactSetHash"
+      ],
+      "properties": {
+        "manifest": {
+          "$ref": "#/$defs/sourceRef"
+        },
+        "conversionConfig": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "executionGraph": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "hash",
+            "expandedStepHash"
+          ],
+          "properties": {
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "hash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "expandedStepHash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          }
+        },
+        "weightSetHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "artifactSetHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "hash"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "jsSubset",
+        "entrypoints",
+        "constraints"
+      ],
+      "properties": {
+        "schema": {
+          "const": "doppler.host-js/v1"
+        },
+        "jsSubset": {
+          "const": "doppler-webgpu-host/v1"
+        },
+        "entrypoints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "module",
+              "export",
+              "role",
+              "sourceHash",
+              "validation"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "module": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?!/)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*\\\\).+$"
+              },
+              "export": {
+                "type": "string",
+                "minLength": 1
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceHash": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "validation": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "dynamicImport",
+                  "staticImport",
+                  "dom",
+                  "runtimeGlobals",
+                  "network",
+                  "dynamicCode"
+                ],
+                "properties": {
+                  "dynamicImport": {
+                    "const": "none-detected"
+                  },
+                  "staticImport": {
+                    "const": "none-detected"
+                  },
+                  "dom": {
+                    "const": "none-detected"
+                  },
+                  "runtimeGlobals": {
+                    "const": "none-detected"
+                  },
+                  "network": {
+                    "const": "none-detected"
+                  },
+                  "dynamicCode": {
+                    "const": "none-detected"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "constraints": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dynamicImport",
+            "staticImport",
+            "dom",
+            "runtimeGlobals",
+            "dynamicCode",
+            "filesystem",
+            "network"
+          ],
+          "properties": {
+            "dynamicImport": {
+              "const": "disallowed"
+            },
+            "staticImport": {
+              "const": "disallowed"
+            },
+            "dom": {
+              "const": "disallowed-in-model-path"
+            },
+            "runtimeGlobals": {
+              "const": "disallowed"
+            },
+            "dynamicCode": {
+              "const": "disallowed"
+            },
+            "filesystem": {
+              "const": "declared-artifacts-only"
+            },
+            "network": {
+              "const": "declared-artifacts-only"
+            }
+          }
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group",
+        "binding",
+        "name",
+        "addressSpace",
+        "access"
+      ],
+      "properties": {
+        "group": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "binding": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "addressSpace": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "access": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "wgslModule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "file",
+        "entry",
+        "digest",
+        "sourcePath",
+        "sourceHash",
+        "reachable",
+        "metadata"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entry": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*\\\\).+$"
+        },
+        "sourceHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "reachable": {
+          "const": true
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "entry",
+            "sourceMetadataHash",
+            "bindings",
+            "overrides",
+            "workgroupSize",
+            "requiresSubgroups"
+          ],
+          "properties": {
+            "entry": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sourceMetadataHash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "bindings": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/binding"
+              }
+            },
+            "overrides": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "workgroupSize": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "requiresSubgroups": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "graphHash",
+        "stepMetadataHash",
+        "kernelClosure",
+        "steps"
+      ],
+      "properties": {
+        "graphHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "stepMetadataHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "kernelClosure": {
+          "type": "object"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "captureProfile": {
+      "type": "object",
+      "required": [
+        "schema",
+        "deterministic",
+        "phases",
+        "surfaces",
+        "adapter",
+        "hashPolicy",
+        "captureHash"
+      ],
+      "properties": {
+        "schema": {
+          "const": "doppler.capture-profile/v1"
+        },
+        "deterministic": {
+          "const": true
+        },
+        "phases": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "surfaces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "adapter": {
+          "type": "object"
+        },
+        "hashPolicy": {
+          "type": "object"
+        },
+        "captureHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "referenceTranscript": {
+      "type": "object",
+      "required": [
+        "schema",
+        "source",
+        "executionGraphHash",
+        "surface",
+        "prompt",
+        "output",
+        "tokens",
+        "phase",
+        "kvCache",
+        "logits",
+        "tolerance"
+      ],
+      "properties": {
+        "schema": {
+          "const": "doppler.reference-transcript/v1"
+        },
+        "source": {
+          "type": "object"
+        },
+        "executionGraphHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "surface": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prompt": {
+          "type": "object"
+        },
+        "output": {
+          "type": "object"
+        },
+        "tokens": {
+          "type": "object"
+        },
+        "phase": {
+          "type": "object"
+        },
+        "kvCache": {
+          "type": "object"
+        },
+        "logits": {
+          "type": "object"
+        },
+        "tolerance": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "x-doppler-semantic-validator": "src/config/schema/program-bundle.schema.js#validateProgramBundle"
+}

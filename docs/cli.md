@@ -172,15 +172,16 @@ node src/cli/doppler-cli.js verify --config '{
     "workload": "inference",
     "workloadType": "program-bundle",
     "programBundlePath": "examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json",
-    "parityProviders": ["browser-webgpu", "node:webgpu", "node:doe-gpu"]
+    "parityProviders": ["browser-webgpu", "node:webgpu", "node:doe-gpu"],
+    "programBundleParityMode": "contract"
   }
 }' --json
 ```
 
-The default parity mode is `contract`. It validates the reference browser
-transcript, plans Node/Dawn replay, and checks Doe.js availability without
-requiring the optional package to be installed. Use
-`"programBundleParityMode":"execute"` to run the Node/WebGPU replay provider.
+There is no default parity mode or provider list. `contract` validates the
+closed bundle and probes selected providers without claiming execution. Use
+`"programBundleParityMode":"execute"` for replay. Provider results separate
+schema validity, provider availability, execution, and transcript matching.
 
 ## Output format and error envelope
 

@@ -52,26 +52,33 @@ export async function runBrowserCommand(commandRequest, options = {}) {
       if (request.programBundlePath) {
         throw new Error('browser command: program-bundle parity requires inline programBundle; programBundlePath is Node-only.');
       }
-      const providers = request.parityProviders ?? ['browser-webgpu'];
+      const providers = request.parityProviders;
       const unsupported = providers.filter((provider) => provider !== 'browser-webgpu');
       if (unsupported.length > 0) {
         throw new Error(
           `browser command: program-bundle parity provider(s) ${unsupported.join(', ')} are Node-only.`
         );
       }
+      if (request.programBundleParityMode !== 'contract') {
+        throw new Error('browser command: Program Bundle execution is not implemented; use explicit contract mode.');
+      }
       const bundle = validateProgramBundle(request.programBundle);
       const result = {
-        schema: 'doppler.program-bundle-parity/v1',
+        schema: 'doppler.program-bundle-parity/v2',
         ok: true,
         mode: 'contract',
+        schemaValid: true,
         bundleId: bundle.bundleId,
         modelId: bundle.modelId,
         executionGraphHash: bundle.sources.executionGraph.hash,
         providers: [
           {
             provider: 'browser-webgpu',
-            status: 'reference',
-            ok: true,
+            status: 'available-unexecuted',
+            schemaValid: true,
+            providerAvailable: typeof navigator !== 'undefined' && !!navigator.gpu,
+            executed: false,
+            transcriptMatched: false,
           },
         ],
       };

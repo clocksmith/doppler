@@ -24,6 +24,7 @@ try {
   const parityReport = await checkProgramBundleParity({
     bundlePath,
     mode: 'contract',
+    providers: ['browser-webgpu'],
     repoRoot: process.cwd(),
   });
 
@@ -38,6 +39,7 @@ try {
   assert.equal(roundTripped.authority, 'portability-diagnostic-only');
   assert.equal(roundTripped.modelPromotionAuthority, false);
   assert.equal(roundTripped.mode, 'contract');
+  assert.equal(roundTripped.schemaValid, true);
   assert.equal(typeof roundTripped.ok, 'boolean');
   assert.equal(typeof roundTripped.bundleId, 'string');
   assert.equal(typeof roundTripped.modelId, 'string');
@@ -50,7 +52,10 @@ try {
   for (const providerResult of roundTripped.providers) {
     assert.equal(typeof providerResult.provider, 'string');
     assert.equal(typeof providerResult.status, 'string');
-    assert.equal(typeof providerResult.ok, 'boolean');
+    assert.equal(providerResult.schemaValid, true);
+    assert.ok(Object.hasOwn(providerResult, 'providerAvailable'));
+    assert.ok(Object.hasOwn(providerResult, 'executed'));
+    assert.ok(Object.hasOwn(providerResult, 'transcriptMatched'));
   }
 
   // Reference summary must carry the fields the F parity binder compares
@@ -68,6 +73,7 @@ try {
   const rerun = await checkProgramBundleParity({
     bundlePath,
     mode: 'contract',
+    providers: ['browser-webgpu'],
     repoRoot: process.cwd(),
   });
   assert.equal(rerun.parityHash, roundTripped.parityHash);
