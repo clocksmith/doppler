@@ -3,11 +3,14 @@ import {
   PROGRAM_BUNDLE_CAPTURE_PROFILE_SCHEMA_ID,
   PROGRAM_BUNDLE_HOST_JS_SUBSET,
   PROGRAM_BUNDLE_HOST_SCHEMA_ID,
+  PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID,
   PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID,
   PROGRAM_BUNDLE_SCHEMA_ID,
   PROGRAM_BUNDLE_SCHEMA_VERSION,
   validateProgramBundle,
 } from '../../src/config/schema/program-bundle.schema.js';
+import { sha256Hex } from '../../src/utils/sha256.js';
+import { stableSortObject } from '../../src/utils/stable-sort-object.js';
 
 const DIGEST_A = `sha256:${'a'.repeat(64)}`;
 const DIGEST_B = `sha256:${'b'.repeat(64)}`;
@@ -17,12 +20,22 @@ const DIGEST_E = `sha256:${'e'.repeat(64)}`;
 const DIGEST_F = `sha256:${'f'.repeat(64)}`;
 
 function createBundle() {
+  const packageFiles = [
+    { role: 'host-source', path: 'program/host/text-generation.js', hash: DIGEST_B, sizeBytes: 10 },
+    { role: 'wgsl-source', path: 'program/wgsl/embed.wgsl', hash: DIGEST_C, sizeBytes: 20 },
+  ];
   return {
     schema: PROGRAM_BUNDLE_SCHEMA_ID,
     schemaVersion: PROGRAM_BUNDLE_SCHEMA_VERSION,
     bundleId: 'unit-bundle',
     modelId: 'unit-model',
     createdAtUtc: '2026-04-22T00:00:00.000Z',
+    package: {
+      schema: PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID,
+      root: '.',
+      fileSetHash: `sha256:${sha256Hex(JSON.stringify(stableSortObject(packageFiles)))}`,
+      files: packageFiles,
+    },
     sources: {
       manifest: { path: 'models/unit/manifest.json', hash: DIGEST_A },
       conversionConfig: null,
@@ -40,14 +53,26 @@ function createBundle() {
       entrypoints: [
         {
           id: 'text-generation',
-          module: 'src/inference/pipelines/text/generator.js',
+          module: 'program/host/text-generation.js',
           export: 'PipelineGenerator',
           role: 'model-orchestration',
+          sourceHash: DIGEST_B,
+          validation: {
+            dynamicImport: 'none-detected',
+            staticImport: 'none-detected',
+            dom: 'none-detected',
+            runtimeGlobals: 'none-detected',
+            network: 'none-detected',
+            dynamicCode: 'none-detected',
+          },
         },
       ],
       constraints: {
         dynamicImport: 'disallowed',
+        staticImport: 'disallowed',
         dom: 'disallowed-in-model-path',
+        runtimeGlobals: 'disallowed',
+        dynamicCode: 'disallowed',
         filesystem: 'declared-artifacts-only',
         network: 'declared-artifacts-only',
       },
@@ -58,7 +83,8 @@ function createBundle() {
         file: 'gather.wgsl',
         entry: 'main',
         digest: DIGEST_F,
-        sourcePath: 'src/gpu/kernels/gather.wgsl',
+        sourcePath: 'program/wgsl/embed.wgsl',
+        sourceHash: DIGEST_C,
         reachable: true,
         metadata: {
           entry: 'main',
@@ -127,6 +153,18 @@ function createBundle() {
       captureHash: DIGEST_D,
     },
     artifacts: [
+      {
+        role: 'host-source',
+        path: 'program/host/text-generation.js',
+        hash: DIGEST_B,
+        sizeBytes: 10,
+      },
+      {
+        role: 'wgsl-source',
+        path: 'program/wgsl/embed.wgsl',
+        hash: DIGEST_C,
+        sizeBytes: 20,
+      },
       {
         role: 'manifest',
         path: 'models/unit/manifest.json',
@@ -198,6 +236,15 @@ function createBundle() {
 }
 
 validateProgramBundle(createBundle());
+
+{
+  const bundle = createBundle();
+  bundle.package.fileSetHash = DIGEST_F;
+  assert.throws(
+    () => validateProgramBundle(bundle),
+    /fileSetHash must match package\.files/,
+  );
+}
 
 {
   const bundle = createBundle();

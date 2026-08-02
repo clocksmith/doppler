@@ -15,6 +15,7 @@ export {
   exportProgramBundle,
   writeProgramBundle,
   loadProgramBundle,
+  verifyClosedProgramBundle,
   checkProgramBundleFile,
 } from './tooling/program-bundle.js';
 export {

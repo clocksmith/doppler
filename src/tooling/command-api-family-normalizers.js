@@ -541,6 +541,12 @@ export function normalizeSuiteCommand(raw, command) {
     if (!programBundle && !programBundlePath) {
       throw new Error('tooling command: program-bundle parity requires programBundle or programBundlePath.');
     }
+    if (!parityProviders || parityProviders.length === 0) {
+      throw new Error('tooling command: program-bundle parity requires explicit parityProviders.');
+    }
+    if (!programBundleParityMode) {
+      throw new Error('tooling command: program-bundle parity requires explicit programBundleParityMode.');
+    }
   } else if (programBundle || programBundlePath || parityProviders || programBundleParityMode) {
     throw new Error(
       'tooling command: programBundle, programBundlePath, parityProviders, and programBundleParityMode require ' +
@@ -672,7 +678,7 @@ export function normalizeSuiteCommand(raw, command) {
     programBundle: isProgramBundleParity ? programBundle : null,
     programBundlePath: isProgramBundleParity ? programBundlePath : null,
     parityProviders: isProgramBundleParity ? parityProviders : null,
-    programBundleParityMode: isProgramBundleParity ? (programBundleParityMode ?? 'contract') : null,
+    programBundleParityMode: isProgramBundleParity ? programBundleParityMode : null,
     modelUrl,
     captureOutput: asOptionalBoolean(raw.captureOutput, 'captureOutput') ?? false,
     keepPipeline: asOptionalBoolean(raw.keepPipeline, 'keepPipeline') ?? false,

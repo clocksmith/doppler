@@ -92,6 +92,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `SourceIntakeFact`
   - `SourceIntakePolicy`
   - `SourceIntakeReport`
+  - `verifyClosedProgramBundle`
   - `writeProgramBundle`
 
 ## `doppler-gpu/tooling/storage`

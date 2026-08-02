@@ -1,25 +1,65 @@
+import type {
+  NodeWebGPUGlobalMode,
+  NodeWebGPUModuleProvider,
+  NodeWebGPUProvider,
+  NodeWebGPUProviderOptions,
+  NodeWebGPUProviderReceipt,
+  NodeWebGPUProviderSession,
+} from './provider-v1-contract.js';
+
+export class DopplerNodeWebGPUError extends Error {
+  readonly code: string;
+  readonly stage: string;
+  readonly receipt: NodeWebGPUProviderReceipt | null;
+}
+
+export interface DopplerNodeWebGPUContractOptions {
+  providerContractModule?: string;
+}
+
+export interface BootstrapNodeWebGPUOptions extends DopplerNodeWebGPUContractOptions {
+  providerOptions?: NodeWebGPUProviderOptions;
+}
+
+export interface BootstrapNodeWebGPUProviderOptions extends DopplerNodeWebGPUContractOptions {
+  provider?: NodeWebGPUProvider;
+  id?: string;
+  gpu?: NodeWebGPUModuleProvider['gpu'];
+  globals?: NodeWebGPUModuleProvider['globals'];
+  createArgs?: unknown[];
+  adapterOptions?: GPURequestAdapterOptions | null;
+  globalMode?: NodeWebGPUGlobalMode;
+}
+
 export interface BootstrapNodeWebGPUResult {
   ok: boolean;
   provider: string | null;
-  detail?: string | null;
-  module?: Record<string, unknown> | null;
+  detail: string | null;
+  module: unknown;
+  session: NodeWebGPUProviderSession | null;
+  receipt: NodeWebGPUProviderReceipt | null;
+  error?: Error;
 }
 
 export interface ReleaseNodeWebGPUResult {
   released: boolean;
   provider: string | null;
-  reason: 'not-owned' | 'provider-replaced' | null;
+  reason: 'not-owned' | null;
+  receipt: NodeWebGPUProviderReceipt | null;
 }
 
-export interface BootstrapNodeWebGPUProviderOptions {
-  force?: boolean;
-}
+export declare function openNodeWebGPU(
+  providerOptions: NodeWebGPUProviderOptions,
+  options?: DopplerNodeWebGPUContractOptions,
+): Promise<NodeWebGPUProviderSession>;
 
-export declare function bootstrapNodeWebGPU(): Promise<BootstrapNodeWebGPUResult>;
+export declare function bootstrapNodeWebGPU(
+  options?: BootstrapNodeWebGPUOptions,
+): Promise<BootstrapNodeWebGPUResult>;
 
-export declare function releaseNodeWebGPU(): ReleaseNodeWebGPUResult;
+export declare function releaseNodeWebGPU(): Promise<ReleaseNodeWebGPUResult>;
 
 export declare function bootstrapNodeWebGPUProvider(
   providerSpecifier: string,
-  options?: BootstrapNodeWebGPUProviderOptions
+  options?: BootstrapNodeWebGPUProviderOptions,
 ): Promise<BootstrapNodeWebGPUResult>;

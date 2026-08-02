@@ -880,12 +880,25 @@ import {
     workloadType: 'program-bundle',
     programBundlePath: 'examples/program-bundles/gemma.program-bundle.json',
     parityProviders: ['browser-webgpu', 'node:webgpu'],
+    programBundleParityMode: 'contract',
   });
   assert.equal(request.modelId, null);
   assert.equal(request.workloadType, 'program-bundle');
   assert.equal(request.programBundlePath, 'examples/program-bundles/gemma.program-bundle.json');
   assert.deepEqual(request.parityProviders, ['browser-webgpu', 'node:webgpu']);
   assert.equal(request.programBundleParityMode, 'contract');
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      workload: 'inference',
+      workloadType: 'program-bundle',
+      programBundlePath: 'bundle.json',
+    }),
+    /requires explicit parityProviders/
+  );
 }
 
 {

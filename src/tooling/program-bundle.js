@@ -9,10 +9,11 @@ import {
   PROGRAM_BUNDLE_HOST_SCHEMA_ID,
   PROGRAM_BUNDLE_HOST_JS_SUBSET,
   PROGRAM_BUNDLE_CAPTURE_PROFILE_SCHEMA_ID,
+  PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID,
   PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID,
   validateProgramBundle,
 } from '../config/schema/program-bundle.schema.js';
-import { sha256Hex } from '../utils/sha256.js';
+import { sha256BytesHex, sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
 
 const DEFAULT_HOST_ENTRYPOINTS = Object.freeze([
@@ -47,6 +48,30 @@ function normalizeDigest(value, label) {
 
 function digestText(value) {
   return `sha256:${sha256Hex(String(value ?? ''))}`;
+}
+
+function safePackageName(value) {
+  const normalized = String(value ?? '')
+    .replace(/[^A-Za-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (!normalized) {
+    throw new Error('program bundle export: package source id must contain a portable filename character.');
+  }
+  return normalized;
+}
+
+function createPackageSourceFile({ role, id, extension, source }) {
+  const contents = String(source);
+  const hash = digestText(contents);
+  const digestPrefix = hash.slice('sha256:'.length, 'sha256:'.length + 16);
+  const packagePath = `program/${role === 'wgsl-source' ? 'wgsl' : 'host'}/${safePackageName(id)}-${digestPrefix}.${extension}`;
+  const artifact = {
+    role,
+    path: packagePath,
+    hash,
+    sizeBytes: Buffer.byteLength(contents),
+  };
+  return { ...artifact, contents, artifact };
 }
 
 function toRepoRelativePath(filePath, repoRoot) {
@@ -438,6 +463,7 @@ async function buildWgslClosure(execution, expandedSteps, options) {
 
   const kernelSourceRoot = path.resolve(options.repoRoot, options.kernelSourceRoot || 'src/gpu/kernels');
   const modules = [];
+  const packageFiles = [];
   for (const id of reachableKernelIds) {
     const decl = execution.kernels[id];
     const file = requireString(decl.kernel, `execution.kernels.${id}.kernel`);
@@ -450,14 +476,25 @@ async function buildWgslClosure(execution, expandedSteps, options) {
         `execution declares ${declaredDigest}, source has ${sourceDigest.digest}.`
       );
     }
+    if (sourceDigest.sourceText == null) {
+      throw new Error(
+        `program bundle export: reachable kernel source ${file}#${entry} is unavailable for closed packaging.`
+      );
+    }
+    const packageFile = createPackageSourceFile({
+      role: 'wgsl-source',
+      id,
+      extension: 'wgsl',
+      source: sourceDigest.sourceText,
+    });
+    packageFiles.push(packageFile);
     modules.push({
       id,
       file,
       entry,
       digest: declaredDigest,
-      sourcePath: sourceDigest.sourcePath
-        ? toRepoRelativePath(path.resolve(sourceDigest.sourcePath), options.repoRoot)
-        : null,
+      sourcePath: packageFile.path,
+      sourceHash: packageFile.hash,
       reachable: true,
       metadata: buildWgslMetadata(sourceDigest.sourceText, entry),
     });
@@ -465,6 +502,7 @@ async function buildWgslClosure(execution, expandedSteps, options) {
 
   return {
     modules,
+    packageFiles,
     kernelClosure: {
       declaredKernelIds,
       reachableKernelIds,
@@ -483,9 +521,25 @@ function scanHostEntrypointSource(source, label) {
   if (/\b(document|window|localStorage|sessionStorage|XMLHttpRequest)\b/.test(source)) {
     throw new Error(`program bundle export: host entrypoint ${label} references DOM-only globals.`);
   }
+  if (/^\s*(?:import|export)\s+(?:[^'";]+?\s+from\s+)?['"]/m.test(source)) {
+    throw new Error(`program bundle export: host entrypoint ${label} uses a static module dependency.`);
+  }
+  if (/\b(process|require|module|__dirname|__filename|Deno|Bun)\b/.test(source)) {
+    throw new Error(`program bundle export: host entrypoint ${label} references a runtime-specific global.`);
+  }
+  if (/\b(fetch|WebSocket|EventSource)\b/.test(source)) {
+    throw new Error(`program bundle export: host entrypoint ${label} references a network API.`);
+  }
+  if (/\b(?:eval|Function)\s*\(/.test(source)) {
+    throw new Error(`program bundle export: host entrypoint ${label} references dynamic code evaluation.`);
+  }
   return {
     dynamicImport: 'none-detected',
+    staticImport: 'none-detected',
     dom: 'none-detected',
+    runtimeGlobals: 'none-detected',
+    network: 'none-detected',
+    dynamicCode: 'none-detected',
   };
 }
 
@@ -494,27 +548,42 @@ async function buildHostContract(host = {}, repoRoot) {
     ? host.entrypoints
     : DEFAULT_HOST_ENTRYPOINTS.map((entry) => ({ ...entry }));
   const entrypoints = [];
+  const packageFiles = [];
   for (const entrypoint of rawEntrypoints) {
     const modulePath = requireString(entrypoint.module, 'host.entrypoint.module');
     const sourcePath = path.resolve(repoRoot, modulePath);
     const source = await readTextFile(sourcePath, `host entrypoint ${modulePath}`);
+    const packageFile = createPackageSourceFile({
+      role: 'host-source',
+      id: entrypoint.id,
+      extension: 'mjs',
+      source,
+    });
+    packageFiles.push(packageFile);
     entrypoints.push({
       ...entrypoint,
-      sourceHash: digestText(source),
+      module: packageFile.path,
+      sourceHash: packageFile.hash,
       validation: scanHostEntrypointSource(source, `${modulePath}#${entrypoint.export}`),
     });
   }
   return {
-    schema: PROGRAM_BUNDLE_HOST_SCHEMA_ID,
-    jsSubset: PROGRAM_BUNDLE_HOST_JS_SUBSET,
-    entrypoints,
-    constraints: {
-      dynamicImport: 'disallowed',
-      dom: 'disallowed-in-model-path',
-      filesystem: 'declared-artifacts-only',
-      network: 'declared-artifacts-only',
-      ...(host.constraints && typeof host.constraints === 'object' ? host.constraints : {}),
+    contract: {
+      schema: PROGRAM_BUNDLE_HOST_SCHEMA_ID,
+      jsSubset: PROGRAM_BUNDLE_HOST_JS_SUBSET,
+      entrypoints,
+      constraints: {
+        dynamicImport: 'disallowed',
+        staticImport: 'disallowed',
+        dom: 'disallowed-in-model-path',
+        runtimeGlobals: 'disallowed',
+        dynamicCode: 'disallowed',
+        filesystem: 'declared-artifacts-only',
+        network: 'declared-artifacts-only',
+        ...(host.constraints && typeof host.constraints === 'object' ? host.constraints : {}),
+      },
     },
+    packageFiles,
   };
 }
 
@@ -768,8 +837,8 @@ async function buildReferenceTranscript(referenceReportPath, repoRoot, execution
   };
 }
 
-async function collectArtifacts(options, manifest, manifestArtifact, referenceReportArtifact) {
-  const artifacts = [manifestArtifact];
+async function collectArtifacts(options, manifest, manifestArtifact, referenceReportArtifact, programArtifacts) {
+  const artifacts = [manifestArtifact, ...programArtifacts];
   const storageArtifact = await resolveProgramBundleStorageArtifact(manifest, options.modelDir);
   const storageManifest = storageArtifact.manifest;
   const storageModelDir = storageArtifact.modelDir;
@@ -841,7 +910,7 @@ function resolveProgramBundleOptions(options = {}) {
   };
 }
 
-export async function exportProgramBundle(options = {}) {
+async function buildProgramBundle(options = {}) {
   const resolvedOptions = resolveProgramBundleOptions(options);
   const { raw: manifestRaw, json: manifest } = await readJsonFile(resolvedOptions.manifestPath, 'manifest');
   requirePlainObject(manifest, 'manifest');
@@ -854,7 +923,10 @@ export async function exportProgramBundle(options = {}) {
   const expandedStepHash = hashStableJson(expandedSteps);
   const closure = await buildWgslClosure(execution, expandedSteps, resolvedOptions);
   const executionMetadata = buildExecutionStepMetadata(execution, expandedSteps, closure.modules);
-  const host = await buildHostContract(resolvedOptions.host, resolvedOptions.repoRoot);
+  const hostResult = await buildHostContract(resolvedOptions.host, resolvedOptions.repoRoot);
+  const host = hostResult.contract;
+  const packageFiles = [...closure.packageFiles, ...hostResult.packageFiles]
+    .sort((left, right) => left.path.localeCompare(right.path));
   const manifestArtifact = {
     role: 'manifest',
     path: toRepoRelativePath(resolvedOptions.manifestPath, resolvedOptions.repoRoot),
@@ -870,7 +942,8 @@ export async function exportProgramBundle(options = {}) {
     resolvedOptions,
     manifest,
     manifestArtifact,
-    reference.artifact
+    reference.artifact,
+    packageFiles.map((file) => file.artifact),
   );
   const weightArtifacts = artifacts.filter((artifact) => artifact.role === 'weight-shard');
   const conversionConfig = resolvedOptions.conversionConfigPath
@@ -883,6 +956,12 @@ export async function exportProgramBundle(options = {}) {
     bundleId: resolvedOptions.bundleId || `${modelId}-${executionGraphHash.slice('sha256:'.length, 'sha256:'.length + 12)}`,
     modelId,
     createdAtUtc: resolvedOptions.createdAtUtc || new Date().toISOString(),
+    package: {
+      schema: PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID,
+      root: '.',
+      files: packageFiles.map((file) => file.artifact),
+      fileSetHash: hashStableJson(packageFiles.map((file) => file.artifact)),
+    },
     sources: {
       manifest: {
         path: manifestArtifact.path,
@@ -937,7 +1016,14 @@ export async function exportProgramBundle(options = {}) {
     referenceTranscript: reference.transcript,
   };
 
-  return validateProgramBundle(bundle);
+  return {
+    bundle: validateProgramBundle(bundle),
+    packageFiles,
+  };
+}
+
+export async function exportProgramBundle(options = {}) {
+  return (await buildProgramBundle(options)).bundle;
 }
 
 export async function writeProgramBundle(options = {}) {
@@ -945,9 +1031,15 @@ export async function writeProgramBundle(options = {}) {
   if (!outputPath) {
     throw new Error('program bundle export: outputPath is required.');
   }
-  const bundle = await exportProgramBundle(options);
+  const { bundle, packageFiles } = await buildProgramBundle(options);
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  for (const file of packageFiles) {
+    const destination = path.resolve(path.dirname(outputPath), file.path);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.writeFile(destination, file.contents, 'utf8');
+  }
   await fs.writeFile(outputPath, `${JSON.stringify(bundle, null, 2)}\n`, 'utf8');
+  await verifyClosedProgramBundle(outputPath, bundle);
   return {
     outputPath,
     bundle,
@@ -960,8 +1052,40 @@ export async function loadProgramBundle(bundlePath) {
   return validateProgramBundle(json);
 }
 
+export async function verifyClosedProgramBundle(bundlePath, providedBundle = null) {
+  const resolvedPath = path.resolve(bundlePath);
+  const bundle = providedBundle ?? await loadProgramBundle(resolvedPath);
+  const bundleRoot = path.dirname(resolvedPath);
+  const files = [];
+  for (const file of bundle.package.files) {
+    const filePath = path.resolve(bundleRoot, file.path);
+    const relative = path.relative(bundleRoot, filePath);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      throw new Error(`program bundle: packaged file escapes bundle root: ${file.path}.`);
+    }
+    let bytes;
+    try {
+      bytes = await fs.readFile(filePath);
+    } catch (error) {
+      throw new Error(`program bundle: packaged file is unavailable: ${file.path}: ${error.message}`);
+    }
+    const hash = `sha256:${sha256BytesHex(bytes)}`;
+    if (hash !== file.hash || bytes.byteLength !== file.sizeBytes) {
+      throw new Error(`program bundle: packaged file hash/size mismatch: ${file.path}.`);
+    }
+    files.push({ ...file, absolutePath: filePath });
+  }
+  return {
+    ok: true,
+    bundle,
+    bundlePath: resolvedPath,
+    files,
+  };
+}
+
 export async function checkProgramBundleFile(bundlePath) {
-  const bundle = await loadProgramBundle(bundlePath);
+  const closed = await verifyClosedProgramBundle(bundlePath);
+  const bundle = closed.bundle;
   return {
     ok: true,
     path: path.resolve(bundlePath),
@@ -969,6 +1093,7 @@ export async function checkProgramBundleFile(bundlePath) {
     bundleId: bundle.bundleId,
     artifactCount: bundle.artifacts.length,
     wgslModuleCount: bundle.wgslModules.length,
+    packagedFileCount: closed.files.length,
     executionGraphHash: bundle.sources.executionGraph.hash,
   };
 }

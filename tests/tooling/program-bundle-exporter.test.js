@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { exportProgramBundle } from '../../src/tooling/program-bundle.js';
+import {
+  exportProgramBundle,
+  verifyClosedProgramBundle,
+  writeProgramBundle,
+} from '../../src/tooling/program-bundle.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 
 const repoRoot = process.cwd();
@@ -153,6 +157,30 @@ assert.deepEqual(bundle.referenceTranscript.logits.perStepDigests, [logitsDigest
 assert.equal(bundle.referenceTranscript.kvCache.byteDigest, kvByteDigest);
 assert.equal(bundle.referenceTranscript.kvCache.byteDigests[0].keyDigest, kvKeyDigest);
 
+const writtenBundlePath = path.join(fixtureRoot, 'closed', 'program-bundle.json');
+const written = await writeProgramBundle({
+  repoRoot,
+  manifestPath,
+  modelDir,
+  referenceReportPath: reportPath,
+  conversionConfigPath,
+  createdAtUtc: '2026-04-22T00:00:00.000Z',
+  outputPath: writtenBundlePath,
+});
+const closed = await verifyClosedProgramBundle(writtenBundlePath);
+assert.equal(closed.ok, true);
+assert.equal(closed.files.length, written.bundle.package.files.length);
+assert.ok(closed.files.some((file) => file.role === 'wgsl-source'));
+assert.ok(closed.files.some((file) => file.role === 'host-source'));
+assert.ok(written.bundle.host.entrypoints[0].module.endsWith('.mjs'));
+
+const tamperedFile = closed.files.find((file) => file.role === 'wgsl-source');
+await fs.appendFile(tamperedFile.absolutePath, '// tampered\n', 'utf8');
+await assert.rejects(
+  () => verifyClosedProgramBundle(writtenBundlePath),
+  /hash\/size mismatch/,
+);
+
 await fs.writeFile(path.join(reportDir, 'manual-receipt.json'), `${JSON.stringify({
   suite: 'debug',
   modelId: 'unit-model',
@@ -192,6 +220,31 @@ await assert.rejects(
     ),
   }),
   /reference report must include metrics\.prompt or metrics\.promptInput/
+);
+
+const unsafeHostPath = path.join(fixtureRoot, 'unsafe-host.js');
+await fs.writeFile(
+  unsafeHostPath,
+  'export function createTextGenerationProgram() { return fetch("https://example.test"); }\n',
+  'utf8',
+);
+await assert.rejects(
+  () => exportProgramBundle({
+    repoRoot,
+    manifestPath,
+    modelDir,
+    referenceReportPath: reportPath,
+    conversionConfigPath,
+    host: {
+      entrypoints: [{
+        id: 'unsafe-host',
+        module: path.relative(repoRoot, unsafeHostPath),
+        export: 'createTextGenerationProgram',
+        role: 'model-orchestration',
+      }],
+    },
+  }),
+  /references a network API/,
 );
 
 await fs.rm(tmpRoot, { recursive: true, force: true });

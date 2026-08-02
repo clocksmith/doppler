@@ -1,493 +1,194 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
-import { dirname, isAbsolute, resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { readFileSync } from 'node:fs';
 
-const DEFAULT_PROVIDER_CREATE_ARGS = 'enable-dawn-features=allow_unsafe_apis';
-const ADAPTER_PROBE_ATTEMPTS = 3;
-const DEFAULT_WEBGPU_PROVIDER_SPECIFIERS = Object.freeze([
-  'webgpu',
-]);
-const ADAPTER_PROBE_OPTIONS = Object.freeze([
-  { powerPreference: 'high-performance' },
-  { powerPreference: 'low-power' },
-  null,
-]);
+const PROVIDER_CONTRACT_SPECIFIER = 'doe-gpu/node-webgpu';
+const PROVIDER_CONTRACT_SCHEMA = 'doe.webgpu-provider/v1';
+const DEFAULT_PROVIDER_CONFIG_URL = new URL(
+  './node-webgpu-provider.v1.json',
+  import.meta.url,
+);
+const WEBGPU_GLOBAL_BINDINGS = Object.freeze({
+  GPUBufferUsage: 'globals.GPUBufferUsage',
+  GPUShaderStage: 'globals.GPUShaderStage',
+  GPUMapMode: 'globals.GPUMapMode',
+  GPUTextureUsage: 'globals.GPUTextureUsage',
+});
 
-let ownedProviderInstallation = null;
+let ownedProviderSession = null;
 
-function hasNavigatorGpu() {
-  return typeof globalThis.navigator !== 'undefined'
-    && !!globalThis.navigator?.gpu
-    && typeof globalThis.navigator.gpu.requestAdapter === 'function';
-}
-
-function hasGpuEnums() {
-  return typeof globalThis.GPUBufferUsage !== 'undefined' && typeof globalThis.GPUShaderStage !== 'undefined';
-}
-
-function setGlobalIfMissing(name, value) {
-  if (value === undefined || value === null) return;
-  if (globalThis[name] !== undefined) return;
-  Object.defineProperty(globalThis, name, {
-    value,
-    writable: true,
-    configurable: true,
-    enumerable: false,
-  });
-}
-
-function installGlobalsFromModule(mod) {
-  const globals = mod?.globals;
-  if (!globals || typeof globals !== 'object') return;
-  for (const [name, value] of Object.entries(globals)) {
-    setGlobalIfMissing(name, value);
-  }
-}
-
-function resolveCandidateModuleSpecifier(candidate) {
-  if (candidate.startsWith('file://')) {
-    return candidate;
-  }
-  if (candidate.startsWith('.') || candidate.startsWith('/') || candidate.includes('/')) {
-    const normalizedPath = isAbsolute(candidate)
-      ? candidate
-      : resolve(process.cwd(), candidate);
-    const resolvedFilePath = resolveNodeModuleFilePath(normalizedPath);
-    if (resolvedFilePath) {
-      return pathToFileURL(resolvedFilePath).href;
-    }
-  }
-  return candidate;
-}
-
-function resolveDefaultWebgpuModuleSpecifiers() {
-  return [...DEFAULT_WEBGPU_PROVIDER_SPECIFIERS];
-}
-
-function resolveExplicitWebgpuModuleSpecifier() {
-  const fromEnv = process.env.DOPPLER_NODE_WEBGPU_MODULE;
-  if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
-    return resolveCandidateModuleSpecifier(fromEnv.trim());
-  }
-  return null;
-}
-
-function resolveWebgpuProviderCreateArgs() {
-  const fromEnv = process.env.DOPPLER_NODE_WEBGPU_PROVIDER_ARGS;
-  const rawArgs = typeof fromEnv === 'string' && fromEnv.trim().length > 0
-    ? fromEnv
-    : DEFAULT_PROVIDER_CREATE_ARGS;
-  return rawArgs.split(',').map((value) => value.trim()).filter(Boolean);
-}
-
-async function importWithProviderOverride(specifier) {
-  return import(specifier);
-}
-
-function resolveNodeModuleFilePath(candidatePath) {
-  if (!existsSync(candidatePath)) return null;
-  const stat = statSync(candidatePath);
-  if (stat.isFile()) {
-    return candidatePath;
-  }
-  if (!stat.isDirectory()) {
-    return null;
-  }
-  const packageJsonPath = resolve(candidatePath, 'package.json');
-  if (existsSync(packageJsonPath)) {
-    try {
-      const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
-      if (typeof pkg.main === 'string' && pkg.main.trim()) {
-        const mainPath = resolve(candidatePath, pkg.main);
-        if (existsSync(mainPath)) {
-          return mainPath;
-        }
-      }
-      const nodeExportPath = resolveExportsPath(pkg.exports, candidatePath);
-      if (nodeExportPath) {
-        return nodeExportPath;
-      }
-    } catch {
-      // Ignore malformed package.json and fall through to file candidates.
-    }
-  }
-  const fallbackPaths = [
-    resolve(candidatePath, 'index.js'),
-    resolve(candidatePath, 'src/index.js'),
-    resolve(candidatePath, 'src/node-runtime.js'),
-  ];
-  for (const fallbackPath of fallbackPaths) {
-    if (existsSync(fallbackPath)) {
-      return fallbackPath;
-    }
-  }
-  return null;
-}
-
-function resolveExportsPath(exportsField, rootPath) {
-  if (!exportsField) return null;
-  if (typeof exportsField === 'string') {
-    const candidate = resolve(rootPath, exportsField);
-    return existsSync(candidate) ? candidate : null;
-  }
-  if (typeof exportsField !== 'object' || Array.isArray(exportsField)) {
-    return null;
-  }
-  if (typeof exportsField['./node'] === 'string') {
-    const nodePath = resolve(rootPath, exportsField['./node']);
-    if (existsSync(nodePath)) {
-      return nodePath;
-    }
-  }
-  const dot = exportsField['.'];
-  if (typeof dot === 'string') {
-    const dotPath = resolve(rootPath, dot);
-    if (existsSync(dotPath)) {
-      return dotPath;
-    }
-  } else if (dot && typeof dot === 'object') {
-    const preferred = dot.default || dot.node || dot.import;
-    if (typeof preferred === 'string') {
-      const preferredPath = resolve(rootPath, preferred);
-      if (existsSync(preferredPath)) {
-        return preferredPath;
-      }
-    }
-  }
-  return null;
-}
-
-function installNavigatorGpu(gpu, options = {}) {
-  if (!gpu || typeof gpu.requestAdapter !== 'function') return false;
-  const force = options.force === true;
-  const provider = options.provider ?? null;
-  const hadNavigator = typeof globalThis.navigator !== 'undefined';
-  const navigatorGpuDescriptor = hadNavigator
-    ? Object.getOwnPropertyDescriptor(globalThis.navigator, 'gpu') ?? null
-    : null;
-  if (typeof globalThis.navigator === 'undefined') {
-    Object.defineProperty(globalThis, 'navigator', {
-      value: { gpu },
-      writable: true,
-      configurable: true,
-      enumerable: false,
-    });
-    ownedProviderInstallation = {
-      gpu,
-      provider,
-      hadNavigator: false,
-      navigatorGpuDescriptor: null,
-    };
-    return true;
-  }
-
-  if (force && globalThis.navigator.gpu) {
-    const previousOwnedInstallation = ownedProviderInstallation;
-    const replacesOwnedProvider = previousOwnedInstallation?.gpu === globalThis.navigator.gpu;
-    Object.defineProperty(globalThis.navigator, 'gpu', {
-      value: gpu,
-      writable: true,
-      configurable: true,
-      enumerable: navigatorGpuDescriptor?.enumerable === true,
-    });
-    ownedProviderInstallation = {
-      gpu,
-      provider,
-      hadNavigator: replacesOwnedProvider
-        ? previousOwnedInstallation.hadNavigator
-        : hadNavigator,
-      navigatorGpuDescriptor: replacesOwnedProvider
-        ? previousOwnedInstallation.navigatorGpuDescriptor
-        : navigatorGpuDescriptor,
-    };
-    return true;
-  }
-
-  if (!globalThis.navigator.gpu) {
-    Object.defineProperty(globalThis.navigator, 'gpu', {
-      value: gpu,
-      writable: true,
-      configurable: true,
-      enumerable: false,
-    });
-    ownedProviderInstallation = {
-      gpu,
-      provider,
-      hadNavigator,
-      navigatorGpuDescriptor,
-    };
-  }
-  return true;
-}
-
-/**
- * Release a Node WebGPU provider installed by this module.
- *
- * Dawn's Node binding keeps its callback pump alive while the GPU object is
- * reachable. Device destruction is necessary but insufficient: command-line
- * callers must also release Doppler's global provider reference after all GPU
- * work and devices have been torn down. Pre-installed browser or host-owned
- * providers are never removed.
- */
-export function releaseNodeWebGPU() {
-  const installation = ownedProviderInstallation;
-  ownedProviderInstallation = null;
-  if (!installation) {
-    return { released: false, provider: null, reason: 'not-owned' };
-  }
-
-  const navigatorObject = globalThis.navigator;
-  if (!navigatorObject || navigatorObject.gpu !== installation.gpu) {
-    return {
-      released: false,
-      provider: installation.provider,
-      reason: 'provider-replaced',
-    };
-  }
-
-  if (!installation.hadNavigator) {
-    delete globalThis.navigator;
-  } else if (installation.navigatorGpuDescriptor) {
-    Object.defineProperty(
-      navigatorObject,
-      'gpu',
-      installation.navigatorGpuDescriptor
+function readDefaultProviderOptions() {
+  const parsed = JSON.parse(readFileSync(DEFAULT_PROVIDER_CONFIG_URL, 'utf8'));
+  if (parsed?.schema !== PROVIDER_CONTRACT_SCHEMA) {
+    throw new DopplerNodeWebGPUError(
+      'DOPPLER_PROVIDER_CONFIG_INVALID',
+      `default Node WebGPU provider config must declare schema "${PROVIDER_CONTRACT_SCHEMA}".`,
+      { stage: 'configuration' },
     );
-  } else {
-    delete navigatorObject.gpu;
   }
+  const { schema: _schema, ...providerOptions } = parsed;
+  return providerOptions;
+}
 
+function environmentProviderOptions(defaultOptions) {
+  const moduleSpecifier = typeof process.env.DOPPLER_NODE_WEBGPU_MODULE === 'string'
+    ? process.env.DOPPLER_NODE_WEBGPU_MODULE.trim()
+    : '';
+  if (!moduleSpecifier) return defaultOptions;
+
+  const rawArgs = typeof process.env.DOPPLER_NODE_WEBGPU_PROVIDER_ARGS === 'string'
+    ? process.env.DOPPLER_NODE_WEBGPU_PROVIDER_ARGS.trim()
+    : '';
+  const createArgs = rawArgs
+    ? rawArgs.split(',').map((value) => value.trim()).filter(Boolean)
+    : ['enable-dawn-features=allow_unsafe_apis'];
   return {
-    released: true,
-    provider: installation.provider,
-    reason: null,
+    providers: [{
+      id: moduleSpecifier,
+      kind: 'module',
+      module: moduleSpecifier,
+      gpu: { kind: 'factory', path: 'create', args: [createArgs] },
+      globals: { ...WEBGPU_GLOBAL_BINDINGS },
+    }],
+    adapterOptions: defaultOptions.adapterOptions,
+    globals: defaultOptions.globals,
   };
 }
 
-function resolveGpuFromModule(mod) {
-  if (!mod) return null;
-
-  const fromModule = mod.gpu || mod.webgpu || mod.default?.gpu || mod.default?.webgpu;
-  if (fromModule && typeof fromModule.requestAdapter === 'function') {
-    return fromModule;
-  }
-
-  const defaultCreateArgs = resolveWebgpuProviderCreateArgs();
-
-  const tryCreateFactory = (factory) => {
-    if (typeof factory !== 'function') {
-      return null;
-    }
-    try {
-      return factory(defaultCreateArgs);
-    } catch {
-      try {
-        return factory([]);
-      } catch {
-        try {
-          return factory();
-        } catch {
-          return null;
-        }
-      }
-    }
-  };
-
-  const instanceFactory = mod.createInstance || mod.default?.createInstance;
-  const createdFromInstanceFactory = tryCreateFactory(instanceFactory);
-  if (createdFromInstanceFactory) {
-    if (typeof createdFromInstanceFactory.requestAdapter === 'function') {
-      return createdFromInstanceFactory;
-    }
-    if (createdFromInstanceFactory.gpu && typeof createdFromInstanceFactory.gpu.requestAdapter === 'function') {
-      return createdFromInstanceFactory.gpu;
-    }
-  }
-
-  const factory = mod.create || mod.default?.create;
-  if (typeof factory === 'function') {
-    const created = tryCreateFactory(factory);
-    if (created) {
-      if (typeof created.requestAdapter === 'function') {
-        return created;
-      }
-      if (created.gpu && typeof created.gpu.requestAdapter === 'function') {
-        return created.gpu;
-      }
-    }
-  }
-
-  if (mod.default && typeof mod.default.requestAdapter === 'function') {
-    return mod.default;
-  }
-
-  return null;
-}
-
-function installWebgpuFromModule(mod, options = {}) {
-  const gpu = resolveGpuFromModule(mod);
-  if (!installNavigatorGpu(gpu, options)) {
-    return false;
-  }
-
-  installGlobalsFromModule(mod);
-  setGlobalIfMissing('GPUBufferUsage', mod.GPUBufferUsage || mod.default?.GPUBufferUsage || mod.globals?.GPUBufferUsage);
-  setGlobalIfMissing('GPUShaderStage', mod.GPUShaderStage || mod.default?.GPUShaderStage || mod.globals?.GPUShaderStage);
-  setGlobalIfMissing('GPUMapMode', mod.GPUMapMode || mod.default?.GPUMapMode || mod.globals?.GPUMapMode);
-  setGlobalIfMissing('GPUTextureUsage', mod.GPUTextureUsage || mod.default?.GPUTextureUsage || mod.globals?.GPUTextureUsage);
-
-  return hasNavigatorGpu() && hasGpuEnums();
-}
-
-function formatAdapterProbeDetail(error) {
-  if (!error) {
-    return 'requestAdapter returned null for high-performance, low-power, and default options.';
-  }
-  const message = error?.message || String(error);
-  return `requestAdapter failed: ${message}`;
-}
-
-async function probeInstalledGpuAdapter() {
-  if (!hasNavigatorGpu()) {
-    return {
-      ok: false,
-      detail: 'navigator.gpu.requestAdapter is unavailable after provider installation.',
-    };
-  }
-  if (!hasGpuEnums()) {
-    return {
-      ok: false,
-      detail: 'WebGPU enums are unavailable after provider installation.',
-    };
-  }
-
-  let lastError = null;
-  for (const adapterOptions of ADAPTER_PROBE_OPTIONS) {
-    for (let attempt = 0; attempt < ADAPTER_PROBE_ATTEMPTS; attempt++) {
-      try {
-        const adapter = adapterOptions
-          ? await globalThis.navigator.gpu.requestAdapter(adapterOptions)
-          : await globalThis.navigator.gpu.requestAdapter();
-        if (adapter) {
-          return { ok: true, detail: null };
-        }
-      } catch (error) {
-        lastError = error;
-      }
-    }
-  }
-
-  return {
-    ok: false,
-    detail: formatAdapterProbeDetail(lastError),
-  };
-}
-
-async function tryInstallAndProbeProvider(providerSpecifier, options = {}) {
-  const specifier = resolveCandidateModuleSpecifier(providerSpecifier);
-  let mod;
+async function loadProviderContract(specifier = PROVIDER_CONTRACT_SPECIFIER) {
+  let contract;
   try {
-    mod = await importWithProviderOverride(specifier);
-  } catch (error) {
-    return {
-      ok: false,
-      provider: providerSpecifier,
-      detail: `import failed: ${error?.message || String(error)}`,
-      module: null,
-    };
+    contract = await import(specifier);
+  } catch (cause) {
+    throw new DopplerNodeWebGPUError(
+      'DOPPLER_PROVIDER_CONTRACT_UNAVAILABLE',
+      `Node WebGPU provider-v1 contract "${specifier}" is unavailable: ${cause?.message || String(cause)}`,
+      { stage: 'contract.import', cause },
+    );
   }
-
-  if (!installWebgpuFromModule(mod, {
-    force: options.force === true,
-    provider: providerSpecifier,
-  })) {
-    return {
-      ok: false,
-      provider: providerSpecifier,
-      detail: 'failed to install WebGPU globals.',
-      module: mod,
-    };
+  if (
+    contract.NODE_WEBGPU_PROVIDER_SCHEMA !== PROVIDER_CONTRACT_SCHEMA
+    || typeof contract.openNodeWebGPU !== 'function'
+  ) {
+    throw new DopplerNodeWebGPUError(
+      'DOPPLER_PROVIDER_CONTRACT_INVALID',
+      `Node WebGPU provider contract "${specifier}" does not implement ${PROVIDER_CONTRACT_SCHEMA}.`,
+      { stage: 'contract.validate' },
+    );
   }
+  return contract;
+}
 
-  const probe = await probeInstalledGpuAdapter();
-  if (!probe.ok) {
-    return {
-      ok: false,
-      provider: providerSpecifier,
-      detail: probe.detail,
-      module: mod,
-    };
+function providerFromSpecifier(providerSpecifier, options = {}) {
+  if (typeof providerSpecifier !== 'string' || providerSpecifier.trim().length === 0) {
+    throw new DopplerNodeWebGPUError(
+      'DOPPLER_PROVIDER_CONFIG_INVALID',
+      'providerSpecifier must be a non-empty string.',
+      { stage: 'configuration' },
+    );
   }
+  const createArgs = options.createArgs ?? ['enable-dawn-features=allow_unsafe_apis'];
+  if (!Array.isArray(createArgs)) {
+    throw new DopplerNodeWebGPUError(
+      'DOPPLER_PROVIDER_CONFIG_INVALID',
+      'provider createArgs must be an array.',
+      { stage: 'configuration' },
+    );
+  }
+  return {
+    id: options.id ?? providerSpecifier,
+    kind: 'module',
+    module: providerSpecifier,
+    gpu: options.gpu ?? { kind: 'factory', path: 'create', args: [createArgs] },
+    globals: options.globals ?? { ...WEBGPU_GLOBAL_BINDINGS },
+  };
+}
 
+function resultFromSession(session) {
   return {
     ok: true,
-    provider: providerSpecifier,
+    provider: session.receipt.selectedProviderId,
     detail: null,
-    module: mod,
+    module: session.module,
+    session,
+    receipt: session.receipt,
   };
+}
+
+export class DopplerNodeWebGPUError extends Error {
+  constructor(code, message, options = {}) {
+    super(message, options.cause === undefined ? undefined : { cause: options.cause });
+    this.name = 'DopplerNodeWebGPUError';
+    this.code = code;
+    this.stage = options.stage ?? 'provider';
+    this.receipt = options.receipt ?? null;
+  }
+}
+
+export async function openNodeWebGPU(providerOptions, options = {}) {
+  if (ownedProviderSession !== null) {
+    throw new DopplerNodeWebGPUError(
+      'DOPPLER_PROVIDER_ALREADY_ACTIVE',
+      'a Doppler-owned Node WebGPU provider session is already active; release it before selecting another provider.',
+      { stage: 'lifecycle' },
+    );
+  }
+  const contract = await loadProviderContract(options.providerContractModule);
+  const session = await contract.openNodeWebGPU(providerOptions);
+  ownedProviderSession = session;
+  return session;
 }
 
 export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {}) {
-  const attempt = await tryInstallAndProbeProvider(providerSpecifier, { force: options.force === true });
-  if (!attempt.ok) {
-    throw new Error(
-      `node command: failed to install WebGPU provider "${providerSpecifier}": ${attempt.detail}`
-    );
-  }
-  return {
-    ok: true,
-    provider: providerSpecifier,
-    module: attempt.module,
-  };
+  const provider = options.provider ?? providerFromSpecifier(providerSpecifier, options);
+  const session = await openNodeWebGPU({
+    providers: [provider],
+    adapterOptions: options.adapterOptions ?? null,
+    globals: { mode: options.globalMode ?? 'replace' },
+  }, options);
+  return resultFromSession(session);
 }
 
-/*
- * Bootstrap Node WebGPU by attempting providers in priority order:
- *
- * 1. **Environment override** (`DOPPLER_NODE_WEBGPU_MODULE` env var) — highest priority.
- *    When set, only this specifier is attempted. Supports npm package names,
- *    relative/absolute file paths, and `file://` URLs.
- *    `DOPPLER_NODE_WEBGPU_PROVIDER_ARGS` may also be set to comma-separated
- *    provider create args such as `backend=vulkan,adapter=Radeon ...`.
- *
- * 2. **Pre-installed** — if `navigator.gpu` and GPU enums are already present
- *    (e.g., a WebGPU-enabled Node build or prior bootstrap), no module is loaded.
- *
- * 3. **Default candidates** — tried in order:
- *    a. `'webgpu'` (community Dawn bindings)
- *    The first one that imports, installs, and passes an adapter probe wins.
- *
- */
-export async function bootstrapNodeWebGPU() {
-  const explicitSpecifier = resolveExplicitWebgpuModuleSpecifier();
-  if (explicitSpecifier) {
-    const attempt = await tryInstallAndProbeProvider(explicitSpecifier, { force: true });
+export async function bootstrapNodeWebGPU(options = {}) {
+  if (ownedProviderSession !== null) {
+    return resultFromSession(ownedProviderSession);
+  }
+  let providerOptions;
+  try {
+    providerOptions = options.providerOptions
+      ?? environmentProviderOptions(readDefaultProviderOptions());
+    const session = await openNodeWebGPU(providerOptions, options);
+    return resultFromSession(session);
+  } catch (error) {
+    const receipt = error?.receipt ?? null;
+    const lastAttempt = Array.isArray(receipt?.attempts)
+      ? receipt.attempts[receipt.attempts.length - 1]
+      : null;
     return {
-      ok: attempt.ok,
-      provider: explicitSpecifier,
-      detail: attempt.detail,
+      ok: false,
+      provider: lastAttempt?.providerId ?? null,
+      detail: error?.message || String(error),
+      module: null,
+      session: null,
+      receipt,
+      error,
     };
   }
+}
 
-  if (hasNavigatorGpu() && hasGpuEnums()) {
-    const preinstalledProbe = await probeInstalledGpuAdapter();
-    if (preinstalledProbe.ok) {
-      return { ok: true, provider: 'pre-installed', detail: null };
-    }
+export async function releaseNodeWebGPU() {
+  const session = ownedProviderSession;
+  ownedProviderSession = null;
+  if (!session) {
+    return { released: false, provider: null, reason: 'not-owned', receipt: null };
   }
-
-  let lastFailure = null;
-  for (const specifier of resolveDefaultWebgpuModuleSpecifiers()) {
-    const attempt = await tryInstallAndProbeProvider(specifier, { force: true });
-    if (attempt.ok) {
-      return { ok: true, provider: specifier, detail: null };
-    }
-    lastFailure = attempt;
+  const provider = session.receipt?.selectedProviderId ?? null;
+  try {
+    await session.close();
+    return { released: true, provider, reason: null, receipt: session.receipt };
+  } catch (cause) {
+    throw new DopplerNodeWebGPUError(
+      'DOPPLER_PROVIDER_RELEASE_FAILED',
+      `failed to release Node WebGPU provider "${provider}": ${cause?.message || String(cause)}`,
+      { stage: 'lifecycle.release', cause, receipt: session.receipt },
+    );
   }
-
-  return {
-    ok: false,
-    provider: lastFailure?.provider ?? null,
-    detail: lastFailure?.detail ?? null,
-  };
 }

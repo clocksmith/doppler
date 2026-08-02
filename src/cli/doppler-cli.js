@@ -1210,6 +1210,7 @@ async function runBundleCommand(parsed, jsonOutput) {
     const parityReport = await checkProgramBundleParity({
       bundlePath,
       mode: 'contract',
+      providers: ['browser-webgpu', 'node:webgpu', 'node:doe-gpu'],
       repoRoot,
     });
     await fs.writeFile(parityOutputPath, `${JSON.stringify(parityReport, null, 2)}\n`, 'utf8');
@@ -1223,7 +1224,10 @@ async function runBundleCommand(parsed, jsonOutput) {
       providers: parityReport.providers.map((result) => ({
         provider: result.provider,
         status: result.status,
-        ok: result.ok,
+        schemaValid: result.schemaValid,
+        providerAvailable: result.providerAvailable,
+        executed: result.executed,
+        transcriptMatched: result.transcriptMatched,
       })),
     };
   } catch (error) {

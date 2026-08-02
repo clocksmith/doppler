@@ -39,6 +39,7 @@ export interface ProgramBundleCheckResult {
   bundleId: string;
   artifactCount: number;
   wgslModuleCount: number;
+  packagedFileCount: number;
   executionGraphHash: string;
 }
 
@@ -57,5 +58,11 @@ export declare function resolveProgramBundleStorageArtifact(
 export declare function exportProgramBundle(options?: ProgramBundleExportOptions): Promise<ProgramBundle>;
 export declare function writeProgramBundle(options?: ProgramBundleExportOptions): Promise<ProgramBundleWriteResult>;
 export declare function loadProgramBundle(bundlePath: string): Promise<ProgramBundle>;
+export declare function verifyClosedProgramBundle(bundlePath: string, bundle?: ProgramBundle | null): Promise<{
+  ok: true;
+  bundle: ProgramBundle;
+  bundlePath: string;
+  files: Array<ProgramBundle['package']['files'][number] & { absolutePath: string }>;
+}>;
 export declare function checkProgramBundleFile(bundlePath: string): Promise<ProgramBundleCheckResult>;
 export declare function createProgramBundleCliDefaults(metaUrl: string): { repoRoot: string };
