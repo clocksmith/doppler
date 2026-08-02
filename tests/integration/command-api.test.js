@@ -133,6 +133,43 @@ import {
 }
 
 {
+  const request = normalizeToolingCommandRequest({
+    command: 'verify',
+    workload: 'inference',
+    modelId: 'esm2-t12-35m-ur50d-f32-af32',
+    inferenceInput: {
+      sequence: 'MKTIIALSYIFCLVFADYKDDDDK',
+      sequenceAlphabet: 'amino_acid',
+      includeTokenEmbeddings: true,
+      includeLogits: false,
+      probePositions: [0, 1, 8, 1],
+    },
+  });
+  assert.deepEqual(request.inferenceInput, {
+    sequence: 'MKTIIALSYIFCLVFADYKDDDDK',
+    sequenceAlphabet: 'amino_acid',
+    includeTokenEmbeddings: true,
+    includeLogits: false,
+    probePositions: [0, 1, 8],
+  });
+}
+
+{
+  assert.throws(
+    () => normalizeToolingCommandRequest({
+      command: 'verify',
+      workload: 'inference',
+      modelId: 'esm2-t12-35m-ur50d-f32-af32',
+      inferenceInput: {
+        sequence: 'MKTIIALSYIFCLVFADYKDDDDK',
+        prompt: 'This is not a protein request.',
+      },
+    }),
+    /sequence cannot be combined with prompt/
+  );
+}
+
+{
   assert.throws(
     () => normalizeToolingCommandRequest({
       command: 'verify',

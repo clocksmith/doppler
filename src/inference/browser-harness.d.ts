@@ -69,6 +69,17 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
   commandContext?: CommandContext;
   surface?: string;
   expectedModelType?: 'embedding' | 'rerank';
+  inferenceInput?: {
+    prompt?: string | Record<string, unknown> | Array<unknown> | null;
+    image?: Record<string, unknown> | null;
+    maxTokens?: number | null;
+    softTokenBudget?: number | null;
+    sequence?: string | null;
+    sequenceAlphabet?: 'amino_acid' | 'nucleotide' | null;
+    includeTokenEmbeddings?: boolean | null;
+    includeLogits?: boolean | null;
+    probePositions?: number[] | null;
+  } | null;
   modelUrl?: string;
   modelId?: string;
   workloadType?: string;

@@ -143,6 +143,16 @@ export declare function runEmbedding(
   runOverrides?: Record<string, unknown> | null
 ): Promise<Record<string, unknown>>;
 
+export declare function runSequenceEncoding(
+  pipeline: Record<string, unknown>,
+  runOverrides?: {
+    sequence?: string;
+    includeTokenEmbeddings?: boolean | null;
+    includeLogits?: boolean | null;
+    probePositions?: number[] | null;
+  } | null
+): Promise<Record<string, unknown>>;
+
 export declare function runImageTranscription(
   pipeline: Record<string, unknown>,
   runtimeConfig: Record<string, unknown>,

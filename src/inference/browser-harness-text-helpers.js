@@ -2201,3 +2201,21 @@ export async function runEmbedding(pipeline, runtimeConfig, runOverrides = null)
     ...stats,
   };
 }
+
+export async function runSequenceEncoding(pipeline, runOverrides = null) {
+  const sequence = typeof runOverrides?.sequence === 'string' ? runOverrides.sequence.trim() : '';
+  if (!sequence) {
+    throw new Error('Sequence qualification requires inferenceInput.sequence.');
+  }
+  const start = performance.now();
+  const result = await pipeline.encodeSequence(sequence, {
+    includeTokenEmbeddings: runOverrides?.includeTokenEmbeddings === true,
+    includeLogits: runOverrides?.includeLogits === true,
+  });
+  const durationMs = Math.max(1, performance.now() - start);
+  return {
+    sequence,
+    durationMs,
+    ...result,
+  };
+}
