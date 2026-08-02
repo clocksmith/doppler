@@ -31,9 +31,10 @@
     </main>
     <script type="module">
       const cacheKey = new URLSearchParams(globalThis.location.search).get('_dopplerRunner') || `${Date.now()}`;
-      const [{ runBrowserCommand }, { ensureModelCached }] = await Promise.all([
+      const [{ runBrowserCommand }, { ensureModelCached }, { loadPersistentModelSource }] = await Promise.all([
         import(`./browser-command-runner.js?_dopplerRunner=${encodeURIComponent(cacheKey)}`),
         import(`./opfs-cache.js?_dopplerRunner=${encodeURIComponent(cacheKey)}`),
+        import(`../storage/model-cache.js?_dopplerRunner=${encodeURIComponent(cacheKey)}`),
       ]);
 
       window.__dopplerRunBrowserCommand = async (request, options = {}) => {
@@ -41,6 +42,53 @@
       };
       window.__dopplerEnsureCached = (modelId, modelBaseUrl) => {
         return ensureModelCached(modelId, modelBaseUrl);
+      };
+      // This deliberately narrow helper belongs to the local qualification
+      // runner, not the public command protocol. A caller can corrupt exactly
+      // one cached model file between cache verification and an OPFS-only load
+      // to demonstrate rejection and subsequent recovery from immutable source.
+      window.__dopplerCorruptCachedModelForQualification = async (modelId) => {
+        const safeModelId = String(modelId || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        if (!safeModelId) {
+          throw new Error('Qualification corruption requires modelId.');
+        }
+        const root = await navigator.storage.getDirectory();
+        const models = await root.getDirectoryHandle('doppler-models', { create: false });
+        const model = await models.getDirectoryHandle(safeModelId, { create: false });
+        const manifestHandle = await model.getFileHandle('manifest.json', { create: false });
+        const manifest = JSON.parse(await (await manifestHandle.getFile()).text());
+        const shardFilenames = Array.isArray(manifest?.shards)
+          ? manifest.shards.map((shard) => String(shard?.filename || '')).filter(Boolean)
+          : [];
+        if (shardFilenames.length === 0) {
+          throw new Error(`Qualification corruption found no manifest-declared shards for ${safeModelId}.`);
+        }
+        const getNestedFileHandle = async (filename) => {
+          const segments = filename.replace(/\\/g, '/').split('/').filter(Boolean);
+          const leaf = segments.pop();
+          if (!leaf || segments.some((segment) => segment === '.' || segment === '..')) {
+            throw new Error(`Qualification corruption received invalid shard path ${filename}.`);
+          }
+          let directory = model;
+          for (const segment of segments) {
+            directory = await directory.getDirectoryHandle(segment, { create: false });
+          }
+          return directory.getFileHandle(leaf, { create: false });
+        };
+        const targetFilename = [...shardFilenames].sort((left, right) => left.localeCompare(right))[0];
+        const targetHandle = await getNestedFileHandle(targetFilename);
+        const bytes = new Uint8Array(await (await targetHandle.getFile()).arrayBuffer());
+        if (bytes.length === 0) {
+          throw new Error(`Qualification corruption found empty cached shard ${targetFilename}.`);
+        }
+        bytes[Math.min(17, bytes.length - 1)] ^= 0xff;
+        const writable = await targetHandle.createWritable();
+        await writable.write(bytes);
+        await writable.close();
+        return { modelId: safeModelId, filename: targetFilename, bytes: bytes.length };
+      };
+      window.__dopplerVerifyCachedModelForQualification = (modelId) => {
+        return loadPersistentModelSource(modelId);
       };
       window.__dopplerRunnerReady = true;
     </script>

@@ -22,6 +22,16 @@ export interface NodeBrowserCommandRunOptions {
   browserArgs?: string[];
   runtimeLoadOptions?: RuntimeConfigLoadOptions;
   onConsole?: (entry: { type: string; text: string }) => void;
+  /**
+   * Internal browser-qualification hook invoked after an OPFS cache has been
+   * verified and before the command loads it. It is not part of the command
+   * protocol; it exists solely for adverse-path browser evidence.
+   */
+  afterOpfsCachePrime?: (context: {
+    page: unknown;
+    modelId: string;
+    cacheResult: Record<string, unknown>;
+  }) => Promise<void> | void;
 }
 
 export interface BrowserRelayLocalModelResolution {

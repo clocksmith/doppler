@@ -79,6 +79,8 @@ export interface BrowserSuiteOptions extends InferenceHarnessOptions {
     includeTokenEmbeddings?: boolean | null;
     includeLogits?: boolean | null;
     probePositions?: number[] | null;
+    sequenceQualificationAbort?: 'before_execution' | 'after_start' | null;
+    sequenceQualificationStaleAfterStart?: boolean | null;
   } | null;
   modelUrl?: string;
   modelId?: string;
