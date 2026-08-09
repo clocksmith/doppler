@@ -19,6 +19,7 @@ Rules that cause bugs when violated. Each has a fuller section below with ration
 - **Harness Override Rules** — runtime tunables are config-only. Harness URLs accept only `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, `configChain`. See [Harness Override Rules](#harness-override-rules).
 - **Command/Session/Observation Boundaries** — `request.intent` is the sole active command authority; resolved sessions are immutable numeric policy; observation context controls evidence only. See [Inference Contract Boundaries](#inference-contract-boundaries).
 - **Semantic Plan Purity** — operation plans are deterministic, immutable, and JSON-safe; GPU objects enter only at binding. See [Inference Contract Boundaries](#inference-contract-boundaries).
+- **Adapter Parity** — browser, Node, immediate, recorded, benchmark, and replay adapters consume one normalized semantic request or plan. See [Adapter Parity](#adapter-parity).
 
 ## Core Principle: Config as Code
 
@@ -40,7 +41,7 @@ These stable invariant IDs are normative:
 | `INV-SESSION-002` | Numeric inference consumes one immutable resolved runtime session constructed after manifest, execution-v1, capability, kernel-path, and dtype resolution. | resolved-session tests |
 | `INV-ATTN-003` | Attention code must not read module-global runtime config. | `npm run inference:boundaries:check` |
 | `INV-PLAN-004` | A semantic operation plan is immutable, deterministic, JSON-safe, and contains no GPU buffers, recorders, closures, or cleanup callbacks. | attention-plan tests |
-| `INV-PARITY-005` | Immediate and recorded execution consume the same semantic plan. Executors may differ only in submission, retention, completion tasks, and readback scheduling. | plan parity tests |
+| `INV-PARITY-005` | Browser, Node, immediate, recorded, benchmark, and replay adapters consume the same normalized semantic request or plan. Executors may differ only in transport, submission, retention, completion tasks, and evidence capture. | plan parity tests + `npm run source:architecture:check` |
 | `INV-RESOURCE-006` | Every concrete resource has tagged ownership: `borrowed`, `scopeOwned`, `submitOwned`, `transferred`, or `retained`. Ownership changes use explicit scope operations. | resource-scope failure and alias tests |
 | `INV-RECEIPT-007` | Structural refactors preserve canonical behavior receipts containing command, session, plan, operation order, dtype transitions, resource events, and first failure boundary. | refactor-receipt tests |
 
@@ -392,6 +393,24 @@ export async function recordGather(...) {
 3. Is every numeric/kernel/fusion/layout choice made before executor selection?
 4. Are ownership differences expressed by immediate/recorded resource scopes?
 5. Does the normalized-plan parity test fail when one semantic decision changes?
+
+## Adapter Parity
+
+The run/record rule applies to every execution adapter, not only kernels:
+
+- normalize command, session, workload, and operation policy before selecting
+  browser, Node, immediate, recorded, benchmark, or replay execution;
+- bind runtime resources only after the semantic request or plan is complete;
+- allow adapters to differ in transport, submission, resource retention,
+  completion, readback scheduling, and evidence capture only;
+- forbid adapter-local dtype, kernel, fusion, geometry, layout, fallback, or
+  workload decisions;
+- preserve the canonical behavior receipt across structural refactors,
+  including resolved policy, operation order, ownership events, output
+  identity, and first failure boundary.
+
+If two adapters need different semantic choices, those choices belong in the
+resolved contract and must remain visible in the receipt.
 
 ---
 
