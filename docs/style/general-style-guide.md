@@ -21,6 +21,9 @@ Rules that cause bugs when violated. Each has a fuller section below with ration
 - **Single Source of Truth** — when the same metadata appears in multiple files, exactly one must be canonical. Mirrors are generated from that source and covered by a sync check. See [Core Principles](#core-principles).
 - **Failure-Path Regression Requirement** — any fix for buffer lifecycle, readback cleanup, or failure-path-only behavior must include a regression test exercising the failing path. See [Failure-Path Regression Requirement](#failure-path-regression-requirement).
 - **Inventory Before Edit** — when a failure indicates a repeated drift class, run or create the broadest inventory check before editing individual files. One-off repairs for recurring drift become checkable tooling with a `--check` mode. See [Inventory Before Edit](#inventory-before-edit).
+- **Semantic Ownership** — shared behavior lives in the narrowest subsystem that owns its meaning. New catch-all utility or helper modules are forbidden. See [Semantic Ownership](#semantic-ownership).
+- **Facade Purity** — public entrypoints and compatibility facades validate, normalize, delegate, and translate errors; they do not own workload algorithms or policy. See [Facade Purity](#facade-purity).
+- **Enforced Source Architecture** — ownership, restricted dependency direction, facade purity, and the source line ceiling are checked by `npm run source:architecture:check`. See [Source Architecture Gate](#source-architecture-gate).
 
 ## Core Principles
 
@@ -674,12 +677,67 @@ const maxCacheSize = getStorageDefaults().expertCache.maxSize;
 |-----------|-------|--------|
 | **Target** | 200-400 | Ideal file size |
 | **Soft limit** | 750 | Consider splitting |
-| **Hard limit** | 1000+ | Must split |
+| **Hard limit** | 999 | Blocking ceiling for new or compliant source files |
 
 When splitting files:
 - Extract cohesive functionality into separate modules
 - Group by feature, not by type (e.g., `attention.js` not `helpers.js`)
 - Keep related code together; don't split just to hit a number
+
+The ceiling is not a target. A file that owns multiple state machines,
+execution planes, workload families, or lifecycle boundaries must split even
+when it remains below 999 lines.
+
+Existing over-limit files are governed in
+`tools/policies/source-architecture-policy.json`. Each entry records its
+current maximum and named extraction boundaries. An inherited file may shrink
+but may not grow. Once it reaches the limit, its policy entry must be removed.
+
+## Semantic Ownership
+
+- Treat top-level directories as subsystem boundaries, not file buckets.
+- Shared behavior belongs to the narrowest feature or subsystem that owns its
+  semantics.
+- Cross-subsystem reuse passes through a neutral contract module rather than a
+  broad orchestration file.
+- Do not create new catch-all `utils`, `helpers`, `common`, or `shared` modules.
+  A narrowly named feature utility is acceptable when the feature owns the
+  complete invariant.
+- Existing generic utility modules are compatibility debt, not precedent.
+- Policy, resolved plans, resource ownership, execution, and observation must
+  remain distinct responsibilities.
+
+The canonical ownership and restricted-dependency policy lives in
+`tools/policies/source-architecture-policy.json`; prose must not maintain a
+second changing owner inventory.
+
+## Facade Purity
+
+Public entrypoints and compatibility facades may:
+
+- re-export stable contracts;
+- validate and normalize external inputs;
+- delegate to a feature owner;
+- translate errors into the public envelope.
+
+They may not own workload algorithms, mutable runtime policy, backend-specific
+selection, resource state machines, or independent execution semantics. A
+facade retained for compatibility must have a declared consumer and remain
+behaviorally exercised.
+
+## Source Architecture Gate
+
+Run:
+
+```bash
+npm run source:architecture:check
+```
+
+The gate rejects unknown source owners, new restricted dependency edges,
+implementation declarations in declared facades, new over-limit files, growth
+of governed legacy files, stale dependency exceptions, and stale oversize
+entries. Every temporary dependency exception names the neutral extraction
+target that removes it.
 
 ---
 

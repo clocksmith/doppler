@@ -29,6 +29,11 @@ Pick by what your change touches. Each row lists the guides to read before the f
 | [Benchmark Style Guide](./benchmark-style-guide.md) | Benchmark harnesses, output schema, baselines |
 | [Emoji Policy](./emoji.md) | Strict no-emoji rule and the approved Unicode symbol set for status/log/doc output |
 
+Machine-owned source architecture, dependency exceptions, facade declarations,
+and legacy oversize extraction boundaries live in
+`tools/policies/source-architecture-policy.json`. Validate them with
+`npm run source:architecture:check`.
+
 Shared rule ownership:
 - Cross-language naming/logging/testing policy is canonical in [General Style Guide](./general-style-guide.md).
 - Benchmark claim policy is canonical in [../benchmark-methodology.md](../benchmark-methodology.md).
