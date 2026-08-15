@@ -445,6 +445,7 @@ tooling/program-bundle-host.d.ts
 tooling/program-bundle-host.js
 tooling/runtime-input-composition.d.ts
 tooling/runtime-intent.d.ts
+tooling/runtime-optimization-campaign.d.ts
 tooling/source-package-profiles.d.ts
 tooling/source-runtime-converter-config.d.ts
 tooling/source-runtime-materializer.d.ts

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "doppler",
-  "updatedAtUtc": "2026-07-26T00:00:00.000Z",
+  "updatedAtUtc": "2026-08-15T00:00:00.000Z",
   "goals": [
     {
       "id": "local-webgpu-product-surface",
@@ -496,6 +496,28 @@
             "docs/style/config-style-guide.md",
             "tests/config/claimed-text-models-failfast-contract.test.js",
             "src/rules/loader/tensor-loader.rules.json"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "bounded-recursive-improvement",
+          "label": "Bounded recursive improvement control",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run optimization:control:check",
+          "evidencePaths": [
+            "docs/evidence-loop.md",
+            "src/tooling/runtime-optimization.js",
+            "src/tooling/runtime-optimization-campaign.js",
+            "src/tooling/runtime-optimization-index.js",
+            "src/config/schema/optimization-contract.schema.json",
+            "src/config/schema/optimization-receipt.schema.json",
+            "tests/tooling/runtime-optimization.test.js",
+            "tests/tooling/runtime-optimization-index.test.js"
           ],
           "blockers": []
         },

@@ -10,7 +10,7 @@ import {
 import { computeCanonicalSha256 } from '../../src/utils/canonical-hash.js';
 
 function createContract(overrides = {}) {
-  return {
+  const contract = {
     schema: 'doppler.runtime-optimization-contract/v1',
     contractId: 'qwen-decode-grid-v1',
     kind: 'runtime_profile',
@@ -62,6 +62,40 @@ function createContract(overrides = {}) {
     },
     ...overrides,
   };
+  contract.campaign = overrides.campaign ?? {
+    owner: 'doppler-runtime',
+    changeClass: contract.kind === 'runtime_profile'
+      ? 'scheduling-allocation-cache'
+      : 'numerical-kernel',
+    causalHypothesis: 'Increasing decode batch size reduces command overhead without changing output.',
+    expectedMetric: {
+      path: contract.measurement.metricPath,
+      direction: contract.measurement.direction,
+      minImprovementPercent: contract.measurement.minImprovementPercent,
+    },
+    controlMetric: {
+      path: contract.verification.comparisons[0].path,
+      expectation: 'unchanged',
+    },
+    endToEndAcceptanceMetric: {
+      path: contract.measurement.metricPath,
+      direction: contract.measurement.direction,
+      minImprovementPercent: contract.measurement.minImprovementPercent,
+    },
+    budgets: {
+      maxCandidates: contract.mutationPolicy.maxCandidates,
+      maxCommandRunsPerCandidate: 64,
+    },
+    stoppingRule: {
+      kind: contract.measurement.sequentialDecision
+        ? 'bonferroni-fixed-looks'
+        : 'fixed-contract',
+      retainNegativeResults: true,
+    },
+    retryConditions: ['The runtime or declared hardware identity changes.'],
+    revocationConditions: ['Output parity or the neighboring-workload guard regresses.'],
+  };
+  return contract;
 }
 
 function responseFor(request, options = {}) {
@@ -127,6 +161,11 @@ function responseFor(request, options = {}) {
     },
   });
   assert.equal(receipt.decision.accepted, true);
+  assert.equal(receipt.campaign.owner, 'doppler-runtime');
+  assert.equal(receipt.promotion.authority, 'human');
+  assert.equal(receipt.promotion.recommended, true);
+  assert.equal(receipt.promotion.runtimeMutationApplied, false);
+  assert.deepEqual(receipt.promotion.requiredStages, ['shadow', 'canary']);
   assert.equal(receipt.measurement.completedPairs, 3);
   assert.equal(receipt.measurement.improvementPercent.median, 10);
   assert.deepEqual(
@@ -139,6 +178,24 @@ function responseFor(request, options = {}) {
   );
   assert.equal(requests.length, 8);
   assert.ok(requests.every((request) => request.captureOutput === true));
+}
+
+{
+  const contract = createContract();
+  contract.campaign.expectedMetric.minImprovementPercent = 2;
+  assert.throws(
+    () => validateRuntimeOptimizationContract(contract),
+    /expectedMetric must match/
+  );
+}
+
+{
+  const contract = createContract();
+  contract.campaign.budgets.maxCommandRunsPerCandidate = 1;
+  assert.throws(
+    () => validateRuntimeOptimizationContract(contract),
+    /must cover the frozen plan/
+  );
 }
 
 {
@@ -217,24 +274,29 @@ function responseFor(request, options = {}) {
 }
 
 {
-  const contract = createContract();
-  contract.measurement = {
-    ...contract.measurement,
-    pairCount: 6,
-    minValidPairs: 2,
-    orderPolicy: {
-      kind: 'randomized-blocks',
-      seed: 17,
-      blockSize: 2,
+  const contract = createContract({
+    measurement: {
+      metricPath: 'result.metrics.decodeTokensPerSec',
+      direction: 'maximize',
+      pairCount: 6,
+      minValidPairs: 2,
+      minImprovementPercent: 1,
+      requirePositiveConfidence: false,
+      maxRelativeStdDevPercent: 20,
+      orderPolicy: {
+        kind: 'randomized-blocks',
+        seed: 17,
+        blockSize: 2,
+      },
+      sequentialDecision: {
+        kind: 'bonferroni-fixed-looks',
+        lookEveryPairs: 2,
+        minimumPairs: 2,
+        maximumLooks: 3,
+        alpha: 0.05,
+      },
     },
-    sequentialDecision: {
-      kind: 'bonferroni-fixed-looks',
-      lookEveryPairs: 2,
-      minimumPairs: 2,
-      maximumLooks: 3,
-      alpha: 0.05,
-    },
-  };
+  });
   const [candidate] = enumerateRuntimeOptimizationCandidates(contract);
   const receipt = await evaluateBrowserRuntimeOptimizationCandidate(contract, candidate, {
     runCommand: async (request) => responseFor(request),

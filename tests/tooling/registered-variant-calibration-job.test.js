@@ -72,6 +72,35 @@ const contract = {
   schema: 'doppler.runtime-optimization-contract/v1',
   contractId: 'test-real-variant',
   kind,
+  campaign: {
+    owner: 'doppler-runtime',
+    changeClass: 'numerical-kernel',
+    causalHypothesis: 'The registered f16 kernel improves decode throughput while preserving exact output.',
+    expectedMetric: {
+      path: 'result.metrics.decodeTokensPerSec',
+      direction: 'maximize',
+      minImprovementPercent: 5,
+    },
+    controlMetric: {
+      path: 'result.output',
+      expectation: 'unchanged',
+    },
+    endToEndAcceptanceMetric: {
+      path: 'result.metrics.decodeTokensPerSec',
+      direction: 'maximize',
+      minImprovementPercent: 5,
+    },
+    budgets: {
+      maxCandidates: 1,
+      maxCommandRunsPerCandidate: 6,
+    },
+    stoppingRule: {
+      kind: 'fixed-contract',
+      retainNegativeResults: true,
+    },
+    retryConditions: ['The kernel, graph, provider, browser, or adapter identity changes.'],
+    revocationConditions: ['Exact output parity or the declared throughput gate fails.'],
+  },
   model: {
     modelId: 'test-model',
     modelUrl: null,

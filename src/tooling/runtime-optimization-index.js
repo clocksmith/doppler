@@ -10,6 +10,7 @@ function receiptIdentity(receipt) {
   return {
     candidateKind: receipt.candidateKind ?? 'runtime-profile',
     candidateReferenceDigest: receipt.registeredReference?.digest ?? receipt.candidateHash,
+    changeClass: receipt.campaign?.changeClass ?? null,
     modelId: receipt.model?.modelId ?? null,
     metricPath: receipt.measurement?.metricPath ?? null,
     deviceDigest: device ? computeCanonicalSha256(device) : null,
@@ -38,6 +39,8 @@ export function buildRuntimeOptimizationResultsIndex(receipts) {
       rejected: 0,
       invalid: 0,
       reasons: {},
+      retryConditions: {},
+      revocationConditions: {},
       receiptHashes: [],
     };
     const status = receipt.decision?.status;
@@ -47,6 +50,12 @@ export function buildRuntimeOptimizationResultsIndex(receipts) {
     for (const reason of receipt.decision?.reasons ?? []) {
       group.reasons[reason] = (group.reasons[reason] ?? 0) + 1;
     }
+    for (const condition of receipt.campaign?.retryConditions ?? []) {
+      group.retryConditions[condition] = (group.retryConditions[condition] ?? 0) + 1;
+    }
+    for (const condition of receipt.campaign?.revocationConditions ?? []) {
+      group.revocationConditions[condition] = (group.revocationConditions[condition] ?? 0) + 1;
+    }
     group.receiptHashes.push(receipt.receiptHash ?? computeCanonicalSha256(receipt));
     groups.set(key, group);
   }
@@ -55,6 +64,12 @@ export function buildRuntimeOptimizationResultsIndex(receipts) {
       ...entry,
       reasons: Object.fromEntries(
         Object.entries(entry.reasons).sort(([left], [right]) => left.localeCompare(right))
+      ),
+      retryConditions: Object.fromEntries(
+        Object.entries(entry.retryConditions).sort(([left], [right]) => left.localeCompare(right))
+      ),
+      revocationConditions: Object.fromEntries(
+        Object.entries(entry.revocationConditions).sort(([left], [right]) => left.localeCompare(right))
       ),
       receiptHashes: [...entry.receiptHashes].sort(),
     }))

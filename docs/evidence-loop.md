@@ -234,6 +234,21 @@ result in CI.
 
 ## 5. Promote Through the Existing Evaluator
 
+Every runtime optimization contract freezes its campaign guardrails before a
+candidate runs. The required `campaign` object names an owner, change class,
+falsifiable causal hypothesis, expected metric, unchanged control, end-to-end
+acceptance metric, candidate and command-run budgets, stopping rule, retry
+conditions, and revocation conditions. The validator cross-checks those fields
+against executable verification, measurement, mutation, neighboring-workload,
+and sequential-decision policy; duplicated prose cannot quietly disagree with
+the run.
+
+The evaluator copies the frozen campaign into every accepted, rejected, or
+invalid receipt. It can recommend a candidate, but it never mutates production:
+promotion authority remains human and requires shadow and canary stages. The
+receipt index retains negative results so a rejected candidate is not retried
+without satisfying its named retry conditions.
+
 `doppler.runtime-optimization-contract/v1` supports:
 
 - `runtime-profile` (`runtime_profile` remains a compatibility spelling)
