@@ -751,12 +751,15 @@
             "docs/model-competition-scoreboard.md",
             "benchmarks/vendors/runtime-ownership-decisions.json",
             "benchmarks/vendors/schema/runtime-ownership-execution-evidence.schema.json",
+            "benchmarks/vendors/schema/runtime-ownership-evaluation-capture.schema.json",
             "benchmarks/vendors/model-competition-scoreboard.json",
             "tools/check-runtime-ownership-decisions.js",
             "tools/hash-runtime-ownership-execution-evidence.js",
             "tools/lib/runtime-ownership-execution-evidence.js",
+            "tools/record-runtime-ownership-evaluation.js",
             "tests/config/runtime-ownership-decisions.test.js",
-            "tests/tooling/runtime-ownership-execution-evidence.test.js"
+            "tests/tooling/runtime-ownership-execution-evidence.test.js",
+            "tests/tooling/record-runtime-ownership-evaluation.test.js"
           ],
           "blockers": [
             "runtime-ownership-decisions-missing"
@@ -880,10 +883,13 @@
         "docs/runtime-ownership.md",
         "benchmarks/vendors/runtime-ownership-decisions.json",
         "benchmarks/vendors/schema/runtime-ownership-execution-evidence.schema.json",
+        "benchmarks/vendors/schema/runtime-ownership-evaluation-capture.schema.json",
         "tools/check-runtime-ownership-decisions.js",
         "tools/hash-runtime-ownership-execution-evidence.js",
         "tools/lib/runtime-ownership-execution-evidence.js",
-        "tests/tooling/runtime-ownership-execution-evidence.test.js"
+        "tools/record-runtime-ownership-evaluation.js",
+        "tests/tooling/runtime-ownership-execution-evidence.test.js",
+        "tests/tooling/record-runtime-ownership-evaluation.test.js"
       ]
     }
   ]

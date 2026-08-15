@@ -214,6 +214,8 @@ provider-neutral execution receipts they reference. Doppler execution identity
 remains the native runtime-observed SHA-256 in its local provider receipt. The
 decision checker recomputes or cross-checks those identities rather than
 accepting operator-entered execution labels.
+`npm run runtime:ownership:record` can assemble a reviewable evaluation while
+preserving frozen hypotheses, but it cannot make the decision claimable.
 
 ### Provider independence
 

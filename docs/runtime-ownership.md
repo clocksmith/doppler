@@ -72,6 +72,26 @@ values exactly match the decision. Fallback, failed, unresolved, or environment-
 free receipts remain retained but non-claimable. Failed external receipts are
 also valid negative evidence and cannot satisfy a claimable decision.
 
+## Recording an evaluation
+
+`npm run runtime:ownership:record -- --capture <capture.json> --out
+<candidate-policy.json>` joins the three execution receipts, every required
+decision-evidence path, and results for the already declared hypotheses. The
+capture contract is
+`benchmarks/vendors/schema/runtime-ownership-evaluation-capture.schema.json`.
+It cannot provide execution IDs or change a hypothesis statement, metric,
+control, threshold, or declaration time. The recorder derives external receipt
+identities, reads Doppler's native identities, and rejects missing axes,
+retrospective evidence, threshold/result contradictions, and inconsistent
+disposition recommendations.
+
+The default output is a separate policy for review. `--apply` is required to
+write the configured policy, and `--replace` is required when a candidate
+already contains evaluation state. A claimable decision cannot be replaced.
+Every recorded evaluation remains `claimAllowed: false` with an explicit
+promotion blocker; failed executions remain additional blockers. Promotion is
+a separate human decision after reviewing the complete comparison.
+
 Benchmark wins alone do not satisfy this contract. Missing memory, quality,
 usability, diagnostic, cost, burden, or provider-risk evidence keeps the
 decision non-claimable. Dispositions are `incumbent`, `doppler`, or `dual`; a
