@@ -510,7 +510,9 @@ predeclared primary and control metrics, neighboring workloads, observation
 evidence, known-safe rollback target, and original revocation conditions. It
 recomputes `monitoring`, `retain`, or `revoke` without mutating production; a
 revoke outcome requires a matching active revocation record. The mechanism is
-implemented, but exercised promotion coverage remains empty and non-claimable.
+implemented, and observation, rollback, and decision evidence is canonical-
+digest-bound rather than accepted by path existence alone. Exercised promotion
+coverage remains empty and non-claimable.
 
 The report intentionally treats a row as complete only when it is claimable,
 has evidence paths, and declares an npm smoke command. Non-claimable rows must

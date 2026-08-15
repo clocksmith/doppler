@@ -255,7 +255,11 @@ before activation and binds the accepted optimization receipt, exact model,
 artifact, execution, provider, environment, workload, primary metric,
 unchanged controls, neighboring workloads, observation count, known-safe
 rollback target, and original revocation conditions. Each observation repeats
-the same scope and points to retained evidence.
+the same scope inside a
+`doppler.runtime-promotion-observation-evidence/v1` JSON receipt. The policy
+binds every observation, rollback proof, and terminal-decision proof by its
+canonical JSON SHA-256, so retained values and pass flags cannot drift behind
+unchanged paths.
 
 `npm run promotion:monitoring:check` recomputes the decision. A frozen primary-
 metric degradation or any failed control or neighbor requires `revoke`; enough

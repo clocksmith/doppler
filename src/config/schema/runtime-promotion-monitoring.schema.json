@@ -7,7 +7,7 @@
   "required": ["$schema", "schemaVersion", "source", "requiredChangeClasses", "promotions"],
   "properties": {
     "$schema": { "const": "../../src/config/schema/runtime-promotion-monitoring.schema.json" },
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "source": { "const": "doppler" },
     "requiredChangeClasses": {
       "const": [
@@ -29,6 +29,15 @@
     "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
     "nullableText": { "type": ["string", "null"], "minLength": 1 },
     "nullableInstant": { "type": ["string", "null"], "format": "date-time" },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "digest"],
+      "properties": {
+        "path": { "$ref": "#/$defs/text" },
+        "digest": { "$ref": "#/$defs/digest" }
+      }
+    },
     "scope": {
       "type": "object",
       "additionalProperties": false,
@@ -97,53 +106,6 @@
         }
       }
     },
-    "check": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["id", "passed"],
-      "properties": {
-        "id": { "$ref": "#/$defs/text" },
-        "passed": { "type": "boolean" }
-      }
-    },
-    "observation": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "id",
-        "observedAtUtc",
-        "scope",
-        "primaryMetric",
-        "controls",
-        "neighbors",
-        "evidencePath"
-      ],
-      "properties": {
-        "id": { "$ref": "#/$defs/text" },
-        "observedAtUtc": { "type": "string", "format": "date-time" },
-        "scope": { "$ref": "#/$defs/scope" },
-        "primaryMetric": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["id", "value"],
-          "properties": {
-            "id": { "$ref": "#/$defs/text" },
-            "value": { "type": "number" }
-          }
-        },
-        "controls": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/check" }
-        },
-        "neighbors": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/check" }
-        },
-        "evidencePath": { "$ref": "#/$defs/text" }
-      }
-    },
     "decision": {
       "type": "object",
       "additionalProperties": false,
@@ -166,7 +128,7 @@
         "evidencePaths": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "$ref": "#/$defs/text" }
+          "items": { "$ref": "#/$defs/evidenceRef" }
         }
       }
     },
@@ -208,19 +170,19 @@
         "rollbackTarget": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["kind", "id", "digest", "knownSafe", "evidencePath"],
+          "required": ["kind", "id", "digest", "knownSafe", "evidence"],
           "properties": {
             "kind": { "enum": ["runtime-profile", "kernel-variant", "execution-graph"] },
             "id": { "$ref": "#/$defs/text" },
             "digest": { "$ref": "#/$defs/digest" },
             "knownSafe": { "const": true },
-            "evidencePath": { "$ref": "#/$defs/text" }
+            "evidence": { "$ref": "#/$defs/evidenceRef" }
           }
         },
         "plan": { "$ref": "#/$defs/plan" },
         "observations": {
           "type": "array",
-          "items": { "$ref": "#/$defs/observation" }
+          "items": { "$ref": "#/$defs/evidenceRef" }
         },
         "decision": { "$ref": "#/$defs/decision" }
       }

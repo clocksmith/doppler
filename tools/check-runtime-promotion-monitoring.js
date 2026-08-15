@@ -131,6 +131,42 @@ async function repoPath(value, label, repoRoot, errors, pathExists) {
   return normalized;
 }
 
+async function validateEvidenceReference(value, label, context) {
+  const { errors, repoRoot, loadJson, pathExists } = context;
+  if (!exactObject(value, ['path', 'digest'], label, errors)) return null;
+  const evidencePath = await repoPath(value.path, `${label}.path`, repoRoot, errors, pathExists);
+  const evidenceDigest = digest(value.digest, `${label}.digest`, errors);
+  if (!evidencePath) return null;
+  let receipt;
+  try {
+    receipt = await loadJson(path.join(repoRoot, evidencePath));
+  } catch (error) {
+    errors.push(`${label}.path could not be read as JSON: ${error.message}`);
+    return null;
+  }
+  if (evidenceDigest && computeCanonicalSha256(receipt) !== evidenceDigest) {
+    errors.push(`${label}.digest does not match canonical JSON evidence`);
+  }
+  return { path: evidencePath, receipt };
+}
+
+async function validateEvidenceReferences(value, label, context, minimum = 0) {
+  const { errors } = context;
+  if (!Array.isArray(value)) {
+    errors.push(`${label} must be an array`);
+    return [];
+  }
+  if (value.length < minimum) errors.push(`${label} requires at least ${minimum} entries`);
+  const references = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const reference = await validateEvidenceReference(value[index], `${label}[${index}]`, context);
+    if (reference) references.push(reference);
+  }
+  const paths = references.map((reference) => reference.path);
+  if (new Set(paths).size !== paths.length) errors.push(`${label} must not contain duplicate paths`);
+  return references;
+}
+
 function degradationPercent(metric, observed) {
   const scale = Math.abs(metric.baseline);
   if (metric.direction === 'maximize') return ((metric.baseline - observed) / scale) * 100;
@@ -183,7 +219,7 @@ async function validateOptimizationReceipt(promotion, label, context) {
 }
 
 async function validatePromotion(promotion, index, context) {
-  const { errors, repoRoot, revocations, pathExists } = context;
+  const { errors, revocations } = context;
   const label = `promotion[${index}]`;
   exactObject(promotion, [
     'id',
@@ -207,14 +243,23 @@ async function validatePromotion(promotion, index, context) {
   const activatedAt = instant(promotion?.activatedAtUtc, `${label}.activatedAtUtc`, errors);
   const scope = validateScope(promotion?.scope, `${label}.scope`, errors);
 
-  exactObject(promotion?.rollbackTarget, ['kind', 'id', 'digest', 'knownSafe', 'evidencePath'], `${label}.rollbackTarget`, errors);
+  exactObject(
+    promotion?.rollbackTarget,
+    ['kind', 'id', 'digest', 'knownSafe', 'evidence'],
+    `${label}.rollbackTarget`,
+    errors
+  );
   if (!['runtime-profile', 'kernel-variant', 'execution-graph'].includes(promotion?.rollbackTarget?.kind)) {
     errors.push(`${label}.rollbackTarget.kind is not supported`);
   }
   text(promotion?.rollbackTarget?.id, `${label}.rollbackTarget.id`, errors);
   digest(promotion?.rollbackTarget?.digest, `${label}.rollbackTarget.digest`, errors);
   if (promotion?.rollbackTarget?.knownSafe !== true) errors.push(`${label}.rollbackTarget.knownSafe must be true`);
-  await repoPath(promotion?.rollbackTarget?.evidencePath, `${label}.rollbackTarget.evidencePath`, repoRoot, errors, pathExists);
+  await validateEvidenceReference(
+    promotion?.rollbackTarget?.evidence,
+    `${label}.rollbackTarget.evidence`,
+    context
+  );
 
   const plan = promotion?.plan;
   exactObject(plan, [
@@ -258,11 +303,19 @@ async function validatePromotion(promotion, index, context) {
   let latestObservation = null;
   let breach = false;
   for (let observationIndex = 0; observationIndex < promotion.observations.length; observationIndex += 1) {
-    const observation = promotion.observations[observationIndex];
+    const evidenceReference = await validateEvidenceReference(
+      promotion.observations[observationIndex],
+      `${label}.observations[${observationIndex}]`,
+      context
+    );
+    const observation = evidenceReference?.receipt;
     const observationLabel = `${label}.observations[${observationIndex}]`;
     exactObject(observation, [
-      'id', 'observedAtUtc', 'scope', 'primaryMetric', 'controls', 'neighbors', 'evidencePath',
+      'schema', 'id', 'observedAtUtc', 'scope', 'primaryMetric', 'controls', 'neighbors',
     ], observationLabel, errors);
+    if (observation?.schema !== 'doppler.runtime-promotion-observation-evidence/v1') {
+      errors.push(`${observationLabel}.schema is not supported`);
+    }
     const observationId = text(observation?.id, `${observationLabel}.id`, errors);
     if (observationId && observationIds.has(observationId)) errors.push(`${label}.observations contains duplicate id ${observationId}`);
     if (observationId) observationIds.add(observationId);
@@ -288,7 +341,6 @@ async function validatePromotion(promotion, index, context) {
     const controls = validateChecks(observation?.controls, controlIds, `${observationLabel}.controls`, errors);
     const neighbors = validateChecks(observation?.neighbors, neighborIds, `${observationLabel}.neighbors`, errors);
     if ([...controls, ...neighbors].some((entry) => entry?.passed === false)) breach = true;
-    await repoPath(observation?.evidencePath, `${observationLabel}.evidencePath`, repoRoot, errors, pathExists);
   }
 
   const expectedStatus = breach
@@ -305,10 +357,12 @@ async function validatePromotion(promotion, index, context) {
   if (decision?.authority !== 'human') errors.push(`${label}.decision.authority must be human`);
   if (decision?.runtimeMutationApplied !== false) errors.push(`${label}.decision.runtimeMutationApplied must be false`);
   const decisionAt = instant(decision?.decidedAtUtc, `${label}.decision.decidedAtUtc`, errors, true);
-  const decisionEvidence = uniqueStrings(decision?.evidencePaths, `${label}.decision.evidencePaths`, errors, expectedStatus === 'monitoring' ? 0 : 1);
-  for (let evidenceIndex = 0; evidenceIndex < decisionEvidence.length; evidenceIndex += 1) {
-    await repoPath(decisionEvidence[evidenceIndex], `${label}.decision.evidencePaths[${evidenceIndex}]`, repoRoot, errors, pathExists);
-  }
+  const decisionEvidence = await validateEvidenceReferences(
+    decision?.evidencePaths,
+    `${label}.decision.evidencePaths`,
+    context,
+    expectedStatus === 'monitoring' ? 0 : 1
+  );
   if (expectedStatus === 'monitoring') {
     if (decisionAt !== null || decision?.reason !== null || decision?.revocationRecordId !== null || decisionEvidence.length > 0) {
       errors.push(`${label}: monitoring decision must not claim a terminal outcome`);
@@ -348,7 +402,7 @@ export async function validateRuntimePromotionMonitoringPolicy(policy, options =
   }
   exactObject(policy, ['$schema', 'schemaVersion', 'source', 'requiredChangeClasses', 'promotions'], 'monitoring policy', errors);
   if (policy?.$schema !== '../../src/config/schema/runtime-promotion-monitoring.schema.json') errors.push('monitoring policy $schema is not recognized');
-  if (policy?.schemaVersion !== 1) errors.push('monitoring policy schemaVersion must be 1');
+  if (policy?.schemaVersion !== 2) errors.push('monitoring policy schemaVersion must be 2');
   if (policy?.source !== 'doppler') errors.push('monitoring policy source must be doppler');
   const requiredClasses = uniqueStrings(policy?.requiredChangeClasses, 'monitoring policy requiredChangeClasses', errors);
   if (!sameMembers(requiredClasses, CHANGE_CLASSES)) errors.push('monitoring policy requiredChangeClasses is incomplete');
