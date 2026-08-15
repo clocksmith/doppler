@@ -1,4 +1,7 @@
-import crypto from 'node:crypto';
+import {
+  canonicalizeJson,
+  computeCanonicalJsonSha256,
+} from './canonical-json.js';
 
 const EXTERNAL_SCHEMA = 'doppler.runtime-ownership-execution-evidence/v1';
 const DOPPLER_RECEIPT_SCHEMA = 'doppler_provider_receipt_v1';
@@ -67,18 +70,11 @@ function matchExpected(actual, expected, label, errors) {
 }
 
 export function canonicalizeRuntimeOwnershipEvidence(value) {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value)) {
-    return `[${value.map((entry) => canonicalizeRuntimeOwnershipEvidence(entry)).join(',')}]`;
-  }
-  return `{${Object.keys(value).sort().map((key) => (
-    `${JSON.stringify(key)}:${canonicalizeRuntimeOwnershipEvidence(value[key])}`
-  )).join(',')}}`;
+  return canonicalizeJson(value);
 }
 
 export function computeRuntimeOwnershipEvidenceId(receipt) {
-  const canonical = canonicalizeRuntimeOwnershipEvidence(receipt);
-  return `sha256:${crypto.createHash('sha256').update(canonical).digest('hex')}`;
+  return computeCanonicalJsonSha256(receipt);
 }
 
 export function validateRuntimeOwnershipExecutionEvidence(receipt, expected = {}) {
@@ -209,14 +205,14 @@ export function validateDopplerRuntimeOwnershipReceipt(receipt, expected = {}) {
     errors.push(`Doppler execution receipt must use ${DOPPLER_RECEIPT_SCHEMA}`);
   }
   requiredText(receipt.receiptId, 'Doppler execution receipt.receiptId', errors);
-  isoInstant(receipt.timestamp, 'Doppler execution receipt.timestamp', errors);
+  const timestamp = isoInstant(receipt.timestamp, 'Doppler execution receipt.timestamp', errors);
   if (receipt.source !== 'local') reasons.push('doppler-execution-not-local');
   if (receipt.fallbackDecision?.executed === true) reasons.push('doppler-execution-used-fallback');
   if (receipt.failure !== null) reasons.push('doppler-execution-failed');
   if (!isPlainObject(receipt.device)) reasons.push('doppler-environment-missing');
   if (receipt.resolutionStatus !== 'resolved' || !isPlainObject(receipt.resolution)) {
     reasons.push('doppler-resolution-identity-missing');
-    return { errors, reasons, resolution: null };
+    return { errors, reasons, resolution: null, timestamp };
   }
   const resolution = receipt.resolution;
   if (resolution.schema !== RESOLUTION_SCHEMA) {
@@ -254,5 +250,6 @@ export function validateDopplerRuntimeOwnershipReceipt(receipt, expected = {}) {
         resolvedExecutionId: executionId,
       }
       : null,
+    timestamp,
   };
 }

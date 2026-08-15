@@ -3,7 +3,7 @@
   "recordedAtUtc": "2026-08-15T00:00:00.000Z",
   "method": "read-only-static-workspace-inventory",
   "claimAllowed": false,
-  "claimBoundary": "This audit establishes candidate application code paths only. It contains no runtime execution, owner confirmation, product qualification, or retained evidence for Doppler's ten qualification fields.",
+  "claimBoundary": "This audit establishes candidate application code paths only. It contains no runtime execution, owner confirmation, product qualification, or digest-bound receipts for Doppler's eleven qualification evidence fields.",
   "constraints": [
     "No inference, benchmark, model load, browser launch, or GPU workload was run.",
     "Sibling-repository paths are discovery sources, not Doppler qualification evidence.",

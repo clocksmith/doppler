@@ -1,6 +1,6 @@
 {
   "$schema": "../../src/config/schema/product-integration-qualification.schema.json",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "source": "doppler",
   "goalId": "local-webgpu-product-surface",
   "minimumQualifiedIntegrations": 3,
@@ -26,8 +26,9 @@
       "qualifiedAtUtc": null,
       "expiresAtUtc": null,
       "evidence": {
+        "ownerConfirmation": null,
         "installToFirstVerifiedOutput": null,
-        "identity": "docs/status/product-integration-candidate-audit-2026-08-15.json",
+        "identity": null,
         "sourceTaskQualityRetention": null,
         "reliability": null,
         "memory": null,
@@ -58,8 +59,9 @@
       "qualifiedAtUtc": null,
       "expiresAtUtc": null,
       "evidence": {
+        "ownerConfirmation": null,
         "installToFirstVerifiedOutput": null,
-        "identity": "docs/status/product-integration-candidate-audit-2026-08-15.json",
+        "identity": null,
         "sourceTaskQualityRetention": null,
         "reliability": null,
         "memory": null,
@@ -91,8 +93,9 @@
       "qualifiedAtUtc": null,
       "expiresAtUtc": null,
       "evidence": {
+        "ownerConfirmation": null,
         "installToFirstVerifiedOutput": null,
-        "identity": "docs/status/product-integration-candidate-audit-2026-08-15.json",
+        "identity": null,
         "sourceTaskQualityRetention": null,
         "reliability": null,
         "memory": null,

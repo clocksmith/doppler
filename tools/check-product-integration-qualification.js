@@ -5,6 +5,16 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { computeCanonicalJsonSha256 } from './lib/canonical-json.js';
+import {
+  PRODUCT_OUTCOME_EVIDENCE_CLASSES,
+  validateProductIntegrationOutcomeEvidence,
+  validateProductIntegrationOwnerConfirmation,
+} from './lib/product-integration-evidence.js';
+import {
+  validateDopplerRuntimeOwnershipReceipt,
+} from './lib/runtime-ownership-execution-evidence.js';
+
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(
   REPO_ROOT,
@@ -29,6 +39,7 @@ const LIFECYCLES = new Set([
   'retired',
 ]);
 const EVIDENCE_FIELDS = Object.freeze([
+  'ownerConfirmation',
   'installToFirstVerifiedOutput',
   'identity',
   'sourceTaskQualityRetention',
@@ -95,19 +106,26 @@ function isRepoRelativePath(value) {
   );
 }
 
-async function validateEvidencePath(value, label, repoRoot, errors) {
+async function validateEvidenceReference(value, label, repoRoot, errors) {
   if (value === null) return null;
-  if (!isRepoRelativePath(value)) {
-    errors.push(`${label} must be a repo-relative path or null`);
+  if (!validateExactKeys(value, ['path', 'digest'], label, errors)) return null;
+  if (!isRepoRelativePath(value.path)) {
+    errors.push(`${label}.path must be a repo-relative path`);
     return null;
   }
-  const normalized = normalizeText(value);
+  const normalized = normalizeText(value.path);
+  const digest = validateNullableSha256(value.digest, `${label}.digest`, errors);
+  if (!digest) errors.push(`${label}.digest is required`);
+  let receipt = null;
   try {
-    await fs.stat(path.join(repoRoot, normalized));
-  } catch {
-    errors.push(`${label} does not exist: ${normalized}`);
+    receipt = JSON.parse(await fs.readFile(path.join(repoRoot, normalized), 'utf8'));
+  } catch (error) {
+    errors.push(`${label}.path is not readable JSON: ${normalized}: ${error.message}`);
   }
-  return normalized;
+  if (receipt && digest && computeCanonicalJsonSha256(receipt) !== digest) {
+    errors.push(`${label}.digest does not match canonical JSON evidence`);
+  }
+  return { path: normalized, digest, receipt };
 }
 
 function parseIsoInstant(value, label, nullable, errors) {
@@ -161,6 +179,12 @@ function ownerConfirmationIsCurrent(confirmedAt, now, maxAgeDays) {
   if (!confirmedAt) return false;
   const age = now.getTime() - confirmedAt.getTime();
   return age >= 0 && age <= maxAgeDays * 24 * 60 * 60 * 1000;
+}
+
+function pushUnique(target, values) {
+  for (const value of values) {
+    if (!target.includes(value)) target.push(value);
+  }
 }
 
 async function validateIntegration(integration, context) {
@@ -218,7 +242,7 @@ async function validateIntegration(integration, context) {
   const evidence = {};
   if (validateExactKeys(integration.evidence, EVIDENCE_FIELDS, `${id}: evidence`, errors)) {
     await Promise.all(EVIDENCE_FIELDS.map(async (field) => {
-      evidence[field] = await validateEvidencePath(
+      evidence[field] = await validateEvidenceReference(
         integration.evidence[field],
         `${id}: evidence.${field}`,
         repoRoot,
@@ -226,7 +250,7 @@ async function validateIntegration(integration, context) {
       );
     }));
   }
-  const missingEvidence = EVIDENCE_FIELDS.filter((field) => !evidence[field]);
+  const missingEvidence = EVIDENCE_FIELDS.filter((field) => !evidence[field]?.receipt);
   const qualificationReasons = [];
   if (integration.qualificationLevel !== 'product-supported') {
     qualificationReasons.push('qualification-level-not-product-supported');
@@ -244,6 +268,59 @@ async function validateIntegration(integration, context) {
     qualificationReasons.push('resolution-identity-incomplete');
   }
   if (missingEvidence.length > 0) qualificationReasons.push('evidence-incomplete');
+  const evidenceContext = {
+    integrationId: id,
+    applicationName,
+    workload: integration.workload,
+    owner,
+    logicalModelId,
+    resolvedArtifactVariantId,
+    resolvedExecutionId,
+  };
+  if (evidence.ownerConfirmation?.receipt) {
+    const result = validateProductIntegrationOwnerConfirmation(
+      evidence.ownerConfirmation.receipt,
+      {
+        ...evidenceContext,
+        ownerConfirmedAtUtc: ownerConfirmedAt?.toISOString() ?? null,
+      }
+    );
+    for (const error of result.errors) {
+      errors.push(`${id}: evidence.ownerConfirmation: ${error}`);
+    }
+    pushUnique(qualificationReasons, result.reasons);
+    if (
+      qualifiedAt
+      && result.confirmedAt
+      && result.confirmedAt.getTime() > qualifiedAt.getTime()
+    ) {
+      qualificationReasons.push('owner-confirmation-postdates-qualification');
+    }
+  }
+  if (evidence.identity?.receipt) {
+    const result = validateDopplerRuntimeOwnershipReceipt(evidence.identity.receipt, {
+      logicalModelId,
+      resolvedArtifactVariantId,
+      resolvedExecutionId,
+    });
+    for (const error of result.errors) errors.push(`${id}: evidence.identity: ${error}`);
+    pushUnique(qualificationReasons, result.reasons);
+    if (qualifiedAt && result.timestamp && result.timestamp.getTime() > qualifiedAt.getTime()) {
+      qualificationReasons.push('identity-receipt-postdates-qualification');
+    }
+  }
+  for (const field of PRODUCT_OUTCOME_EVIDENCE_CLASSES) {
+    if (!evidence[field]?.receipt) continue;
+    const result = validateProductIntegrationOutcomeEvidence(evidence[field].receipt, {
+      ...evidenceContext,
+      evidenceClass: field,
+    });
+    for (const error of result.errors) errors.push(`${id}: evidence.${field}: ${error}`);
+    pushUnique(qualificationReasons, result.reasons);
+    if (qualifiedAt && result.capturedAt && result.capturedAt.getTime() > qualifiedAt.getTime()) {
+      qualificationReasons.push(`${field}-postdates-qualification`);
+    }
+  }
   if (blockers.length > 0) qualificationReasons.push('blockers-present');
   const qualified = qualificationReasons.length === 0;
   if (integration.claimAllowed === true && !qualified) {
@@ -294,7 +371,7 @@ export async function validateProductIntegrationQualification(policy, options = 
       missingWorkloads: [...REQUIRED_WORKLOADS],
     };
   }
-  if (policy.schemaVersion !== 2) errors.push('product integration policy schemaVersion must be 2');
+  if (policy.schemaVersion !== 3) errors.push('product integration policy schemaVersion must be 3');
   if (policy.source !== 'doppler') errors.push('product integration policy source must be "doppler"');
   if (policy.goalId !== 'local-webgpu-product-surface') {
     errors.push('product integration policy goalId must be "local-webgpu-product-surface"');

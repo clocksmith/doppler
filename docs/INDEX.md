@@ -30,6 +30,8 @@ Primary documentation index.
 - [Operations](operations.md) - troubleshooting and debug workflows.
 - [Provider Conformance](provider-conformance.md) - exact-tuple browser, Node,
   and optional named-provider qualification contract.
+- [Product Integration Qualification](product-integration-qualification.md) -
+  maintained-application ownership, identity, and outcome evidence.
 - [Runtime Ownership Decisions](runtime-ownership.md) - source, incumbent, and
   Doppler evidence gate for choosing an execution owner per workload.
 - [Model, Artifact, and Adapter Revocation](revocation.md) - bundled deny-only

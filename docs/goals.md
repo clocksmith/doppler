@@ -96,6 +96,10 @@ when its repository revision, Doppler call path, requested model, and known gaps
 are retained. Discovery does not satisfy any runtime or product evidence field.
 Candidate coverage is reported separately from qualified coverage so an empty
 registry cannot hide adoption work and available code cannot imply support.
+Qualification evidence is canonical-JSON-digest-bound. Owner confirmation and
+native Doppler identity have dedicated receipt contracts; every product outcome
+uses class-specific observations whose claimed pass is recomputed. See
+`docs/product-integration-qualification.md`.
 
 ## Completion matrix
 
@@ -450,7 +454,9 @@ and reranking; current named owners; the five-level support ladder; exact
 logical identity plus runtime-observed `sha256:` artifact and execution
 identities; expiry; incumbent controls; and
 the required reliability, memory, quality, upgrade, rollback, and revocation
-evidence. An empty registry is valid but explicitly incomplete.
+evidence. Evidence paths alone are insufficient: each reference binds a
+canonical JSON digest and the checker validates its class-specific semantics.
+An empty registry is valid but explicitly incomplete.
 
 `tools/policies/provider-conformance.json` independently governs provider
 qualification. `npm run provider:conformance:check` requires generation,
