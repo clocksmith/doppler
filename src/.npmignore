@@ -32,6 +32,7 @@ config/quantization-contract-check.d.ts
 config/quantization-contract-check.js
 config/runtime-merge.d.ts
 config/schema/capability-transform-policy.schema.json
+config/schema/catscan-policy.schema.json
 config/schema/claim-evidence-contract.schema.json
 config/schema/command-surface-contract.schema.json
 config/schema/demo-contract-receipt.schema.json
