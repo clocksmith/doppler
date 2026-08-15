@@ -196,6 +196,7 @@ export async function resolveModelSource(model) {
       trace.push({ source: 'quickstart-registry', id: model, outcome: 'resolved' });
       log.debug('doppler', `Model resolved via quickstart-registry: ${entry.modelId}`, { trace });
       return {
+        logicalModelId: model,
         modelId: entry.modelId,
         baseUrl: buildQuickstartModelBaseUrl(entry),
         manifest: null,
@@ -214,6 +215,7 @@ export async function resolveModelSource(model) {
     trace.push({ source: 'url', id: model.url.trim(), outcome: 'resolved' });
     log.debug('doppler', `Model resolved via explicit url: ${model.url.trim()}`, { trace });
     return {
+      logicalModelId: normalizeText(model.logicalModelId) || model.url.trim(),
       modelId: model.url.trim(),
       baseUrl: model.url.trim(),
       manifest: null,
@@ -259,6 +261,7 @@ export async function resolveModelSource(model) {
     trace.push({ source: 'inline-manifest', id: modelId, outcome: 'resolved' });
     log.debug('doppler', `Model resolved via inline manifest: ${modelId}`, { trace });
     return {
+      logicalModelId: normalizeText(model.logicalModelId) || modelId,
       modelId,
       baseUrl: typeof model.baseUrl === 'string' && model.baseUrl.length > 0 ? model.baseUrl : null,
       manifest,

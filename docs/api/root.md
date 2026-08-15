@@ -198,8 +198,9 @@ await model.unload();
 ## Generation Evidence Example
 
 Use `generateWithEvidence()` when a caller needs the generated output and a
-browser-safe receipt that binds the transcript to the resolved generation
-config, runtime profile, WebGPU backend, and execution-plan identity.
+browser-safe receipt that binds the transcript to the logical model request,
+verified artifact variant, resolved runtime session, WebGPU backend, and
+execution-plan identity.
 
 ```js
 import { dr } from 'doppler-gpu';
@@ -214,6 +215,9 @@ console.log({
   outputText: evidence.outputText,
   tokenIds: evidence.tokenIds,
   transcriptHash: evidence.transcriptHash,
+  logicalModelId: evidence.resolution.logicalModelId,
+  resolvedArtifactVariantId: evidence.resolution.resolvedArtifactVariantId,
+  resolvedExecutionId: evidence.resolution.resolvedExecutionId,
   generationConfigHash: evidence.generationConfigHash,
   runtimeProfileHash: evidence.runtimeProfileHash,
   backendIdentityHash: evidence.backendIdentityHash,
@@ -222,8 +226,11 @@ console.log({
 await model.unload();
 ```
 
-The receipt records what ran. It does not by itself establish semantic
-correctness or output quality.
+The three resolution IDs are distinct: the logical ID preserves what the
+application requested, the artifact-variant ID is the verified manifest digest,
+and the execution ID binds the resolved runtime-session and observed backend.
+Missing artifact or runtime-session digests fail closed. The receipt records
+what ran; it does not by itself establish semantic correctness or output quality.
 
 ## Inspection contract
 

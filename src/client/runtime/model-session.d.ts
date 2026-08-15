@@ -62,6 +62,22 @@ export interface DopplerGenerationEvidence {
   transcriptHash: string;
   generationConfig: DopplerGenerationConfigEvidence;
   generationConfigHash: string;
+  resolution: {
+    schema: 'doppler.resolution-identity/v1';
+    logicalModelId: string;
+    resolvedArtifactVariantId: `sha256:${string}`;
+    resolvedExecutionId: `sha256:${string}`;
+  };
+  executionIdentity: {
+    schema: 'doppler.resolved-execution-identity/v1';
+    runtime: {
+      package: 'doppler-gpu';
+      version: string;
+      surface: 'node' | 'browser';
+    };
+    resolvedRuntimeSessionId: `sha256:${string}`;
+    backendIdentity: DopplerGenerationBackendIdentity;
+  };
   runtimeProfile: {
     schema: 'doppler_runtime_profile/v1';
     runtime: {
@@ -74,6 +90,7 @@ export interface DopplerGenerationEvidence {
       manifestHash: string | null;
       activeAdapter: string | null;
     };
+    resolvedRuntimeSessionId: `sha256:${string}`;
     backendIdentity: DopplerGenerationBackendIdentity;
   };
   runtimeProfileHash: string;
@@ -125,6 +142,8 @@ export interface DopplerModelHandle {
   readonly activeLoRA: string | null;
   readonly loaded: boolean;
   readonly modelId: string;
+  readonly logicalModelId: string;
+  readonly resolvedArtifactVariantId: `sha256:${string}` | null;
   readonly manifestHash: string | null;
   readonly persistentCache: DopplerPersistentCacheReceipt | null;
   readonly manifest: unknown;
@@ -214,6 +233,7 @@ export declare function assertSupportedGenerationOptions(options?: Record<string
 export declare function createModelHandle(
   pipeline: InferencePipeline,
   resolved: {
+    logicalModelId?: string;
     modelId: string;
     manifestHash?: string | null;
     persistentCache?: DopplerPersistentCacheReceipt | null;

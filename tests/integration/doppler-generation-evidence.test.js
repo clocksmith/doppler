@@ -73,6 +73,9 @@ const pipeline = {
     },
   },
   runtimeConfig,
+  resolvedRuntimeSession: {
+    id: `sha256:${'b'.repeat(64)}`,
+  },
   isLoaded: true,
   tokenizer: {
     decode(tokenIds) {
@@ -119,8 +122,9 @@ const pipeline = {
 };
 
 const handle = createModelHandle(pipeline, {
+  logicalModelId: 'qwen-logical',
   modelId: 'qwen-test',
-  manifestHash: 'sha256:manifest',
+  manifestHash: 'a'.repeat(64),
 });
 const evidence = await handle.generateWithEvidence('hello', {
   maxTokens: 4,
@@ -131,6 +135,8 @@ const evidence = await handle.generateWithEvidence('hello', {
 });
 
 assert.equal(evidence.schema, 'doppler_generation_evidence/v1');
+assert.equal(handle.logicalModelId, 'qwen-logical');
+assert.equal(handle.resolvedArtifactVariantId, `sha256:${'a'.repeat(64)}`);
 assert.equal(evidence.outputText, '[101][202]');
 assert.deepEqual(evidence.tokenIds, [101, 202]);
 assert.equal(evidence.generationConfig.maxTokens, 4);
@@ -159,8 +165,20 @@ assert.equal(
   evidence.runtimeProfileHash,
   await hashValue(evidence.runtimeProfile)
 );
+assert.equal(evidence.resolution.schema, 'doppler.resolution-identity/v1');
+assert.equal(evidence.resolution.logicalModelId, 'qwen-logical');
+assert.equal(evidence.resolution.resolvedArtifactVariantId, `sha256:${'a'.repeat(64)}`);
+assert.equal(evidence.resolution.resolvedExecutionId, await hashValue(evidence.executionIdentity));
+assert.equal(
+  evidence.executionIdentity.resolvedRuntimeSessionId,
+  `sha256:${'b'.repeat(64)}`
+);
 assert.equal(evidence.runtimeProfile.model.modelId, 'qwen-test');
-assert.equal(evidence.runtimeProfile.model.manifestHash, 'sha256:manifest');
+assert.equal(evidence.runtimeProfile.model.manifestHash, `sha256:${'a'.repeat(64)}`);
+assert.equal(
+  evidence.runtimeProfile.resolvedRuntimeSessionId,
+  `sha256:${'b'.repeat(64)}`
+);
 
 delete pipeline.runtimeConfig.inference.chatTemplate;
 pipeline.generateTokenIds = async (_prompt, options) => ({
@@ -177,5 +195,18 @@ const disabledDefaultEvidence = await handle.generateWithEvidence('hello', {
   maxTokens: 1,
 });
 assert.equal(disabledDefaultEvidence.generationConfig.useChatTemplate, false);
+
+const missingExecutionIdentityHandle = createModelHandle({
+  ...pipeline,
+  resolvedRuntimeSession: null,
+}, {
+  logicalModelId: 'qwen-logical',
+  modelId: 'qwen-test',
+  manifestHash: 'a'.repeat(64),
+});
+await assert.rejects(
+  () => missingExecutionIdentityHandle.generateWithEvidence('hello', { maxTokens: 1 }),
+  /requires resolvedRuntimeSessionId as a SHA-256 digest/
+);
 
 console.log('doppler-generation-evidence.test: ok');

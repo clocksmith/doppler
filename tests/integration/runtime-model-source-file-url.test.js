@@ -57,6 +57,7 @@ try {
     manifestHash: payload.manifestHash,
     baseUrl: pathToFileURL(tempRoot).href,
   });
+  assert.equal(inline.logicalModelId, manifest.modelId);
   assert.equal(inline.manifestHash, payload.manifestHash);
   assert.equal(inline.manifestText, payload.text);
   assert.equal(inline.manifest.modelId, manifest.modelId);
@@ -72,10 +73,12 @@ try {
   const storageContext = { loadShard() {}, close() {} };
   const resolved = await resolveModelSource({
     url: pathToFileURL(tempRoot).href,
+    logicalModelId: 'tiny-file-url-logical',
     storageContext,
     storageManifest: manifest,
     storageBaseUrl: 'opfs://tiny-file-url-model',
   });
+  assert.equal(resolved.logicalModelId, 'tiny-file-url-logical');
   assert.equal(resolved.storageContext, storageContext);
   assert.equal(resolved.storageManifest, manifest);
   assert.equal(resolved.storageBaseUrl, 'opfs://tiny-file-url-model');

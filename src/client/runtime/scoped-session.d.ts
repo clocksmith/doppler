@@ -33,6 +33,7 @@ export interface DopplerGenerationResult {
   outputText: string;
   content: string;
   tokenIds: number[];
+  resolution: DopplerGenerationEvidence['resolution'];
   usage: {
     promptTokens: number | null;
     completionTokens: number;
@@ -47,6 +48,9 @@ export interface DopplerGenerationResult {
     deepEvidenceAvailable: boolean | null;
   };
   fingerprint: {
+    logicalModelId: string | null;
+    resolvedArtifactVariantId: `sha256:${string}` | null;
+    resolvedExecutionId: `sha256:${string}` | null;
     modelId: string | null;
     manifestHash: string | null;
     tokenizerHash: string | null;
@@ -80,6 +84,8 @@ export interface DopplerScopedModelSession {
   readonly closed: boolean;
   readonly loaded: boolean;
   readonly modelId: string;
+  readonly logicalModelId: string;
+  readonly resolvedArtifactVariantId: `sha256:${string}` | null;
   readonly manifestHash: string | null;
   readonly persistentCache: DopplerPersistentCacheReceipt | null;
   readonly manifest: unknown;
