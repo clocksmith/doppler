@@ -233,6 +233,15 @@ declared operations, lifecycle behavior, evidence fields, and applicable
 correctness class. Doe-specific optimizations are named lanes. Doe must never
 become an undeclared requirement for Doppler.
 
+Bun product support has its own portfolio-wide composition gate at
+`tools/policies/bun-product-qualification.json`. Generation, embedding, and
+reranking must bind current Bun/WebGPU identity, both public surfaces, lifecycle,
+correctness and held-out quality, reliability, memory, cold/warm distributions,
+incumbent eligibility, requalification, rollback, and revocation. A recorder may
+assemble a non-claimable candidate; only digest-bound human promotion can move
+all three workloads, the Bun support tier, and the release target together. See
+`docs/bun-product-qualification.md`.
+
 The machine-readable authority is
 `tools/policies/provider-conformance.json`, validated by
 `npm run provider:conformance:check`. The core product lanes are browser WebGPU

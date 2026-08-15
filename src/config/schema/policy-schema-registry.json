@@ -53,6 +53,11 @@
       "schemaPath": "src/config/schema/provider-conformance-policy.schema.json"
     },
     {
+      "id": "bun-product-qualification",
+      "policyPath": "tools/policies/bun-product-qualification.json",
+      "schemaPath": "src/config/schema/bun-product-qualification.schema.json"
+    },
+    {
       "id": "runtime-ownership-decisions",
       "policyPath": "benchmarks/vendors/runtime-ownership-decisions.json",
       "schemaPath": "benchmarks/vendors/schema/runtime-ownership-decisions.schema.json"

@@ -31,6 +31,10 @@ config/platforms/loader.d.ts
 config/quantization-contract-check.d.ts
 config/quantization-contract-check.js
 config/runtime-merge.d.ts
+config/schema/bun-product-promotion-evidence.schema.json
+config/schema/bun-product-qualification-capture.schema.json
+config/schema/bun-product-qualification-evidence.schema.json
+config/schema/bun-product-qualification.schema.json
 config/schema/capability-transform-policy.schema.json
 config/schema/catscan-policy.schema.json
 config/schema/claim-evidence-contract.schema.json

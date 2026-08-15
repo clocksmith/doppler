@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/bun-product-promotion-evidence-v1.schema.json",
+  "title": "Doppler Bun Product Promotion Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "qualificationId",
+    "workload",
+    "logicalModelId",
+    "resolvedArtifactVariantId",
+    "resolvedExecutionId",
+    "bunVersion",
+    "webgpuImplementationId",
+    "providerId",
+    "evidenceSetDigest",
+    "decision",
+    "authority",
+    "promotedAtUtc",
+    "qualifiedAtUtc",
+    "expiresAtUtc"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.bun-product-promotion-evidence/v1" },
+    "qualificationId": { "$ref": "#/$defs/id" },
+    "workload": { "enum": ["generation", "embedding", "reranking"] },
+    "logicalModelId": { "type": "string", "minLength": 1 },
+    "resolvedArtifactVariantId": { "$ref": "#/$defs/sha256" },
+    "resolvedExecutionId": { "$ref": "#/$defs/sha256" },
+    "bunVersion": { "type": "string", "minLength": 1 },
+    "webgpuImplementationId": { "type": "string", "minLength": 1 },
+    "providerId": { "type": "string", "minLength": 1 },
+    "evidenceSetDigest": { "$ref": "#/$defs/sha256" },
+    "decision": { "const": "promote" },
+    "authority": { "const": "human" },
+    "promotedAtUtc": { "type": "string", "format": "date-time" },
+    "qualifiedAtUtc": { "type": "string", "format": "date-time" },
+    "expiresAtUtc": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}
