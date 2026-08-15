@@ -38,6 +38,11 @@
       "schemaPath": "src/config/schema/product-integration-qualification.schema.json"
     },
     {
+      "id": "provider-conformance",
+      "policyPath": "tools/policies/provider-conformance.json",
+      "schemaPath": "src/config/schema/provider-conformance-policy.schema.json"
+    },
+    {
       "id": "capability-transform-policy",
       "policyPath": "src/rules/inference/capability-transforms.rules.json",
       "schemaPath": "src/config/schema/capability-transform-policy.schema.json"

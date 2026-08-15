@@ -172,6 +172,15 @@ declared operations, lifecycle behavior, evidence fields, and applicable
 correctness class. Doe-specific optimizations are named lanes. Doe must never
 become an undeclared requirement for Doppler.
 
+The machine-readable authority is
+`tools/policies/provider-conformance.json`, validated by
+`npm run provider:conformance:check`. The core product lanes are browser WebGPU
+and the selected Node provider; Doe and other implementations are explicit
+named lanes. Qualification begins at an exact workload tuple and requires
+current operation, lifecycle, resolution-identity, environment, correctness,
+and provider-receipt evidence. Contract fixtures and Program Bundle parity do
+not constitute provider qualification. See `docs/provider-conformance.md`.
+
 ## Goal 3: Make correctness and performance evidence-backed
 
 Product contract:
@@ -367,10 +376,11 @@ claim.
 goal status. The matrix is validated by `npm run goals:check` and can be
 rendered as a stable product-status report with `npm run goals:report`.
 
-`npm run product:readiness:report` combines the goal matrix, command-surface
-contract, and model-artifact contract into one markdown status report. Use
-`npm run product:readiness:report -- --json` when another tool needs the same
-status as machine-readable JSON.
+`npm run product:readiness:report` combines the goal matrix, command-surface,
+model-artifact, maintained-integration, provider-conformance, policy-schema,
+claim-evidence, and subsystem-support contracts into one markdown status
+report. Use `npm run product:readiness:report -- --json` when another tool needs
+the same status as machine-readable JSON.
 
 `tools/policies/product-integration-qualification.json` is the source of truth
 for the decisive maintained-application gate. `npm run product:integrations:check`
@@ -379,6 +389,13 @@ and reranking; current named owners; the five-level support ladder; exact
 logical, artifact, and execution identities; expiry; incumbent controls; and
 the required reliability, memory, quality, upgrade, rollback, and revocation
 evidence. An empty registry is valid but explicitly incomplete.
+
+`tools/policies/provider-conformance.json` independently governs provider
+qualification. `npm run provider:conformance:check` requires generation,
+embedding, and reranking suites across browser WebGPU and the selected Node
+provider, while keeping Doe an optional named lane. An empty suite registry is
+valid but explicitly incomplete; only current exact-tuple receipts can satisfy
+the gate.
 
 The report intentionally treats a row as complete only when it is claimable,
 has evidence paths, and declares an npm smoke command. Non-claimable rows must

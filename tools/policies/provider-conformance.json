@@ -1,0 +1,54 @@
+{
+  "$schema": "../../src/config/schema/provider-conformance-policy.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "goalIds": [
+    "model-artifact-runtime-contract",
+    "correctness-performance-claims"
+  ],
+  "minimumQualifiedSuites": 3,
+  "requiredWorkloads": [
+    "generation",
+    "embedding",
+    "reranking"
+  ],
+  "coreProviderLaneIds": [
+    "browser-webgpu",
+    "node-webgpu"
+  ],
+  "qualificationMaxAgeDays": 90,
+  "requiredLifecycleStages": [
+    "load",
+    "execute",
+    "unload"
+  ],
+  "requiredEvidenceFields": [
+    "modelContract",
+    "resolutionIdentity",
+    "operations",
+    "lifecycle",
+    "correctness",
+    "providerReceipt"
+  ],
+  "providerLanes": [
+    {
+      "id": "browser-webgpu",
+      "kind": "browser-webgpu",
+      "role": "core",
+      "contractPath": "docs/architecture.md"
+    },
+    {
+      "id": "node-webgpu",
+      "kind": "node-webgpu",
+      "role": "core",
+      "contractPath": "src/tooling/node-webgpu-provider.v1.json"
+    },
+    {
+      "id": "doe",
+      "kind": "doe",
+      "role": "optional-named",
+      "contractPath": "src/tooling/provider-v1-contract.d.ts"
+    }
+  ],
+  "suites": []
+}

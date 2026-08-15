@@ -203,7 +203,8 @@
       ],
       "blockers": [
         "broad-model-receipts-missing",
-        "gemma4-target-receipts-missing"
+        "gemma4-target-receipts-missing",
+        "provider-conformance-receipts-missing"
       ],
       "rows": [
         {
@@ -274,6 +275,27 @@
             "tests/integration/doppler-serve-handler.test.js"
           ],
           "blockers": []
+        },
+        {
+          "id": "provider-independent-runtime-qualification",
+          "label": "Provider-independent runtime qualification",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/provider-conformance.md",
+            "tools/policies/provider-conformance.json",
+            "src/config/schema/provider-conformance-policy.schema.json",
+            "tools/check-provider-conformance.js",
+            "tests/config/provider-conformance.test.js"
+          ],
+          "blockers": [
+            "provider-conformance-receipts-missing"
+          ]
         },
         {
           "id": "sharded-weights",
@@ -415,7 +437,8 @@
       ],
       "blockers": [
         "candidate-benchmark-lanes",
-        "gemma4-target-receipts-missing"
+        "gemma4-target-receipts-missing",
+        "provider-conformance-receipts-missing"
       ],
       "rows": [
         {
@@ -573,6 +596,28 @@
           "blockers": []
         },
         {
+          "id": "provider-conformance-evidence",
+          "label": "Provider conformance evidence",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/provider-conformance.md",
+            "docs/integration/program-bundle.md",
+            "tools/policies/provider-conformance.json",
+            "tools/check-provider-conformance.js",
+            "src/tooling/program-bundle-parity.js",
+            "tests/config/provider-conformance.test.js"
+          ],
+          "blockers": [
+            "provider-conformance-receipts-missing"
+          ]
+        },
+        {
           "id": "claim-promotion-coverage",
           "label": "Claim promotion coverage",
           "tier": "tier1",
@@ -617,6 +662,16 @@
         "docs/subsystem-support-matrix.md",
         "docs/release-matrix.md",
         "benchmarks/vendors/release-matrix.json"
+      ]
+    },
+    {
+      "code": "provider-conformance-receipts-missing",
+      "description": "No exact-tuple generation, embedding, or reranking suite is qualified across both browser WebGPU and the selected Node WebGPU provider.",
+      "exitCriteria": "Retain current browser and Node receipts for generation, embedding, and reranking that bind the same model contract, operations, lifecycle, artifact and execution identities, environment, and predeclared correctness class; keep Doe and other providers as explicit named lanes.",
+      "evidencePaths": [
+        "docs/provider-conformance.md",
+        "tools/policies/provider-conformance.json",
+        "tools/check-provider-conformance.js"
       ]
     },
     {

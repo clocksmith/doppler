@@ -8,6 +8,7 @@ import { buildGoalCompletionReport } from './check-goal-completion.js';
 import { buildModelArtifactContractReport } from './check-model-artifact-contract.js';
 import { buildPolicySchemaRegistryReport } from './check-policy-schema-registry.js';
 import { buildProductIntegrationQualificationReport } from './check-product-integration-qualification.js';
+import { buildProviderConformanceReport } from './check-provider-conformance.js';
 import { buildSubsystemSupportContractReport } from './check-subsystem-support-contract.js';
 
 function parseArgs(argv) {
@@ -36,6 +37,7 @@ function buildSummary(reports) {
     ...collectErrors('model artifact', reports.modelArtifact),
     ...collectErrors('policy schemas', reports.policySchemas),
     ...collectErrors('product integrations', reports.productIntegrations),
+    ...collectErrors('provider conformance', reports.providerConformance),
     ...collectErrors('subsystem support', reports.subsystemSupport),
   ];
   return {
@@ -45,6 +47,7 @@ function buildSummary(reports) {
       && reports.modelArtifact.ok
       && reports.policySchemas.ok
       && reports.productIntegrations.ok
+      && reports.providerConformance.ok
       && reports.subsystemSupport.ok,
     errors,
     goals: reports.goals.goals,
@@ -72,6 +75,13 @@ function buildSummary(reports) {
         qualified: reports.productIntegrations.qualifiedIntegrations,
         required: 3,
         missingWorkloads: reports.productIntegrations.missingWorkloads,
+      },
+      providerConformance: {
+        ok: reports.providerConformance.ok,
+        gateSatisfied: reports.providerConformance.gateSatisfied,
+        qualified: reports.providerConformance.qualifiedSuites,
+        required: 3,
+        missingWorkloads: reports.providerConformance.missingWorkloads,
       },
       subsystemSupport: {
         ok: reports.subsystemSupport.ok,
@@ -103,6 +113,7 @@ function formatMarkdown(summary) {
     `- model artifact registry: ${summary.contracts.modelArtifact.ok ? 'ok' : 'invalid'} (${summary.contracts.modelArtifact.registryModels}/${summary.contracts.modelArtifact.catalogModels} catalog models exposed)`,
     `- policy schemas: ${summary.contracts.policySchemas.ok ? 'ok' : 'invalid'} (${summary.contracts.policySchemas.policies} policies)`,
     `- maintained application integrations: ${summary.contracts.productIntegrations.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.productIntegrations.qualified}/${summary.contracts.productIntegrations.required} qualified; missing ${summary.contracts.productIntegrations.missingWorkloads.join(', ') || 'none'})`,
+    `- provider conformance: ${summary.contracts.providerConformance.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.providerConformance.qualified}/${summary.contracts.providerConformance.required} qualified; missing ${summary.contracts.providerConformance.missingWorkloads.join(', ') || 'none'})`,
     `- subsystem support: ${summary.contracts.subsystemSupport.ok ? 'ok' : 'invalid'} (${summary.contracts.subsystemSupport.subsystems} subsystems, ${summary.contracts.subsystemSupport.primaryClaims} primary claims)`,
     ''
   );
@@ -123,6 +134,7 @@ export async function buildProductReadinessReport() {
     modelArtifact: await buildModelArtifactContractReport(),
     policySchemas: await buildPolicySchemaRegistryReport(),
     productIntegrations: await buildProductIntegrationQualificationReport(),
+    providerConformance: await buildProviderConformanceReport(),
     subsystemSupport: await buildSubsystemSupportContractReport(),
   };
   return buildSummary(reports);
