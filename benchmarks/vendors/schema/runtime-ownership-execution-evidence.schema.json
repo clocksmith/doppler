@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/runtime-ownership-execution-evidence-v1.schema.json",
+  "title": "Doppler Runtime Ownership External Execution Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "role",
+    "providerId",
+    "artifactId",
+    "artifactRevision",
+    "workload",
+    "logicalModelId",
+    "runtime",
+    "invocation",
+    "result"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.runtime-ownership-execution-evidence/v1" },
+    "role": { "enum": ["source", "incumbent"] },
+    "providerId": { "type": "string", "minLength": 1 },
+    "artifactId": { "type": "string", "minLength": 1 },
+    "artifactRevision": { "type": "string", "minLength": 1 },
+    "workload": { "enum": ["generation", "embedding", "reranking"] },
+    "logicalModelId": { "type": "string", "minLength": 1 },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "backendId", "environmentFingerprint"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "backendId": { "type": "string", "minLength": 1 },
+        "environmentFingerprint": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "invocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["configurationDigest"],
+      "properties": {
+        "configurationDigest": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "outputDigest", "startedAtUtc", "completedAtUtc"],
+      "properties": {
+        "status": { "enum": ["passed", "failed"] },
+        "outputDigest": {
+          "anyOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+        },
+        "startedAtUtc": { "type": "string", "format": "date-time" },
+        "completedAtUtc": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

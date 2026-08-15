@@ -750,9 +750,13 @@
             "docs/runtime-ownership.md",
             "docs/model-competition-scoreboard.md",
             "benchmarks/vendors/runtime-ownership-decisions.json",
+            "benchmarks/vendors/schema/runtime-ownership-execution-evidence.schema.json",
             "benchmarks/vendors/model-competition-scoreboard.json",
             "tools/check-runtime-ownership-decisions.js",
-            "tests/config/runtime-ownership-decisions.test.js"
+            "tools/hash-runtime-ownership-execution-evidence.js",
+            "tools/lib/runtime-ownership-execution-evidence.js",
+            "tests/config/runtime-ownership-decisions.test.js",
+            "tests/tooling/runtime-ownership-execution-evidence.test.js"
           ],
           "blockers": [
             "runtime-ownership-decisions-missing"
@@ -871,11 +875,15 @@
       "completionClass": "hardware",
       "statusCommand": "npm run runtime:ownership:check",
       "description": "No claimable generation, embedding, or reranking decision establishes whether Doppler, an incumbent, or both should own execution.",
-      "exitCriteria": "Retain current source, incumbent, and Doppler evidence for generation, embedding, and reranking, including Doppler's named manifest variant and runtime-observed manifest and execution SHA-256 identities; predeclare material-advantage thresholds; record correctness, quality, usability, memory, performance, diagnostics, cost, burden, and provider risk; then publish an unexpired incumbent, doppler, or dual disposition.",
+      "exitCriteria": "Retain current source, incumbent, and Doppler evidence for generation, embedding, and reranking: source and incumbent executions must use canonical receipt SHA-256 identities, while Doppler must bind its named manifest variant and runtime-observed manifest and execution SHA-256 identities; predeclare material-advantage thresholds; record correctness, quality, usability, memory, performance, diagnostics, cost, burden, and provider risk; then publish an unexpired incumbent, doppler, or dual disposition.",
       "evidencePaths": [
         "docs/runtime-ownership.md",
         "benchmarks/vendors/runtime-ownership-decisions.json",
-        "tools/check-runtime-ownership-decisions.js"
+        "benchmarks/vendors/schema/runtime-ownership-execution-evidence.schema.json",
+        "tools/check-runtime-ownership-decisions.js",
+        "tools/hash-runtime-ownership-execution-evidence.js",
+        "tools/lib/runtime-ownership-execution-evidence.js",
+        "tests/tooling/runtime-ownership-execution-evidence.test.js"
       ]
     }
   ]
