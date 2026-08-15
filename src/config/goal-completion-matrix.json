@@ -482,7 +482,8 @@
         "gemma4-target-receipts-missing",
         "provider-conformance-receipts-missing",
         "runtime-ownership-decisions-missing",
-        "signed-live-revocation-authority-missing"
+        "signed-live-revocation-authority-missing",
+        "post-promotion-monitoring-receipts-missing"
       ],
       "rows": [
         {
@@ -640,6 +641,27 @@
           "blockers": []
         },
         {
+          "id": "post-promotion-monitoring",
+          "label": "Post-promotion monitor, retain, and revoke loop",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/evidence-loop.md",
+            "tools/policies/runtime-promotion-monitoring.json",
+            "src/config/schema/runtime-promotion-monitoring.schema.json",
+            "tools/check-runtime-promotion-monitoring.js",
+            "tests/tooling/runtime-promotion-monitoring.test.js"
+          ],
+          "blockers": [
+            "post-promotion-monitoring-receipts-missing"
+          ]
+        },
+        {
           "id": "revocation-propagation",
           "label": "Revocation propagation across runtime and claims",
           "tier": "tier1",
@@ -749,6 +771,16 @@
     }
   ],
   "blockers": [
+    {
+      "code": "post-promotion-monitoring-receipts-missing",
+      "description": "The post-promotion evaluator is implemented, but no promoted runtime candidate has complete monitoring observations and a terminal retain or revoke decision.",
+      "exitCriteria": "Register a real human-promoted candidate with its accepted optimization receipt, pre-activation monitor plan, exact execution scope, known-safe rollback evidence, repeated retained observations, and a terminal retain decision or matching active revocation record.",
+      "evidencePaths": [
+        "docs/evidence-loop.md",
+        "tools/policies/runtime-promotion-monitoring.json",
+        "tools/check-runtime-promotion-monitoring.js"
+      ]
+    },
     {
       "code": "signed-live-revocation-authority-missing",
       "description": "Doppler enforces a package-bundled deny-only revocation registry, but it has no authenticated live update channel or cryptographic signature verification.",

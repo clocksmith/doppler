@@ -66,6 +66,7 @@ const REQUIRED_GOAL_ROWS = new Map([
       'apples-to-apples-compare-rules',
       'fail-closed-unsupported-paths',
       'bounded-recursive-improvement',
+      'post-promotion-monitoring',
       'revocation-propagation',
       'signed-live-revocation-authority',
       'provider-conformance-evidence',

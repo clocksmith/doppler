@@ -423,6 +423,15 @@ and weight loading and never auto-selects a named replacement. The current
 authority is package-bundled, not live or cryptographically signed; that wider
 claim remains blocked.
 
+`tools/policies/runtime-promotion-monitoring.json` closes the control loop after
+a human promotion. `npm run promotion:monitoring:check` binds each promoted
+candidate to its accepted optimization receipt, exact execution scope,
+predeclared primary and control metrics, neighboring workloads, observation
+evidence, known-safe rollback target, and original revocation conditions. It
+recomputes `monitoring`, `retain`, or `revoke` without mutating production; a
+revoke outcome requires a matching active revocation record. The mechanism is
+implemented, but exercised promotion coverage remains empty and non-claimable.
+
 The report intentionally treats a row as complete only when it is claimable,
 has evidence paths, and declares an npm smoke command. Non-claimable rows must
 name blocker codes and keep `smokeCommand` set to `null` so partial status is

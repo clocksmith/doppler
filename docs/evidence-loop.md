@@ -249,6 +249,22 @@ promotion authority remains human and requires shadow and canary stages. The
 receipt index retains negative results so a rejected candidate is not retried
 without satisfying its named retry conditions.
 
+Human promotion starts a separate post-promotion contract in
+`tools/policies/runtime-promotion-monitoring.json`. The plan must be declared
+before activation and binds the accepted optimization receipt, exact model,
+artifact, execution, provider, environment, workload, primary metric,
+unchanged controls, neighboring workloads, observation count, known-safe
+rollback target, and original revocation conditions. Each observation repeats
+the same scope and points to retained evidence.
+
+`npm run promotion:monitoring:check` recomputes the decision. A frozen primary-
+metric degradation or any failed control or neighbor requires `revoke`; enough
+passing observations require `retain`; otherwise the record remains
+`monitoring`. The evaluator never mutates production. A revoke decision is
+valid only when the bundled revocation registry contains a matching active
+record. The current registry has no promoted candidates, so exercised coverage
+remains explicitly incomplete.
+
 `doppler.runtime-optimization-contract/v1` supports:
 
 - `runtime-profile` (`runtime_profile` remains a compatibility spelling)

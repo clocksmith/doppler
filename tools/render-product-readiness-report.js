@@ -11,6 +11,7 @@ import { buildProductIntegrationQualificationReport } from './check-product-inte
 import { buildProviderConformanceReport } from './check-provider-conformance.js';
 import { buildRuntimeOwnershipDecisionReport } from './check-runtime-ownership-decisions.js';
 import { buildRevocationPropagationReport } from './check-revocation-registry.js';
+import { buildRuntimePromotionMonitoringReport } from './check-runtime-promotion-monitoring.js';
 import { buildSubsystemSupportContractReport } from './check-subsystem-support-contract.js';
 
 function parseArgs(argv) {
@@ -42,6 +43,7 @@ function buildSummary(reports) {
     ...collectErrors('provider conformance', reports.providerConformance),
     ...collectErrors('runtime ownership', reports.runtimeOwnership),
     ...collectErrors('revocations', reports.revocations),
+    ...collectErrors('promotion monitoring', reports.promotionMonitoring),
     ...collectErrors('subsystem support', reports.subsystemSupport),
   ];
   return {
@@ -54,6 +56,7 @@ function buildSummary(reports) {
       && reports.providerConformance.ok
       && reports.runtimeOwnership.ok
       && reports.revocations.ok
+      && reports.promotionMonitoring.ok
       && reports.subsystemSupport.ok,
     errors,
     goals: reports.goals.goals,
@@ -101,6 +104,14 @@ function buildSummary(reports) {
         active: reports.revocations.activeRevocations,
         signatureVerification: reports.revocations.signatureVerification,
       },
+      promotionMonitoring: {
+        ok: reports.promotionMonitoring.ok,
+        coverageSatisfied: reports.promotionMonitoring.coverageSatisfied,
+        promotions: reports.promotionMonitoring.promotions,
+        monitoring: reports.promotionMonitoring.monitoring,
+        retained: reports.promotionMonitoring.retained,
+        revoked: reports.promotionMonitoring.revoked,
+      },
       subsystemSupport: {
         ok: reports.subsystemSupport.ok,
         subsystems: reports.subsystemSupport.subsystems,
@@ -134,6 +145,7 @@ function formatMarkdown(summary) {
     `- provider conformance: ${summary.contracts.providerConformance.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.providerConformance.qualified}/${summary.contracts.providerConformance.required} qualified; missing ${summary.contracts.providerConformance.missingWorkloads.join(', ') || 'none'})`,
     `- runtime ownership decisions: ${summary.contracts.runtimeOwnership.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.runtimeOwnership.qualified}/${summary.contracts.runtimeOwnership.required} qualified; missing ${summary.contracts.runtimeOwnership.missingWorkloads.join(', ') || 'none'})`,
     `- revocation propagation: ${summary.contracts.revocations.ok ? 'ok' : 'invalid'} (${summary.contracts.revocations.active} active; signature verification ${summary.contracts.revocations.signatureVerification})`,
+    `- post-promotion monitoring: ${summary.contracts.promotionMonitoring.coverageSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.promotionMonitoring.promotions} promotions; ${summary.contracts.promotionMonitoring.monitoring} monitoring, ${summary.contracts.promotionMonitoring.retained} retained, ${summary.contracts.promotionMonitoring.revoked} revoked)`,
     `- subsystem support: ${summary.contracts.subsystemSupport.ok ? 'ok' : 'invalid'} (${summary.contracts.subsystemSupport.subsystems} subsystems, ${summary.contracts.subsystemSupport.primaryClaims} primary claims)`,
     ''
   );
@@ -157,6 +169,7 @@ export async function buildProductReadinessReport() {
     providerConformance: await buildProviderConformanceReport(),
     runtimeOwnership: await buildRuntimeOwnershipDecisionReport(),
     revocations: await buildRevocationPropagationReport(),
+    promotionMonitoring: await buildRuntimePromotionMonitoringReport(),
     subsystemSupport: await buildSubsystemSupportContractReport(),
   };
   return buildSummary(reports);
