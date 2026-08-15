@@ -6,6 +6,10 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { validateRevocationRegistry, findResolutionRevocation } from '../src/config/revocation-policy.js';
 import { computeCanonicalSha256 } from '../src/utils/canonical-hash.js';
+import {
+  validateRuntimePromotionActivationEvidence,
+  validateRuntimePromotionDecisionEvidence,
+} from './lib/runtime-promotion-monitoring-evidence.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'runtime-promotion-monitoring.json');
@@ -150,23 +154,6 @@ async function validateEvidenceReference(value, label, context) {
   return { path: evidencePath, receipt };
 }
 
-async function validateEvidenceReferences(value, label, context, minimum = 0) {
-  const { errors } = context;
-  if (!Array.isArray(value)) {
-    errors.push(`${label} must be an array`);
-    return [];
-  }
-  if (value.length < minimum) errors.push(`${label} requires at least ${minimum} entries`);
-  const references = [];
-  for (let index = 0; index < value.length; index += 1) {
-    const reference = await validateEvidenceReference(value[index], `${label}[${index}]`, context);
-    if (reference) references.push(reference);
-  }
-  const paths = references.map((reference) => reference.path);
-  if (new Set(paths).size !== paths.length) errors.push(`${label} must not contain duplicate paths`);
-  return references;
-}
-
 function degradationPercent(metric, observed) {
   const scale = Math.abs(metric.baseline);
   if (metric.direction === 'maximize') return ((metric.baseline - observed) / scale) * 100;
@@ -225,6 +212,7 @@ async function validatePromotion(promotion, index, context) {
     'id',
     'optimizationReceiptPath',
     'optimizationReceiptHash',
+    'activationEvidence',
     'candidateId',
     'candidateHash',
     'changeClass',
@@ -236,12 +224,34 @@ async function validatePromotion(promotion, index, context) {
     'decision',
   ], label, errors);
   const id = text(promotion?.id, `${label}.id`, errors);
+  const retainedEvidencePaths = [promotion?.optimizationReceiptPath].filter(Boolean);
   if (id && !ID_PATTERN.test(id)) errors.push(`${label}.id must be lowercase kebab-case`);
   text(promotion?.candidateId, `${label}.candidateId`, errors);
   digest(promotion?.candidateHash, `${label}.candidateHash`, errors);
   if (!CHANGE_CLASSES.includes(promotion?.changeClass)) errors.push(`${label}.changeClass is not supported`);
   const activatedAt = instant(promotion?.activatedAtUtc, `${label}.activatedAtUtc`, errors);
   const scope = validateScope(promotion?.scope, `${label}.scope`, errors);
+  const activationReference = await validateEvidenceReference(
+    promotion?.activationEvidence,
+    `${label}.activationEvidence`,
+    context
+  );
+  if (activationReference?.path) retainedEvidencePaths.push(activationReference.path);
+  if (activationReference?.receipt) {
+    const activation = validateRuntimePromotionActivationEvidence(
+      activationReference.receipt,
+      {
+        promotionId: id,
+        candidateId: promotion?.candidateId,
+        candidateHash: promotion?.candidateHash,
+        activatedAtUtc: activatedAt?.toISOString() ?? null,
+        scope,
+      }
+    );
+    for (const error of activation.errors) {
+      errors.push(`${label}.activationEvidence: ${error}`);
+    }
+  }
 
   exactObject(
     promotion?.rollbackTarget,
@@ -255,11 +265,14 @@ async function validatePromotion(promotion, index, context) {
   text(promotion?.rollbackTarget?.id, `${label}.rollbackTarget.id`, errors);
   digest(promotion?.rollbackTarget?.digest, `${label}.rollbackTarget.digest`, errors);
   if (promotion?.rollbackTarget?.knownSafe !== true) errors.push(`${label}.rollbackTarget.knownSafe must be true`);
-  await validateEvidenceReference(
+  const rollbackEvidenceReference = await validateEvidenceReference(
     promotion?.rollbackTarget?.evidence,
     `${label}.rollbackTarget.evidence`,
     context
   );
+  if (rollbackEvidenceReference?.path) {
+    retainedEvidencePaths.push(rollbackEvidenceReference.path);
+  }
 
   const plan = promotion?.plan;
   exactObject(plan, [
@@ -309,6 +322,7 @@ async function validatePromotion(promotion, index, context) {
       context
     );
     const observation = evidenceReference?.receipt;
+    if (evidenceReference?.path) retainedEvidencePaths.push(evidenceReference.path);
     const observationLabel = `${label}.observations[${observationIndex}]`;
     exactObject(observation, [
       'schema', 'id', 'observedAtUtc', 'scope', 'primaryMetric', 'controls', 'neighbors',
@@ -351,20 +365,27 @@ async function validatePromotion(promotion, index, context) {
   const decision = promotion?.decision;
   exactObject(decision, [
     'status', 'decidedAtUtc', 'reason', 'revocationRecordId', 'authority',
-    'runtimeMutationApplied', 'evidencePaths',
+    'runtimeMutationApplied', 'evidence',
   ], `${label}.decision`, errors);
   if (decision?.status !== expectedStatus) errors.push(`${label}.decision.status must be ${expectedStatus}`);
   if (decision?.authority !== 'human') errors.push(`${label}.decision.authority must be human`);
   if (decision?.runtimeMutationApplied !== false) errors.push(`${label}.decision.runtimeMutationApplied must be false`);
   const decisionAt = instant(decision?.decidedAtUtc, `${label}.decision.decidedAtUtc`, errors, true);
-  const decisionEvidence = await validateEvidenceReferences(
-    decision?.evidencePaths,
-    `${label}.decision.evidencePaths`,
-    context,
-    expectedStatus === 'monitoring' ? 0 : 1
-  );
+  const decisionEvidence = decision?.evidence === null
+    ? null
+    : await validateEvidenceReference(
+      decision?.evidence,
+      `${label}.decision.evidence`,
+      context
+    );
+  if (decisionEvidence?.path) retainedEvidencePaths.push(decisionEvidence.path);
   if (expectedStatus === 'monitoring') {
-    if (decisionAt !== null || decision?.reason !== null || decision?.revocationRecordId !== null || decisionEvidence.length > 0) {
+    if (
+      decisionAt !== null
+      || decision?.reason !== null
+      || decision?.revocationRecordId !== null
+      || decisionEvidence !== null
+    ) {
       errors.push(`${label}: monitoring decision must not claim a terminal outcome`);
     }
   } else {
@@ -385,6 +406,24 @@ async function validatePromotion(promotion, index, context) {
         errors.push(`${label}: revoke decision requires a matching active revocation record`);
       }
     }
+    if (!decisionEvidence?.receipt) {
+      errors.push(`${label}: terminal decision requires semantic decision evidence`);
+    } else {
+      const result = validateRuntimePromotionDecisionEvidence(decisionEvidence.receipt, {
+        promotionId: id,
+        candidateId: promotion?.candidateId,
+        candidateHash: promotion?.candidateHash,
+        scope,
+        status: expectedStatus,
+        decidedAtUtc: decisionAt?.toISOString() ?? null,
+        reason: decision?.reason,
+        revocationRecordId: decision?.revocationRecordId,
+      });
+      for (const error of result.errors) errors.push(`${label}.decision.evidence: ${error}`);
+    }
+  }
+  if (new Set(retainedEvidencePaths).size !== retainedEvidencePaths.length) {
+    errors.push(`${label}: retained evidence paths must be distinct`);
   }
   return { id, status: expectedStatus };
 }
@@ -402,7 +441,7 @@ export async function validateRuntimePromotionMonitoringPolicy(policy, options =
   }
   exactObject(policy, ['$schema', 'schemaVersion', 'source', 'requiredChangeClasses', 'promotions'], 'monitoring policy', errors);
   if (policy?.$schema !== '../../src/config/schema/runtime-promotion-monitoring.schema.json') errors.push('monitoring policy $schema is not recognized');
-  if (policy?.schemaVersion !== 2) errors.push('monitoring policy schemaVersion must be 2');
+  if (policy?.schemaVersion !== 3) errors.push('monitoring policy schemaVersion must be 3');
   if (policy?.source !== 'doppler') errors.push('monitoring policy source must be doppler');
   const requiredClasses = uniqueStrings(policy?.requiredChangeClasses, 'monitoring policy requiredChangeClasses', errors);
   if (!sameMembers(requiredClasses, CHANGE_CLASSES)) errors.push('monitoring policy requiredChangeClasses is incomplete');

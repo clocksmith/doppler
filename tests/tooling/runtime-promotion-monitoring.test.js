@@ -11,6 +11,7 @@ const ARTIFACT_ID = `sha256:${'a'.repeat(64)}`;
 const EXECUTION_ID = `sha256:${'b'.repeat(64)}`;
 const CANDIDATE_HASH = `sha256:${'c'.repeat(64)}`;
 const ROLLBACK_HASH = `sha256:${'d'.repeat(64)}`;
+const REVIEWER_REVISION = '1'.repeat(40);
 const CHANGE_CLASSES = [
   'scheduling-allocation-cache',
   'numerical-kernel',
@@ -129,6 +130,41 @@ function evidenceReference(evidencePath, receipt) {
   };
 }
 
+function activationReceipt() {
+  return {
+    schema: 'doppler.runtime-promotion-activation-evidence/v1',
+    promotionId: 'candidate-v1-promotion',
+    candidateId: 'candidate-v1',
+    candidateHash: CANDIDATE_HASH,
+    activatedAtUtc: '2026-08-15T00:30:00.000Z',
+    scope: scope(),
+    authority: 'human',
+    reviewer: 'doppler-release',
+    reviewerRevision: REVIEWER_REVISION,
+    statement: 'The reviewer activated this exact candidate and monitoring scope.',
+  };
+}
+
+function decisionReceipt(status) {
+  return {
+    schema: 'doppler.runtime-promotion-decision-evidence/v1',
+    promotionId: 'candidate-v1-promotion',
+    candidateId: 'candidate-v1',
+    candidateHash: CANDIDATE_HASH,
+    scope: scope(),
+    status,
+    decidedAtUtc: '2026-08-15T03:00:00.000Z',
+    reason: status === 'retain'
+      ? 'Frozen monitoring gates passed.'
+      : 'Frozen degradation threshold failed.',
+    revocationRecordId: status === 'revoke' ? 'candidate-regression' : null,
+    authority: 'human',
+    reviewer: 'doppler-release',
+    reviewerRevision: REVIEWER_REVISION,
+    statement: 'The reviewer accepted the evaluator-derived terminal outcome.',
+  };
+}
+
 function policy(status = 'monitoring') {
   const receipt = optimizationReceipt();
   const observationReceipts = status === 'monitoring'
@@ -152,15 +188,19 @@ function policy(status = 'monitoring') {
     knownSafeTarget: 'baseline-profile-v1',
     verified: true,
   });
+  const activationEvidence = addEvidence(
+    'evidence/activation.json',
+    activationReceipt()
+  );
   const decisionEvidence = status === 'monitoring'
-    ? []
-    : [addEvidence('evidence/decision.json', { status, reviewedBy: 'doppler-release' })];
+    ? null
+    : addEvidence('evidence/decision.json', decisionReceipt(status));
   return {
     receipt,
     evidence,
     value: {
       $schema: '../../src/config/schema/runtime-promotion-monitoring.schema.json',
-      schemaVersion: 2,
+      schemaVersion: 3,
       source: 'doppler',
       requiredChangeClasses: CHANGE_CLASSES,
       promotions: [
@@ -168,6 +208,7 @@ function policy(status = 'monitoring') {
           id: 'candidate-v1-promotion',
           optimizationReceiptPath: 'artifacts/optimization-receipts/candidate-v1.json',
           optimizationReceiptHash: receipt.receiptHash,
+          activationEvidence,
           candidateId: 'candidate-v1',
           candidateHash: CANDIDATE_HASH,
           changeClass: 'scheduling-allocation-cache',
@@ -203,7 +244,7 @@ function policy(status = 'monitoring') {
               revocationRecordId: null,
               authority: 'human',
               runtimeMutationApplied: false,
-              evidencePaths: [],
+              evidence: null,
             }
             : {
               status,
@@ -214,7 +255,7 @@ function policy(status = 'monitoring') {
               revocationRecordId: status === 'revoke' ? 'candidate-regression' : null,
               authority: 'human',
               runtimeMutationApplied: false,
-              evidencePaths: decisionEvidence,
+              evidence: decisionEvidence,
             },
         },
       ],

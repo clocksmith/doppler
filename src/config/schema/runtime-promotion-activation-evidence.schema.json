@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/runtime-promotion-activation-evidence-v1.schema.json",
+  "title": "Doppler Runtime Promotion Activation Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "promotionId", "candidateId", "candidateHash", "activatedAtUtc", "scope",
+    "authority", "reviewer", "reviewerRevision", "statement"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.runtime-promotion-activation-evidence/v1" },
+    "promotionId": { "$ref": "#/$defs/text" },
+    "candidateId": { "$ref": "#/$defs/text" },
+    "candidateHash": { "$ref": "#/$defs/digest" },
+    "activatedAtUtc": { "type": "string", "format": "date-time" },
+    "scope": { "$ref": "#/$defs/scope" },
+    "authority": { "const": "human" },
+    "reviewer": { "$ref": "#/$defs/text" },
+    "reviewerRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "statement": { "$ref": "#/$defs/text" }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "modelId", "artifactVariantId", "executionId", "providerId",
+        "environmentFingerprint", "workloadId"
+      ],
+      "properties": {
+        "modelId": { "$ref": "#/$defs/text" },
+        "artifactVariantId": { "$ref": "#/$defs/digest" },
+        "executionId": { "$ref": "#/$defs/digest" },
+        "providerId": { "$ref": "#/$defs/text" },
+        "environmentFingerprint": { "$ref": "#/$defs/text" },
+        "workloadId": { "$ref": "#/$defs/text" }
+      }
+    }
+  }
+}

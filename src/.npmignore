@@ -58,6 +58,9 @@ config/schema/program-bundle.schema.json
 config/schema/provider-conformance-capture.schema.json
 config/schema/provider-conformance-policy.schema.json
 config/schema/revocation-registry.schema.json
+config/schema/runtime-promotion-activation-evidence.schema.json
+config/schema/runtime-promotion-decision-evidence.schema.json
+config/schema/runtime-promotion-monitoring-capture.schema.json
 config/schema/runtime-promotion-monitoring.schema.json
 config/schema/runtime-promotion-observation-evidence.schema.json
 config/schema/signed-revocation-authority-evaluation-capture.schema.json
