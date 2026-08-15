@@ -13,6 +13,10 @@ providers must be registered explicitly before a suite may reference them.
 
 `npm run provider:conformance:check` validates the policy and its regression
 tests. An empty suite registry is structurally valid and visibly incomplete.
+An exact workload tuple may be registered earlier as a non-claimable candidate
+with empty provider results and explicit blockers. Candidate coverage records
+what must run; it does not convert older release receipts, contract fixtures,
+or desired operations into provider evidence.
 
 ## Qualification unit
 

@@ -78,6 +78,14 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   assert.equal(report.ok, true, report.errors.join('\n'));
   assert.equal(report.gateSatisfied, false);
   assert.equal(report.qualifiedSuites, 0);
+  assert.equal(report.candidateSuites, 3);
+  assert.deepEqual(report.candidateWorkloads, ['generation', 'embedding', 'reranking']);
+  assert.deepEqual(report.suites.map((entry) => entry.id), [
+    'qwen35-generation-browser-node',
+    'embeddinggemma-browser-node',
+    'qwen3-reranking-browser-node',
+  ]);
+  assert.ok(report.suites.every((entry) => entry.qualified === false));
   assert.deepEqual(report.missingWorkloads, ['generation', 'embedding', 'reranking']);
 }
 

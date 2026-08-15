@@ -27,6 +27,21 @@ assert.deepEqual(
     'columbo-local-reranking',
   ]
 );
+assert.equal(report.contracts.providerConformance.qualified, 0);
+assert.equal(report.contracts.providerConformance.candidates, 3);
+assert.deepEqual(report.contracts.providerConformance.candidateWorkloads, [
+  'generation',
+  'embedding',
+  'reranking',
+]);
+assert.deepEqual(
+  report.contracts.providerConformance.candidateDetails.map((entry) => entry.id),
+  [
+    'qwen35-generation-browser-node',
+    'embeddinggemma-browser-node',
+    'qwen3-reranking-browser-node',
+  ]
+);
 assert.equal(revocations.ok, true);
 assert.equal(revocations.active, revocations.bundled.active);
 assert.equal(revocations.signatureVerification, revocations.bundled.signatureVerification);
