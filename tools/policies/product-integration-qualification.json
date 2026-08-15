@@ -1,0 +1,14 @@
+{
+  "$schema": "../../src/config/schema/product-integration-qualification.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "goalId": "local-webgpu-product-surface",
+  "minimumQualifiedIntegrations": 3,
+  "requiredWorkloads": [
+    "generation",
+    "embedding-retrieval",
+    "reranking"
+  ],
+  "ownerConfirmationMaxAgeDays": 90,
+  "integrations": []
+}

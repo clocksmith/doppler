@@ -49,6 +49,7 @@ config/schema/optimization-contract.schema.json
 config/schema/optimization-receipt.schema.json
 config/schema/platform.schema.js
 config/schema/policy-schema-registry.json
+config/schema/product-integration-qualification.schema.json
 config/schema/program-bundle-json-schema.js
 config/schema/program-bundle.schema.json
 config/schema/subsystem-support-contract.schema.json

@@ -34,6 +34,7 @@ const REQUIRED_GOAL_ROWS = new Map([
       'node-runtime',
       'bun-runtime',
       'openai-compatible-server',
+      'maintained-application-integrations',
     ],
   ],
   [

@@ -82,6 +82,17 @@ const matrix = await readJson(MATRIX_PATH);
 
 {
   const broken = clone(matrix);
+  const goal = broken.goals.find((entry) => entry.id === 'local-webgpu-product-surface');
+  goal.rows = goal.rows.filter((row) => row.id !== 'maintained-application-integrations');
+  const errors = await validateFixture(broken);
+  assert.ok(
+    errors.includes('local-webgpu-product-surface: missing required row maintained-application-integrations'),
+    errors.join('\n')
+  );
+}
+
+{
+  const broken = clone(matrix);
   rowById(broken, 'local-webgpu-product-surface', 'bun-runtime').blockers = ['unknown-blocker'];
   const errors = await validateFixture(broken);
   assert.ok(

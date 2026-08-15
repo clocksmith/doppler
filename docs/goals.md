@@ -372,6 +372,14 @@ contract, and model-artifact contract into one markdown status report. Use
 `npm run product:readiness:report -- --json` when another tool needs the same
 status as machine-readable JSON.
 
+`tools/policies/product-integration-qualification.json` is the source of truth
+for the decisive maintained-application gate. `npm run product:integrations:check`
+validates distinct active applications across generation, embedding retrieval,
+and reranking; current named owners; the five-level support ladder; exact
+logical, artifact, and execution identities; expiry; incumbent controls; and
+the required reliability, memory, quality, upgrade, rollback, and revocation
+evidence. An empty registry is valid but explicitly incomplete.
+
 The report intentionally treats a row as complete only when it is claimable,
 has evidence paths, and declares an npm smoke command. Non-claimable rows must
 name blocker codes and keep `smokeCommand` set to `null` so partial status is
