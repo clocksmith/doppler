@@ -42,6 +42,21 @@ assert.deepEqual(
     'qwen3-reranking-browser-node',
   ]
 );
+assert.equal(report.contracts.runtimeOwnership.qualified, 0);
+assert.equal(report.contracts.runtimeOwnership.candidates, 3);
+assert.deepEqual(report.contracts.runtimeOwnership.candidateWorkloads, [
+  'generation',
+  'embedding',
+  'reranking',
+]);
+assert.deepEqual(
+  report.contracts.runtimeOwnership.candidateDetails.map((entry) => entry.id),
+  [
+    'qwen35-generation-runtime-ownership',
+    'embeddinggemma-runtime-ownership',
+    'qwen3-reranking-runtime-ownership',
+  ]
+);
 assert.equal(revocations.ok, true);
 assert.equal(revocations.active, revocations.bundled.active);
 assert.equal(revocations.signatureVerification, revocations.bundled.signatureVerification);

@@ -40,5 +40,186 @@
     "integrationBurden",
     "providerRisk"
   ],
-  "decisions": []
+  "decisions": [
+    {
+      "id": "qwen35-generation-runtime-ownership",
+      "workload": "generation",
+      "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "resolvedArtifactVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+      "resolvedExecutionId": null,
+      "sourceProviderId": "huggingface-transformers-pytorch",
+      "sourceArtifactId": "Qwen/Qwen3.5-0.8B",
+      "sourceExecutionId": null,
+      "incumbentProviderId": "transformersjs-webgpu",
+      "incumbentArtifactId": "onnx-community/Qwen3.5-0.8B-ONNX@q4f16",
+      "incumbentExecutionId": null,
+      "correctnessClass": "exact-token",
+      "hypotheses": [
+        {
+          "axis": "end-to-end-performance",
+          "statement": "For the frozen browser generation tuple, Doppler provides at least 25 percent higher decode throughput than Transformers.js without exact-token divergence.",
+          "metric": "doppler-over-incumbent-decode-throughput-ratio",
+          "controlMetric": "frozen-greedy-continuation-exact-token-match",
+          "controlRequirement": "Generated token IDs must match exactly for the frozen prompt, seed, sampling policy, and token count.",
+          "threshold": {
+            "operator": "greater-than-or-equal",
+            "value": 1.25,
+            "unit": "ratio"
+          },
+          "declaredAtUtc": "2026-08-15T18:38:52.000Z",
+          "result": {
+            "passed": null,
+            "observedValue": null,
+            "evaluatedAtUtc": null,
+            "evidencePath": null
+          }
+        }
+      ],
+      "disposition": null,
+      "decisionRationale": null,
+      "qualifiedAtUtc": null,
+      "expiresAtUtc": null,
+      "evidence": {
+        "sourceExecution": null,
+        "incumbentExecution": null,
+        "dopplerExecution": null,
+        "correctness": null,
+        "taskQuality": null,
+        "usability": null,
+        "memory": null,
+        "endToEndPerformance": null,
+        "diagnosticDepth": null,
+        "distributionCost": null,
+        "integrationBurden": null,
+        "providerRisk": null
+      },
+      "claimAllowed": false,
+      "blockers": [
+        "exact-source-incumbent-doppler-execution-receipts-missing",
+        "predeclared-material-advantage-hypothesis-not-evaluated",
+        "decision-evidence-incomplete",
+        "disposition-qualification-expiry-missing"
+      ]
+    },
+    {
+      "id": "embeddinggemma-runtime-ownership",
+      "workload": "embedding",
+      "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "resolvedArtifactVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+      "resolvedExecutionId": null,
+      "sourceProviderId": "huggingface-transformers-pytorch",
+      "sourceArtifactId": "google/embeddinggemma-300m",
+      "sourceExecutionId": null,
+      "incumbentProviderId": "transformersjs-webgpu",
+      "incumbentArtifactId": "onnx-community/embeddinggemma-300m-ONNX@q4",
+      "incumbentExecutionId": null,
+      "correctnessClass": "held-out-task-metric",
+      "hypotheses": [
+        {
+          "axis": "end-to-end-performance",
+          "statement": "For the frozen browser embedding tuple, Doppler reduces median warm embedding latency by at least 20 percent without degrading held-out retrieval quality.",
+          "metric": "doppler-over-incumbent-median-embedding-latency-ratio",
+          "controlMetric": "held-out-semantic-retrieval-quality-delta",
+          "controlRequirement": "Retrieval and semantic-pair scores must remain within the frozen acceptance bounds for the identical evaluation set.",
+          "threshold": {
+            "operator": "less-than-or-equal",
+            "value": 0.8,
+            "unit": "ratio"
+          },
+          "declaredAtUtc": "2026-08-15T18:38:52.000Z",
+          "result": {
+            "passed": null,
+            "observedValue": null,
+            "evaluatedAtUtc": null,
+            "evidencePath": null
+          }
+        }
+      ],
+      "disposition": null,
+      "decisionRationale": null,
+      "qualifiedAtUtc": null,
+      "expiresAtUtc": null,
+      "evidence": {
+        "sourceExecution": null,
+        "incumbentExecution": null,
+        "dopplerExecution": null,
+        "correctness": null,
+        "taskQuality": null,
+        "usability": null,
+        "memory": null,
+        "endToEndPerformance": null,
+        "diagnosticDepth": null,
+        "distributionCost": null,
+        "integrationBurden": null,
+        "providerRisk": null
+      },
+      "claimAllowed": false,
+      "blockers": [
+        "exact-source-incumbent-doppler-execution-receipts-missing",
+        "predeclared-material-advantage-hypothesis-not-evaluated",
+        "decision-evidence-incomplete",
+        "disposition-qualification-expiry-missing"
+      ]
+    },
+    {
+      "id": "qwen3-reranking-runtime-ownership",
+      "workload": "reranking",
+      "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "resolvedArtifactVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
+      "resolvedExecutionId": null,
+      "sourceProviderId": "huggingface-transformers-pytorch",
+      "sourceArtifactId": "Qwen/Qwen3-Reranker-0.6B",
+      "sourceExecutionId": null,
+      "incumbentProviderId": "transformersjs-webgpu",
+      "incumbentArtifactId": "onnx-community/Qwen3-Reranker-0.6B-ONNX@q4",
+      "incumbentExecutionId": null,
+      "correctnessClass": "held-out-task-metric",
+      "hypotheses": [
+        {
+          "axis": "end-to-end-performance",
+          "statement": "For the frozen browser reranking tuple, Doppler reduces median warm reranking latency by at least 20 percent without degrading held-out ranking quality.",
+          "metric": "doppler-over-incumbent-median-reranking-latency-ratio",
+          "controlMetric": "held-out-ranking-quality-delta",
+          "controlRequirement": "Top-document and semantic-pair scores must remain within the frozen acceptance bounds for identical queries and documents.",
+          "threshold": {
+            "operator": "less-than-or-equal",
+            "value": 0.8,
+            "unit": "ratio"
+          },
+          "declaredAtUtc": "2026-08-15T18:38:52.000Z",
+          "result": {
+            "passed": null,
+            "observedValue": null,
+            "evaluatedAtUtc": null,
+            "evidencePath": null
+          }
+        }
+      ],
+      "disposition": null,
+      "decisionRationale": null,
+      "qualifiedAtUtc": null,
+      "expiresAtUtc": null,
+      "evidence": {
+        "sourceExecution": null,
+        "incumbentExecution": null,
+        "dopplerExecution": null,
+        "correctness": null,
+        "taskQuality": null,
+        "usability": null,
+        "memory": null,
+        "endToEndPerformance": null,
+        "diagnosticDepth": null,
+        "distributionCost": null,
+        "integrationBurden": null,
+        "providerRisk": null
+      },
+      "claimAllowed": false,
+      "blockers": [
+        "exact-source-incumbent-doppler-execution-receipts-missing",
+        "predeclared-material-advantage-hypothesis-not-evaluated",
+        "decision-evidence-incomplete",
+        "disposition-qualification-expiry-missing"
+      ]
+    }
+  ]
 }

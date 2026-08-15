@@ -10,6 +10,10 @@ control.
 `benchmarks/vendors/runtime-ownership-decisions.json` is the status authority.
 `npm run runtime:ownership:check` validates its decision records and regression
 tests. An empty decision registry is valid and explicitly incomplete.
+An exact portfolio tuple may be registered earlier as a non-claimable candidate
+with intended controls, a frozen hypothesis, null results, and explicit
+blockers. That freezes what should be tested without turning old benchmark
+receipts into retrospective hypothesis evidence.
 
 One decision compares three executions for an exact workload tuple:
 
@@ -47,3 +51,11 @@ usability, diagnostic, cost, burden, or provider-risk evidence keeps the
 decision non-claimable. Dispositions are `incumbent`, `doppler`, or `dual`; a
 decision never silently forces an owned runtime when the incumbent remains the
 better product choice.
+
+The current candidates deliberately reuse the generation, embedding, and
+reranking portfolio selected by the integration and provider gates. Historical
+comparison receipts may guide execution planning, but they predate the frozen
+ownership hypotheses and do not cover the complete source/incumbent/Doppler
+decision contract. A failed material-advantage hypothesis is a valid result and
+should lead to an `incumbent` disposition when no other predeclared advantage
+passes.
