@@ -1,0 +1,51 @@
+# Provider Conformance
+
+Provider conformance is Doppler's qualification gate for executing one exact
+model/workload contract across WebGPU implementations. It does not turn a
+provider probe, fixture, or Program Bundle transcript into a support claim.
+
+## Authority
+
+`tools/policies/provider-conformance.json` is the status authority. Its core
+lanes are standard browser WebGPU and the selected Node WebGPU provider. Doe is
+an optional named lane and cannot become a hidden core dependency. Other
+providers must be registered explicitly before a suite may reference them.
+
+`npm run provider:conformance:check` validates the policy and its regression
+tests. An empty suite registry is structurally valid and visibly incomplete.
+
+## Qualification unit
+
+One suite binds:
+
+- a workload and workload-contract path;
+- one logical model and resolved artifact variant;
+- the same declared operation set on every required provider;
+- a correctness class selected before execution;
+- required provider lanes and their exact execution identities.
+
+Each provider result must identify its implementation and environment, pass
+load, execute, and unload lifecycle stages, pass the suite's correctness class,
+retain every required evidence path, and carry current qualification and expiry
+timestamps. A required provider failure makes the suite non-claimable.
+
+The accepted correctness classes are exact-token, tolerance-bounded numerical,
+semantic, and held-out task metric. The suite cannot weaken this class after a
+provider result is observed.
+
+## Product gate
+
+The initial gate requires qualified suites for generation, embedding, and
+reranking across both core lanes. Adding Doe to a suite's
+`requiredProviderLaneIds` is permitted only as an explicit named requirement;
+it does not change the repository-wide core lanes.
+
+Fixture-based contract tests validate failure behavior only. Real qualification
+requires retained browser and Node receipts with exact artifact, execution,
+device, lifecycle, operation, and correctness evidence. Program Bundle parity
+remains a portability diagnostic and may be linked as supporting evidence, but
+it has no model-promotion or provider-support authority by itself.
+
+Provider conformance begins at an exact tuple. Wider hardware, shape, model, or
+family scope requires separate aggregate evidence; the checker never promotes a
+single suite into broader authority.

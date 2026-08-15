@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/provider-conformance-policy-v1.schema.json",
+  "title": "Doppler Provider Conformance Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "goalIds",
+    "minimumQualifiedSuites",
+    "requiredWorkloads",
+    "coreProviderLaneIds",
+    "qualificationMaxAgeDays",
+    "requiredLifecycleStages",
+    "requiredEvidenceFields",
+    "providerLanes",
+    "suites"
+  ],
+  "properties": {
+    "$schema": { "const": "../../src/config/schema/provider-conformance-policy.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "source": { "const": "doppler" },
+    "goalIds": {
+      "const": ["model-artifact-runtime-contract", "correctness-performance-claims"]
+    },
+    "minimumQualifiedSuites": { "const": 3 },
+    "requiredWorkloads": { "const": ["generation", "embedding", "reranking"] },
+    "coreProviderLaneIds": { "const": ["browser-webgpu", "node-webgpu"] },
+    "qualificationMaxAgeDays": { "type": "integer", "minimum": 1, "maximum": 365 },
+    "requiredLifecycleStages": { "const": ["load", "execute", "unload"] },
+    "requiredEvidenceFields": {
+      "const": [
+        "modelContract",
+        "resolutionIdentity",
+        "operations",
+        "lifecycle",
+        "correctness",
+        "providerReceipt"
+      ]
+    },
+    "providerLanes": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/providerLane" }
+    },
+    "suites": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/suite" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "nullableString": {
+      "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+    },
+    "nullableDateTime": {
+      "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+    },
+    "nullableRepoPath": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "anyOf": [
+              { "pattern": "^/" },
+              { "pattern": "\\\\" },
+              { "pattern": "(^|/)\\.\\.(/|$)" }
+            ]
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "providerLane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "role", "contractPath"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["browser-webgpu", "node-webgpu", "doe", "other-webgpu"] },
+        "role": { "enum": ["core", "optional-named"] },
+        "contractPath": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "modelContract",
+        "resolutionIdentity",
+        "operations",
+        "lifecycle",
+        "correctness",
+        "providerReceipt"
+      ],
+      "properties": {
+        "modelContract": { "$ref": "#/$defs/nullableRepoPath" },
+        "resolutionIdentity": { "$ref": "#/$defs/nullableRepoPath" },
+        "operations": { "$ref": "#/$defs/nullableRepoPath" },
+        "lifecycle": { "$ref": "#/$defs/nullableRepoPath" },
+        "correctness": { "$ref": "#/$defs/nullableRepoPath" },
+        "providerReceipt": { "$ref": "#/$defs/nullableRepoPath" }
+      }
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "laneId",
+        "implementationId",
+        "logicalModelId",
+        "resolvedArtifactVariantId",
+        "resolvedExecutionId",
+        "environmentFingerprint",
+        "operations",
+        "lifecycle",
+        "correctness",
+        "qualifiedAtUtc",
+        "expiresAtUtc",
+        "evidence",
+        "claimAllowed",
+        "blockers"
+      ],
+      "properties": {
+        "laneId": { "$ref": "#/$defs/id" },
+        "implementationId": { "$ref": "#/$defs/nullableString" },
+        "logicalModelId": { "$ref": "#/$defs/nullableString" },
+        "resolvedArtifactVariantId": { "$ref": "#/$defs/nullableString" },
+        "resolvedExecutionId": { "$ref": "#/$defs/nullableString" },
+        "environmentFingerprint": { "$ref": "#/$defs/nullableString" },
+        "operations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "lifecycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["load", "execute", "unload"],
+          "properties": {
+            "load": { "enum": ["passed", "failed", "not-run"] },
+            "execute": { "enum": ["passed", "failed", "not-run"] },
+            "unload": { "enum": ["passed", "failed", "not-run"] }
+          }
+        },
+        "correctness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["class", "passed"],
+          "properties": {
+            "class": {
+              "enum": [
+                "exact-token",
+                "tolerance-bounded-numerical",
+                "semantic",
+                "held-out-task-metric"
+              ]
+            },
+            "passed": { "type": "boolean" }
+          }
+        },
+        "qualifiedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "expiresAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "claimAllowed": { "type": "boolean" },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "suite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "workload",
+        "logicalModelId",
+        "resolvedArtifactVariantId",
+        "workloadContractPath",
+        "declaredOperations",
+        "correctnessClass",
+        "requiredProviderLaneIds",
+        "claimAllowed",
+        "providers",
+        "blockers"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "workload": { "enum": ["generation", "embedding", "reranking"] },
+        "logicalModelId": { "$ref": "#/$defs/nullableString" },
+        "resolvedArtifactVariantId": { "$ref": "#/$defs/nullableString" },
+        "workloadContractPath": { "$ref": "#/$defs/nullableRepoPath" },
+        "declaredOperations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "correctnessClass": {
+          "enum": [
+            "exact-token",
+            "tolerance-bounded-numerical",
+            "semantic",
+            "held-out-task-metric"
+          ]
+        },
+        "requiredProviderLaneIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "claimAllowed": { "type": "boolean" },
+        "providers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/provider" }
+        },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

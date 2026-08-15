@@ -338,6 +338,12 @@ selected executable providers. Every provider row reports `schemaValid`,
 `providerAvailable`, `executed`, and `transcriptMatched`; none of those facts is
 inferred from another.
 
+Program Bundle parity remains portability-diagnostic-only. It does not satisfy
+the broader [provider conformance](../provider-conformance.md) gate, which also
+requires a shared operation contract, load/execute/unload lifecycle evidence,
+exact resolution and environment identities, a predeclared correctness class,
+current receipts, and coverage of the required product workloads.
+
 ## Failure Modes
 
 The validator/exporter fails when:
