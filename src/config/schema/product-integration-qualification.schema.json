@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/product-integration-qualification-v1.schema.json",
+  "title": "Doppler Product Integration Qualification v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "goalId",
+    "minimumQualifiedIntegrations",
+    "requiredWorkloads",
+    "ownerConfirmationMaxAgeDays",
+    "integrations"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../src/config/schema/product-integration-qualification.schema.json"
+    },
+    "schemaVersion": { "const": 1 },
+    "source": { "const": "doppler" },
+    "goalId": { "const": "local-webgpu-product-surface" },
+    "minimumQualifiedIntegrations": { "const": 3 },
+    "requiredWorkloads": {
+      "const": ["generation", "embedding-retrieval", "reranking"]
+    },
+    "ownerConfirmationMaxAgeDays": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365
+    },
+    "integrations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/integration" }
+    }
+  },
+  "$defs": {
+    "nullableString": {
+      "anyOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "null" }
+      ]
+    },
+    "nullableDateTime": {
+      "anyOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ]
+    },
+    "nullableRepoPath": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "anyOf": [
+              { "pattern": "^/" },
+              { "pattern": "\\\\" },
+              { "pattern": "(^|/)\\.\\.(/|$)" }
+            ]
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "installToFirstVerifiedOutput",
+        "identity",
+        "sourceTaskQualityRetention",
+        "reliability",
+        "memory",
+        "coldWarmResponse",
+        "browserHardwareQualification",
+        "incumbentControl",
+        "upgradeRequalification",
+        "rollbackRevocation"
+      ],
+      "properties": {
+        "installToFirstVerifiedOutput": { "$ref": "#/$defs/nullableRepoPath" },
+        "identity": { "$ref": "#/$defs/nullableRepoPath" },
+        "sourceTaskQualityRetention": { "$ref": "#/$defs/nullableRepoPath" },
+        "reliability": { "$ref": "#/$defs/nullableRepoPath" },
+        "memory": { "$ref": "#/$defs/nullableRepoPath" },
+        "coldWarmResponse": { "$ref": "#/$defs/nullableRepoPath" },
+        "browserHardwareQualification": { "$ref": "#/$defs/nullableRepoPath" },
+        "incumbentControl": { "$ref": "#/$defs/nullableRepoPath" },
+        "upgradeRequalification": { "$ref": "#/$defs/nullableRepoPath" },
+        "rollbackRevocation": { "$ref": "#/$defs/nullableRepoPath" }
+      }
+    },
+    "integration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "applicationName",
+        "workload",
+        "owner",
+        "ownerConfirmedAtUtc",
+        "qualificationLevel",
+        "lifecycle",
+        "claimAllowed",
+        "logicalModelId",
+        "resolvedArtifactVariantId",
+        "resolvedExecutionId",
+        "qualifiedAtUtc",
+        "expiresAtUtc",
+        "evidence",
+        "blockers"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "applicationName": { "type": "string", "minLength": 1 },
+        "workload": {
+          "enum": ["generation", "embedding-retrieval", "reranking"]
+        },
+        "owner": { "$ref": "#/$defs/nullableString" },
+        "ownerConfirmedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "qualificationLevel": {
+          "enum": [
+            "contract-ready",
+            "runtime-verified",
+            "task-qualified",
+            "performance-qualified",
+            "product-supported"
+          ]
+        },
+        "lifecycle": {
+          "enum": [
+            "candidate",
+            "active",
+            "deprecated",
+            "quarantined",
+            "revoked",
+            "retired"
+          ]
+        },
+        "claimAllowed": { "type": "boolean" },
+        "logicalModelId": { "$ref": "#/$defs/nullableString" },
+        "resolvedArtifactVariantId": { "$ref": "#/$defs/nullableString" },
+        "resolvedExecutionId": { "$ref": "#/$defs/nullableString" },
+        "qualifiedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "expiresAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
