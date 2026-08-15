@@ -820,7 +820,7 @@
       "completionClass": "application",
       "statusCommand": "npm run product:integrations:check",
       "description": "No maintained generation, embedding-retrieval, or reranking application integrations are currently qualified as product-supported.",
-      "exitCriteria": "Register three distinct active applications spanning generation, embedding retrieval, and reranking with current owners, exact resolution identities, complete evidence, incumbent controls, upgrade/requalification, and rollback/revocation receipts.",
+      "exitCriteria": "Register three distinct active applications spanning generation, embedding retrieval, and reranking with current owners, runtime-observed manifest and execution SHA-256 identities, complete evidence, incumbent controls, upgrade/requalification, and rollback/revocation receipts.",
       "evidencePaths": [
         "docs/goals.md",
         "docs/status/product-integration-candidate-audit-2026-08-15.json",
@@ -835,7 +835,7 @@
       "completionClass": "hardware",
       "statusCommand": "npm run support:subsystems:check",
       "description": "Bun has an experimental generation harness and three old same-artifact comparisons, but no Bun-native three-workload product qualification.",
-      "exitCriteria": "Qualify generation, embedding, and reranking through Bun-native root API and CLI surfaces with exact resolution, load-execute-unload, correctness, failure, memory, cold/warm, incumbent, requalification, and revocation evidence; then promote runtime.bun-webgpu and the release engine together.",
+      "exitCriteria": "Qualify generation, embedding, and reranking through Bun-native root API and CLI surfaces with named manifest variants, runtime-observed manifest and execution SHA-256 identities, load-execute-unload, correctness, failure, memory, cold/warm, incumbent, requalification, and revocation evidence; then promote runtime.bun-webgpu and the release engine together.",
       "evidencePaths": [
         "docs/status/bun-product-support-candidate-audit-2026-08-15.json",
         "src/config/support-tiers/subsystems.json",
@@ -851,7 +851,7 @@
       "completionClass": "hardware",
       "statusCommand": "npm run provider:conformance:check",
       "description": "No exact-tuple generation, embedding, or reranking suite is qualified across both browser WebGPU and the selected Node WebGPU provider.",
-      "exitCriteria": "Retain current browser and Node receipts for generation, embedding, and reranking that bind the same model contract, operations, lifecycle, artifact and execution identities, environment, and predeclared correctness class; keep Doe and other providers as explicit named lanes.",
+      "exitCriteria": "Retain current browser and Node receipts for generation, embedding, and reranking that bind the same model contract, named manifest variant, runtime-observed manifest and execution SHA-256 identities, operations, lifecycle, environment, and predeclared correctness class; keep Doe and other providers as explicit named lanes.",
       "evidencePaths": [
         "docs/provider-conformance.md",
         "tools/policies/provider-conformance.json",
@@ -865,7 +865,7 @@
       "completionClass": "hardware",
       "statusCommand": "npm run runtime:ownership:check",
       "description": "No claimable generation, embedding, or reranking decision establishes whether Doppler, an incumbent, or both should own execution.",
-      "exitCriteria": "Retain current source, incumbent, and Doppler evidence for generation, embedding, and reranking; predeclare material-advantage thresholds; record correctness, quality, usability, memory, performance, diagnostics, cost, burden, and provider risk; then publish an unexpired incumbent, doppler, or dual disposition.",
+      "exitCriteria": "Retain current source, incumbent, and Doppler evidence for generation, embedding, and reranking, including Doppler's named manifest variant and runtime-observed manifest and execution SHA-256 identities; predeclare material-advantage thresholds; record correctness, quality, usability, memory, performance, diagnostics, cost, burden, and provider risk; then publish an unexpired incumbent, doppler, or dual disposition.",
       "evidencePaths": [
         "docs/runtime-ownership.md",
         "benchmarks/vendors/runtime-ownership-decisions.json",

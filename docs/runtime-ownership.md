@@ -41,10 +41,18 @@ advantage. An `incumbent` disposition is invalid if such an advantage passed.
 ## Product gate
 
 The initial gate requires current decisions for generation, embedding, and
-reranking. Every claimable decision binds logical model, Doppler artifact,
-Doppler execution, source provider/artifact/execution, incumbent
+reranking. Every claimable decision binds logical model, named Doppler manifest
+variant, resolved Doppler manifest SHA-256, Doppler execution SHA-256, source
+provider/artifact/execution, incumbent
 provider/artifact/execution, correctness class, retained evidence,
 qualification date, and expiry.
+
+The catalog `manifestVariantId` and runtime `resolvedArtifactVariantId` are not
+interchangeable. The former identifies the intended named artifact lane; the
+latter is the immutable `sha256:` manifest identity observed during execution.
+The checker rejects catalog variant names in resolved artifact or execution
+digest fields, so a pre-execution candidate must leave those fields null rather
+than imply byte identity.
 
 Benchmark wins alone do not satisfy this contract. Missing memory, quality,
 usability, diagnostic, cost, burden, or provider-risk evidence keeps the

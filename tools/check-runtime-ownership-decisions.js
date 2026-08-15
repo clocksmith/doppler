@@ -52,6 +52,7 @@ const THRESHOLD_OPERATORS = new Set([
   'pass',
 ]);
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function normalizeText(value) {
@@ -112,6 +113,14 @@ function nullableString(value, label, errors) {
   const normalized = normalizeText(value);
   if (!normalized) errors.push(`${label} must be a non-empty string or null`);
   return normalized || null;
+}
+
+function nullableSha256(value, label, errors) {
+  const normalized = nullableString(value, label, errors)?.toLowerCase() ?? null;
+  if (normalized && !SHA256_PATTERN.test(normalized)) {
+    errors.push(`${label} must be a SHA-256 identity or null`);
+  }
+  return normalized;
 }
 
 function isoInstant(value, label, errors) {
@@ -274,6 +283,7 @@ async function validateDecision(decision, context) {
     'id',
     'workload',
     'logicalModelId',
+    'manifestVariantId',
     'resolvedArtifactVariantId',
     'resolvedExecutionId',
     'sourceProviderId',
@@ -301,8 +311,6 @@ async function validateDecision(decision, context) {
   if (!REQUIRED_WORKLOADS.includes(decision.workload)) errors.push(`${id}: workload is not recognized`);
   const identityFields = [
     'logicalModelId',
-    'resolvedArtifactVariantId',
-    'resolvedExecutionId',
     'sourceProviderId',
     'sourceArtifactId',
     'sourceExecutionId',
@@ -315,6 +323,24 @@ async function validateDecision(decision, context) {
     nullableString(decision[field], `${id}.${field}`, errors),
   ]));
   for (const field of identityFields) {
+    if (!identity[field]) reasons.push(`${field}-missing`);
+  }
+  identity.manifestVariantId = nullableString(
+    decision.manifestVariantId,
+    `${id}.manifestVariantId`,
+    errors
+  );
+  identity.resolvedArtifactVariantId = nullableSha256(
+    decision.resolvedArtifactVariantId,
+    `${id}.resolvedArtifactVariantId`,
+    errors
+  );
+  identity.resolvedExecutionId = nullableSha256(
+    decision.resolvedExecutionId,
+    `${id}.resolvedExecutionId`,
+    errors
+  );
+  for (const field of ['manifestVariantId', 'resolvedArtifactVariantId', 'resolvedExecutionId']) {
     if (!identity[field]) reasons.push(`${field}-missing`);
   }
   if (identity.incumbentProviderId === 'doppler') errors.push(`${id}: incumbentProviderId must not be doppler`);
@@ -385,6 +411,7 @@ async function validateDecision(decision, context) {
     id,
     workload: decision.workload,
     logicalModelId: identity.logicalModelId,
+    manifestVariantId: identity.manifestVariantId,
     resolvedArtifactVariantId: identity.resolvedArtifactVariantId,
     resolvedExecutionId: identity.resolvedExecutionId,
     sourceProviderId: identity.sourceProviderId,
@@ -436,7 +463,7 @@ export async function validateRuntimeOwnershipDecisions(policy, options = {}) {
   if (policy.$schema !== 'schema/runtime-ownership-decisions.schema.json') {
     errors.push('runtime ownership policy $schema is invalid');
   }
-  if (policy.schemaVersion !== 1) errors.push('runtime ownership policy schemaVersion must be 1');
+  if (policy.schemaVersion !== 2) errors.push('runtime ownership policy schemaVersion must be 2');
   if (policy.source !== 'doppler') errors.push('runtime ownership policy source must be "doppler"');
   const fixedArrays = [
     ['goalIds', GOAL_IDS],

@@ -32,6 +32,7 @@ const PROVIDER_KINDS = new Set(['browser-webgpu', 'node-webgpu', 'doe', 'other-w
 const PROVIDER_ROLES = new Set(['core', 'optional-named']);
 const LIFECYCLE_RESULTS = new Set(['passed', 'failed', 'not-run']);
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function normalizeText(value) {
@@ -64,6 +65,14 @@ function validateNullableString(value, label, errors) {
   const normalized = normalizeText(value);
   if (!normalized) errors.push(`${label} must be a non-empty string or null`);
   return normalized || null;
+}
+
+function validateNullableSha256(value, label, errors) {
+  const normalized = validateNullableString(value, label, errors)?.toLowerCase() ?? null;
+  if (normalized && !SHA256_PATTERN.test(normalized)) {
+    errors.push(`${label} must be a SHA-256 identity or null`);
+  }
+  return normalized;
 }
 
 function validateStringArray(value, label, errors) {
@@ -159,6 +168,7 @@ async function validateProviderResult(provider, context) {
     'laneId',
     'implementationId',
     'logicalModelId',
+    'manifestVariantId',
     'resolvedArtifactVariantId',
     'resolvedExecutionId',
     'environmentFingerprint',
@@ -182,8 +192,6 @@ async function validateProviderResult(provider, context) {
   const identityFields = [
     'implementationId',
     'logicalModelId',
-    'resolvedArtifactVariantId',
-    'resolvedExecutionId',
     'environmentFingerprint',
   ];
   const identity = Object.fromEntries(identityFields.map((field) => [
@@ -193,8 +201,29 @@ async function validateProviderResult(provider, context) {
   for (const field of identityFields) {
     if (!identity[field]) reasons.push(`${field}-missing`);
   }
+  identity.manifestVariantId = validateNullableString(
+    provider.manifestVariantId,
+    `${label}.manifestVariantId`,
+    errors
+  );
+  identity.resolvedArtifactVariantId = validateNullableSha256(
+    provider.resolvedArtifactVariantId,
+    `${label}.resolvedArtifactVariantId`,
+    errors
+  );
+  identity.resolvedExecutionId = validateNullableSha256(
+    provider.resolvedExecutionId,
+    `${label}.resolvedExecutionId`,
+    errors
+  );
+  for (const field of ['manifestVariantId', 'resolvedArtifactVariantId', 'resolvedExecutionId']) {
+    if (!identity[field]) reasons.push(`${field}-missing`);
+  }
   if (identity.logicalModelId && identity.logicalModelId !== suite.logicalModelId) {
     reasons.push('logical-model-mismatch');
+  }
+  if (identity.manifestVariantId && identity.manifestVariantId !== suite.manifestVariantId) {
+    reasons.push('manifest-variant-mismatch');
   }
   if (
     identity.resolvedArtifactVariantId
@@ -266,6 +295,7 @@ async function validateSuite(suite, context) {
     'id',
     'workload',
     'logicalModelId',
+    'manifestVariantId',
     'resolvedArtifactVariantId',
     'workloadContractPath',
     'declaredOperations',
@@ -283,13 +313,19 @@ async function validateSuite(suite, context) {
   seenSuiteIds.add(id);
   if (!REQUIRED_WORKLOADS.includes(suite.workload)) errors.push(`${id}: workload is not recognized`);
   const logicalModelId = validateNullableString(suite.logicalModelId, `${id}.logicalModelId`, errors);
-  const resolvedArtifactVariantId = validateNullableString(
+  const manifestVariantId = validateNullableString(
+    suite.manifestVariantId,
+    `${id}.manifestVariantId`,
+    errors
+  );
+  const resolvedArtifactVariantId = validateNullableSha256(
     suite.resolvedArtifactVariantId,
     `${id}.resolvedArtifactVariantId`,
     errors
   );
   if (!logicalModelId) reasons.push('logical-model-missing');
-  if (!resolvedArtifactVariantId) reasons.push('artifact-variant-missing');
+  if (!manifestVariantId) reasons.push('manifest-variant-missing');
+  if (!resolvedArtifactVariantId) reasons.push('resolved-artifact-variant-missing');
   const workloadContractPath = await validateRepoPath(
     suite.workloadContractPath,
     `${id}.workloadContractPath`,
@@ -323,6 +359,7 @@ async function validateSuite(suite, context) {
   const suiteContract = {
     id,
     logicalModelId,
+    manifestVariantId,
     resolvedArtifactVariantId,
     declaredOperations,
     correctnessClass: suite.correctnessClass,
@@ -352,6 +389,7 @@ async function validateSuite(suite, context) {
     id,
     workload: suite.workload,
     logicalModelId,
+    manifestVariantId,
     resolvedArtifactVariantId,
     workloadContractPath,
     declaredOperations,
@@ -415,7 +453,7 @@ export async function validateProviderConformancePolicy(policy, options = {}) {
       gateSatisfied: false,
     };
   }
-  if (policy.schemaVersion !== 1) errors.push('provider conformance policy schemaVersion must be 1');
+  if (policy.schemaVersion !== 2) errors.push('provider conformance policy schemaVersion must be 2');
   if (policy.source !== 'doppler') errors.push('provider conformance policy source must be "doppler"');
   if (policy.$schema !== '../../src/config/schema/provider-conformance-policy.schema.json') {
     errors.push('provider conformance policy $schema is invalid');

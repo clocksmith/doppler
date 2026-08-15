@@ -9,18 +9,21 @@ import {
 
 const POLICY_PATH = path.join(process.cwd(), 'tools', 'policies', 'provider-conformance.json');
 const NOW = new Date('2026-08-15T12:00:00.000Z');
+const ARTIFACT_ID = `sha256:${'a'.repeat(64)}`;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function provider(laneId, workload, modelId, artifactId) {
+function provider(laneId, workload, modelId, manifestVariantId, artifactId) {
+  const executionDigit = laneId === 'browser-webgpu' ? 'b' : (laneId === 'node-webgpu' ? 'c' : 'd');
   return {
     laneId,
     implementationId: `${laneId}-implementation-v1`,
     logicalModelId: modelId,
+    manifestVariantId,
     resolvedArtifactVariantId: artifactId,
-    resolvedExecutionId: `${laneId}-${workload}-execution-v1`,
+    resolvedExecutionId: `sha256:${executionDigit.repeat(64)}`,
     environmentFingerprint: `${laneId}-environment-v1`,
     operations: [`${workload}-execute`],
     lifecycle: {
@@ -50,12 +53,13 @@ function provider(laneId, workload, modelId, artifactId) {
 function suite(workload) {
   const id = `${workload}-provider-conformance`;
   const modelId = `${workload}-logical-model`;
-  const artifactId = `${workload}-artifact-variant`;
+  const manifestVariantId = `${workload}-manifest-variant`;
   return {
     id,
     workload,
     logicalModelId: modelId,
-    resolvedArtifactVariantId: artifactId,
+    manifestVariantId,
+    resolvedArtifactVariantId: ARTIFACT_ID,
     workloadContractPath: 'docs/goals.md',
     declaredOperations: [`${workload}-execute`],
     correctnessClass: workload === 'embedding'
@@ -64,8 +68,8 @@ function suite(workload) {
     requiredProviderLaneIds: ['browser-webgpu', 'node-webgpu'],
     claimAllowed: true,
     providers: [
-      provider('browser-webgpu', workload, modelId, artifactId),
-      provider('node-webgpu', workload, modelId, artifactId),
+      provider('browser-webgpu', workload, modelId, manifestVariantId, ARTIFACT_ID),
+      provider('node-webgpu', workload, modelId, manifestVariantId, ARTIFACT_ID),
     ],
     blockers: [],
   };
@@ -104,7 +108,7 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
 {
   const mismatched = clone(policy);
   mismatched.suites = [suite('generation')];
-  mismatched.suites[0].providers[1].resolvedArtifactVariantId = 'different-artifact';
+  mismatched.suites[0].providers[1].resolvedArtifactVariantId = `sha256:${'e'.repeat(64)}`;
   const report = await validateProviderConformancePolicy(mismatched, {
     repoRoot: process.cwd(),
     now: NOW,
@@ -207,6 +211,7 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
     'doe',
     'generation',
     generation.logicalModelId,
+    generation.manifestVariantId,
     generation.resolvedArtifactVariantId
   ));
   explicitDoe.suites = [generation];
@@ -217,6 +222,21 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   assert.deepEqual(report.errors, []);
   assert.equal(report.suites[0].qualified, true);
   assert.equal(report.gateSatisfied, false);
+}
+
+{
+  const conflated = clone(policy);
+  conflated.suites[0].resolvedArtifactVariantId = conflated.suites[0].manifestVariantId;
+  const report = await validateProviderConformancePolicy(conflated, {
+    repoRoot: process.cwd(),
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.includes(
+      'qwen35-generation-browser-node.resolvedArtifactVariantId must be a SHA-256 identity or null'
+    ),
+    report.errors.join('\n')
+  );
 }
 
 console.log('provider-conformance.test: ok');

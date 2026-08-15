@@ -58,6 +58,7 @@ const INTEGRATION_FIELDS = Object.freeze([
   'blockers',
 ]);
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -148,6 +149,14 @@ function validateNullableString(value, label, errors) {
   return normalized || null;
 }
 
+function validateNullableSha256(value, label, errors) {
+  const normalized = validateNullableString(value, label, errors)?.toLowerCase() ?? null;
+  if (normalized && !SHA256_PATTERN.test(normalized)) {
+    errors.push(`${label} must be a SHA-256 identity or null`);
+  }
+  return normalized;
+}
+
 function ownerConfirmationIsCurrent(confirmedAt, now, maxAgeDays) {
   if (!confirmedAt) return false;
   const age = now.getTime() - confirmedAt.getTime();
@@ -183,12 +192,12 @@ async function validateIntegration(integration, context) {
     `${id}: logicalModelId`,
     errors
   );
-  const resolvedArtifactVariantId = validateNullableString(
+  const resolvedArtifactVariantId = validateNullableSha256(
     integration.resolvedArtifactVariantId,
     `${id}: resolvedArtifactVariantId`,
     errors
   );
-  const resolvedExecutionId = validateNullableString(
+  const resolvedExecutionId = validateNullableSha256(
     integration.resolvedExecutionId,
     `${id}: resolvedExecutionId`,
     errors
@@ -285,7 +294,7 @@ export async function validateProductIntegrationQualification(policy, options = 
       missingWorkloads: [...REQUIRED_WORKLOADS],
     };
   }
-  if (policy.schemaVersion !== 1) errors.push('product integration policy schemaVersion must be 1');
+  if (policy.schemaVersion !== 2) errors.push('product integration policy schemaVersion must be 2');
   if (policy.source !== 'doppler') errors.push('product integration policy source must be "doppler"');
   if (policy.goalId !== 'local-webgpu-product-surface') {
     errors.push('product integration policy goalId must be "local-webgpu-product-surface"');

@@ -169,6 +169,7 @@ function validateProviderConformance(policy, registry, errors) {
   for (const suite of Array.isArray(policy?.suites) ? policy.suites : []) {
     const suiteMatches = matchIdentity({
       logicalModelId: suite?.logicalModelId,
+      manifestVariantId: suite?.manifestVariantId,
       artifactVariantId: suite?.resolvedArtifactVariantId,
     }, registry);
     if (suite?.claimAllowed === true) {
@@ -181,6 +182,7 @@ function validateProviderConformance(policy, registry, errors) {
         `provider result ${normalizeText(suite?.id) || '<missing-suite>'}/${normalizeText(provider?.laneId) || '<missing-provider>'}`,
         matchIdentity({
           logicalModelId: provider?.logicalModelId,
+          manifestVariantId: provider?.manifestVariantId,
           artifactVariantId: provider?.resolvedArtifactVariantId,
         }, registry),
         'claimAllowed must be false'
@@ -197,6 +199,7 @@ function validateRuntimeOwnership(policy, registry, errors) {
       `runtime ownership ${normalizeText(decision?.id) || '<missing-decision>'}`,
       matchIdentity({
         logicalModelId: decision?.logicalModelId,
+        manifestVariantId: decision?.manifestVariantId,
         artifactVariantId: decision?.resolvedArtifactVariantId,
       }, registry),
       'claimAllowed must be false'

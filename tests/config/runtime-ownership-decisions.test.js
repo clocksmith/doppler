@@ -14,6 +14,8 @@ const POLICY_PATH = path.join(
   'runtime-ownership-decisions.json'
 );
 const NOW = new Date('2026-08-15T12:00:00.000Z');
+const ARTIFACT_ID = `sha256:${'a'.repeat(64)}`;
+const EXECUTION_ID = `sha256:${'b'.repeat(64)}`;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -60,8 +62,9 @@ function decision(workload, disposition = 'doppler') {
     id: `${workload}-runtime-ownership`,
     workload,
     logicalModelId: `${workload}-logical-model`,
-    resolvedArtifactVariantId: `${workload}-artifact-variant`,
-    resolvedExecutionId: `${workload}-execution`,
+    manifestVariantId: `${workload}-manifest-variant`,
+    resolvedArtifactVariantId: ARTIFACT_ID,
+    resolvedExecutionId: EXECUTION_ID,
     sourceProviderId: 'authoritative-source-runtime',
     sourceArtifactId: `${workload}-source-artifact`,
     sourceExecutionId: `${workload}-source-execution`,
@@ -210,6 +213,21 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
     report.decisions[0].reasons.includes(
       'incumbent-disposition-conflicts-with-material-advantage'
     )
+  );
+}
+
+{
+  const conflated = clone(policy);
+  conflated.decisions[0].resolvedArtifactVariantId = conflated.decisions[0].manifestVariantId;
+  const report = await validateRuntimeOwnershipDecisions(conflated, {
+    repoRoot: process.cwd(),
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.includes(
+      'qwen35-generation-runtime-ownership.resolvedArtifactVariantId must be a SHA-256 identity or null'
+    ),
+    report.errors.join('\n')
   );
 }
 

@@ -14,6 +14,8 @@ const POLICY_PATH = path.join(
   'product-integration-qualification.json'
 );
 const NOW = new Date('2026-08-15T12:00:00.000Z');
+const ARTIFACT_ID = `sha256:${'a'.repeat(64)}`;
+const EXECUTION_ID = `sha256:${'b'.repeat(64)}`;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -30,8 +32,8 @@ function integration(id, applicationName, workload) {
     lifecycle: 'active',
     claimAllowed: true,
     logicalModelId: `${id}-logical-model`,
-    resolvedArtifactVariantId: `${id}-artifact-variant`,
-    resolvedExecutionId: `${id}-execution`,
+    resolvedArtifactVariantId: ARTIFACT_ID,
+    resolvedExecutionId: EXECUTION_ID,
     qualifiedAtUtc: '2026-08-01T00:00:00.000Z',
     expiresAtUtc: '2026-10-01T00:00:00.000Z',
     evidence: {
@@ -130,6 +132,21 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   assert.equal(report.integrations[0].qualified, false);
   assert.equal(report.candidateIntegrations, 1);
   assert.ok(report.integrations[0].missingEvidence.includes('sourceTaskQualityRetention'));
+}
+
+{
+  const conflated = clone(policy);
+  conflated.integrations[0].resolvedArtifactVariantId = 'named-manifest-variant';
+  const report = await validateProductIntegrationQualification(conflated, {
+    repoRoot: process.cwd(),
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.includes(
+      'reploid-local-generation: resolvedArtifactVariantId must be a SHA-256 identity or null'
+    ),
+    report.errors.join('\n')
+  );
 }
 
 console.log('product-integration-qualification.test: ok');

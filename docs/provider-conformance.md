@@ -23,7 +23,7 @@ or desired operations into provider evidence.
 One suite binds:
 
 - a workload and workload-contract path;
-- one logical model and resolved artifact variant;
+- one logical model, catalog `manifestVariantId`, and resolved manifest SHA-256;
 - the same declared operation set on every required provider;
 - a correctness class selected before execution;
 - required provider lanes and their exact execution identities.
@@ -32,6 +32,13 @@ Each provider result must identify its implementation and environment, pass
 load, execute, and unload lifecycle stages, pass the suite's correctness class,
 retain every required evidence path, and carry current qualification and expiry
 timestamps. A required provider failure makes the suite non-claimable.
+
+`manifestVariantId` is the catalog's stable named variant. It is not a byte
+identity. `resolvedArtifactVariantId` is the `sha256:` manifest identity emitted
+by runtime evidence, while `resolvedExecutionId` binds the observed provider and
+execution path. The checker rejects a catalog variant name in either digest
+field. A candidate may name its intended manifest variant before execution, but
+its resolved digest remains null and blocked until current evidence captures it.
 
 The accepted correctness classes are exact-token, tolerance-bounded numerical,
 semantic, and held-out task metric. The suite cannot weaken this class after a
