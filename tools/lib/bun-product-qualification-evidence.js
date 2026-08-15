@@ -505,11 +505,14 @@ export function validateBunProductPromotionEvidence(receipt, expected = {}) {
   const expiresAt = instant(receipt.expiresAtUtc, 'Bun promotion evidence.expiresAtUtc', errors);
   match(receipt.qualifiedAtUtc, expected.qualifiedAtUtc, 'Bun promotion evidence.qualifiedAtUtc', errors);
   match(receipt.expiresAtUtc, expected.expiresAtUtc, 'Bun promotion evidence.expiresAtUtc', errors);
-  if (promotedAt && qualifiedAt && promotedAt.getTime() > qualifiedAt.getTime()) {
-    errors.push('Bun promotion evidence.promotedAtUtc must not follow qualifiedAtUtc');
+  if (promotedAt && qualifiedAt && promotedAt.getTime() < qualifiedAt.getTime()) {
+    errors.push('Bun promotion evidence.promotedAtUtc must not predate qualifiedAtUtc');
   }
   if (qualifiedAt && expiresAt && expiresAt.getTime() <= qualifiedAt.getTime()) {
     errors.push('Bun promotion evidence.expiresAtUtc must follow qualifiedAtUtc');
+  }
+  if (promotedAt && expiresAt && promotedAt.getTime() >= expiresAt.getTime()) {
+    errors.push('Bun promotion evidence.promotedAtUtc must predate expiresAtUtc');
   }
   return { errors, promotedAt };
 }
