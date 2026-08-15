@@ -14,6 +14,13 @@ const GOAL_STATUSES = new Set(['complete', 'partial']);
 const ROW_STATUSES = new Set(['covered', 'complete', 'partial', 'experimental', 'blocked', 'diagnostic']);
 const CLAIMABLE_ROW_STATUSES = new Set(['covered', 'complete']);
 const TIERS = new Set(['tier1', 'experimental', 'internal-only', 'not-applicable']);
+const BLOCKER_COMPLETION_CLASSES = new Set([
+  'repository',
+  'application',
+  'hardware',
+  'production-authority',
+  'human-promotion',
+]);
 const NULLABLE_ROW_FIELDS = ['supportSubsystemId', 'packageBin', 'packageExport', 'smokeCommand'];
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -288,8 +295,10 @@ function validateMatrixHeader(matrix, errors) {
   return true;
 }
 
-async function validateBlockerDefinitions(matrix, repoRoot, errors) {
+async function validateBlockerDefinitions(matrix, repoRoot, packageJson, errors) {
   const blockerByCode = new Map();
+  const priorities = new Set();
+  const scripts = packageScripts(packageJson);
   for (const blocker of matrix.blockers) {
     const code = validateIdentifier(blocker?.code, 'blocker.code', errors);
     if (!code) continue;
@@ -297,6 +306,32 @@ async function validateBlockerDefinitions(matrix, repoRoot, errors) {
       errors.push(`duplicate blocker code ${code}`);
     }
     blockerByCode.set(code, blocker);
+    const priority = blocker?.priority;
+    if (!Number.isSafeInteger(priority) || priority < 1 || priority > 999) {
+      errors.push(`${code}: priority must be a safe integer in [1, 999]`);
+    } else if (priorities.has(priority)) {
+      errors.push(`${code}: duplicate blocker priority ${priority}`);
+    } else {
+      priorities.add(priority);
+    }
+    validateIdentifier(blocker?.owner, `${code}: owner`, errors);
+    const completionClass = normalizeText(blocker?.completionClass);
+    if (!BLOCKER_COMPLETION_CLASSES.has(completionClass)) {
+      errors.push(
+        `${code}: completionClass must be one of ${Array.from(BLOCKER_COMPLETION_CLASSES).join(', ')}`
+      );
+    }
+    const statusCommand = validateRequiredString(
+      blocker?.statusCommand,
+      `${code}: statusCommand`,
+      errors
+    );
+    const scriptName = parseNpmRunScript(statusCommand);
+    if (!scriptName || statusCommand !== `npm run ${scriptName}`) {
+      errors.push(`${code}: statusCommand must be exactly npm run <script>`);
+    } else if (!Object.prototype.hasOwnProperty.call(scripts, scriptName)) {
+      errors.push(`${code}: statusCommand script ${scriptName} is not declared in package.json`);
+    }
     validateRequiredString(blocker?.description, `${code}: description`, errors);
     validateRequiredString(blocker?.exitCriteria, `${code}: exitCriteria`, errors);
     await validateEvidencePaths(repoRoot, blocker?.evidencePaths, `${code}: blocker`, errors);
@@ -590,7 +625,7 @@ export async function validateGoalCompletionMatrix(matrix, options = {}) {
     return errors;
   }
 
-  const blockerByCode = await validateBlockerDefinitions(matrix, repoRoot, errors);
+  const blockerByCode = await validateBlockerDefinitions(matrix, repoRoot, packageJson, errors);
   validateRequiredGoals(matrix.goals, errors);
   const subsystemById = buildSubsystemMap(subsystemRegistry);
   const usedBlockers = new Set();
@@ -636,6 +671,48 @@ function summarizeGoals(matrix) {
   });
 }
 
+function summarizeBlockerActions(matrix) {
+  const usageByCode = new Map();
+  const recordUsage = (code, goalId, rowId = null) => {
+    const normalized = normalizeText(code);
+    if (!normalized) return;
+    let usage = usageByCode.get(normalized);
+    if (!usage) {
+      usage = { goals: new Set(), rows: new Set() };
+      usageByCode.set(normalized, usage);
+    }
+    usage.goals.add(goalId);
+    if (rowId) usage.rows.add(`${goalId}/${rowId}`);
+  };
+  for (const goal of Array.isArray(matrix?.goals) ? matrix.goals : []) {
+    for (const code of Array.isArray(goal?.blockers) ? goal.blockers : []) {
+      recordUsage(code, goal.id);
+    }
+    for (const row of Array.isArray(goal?.rows) ? goal.rows : []) {
+      for (const code of Array.isArray(row?.blockers) ? row.blockers : []) {
+        recordUsage(code, goal.id, row.id);
+      }
+    }
+  }
+  return (Array.isArray(matrix?.blockers) ? matrix.blockers : [])
+    .map((blocker) => {
+      const usage = usageByCode.get(blocker.code) || { goals: new Set(), rows: new Set() };
+      return {
+        priority: blocker.priority,
+        code: blocker.code,
+        owner: blocker.owner,
+        completionClass: blocker.completionClass,
+        statusCommand: blocker.statusCommand,
+        description: blocker.description,
+        exitCriteria: blocker.exitCriteria,
+        evidencePaths: blocker.evidencePaths,
+        goals: Array.from(usage.goals).sort(),
+        rows: Array.from(usage.rows).sort(),
+      };
+    })
+    .sort((left, right) => left.priority - right.priority || left.code.localeCompare(right.code));
+}
+
 export async function buildGoalCompletionReport(options = {}) {
   const matrixPath = options.matrixPath || DEFAULT_MATRIX_PATH;
   const packagePath = options.packagePath || DEFAULT_PACKAGE_PATH;
@@ -655,6 +732,7 @@ export async function buildGoalCompletionReport(options = {}) {
     matrixPath: path.relative(options.repoRoot || REPO_ROOT, matrixPath),
     errors,
     goals: summarizeGoals(matrix),
+    actions: summarizeBlockerActions(matrix),
   };
 }
 

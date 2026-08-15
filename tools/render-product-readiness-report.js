@@ -64,6 +64,7 @@ function buildSummary(reports) {
       && reports.subsystemSupport.ok,
     errors,
     goals: reports.goals.goals,
+    actions: reports.goals.actions,
     contracts: {
       claimEvidence: {
         ok: reports.claimEvidence.ok,
@@ -144,6 +145,13 @@ function formatMarkdown(summary) {
   ];
   for (const goal of summary.goals) {
     lines.push(`- ${goal.label}: ${goal.completionPercent}% (${goal.claimableRows}/${goal.rows} rows claimable, ${goal.status})`);
+  }
+  lines.push('', '## Action queue', '');
+  for (const action of summary.actions) {
+    lines.push(
+      `- ${action.priority}. \`${action.code}\` — owner ${action.owner}; completion ${action.completionClass}; status \`${action.statusCommand}\``,
+      `  Exit: ${action.exitCriteria}`
+    );
   }
   lines.push(
     '',
