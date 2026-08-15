@@ -49,6 +49,7 @@ config/schema/optimization-contract.schema.json
 config/schema/optimization-receipt.schema.json
 config/schema/platform.schema.js
 config/schema/policy-schema-registry.json
+config/schema/product-integration-evaluation-capture.schema.json
 config/schema/product-integration-evidence.schema.json
 config/schema/product-integration-owner-confirmation.schema.json
 config/schema/product-integration-qualification.schema.json

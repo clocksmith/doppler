@@ -356,6 +356,34 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   );
 }
 
+{
+  const prePromotionMismatch = clone(policy);
+  const record = await preparedIntegration(
+    'pre-promotion-chat',
+    'Pre-promotion Chat',
+    'generation'
+  );
+  record.resolvedArtifactVariantId = null;
+  record.resolvedExecutionId = null;
+  record.qualificationLevel = 'contract-ready';
+  record.lifecycle = 'candidate';
+  record.claimAllowed = false;
+  record.blockers = ['application-evaluation-awaiting-explicit-promotion'];
+  const evidenceRef = record.evidence.reliability;
+  const receipt = JSON.parse(await fs.readFile(path.join(TEST_ROOT, evidenceRef.path), 'utf8'));
+  receipt.resolvedExecutionId = `sha256:${'e'.repeat(64)}`;
+  record.evidence.reliability = await writeJson(evidenceRef.path, receipt);
+  prePromotionMismatch.integrations = [record];
+  const report = await validateProductIntegrationQualification(prePromotionMismatch, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.some((error) => error.includes('does not match expected')),
+    report.errors.join('\n')
+  );
+}
+
 await fs.rm(TEST_ROOT, { recursive: true, force: true });
 
 console.log('product-integration-qualification.test: ok');

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/product-integration-evaluation-capture-v1.schema.json",
+  "title": "Doppler Product Integration Evaluation Capture v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "integrationId",
+    "evaluatedAtUtc",
+    "expiresAtUtc",
+    "evidencePaths"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.product-integration-evaluation-capture/v1" },
+    "integrationId": { "$ref": "#/$defs/id" },
+    "evaluatedAtUtc": { "type": "string", "format": "date-time" },
+    "expiresAtUtc": { "type": "string", "format": "date-time" },
+    "evidencePaths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ownerConfirmation",
+        "installToFirstVerifiedOutput",
+        "identity",
+        "sourceTaskQualityRetention",
+        "reliability",
+        "memory",
+        "coldWarmResponse",
+        "browserHardwareQualification",
+        "incumbentControl",
+        "upgradeRequalification",
+        "rollbackRevocation"
+      ],
+      "properties": {
+        "ownerConfirmation": { "$ref": "#/$defs/repoPath" },
+        "installToFirstVerifiedOutput": { "$ref": "#/$defs/repoPath" },
+        "identity": { "$ref": "#/$defs/repoPath" },
+        "sourceTaskQualityRetention": { "$ref": "#/$defs/repoPath" },
+        "reliability": { "$ref": "#/$defs/repoPath" },
+        "memory": { "$ref": "#/$defs/repoPath" },
+        "coldWarmResponse": { "$ref": "#/$defs/repoPath" },
+        "browserHardwareQualification": { "$ref": "#/$defs/repoPath" },
+        "incumbentControl": { "$ref": "#/$defs/repoPath" },
+        "upgradeRequalification": { "$ref": "#/$defs/repoPath" },
+        "rollbackRevocation": { "$ref": "#/$defs/repoPath" }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          { "pattern": "^/" },
+          { "pattern": "\\\\" },
+          { "pattern": "(^|/)\\.\\.(/|$)" }
+        ]
+      }
+    }
+  }
+}

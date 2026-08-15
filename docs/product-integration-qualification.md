@@ -56,6 +56,22 @@ Receipts must not postdate `qualifiedAtUtc`. A structurally valid failed receipt
 stays visible and contributes a named qualification blocker. It must never be
 deleted or rewritten into a pass.
 
+## Recording an evaluation
+
+`npm run product:integrations:record -- --capture <capture.json> --out
+<candidate-policy.json>` records one retained evaluation. The capture uses
+`doppler.product-integration-evaluation-capture/v1` and supplies repository-
+relative receipt paths, the evaluation time, and expiry. The recorder derives
+canonical digests, the owner-confirmation time, and runtime-observed artifact
+and execution identities from those receipts; operators do not retype them.
+
+The default writes a separate candidate policy. Writing the status authority
+requires explicit `--apply`, replacing prior evaluation state requires
+`--replace`, and claimable entries cannot be replaced. Recording preserves the
+declared qualification level, forces candidate lifecycle, retains semantic
+failure reasons as blockers, and always leaves `claimAllowed` false. Promotion
+is a separate review and policy change.
+
 ## Product gate
 
 A claimable integration must be `product-supported`, active, owned by a current

@@ -456,6 +456,10 @@ identities; expiry; incumbent controls; and
 the required reliability, memory, quality, upgrade, rollback, and revocation
 evidence. Evidence paths alone are insufficient: each reference binds a
 canonical JSON digest and the checker validates its class-specific semantics.
+`npm run product:integrations:record` can materialize a reviewed candidate from
+retained receipt paths, but it preserves the declared support level, forces a
+candidate lifecycle, and never enables a claim. Promotion remains an explicit
+authority decision.
 An empty registry is valid but explicitly incomplete.
 
 `tools/policies/provider-conformance.json` independently governs provider
