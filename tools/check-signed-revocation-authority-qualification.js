@@ -5,6 +5,13 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { computeCanonicalJsonSha256 } from './lib/canonical-json.js';
+import {
+  REVOCATION_AUTHORITY_EVIDENCE_CLASSES,
+  validateRevocationAuthorityEvidence,
+  validateRevocationAuthorityOwnerConfirmation,
+} from './lib/signed-revocation-authority-evidence.js';
+
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(
   REPO_ROOT,
@@ -27,6 +34,7 @@ const REQUIRED_DRILLS = Object.freeze([
   'application-fail-closed',
 ]);
 const EVIDENCE_FIELDS = Object.freeze([
+  'ownerConfirmation',
   'endpointDeployment',
   'packageTrustBinding',
   'onlineKeyCustody',
@@ -181,19 +189,30 @@ function isRepoRelativePath(value) {
   );
 }
 
-async function validateEvidencePath(value, label, repoRoot, errors) {
+async function validateEvidenceReference(value, label, repoRoot, errors) {
   if (value === null) return null;
-  if (!isRepoRelativePath(value)) {
-    errors.push(`${label} must be a repo-relative path or null`);
+  if (!validateExactKeys(value, ['path', 'digest'], label, errors)) return null;
+  if (!isRepoRelativePath(value.path)) {
+    errors.push(`${label}.path must be a repo-relative path`);
     return null;
   }
-  const normalized = normalizeText(value);
-  try {
-    await fs.stat(path.join(repoRoot, normalized));
-  } catch {
-    errors.push(`${label} does not exist: ${normalized}`);
+  const normalized = normalizeText(value.path);
+  const digest = normalizeText(value.digest).toLowerCase();
+  if (!/^sha256:[0-9a-f]{64}$/.test(digest)) {
+    errors.push(`${label}.digest must be a SHA-256 identity`);
   }
-  return normalized;
+  let receipt = null;
+  try {
+    receipt = JSON.parse(await fs.readFile(path.join(repoRoot, normalized), 'utf8'));
+  } catch (error) {
+    errors.push(`${label}.path is not readable JSON: ${normalized}: ${error.message}`);
+  }
+  if (receipt && /^sha256:[0-9a-f]{64}$/.test(digest)) {
+    if (computeCanonicalJsonSha256(receipt) !== digest) {
+      errors.push(`${label}.digest does not match canonical JSON evidence`);
+    }
+  }
+  return { path: normalized, digest, receipt };
 }
 
 async function validateAuthority(authority, context) {
@@ -266,7 +285,7 @@ async function validateAuthority(authority, context) {
   const evidence = {};
   if (validateExactKeys(authority.evidence, EVIDENCE_FIELDS, `${id}: evidence`, errors)) {
     await Promise.all(EVIDENCE_FIELDS.map(async (field) => {
-      evidence[field] = await validateEvidencePath(
+      evidence[field] = await validateEvidenceReference(
         authority.evidence[field],
         `${id}: evidence.${field}`,
         repoRoot,
@@ -274,7 +293,13 @@ async function validateAuthority(authority, context) {
       );
     }));
   }
-  const missingEvidence = EVIDENCE_FIELDS.filter((field) => !evidence[field]);
+  const evidencePaths = EVIDENCE_FIELDS
+    .map((field) => evidence[field]?.path)
+    .filter(Boolean);
+  if (new Set(evidencePaths).size !== evidencePaths.length) {
+    errors.push(`${id}: evidence references must use distinct paths`);
+  }
+  const missingEvidence = EVIDENCE_FIELDS.filter((field) => !evidence[field]?.receipt);
   const qualificationReasons = [];
   if (authority.lifecycle !== 'active') qualificationReasons.push('lifecycle-not-active');
   if (!owner) qualificationReasons.push('owner-missing');
@@ -299,6 +324,63 @@ async function validateAuthority(authority, context) {
     qualificationReasons.push('qualification-expiry-not-after-qualification');
   }
   if (missingEvidence.length > 0) qualificationReasons.push('evidence-incomplete');
+  const evidenceContext = {
+    qualificationId: id,
+    owner,
+    ownerConfirmedAtUtc: ownerConfirmedAt?.toISOString() ?? null,
+    authorityId,
+    endpointUrl,
+    onlineKeyIds,
+    recoveryKeyIds,
+    durableStateStoreIds,
+    requiredDrillCount: REQUIRED_DRILLS.length,
+  };
+  if (evidence.ownerConfirmation?.receipt) {
+    const result = validateRevocationAuthorityOwnerConfirmation(
+      evidence.ownerConfirmation.receipt,
+      evidenceContext
+    );
+    for (const error of result.errors) errors.push(`${id}: evidence.ownerConfirmation: ${error}`);
+    if (result.errors.length > 0) qualificationReasons.push('owner-confirmation-invalid');
+    for (const reason of result.reasons) {
+      if (!qualificationReasons.includes(reason)) qualificationReasons.push(reason);
+    }
+    if (qualifiedAt && result.confirmedAt && result.confirmedAt.getTime() > qualifiedAt.getTime()) {
+      qualificationReasons.push('owner-confirmation-postdates-qualification');
+    }
+  }
+  const evidenceResults = {};
+  for (const field of REVOCATION_AUTHORITY_EVIDENCE_CLASSES) {
+    if (!evidence[field]?.receipt) continue;
+    const result = validateRevocationAuthorityEvidence(evidence[field].receipt, {
+      ...evidenceContext,
+      evidenceClass: field,
+    });
+    evidenceResults[field] = result;
+    for (const error of result.errors) errors.push(`${id}: evidence.${field}: ${error}`);
+    if (result.errors.length > 0) qualificationReasons.push(`${field}-invalid`);
+    for (const reason of result.reasons) {
+      if (!qualificationReasons.includes(reason)) qualificationReasons.push(reason);
+    }
+    if (qualifiedAt && result.capturedAt && result.capturedAt.getTime() > qualifiedAt.getTime()) {
+      qualificationReasons.push(`${field}-postdates-qualification`);
+    }
+  }
+  const onlineCustodyDomain = evidenceResults.onlineKeyCustody
+    ?.observations?.custodyDomainId;
+  const recoveryCustodyDomain = evidenceResults.recoveryKeyCustody
+    ?.observations?.custodyDomainId;
+  const separation = evidenceResults.custodySeparation?.observations;
+  if (
+    separation
+    && (
+      separation.onlineCustodyDomainId !== onlineCustodyDomain
+      || separation.recoveryCustodyDomainId !== recoveryCustodyDomain
+    )
+  ) {
+    errors.push(`${id}: custody separation domains do not match custody receipts`);
+    qualificationReasons.push('custody-separation-identity-mismatch');
+  }
   if (blockers.length > 0) qualificationReasons.push('blockers-present');
   const satisfiesQualification = qualificationReasons.length === 0;
   if (authority.claimAllowed === true && !satisfiesQualification) {
@@ -340,7 +422,7 @@ export async function validateSignedRevocationAuthorityQualification(policy, opt
   if (policy.$schema !== '../../src/config/schema/signed-revocation-authority-qualification.schema.json') {
     errors.push('policy.$schema is not supported');
   }
-  if (policy.schemaVersion !== 1) errors.push('policy.schemaVersion must be 1');
+  if (policy.schemaVersion !== 2) errors.push('policy.schemaVersion must be 2');
   if (policy.source !== 'doppler') errors.push('policy.source must be doppler');
   if (policy.goalId !== 'evidence-backed-correctness-performance') {
     errors.push('policy.goalId is not supported');
@@ -385,7 +467,8 @@ export async function validateSignedRevocationAuthorityQualification(policy, opt
     authorities,
     qualifiedAuthorities,
     candidateAuthorities,
-    gateSatisfied: qualifiedAuthorities >= policy.minimumQualifiedAuthorities,
+    gateSatisfied: errors.length === 0
+      && qualifiedAuthorities >= policy.minimumQualifiedAuthorities,
     requiredHosts: [...REQUIRED_HOSTS],
     requiredDrills: [...REQUIRED_DRILLS],
   };

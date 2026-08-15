@@ -1,6 +1,6 @@
 {
   "$schema": "../../src/config/schema/signed-revocation-authority-qualification.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "source": "doppler",
   "goalId": "evidence-backed-correctness-performance",
   "minimumQualifiedAuthorities": 1,
@@ -43,6 +43,7 @@
       "qualifiedAtUtc": null,
       "expiresAtUtc": null,
       "evidence": {
+        "ownerConfirmation": null,
         "endpointDeployment": null,
         "packageTrustBinding": null,
         "onlineKeyCustody": null,

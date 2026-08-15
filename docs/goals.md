@@ -499,9 +499,11 @@ authority ID, disjoint online and recovery key IDs, browser and Node durable-
 state store identities, current security ownership, expiry, and repo-retained
 evidence for deployment, package trust, custody separation, durable-state
 behavior, every declared failure drill, application fail-closed behavior, and
-requalification. Its current candidate deliberately leaves production facts
-null and `claimAllowed: false`; passing the structural check does not qualify
-the authority.
+requalification. All ownership and operational evidence is class-specific,
+canonical-digest-bound JSON; the checker derives pass state and cross-checks
+deployment identity instead of accepting path existence. Its current candidate
+deliberately leaves production facts null and `claimAllowed: false`; passing
+the structural check does not qualify the authority.
 
 `tools/policies/runtime-promotion-monitoring.json` closes the control loop after
 a human promotion. `npm run promotion:monitoring:check` binds each promoted
