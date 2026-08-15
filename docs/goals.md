@@ -163,6 +163,12 @@ Every execution exposes three separate identities:
 - `resolvedExecutionId`: provider, kernels, runtime profile, cache policy,
   precision transforms, capabilities, and other execution decisions.
 
+The catalog `manifestVariantId` names an intended artifact lane; it is not a
+resolved identity and must never occupy either SHA-256 field. Before execution,
+a candidate may bind the manifest variant while leaving resolved identities
+null. Qualification requires the runtime-observed manifest and execution
+digests.
+
 A receipt binds all three. Applications must be able to accept
 policy-authorized resolution, restrict allowed artifact or execution variants,
 pin exact variants, reject every alternative, and inspect the final resolution.
@@ -431,7 +437,8 @@ collapse those distinct trust states.
 for the decisive maintained-application gate. `npm run product:integrations:check`
 validates distinct active applications across generation, embedding retrieval,
 and reranking; current named owners; the five-level support ladder; exact
-logical, artifact, and execution identities; expiry; incumbent controls; and
+logical identity plus runtime-observed `sha256:` artifact and execution
+identities; expiry; incumbent controls; and
 the required reliability, memory, quality, upgrade, rollback, and revocation
 evidence. An empty registry is valid but explicitly incomplete.
 

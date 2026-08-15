@@ -237,6 +237,32 @@ function registry() {
     assert.ok(report.errors.some((error) => error.startsWith(label)), report.errors.join('\n'));
   }
 
+  const namedVariantSurfaces = clone(activeSurfaces);
+  namedVariantSurfaces.providerConformance.suites[0].logicalModelId = 'unrelated-model';
+  namedVariantSurfaces.providerConformance.suites[0].manifestVariantId = 'manifest-v1';
+  namedVariantSurfaces.providerConformance.suites[0].resolvedArtifactVariantId = null;
+  namedVariantSurfaces.providerConformance.suites[0].providers[0].logicalModelId = 'unrelated-model';
+  namedVariantSurfaces.providerConformance.suites[0].providers[0].manifestVariantId = 'manifest-v1';
+  namedVariantSurfaces.providerConformance.suites[0].providers[0].resolvedArtifactVariantId = null;
+  namedVariantSurfaces.runtimeOwnership.decisions[0].logicalModelId = 'unrelated-model';
+  namedVariantSurfaces.runtimeOwnership.decisions[0].manifestVariantId = 'manifest-v1';
+  namedVariantSurfaces.runtimeOwnership.decisions[0].resolvedArtifactVariantId = null;
+  const namedVariantReport = await validateRevocationPropagation(
+    registry(),
+    namedVariantSurfaces,
+    { repoRoot: process.cwd() }
+  );
+  for (const label of [
+    'provider suite provider-suite',
+    'provider result provider-suite/browser-webgpu',
+    'runtime ownership ownership-decision',
+  ]) {
+    assert.ok(
+      namedVariantReport.errors.some((error) => error.startsWith(label)),
+      namedVariantReport.errors.join('\n')
+    );
+  }
+
   const withdrawn = clone(activeSurfaces);
   withdrawn.catalog.models[0].quickstart = false;
   withdrawn.catalog.models[0].demoVisible = false;

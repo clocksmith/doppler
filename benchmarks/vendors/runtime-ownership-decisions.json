@@ -1,6 +1,6 @@
 {
   "$schema": "schema/runtime-ownership-decisions.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "source": "doppler",
   "goalIds": [
     "model-artifact-runtime-contract",
@@ -45,7 +45,8 @@
       "id": "qwen35-generation-runtime-ownership",
       "workload": "generation",
       "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "resolvedArtifactVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+      "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+      "resolvedArtifactVariantId": null,
       "resolvedExecutionId": null,
       "sourceProviderId": "huggingface-transformers-pytorch",
       "sourceArtifactId": "Qwen/Qwen3.5-0.8B",
@@ -95,6 +96,7 @@
       },
       "claimAllowed": false,
       "blockers": [
+        "resolved-doppler-manifest-sha256-missing",
         "exact-source-incumbent-doppler-execution-receipts-missing",
         "predeclared-material-advantage-hypothesis-not-evaluated",
         "decision-evidence-incomplete",
@@ -105,7 +107,8 @@
       "id": "embeddinggemma-runtime-ownership",
       "workload": "embedding",
       "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
-      "resolvedArtifactVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+      "manifestVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+      "resolvedArtifactVariantId": null,
       "resolvedExecutionId": null,
       "sourceProviderId": "huggingface-transformers-pytorch",
       "sourceArtifactId": "google/embeddinggemma-300m",
@@ -155,6 +158,7 @@
       },
       "claimAllowed": false,
       "blockers": [
+        "resolved-doppler-manifest-sha256-missing",
         "exact-source-incumbent-doppler-execution-receipts-missing",
         "predeclared-material-advantage-hypothesis-not-evaluated",
         "decision-evidence-incomplete",
@@ -165,7 +169,8 @@
       "id": "qwen3-reranking-runtime-ownership",
       "workload": "reranking",
       "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
-      "resolvedArtifactVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
+      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
+      "resolvedArtifactVariantId": null,
       "resolvedExecutionId": null,
       "sourceProviderId": "huggingface-transformers-pytorch",
       "sourceArtifactId": "Qwen/Qwen3-Reranker-0.6B",
@@ -215,6 +220,7 @@
       },
       "claimAllowed": false,
       "blockers": [
+        "resolved-doppler-manifest-sha256-missing",
         "exact-source-incumbent-doppler-execution-receipts-missing",
         "predeclared-material-advantage-hypothesis-not-evaluated",
         "decision-evidence-incomplete",
