@@ -7,9 +7,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { computeCanonicalJsonSha256 } from './lib/canonical-json.js';
 import {
+  computeRevocationAuthorityEvidenceSetDigest,
   REVOCATION_AUTHORITY_EVIDENCE_CLASSES,
   validateRevocationAuthorityEvidence,
   validateRevocationAuthorityOwnerConfirmation,
+  validateRevocationAuthorityPromotionEvidence,
 } from './lib/signed-revocation-authority-evidence.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -54,7 +56,11 @@ const EVIDENCE_FIELDS = Object.freeze([
   'loadedIdentityInvalidation',
   'applicationFailClosed',
   'requalification',
+  'promotion',
 ]);
+const NON_PROMOTION_EVIDENCE_FIELDS = Object.freeze(
+  EVIDENCE_FIELDS.filter((field) => field !== 'promotion')
+);
 const ROOT_FIELDS = Object.freeze([
   '$schema',
   'schemaVersion',
@@ -74,6 +80,8 @@ const AUTHORITY_FIELDS = Object.freeze([
   'ownerConfirmedAtUtc',
   'claimAllowed',
   'deployment',
+  'harnessRevision',
+  'environmentFingerprint',
   'qualifiedAtUtc',
   'expiresAtUtc',
   'evidence',
@@ -89,6 +97,8 @@ const DEPLOYMENT_FIELDS = Object.freeze([
 ]);
 const LIFECYCLES = new Set(['candidate', 'active', 'quarantined', 'revoked', 'retired']);
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
+const REVISION_PATTERN = /^[0-9a-f]{40}$/;
 
 function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
@@ -120,6 +130,22 @@ function validateNullableText(value, label, errors) {
   const normalized = normalizeText(value);
   if (!normalized) errors.push(`${label} must be a non-empty string or null`);
   return normalized || null;
+}
+
+function validateNullableSha256(value, label, errors) {
+  const normalized = validateNullableText(value, label, errors)?.toLowerCase() ?? null;
+  if (normalized && !SHA256_PATTERN.test(normalized)) {
+    errors.push(`${label} must be a SHA-256 identity or null`);
+  }
+  return normalized;
+}
+
+function validateNullableRevision(value, label, errors) {
+  const normalized = validateNullableText(value, label, errors)?.toLowerCase() ?? null;
+  if (normalized && !REVISION_PATTERN.test(normalized)) {
+    errors.push(`${label} must be a 40-character commit revision or null`);
+  }
+  return normalized;
 }
 
 function validateStringArray(value, label, errors) {
@@ -253,6 +279,16 @@ async function validateAuthority(authority, context) {
     errors
   );
   const blockers = validateStringArray(authority.blockers, `${id}: blockers`, errors);
+  const harnessRevision = validateNullableRevision(
+    authority.harnessRevision,
+    `${id}: harnessRevision`,
+    errors
+  );
+  const environmentFingerprint = validateNullableSha256(
+    authority.environmentFingerprint,
+    `${id}: environmentFingerprint`,
+    errors
+  );
 
   const deployment = authority.deployment;
   let endpointUrl = null;
@@ -322,6 +358,12 @@ async function validateAuthority(authority, context) {
   if (REQUIRED_HOSTS.some((host) => !durableStateStoreIds[host])) {
     qualificationReasons.push('durable-state-store-identity-incomplete');
   }
+  if (!harnessRevision || !environmentFingerprint) {
+    qualificationReasons.push('authority-evidence-identity-incomplete');
+  }
+  if (!evidence.promotion?.receipt) {
+    qualificationReasons.push('production-authority-promotion-evidence-missing');
+  }
   if (!qualifiedAt) qualificationReasons.push('qualification-date-missing');
   if (qualifiedAt && qualifiedAt.getTime() > now.getTime()) {
     qualificationReasons.push('qualification-date-in-future');
@@ -356,6 +398,8 @@ async function validateAuthority(authority, context) {
     onlineKeyIds,
     recoveryKeyIds,
     durableStateStoreIds,
+    harnessRevision,
+    environmentFingerprint,
     requiredDrillCount: REQUIRED_DRILLS.length,
   };
   if (evidence.ownerConfirmation?.receipt) {
@@ -411,6 +455,29 @@ async function validateAuthority(authority, context) {
     errors.push(`${id}: custody separation domains do not match custody receipts`);
     qualificationReasons.push('custody-separation-identity-mismatch');
   }
+  if (evidence.promotion?.receipt) {
+    const evidenceSetReferences = Object.fromEntries(
+      NON_PROMOTION_EVIDENCE_FIELDS.map((field) => [
+        field,
+        evidence[field]
+          ? { path: evidence[field].path, digest: evidence[field].digest }
+          : null,
+      ])
+    );
+    const result = validateRevocationAuthorityPromotionEvidence(
+      evidence.promotion.receipt,
+      {
+        ...evidenceContext,
+        evidenceSetDigest: computeRevocationAuthorityEvidenceSetDigest(evidenceSetReferences),
+        qualifiedAtUtc: qualifiedAt?.toISOString() ?? null,
+        expiresAtUtc: expiresAt?.toISOString() ?? null,
+      }
+    );
+    for (const error of result.errors) errors.push(`${id}: evidence.promotion: ${error}`);
+    if (result.errors.length > 0) {
+      qualificationReasons.push('production-authority-promotion-evidence-invalid');
+    }
+  }
   if (blockers.length > 0) qualificationReasons.push('blockers-present');
   const satisfiesQualification = qualificationReasons.length === 0;
   if (authority.claimAllowed === true && !satisfiesQualification) {
@@ -452,7 +519,7 @@ export async function validateSignedRevocationAuthorityQualification(policy, opt
   if (policy.$schema !== '../../src/config/schema/signed-revocation-authority-qualification.schema.json') {
     errors.push('policy.$schema is not supported');
   }
-  if (policy.schemaVersion !== 2) errors.push('policy.schemaVersion must be 2');
+  if (policy.schemaVersion !== 3) errors.push('policy.schemaVersion must be 3');
   if (policy.source !== 'doppler') errors.push('policy.source must be doppler');
   if (policy.goalId !== 'evidence-backed-correctness-performance') {
     errors.push('policy.goalId is not supported');

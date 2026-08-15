@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://clocksmith.dev/doppler/schemas/signed-revocation-authority-qualification-v2.schema.json",
-  "title": "Doppler Signed Revocation Authority Qualification v2",
+  "$id": "https://clocksmith.dev/doppler/schemas/signed-revocation-authority-qualification-v3.schema.json",
+  "title": "Doppler Signed Revocation Authority Qualification v3",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -20,7 +20,7 @@
     "$schema": {
       "const": "../../src/config/schema/signed-revocation-authority-qualification.schema.json"
     },
-    "schemaVersion": { "const": 2 },
+    "schemaVersion": { "const": 3 },
     "source": { "const": "doppler" },
     "goalId": { "const": "evidence-backed-correctness-performance" },
     "minimumQualifiedAuthorities": { "const": 1 },
@@ -65,6 +65,18 @@
     "nullableDateTime": {
       "type": ["string", "null"],
       "format": "date-time"
+    },
+    "nullableRevision": {
+      "anyOf": [
+        { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        { "type": "null" }
+      ]
+    },
+    "nullableDigest": {
+      "anyOf": [
+        { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        { "type": "null" }
+      ]
     },
     "evidenceRef": {
       "type": "object",
@@ -151,7 +163,8 @@
         "durableStoreRestart",
         "loadedIdentityInvalidation",
         "applicationFailClosed",
-        "requalification"
+        "requalification",
+        "promotion"
       ],
       "properties": {
         "ownerConfirmation": { "$ref": "#/$defs/nullableEvidenceRef" },
@@ -173,7 +186,8 @@
         "durableStoreRestart": { "$ref": "#/$defs/nullableEvidenceRef" },
         "loadedIdentityInvalidation": { "$ref": "#/$defs/nullableEvidenceRef" },
         "applicationFailClosed": { "$ref": "#/$defs/nullableEvidenceRef" },
-        "requalification": { "$ref": "#/$defs/nullableEvidenceRef" }
+        "requalification": { "$ref": "#/$defs/nullableEvidenceRef" },
+        "promotion": { "$ref": "#/$defs/nullableEvidenceRef" }
       }
     },
     "authority": {
@@ -186,6 +200,8 @@
         "ownerConfirmedAtUtc",
         "claimAllowed",
         "deployment",
+        "harnessRevision",
+        "environmentFingerprint",
         "qualifiedAtUtc",
         "expiresAtUtc",
         "evidence",
@@ -203,6 +219,8 @@
         "ownerConfirmedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
         "claimAllowed": { "type": "boolean" },
         "deployment": { "$ref": "#/$defs/deployment" },
+        "harnessRevision": { "$ref": "#/$defs/nullableRevision" },
+        "environmentFingerprint": { "$ref": "#/$defs/nullableDigest" },
         "qualifiedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
         "expiresAtUtc": { "$ref": "#/$defs/nullableDateTime" },
         "evidence": { "$ref": "#/$defs/evidence" },

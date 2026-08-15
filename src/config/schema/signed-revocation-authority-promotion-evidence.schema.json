@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/signed-revocation-authority-promotion-evidence-v1.schema.json",
+  "title": "Doppler Signed Revocation Authority Promotion Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "qualificationId",
+    "owner",
+    "authorityId",
+    "endpointUrl",
+    "onlineKeyIds",
+    "recoveryKeyIds",
+    "durableStateStoreIds",
+    "harnessRevision",
+    "environmentFingerprint",
+    "evidenceSetDigest",
+    "decision",
+    "authority",
+    "reviewer",
+    "reviewerRevision",
+    "rationale",
+    "promotedAtUtc",
+    "qualifiedAtUtc",
+    "expiresAtUtc"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.signed-revocation-authority-promotion-evidence/v1" },
+    "qualificationId": { "$ref": "#/$defs/text" },
+    "owner": { "$ref": "#/$defs/text" },
+    "authorityId": { "$ref": "#/$defs/text" },
+    "endpointUrl": { "type": "string", "format": "uri", "pattern": "^https://" },
+    "onlineKeyIds": { "$ref": "#/$defs/keyIds" },
+    "recoveryKeyIds": { "$ref": "#/$defs/keyIds" },
+    "durableStateStoreIds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browser", "node"],
+      "properties": {
+        "browser": { "$ref": "#/$defs/text" },
+        "node": { "$ref": "#/$defs/text" }
+      }
+    },
+    "harnessRevision": { "$ref": "#/$defs/revision" },
+    "environmentFingerprint": { "$ref": "#/$defs/digest" },
+    "evidenceSetDigest": { "$ref": "#/$defs/digest" },
+    "decision": { "const": "promote-production-authority" },
+    "authority": { "const": "human" },
+    "reviewer": { "$ref": "#/$defs/text" },
+    "reviewerRevision": { "$ref": "#/$defs/revision" },
+    "rationale": { "$ref": "#/$defs/text" },
+    "promotedAtUtc": { "type": "string", "format": "date-time" },
+    "qualifiedAtUtc": { "type": "string", "format": "date-time" },
+    "expiresAtUtc": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "keyIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/text" }
+    }
+  }
+}

@@ -23,11 +23,15 @@ const DEFAULT_POLICY_PATH = path.join(
   'signed-revocation-authority-qualification.json'
 );
 const CAPTURE_SCHEMA = 'doppler.signed-revocation-authority-evaluation-capture/v1';
-const EVIDENCE_FIELDS = Object.freeze([
+const CAPTURE_EVIDENCE_FIELDS = Object.freeze([
   'ownerConfirmation',
   ...REVOCATION_AUTHORITY_EVIDENCE_CLASSES,
 ]);
-const REVIEW_REASONS = new Set(['lifecycle-not-active', 'blockers-present']);
+const REVIEW_REASONS = new Set([
+  'lifecycle-not-active',
+  'blockers-present',
+  'evidence-incomplete',
+]);
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function normalizeText(value) {
@@ -125,16 +129,23 @@ async function validateCapture(capture, context) {
   if (expiresAt.getTime() > evaluatedAt.getTime() + evidenceMaxAgeDays * DAY_MS) {
     throw new Error(`capture.expiresAtUtc exceeds the ${evidenceMaxAgeDays}-day evidence limit.`);
   }
-  assertExactKeys(capture.evidencePaths, EVIDENCE_FIELDS, 'capture.evidencePaths');
+  assertExactKeys(
+    capture.evidencePaths,
+    CAPTURE_EVIDENCE_FIELDS,
+    'capture.evidencePaths'
+  );
   const evidence = {};
-  for (const field of EVIDENCE_FIELDS) {
+  for (const field of CAPTURE_EVIDENCE_FIELDS) {
     evidence[field] = await readEvidence(
       capture.evidencePaths[field],
       `capture.evidencePaths.${field}`,
       repoRoot
     );
   }
-  if (new Set(Object.values(evidence).map((entry) => entry.path)).size !== EVIDENCE_FIELDS.length) {
+  if (
+    new Set(Object.values(evidence).map((entry) => entry.path)).size
+      !== CAPTURE_EVIDENCE_FIELDS.length
+  ) {
     throw new Error('capture.evidencePaths must use distinct paths.');
   }
   const owner = validateRevocationAuthorityOwnerConfirmation(
@@ -168,15 +179,23 @@ async function validateCapture(capture, context) {
     requiredDrillCount: 11,
   };
   const results = {};
+  let authorityEvidenceIdentity = null;
   for (const evidenceClass of REVOCATION_AUTHORITY_EVIDENCE_CLASSES) {
     const result = validateRevocationAuthorityEvidence(evidence[evidenceClass].receipt, {
       ...evidenceContext,
+      ...authorityEvidenceIdentity,
       evidenceClass,
     });
     if (result.errors.length > 0) {
       throw new Error(`${evidenceClass} evidence is invalid: ${result.errors.join('; ')}`);
     }
     results[evidenceClass] = result;
+    if (!authorityEvidenceIdentity) {
+      authorityEvidenceIdentity = {
+        harnessRevision: result.harnessRevision,
+        environmentFingerprint: result.environmentFingerprint,
+      };
+    }
   }
   const separation = results.custodySeparation.observations;
   if (
@@ -206,6 +225,7 @@ async function validateCapture(capture, context) {
     expiresAtUtc: expiresAt.toISOString(),
     evidence,
     evidenceContext,
+    authorityEvidenceIdentity,
     owner,
   };
 }
@@ -234,6 +254,9 @@ export async function recordSignedRevocationAuthorityEvaluation(options) {
   const authority = policy.authorities.find((entry) => entry.id === capture.qualificationId);
   if (!authority) throw new Error(`Unknown authority qualification: ${capture.qualificationId}.`);
   if (authority.claimAllowed) throw new Error(`Recorder cannot replace claimable authority ${authority.id}.`);
+  if (authority.evidence.promotion !== null) {
+    throw new Error(`Recorder cannot replace promoted authority ${authority.id}.`);
+  }
   if (hasPriorEvaluation(authority) && options.replace !== true) {
     throw new Error(`Authority ${authority.id} already contains evaluation state; use --replace.`);
   }
@@ -255,18 +278,25 @@ export async function recordSignedRevocationAuthorityEvaluation(options) {
     recoveryKeyIds: validated.evidenceContext.recoveryKeyIds,
     durableStateStoreIds: validated.evidenceContext.durableStateStoreIds,
   };
+  outputAuthority.harnessRevision = validated.authorityEvidenceIdentity?.harnessRevision ?? null;
+  outputAuthority.environmentFingerprint = validated.authorityEvidenceIdentity
+    ?.environmentFingerprint ?? null;
   outputAuthority.qualifiedAtUtc = validated.evaluatedAtUtc;
   outputAuthority.expiresAtUtc = validated.expiresAtUtc;
   outputAuthority.lifecycle = 'candidate';
   outputAuthority.claimAllowed = false;
-  outputAuthority.evidence = Object.fromEntries(EVIDENCE_FIELDS.map((field) => [
+  outputAuthority.evidence = Object.fromEntries(CAPTURE_EVIDENCE_FIELDS.map((field) => [
     field,
     {
       path: validated.evidence[field].path,
       digest: validated.evidence[field].digest,
     },
   ]));
-  outputAuthority.blockers = ['production-authority-evaluation-awaiting-explicit-promotion'];
+  outputAuthority.evidence.promotion = null;
+  outputAuthority.blockers = [
+    'production-authority-evaluation-awaiting-explicit-promotion',
+    'production-authority-promotion-evidence-missing',
+  ];
   let outputReport = await validateSignedRevocationAuthorityQualification(
     outputPolicy,
     { repoRoot, now }
@@ -275,6 +305,7 @@ export async function recordSignedRevocationAuthorityEvaluation(options) {
   const authorityReport = outputReport.authorities.find((entry) => entry.id === authority.id);
   outputAuthority.blockers = Array.from(new Set([
     'production-authority-evaluation-awaiting-explicit-promotion',
+    'production-authority-promotion-evidence-missing',
     ...authorityReport.qualificationReasons.filter((reason) => !REVIEW_REASONS.has(reason)),
   ]));
   outputReport = await validateSignedRevocationAuthorityQualification(outputPolicy, { repoRoot, now });
@@ -286,6 +317,8 @@ export async function recordSignedRevocationAuthorityEvaluation(options) {
     lifecycle: outputAuthority.lifecycle,
     authorityId: outputAuthority.deployment.authorityId,
     endpointUrl: outputAuthority.deployment.endpointUrl,
+    harnessRevision: outputAuthority.harnessRevision,
+    environmentFingerprint: outputAuthority.environmentFingerprint,
     claimAllowed: false,
     blockers: outputAuthority.blockers,
   };
