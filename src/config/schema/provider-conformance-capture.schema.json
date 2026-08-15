@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/provider-conformance-capture-v1.schema.json",
+  "title": "Doppler Provider Conformance Capture v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "suiteId",
+    "laneId",
+    "implementationId",
+    "environmentFingerprint",
+    "operations",
+    "lifecycle",
+    "correctness",
+    "qualifiedAtUtc",
+    "expiresAtUtc",
+    "evidence"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.provider-conformance-capture/v1" },
+    "suiteId": { "$ref": "#/$defs/id" },
+    "laneId": { "$ref": "#/$defs/id" },
+    "implementationId": { "type": "string", "minLength": 1 },
+    "environmentFingerprint": { "$ref": "#/$defs/sha256" },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["load", "execute", "unload"],
+      "properties": {
+        "load": { "$ref": "#/$defs/lifecycleResult" },
+        "execute": { "$ref": "#/$defs/lifecycleResult" },
+        "unload": { "$ref": "#/$defs/lifecycleResult" }
+      }
+    },
+    "correctness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "passed"],
+      "properties": {
+        "class": {
+          "enum": [
+            "exact-token",
+            "tolerance-bounded-numerical",
+            "semantic",
+            "held-out-task-metric"
+          ]
+        },
+        "passed": { "type": "boolean" }
+      }
+    },
+    "qualifiedAtUtc": { "type": "string", "format": "date-time" },
+    "expiresAtUtc": { "type": "string", "format": "date-time" },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "modelContract",
+        "resolutionIdentity",
+        "operations",
+        "lifecycle",
+        "correctness",
+        "providerReceipt"
+      ],
+      "properties": {
+        "modelContract": { "$ref": "#/$defs/repoPath" },
+        "resolutionIdentity": { "$ref": "#/$defs/repoPath" },
+        "operations": { "$ref": "#/$defs/repoPath" },
+        "lifecycle": { "$ref": "#/$defs/repoPath" },
+        "correctness": { "$ref": "#/$defs/repoPath" },
+        "providerReceipt": { "$ref": "#/$defs/repoPath" }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "lifecycleResult": { "enum": ["passed", "failed", "not-run"] },
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          { "pattern": "^/" },
+          { "pattern": "\\\\" },
+          { "pattern": "(^|/)\\.\\.(/|$)" }
+        ]
+      }
+    }
+  }
+}

@@ -726,8 +726,11 @@
             "docs/integration/program-bundle.md",
             "tools/policies/provider-conformance.json",
             "tools/check-provider-conformance.js",
+            "tools/record-provider-conformance.js",
+            "src/config/schema/provider-conformance-capture.schema.json",
             "src/tooling/program-bundle-parity.js",
-            "tests/config/provider-conformance.test.js"
+            "tests/config/provider-conformance.test.js",
+            "tests/tooling/record-provider-conformance.test.js"
           ],
           "blockers": [
             "provider-conformance-receipts-missing"
@@ -855,7 +858,10 @@
       "evidencePaths": [
         "docs/provider-conformance.md",
         "tools/policies/provider-conformance.json",
-        "tools/check-provider-conformance.js"
+        "tools/check-provider-conformance.js",
+        "tools/record-provider-conformance.js",
+        "src/config/schema/provider-conformance-capture.schema.json",
+        "tests/tooling/record-provider-conformance.test.js"
       ]
     },
     {
