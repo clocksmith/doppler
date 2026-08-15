@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/product-integration-evidence-v1.schema.json",
+  "title": "Doppler Product Integration Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "evidenceClass",
+    "integrationId",
+    "applicationName",
+    "workload",
+    "owner",
+    "applicationRevision",
+    "harnessRevision",
+    "environmentFingerprint",
+    "logicalModelId",
+    "resolvedArtifactVariantId",
+    "resolvedExecutionId",
+    "capturedAtUtc",
+    "result",
+    "observations"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.product-integration-evidence/v1" },
+    "evidenceClass": {
+      "enum": [
+        "installToFirstVerifiedOutput",
+        "sourceTaskQualityRetention",
+        "reliability",
+        "memory",
+        "coldWarmResponse",
+        "browserHardwareQualification",
+        "incumbentControl",
+        "upgradeRequalification",
+        "rollbackRevocation"
+      ]
+    },
+    "integrationId": { "$ref": "#/$defs/id" },
+    "applicationName": { "type": "string", "minLength": 1 },
+    "workload": { "enum": ["generation", "embedding-retrieval", "reranking"] },
+    "owner": { "type": "string", "minLength": 1 },
+    "applicationRevision": { "$ref": "#/$defs/revision" },
+    "harnessRevision": { "$ref": "#/$defs/revision" },
+    "environmentFingerprint": { "$ref": "#/$defs/sha256" },
+    "logicalModelId": { "type": "string", "minLength": 1 },
+    "resolvedArtifactVariantId": { "$ref": "#/$defs/sha256" },
+    "resolvedExecutionId": { "$ref": "#/$defs/sha256" },
+    "capturedAtUtc": { "type": "string", "format": "date-time" },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed"],
+      "properties": { "passed": { "type": "boolean" } }
+    },
+    "observations": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "evidenceClass": { "const": "installToFirstVerifiedOutput" } } },
+      "then": { "properties": { "observations": { "$ref": "#/$defs/install" } } }
+    },
+    {
+      "if": { "properties": { "evidenceClass": { "const": "sourceTaskQualityRetention" } } },
+      "then": { "properties": { "observations": { "$ref": "#/$defs/quality" } } }
+    },
+    {
+      "if": { "properties": { "evidenceClass": { "const": "reliability" } } },
+      "then": { "properties": { "observations": { "$ref": "#/$defs/reliability" } } }
+    },
+    {
+      "if": { "properties": { "evidenceClass": { "const": "memory" } } },
+      "then": { "properties": { "observations": { "$ref": "#/$defs/memory" } } }
+    },
+    {
+      "if": { "properties": { "evidenceClass": { "const": "coldWarmResponse" } } },
+      "then": { "properties": { "observations": { "$ref": "#/$defs/coldWarm" } } }
+    },
+    {
+      "if": { "properties": { "evidenceClass": { "const": "browserHardwareQualification" } } },
+      "then": { "properties": { "observations": { "$ref": "#/$defs/browserHardware" } } }
+    },
+    {
+      "if": { "properties": { "evidenceClass": { "const": "incumbentControl" } } },
+      "then": { "properties": { "observations": { "$ref": "#/$defs/incumbent" } } }
+    },
+    {
+      "if": { "properties": { "evidenceClass": { "const": "upgradeRequalification" } } },
+      "then": { "properties": { "observations": { "$ref": "#/$defs/upgrade" } } }
+    },
+    {
+      "if": { "properties": { "evidenceClass": { "const": "rollbackRevocation" } } },
+      "then": { "properties": { "observations": { "$ref": "#/$defs/rollback" } } }
+    }
+  ],
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "nonNegativeNumber": { "type": "number", "minimum": 0 },
+    "nonNegativeInteger": { "type": "integer", "minimum": 0 },
+    "positiveInteger": { "type": "integer", "minimum": 1 },
+    "targetList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "install": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface", "installSucceeded", "firstVerifiedOutputMs", "maximumFirstVerifiedOutputMs"],
+      "properties": {
+        "surface": { "type": "string", "minLength": 1 },
+        "installSucceeded": { "type": "boolean" },
+        "firstVerifiedOutputMs": { "$ref": "#/$defs/nonNegativeNumber" },
+        "maximumFirstVerifiedOutputMs": { "$ref": "#/$defs/nonNegativeNumber" }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceScore", "dopplerScore", "retentionRatio", "minimumRetentionRatio"],
+      "properties": {
+        "sourceScore": { "type": "number", "exclusiveMinimum": 0 },
+        "dopplerScore": { "$ref": "#/$defs/nonNegativeNumber" },
+        "retentionRatio": { "$ref": "#/$defs/nonNegativeNumber" },
+        "minimumRetentionRatio": { "$ref": "#/$defs/nonNegativeNumber" }
+      }
+    },
+    "reliability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attempts",
+        "successes",
+        "minimumSuccessRate",
+        "crashes",
+        "maximumCrashes",
+        "ooms",
+        "maximumOoms",
+        "deviceLosses",
+        "maximumDeviceLosses"
+      ],
+      "properties": {
+        "attempts": { "$ref": "#/$defs/positiveInteger" },
+        "successes": { "$ref": "#/$defs/nonNegativeInteger" },
+        "minimumSuccessRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "crashes": { "$ref": "#/$defs/nonNegativeInteger" },
+        "maximumCrashes": { "$ref": "#/$defs/nonNegativeInteger" },
+        "ooms": { "$ref": "#/$defs/nonNegativeInteger" },
+        "maximumOoms": { "$ref": "#/$defs/nonNegativeInteger" },
+        "deviceLosses": { "$ref": "#/$defs/nonNegativeInteger" },
+        "maximumDeviceLosses": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["peakBytes", "budgetBytes"],
+      "properties": {
+        "peakBytes": { "$ref": "#/$defs/nonNegativeInteger" },
+        "budgetBytes": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "coldWarm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sampleCount",
+        "coldP50Ms",
+        "coldP95Ms",
+        "coldP95LimitMs",
+        "warmP50Ms",
+        "warmP95Ms",
+        "warmP95LimitMs"
+      ],
+      "properties": {
+        "sampleCount": { "$ref": "#/$defs/positiveInteger" },
+        "coldP50Ms": { "$ref": "#/$defs/nonNegativeNumber" },
+        "coldP95Ms": { "$ref": "#/$defs/nonNegativeNumber" },
+        "coldP95LimitMs": { "$ref": "#/$defs/nonNegativeNumber" },
+        "warmP50Ms": { "$ref": "#/$defs/nonNegativeNumber" },
+        "warmP95Ms": { "$ref": "#/$defs/nonNegativeNumber" },
+        "warmP95LimitMs": { "$ref": "#/$defs/nonNegativeNumber" }
+      }
+    },
+    "browserHardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["qualifiedTargets", "failedTargets", "minimumQualifiedTargets"],
+      "properties": {
+        "qualifiedTargets": { "$ref": "#/$defs/targetList" },
+        "failedTargets": { "$ref": "#/$defs/targetList" },
+        "minimumQualifiedTargets": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "incumbent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "incumbentProviderId",
+        "incumbentArtifactId",
+        "comparisonReceiptDigest",
+        "incumbentAvailable",
+        "correctnessComparable"
+      ],
+      "properties": {
+        "incumbentProviderId": { "type": "string", "minLength": 1 },
+        "incumbentArtifactId": { "type": "string", "minLength": 1 },
+        "comparisonReceiptDigest": { "$ref": "#/$defs/sha256" },
+        "incumbentAvailable": { "type": "boolean" },
+        "correctnessComparable": { "type": "boolean" }
+      }
+    },
+    "upgrade": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fromVersion", "toVersion", "migrationSucceeded", "identityPreserved", "taskGatePassed"],
+      "properties": {
+        "fromVersion": { "type": "string", "minLength": 1 },
+        "toVersion": { "type": "string", "minLength": 1 },
+        "migrationSucceeded": { "type": "boolean" },
+        "identityPreserved": { "type": "boolean" },
+        "taskGatePassed": { "type": "boolean" }
+      }
+    },
+    "rollback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["knownSafeVersion", "rollbackSucceeded", "revocationObserved", "taskGatePassed"],
+      "properties": {
+        "knownSafeVersion": { "type": "string", "minLength": 1 },
+        "rollbackSucceeded": { "type": "boolean" },
+        "revocationObserved": { "type": "boolean" },
+        "taskGatePassed": { "type": "boolean" }
+      }
+    }
+  }
+}

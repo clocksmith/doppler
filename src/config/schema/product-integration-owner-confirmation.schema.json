@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/product-integration-owner-confirmation-v1.schema.json",
+  "title": "Doppler Product Integration Owner Confirmation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "integrationId",
+    "applicationName",
+    "workload",
+    "owner",
+    "ownerRepository",
+    "applicationRevision",
+    "confirmedAtUtc",
+    "maintenanceStatus",
+    "statement"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.product-integration-owner-confirmation/v1" },
+    "integrationId": { "$ref": "#/$defs/id" },
+    "applicationName": { "type": "string", "minLength": 1 },
+    "workload": { "enum": ["generation", "embedding-retrieval", "reranking"] },
+    "owner": { "type": "string", "minLength": 1 },
+    "ownerRepository": { "type": "string", "minLength": 1 },
+    "applicationRevision": { "$ref": "#/$defs/revision" },
+    "confirmedAtUtc": { "type": "string", "format": "date-time" },
+    "maintenanceStatus": { "enum": ["active", "inactive"] },
+    "statement": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+  }
+}
