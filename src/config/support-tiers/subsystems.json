@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "doppler",
-  "updatedAtUtc": "2026-04-13T00:00:00.000Z",
+  "updatedAtUtc": "2026-08-15T18:49:21.000Z",
   "subsystems": [
     {
       "id": "api.root-facade",
@@ -111,6 +111,29 @@
         "src/inference/pipelines/text/model-load.js"
       ],
       "notes": "Mainline runtime contract for verified browser and Node text generation workloads."
+    },
+    {
+      "id": "runtime.bun-webgpu",
+      "label": "Bun WebGPU host runtime",
+      "scope": "runtime",
+      "tier": "experimental",
+      "owner": "core-runtime",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": false,
+      "claimVisibility": "secondary",
+      "packageExport": null,
+      "command": null,
+      "docs": [
+        "docs/goals.md",
+        "docs/release-matrix.md",
+        "docs/status/bun-product-support-candidate-audit-2026-08-15.json"
+      ],
+      "entrypoints": [
+        "src/cli/doppler-cli.js",
+        "src/gpu/device.js"
+      ],
+      "notes": "Bun can execute the Node command surface with native WebGPU, but it remains experimental until the declared portfolio and product surfaces have current Bun-native qualification receipts."
     },
     {
       "id": "format.rdrr-runtime",

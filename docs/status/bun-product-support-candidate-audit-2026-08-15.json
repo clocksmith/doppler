@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "source": "doppler",
+  "auditedAtUtc": "2026-08-15T18:49:21.000Z",
+  "mode": "static-read-only",
+  "claimAllowed": false,
+  "claimBoundary": "This audit identifies the exact Bun product-support work. It did not run Bun, WebGPU, a model, a benchmark, or a browser and does not qualify any Bun capability.",
+  "currentState": {
+    "supportSubsystemId": "runtime.bun-webgpu",
+    "supportTier": "experimental",
+    "releaseEngineId": "doppler-bun",
+    "releaseEngineStatus": "experimental",
+    "benchmarkFeatures": {
+      "supported": 14,
+      "total": 21
+    },
+    "profilingFeatures": {
+      "supported": 0,
+      "total": 8
+    },
+    "harnessPath": "benchmarks/vendors/harnesses/doppler-bun.json",
+    "releaseMatrixPath": "benchmarks/vendors/release-matrix.json"
+  },
+  "historicalGenerationEvidence": [
+    {
+      "path": "benchmarks/vendors/results/compare_20260627T202736.json",
+      "workloadId": "p064-d064-t0-k1",
+      "correctness": "exact",
+      "dopplerDecodeTokensPerSec": 115.53,
+      "transformersjsDecodeTokensPerSec": 110.4381590166501
+    },
+    {
+      "path": "benchmarks/vendors/results/compare_20260627T203220.json",
+      "workloadId": "p256-d128-t0-k1",
+      "correctness": "exact",
+      "dopplerDecodeTokensPerSec": 108.39,
+      "transformersjsDecodeTokensPerSec": 109.93148758213273
+    },
+    {
+      "path": "benchmarks/vendors/results/compare_20260627T200603.json",
+      "workloadId": "p512-d128-t0-k1",
+      "correctness": "exact",
+      "dopplerDecodeTokensPerSec": 105.55,
+      "transformersjsDecodeTokensPerSec": 97.65625000304358
+    }
+  ],
+  "historicalEvidenceLimits": [
+    "Only gemma-3-270m-it-q4k-ehf16-af32 generation is covered.",
+    "Doppler used Bun as the executor for the Node command surface rather than a separately qualified Bun product surface.",
+    "The Transformers.js control ran through a Chromium user agent, so the comparisons are not Bun-to-Bun incumbent evidence.",
+    "The receipts predate the current generation, embedding, and reranking product portfolio candidates.",
+    "The receipts do not establish root API and CLI parity, unload lifecycle, OOM, device loss, comparable GPU memory, requalification, rollback, or revocation behavior."
+  ],
+  "qualificationCandidates": [
+    {
+      "workload": "generation",
+      "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "resolvedArtifactVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+      "correctnessClass": "exact-token"
+    },
+    {
+      "workload": "embedding",
+      "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "resolvedArtifactVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+      "correctnessClass": "held-out-task-metric"
+    },
+    {
+      "workload": "reranking",
+      "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "resolvedArtifactVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
+      "correctnessClass": "held-out-task-metric"
+    }
+  ],
+  "requiredEvidence": [
+    "Bun and WebGPU implementation identity",
+    "logical, artifact, and execution resolution identity",
+    "root API and CLI command conformance",
+    "load, execute, unload, and repeated-session lifecycle",
+    "workload-appropriate correctness and held-out task quality",
+    "cold and warm latency distributions",
+    "peak memory, OOM, device-loss, and crash behavior",
+    "Bun-native incumbent control or an explicit no-eligible-incumbent finding",
+    "upgrade and requalification",
+    "rollback and revocation propagation"
+  ],
+  "blockers": [
+    "bun-generation-product-receipt-missing",
+    "bun-embedding-product-receipt-missing",
+    "bun-reranking-product-receipt-missing",
+    "bun-surface-lifecycle-reliability-evidence-missing",
+    "bun-native-incumbent-control-missing",
+    "bun-requalification-rollback-revocation-evidence-missing"
+  ]
+}

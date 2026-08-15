@@ -3,12 +3,12 @@
 Auto-generated from `src/config/support-tiers/subsystems.json`.
 Run `npm run support:subsystems:sync` after editing the subsystem-tier registry.
 
-Updated at: 2026-04-13
+Updated at: 2026-08-15
 
 ## Summary
 
 - Tier 1 subsystems: 9
-- Experimental subsystems: 13
+- Experimental subsystems: 14
 - Internal-only subsystems: 2
 
 ## Tier Meanings
@@ -31,6 +31,7 @@ Updated at: 2026-04-13
 | RDRR artifact runtime | `secondary` | `tier1` | [docs/rdrr-format.md](rdrr-format.md), [docs/architecture.md](architecture.md), [src/formats/rdrr/manifest.js](../src/formats/rdrr/manifest.js) | Primary artifact format for the verified quickstart and hosted model path. |
 | Tooling subpath | `secondary` | `tier1` | [docs/api/tooling-experimental.md](api/tooling-experimental.md), [docs/api/advanced-root-exports.md](api/advanced-root-exports.md), [src/tooling-exports.js](../src/tooling-exports.js) | Supported advanced surface for the tier1 command contract, diagnostics, storage, and registry tooling. Some helper groups exported on the same subpath remain experimental and are classified separately below. |
 | LoRA hot-swap | `primary` | `experimental` | [README.md](../README.md), [docs/api/root.md](api/root.md), [src/experimental/adapters/lora-loader.js](../src/experimental/adapters/lora-loader.js) | User-visible adapter swap capability that remains outside the canonical quickstart and demo-default proof path. |
+| Bun WebGPU host runtime | `secondary` | `experimental` | [docs/goals.md](goals.md), [docs/release-matrix.md](release-matrix.md), [docs/status/bun-product-support-candidate-audit-2026-08-15.json](status/bun-product-support-candidate-audit-2026-08-15.json) | Bun can execute the Node command surface with native WebGPU, but it remains experimental until the declared portfolio and product surfaces have current Bun-native qualification receipts. |
 | Direct-source runtime inputs | `secondary` | `experimental` | [docs/rdrr-format.md](rdrr-format.md), [docs/architecture.md](architecture.md), [src/tooling/source-artifact-adapter.js](../src/tooling/source-artifact-adapter.js) | Available direct-source path for safetensors, gguf, .tflite, .task, and .litertlm inputs, but not part of the quickstart or canonical demo proof. |
 | Multi-model orchestration | `secondary` | `experimental` | [docs/architecture.md](architecture.md), [docs/api/orchestration.md](api/orchestration.md), [src/inference/multi-model-network.js](../src/inference/multi-model-network.js) | Available for advanced experimentation, but not part of the tier1 demo or quickstart contract. |
 | Orchestration subpath | `secondary` | `experimental` | [docs/api/orchestration.md](api/orchestration.md), [docs/api/advanced-root-exports.md](api/advanced-root-exports.md), [src/experimental/orchestration/index.js](../src/experimental/orchestration/index.js) | Mixed advanced surface for adapters, routers, heads, and multi-model helpers; available, but not part of the mainline proof story. |
@@ -54,6 +55,7 @@ Updated at: 2026-04-13
 | Subsystem | Scope | User-facing | Demo default | Exported | Anchors | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | LoRA hot-swap | `runtime` | yes | no | no | [README.md](../README.md), [docs/api/root.md](api/root.md), [src/experimental/adapters/lora-loader.js](../src/experimental/adapters/lora-loader.js) | User-visible adapter swap capability that remains outside the canonical quickstart and demo-default proof path. |
+| Bun WebGPU host runtime | `runtime` | yes | no | no | [docs/goals.md](goals.md), [docs/release-matrix.md](release-matrix.md), [docs/status/bun-product-support-candidate-audit-2026-08-15.json](status/bun-product-support-candidate-audit-2026-08-15.json) | Bun can execute the Node command surface with native WebGPU, but it remains experimental until the declared portfolio and product surfaces have current Bun-native qualification receipts. |
 | Direct-source runtime inputs | `format` | yes | no | no | [docs/rdrr-format.md](rdrr-format.md), [docs/architecture.md](architecture.md), [src/tooling/source-artifact-adapter.js](../src/tooling/source-artifact-adapter.js) | Available direct-source path for safetensors, gguf, .tflite, .task, and .litertlm inputs, but not part of the quickstart or canonical demo proof. |
 | Multi-model orchestration | `runtime` | yes | no | no | [docs/architecture.md](architecture.md), [docs/api/orchestration.md](api/orchestration.md), [src/inference/multi-model-network.js](../src/inference/multi-model-network.js) | Available for advanced experimentation, but not part of the tier1 demo or quickstart contract. |
 | Orchestration subpath | `api` | yes | no | yes | [docs/api/orchestration.md](api/orchestration.md), [docs/api/advanced-root-exports.md](api/advanced-root-exports.md), [src/experimental/orchestration/index.js](../src/experimental/orchestration/index.js) | Mixed advanced surface for adapters, routers, heads, and multi-model helpers; available, but not part of the mainline proof story. |
@@ -65,7 +67,7 @@ Updated at: 2026-04-13
 | Tooling operator commands | `api` | yes | no | yes | [docs/api/tooling.md](api/tooling.md), [src/tooling/node-command-runner.js](../src/tooling/node-command-runner.js), [src/experimental/training/index.js](../src/experimental/training/index.js) | Node-only `diagnose`, `lora`, and `distill` operator flows share the tooling contract surface, but they are still experimental research/operator lanes rather than tier1 product behavior. |
 | Tooling P2P helpers | `api` | yes | no | yes | [docs/api/tooling.md](api/tooling.md), [docs/api/advanced-root-exports.md](api/advanced-root-exports.md), [src/tooling-exports.shared.js](../src/tooling-exports.shared.js) | P2P and distribution helpers are exported on the dedicated tooling-experimental subpath for advanced tooling flows, but they remain outside the current tier1 local text inference story. |
 | Training and distillation surfaces | `runtime` | yes | no | no | [docs/training-handbook.md](training-handbook.md), [src/experimental/training/GUIDE.md](../src/experimental/training/GUIDE.md), [src/experimental/training/index.js](../src/experimental/training/index.js) | Repo-supported research and operator lane, including distillation workflows that are not exported by the SFT/LoRA training subpath. |
-| Training API subpath | `api` | yes | no | yes | [docs/api/training.md](api/training.md), [docs/training-handbook.md](training-handbook.md), [src/training.js](../src/training.js) | Public experimental SFT/LoRA library; browser-safe native primitives and the exact final Qwen 0.8B `down_proj` Q4K LoRA lane run in browser, Node, and Bun. Other packed-Q4K targets remain capability-gated. |
+| Training API subpath | `api` | yes | no | yes | [docs/api/training.md](api/training.md), [docs/training-handbook.md](training-handbook.md), [src/training.js](../src/training.js) | Public experimental SFT/LoRA library; native full-graph support is capability-gated and packed Q4K bases require an external trainer. |
 
 ## Internal-only Surfaces
 
