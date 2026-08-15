@@ -214,4 +214,46 @@ describe('buildProviderReceiptV1', () => {
     });
     assert.equal(receipt.diagnoseArtifactRef, null);
   });
+
+  it('binds and validates exact local resolution identities', () => {
+    const resolution = {
+      schema: 'doppler.resolution-identity/v1',
+      logicalModelId: 'qwen-logical',
+      resolvedArtifactVariantId: `sha256:${'a'.repeat(64)}`,
+      resolvedExecutionId: `sha256:${'b'.repeat(64)}`,
+    };
+    const receipt = buildProviderReceiptV1({
+      source: 'local',
+      policyMode: 'local-only',
+      resolution,
+      totalDurationMs: 100,
+    });
+    assert.equal(receipt.resolutionStatus, 'resolved');
+    assert.deepEqual(receipt.resolution, resolution);
+    assert.equal(receipt.resolutionUnavailableReason, null);
+    assert.throws(
+      () => buildProviderReceiptV1({
+        source: 'local',
+        policyMode: 'local-only',
+        resolution: { ...resolution, resolvedExecutionId: 'sha256:invalid' },
+        totalDurationMs: 100,
+      }),
+      /requires resolvedExecutionId as a SHA-256 digest/
+    );
+  });
+
+  it('marks opaque provider resolution unavailable instead of inventing identity', () => {
+    const receipt = buildProviderReceiptV1({
+      source: 'fallback',
+      policyMode: 'cloud-only',
+      resolutionUnavailableReason: 'external-provider-resolution-is-opaque',
+      totalDurationMs: 100,
+    });
+    assert.equal(receipt.resolutionStatus, 'unavailable');
+    assert.equal(receipt.resolution, null);
+    assert.equal(
+      receipt.resolutionUnavailableReason,
+      'external-provider-resolution-is-opaque'
+    );
+  });
 });

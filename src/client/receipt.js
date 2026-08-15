@@ -50,6 +50,9 @@
  * @property {number} totalDurationMs
  * @property {string} timestamp
  * @property {string|null} diagnoseArtifactRef
+ * @property {'resolved'|'unavailable'} resolutionStatus
+ * @property {{ schema: 'doppler.resolution-identity/v1', logicalModelId: string, resolvedArtifactVariantId: string, resolvedExecutionId: string }|null} resolution
+ * @property {string|null} resolutionUnavailableReason
  */
 
 function safeRandomUUID() {
@@ -79,6 +82,28 @@ function buildDeviceSnapshot(deviceInfo, kernelCapabilities, deviceEpoch) {
   };
 }
 
+function normalizeResolutionIdentity(resolution) {
+  if (resolution == null) return null;
+  const normalized = {
+    schema: String(resolution.schema || ''),
+    logicalModelId: String(resolution.logicalModelId || '').trim(),
+    resolvedArtifactVariantId: String(resolution.resolvedArtifactVariantId || '').toLowerCase(),
+    resolvedExecutionId: String(resolution.resolvedExecutionId || '').toLowerCase(),
+  };
+  if (normalized.schema !== 'doppler.resolution-identity/v1') {
+    throw new Error('Provider receipt resolution must use doppler.resolution-identity/v1.');
+  }
+  if (!normalized.logicalModelId) {
+    throw new Error('Provider receipt resolution requires logicalModelId.');
+  }
+  for (const field of ['resolvedArtifactVariantId', 'resolvedExecutionId']) {
+    if (!/^sha256:[0-9a-f]{64}$/.test(normalized[field])) {
+      throw new Error(`Provider receipt resolution requires ${field} as a SHA-256 digest.`);
+    }
+  }
+  return normalized;
+}
+
 /**
  * Build a structured v1 provider receipt.
  *
@@ -96,6 +121,8 @@ function buildDeviceSnapshot(deviceInfo, kernelCapabilities, deviceEpoch) {
  * @param {number|null} [params.fallbackDurationMs]
  * @param {number} params.totalDurationMs
  * @param {string|null} [params.diagnoseArtifactRef]
+ * @param {Object|null} [params.resolution]
+ * @param {string|null} [params.resolutionUnavailableReason]
  * @returns {ProviderReceiptV1}
  */
 export function buildProviderReceiptV1({
@@ -112,7 +139,10 @@ export function buildProviderReceiptV1({
   fallbackDurationMs = null,
   totalDurationMs,
   diagnoseArtifactRef = null,
+  resolution = null,
+  resolutionUnavailableReason = null,
 }) {
+  const resolvedIdentity = normalizeResolutionIdentity(resolution);
   return {
     receiptVersion: 'doppler_provider_receipt_v1',
     receiptId: safeRandomUUID(),
@@ -152,5 +182,10 @@ export function buildProviderReceiptV1({
     totalDurationMs: Number(totalDurationMs || 0),
     timestamp: new Date().toISOString(),
     diagnoseArtifactRef: diagnoseArtifactRef ? String(diagnoseArtifactRef) : null,
+    resolutionStatus: resolvedIdentity ? 'resolved' : 'unavailable',
+    resolution: resolvedIdentity,
+    resolutionUnavailableReason: resolvedIdentity
+      ? null
+      : String(resolutionUnavailableReason || 'not-provided'),
   };
 }

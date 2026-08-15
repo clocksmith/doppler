@@ -109,4 +109,34 @@ const providerCloudOnly = createDopplerProvider({
 });
 assert.equal(typeof providerCloudOnly.generate, 'function');
 
+const resolution = {
+  schema: 'doppler.resolution-identity/v1',
+  logicalModelId: 'fixture-logical',
+  resolvedArtifactVariantId: `sha256:${'a'.repeat(64)}`,
+  resolvedExecutionId: `sha256:${'b'.repeat(64)}`,
+};
+const providerWithEvidence = createDopplerProvider({
+  local: {
+    handle: {
+      loaded: true,
+      modelId: 'fixture-resolved',
+      resolvedArtifactVariantId: resolution.resolvedArtifactVariantId,
+      manifest: { modelId: 'fixture-resolved' },
+      deviceInfo: null,
+      async generateText() {
+        throw new Error('generateText must not replace evidence-backed generation');
+      },
+      async generateWithEvidence() {
+        return { outputText: 'evidence-backed', resolution };
+      },
+      async unload() {},
+    },
+  },
+  policy: { mode: 'local-only' },
+});
+const evidenceResult = await providerWithEvidence.generate('hello');
+assert.equal(evidenceResult.text, 'evidence-backed');
+assert.equal(evidenceResult.receipt.resolutionStatus, 'resolved');
+assert.deepEqual(evidenceResult.receipt.resolution, resolution);
+
 console.log('doppler-provider-contract.test: ok');
