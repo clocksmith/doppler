@@ -665,8 +665,14 @@
             "tools/policies/runtime-promotion-monitoring.json",
             "src/config/schema/runtime-promotion-monitoring.schema.json",
             "src/config/schema/runtime-promotion-observation-evidence.schema.json",
+            "src/config/schema/runtime-promotion-activation-evidence.schema.json",
+            "src/config/schema/runtime-promotion-decision-evidence.schema.json",
+            "src/config/schema/runtime-promotion-monitoring-capture.schema.json",
             "tools/check-runtime-promotion-monitoring.js",
-            "tests/tooling/runtime-promotion-monitoring.test.js"
+            "tools/record-runtime-promotion-monitoring.js",
+            "tools/lib/runtime-promotion-monitoring-evidence.js",
+            "tests/tooling/runtime-promotion-monitoring.test.js",
+            "tests/tooling/record-runtime-promotion-monitoring.test.js"
           ],
           "blockers": [
             "post-promotion-monitoring-receipts-missing"
@@ -817,8 +823,14 @@
         "docs/evidence-loop.md",
         "tools/policies/runtime-promotion-monitoring.json",
         "src/config/schema/runtime-promotion-observation-evidence.schema.json",
+        "src/config/schema/runtime-promotion-activation-evidence.schema.json",
+        "src/config/schema/runtime-promotion-decision-evidence.schema.json",
+        "src/config/schema/runtime-promotion-monitoring-capture.schema.json",
         "tools/check-runtime-promotion-monitoring.js",
-        "tests/tooling/runtime-promotion-monitoring.test.js"
+        "tools/record-runtime-promotion-monitoring.js",
+        "tools/lib/runtime-promotion-monitoring-evidence.js",
+        "tests/tooling/runtime-promotion-monitoring.test.js",
+        "tests/tooling/record-runtime-promotion-monitoring.test.js"
       ]
     },
     {

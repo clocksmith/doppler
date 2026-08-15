@@ -519,6 +519,10 @@ revoke outcome requires a matching active revocation record. The mechanism is
 implemented, and observation, rollback, and decision evidence is canonical-
 digest-bound rather than accepted by path existence alone. Exercised promotion
 coverage remains empty and non-claimable.
+Human activation and terminal retain or revoke decisions are separate semantic,
+digest-bound receipts tied to the candidate hash and exact scope.
+`npm run promotion:monitoring:record` derives a monitoring policy record from
+those receipts and observations without applying any runtime mutation.
 
 The report intentionally treats a row as complete only when it is claimable,
 has evidence paths, and declares an npm smoke command. Non-claimable rows must

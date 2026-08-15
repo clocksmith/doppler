@@ -261,6 +261,24 @@ binds every observation, rollback proof, and terminal-decision proof by its
 canonical JSON SHA-256, so retained values and pass flags cannot drift behind
 unchanged paths.
 
+Actual activation uses
+`doppler.runtime-promotion-activation-evidence/v1`; terminal retain or revoke
+uses `doppler.runtime-promotion-decision-evidence/v1`. Both name a human
+reviewer revision and bind the candidate hash and exact execution scope.
+Automation cannot substitute its own activation assertion or terminal outcome.
+
+`npm run promotion:monitoring:record -- --capture <capture.json> --out
+<candidate-policy.json>` materializes the monitoring record from an accepted
+optimization receipt, activation receipt, known-safe rollback evidence,
+observation receipt paths, and optional terminal-decision receipt. It derives
+candidate facts, hashes, scope, revocation conditions, observation digests, and
+decision fields. The default output is separate; `--apply` is explicit and
+`--replace` protects existing records. The recorder writes
+`runtimeMutationApplied: false` and never performs activation, rollback, or
+revocation itself. Replacement is monotonic: frozen activation, scope, plan,
+rollback, and accepted-candidate facts cannot change; prior observations cannot
+be removed or rewritten; and terminal decisions are immutable.
+
 `npm run promotion:monitoring:check` recomputes the decision. A frozen primary-
 metric degradation or any failed control or neighbor requires `revoke`; enough
 passing observations require `retain`; otherwise the record remains
