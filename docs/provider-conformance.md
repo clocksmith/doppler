@@ -40,6 +40,24 @@ execution path. The checker rejects a catalog variant name in either digest
 field. A candidate may name its intended manifest variant before execution, but
 its resolved digest remains null and blocked until current evidence captures it.
 
+## Recording a provider run
+
+`npm run provider:conformance:record -- --capture <capture.json> --out
+<candidate-policy.json>` joins a retained `doppler_provider_receipt_v1` to one
+declared suite and provider lane. The capture uses
+`src/config/schema/provider-conformance-capture.schema.json` and supplies the
+predeclared operations, correctness result, lifecycle result, environment
+fingerprint, dates, and evidence paths. The recorder derives both resolved SHA
+identities from the retained provider receipt; it does not accept operator-
+entered resolved identities.
+
+The default output is a separate policy for review. `--apply` is required to
+write the configured policy, and `--replace` is required to replace an existing
+lane result. Every recorded result remains `claimAllowed: false`, including a
+fully passing run. Failed and simulated runs remain visible with explicit
+blockers. Provider and suite promotion is a separate review action after the
+paired core-lane evidence is complete; recording never promotes either one.
+
 The accepted correctness classes are exact-token, tolerance-bounded numerical,
 semantic, and held-out task metric. The suite cannot weaken this class after a
 provider result is observed.

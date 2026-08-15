@@ -224,7 +224,9 @@ and the selected Node provider; Doe and other implementations are explicit
 named lanes. Qualification begins at an exact workload tuple and requires
 current operation, lifecycle, resolution-identity, environment, correctness,
 and provider-receipt evidence. Contract fixtures and Program Bundle parity do
-not constitute provider qualification. See `docs/provider-conformance.md`.
+not constitute provider qualification. `npm run provider:conformance:record`
+can join retained runtime evidence to a candidate lane, but deliberately cannot
+promote that lane or its suite. See `docs/provider-conformance.md`.
 
 ## Goal 3: Make correctness and performance evidence-backed
 
