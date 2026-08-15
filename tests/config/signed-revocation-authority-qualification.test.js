@@ -333,6 +333,26 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   assert.equal(report.gateSatisfied, false);
 }
 
+{
+  const staleEvidence = clone(policy);
+  const authority = staleEvidence.authorities[0];
+  qualifyAuthority(authority);
+  await populateEvidence(authority);
+  const receipt = authorityEvidence(authority, 'refreshCurrent', {
+    capturedAtUtc: '2025-01-01T00:00:00.000Z',
+  });
+  authority.evidence.refreshCurrent = await writeEvidence(
+    authority.evidence.refreshCurrent.path,
+    receipt
+  );
+  const report = await validateSignedRevocationAuthorityQualification(staleEvidence, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(report.authorities[0].qualificationReasons.includes('refreshCurrent-stale'));
+  assert.equal(report.gateSatisfied, false);
+}
+
 await fs.rm(TEST_ROOT, { recursive: true, force: true });
 
 console.log('signed-revocation-authority-qualification.test: ok');

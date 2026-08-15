@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/signed-revocation-authority-evaluation-capture-v1.schema.json",
+  "title": "Doppler Signed Revocation Authority Evaluation Capture v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "qualificationId",
+    "evaluatedAtUtc",
+    "expiresAtUtc",
+    "evidencePaths"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.signed-revocation-authority-evaluation-capture/v1" },
+    "qualificationId": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "evaluatedAtUtc": { "type": "string", "format": "date-time" },
+    "expiresAtUtc": { "type": "string", "format": "date-time" },
+    "evidencePaths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ownerConfirmation",
+        "endpointDeployment",
+        "packageTrustBinding",
+        "onlineKeyCustody",
+        "recoveryKeyCustody",
+        "custodySeparation",
+        "browserDurableState",
+        "nodeDurableState",
+        "refreshCurrent",
+        "onlineKeyRotation",
+        "exactReplay",
+        "rewrittenReplayRejection",
+        "sequenceRollbackRejection",
+        "epochRollbackRejection",
+        "offlineExpiry",
+        "compromiseRecovery",
+        "durableStoreRestart",
+        "loadedIdentityInvalidation",
+        "applicationFailClosed",
+        "requalification"
+      ],
+      "properties": {
+        "ownerConfirmation": { "$ref": "#/$defs/repoPath" },
+        "endpointDeployment": { "$ref": "#/$defs/repoPath" },
+        "packageTrustBinding": { "$ref": "#/$defs/repoPath" },
+        "onlineKeyCustody": { "$ref": "#/$defs/repoPath" },
+        "recoveryKeyCustody": { "$ref": "#/$defs/repoPath" },
+        "custodySeparation": { "$ref": "#/$defs/repoPath" },
+        "browserDurableState": { "$ref": "#/$defs/repoPath" },
+        "nodeDurableState": { "$ref": "#/$defs/repoPath" },
+        "refreshCurrent": { "$ref": "#/$defs/repoPath" },
+        "onlineKeyRotation": { "$ref": "#/$defs/repoPath" },
+        "exactReplay": { "$ref": "#/$defs/repoPath" },
+        "rewrittenReplayRejection": { "$ref": "#/$defs/repoPath" },
+        "sequenceRollbackRejection": { "$ref": "#/$defs/repoPath" },
+        "epochRollbackRejection": { "$ref": "#/$defs/repoPath" },
+        "offlineExpiry": { "$ref": "#/$defs/repoPath" },
+        "compromiseRecovery": { "$ref": "#/$defs/repoPath" },
+        "durableStoreRestart": { "$ref": "#/$defs/repoPath" },
+        "loadedIdentityInvalidation": { "$ref": "#/$defs/repoPath" },
+        "applicationFailClosed": { "$ref": "#/$defs/repoPath" },
+        "requalification": { "$ref": "#/$defs/repoPath" }
+      }
+    }
+  },
+  "$defs": {
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          { "pattern": "^/" },
+          { "pattern": "\\\\" },
+          { "pattern": "(^|/)\\.\\.(/|$)" }
+        ]
+      }
+    }
+  }
+}

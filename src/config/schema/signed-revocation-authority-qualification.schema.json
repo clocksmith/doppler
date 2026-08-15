@@ -11,6 +11,7 @@
     "goalId",
     "minimumQualifiedAuthorities",
     "ownerConfirmationMaxAgeDays",
+    "evidenceMaxAgeDays",
     "requiredHosts",
     "requiredDrills",
     "authorities"
@@ -24,6 +25,11 @@
     "goalId": { "const": "evidence-backed-correctness-performance" },
     "minimumQualifiedAuthorities": { "const": 1 },
     "ownerConfirmationMaxAgeDays": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365
+    },
+    "evidenceMaxAgeDays": {
       "type": "integer",
       "minimum": 1,
       "maximum": 365

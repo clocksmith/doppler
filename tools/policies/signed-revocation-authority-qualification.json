@@ -5,6 +5,7 @@
   "goalId": "evidence-backed-correctness-performance",
   "minimumQualifiedAuthorities": 1,
   "ownerConfirmationMaxAgeDays": 90,
+  "evidenceMaxAgeDays": 90,
   "requiredHosts": [
     "browser",
     "node"

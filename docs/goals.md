@@ -501,9 +501,13 @@ evidence for deployment, package trust, custody separation, durable-state
 behavior, every declared failure drill, application fail-closed behavior, and
 requalification. All ownership and operational evidence is class-specific,
 canonical-digest-bound JSON; the checker derives pass state and cross-checks
-deployment identity instead of accepting path existence. Its current candidate
+deployment identity instead of accepting path existence. Separate owner and
+operational-evidence age limits bound qualification expiry. Its current candidate
 deliberately leaves production facts null and `claimAllowed: false`; passing
 the structural check does not qualify the authority.
+`npm run revocations:authority:record` derives a candidate policy from retained
+receipt paths but always preserves candidate lifecycle and disables claims;
+recording evidence is not production activation.
 
 `tools/policies/runtime-promotion-monitoring.json` closes the control loop after
 a human promotion. `npm run promotion:monitoring:check` binds each promoted

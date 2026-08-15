@@ -168,7 +168,8 @@
     "runtime:ownership:record": "node tools/record-runtime-ownership-evaluation.js",
     "runtime:ownership:check": "node tools/check-runtime-ownership-decisions.js && node tools/run-node-tests.js tests/config/runtime-ownership-decisions.test.js tests/tooling/runtime-ownership-execution-evidence.test.js tests/tooling/record-runtime-ownership-evaluation.test.js",
     "revocations:check": "node tools/check-revocation-registry.js && node tools/run-node-tests.js tests/config/revocation-policy.test.js tests/config/quickstart-registry-sync.test.js tests/config/signed-revocation-updates.test.js",
-    "revocations:authority:check": "node tools/check-signed-revocation-authority-qualification.js && node tools/run-node-tests.js tests/config/signed-revocation-authority-qualification.test.js",
+    "revocations:authority:record": "node tools/record-signed-revocation-authority-evaluation.js",
+    "revocations:authority:check": "node tools/check-signed-revocation-authority-qualification.js && node tools/run-node-tests.js tests/config/signed-revocation-authority-qualification.test.js tests/tooling/record-signed-revocation-authority-evaluation.test.js",
     "runtime:identity:check": "node tools/run-node-tests.js tests/integration/doppler-generation-evidence.test.js tests/integration/doppler-rerank-evidence.test.js tests/integration/doppler-resolution-policy.test.js tests/integration/lora-loader-contract.test.js tests/integration/lora-activation-contract.test.js tests/integration/doppler-provider-contract.test.js tests/integration/doppler-serve-handler.test.js",
     "claims:evidence:check": "node tools/check-claim-evidence-contract.js",
     "policy:schemas:check": "node tools/check-policy-schema-registry.js"
