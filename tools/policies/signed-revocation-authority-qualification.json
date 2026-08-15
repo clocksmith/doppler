@@ -1,0 +1,76 @@
+{
+  "$schema": "../../src/config/schema/signed-revocation-authority-qualification.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "goalId": "evidence-backed-correctness-performance",
+  "minimumQualifiedAuthorities": 1,
+  "ownerConfirmationMaxAgeDays": 90,
+  "requiredHosts": [
+    "browser",
+    "node"
+  ],
+  "requiredDrills": [
+    "refresh-current",
+    "online-key-rotation",
+    "exact-replay",
+    "rewritten-replay-rejection",
+    "sequence-rollback-rejection",
+    "epoch-rollback-rejection",
+    "offline-expiry",
+    "compromise-recovery",
+    "durable-store-restart",
+    "loaded-identity-invalidation",
+    "application-fail-closed"
+  ],
+  "authorities": [
+    {
+      "id": "doppler-production-revocation-authority",
+      "lifecycle": "candidate",
+      "owner": "doppler-security",
+      "ownerConfirmedAtUtc": null,
+      "claimAllowed": false,
+      "deployment": {
+        "endpointUrl": null,
+        "authorityId": null,
+        "transportPolicy": "https-no-redirect",
+        "onlineKeyIds": [],
+        "recoveryKeyIds": [],
+        "durableStateStoreIds": {
+          "browser": null,
+          "node": null
+        }
+      },
+      "qualifiedAtUtc": null,
+      "expiresAtUtc": null,
+      "evidence": {
+        "endpointDeployment": null,
+        "packageTrustBinding": null,
+        "onlineKeyCustody": null,
+        "recoveryKeyCustody": null,
+        "custodySeparation": null,
+        "browserDurableState": null,
+        "nodeDurableState": null,
+        "refreshCurrent": null,
+        "onlineKeyRotation": null,
+        "exactReplay": null,
+        "rewrittenReplayRejection": null,
+        "sequenceRollbackRejection": null,
+        "epochRollbackRejection": null,
+        "offlineExpiry": null,
+        "compromiseRecovery": null,
+        "durableStoreRestart": null,
+        "loadedIdentityInvalidation": null,
+        "applicationFailClosed": null,
+        "requalification": null
+      },
+      "blockers": [
+        "production-endpoint-missing",
+        "package-trusted-production-keys-missing",
+        "independent-key-custody-missing",
+        "browser-and-node-durable-state-qualification-missing",
+        "operational-drill-receipts-missing",
+        "application-fail-closed-receipt-missing"
+      ]
+    }
+  ]
+}

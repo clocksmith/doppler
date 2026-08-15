@@ -700,6 +700,10 @@
             "src/client/runtime/index.js",
             "src/inference/pipelines/text/generator-helpers.js",
             "tests/config/signed-revocation-updates.test.js",
+            "tools/policies/signed-revocation-authority-qualification.json",
+            "src/config/schema/signed-revocation-authority-qualification.schema.json",
+            "tools/check-signed-revocation-authority-qualification.js",
+            "tests/config/signed-revocation-authority-qualification.test.js",
             "tools/render-product-readiness-report.js",
             "tests/tooling/product-readiness-report.test.js"
           ],
@@ -794,7 +798,7 @@
       "priority": 6,
       "owner": "doppler-security",
       "completionClass": "production-authority",
-      "statusCommand": "npm run revocations:check",
+      "statusCommand": "npm run revocations:authority:check",
       "description": "Doppler implements opt-in signed live updates, persistent sequence and epoch checks, online-key recovery, bounded offline state, and loaded-identity invalidation, but ships no qualified production authority, trusted production key custody, qualified durable store, or operational drill receipts.",
       "exitCriteria": "Deploy and qualify the signed revocation endpoint, bind package-trusted online and recovery key custody, qualify atomic durable state on supported hosts, and retain refresh, rotation, rollback, offline-expiry, and compromise-recovery receipts.",
       "evidencePaths": [
@@ -803,7 +807,10 @@
         "src/config/revocation-updates.js",
         "src/client/runtime/index.js",
         "src/inference/pipelines/text/generator-helpers.js",
-        "tests/config/signed-revocation-updates.test.js"
+        "tests/config/signed-revocation-updates.test.js",
+        "tools/policies/signed-revocation-authority-qualification.json",
+        "src/config/schema/signed-revocation-authority-qualification.schema.json",
+        "tools/check-signed-revocation-authority-qualification.js"
       ]
     },
     {

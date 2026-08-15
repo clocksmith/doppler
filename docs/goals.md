@@ -422,8 +422,9 @@ promotion-monitoring, and subsystem-support contracts into one markdown status
 report. Use
 `npm run product:readiness:report -- --json` when another tool needs the same
 status as machine-readable JSON. Revocation status separates the bundled
-package authority from signed-live mechanism availability and operational
-authority qualification; it must not collapse those distinct trust states.
+package authority from signed-live mechanism availability, qualification-
+contract validity, and operational authority qualification; it must not
+collapse those distinct trust states.
 `npm run product:readiness:check` keeps that projection in the default gate.
 
 `tools/policies/product-integration-qualification.json` is the source of truth
@@ -463,6 +464,17 @@ deny records, and loaded-identity invalidation. That mechanism does not make the
 wider product claim complete: Doppler ships no qualified production endpoint,
 package-trusted production key custody, qualified durable store, or retained
 rotation and compromise-recovery drill receipts.
+
+`tools/policies/signed-revocation-authority-qualification.json` is the source
+of truth for that production boundary. `npm run revocations:authority:check`
+requires one current, active authority binding an exact HTTPS endpoint,
+authority ID, disjoint online and recovery key IDs, browser and Node durable-
+state store identities, current security ownership, expiry, and repo-retained
+evidence for deployment, package trust, custody separation, durable-state
+behavior, every declared failure drill, application fail-closed behavior, and
+requalification. Its current candidate deliberately leaves production facts
+null and `claimAllowed: false`; passing the structural check does not qualify
+the authority.
 
 `tools/policies/runtime-promotion-monitoring.json` closes the control loop after
 a human promotion. `npm run promotion:monitoring:check` binds each promoted
