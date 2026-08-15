@@ -38,6 +38,15 @@ This runs:
 - `npm run support:inventory:check`
 - `npm run registry:hf:check`
 
+Model IDs and aliases are arguments to the single registry-driven command:
+
+```bash
+npm run verify -- qwen3-0.8b
+```
+
+`registry:sync:scripts:check` ensures `package.json` keeps that canonical command
+and does not regrow one npm script per catalog model or alias.
+
 To run only the hosted registry validation:
 
 ```bash
