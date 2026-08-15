@@ -30,8 +30,10 @@ One suite binds:
 
 Each provider result must identify its implementation and environment, pass
 load, execute, and unload lifecycle stages, pass the suite's correctness class,
-retain every required evidence path, and carry current qualification and expiry
-timestamps. A required provider failure makes the suite non-claimable.
+retain canonical-digest references for every required receipt, and carry current
+qualification and expiry timestamps. The checker recomputes each receipt digest,
+derives pass/fail from class-specific observations, and rejects an independently
+authored pass flag. A required provider failure makes the suite non-claimable.
 
 `manifestVariantId` is the catalog's stable named variant. It is not a byte
 identity. `resolvedArtifactVariantId` is the `sha256:` manifest identity emitted
@@ -45,18 +47,32 @@ its resolved digest remains null and blocked until current evidence captures it.
 `npm run provider:conformance:record -- --capture <capture.json> --out
 <candidate-policy.json>` joins a retained `doppler_provider_receipt_v1` to one
 declared suite and provider lane. The capture uses
-`src/config/schema/provider-conformance-capture.schema.json` and supplies the
-predeclared operations, correctness result, lifecycle result, environment
-fingerprint, dates, and evidence paths. The recorder derives both resolved SHA
-identities from the retained provider receipt; it does not accept operator-
-entered resolved identities.
+`src/config/schema/provider-conformance-capture.schema.json` and supplies only
+the suite, lane, dates, and retained evidence paths. The recorder derives
+resolved identities from the provider receipt and derives implementation,
+harness, environment, operation, lifecycle, and correctness state from the five
+semantic receipts. It does not accept operator-entered outcomes or identities.
+
+Every semantic receipt binds the exact suite, provider lane, workload, logical
+model, named manifest variant, resolved artifact and execution SHA-256 values,
+harness revision, environment fingerprint, and provider-receipt digest. The
+model-contract receipt binds tokenizer, execution-graph, and runtime-policy
+digests. Operation and lifecycle receipts expose observed work and repeated
+sessions. Correctness observations are class-specific: exact-token requires
+matching output digests and deterministic continuation; numerical evidence
+derives its result from an explicit tolerance; semantic and held-out evidence
+bind a frozen set, reference score, acceptance threshold, and maximum delta.
 
 The default output is a separate policy for review. `--apply` is required to
 write the configured policy, and `--replace` is required to replace an existing
 lane result. Every recorded result remains `claimAllowed: false`, including a
-fully passing run. Failed and simulated runs remain visible with explicit
-blockers. Provider and suite promotion is a separate review action after the
-paired core-lane evidence is complete; recording never promotes either one.
+fully passing run. A human provider-promotion receipt must bind the complete
+provider evidence-set digest. A second human suite-promotion receipt must bind
+the sorted set of required provider executions, evidence sets, promotions, and
+expiry dates. Changing any retained byte or provider binding invalidates the
+promotion. Recording never promotes either scope and cannot replace promoted
+state. Failed semantic gates remain visible as non-claimable candidates; failed
+or fallback execution receipts stay retained outside qualification state.
 
 The accepted correctness classes are exact-token, tolerance-bounded numerical,
 semantic, and held-out task metric. The suite cannot weaken this class after a
@@ -69,11 +85,11 @@ reranking across both core lanes. Adding Doe to a suite's
 `requiredProviderLaneIds` is permitted only as an explicit named requirement;
 it does not change the repository-wide core lanes.
 
-Fixture-based contract tests validate failure behavior only. Real qualification
-requires retained browser and Node receipts with exact artifact, execution,
-device, lifecycle, operation, and correctness evidence. Program Bundle parity
-remains a portability diagnostic and may be linked as supporting evidence, but
-it has no model-promotion or provider-support authority by itself.
+Fixture-based contract tests validate structure and failure behavior only. Real
+qualification requires retained browser and Node receipts with exact artifact,
+execution, device, lifecycle, operation, and correctness evidence. Program
+Bundle parity remains a portability diagnostic and may be linked as supporting
+evidence, but it has no model-promotion or provider-support authority by itself.
 
 Provider conformance begins at an exact tuple. Wider hardware, shape, model, or
 family scope requires separate aggregate evidence; the checker never promotes a

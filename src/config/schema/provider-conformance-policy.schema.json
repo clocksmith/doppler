@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://clocksmith.dev/doppler/schemas/provider-conformance-policy-v2.schema.json",
-  "title": "Doppler Provider Conformance Policy v2",
+  "$id": "https://clocksmith.dev/doppler/schemas/provider-conformance-policy-v3.schema.json",
+  "title": "Doppler Provider Conformance Policy v3",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -20,7 +20,7 @@
   ],
   "properties": {
     "$schema": { "const": "../../src/config/schema/provider-conformance-policy.schema.json" },
-    "schemaVersion": { "const": 2 },
+    "schemaVersion": { "const": 3 },
     "source": { "const": "doppler" },
     "goalIds": {
       "const": ["model-artifact-runtime-contract", "correctness-performance-claims"]
@@ -37,7 +37,8 @@
         "operations",
         "lifecycle",
         "correctness",
-        "providerReceipt"
+        "providerReceipt",
+        "promotion"
       ]
     },
     "providerLanes": {
@@ -80,6 +81,28 @@
         { "type": "null" }
       ]
     },
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "digest"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "anyOf": [
+              { "pattern": "^/" },
+              { "pattern": "\\\\" },
+              { "pattern": "(^|/)\\.\\.(/|$)" }
+            ]
+          }
+        },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "nullableEvidenceReference": {
+      "anyOf": [{ "$ref": "#/$defs/evidenceReference" }, { "type": "null" }]
+    },
     "providerLane": {
       "type": "object",
       "additionalProperties": false,
@@ -100,15 +123,17 @@
         "operations",
         "lifecycle",
         "correctness",
-        "providerReceipt"
+        "providerReceipt",
+        "promotion"
       ],
       "properties": {
-        "modelContract": { "$ref": "#/$defs/nullableRepoPath" },
-        "resolutionIdentity": { "$ref": "#/$defs/nullableRepoPath" },
-        "operations": { "$ref": "#/$defs/nullableRepoPath" },
-        "lifecycle": { "$ref": "#/$defs/nullableRepoPath" },
-        "correctness": { "$ref": "#/$defs/nullableRepoPath" },
-        "providerReceipt": { "$ref": "#/$defs/nullableRepoPath" }
+        "modelContract": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "resolutionIdentity": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "operations": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "lifecycle": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "correctness": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "providerReceipt": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "promotion": { "$ref": "#/$defs/nullableEvidenceReference" }
       }
     },
     "provider": {
@@ -117,6 +142,7 @@
       "required": [
         "laneId",
         "implementationId",
+        "harnessRevision",
         "logicalModelId",
         "manifestVariantId",
         "resolvedArtifactVariantId",
@@ -134,11 +160,17 @@
       "properties": {
         "laneId": { "$ref": "#/$defs/id" },
         "implementationId": { "$ref": "#/$defs/nullableString" },
+        "harnessRevision": {
+          "anyOf": [
+            { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            { "type": "null" }
+          ]
+        },
         "logicalModelId": { "$ref": "#/$defs/nullableString" },
         "manifestVariantId": { "$ref": "#/$defs/nullableString" },
         "resolvedArtifactVariantId": { "$ref": "#/$defs/nullableSha256" },
         "resolvedExecutionId": { "$ref": "#/$defs/nullableSha256" },
-        "environmentFingerprint": { "$ref": "#/$defs/nullableString" },
+        "environmentFingerprint": { "$ref": "#/$defs/nullableSha256" },
         "operations": {
           "type": "array",
           "uniqueItems": true,
@@ -194,6 +226,7 @@
         "declaredOperations",
         "correctnessClass",
         "requiredProviderLaneIds",
+        "promotion",
         "claimAllowed",
         "providers",
         "blockers"
@@ -223,6 +256,7 @@
           "uniqueItems": true,
           "items": { "$ref": "#/$defs/id" }
         },
+        "promotion": { "$ref": "#/$defs/nullableEvidenceReference" },
         "claimAllowed": { "type": "boolean" },
         "providers": {
           "type": "array",

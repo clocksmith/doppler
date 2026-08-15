@@ -60,7 +60,10 @@ config/schema/product-integration-qualification.schema.json
 config/schema/program-bundle-json-schema.js
 config/schema/program-bundle.schema.json
 config/schema/provider-conformance-capture.schema.json
+config/schema/provider-conformance-evidence.schema.json
 config/schema/provider-conformance-policy.schema.json
+config/schema/provider-conformance-provider-promotion.schema.json
+config/schema/provider-conformance-suite-promotion.schema.json
 config/schema/revocation-registry.schema.json
 config/schema/runtime-promotion-activation-evidence.schema.json
 config/schema/runtime-promotion-decision-evidence.schema.json

@@ -4,25 +4,53 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { computeCanonicalJsonSha256 } from '../../tools/lib/canonical-json.js';
+import {
+  PROVIDER_CONFORMANCE_EVIDENCE_CLASSES,
+} from '../../tools/lib/provider-conformance-evidence.js';
 import {
   parseArgs,
   recordProviderConformanceCapture,
 } from '../../tools/record-provider-conformance.js';
 
 const SOURCE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const NOW = new Date('2026-08-15T13:00:00.000Z');
+const NOW = new Date('2026-08-16T00:00:00.000Z');
 const ARTIFACT_ID = `sha256:${'a'.repeat(64)}`;
 const EXECUTION_ID = `sha256:${'b'.repeat(64)}`;
 const ENVIRONMENT_ID = `sha256:${'c'.repeat(64)}`;
+const TOKENIZER_ID = `sha256:${'d'.repeat(64)}`;
+const GRAPH_ID = `sha256:${'e'.repeat(64)}`;
+const POLICY_ID = `sha256:${'f'.repeat(64)}`;
+const OUTPUT_ID = `sha256:${'1'.repeat(64)}`;
+const HARNESS_REVISION = '2'.repeat(40);
 
 async function writeJson(filePath, value) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
-async function writeText(filePath, value = 'fixture\n') {
+async function writeText(filePath) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, value, 'utf8');
+  await fs.writeFile(filePath, 'fixture\n', 'utf8');
+}
+
+function capture(overrides = {}) {
+  return {
+    schema: 'doppler.provider-conformance-capture/v2',
+    suiteId: 'qwen35-generation-browser-node',
+    laneId: 'browser-webgpu',
+    qualifiedAtUtc: '2026-08-15T21:00:00.000Z',
+    expiresAtUtc: '2026-09-14T21:00:00.000Z',
+    evidence: {
+      modelContract: 'evidence/model-contract.json',
+      resolutionIdentity: 'evidence/resolution-identity.json',
+      operations: 'evidence/operations.json',
+      lifecycle: 'evidence/lifecycle.json',
+      correctness: 'evidence/correctness.json',
+      providerReceipt: 'evidence/provider-receipt.json',
+    },
+    ...overrides,
+  };
 }
 
 function providerReceipt(overrides = {}) {
@@ -30,27 +58,11 @@ function providerReceipt(overrides = {}) {
     receiptVersion: 'doppler_provider_receipt_v1',
     receiptId: 'provider-receipt-fixture',
     source: 'local',
-    policyMode: 'local-only',
-    policyId: null,
-    model: { id: 'qwen-fixture', hash: ARTIFACT_ID, fallbackId: null },
-    device: {
-      vendor: 'fixture-vendor',
-      architecture: 'fixture-architecture',
-      device: 'fixture-device',
-      description: 'fixture adapter',
-      hasF16: true,
-      hasSubgroups: false,
-      maxBufferSize: 4096,
-      submitProbeMs: 0.5,
-      deviceEpoch: 1,
-    },
+    model: { id: 'qwen-3-5-0-8b-q4k-ehaf16', hash: ARTIFACT_ID },
+    device: { vendor: 'fixture-vendor' },
     failure: null,
     fallbackDecision: null,
-    localDurationMs: 10,
-    fallbackDurationMs: null,
-    totalDurationMs: 10,
-    timestamp: '2026-08-15T12:00:00.000Z',
-    diagnoseArtifactRef: null,
+    timestamp: '2026-08-15T19:00:00.000Z',
     resolutionStatus: 'resolved',
     resolution: {
       schema: 'doppler.resolution-identity/v1',
@@ -58,31 +70,69 @@ function providerReceipt(overrides = {}) {
       resolvedArtifactVariantId: ARTIFACT_ID,
       resolvedExecutionId: EXECUTION_ID,
     },
-    resolutionUnavailableReason: null,
     ...overrides,
   };
 }
 
-function capture(overrides = {}) {
+function observationsFor(evidenceClass) {
   return {
-    schema: 'doppler.provider-conformance-capture/v1',
+    modelContract: {
+      manifestDigest: ARTIFACT_ID,
+      tokenizerDigest: TOKENIZER_ID,
+      executionGraphDigest: GRAPH_ID,
+      runtimePolicyDigest: POLICY_ID,
+      artifactValidated: true,
+      tokenizerIdentityMatched: true,
+      executionGraphIdentityMatched: true,
+      runtimePolicyExplicit: true,
+    },
+    resolutionIdentity: {
+      logicalModelResolved: true,
+      manifestVariantMatched: true,
+      artifactDigestMatched: true,
+      executionDigestMatched: true,
+      fallbackUsed: false,
+    },
+    operations: {
+      declaredOperations: ['prefill', 'decode'],
+      observedOperations: ['prefill', 'decode'],
+      unsupportedOperationUsed: false,
+    },
+    lifecycle: {
+      load: 'passed',
+      execute: 'passed',
+      unload: 'passed',
+      repeatedSessions: 5,
+      minimumRepeatedSessions: 3,
+    },
+    correctness: {
+      correctnessClass: 'exact-token',
+      referenceOutputDigest: OUTPUT_ID,
+      providerOutputDigest: OUTPUT_ID,
+      tokenParityPassed: true,
+      deterministicContinuationPassed: true,
+    },
+  }[evidenceClass];
+}
+
+function semanticReceipt(evidenceClass, receiptDigest, overrides = {}) {
+  return {
+    schema: 'doppler.provider-conformance-evidence/v1',
+    evidenceClass,
     suiteId: 'qwen35-generation-browser-node',
     laneId: 'browser-webgpu',
+    workload: 'generation',
+    logicalModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
+    manifestVariantId: 'qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1',
+    resolvedArtifactVariantId: ARTIFACT_ID,
+    resolvedExecutionId: EXECUTION_ID,
     implementationId: 'chromium-webgpu',
+    harnessRevision: HARNESS_REVISION,
     environmentFingerprint: ENVIRONMENT_ID,
-    operations: ['prefill', 'decode'],
-    lifecycle: { load: 'passed', execute: 'passed', unload: 'passed' },
-    correctness: { class: 'exact-token', passed: true },
-    qualifiedAtUtc: '2026-08-15T12:05:00.000Z',
-    expiresAtUtc: '2026-09-14T12:05:00.000Z',
-    evidence: {
-      modelContract: 'reports/model-contract.json',
-      resolutionIdentity: 'reports/resolution.json',
-      operations: 'reports/operations.json',
-      lifecycle: 'reports/lifecycle.json',
-      correctness: 'reports/correctness.json',
-      providerReceipt: 'reports/provider-receipt.json',
-    },
+    providerReceiptDigest: receiptDigest,
+    capturedAtUtc: '2026-08-15T20:00:00.000Z',
+    result: { passed: true },
+    observations: observationsFor(evidenceClass),
     ...overrides,
   };
 }
@@ -97,17 +147,21 @@ async function createFixture() {
   const capturePath = path.join(repoRoot, 'capture.json');
   const outputPolicyPath = path.join(repoRoot, 'provider-conformance.next.json');
   await writeJson(policyPath, policy);
-  for (const lane of policy.providerLanes) {
-    await writeText(path.join(repoRoot, lane.contractPath));
-  }
+  for (const lane of policy.providerLanes) await writeText(path.join(repoRoot, lane.contractPath));
   for (const suite of policy.suites) {
     await writeText(path.join(repoRoot, suite.workloadContractPath));
   }
-  for (const evidencePath of Object.values(capture().evidence)) {
-    await writeJson(path.join(repoRoot, evidencePath), { fixture: true });
+  const captureValue = capture();
+  const execution = providerReceipt();
+  const receiptDigest = computeCanonicalJsonSha256(execution);
+  await writeJson(path.join(repoRoot, captureValue.evidence.providerReceipt), execution);
+  for (const evidenceClass of PROVIDER_CONFORMANCE_EVIDENCE_CLASSES) {
+    await writeJson(
+      path.join(repoRoot, captureValue.evidence[evidenceClass]),
+      semanticReceipt(evidenceClass, receiptDigest)
+    );
   }
-  await writeJson(path.join(repoRoot, capture().evidence.providerReceipt), providerReceipt());
-  await writeJson(capturePath, capture());
+  await writeJson(capturePath, captureValue);
   return { repoRoot, policyPath, capturePath, outputPolicyPath };
 }
 
@@ -125,75 +179,70 @@ await withFixture(async (fixture) => {
   assert.equal(result.claimAllowed, false);
   assert.equal(result.positiveCapture, true);
   assert.equal(result.resolvedArtifactVariantId, ARTIFACT_ID);
+  assert.equal(result.resolvedExecutionId, EXECUTION_ID);
   const output = JSON.parse(await fs.readFile(fixture.outputPolicyPath, 'utf8'));
   const suite = output.suites.find((entry) => entry.id === capture().suiteId);
-  assert.equal(suite.resolvedArtifactVariantId, ARTIFACT_ID);
-  assert.equal(suite.providers.length, 1);
-  assert.equal(suite.providers[0].resolvedExecutionId, EXECUTION_ID);
-  assert.equal(suite.providers[0].claimAllowed, false);
-  assert.deepEqual(suite.providers[0].blockers, [
-    'provider-capture-awaiting-explicit-promotion',
-  ]);
-  assert.ok(!suite.blockers.includes('browser-provider-qualification-receipt-missing'));
-  assert.ok(suite.blockers.includes('browser-webgpu-provider-candidate-recorded-not-promoted'));
+  const provider = suite.providers[0];
+  assert.equal(provider.implementationId, 'chromium-webgpu');
+  assert.equal(provider.harnessRevision, HARNESS_REVISION);
+  assert.equal(provider.environmentFingerprint, ENVIRONMENT_ID);
+  assert.deepEqual(provider.operations, ['prefill', 'decode']);
+  assert.deepEqual(provider.lifecycle, { load: 'passed', execute: 'passed', unload: 'passed' });
+  assert.deepEqual(provider.correctness, { class: 'exact-token', passed: true });
+  assert.equal(provider.evidence.promotion, null);
+  assert.match(provider.evidence.modelContract.digest, /^sha256:[0-9a-f]{64}$/);
+  assert.ok(provider.blockers.includes('provider-promotion-evidence-missing'));
 });
 
 await withFixture(async (fixture) => {
-  const receiptPath = path.join(fixture.repoRoot, capture().evidence.providerReceipt);
-  const mismatched = providerReceipt({
-    resolution: {
-      ...providerReceipt().resolution,
-      logicalModelId: 'different-logical-model',
-    },
-  });
-  await writeJson(receiptPath, mismatched);
+  await writeJson(
+    path.join(fixture.repoRoot, capture().evidence.modelContract),
+    { fixture: true }
+  );
   await assert.rejects(
     () => recordProviderConformanceCapture({ ...fixture, now: NOW }),
-    /does not match suite/
+    /modelContract evidence is invalid.*schema is required/
   );
   await assert.rejects(() => fs.stat(fixture.outputPolicyPath));
 });
 
 await withFixture(async (fixture) => {
-  const receiptPath = path.join(fixture.repoRoot, capture().evidence.providerReceipt);
-  await writeJson(receiptPath, providerReceipt({
-    source: 'fallback',
-    fallbackDecision: { reason: 'fixture', eligible: true, executed: true, deniedReason: null },
+  const evidencePath = path.join(fixture.repoRoot, capture().evidence.lifecycle);
+  const receiptDigest = computeCanonicalJsonSha256(providerReceipt());
+  await writeJson(evidencePath, semanticReceipt('lifecycle', receiptDigest, {
+    environmentFingerprint: `sha256:${'9'.repeat(64)}`,
   }));
   await assert.rejects(
     () => recordProviderConformanceCapture({ ...fixture, now: NOW }),
-    /cannot record a fallback provider receipt/
+    /lifecycle evidence is invalid.*environmentFingerprint does not match/
   );
 });
 
 await withFixture(async (fixture) => {
-  const receiptPath = path.join(fixture.repoRoot, capture().evidence.providerReceipt);
-  await writeJson(receiptPath, providerReceipt({
-    failure: {
-      failureClass: 'gpu_device_lost',
-      failureCode: 'DOPPLER_GPU_DEVICE_LOST',
-      stage: 'load',
-      surface: 'webgpu',
-      device: null,
-      modelId: null,
-      runtimeProfile: null,
-      kernelPathId: null,
-      isSimulated: false,
-      message: 'fixture failure',
-    },
-    resolutionStatus: 'unavailable',
-    resolution: null,
-    resolutionUnavailableReason: 'load-failed-before-resolution',
-  }));
-  await writeJson(fixture.capturePath, capture({
-    lifecycle: { load: 'failed', execute: 'not-run', unload: 'passed' },
-    correctness: { class: 'exact-token', passed: false },
-  }));
+  const evidencePath = path.join(fixture.repoRoot, capture().evidence.lifecycle);
+  const receiptDigest = computeCanonicalJsonSha256(providerReceipt());
+  const receipt = semanticReceipt('lifecycle', receiptDigest);
+  receipt.observations.unload = 'failed';
+  receipt.result.passed = false;
+  await writeJson(evidencePath, receipt);
   const result = await recordProviderConformanceCapture({ ...fixture, now: NOW });
   assert.equal(result.positiveCapture, false);
-  assert.equal(result.resolvedArtifactVariantId, null);
-  assert.ok(result.blockers.includes('provider-receipt-recorded-failure'));
-  assert.ok(result.blockers.includes('resolution-identity-unavailable'));
+  assert.ok(result.blockers.includes('lifecycle-gate-failed'));
+  const output = JSON.parse(await fs.readFile(fixture.outputPolicyPath, 'utf8'));
+  assert.equal(output.suites[0].providers[0].lifecycle.unload, 'failed');
+});
+
+await withFixture(async (fixture) => {
+  const receiptPath = path.join(fixture.repoRoot, capture().evidence.providerReceipt);
+  const fallbackReceipt = providerReceipt({
+    source: 'fallback',
+    fallbackDecision: { executed: true },
+  });
+  await writeJson(receiptPath, fallbackReceipt);
+  await assert.rejects(
+    () => recordProviderConformanceCapture({ ...fixture, now: NOW }),
+    /not a passing local execution/
+  );
 });
 
 await withFixture(async (fixture) => {

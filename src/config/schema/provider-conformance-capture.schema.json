@@ -1,60 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://clocksmith.dev/doppler/schemas/provider-conformance-capture-v1.schema.json",
-  "title": "Doppler Provider Conformance Capture v1",
+  "$id": "https://clocksmith.dev/doppler/schemas/provider-conformance-capture-v2.schema.json",
+  "title": "Doppler Provider Conformance Capture v2",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema",
     "suiteId",
     "laneId",
-    "implementationId",
-    "environmentFingerprint",
-    "operations",
-    "lifecycle",
-    "correctness",
     "qualifiedAtUtc",
     "expiresAtUtc",
     "evidence"
   ],
   "properties": {
-    "schema": { "const": "doppler.provider-conformance-capture/v1" },
+    "schema": { "const": "doppler.provider-conformance-capture/v2" },
     "suiteId": { "$ref": "#/$defs/id" },
     "laneId": { "$ref": "#/$defs/id" },
-    "implementationId": { "type": "string", "minLength": 1 },
-    "environmentFingerprint": { "$ref": "#/$defs/sha256" },
-    "operations": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": { "type": "string", "minLength": 1 }
-    },
-    "lifecycle": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["load", "execute", "unload"],
-      "properties": {
-        "load": { "$ref": "#/$defs/lifecycleResult" },
-        "execute": { "$ref": "#/$defs/lifecycleResult" },
-        "unload": { "$ref": "#/$defs/lifecycleResult" }
-      }
-    },
-    "correctness": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["class", "passed"],
-      "properties": {
-        "class": {
-          "enum": [
-            "exact-token",
-            "tolerance-bounded-numerical",
-            "semantic",
-            "held-out-task-metric"
-          ]
-        },
-        "passed": { "type": "boolean" }
-      }
-    },
     "qualifiedAtUtc": { "type": "string", "format": "date-time" },
     "expiresAtUtc": { "type": "string", "format": "date-time" },
     "evidence": {

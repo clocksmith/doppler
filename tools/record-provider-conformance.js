@@ -6,23 +6,23 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { validateProviderConformancePolicy } from './check-provider-conformance.js';
+import { computeCanonicalJsonSha256 } from './lib/canonical-json.js';
+import {
+  PROVIDER_CONFORMANCE_EVIDENCE_CLASSES,
+  validateProviderConformanceEvidence,
+} from './lib/provider-conformance-evidence.js';
+import {
+  validateDopplerRuntimeOwnershipReceipt,
+} from './lib/runtime-ownership-execution-evidence.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'provider-conformance.json');
-const CAPTURE_SCHEMA = 'doppler.provider-conformance-capture/v1';
-const PROVIDER_RECEIPT_SCHEMA = 'doppler_provider_receipt_v1';
-const RESOLUTION_SCHEMA = 'doppler.resolution-identity/v1';
-const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
-const LIFECYCLE_STAGES = Object.freeze(['load', 'execute', 'unload']);
-const LIFECYCLE_RESULTS = new Set(['passed', 'failed', 'not-run']);
-const EVIDENCE_FIELDS = Object.freeze([
-  'modelContract',
-  'resolutionIdentity',
-  'operations',
-  'lifecycle',
-  'correctness',
+const CAPTURE_SCHEMA = 'doppler.provider-conformance-capture/v2';
+const CAPTURE_EVIDENCE_FIELDS = Object.freeze([
+  ...PROVIDER_CONFORMANCE_EVIDENCE_CLASSES,
   'providerReceipt',
 ]);
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -32,52 +32,31 @@ function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function assertExactKeys(value, expectedFields, label) {
+function exactKeys(value, fields, label) {
   if (!isPlainObject(value)) throw new Error(`${label} must be an object.`);
-  const expected = new Set(expectedFields);
-  const unsupported = Object.keys(value).filter((field) => !expected.has(field));
-  if (unsupported.length > 0) {
-    throw new Error(`${label} contains unsupported field ${unsupported[0]}.`);
-  }
-  const missing = expectedFields.filter((field) => !Object.hasOwn(value, field));
-  if (missing.length > 0) throw new Error(`${label}.${missing[0]} is required.`);
+  const expected = new Set(fields);
+  const unsupported = Object.keys(value).find((field) => !expected.has(field));
+  if (unsupported) throw new Error(`${label}.${unsupported} is not supported.`);
+  const missing = fields.find((field) => !Object.hasOwn(value, field));
+  if (missing) throw new Error(`${label}.${missing} is required.`);
 }
 
-function requireText(value, label) {
+function text(value, label) {
   const normalized = normalizeText(value);
   if (!normalized) throw new Error(`${label} must be a non-empty string.`);
   return normalized;
 }
 
-function requireSha256(value, label) {
-  const normalized = requireText(value, label).toLowerCase();
-  if (!SHA256_PATTERN.test(normalized)) throw new Error(`${label} must be a SHA-256 identity.`);
-  return normalized;
-}
-
-function parseIsoInstant(value, label) {
-  const normalized = requireText(value, label);
-  const instant = new Date(normalized);
-  if (!Number.isFinite(instant.getTime()) || instant.toISOString() !== normalized) {
+function instant(value, label) {
+  const normalized = text(value, label);
+  const parsed = new Date(normalized);
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString() !== normalized) {
     throw new Error(`${label} must be an ISO instant.`);
   }
-  return instant;
+  return parsed;
 }
 
-function sameMembers(left, right) {
-  return [...left].sort().join('\n') === [...right].sort().join('\n');
-}
-
-function requireStringArray(value, label) {
-  if (!Array.isArray(value) || value.length === 0) {
-    throw new Error(`${label} must be a non-empty array.`);
-  }
-  const values = value.map((entry, index) => requireText(entry, `${label}[${index}]`));
-  if (new Set(values).size !== values.length) throw new Error(`${label} must not contain duplicates.`);
-  return values;
-}
-
-function isRepoRelativePath(value) {
+function repoPath(value) {
   const normalized = normalizeText(value);
   return Boolean(
     normalized
@@ -85,17 +64,6 @@ function isRepoRelativePath(value) {
     && !normalized.includes('\\')
     && !normalized.split('/').includes('..')
   );
-}
-
-async function requireRepoPath(value, label, repoRoot) {
-  if (!isRepoRelativePath(value)) throw new Error(`${label} must be a repo-relative path.`);
-  const normalized = normalizeText(value);
-  try {
-    await fs.stat(path.join(repoRoot, normalized));
-  } catch {
-    throw new Error(`${label} does not exist: ${normalized}.`);
-  }
-  return normalized;
 }
 
 async function readJson(filePath, label) {
@@ -106,81 +74,15 @@ async function readJson(filePath, label) {
   }
 }
 
-function validateLifecycle(value) {
-  assertExactKeys(value, LIFECYCLE_STAGES, 'capture.lifecycle');
-  const lifecycle = {};
-  for (const stage of LIFECYCLE_STAGES) {
-    lifecycle[stage] = requireText(value[stage], `capture.lifecycle.${stage}`);
-    if (!LIFECYCLE_RESULTS.has(lifecycle[stage])) {
-      throw new Error(`capture.lifecycle.${stage} is not recognized.`);
-    }
-  }
-  return lifecycle;
-}
-
-function validateCorrectness(value, suite) {
-  assertExactKeys(value, ['class', 'passed'], 'capture.correctness');
-  const correctnessClass = requireText(value.class, 'capture.correctness.class');
-  if (correctnessClass !== suite.correctnessClass) {
-    throw new Error(
-      `capture.correctness.class must match suite ${suite.id}: ${suite.correctnessClass}.`
-    );
-  }
-  if (typeof value.passed !== 'boolean') {
-    throw new Error('capture.correctness.passed must be boolean.');
-  }
-  return { class: correctnessClass, passed: value.passed };
-}
-
-function validateResolution(receipt, suite, positiveCapture) {
-  if (receipt.resolutionStatus === 'unavailable') {
-    if (receipt.resolution !== null) {
-      throw new Error('Unavailable provider receipt resolution must be null.');
-    }
-    if (positiveCapture) {
-      throw new Error('Passing provider capture requires a resolved provider receipt identity.');
-    }
-    return null;
-  }
-  if (receipt.resolutionStatus !== 'resolved' || !isPlainObject(receipt.resolution)) {
-    throw new Error('Provider receipt resolutionStatus must be resolved or unavailable.');
-  }
-  const resolution = receipt.resolution;
-  if (resolution.schema !== RESOLUTION_SCHEMA) {
-    throw new Error(`Provider receipt resolution must use ${RESOLUTION_SCHEMA}.`);
-  }
-  const logicalModelId = requireText(
-    resolution.logicalModelId,
-    'provider receipt resolution.logicalModelId'
-  );
-  if (logicalModelId !== suite.logicalModelId) {
-    throw new Error(
-      `Provider receipt logicalModelId ${logicalModelId} does not match suite ${suite.logicalModelId}.`
-    );
-  }
+async function readEvidence(value, label, repoRoot) {
+  if (!repoPath(value)) throw new Error(`${label} must be a repo-relative path.`);
+  const evidencePath = normalizeText(value);
+  const receipt = await readJson(path.join(repoRoot, evidencePath), label);
   return {
-    logicalModelId,
-    resolvedArtifactVariantId: requireSha256(
-      resolution.resolvedArtifactVariantId,
-      'provider receipt resolution.resolvedArtifactVariantId'
-    ),
-    resolvedExecutionId: requireSha256(
-      resolution.resolvedExecutionId,
-      'provider receipt resolution.resolvedExecutionId'
-    ),
+    path: evidencePath,
+    digest: computeCanonicalJsonSha256(receipt),
+    receipt,
   };
-}
-
-function captureBlockers({ lifecycle, correctness, resolution, receipt }) {
-  const blockers = ['provider-capture-awaiting-explicit-promotion'];
-  for (const stage of LIFECYCLE_STAGES) {
-    if (lifecycle[stage] !== 'passed') blockers.push(`lifecycle-${stage}-not-passed`);
-  }
-  if (!correctness.passed) blockers.push('correctness-not-passed');
-  if (!resolution) blockers.push('resolution-identity-unavailable');
-  if (receipt.failure) blockers.push('provider-receipt-recorded-failure');
-  if (receipt.failure?.isSimulated === true) blockers.push('simulated-provider-receipt');
-  return blockers;
 }
 
 function updateSuiteBlockers(suite, laneId, hasResolution) {
@@ -198,15 +100,10 @@ function updateSuiteBlockers(suite, laneId, hasResolution) {
 
 async function validateCapture(capture, context) {
   const { repoRoot, suite, laneId, qualificationMaxAgeDays, now } = context;
-  assertExactKeys(capture, [
+  exactKeys(capture, [
     'schema',
     'suiteId',
     'laneId',
-    'implementationId',
-    'environmentFingerprint',
-    'operations',
-    'lifecycle',
-    'correctness',
     'qualifiedAtUtc',
     'expiresAtUtc',
     'evidence',
@@ -216,80 +113,94 @@ async function validateCapture(capture, context) {
   }
   if (capture.suiteId !== suite.id) throw new Error(`capture.suiteId must be ${suite.id}.`);
   if (capture.laneId !== laneId) throw new Error(`capture.laneId must be ${laneId}.`);
-  const implementationId = requireText(capture.implementationId, 'capture.implementationId');
-  const environmentFingerprint = requireSha256(
-    capture.environmentFingerprint,
-    'capture.environmentFingerprint'
-  );
-  const operations = requireStringArray(capture.operations, 'capture.operations');
-  if (!sameMembers(operations, suite.declaredOperations)) {
-    throw new Error(`capture.operations must match suite ${suite.id}.`);
-  }
-  const lifecycle = validateLifecycle(capture.lifecycle);
-  const correctness = validateCorrectness(capture.correctness, suite);
-  const qualifiedAt = parseIsoInstant(capture.qualifiedAtUtc, 'capture.qualifiedAtUtc');
-  const expiresAt = parseIsoInstant(capture.expiresAtUtc, 'capture.expiresAtUtc');
+  const qualifiedAt = instant(capture.qualifiedAtUtc, 'capture.qualifiedAtUtc');
+  const expiresAt = instant(capture.expiresAtUtc, 'capture.expiresAtUtc');
   if (qualifiedAt.getTime() > now.getTime()) {
     throw new Error('capture.qualifiedAtUtc must not be in the future.');
   }
   if (expiresAt.getTime() <= qualifiedAt.getTime()) {
-    throw new Error('capture.expiresAtUtc must be later than capture.qualifiedAtUtc.');
+    throw new Error('capture.expiresAtUtc must follow capture.qualifiedAtUtc.');
   }
-  const maxExpiry = qualifiedAt.getTime() + qualificationMaxAgeDays * 24 * 60 * 60 * 1000;
-  if (expiresAt.getTime() > maxExpiry) {
+  if (expiresAt.getTime() > qualifiedAt.getTime() + qualificationMaxAgeDays * DAY_MS) {
     throw new Error(`capture.expiresAtUtc exceeds the ${qualificationMaxAgeDays}-day policy limit.`);
   }
-  assertExactKeys(capture.evidence, EVIDENCE_FIELDS, 'capture.evidence');
+  exactKeys(capture.evidence, CAPTURE_EVIDENCE_FIELDS, 'capture.evidence');
   const evidence = {};
-  for (const field of EVIDENCE_FIELDS) {
-    evidence[field] = await requireRepoPath(
+  for (const field of CAPTURE_EVIDENCE_FIELDS) {
+    evidence[field] = await readEvidence(
       capture.evidence[field],
       `capture.evidence.${field}`,
       repoRoot
     );
   }
-  const receiptPath = path.join(repoRoot, evidence.providerReceipt);
-  const receipt = await readJson(receiptPath, 'provider receipt');
-  if (receipt.receiptVersion !== PROVIDER_RECEIPT_SCHEMA) {
-    throw new Error(`Provider receipt must use ${PROVIDER_RECEIPT_SCHEMA}.`);
+  const paths = Object.values(evidence).map((entry) => entry.path);
+  if (new Set(paths).size !== paths.length) {
+    throw new Error('Provider conformance evidence paths must be distinct.');
   }
-  requireText(receipt.receiptId, 'provider receipt receiptId');
-  requireText(receipt.policyMode, 'provider receipt policyMode');
-  if (!isPlainObject(receipt.model)) throw new Error('Provider receipt model must be an object.');
-  requireText(receipt.model.id, 'provider receipt model.id');
-  if (!Number.isFinite(receipt.totalDurationMs) || receipt.totalDurationMs < 0) {
-    throw new Error('Provider receipt totalDurationMs must be a non-negative number.');
+  const execution = validateDopplerRuntimeOwnershipReceipt(evidence.providerReceipt.receipt, {
+    logicalModelId: suite.logicalModelId,
+  });
+  if (execution.errors.length > 0 || execution.reasons.length > 0) {
+    throw new Error(
+      `Provider receipt is not a passing local execution: ${[
+        ...execution.errors,
+        ...execution.reasons,
+      ].join('; ')}`
+    );
   }
-  if (receipt.source !== 'local') {
-    throw new Error('Provider conformance cannot record a fallback provider receipt.');
+  if (!execution.resolution) {
+    throw new Error('Provider receipt must contain resolved artifact and execution identities.');
   }
-  if (receipt.fallbackDecision?.executed === true) {
-    throw new Error('Provider conformance cannot record a receipt that executed fallback.');
+  if (execution.timestamp?.getTime() > qualifiedAt.getTime()) {
+    throw new Error('capture.qualifiedAtUtc must not predate the provider receipt.');
   }
-  const receiptTimestamp = parseIsoInstant(receipt.timestamp, 'provider receipt timestamp');
-  if (receiptTimestamp.getTime() > qualifiedAt.getTime()) {
-    throw new Error('capture.qualifiedAtUtc must not precede the provider receipt timestamp.');
+  const firstSemantic = evidence[PROVIDER_CONFORMANCE_EVIDENCE_CLASSES[0]].receipt;
+  const identity = {
+    suiteId: suite.id,
+    laneId,
+    workload: suite.workload,
+    logicalModelId: suite.logicalModelId,
+    manifestVariantId: suite.manifestVariantId,
+    resolvedArtifactVariantId: execution.resolution.resolvedArtifactVariantId,
+    resolvedExecutionId: execution.resolution.resolvedExecutionId,
+    implementationId: firstSemantic.implementationId,
+    harnessRevision: firstSemantic.harnessRevision,
+    environmentFingerprint: firstSemantic.environmentFingerprint,
+    providerReceiptDigest: evidence.providerReceipt.digest,
+    declaredOperations: suite.declaredOperations,
+    correctnessClass: suite.correctnessClass,
+  };
+  const results = {};
+  const reasons = [];
+  const summaries = {};
+  for (const evidenceClass of PROVIDER_CONFORMANCE_EVIDENCE_CLASSES) {
+    const result = validateProviderConformanceEvidence(evidence[evidenceClass].receipt, {
+      ...identity,
+      evidenceClass,
+    });
+    if (result.errors.length > 0) {
+      throw new Error(`${evidenceClass} evidence is invalid: ${result.errors.join('; ')}`);
+    }
+    if (result.capturedAt?.getTime() > qualifiedAt.getTime()) {
+      throw new Error('capture.qualifiedAtUtc must not predate semantic provider evidence.');
+    }
+    results[evidenceClass] = result;
+    reasons.push(...result.reasons);
+    Object.assign(summaries, result.summary);
   }
-  const positiveCapture = LIFECYCLE_STAGES.every((stage) => lifecycle[stage] === 'passed')
-    && correctness.passed;
-  if (positiveCapture && receipt.failure !== null) {
-    throw new Error('Passing provider capture cannot reference a failed provider receipt.');
-  }
-  if (positiveCapture && !isPlainObject(receipt.device)) {
-    throw new Error('Passing provider capture requires a provider receipt device snapshot.');
-  }
-  const resolution = validateResolution(receipt, suite, positiveCapture);
   return {
-    implementationId,
-    environmentFingerprint,
-    operations,
-    lifecycle,
-    correctness,
+    ...identity,
     qualifiedAtUtc: qualifiedAt.toISOString(),
     expiresAtUtc: expiresAt.toISOString(),
-    evidence,
-    receipt,
-    resolution,
+    operations: summaries.operations,
+    lifecycle: summaries.lifecycle,
+    correctness: summaries.correctness,
+    positiveCapture: Object.values(results).every((result) => result.passed === true),
+    reasons: Array.from(new Set(reasons)),
+    evidence: Object.fromEntries(Object.entries(evidence).map(([field, entry]) => [
+      field,
+      { path: entry.path, digest: entry.digest },
+    ])),
   };
 }
 
@@ -307,8 +218,8 @@ async function writeJsonAtomically(filePath, value) {
 export async function recordProviderConformanceCapture(options) {
   const repoRoot = path.resolve(options.repoRoot || REPO_ROOT);
   const policyPath = path.resolve(options.policyPath || DEFAULT_POLICY_PATH);
-  const capturePath = path.resolve(requireText(options.capturePath, 'capturePath'));
-  const outputPolicyPath = path.resolve(requireText(options.outputPolicyPath, 'outputPolicyPath'));
+  const capturePath = path.resolve(text(options.capturePath, 'capturePath'));
+  const outputPolicyPath = path.resolve(text(options.outputPolicyPath, 'outputPolicyPath'));
   const now = options.now instanceof Date ? options.now : new Date();
   const policy = await readJson(policyPath, 'provider conformance policy');
   const existingReport = await validateProviderConformancePolicy(policy, { repoRoot, now });
@@ -325,7 +236,14 @@ export async function recordProviderConformanceCapture(options) {
   if (!suite.requiredProviderLaneIds.includes(laneId)) {
     throw new Error(`Provider lane ${laneId} is not required by suite ${suite.id}.`);
   }
+  if (suite.claimAllowed || suite.promotion) {
+    throw new Error(`Recorder cannot mutate promoted suite ${suite.id}.`);
+  }
   const existingIndex = suite.providers.findIndex((provider) => provider.laneId === laneId);
+  const existingProvider = existingIndex >= 0 ? suite.providers[existingIndex] : null;
+  if (existingProvider?.claimAllowed || existingProvider?.evidence?.promotion) {
+    throw new Error(`Recorder cannot replace promoted provider ${suite.id}/${laneId}.`);
+  }
   if (existingIndex >= 0 && options.replace !== true) {
     throw new Error(`Suite ${suite.id} already contains provider lane ${laneId}; use --replace.`);
   }
@@ -338,44 +256,45 @@ export async function recordProviderConformanceCapture(options) {
   });
   if (
     suite.resolvedArtifactVariantId
-    && validated.resolution?.resolvedArtifactVariantId
-    && suite.resolvedArtifactVariantId !== validated.resolution.resolvedArtifactVariantId
+    && suite.resolvedArtifactVariantId !== validated.resolvedArtifactVariantId
   ) {
     throw new Error(
-      `Capture artifact ${validated.resolution.resolvedArtifactVariantId} does not match suite `
+      `Capture artifact ${validated.resolvedArtifactVariantId} does not match suite `
       + `${suite.resolvedArtifactVariantId}.`
     );
   }
   const provider = {
     laneId,
     implementationId: validated.implementationId,
+    harnessRevision: validated.harnessRevision,
     logicalModelId: suite.logicalModelId,
     manifestVariantId: suite.manifestVariantId,
-    resolvedArtifactVariantId: validated.resolution?.resolvedArtifactVariantId ?? null,
-    resolvedExecutionId: validated.resolution?.resolvedExecutionId ?? null,
+    resolvedArtifactVariantId: validated.resolvedArtifactVariantId,
+    resolvedExecutionId: validated.resolvedExecutionId,
     environmentFingerprint: validated.environmentFingerprint,
     operations: validated.operations,
     lifecycle: validated.lifecycle,
     correctness: validated.correctness,
     qualifiedAtUtc: validated.qualifiedAtUtc,
     expiresAtUtc: validated.expiresAtUtc,
-    evidence: validated.evidence,
+    evidence: { ...validated.evidence, promotion: null },
     claimAllowed: false,
-    blockers: captureBlockers(validated),
+    blockers: Array.from(new Set([
+      'provider-capture-awaiting-explicit-promotion',
+      'provider-promotion-evidence-missing',
+      ...validated.reasons,
+    ])),
   };
   const outputPolicy = structuredClone(policy);
   const outputSuite = outputPolicy.suites.find((entry) => entry.id === suite.id);
-  if (!outputSuite.resolvedArtifactVariantId && validated.resolution?.resolvedArtifactVariantId) {
-    outputSuite.resolvedArtifactVariantId = validated.resolution.resolvedArtifactVariantId;
+  if (!outputSuite.resolvedArtifactVariantId) {
+    outputSuite.resolvedArtifactVariantId = validated.resolvedArtifactVariantId;
   }
   const outputIndex = outputSuite.providers.findIndex((entry) => entry.laneId === laneId);
   if (outputIndex >= 0) outputSuite.providers[outputIndex] = provider;
   else outputSuite.providers.push(provider);
-  outputSuite.blockers = updateSuiteBlockers(
-    outputSuite,
-    laneId,
-    Boolean(validated.resolution)
-  );
+  outputSuite.promotion = null;
+  outputSuite.blockers = updateSuiteBlockers(outputSuite, laneId, true);
   const outputReport = await validateProviderConformancePolicy(outputPolicy, { repoRoot, now });
   if (outputReport.errors.length > 0) {
     throw new Error(`Recorded provider conformance policy is invalid: ${outputReport.errors[0]}`);
@@ -387,10 +306,7 @@ export async function recordProviderConformanceCapture(options) {
     outputPolicyPath,
     resolvedArtifactVariantId: provider.resolvedArtifactVariantId,
     resolvedExecutionId: provider.resolvedExecutionId,
-    positiveCapture: validated.lifecycle.load === 'passed'
-      && validated.lifecycle.execute === 'passed'
-      && validated.lifecycle.unload === 'passed'
-      && validated.correctness.passed,
+    positiveCapture: validated.positiveCapture,
     claimAllowed: false,
     blockers: provider.blockers,
   };

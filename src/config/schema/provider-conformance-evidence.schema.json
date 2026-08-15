@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/provider-conformance-evidence-v1.schema.json",
+  "title": "Doppler Provider Conformance Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "evidenceClass",
+    "suiteId",
+    "laneId",
+    "workload",
+    "logicalModelId",
+    "manifestVariantId",
+    "resolvedArtifactVariantId",
+    "resolvedExecutionId",
+    "implementationId",
+    "harnessRevision",
+    "environmentFingerprint",
+    "providerReceiptDigest",
+    "capturedAtUtc",
+    "result",
+    "observations"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.provider-conformance-evidence/v1" },
+    "evidenceClass": {
+      "enum": [
+        "modelContract",
+        "resolutionIdentity",
+        "operations",
+        "lifecycle",
+        "correctness"
+      ]
+    },
+    "suiteId": { "$ref": "#/$defs/id" },
+    "laneId": { "$ref": "#/$defs/id" },
+    "workload": { "enum": ["generation", "embedding", "reranking"] },
+    "logicalModelId": { "type": "string", "minLength": 1 },
+    "manifestVariantId": { "type": "string", "minLength": 1 },
+    "resolvedArtifactVariantId": { "$ref": "#/$defs/sha256" },
+    "resolvedExecutionId": { "$ref": "#/$defs/sha256" },
+    "implementationId": { "type": "string", "minLength": 1 },
+    "harnessRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "environmentFingerprint": { "$ref": "#/$defs/sha256" },
+    "providerReceiptDigest": { "$ref": "#/$defs/sha256" },
+    "capturedAtUtc": { "type": "string", "format": "date-time" },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed"],
+      "properties": { "passed": { "type": "boolean" } }
+    },
+    "observations": { "type": "object", "minProperties": 1 }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}
