@@ -172,6 +172,8 @@ correctness path are comparable. Unsupported paths fail closed.
 
 ## Repository map
 
+- [Component charters](https://github.com/clocksmith/doppler/blob/main/CATSCAN.md) — recursive repository and subsystem intent
+- [Component index](https://github.com/clocksmith/doppler/blob/main/docs/component-index.md) — generated authority and parent map
 - [`src/`](src/) — runtime, model loading, inference, and execution contracts
 - [`demo/`](demo/) — browser demo and its public API boundary
 - [`models/adapters/`](models/adapters/) — adapter catalog and active LoRA metadata

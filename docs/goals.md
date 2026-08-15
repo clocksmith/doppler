@@ -376,6 +376,24 @@ The report intentionally treats a row as complete only when it is claimable,
 has evidence paths, and declares an npm smoke command. Non-claimable rows must
 name blocker codes and keep `smokeCommand` set to `null` so partial status is
 explicit instead of implied by prose.
+
+## Component intent contract
+
+The repository [CATSCAN charter](../CATSCAN.md) translates these durable goals
+into recursive component authority and invariants. A change inherits every
+`CATSCAN.md` from the repository root to its target directory; child charters
+may narrow but not contradict or broaden their parents.
+
+The [generated component index](component-index.md) is the navigation surface.
+`tools/policies/catscan-policy.json` owns the required charter inventory,
+fields, word ceiling, and index path. `npm run catscan:check` validates unique
+IDs, parent chains, local contract and evidence links, required sections, and
+index freshness. Semantic alignment remains a review responsibility rather
+than a claim the structural validator can prove.
+
+`AGENTS.md` owns discovery, precedence, boundary-change, and handoff behavior;
+it does not duplicate component goals.
+
 ## Policy schema registry
 
 `src/config/schema/policy-schema-registry.json` registers the contract policy

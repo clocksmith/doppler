@@ -233,6 +233,9 @@ async function validateCharter(record, context) {
   const authority = record.sections.get('Authority') ?? '';
   if (!/^- Owns\s+/m.test(authority)) errors.push(`${record.path}: Authority must declare an "Owns" bullet`);
   if (!/^- Does not own\s+/m.test(authority)) errors.push(`${record.path}: Authority must declare a "Does not own" bullet`);
+  const contracts = record.sections.get('Contracts') ?? '';
+  if (!/^- Input:\s+/m.test(contracts)) errors.push(`${record.path}: Contracts must declare an "Input" bullet`);
+  if (!/^- Output:\s+/m.test(contracts)) errors.push(`${record.path}: Contracts must declare an "Output" bullet`);
   const acceptance = record.sections.get('Acceptance') ?? '';
   if (!/^- Evidence:\s*\[[^\]]+\]\([^)]+\)/m.test(acceptance)) {
     errors.push(`${record.path}: Acceptance must contain a linked "Evidence" bullet`);
