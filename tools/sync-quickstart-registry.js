@@ -8,10 +8,15 @@ import {
   resolveModelTypeCluster,
   validateModelClassification,
 } from './lib/model-type-taxonomy.js';
+import {
+  findResolutionRevocation,
+  validateRevocationRegistry,
+} from '../src/config/revocation-policy.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
 const DEFAULT_OUTPUT_FILE = path.join(REPO_ROOT, 'src', 'client', 'doppler-registry.json');
+const DEFAULT_REVOCATION_FILE = path.join(REPO_ROOT, 'src', 'config', 'revocation-registry.json');
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -72,6 +77,7 @@ export function parseArgs(argv) {
     check: false,
     catalogFile: DEFAULT_CATALOG_FILE,
     outputFile: DEFAULT_OUTPUT_FILE,
+    revocationFile: DEFAULT_REVOCATION_FILE,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -94,6 +100,10 @@ export function parseArgs(argv) {
     }
     if (token === '--output-file') {
       args.outputFile = nextValue();
+      continue;
+    }
+    if (token === '--revocation-file') {
+      args.revocationFile = nextValue();
       continue;
     }
     throw new Error(`Unknown argument: ${token}`);
@@ -185,12 +195,20 @@ function toQuickstartEntry(entry) {
   };
 }
 
-export function buildQuickstartRegistryPayload(catalog) {
+export function buildQuickstartRegistryPayload(catalog, revocationRegistry) {
   if (!isPlainObject(catalog) || !Array.isArray(catalog.models)) {
     throw new Error('catalog payload must be an object with a models array');
   }
+  const revocations = validateRevocationRegistry(revocationRegistry);
   const models = catalog.models
     .filter((entry) => entry?.quickstart === true)
+    .filter((entry) => !findResolutionRevocation({
+      logicalModelId: entry.modelId,
+      modelId: entry.modelId,
+      sourceCheckpointId: entry.sourceCheckpointId,
+      weightPackId: entry.weightPackId,
+      manifestVariantId: entry.manifestVariantId,
+    }, revocations))
     .sort(compareCatalogEntries)
     .map(toQuickstartEntry);
 
@@ -204,8 +222,11 @@ export function buildQuickstartRegistryPayload(catalog) {
 
 export async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
-  const catalog = await readJson(args.catalogFile);
-  const nextPayload = buildQuickstartRegistryPayload(catalog);
+  const [catalog, revocationRegistry] = await Promise.all([
+    readJson(args.catalogFile),
+    readJson(args.revocationFile),
+  ]);
+  const nextPayload = buildQuickstartRegistryPayload(catalog, revocationRegistry);
   const nextText = `${JSON.stringify(nextPayload, null, 2)}\n`;
 
   if (args.check) {

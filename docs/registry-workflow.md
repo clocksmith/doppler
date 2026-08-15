@@ -12,6 +12,10 @@ Three surfaces, one direction:
 2. **`models/catalog.json`** (repo) — source of truth for repo-visible model registry metadata: labels, aliases, lifecycle, artifact identity, benchmark mapping, benchmark evidence citations, quickstart/demo visibility, and HF coordinates.
 3. **HF `clocksmith/rdrr`** — published subset generated from approved catalog entries and verified artifact directories.
 
+`src/config/revocation-registry.json` is a deny-only overlay on these surfaces.
+It can make a previously available identity unusable, but it cannot rewrite the
+artifact facts owned by the external volume or catalog.
+
 ```
 External volume scan → artifact-identity inventory (what's physically on disk)
 
@@ -37,6 +41,11 @@ This runs:
 - `npm run support:matrix:check`
 - `npm run support:inventory:check`
 - `npm run registry:hf:check`
+
+Run `npm run revocations:check` in the same release workflow. A matching
+revocation requires the catalog runtime lifecycle to be `revoked`, disables
+quickstart and demo visibility, and withdraws claimable downstream rows. See
+[Model and Artifact Revocation](revocation.md).
 
 Model IDs and aliases are arguments to the single registry-driven command:
 

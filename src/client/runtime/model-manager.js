@@ -18,6 +18,7 @@ import { DopplerCapabilities } from './types.js';
 import { GB, HEADER_READ_SIZE } from '../../config/schema/index.js';
 import { resolveBridgeSourceRuntimeBundle } from './source-runtime.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
+import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
 import {
   buildSourceArtifactFingerprint,
   createStoredSourceArtifactContext,
@@ -266,6 +267,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
   }
 
   try {
+    await assertBundledResolutionNotRevoked({ logicalModelId: modelId, modelId });
     log.info('DopplerProvider', `Loading model: ${modelId}`);
 
     let runtimeModel = null;
@@ -405,6 +407,14 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
       );
       runtimeModel = synthesizedRuntimeModel.manifest;
     }
+
+    await assertBundledResolutionNotRevoked({
+      logicalModelId: modelId,
+      modelId: runtimeModel.modelId ?? modelId,
+      sourceCheckpointId: runtimeModel.artifactIdentity?.sourceCheckpointId,
+      weightPackId: runtimeModel.artifactIdentity?.weightPackId,
+      manifestVariantId: runtimeModel.artifactIdentity?.manifestVariantId,
+    });
 
     try {
       const mc = extractTextModelConfig(runtimeModel);

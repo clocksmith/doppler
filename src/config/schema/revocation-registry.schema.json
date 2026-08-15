@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/revocation-registry.schema.json",
+  "title": "Doppler Revocation Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "updatedAtUtc",
+    "trust",
+    "revocations"
+  ],
+  "properties": {
+    "$schema": { "const": "schema/revocation-registry.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "source": { "const": "doppler" },
+    "updatedAtUtc": { "type": "string", "format": "date-time" },
+    "trust": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["distribution", "signatureVerification"],
+      "properties": {
+        "distribution": { "const": "bundled-package" },
+        "signatureVerification": { "const": "unavailable" }
+      }
+    },
+    "revocations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/revocation" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "uniqueStrings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/nonEmptyString" }
+    },
+    "uniqueHashes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/sha256" }
+    },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "logicalModelIds",
+        "modelIds",
+        "sourceCheckpointIds",
+        "weightPackIds",
+        "manifestVariantIds",
+        "artifactVariantIds"
+      ],
+      "properties": {
+        "logicalModelIds": { "$ref": "#/$defs/uniqueStrings" },
+        "modelIds": { "$ref": "#/$defs/uniqueStrings" },
+        "sourceCheckpointIds": { "$ref": "#/$defs/uniqueStrings" },
+        "weightPackIds": { "$ref": "#/$defs/uniqueStrings" },
+        "manifestVariantIds": { "$ref": "#/$defs/uniqueStrings" },
+        "artifactVariantIds": { "$ref": "#/$defs/uniqueHashes" }
+      }
+    },
+    "revocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "state",
+        "issuedAtUtc",
+        "severity",
+        "reason",
+        "targets",
+        "replacements",
+        "evidencePaths"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "state": { "const": "revoked" },
+        "issuedAtUtc": { "type": "string", "format": "date-time" },
+        "severity": {
+          "enum": ["correctness", "security", "reliability", "provenance", "policy"]
+        },
+        "reason": { "$ref": "#/$defs/nonEmptyString" },
+        "targets": {
+          "allOf": [
+            { "$ref": "#/$defs/targets" },
+            {
+              "anyOf": [
+                { "properties": { "logicalModelIds": { "minItems": 1 } } },
+                { "properties": { "modelIds": { "minItems": 1 } } },
+                { "properties": { "sourceCheckpointIds": { "minItems": 1 } } },
+                { "properties": { "weightPackIds": { "minItems": 1 } } },
+                { "properties": { "manifestVariantIds": { "minItems": 1 } } },
+                { "properties": { "artifactVariantIds": { "minItems": 1 } } }
+              ]
+            }
+          ]
+        },
+        "replacements": { "$ref": "#/$defs/targets" },
+        "evidencePaths": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        }
+      }
+    }
+  }
+}

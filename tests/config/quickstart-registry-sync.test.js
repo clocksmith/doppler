@@ -7,13 +7,50 @@ const catalog = JSON.parse(
 const quickstartRegistry = JSON.parse(
   await fs.readFile(new URL('../../src/client/doppler-registry.json', import.meta.url), 'utf8')
 );
+const revocationRegistry = JSON.parse(
+  await fs.readFile(new URL('../../src/config/revocation-registry.json', import.meta.url), 'utf8')
+);
 const { buildQuickstartRegistryPayload } = await import('../../tools/sync-quickstart-registry.js');
 
 assert.deepEqual(
   quickstartRegistry,
-  buildQuickstartRegistryPayload(catalog),
+  buildQuickstartRegistryPayload(catalog, revocationRegistry),
   'src/client/doppler-registry.json must be generated from models/catalog.json'
 );
+
+{
+  const revoked = structuredClone(revocationRegistry);
+  const modelId = quickstartRegistry.models[0].modelId;
+  revoked.revocations.push({
+    id: 'quickstart-filter-contract',
+    state: 'revoked',
+    issuedAtUtc: '2026-08-15T00:00:00.000Z',
+    severity: 'policy',
+    reason: 'Synthetic quickstart filtering contract.',
+    targets: {
+      logicalModelIds: [],
+      modelIds: [modelId],
+      sourceCheckpointIds: [],
+      weightPackIds: [],
+      manifestVariantIds: [],
+      artifactVariantIds: [],
+    },
+    replacements: {
+      logicalModelIds: [],
+      modelIds: [],
+      sourceCheckpointIds: [],
+      weightPackIds: [],
+      manifestVariantIds: [],
+      artifactVariantIds: [],
+    },
+    evidencePaths: ['docs/goals.md'],
+  });
+  assert.equal(
+    buildQuickstartRegistryPayload(catalog, revoked).models.some((entry) => entry.modelId === modelId),
+    false,
+    'revoked catalog models must be removed from generated quickstart resolution'
+  );
+}
 
 const catalogByModelId = new Map(
   (Array.isArray(catalog?.models) ? catalog.models : [])

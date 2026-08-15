@@ -1,5 +1,8 @@
 import { log } from '../../debug/index.js';
 import { getManifestUrl, parseManifest } from '../../formats/rdrr/index.js';
+import {
+  assertBundledResolutionNotRevoked,
+} from '../../config/revocation-policy.js';
 import { buildQuickstartModelBaseUrl, resolveQuickstartModel } from '../doppler-registry.js';
 
 export function createDefaultNodeLoadProgressLogger() {
@@ -196,16 +199,25 @@ export async function resolveModelSource(model) {
   if (registryId) {
     try {
       const entry = await resolveQuickstartModel(registryId);
+      const logicalModelId = normalizeText(model?.logicalModelId) || registryId;
+      await assertBundledResolutionNotRevoked({
+        logicalModelId,
+        modelId: entry.modelId,
+        sourceCheckpointId: entry.sourceCheckpointId,
+        weightPackId: entry.weightPackId,
+        manifestVariantId: entry.manifestVariantId,
+      });
       trace.push({ source: 'quickstart-registry', id: registryId, outcome: 'resolved' });
       log.debug('doppler', `Model resolved via quickstart-registry: ${entry.modelId}`, { trace });
       return {
-        logicalModelId: normalizeText(model?.logicalModelId) || registryId,
+        logicalModelId,
         modelId: entry.modelId,
         baseUrl: buildQuickstartModelBaseUrl(entry),
         manifest: null,
         trace,
       };
     } catch (registryError) {
+      if (registryError?.code === 'DOPPLER_REVOKED') throw registryError;
       trace.push({
         source: 'quickstart-registry',
         id: registryId,
@@ -215,10 +227,12 @@ export async function resolveModelSource(model) {
   }
 
   if (model && typeof model === 'object' && typeof model.url === 'string' && model.url.trim().length > 0) {
+    const logicalModelId = normalizeText(model.logicalModelId) || model.url.trim();
+    await assertBundledResolutionNotRevoked({ logicalModelId });
     trace.push({ source: 'url', id: model.url.trim(), outcome: 'resolved' });
     log.debug('doppler', `Model resolved via explicit url: ${model.url.trim()}`, { trace });
     return {
-      logicalModelId: normalizeText(model.logicalModelId) || model.url.trim(),
+      logicalModelId,
       modelId: model.url.trim(),
       baseUrl: model.url.trim(),
       manifest: null,
@@ -261,10 +275,19 @@ export async function resolveModelSource(model) {
     const modelId = typeof manifest.modelId === 'string' && manifest.modelId.length > 0
       ? manifest.modelId
       : 'manifest';
+    const logicalModelId = normalizeText(model.logicalModelId) || modelId;
+    await assertBundledResolutionNotRevoked({
+      logicalModelId,
+      modelId,
+      sourceCheckpointId: manifest.artifactIdentity?.sourceCheckpointId,
+      weightPackId: manifest.artifactIdentity?.weightPackId,
+      manifestVariantId: manifest.artifactIdentity?.manifestVariantId,
+      artifactVariantId: actualManifestHash,
+    });
     trace.push({ source: 'inline-manifest', id: modelId, outcome: 'resolved' });
     log.debug('doppler', `Model resolved via inline manifest: ${modelId}`, { trace });
     return {
-      logicalModelId: normalizeText(model.logicalModelId) || modelId,
+      logicalModelId,
       modelId,
       baseUrl: typeof model.baseUrl === 'string' && model.baseUrl.length > 0 ? model.baseUrl : null,
       manifest,
