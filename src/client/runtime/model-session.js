@@ -73,6 +73,7 @@ async function collectText(iterable) {
 const GENERATION_EVIDENCE_SCHEMA = 'doppler_generation_evidence/v1';
 const GENERATION_TRANSCRIPT_SCHEMA = 'doppler_generation_transcript/v1';
 const EMBEDDING_EVIDENCE_SCHEMA = 'doppler_embedding_evidence/v1';
+const RERANK_EVIDENCE_SCHEMA = 'doppler_rerank_evidence/v1';
 const RUNTIME_PROFILE_SCHEMA = 'doppler_runtime_profile/v1';
 const RESOLUTION_IDENTITY_SCHEMA = 'doppler.resolution-identity/v1';
 const EXECUTION_IDENTITY_SCHEMA = 'doppler.resolved-execution-identity/v1';
@@ -452,6 +453,83 @@ export function createModelHandle(pipeline, resolved) {
     });
   }
 
+  async function rerankWithEvidence(query, documents, options = {}) {
+    if (pipeline.manifest?.inference?.supportsRerank !== true) {
+      throw new Error('Loaded Doppler manifest does not declare rerank support.');
+    }
+    const normalizedQuery = String(query || '').trim();
+    if (!normalizedQuery) {
+      throw new Error('Doppler rerankWithEvidence requires a non-empty query.');
+    }
+    if (!Array.isArray(documents) || documents.length === 0) {
+      throw new Error('Doppler rerankWithEvidence requires a non-empty documents array.');
+    }
+    const normalizedDocuments = documents.map((document, index) => {
+      const text = String(document || '').trim();
+      if (!text) throw new Error(`Doppler rerank document ${index} must be non-empty.`);
+      return text;
+    });
+    const {
+      resolveRerankScoringConfig,
+      scoreRerankDocument,
+    } = await import('../../inference/rerank.js');
+    const scoringConfig = resolveRerankScoringConfig(pipeline);
+    const scores = [];
+    for (let index = 0; index < normalizedDocuments.length; index += 1) {
+      const scored = await scoreRerankDocument(
+        pipeline,
+        normalizedQuery,
+        normalizedDocuments[index],
+        scoringConfig,
+        { benchmark: options.benchmark === true }
+      );
+      scores.push({
+        index,
+        document: normalizedDocuments[index],
+        score: scored.score,
+        probability: scored.probability,
+        trueLogit: scored.trueLogit,
+        falseLogit: scored.falseLogit,
+        tokenCount: scored.tokenCount,
+        scoringPath: scored.scoringPath,
+      });
+    }
+    const ranking = [...scores]
+      .sort((left, right) => (right.score - left.score) || (left.index - right.index))
+      .map((entry, index) => ({ rank: index + 1, ...entry }));
+    const stats = pipeline.getStats?.() || null;
+    const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
+      ? pipeline.getKernelCapabilities()
+      : getKernelCapabilities();
+    const backendIdentity = buildGenerationBackendIdentity({
+      deviceInfo: kernelCapabilities?.adapterInfo || null,
+      kernelCapabilities,
+      stats,
+    });
+    const identity = await buildResolutionIdentity({
+      logicalModelId: resolved.logicalModelId ?? resolved.modelId,
+      modelId: resolved.modelId,
+      manifestHash: resolved.manifestHash || null,
+      resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
+      activeAdapter: getActiveLoRAForPipeline(pipeline),
+      backendIdentity,
+    });
+    return {
+      schema: RERANK_EVIDENCE_SCHEMA,
+      query: normalizedQuery,
+      documents: normalizedDocuments,
+      scores,
+      ranking,
+      inputHash: hashEvidenceValue({ query: normalizedQuery, documents: normalizedDocuments }),
+      outputHash: hashEvidenceValue({ scores, ranking }),
+      resolution: identity.resolution,
+      executionIdentity: identity.executionIdentity,
+      backendIdentity,
+      backendIdentityHash: hashEvidenceValue(backendIdentity),
+      stats: stats && typeof stats === 'object' ? stats : null,
+    };
+  }
+
   const handle = {
     generate(prompt, options = {}) {
       assertSupportedGenerationOptions(options);
@@ -490,6 +568,7 @@ export function createModelHandle(pipeline, resolved) {
     async embedBatch(prompts, options = {}) {
       return pipeline.embedBatch(prompts, options);
     },
+    rerankWithEvidence,
     async encodeSequence(sequence, options = {}) {
       return pipeline.encodeSequence(sequence, options);
     },
@@ -511,6 +590,9 @@ export function createModelHandle(pipeline, resolved) {
     get supportsEmbedding() {
       return pipeline.manifest?.modelType === 'embedding'
         || pipeline.manifest?.inference?.supportsEmbedding === true;
+    },
+    get supportsRerank() {
+      return pipeline.manifest?.inference?.supportsRerank === true;
     },
     get supportsSequence() {
       return pipeline.manifest?.inference?.supportsSequence === true;

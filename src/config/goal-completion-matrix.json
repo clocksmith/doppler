@@ -247,6 +247,29 @@
           "blockers": []
         },
         {
+          "id": "runtime-resolution-identities",
+          "label": "Exact logical, artifact variant, and execution identities",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": ".",
+          "smokeCommand": "npm run runtime:identity:check",
+          "evidencePaths": [
+            "docs/goals.md",
+            "docs/api/root.md",
+            "src/client/runtime/model-session.js",
+            "src/client/provider.js",
+            "src/cli/doppler-serve.js",
+            "tests/integration/doppler-generation-evidence.test.js",
+            "tests/integration/doppler-rerank-evidence.test.js",
+            "tests/integration/doppler-provider-contract.test.js",
+            "tests/integration/doppler-serve-handler.test.js"
+          ],
+          "blockers": []
+        },
+        {
           "id": "sharded-weights",
           "label": "Sharded weight loading",
           "tier": "tier1",

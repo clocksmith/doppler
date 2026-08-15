@@ -95,6 +95,7 @@ Returns a `DopplerModel` instance with:
 - `generateText(...)`
 - `generateWithEvidence(...)`
 - `embedWithEvidence(...)`
+- `rerankWithEvidence(query, documents, options?)`
 - `chat(...)`
 - `chatText(...)`
 - experimental `loadLoRA(...)`
@@ -242,6 +243,12 @@ Embedding handles expose `embedWithEvidence()`. Each returned
 and adds input/output hashes, the same exact resolution block, backend identity,
 and resolved execution identity. Non-finite embeddings and incomplete identity
 inputs fail closed.
+
+Rerank-capable manifests expose `rerankWithEvidence(query, documents)`. The
+runtime applies the manifest-owned scoring template and yes/no token contract,
+returns stable scores and rankings, hashes the exact query/documents and scored
+output, and attaches the shared resolution and backend identities. Models that
+do not explicitly declare `inference.supportsRerank` fail before scoring.
 
 ## Inspection contract
 
