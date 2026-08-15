@@ -118,7 +118,16 @@ const pipeline = {
     };
   },
   generate() {},
-  embed() {},
+  async embed(prompt) {
+    assert.equal(prompt, 'embedding input');
+    return {
+      embedding: new Float32Array([0.25, 0.75]),
+      tokens: [31, 32],
+      seqLen: 2,
+      embeddingMode: 'mean',
+      phase: null,
+    };
+  },
   embedBatch() {},
   embedImage() {},
   embedAudio() {},
@@ -197,6 +206,29 @@ assert.deepEqual(chatResponse.usage, {
   totalTokens: 5,
 });
 assert.equal(chatResponse.evidence.resolution.logicalModelId, 'qwen-logical');
+
+const embeddingEvidence = await handle.embedWithEvidence('embedding input');
+assert.equal(embeddingEvidence.schema, 'doppler_embedding_evidence/v1');
+assert.deepEqual(Array.from(embeddingEvidence.embedding), [0.25, 0.75]);
+assert.equal(embeddingEvidence.resolution.logicalModelId, 'qwen-logical');
+assert.equal(
+  embeddingEvidence.resolution.resolvedExecutionId,
+  await hashValue(embeddingEvidence.executionIdentity)
+);
+assert.equal(embeddingEvidence.executionIdentity.activeAdapter, null);
+assert.equal(
+  embeddingEvidence.inputHash,
+  await hashValue({ text: 'embedding input' })
+);
+assert.equal(
+  embeddingEvidence.outputHash,
+  await hashValue({
+    embedding: [0.25, 0.75],
+    tokens: [31, 32],
+    seqLen: 2,
+    embeddingMode: 'mean',
+  })
+);
 
 delete pipeline.runtimeConfig.inference.chatTemplate;
 pipeline.generateTokenIds = async (_prompt, options) => ({

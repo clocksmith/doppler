@@ -50,6 +50,25 @@ export interface DopplerGenerationBackendIdentity {
   activationDtype: string | null;
 }
 
+export interface DopplerResolutionIdentity {
+  schema: 'doppler.resolution-identity/v1';
+  logicalModelId: string;
+  resolvedArtifactVariantId: `sha256:${string}`;
+  resolvedExecutionId: `sha256:${string}`;
+}
+
+export interface DopplerResolvedExecutionIdentity {
+  schema: 'doppler.resolved-execution-identity/v1';
+  runtime: {
+    package: 'doppler-gpu';
+    version: string;
+    surface: 'node' | 'browser';
+  };
+  resolvedRuntimeSessionId: `sha256:${string}`;
+  activeAdapter: string | null;
+  backendIdentity: DopplerGenerationBackendIdentity;
+}
+
 export interface DopplerGenerationEvidence {
   schema: 'doppler_generation_evidence/v1';
   outputText: string;
@@ -62,22 +81,8 @@ export interface DopplerGenerationEvidence {
   transcriptHash: string;
   generationConfig: DopplerGenerationConfigEvidence;
   generationConfigHash: string;
-  resolution: {
-    schema: 'doppler.resolution-identity/v1';
-    logicalModelId: string;
-    resolvedArtifactVariantId: `sha256:${string}`;
-    resolvedExecutionId: `sha256:${string}`;
-  };
-  executionIdentity: {
-    schema: 'doppler.resolved-execution-identity/v1';
-    runtime: {
-      package: 'doppler-gpu';
-      version: string;
-      surface: 'node' | 'browser';
-    };
-    resolvedRuntimeSessionId: `sha256:${string}`;
-    backendIdentity: DopplerGenerationBackendIdentity;
-  };
+  resolution: DopplerResolutionIdentity;
+  executionIdentity: DopplerResolvedExecutionIdentity;
   runtimeProfile: {
     schema: 'doppler_runtime_profile/v1';
     runtime: {
@@ -96,6 +101,22 @@ export interface DopplerGenerationEvidence {
   runtimeProfileHash: string;
   backendIdentity: DopplerGenerationBackendIdentity;
   backendIdentityHash: string;
+  stats: PipelineStats | null;
+}
+
+export interface DopplerEmbeddingEvidence {
+  schema: 'doppler_embedding_evidence/v1';
+  embedding: Float32Array;
+  tokens: number[];
+  seqLen: number;
+  embeddingMode: string;
+  phase?: unknown;
+  inputHash: `sha256:${string}`;
+  outputHash: `sha256:${string}`;
+  resolution: DopplerResolutionIdentity;
+  executionIdentity: DopplerResolvedExecutionIdentity;
+  backendIdentity: DopplerGenerationBackendIdentity;
+  backendIdentityHash: `sha256:${string}`;
   stats: PipelineStats | null;
 }
 
@@ -119,6 +140,10 @@ export interface DopplerModelHandle {
   chat(messages: ChatMessage[], options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   chatText(messages: ChatMessage[], options?: DopplerGenerateOptions): Promise<DopplerChatResponse>;
   embed(prompt: string, options?: Record<string, unknown>): Promise<unknown>;
+  embedWithEvidence(
+    prompt: string,
+    options?: Record<string, unknown>
+  ): Promise<DopplerEmbeddingEvidence>;
   embedBatch(prompts: string[], options?: Record<string, unknown>): Promise<unknown>;
   encodeSequence(sequence: string, options?: SequenceEncodeOptions): Promise<SequenceEncodeResult>;
   resetGenerationState(): void;
