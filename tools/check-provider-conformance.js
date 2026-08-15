@@ -5,6 +5,19 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { computeCanonicalJsonSha256 } from './lib/canonical-json.js';
+import {
+  PROVIDER_CONFORMANCE_EVIDENCE_CLASSES,
+  computeProviderConformanceEvidenceSetDigest,
+  computeProviderConformanceProviderSetDigest,
+  validateProviderConformanceEvidence,
+  validateProviderConformanceProviderPromotion,
+  validateProviderConformanceSuitePromotion,
+} from './lib/provider-conformance-evidence.js';
+import {
+  validateDopplerRuntimeOwnershipReceipt,
+} from './lib/runtime-ownership-execution-evidence.js';
+
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'provider-conformance.json');
 const GOAL_IDS = Object.freeze([
@@ -15,13 +28,13 @@ const REQUIRED_WORKLOADS = Object.freeze(['generation', 'embedding', 'reranking'
 const CORE_PROVIDER_LANE_IDS = Object.freeze(['browser-webgpu', 'node-webgpu']);
 const LIFECYCLE_STAGES = Object.freeze(['load', 'execute', 'unload']);
 const EVIDENCE_FIELDS = Object.freeze([
-  'modelContract',
-  'resolutionIdentity',
-  'operations',
-  'lifecycle',
-  'correctness',
+  ...PROVIDER_CONFORMANCE_EVIDENCE_CLASSES,
   'providerReceipt',
+  'promotion',
 ]);
+const EXECUTION_EVIDENCE_FIELDS = Object.freeze(
+  EVIDENCE_FIELDS.filter((field) => field !== 'promotion')
+);
 const CORRECTNESS_CLASSES = new Set([
   'exact-token',
   'tolerance-bounded-numerical',
@@ -33,6 +46,7 @@ const PROVIDER_ROLES = new Set(['core', 'optional-named']);
 const LIFECYCLE_RESULTS = new Set(['passed', 'failed', 'not-run']);
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
+const REVISION_PATTERN = /^[0-9a-f]{40}$/;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function normalizeText(value) {
@@ -139,6 +153,34 @@ async function validateRepoPath(value, label, repoRoot, errors) {
   return normalized;
 }
 
+async function validateEvidenceReference(value, label, repoRoot, errors) {
+  if (value === null) return null;
+  if (!validateExactKeys(value, ['path', 'digest'], label, errors)) return null;
+  if (!isRepoRelativePath(value.path)) {
+    errors.push(`${label}.path must be a repo-relative path`);
+    return null;
+  }
+  const evidencePath = normalizeText(value.path);
+  const digest = validateNullableSha256(value.digest, `${label}.digest`, errors);
+  let receipt;
+  try {
+    receipt = JSON.parse(await fs.readFile(path.join(repoRoot, evidencePath), 'utf8'));
+  } catch (error) {
+    errors.push(`${label}.path is not readable JSON: ${error.message}`);
+    return null;
+  }
+  if (digest && computeCanonicalJsonSha256(receipt) !== digest) {
+    errors.push(`${label}.digest does not match canonical JSON evidence`);
+  }
+  return { path: evidencePath, digest, receipt };
+}
+
+function pushUnique(target, values) {
+  for (const value of values) {
+    if (!target.includes(value)) target.push(value);
+  }
+}
+
 function validateClaimState(record, label, reasons, errors) {
   const blockers = validateStringArray(record.blockers, `${label}.blockers`, errors);
   if (typeof record.claimAllowed !== 'boolean') {
@@ -167,6 +209,7 @@ async function validateProviderResult(provider, context) {
   const fields = [
     'laneId',
     'implementationId',
+    'harnessRevision',
     'logicalModelId',
     'manifestVariantId',
     'resolvedArtifactVariantId',
@@ -184,21 +227,46 @@ async function validateProviderResult(provider, context) {
   const laneId = normalizeText(provider?.laneId) || '<missing-lane>';
   const label = `${suite.id}: provider ${laneId}`;
   if (!validateExactKeys(provider, fields, label, errors)) return null;
+  const initialErrorCount = errors.length;
   const reasons = [];
   if (!ID_PATTERN.test(laneId)) errors.push(`${label}: laneId must be lowercase kebab-case`);
   if (seenLaneIds.has(laneId)) errors.push(`${suite.id}: duplicate provider lane ${laneId}`);
   seenLaneIds.add(laneId);
   if (!laneById.has(laneId)) errors.push(`${label}: lane is not declared by providerLanes`);
-  const identityFields = [
+  const identity = {
+    suiteId: suite.id,
+    laneId,
+    workload: suite.workload,
+    implementationId: validateNullableString(
+      provider.implementationId,
+      `${label}.implementationId`,
+      errors
+    ),
+    harnessRevision: validateNullableString(
+      provider.harnessRevision,
+      `${label}.harnessRevision`,
+      errors
+    ),
+    logicalModelId: validateNullableString(
+      provider.logicalModelId,
+      `${label}.logicalModelId`,
+      errors
+    ),
+    environmentFingerprint: validateNullableSha256(
+      provider.environmentFingerprint,
+      `${label}.environmentFingerprint`,
+      errors
+    ),
+  };
+  if (identity.harnessRevision && !REVISION_PATTERN.test(identity.harnessRevision)) {
+    errors.push(`${label}.harnessRevision must be a lowercase 40-hex revision or null`);
+  }
+  for (const field of [
     'implementationId',
+    'harnessRevision',
     'logicalModelId',
     'environmentFingerprint',
-  ];
-  const identity = Object.fromEntries(identityFields.map((field) => [
-    field,
-    validateNullableString(provider[field], `${label}.${field}`, errors),
-  ]));
-  for (const field of identityFields) {
+  ]) {
     if (!identity[field]) reasons.push(`${field}-missing`);
   }
   identity.manifestVariantId = validateNullableString(
@@ -266,26 +334,128 @@ async function validateProviderResult(provider, context) {
     if (age < 0 || age > maxAgeDays * DAY_MS) reasons.push('qualification-stale-or-future');
   }
   if (!expiresAt || expiresAt.getTime() <= now.getTime()) reasons.push('qualification-expired-or-missing');
+  if (
+    qualifiedAt
+    && expiresAt
+    && expiresAt.getTime() > qualifiedAt.getTime() + maxAgeDays * DAY_MS
+  ) {
+    errors.push(`${label}: expiresAtUtc exceeds the qualification age limit`);
+  }
   const evidence = {};
+  const retainedPaths = [];
   if (validateExactKeys(provider.evidence, EVIDENCE_FIELDS, `${label}.evidence`, errors)) {
-    await Promise.all(EVIDENCE_FIELDS.map(async (field) => {
-      evidence[field] = await validateRepoPath(
+    for (const field of EVIDENCE_FIELDS) {
+      evidence[field] = await validateEvidenceReference(
         provider.evidence[field],
         `${label}.evidence.${field}`,
         repoRoot,
         errors
       );
-    }));
+      if (evidence[field]) retainedPaths.push(evidence[field].path);
+    }
   }
-  const missingEvidence = EVIDENCE_FIELDS.filter((field) => !evidence[field]);
-  if (missingEvidence.length > 0) reasons.push('evidence-incomplete');
+  const missingEvidence = EXECUTION_EVIDENCE_FIELDS.filter((field) => !evidence[field]);
+  if (missingEvidence.length > 0) reasons.push('provider-evidence-incomplete');
+  let execution = null;
+  if (evidence.providerReceipt?.receipt) {
+    execution = validateDopplerRuntimeOwnershipReceipt(evidence.providerReceipt.receipt, {
+      logicalModelId: identity.logicalModelId,
+      resolvedArtifactVariantId: identity.resolvedArtifactVariantId,
+      resolvedExecutionId: identity.resolvedExecutionId,
+    });
+    for (const error of execution.errors) {
+      errors.push(`${label}.evidence.providerReceipt: ${error}`);
+    }
+    pushUnique(reasons, execution.reasons);
+    if (qualifiedAt && execution.timestamp?.getTime() > qualifiedAt.getTime()) {
+      reasons.push('qualification-predates-provider-receipt');
+    }
+  }
+  const semanticContext = {
+    ...identity,
+    manifestVariantId: identity.manifestVariantId,
+    resolvedArtifactVariantId: identity.resolvedArtifactVariantId,
+    resolvedExecutionId: identity.resolvedExecutionId,
+    declaredOperations: suite.declaredOperations,
+    correctnessClass: suite.correctnessClass,
+    providerReceiptDigest: evidence.providerReceipt?.digest ?? null,
+  };
+  const summaries = {};
+  for (const evidenceClass of PROVIDER_CONFORMANCE_EVIDENCE_CLASSES) {
+    const reference = evidence[evidenceClass];
+    if (!reference?.receipt) continue;
+    const result = validateProviderConformanceEvidence(reference.receipt, {
+      ...semanticContext,
+      evidenceClass,
+    });
+    for (const error of result.errors) {
+      errors.push(`${label}.evidence.${evidenceClass}: ${error}`);
+    }
+    pushUnique(reasons, result.reasons);
+    Object.assign(summaries, result.summary);
+    if (qualifiedAt && result.capturedAt?.getTime() > qualifiedAt.getTime()) {
+      reasons.push('qualification-predates-semantic-evidence');
+    }
+  }
+  if (summaries.operations && !sameMembers(summaries.operations, operations)) {
+    errors.push(`${label}.operations does not match semantic operations evidence`);
+  }
+  if (
+    summaries.lifecycle
+    && LIFECYCLE_STAGES.some((stage) => summaries.lifecycle[stage] !== provider.lifecycle[stage])
+  ) {
+    errors.push(`${label}.lifecycle does not match semantic lifecycle evidence`);
+  }
+  if (
+    summaries.correctness
+    && (
+      summaries.correctness.class !== provider.correctness.class
+      || summaries.correctness.passed !== provider.correctness.passed
+    )
+  ) {
+    errors.push(`${label}.correctness does not match semantic correctness evidence`);
+  }
+  if (new Set(retainedPaths).size !== retainedPaths.length) {
+    errors.push(`${label}: retained evidence paths must be distinct`);
+  }
+  const evidenceSet = Object.fromEntries(EXECUTION_EVIDENCE_FIELDS.map((field) => [
+    field,
+    provider.evidence[field],
+  ]));
+  const evidenceSetDigest = computeProviderConformanceEvidenceSetDigest(evidenceSet);
+  let promotedAt = null;
+  if (evidence.promotion?.receipt) {
+    const promotion = validateProviderConformanceProviderPromotion(
+      evidence.promotion.receipt,
+      {
+        ...identity,
+        evidenceSetDigest,
+        qualifiedAtUtc: provider.qualifiedAtUtc,
+        expiresAtUtc: provider.expiresAtUtc,
+      }
+    );
+    for (const error of promotion.errors) {
+      errors.push(`${label}.evidence.promotion: ${error}`);
+    }
+    promotedAt = promotion.promotedAt;
+  } else {
+    reasons.push('provider-promotion-evidence-missing');
+  }
   validateClaimState(provider, label, reasons, errors);
   return {
     laneId,
     claimAllowed: provider.claimAllowed,
-    qualified: provider.claimAllowed === true && reasons.length === 0,
+    qualified: provider.claimAllowed === true
+      && reasons.length === 0
+      && errors.length === initialErrorCount,
     reasons,
     missingEvidence,
+    evidenceSetDigest,
+    promotionDigest: evidence.promotion?.digest ?? null,
+    promotedAt,
+    qualifiedAtUtc: provider.qualifiedAtUtc,
+    expiresAtUtc: provider.expiresAtUtc,
+    resolvedExecutionId: identity.resolvedExecutionId,
   };
 }
 
@@ -301,12 +471,14 @@ async function validateSuite(suite, context) {
     'declaredOperations',
     'correctnessClass',
     'requiredProviderLaneIds',
+    'promotion',
     'claimAllowed',
     'providers',
     'blockers',
   ];
   const id = normalizeText(suite?.id) || '<missing-suite>';
   if (!validateExactKeys(suite, fields, id, errors)) return null;
+  const initialErrorCount = errors.length;
   const reasons = [];
   if (!ID_PATTERN.test(id)) errors.push(`${id}: id must be lowercase kebab-case`);
   if (seenSuiteIds.has(id)) errors.push(`${id}: duplicate suite id`);
@@ -358,6 +530,7 @@ async function validateSuite(suite, context) {
   const providers = [];
   const suiteContract = {
     id,
+    workload: suite.workload,
     logicalModelId,
     manifestVariantId,
     resolvedArtifactVariantId,
@@ -384,6 +557,52 @@ async function validateSuite(suite, context) {
       reasons.push(`required-provider-${laneId}-unqualified`);
     }
   }
+  const requiredProviders = requiredProviderLaneIds
+    .map((laneId) => providers.find((entry) => entry.laneId === laneId))
+    .filter(Boolean);
+  const providerSetDigest = computeProviderConformanceProviderSetDigest(
+    requiredProviders.map((provider) => ({
+      laneId: provider.laneId,
+      resolvedExecutionId: provider.resolvedExecutionId,
+      evidenceSetDigest: provider.evidenceSetDigest,
+      promotionDigest: provider.promotionDigest,
+      qualifiedAtUtc: provider.qualifiedAtUtc,
+      expiresAtUtc: provider.expiresAtUtc,
+    }))
+  );
+  const promotionReference = await validateEvidenceReference(
+    suite.promotion,
+    `${id}.promotion`,
+    repoRoot,
+    errors
+  );
+  if (promotionReference?.receipt) {
+    const promotionDates = requiredProviders
+      .map((provider) => provider.promotedAt)
+      .filter(Boolean);
+    const expiryDates = requiredProviders
+      .map((provider) => parseIsoInstant(provider.expiresAtUtc, `${id}.provider expiry`, errors))
+      .filter(Boolean);
+    const latestProviderPromotion = promotionDates.length > 0
+      ? new Date(Math.max(...promotionDates.map((instant) => instant.getTime())))
+      : null;
+    const earliestExpiry = expiryDates.length > 0
+      ? new Date(Math.min(...expiryDates.map((instant) => instant.getTime())))
+      : null;
+    const promotion = validateProviderConformanceSuitePromotion(promotionReference.receipt, {
+      suiteId: id,
+      workload: suite.workload,
+      logicalModelId,
+      resolvedArtifactVariantId,
+      requiredProviderLaneIds,
+      providerSetDigest,
+      latestProviderPromotionAtUtc: latestProviderPromotion?.toISOString() ?? null,
+      expiresAtUtc: earliestExpiry?.toISOString() ?? null,
+    });
+    for (const error of promotion.errors) errors.push(`${id}.promotion: ${error}`);
+  } else {
+    reasons.push('suite-promotion-evidence-missing');
+  }
   validateClaimState(suite, id, reasons, errors);
   return {
     id,
@@ -395,7 +614,9 @@ async function validateSuite(suite, context) {
     declaredOperations,
     correctnessClass: suite.correctnessClass,
     claimAllowed: suite.claimAllowed,
-    qualified: suite.claimAllowed === true && reasons.length === 0,
+    qualified: suite.claimAllowed === true
+      && reasons.length === 0
+      && errors.length === initialErrorCount,
     reasons,
     providers,
   };
@@ -453,7 +674,7 @@ export async function validateProviderConformancePolicy(policy, options = {}) {
       gateSatisfied: false,
     };
   }
-  if (policy.schemaVersion !== 2) errors.push('provider conformance policy schemaVersion must be 2');
+  if (policy.schemaVersion !== 3) errors.push('provider conformance policy schemaVersion must be 3');
   if (policy.source !== 'doppler') errors.push('provider conformance policy source must be "doppler"');
   if (policy.$schema !== '../../src/config/schema/provider-conformance-policy.schema.json') {
     errors.push('provider conformance policy $schema is invalid');

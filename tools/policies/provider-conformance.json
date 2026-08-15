@@ -1,6 +1,6 @@
 {
   "$schema": "../../src/config/schema/provider-conformance-policy.schema.json",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "source": "doppler",
   "goalIds": [
     "model-artifact-runtime-contract",
@@ -28,7 +28,8 @@
     "operations",
     "lifecycle",
     "correctness",
-    "providerReceipt"
+    "providerReceipt",
+    "promotion"
   ],
   "providerLanes": [
     {
@@ -67,6 +68,7 @@
         "browser-webgpu",
         "node-webgpu"
       ],
+      "promotion": null,
       "claimAllowed": false,
       "providers": [],
       "blockers": [
@@ -91,6 +93,7 @@
         "browser-webgpu",
         "node-webgpu"
       ],
+      "promotion": null,
       "claimAllowed": false,
       "providers": [],
       "blockers": [
@@ -115,6 +118,7 @@
         "browser-webgpu",
         "node-webgpu"
       ],
+      "promotion": null,
       "claimAllowed": false,
       "providers": [],
       "blockers": [

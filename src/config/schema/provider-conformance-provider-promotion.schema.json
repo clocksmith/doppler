@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/provider-conformance-provider-promotion-v1.schema.json",
+  "title": "Doppler Provider Conformance Provider Promotion v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "suiteId",
+    "laneId",
+    "logicalModelId",
+    "resolvedArtifactVariantId",
+    "resolvedExecutionId",
+    "implementationId",
+    "evidenceSetDigest",
+    "decision",
+    "authority",
+    "reviewer",
+    "rationale",
+    "promotedAtUtc",
+    "qualifiedAtUtc",
+    "expiresAtUtc"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.provider-conformance-provider-promotion/v1" },
+    "suiteId": { "$ref": "#/$defs/id" },
+    "laneId": { "$ref": "#/$defs/id" },
+    "logicalModelId": { "type": "string", "minLength": 1 },
+    "resolvedArtifactVariantId": { "$ref": "#/$defs/sha256" },
+    "resolvedExecutionId": { "$ref": "#/$defs/sha256" },
+    "implementationId": { "type": "string", "minLength": 1 },
+    "evidenceSetDigest": { "$ref": "#/$defs/sha256" },
+    "decision": { "const": "promote" },
+    "authority": { "const": "human" },
+    "reviewer": { "type": "string", "minLength": 1 },
+    "rationale": { "type": "string", "minLength": 1 },
+    "promotedAtUtc": { "type": "string", "format": "date-time" },
+    "qualifiedAtUtc": { "type": "string", "format": "date-time" },
+    "expiresAtUtc": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

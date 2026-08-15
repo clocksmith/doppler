@@ -336,7 +336,13 @@
             "docs/provider-conformance.md",
             "tools/policies/provider-conformance.json",
             "src/config/schema/provider-conformance-policy.schema.json",
+            "src/config/schema/provider-conformance-capture.schema.json",
+            "src/config/schema/provider-conformance-evidence.schema.json",
+            "src/config/schema/provider-conformance-provider-promotion.schema.json",
+            "src/config/schema/provider-conformance-suite-promotion.schema.json",
             "tools/check-provider-conformance.js",
+            "tools/record-provider-conformance.js",
+            "tools/lib/provider-conformance-evidence.js",
             "tests/config/provider-conformance.test.js"
           ],
           "blockers": [
@@ -764,7 +770,12 @@
             "tools/policies/provider-conformance.json",
             "tools/check-provider-conformance.js",
             "tools/record-provider-conformance.js",
+            "tools/lib/provider-conformance-evidence.js",
+            "src/config/schema/provider-conformance-policy.schema.json",
             "src/config/schema/provider-conformance-capture.schema.json",
+            "src/config/schema/provider-conformance-evidence.schema.json",
+            "src/config/schema/provider-conformance-provider-promotion.schema.json",
+            "src/config/schema/provider-conformance-suite-promotion.schema.json",
             "src/tooling/program-bundle-parity.js",
             "tests/config/provider-conformance.test.js",
             "tests/tooling/record-provider-conformance.test.js"
@@ -936,13 +947,18 @@
       "completionClass": "hardware",
       "statusCommand": "npm run provider:conformance:check",
       "description": "No exact-tuple generation, embedding, or reranking suite is qualified across both browser WebGPU and the selected Node WebGPU provider.",
-      "exitCriteria": "Retain current browser and Node receipts for generation, embedding, and reranking that bind the same model contract, named manifest variant, runtime-observed manifest and execution SHA-256 identities, operations, lifecycle, environment, and predeclared correctness class; keep Doe and other providers as explicit named lanes.",
+      "exitCriteria": "Retain current browser and Node provider receipts plus canonical-digest semantic receipts for generation, embedding, and reranking that bind the same model contract, tokenizer, execution graph, runtime policy, named manifest variant, runtime-observed manifest and execution SHA-256 identities, operations, repeated lifecycle, environment, and predeclared correctness class; add digest-bound human provider and paired-suite promotion receipts; keep Doe and other providers as explicit named lanes.",
       "evidencePaths": [
         "docs/provider-conformance.md",
         "tools/policies/provider-conformance.json",
         "tools/check-provider-conformance.js",
         "tools/record-provider-conformance.js",
+        "tools/lib/provider-conformance-evidence.js",
+        "src/config/schema/provider-conformance-policy.schema.json",
         "src/config/schema/provider-conformance-capture.schema.json",
+        "src/config/schema/provider-conformance-evidence.schema.json",
+        "src/config/schema/provider-conformance-provider-promotion.schema.json",
+        "src/config/schema/provider-conformance-suite-promotion.schema.json",
         "tests/tooling/record-provider-conformance.test.js"
       ]
     },

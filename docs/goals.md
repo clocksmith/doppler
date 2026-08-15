@@ -248,10 +248,14 @@ The machine-readable authority is
 and the selected Node provider; Doe and other implementations are explicit
 named lanes. Qualification begins at an exact workload tuple and requires
 current operation, lifecycle, resolution-identity, environment, correctness,
-and provider-receipt evidence. Contract fixtures and Program Bundle parity do
-not constitute provider qualification. `npm run provider:conformance:record`
-can join retained runtime evidence to a candidate lane, but deliberately cannot
-promote that lane or its suite. See `docs/provider-conformance.md`.
+and provider-receipt evidence. All evidence is canonical-digest-bound; semantic
+receipts bind the exact tuple and the checker derives outcomes from observations
+instead of trusting copied summaries. Provider promotion requires a human
+receipt for the evidence set, while suite promotion separately binds the paired
+provider set. Contract fixtures and Program Bundle parity do not constitute
+provider qualification. `npm run provider:conformance:record` can assemble a
+non-claimable candidate, but cannot promote or replace promoted state. See
+`docs/provider-conformance.md`.
 
 ## Goal 3: Make correctness and performance evidence-backed
 
