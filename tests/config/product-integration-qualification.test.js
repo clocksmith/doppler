@@ -8,6 +8,9 @@ import {
   validateProductIntegrationQualification,
 } from '../../tools/check-product-integration-qualification.js';
 import { computeCanonicalJsonSha256 } from '../../tools/lib/canonical-json.js';
+import {
+  computeProductIntegrationEvidenceSetDigest,
+} from '../../tools/lib/product-integration-evidence.js';
 
 const POLICY_PATH = path.join(
   process.cwd(),
@@ -22,6 +25,7 @@ const ENVIRONMENT_ID = `sha256:${'c'.repeat(64)}`;
 const COMPARISON_ID = `sha256:${'d'.repeat(64)}`;
 const APPLICATION_REVISION = '1'.repeat(40);
 const HARNESS_REVISION = '2'.repeat(40);
+const REVIEWER_REVISION = '3'.repeat(40);
 const TEST_ROOT = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-product-integration-'));
 
 function clone(value) {
@@ -51,10 +55,38 @@ function baseIntegration(id, applicationName, workload) {
     logicalModelId: `${id}-logical-model`,
     resolvedArtifactVariantId: ARTIFACT_ID,
     resolvedExecutionId: EXECUTION_ID,
+    applicationRevision: APPLICATION_REVISION,
+    harnessRevision: HARNESS_REVISION,
+    environmentFingerprint: ENVIRONMENT_ID,
     qualifiedAtUtc: '2026-08-01T01:00:00.000Z',
     expiresAtUtc: '2026-10-01T00:00:00.000Z',
     evidence: {},
     blockers: [],
+  };
+}
+
+function promotionEvidence(integration) {
+  return {
+    schema: 'doppler.product-integration-promotion-evidence/v1',
+    integrationId: integration.id,
+    applicationName: integration.applicationName,
+    workload: integration.workload,
+    owner: integration.owner,
+    logicalModelId: integration.logicalModelId,
+    resolvedArtifactVariantId: integration.resolvedArtifactVariantId,
+    resolvedExecutionId: integration.resolvedExecutionId,
+    applicationRevision: integration.applicationRevision,
+    harnessRevision: integration.harnessRevision,
+    environmentFingerprint: integration.environmentFingerprint,
+    evidenceSetDigest: computeProductIntegrationEvidenceSetDigest(integration.evidence),
+    decision: 'promote-product-supported',
+    authority: 'human',
+    reviewer: 'fixture-reviewer',
+    reviewerRevision: REVIEWER_REVISION,
+    rationale: 'The bound evidence set supports this exact application integration.',
+    promotedAtUtc: '2026-08-01T01:05:00.000Z',
+    qualifiedAtUtc: integration.qualifiedAtUtc,
+    expiresAtUtc: integration.expiresAtUtc,
   };
 }
 
@@ -207,6 +239,10 @@ async function preparedIntegration(id, applicationName, workload) {
       outcomeEvidence(integration, evidenceClass)
     );
   }
+  integration.evidence.promotion = await writeJson(
+    `evidence/${id}-promotion.json`,
+    promotionEvidence(integration)
+  );
   return integration;
 }
 
@@ -272,6 +308,7 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   record.claimAllowed = false;
   record.blockers = ['held-out-task-gate-missing'];
   record.evidence.sourceTaskQualityRetention = null;
+  record.evidence.promotion = null;
   candidate.integrations = [record];
   const report = await validateProductIntegrationQualification(candidate, {
     repoRoot: TEST_ROOT,
@@ -281,6 +318,81 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   assert.equal(report.integrations[0].qualified, false);
   assert.equal(report.candidateIntegrations, 1);
   assert.ok(report.integrations[0].missingEvidence.includes('sourceTaskQualityRetention'));
+}
+
+{
+  const unpromoted = clone(policy);
+  const record = await preparedIntegration('unpromoted-chat', 'Unpromoted Chat', 'generation');
+  record.evidence.promotion = null;
+  unpromoted.integrations = [record];
+  const report = await validateProductIntegrationQualification(unpromoted, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.includes(
+      'unpromoted-chat: claimAllowed integration does not satisfy product qualification'
+    ),
+    report.errors.join('\n')
+  );
+  assert.ok(
+    report.integrations[0].qualificationReasons.includes(
+      'product-support-promotion-evidence-missing'
+    )
+  );
+}
+
+{
+  const mixedHarness = clone(policy);
+  const record = await preparedIntegration('mixed-harness-chat', 'Mixed Harness Chat', 'generation');
+  const evidenceRef = record.evidence.memory;
+  const receipt = JSON.parse(await fs.readFile(path.join(TEST_ROOT, evidenceRef.path), 'utf8'));
+  receipt.harnessRevision = '4'.repeat(40);
+  record.evidence.memory = await writeJson(evidenceRef.path, receipt);
+  mixedHarness.integrations = [record];
+  const report = await validateProductIntegrationQualification(mixedHarness, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.some((error) => error.includes('product evidence harnessRevision')),
+    report.errors.join('\n')
+  );
+  assert.equal(report.integrations[0].qualified, false);
+}
+
+{
+  const stalePromotion = clone(policy);
+  const record = await preparedIntegration('stale-promotion-chat', 'Stale Promotion Chat', 'generation');
+  const promotionRef = record.evidence.promotion;
+  const receipt = JSON.parse(await fs.readFile(path.join(TEST_ROOT, promotionRef.path), 'utf8'));
+  receipt.evidenceSetDigest = `sha256:${'f'.repeat(64)}`;
+  record.evidence.promotion = await writeJson(promotionRef.path, receipt);
+  stalePromotion.integrations = [record];
+  const report = await validateProductIntegrationQualification(stalePromotion, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.some((error) => error.includes('promotion evidence.evidenceSetDigest')),
+    report.errors.join('\n')
+  );
+  assert.equal(report.integrations[0].qualified, false);
+}
+
+{
+  const reusedEvidence = clone(policy);
+  const record = await preparedIntegration('reused-evidence-chat', 'Reused Evidence Chat', 'generation');
+  record.evidence.memory = record.evidence.reliability;
+  reusedEvidence.integrations = [record];
+  const report = await validateProductIntegrationQualification(reusedEvidence, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.some((error) => error.includes('reuses evidence.reliability.path')),
+    report.errors.join('\n')
+  );
 }
 
 {

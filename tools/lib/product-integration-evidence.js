@@ -1,5 +1,8 @@
+import { computeCanonicalJsonSha256 } from './canonical-json.js';
+
 const OWNER_SCHEMA = 'doppler.product-integration-owner-confirmation/v1';
 const OUTCOME_SCHEMA = 'doppler.product-integration-evidence/v1';
+const PROMOTION_SCHEMA = 'doppler.product-integration-promotion-evidence/v1';
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const REVISION_PATTERN = /^[0-9a-f]{40}$/;
 
@@ -377,7 +380,7 @@ export function validateProductIntegrationOwnerConfirmation(receipt, expected = 
   const workload = requiredText(receipt.workload, 'owner confirmation.workload', errors);
   const owner = requiredText(receipt.owner, 'owner confirmation.owner', errors);
   requiredText(receipt.ownerRepository, 'owner confirmation.ownerRepository', errors);
-  requiredRevision(
+  const applicationRevision = requiredRevision(
     receipt.applicationRevision,
     'owner confirmation.applicationRevision',
     errors
@@ -392,6 +395,12 @@ export function validateProductIntegrationOwnerConfirmation(receipt, expected = 
   matchExpected(applicationName, expected.applicationName, 'owner confirmation applicationName', errors);
   matchExpected(workload, expected.workload, 'owner confirmation workload', errors);
   matchExpected(owner, expected.owner, 'owner confirmation owner', errors);
+  matchExpected(
+    applicationRevision,
+    expected.applicationRevision,
+    'owner confirmation applicationRevision',
+    errors
+  );
   if (
     expected.ownerConfirmedAtUtc
     && confirmedAt
@@ -400,7 +409,7 @@ export function validateProductIntegrationOwnerConfirmation(receipt, expected = 
     errors.push('owner confirmation timestamp does not match ownerConfirmedAtUtc');
   }
   if (receipt.maintenanceStatus !== 'active') reasons.push('owner-maintenance-not-active');
-  return { errors, reasons, confirmedAt };
+  return { errors, reasons, confirmedAt, applicationRevision };
 }
 
 export function validateProductIntegrationOutcomeEvidence(receipt, expected = {}) {
@@ -453,13 +462,17 @@ export function validateProductIntegrationOutcomeEvidence(receipt, expected = {}
     field,
     requiredText(receipt[field], `product integration evidence.${field}`, errors),
   ]));
-  requiredRevision(
+  const applicationRevision = requiredRevision(
     receipt.applicationRevision,
     'product integration evidence.applicationRevision',
     errors
   );
-  requiredRevision(receipt.harnessRevision, 'product integration evidence.harnessRevision', errors);
-  requiredSha256(
+  const harnessRevision = requiredRevision(
+    receipt.harnessRevision,
+    'product integration evidence.harnessRevision',
+    errors
+  );
+  const environmentFingerprint = requiredSha256(
     receipt.environmentFingerprint,
     'product integration evidence.environmentFingerprint',
     errors
@@ -483,6 +496,24 @@ export function validateProductIntegrationOutcomeEvidence(receipt, expected = {}
   for (const field of identityFields) {
     matchExpected(identity[field], expected[field], `product evidence ${field}`, errors);
   }
+  matchExpected(
+    applicationRevision,
+    expected.applicationRevision,
+    'product evidence applicationRevision',
+    errors
+  );
+  matchExpected(
+    harnessRevision,
+    expected.harnessRevision,
+    'product evidence harnessRevision',
+    errors
+  );
+  matchExpected(
+    environmentFingerprint,
+    expected.environmentFingerprint,
+    'product evidence environmentFingerprint',
+    errors
+  );
   matchExpected(
     artifactId,
     expected.resolvedArtifactVariantId,
@@ -521,6 +552,9 @@ export function validateProductIntegrationOutcomeEvidence(receipt, expected = {}
     errors,
     reasons,
     capturedAt,
+    applicationRevision,
+    harnessRevision,
+    environmentFingerprint,
     resolution: identity.logicalModelId && artifactId && executionId
       ? {
         logicalModelId: identity.logicalModelId,
@@ -529,4 +563,163 @@ export function validateProductIntegrationOutcomeEvidence(receipt, expected = {}
       }
       : null,
   };
+}
+
+export function computeProductIntegrationEvidenceSetDigest(evidenceReferences) {
+  return computeCanonicalJsonSha256(evidenceReferences);
+}
+
+export function validateProductIntegrationPromotionEvidence(receipt, expected = {}) {
+  const errors = [];
+  const fields = [
+    'schema',
+    'integrationId',
+    'applicationName',
+    'workload',
+    'owner',
+    'logicalModelId',
+    'resolvedArtifactVariantId',
+    'resolvedExecutionId',
+    'applicationRevision',
+    'harnessRevision',
+    'environmentFingerprint',
+    'evidenceSetDigest',
+    'decision',
+    'authority',
+    'reviewer',
+    'reviewerRevision',
+    'rationale',
+    'promotedAtUtc',
+    'qualifiedAtUtc',
+    'expiresAtUtc',
+  ];
+  if (!exactKeys(receipt, fields, 'product integration promotion evidence', errors)) {
+    return { errors, promotedAt: null };
+  }
+  if (receipt.schema !== PROMOTION_SCHEMA) {
+    errors.push(`product integration promotion evidence.schema must be ${PROMOTION_SCHEMA}`);
+  }
+  const binding = {
+    integrationId: requiredText(
+      receipt.integrationId,
+      'product integration promotion evidence.integrationId',
+      errors
+    ),
+    applicationName: requiredText(
+      receipt.applicationName,
+      'product integration promotion evidence.applicationName',
+      errors
+    ),
+    workload: requiredText(
+      receipt.workload,
+      'product integration promotion evidence.workload',
+      errors
+    ),
+    owner: requiredText(receipt.owner, 'product integration promotion evidence.owner', errors),
+    logicalModelId: requiredText(
+      receipt.logicalModelId,
+      'product integration promotion evidence.logicalModelId',
+      errors
+    ),
+    resolvedArtifactVariantId: requiredSha256(
+      receipt.resolvedArtifactVariantId,
+      'product integration promotion evidence.resolvedArtifactVariantId',
+      errors
+    ),
+    resolvedExecutionId: requiredSha256(
+      receipt.resolvedExecutionId,
+      'product integration promotion evidence.resolvedExecutionId',
+      errors
+    ),
+    applicationRevision: requiredRevision(
+      receipt.applicationRevision,
+      'product integration promotion evidence.applicationRevision',
+      errors
+    ),
+    harnessRevision: requiredRevision(
+      receipt.harnessRevision,
+      'product integration promotion evidence.harnessRevision',
+      errors
+    ),
+    environmentFingerprint: requiredSha256(
+      receipt.environmentFingerprint,
+      'product integration promotion evidence.environmentFingerprint',
+      errors
+    ),
+  };
+  for (const [field, actual] of Object.entries(binding)) {
+    matchExpected(
+      actual,
+      expected[field],
+      `product integration promotion evidence.${field}`,
+      errors
+    );
+  }
+  const evidenceSetDigest = requiredSha256(
+    receipt.evidenceSetDigest,
+    'product integration promotion evidence.evidenceSetDigest',
+    errors
+  );
+  matchExpected(
+    evidenceSetDigest,
+    expected.evidenceSetDigest,
+    'product integration promotion evidence.evidenceSetDigest',
+    errors
+  );
+  if (receipt.decision !== 'promote-product-supported') {
+    errors.push(
+      'product integration promotion evidence.decision must be promote-product-supported'
+    );
+  }
+  if (receipt.authority !== 'human') {
+    errors.push('product integration promotion evidence.authority must be human');
+  }
+  requiredText(receipt.reviewer, 'product integration promotion evidence.reviewer', errors);
+  requiredRevision(
+    receipt.reviewerRevision,
+    'product integration promotion evidence.reviewerRevision',
+    errors
+  );
+  requiredText(receipt.rationale, 'product integration promotion evidence.rationale', errors);
+  const promotedAt = isoInstant(
+    receipt.promotedAtUtc,
+    'product integration promotion evidence.promotedAtUtc',
+    errors
+  );
+  const qualifiedAt = isoInstant(
+    receipt.qualifiedAtUtc,
+    'product integration promotion evidence.qualifiedAtUtc',
+    errors
+  );
+  const expiresAt = isoInstant(
+    receipt.expiresAtUtc,
+    'product integration promotion evidence.expiresAtUtc',
+    errors
+  );
+  matchExpected(
+    receipt.qualifiedAtUtc,
+    expected.qualifiedAtUtc,
+    'product integration promotion evidence.qualifiedAtUtc',
+    errors
+  );
+  matchExpected(
+    receipt.expiresAtUtc,
+    expected.expiresAtUtc,
+    'product integration promotion evidence.expiresAtUtc',
+    errors
+  );
+  if (promotedAt && qualifiedAt && promotedAt.getTime() < qualifiedAt.getTime()) {
+    errors.push(
+      'product integration promotion evidence.promotedAtUtc must not predate qualifiedAtUtc'
+    );
+  }
+  if (qualifiedAt && expiresAt && expiresAt.getTime() <= qualifiedAt.getTime()) {
+    errors.push(
+      'product integration promotion evidence.expiresAtUtc must follow qualifiedAtUtc'
+    );
+  }
+  if (promotedAt && expiresAt && promotedAt.getTime() >= expiresAt.getTime()) {
+    errors.push('product integration promotion evidence.promotedAtUtc must predate expiresAtUtc');
+  }
+  return { errors, promotedAt };
 }

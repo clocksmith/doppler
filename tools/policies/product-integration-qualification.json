@@ -1,6 +1,6 @@
 {
   "$schema": "../../src/config/schema/product-integration-qualification.schema.json",
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "source": "doppler",
   "goalId": "local-webgpu-product-surface",
   "minimumQualifiedIntegrations": 3,
@@ -23,6 +23,9 @@
       "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "resolvedArtifactVariantId": null,
       "resolvedExecutionId": null,
+      "applicationRevision": null,
+      "harnessRevision": null,
+      "environmentFingerprint": null,
       "qualifiedAtUtc": null,
       "expiresAtUtc": null,
       "evidence": {
@@ -36,11 +39,14 @@
         "browserHardwareQualification": null,
         "incumbentControl": null,
         "upgradeRequalification": null,
-        "rollbackRevocation": null
+        "rollbackRevocation": null,
+        "promotion": null
       },
       "blockers": [
         "owner-confirmation-missing",
         "resolved-artifact-and-execution-receipt-missing",
+        "application-evidence-identity-missing",
+        "product-support-promotion-evidence-missing",
         "application-product-qualification-evidence-missing"
       ]
     },
@@ -56,6 +62,9 @@
       "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
       "resolvedArtifactVariantId": null,
       "resolvedExecutionId": null,
+      "applicationRevision": null,
+      "harnessRevision": null,
+      "environmentFingerprint": null,
       "qualifiedAtUtc": null,
       "expiresAtUtc": null,
       "evidence": {
@@ -69,12 +78,15 @@
         "browserHardwareQualification": null,
         "incumbentControl": null,
         "upgradeRequalification": null,
-        "rollbackRevocation": null
+        "rollbackRevocation": null,
+        "promotion": null
       },
       "blockers": [
         "owner-confirmation-missing",
         "embedding-artifact-not-materialized",
         "resolved-artifact-and-execution-receipt-missing",
+        "application-evidence-identity-missing",
+        "product-support-promotion-evidence-missing",
         "application-product-qualification-evidence-missing"
       ]
     },
@@ -90,6 +102,9 @@
       "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
       "resolvedArtifactVariantId": null,
       "resolvedExecutionId": null,
+      "applicationRevision": null,
+      "harnessRevision": null,
+      "environmentFingerprint": null,
       "qualifiedAtUtc": null,
       "expiresAtUtc": null,
       "evidence": {
@@ -103,13 +118,16 @@
         "browserHardwareQualification": null,
         "incumbentControl": null,
         "upgradeRequalification": null,
-        "rollbackRevocation": null
+        "rollbackRevocation": null,
+        "promotion": null
       },
       "blockers": [
         "owner-confirmation-missing",
         "reranking-not-approved-product-path",
         "authentic-samples-and-fault-journey-missing",
         "resolved-artifact-and-execution-receipt-missing",
+        "application-evidence-identity-missing",
+        "product-support-promotion-evidence-missing",
         "application-product-qualification-evidence-missing"
       ]
     }

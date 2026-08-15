@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://clocksmith.dev/doppler/schemas/product-integration-qualification-v3.schema.json",
-  "title": "Doppler Product Integration Qualification v3",
+  "$id": "https://clocksmith.dev/doppler/schemas/product-integration-qualification-v4.schema.json",
+  "title": "Doppler Product Integration Qualification v4",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -18,7 +18,7 @@
     "$schema": {
       "const": "../../src/config/schema/product-integration-qualification.schema.json"
     },
-    "schemaVersion": { "const": 3 },
+    "schemaVersion": { "const": 4 },
     "source": { "const": "doppler" },
     "goalId": { "const": "local-webgpu-product-surface" },
     "minimumQualifiedIntegrations": { "const": 3 },
@@ -45,6 +45,12 @@
     "nullableSha256": {
       "anyOf": [
         { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        { "type": "null" }
+      ]
+    },
+    "nullableRevision": {
+      "anyOf": [
+        { "type": "string", "pattern": "^[0-9a-f]{40}$" },
         { "type": "null" }
       ]
     },
@@ -106,7 +112,8 @@
         "browserHardwareQualification",
         "incumbentControl",
         "upgradeRequalification",
-        "rollbackRevocation"
+        "rollbackRevocation",
+        "promotion"
       ],
       "properties": {
         "ownerConfirmation": { "$ref": "#/$defs/nullableEvidenceRef" },
@@ -119,7 +126,8 @@
         "browserHardwareQualification": { "$ref": "#/$defs/nullableEvidenceRef" },
         "incumbentControl": { "$ref": "#/$defs/nullableEvidenceRef" },
         "upgradeRequalification": { "$ref": "#/$defs/nullableEvidenceRef" },
-        "rollbackRevocation": { "$ref": "#/$defs/nullableEvidenceRef" }
+        "rollbackRevocation": { "$ref": "#/$defs/nullableEvidenceRef" },
+        "promotion": { "$ref": "#/$defs/nullableEvidenceRef" }
       }
     },
     "integration": {
@@ -137,6 +145,9 @@
         "logicalModelId",
         "resolvedArtifactVariantId",
         "resolvedExecutionId",
+        "applicationRevision",
+        "harnessRevision",
+        "environmentFingerprint",
         "qualifiedAtUtc",
         "expiresAtUtc",
         "evidence",
@@ -176,6 +187,9 @@
         "logicalModelId": { "$ref": "#/$defs/nullableString" },
         "resolvedArtifactVariantId": { "$ref": "#/$defs/nullableSha256" },
         "resolvedExecutionId": { "$ref": "#/$defs/nullableSha256" },
+        "applicationRevision": { "$ref": "#/$defs/nullableRevision" },
+        "harnessRevision": { "$ref": "#/$defs/nullableRevision" },
+        "environmentFingerprint": { "$ref": "#/$defs/nullableSha256" },
         "qualifiedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
         "expiresAtUtc": { "$ref": "#/$defs/nullableDateTime" },
         "evidence": { "$ref": "#/$defs/evidence" },

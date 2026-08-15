@@ -16,7 +16,8 @@ reranking.
 Every evidence entry is either null or `{ path, digest }`. `path` is repository-
 relative JSON; `digest` is the canonical JSON SHA-256. The checker recomputes
 the digest, so changing a receipt without updating the governed reference fails
-closed. Existing files, Markdown narratives, and discovery audits are not
+closed. Evidence paths must be distinct, so one receipt cannot satisfy multiple
+classes. Existing files, Markdown narratives, and discovery audits are not
 qualification receipts.
 
 ## Ownership and execution identity
@@ -38,7 +39,11 @@ The remaining fields use `doppler.product-integration-evidence/v1`. Every
 receipt binds the integration, owner, application and harness revisions,
 environment fingerprint, workload, exact Doppler identities, capture time, and
 class-specific observations. The checker derives the result from those
-observations and rejects a claimed pass that contradicts them.
+observations and rejects a claimed pass that contradicts them. All nine outcome
+receipts and the owner confirmation must bind one exact application revision;
+all outcomes must also share one harness revision and environment fingerprint.
+The policy stores these three identities so later review cannot compose a pass
+from unrelated application states or evaluation environments.
 
 | Evidence class | Required acceptance evidence |
 | --- | --- |
@@ -70,14 +75,26 @@ requires explicit `--apply`, replacing prior evaluation state requires
 `--replace`, and claimable entries cannot be replaced. Recording preserves the
 declared qualification level, forces candidate lifecycle, retains semantic
 failure reasons as blockers, and always leaves `claimAllowed` false. Promotion
-is a separate review and policy change.
+is a separate review and policy change. The recorder clears `promotion` and
+cannot replace an entry that already retains promotion evidence.
+
+## Product-support promotion
+
+`promotion` uses `doppler.product-integration-promotion-evidence/v1`. A human
+reviewer must bind the integration, exact application/harness/environment and
+runtime identities, qualification and expiry times, and canonical digest of all
+eleven pre-promotion evidence references. The promotion decision must be
+`promote-product-supported`. Changing any retained reference makes the prior
+promotion invalid; manually flipping lifecycle, qualification level, blockers,
+or `claimAllowed` cannot create product support.
 
 ## Product gate
 
 A claimable integration must be `product-supported`, active, owned by a current
-maintainer, unexpired, identity-complete, free of blockers, and backed by all
-eleven digest-bound receipts. Three endpoints or demos from one application do
-not satisfy the distinct-application requirement.
+maintainer, unexpired, identity-complete, free of blockers, and backed by eleven
+distinct evaluation receipts plus a digest-bound human promotion receipt. Three
+endpoints or demos from one application do not satisfy the distinct-application
+requirement.
 
 The candidate audit in
 `docs/status/product-integration-candidate-audit-2026-08-15.json` records only

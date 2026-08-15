@@ -7,9 +7,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { computeCanonicalJsonSha256 } from './lib/canonical-json.js';
 import {
+  computeProductIntegrationEvidenceSetDigest,
   PRODUCT_OUTCOME_EVIDENCE_CLASSES,
   validateProductIntegrationOutcomeEvidence,
   validateProductIntegrationOwnerConfirmation,
+  validateProductIntegrationPromotionEvidence,
 } from './lib/product-integration-evidence.js';
 import {
   validateDopplerRuntimeOwnershipReceipt,
@@ -50,7 +52,11 @@ const EVIDENCE_FIELDS = Object.freeze([
   'incumbentControl',
   'upgradeRequalification',
   'rollbackRevocation',
+  'promotion',
 ]);
+const NON_PROMOTION_EVIDENCE_FIELDS = Object.freeze(
+  EVIDENCE_FIELDS.filter((field) => field !== 'promotion')
+);
 const INTEGRATION_FIELDS = Object.freeze([
   'id',
   'applicationName',
@@ -63,6 +69,9 @@ const INTEGRATION_FIELDS = Object.freeze([
   'logicalModelId',
   'resolvedArtifactVariantId',
   'resolvedExecutionId',
+  'applicationRevision',
+  'harnessRevision',
+  'environmentFingerprint',
   'qualifiedAtUtc',
   'expiresAtUtc',
   'evidence',
@@ -70,6 +79,7 @@ const INTEGRATION_FIELDS = Object.freeze([
 ]);
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
+const REVISION_PATTERN = /^[0-9a-f]{40}$/;
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -175,6 +185,14 @@ function validateNullableSha256(value, label, errors) {
   return normalized;
 }
 
+function validateNullableRevision(value, label, errors) {
+  const normalized = validateNullableString(value, label, errors)?.toLowerCase() ?? null;
+  if (normalized && !REVISION_PATTERN.test(normalized)) {
+    errors.push(`${label} must be a 40-character commit revision or null`);
+  }
+  return normalized;
+}
+
 function ownerConfirmationIsCurrent(confirmedAt, now, maxAgeDays) {
   if (!confirmedAt) return false;
   const age = now.getTime() - confirmedAt.getTime();
@@ -189,6 +207,7 @@ function pushUnique(target, values) {
 
 async function validateIntegration(integration, context) {
   const { errors, repoRoot, now, maxAgeDays, seenIds } = context;
+  const integrationErrorCount = errors.length;
   const id = normalizeText(integration?.id) || '<missing-id>';
   if (!validateExactKeys(integration, INTEGRATION_FIELDS, id, errors)) return null;
   if (!ID_PATTERN.test(id)) errors.push(`${id}: id must be lowercase kebab-case`);
@@ -226,6 +245,21 @@ async function validateIntegration(integration, context) {
     `${id}: resolvedExecutionId`,
     errors
   );
+  const applicationRevision = validateNullableRevision(
+    integration.applicationRevision,
+    `${id}: applicationRevision`,
+    errors
+  );
+  const harnessRevision = validateNullableRevision(
+    integration.harnessRevision,
+    `${id}: harnessRevision`,
+    errors
+  );
+  const environmentFingerprint = validateNullableSha256(
+    integration.environmentFingerprint,
+    `${id}: environmentFingerprint`,
+    errors
+  );
   const qualifiedAt = parseIsoInstant(
     integration.qualifiedAtUtc,
     `${id}: qualifiedAtUtc`,
@@ -250,6 +284,18 @@ async function validateIntegration(integration, context) {
       );
     }));
   }
+  const evidencePaths = new Map();
+  for (const field of EVIDENCE_FIELDS) {
+    const evidencePath = evidence[field]?.path;
+    if (!evidencePath) continue;
+    if (evidencePaths.has(evidencePath)) {
+      errors.push(
+        `${id}: evidence.${field}.path reuses evidence.${evidencePaths.get(evidencePath)}.path`
+      );
+    } else {
+      evidencePaths.set(evidencePath, field);
+    }
+  }
   const missingEvidence = EVIDENCE_FIELDS.filter((field) => !evidence[field]?.receipt);
   const qualificationReasons = [];
   if (integration.qualificationLevel !== 'product-supported') {
@@ -267,6 +313,12 @@ async function validateIntegration(integration, context) {
   if (!logicalModelId || !resolvedArtifactVariantId || !resolvedExecutionId) {
     qualificationReasons.push('resolution-identity-incomplete');
   }
+  if (!applicationRevision || !harnessRevision || !environmentFingerprint) {
+    qualificationReasons.push('application-evidence-identity-incomplete');
+  }
+  if (!evidence.promotion?.receipt) {
+    qualificationReasons.push('product-support-promotion-evidence-missing');
+  }
   if (missingEvidence.length > 0) qualificationReasons.push('evidence-incomplete');
   const evidenceContext = {
     integrationId: id,
@@ -276,6 +328,9 @@ async function validateIntegration(integration, context) {
     logicalModelId,
     resolvedArtifactVariantId,
     resolvedExecutionId,
+    applicationRevision,
+    harnessRevision,
+    environmentFingerprint,
   };
   if (evidence.ownerConfirmation?.receipt) {
     const result = validateProductIntegrationOwnerConfirmation(
@@ -345,6 +400,29 @@ async function validateIntegration(integration, context) {
       qualificationReasons.push(`${field}-postdates-qualification`);
     }
   }
+  if (evidence.promotion?.receipt) {
+    const evidenceSetReferences = Object.fromEntries(
+      NON_PROMOTION_EVIDENCE_FIELDS.map((field) => [
+        field,
+        evidence[field]
+          ? { path: evidence[field].path, digest: evidence[field].digest }
+          : null,
+      ])
+    );
+    const result = validateProductIntegrationPromotionEvidence(
+      evidence.promotion.receipt,
+      {
+        ...evidenceContext,
+        evidenceSetDigest: computeProductIntegrationEvidenceSetDigest(evidenceSetReferences),
+        qualifiedAtUtc: qualifiedAt?.toISOString() ?? null,
+        expiresAtUtc: expiresAt?.toISOString() ?? null,
+      }
+    );
+    for (const error of result.errors) errors.push(`${id}: evidence.promotion: ${error}`);
+  }
+  if (errors.length > integrationErrorCount) {
+    qualificationReasons.push('integration-evidence-invalid');
+  }
   if (blockers.length > 0) qualificationReasons.push('blockers-present');
   const qualified = qualificationReasons.length === 0;
   if (integration.claimAllowed === true && !qualified) {
@@ -395,7 +473,7 @@ export async function validateProductIntegrationQualification(policy, options = 
       missingWorkloads: [...REQUIRED_WORKLOADS],
     };
   }
-  if (policy.schemaVersion !== 3) errors.push('product integration policy schemaVersion must be 3');
+  if (policy.schemaVersion !== 4) errors.push('product integration policy schemaVersion must be 4');
   if (policy.source !== 'doppler') errors.push('product integration policy source must be "doppler"');
   if (policy.goalId !== 'local-webgpu-product-surface') {
     errors.push('product integration policy goalId must be "local-webgpu-product-surface"');
