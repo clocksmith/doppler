@@ -100,7 +100,21 @@ offline, persistence, and loaded-identity enforcement mechanism, but the
 package does not configure a production endpoint or production keys. No live
 authority is claimable until Clocksmith deploys and qualifies the endpoint,
 online and recovery key custody, a production durable store, refresh behavior,
-and retained rotation and compromise-recovery drills. The goal matrix therefore
-keeps signed live revocation partial and `claimAllowed: false`. The product
-readiness report exposes bundled signature state and signed-live mechanism and
-authority state separately so this boundary remains observable.
+and retained failure and recovery drills.
+
+`tools/policies/signed-revocation-authority-qualification.json` makes this
+boundary executable. A claimable authority must bind one exact HTTPS endpoint
+with redirects forbidden, an authority ID, disjoint online and recovery key
+IDs, browser and Node durable-state store IDs, a current named owner, and a
+finite qualification expiry. It must retain repo-visible evidence for endpoint
+deployment, package trust, independent custody, both stores, current refresh,
+key rotation, exact and rewritten replay behavior, sequence and epoch rollback,
+offline expiry, compromise recovery, durable restart, loaded-identity
+invalidation, application fail-closed behavior, and requalification.
+
+Run `npm run revocations:authority:check` to validate that contract. The current
+entry is only a candidate: its production endpoint, keys, stores, and receipts
+remain null, its blockers are explicit, and `claimAllowed` remains false. The
+goal matrix therefore keeps signed live revocation partial. Product readiness
+reports bundled signature state, mechanism availability, contract validity,
+candidate count, and qualified authority count as distinct states.

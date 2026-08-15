@@ -12,6 +12,7 @@ import { buildProviderConformanceReport } from './check-provider-conformance.js'
 import { buildRuntimeOwnershipDecisionReport } from './check-runtime-ownership-decisions.js';
 import { buildRevocationPropagationReport } from './check-revocation-registry.js';
 import { buildRuntimePromotionMonitoringReport } from './check-runtime-promotion-monitoring.js';
+import { buildSignedRevocationAuthorityQualificationReport } from './check-signed-revocation-authority-qualification.js';
 import { buildSubsystemSupportContractReport } from './check-subsystem-support-contract.js';
 import { SIGNED_REVOCATION_PROTOCOL } from '../src/config/revocation-updates.js';
 
@@ -44,12 +45,10 @@ function buildSummary(reports) {
     ...collectErrors('provider conformance', reports.providerConformance),
     ...collectErrors('runtime ownership', reports.runtimeOwnership),
     ...collectErrors('revocations', reports.revocations),
+    ...collectErrors('signed revocation authority', reports.signedRevocationAuthority),
     ...collectErrors('promotion monitoring', reports.promotionMonitoring),
     ...collectErrors('subsystem support', reports.subsystemSupport),
   ];
-  const signedLiveAuthorityQualified = !reports.goals.goals.some((goal) => (
-    goal.blockers.includes('signed-live-revocation-authority-missing')
-  ));
   return {
     ok: reports.goals.ok
       && reports.claimEvidence.ok
@@ -60,6 +59,7 @@ function buildSummary(reports) {
       && reports.providerConformance.ok
       && reports.runtimeOwnership.ok
       && reports.revocations.ok
+      && reports.signedRevocationAuthority.ok
       && reports.promotionMonitoring.ok
       && reports.subsystemSupport.ok,
     errors,
@@ -128,7 +128,13 @@ function buildSummary(reports) {
           signatureVerification: reports.revocations.signatureVerification,
         },
         signedLive: {
-          authorityQualified: signedLiveAuthorityQualified,
+          qualificationContractOk: reports.signedRevocationAuthority.ok,
+          authorityQualified: reports.signedRevocationAuthority.gateSatisfied,
+          qualifiedAuthorities: reports.signedRevocationAuthority.qualifiedAuthorities,
+          candidateAuthorities: reports.signedRevocationAuthority.candidateAuthorities,
+          authorityDetails: reports.signedRevocationAuthority.authorities,
+          requiredHosts: reports.signedRevocationAuthority.requiredHosts,
+          requiredDrills: reports.signedRevocationAuthority.requiredDrills,
           ...SIGNED_REVOCATION_PROTOCOL,
         },
       },
@@ -179,7 +185,7 @@ function formatMarkdown(summary) {
     `- maintained application integrations: ${summary.contracts.productIntegrations.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.productIntegrations.qualified}/${summary.contracts.productIntegrations.required} qualified; candidates ${summary.contracts.productIntegrations.candidateDetails.map((entry) => `${entry.applicationName}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.productIntegrations.missingWorkloads.join(', ') || 'none'})`,
     `- provider conformance: ${summary.contracts.providerConformance.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.providerConformance.qualified}/${summary.contracts.providerConformance.required} qualified; candidates ${summary.contracts.providerConformance.candidateDetails.map((entry) => `${entry.id}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.providerConformance.missingWorkloads.join(', ') || 'none'})`,
     `- runtime ownership decisions: ${summary.contracts.runtimeOwnership.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.runtimeOwnership.qualified}/${summary.contracts.runtimeOwnership.required} qualified; candidates ${summary.contracts.runtimeOwnership.candidateDetails.map((entry) => `${entry.id}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.runtimeOwnership.missingWorkloads.join(', ') || 'none'})`,
-    `- revocation propagation: ${summary.contracts.revocations.ok ? 'ok' : 'invalid'} (bundled ${summary.contracts.revocations.bundled.active} active, signature ${summary.contracts.revocations.bundled.signatureVerification}; signed-live mechanism ${summary.contracts.revocations.signedLive.mechanismAvailable ? 'available' : 'missing'}, authority ${summary.contracts.revocations.signedLive.authorityQualified ? 'qualified' : 'incomplete'})`,
+    `- revocation propagation: ${summary.contracts.revocations.ok ? 'ok' : 'invalid'} (bundled ${summary.contracts.revocations.bundled.active} active, signature ${summary.contracts.revocations.bundled.signatureVerification}; signed-live mechanism ${summary.contracts.revocations.signedLive.mechanismAvailable ? 'available' : 'missing'}, qualification contract ${summary.contracts.revocations.signedLive.qualificationContractOk ? 'ok' : 'invalid'}, authority ${summary.contracts.revocations.signedLive.authorityQualified ? 'qualified' : 'incomplete'} (${summary.contracts.revocations.signedLive.qualifiedAuthorities}/1 qualified; ${summary.contracts.revocations.signedLive.candidateAuthorities} candidates))`,
     `- post-promotion monitoring: ${summary.contracts.promotionMonitoring.coverageSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.promotionMonitoring.promotions} promotions; ${summary.contracts.promotionMonitoring.monitoring} monitoring, ${summary.contracts.promotionMonitoring.retained} retained, ${summary.contracts.promotionMonitoring.revoked} revoked)`,
     `- subsystem support: ${summary.contracts.subsystemSupport.ok ? 'ok' : 'invalid'} (${summary.contracts.subsystemSupport.subsystems} subsystems, ${summary.contracts.subsystemSupport.primaryClaims} primary claims)`,
     ''
@@ -204,6 +210,7 @@ export async function buildProductReadinessReport() {
     providerConformance: await buildProviderConformanceReport(),
     runtimeOwnership: await buildRuntimeOwnershipDecisionReport(),
     revocations: await buildRevocationPropagationReport(),
+    signedRevocationAuthority: await buildSignedRevocationAuthorityQualificationReport(),
     promotionMonitoring: await buildRuntimePromotionMonitoringReport(),
     subsystemSupport: await buildSubsystemSupportContractReport(),
   };

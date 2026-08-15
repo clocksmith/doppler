@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/signed-revocation-authority-qualification-v1.schema.json",
+  "title": "Doppler Signed Revocation Authority Qualification v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "goalId",
+    "minimumQualifiedAuthorities",
+    "ownerConfirmationMaxAgeDays",
+    "requiredHosts",
+    "requiredDrills",
+    "authorities"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../src/config/schema/signed-revocation-authority-qualification.schema.json"
+    },
+    "schemaVersion": { "const": 1 },
+    "source": { "const": "doppler" },
+    "goalId": { "const": "evidence-backed-correctness-performance" },
+    "minimumQualifiedAuthorities": { "const": 1 },
+    "ownerConfirmationMaxAgeDays": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365
+    },
+    "requiredHosts": {
+      "const": ["browser", "node"]
+    },
+    "requiredDrills": {
+      "const": [
+        "refresh-current",
+        "online-key-rotation",
+        "exact-replay",
+        "rewritten-replay-rejection",
+        "sequence-rollback-rejection",
+        "epoch-rollback-rejection",
+        "offline-expiry",
+        "compromise-recovery",
+        "durable-store-restart",
+        "loaded-identity-invalidation",
+        "application-fail-closed"
+      ]
+    },
+    "authorities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/authority" }
+    }
+  },
+  "$defs": {
+    "nullableString": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "nullableDateTime": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "nullableRepoPath": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "anyOf": [
+              { "pattern": "^/" },
+              { "pattern": "\\\\" },
+              { "pattern": "(^|/)\\.\\.(/|$)" }
+            ]
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "durableStateStoreIds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browser", "node"],
+      "properties": {
+        "browser": { "$ref": "#/$defs/nullableString" },
+        "node": { "$ref": "#/$defs/nullableString" }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "endpointUrl",
+        "authorityId",
+        "transportPolicy",
+        "onlineKeyIds",
+        "recoveryKeyIds",
+        "durableStateStoreIds"
+      ],
+      "properties": {
+        "endpointUrl": { "$ref": "#/$defs/nullableString" },
+        "authorityId": { "$ref": "#/$defs/nullableString" },
+        "transportPolicy": { "const": "https-no-redirect" },
+        "onlineKeyIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "recoveryKeyIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "durableStateStoreIds": { "$ref": "#/$defs/durableStateStoreIds" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "endpointDeployment",
+        "packageTrustBinding",
+        "onlineKeyCustody",
+        "recoveryKeyCustody",
+        "custodySeparation",
+        "browserDurableState",
+        "nodeDurableState",
+        "refreshCurrent",
+        "onlineKeyRotation",
+        "exactReplay",
+        "rewrittenReplayRejection",
+        "sequenceRollbackRejection",
+        "epochRollbackRejection",
+        "offlineExpiry",
+        "compromiseRecovery",
+        "durableStoreRestart",
+        "loadedIdentityInvalidation",
+        "applicationFailClosed",
+        "requalification"
+      ],
+      "properties": {
+        "endpointDeployment": { "$ref": "#/$defs/nullableRepoPath" },
+        "packageTrustBinding": { "$ref": "#/$defs/nullableRepoPath" },
+        "onlineKeyCustody": { "$ref": "#/$defs/nullableRepoPath" },
+        "recoveryKeyCustody": { "$ref": "#/$defs/nullableRepoPath" },
+        "custodySeparation": { "$ref": "#/$defs/nullableRepoPath" },
+        "browserDurableState": { "$ref": "#/$defs/nullableRepoPath" },
+        "nodeDurableState": { "$ref": "#/$defs/nullableRepoPath" },
+        "refreshCurrent": { "$ref": "#/$defs/nullableRepoPath" },
+        "onlineKeyRotation": { "$ref": "#/$defs/nullableRepoPath" },
+        "exactReplay": { "$ref": "#/$defs/nullableRepoPath" },
+        "rewrittenReplayRejection": { "$ref": "#/$defs/nullableRepoPath" },
+        "sequenceRollbackRejection": { "$ref": "#/$defs/nullableRepoPath" },
+        "epochRollbackRejection": { "$ref": "#/$defs/nullableRepoPath" },
+        "offlineExpiry": { "$ref": "#/$defs/nullableRepoPath" },
+        "compromiseRecovery": { "$ref": "#/$defs/nullableRepoPath" },
+        "durableStoreRestart": { "$ref": "#/$defs/nullableRepoPath" },
+        "loadedIdentityInvalidation": { "$ref": "#/$defs/nullableRepoPath" },
+        "applicationFailClosed": { "$ref": "#/$defs/nullableRepoPath" },
+        "requalification": { "$ref": "#/$defs/nullableRepoPath" }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "lifecycle",
+        "owner",
+        "ownerConfirmedAtUtc",
+        "claimAllowed",
+        "deployment",
+        "qualifiedAtUtc",
+        "expiresAtUtc",
+        "evidence",
+        "blockers"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "lifecycle": {
+          "enum": ["candidate", "active", "quarantined", "revoked", "retired"]
+        },
+        "owner": { "$ref": "#/$defs/nullableString" },
+        "ownerConfirmedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "claimAllowed": { "type": "boolean" },
+        "deployment": { "$ref": "#/$defs/deployment" },
+        "qualifiedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "expiresAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
