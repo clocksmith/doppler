@@ -111,6 +111,11 @@ function buildSummary(reports) {
         ok: reports.runtimeOwnership.ok,
         gateSatisfied: reports.runtimeOwnership.gateSatisfied,
         qualified: reports.runtimeOwnership.qualifiedDecisions,
+        candidates: reports.runtimeOwnership.candidateDecisions,
+        candidateWorkloads: reports.runtimeOwnership.candidateWorkloads,
+        candidateDetails: reports.runtimeOwnership.decisions.filter((decision) => (
+          decision.claimAllowed === false
+        )),
         required: 3,
         missingWorkloads: reports.runtimeOwnership.missingWorkloads,
       },
@@ -173,7 +178,7 @@ function formatMarkdown(summary) {
     `- policy schemas: ${summary.contracts.policySchemas.ok ? 'ok' : 'invalid'} (${summary.contracts.policySchemas.policies} policies)`,
     `- maintained application integrations: ${summary.contracts.productIntegrations.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.productIntegrations.qualified}/${summary.contracts.productIntegrations.required} qualified; candidates ${summary.contracts.productIntegrations.candidateDetails.map((entry) => `${entry.applicationName}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.productIntegrations.missingWorkloads.join(', ') || 'none'})`,
     `- provider conformance: ${summary.contracts.providerConformance.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.providerConformance.qualified}/${summary.contracts.providerConformance.required} qualified; candidates ${summary.contracts.providerConformance.candidateDetails.map((entry) => `${entry.id}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.providerConformance.missingWorkloads.join(', ') || 'none'})`,
-    `- runtime ownership decisions: ${summary.contracts.runtimeOwnership.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.runtimeOwnership.qualified}/${summary.contracts.runtimeOwnership.required} qualified; missing ${summary.contracts.runtimeOwnership.missingWorkloads.join(', ') || 'none'})`,
+    `- runtime ownership decisions: ${summary.contracts.runtimeOwnership.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.runtimeOwnership.qualified}/${summary.contracts.runtimeOwnership.required} qualified; candidates ${summary.contracts.runtimeOwnership.candidateDetails.map((entry) => `${entry.id}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.runtimeOwnership.missingWorkloads.join(', ') || 'none'})`,
     `- revocation propagation: ${summary.contracts.revocations.ok ? 'ok' : 'invalid'} (bundled ${summary.contracts.revocations.bundled.active} active, signature ${summary.contracts.revocations.bundled.signatureVerification}; signed-live mechanism ${summary.contracts.revocations.signedLive.mechanismAvailable ? 'available' : 'missing'}, authority ${summary.contracts.revocations.signedLive.authorityQualified ? 'qualified' : 'incomplete'})`,
     `- post-promotion monitoring: ${summary.contracts.promotionMonitoring.coverageSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.promotionMonitoring.promotions} promotions; ${summary.contracts.promotionMonitoring.monitoring} monitoring, ${summary.contracts.promotionMonitoring.retained} retained, ${summary.contracts.promotionMonitoring.revoked} revoked)`,
     `- subsystem support: ${summary.contracts.subsystemSupport.ok ? 'ok' : 'invalid'} (${summary.contracts.subsystemSupport.subsystems} subsystems, ${summary.contracts.subsystemSupport.primaryClaims} primary claims)`,

@@ -89,6 +89,15 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   assert.equal(report.ok, true, report.errors.join('\n'));
   assert.equal(report.gateSatisfied, false);
   assert.equal(report.qualifiedDecisions, 0);
+  assert.equal(report.candidateDecisions, 3);
+  assert.deepEqual(report.candidateWorkloads, ['generation', 'embedding', 'reranking']);
+  assert.deepEqual(report.decisions.map((entry) => entry.id), [
+    'qwen35-generation-runtime-ownership',
+    'embeddinggemma-runtime-ownership',
+    'qwen3-reranking-runtime-ownership',
+  ]);
+  assert.ok(report.decisions.every((entry) => entry.qualified === false));
+  assert.ok(report.decisions.every((entry) => entry.hypothesisAxes.length === 1));
   assert.deepEqual(report.missingWorkloads, ['generation', 'embedding', 'reranking']);
 }
 

@@ -162,6 +162,7 @@ function validateClaimState(record, label, reasons, errors) {
   if (record.claimAllowed === true && reasons.length > 0) {
     errors.push(`${label}: claimAllowed decision does not satisfy runtime ownership qualification`);
   }
+  return blockers;
 }
 
 function thresholdMatches(operator, thresholdValue, observedValue) {
@@ -379,15 +380,27 @@ async function validateDecision(decision, context) {
   }
   const missingEvidence = EVIDENCE_FIELDS.filter((field) => !evidence[field]);
   if (missingEvidence.length > 0) reasons.push('evidence-incomplete');
-  validateClaimState(decision, id, reasons, errors);
+  const blockers = validateClaimState(decision, id, reasons, errors);
   return {
     id,
     workload: decision.workload,
+    logicalModelId: identity.logicalModelId,
+    resolvedArtifactVariantId: identity.resolvedArtifactVariantId,
+    resolvedExecutionId: identity.resolvedExecutionId,
+    sourceProviderId: identity.sourceProviderId,
+    sourceArtifactId: identity.sourceArtifactId,
+    sourceExecutionId: identity.sourceExecutionId,
+    incumbentProviderId: identity.incumbentProviderId,
+    incumbentArtifactId: identity.incumbentArtifactId,
+    incumbentExecutionId: identity.incumbentExecutionId,
+    correctnessClass: decision.correctnessClass,
+    hypothesisAxes: Array.from(seenAxes),
     disposition: decision.disposition,
     claimAllowed: decision.claimAllowed,
     qualified: decision.claimAllowed === true && reasons.length === 0,
     passedAdvantages,
     missingEvidence,
+    blockers,
     reasons,
   };
 }
@@ -410,7 +423,15 @@ export async function validateRuntimeOwnershipDecisions(policy, options = {}) {
     'decisions',
   ];
   if (!exactKeys(policy, fields, 'runtime ownership policy', errors)) {
-    return { errors, decisions: [], qualifiedDecisions: 0, missingWorkloads: [...REQUIRED_WORKLOADS], gateSatisfied: false };
+    return {
+      errors,
+      decisions: [],
+      qualifiedDecisions: 0,
+      candidateDecisions: 0,
+      candidateWorkloads: [],
+      missingWorkloads: [...REQUIRED_WORKLOADS],
+      gateSatisfied: false,
+    };
   }
   if (policy.$schema !== 'schema/runtime-ownership-decisions.schema.json') {
     errors.push('runtime ownership policy $schema is invalid');
@@ -452,6 +473,7 @@ export async function validateRuntimeOwnershipDecisions(policy, options = {}) {
     if (result) decisions.push(result);
   }
   const qualified = decisions.filter((decision) => decision.qualified);
+  const candidates = decisions.filter((decision) => decision.claimAllowed === false);
   const missingWorkloads = REQUIRED_WORKLOADS.filter(
     (workload) => !qualified.some((decision) => decision.workload === workload)
   );
@@ -459,6 +481,8 @@ export async function validateRuntimeOwnershipDecisions(policy, options = {}) {
     errors,
     decisions,
     qualifiedDecisions: qualified.length,
+    candidateDecisions: candidates.length,
+    candidateWorkloads: Array.from(new Set(candidates.map((decision) => decision.workload))),
     missingWorkloads,
     gateSatisfied: errors.length === 0
       && qualified.length >= policy.minimumQualifiedDecisions
@@ -488,7 +512,8 @@ export async function main(argv = process.argv.slice(2)) {
     const status = report.gateSatisfied ? 'satisfied' : 'incomplete';
     console.log(
       `runtime-ownership: contract ok, gate ${status} `
-      + `(${report.qualifiedDecisions}/3 qualified; missing ${report.missingWorkloads.join(', ') || 'none'})`
+      + `(${report.qualifiedDecisions}/3 qualified; ${report.candidateDecisions} candidates; `
+      + `missing ${report.missingWorkloads.join(', ') || 'none'})`
     );
   } else {
     for (const error of report.errors) console.error(`runtime-ownership: ${error}`);
