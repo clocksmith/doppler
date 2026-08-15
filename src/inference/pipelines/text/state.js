@@ -196,6 +196,7 @@ export class PipelineState {
     // LoRA adapter (optional)
 
     this.lora = null;
+    this.revocationIdentity = null;
 
     // Vision state (manifest-gated)
 

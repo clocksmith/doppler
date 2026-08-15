@@ -124,6 +124,14 @@ export class PipelineState {
 
   // LoRA adapter (optional)
   lora: LoRAAdapter | null;
+  revocationIdentity: {
+    logicalModelId?: string | null;
+    modelId?: string | null;
+    sourceCheckpointId?: string | null;
+    weightPackId?: string | null;
+    manifestVariantId?: string | null;
+    artifactVariantId?: string | null;
+  } | null;
 
   constructor();
 }

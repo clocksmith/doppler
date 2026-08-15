@@ -32,8 +32,9 @@ Primary documentation index.
   and optional named-provider qualification contract.
 - [Runtime Ownership Decisions](runtime-ownership.md) - source, incumbent, and
   Doppler evidence gate for choosing an execution owner per workload.
-- [Model, Artifact, and Adapter Revocation](revocation.md) - shipped deny-only authority,
-  runtime enforcement, claim propagation, and current trust boundary.
+- [Model, Artifact, and Adapter Revocation](revocation.md) - bundled deny-only
+  authority, signed refresh mechanism, runtime enforcement, claim propagation,
+  and current trust boundary.
 - [Doppler Program Bundle](integration/program-bundle.md) - closed portable
   model-program export shape for browser, Node provider, Doe.js capture, and
   Doe backend lowering.

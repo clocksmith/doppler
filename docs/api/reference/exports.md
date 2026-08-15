@@ -19,8 +19,13 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DopplerGenerationResult`
   - `DopplerPromptInput`
   - `DopplerResolutionPolicy`
+  - `DopplerRevocationPublicKey`
+  - `DopplerRevocationStateStore`
   - `DopplerScopedGenerateOptions`
   - `DopplerScopedModelSession`
+  - `DopplerSignedRevocationAuthorityOptions`
+  - `DopplerSignedRevocationEnvelope`
+  - `DopplerSignedRevocationStatus`
   - `dr`
   - `generate`
   - `load`

@@ -9,6 +9,10 @@ import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBu
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { resolveActiveExecutionPlan } from './execution-plan.js';
 import { isPlainObject } from '../../../utils/plain-object.js';
+import {
+  assertBundledAdapterAuthorized,
+  assertKnownResolutionNotRevoked,
+} from '../../../config/revocation-policy.js';
 
 export function resolvePerLayerInputsSession(manifestSession, runtimeSession) {
   if (!isPlainObject(runtimeSession)) {
@@ -90,6 +94,8 @@ export async function debugCheckBuffer(state, buffer, label, numTokens, expected
 
 
 export function buildLayerContext(state, recorder, isDecodeMode, debugLayers, debugCheckBufferFn, executionPlan = null) {
+  assertKnownResolutionNotRevoked(state.revocationIdentity);
+  assertBundledAdapterAuthorized(state.lora);
   const config = state.modelConfig;
   const computeConfig = state.runtimeConfig.inference.compute;
   const activeExecutionPlan = executionPlan ?? resolveActiveExecutionPlan(state);

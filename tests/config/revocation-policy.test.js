@@ -103,6 +103,14 @@ function registry() {
 }
 
 {
+  const live = registry();
+  live.trust = { distribution: 'signed-live', signatureVerification: 'verified' };
+  const report = await validateRevocationPropagation(live, {}, { requireBundledTrust: true });
+  assert.equal(report.ok, false);
+  assert.ok(report.errors.includes('the package revocation registry must use bundled-package trust'));
+}
+
+{
   const adapter = {
     id: 'safe-adapter',
     identity: {

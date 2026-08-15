@@ -2033,7 +2033,6 @@ export class InferencePipeline extends PipelineState {
     return { seqLen, maxSeqLen };
   }
 
-
   getBufferPool() {
     try {
       return getGlobalBufferPool();
@@ -2063,6 +2062,7 @@ export class InferencePipeline extends PipelineState {
     this.ownsDopplerLoader = false;
     this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
     this.lora = null;
+    this.revocationIdentity = null;
     destroyMoERouter(this.moeRouter);
     this.moeRouter = null;
     if (this.finitenessBuffer) {

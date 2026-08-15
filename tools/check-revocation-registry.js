@@ -220,7 +220,11 @@ async function validateEvidencePaths(registry, repoRoot, errors) {
   }
 }
 
-export async function validateRevocationPropagation(registryValue, surfaces, { repoRoot = REPO_ROOT } = {}) {
+export async function validateRevocationPropagation(
+  registryValue,
+  surfaces,
+  { repoRoot = REPO_ROOT, requireBundledTrust = false } = {}
+) {
   const errors = [];
   let registry;
   try {
@@ -232,6 +236,9 @@ export async function validateRevocationPropagation(registryValue, surfaces, { r
       signatureVerification: null,
       errors: [error.message],
     };
+  }
+  if (requireBundledTrust && registry.trust.distribution !== 'bundled-package') {
+    errors.push('the package revocation registry must use bundled-package trust');
   }
   await validateEvidencePaths(registry, repoRoot, errors);
   validateCatalog(surfaces.catalog, registry, errors);
@@ -266,7 +273,7 @@ export async function buildRevocationPropagationReport({ repoRoot = REPO_ROOT } 
     productIntegrations,
     providerConformance,
     runtimeOwnership,
-  }, { repoRoot });
+  }, { repoRoot, requireBundledTrust: true });
 }
 
 export async function main() {

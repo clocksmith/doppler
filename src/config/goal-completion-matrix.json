@@ -697,7 +697,11 @@
           "evidencePaths": [
             "docs/revocation.md",
             "src/config/revocation-registry.json",
-            "src/config/schema/revocation-registry.schema.json"
+            "src/config/schema/revocation-registry.schema.json",
+            "src/config/revocation-updates.js",
+            "src/client/runtime/index.js",
+            "src/inference/pipelines/text/generator-helpers.js",
+            "tests/config/signed-revocation-updates.test.js"
           ],
           "blockers": [
             "signed-live-revocation-authority-missing"
@@ -786,12 +790,15 @@
     },
     {
       "code": "signed-live-revocation-authority-missing",
-      "description": "Doppler enforces a package-bundled deny-only revocation registry, but it has no authenticated live update channel or cryptographic signature verification.",
-      "exitCriteria": "Implement and qualify signed revocation distribution with key rotation, anti-rollback state, offline behavior, compromise recovery, package/runtime refresh semantics, and deterministic tests proving a revoked loaded identity cannot continue silently.",
+      "description": "Doppler implements opt-in signed live updates, persistent sequence and epoch checks, online-key recovery, bounded offline state, and loaded-identity invalidation, but ships no qualified production authority, trusted production key custody, qualified durable store, or operational drill receipts.",
+      "exitCriteria": "Deploy and qualify the signed revocation endpoint, bind package-trusted online and recovery key custody, qualify atomic durable state on supported hosts, and retain refresh, rotation, rollback, offline-expiry, and compromise-recovery receipts.",
       "evidencePaths": [
         "docs/revocation.md",
         "src/config/revocation-registry.json",
-        "tools/check-revocation-registry.js"
+        "src/config/revocation-updates.js",
+        "src/client/runtime/index.js",
+        "src/inference/pipelines/text/generator-helpers.js",
+        "tests/config/signed-revocation-updates.test.js"
       ]
     },
     {

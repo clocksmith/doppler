@@ -29,6 +29,11 @@ import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embe
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { initDevice } from '../../gpu/device.js';
 import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
+import {
+  configureSignedRevocationAuthority,
+  getSignedRevocationStatus,
+  refreshSignedRevocations,
+} from '../../config/revocation-updates.js';
 import { createScopedModelSession } from './scoped-session.js';
 import {
   assertArtifactVariantAllowed,
@@ -205,7 +210,7 @@ export function createDopplerRuntimeService({
         return { text, manifest: resolved.manifest, manifestHash };
       })()
       : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);
-    await assertBundledResolutionNotRevoked({
+    const revocationIdentity = Object.freeze({
       logicalModelId: resolved.logicalModelId,
       modelId: manifestPayload.manifest?.modelId ?? resolved.modelId,
       sourceCheckpointId: manifestPayload.manifest?.artifactIdentity?.sourceCheckpointId,
@@ -213,6 +218,7 @@ export function createDopplerRuntimeService({
       manifestVariantId: manifestPayload.manifest?.artifactIdentity?.manifestVariantId,
       artifactVariantId: manifestPayload.manifestHash,
     });
+    await assertBundledResolutionNotRevoked(revocationIdentity);
     assertArtifactVariantAllowed(resolutionPolicy, manifestPayload.manifestHash);
     const resolvedArtifactSource = persistentSource
       ? {
@@ -293,6 +299,7 @@ export function createDopplerRuntimeService({
       }
       throw error;
     }
+    pipeline.revocationIdentity = revocationIdentity;
 
     emitLoadProgress(userProgress, 'ready', 100, 'Model ready');
     return createModelHandle(pipeline, {
@@ -421,6 +428,11 @@ export function createDopplerRuntimeService({
   doppler.listModelDetails = async function listModelDetails() {
     return listQuickstartModels();
   };
+  doppler.revocations = Object.freeze({
+    configure: configureSignedRevocationAuthority,
+    refresh: refreshSignedRevocations,
+    status: getSignedRevocationStatus,
+  });
   doppler.listPersistentModels = async function listPersistentModels() {
     if (isNodeRuntime()) {
       return [];
