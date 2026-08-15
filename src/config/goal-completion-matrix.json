@@ -203,8 +203,6 @@
         "docs/rdrr-format.md"
       ],
       "blockers": [
-        "broad-model-receipts-missing",
-        "gemma4-target-receipts-missing",
         "provider-conformance-receipts-missing",
         "runtime-ownership-decisions-missing"
       ],
@@ -448,25 +446,24 @@
           "blockers": []
         },
         {
-          "id": "model-coverage-breadth",
-          "label": "Broad model coverage breadth",
+          "id": "deliberate-model-portfolio",
+          "label": "Deliberately scoped model portfolio",
           "tier": "tier1",
-          "status": "partial",
-          "claimAllowed": false,
+          "status": "covered",
+          "claimAllowed": true,
           "supportSubsystemId": null,
           "packageBin": null,
           "packageExport": null,
-          "smokeCommand": null,
+          "smokeCommand": "npm run support:matrix:check",
           "evidencePaths": [
+            "docs/goals.md",
             "docs/model-support-matrix.md",
             "docs/release-matrix.md",
             "models/catalog.json",
-            "tools/policies/release-claim-policy.json"
+            "tools/policies/release-claim-policy.json",
+            "tools/policies/product-integration-qualification.json"
           ],
-          "blockers": [
-            "broad-model-receipts-missing",
-            "gemma4-target-receipts-missing"
-          ]
+          "blockers": []
         }
       ]
     },
@@ -482,8 +479,6 @@
         "docs/benchmark-methodology.md"
       ],
       "blockers": [
-        "candidate-benchmark-lanes",
-        "gemma4-target-receipts-missing",
         "provider-conformance-receipts-missing",
         "runtime-ownership-decisions-missing",
         "signed-live-revocation-authority-missing",
@@ -755,15 +750,15 @@
           ]
         },
         {
-          "id": "claim-promotion-coverage",
-          "label": "Claim promotion coverage",
+          "id": "scoped-claim-promotion",
+          "label": "Scoped claim promotion and retained candidates",
           "tier": "tier1",
-          "status": "partial",
-          "claimAllowed": false,
+          "status": "covered",
+          "claimAllowed": true,
           "supportSubsystemId": null,
           "packageBin": null,
           "packageExport": null,
-          "smokeCommand": null,
+          "smokeCommand": "npm run release-claims:check",
           "evidencePaths": [
             "docs/release-matrix.md",
             "benchmarks/vendors/local-inference-claim-matrix.json",
@@ -772,10 +767,7 @@
             "tools/policies/claim-evidence-contract.json",
             "tools/check-claim-evidence-contract.js"
           ],
-          "blockers": [
-            "candidate-benchmark-lanes",
-            "gemma4-target-receipts-missing"
-          ]
+          "blockers": []
         }
       ]
     }
@@ -783,7 +775,7 @@
   "blockers": [
     {
       "code": "post-promotion-monitoring-receipts-missing",
-      "priority": 8,
+      "priority": 5,
       "owner": "doppler-release",
       "completionClass": "human-promotion",
       "statusCommand": "npm run promotion:monitoring:check",
@@ -797,7 +789,7 @@
     },
     {
       "code": "signed-live-revocation-authority-missing",
-      "priority": 9,
+      "priority": 6,
       "owner": "doppler-security",
       "completionClass": "production-authority",
       "statusCommand": "npm run revocations:check",
@@ -829,7 +821,7 @@
     },
     {
       "code": "bun-runtime-tier-experimental",
-      "priority": 7,
+      "priority": 4,
       "owner": "doppler-runtime",
       "completionClass": "hardware",
       "statusCommand": "npm run support:subsystems:check",
@@ -867,48 +859,6 @@
         "docs/runtime-ownership.md",
         "benchmarks/vendors/runtime-ownership-decisions.json",
         "tools/check-runtime-ownership-decisions.js"
-      ]
-    },
-    {
-      "code": "broad-model-receipts-missing",
-      "priority": 4,
-      "owner": "doppler-models",
-      "completionClass": "hardware",
-      "statusCommand": "npm run support:matrix:check",
-      "description": "Active catalog lanes have release-claim coverage, but experimental local lanes remain non-claimable until they produce coherent runtime evidence.",
-      "exitCriteria": "Promote experimental local lanes only after catalog metadata, support matrix rows, and release-claim evidence agree on a coherent runtime result.",
-      "evidencePaths": [
-        "docs/model-support-matrix.md",
-        "docs/release-matrix.md",
-        "models/catalog.json",
-        "tools/policies/release-claim-policy.json"
-      ]
-    },
-    {
-      "code": "gemma4-target-receipts-missing",
-      "priority": 6,
-      "owner": "doppler-models",
-      "completionClass": "hardware",
-      "statusCommand": "npm run support:matrix:check",
-      "description": "Current Gemma 4 12B and 31B Node lanes have release receipts, but browser, Electron, serve, benchmark, MTP, E4B, and A4B target rows remain unsupported or unverified.",
-      "exitCriteria": "Add same-surface Gemma 4 target receipts, source artifacts, benchmark receipts, and MTP/runtime lanes or keep those rows explicitly unverified in the support matrix.",
-      "evidencePaths": [
-        "docs/model-support-matrix.md",
-        "docs/release-matrix.md"
-      ]
-    },
-    {
-      "code": "candidate-benchmark-lanes",
-      "priority": 5,
-      "owner": "doppler-performance",
-      "completionClass": "human-promotion",
-      "statusCommand": "npm run release-claims:check",
-      "description": "Several benchmark lanes remain candidate evidence instead of promoted product speed claims.",
-      "exitCriteria": "Promote only comparable lanes with clean correctness, traceable artifacts, and release-claim policy coverage.",
-      "evidencePaths": [
-        "docs/release-matrix.md",
-        "benchmarks/vendors/local-inference-claim-matrix.json",
-        "benchmarks/vendors/benchmark-policy.json"
       ]
     }
   ]

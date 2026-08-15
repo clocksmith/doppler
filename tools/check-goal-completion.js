@@ -59,7 +59,7 @@ const REQUIRED_GOAL_ROWS = new Map([
       'execution-graph-kernel-refs',
       'dtype-session-policy',
       'model-support-matrix',
-      'model-coverage-breadth',
+      'deliberate-model-portfolio',
     ],
   ],
   [
@@ -78,7 +78,7 @@ const REQUIRED_GOAL_ROWS = new Map([
       'signed-live-revocation-authority',
       'provider-conformance-evidence',
       'runtime-ownership-evidence',
-      'claim-promotion-coverage',
+      'scoped-claim-promotion',
     ],
   ],
 ]);

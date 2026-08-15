@@ -8,10 +8,11 @@
 [![npm version](https://img.shields.io/npm/v/doppler-gpu.svg?label=version)](https://www.npmjs.com/package/doppler-gpu)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/clocksmith/doppler/blob/main/LICENSE)
 
-Doppler is a JavaScript and WGSL WebGPU runtime for local model inference. It
-loads supported RDRR artifacts, runs generation, embedding, and reranking in a
-browser, Node, or Bun process, and checks candidate manifests, execution plans,
-and kernels against correctness and benchmark gates.
+Doppler is an evidence-backed JavaScript and WGSL WebGPU runtime for local model
+inference. It loads deliberately supported RDRR artifacts and runs generation,
+embedding, and reranking in browsers and Node. Bun lanes remain experimental.
+Candidate manifests, execution plans, and kernels pass scoped correctness and
+benchmark gates before they can support a product claim.
 
 ## Mission, goal, and value
 
@@ -96,25 +97,34 @@ surface. Cataloged adapter identities and lifecycle states are listed in
 [LoRA format](docs/lora-format.md), [training handbook](docs/training-handbook.md),
 and [Training API](docs/api/training.md).
 
-## Evidence and supported model types
+<!-- model-type-clusters:start -->
 
-Doppler classifies artifacts by their input and output shape. The counts below
-are catalog and verification counts, not a promise that every declared input
-works on every runtime surface.
+## Supported RDRR model types
 
-| Type | Verified / cataloged | Input and output |
-| --- | --- | --- |
-| Text generators | 12 / 14 | `text -> text` |
-| Multimodal generators | 3 / 3 | `audio + image + text -> text` |
-| Diffusion language models | 0 / 1 | `text -> text` |
-| Translation specialists | 2 / 2 | `text -> text` |
-| Language embedders | 2 / 2 | `text -> embedding` |
-| Rerankers | 2 / 2 | `text-pair -> relevance-score` |
-| Protein encoders | 3 / 3 | `sequence -> embedding + token outputs` |
-| Nucleotide encoders | 1 / 1 | `dna-seq -> embedding` |
+Doppler classifies artifacts by what they consume and produce. This is
+separate from lineage (`family`), runtime implementation (`modelType`), and
+artifact-size tier.
 
-The [model-support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
-lists each artifact, lane, and lifecycle status.
+| Type | Input → output | Runtime-verified / cataloged | Representative lanes |
+| --- | --- | --- | --- |
+| Text generators | text → text | 12 / 14 | gemma-3-1b-it-q4k-ehf16-af32<br>gemma-3-270m-it-f16-af32<br>gemma-3-270m-it-q4k-ehf16-af32<br>+11 more |
+| Multimodal generators | audio + image + text → text | 3 / 3 | gemma-4-e2b-it-q4k-ehf16-af16-int4ple<br>gemma-4-e2b-it-q4k-ehf16-af32<br>gemma-4-e2b-it-q4k-ehf16-af32-int4ple |
+| Diffusion language models | text → text | 0 / 1 | diffusiongemma-26b-a4b-it-q4k-ehf16-af16 |
+| Translation specialists | text → text | 2 / 2 | translategemma-4b-1b-enes-q4k-ehf16-af32<br>translategemma-4b-it-q4k-ehf16-af32 |
+| Language embedders | text → pooled-embedding | 2 / 2 | google-embeddinggemma-300m-q4k-ehf16-af32<br>qwen-3-embedding-0-6b-q4k-ehf16-af32 |
+| Rerankers | text-pair → relevance-score | 2 / 2 | qwen-3-reranker-0-6b-f16-af32<br>qwen-3-reranker-0-6b-q4k-ehf16-af32 |
+| Protein encoders | protein-sequence → pooled-embedding + token-embedding + token-logits | 3 / 3 | amplify-120m-f16-af32<br>esm2-t12-35m-ur50d-f32-af32<br>esmc-300m-f32-af32 |
+| Nucleotide encoders | dna-sequence → pooled-embedding + token-embedding | 1 / 1 | nucleotide-transformer-v2-50m-f32-af32 |
+
+The [full model-support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)
+lists every lane and its lifecycle evidence. Classification says what an
+artifact is shaped to do; only lifecycle receipts establish what is
+verified, and a runtime pass does not by itself qualify every declared input
+modality.
+
+<!-- model-type-clusters:end -->
+
+## Evidence
 
 Doppler has accepted browser WebGPU comparisons with higher steady-state
 throughput than Transformers.js where the declared workload correctness and

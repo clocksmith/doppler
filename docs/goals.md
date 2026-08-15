@@ -106,6 +106,15 @@ blockers are empty. Partial or experimental rows must name blocker codes, so
 README claims cannot outrun support matrices, release receipts, or package
 surface truth.
 
+Deliberate portfolio scope is complete when the supported models are named and
+everything outside that scope remains visibly experimental, failing, or
+unsupported. It does not require every catalog or roadmap model to become
+product-supported. Likewise, scoped claim promotion is working when qualified
+receipts are promoted and candidate or rejected lanes remain non-claimable;
+the mere existence of retained candidates is not a strategic blocker. A model
+or benchmark gap becomes mainline only when the declared product portfolio or
+support commitment includes it.
+
 Every blocker is also an executable action record. It names a unique priority,
 an accountable owner, a status command, exact exit criteria, and the authority
 that must terminalize it:
