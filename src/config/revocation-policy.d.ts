@@ -25,10 +25,9 @@ export interface DopplerRevocationRegistry {
   schemaVersion: 1;
   source: 'doppler';
   updatedAtUtc: string;
-  trust: {
-    distribution: 'bundled-package';
-    signatureVerification: 'unavailable';
-  };
+  trust:
+    | { distribution: 'bundled-package'; signatureVerification: 'unavailable' }
+    | { distribution: 'signed-live'; signatureVerification: 'verified' };
   revocations: readonly DopplerRevocationRecord[];
 }
 
@@ -57,5 +56,10 @@ export declare function assertResolutionNotRevoked(
   registry: DopplerRevocationRegistry
 ): void;
 export declare function assertBundledResolutionNotRevoked(identity: DopplerRevocationIdentity): Promise<void>;
+export declare function installLiveRevocationRegistry(
+  value: unknown,
+  assertCurrent: () => void
+): DopplerRevocationRegistry;
+export declare function assertKnownResolutionNotRevoked(identity: DopplerRevocationIdentity | null | undefined): void;
 export declare function authorizeBundledAdapter<T extends object>(adapter: T): Promise<T>;
 export declare function assertBundledAdapterAuthorized(adapter: object | null | undefined): void;

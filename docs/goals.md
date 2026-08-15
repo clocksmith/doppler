@@ -421,8 +421,13 @@ quickstart filtering, model and adapter catalog lifecycle, and withdrawal from
 claims, integrations, provider suites, and runtime-ownership decisions. Model
 identity is enforced before device initialization and weight loading. Adapter
 identity is enforced before adapter bytes load and again before activation. No
-named replacement is selected automatically. The current authority is package-
-bundled, not live or cryptographically signed; that wider claim remains blocked.
+named replacement is selected automatically. The root API also implements an
+opt-in signed P-256 live-update mechanism with bounded fetches, expiring offline
+state, persistent sequence and epoch checks, recovery-key rotation, monotonic
+deny records, and loaded-identity invalidation. That mechanism does not make the
+wider product claim complete: Doppler ships no qualified production endpoint,
+package-trusted production key custody, qualified durable store, or retained
+rotation and compromise-recovery drill receipts.
 
 `tools/policies/runtime-promotion-monitoring.json` closes the control loop after
 a human promotion. `npm run promotion:monitoring:check` binds each promoted

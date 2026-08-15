@@ -15,6 +15,10 @@ import type {
   DopplerScopedModelSession,
   LoRAManifest,
 } from './runtime/index.js';
+import type {
+  DopplerSignedRevocationAuthorityOptions,
+  DopplerSignedRevocationStatus,
+} from '../config/revocation-updates.js';
 
 export type DopplerGenerateOptions = Omit<GenerateOptions, 'stopTokens'>;
 
@@ -43,6 +47,11 @@ export interface DopplerNamespace {
   listModelDetails(): Promise<Array<Record<string, unknown> & { modelId: string }>>;
   listPersistentModels(): Promise<Array<Record<string, unknown> & { modelId: string }>>;
   removePersistentModel(model: DopplerModelSource): Promise<boolean>;
+  readonly revocations: {
+    configure(options: DopplerSignedRevocationAuthorityOptions): Promise<DopplerSignedRevocationStatus>;
+    refresh(options?: { force?: boolean }): Promise<DopplerSignedRevocationStatus>;
+    status(): DopplerSignedRevocationStatus;
+  };
 }
 
 export declare function load(
@@ -90,3 +99,10 @@ export type {
   LoRAManifest,
   RDRRManifest,
 };
+export type {
+  DopplerRevocationPublicKey,
+  DopplerRevocationStateStore,
+  DopplerSignedRevocationAuthorityOptions,
+  DopplerSignedRevocationEnvelope,
+  DopplerSignedRevocationStatus,
+} from '../config/revocation-updates.js';

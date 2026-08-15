@@ -30,7 +30,6 @@ config/param-validator.d.ts
 config/platforms/loader.d.ts
 config/quantization-contract-check.d.ts
 config/quantization-contract-check.js
-config/revocation-policy.d.ts
 config/runtime-merge.d.ts
 config/schema/capability-transform-policy.schema.json
 config/schema/catscan-policy.schema.json

@@ -22,9 +22,23 @@
       "additionalProperties": false,
       "required": ["distribution", "signatureVerification"],
       "properties": {
-        "distribution": { "const": "bundled-package" },
-        "signatureVerification": { "const": "unavailable" }
-      }
+        "distribution": { "enum": ["bundled-package", "signed-live"] },
+        "signatureVerification": { "enum": ["unavailable", "verified"] }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "distribution": { "const": "bundled-package" },
+            "signatureVerification": { "const": "unavailable" }
+          }
+        },
+        {
+          "properties": {
+            "distribution": { "const": "signed-live" },
+            "signatureVerification": { "const": "verified" }
+          }
+        }
+      ]
     },
     "revocations": {
       "type": "array",

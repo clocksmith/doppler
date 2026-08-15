@@ -408,13 +408,14 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
       runtimeModel = synthesizedRuntimeModel.manifest;
     }
 
-    await assertBundledResolutionNotRevoked({
+    const revocationIdentity = Object.freeze({
       logicalModelId: modelId,
       modelId: runtimeModel.modelId ?? modelId,
       sourceCheckpointId: runtimeModel.artifactIdentity?.sourceCheckpointId,
       weightPackId: runtimeModel.artifactIdentity?.weightPackId,
       manifestVariantId: runtimeModel.artifactIdentity?.manifestVariantId,
     });
+    await assertBundledResolutionNotRevoked(revocationIdentity);
 
     try {
       const mc = extractTextModelConfig(runtimeModel);
@@ -550,6 +551,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
     }
 
     pipeline = await createPipeline(runtimeModel, pipelineContexts);
+    pipeline.revocationIdentity = revocationIdentity;
 
     currentModelId = modelId;
     DopplerCapabilities.currentModelId = modelId;

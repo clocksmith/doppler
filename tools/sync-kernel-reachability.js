@@ -64,7 +64,7 @@ function stringifyRegistry(registry) {
       }
     }
     return value;
-  }, 2);
+  }, 1);
   for (const { token, inline } of replacements) {
     content = content.replace(JSON.stringify(token), inline);
   }

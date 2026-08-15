@@ -37,6 +37,9 @@ instance features such as LoRA loading relate to the tier1 contract.
 - `dr.listModelDetails()`
 - `dr.listPersistentModels()` (browser)
 - `dr.removePersistentModel(model)` (browser)
+- `dr.revocations.configure(options)`
+- `dr.revocations.refresh({ force? })`
+- `dr.revocations.status()`
 
 Advanced runtime helpers now live on dedicated subpaths such as
 `doppler-gpu/loaders`, `doppler-gpu/orchestration`, `doppler-gpu/generation`,
@@ -88,6 +91,22 @@ A bare string is treated as a bundled/known registry ID, not a path heuristic.
   weight-pack, manifest-variant, exact manifest-hash, adapter-ID, source-weight,
   or adapter-execution identities; unchecked adapters fail before activation,
   and named replacements are never selected automatically
+
+### Signed revocation updates
+
+`dr.revocations` is an explicit application-operated control plane. `configure`
+requires an exact credential-free HTTPS endpoint, separate trusted online and
+recovery P-256 keyrings, refresh and resource limits, and an atomic durable
+state store. It restores and verifies saved state before fetching. `refresh`
+performs the only network action; Doppler does not start a background poller.
+
+Verified live updates are deny-only, monotonic within trusted durable state, and
+usable offline only until signed expiry. A recovery-signed epoch transition can
+rotate compromised online keys without allowing prior revoked keys or deny
+records to disappear. Already loaded models and adapters fail before the next
+layer when a matching live denial is installed. See [revocation](../revocation.md)
+for the envelope and trust contract. Doppler ships no default live endpoint or
+production keyring, so this mechanism is not yet a product-support claim.
 
 ## Primary Symbol Notes
 

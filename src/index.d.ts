@@ -7,10 +7,15 @@ export {
   open,
 } from './client/doppler-api.js';
 export type {
+  DopplerRevocationPublicKey,
+  DopplerRevocationStateStore,
   DopplerGenerationResult,
   DopplerResolutionPolicy,
   DopplerPromptInput,
   DopplerScopedGenerateOptions,
   DopplerScopedModelSession,
+  DopplerSignedRevocationAuthorityOptions,
+  DopplerSignedRevocationEnvelope,
+  DopplerSignedRevocationStatus,
 } from './client/doppler-api.js';
 export { createDopplerProvider } from './client/provider.js';

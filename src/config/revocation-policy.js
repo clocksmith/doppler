@@ -26,7 +26,11 @@ const HASH_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const REGISTRY = 'revocation registry';
 
 let registryPromise = null;
-const authorizedAdapters = new WeakSet();
+let bundledRegistryValue = null;
+let liveRegistryValue = null;
+let assertLiveRegistryCurrent = null;
+let policyRevision = 0;
+const authorizedAdapters = new WeakMap();
 
 function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
@@ -169,12 +173,11 @@ export function validateRevocationRegistry(value) {
   if (value.schemaVersion !== 1) throw new Error(`${REGISTRY} schemaVersion must be 1.`);
   if (value.source !== 'doppler') throw new Error(`${REGISTRY} source must be "doppler".`);
   assertExactKeys(value.trust, ['distribution', 'signatureVerification'], `${REGISTRY} trust`);
-  if (value.trust.distribution !== 'bundled-package') {
-    throw new Error(`${REGISTRY} trust.distribution must be "bundled-package".`);
-  }
-  if (value.trust.signatureVerification !== 'unavailable') {
-    throw new Error(`${REGISTRY} trust.signatureVerification must be "unavailable".`);
-  }
+  const bundledTrust = value.trust.distribution === 'bundled-package'
+    && value.trust.signatureVerification === 'unavailable';
+  const liveTrust = value.trust.distribution === 'signed-live'
+    && value.trust.signatureVerification === 'verified';
+  if (!bundledTrust && !liveTrust) throw new Error(`${REGISTRY} trust pair is not recognized.`);
   if (!Array.isArray(value.revocations)) throw new Error(`${REGISTRY} revocations must be an array.`);
   const revocations = value.revocations.map(normalizeRevocation);
   const ids = revocations.map((entry) => entry.id);
@@ -184,10 +187,7 @@ export function validateRevocationRegistry(value) {
     schemaVersion: 1,
     source: 'doppler',
     updatedAtUtc: normalizeInstant(value.updatedAtUtc, `${REGISTRY} updatedAtUtc`),
-    trust: {
-      distribution: 'bundled-package',
-      signatureVerification: 'unavailable',
-    },
+    trust: { ...value.trust },
     revocations,
   });
 }
@@ -197,7 +197,13 @@ export async function loadRevocationRegistry() {
     './revocation-registry.json',
     import.meta.url,
     'Cannot load Doppler revocations'
-  ).then(validateRevocationRegistry);
+  ).then(validateRevocationRegistry).then((registry) => {
+    if (registry.trust.distribution !== 'bundled-package') {
+      throw new Error('The package revocation registry must use bundled-package trust.');
+    }
+    bundledRegistryValue = registry;
+    return registry;
+  });
   return registryPromise;
 }
 
@@ -225,7 +231,32 @@ export function assertResolutionNotRevoked(identity, registry) {
 }
 
 export async function assertBundledResolutionNotRevoked(identity) {
-  assertResolutionNotRevoked(identity, await loadRevocationRegistry());
+  await loadRevocationRegistry();
+  assertKnownResolutionNotRevoked(identity);
+}
+
+export function installLiveRevocationRegistry(value, assertCurrent) {
+  const registry = validateRevocationRegistry(value);
+  if (registry.trust.distribution !== 'signed-live') {
+    throw new Error('Live revocation installation requires verified signed-live trust.');
+  }
+  if (typeof assertCurrent !== 'function') throw new Error('Live revocation installation requires a freshness assertion.');
+  liveRegistryValue = registry;
+  assertLiveRegistryCurrent = assertCurrent;
+  policyRevision += 1;
+  return registry;
+}
+
+export function assertKnownResolutionNotRevoked(identity) {
+  if (identity == null) return;
+  if (!bundledRegistryValue && !liveRegistryValue) {
+    throw new Error('Revocation policy is not initialized.');
+  }
+  if (bundledRegistryValue) assertResolutionNotRevoked(identity, bundledRegistryValue);
+  if (liveRegistryValue) {
+    assertLiveRegistryCurrent();
+    assertResolutionNotRevoked(identity, liveRegistryValue);
+  }
 }
 
 export async function authorizeBundledAdapter(adapter) {
@@ -236,12 +267,24 @@ export async function authorizeBundledAdapter(adapter) {
     throw new Error('Adapter authorization requires matching manifest and execution IDs.');
   }
   await assertBundledResolutionNotRevoked({ adapterId, adapterDigest: identity.digest });
-  authorizedAdapters.add(adapter);
+  authorizedAdapters.set(adapter, { adapterId, adapterDigest: identity.digest, revision: policyRevision });
   return adapter;
 }
 
 export function assertBundledAdapterAuthorized(adapter) {
-  if (adapter != null && !authorizedAdapters.has(adapter)) {
+  if (adapter == null) return;
+  const authorization = authorizedAdapters.get(adapter);
+  if (!authorization
+    || adapter.id !== authorization.adapterId
+    || adapter.identity?.digest !== authorization.adapterDigest) {
     throw new Error('LoRA activation requires a revocation-checked Doppler adapter.');
+  }
+  if (liveRegistryValue) assertLiveRegistryCurrent();
+  if (authorization.revision !== policyRevision) {
+    assertKnownResolutionNotRevoked({
+      adapterId: authorization.adapterId,
+      adapterDigest: authorization.adapterDigest,
+    });
+    authorization.revision = policyRevision;
   }
 }
