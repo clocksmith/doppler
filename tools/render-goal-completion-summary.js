@@ -51,6 +51,13 @@ function formatMarkdown(report) {
   for (const goal of report.goals) {
     lines.push(formatGoal(goal));
   }
+  lines.push('## Action queue', '');
+  for (const action of report.actions) {
+    lines.push(
+      `- ${action.priority}. \`${action.code}\` — owner ${action.owner}; completion ${action.completionClass}; status \`${action.statusCommand}\``,
+      `  Exit: ${action.exitCriteria}`
+    );
+  }
   return lines.join('\n').trimEnd();
 }
 

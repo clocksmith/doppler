@@ -782,6 +782,10 @@
   "blockers": [
     {
       "code": "post-promotion-monitoring-receipts-missing",
+      "priority": 8,
+      "owner": "doppler-release",
+      "completionClass": "human-promotion",
+      "statusCommand": "npm run promotion:monitoring:check",
       "description": "The post-promotion evaluator is implemented, but no promoted runtime candidate has complete monitoring observations and a terminal retain or revoke decision.",
       "exitCriteria": "Register a real human-promoted candidate with its accepted optimization receipt, pre-activation monitor plan, exact execution scope, known-safe rollback evidence, repeated retained observations, and a terminal retain decision or matching active revocation record.",
       "evidencePaths": [
@@ -792,6 +796,10 @@
     },
     {
       "code": "signed-live-revocation-authority-missing",
+      "priority": 9,
+      "owner": "doppler-security",
+      "completionClass": "production-authority",
+      "statusCommand": "npm run revocations:check",
       "description": "Doppler implements opt-in signed live updates, persistent sequence and epoch checks, online-key recovery, bounded offline state, and loaded-identity invalidation, but ships no qualified production authority, trusted production key custody, qualified durable store, or operational drill receipts.",
       "exitCriteria": "Deploy and qualify the signed revocation endpoint, bind package-trusted online and recovery key custody, qualify atomic durable state on supported hosts, and retain refresh, rotation, rollback, offline-expiry, and compromise-recovery receipts.",
       "evidencePaths": [
@@ -805,6 +813,10 @@
     },
     {
       "code": "maintained-application-integrations-missing",
+      "priority": 1,
+      "owner": "doppler-product",
+      "completionClass": "application",
+      "statusCommand": "npm run product:integrations:check",
       "description": "No maintained generation, embedding-retrieval, or reranking application integrations are currently qualified as product-supported.",
       "exitCriteria": "Register three distinct active applications spanning generation, embedding retrieval, and reranking with current owners, exact resolution identities, complete evidence, incumbent controls, upgrade/requalification, and rollback/revocation receipts.",
       "evidencePaths": [
@@ -815,6 +827,10 @@
     },
     {
       "code": "bun-runtime-tier-experimental",
+      "priority": 7,
+      "owner": "doppler-runtime",
+      "completionClass": "hardware",
+      "statusCommand": "npm run support:subsystems:check",
       "description": "Bun WebGPU rows exist as evidence lanes, but Bun is not a tier1 Doppler product surface.",
       "exitCriteria": "Promote Bun through the support-tier registry and release matrix with committed runtime and compare receipts.",
       "evidencePaths": [
@@ -825,6 +841,10 @@
     },
     {
       "code": "provider-conformance-receipts-missing",
+      "priority": 2,
+      "owner": "doppler-runtime",
+      "completionClass": "hardware",
+      "statusCommand": "npm run provider:conformance:check",
       "description": "No exact-tuple generation, embedding, or reranking suite is qualified across both browser WebGPU and the selected Node WebGPU provider.",
       "exitCriteria": "Retain current browser and Node receipts for generation, embedding, and reranking that bind the same model contract, operations, lifecycle, artifact and execution identities, environment, and predeclared correctness class; keep Doe and other providers as explicit named lanes.",
       "evidencePaths": [
@@ -835,6 +855,10 @@
     },
     {
       "code": "runtime-ownership-decisions-missing",
+      "priority": 3,
+      "owner": "doppler-product",
+      "completionClass": "hardware",
+      "statusCommand": "npm run runtime:ownership:check",
       "description": "No claimable generation, embedding, or reranking decision establishes whether Doppler, an incumbent, or both should own execution.",
       "exitCriteria": "Retain current source, incumbent, and Doppler evidence for generation, embedding, and reranking; predeclare material-advantage thresholds; record correctness, quality, usability, memory, performance, diagnostics, cost, burden, and provider risk; then publish an unexpired incumbent, doppler, or dual disposition.",
       "evidencePaths": [
@@ -845,6 +869,10 @@
     },
     {
       "code": "broad-model-receipts-missing",
+      "priority": 4,
+      "owner": "doppler-models",
+      "completionClass": "hardware",
+      "statusCommand": "npm run support:matrix:check",
       "description": "Active catalog lanes have release-claim coverage, but experimental local lanes remain non-claimable until they produce coherent runtime evidence.",
       "exitCriteria": "Promote experimental local lanes only after catalog metadata, support matrix rows, and release-claim evidence agree on a coherent runtime result.",
       "evidencePaths": [
@@ -856,6 +884,10 @@
     },
     {
       "code": "gemma4-target-receipts-missing",
+      "priority": 6,
+      "owner": "doppler-models",
+      "completionClass": "hardware",
+      "statusCommand": "npm run support:matrix:check",
       "description": "Current Gemma 4 12B and 31B Node lanes have release receipts, but browser, Electron, serve, benchmark, MTP, E4B, and A4B target rows remain unsupported or unverified.",
       "exitCriteria": "Add same-surface Gemma 4 target receipts, source artifacts, benchmark receipts, and MTP/runtime lanes or keep those rows explicitly unverified in the support matrix.",
       "evidencePaths": [
@@ -865,6 +897,10 @@
     },
     {
       "code": "candidate-benchmark-lanes",
+      "priority": 5,
+      "owner": "doppler-performance",
+      "completionClass": "human-promotion",
+      "statusCommand": "npm run release-claims:check",
       "description": "Several benchmark lanes remain candidate evidence instead of promoted product speed claims.",
       "exitCriteria": "Promote only comparable lanes with clean correctness, traceable artifacts, and release-claim policy coverage.",
       "evidencePaths": [

@@ -227,6 +227,10 @@
       "additionalProperties": false,
       "required": [
         "code",
+        "priority",
+        "owner",
+        "completionClass",
+        "statusCommand",
         "description",
         "exitCriteria",
         "evidencePaths"
@@ -234,6 +238,27 @@
       "properties": {
         "code": {
           "$ref": "#/$defs/id"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 999
+        },
+        "owner": {
+          "$ref": "#/$defs/id"
+        },
+        "completionClass": {
+          "enum": [
+            "repository",
+            "application",
+            "hardware",
+            "production-authority",
+            "human-promotion"
+          ]
+        },
+        "statusCommand": {
+          "type": "string",
+          "pattern": "^npm run [a-z0-9:-]+$"
         },
         "description": {
           "type": "string",

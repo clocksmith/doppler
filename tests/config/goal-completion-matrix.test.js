@@ -56,6 +56,44 @@ const matrix = await readJson(MATRIX_PATH);
     'model-artifact-runtime-contract',
     'correctness-performance-claims',
   ]);
+  assert.equal(report.actions.length, matrix.blockers.length);
+  assert.deepEqual(report.actions.map((action) => action.priority), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.equal(report.actions[0].code, 'maintained-application-integrations-missing');
+  assert.equal(report.actions[0].completionClass, 'application');
+  assert.equal(report.actions[0].statusCommand, 'npm run product:integrations:check');
+  assert.deepEqual(report.actions[0].rows, [
+    'local-webgpu-product-surface/maintained-application-integrations',
+  ]);
+}
+
+{
+  const broken = clone(matrix);
+  broken.blockers[1].priority = broken.blockers[0].priority;
+  const errors = await validateFixture(broken);
+  assert.ok(
+    errors.includes(`${broken.blockers[1].code}: duplicate blocker priority ${broken.blockers[0].priority}`),
+    errors.join('\n')
+  );
+}
+
+{
+  const broken = clone(matrix);
+  broken.blockers[0].completionClass = 'static-guess';
+  const errors = await validateFixture(broken);
+  assert.ok(
+    errors.some((error) => error.startsWith(`${broken.blockers[0].code}: completionClass must be one of`)),
+    errors.join('\n')
+  );
+}
+
+{
+  const broken = clone(matrix);
+  broken.blockers[0].statusCommand = 'npm run missing:status';
+  const errors = await validateFixture(broken);
+  assert.ok(
+    errors.includes(`${broken.blockers[0].code}: statusCommand script missing:status is not declared in package.json`),
+    errors.join('\n')
+  );
 }
 
 {

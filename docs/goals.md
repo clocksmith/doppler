@@ -100,6 +100,22 @@ blockers are empty. Partial or experimental rows must name blocker codes, so
 README claims cannot outrun support matrices, release receipts, or package
 surface truth.
 
+Every blocker is also an executable action record. It names a unique priority,
+an accountable owner, a status command, exact exit criteria, and the authority
+that must terminalize it:
+
+- `repository`: checked-in implementation or contract work can complete it;
+- `application`: a maintained external application must qualify it;
+- `hardware`: retained execution on the declared hardware and surface is required;
+- `production-authority`: deployed operations or trusted custody must qualify it;
+- `human-promotion`: an explicit promotion or retain/revoke decision is required.
+
+`npm run goals:report` and `npm run product:readiness:report` project these
+records into priority order. A passing status command means the governing
+policy is internally valid; only removal of the blocker after its exit evidence
+exists means the strategic gap is complete. Agents must not replace an external,
+hardware, operational, or human completion class with repository-only evidence.
+
 ## Goal 2: Own the model artifact and runtime contract
 
 Product contract:
