@@ -126,6 +126,7 @@
       "command": null,
       "docs": [
         "docs/goals.md",
+        "docs/bun-product-qualification.md",
         "docs/release-matrix.md",
         "docs/status/bun-product-support-candidate-audit-2026-08-15.json"
       ],
@@ -133,7 +134,7 @@
         "src/cli/doppler-cli.js",
         "src/gpu/device.js"
       ],
-      "notes": "Bun can execute the Node command surface with native WebGPU, but it remains experimental until the declared portfolio and product surfaces have current Bun-native qualification receipts."
+      "notes": "Bun can execute the Node command surface with native WebGPU, but it remains experimental until the three-workload qualification policy has current semantic receipts, explicit human promotion, and synchronized support and release projections."
     },
     {
       "id": "format.rdrr-runtime",

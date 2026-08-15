@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/bun-product-qualification-v1.schema.json",
+  "title": "Doppler Bun Product Qualification Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "supportSubsystemId",
+    "releaseEngineId",
+    "requiredWorkloads",
+    "minimumQualifiedWorkloads",
+    "qualificationMaxAgeDays",
+    "requiredEvidenceFields",
+    "qualifications"
+  ],
+  "properties": {
+    "$schema": { "const": "../../src/config/schema/bun-product-qualification.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "source": { "const": "doppler" },
+    "supportSubsystemId": { "const": "runtime.bun-webgpu" },
+    "releaseEngineId": { "const": "doppler-bun" },
+    "requiredWorkloads": { "const": ["generation", "embedding", "reranking"] },
+    "minimumQualifiedWorkloads": { "const": 3 },
+    "qualificationMaxAgeDays": { "type": "integer", "minimum": 1, "maximum": 365 },
+    "requiredEvidenceFields": {
+      "const": [
+        "execution",
+        "surfaceConformance",
+        "lifecycle",
+        "correctnessQuality",
+        "reliability",
+        "memory",
+        "coldWarmResponse",
+        "incumbentControl",
+        "upgradeRequalification",
+        "rollbackRevocation",
+        "promotion"
+      ]
+    },
+    "qualifications": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/qualification" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "nullableString": {
+      "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+    },
+    "nullableSha256": {
+      "anyOf": [
+        { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        { "type": "null" }
+      ]
+    },
+    "nullableDateTime": {
+      "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+    },
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          { "pattern": "^/" },
+          { "pattern": "\\\\" },
+          { "pattern": "(^|/)\\.\\.(/|$)" }
+        ]
+      }
+    },
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "digest"],
+      "properties": {
+        "path": { "$ref": "#/$defs/repoPath" },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "nullableEvidenceReference": {
+      "anyOf": [{ "$ref": "#/$defs/evidenceReference" }, { "type": "null" }]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution",
+        "surfaceConformance",
+        "lifecycle",
+        "correctnessQuality",
+        "reliability",
+        "memory",
+        "coldWarmResponse",
+        "incumbentControl",
+        "upgradeRequalification",
+        "rollbackRevocation",
+        "promotion"
+      ],
+      "properties": {
+        "execution": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "surfaceConformance": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "lifecycle": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "correctnessQuality": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "reliability": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "memory": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "coldWarmResponse": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "incumbentControl": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "upgradeRequalification": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "rollbackRevocation": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "promotion": { "$ref": "#/$defs/nullableEvidenceReference" }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "workload",
+        "logicalModelId",
+        "manifestVariantId",
+        "correctnessClass",
+        "resolvedArtifactVariantId",
+        "resolvedExecutionId",
+        "bunVersion",
+        "webgpuImplementationId",
+        "providerId",
+        "qualifiedAtUtc",
+        "expiresAtUtc",
+        "evidence",
+        "claimAllowed",
+        "blockers"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "workload": { "enum": ["generation", "embedding", "reranking"] },
+        "logicalModelId": { "type": "string", "minLength": 1 },
+        "manifestVariantId": { "type": "string", "minLength": 1 },
+        "correctnessClass": {
+          "enum": ["exact-token", "tolerance-bounded-numerical", "semantic", "held-out-task-metric"]
+        },
+        "resolvedArtifactVariantId": { "$ref": "#/$defs/nullableSha256" },
+        "resolvedExecutionId": { "$ref": "#/$defs/nullableSha256" },
+        "bunVersion": { "$ref": "#/$defs/nullableString" },
+        "webgpuImplementationId": { "$ref": "#/$defs/nullableString" },
+        "providerId": { "$ref": "#/$defs/nullableString" },
+        "qualifiedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "expiresAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "claimAllowed": { "type": "boolean" },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

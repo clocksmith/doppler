@@ -21,6 +21,14 @@
     "harnessPath": "benchmarks/vendors/harnesses/doppler-bun.json",
     "releaseMatrixPath": "benchmarks/vendors/release-matrix.json"
   },
+  "qualificationControl": {
+    "policyPath": "tools/policies/bun-product-qualification.json",
+    "checkCommand": "npm run bun:qualification:check",
+    "recordCommand": "npm run bun:qualification:record -- --capture <capture.json> --out <candidate-policy.json>",
+    "recordingIsPromoting": false,
+    "promotionAuthority": "digest-bound-human-receipt",
+    "portfolioPromotion": "atomic-generation-embedding-reranking-support-tier-and-release-registry"
+  },
   "historicalGenerationEvidence": [
     {
       "path": "benchmarks/vendors/results/compare_20260627T202736.json",

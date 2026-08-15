@@ -34,6 +34,8 @@ Primary documentation index.
   maintained-application ownership, identity, and outcome evidence.
 - [Runtime Ownership Decisions](runtime-ownership.md) - source, incumbent, and
   Doppler evidence gate for choosing an execution owner per workload.
+- [Bun Product Qualification](bun-product-qualification.md) - three-workload
+  Bun/WebGPU evidence composition, non-promoting recording, and atomic promotion.
 - [Model, Artifact, and Adapter Revocation](revocation.md) - bundled deny-only
   authority, signed refresh mechanism, runtime enforcement, claim propagation,
   and current trust boundary.

@@ -141,10 +141,22 @@
           "smokeCommand": null,
           "evidencePaths": [
             "docs/goals.md",
+            "docs/bun-product-qualification.md",
             "docs/release-matrix.md",
+            "benchmarks/vendors/registry.json",
             "benchmarks/vendors/release-matrix.json",
             "docs/subsystem-support-matrix.md",
-            "docs/status/bun-product-support-candidate-audit-2026-08-15.json"
+            "docs/status/bun-product-support-candidate-audit-2026-08-15.json",
+            "tools/policies/bun-product-qualification.json",
+            "src/config/schema/bun-product-qualification.schema.json",
+            "src/config/schema/bun-product-qualification-evidence.schema.json",
+            "src/config/schema/bun-product-promotion-evidence.schema.json",
+            "src/config/schema/bun-product-qualification-capture.schema.json",
+            "tools/check-bun-product-qualification.js",
+            "tools/record-bun-product-qualification.js",
+            "tools/lib/bun-product-qualification-evidence.js",
+            "tests/config/bun-product-qualification.test.js",
+            "tests/tooling/record-bun-product-qualification.test.js"
           ],
           "blockers": [
             "bun-runtime-tier-experimental"
@@ -894,14 +906,26 @@
       "priority": 4,
       "owner": "doppler-runtime",
       "completionClass": "hardware",
-      "statusCommand": "npm run support:subsystems:check",
+      "statusCommand": "npm run bun:qualification:check",
       "description": "Bun has an experimental generation harness and three old same-artifact comparisons, but no Bun-native three-workload product qualification.",
-      "exitCriteria": "Qualify generation, embedding, and reranking through Bun-native root API and CLI surfaces with named manifest variants, runtime-observed manifest and execution SHA-256 identities, load-execute-unload, correctness, failure, memory, cold/warm, incumbent, requalification, and revocation evidence; then promote runtime.bun-webgpu and the release engine together.",
+      "exitCriteria": "Qualify generation, embedding, and reranking through Bun-native root API and CLI surfaces with canonical-digest semantic receipts for exact Bun/WebGPU and runtime identities, load-execute-unload, correctness and held-out quality, reliability, memory, cold/warm distributions, incumbent eligibility, requalification, rollback, and revocation; add digest-bound human promotion receipts; then promote runtime.bun-webgpu and the canonical doppler-bun vendor registry entry together and regenerate its release-matrix projection.",
       "evidencePaths": [
+        "docs/bun-product-qualification.md",
         "docs/status/bun-product-support-candidate-audit-2026-08-15.json",
+        "tools/policies/bun-product-qualification.json",
+        "src/config/schema/bun-product-qualification.schema.json",
+        "src/config/schema/bun-product-qualification-evidence.schema.json",
+        "src/config/schema/bun-product-promotion-evidence.schema.json",
+        "src/config/schema/bun-product-qualification-capture.schema.json",
+        "tools/check-bun-product-qualification.js",
+        "tools/record-bun-product-qualification.js",
+        "tools/lib/bun-product-qualification-evidence.js",
+        "tests/config/bun-product-qualification.test.js",
+        "tests/tooling/record-bun-product-qualification.test.js",
         "src/config/support-tiers/subsystems.json",
         "docs/subsystem-support-matrix.md",
         "docs/release-matrix.md",
+        "benchmarks/vendors/registry.json",
         "benchmarks/vendors/release-matrix.json"
       ]
     },
