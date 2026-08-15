@@ -9,6 +9,7 @@ import { buildGoalCompletionReport } from './check-goal-completion.js';
 import { buildModelArtifactContractReport } from './check-model-artifact-contract.js';
 import { buildPolicySchemaRegistryReport } from './check-policy-schema-registry.js';
 import { buildProductIntegrationQualificationReport } from './check-product-integration-qualification.js';
+import { buildProductPortfolioCoherenceReport } from './check-product-portfolio-coherence.js';
 import { buildProviderConformanceReport } from './check-provider-conformance.js';
 import { buildRuntimeOwnershipDecisionReport } from './check-runtime-ownership-decisions.js';
 import { buildRevocationPropagationReport } from './check-revocation-registry.js';
@@ -42,6 +43,7 @@ function buildSummary(reports) {
     ...collectErrors('command surface', reports.commandSurface),
     ...collectErrors('model artifact', reports.modelArtifact),
     ...collectErrors('policy schemas', reports.policySchemas),
+    ...collectErrors('product portfolio coherence', reports.productPortfolioCoherence),
     ...collectErrors('product integrations', reports.productIntegrations),
     ...collectErrors('provider conformance', reports.providerConformance),
     ...collectErrors('runtime ownership', reports.runtimeOwnership),
@@ -57,6 +59,7 @@ function buildSummary(reports) {
       && reports.commandSurface.ok
       && reports.modelArtifact.ok
       && reports.policySchemas.ok
+      && reports.productPortfolioCoherence.ok
       && reports.productIntegrations.ok
       && reports.providerConformance.ok
       && reports.runtimeOwnership.ok
@@ -85,6 +88,11 @@ function buildSummary(reports) {
       policySchemas: {
         ok: reports.policySchemas.ok,
         policies: reports.policySchemas.policies,
+      },
+      productPortfolioCoherence: {
+        ok: reports.productPortfolioCoherence.ok,
+        workloads: reports.productPortfolioCoherence.workloads,
+        requiredGates: reports.productPortfolioCoherence.requiredGates,
       },
       productIntegrations: {
         ok: reports.productIntegrations.ok,
@@ -203,6 +211,7 @@ function formatMarkdown(summary) {
     `- command surface: ${summary.contracts.commandSurface.ok ? 'ok' : 'invalid'} (${summary.contracts.commandSurface.commands} commands)`,
     `- model artifact registry: ${summary.contracts.modelArtifact.ok ? 'ok' : 'invalid'} (${summary.contracts.modelArtifact.registryModels}/${summary.contracts.modelArtifact.catalogModels} catalog models exposed)`,
     `- policy schemas: ${summary.contracts.policySchemas.ok ? 'ok' : 'invalid'} (${summary.contracts.policySchemas.policies} policies)`,
+    `- product portfolio coherence: ${summary.contracts.productPortfolioCoherence.ok ? 'ok' : 'invalid'} (${summary.contracts.productPortfolioCoherence.workloads.length} workloads across ${summary.contracts.productPortfolioCoherence.requiredGates.length} qualification gates)`,
     `- maintained application integrations: ${summary.contracts.productIntegrations.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.productIntegrations.qualified}/${summary.contracts.productIntegrations.required} qualified; candidates ${summary.contracts.productIntegrations.candidateDetails.map((entry) => `${entry.applicationName}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.productIntegrations.missingWorkloads.join(', ') || 'none'})`,
     `- provider conformance: ${summary.contracts.providerConformance.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.providerConformance.qualified}/${summary.contracts.providerConformance.required} qualified; candidates ${summary.contracts.providerConformance.candidateDetails.map((entry) => `${entry.id}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.providerConformance.missingWorkloads.join(', ') || 'none'})`,
     `- runtime ownership decisions: ${summary.contracts.runtimeOwnership.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.runtimeOwnership.qualified}/${summary.contracts.runtimeOwnership.required} qualified; candidates ${summary.contracts.runtimeOwnership.candidateDetails.map((entry) => `${entry.id}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.runtimeOwnership.missingWorkloads.join(', ') || 'none'})`,
@@ -223,6 +232,7 @@ function formatMarkdown(summary) {
 
 export async function buildProductReadinessReport({
   bunQualificationBuilder = buildBunProductQualificationReport,
+  productPortfolioCoherenceBuilder = buildProductPortfolioCoherenceReport,
 } = {}) {
   const reports = {
     goals: await buildGoalCompletionReport(),
@@ -230,6 +240,7 @@ export async function buildProductReadinessReport({
     commandSurface: await buildCommandSurfaceContractReport(),
     modelArtifact: await buildModelArtifactContractReport(),
     policySchemas: await buildPolicySchemaRegistryReport(),
+    productPortfolioCoherence: await productPortfolioCoherenceBuilder(),
     productIntegrations: await buildProductIntegrationQualificationReport(),
     providerConformance: await buildProviderConformanceReport(),
     runtimeOwnership: await buildRuntimeOwnershipDecisionReport(),
