@@ -250,6 +250,9 @@ async function validateIntegration(integration, context) {
     id,
     applicationName,
     workload: integration.workload,
+    owner,
+    qualificationLevel: integration.qualificationLevel,
+    lifecycle: integration.lifecycle,
     claimAllowed: integration.claimAllowed,
     qualified: qualified && integration.claimAllowed === true,
     qualificationReasons,
@@ -272,7 +275,15 @@ export async function validateProductIntegrationQualification(policy, options = 
     'integrations',
   ];
   if (!validateExactKeys(policy, fields, 'product integration policy', errors)) {
-    return { errors, integrations: [], gateSatisfied: false, missingWorkloads: [...REQUIRED_WORKLOADS] };
+    return {
+      errors,
+      integrations: [],
+      qualifiedIntegrations: 0,
+      candidateIntegrations: 0,
+      candidateWorkloads: [],
+      gateSatisfied: false,
+      missingWorkloads: [...REQUIRED_WORKLOADS],
+    };
   }
   if (policy.schemaVersion !== 1) errors.push('product integration policy schemaVersion must be 1');
   if (policy.source !== 'doppler') errors.push('product integration policy source must be "doppler"');
@@ -308,6 +319,9 @@ export async function validateProductIntegrationQualification(policy, options = 
     if (result) integrations.push(result);
   }
   const qualified = integrations.filter((integration) => integration.qualified);
+  const candidates = integrations.filter((integration) => (
+    integration.lifecycle === 'candidate' && integration.claimAllowed === false
+  ));
   const qualifiedApplicationNames = new Set(
     qualified.map((integration) => integration.applicationName.toLowerCase())
   );
@@ -318,6 +332,8 @@ export async function validateProductIntegrationQualification(policy, options = 
     errors,
     integrations,
     qualifiedIntegrations: qualified.length,
+    candidateIntegrations: candidates.length,
+    candidateWorkloads: Array.from(new Set(candidates.map((integration) => integration.workload))),
     distinctQualifiedApplications: qualifiedApplicationNames.size,
     missingWorkloads,
     gateSatisfied: errors.length === 0
@@ -349,7 +365,8 @@ export async function main(argv = process.argv.slice(2)) {
     const status = report.gateSatisfied ? 'satisfied' : 'incomplete';
     console.log(
       `product-integration-qualification: contract ok, gate ${status} ` +
-      `(${report.qualifiedIntegrations}/3 qualified; missing ${report.missingWorkloads.join(', ') || 'none'})`
+      `(${report.qualifiedIntegrations}/3 qualified; ${report.candidateIntegrations} candidates; ` +
+      `missing ${report.missingWorkloads.join(', ') || 'none'})`
     );
   } else {
     for (const error of report.errors) console.error(`product-integration-qualification: ${error}`);

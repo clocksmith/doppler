@@ -179,6 +179,7 @@
           "smokeCommand": null,
           "evidencePaths": [
             "docs/goals.md",
+            "docs/status/product-integration-candidate-audit-2026-08-15.json",
             "tools/policies/product-integration-qualification.json",
             "src/config/schema/product-integration-qualification.schema.json",
             "tools/check-product-integration-qualification.js",
@@ -821,6 +822,7 @@
       "exitCriteria": "Register three distinct active applications spanning generation, embedding retrieval, and reranking with current owners, exact resolution identities, complete evidence, incumbent controls, upgrade/requalification, and rollback/revocation receipts.",
       "evidencePaths": [
         "docs/goals.md",
+        "docs/status/product-integration-candidate-audit-2026-08-15.json",
         "tools/policies/product-integration-qualification.json",
         "tools/check-product-integration-qualification.js"
       ]

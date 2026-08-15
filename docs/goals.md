@@ -91,6 +91,12 @@ and device-loss behavior, OOM and peak-memory evidence, cold and warm response
 distributions, current browser/hardware qualification, and an incumbent-runtime
 control.
 
+Static discovery may register a real application as a non-claimable candidate
+when its repository revision, Doppler call path, requested model, and known gaps
+are retained. Discovery does not satisfy any runtime or product evidence field.
+Candidate coverage is reported separately from qualified coverage so an empty
+registry cannot hide adoption work and available code cannot imply support.
+
 ## Completion matrix
 
 The current completion state is encoded in
