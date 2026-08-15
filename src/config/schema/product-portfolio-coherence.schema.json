@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/product-portfolio-coherence-v1.schema.json",
+  "title": "Doppler Product Portfolio Coherence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "goalIds",
+    "requiredGates",
+    "portfolio"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../src/config/schema/product-portfolio-coherence.schema.json"
+    },
+    "schemaVersion": { "const": 1 },
+    "source": { "const": "doppler" },
+    "goalIds": {
+      "const": [
+        "local-webgpu-product-surface",
+        "model-artifact-runtime-contract",
+        "correctness-performance-claims"
+      ]
+    },
+    "requiredGates": {
+      "const": [
+        "product-integration",
+        "provider-conformance",
+        "runtime-ownership",
+        "bun-product"
+      ]
+    },
+    "portfolio": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "$ref": "#/$defs/portfolioEntry" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workload": {
+      "enum": ["generation", "embedding", "reranking"]
+    },
+    "correctnessClass": {
+      "enum": [
+        "exact-token",
+        "tolerance-bounded-numerical",
+        "semantic",
+        "held-out-task-metric"
+      ]
+    },
+    "productBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "workload"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "workload": {
+          "enum": ["generation", "embedding-retrieval", "reranking"]
+        }
+      }
+    },
+    "qualificationBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "workload", "correctnessClass"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "workload": { "$ref": "#/$defs/workload" },
+        "correctnessClass": { "$ref": "#/$defs/correctnessClass" }
+      }
+    },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "productIntegration",
+        "providerConformance",
+        "runtimeOwnership",
+        "bunQualification"
+      ],
+      "properties": {
+        "productIntegration": { "$ref": "#/$defs/productBinding" },
+        "providerConformance": { "$ref": "#/$defs/qualificationBinding" },
+        "runtimeOwnership": { "$ref": "#/$defs/qualificationBinding" },
+        "bunQualification": { "$ref": "#/$defs/qualificationBinding" }
+      }
+    },
+    "portfolioEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workload",
+        "logicalModelId",
+        "manifestVariantId",
+        "bindings"
+      ],
+      "properties": {
+        "workload": { "$ref": "#/$defs/workload" },
+        "logicalModelId": { "$ref": "#/$defs/text" },
+        "manifestVariantId": { "$ref": "#/$defs/text" },
+        "bindings": { "$ref": "#/$defs/bindings" }
+      }
+    }
+  }
+}

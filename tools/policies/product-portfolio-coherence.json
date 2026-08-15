@@ -1,0 +1,96 @@
+{
+  "$schema": "../../src/config/schema/product-portfolio-coherence.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "goalIds": [
+    "local-webgpu-product-surface",
+    "model-artifact-runtime-contract",
+    "correctness-performance-claims"
+  ],
+  "requiredGates": [
+    "product-integration",
+    "provider-conformance",
+    "runtime-ownership",
+    "bun-product"
+  ],
+  "portfolio": [
+    {
+      "workload": "generation",
+      "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+      "bindings": {
+        "productIntegration": {
+          "id": "reploid-local-generation",
+          "workload": "generation"
+        },
+        "providerConformance": {
+          "id": "qwen35-generation-browser-node",
+          "workload": "generation",
+          "correctnessClass": "exact-token"
+        },
+        "runtimeOwnership": {
+          "id": "qwen35-generation-runtime-ownership",
+          "workload": "generation",
+          "correctnessClass": "exact-token"
+        },
+        "bunQualification": {
+          "id": "qwen35-generation-bun-product",
+          "workload": "generation",
+          "correctnessClass": "exact-token"
+        }
+      }
+    },
+    {
+      "workload": "embedding",
+      "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "manifestVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+      "bindings": {
+        "productIntegration": {
+          "id": "dream-local-embedding-retrieval",
+          "workload": "embedding-retrieval"
+        },
+        "providerConformance": {
+          "id": "embeddinggemma-browser-node",
+          "workload": "embedding",
+          "correctnessClass": "tolerance-bounded-numerical"
+        },
+        "runtimeOwnership": {
+          "id": "embeddinggemma-runtime-ownership",
+          "workload": "embedding",
+          "correctnessClass": "held-out-task-metric"
+        },
+        "bunQualification": {
+          "id": "embeddinggemma-bun-product",
+          "workload": "embedding",
+          "correctnessClass": "held-out-task-metric"
+        }
+      }
+    },
+    {
+      "workload": "reranking",
+      "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
+      "bindings": {
+        "productIntegration": {
+          "id": "columbo-local-reranking",
+          "workload": "reranking"
+        },
+        "providerConformance": {
+          "id": "qwen3-reranking-browser-node",
+          "workload": "reranking",
+          "correctnessClass": "semantic"
+        },
+        "runtimeOwnership": {
+          "id": "qwen3-reranking-runtime-ownership",
+          "workload": "reranking",
+          "correctnessClass": "held-out-task-metric"
+        },
+        "bunQualification": {
+          "id": "qwen3-reranking-bun-product",
+          "workload": "reranking",
+          "correctnessClass": "held-out-task-metric"
+        }
+      }
+    }
+  ]
+}

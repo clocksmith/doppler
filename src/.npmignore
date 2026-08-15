@@ -58,6 +58,7 @@ config/schema/product-integration-evidence.schema.json
 config/schema/product-integration-owner-confirmation.schema.json
 config/schema/product-integration-promotion-evidence.schema.json
 config/schema/product-integration-qualification.schema.json
+config/schema/product-portfolio-coherence.schema.json
 config/schema/program-bundle-json-schema.js
 config/schema/program-bundle.schema.json
 config/schema/provider-conformance-capture.schema.json

@@ -324,6 +324,10 @@ support, post-promotion monitoring, and signed revocation authority each have
 one non-promoting recorder and one validating check. Their receipts may reuse an
 exact execution only when every gate's semantic binding agrees; no cross-gate
 wrapper may invent results, weaken a gate, or silently promote production.
+`npm run product:portfolio:check` enforces the shared model, named manifest,
+gate-row, workload, and gate-specific correctness-class bindings. Once gates
+retain resolved manifest SHA-256 identities, the check also rejects a portfolio
+assembled from different artifact bytes.
 
 ## 6. Keep the Runtime Path Cheap
 

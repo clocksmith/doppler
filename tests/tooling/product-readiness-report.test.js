@@ -13,6 +13,9 @@ assert.equal(report.actions[0].completionClass, 'application');
 assert.equal(report.actions.at(-1).code, 'signed-live-revocation-authority-missing');
 assert.equal(report.actions.at(-1).completionClass, 'production-authority');
 assert.equal(report.contracts.productIntegrations.qualified, 0);
+assert.equal(report.contracts.productPortfolioCoherence.ok, true);
+assert.equal(report.contracts.productPortfolioCoherence.workloads.length, 3);
+assert.equal(report.contracts.productPortfolioCoherence.requiredGates.length, 4);
 assert.equal(report.contracts.productIntegrations.candidates, 3);
 assert.deepEqual(report.contracts.productIntegrations.candidateWorkloads, [
   'generation',
@@ -95,6 +98,24 @@ const invalidBun = await buildProductReadinessReport({
 });
 assert.equal(invalidBun.ok, false);
 assert.ok(invalidBun.errors.includes('Bun qualification: fixture Bun contract failure'));
+
+const invalidPortfolio = await buildProductReadinessReport({
+  productPortfolioCoherenceBuilder: async () => ({
+    ok: false,
+    errors: ['fixture portfolio drift'],
+    workloads: [],
+    requiredGates: [
+      'product-integration',
+      'provider-conformance',
+      'runtime-ownership',
+      'bun-product',
+    ],
+  }),
+});
+assert.equal(invalidPortfolio.ok, false);
+assert.ok(invalidPortfolio.errors.includes(
+  'product portfolio coherence: fixture portfolio drift'
+));
 assert.equal(revocations.ok, true);
 assert.equal(revocations.active, revocations.bundled.active);
 assert.equal(revocations.signatureVerification, revocations.bundled.signatureVerification);

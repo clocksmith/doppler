@@ -48,6 +48,11 @@
       "schemaPath": "src/config/schema/product-integration-qualification.schema.json"
     },
     {
+      "id": "product-portfolio-coherence",
+      "policyPath": "tools/policies/product-portfolio-coherence.json",
+      "schemaPath": "src/config/schema/product-portfolio-coherence.schema.json"
+    },
+    {
       "id": "provider-conformance",
       "policyPath": "tools/policies/provider-conformance.json",
       "schemaPath": "src/config/schema/provider-conformance-policy.schema.json"

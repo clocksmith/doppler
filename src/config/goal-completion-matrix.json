@@ -488,14 +488,18 @@
           "supportSubsystemId": null,
           "packageBin": null,
           "packageExport": null,
-          "smokeCommand": "npm run support:matrix:check",
+          "smokeCommand": "npm run product:portfolio:check",
           "evidencePaths": [
             "docs/goals.md",
             "docs/model-support-matrix.md",
             "docs/release-matrix.md",
             "models/catalog.json",
             "tools/policies/release-claim-policy.json",
-            "tools/policies/product-integration-qualification.json"
+            "tools/policies/product-integration-qualification.json",
+            "tools/policies/product-portfolio-coherence.json",
+            "src/config/schema/product-portfolio-coherence.schema.json",
+            "tools/check-product-portfolio-coherence.js",
+            "tests/config/product-portfolio-coherence.test.js"
           ],
           "blockers": []
         }

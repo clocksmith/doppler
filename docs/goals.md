@@ -117,7 +117,12 @@ surface truth.
 Deliberate portfolio scope is complete when the supported models are named and
 everything outside that scope remains visibly experimental, failing, or
 unsupported. It does not require every catalog or roadmap model to become
-product-supported. Likewise, scoped claim promotion is working when qualified
+product-supported. `tools/policies/product-portfolio-coherence.json` is the
+canonical initial generation, embedding, and reranking tuple. `npm run
+product:portfolio:check` fails when catalog identity, application integration,
+provider conformance, runtime ownership, or Bun qualification drifts from that
+tuple, including conflicting non-null resolved manifest identities. Likewise,
+scoped claim promotion is working when qualified
 receipts are promoted and candidate or rejected lanes remain non-claimable;
 the mere existence of retained candidates is not a strategic blocker. A model
 or benchmark gap becomes mainline only when the declared product portfolio or
