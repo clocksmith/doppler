@@ -209,6 +209,12 @@ qualification date, expiry, and one `incumbent`, `doppler`, or `dual`
 disposition. An empty decision registry is valid but incomplete. See
 `docs/runtime-ownership.md`.
 
+Source and incumbent execution identities are canonical SHA-256 digests of the
+provider-neutral execution receipts they reference. Doppler execution identity
+remains the native runtime-observed SHA-256 in its local provider receipt. The
+decision checker recomputes or cross-checks those identities rather than
+accepting operator-entered execution labels.
+
 ### Provider independence
 
 Provider conformance covers standard browser WebGPU, the selected Node provider,

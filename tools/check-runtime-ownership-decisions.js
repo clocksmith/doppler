@@ -5,6 +5,11 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import {
+  validateDopplerRuntimeOwnershipReceipt,
+  validateRuntimeOwnershipExecutionEvidence,
+} from './lib/runtime-ownership-execution-evidence.js';
+
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(
   REPO_ROOT,
@@ -174,6 +179,21 @@ function validateClaimState(record, label, reasons, errors) {
   return blockers;
 }
 
+function pushUnique(target, values) {
+  for (const value of values) {
+    if (!target.includes(value)) target.push(value);
+  }
+}
+
+async function readEvidenceJson(repoRoot, evidenceFile, label, errors) {
+  try {
+    return JSON.parse(await fs.readFile(path.join(repoRoot, evidenceFile), 'utf8'));
+  } catch (error) {
+    errors.push(`${label} is not readable JSON: ${error.message}`);
+    return null;
+  }
+}
+
 function thresholdMatches(operator, thresholdValue, observedValue) {
   if (operator === 'greater-than-or-equal') return observedValue >= thresholdValue;
   if (operator === 'less-than-or-equal') return observedValue <= thresholdValue;
@@ -313,10 +333,8 @@ async function validateDecision(decision, context) {
     'logicalModelId',
     'sourceProviderId',
     'sourceArtifactId',
-    'sourceExecutionId',
     'incumbentProviderId',
     'incumbentArtifactId',
-    'incumbentExecutionId',
   ];
   const identity = Object.fromEntries(identityFields.map((field) => [
     field,
@@ -340,7 +358,23 @@ async function validateDecision(decision, context) {
     `${id}.resolvedExecutionId`,
     errors
   );
-  for (const field of ['manifestVariantId', 'resolvedArtifactVariantId', 'resolvedExecutionId']) {
+  identity.sourceExecutionId = nullableSha256(
+    decision.sourceExecutionId,
+    `${id}.sourceExecutionId`,
+    errors
+  );
+  identity.incumbentExecutionId = nullableSha256(
+    decision.incumbentExecutionId,
+    `${id}.incumbentExecutionId`,
+    errors
+  );
+  for (const field of [
+    'manifestVariantId',
+    'resolvedArtifactVariantId',
+    'resolvedExecutionId',
+    'sourceExecutionId',
+    'incumbentExecutionId',
+  ]) {
     if (!identity[field]) reasons.push(`${field}-missing`);
   }
   if (identity.incumbentProviderId === 'doppler') errors.push(`${id}: incumbentProviderId must not be doppler`);
@@ -406,6 +440,72 @@ async function validateDecision(decision, context) {
   }
   const missingEvidence = EVIDENCE_FIELDS.filter((field) => !evidence[field]);
   if (missingEvidence.length > 0) reasons.push('evidence-incomplete');
+  const externalExecutions = [
+    {
+      role: 'source',
+      evidenceField: 'sourceExecution',
+      providerId: identity.sourceProviderId,
+      artifactId: identity.sourceArtifactId,
+      executionId: identity.sourceExecutionId,
+    },
+    {
+      role: 'incumbent',
+      evidenceField: 'incumbentExecution',
+      providerId: identity.incumbentProviderId,
+      artifactId: identity.incumbentArtifactId,
+      executionId: identity.incumbentExecutionId,
+    },
+  ];
+  for (const execution of externalExecutions) {
+    if (!evidence[execution.evidenceField]) continue;
+    const receipt = await readEvidenceJson(
+      repoRoot,
+      evidence[execution.evidenceField],
+      `${id}.evidence.${execution.evidenceField}`,
+      errors
+    );
+    if (!receipt) continue;
+    const result = validateRuntimeOwnershipExecutionEvidence(receipt, {
+      role: execution.role,
+      providerId: execution.providerId,
+      artifactId: execution.artifactId,
+      workload: decision.workload,
+      logicalModelId: identity.logicalModelId,
+    });
+    for (const error of result.errors) {
+      errors.push(`${id}.evidence.${execution.evidenceField}: ${error}`);
+    }
+    pushUnique(reasons, result.reasons);
+    if (
+      execution.executionId
+      && result.evidenceId
+      && execution.executionId !== result.evidenceId
+    ) {
+      errors.push(
+        `${id}.${execution.role}ExecutionId does not match canonical `
+        + `${execution.evidenceField} evidence identity`
+      );
+    }
+  }
+  if (evidence.dopplerExecution) {
+    const receipt = await readEvidenceJson(
+      repoRoot,
+      evidence.dopplerExecution,
+      `${id}.evidence.dopplerExecution`,
+      errors
+    );
+    if (receipt) {
+      const result = validateDopplerRuntimeOwnershipReceipt(receipt, {
+        logicalModelId: identity.logicalModelId,
+        resolvedArtifactVariantId: identity.resolvedArtifactVariantId,
+        resolvedExecutionId: identity.resolvedExecutionId,
+      });
+      for (const error of result.errors) {
+        errors.push(`${id}.evidence.dopplerExecution: ${error}`);
+      }
+      pushUnique(reasons, result.reasons);
+    }
+  }
   const blockers = validateClaimState(decision, id, reasons, errors);
   return {
     id,
@@ -463,7 +563,7 @@ export async function validateRuntimeOwnershipDecisions(policy, options = {}) {
   if (policy.$schema !== 'schema/runtime-ownership-decisions.schema.json') {
     errors.push('runtime ownership policy $schema is invalid');
   }
-  if (policy.schemaVersion !== 2) errors.push('runtime ownership policy schemaVersion must be 2');
+  if (policy.schemaVersion !== 3) errors.push('runtime ownership policy schemaVersion must be 3');
   if (policy.source !== 'doppler') errors.push('runtime ownership policy source must be "doppler"');
   const fixedArrays = [
     ['goalIds', GOAL_IDS],

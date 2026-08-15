@@ -54,6 +54,24 @@ The checker rejects catalog variant names in resolved artifact or execution
 digest fields, so a pre-execution candidate must leave those fields null rather
 than imply byte identity.
 
+Source and incumbent executions use
+`doppler.runtime-ownership-execution-evidence/v1`, defined by
+`benchmarks/vendors/schema/runtime-ownership-execution-evidence.schema.json`.
+The receipt binds provider, artifact revision, logical model, workload, runtime
+and backend versions, environment, invocation configuration, output, status,
+and timestamps. `sourceExecutionId` and `incumbentExecutionId` are the canonical
+JSON SHA-256 identities of those receipts. Generate an ID with `npm run
+runtime:ownership:evidence-id -- --receipt <receipt.json>`; the ownership checker
+recomputes it and rejects tampered evidence or mismatched provider, artifact,
+model, role, or workload fields.
+
+Doppler does not substitute a receipt digest for its native execution identity.
+Its `dopplerExecution` evidence must be a local
+`doppler_provider_receipt_v1` whose resolved manifest and execution SHA-256
+values exactly match the decision. Fallback, failed, unresolved, or environment-
+free receipts remain retained but non-claimable. Failed external receipts are
+also valid negative evidence and cannot satisfy a claimable decision.
+
 Benchmark wins alone do not satisfy this contract. Missing memory, quality,
 usability, diagnostic, cost, burden, or provider-risk evidence keeps the
 decision non-claimable. Dispositions are `incumbent`, `doppler`, or `dual`; a

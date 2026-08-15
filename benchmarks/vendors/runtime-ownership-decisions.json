@@ -1,6 +1,6 @@
 {
   "$schema": "schema/runtime-ownership-decisions.schema.json",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "source": "doppler",
   "goalIds": [
     "model-artifact-runtime-contract",
