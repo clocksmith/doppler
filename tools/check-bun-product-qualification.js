@@ -291,8 +291,8 @@ async function validateQualification(qualification, context) {
       evidenceSetDigest,
     });
     for (const error of result.errors) errors.push(`${id}.evidence.promotion: ${error}`);
-    if (qualifiedAt && result.promotedAt?.getTime() > qualifiedAt.getTime()) {
-      reasons.push('bun-promotion-postdates-qualification');
+    if (qualifiedAt && result.promotedAt?.getTime() < qualifiedAt.getTime()) {
+      reasons.push('bun-promotion-predates-qualification');
     }
   } else {
     reasons.push('bun-promotion-evidence-missing');

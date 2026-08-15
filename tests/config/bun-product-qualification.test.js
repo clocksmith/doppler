@@ -183,7 +183,7 @@ async function qualifiedRecord(template) {
       evidenceSetDigest: computeBunQualificationEvidenceSetDigest(evidenceSet),
       decision: 'promote',
       authority: 'human',
-      promotedAtUtc: '2026-08-01T00:30:00.000Z',
+      promotedAtUtc: '2026-08-01T02:00:00.000Z',
       qualifiedAtUtc: qualification.qualifiedAtUtc,
       expiresAtUtc: qualification.expiresAtUtc,
     }
@@ -248,6 +248,27 @@ const activeRegistry = {
     report.errors.includes(
       'Partial Bun product promotion is forbidden; all required workloads must promote together'
     ),
+    report.errors.join('\n')
+  );
+}
+
+{
+  const backdatedPromotion = clone(policy);
+  const record = await qualifiedRecord(policy.qualifications[0]);
+  const promotionPath = record.evidence.promotion.path;
+  const promotion = JSON.parse(await fs.readFile(path.join(TEST_ROOT, promotionPath), 'utf8'));
+  promotion.promotedAtUtc = '2026-08-01T00:30:00.000Z';
+  record.evidence.promotion = await writeJson(promotionPath, promotion);
+  backdatedPromotion.qualifications = [record];
+  const report = await validateBunProductQualificationPolicy(backdatedPromotion, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+    subsystems: experimentalSubsystems,
+    releaseRegistry: experimentalRegistry,
+    releaseMatrix: experimentalRelease,
+  });
+  assert.ok(
+    report.errors.some((error) => error.includes('promotedAtUtc must not predate qualifiedAtUtc')),
     report.errors.join('\n')
   );
 }

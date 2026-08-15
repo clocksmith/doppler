@@ -52,7 +52,8 @@ an existing non-claimable evaluation.
 A claimable workload requires a digest-bound
 `doppler.bun-product-promotion-evidence/v1` receipt with human authority. That
 receipt binds the complete non-promotion evidence set, exact identities,
-qualification time, and expiry.
+qualification time, and expiry. Promotion must follow the recorded qualification
+and precede its expiry; the gate rejects backdated or already-expired approval.
 
 Partial promotion is forbidden. All three workload receipts, the
 `runtime.bun-webgpu` tier change from `experimental` to `tier1`, and the
