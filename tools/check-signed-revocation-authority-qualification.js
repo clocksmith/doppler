@@ -62,6 +62,7 @@ const ROOT_FIELDS = Object.freeze([
   'goalId',
   'minimumQualifiedAuthorities',
   'ownerConfirmationMaxAgeDays',
+  'evidenceMaxAgeDays',
   'requiredHosts',
   'requiredDrills',
   'authorities',
@@ -216,7 +217,15 @@ async function validateEvidenceReference(value, label, repoRoot, errors) {
 }
 
 async function validateAuthority(authority, context) {
-  const { errors, repoRoot, now, maxAgeDays, seenIds, seenAuthorityIds } = context;
+  const {
+    errors,
+    repoRoot,
+    now,
+    ownerMaxAgeDays,
+    evidenceMaxAgeDays,
+    seenIds,
+    seenAuthorityIds,
+  } = context;
   const id = normalizeText(authority?.id) || '<missing-id>';
   if (!validateExactKeys(authority, AUTHORITY_FIELDS, id, errors)) return null;
   if (!ID_PATTERN.test(id)) errors.push(`${id}: id must be lowercase kebab-case`);
@@ -303,7 +312,7 @@ async function validateAuthority(authority, context) {
   const qualificationReasons = [];
   if (authority.lifecycle !== 'active') qualificationReasons.push('lifecycle-not-active');
   if (!owner) qualificationReasons.push('owner-missing');
-  if (!confirmationIsCurrent(ownerConfirmedAt, now, maxAgeDays)) {
+  if (!confirmationIsCurrent(ownerConfirmedAt, now, ownerMaxAgeDays)) {
     qualificationReasons.push('owner-confirmation-stale-or-missing');
   }
   if (!isQualifiedEndpoint(endpointUrl)) qualificationReasons.push('https-endpoint-missing-or-invalid');
@@ -322,6 +331,20 @@ async function validateAuthority(authority, context) {
   }
   if (qualifiedAt && expiresAt && expiresAt.getTime() <= qualifiedAt.getTime()) {
     qualificationReasons.push('qualification-expiry-not-after-qualification');
+  }
+  if (
+    qualifiedAt
+    && expiresAt
+    && expiresAt.getTime() > qualifiedAt.getTime() + evidenceMaxAgeDays * 24 * 60 * 60 * 1000
+  ) {
+    qualificationReasons.push('qualification-expiry-exceeds-evidence-window');
+  }
+  if (
+    ownerConfirmedAt
+    && expiresAt
+    && expiresAt.getTime() > ownerConfirmedAt.getTime() + ownerMaxAgeDays * 24 * 60 * 60 * 1000
+  ) {
+    qualificationReasons.push('qualification-expiry-exceeds-owner-window');
   }
   if (missingEvidence.length > 0) qualificationReasons.push('evidence-incomplete');
   const evidenceContext = {
@@ -364,6 +387,13 @@ async function validateAuthority(authority, context) {
     }
     if (qualifiedAt && result.capturedAt && result.capturedAt.getTime() > qualifiedAt.getTime()) {
       qualificationReasons.push(`${field}-postdates-qualification`);
+    }
+    if (
+      qualifiedAt
+      && result.capturedAt
+      && qualifiedAt.getTime() - result.capturedAt.getTime() > evidenceMaxAgeDays * 24 * 60 * 60 * 1000
+    ) {
+      qualificationReasons.push(`${field}-stale`);
     }
   }
   const onlineCustodyDomain = evidenceResults.onlineKeyCustody
@@ -435,6 +465,11 @@ export async function validateSignedRevocationAuthorityQualification(policy, opt
     || policy.ownerConfirmationMaxAgeDays > 365) {
     errors.push('policy.ownerConfirmationMaxAgeDays must be an integer from 1 through 365');
   }
+  if (!Number.isInteger(policy.evidenceMaxAgeDays)
+    || policy.evidenceMaxAgeDays < 1
+    || policy.evidenceMaxAgeDays > 365) {
+    errors.push('policy.evidenceMaxAgeDays must be an integer from 1 through 365');
+  }
   if (!sameSequence(policy.requiredHosts, REQUIRED_HOSTS)) {
     errors.push(`policy.requiredHosts must be ${REQUIRED_HOSTS.join(', ')}`);
   }
@@ -449,7 +484,8 @@ export async function validateSignedRevocationAuthorityQualification(policy, opt
     errors,
     repoRoot,
     now,
-    maxAgeDays: policy.ownerConfirmationMaxAgeDays,
+    ownerMaxAgeDays: policy.ownerConfirmationMaxAgeDays,
+    evidenceMaxAgeDays: policy.evidenceMaxAgeDays,
     seenIds: new Set(),
     seenAuthorityIds: new Set(),
   };

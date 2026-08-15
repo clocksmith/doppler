@@ -111,6 +111,8 @@ deployment, package trust, independent custody, both stores, current refresh,
 key rotation, exact and rewritten replay behavior, sequence and epoch rollback,
 offline expiry, compromise recovery, durable restart, loaded-identity
 invalidation, application fail-closed behavior, and requalification.
+The policy separately bounds owner-confirmation and operational-evidence age;
+qualification expiry cannot outlive either freshness window.
 
 Every evidence entry is null or a repository-relative `{ path, digest }`
 reference to canonical JSON. Ownership uses
@@ -122,6 +124,16 @@ from those observations, cross-checks endpoint, key, and durable-store
 identities, rejects reused evidence paths, and retains failed drills as named
 qualification reasons. A document path or operator-entered `passed` value is
 not production-authority proof.
+
+Record a retained evaluation with `npm run revocations:authority:record --
+--capture <capture.json> --out <candidate-policy.json>`. The capture contains
+receipt paths and evaluation bounds, not copied digests or deployment facts.
+The recorder derives canonical digests, ownership time, endpoint, authority ID,
+key identities, durable-store identities, and semantic failure blockers. It
+writes a separate candidate by default; `--apply` is required for the status
+authority and `--replace` for prior evaluation state. It always forces
+`lifecycle: candidate` and `claimAllowed: false`. Production activation remains
+a separate human authority decision.
 
 Run `npm run revocations:authority:check` to validate that contract. The current
 entry is only a candidate: its production endpoint, keys, stores, and receipts

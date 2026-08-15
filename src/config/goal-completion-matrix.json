@@ -714,9 +714,12 @@
             "src/config/schema/signed-revocation-authority-qualification.schema.json",
             "src/config/schema/signed-revocation-authority-owner-confirmation.schema.json",
             "src/config/schema/signed-revocation-authority-evidence.schema.json",
+            "src/config/schema/signed-revocation-authority-evaluation-capture.schema.json",
             "tools/check-signed-revocation-authority-qualification.js",
+            "tools/record-signed-revocation-authority-evaluation.js",
             "tools/lib/signed-revocation-authority-evidence.js",
             "tests/config/signed-revocation-authority-qualification.test.js",
+            "tests/tooling/record-signed-revocation-authority-evaluation.test.js",
             "tools/render-product-readiness-report.js",
             "tests/tooling/product-readiness-report.test.js"
           ],
@@ -837,9 +840,12 @@
         "src/config/schema/signed-revocation-authority-qualification.schema.json",
         "src/config/schema/signed-revocation-authority-owner-confirmation.schema.json",
         "src/config/schema/signed-revocation-authority-evidence.schema.json",
+        "src/config/schema/signed-revocation-authority-evaluation-capture.schema.json",
         "tools/check-signed-revocation-authority-qualification.js",
+        "tools/record-signed-revocation-authority-evaluation.js",
         "tools/lib/signed-revocation-authority-evidence.js",
-        "tests/config/signed-revocation-authority-qualification.test.js"
+        "tests/config/signed-revocation-authority-qualification.test.js",
+        "tests/tooling/record-signed-revocation-authority-evaluation.test.js"
       ]
     },
     {
