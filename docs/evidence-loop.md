@@ -318,6 +318,13 @@ Run `npm run evidence:workflows:check` to verify that each job above still has
 one canonical owner and that retired synthetic-selection, duplicate-profiler,
 and standalone-receipt surfaces have not returned.
 
+The same ownership registry covers product qualification after measurement.
+Maintained applications, provider conformance, runtime ownership, Bun product
+support, post-promotion monitoring, and signed revocation authority each have
+one non-promoting recorder and one validating check. Their receipts may reuse an
+exact execution only when every gate's semantic binding agrees; no cross-gate
+wrapper may invent results, weaken a gate, or silently promote production.
+
 ## 6. Keep the Runtime Path Cheap
 
 Ordinary generation does not retain per-dispatch geometry or label histograms.

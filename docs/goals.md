@@ -346,6 +346,14 @@ Promotion and activation remain separate operations. Every terminal candidate,
 including invalid and rejected candidates, becomes indexed evidence with
 explicit conditions under which retry is meaningful.
 
+Evidence acquisition also has one canonical owner per job. Product integration,
+provider conformance, runtime ownership, Bun qualification, post-promotion
+monitoring, and signed revocation authority each use their declared
+non-promoting recorder and independent checker. The
+`evidence:workflows:check` script rejects duplicate owners, undeclared npm
+commands, and missing owner or adapter paths; a convenience wrapper cannot
+become a second authority.
+
 ### Change-class evidence
 
 | Change class | Required evidence |
