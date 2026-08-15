@@ -39,6 +39,19 @@ function getActiveLoRAName(pipeline) {
   return active ? active.name : null;
 }
 
+function getActiveLoRAIdentity(pipeline) {
+  const active = pipeline?.getActiveLoRA?.() || null;
+  if (!active) return null;
+  const identity = active.identity;
+  if (identity?.schema !== 'doppler.lora-execution-identity/v1'
+    || !/^sha256:[a-f0-9]{64}$/.test(String(identity.digest || ''))) {
+    throw new Error(
+      'Active LoRA adapter lacks exact tensor identity. Reload it through the Doppler adapter loader.'
+    );
+  }
+  return identity;
+}
+
 function getPipelineModelId(pipeline) {
   return String(
     pipeline?.manifest?.modelId ||
@@ -103,7 +116,8 @@ export async function loadLoRAAdapterForPipeline(pipeline, adapter, loadOptions 
   } else if (adapter?.adapterType === 'lora' || adapter?.modelType === 'lora') {
     const loader = pipeline.dopplerLoader || getDopplerLoader();
     await loader.init();
-    lora = await loader.loadLoRAWeights(adapter);
+    const loaded = await loader.loadLoRAWeights(adapter);
+    lora = loaded?.adapter ?? loaded;
   } else {
     const { loadLoRAFromManifest } = await getExperimentalLoRAModule();
     lora = await loadLoRAFromManifest(adapter, options);
@@ -252,4 +266,8 @@ export async function unloadLoRAAdapterForPipeline(pipeline) {
 
 export function getActiveLoRAForPipeline(pipeline) {
   return getActiveLoRAName(pipeline);
+}
+
+export function getActiveLoRAIdentityForPipeline(pipeline) {
+  return getActiveLoRAIdentity(pipeline);
 }

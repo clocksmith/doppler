@@ -207,7 +207,9 @@ await model.unload();
 Use `generateWithEvidence()` when a caller needs the generated output and a
 browser-safe receipt that binds the transcript to the logical model request,
 verified artifact variant, resolved runtime session, WebGPU backend, and
-execution-plan identity.
+execution-plan identity. An active LoRA contributes its adapter ID, name, and
+exact execution digest derived from verified source bytes and resolved tensor
+layout to the resolved execution identity.
 
 ```js
 import { dr } from 'doppler-gpu';

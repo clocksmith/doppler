@@ -11,6 +11,14 @@ export interface LoRALoadOptions {
   fetchUrl?: (url: string) => Promise<ArrayBuffer | Uint8Array>;
 }
 
+export interface DopplerActiveLoRAIdentity {
+  schema: 'doppler.lora-execution-identity/v1';
+  id: string | null;
+  name: string;
+  tensorCount: number;
+  digest: `sha256:${string}`;
+}
+
 export declare function assertLoRABaseModelForPipeline(
   pipeline: InferencePipeline | null | undefined,
   adapter: { baseModel?: string } | null | undefined
@@ -54,3 +62,6 @@ export declare function unloadLoRAAdapterForPipeline(
 export declare function getActiveLoRAForPipeline(
   pipeline: InferencePipeline | null | undefined
 ): string | null;
+export declare function getActiveLoRAIdentityForPipeline(
+  pipeline: InferencePipeline | null | undefined
+): DopplerActiveLoRAIdentity | null;

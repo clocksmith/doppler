@@ -32,6 +32,7 @@ export interface LoRAModuleWeights {
 export type LoRALayerMap = Record<string, LoRAModuleWeights>;
 
 export interface LoRAAdapter {
+  id?: string;
   name: string;
   version?: string;
   baseModel?: string;
@@ -39,6 +40,13 @@ export interface LoRAAdapter {
   alpha: number;
   targetModules?: LoRAModuleName[];
   layers: Map<number, LoRALayerMap>;
+  identity?: {
+    schema: 'doppler.lora-execution-identity/v1';
+    id: string | null;
+    name: string;
+    tensorCount: number;
+    digest: `sha256:${string}`;
+  };
 }
 
 export const LORA_MODULE_ALIASES: Record<string, LoRAModuleName>;

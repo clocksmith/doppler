@@ -56,6 +56,24 @@ function sha256Hex(bytes) {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
+{
+  const first = await loadLoRAFromManifest(createManifest());
+  const repeated = await loadLoRAFromManifest(createManifest({
+    tensors: [...createManifest().tensors].reverse(),
+  }));
+  const changed = await loadLoRAFromManifest(createManifest({
+    tensors: createManifest().tensors.map((tensor, index) => ({
+      ...tensor,
+      data: [index === 0 ? 2 : 1],
+    })),
+  }));
+  assert.equal(first.identity.schema, 'doppler.lora-execution-identity/v1');
+  assert.match(first.identity.digest, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(first.identity.tensorCount, 2);
+  assert.equal(repeated.identity.digest, first.identity.digest);
+  assert.notEqual(changed.identity.digest, first.identity.digest);
+}
+
 try {
   globalThis.fetch = async (url) => {
     if (String(url) === 'https://example.test/adapter.json') {
@@ -219,6 +237,7 @@ await assert.rejects(
   assert.deepEqual(Array.from(qProj.a), [1, 2]);
   assert.deepEqual(Array.from(qProj.b), [3, 4, 5]);
   assert.equal(qProj.scale, 1);
+  assert.match(adapter.identity.digest, /^sha256:[a-f0-9]{64}$/);
 
   const unchecked = await loadLoRAWeights(createManifest({
     tensors: undefined,
