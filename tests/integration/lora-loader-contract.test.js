@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 
 import { loadLoRAFromManifest, loadLoRAWeights } from '../../src/experimental/adapters/lora-loader.js';
+import { assertBundledAdapterAuthorized } from '../../src/config/revocation-policy.js';
 
 const originalFetch = globalThis.fetch;
 
@@ -70,6 +71,7 @@ function sha256Hex(bytes) {
   assert.equal(first.identity.schema, 'doppler.lora-execution-identity/v1');
   assert.match(first.identity.digest, /^sha256:[a-f0-9]{64}$/);
   assert.equal(first.identity.tensorCount, 2);
+  assert.doesNotThrow(() => assertBundledAdapterAuthorized(first));
   assert.equal(repeated.identity.digest, first.identity.digest);
   assert.notEqual(changed.identity.digest, first.identity.digest);
 }

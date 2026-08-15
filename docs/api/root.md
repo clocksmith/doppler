@@ -85,8 +85,9 @@ A bare string is treated as a bundled/known registry ID, not a path heuristic.
   explicit model-instance policy on `dr.load()`
 - unsupported resolution inputs fail fast rather than silently falling back
 - bundled revocations reject matching logical, model, source-checkpoint,
-  weight-pack, manifest-variant, or exact manifest-hash identities; named
-  replacements are never selected automatically
+  weight-pack, manifest-variant, exact manifest-hash, adapter-ID, source-weight,
+  or adapter-execution identities; unchecked adapters fail before activation,
+  and named replacements are never selected automatically
 
 ## Primary Symbol Notes
 

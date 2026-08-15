@@ -13,6 +13,7 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const DEFAULT_PATHS = Object.freeze({
   registry: 'src/config/revocation-registry.json',
   catalog: 'models/catalog.json',
+  adapterCatalog: 'models/adapters/catalog.json',
   quickstart: 'src/client/doppler-registry.json',
   claimMatrix: 'benchmarks/vendors/local-inference-claim-matrix.json',
   releaseMatrix: 'benchmarks/vendors/release-matrix.json',
@@ -41,6 +42,8 @@ function resolutionIdentity(value = {}) {
     weightPackId: normalizeText(value.weightPackId) || null,
     manifestVariantId: normalizeText(value.manifestVariantId) || null,
     artifactVariantId: artifactVariantId(value.artifactVariantId),
+    adapterId: normalizeText(value.adapterId) || null,
+    adapterDigest: artifactVariantId(value.adapterDigest),
   };
 }
 
@@ -78,6 +81,19 @@ function validateCatalog(catalog, registry, errors) {
     if (entry?.demoVisible === true) addConflict(errors, `catalog ${modelId}`, matches, 'demoVisible must be false');
     if (entry?.lifecycle?.status?.runtime !== 'revoked') {
       addConflict(errors, `catalog ${modelId}`, matches, 'lifecycle.status.runtime must be "revoked"');
+    }
+  }
+}
+
+function validateAdapterCatalog(catalog, registry, errors) {
+  for (const entry of Array.isArray(catalog?.artifacts) ? catalog.artifacts : []) {
+    const adapterId = normalizeText(entry?.artifactId) || '<missing-adapter>';
+    const matches = matchIdentity({
+      adapterId,
+      adapterDigest: entry?.weights?.sha256,
+    }, registry);
+    if (matches.length > 0 && entry?.lifecycle !== 'revoked') {
+      addConflict(errors, `adapter catalog ${adapterId}`, matches, 'lifecycle must be "revoked"');
     }
   }
 }
@@ -219,6 +235,7 @@ export async function validateRevocationPropagation(registryValue, surfaces, { r
   }
   await validateEvidencePaths(registry, repoRoot, errors);
   validateCatalog(surfaces.catalog, registry, errors);
+  validateAdapterCatalog(surfaces.adapterCatalog, registry, errors);
   validateQuickstart(surfaces.quickstart, registry, errors);
   validateClaimMatrix(surfaces.claimMatrix, registry, errors);
   validateReleaseMatrix(surfaces.releaseMatrix, registry, errors);
@@ -239,9 +256,10 @@ async function readJson(repoRoot, relativePath) {
 
 export async function buildRevocationPropagationReport({ repoRoot = REPO_ROOT } = {}) {
   const values = await Promise.all(Object.values(DEFAULT_PATHS).map((filePath) => readJson(repoRoot, filePath)));
-  const [registry, catalog, quickstart, claimMatrix, releaseMatrix, productIntegrations, providerConformance, runtimeOwnership] = values;
+  const [registry, catalog, adapterCatalog, quickstart, claimMatrix, releaseMatrix, productIntegrations, providerConformance, runtimeOwnership] = values;
   return validateRevocationPropagation(registry, {
     catalog,
+    adapterCatalog,
     quickstart,
     claimMatrix,
     releaseMatrix,

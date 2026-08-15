@@ -95,6 +95,7 @@ function normalizeDreamLoraAdapter(adapter) {
     ? adapter.targetModules.map(normalizeTargetModule)
     : [];
   return {
+    id: adapterId,
     name: adapterId,
     version: adapter?.version,
     baseModel: adapter?.baseModel || adapter?.baseModelId,
@@ -212,7 +213,8 @@ export function wrapPipelineAsDreamProvider(pipeline, resolved = {}) {
       return resolved.device || pipeline.gpuContext?.device || pipeline.device || null;
     },
     async attachLoraAdapter(adapter) {
-      const normalized = normalizeDreamLoraAdapter(adapter);
+      const { finalizeLoRAAdapter } = await import('../experimental/adapters/lora-loader.js');
+      const normalized = await finalizeLoRAAdapter(normalizeDreamLoraAdapter(adapter));
       adapters.set(normalized.name, normalized);
       pipeline.setLoRAAdapter(normalized);
       return {

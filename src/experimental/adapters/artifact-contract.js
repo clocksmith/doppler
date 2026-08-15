@@ -145,6 +145,9 @@ export function validateAdapterArtifactRecord(record) {
 
   const manifest = record.adapterManifest || {};
   requireText(errors, manifest.id, 'adapterManifest.id');
+  if (record.artifactId && manifest.id && record.artifactId !== manifest.id) {
+    errors.push({ field: 'adapterManifest.id', message: 'adapterManifest.id must match artifactId', value: manifest.id });
+  }
   requireText(errors, manifest.baseModel, 'adapterManifest.baseModel');
   if (!Number.isInteger(manifest.rank) || manifest.rank <= 0) {
     errors.push({ field: 'adapterManifest.rank', message: 'adapterManifest.rank must be a positive integer', value: manifest.rank });

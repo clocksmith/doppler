@@ -71,6 +71,10 @@ Runtime loader paths:
 - `src/experimental/adapters/adapter-manifest.js`
 - `src/experimental/training/export.js`
 
+Adapter IDs, source-weight SHA-256 identities, and resolved execution digests
+are checked against the bundled deny-only registry before activation. See
+[`revocation.md`](revocation.md).
+
 ## Interop note
 
 GGUF conversion is external to this repo flow.

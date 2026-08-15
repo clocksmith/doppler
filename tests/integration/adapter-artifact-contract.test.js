@@ -76,6 +76,10 @@ assert.equal(validateAdapterArtifactRecord({
   ...record,
   adapterManifest: { ...record.adapterManifest, baseModel: 'wrong-model' },
 }).valid, false);
+assert.equal(validateAdapterArtifactRecord({
+  ...record,
+  adapterManifest: { ...record.adapterManifest, id: 'different-adapter' },
+}).valid, false);
 assert.equal(validateAdapterArtifactOrigin({
   provider: 'gcs',
   bucket: 'clocksmith-adapters-private',

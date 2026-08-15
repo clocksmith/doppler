@@ -13,7 +13,8 @@ tags:
 This directory is the technical source of truth for Doppler adapter artifact
 identity. `catalog.json` binds each weight file to its SHA-256, exact training
 base, exact RDRR runtime base, deployment manifest, immutable origins, and
-evidence receipts.
+evidence receipts. Its `lifecycle` is also the propagation authority for a
+matching entry in the bundled Doppler revocation registry.
 
 The Clocksmith Hugging Face mirror uses this layout:
 

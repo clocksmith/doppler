@@ -7,6 +7,8 @@ const TARGET_FIELDS = [
   'weightPackIds',
   'manifestVariantIds',
   'artifactVariantIds',
+  'adapterIds',
+  'adapterDigests',
 ];
 const IDENTITY_FIELDS = {
   logicalModelIds: 'logicalModelId',
@@ -15,6 +17,8 @@ const IDENTITY_FIELDS = {
   weightPackIds: 'weightPackId',
   manifestVariantIds: 'manifestVariantId',
   artifactVariantIds: 'artifactVariantId',
+  adapterIds: 'adapterId',
+  adapterDigests: 'adapterDigest',
 };
 const SEVERITIES = new Set(['correctness', 'security', 'reliability', 'provenance', 'policy']);
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -22,6 +26,7 @@ const HASH_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const REGISTRY = 'revocation registry';
 
 let registryPromise = null;
+const authorizedAdapters = new WeakSet();
 
 function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
@@ -66,7 +71,7 @@ function normalizeInstant(value, label) {
 
 function normalizeTargetValue(value, field, label) {
   const normalized = normalizeText(value, label);
-  if (field !== 'artifactVariantIds') return normalized;
+  if (field !== 'artifactVariantIds' && field !== 'adapterDigests') return normalized;
   const digest = normalized.toLowerCase();
   if (!HASH_PATTERN.test(digest)) {
     throw new Error(`${label} must be sha256:.`);
@@ -221,4 +226,22 @@ export function assertResolutionNotRevoked(identity, registry) {
 
 export async function assertBundledResolutionNotRevoked(identity) {
   assertResolutionNotRevoked(identity, await loadRevocationRegistry());
+}
+
+export async function authorizeBundledAdapter(adapter) {
+  if (!isPlainObject(adapter)) throw new Error('Adapter authorization requires an object.');
+  const adapterId = normalizeText(adapter.id, 'adapter.id');
+  const identity = adapter.identity;
+  if (identity?.schema !== 'doppler.lora-execution-identity/v1' || identity.id !== adapterId) {
+    throw new Error('Adapter authorization requires matching manifest and execution IDs.');
+  }
+  await assertBundledResolutionNotRevoked({ adapterId, adapterDigest: identity.digest });
+  authorizedAdapters.add(adapter);
+  return adapter;
+}
+
+export function assertBundledAdapterAuthorized(adapter) {
+  if (adapter != null && !authorizedAdapters.has(adapter)) {
+    throw new Error('LoRA activation requires a revocation-checked Doppler adapter.');
+  }
 }

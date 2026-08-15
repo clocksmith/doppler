@@ -279,7 +279,7 @@
         },
         {
           "id": "bundled-artifact-revocation",
-          "label": "Bundled model and artifact revocation",
+          "label": "Bundled model, artifact, and adapter revocation",
           "tier": "tier1",
           "status": "covered",
           "claimAllowed": true,
@@ -293,6 +293,9 @@
             "src/config/revocation-policy.js",
             "src/client/runtime/index.js",
             "src/client/runtime/model-manager.js",
+            "src/experimental/adapters/lora-loader.js",
+            "src/inference/pipelines/text.js",
+            "models/adapters/catalog.json",
             "tests/config/revocation-policy.test.js"
           ],
           "blockers": []
