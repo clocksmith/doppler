@@ -2,6 +2,7 @@ import { getKernelCapabilities } from '../../gpu/device.js';
 import { formatChatMessages } from '../../inference/pipelines/text/chat-format.js';
 import { resolveSamplingConfig } from '../../inference/pipelines/text/sampling-config.js';
 import { DOPPLER_VERSION } from '../../version.js';
+import { computeCanonicalSha256 } from '../../utils/canonical-hash.js';
 import { isNodeRuntime } from '../../utils/runtime-env.js';
 import {
   MODEL_INSPECTION_RECEIPT_SCHEMA,
@@ -71,43 +72,13 @@ async function collectText(iterable) {
 
 const GENERATION_EVIDENCE_SCHEMA = 'doppler_generation_evidence/v1';
 const GENERATION_TRANSCRIPT_SCHEMA = 'doppler_generation_transcript/v1';
+const EMBEDDING_EVIDENCE_SCHEMA = 'doppler_embedding_evidence/v1';
 const RUNTIME_PROFILE_SCHEMA = 'doppler_runtime_profile/v1';
 const RESOLUTION_IDENTITY_SCHEMA = 'doppler.resolution-identity/v1';
 const EXECUTION_IDENTITY_SCHEMA = 'doppler.resolved-execution-identity/v1';
 
-function canonicalizeEvidence(value) {
-  if (value === null || typeof value === 'boolean' || typeof value === 'string') {
-    return JSON.stringify(value);
-  }
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) {
-      throw new Error('Doppler generation evidence cannot hash non-finite numbers.');
-    }
-    return JSON.stringify(value);
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map((entry) => canonicalizeEvidence(entry)).join(',')}]`;
-  }
-  if (value && typeof value === 'object') {
-    const entries = Object.keys(value)
-      .sort()
-      .map((key) => `${JSON.stringify(key)}:${canonicalizeEvidence(value[key])}`);
-    return `{${entries.join(',')}}`;
-  }
-  throw new Error(`Doppler generation evidence cannot hash ${typeof value} values.`);
-}
-
-function bytesToHex(bytes) {
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
-}
-
-async function hashEvidenceValue(value) {
-  if (!globalThis.crypto?.subtle) {
-    throw new Error('Doppler generation evidence requires Web Crypto SHA-256 support.');
-  }
-  const bytes = new TextEncoder().encode(canonicalizeEvidence(value));
-  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
-  return `sha256:${bytesToHex(new Uint8Array(digest))}`;
+function hashEvidenceValue(value) {
+  return computeCanonicalSha256(value);
 }
 
 function cleanEvidenceString(value) {
@@ -167,6 +138,51 @@ function buildGenerationBackendIdentity({
   };
 }
 
+async function buildResolutionIdentity({
+  logicalModelId,
+  modelId,
+  manifestHash,
+  resolvedRuntimeSessionId,
+  activeAdapter,
+  backendIdentity,
+}) {
+  const resolvedModelId = cleanEvidenceString(modelId);
+  const logicalId = cleanEvidenceString(logicalModelId);
+  if (!resolvedModelId || !logicalId) {
+    throw new Error('Doppler runtime evidence requires logical and resolved model IDs.');
+  }
+  const resolvedArtifactVariantId = normalizeSha256Identity(manifestHash, 'manifestHash');
+  const runtimeSessionId = normalizeSha256Identity(
+    resolvedRuntimeSessionId,
+    'resolvedRuntimeSessionId'
+  );
+  const runtimeIdentity = {
+    package: 'doppler-gpu',
+    version: DOPPLER_VERSION,
+    surface: isNodeRuntime() ? 'node' : 'browser',
+  };
+  const executionIdentity = {
+    schema: EXECUTION_IDENTITY_SCHEMA,
+    runtime: runtimeIdentity,
+    resolvedRuntimeSessionId: runtimeSessionId,
+    activeAdapter: cleanEvidenceString(activeAdapter),
+    backendIdentity,
+  };
+  return {
+    resolvedModelId,
+    resolvedArtifactVariantId,
+    runtimeSessionId,
+    runtimeIdentity,
+    executionIdentity,
+    resolution: {
+      schema: RESOLUTION_IDENTITY_SCHEMA,
+      logicalModelId: logicalId,
+      resolvedArtifactVariantId,
+      resolvedExecutionId: await hashEvidenceValue(executionIdentity),
+    },
+  };
+}
+
 async function buildGenerationEvidence({
   outputText,
   tokenIds,
@@ -193,43 +209,23 @@ async function buildGenerationEvidence({
   const generationConfigHash = await hashEvidenceValue(generationConfig);
   const transcriptHash = await hashEvidenceValue(transcript);
   const backendIdentityHash = await hashEvidenceValue(backendIdentity);
-  const resolvedModelId = cleanEvidenceString(modelId);
-  const logicalId = cleanEvidenceString(logicalModelId);
-  if (!resolvedModelId || !logicalId) {
-    throw new Error('Doppler generation evidence requires logical and resolved model IDs.');
-  }
-  const resolvedArtifactVariantId = normalizeSha256Identity(manifestHash, 'manifestHash');
-  const runtimeSessionId = normalizeSha256Identity(
+  const identity = await buildResolutionIdentity({
+    logicalModelId,
+    modelId,
+    manifestHash,
     resolvedRuntimeSessionId,
-    'resolvedRuntimeSessionId'
-  );
-  const runtimeIdentity = {
-    package: 'doppler-gpu',
-    version: DOPPLER_VERSION,
-    surface: isNodeRuntime() ? 'node' : 'browser',
-  };
-  const executionIdentity = {
-    schema: EXECUTION_IDENTITY_SCHEMA,
-    runtime: runtimeIdentity,
-    resolvedRuntimeSessionId: runtimeSessionId,
+    activeAdapter,
     backendIdentity,
-  };
-  const resolvedExecutionId = await hashEvidenceValue(executionIdentity);
-  const resolution = {
-    schema: RESOLUTION_IDENTITY_SCHEMA,
-    logicalModelId: logicalId,
-    resolvedArtifactVariantId,
-    resolvedExecutionId,
-  };
+  });
   const runtimeProfile = {
     schema: RUNTIME_PROFILE_SCHEMA,
-    runtime: runtimeIdentity,
+    runtime: identity.runtimeIdentity,
     model: {
-      modelId: resolvedModelId,
-      manifestHash: resolvedArtifactVariantId,
+      modelId: identity.resolvedModelId,
+      manifestHash: identity.resolvedArtifactVariantId,
       activeAdapter: cleanEvidenceString(activeAdapter),
     },
-    resolvedRuntimeSessionId: runtimeSessionId,
+    resolvedRuntimeSessionId: identity.runtimeSessionId,
     backendIdentity,
   };
   const runtimeProfileHash = await hashEvidenceValue(runtimeProfile);
@@ -241,12 +237,66 @@ async function buildGenerationEvidence({
     transcriptHash,
     generationConfig,
     generationConfigHash,
-    resolution,
-    executionIdentity,
+    resolution: identity.resolution,
+    executionIdentity: identity.executionIdentity,
     runtimeProfile,
     runtimeProfileHash,
     backendIdentity,
     backendIdentityHash,
+    stats: stats && typeof stats === 'object' ? stats : null,
+  };
+}
+
+async function buildEmbeddingEvidence({
+  prompt,
+  result,
+  logicalModelId,
+  modelId,
+  manifestHash,
+  resolvedRuntimeSessionId,
+  activeAdapter,
+  backendIdentity,
+  stats,
+}) {
+  const embedding = Array.from(result?.embedding || [], Number);
+  if (embedding.length === 0 || embedding.some((value) => !Number.isFinite(value))) {
+    throw new Error('Doppler embedding evidence requires a finite non-empty embedding.');
+  }
+  const tokens = Array.from(result?.tokens || [], Number);
+  if (tokens.some((tokenId) => !Number.isInteger(tokenId) || tokenId < 0)) {
+    throw new Error('Doppler embedding evidence requires non-negative integer tokens.');
+  }
+  const seqLen = Number(result?.seqLen ?? tokens.length);
+  if (!Number.isInteger(seqLen) || seqLen < 0) {
+    throw new Error('Doppler embedding evidence requires a non-negative integer seqLen.');
+  }
+  const embeddingMode = cleanEvidenceString(result?.embeddingMode);
+  if (!embeddingMode) {
+    throw new Error('Doppler embedding evidence requires embeddingMode.');
+  }
+  const outputIdentity = {
+    embedding,
+    tokens,
+    seqLen,
+    embeddingMode,
+  };
+  const identity = await buildResolutionIdentity({
+    logicalModelId,
+    modelId,
+    manifestHash,
+    resolvedRuntimeSessionId,
+    activeAdapter,
+    backendIdentity,
+  });
+  return {
+    schema: EMBEDDING_EVIDENCE_SCHEMA,
+    ...result,
+    inputHash: await hashEvidenceValue({ text: String(prompt) }),
+    outputHash: await hashEvidenceValue(outputIdentity),
+    resolution: identity.resolution,
+    executionIdentity: identity.executionIdentity,
+    backendIdentity,
+    backendIdentityHash: await hashEvidenceValue(backendIdentity),
     stats: stats && typeof stats === 'object' ? stats : null,
   };
 }
@@ -378,6 +428,30 @@ export function createModelHandle(pipeline, resolved) {
     });
   }
 
+  async function embedWithEvidence(prompt, options = {}) {
+    const result = await pipeline.embed(prompt, options);
+    const stats = pipeline.getStats?.() || null;
+    const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
+      ? pipeline.getKernelCapabilities()
+      : getKernelCapabilities();
+    const backendIdentity = buildGenerationBackendIdentity({
+      deviceInfo: kernelCapabilities?.adapterInfo || null,
+      kernelCapabilities,
+      stats,
+    });
+    return buildEmbeddingEvidence({
+      prompt,
+      result,
+      logicalModelId: resolved.logicalModelId ?? resolved.modelId,
+      modelId: resolved.modelId,
+      manifestHash: resolved.manifestHash || null,
+      resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
+      activeAdapter: getActiveLoRAForPipeline(pipeline),
+      backendIdentity,
+      stats,
+    });
+  }
+
   const handle = {
     generate(prompt, options = {}) {
       assertSupportedGenerationOptions(options);
@@ -412,6 +486,7 @@ export function createModelHandle(pipeline, resolved) {
     async embed(prompt, options = {}) {
       return pipeline.embed(prompt, options);
     },
+    embedWithEvidence,
     async embedBatch(prompts, options = {}) {
       return pipeline.embedBatch(prompts, options);
     },

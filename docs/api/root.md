@@ -94,6 +94,7 @@ Returns a `DopplerModel` instance with:
 - `generate(...)`
 - `generateText(...)`
 - `generateWithEvidence(...)`
+- `embedWithEvidence(...)`
 - `chat(...)`
 - `chatText(...)`
 - experimental `loadLoRA(...)`
@@ -235,6 +236,12 @@ application requested, the artifact-variant ID is the verified manifest digest,
 and the execution ID binds the resolved runtime-session and observed backend.
 Missing artifact or runtime-session digests fail closed. The receipt records
 what ran; it does not by itself establish semantic correctness or output quality.
+
+Embedding handles expose `embedWithEvidence()`. Each returned
+`doppler_embedding_evidence/v1` record preserves the normal embedding result
+and adds input/output hashes, the same exact resolution block, backend identity,
+and resolved execution identity. Non-finite embeddings and incomplete identity
+inputs fail closed.
 
 ## Inspection contract
 
