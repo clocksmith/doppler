@@ -1,0 +1,99 @@
+{
+  "schema": "doppler.product-integration-candidate-audit/v1",
+  "recordedAtUtc": "2026-08-15T00:00:00.000Z",
+  "method": "read-only-static-workspace-inventory",
+  "claimAllowed": false,
+  "claimBoundary": "This audit establishes candidate application code paths only. It contains no runtime execution, owner confirmation, product qualification, or retained evidence for Doppler's ten qualification fields.",
+  "constraints": [
+    "No inference, benchmark, model load, browser launch, or GPU workload was run.",
+    "Sibling-repository paths are discovery sources, not Doppler qualification evidence.",
+    "Each candidate remains non-claimable until its application owner and all required evidence are current."
+  ],
+  "candidates": [
+    {
+      "id": "reploid-local-generation",
+      "applicationName": "Reploid",
+      "repository": "clocksmith/reploid",
+      "revision": "75743389d49f3d06a004ac9bb2f9175e4d3bdf77",
+      "workload": "generation",
+      "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "discoverySources": [
+        "package.json",
+        "self/providers/doppler-reploid.js",
+        "self/pool/pool-config.json",
+        "scripts/run-adapter-runtime-canary.js"
+      ],
+      "findings": [
+        "The application pins doppler-gpu 0.5.1 and adapts Doppler's public model handle for chat and streaming.",
+        "The pool contract declares a logical model, weight-pack ID, manifest-variant ID, and hosted artifact path.",
+        "A browser adapter canary script exists, but its expected retained status receipt is absent from docs/status."
+      ],
+      "blockers": [
+        "owner-confirmation-missing",
+        "resolved-artifact-and-execution-receipt-missing",
+        "application-product-qualification-evidence-missing"
+      ]
+    },
+    {
+      "id": "dream-local-embedding-retrieval",
+      "applicationName": "Dream",
+      "repository": "clocksmith/dream",
+      "revision": "677958520678565b372fd6775a6e6b68cec4c4a6",
+      "workload": "embedding-retrieval",
+      "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "discoverySources": [
+        "package.json",
+        "adapters/doppler/embed-provider.js",
+        "scripts/lib/doppler-node-embedder.js",
+        "reports/runtime-models/current.json"
+      ],
+      "findings": [
+        "The application pins doppler-gpu 0.5.1 and requires Doppler embeddings for its query-embedding stage.",
+        "The current runtime-model report classifies the artifact as download-on-demand and remote pending.",
+        "The report records a broken local artifact symlink and no materialized manifest at the expected path."
+      ],
+      "blockers": [
+        "owner-confirmation-missing",
+        "embedding-artifact-not-materialized",
+        "resolved-artifact-and-execution-receipt-missing",
+        "application-product-qualification-evidence-missing"
+      ]
+    },
+    {
+      "id": "columbo-local-reranking",
+      "applicationName": "Columbo",
+      "repository": "clocksmith/columbo",
+      "revision": "eaa902f0c48a459ee627b513db3d0ffae74c6dc8",
+      "workload": "reranking",
+      "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "discoverySources": [
+        "package.json",
+        "columbo.config.json",
+        "src/adapters/reranking.js",
+        "docs/status/valera-browser-performance-reliability-readiness-2026-08-02.json"
+      ],
+      "findings": [
+        "The application pins doppler-gpu 0.5.1 and declares a Doppler Qwen reranker option.",
+        "The reranker adapter resolves manifest-owned scoring tokens and fails closed when selected-token logits are unavailable or non-finite.",
+        "The current readiness record still blocks on authentic samples and an authentic fault journey; reranking is not required for the approved path."
+      ],
+      "blockers": [
+        "owner-confirmation-missing",
+        "reranking-not-approved-product-path",
+        "authentic-samples-and-fault-journey-missing",
+        "resolved-artifact-and-execution-receipt-missing",
+        "application-product-qualification-evidence-missing"
+      ]
+    }
+  ],
+  "conclusion": {
+    "candidateIntegrations": 3,
+    "qualifiedIntegrations": 0,
+    "candidateWorkloads": [
+      "generation",
+      "embedding-retrieval",
+      "reranking"
+    ],
+    "gateSatisfied": false
+  }
+}

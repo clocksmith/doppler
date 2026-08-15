@@ -10,5 +10,105 @@
     "reranking"
   ],
   "ownerConfirmationMaxAgeDays": 90,
-  "integrations": []
+  "integrations": [
+    {
+      "id": "reploid-local-generation",
+      "applicationName": "Reploid",
+      "workload": "generation",
+      "owner": "clocksmith/reploid",
+      "ownerConfirmedAtUtc": null,
+      "qualificationLevel": "contract-ready",
+      "lifecycle": "candidate",
+      "claimAllowed": false,
+      "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "resolvedArtifactVariantId": null,
+      "resolvedExecutionId": null,
+      "qualifiedAtUtc": null,
+      "expiresAtUtc": null,
+      "evidence": {
+        "installToFirstVerifiedOutput": null,
+        "identity": "docs/status/product-integration-candidate-audit-2026-08-15.json",
+        "sourceTaskQualityRetention": null,
+        "reliability": null,
+        "memory": null,
+        "coldWarmResponse": null,
+        "browserHardwareQualification": null,
+        "incumbentControl": null,
+        "upgradeRequalification": null,
+        "rollbackRevocation": null
+      },
+      "blockers": [
+        "owner-confirmation-missing",
+        "resolved-artifact-and-execution-receipt-missing",
+        "application-product-qualification-evidence-missing"
+      ]
+    },
+    {
+      "id": "dream-local-embedding-retrieval",
+      "applicationName": "Dream",
+      "workload": "embedding-retrieval",
+      "owner": "clocksmith/dream",
+      "ownerConfirmedAtUtc": null,
+      "qualificationLevel": "contract-ready",
+      "lifecycle": "candidate",
+      "claimAllowed": false,
+      "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "resolvedArtifactVariantId": null,
+      "resolvedExecutionId": null,
+      "qualifiedAtUtc": null,
+      "expiresAtUtc": null,
+      "evidence": {
+        "installToFirstVerifiedOutput": null,
+        "identity": "docs/status/product-integration-candidate-audit-2026-08-15.json",
+        "sourceTaskQualityRetention": null,
+        "reliability": null,
+        "memory": null,
+        "coldWarmResponse": null,
+        "browserHardwareQualification": null,
+        "incumbentControl": null,
+        "upgradeRequalification": null,
+        "rollbackRevocation": null
+      },
+      "blockers": [
+        "owner-confirmation-missing",
+        "embedding-artifact-not-materialized",
+        "resolved-artifact-and-execution-receipt-missing",
+        "application-product-qualification-evidence-missing"
+      ]
+    },
+    {
+      "id": "columbo-local-reranking",
+      "applicationName": "Columbo",
+      "workload": "reranking",
+      "owner": "clocksmith/columbo",
+      "ownerConfirmedAtUtc": null,
+      "qualificationLevel": "contract-ready",
+      "lifecycle": "candidate",
+      "claimAllowed": false,
+      "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "resolvedArtifactVariantId": null,
+      "resolvedExecutionId": null,
+      "qualifiedAtUtc": null,
+      "expiresAtUtc": null,
+      "evidence": {
+        "installToFirstVerifiedOutput": null,
+        "identity": "docs/status/product-integration-candidate-audit-2026-08-15.json",
+        "sourceTaskQualityRetention": null,
+        "reliability": null,
+        "memory": null,
+        "coldWarmResponse": null,
+        "browserHardwareQualification": null,
+        "incumbentControl": null,
+        "upgradeRequalification": null,
+        "rollbackRevocation": null
+      },
+      "blockers": [
+        "owner-confirmation-missing",
+        "reranking-not-approved-product-path",
+        "authentic-samples-and-fault-journey-missing",
+        "resolved-artifact-and-execution-receipt-missing",
+        "application-product-qualification-evidence-missing"
+      ]
+    }
+  ]
 }

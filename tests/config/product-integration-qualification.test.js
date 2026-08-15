@@ -60,6 +60,18 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   assert.equal(report.ok, true, report.errors.join('\n'));
   assert.equal(report.gateSatisfied, false);
   assert.equal(report.qualifiedIntegrations, 0);
+  assert.equal(report.candidateIntegrations, 3);
+  assert.deepEqual(report.candidateWorkloads, [
+    'generation',
+    'embedding-retrieval',
+    'reranking',
+  ]);
+  assert.deepEqual(report.integrations.map((entry) => entry.applicationName), [
+    'Reploid',
+    'Dream',
+    'Columbo',
+  ]);
+  assert.ok(report.integrations.every((entry) => entry.qualified === false));
   assert.deepEqual(report.missingWorkloads, [
     'generation',
     'embedding-retrieval',
@@ -105,6 +117,7 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   const candidate = clone(policy);
   const record = integration('private-chat', 'Private Chat', 'generation');
   record.qualificationLevel = 'runtime-verified';
+  record.lifecycle = 'candidate';
   record.claimAllowed = false;
   record.blockers = ['held-out-task-gate-missing'];
   record.evidence.sourceTaskQualityRetention = null;
@@ -115,6 +128,7 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   });
   assert.deepEqual(report.errors, []);
   assert.equal(report.integrations[0].qualified, false);
+  assert.equal(report.candidateIntegrations, 1);
   assert.ok(report.integrations[0].missingEvidence.includes('sourceTaskQualityRetention'));
 }
 
