@@ -13,6 +13,11 @@
       "schemaPath": "src/config/schema/claim-evidence-contract.schema.json"
     },
     {
+      "id": "catscan-policy",
+      "policyPath": "tools/policies/catscan-policy.json",
+      "schemaPath": "src/config/schema/catscan-policy.schema.json"
+    },
+    {
       "id": "command-surface-contract",
       "policyPath": "tools/policies/command-surface-contract.json",
       "schemaPath": "src/config/schema/command-surface-contract.schema.json"

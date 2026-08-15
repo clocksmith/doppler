@@ -56,6 +56,7 @@ downloads/
 !demo/ui/downloads/index.js
 !demo/ui/downloads/index.d.ts
 /models/*
+!/models/CATSCAN.md
 !/models/catalog.json
 !/models/gemma4-targets.json
 !/models/model-type-taxonomy.json

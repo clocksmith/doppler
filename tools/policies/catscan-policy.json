@@ -1,0 +1,62 @@
+{
+  "$schema": "../../src/config/schema/catscan-policy.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "charterFilename": "CATSCAN.md",
+  "indexPath": "docs/component-index.md",
+  "maxWords": 250,
+  "requiredMetadata": [
+    "Component",
+    "Parent"
+  ],
+  "requiredSections": [
+    "Target",
+    "Authority",
+    "Scope",
+    "Contracts",
+    "Invariants",
+    "Acceptance",
+    "Non-goals",
+    "Freedom"
+  ],
+  "freedomText": "Any implementation is permitted if it preserves these boundaries and passes the acceptance evidence.",
+  "ignoredDirectories": [
+    ".git",
+    ".tmp",
+    ".worktrees",
+    "artifacts",
+    "node_modules",
+    "reports",
+    "tmp"
+  ],
+  "requiredCharterPaths": [
+    "CATSCAN.md",
+    "benchmarks/CATSCAN.md",
+    "benchmarks/vendors/CATSCAN.md",
+    "demo/CATSCAN.md",
+    "docs/CATSCAN.md",
+    "models/CATSCAN.md",
+    "src/CATSCAN.md",
+    "src/cli/CATSCAN.md",
+    "src/client/CATSCAN.md",
+    "src/config/CATSCAN.md",
+    "src/converter/CATSCAN.md",
+    "src/debug/CATSCAN.md",
+    "src/experimental/CATSCAN.md",
+    "src/formats/CATSCAN.md",
+    "src/formats/rdrr/CATSCAN.md",
+    "src/gpu/CATSCAN.md",
+    "src/gpu/kernels/CATSCAN.md",
+    "src/inference/CATSCAN.md",
+    "src/inference/pipelines/CATSCAN.md",
+    "src/inference/pipelines/text/CATSCAN.md",
+    "src/loader/CATSCAN.md",
+    "src/memory/CATSCAN.md",
+    "src/models/CATSCAN.md",
+    "src/rules/CATSCAN.md",
+    "src/storage/CATSCAN.md",
+    "src/tooling/CATSCAN.md",
+    "tests/CATSCAN.md",
+    "tools/CATSCAN.md"
+  ]
+}

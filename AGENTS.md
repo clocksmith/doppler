@@ -119,6 +119,32 @@ Current quarantined subsystem lanes under `src/experimental/` include:
 - Review `src/tooling/command-api.js` for command parity contract.
 - For extension work, read `docs/developer-guides/README.md` and the matching guide in `docs/developer-guides/`.
 
+### Component Intent
+
+Before modifying a file, read the canonical project goals and every
+`CATSCAN.md` from the project root to the target directory, parent first. For
+changes spanning directories, read the union of the applicable chains.
+
+Treat Target, Authority, Scope, Contracts, Invariants, Acceptance, and
+Non-goals as implementation constraints. A child CATSCAN may narrow its parent
+but may not silently broaden authority, weaken an invariant, or contradict it.
+Existing code does not overrule a charter; code may itself have drifted.
+
+Explicit user direction may change component intent. Identify the boundary
+change and update the affected CATSCAN with the implementation. Do not rewrite
+a charter to excuse failing code or evidence. CATSCAN constrains outcomes and
+authority, not internal algorithms.
+
+Repository-change handoffs must state:
+
+- `Component: <component ID>`
+- `Intent: preserved | changed`
+- `Acceptance evidence: <commands or artifacts>`
+- `Boundary effects: none | <named components>`
+
+Run `npm run catscan:check` after changing a charter, component boundary, or
+the CATSCAN policy inventory.
+
 ### Public vs Internal Tooling
 
 See `docs/agents/tooling-surface.md` for the full breakdown.
