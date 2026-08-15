@@ -462,9 +462,11 @@ rendered as a stable product-status report with `npm run goals:report`.
 
 `npm run product:readiness:report` combines the goal matrix, command-surface,
 model-artifact, maintained-integration, provider-conformance,
-runtime-ownership, policy-schema, claim-evidence, revocation,
-promotion-monitoring, and subsystem-support contracts into one markdown status
-report. Use
+runtime-ownership, Bun product-qualification, policy-schema, claim-evidence,
+revocation, promotion-monitoring, and subsystem-support contracts into one
+markdown status report. A malformed Bun qualification now invalidates the
+combined report even while an honest 0/3 experimental portfolio remains a valid
+but incomplete state. Use
 `npm run product:readiness:report -- --json` when another tool needs the same
 status as machine-readable JSON. Revocation status separates the bundled
 package authority from signed-live mechanism availability, qualification-

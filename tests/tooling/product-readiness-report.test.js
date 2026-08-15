@@ -57,6 +57,44 @@ assert.deepEqual(
     'qwen3-reranking-runtime-ownership',
   ]
 );
+assert.equal(report.contracts.bunQualification.ok, true);
+assert.equal(report.contracts.bunQualification.gateSatisfied, false);
+assert.equal(report.contracts.bunQualification.qualified, 0);
+assert.equal(report.contracts.bunQualification.candidates, 3);
+assert.deepEqual(report.contracts.bunQualification.candidateWorkloads, [
+  'generation',
+  'embedding',
+  'reranking',
+]);
+assert.deepEqual(
+  report.contracts.bunQualification.candidateDetails.map((entry) => entry.id),
+  [
+    'qwen35-generation-bun-product',
+    'embeddinggemma-bun-product',
+    'qwen3-reranking-bun-product',
+  ]
+);
+assert.equal(report.contracts.bunQualification.subsystemTier, 'experimental');
+assert.equal(report.contracts.bunQualification.releaseEngineStatus, 'experimental');
+assert.equal(report.contracts.bunQualification.releaseTargetStatus, 'experimental');
+
+const invalidBun = await buildProductReadinessReport({
+  bunQualificationBuilder: async () => ({
+    ok: false,
+    errors: ['fixture Bun contract failure'],
+    gateSatisfied: false,
+    qualifiedWorkloads: 0,
+    candidateWorkloads: 0,
+    qualifications: [],
+    missingWorkloads: ['generation', 'embedding', 'reranking'],
+    portfolioQualified: false,
+    subsystemTier: 'experimental',
+    releaseEngineStatus: 'experimental',
+    releaseTargetStatus: 'experimental',
+  }),
+});
+assert.equal(invalidBun.ok, false);
+assert.ok(invalidBun.errors.includes('Bun qualification: fixture Bun contract failure'));
 assert.equal(revocations.ok, true);
 assert.equal(revocations.active, revocations.bundled.active);
 assert.equal(revocations.signatureVerification, revocations.bundled.signatureVerification);

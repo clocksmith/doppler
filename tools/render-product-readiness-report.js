@@ -3,6 +3,7 @@
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { buildClaimEvidenceContractReport } from './check-claim-evidence-contract.js';
+import { buildBunProductQualificationReport } from './check-bun-product-qualification.js';
 import { buildCommandSurfaceContractReport } from './check-command-surface-contract.js';
 import { buildGoalCompletionReport } from './check-goal-completion.js';
 import { buildModelArtifactContractReport } from './check-model-artifact-contract.js';
@@ -44,6 +45,7 @@ function buildSummary(reports) {
     ...collectErrors('product integrations', reports.productIntegrations),
     ...collectErrors('provider conformance', reports.providerConformance),
     ...collectErrors('runtime ownership', reports.runtimeOwnership),
+    ...collectErrors('Bun qualification', reports.bunQualification),
     ...collectErrors('revocations', reports.revocations),
     ...collectErrors('signed revocation authority', reports.signedRevocationAuthority),
     ...collectErrors('promotion monitoring', reports.promotionMonitoring),
@@ -58,6 +60,7 @@ function buildSummary(reports) {
       && reports.productIntegrations.ok
       && reports.providerConformance.ok
       && reports.runtimeOwnership.ok
+      && reports.bunQualification.ok
       && reports.revocations.ok
       && reports.signedRevocationAuthority.ok
       && reports.promotionMonitoring.ok
@@ -118,6 +121,24 @@ function buildSummary(reports) {
         )),
         required: 3,
         missingWorkloads: reports.runtimeOwnership.missingWorkloads,
+      },
+      bunQualification: {
+        ok: reports.bunQualification.ok,
+        gateSatisfied: reports.bunQualification.gateSatisfied,
+        qualified: reports.bunQualification.qualifiedWorkloads,
+        candidates: reports.bunQualification.candidateWorkloads,
+        candidateWorkloads: reports.bunQualification.qualifications
+          .filter((qualification) => qualification.claimAllowed === false)
+          .map((qualification) => qualification.workload),
+        candidateDetails: reports.bunQualification.qualifications.filter((qualification) => (
+          qualification.claimAllowed === false
+        )),
+        required: 3,
+        missingWorkloads: reports.bunQualification.missingWorkloads,
+        portfolioQualified: reports.bunQualification.portfolioQualified,
+        subsystemTier: reports.bunQualification.subsystemTier,
+        releaseEngineStatus: reports.bunQualification.releaseEngineStatus,
+        releaseTargetStatus: reports.bunQualification.releaseTargetStatus,
       },
       revocations: {
         ok: reports.revocations.ok,
@@ -185,6 +206,7 @@ function formatMarkdown(summary) {
     `- maintained application integrations: ${summary.contracts.productIntegrations.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.productIntegrations.qualified}/${summary.contracts.productIntegrations.required} qualified; candidates ${summary.contracts.productIntegrations.candidateDetails.map((entry) => `${entry.applicationName}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.productIntegrations.missingWorkloads.join(', ') || 'none'})`,
     `- provider conformance: ${summary.contracts.providerConformance.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.providerConformance.qualified}/${summary.contracts.providerConformance.required} qualified; candidates ${summary.contracts.providerConformance.candidateDetails.map((entry) => `${entry.id}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.providerConformance.missingWorkloads.join(', ') || 'none'})`,
     `- runtime ownership decisions: ${summary.contracts.runtimeOwnership.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.runtimeOwnership.qualified}/${summary.contracts.runtimeOwnership.required} qualified; candidates ${summary.contracts.runtimeOwnership.candidateDetails.map((entry) => `${entry.id}:${entry.workload}`).join(', ') || 'none'}; missing qualified ${summary.contracts.runtimeOwnership.missingWorkloads.join(', ') || 'none'})`,
+    `- Bun product qualification: ${summary.contracts.bunQualification.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.bunQualification.qualified}/${summary.contracts.bunQualification.required} qualified; candidates ${summary.contracts.bunQualification.candidateDetails.map((entry) => `${entry.id}:${entry.workload}`).join(', ') || 'none'}; support tier ${summary.contracts.bunQualification.subsystemTier}; release registry ${summary.contracts.bunQualification.releaseEngineStatus}; release matrix ${summary.contracts.bunQualification.releaseTargetStatus})`,
     `- revocation propagation: ${summary.contracts.revocations.ok ? 'ok' : 'invalid'} (bundled ${summary.contracts.revocations.bundled.active} active, signature ${summary.contracts.revocations.bundled.signatureVerification}; signed-live mechanism ${summary.contracts.revocations.signedLive.mechanismAvailable ? 'available' : 'missing'}, qualification contract ${summary.contracts.revocations.signedLive.qualificationContractOk ? 'ok' : 'invalid'}, authority ${summary.contracts.revocations.signedLive.authorityQualified ? 'qualified' : 'incomplete'} (${summary.contracts.revocations.signedLive.qualifiedAuthorities}/1 qualified; ${summary.contracts.revocations.signedLive.candidateAuthorities} candidates))`,
     `- post-promotion monitoring: ${summary.contracts.promotionMonitoring.coverageSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.promotionMonitoring.promotions} promotions; ${summary.contracts.promotionMonitoring.monitoring} monitoring, ${summary.contracts.promotionMonitoring.retained} retained, ${summary.contracts.promotionMonitoring.revoked} revoked)`,
     `- subsystem support: ${summary.contracts.subsystemSupport.ok ? 'ok' : 'invalid'} (${summary.contracts.subsystemSupport.subsystems} subsystems, ${summary.contracts.subsystemSupport.primaryClaims} primary claims)`,
@@ -199,7 +221,9 @@ function formatMarkdown(summary) {
   return lines.join('\n').trimEnd();
 }
 
-export async function buildProductReadinessReport() {
+export async function buildProductReadinessReport({
+  bunQualificationBuilder = buildBunProductQualificationReport,
+} = {}) {
   const reports = {
     goals: await buildGoalCompletionReport(),
     claimEvidence: await buildClaimEvidenceContractReport(),
@@ -209,6 +233,7 @@ export async function buildProductReadinessReport() {
     productIntegrations: await buildProductIntegrationQualificationReport(),
     providerConformance: await buildProviderConformanceReport(),
     runtimeOwnership: await buildRuntimeOwnershipDecisionReport(),
+    bunQualification: await bunQualificationBuilder(),
     revocations: await buildRevocationPropagationReport(),
     signedRevocationAuthority: await buildSignedRevocationAuthorityQualificationReport(),
     promotionMonitoring: await buildRuntimePromotionMonitoringReport(),
