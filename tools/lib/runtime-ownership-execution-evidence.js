@@ -202,6 +202,7 @@ export function validateDopplerRuntimeOwnershipReceipt(receipt, expected = {}) {
     return {
       errors: ['Doppler execution receipt must be an object'],
       reasons: ['doppler-execution-receipt-invalid'],
+      resolution: null,
     };
   }
   if (receipt.receiptVersion !== DOPPLER_RECEIPT_SCHEMA) {
@@ -215,7 +216,7 @@ export function validateDopplerRuntimeOwnershipReceipt(receipt, expected = {}) {
   if (!isPlainObject(receipt.device)) reasons.push('doppler-environment-missing');
   if (receipt.resolutionStatus !== 'resolved' || !isPlainObject(receipt.resolution)) {
     reasons.push('doppler-resolution-identity-missing');
-    return { errors, reasons };
+    return { errors, reasons, resolution: null };
   }
   const resolution = receipt.resolution;
   if (resolution.schema !== RESOLUTION_SCHEMA) {
@@ -243,5 +244,15 @@ export function validateDopplerRuntimeOwnershipReceipt(receipt, expected = {}) {
     const modelHash = requiredSha256(receipt.model.hash, 'Doppler execution model.hash', errors);
     matchExpected(modelHash, artifactId, 'Doppler model hash', errors);
   }
-  return { errors, reasons };
+  return {
+    errors,
+    reasons,
+    resolution: artifactId && executionId && logicalModelId
+      ? {
+        logicalModelId,
+        resolvedArtifactVariantId: artifactId,
+        resolvedExecutionId: executionId,
+      }
+      : null,
+  };
 }
