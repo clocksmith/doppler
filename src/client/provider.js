@@ -173,12 +173,24 @@ export function createDopplerProvider(config) {
 
   async function generateLocal(prompt, options) {
     const handle = await ensureLocalModel();
-    const text = await handle.generateText(prompt, options);
+    const evidence = typeof handle.generateWithEvidence === 'function'
+      ? await handle.generateWithEvidence(prompt, options)
+      : null;
+    const text = evidence
+      ? evidence.outputText
+      : await handle.generateText(prompt, options);
     return {
       text,
       modelId: handle.modelId,
-      modelHash: handle.manifest?.meta?.hash ?? null,
+      modelHash: handle.resolvedArtifactVariantId
+        ?? handle.manifestHash
+        ?? handle.manifest?.meta?.hash
+        ?? null,
       device: handle.deviceInfo,
+      resolution: evidence?.resolution ?? null,
+      resolutionUnavailableReason: evidence
+        ? null
+        : 'local-handle-does-not-expose-generation-evidence',
     };
   }
 
@@ -211,6 +223,7 @@ export function createDopplerProvider(config) {
       const receipt = makeReceipt({
         source: 'fallback',
         model: { id: config.fallback.model, fallbackId: config.fallback.model },
+        resolutionUnavailableReason: 'external-provider-resolution-is-opaque',
         fallbackDecision: { reason: 'policy_cloud_only', eligible: true, executed: true, deniedReason: null },
         fallbackDurationMs: Date.now() - fallbackStart,
         totalDurationMs: Date.now() - startTime,
@@ -229,6 +242,7 @@ export function createDopplerProvider(config) {
         const receipt = makeReceipt({
           source: 'fallback',
           model: { id: config.fallback.model, fallbackId: config.fallback.model },
+          resolutionUnavailableReason: 'external-provider-resolution-is-opaque',
           fallbackDecision: { reason: 'policy_prefer_cloud', eligible: true, executed: true, deniedReason: null },
           fallbackDurationMs: Date.now() - cloudStart,
           totalDurationMs: Date.now() - startTime,
@@ -244,6 +258,8 @@ export function createDopplerProvider(config) {
           const receipt = makeReceipt({
             source: 'local',
             model: { id: result.modelId, hash: result.modelHash },
+            resolution: result.resolution,
+            resolutionUnavailableReason: result.resolutionUnavailableReason,
             deviceInfo: result.device,
             failure: cloudFailure,
             fallbackDecision: { reason: cloudFailure.failureClass, eligible: true, executed: true, deniedReason: null },
@@ -257,6 +273,7 @@ export function createDopplerProvider(config) {
           const receipt = makeReceipt({
             source: 'local',
             model: { id: config.local?.model || localModelHandle?.modelId || '' },
+            resolutionUnavailableReason: 'local-execution-failed-before-resolution',
             failure: localFailure,
             fallbackDecision: { reason: 'both_failed', eligible: true, executed: true, deniedReason: null },
             localDurationMs: Date.now() - localStart,
@@ -285,6 +302,8 @@ export function createDopplerProvider(config) {
       const receipt = makeReceipt({
         source: 'local',
         model: { id: result.modelId, hash: result.modelHash },
+        resolution: result.resolution,
+        resolutionUnavailableReason: result.resolutionUnavailableReason,
         deviceInfo: result.device,
         localDurationMs: Date.now() - localStart,
         totalDurationMs: Date.now() - startTime,
@@ -305,6 +324,7 @@ export function createDopplerProvider(config) {
       const receipt = makeReceipt({
         source: 'local',
         model: { id: config.local?.model || localModelHandle?.modelId || '' },
+        resolutionUnavailableReason: 'local-execution-failed-before-resolution',
         failure,
         fallbackDecision: { reason: 'policy_local_only', eligible: false, executed: false, deniedReason: 'local-only policy' },
         localDurationMs,
@@ -319,6 +339,7 @@ export function createDopplerProvider(config) {
       const receipt = makeReceipt({
         source: 'local',
         model: { id: config.local?.model || localModelHandle?.modelId || '' },
+        resolutionUnavailableReason: 'local-execution-failed-before-resolution',
         failure,
         fallbackDecision: { reason: 'no_fallback_configured', eligible: false, executed: false, deniedReason: 'no fallback configured' },
         localDurationMs,
@@ -334,6 +355,7 @@ export function createDopplerProvider(config) {
       const receipt = makeReceipt({
         source: 'local',
         model: { id: config.local?.model || localModelHandle?.modelId || '' },
+        resolutionUnavailableReason: 'local-execution-failed-before-resolution',
         failure,
         fallbackDecision: { reason: failureClass, eligible: false, executed: false, deniedReason: 'policy denied for this failure class' },
         localDurationMs,
@@ -351,6 +373,7 @@ export function createDopplerProvider(config) {
     const receipt = makeReceipt({
       source: 'fallback',
       model: { id: config.fallback.model, fallbackId: config.fallback.model },
+      resolutionUnavailableReason: 'external-provider-resolution-is-opaque',
       failure,
       fallbackDecision: { reason: failureClass, eligible: true, executed: true, deniedReason: null },
       localDurationMs,

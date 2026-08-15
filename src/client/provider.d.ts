@@ -29,9 +29,16 @@ export type FailureClass =
 export interface ModelHandle {
   loaded: boolean;
   modelId: string;
+  logicalModelId?: string;
+  resolvedArtifactVariantId?: `sha256:${string}` | null;
+  manifestHash?: string | null;
   manifest: object | null;
   deviceInfo: object | null;
   generateText(prompt: unknown, opts?: object): Promise<string>;
+  generateWithEvidence?(prompt: unknown, opts?: object): Promise<{
+    outputText: string;
+    resolution: ResolutionIdentity;
+  }>;
   unload(): Promise<void>;
 }
 
@@ -112,6 +119,13 @@ export interface ReceiptFallbackDecision {
   deniedReason: string | null;
 }
 
+export interface ResolutionIdentity {
+  schema: 'doppler.resolution-identity/v1';
+  logicalModelId: string;
+  resolvedArtifactVariantId: `sha256:${string}`;
+  resolvedExecutionId: `sha256:${string}`;
+}
+
 export interface ProviderReceiptV1 {
   receiptVersion: 'doppler_provider_receipt_v1';
   receiptId: string;
@@ -127,6 +141,9 @@ export interface ProviderReceiptV1 {
   totalDurationMs: number;
   timestamp: string;
   diagnoseArtifactRef: string | null;
+  resolutionStatus: 'resolved' | 'unavailable';
+  resolution: ResolutionIdentity | null;
+  resolutionUnavailableReason: string | null;
 }
 
 export interface ProviderResult {
