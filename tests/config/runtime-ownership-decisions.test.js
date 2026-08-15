@@ -12,6 +12,8 @@ import {
 } from '../../tools/lib/runtime-ownership-execution-evidence.js';
 import {
   computeRuntimeOwnershipDecisionEvidenceDigest,
+  computeRuntimeOwnershipEvidenceSetDigest,
+  computeRuntimeOwnershipHypothesisSetDigest,
 } from '../../tools/lib/runtime-ownership-decision-evidence.js';
 
 const POLICY_PATH = path.join(
@@ -28,6 +30,7 @@ const CONFIGURATION_ID = `sha256:${'d'.repeat(64)}`;
 const OUTPUT_ID = `sha256:${'e'.repeat(64)}`;
 const HELD_OUT_ID = `sha256:${'f'.repeat(64)}`;
 const HARNESS_REVISION = '1'.repeat(40);
+const REVIEWER_REVISION = '2'.repeat(40);
 const TEST_ROOT = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-runtime-ownership-'));
 const EVIDENCE_ROOT = path.join(TEST_ROOT, 'evidence');
 
@@ -77,6 +80,7 @@ function decision(workload, disposition = 'doppler') {
     'distributionCost',
     'integrationBurden',
     'providerRisk',
+    'promotion',
   ].map((field) => [field, null]));
   return {
     id: `${workload}-runtime-ownership`,
@@ -94,6 +98,8 @@ function decision(workload, disposition = 'doppler') {
     correctnessClass: workload === 'embedding'
       ? 'tolerance-bounded-numerical'
       : 'exact-token',
+    harnessRevision: HARNESS_REVISION,
+    environmentFingerprint: ENVIRONMENT_ID,
     hypotheses: [hypothesis(workload, disposition !== 'incumbent')],
     disposition,
     decisionRationale: `${disposition} is selected by the frozen material-advantage gate.`,
@@ -102,6 +108,41 @@ function decision(workload, disposition = 'doppler') {
     evidence,
     claimAllowed: true,
     blockers: [],
+  };
+}
+
+function promotionEvidence(record) {
+  const evidenceReferences = Object.fromEntries(Object.entries(record.evidence)
+    .filter(([field]) => field !== 'promotion'));
+  return {
+    schema: 'doppler.runtime-ownership-promotion-evidence/v1',
+    decisionId: record.id,
+    workload: record.workload,
+    logicalModelId: record.logicalModelId,
+    manifestVariantId: record.manifestVariantId,
+    resolvedArtifactVariantId: record.resolvedArtifactVariantId,
+    resolvedExecutionId: record.resolvedExecutionId,
+    sourceProviderId: record.sourceProviderId,
+    sourceArtifactId: record.sourceArtifactId,
+    sourceExecutionId: record.sourceExecutionId,
+    incumbentProviderId: record.incumbentProviderId,
+    incumbentArtifactId: record.incumbentArtifactId,
+    incumbentExecutionId: record.incumbentExecutionId,
+    correctnessClass: record.correctnessClass,
+    harnessRevision: record.harnessRevision,
+    environmentFingerprint: record.environmentFingerprint,
+    disposition: record.disposition,
+    decisionRationale: record.decisionRationale,
+    evidenceSetDigest: computeRuntimeOwnershipEvidenceSetDigest(evidenceReferences),
+    hypothesisSetDigest: computeRuntimeOwnershipHypothesisSetDigest(record.hypotheses),
+    decision: 'promote-disposition',
+    authority: 'human',
+    reviewer: 'fixture-product-reviewer',
+    reviewerRevision: REVIEWER_REVISION,
+    rationale: 'The complete comparison supports this exact runtime ownership disposition.',
+    promotedAtUtc: '2026-08-01T01:05:00.000Z',
+    qualifiedAtUtc: record.qualifiedAtUtc,
+    expiresAtUtc: record.expiresAtUtc,
   };
 }
 
@@ -317,6 +358,10 @@ async function preparedDecision(workload, disposition = 'doppler') {
     evaluatedAtUtc: hypothesisReceipt.evaluatedAtUtc,
     evidence: evidenceReference(hypothesisPath, hypothesisReceipt),
   };
+  const promotionReceipt = promotionEvidence(record);
+  const promotionPath = `evidence/${workload}-promotion.json`;
+  await writeJson(promotionPath, promotionReceipt);
+  record.evidence.promotion = evidenceReference(promotionPath, promotionReceipt);
   return record;
 }
 
@@ -338,6 +383,55 @@ await fs.mkdir(EVIDENCE_ROOT, { recursive: true });
   assert.ok(report.decisions.every((entry) => entry.qualified === false));
   assert.ok(report.decisions.every((entry) => entry.hypothesisAxes.length === 1));
   assert.deepEqual(report.missingWorkloads, ['generation', 'embedding', 'reranking']);
+}
+
+{
+  const unpromoted = clone(policy);
+  const record = await preparedDecision('generation', 'doppler');
+  record.evidence.promotion = null;
+  unpromoted.decisions = [record];
+  const report = await validateRuntimeOwnershipDecisions(unpromoted, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(report.decisions[0].reasons.includes('disposition-promotion-evidence-missing'));
+  assert.equal(report.decisions[0].qualified, false);
+}
+
+{
+  const mixedEnvironment = clone(policy);
+  const record = await preparedDecision('generation', 'doppler');
+  const evidenceRef = record.evidence.memory;
+  const receipt = dimensionEvidence(record, 'memory');
+  receipt.environmentFingerprint = `sha256:${'9'.repeat(64)}`;
+  await writeJson(evidenceRef.path, receipt);
+  record.evidence.memory = evidenceReference(evidenceRef.path, receipt);
+  mixedEnvironment.decisions = [record];
+  const report = await validateRuntimeOwnershipDecisions(mixedEnvironment, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.some((error) => error.includes('environmentFingerprint does not match')),
+    report.errors.join('\n')
+  );
+  assert.equal(report.decisions[0].qualified, false);
+}
+
+{
+  const stalePromotion = clone(policy);
+  const record = await preparedDecision('generation', 'doppler');
+  record.hypotheses[0].statement = 'A post-promotion hypothesis rewrite must invalidate promotion.';
+  stalePromotion.decisions = [record];
+  const report = await validateRuntimeOwnershipDecisions(stalePromotion, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.some((error) => error.includes('hypothesisSetDigest does not match')),
+    report.errors.join('\n')
+  );
+  assert.equal(report.decisions[0].qualified, false);
 }
 
 {
@@ -559,6 +653,10 @@ await fs.mkdir(EVIDENCE_ROOT, { recursive: true });
     evaluatedAtUtc: hypothesisReceipt.evaluatedAtUtc,
     evidence: evidenceReference(hypothesisPath, hypothesisReceipt),
   };
+  const promotionReceipt = promotionEvidence(record);
+  const promotionPath = 'evidence/generation-unsupported-promotion.json';
+  await writeJson(promotionPath, promotionReceipt);
+  record.evidence.promotion = evidenceReference(promotionPath, promotionReceipt);
   unsupportedOperation.decisions = [record];
   const report = await validateRuntimeOwnershipDecisions(unsupportedOperation, {
     repoRoot: TEST_ROOT,

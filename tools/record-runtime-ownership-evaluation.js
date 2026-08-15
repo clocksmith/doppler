@@ -26,7 +26,7 @@ const DEFAULT_POLICY_PATH = path.join(
 );
 const CAPTURE_SCHEMA = 'doppler.runtime-ownership-evaluation-capture/v2';
 const DISPOSITIONS = new Set(['incumbent', 'doppler', 'dual']);
-const EVIDENCE_FIELDS = Object.freeze([
+const CAPTURE_EVIDENCE_FIELDS = Object.freeze([
   'sourceExecution',
   'incumbentExecution',
   'dopplerExecution',
@@ -186,9 +186,9 @@ async function validateHypothesisResults(capture, decision, identity, repoRoot) 
 }
 
 async function validateEvidencePaths(capture, repoRoot) {
-  assertExactKeys(capture.evidence, EVIDENCE_FIELDS, 'capture.evidence');
+  assertExactKeys(capture.evidence, CAPTURE_EVIDENCE_FIELDS, 'capture.evidence');
   const evidence = {};
-  for (const field of EVIDENCE_FIELDS) {
+  for (const field of CAPTURE_EVIDENCE_FIELDS) {
     evidence[field] = await readEvidencePath(
       capture.evidence[field],
       `capture.evidence.${field}`,
@@ -230,11 +230,13 @@ function validateDopplerReceipt(evidence, decision) {
 
 function validateDimensionReceipts(evidence, decision, identity) {
   const results = [];
+  let evidenceIdentity = null;
   for (const evidenceClass of RUNTIME_OWNERSHIP_DIMENSION_CLASSES) {
     const validation = validateRuntimeOwnershipDimensionEvidence(
       evidence[evidenceClass].receipt,
       {
         ...identity,
+        ...evidenceIdentity,
         decisionId: decision.id,
         evidenceClass,
       }
@@ -245,8 +247,14 @@ function validateDimensionReceipts(evidence, decision, identity) {
       );
     }
     results.push({ evidenceClass, ...validation });
+    if (!evidenceIdentity) {
+      evidenceIdentity = {
+        harnessRevision: validation.harnessRevision,
+        environmentFingerprint: validation.environmentFingerprint,
+      };
+    }
   }
-  return results;
+  return { results, evidenceIdentity };
 }
 
 async function validateCapture(capture, context) {
@@ -293,11 +301,13 @@ async function validateCapture(capture, context) {
     resolvedArtifactVariantId: doppler.resolution?.resolvedArtifactVariantId ?? null,
     resolvedExecutionId: doppler.resolution?.resolvedExecutionId ?? null,
   };
-  const dimensions = validateDimensionReceipts(evidence, decision, identity);
+  const dimensionValidation = validateDimensionReceipts(evidence, decision, identity);
+  const dimensions = dimensionValidation.results;
+  const evidenceIdentity = dimensionValidation.evidenceIdentity;
   const hypothesisResults = await validateHypothesisResults(
     capture,
     decision,
-    identity,
+    { ...identity, ...evidenceIdentity },
     repoRoot
   );
   validateDisposition(capture.recommendedDisposition, hypothesisResults);
@@ -334,6 +344,7 @@ async function validateCapture(capture, context) {
     source,
     incumbent,
     doppler,
+    evidenceIdentity,
   };
 }
 
@@ -365,6 +376,9 @@ export async function recordRuntimeOwnershipEvaluation(options) {
   if (decision.claimAllowed) {
     throw new Error(`Recorder cannot replace claimable runtime ownership decision ${decision.id}.`);
   }
+  if (decision.evidence.promotion !== null) {
+    throw new Error(`Recorder cannot replace promoted runtime ownership decision ${decision.id}.`);
+  }
   if (hasPriorEvaluation(decision) && options.replace !== true) {
     throw new Error(`Decision ${decision.id} already contains evaluation state; use --replace.`);
   }
@@ -381,6 +395,9 @@ export async function recordRuntimeOwnershipEvaluation(options) {
   outputDecision.resolvedArtifactVariantId = validated.doppler.resolution
     ?.resolvedArtifactVariantId ?? null;
   outputDecision.resolvedExecutionId = validated.doppler.resolution?.resolvedExecutionId ?? null;
+  outputDecision.harnessRevision = validated.evidenceIdentity?.harnessRevision ?? null;
+  outputDecision.environmentFingerprint = validated.evidenceIdentity
+    ?.environmentFingerprint ?? null;
   outputDecision.hypotheses = outputDecision.hypotheses.map((hypothesis) => {
     const result = validated.hypothesisResults.find((entry) => entry.axis === hypothesis.axis);
     return {
@@ -398,8 +415,12 @@ export async function recordRuntimeOwnershipEvaluation(options) {
   outputDecision.qualifiedAtUtc = validated.qualifiedAtUtc;
   outputDecision.expiresAtUtc = validated.expiresAtUtc;
   outputDecision.evidence = validated.evidence;
+  outputDecision.evidence.promotion = null;
   outputDecision.claimAllowed = false;
-  outputDecision.blockers = ['runtime-ownership-evaluation-awaiting-explicit-promotion'];
+  outputDecision.blockers = [
+    'runtime-ownership-evaluation-awaiting-explicit-promotion',
+    'disposition-promotion-evidence-missing',
+  ];
   let outputReport = await validateRuntimeOwnershipDecisions(outputPolicy, { repoRoot, now });
   if (outputReport.errors.length > 0) {
     throw new Error(`Recorded runtime ownership policy is invalid: ${outputReport.errors[0]}`);
@@ -407,7 +428,8 @@ export async function recordRuntimeOwnershipEvaluation(options) {
   const decisionReport = outputReport.decisions.find((entry) => entry.id === decision.id);
   outputDecision.blockers = Array.from(new Set([
     'runtime-ownership-evaluation-awaiting-explicit-promotion',
-    ...decisionReport.reasons,
+    'disposition-promotion-evidence-missing',
+    ...decisionReport.reasons.filter((reason) => reason !== 'evidence-incomplete'),
   ]));
   outputReport = await validateRuntimeOwnershipDecisions(outputPolicy, { repoRoot, now });
   if (outputReport.errors.length > 0) {
@@ -421,6 +443,8 @@ export async function recordRuntimeOwnershipEvaluation(options) {
     incumbentExecutionId: outputDecision.incumbentExecutionId,
     resolvedArtifactVariantId: outputDecision.resolvedArtifactVariantId,
     resolvedExecutionId: outputDecision.resolvedExecutionId,
+    harnessRevision: outputDecision.harnessRevision,
+    environmentFingerprint: outputDecision.environmentFingerprint,
     disposition: outputDecision.disposition,
     claimAllowed: false,
     blockers: outputDecision.blockers,

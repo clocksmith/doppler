@@ -12,8 +12,11 @@ import {
 import {
   RUNTIME_OWNERSHIP_DIMENSION_CLASSES,
   computeRuntimeOwnershipDecisionEvidenceDigest,
+  computeRuntimeOwnershipEvidenceSetDigest,
+  computeRuntimeOwnershipHypothesisSetDigest,
   validateRuntimeOwnershipDimensionEvidence,
   validateRuntimeOwnershipHypothesisEvidence,
+  validateRuntimeOwnershipPromotionEvidence,
 } from './lib/runtime-ownership-decision-evidence.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -42,7 +45,11 @@ const EVIDENCE_FIELDS = Object.freeze([
   'incumbentExecution',
   'dopplerExecution',
   ...RUNTIME_OWNERSHIP_DIMENSION_CLASSES,
+  'promotion',
 ]);
+const NON_PROMOTION_EVIDENCE_FIELDS = Object.freeze(
+  EVIDENCE_FIELDS.filter((field) => field !== 'promotion')
+);
 const CORRECTNESS_CLASSES = new Set([
   'exact-token',
   'tolerance-bounded-numerical',
@@ -122,6 +129,14 @@ function nullableSha256(value, label, errors) {
   const normalized = nullableString(value, label, errors)?.toLowerCase() ?? null;
   if (normalized && !SHA256_PATTERN.test(normalized)) {
     errors.push(`${label} must be a SHA-256 identity or null`);
+  }
+  return normalized;
+}
+
+function nullableRevision(value, label, errors) {
+  const normalized = nullableString(value, label, errors)?.toLowerCase() ?? null;
+  if (normalized && !/^[0-9a-f]{40}$/.test(normalized)) {
+    errors.push(`${label} must be a lowercase 40-hex revision or null`);
   }
   return normalized;
 }
@@ -351,6 +366,8 @@ async function validateDecision(decision, context) {
     'incumbentArtifactId',
     'incumbentExecutionId',
     'correctnessClass',
+    'harnessRevision',
+    'environmentFingerprint',
     'hypotheses',
     'disposition',
     'decisionRationale',
@@ -427,6 +444,19 @@ async function validateDecision(decision, context) {
   if (!CORRECTNESS_CLASSES.has(decision.correctnessClass)) {
     errors.push(`${id}: correctnessClass is not recognized`);
   }
+  const harnessRevision = nullableRevision(
+    decision.harnessRevision,
+    `${id}.harnessRevision`,
+    errors
+  );
+  const environmentFingerprint = nullableSha256(
+    decision.environmentFingerprint,
+    `${id}.environmentFingerprint`,
+    errors
+  );
+  if (!harnessRevision || !environmentFingerprint) {
+    reasons.push('decision-evidence-identity-incomplete');
+  }
   if (!Array.isArray(decision.hypotheses)) errors.push(`${id}.hypotheses must be an array`);
   const seenAxes = new Set();
   const hypotheses = [];
@@ -438,6 +468,8 @@ async function validateDecision(decision, context) {
     incumbentExecutionId: identity.incumbentExecutionId,
     resolvedArtifactVariantId: identity.resolvedArtifactVariantId,
     resolvedExecutionId: identity.resolvedExecutionId,
+    harnessRevision,
+    environmentFingerprint,
   };
   for (const hypothesis of Array.isArray(decision.hypotheses) ? decision.hypotheses : []) {
     hypotheses.push(await validateHypothesis(hypothesis, {
@@ -495,6 +527,7 @@ async function validateDecision(decision, context) {
   }
   const missingEvidence = EVIDENCE_FIELDS.filter((field) => !evidence[field]);
   if (missingEvidence.length > 0) reasons.push('evidence-incomplete');
+  if (!evidence.promotion) reasons.push('disposition-promotion-evidence-missing');
   const externalStatuses = {};
   const externalExecutions = [
     {
@@ -595,6 +628,44 @@ async function validateDecision(decision, context) {
       pushUnique(reasons, ['unsupported-operation-not-confirmed-by-correctness']);
     }
   }
+  if (evidence.promotion?.receipt) {
+    const evidenceSetReferences = Object.fromEntries(
+      NON_PROMOTION_EVIDENCE_FIELDS.map((field) => [
+        field,
+        evidence[field]
+          ? { path: evidence[field].path, digest: evidence[field].digest }
+          : null,
+      ])
+    );
+    const result = validateRuntimeOwnershipPromotionEvidence(
+      evidence.promotion.receipt,
+      {
+        decisionId: id,
+        workload: decision.workload,
+        logicalModelId: identity.logicalModelId,
+        manifestVariantId: identity.manifestVariantId,
+        resolvedArtifactVariantId: identity.resolvedArtifactVariantId,
+        resolvedExecutionId: identity.resolvedExecutionId,
+        sourceProviderId: identity.sourceProviderId,
+        sourceArtifactId: identity.sourceArtifactId,
+        sourceExecutionId: identity.sourceExecutionId,
+        incumbentProviderId: identity.incumbentProviderId,
+        incumbentArtifactId: identity.incumbentArtifactId,
+        incumbentExecutionId: identity.incumbentExecutionId,
+        correctnessClass: decision.correctnessClass,
+        harnessRevision,
+        environmentFingerprint,
+        disposition: decision.disposition,
+        decisionRationale: decision.decisionRationale,
+        evidenceSetDigest: computeRuntimeOwnershipEvidenceSetDigest(evidenceSetReferences),
+        hypothesisSetDigest: computeRuntimeOwnershipHypothesisSetDigest(decision.hypotheses),
+        qualifiedAtUtc: qualifiedAt?.toISOString() ?? null,
+        expiresAtUtc: expiresAt?.toISOString() ?? null,
+      }
+    );
+    for (const error of result.errors) errors.push(`${id}.evidence.promotion: ${error}`);
+    if (result.errors.length > 0) reasons.push('disposition-promotion-evidence-invalid');
+  }
   if (new Set(retainedEvidencePaths).size !== retainedEvidencePaths.length) {
     errors.push(`${id}: retained evidence paths must be distinct`);
   }
@@ -613,6 +684,8 @@ async function validateDecision(decision, context) {
     incumbentArtifactId: identity.incumbentArtifactId,
     incumbentExecutionId: identity.incumbentExecutionId,
     correctnessClass: decision.correctnessClass,
+    harnessRevision,
+    environmentFingerprint,
     hypothesisAxes: Array.from(seenAxes),
     disposition: decision.disposition,
     claimAllowed: decision.claimAllowed,
@@ -657,7 +730,7 @@ export async function validateRuntimeOwnershipDecisions(policy, options = {}) {
   if (policy.$schema !== 'schema/runtime-ownership-decisions.schema.json') {
     errors.push('runtime ownership policy $schema is invalid');
   }
-  if (policy.schemaVersion !== 4) errors.push('runtime ownership policy schemaVersion must be 4');
+  if (policy.schemaVersion !== 5) errors.push('runtime ownership policy schemaVersion must be 5');
   if (policy.source !== 'doppler') errors.push('runtime ownership policy source must be "doppler"');
   const fixedArrays = [
     ['goalIds', GOAL_IDS],

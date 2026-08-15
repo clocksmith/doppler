@@ -2,6 +2,7 @@ import { computeCanonicalJsonSha256 } from './canonical-json.js';
 
 const DIMENSION_SCHEMA = 'doppler.runtime-ownership-dimension-evidence/v1';
 const HYPOTHESIS_SCHEMA = 'doppler.runtime-ownership-hypothesis-evidence/v1';
+const PROMOTION_SCHEMA = 'doppler.runtime-ownership-promotion-evidence/v1';
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const REVISION_PATTERN = /^[0-9a-f]{40}$/;
 
@@ -50,6 +51,14 @@ function sha256(value, label, errors) {
   const normalized = text(value, label, errors)?.toLowerCase() ?? null;
   if (normalized && !SHA256_PATTERN.test(normalized)) {
     errors.push(`${label} must be a SHA-256 identity`);
+  }
+  return normalized;
+}
+
+function revision(value, label, errors) {
+  const normalized = text(value, label, errors)?.toLowerCase() ?? null;
+  if (normalized && !REVISION_PATTERN.test(normalized)) {
+    errors.push(`${label} must be a lowercase 40-hex revision`);
   }
   return normalized;
 }
@@ -115,11 +124,16 @@ function validateBinding(receipt, expected, label, errors) {
     `${label}.resolvedExecutionId`,
     errors
   );
-  const harnessRevision = text(receipt.harnessRevision, `${label}.harnessRevision`, errors);
-  if (harnessRevision && !REVISION_PATTERN.test(harnessRevision)) {
-    errors.push(`${label}.harnessRevision must be a lowercase 40-hex revision`);
-  }
-  sha256(receipt.environmentFingerprint, `${label}.environmentFingerprint`, errors);
+  const harnessRevision = revision(
+    receipt.harnessRevision,
+    `${label}.harnessRevision`,
+    errors
+  );
+  const environmentFingerprint = sha256(
+    receipt.environmentFingerprint,
+    `${label}.environmentFingerprint`,
+    errors
+  );
   match(workload, expected.workload, `${label}.workload`, errors);
   match(logicalModelId, expected.logicalModelId, `${label}.logicalModelId`, errors);
   match(sourceExecutionId, expected.sourceExecutionId, `${label}.sourceExecutionId`, errors);
@@ -141,6 +155,14 @@ function validateBinding(receipt, expected, label, errors) {
     `${label}.resolvedExecutionId`,
     errors
   );
+  match(harnessRevision, expected.harnessRevision, `${label}.harnessRevision`, errors);
+  match(
+    environmentFingerprint,
+    expected.environmentFingerprint,
+    `${label}.environmentFingerprint`,
+    errors
+  );
+  return { harnessRevision, environmentFingerprint };
 }
 
 function correctnessPassed(value, label, errors) {
@@ -370,7 +392,7 @@ export function validateRuntimeOwnershipDimensionEvidence(receipt, expected = {}
   if (evidenceClass && !RUNTIME_OWNERSHIP_DIMENSION_CLASSES.includes(evidenceClass)) {
     errors.push('dimension evidence.evidenceClass is not recognized');
   }
-  validateBinding(receipt, expected, 'dimension evidence', errors);
+  const binding = validateBinding(receipt, expected, 'dimension evidence', errors);
   const capturedAt = instant(receipt.capturedAtUtc, 'dimension evidence.capturedAtUtc', errors);
   let passed = null;
   if (exactKeys(receipt.result, ['passed', 'observations'], 'dimension evidence.result', errors)) {
@@ -395,6 +417,8 @@ export function validateRuntimeOwnershipDimensionEvidence(receipt, expected = {}
     observations: isPlainObject(receipt.result?.observations)
       ? receipt.result.observations
       : null,
+    harnessRevision: binding.harnessRevision,
+    environmentFingerprint: binding.environmentFingerprint,
   };
 }
 
@@ -447,7 +471,7 @@ export function validateRuntimeOwnershipHypothesisEvidence(receipt, expected = {
   match(axis, expected.axis, 'hypothesis evidence.axis', errors);
   match(metric, expected.metric, 'hypothesis evidence.metric', errors);
   match(controlMetric, expected.controlMetric, 'hypothesis evidence.controlMetric', errors);
-  validateBinding(receipt, expected, 'hypothesis evidence', errors);
+  const binding = validateBinding(receipt, expected, 'hypothesis evidence', errors);
   const evaluatedAt = instant(receipt.evaluatedAtUtc, 'hypothesis evidence.evaluatedAtUtc', errors);
   const numeric = expected.operator !== 'pass';
   let observedValue = receipt.observedValue;
@@ -488,5 +512,161 @@ export function validateRuntimeOwnershipHypothesisEvidence(receipt, expected = {
   if (!thresholdPassed) reasons.push('hypothesis-threshold-not-passed');
   if (!controlPassed) reasons.push('hypothesis-control-not-passed');
   if (!endToEndAcceptancePassed) reasons.push('hypothesis-end-to-end-acceptance-not-passed');
-  return { errors, reasons, passed, observedValue, evaluatedAt };
+  return {
+    errors,
+    reasons,
+    passed,
+    observedValue,
+    evaluatedAt,
+    harnessRevision: binding.harnessRevision,
+    environmentFingerprint: binding.environmentFingerprint,
+  };
+}
+
+export function computeRuntimeOwnershipEvidenceSetDigest(evidenceReferences) {
+  return computeCanonicalJsonSha256(evidenceReferences);
+}
+
+export function computeRuntimeOwnershipHypothesisSetDigest(hypotheses) {
+  return computeCanonicalJsonSha256(hypotheses);
+}
+
+export function validateRuntimeOwnershipPromotionEvidence(receipt, expected = {}) {
+  const errors = [];
+  const fields = [
+    'schema',
+    'decisionId',
+    'workload',
+    'logicalModelId',
+    'manifestVariantId',
+    'resolvedArtifactVariantId',
+    'resolvedExecutionId',
+    'sourceProviderId',
+    'sourceArtifactId',
+    'sourceExecutionId',
+    'incumbentProviderId',
+    'incumbentArtifactId',
+    'incumbentExecutionId',
+    'correctnessClass',
+    'harnessRevision',
+    'environmentFingerprint',
+    'disposition',
+    'decisionRationale',
+    'evidenceSetDigest',
+    'hypothesisSetDigest',
+    'decision',
+    'authority',
+    'reviewer',
+    'reviewerRevision',
+    'rationale',
+    'promotedAtUtc',
+    'qualifiedAtUtc',
+    'expiresAtUtc',
+  ];
+  if (!exactKeys(receipt, fields, 'runtime ownership promotion evidence', errors)) {
+    return { errors, promotedAt: null };
+  }
+  if (receipt.schema !== PROMOTION_SCHEMA) {
+    errors.push(`runtime ownership promotion evidence.schema must be ${PROMOTION_SCHEMA}`);
+  }
+  const textFields = [
+    'decisionId',
+    'workload',
+    'logicalModelId',
+    'manifestVariantId',
+    'sourceProviderId',
+    'sourceArtifactId',
+    'incumbentProviderId',
+    'incumbentArtifactId',
+    'correctnessClass',
+    'disposition',
+    'decisionRationale',
+  ];
+  for (const field of textFields) {
+    const actual = text(
+      receipt[field],
+      `runtime ownership promotion evidence.${field}`,
+      errors
+    );
+    match(actual, expected[field], `runtime ownership promotion evidence.${field}`, errors);
+  }
+  for (const field of [
+    'resolvedArtifactVariantId',
+    'resolvedExecutionId',
+    'sourceExecutionId',
+    'incumbentExecutionId',
+    'environmentFingerprint',
+    'evidenceSetDigest',
+    'hypothesisSetDigest',
+  ]) {
+    const actual = sha256(
+      receipt[field],
+      `runtime ownership promotion evidence.${field}`,
+      errors
+    );
+    match(actual, expected[field], `runtime ownership promotion evidence.${field}`, errors);
+  }
+  const harnessRevision = revision(
+    receipt.harnessRevision,
+    'runtime ownership promotion evidence.harnessRevision',
+    errors
+  );
+  match(
+    harnessRevision,
+    expected.harnessRevision,
+    'runtime ownership promotion evidence.harnessRevision',
+    errors
+  );
+  if (receipt.decision !== 'promote-disposition') {
+    errors.push('runtime ownership promotion evidence.decision must be promote-disposition');
+  }
+  if (receipt.authority !== 'human') {
+    errors.push('runtime ownership promotion evidence.authority must be human');
+  }
+  text(receipt.reviewer, 'runtime ownership promotion evidence.reviewer', errors);
+  revision(
+    receipt.reviewerRevision,
+    'runtime ownership promotion evidence.reviewerRevision',
+    errors
+  );
+  text(receipt.rationale, 'runtime ownership promotion evidence.rationale', errors);
+  const promotedAt = instant(
+    receipt.promotedAtUtc,
+    'runtime ownership promotion evidence.promotedAtUtc',
+    errors
+  );
+  const qualifiedAt = instant(
+    receipt.qualifiedAtUtc,
+    'runtime ownership promotion evidence.qualifiedAtUtc',
+    errors
+  );
+  const expiresAt = instant(
+    receipt.expiresAtUtc,
+    'runtime ownership promotion evidence.expiresAtUtc',
+    errors
+  );
+  match(
+    receipt.qualifiedAtUtc,
+    expected.qualifiedAtUtc,
+    'runtime ownership promotion evidence.qualifiedAtUtc',
+    errors
+  );
+  match(
+    receipt.expiresAtUtc,
+    expected.expiresAtUtc,
+    'runtime ownership promotion evidence.expiresAtUtc',
+    errors
+  );
+  if (promotedAt && qualifiedAt && promotedAt.getTime() < qualifiedAt.getTime()) {
+    errors.push(
+      'runtime ownership promotion evidence.promotedAtUtc must not predate qualifiedAtUtc'
+    );
+  }
+  if (qualifiedAt && expiresAt && expiresAt.getTime() <= qualifiedAt.getTime()) {
+    errors.push('runtime ownership promotion evidence.expiresAtUtc must follow qualifiedAtUtc');
+  }
+  if (promotedAt && expiresAt && promotedAt.getTime() >= expiresAt.getTime()) {
+    errors.push('runtime ownership promotion evidence.promotedAtUtc must predate expiresAtUtc');
+  }
+  return { errors, promotedAt };
 }

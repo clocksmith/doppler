@@ -120,6 +120,9 @@ Use these before turning a compare result into README copy, a chart, or a releas
 - [schema/local-inference-claim-matrix.schema.json](./schema/local-inference-claim-matrix.schema.json): schema for local medium inference claim-lane selection.
 - [schema/local-gpu-challenger-matrix.schema.json](./schema/local-gpu-challenger-matrix.schema.json): schema for local GPU challenger selection and fair harness planning.
 - [schema/runtime-ownership-decisions.schema.json](./schema/runtime-ownership-decisions.schema.json): schema for exact-workload runtime ownership decisions.
+- [schema/runtime-ownership-dimension-evidence.schema.json](./schema/runtime-ownership-dimension-evidence.schema.json): semantic evidence for each required ownership-decision dimension.
+- [schema/runtime-ownership-hypothesis-evidence.schema.json](./schema/runtime-ownership-hypothesis-evidence.schema.json): derived material-advantage hypothesis results.
+- [schema/runtime-ownership-promotion-evidence.schema.json](./schema/runtime-ownership-promotion-evidence.schema.json): human disposition promotion bound to the complete evidence and hypothesis sets.
 - [schema/release-matrix.schema.json](./schema/release-matrix.schema.json): schema for generated release/support matrix payload.
 - [results/](./results/): generated normalized outputs and committed chart snapshots. Some JSON compare artifacts may also be committed here when they are part of published evidence.
 - [fixtures/](./fixtures/): committed sample compare payloads for clean-checkout chart and matrix smoke checks.
