@@ -195,8 +195,11 @@ await withFixture(async (fixture) => {
   assert.equal(result.lifecycle, 'candidate');
   assert.equal(result.authorityId, AUTHORITY_ID);
   assert.equal(result.endpointUrl, ENDPOINT_URL);
+  assert.equal(result.harnessRevision, HARNESS_REVISION);
+  assert.equal(result.environmentFingerprint, ENVIRONMENT_ID);
   assert.deepEqual(result.blockers, [
     'production-authority-evaluation-awaiting-explicit-promotion',
+    'production-authority-promotion-evidence-missing',
   ]);
   const output = JSON.parse(await fs.readFile(fixture.outputPolicyPath, 'utf8'));
   const authority = output.authorities.find((entry) => entry.id === QUALIFICATION_ID);
@@ -204,6 +207,9 @@ await withFixture(async (fixture) => {
   assert.deepEqual(authority.deployment.recoveryKeyIds, RECOVERY_KEYS);
   assert.equal(authority.deployment.durableStateStoreIds.browser, BROWSER_STORE);
   assert.equal(authority.deployment.durableStateStoreIds.node, NODE_STORE);
+  assert.equal(authority.harnessRevision, HARNESS_REVISION);
+  assert.equal(authority.environmentFingerprint, ENVIRONMENT_ID);
+  assert.equal(authority.evidence.promotion, null);
   for (const [field, evidencePath] of Object.entries(fixture.evidencePaths)) {
     const receipt = JSON.parse(await fs.readFile(path.join(fixture.repoRoot, evidencePath), 'utf8'));
     assert.deepEqual(authority.evidence[field], {
@@ -211,6 +217,17 @@ await withFixture(async (fixture) => {
       digest: computeCanonicalJsonSha256(receipt),
     });
   }
+});
+
+await withFixture(async (fixture) => {
+  const evidencePath = path.join(fixture.repoRoot, fixture.evidencePaths.offlineExpiry);
+  await writeJson(evidencePath, authorityEvidence('offlineExpiry', {
+    harnessRevision: '2'.repeat(40),
+  }));
+  await assert.rejects(
+    () => recordSignedRevocationAuthorityEvaluation({ ...fixture, now: NOW }),
+    /offlineExpiry evidence is invalid.*harnessRevision.*does not match expected/
+  );
 });
 
 await withFixture(async (fixture) => {

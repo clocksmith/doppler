@@ -356,7 +356,9 @@ monitoring, and signed revocation authority each use their declared
 non-promoting recorder and independent checker. The
 `evidence:workflows:check` script rejects duplicate owners, undeclared npm
 commands, and missing owner or adapter paths; a convenience wrapper cannot
-become a second authority.
+become a second authority. Revocation-authority drills must share one
+harness/environment identity, and activation requires a human promotion receipt
+bound to the complete canonical evidence set.
 
 ### Change-class evidence
 

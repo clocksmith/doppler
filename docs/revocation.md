@@ -121,9 +121,10 @@ classes use `doppler.signed-revocation-authority-evidence/v1` and bind the
 qualification, owner, production authority ID, harness revision, environment,
 capture time, and class-specific observations. The checker derives each pass
 from those observations, cross-checks endpoint, key, and durable-store
-identities, rejects reused evidence paths, and retains failed drills as named
-qualification reasons. A document path or operator-entered `passed` value is
-not production-authority proof.
+identities, requires all operational receipts to share one exact harness
+revision and environment fingerprint, rejects reused evidence paths, and
+retains failed drills as named qualification reasons. A document path or
+operator-entered `passed` value is not production-authority proof.
 
 Record a retained evaluation with `npm run revocations:authority:record --
 --capture <capture.json> --out <candidate-policy.json>`. The capture contains
@@ -133,7 +134,17 @@ key identities, durable-store identities, and semantic failure blockers. It
 writes a separate candidate by default; `--apply` is required for the status
 authority and `--replace` for prior evaluation state. It always forces
 `lifecycle: candidate` and `claimAllowed: false`. Production activation remains
-a separate human authority decision.
+a separate human authority decision. The recorder clears promotion evidence and
+cannot replace a promoted authority.
+
+Production activation requires
+`doppler.signed-revocation-authority-promotion-evidence/v1`. Its human reviewer
+binds the endpoint, authority, exact key and durable-store identities, shared
+harness/environment identity, qualification and expiry times, and canonical
+digest of every pre-promotion evidence reference. The decision must be
+`promote-production-authority`. Changing any retained reference invalidates the
+promotion; editing lifecycle, blockers, or `claimAllowed` cannot create a
+production authority.
 
 Run `npm run revocations:authority:check` to validate that contract. The current
 entry is only a candidate: its production endpoint, keys, stores, and receipts

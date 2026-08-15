@@ -1,5 +1,8 @@
+import { computeCanonicalJsonSha256 } from './canonical-json.js';
+
 const OWNER_SCHEMA = 'doppler.signed-revocation-authority-owner-confirmation/v1';
 const EVIDENCE_SCHEMA = 'doppler.signed-revocation-authority-evidence/v1';
+const PROMOTION_SCHEMA = 'doppler.signed-revocation-authority-promotion-evidence/v1';
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const REVISION_PATTERN = /^[0-9a-f]{40}$/;
 
@@ -320,13 +323,28 @@ export function validateRevocationAuthorityEvidence(receipt, expected = {}) {
   const qualificationId = text(receipt.qualificationId, 'authority evidence.qualificationId', errors);
   const owner = text(receipt.owner, 'authority evidence.owner', errors);
   const authorityId = text(receipt.authorityId, 'authority evidence.authorityId', errors);
-  revision(receipt.harnessRevision, 'authority evidence.harnessRevision', errors);
-  sha256(receipt.environmentFingerprint, 'authority evidence.environmentFingerprint', errors);
+  const harnessRevision = revision(
+    receipt.harnessRevision,
+    'authority evidence.harnessRevision',
+    errors
+  );
+  const environmentFingerprint = sha256(
+    receipt.environmentFingerprint,
+    'authority evidence.environmentFingerprint',
+    errors
+  );
   const capturedAt = instant(receipt.capturedAtUtc, 'authority evidence.capturedAtUtc', errors);
   match(evidenceClass, expected.evidenceClass, 'authority evidence class', errors);
   match(qualificationId, expected.qualificationId, 'authority evidence qualificationId', errors);
   match(owner, expected.owner, 'authority evidence owner', errors);
   match(authorityId, expected.authorityId, 'authority evidence authorityId', errors);
+  match(harnessRevision, expected.harnessRevision, 'authority evidence harnessRevision', errors);
+  match(
+    environmentFingerprint,
+    expected.environmentFingerprint,
+    'authority evidence environmentFingerprint',
+    errors
+  );
   let claimedPassed = null;
   if (exactKeys(receipt.result, ['passed'], 'authority evidence.result', errors)) {
     if (typeof receipt.result.passed !== 'boolean') {
@@ -344,5 +362,168 @@ export function validateRevocationAuthorityEvidence(receipt, expected = {}) {
   if (claimedPassed !== true || derivedPassed !== true) {
     reasons.push(`${evidenceClass || 'authority-evidence'}-not-passed`);
   }
-  return { errors, reasons, capturedAt, observations: receipt.observations };
+  return {
+    errors,
+    reasons,
+    capturedAt,
+    observations: receipt.observations,
+    harnessRevision,
+    environmentFingerprint,
+  };
+}
+
+export function computeRevocationAuthorityEvidenceSetDigest(evidenceReferences) {
+  return computeCanonicalJsonSha256(evidenceReferences);
+}
+
+export function validateRevocationAuthorityPromotionEvidence(receipt, expected = {}) {
+  const errors = [];
+  const fields = [
+    'schema',
+    'qualificationId',
+    'owner',
+    'authorityId',
+    'endpointUrl',
+    'onlineKeyIds',
+    'recoveryKeyIds',
+    'durableStateStoreIds',
+    'harnessRevision',
+    'environmentFingerprint',
+    'evidenceSetDigest',
+    'decision',
+    'authority',
+    'reviewer',
+    'reviewerRevision',
+    'rationale',
+    'promotedAtUtc',
+    'qualifiedAtUtc',
+    'expiresAtUtc',
+  ];
+  if (!exactKeys(receipt, fields, 'authority promotion evidence', errors)) {
+    return { errors, promotedAt: null };
+  }
+  if (receipt.schema !== PROMOTION_SCHEMA) {
+    errors.push(`authority promotion evidence.schema must be ${PROMOTION_SCHEMA}`);
+  }
+  const binding = {
+    qualificationId: text(
+      receipt.qualificationId,
+      'authority promotion evidence.qualificationId',
+      errors
+    ),
+    owner: text(receipt.owner, 'authority promotion evidence.owner', errors),
+    authorityId: text(receipt.authorityId, 'authority promotion evidence.authorityId', errors),
+    endpointUrl: text(receipt.endpointUrl, 'authority promotion evidence.endpointUrl', errors),
+    harnessRevision: revision(
+      receipt.harnessRevision,
+      'authority promotion evidence.harnessRevision',
+      errors
+    ),
+    environmentFingerprint: sha256(
+      receipt.environmentFingerprint,
+      'authority promotion evidence.environmentFingerprint',
+      errors
+    ),
+  };
+  for (const [field, actual] of Object.entries(binding)) {
+    match(actual, expected[field], `authority promotion evidence.${field}`, errors);
+  }
+  const onlineKeyIds = strings(
+    receipt.onlineKeyIds,
+    'authority promotion evidence.onlineKeyIds',
+    errors
+  );
+  const recoveryKeyIds = strings(
+    receipt.recoveryKeyIds,
+    'authority promotion evidence.recoveryKeyIds',
+    errors
+  );
+  matchList(
+    onlineKeyIds,
+    expected.onlineKeyIds,
+    'authority promotion evidence.onlineKeyIds',
+    errors
+  );
+  matchList(
+    recoveryKeyIds,
+    expected.recoveryKeyIds,
+    'authority promotion evidence.recoveryKeyIds',
+    errors
+  );
+  exactKeys(
+    receipt.durableStateStoreIds,
+    ['browser', 'node'],
+    'authority promotion evidence.durableStateStoreIds',
+    errors
+  );
+  for (const host of ['browser', 'node']) {
+    const storeId = text(
+      receipt.durableStateStoreIds?.[host],
+      `authority promotion evidence.durableStateStoreIds.${host}`,
+      errors
+    );
+    match(
+      storeId,
+      expected.durableStateStoreIds?.[host],
+      `authority promotion evidence.durableStateStoreIds.${host}`,
+      errors
+    );
+  }
+  const evidenceSetDigest = sha256(
+    receipt.evidenceSetDigest,
+    'authority promotion evidence.evidenceSetDigest',
+    errors
+  );
+  match(
+    evidenceSetDigest,
+    expected.evidenceSetDigest,
+    'authority promotion evidence.evidenceSetDigest',
+    errors
+  );
+  if (receipt.decision !== 'promote-production-authority') {
+    errors.push('authority promotion evidence.decision must be promote-production-authority');
+  }
+  if (receipt.authority !== 'human') {
+    errors.push('authority promotion evidence.authority must be human');
+  }
+  text(receipt.reviewer, 'authority promotion evidence.reviewer', errors);
+  revision(receipt.reviewerRevision, 'authority promotion evidence.reviewerRevision', errors);
+  text(receipt.rationale, 'authority promotion evidence.rationale', errors);
+  const promotedAt = instant(
+    receipt.promotedAtUtc,
+    'authority promotion evidence.promotedAtUtc',
+    errors
+  );
+  const qualifiedAt = instant(
+    receipt.qualifiedAtUtc,
+    'authority promotion evidence.qualifiedAtUtc',
+    errors
+  );
+  const expiresAt = instant(
+    receipt.expiresAtUtc,
+    'authority promotion evidence.expiresAtUtc',
+    errors
+  );
+  match(
+    receipt.qualifiedAtUtc,
+    expected.qualifiedAtUtc,
+    'authority promotion evidence.qualifiedAtUtc',
+    errors
+  );
+  match(
+    receipt.expiresAtUtc,
+    expected.expiresAtUtc,
+    'authority promotion evidence.expiresAtUtc',
+    errors
+  );
+  if (promotedAt && qualifiedAt && promotedAt.getTime() < qualifiedAt.getTime()) {
+    errors.push('authority promotion evidence.promotedAtUtc must not predate qualifiedAtUtc');
+  }
+  if (qualifiedAt && expiresAt && expiresAt.getTime() <= qualifiedAt.getTime()) {
+    errors.push('authority promotion evidence.expiresAtUtc must follow qualifiedAtUtc');
+  }
+  if (promotedAt && expiresAt && promotedAt.getTime() >= expiresAt.getTime()) {
+    errors.push('authority promotion evidence.promotedAtUtc must predate expiresAtUtc');
+  }
+  return { errors, promotedAt };
 }

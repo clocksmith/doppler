@@ -4,7 +4,10 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { computeCanonicalJsonSha256 } from '../../tools/lib/canonical-json.js';
-import { REVOCATION_AUTHORITY_EVIDENCE_CLASSES } from '../../tools/lib/signed-revocation-authority-evidence.js';
+import {
+  computeRevocationAuthorityEvidenceSetDigest,
+  REVOCATION_AUTHORITY_EVIDENCE_CLASSES,
+} from '../../tools/lib/signed-revocation-authority-evidence.js';
 import {
   buildSignedRevocationAuthorityQualificationReport,
   validateSignedRevocationAuthorityQualification,
@@ -20,6 +23,7 @@ const NOW = new Date('2026-08-15T12:00:00.000Z');
 const TEST_ROOT = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-revocation-authority-'));
 const HARNESS_REVISION = '1'.repeat(40);
 const ENVIRONMENT_ID = `sha256:${'a'.repeat(64)}`;
+const REVIEWER_REVISION = '2'.repeat(40);
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -42,9 +46,39 @@ function qualifyAuthority(authority) {
   authority.deployment.recoveryKeyIds = ['recovery-2026'];
   authority.deployment.durableStateStoreIds.browser = 'indexeddb-revocation-state-v1';
   authority.deployment.durableStateStoreIds.node = 'atomic-file-revocation-state-v1';
+  authority.harnessRevision = HARNESS_REVISION;
+  authority.environmentFingerprint = ENVIRONMENT_ID;
   authority.qualifiedAtUtc = '2026-08-01T02:00:00.000Z';
   authority.expiresAtUtc = '2026-10-01T00:00:00.000Z';
   authority.blockers = [];
+}
+
+function promotionEvidence(authority) {
+  const evidenceReferences = Object.fromEntries([
+    'ownerConfirmation',
+    ...REVOCATION_AUTHORITY_EVIDENCE_CLASSES,
+  ].map((field) => [field, authority.evidence[field]]));
+  return {
+    schema: 'doppler.signed-revocation-authority-promotion-evidence/v1',
+    qualificationId: authority.id,
+    owner: authority.owner,
+    authorityId: authority.deployment.authorityId,
+    endpointUrl: authority.deployment.endpointUrl,
+    onlineKeyIds: authority.deployment.onlineKeyIds,
+    recoveryKeyIds: authority.deployment.recoveryKeyIds,
+    durableStateStoreIds: authority.deployment.durableStateStoreIds,
+    harnessRevision: authority.harnessRevision,
+    environmentFingerprint: authority.environmentFingerprint,
+    evidenceSetDigest: computeRevocationAuthorityEvidenceSetDigest(evidenceReferences),
+    decision: 'promote-production-authority',
+    authority: 'human',
+    reviewer: 'fixture-security-reviewer',
+    reviewerRevision: REVIEWER_REVISION,
+    rationale: 'The exact production drill set qualifies this revocation authority.',
+    promotedAtUtc: '2026-08-01T02:05:00.000Z',
+    qualifiedAtUtc: authority.qualifiedAtUtc,
+    expiresAtUtc: authority.expiresAtUtc,
+  };
 }
 
 function observationsFor(evidenceClass, authority) {
@@ -185,6 +219,10 @@ async function populateEvidence(authority) {
       authorityEvidence(authority, evidenceClass)
     );
   }
+  authority.evidence.promotion = await writeEvidence(
+    'evidence/promotion.json',
+    promotionEvidence(authority)
+  );
 }
 
 const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
@@ -203,6 +241,51 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   assert.equal(report.authorities[0].endpointConfigured, false);
   assert.deepEqual(report.authorities[0].qualifiedHosts, []);
   assert.ok(report.authorities[0].missingEvidence.includes('compromiseRecovery'));
+}
+
+{
+  const unpromoted = clone(policy);
+  const authority = unpromoted.authorities[0];
+  qualifyAuthority(authority);
+  await populateEvidence(authority);
+  authority.evidence.promotion = null;
+  const report = await validateSignedRevocationAuthorityQualification(unpromoted, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.authorities[0].qualificationReasons.includes(
+      'production-authority-promotion-evidence-missing'
+    )
+  );
+  assert.equal(report.authorities[0].qualified, false);
+  assert.equal(report.gateSatisfied, false);
+}
+
+{
+  const mixedEnvironment = clone(policy);
+  const authority = mixedEnvironment.authorities[0];
+  qualifyAuthority(authority);
+  await populateEvidence(authority);
+  const evidenceRef = authority.evidence.offlineExpiry;
+  const receipt = authorityEvidence(authority, 'offlineExpiry', {
+    environmentFingerprint: `sha256:${'f'.repeat(64)}`,
+  });
+  authority.evidence.offlineExpiry = await writeEvidence(evidenceRef.path, receipt);
+  const report = await validateSignedRevocationAuthorityQualification(mixedEnvironment, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.some((error) => error.includes('authority evidence environmentFingerprint')),
+    report.errors.join('\n')
+  );
+  assert.ok(
+    report.authorities[0].qualificationReasons.includes(
+      'production-authority-promotion-evidence-invalid'
+    )
+  );
+  assert.equal(report.authorities[0].qualified, false);
 }
 
 {

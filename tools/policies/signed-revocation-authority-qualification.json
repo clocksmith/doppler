@@ -1,6 +1,6 @@
 {
   "$schema": "../../src/config/schema/signed-revocation-authority-qualification.schema.json",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "source": "doppler",
   "goalId": "evidence-backed-correctness-performance",
   "minimumQualifiedAuthorities": 1,
@@ -41,6 +41,8 @@
           "node": null
         }
       },
+      "harnessRevision": null,
+      "environmentFingerprint": null,
       "qualifiedAtUtc": null,
       "expiresAtUtc": null,
       "evidence": {
@@ -63,15 +65,18 @@
         "durableStoreRestart": null,
         "loadedIdentityInvalidation": null,
         "applicationFailClosed": null,
-        "requalification": null
+        "requalification": null,
+        "promotion": null
       },
       "blockers": [
         "production-endpoint-missing",
         "package-trusted-production-keys-missing",
         "independent-key-custody-missing",
         "browser-and-node-durable-state-qualification-missing",
+        "authority-evidence-identity-missing",
         "operational-drill-receipts-missing",
-        "application-fail-closed-receipt-missing"
+        "application-fail-closed-receipt-missing",
+        "production-authority-promotion-evidence-missing"
       ]
     }
   ]
