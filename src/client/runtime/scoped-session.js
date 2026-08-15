@@ -63,11 +63,18 @@ function buildObservation(policy, evidence, inspectionReceipt = null) {
 function buildGenerationResult(evidence, policy, inspectionReceipt = null) {
   const outputText = String(evidence?.outputText ?? '');
   const tokenIds = Array.from(evidence?.tokenIds || [], Number);
+  const resolution = evidence?.resolution ?? null;
+  if (!resolution?.logicalModelId
+    || !resolution?.resolvedArtifactVariantId
+    || !resolution?.resolvedExecutionId) {
+    throw new Error('Doppler generation results require exact resolution identities.');
+  }
   return {
     schema: RESULT_SCHEMA,
     outputText,
     content: outputText,
     tokenIds,
+    resolution,
     usage: {
       promptTokens: null,
       completionTokens: tokenIds.length,
@@ -75,6 +82,9 @@ function buildGenerationResult(evidence, policy, inspectionReceipt = null) {
     },
     observation: buildObservation(policy, evidence, inspectionReceipt),
     fingerprint: inspectionReceipt?.fingerprint || {
+      logicalModelId: evidence?.resolution?.logicalModelId ?? null,
+      resolvedArtifactVariantId: evidence?.resolution?.resolvedArtifactVariantId ?? null,
+      resolvedExecutionId: evidence?.resolution?.resolvedExecutionId ?? null,
       modelId: evidence?.runtimeProfile?.model?.modelId ?? null,
       manifestHash: evidence?.runtimeProfile?.model?.manifestHash ?? null,
       tokenizerHash: evidence?.stats?.tokenizerHash ?? null,
@@ -230,6 +240,12 @@ export function createScopedModelSession(handle) {
     },
     get modelId() {
       return handle.modelId;
+    },
+    get logicalModelId() {
+      return handle.logicalModelId ?? handle.modelId;
+    },
+    get resolvedArtifactVariantId() {
+      return handle.resolvedArtifactVariantId ?? null;
     },
     get manifestHash() {
       return handle.manifestHash ?? null;

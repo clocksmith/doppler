@@ -72,6 +72,8 @@ async function collectText(iterable) {
 const GENERATION_EVIDENCE_SCHEMA = 'doppler_generation_evidence/v1';
 const GENERATION_TRANSCRIPT_SCHEMA = 'doppler_generation_transcript/v1';
 const RUNTIME_PROFILE_SCHEMA = 'doppler_runtime_profile/v1';
+const RESOLUTION_IDENTITY_SCHEMA = 'doppler.resolution-identity/v1';
+const EXECUTION_IDENTITY_SCHEMA = 'doppler.resolved-execution-identity/v1';
 
 function canonicalizeEvidence(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'string') {
@@ -111,6 +113,15 @@ async function hashEvidenceValue(value) {
 function cleanEvidenceString(value) {
   const text = String(value ?? '').trim();
   return text || null;
+}
+
+function normalizeSha256Identity(value, label) {
+  const normalized = cleanEvidenceString(value)?.toLowerCase() ?? '';
+  const digest = normalized.startsWith('sha256:') ? normalized : `sha256:${normalized}`;
+  if (!/^sha256:[0-9a-f]{64}$/.test(digest)) {
+    throw new Error(`Doppler generation evidence requires ${label} as a SHA-256 digest.`);
+  }
+  return digest;
 }
 
 function buildAdapterIdentity(deviceInfo = {}) {
@@ -160,8 +171,10 @@ async function buildGenerationEvidence({
   outputText,
   tokenIds,
   generationConfig,
+  logicalModelId,
   modelId,
   manifestHash,
+  resolvedRuntimeSessionId,
   activeAdapter,
   backendIdentity,
   stats,
@@ -180,18 +193,43 @@ async function buildGenerationEvidence({
   const generationConfigHash = await hashEvidenceValue(generationConfig);
   const transcriptHash = await hashEvidenceValue(transcript);
   const backendIdentityHash = await hashEvidenceValue(backendIdentity);
+  const resolvedModelId = cleanEvidenceString(modelId);
+  const logicalId = cleanEvidenceString(logicalModelId);
+  if (!resolvedModelId || !logicalId) {
+    throw new Error('Doppler generation evidence requires logical and resolved model IDs.');
+  }
+  const resolvedArtifactVariantId = normalizeSha256Identity(manifestHash, 'manifestHash');
+  const runtimeSessionId = normalizeSha256Identity(
+    resolvedRuntimeSessionId,
+    'resolvedRuntimeSessionId'
+  );
+  const runtimeIdentity = {
+    package: 'doppler-gpu',
+    version: DOPPLER_VERSION,
+    surface: isNodeRuntime() ? 'node' : 'browser',
+  };
+  const executionIdentity = {
+    schema: EXECUTION_IDENTITY_SCHEMA,
+    runtime: runtimeIdentity,
+    resolvedRuntimeSessionId: runtimeSessionId,
+    backendIdentity,
+  };
+  const resolvedExecutionId = await hashEvidenceValue(executionIdentity);
+  const resolution = {
+    schema: RESOLUTION_IDENTITY_SCHEMA,
+    logicalModelId: logicalId,
+    resolvedArtifactVariantId,
+    resolvedExecutionId,
+  };
   const runtimeProfile = {
     schema: RUNTIME_PROFILE_SCHEMA,
-    runtime: {
-      package: 'doppler-gpu',
-      version: DOPPLER_VERSION,
-      surface: isNodeRuntime() ? 'node' : 'browser',
-    },
+    runtime: runtimeIdentity,
     model: {
-      modelId: cleanEvidenceString(modelId),
-      manifestHash: cleanEvidenceString(manifestHash),
+      modelId: resolvedModelId,
+      manifestHash: resolvedArtifactVariantId,
       activeAdapter: cleanEvidenceString(activeAdapter),
     },
+    resolvedRuntimeSessionId: runtimeSessionId,
     backendIdentity,
   };
   const runtimeProfileHash = await hashEvidenceValue(runtimeProfile);
@@ -203,6 +241,8 @@ async function buildGenerationEvidence({
     transcriptHash,
     generationConfig,
     generationConfigHash,
+    resolution,
+    executionIdentity,
     runtimeProfile,
     runtimeProfileHash,
     backendIdentity,
@@ -328,8 +368,10 @@ export function createModelHandle(pipeline, resolved) {
       outputText,
       tokenIds,
       generationConfig,
+      logicalModelId: resolved.logicalModelId ?? resolved.modelId,
       modelId: resolved.modelId,
       manifestHash: resolved.manifestHash || null,
+      resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
       activeAdapter: getActiveLoRAForPipeline(pipeline),
       backendIdentity,
       stats,
@@ -433,6 +475,14 @@ export function createModelHandle(pipeline, resolved) {
     },
     get modelId() {
       return resolved.modelId;
+    },
+    get logicalModelId() {
+      return resolved.logicalModelId ?? resolved.modelId;
+    },
+    get resolvedArtifactVariantId() {
+      return resolved.manifestHash
+        ? normalizeSha256Identity(resolved.manifestHash, 'manifestHash')
+        : null;
     },
     get manifestHash() {
       return resolved.manifestHash || null;

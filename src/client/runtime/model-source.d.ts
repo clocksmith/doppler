@@ -16,6 +16,7 @@ export interface DopplerPersistentCacheReceipt {
 }
 
 export interface DopplerModelSourceResolution {
+  logicalModelId: string;
   modelId: string;
   baseUrl: string | null;
   manifest: RDRRManifest | null;
@@ -34,6 +35,7 @@ export type DopplerModelSource =
   | string
   | {
     url: string;
+    logicalModelId?: string;
     storageContext?: SourceStorageContext;
     storage?: SourceStorageContext;
     storageManifest?: RDRRManifest;
@@ -41,6 +43,7 @@ export type DopplerModelSource =
   }
   | {
     manifest: RDRRManifest;
+    logicalModelId?: string;
     manifestText?: string;
     manifestHash?: string;
     baseUrl?: string;

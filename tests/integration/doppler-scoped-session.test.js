@@ -8,6 +8,12 @@ function makeHandle(overrides = {}) {
   const evidence = {
     outputText: 'hello',
     tokenIds: [1, 2],
+    resolution: {
+      schema: 'doppler.resolution-identity/v1',
+      logicalModelId: 'fixture-logical',
+      resolvedArtifactVariantId: `sha256:${'a'.repeat(64)}`,
+      resolvedExecutionId: `sha256:${'b'.repeat(64)}`,
+    },
     runtimeProfile: {
       model: {
         modelId: 'fixture-model',
@@ -94,7 +100,11 @@ test('scoped session exposes explicit capabilities and stable results', async ()
   assert.equal(result.outputText, 'hello');
   assert.equal(result.observation.executionClassification, 'representative');
   assert.equal(result.observation.executionChanged, false);
+  assert.equal(result.resolution.logicalModelId, 'fixture-logical');
+  assert.equal(result.resolution.resolvedArtifactVariantId, `sha256:${'a'.repeat(64)}`);
+  assert.equal(result.resolution.resolvedExecutionId, `sha256:${'b'.repeat(64)}`);
   assert.equal(result.fingerprint.executionPlanId, 'primary');
+  assert.equal(session.logicalModelId, 'fixture-model');
   assert.equal(session.manifest.modelId, 'fixture-model');
 });
 
