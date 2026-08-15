@@ -187,11 +187,14 @@
             "src/config/schema/product-integration-qualification.schema.json",
             "src/config/schema/product-integration-owner-confirmation.schema.json",
             "src/config/schema/product-integration-evidence.schema.json",
+            "src/config/schema/product-integration-evaluation-capture.schema.json",
             "tools/check-product-integration-qualification.js",
+            "tools/record-product-integration-evaluation.js",
             "tools/lib/product-integration-evidence.js",
             "tools/lib/canonical-json.js",
             "tests/config/product-integration-qualification.test.js",
-            "tests/tooling/product-integration-evidence.test.js"
+            "tests/tooling/product-integration-evidence.test.js",
+            "tests/tooling/record-product-integration-evaluation.test.js"
           ],
           "blockers": [
             "maintained-application-integrations-missing"
@@ -844,9 +847,12 @@
         "tools/policies/product-integration-qualification.json",
         "src/config/schema/product-integration-owner-confirmation.schema.json",
         "src/config/schema/product-integration-evidence.schema.json",
+        "src/config/schema/product-integration-evaluation-capture.schema.json",
         "tools/check-product-integration-qualification.js",
+        "tools/record-product-integration-evaluation.js",
         "tools/lib/product-integration-evidence.js",
-        "tests/tooling/product-integration-evidence.test.js"
+        "tests/tooling/product-integration-evidence.test.js",
+        "tests/tooling/record-product-integration-evaluation.test.js"
       ]
     },
     {

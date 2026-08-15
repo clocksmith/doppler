@@ -424,7 +424,12 @@ export function validateProductIntegrationOutcomeEvidence(receipt, expected = {}
     'observations',
   ];
   if (!exactKeys(receipt, fields, 'product integration evidence', errors)) {
-    return { errors, reasons: ['product-integration-evidence-invalid'], capturedAt: null };
+    return {
+      errors,
+      reasons: ['product-integration-evidence-invalid'],
+      capturedAt: null,
+      resolution: null,
+    };
   }
   if (receipt.schema !== OUTCOME_SCHEMA) {
     errors.push(`product integration evidence.schema must be ${OUTCOME_SCHEMA}`);
@@ -512,5 +517,16 @@ export function validateProductIntegrationOutcomeEvidence(receipt, expected = {}
     errors.push(`${evidenceClass} result.passed does not match its observations and thresholds`);
   }
   if (claimedPassed !== true) reasons.push(`${evidenceClass}-not-passed`);
-  return { errors, reasons, capturedAt };
+  return {
+    errors,
+    reasons,
+    capturedAt,
+    resolution: identity.logicalModelId && artifactId && executionId
+      ? {
+        logicalModelId: identity.logicalModelId,
+        resolvedArtifactVariantId: artifactId,
+        resolvedExecutionId: executionId,
+      }
+      : null,
+  };
 }

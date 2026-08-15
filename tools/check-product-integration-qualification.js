@@ -297,26 +297,50 @@ async function validateIntegration(integration, context) {
       qualificationReasons.push('owner-confirmation-postdates-qualification');
     }
   }
+  let identityResult = null;
   if (evidence.identity?.receipt) {
-    const result = validateDopplerRuntimeOwnershipReceipt(evidence.identity.receipt, {
+    identityResult = validateDopplerRuntimeOwnershipReceipt(evidence.identity.receipt, {
       logicalModelId,
       resolvedArtifactVariantId,
       resolvedExecutionId,
     });
-    for (const error of result.errors) errors.push(`${id}: evidence.identity: ${error}`);
-    pushUnique(qualificationReasons, result.reasons);
-    if (qualifiedAt && result.timestamp && result.timestamp.getTime() > qualifiedAt.getTime()) {
+    for (const error of identityResult.errors) {
+      errors.push(`${id}: evidence.identity: ${error}`);
+    }
+    pushUnique(qualificationReasons, identityResult.reasons);
+    if (
+      qualifiedAt
+      && identityResult.timestamp
+      && identityResult.timestamp.getTime() > qualifiedAt.getTime()
+    ) {
       qualificationReasons.push('identity-receipt-postdates-qualification');
     }
   }
+  let outcomeEvidenceContext = {
+    ...evidenceContext,
+    resolvedArtifactVariantId: identityResult?.resolution?.resolvedArtifactVariantId
+      ?? resolvedArtifactVariantId,
+    resolvedExecutionId: identityResult?.resolution?.resolvedExecutionId ?? resolvedExecutionId,
+  };
   for (const field of PRODUCT_OUTCOME_EVIDENCE_CLASSES) {
     if (!evidence[field]?.receipt) continue;
     const result = validateProductIntegrationOutcomeEvidence(evidence[field].receipt, {
-      ...evidenceContext,
+      ...outcomeEvidenceContext,
       evidenceClass: field,
     });
     for (const error of result.errors) errors.push(`${id}: evidence.${field}: ${error}`);
     pushUnique(qualificationReasons, result.reasons);
+    if (
+      !outcomeEvidenceContext.resolvedArtifactVariantId
+      && !outcomeEvidenceContext.resolvedExecutionId
+      && result.resolution
+    ) {
+      outcomeEvidenceContext = {
+        ...outcomeEvidenceContext,
+        resolvedArtifactVariantId: result.resolution.resolvedArtifactVariantId,
+        resolvedExecutionId: result.resolution.resolvedExecutionId,
+      };
+    }
     if (qualifiedAt && result.capturedAt && result.capturedAt.getTime() > qualifiedAt.getTime()) {
       qualificationReasons.push(`${field}-postdates-qualification`);
     }
