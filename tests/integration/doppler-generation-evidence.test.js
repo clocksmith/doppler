@@ -78,19 +78,26 @@ const pipeline = {
   },
   isLoaded: true,
   tokenizer: {
+    encode() {
+      return [11, 12, 13];
+    },
     decode(tokenIds) {
       return tokenIds.map((tokenId) => `[${tokenId}]`).join('');
     },
   },
   async generateTokenIds(prompt, options) {
-    assert.equal(prompt, 'hello');
-    assert.deepEqual(options, {
-      maxTokens: 4,
-      temperature: 0,
-      topK: 1,
-      topP: 1,
-      useChatTemplate: false,
-    });
+    if (prompt === 'hello') {
+      assert.deepEqual(options, {
+        maxTokens: 4,
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        useChatTemplate: false,
+      });
+    } else {
+      assert.deepEqual(prompt, [{ role: 'user', content: 'hello' }]);
+      assert.deepEqual(options, { maxTokens: 2 });
+    }
     return {
       tokenIds: [101, 202],
       stats,
@@ -179,6 +186,17 @@ assert.equal(
   evidence.runtimeProfile.resolvedRuntimeSessionId,
   `sha256:${'b'.repeat(64)}`
 );
+
+const chatResponse = await handle.chatText([
+  { role: 'user', content: 'hello' },
+], { maxTokens: 2 });
+assert.equal(chatResponse.content, '[101][202]');
+assert.deepEqual(chatResponse.usage, {
+  promptTokens: 3,
+  completionTokens: 2,
+  totalTokens: 5,
+});
+assert.equal(chatResponse.evidence.resolution.logicalModelId, 'qwen-logical');
 
 delete pipeline.runtimeConfig.inference.chatTemplate;
 pipeline.generateTokenIds = async (_prompt, options) => ({

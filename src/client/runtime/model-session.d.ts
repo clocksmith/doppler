@@ -106,12 +106,16 @@ export interface DopplerChatResponse {
     completionTokens: number;
     totalTokens: number;
   };
+  evidence: DopplerGenerationEvidence;
 }
 
 export interface DopplerModelHandle {
   generate(prompt: string, options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   generateText(prompt: string, options?: DopplerGenerateOptions): Promise<string>;
-  generateWithEvidence(prompt: string, options?: DopplerGenerateOptions): Promise<DopplerGenerationEvidence>;
+  generateWithEvidence(
+    prompt: string | ChatMessage[],
+    options?: DopplerGenerateOptions
+  ): Promise<DopplerGenerationEvidence>;
   chat(messages: ChatMessage[], options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   chatText(messages: ChatMessage[], options?: DopplerGenerateOptions): Promise<DopplerChatResponse>;
   embed(prompt: string, options?: Record<string, unknown>): Promise<unknown>;

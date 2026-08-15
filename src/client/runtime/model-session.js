@@ -394,10 +394,11 @@ export function createModelHandle(pipeline, resolved) {
     },
     async chatText(messages, options = {}) {
       assertSupportedGenerationOptions(options);
-      const content = await collectText(pipeline.generate(messages, options));
+      const evidence = await generateWithEvidence(messages, options);
+      const content = evidence.outputText;
       const promptText = resolveChatPromptForUsage(pipeline, messages);
       const promptTokens = countTokens(pipeline, promptText);
-      const completionTokens = countTokens(pipeline, content);
+      const completionTokens = evidence.tokenIds.length;
       return {
         content,
         usage: {
@@ -405,6 +406,7 @@ export function createModelHandle(pipeline, resolved) {
           completionTokens,
           totalTokens: promptTokens + completionTokens,
         },
+        evidence,
       };
     },
     async embed(prompt, options = {}) {

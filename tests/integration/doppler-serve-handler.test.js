@@ -37,6 +37,12 @@ const mockEmbeddingModel = {
     path: 'models/google-embeddinggemma-300m-q4k-ehf16-af32',
   },
 };
+const mockResolution = {
+  schema: 'doppler.resolution-identity/v1',
+  logicalModelId: 'gemma3-270m',
+  resolvedArtifactVariantId: `sha256:${'a'.repeat(64)}`,
+  resolvedExecutionId: `sha256:${'b'.repeat(64)}`,
+};
 
 function createMockHandler(overrides = {}) {
   const calls = [];
@@ -60,6 +66,9 @@ function createMockHandler(overrides = {}) {
             promptTokens: 4,
             completionTokens: 3,
             totalTokens: 7,
+          },
+          evidence: {
+            resolution: mockResolution,
           },
         };
       },
@@ -374,7 +383,10 @@ function createLoadFailure() {
   assert.equal(runtimeCalls[0].registryEntry.modelId, mockTextModel.modelId);
   assert.equal(runtimeCalls[0].requestedModel, 'gemma3-270m');
   assert.equal(mock.calls.length, 1);
-  assert.deepEqual(mock.calls[0].options.model, runtimeModel);
+  assert.deepEqual(mock.calls[0].options.model, {
+    ...runtimeModel,
+    logicalModelId: 'gemma3-270m',
+  });
   const body = parseBody(res);
   assert.equal(body.model, mockTextModel.modelId);
   assert.equal(body.doppler_receipt.requestedModel, 'gemma3-270m');
@@ -408,7 +420,10 @@ function createLoadFailure() {
   assert.equal(runtimeCalls[0].registryEntry.modelId, mockTextModel.modelId);
   assert.equal(runtimeCalls[0].requestedModel, 'gemma3-270m');
   assert.equal(mock.calls.length, 1);
-  assert.deepEqual(mock.calls[0].options.model, runtimeModel);
+  assert.deepEqual(mock.calls[0].options.model, {
+    ...runtimeModel,
+    logicalModelId: 'gemma3-270m',
+  });
   const streamText = res.state.chunks.join('');
   assert.ok(streamText.includes(`"model":"${mockTextModel.modelId}"`));
   assert.ok(streamText.includes('data: [DONE]'));
@@ -429,7 +444,10 @@ function createLoadFailure() {
   await mock.handler(req, res);
   assert.equal(res.state.statusCode, 200);
   assert.equal(mock.calls.length, 1);
-  assert.equal(mock.calls[0].options.model, mockTextModel.modelId);
+  assert.deepEqual(mock.calls[0].options.model, {
+    registryId: mockTextModel.modelId,
+    logicalModelId: 'gemma3-270m',
+  });
   assert.equal(mock.calls[0].options.maxTokens, 8);
   const body = parseBody(res);
   assert.equal(body.model, mockTextModel.modelId);
@@ -449,6 +467,9 @@ function createLoadFailure() {
   assert.equal(body.doppler_receipt.modelId, mockTextModel.modelId);
   assert.equal(body.doppler_receipt.requestedModel, 'gemma3-270m');
   assert.equal(body.doppler_receipt.resolvedModel, mockTextModel.modelId);
+  assert.equal(body.doppler_receipt.resolutionStatus, 'resolved');
+  assert.deepEqual(body.doppler_receipt.resolution, mockResolution);
+  assert.equal(body.doppler_receipt.resolutionUnavailableReason, null);
   assert.equal(body.doppler_receipt.artifact.weightPackId, mockTextModel.weightPackId);
   assert.equal(body.doppler_receipt.artifact.hf.repoId, 'clocksmith/rdrr');
   assert.equal(body.doppler_receipt.request.messages.count, 1);
@@ -493,6 +514,12 @@ function createLoadFailure() {
   assert.equal(body.doppler_receipt.receiptVersion, 'doppler_serve_receipt_v1');
   assert.equal(body.doppler_receipt.surface, 'serve');
   assert.equal(body.doppler_receipt.status, 'diagnostic');
+  assert.equal(body.doppler_receipt.resolutionStatus, 'unavailable');
+  assert.equal(body.doppler_receipt.resolution, null);
+  assert.equal(
+    body.doppler_receipt.resolutionUnavailableReason,
+    'execution-failed-before-resolution'
+  );
   assert.equal(body.doppler_receipt.runtimePath, 'doppler-gpu.chatText');
   assert.equal(body.doppler_receipt.modelId, mockTextModel.modelId);
   assert.equal(body.doppler_receipt.request.messages.count, 1);

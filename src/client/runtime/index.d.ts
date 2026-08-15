@@ -8,7 +8,7 @@ import type {
   DopplerModelSourceResolution,
   DopplerPersistentCacheReceipt,
 } from './model-source.js';
-import type { DopplerModelHandle } from './model-session.js';
+import type { DopplerGenerationEvidence, DopplerModelHandle } from './model-session.js';
 import type {
   DopplerGenerationResult,
   DopplerPromptInput,
@@ -25,6 +25,7 @@ export interface DopplerChatResponse {
     completionTokens: number;
     totalTokens: number;
   };
+  evidence: DopplerGenerationEvidence;
 }
 
 export interface DopplerNamespace {

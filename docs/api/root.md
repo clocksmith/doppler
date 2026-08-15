@@ -47,6 +47,8 @@ and `doppler-gpu/tooling`.
 `dr.load()` accepts:
 
 - registry ID string, for example `'qwen3-0.8b'`
+- `{ registryId, logicalModelId? }` when an application-facing ID must remain
+  distinct from the resolved quickstart artifact
 - `{ url }`
 - `{ manifest, baseUrl? }`
 
@@ -69,7 +71,9 @@ A bare string is treated as a bundled/known registry ID, not a path heuristic.
 - `dr(prompt, { model })` reuses a convenience cache
 - `dr.text(...)` requires `options.model` and returns the final string
 - `dr.chat(...)` requires `options.model` and returns an `AsyncGenerator<string>`
-- `dr.chatText(...)` requires `options.model` and returns `{ content, usage }`
+- `dr.chatText(...)` requires `options.model` and returns
+  `{ content, usage, evidence }`; `evidence.resolution` carries the exact
+  logical, artifact-variant, and execution IDs
 - `dr.evict(model)` and `dr.evictAll()` clear the convenience cache
 
 ### Fail-fast rules
