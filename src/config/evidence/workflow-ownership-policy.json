@@ -49,6 +49,54 @@
       "adapters": [
         "src/tooling/program-bundle-parity.js"
       ]
+    },
+    {
+      "job": "product-integration-qualification",
+      "canonicalOwner": "tools/record-product-integration-evaluation.js",
+      "canonicalCommand": "npm run product:integrations:record",
+      "adapters": [
+        "tools/check-product-integration-qualification.js"
+      ]
+    },
+    {
+      "job": "provider-conformance-qualification",
+      "canonicalOwner": "tools/record-provider-conformance.js",
+      "canonicalCommand": "npm run provider:conformance:record",
+      "adapters": [
+        "tools/check-provider-conformance.js"
+      ]
+    },
+    {
+      "job": "runtime-ownership-qualification",
+      "canonicalOwner": "tools/record-runtime-ownership-evaluation.js",
+      "canonicalCommand": "npm run runtime:ownership:record",
+      "adapters": [
+        "tools/check-runtime-ownership-decisions.js"
+      ]
+    },
+    {
+      "job": "bun-product-qualification",
+      "canonicalOwner": "tools/record-bun-product-qualification.js",
+      "canonicalCommand": "npm run bun:qualification:record",
+      "adapters": [
+        "tools/check-bun-product-qualification.js"
+      ]
+    },
+    {
+      "job": "post-promotion-monitoring",
+      "canonicalOwner": "tools/record-runtime-promotion-monitoring.js",
+      "canonicalCommand": "npm run promotion:monitoring:record",
+      "adapters": [
+        "tools/check-runtime-promotion-monitoring.js"
+      ]
+    },
+    {
+      "job": "signed-revocation-authority-qualification",
+      "canonicalOwner": "tools/record-signed-revocation-authority-evaluation.js",
+      "canonicalCommand": "npm run revocations:authority:record",
+      "adapters": [
+        "tools/check-signed-revocation-authority-qualification.js"
+      ]
     }
   ],
   "forbiddenPaths": [

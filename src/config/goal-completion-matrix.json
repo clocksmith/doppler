@@ -661,11 +661,13 @@
           "smokeCommand": "npm run optimization:control:check",
           "evidencePaths": [
             "docs/evidence-loop.md",
+            "src/config/evidence/workflow-ownership-policy.json",
             "src/tooling/runtime-optimization.js",
             "src/tooling/runtime-optimization-campaign.js",
             "src/tooling/runtime-optimization-index.js",
             "src/config/schema/optimization-contract.schema.json",
             "src/config/schema/optimization-receipt.schema.json",
+            "tools/check-evidence-workflow-ownership.js",
             "tests/tooling/runtime-optimization.test.js",
             "tests/tooling/runtime-optimization-index.test.js"
           ],
