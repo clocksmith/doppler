@@ -1,0 +1,44 @@
+{
+  "$schema": "schema/runtime-ownership-decisions.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "goalIds": [
+    "model-artifact-runtime-contract",
+    "correctness-performance-claims"
+  ],
+  "minimumQualifiedDecisions": 3,
+  "requiredWorkloads": [
+    "generation",
+    "embedding",
+    "reranking"
+  ],
+  "qualificationMaxAgeDays": 90,
+  "allowedDispositions": [
+    "incumbent",
+    "doppler",
+    "dual"
+  ],
+  "materialAdvantageAxes": [
+    "unsupported-operation",
+    "end-to-end-performance",
+    "memory",
+    "diagnostic-depth",
+    "offline-artifact-control",
+    "verified-correction-path"
+  ],
+  "requiredEvidenceFields": [
+    "sourceExecution",
+    "incumbentExecution",
+    "dopplerExecution",
+    "correctness",
+    "taskQuality",
+    "usability",
+    "memory",
+    "endToEndPerformance",
+    "diagnosticDepth",
+    "distributionCost",
+    "integrationBurden",
+    "providerRisk"
+  ],
+  "decisions": []
+}

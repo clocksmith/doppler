@@ -30,6 +30,8 @@ Primary documentation index.
 - [Operations](operations.md) - troubleshooting and debug workflows.
 - [Provider Conformance](provider-conformance.md) - exact-tuple browser, Node,
   and optional named-provider qualification contract.
+- [Runtime Ownership Decisions](runtime-ownership.md) - source, incumbent, and
+  Doppler evidence gate for choosing an execution owner per workload.
 - [Doppler Program Bundle](integration/program-bundle.md) - closed portable
   model-program export shape for browser, Node provider, Doe.js capture, and
   Doe backend lowering.

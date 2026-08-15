@@ -204,7 +204,8 @@
       "blockers": [
         "broad-model-receipts-missing",
         "gemma4-target-receipts-missing",
-        "provider-conformance-receipts-missing"
+        "provider-conformance-receipts-missing",
+        "runtime-ownership-decisions-missing"
       ],
       "rows": [
         {
@@ -295,6 +296,27 @@
           ],
           "blockers": [
             "provider-conformance-receipts-missing"
+          ]
+        },
+        {
+          "id": "runtime-ownership-qualification",
+          "label": "Runtime ownership qualification",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/runtime-ownership.md",
+            "benchmarks/vendors/runtime-ownership-decisions.json",
+            "benchmarks/vendors/schema/runtime-ownership-decisions.schema.json",
+            "tools/check-runtime-ownership-decisions.js",
+            "tests/config/runtime-ownership-decisions.test.js"
+          ],
+          "blockers": [
+            "runtime-ownership-decisions-missing"
           ]
         },
         {
@@ -438,7 +460,8 @@
       "blockers": [
         "candidate-benchmark-lanes",
         "gemma4-target-receipts-missing",
-        "provider-conformance-receipts-missing"
+        "provider-conformance-receipts-missing",
+        "runtime-ownership-decisions-missing"
       ],
       "rows": [
         {
@@ -618,6 +641,28 @@
           ]
         },
         {
+          "id": "runtime-ownership-evidence",
+          "label": "Runtime ownership evidence",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/runtime-ownership.md",
+            "docs/model-competition-scoreboard.md",
+            "benchmarks/vendors/runtime-ownership-decisions.json",
+            "benchmarks/vendors/model-competition-scoreboard.json",
+            "tools/check-runtime-ownership-decisions.js",
+            "tests/config/runtime-ownership-decisions.test.js"
+          ],
+          "blockers": [
+            "runtime-ownership-decisions-missing"
+          ]
+        },
+        {
           "id": "claim-promotion-coverage",
           "label": "Claim promotion coverage",
           "tier": "tier1",
@@ -672,6 +717,16 @@
         "docs/provider-conformance.md",
         "tools/policies/provider-conformance.json",
         "tools/check-provider-conformance.js"
+      ]
+    },
+    {
+      "code": "runtime-ownership-decisions-missing",
+      "description": "No claimable generation, embedding, or reranking decision establishes whether Doppler, an incumbent, or both should own execution.",
+      "exitCriteria": "Retain current source, incumbent, and Doppler evidence for generation, embedding, and reranking; predeclare material-advantage thresholds; record correctness, quality, usability, memory, performance, diagnostics, cost, burden, and provider risk; then publish an unexpired incumbent, doppler, or dual disposition.",
+      "evidencePaths": [
+        "docs/runtime-ownership.md",
+        "benchmarks/vendors/runtime-ownership-decisions.json",
+        "tools/check-runtime-ownership-decisions.js"
       ]
     },
     {

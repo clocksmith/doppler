@@ -9,6 +9,7 @@ import { buildModelArtifactContractReport } from './check-model-artifact-contrac
 import { buildPolicySchemaRegistryReport } from './check-policy-schema-registry.js';
 import { buildProductIntegrationQualificationReport } from './check-product-integration-qualification.js';
 import { buildProviderConformanceReport } from './check-provider-conformance.js';
+import { buildRuntimeOwnershipDecisionReport } from './check-runtime-ownership-decisions.js';
 import { buildSubsystemSupportContractReport } from './check-subsystem-support-contract.js';
 
 function parseArgs(argv) {
@@ -38,6 +39,7 @@ function buildSummary(reports) {
     ...collectErrors('policy schemas', reports.policySchemas),
     ...collectErrors('product integrations', reports.productIntegrations),
     ...collectErrors('provider conformance', reports.providerConformance),
+    ...collectErrors('runtime ownership', reports.runtimeOwnership),
     ...collectErrors('subsystem support', reports.subsystemSupport),
   ];
   return {
@@ -48,6 +50,7 @@ function buildSummary(reports) {
       && reports.policySchemas.ok
       && reports.productIntegrations.ok
       && reports.providerConformance.ok
+      && reports.runtimeOwnership.ok
       && reports.subsystemSupport.ok,
     errors,
     goals: reports.goals.goals,
@@ -83,6 +86,13 @@ function buildSummary(reports) {
         required: 3,
         missingWorkloads: reports.providerConformance.missingWorkloads,
       },
+      runtimeOwnership: {
+        ok: reports.runtimeOwnership.ok,
+        gateSatisfied: reports.runtimeOwnership.gateSatisfied,
+        qualified: reports.runtimeOwnership.qualifiedDecisions,
+        required: 3,
+        missingWorkloads: reports.runtimeOwnership.missingWorkloads,
+      },
       subsystemSupport: {
         ok: reports.subsystemSupport.ok,
         subsystems: reports.subsystemSupport.subsystems,
@@ -114,6 +124,7 @@ function formatMarkdown(summary) {
     `- policy schemas: ${summary.contracts.policySchemas.ok ? 'ok' : 'invalid'} (${summary.contracts.policySchemas.policies} policies)`,
     `- maintained application integrations: ${summary.contracts.productIntegrations.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.productIntegrations.qualified}/${summary.contracts.productIntegrations.required} qualified; missing ${summary.contracts.productIntegrations.missingWorkloads.join(', ') || 'none'})`,
     `- provider conformance: ${summary.contracts.providerConformance.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.providerConformance.qualified}/${summary.contracts.providerConformance.required} qualified; missing ${summary.contracts.providerConformance.missingWorkloads.join(', ') || 'none'})`,
+    `- runtime ownership decisions: ${summary.contracts.runtimeOwnership.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.runtimeOwnership.qualified}/${summary.contracts.runtimeOwnership.required} qualified; missing ${summary.contracts.runtimeOwnership.missingWorkloads.join(', ') || 'none'})`,
     `- subsystem support: ${summary.contracts.subsystemSupport.ok ? 'ok' : 'invalid'} (${summary.contracts.subsystemSupport.subsystems} subsystems, ${summary.contracts.subsystemSupport.primaryClaims} primary claims)`,
     ''
   );
@@ -135,6 +146,7 @@ export async function buildProductReadinessReport() {
     policySchemas: await buildPolicySchemaRegistryReport(),
     productIntegrations: await buildProductIntegrationQualificationReport(),
     providerConformance: await buildProviderConformanceReport(),
+    runtimeOwnership: await buildRuntimeOwnershipDecisionReport(),
     subsystemSupport: await buildSubsystemSupportContractReport(),
   };
   return buildSummary(reports);

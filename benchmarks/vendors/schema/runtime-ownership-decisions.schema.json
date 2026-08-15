@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/runtime-ownership-decisions-v1.schema.json",
+  "title": "Doppler Runtime Ownership Decisions v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "goalIds",
+    "minimumQualifiedDecisions",
+    "requiredWorkloads",
+    "qualificationMaxAgeDays",
+    "allowedDispositions",
+    "materialAdvantageAxes",
+    "requiredEvidenceFields",
+    "decisions"
+  ],
+  "properties": {
+    "$schema": { "const": "schema/runtime-ownership-decisions.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "source": { "const": "doppler" },
+    "goalIds": {
+      "const": ["model-artifact-runtime-contract", "correctness-performance-claims"]
+    },
+    "minimumQualifiedDecisions": { "const": 3 },
+    "requiredWorkloads": { "const": ["generation", "embedding", "reranking"] },
+    "qualificationMaxAgeDays": { "type": "integer", "minimum": 1, "maximum": 365 },
+    "allowedDispositions": { "const": ["incumbent", "doppler", "dual"] },
+    "materialAdvantageAxes": {
+      "const": [
+        "unsupported-operation",
+        "end-to-end-performance",
+        "memory",
+        "diagnostic-depth",
+        "offline-artifact-control",
+        "verified-correction-path"
+      ]
+    },
+    "requiredEvidenceFields": {
+      "const": [
+        "sourceExecution",
+        "incumbentExecution",
+        "dopplerExecution",
+        "correctness",
+        "taskQuality",
+        "usability",
+        "memory",
+        "endToEndPerformance",
+        "diagnosticDepth",
+        "distributionCost",
+        "integrationBurden",
+        "providerRisk"
+      ]
+    },
+    "decisions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/decision" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "nullableString": {
+      "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+    },
+    "nullableDateTime": {
+      "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+    },
+    "nullableRepoPath": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "anyOf": [
+              { "pattern": "^/" },
+              { "pattern": "\\\\" },
+              { "pattern": "(^|/)\\.\\.(/|$)" }
+            ]
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceExecution",
+        "incumbentExecution",
+        "dopplerExecution",
+        "correctness",
+        "taskQuality",
+        "usability",
+        "memory",
+        "endToEndPerformance",
+        "diagnosticDepth",
+        "distributionCost",
+        "integrationBurden",
+        "providerRisk"
+      ],
+      "properties": {
+        "sourceExecution": { "$ref": "#/$defs/nullableRepoPath" },
+        "incumbentExecution": { "$ref": "#/$defs/nullableRepoPath" },
+        "dopplerExecution": { "$ref": "#/$defs/nullableRepoPath" },
+        "correctness": { "$ref": "#/$defs/nullableRepoPath" },
+        "taskQuality": { "$ref": "#/$defs/nullableRepoPath" },
+        "usability": { "$ref": "#/$defs/nullableRepoPath" },
+        "memory": { "$ref": "#/$defs/nullableRepoPath" },
+        "endToEndPerformance": { "$ref": "#/$defs/nullableRepoPath" },
+        "diagnosticDepth": { "$ref": "#/$defs/nullableRepoPath" },
+        "distributionCost": { "$ref": "#/$defs/nullableRepoPath" },
+        "integrationBurden": { "$ref": "#/$defs/nullableRepoPath" },
+        "providerRisk": { "$ref": "#/$defs/nullableRepoPath" }
+      }
+    },
+    "threshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operator", "value", "unit"],
+      "properties": {
+        "operator": {
+          "enum": ["greater-than-or-equal", "less-than-or-equal", "pass"]
+        },
+        "value": {
+          "anyOf": [{ "type": "number" }, { "type": "null" }]
+        },
+        "unit": { "$ref": "#/$defs/nullableString" }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "observedValue", "evaluatedAtUtc", "evidencePath"],
+      "properties": {
+        "passed": {
+          "anyOf": [{ "type": "boolean" }, { "type": "null" }]
+        },
+        "observedValue": {
+          "anyOf": [{ "type": "number" }, { "type": "string", "minLength": 1 }, { "type": "null" }]
+        },
+        "evaluatedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "evidencePath": { "$ref": "#/$defs/nullableRepoPath" }
+      }
+    },
+    "hypothesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "axis",
+        "statement",
+        "metric",
+        "controlMetric",
+        "controlRequirement",
+        "threshold",
+        "declaredAtUtc",
+        "result"
+      ],
+      "properties": {
+        "axis": {
+          "enum": [
+            "unsupported-operation",
+            "end-to-end-performance",
+            "memory",
+            "diagnostic-depth",
+            "offline-artifact-control",
+            "verified-correction-path"
+          ]
+        },
+        "statement": { "type": "string", "minLength": 1 },
+        "metric": { "type": "string", "minLength": 1 },
+        "controlMetric": { "type": "string", "minLength": 1 },
+        "controlRequirement": { "type": "string", "minLength": 1 },
+        "threshold": { "$ref": "#/$defs/threshold" },
+        "declaredAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "result": { "$ref": "#/$defs/result" }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "workload",
+        "logicalModelId",
+        "resolvedArtifactVariantId",
+        "resolvedExecutionId",
+        "sourceProviderId",
+        "sourceArtifactId",
+        "sourceExecutionId",
+        "incumbentProviderId",
+        "incumbentArtifactId",
+        "incumbentExecutionId",
+        "correctnessClass",
+        "hypotheses",
+        "disposition",
+        "decisionRationale",
+        "qualifiedAtUtc",
+        "expiresAtUtc",
+        "evidence",
+        "claimAllowed",
+        "blockers"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "workload": { "enum": ["generation", "embedding", "reranking"] },
+        "logicalModelId": { "$ref": "#/$defs/nullableString" },
+        "resolvedArtifactVariantId": { "$ref": "#/$defs/nullableString" },
+        "resolvedExecutionId": { "$ref": "#/$defs/nullableString" },
+        "sourceProviderId": { "$ref": "#/$defs/nullableString" },
+        "sourceArtifactId": { "$ref": "#/$defs/nullableString" },
+        "sourceExecutionId": { "$ref": "#/$defs/nullableString" },
+        "incumbentProviderId": { "$ref": "#/$defs/nullableString" },
+        "incumbentArtifactId": { "$ref": "#/$defs/nullableString" },
+        "incumbentExecutionId": { "$ref": "#/$defs/nullableString" },
+        "correctnessClass": {
+          "enum": [
+            "exact-token",
+            "tolerance-bounded-numerical",
+            "semantic",
+            "held-out-task-metric"
+          ]
+        },
+        "hypotheses": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hypothesis" }
+        },
+        "disposition": {
+          "anyOf": [
+            { "enum": ["incumbent", "doppler", "dual"] },
+            { "type": "null" }
+          ]
+        },
+        "decisionRationale": { "$ref": "#/$defs/nullableString" },
+        "qualifiedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "expiresAtUtc": { "$ref": "#/$defs/nullableDateTime" },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "claimAllowed": { "type": "boolean" },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

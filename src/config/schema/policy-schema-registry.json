@@ -43,6 +43,11 @@
       "schemaPath": "src/config/schema/provider-conformance-policy.schema.json"
     },
     {
+      "id": "runtime-ownership-decisions",
+      "policyPath": "benchmarks/vendors/runtime-ownership-decisions.json",
+      "schemaPath": "benchmarks/vendors/schema/runtime-ownership-decisions.schema.json"
+    },
+    {
       "id": "capability-transform-policy",
       "policyPath": "src/rules/inference/capability-transforms.rules.json",
       "schemaPath": "src/config/schema/capability-transform-policy.schema.json"
