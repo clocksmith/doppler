@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-19T21:53:32.956Z",
+  "generatedAt": "2026-08-15T17:06:16.191Z",
   "release": {
     "channel": "main-snapshot",
-    "version": "0.4.11",
-    "commitSha": "9f0ef19dbe5fd9b1c69e1cd7002005c7d3ea8d6d",
+    "version": "0.5.1",
+    "commitSha": "338c54e79e5d43bd7f296f698215a244e18d6bb8",
     "dirty": true
   },
   "sources": {
@@ -46,13 +46,13 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "cb7859cd42d01d482dec5be0c8632074ae12d22da68649e8391b7fb46356bbe0",
-      "bytes": 24973,
+      "sha256": "a9ea43cc625f602b87ae20a2fe9408441f9f27149e86d6bbc3c7ab2c082c8464",
+      "bytes": 25038,
       "updated": "2026-06-27"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "54c0e40cea586b9e0e375b3ac124d820274c6598e4d8d3bcdcf133fedee6d5c6",
+      "sha256": "6a84e5b5ee8e7633d6182fbfcaedc46e122e675c78c5748e283ef6e2336b419f",
       "bytes": 50604,
       "updated": "2026-07-19"
     },

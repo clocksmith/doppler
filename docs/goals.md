@@ -164,6 +164,14 @@ depth below the incumbent API, required offline/artifact-control behavior, or a
 faster verified correction path. Equivalent incumbent behavior should be used
 or supported rather than reimplemented for ownership's sake.
 
+`benchmarks/vendors/runtime-ownership-decisions.json` is the machine-readable
+authority, validated by `npm run runtime:ownership:check`. A claimable decision
+must bind the exact source, incumbent, Doppler artifact and execution, frozen
+correctness class, predeclared hypothesis and threshold, all decision evidence,
+qualification date, expiry, and one `incumbent`, `doppler`, or `dual`
+disposition. An empty decision registry is valid but incomplete. See
+`docs/runtime-ownership.md`.
+
 ### Provider independence
 
 Provider conformance covers standard browser WebGPU, the selected Node provider,
@@ -377,10 +385,11 @@ goal status. The matrix is validated by `npm run goals:check` and can be
 rendered as a stable product-status report with `npm run goals:report`.
 
 `npm run product:readiness:report` combines the goal matrix, command-surface,
-model-artifact, maintained-integration, provider-conformance, policy-schema,
-claim-evidence, and subsystem-support contracts into one markdown status
-report. Use `npm run product:readiness:report -- --json` when another tool needs
-the same status as machine-readable JSON.
+model-artifact, maintained-integration, provider-conformance,
+runtime-ownership, policy-schema, claim-evidence, and subsystem-support
+contracts into one markdown status report. Use
+`npm run product:readiness:report -- --json` when another tool needs the same
+status as machine-readable JSON.
 
 `tools/policies/product-integration-qualification.json` is the source of truth
 for the decisive maintained-application gate. `npm run product:integrations:check`
@@ -396,6 +405,13 @@ embedding, and reranking suites across browser WebGPU and the selected Node
 provider, while keeping Doe an optional named lane. An empty suite registry is
 valid but explicitly incomplete; only current exact-tuple receipts can satisfy
 the gate.
+
+`benchmarks/vendors/runtime-ownership-decisions.json` governs whether Doppler
+should own a workload path at all. `npm run runtime:ownership:check` requires
+current generation, embedding, and reranking decisions backed by authoritative
+source, incumbent, and Doppler execution evidence plus predeclared material-
+advantage thresholds. Performance evidence is necessary where claimed but is
+not sufficient by itself.
 
 The report intentionally treats a row as complete only when it is claimable,
 has evidence paths, and declares an npm smoke command. Non-claimable rows must
