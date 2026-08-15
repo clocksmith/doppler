@@ -103,6 +103,10 @@ export type {
   DopplerModelSource,
   DopplerModelSourceResolution,
 } from './model-source.js';
+export type {
+  DopplerResolutionPolicy,
+  ResolvedDopplerResolutionPolicy,
+} from './resolution-policy.js';
 
 export type { DopplerModelHandle } from './model-session.js';
 export type {

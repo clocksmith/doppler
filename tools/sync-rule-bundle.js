@@ -49,7 +49,7 @@ const bundle = {
   sources,
   files,
 };
-const output = `${JSON.stringify(bundle, null, 2)}\n`;
+const output = `${JSON.stringify(bundle, null, 1)}\n`;
 
 if (checkOnly) {
   let current = null;

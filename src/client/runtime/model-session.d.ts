@@ -6,6 +6,7 @@ import type { LogitsStepResult, PipelineStats, PrefillResult, SequenceEncodeOpti
 import type { LoRAManifest } from './types.js';
 import type { LoRALoadOptions } from './lora.js';
 import type { DopplerPersistentCacheReceipt } from './model-source.js';
+import type { DopplerResolutionPolicy, ResolvedDopplerResolutionPolicy } from './resolution-policy.js';
 import type {
   DopplerComparisonFingerprint,
   DopplerInspectionTokenRecord,
@@ -204,6 +205,7 @@ export interface DopplerModelHandle {
   readonly modelId: string;
   readonly logicalModelId: string;
   readonly resolvedArtifactVariantId: `sha256:${string}` | null;
+  readonly resolutionPolicy: ResolvedDopplerResolutionPolicy;
   readonly manifestHash: string | null;
   readonly persistentCache: DopplerPersistentCacheReceipt | null;
   readonly manifest: unknown;
@@ -298,5 +300,6 @@ export declare function createModelHandle(
     modelId: string;
     manifestHash?: string | null;
     persistentCache?: DopplerPersistentCacheReceipt | null;
+    resolutionPolicy?: DopplerResolutionPolicy | ResolvedDopplerResolutionPolicy | null;
   }
 ): DopplerModelHandle;

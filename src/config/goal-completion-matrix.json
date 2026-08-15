@@ -260,10 +260,12 @@
             "docs/goals.md",
             "docs/api/root.md",
             "src/client/runtime/model-session.js",
+            "src/client/runtime/resolution-policy.js",
             "src/client/provider.js",
             "src/cli/doppler-serve.js",
             "tests/integration/doppler-generation-evidence.test.js",
             "tests/integration/doppler-rerank-evidence.test.js",
+            "tests/integration/doppler-resolution-policy.test.js",
             "tests/integration/doppler-provider-contract.test.js",
             "tests/integration/doppler-serve-handler.test.js"
           ],
