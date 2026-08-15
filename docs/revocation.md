@@ -112,6 +112,17 @@ key rotation, exact and rewritten replay behavior, sequence and epoch rollback,
 offline expiry, compromise recovery, durable restart, loaded-identity
 invalidation, application fail-closed behavior, and requalification.
 
+Every evidence entry is null or a repository-relative `{ path, digest }`
+reference to canonical JSON. Ownership uses
+`doppler.signed-revocation-authority-owner-confirmation/v1`; the remaining
+classes use `doppler.signed-revocation-authority-evidence/v1` and bind the
+qualification, owner, production authority ID, harness revision, environment,
+capture time, and class-specific observations. The checker derives each pass
+from those observations, cross-checks endpoint, key, and durable-store
+identities, rejects reused evidence paths, and retains failed drills as named
+qualification reasons. A document path or operator-entered `passed` value is
+not production-authority proof.
+
 Run `npm run revocations:authority:check` to validate that contract. The current
 entry is only a candidate: its production endpoint, keys, stores, and receipts
 remain null, its blockers are explicit, and `claimAllowed` remains false. The

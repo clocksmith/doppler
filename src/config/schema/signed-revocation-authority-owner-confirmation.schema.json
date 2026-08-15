@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/signed-revocation-authority-owner-confirmation-v1.schema.json",
+  "title": "Doppler Signed Revocation Authority Owner Confirmation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "qualificationId",
+    "owner",
+    "ownerRepository",
+    "ownerRevision",
+    "confirmedAtUtc",
+    "maintenanceStatus",
+    "statement"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.signed-revocation-authority-owner-confirmation/v1" },
+    "qualificationId": { "$ref": "#/$defs/text" },
+    "owner": { "$ref": "#/$defs/text" },
+    "ownerRepository": { "$ref": "#/$defs/text" },
+    "ownerRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "confirmedAtUtc": { "type": "string", "format": "date-time" },
+    "maintenanceStatus": { "enum": ["active", "inactive"] },
+    "statement": { "$ref": "#/$defs/text" }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 }
+  }
+}

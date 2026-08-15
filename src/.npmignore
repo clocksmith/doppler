@@ -60,6 +60,8 @@ config/schema/provider-conformance-policy.schema.json
 config/schema/revocation-registry.schema.json
 config/schema/runtime-promotion-monitoring.schema.json
 config/schema/runtime-promotion-observation-evidence.schema.json
+config/schema/signed-revocation-authority-evidence.schema.json
+config/schema/signed-revocation-authority-owner-confirmation.schema.json
 config/schema/signed-revocation-authority-qualification.schema.json
 config/schema/subsystem-support-contract.schema.json
 config/schema/trainer-artifact-bridge.schema.json
