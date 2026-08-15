@@ -206,7 +206,7 @@ export function createScopedModelSession(handle) {
     },
     async embed(input, options = {}) {
       requireCapability('embed');
-      return handle.embed(input, options);
+      return handle.embedWithEvidence(input, options);
     },
     async encodeSequence(sequence, options = {}) {
       requireCapability('sequence');
@@ -246,6 +246,9 @@ export function createScopedModelSession(handle) {
     },
     get resolvedArtifactVariantId() {
       return handle.resolvedArtifactVariantId ?? null;
+    },
+    get resolutionPolicy() {
+      return handle.resolutionPolicy;
     },
     get manifestHash() {
       return handle.manifestHash ?? null;

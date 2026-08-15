@@ -18,6 +18,13 @@ import {
   loadLoRAAdapterForPipeline,
   unloadLoRAAdapterForPipeline,
 } from './lora.js';
+import {
+  assertArtifactVariantAllowed,
+  assertExecutionAllowed,
+  assertExecutionMayStart,
+  assertUnreceiptedExecutionAllowed,
+  resolveResolutionPolicy,
+} from './resolution-policy.js';
 
 export function assertSupportedGenerationOptions(options = {}) {
   if (Array.isArray(options?.stopTokens) && options.stopTokens.length > 0) {
@@ -146,6 +153,7 @@ async function buildResolutionIdentity({
   resolvedRuntimeSessionId,
   activeAdapter,
   backendIdentity,
+  resolutionPolicy,
 }) {
   const resolvedModelId = cleanEvidenceString(modelId);
   const logicalId = cleanEvidenceString(logicalModelId);
@@ -169,6 +177,8 @@ async function buildResolutionIdentity({
     activeAdapter: cleanEvidenceString(activeAdapter),
     backendIdentity,
   };
+  const resolvedExecutionId = await hashEvidenceValue(executionIdentity);
+  assertExecutionAllowed(resolutionPolicy, resolvedExecutionId);
   return {
     resolvedModelId,
     resolvedArtifactVariantId,
@@ -179,7 +189,7 @@ async function buildResolutionIdentity({
       schema: RESOLUTION_IDENTITY_SCHEMA,
       logicalModelId: logicalId,
       resolvedArtifactVariantId,
-      resolvedExecutionId: await hashEvidenceValue(executionIdentity),
+      resolvedExecutionId,
     },
   };
 }
@@ -195,6 +205,7 @@ async function buildGenerationEvidence({
   activeAdapter,
   backendIdentity,
   stats,
+  resolutionPolicy,
 } = {}) {
   if (typeof outputText !== 'string') {
     throw new Error('Doppler generation evidence requires outputText.');
@@ -217,6 +228,7 @@ async function buildGenerationEvidence({
     resolvedRuntimeSessionId,
     activeAdapter,
     backendIdentity,
+    resolutionPolicy,
   });
   const runtimeProfile = {
     schema: RUNTIME_PROFILE_SCHEMA,
@@ -258,6 +270,7 @@ async function buildEmbeddingEvidence({
   activeAdapter,
   backendIdentity,
   stats,
+  resolutionPolicy,
 }) {
   const embedding = Array.from(result?.embedding || [], Number);
   if (embedding.length === 0 || embedding.some((value) => !Number.isFinite(value))) {
@@ -288,6 +301,7 @@ async function buildEmbeddingEvidence({
     resolvedRuntimeSessionId,
     activeAdapter,
     backendIdentity,
+    resolutionPolicy,
   });
   return {
     schema: EMBEDDING_EVIDENCE_SCHEMA,
@@ -400,7 +414,15 @@ function resolveInspectionGenerationOptions(options, policy) {
 }
 
 export function createModelHandle(pipeline, resolved) {
+  const resolutionPolicy = resolveResolutionPolicy(resolved.resolutionPolicy);
+  assertArtifactVariantAllowed(resolutionPolicy, resolved.manifestHash);
+  const assertRaw = (apiName) => assertUnreceiptedExecutionAllowed(
+    resolutionPolicy,
+    `Doppler model.${apiName}()`
+  );
+
   async function generateWithEvidence(prompt, options = {}) {
+    assertExecutionMayStart(resolutionPolicy);
     assertSupportedGenerationOptions(options);
     const generationConfig = resolveGenerationConfigEvidence(pipeline, options);
     const result = await pipeline.generateTokenIds(prompt, options);
@@ -426,10 +448,12 @@ export function createModelHandle(pipeline, resolved) {
       activeAdapter: getActiveLoRAForPipeline(pipeline),
       backendIdentity,
       stats,
+      resolutionPolicy,
     });
   }
 
   async function embedWithEvidence(prompt, options = {}) {
+    assertExecutionMayStart(resolutionPolicy);
     const result = await pipeline.embed(prompt, options);
     const stats = pipeline.getStats?.() || null;
     const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
@@ -450,10 +474,12 @@ export function createModelHandle(pipeline, resolved) {
       activeAdapter: getActiveLoRAForPipeline(pipeline),
       backendIdentity,
       stats,
+      resolutionPolicy,
     });
   }
 
   async function rerankWithEvidence(query, documents, options = {}) {
+    assertExecutionMayStart(resolutionPolicy);
     if (pipeline.manifest?.inference?.supportsRerank !== true) {
       throw new Error('Loaded Doppler manifest does not declare rerank support.');
     }
@@ -513,6 +539,7 @@ export function createModelHandle(pipeline, resolved) {
       resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
       activeAdapter: getActiveLoRAForPipeline(pipeline),
       backendIdentity,
+      resolutionPolicy,
     });
     return {
       schema: RERANK_EVIDENCE_SCHEMA,
@@ -532,15 +559,18 @@ export function createModelHandle(pipeline, resolved) {
 
   const handle = {
     generate(prompt, options = {}) {
+      assertRaw('generate');
       assertSupportedGenerationOptions(options);
       return pipeline.generate(prompt, options);
     },
     async generateText(prompt, options = {}) {
+      assertRaw('generateText');
       assertSupportedGenerationOptions(options);
       return collectText(pipeline.generate(prompt, options));
     },
     generateWithEvidence,
     chat(messages, options = {}) {
+      assertRaw('chat');
       assertSupportedGenerationOptions(options);
       return pipeline.generate(messages, options);
     },
@@ -562,29 +592,37 @@ export function createModelHandle(pipeline, resolved) {
       };
     },
     async embed(prompt, options = {}) {
+      assertRaw('embed');
       return pipeline.embed(prompt, options);
     },
     embedWithEvidence,
     async embedBatch(prompts, options = {}) {
+      assertRaw('embedBatch');
       return pipeline.embedBatch(prompts, options);
     },
     rerankWithEvidence,
     async encodeSequence(sequence, options = {}) {
+      assertRaw('encodeSequence');
       return pipeline.encodeSequence(sequence, options);
     },
     async embedImage(args = {}) {
+      assertRaw('embedImage');
       return pipeline.embedImage(args);
     },
     async embedAudio(args = {}) {
+      assertRaw('embedAudio');
       return pipeline.embedAudio(args);
     },
     async transcribeImage(args = {}) {
+      assertRaw('transcribeImage');
       return pipeline.transcribeImage(args);
     },
     async transcribeAudio(args = {}) {
+      assertRaw('transcribeAudio');
       return pipeline.transcribeAudio(args);
     },
     async transcribeVideo(args = {}) {
+      assertRaw('transcribeVideo');
       return pipeline.transcribeVideo(args);
     },
     get supportsEmbedding() {
@@ -643,6 +681,9 @@ export function createModelHandle(pipeline, resolved) {
         ? normalizeSha256Identity(resolved.manifestHash, 'manifestHash')
         : null;
     },
+    get resolutionPolicy() {
+      return resolutionPolicy;
+    },
     get manifestHash() {
       return resolved.manifestHash || null;
     },
@@ -660,6 +701,7 @@ export function createModelHandle(pipeline, resolved) {
         return tokenizeText(pipeline, text);
       },
       prefillKV(prompt, options = {}) {
+        assertRaw('advanced.prefillKV');
         assertSupportedGenerationOptions(options);
         return pipeline.prefillKVOnly(prompt, options);
       },
@@ -667,22 +709,27 @@ export function createModelHandle(pipeline, resolved) {
         return pipeline.resetToSeqLen(seqLen);
       },
       prefillWithLogits(prompt, options = {}) {
+        assertRaw('advanced.prefillWithLogits');
         assertSupportedGenerationOptions(options);
         return pipeline.prefillWithLogits(prompt, options);
       },
       prefillWithTokenLogits(prompt, tokenIds, options = {}) {
+        assertRaw('advanced.prefillWithTokenLogits');
         assertSupportedGenerationOptions(options);
         return pipeline.prefillWithTokenLogits(prompt, tokenIds, options);
       },
       prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options = {}) {
+        assertRaw('advanced.prefillWithTokenLogitsFromKV');
         assertSupportedGenerationOptions(options);
         return pipeline.prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options);
       },
       decodeStepLogits(currentIds, options = {}) {
+        assertRaw('advanced.decodeStepLogits');
         assertSupportedGenerationOptions(options);
         return pipeline.decodeStepLogits(currentIds, options);
       },
       generateWithPrefixKV(prefix, prompt, options = {}) {
+        assertRaw('advanced.generateWithPrefixKV');
         assertSupportedGenerationOptions(options);
         return pipeline.generateWithPrefixKV(prefix, prompt, options);
       },

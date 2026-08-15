@@ -18,6 +18,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DOPPLER_VERSION`
   - `DopplerGenerationResult`
   - `DopplerPromptInput`
+  - `DopplerResolutionPolicy`
   - `DopplerScopedGenerateOptions`
   - `DopplerScopedModelSession`
   - `dr`

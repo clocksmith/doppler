@@ -1,5 +1,6 @@
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { SourceStorageContext } from '../../tooling/source-runtime-bundle.js';
+import type { DopplerResolutionPolicy } from './resolution-policy.js';
 
 export interface DopplerLoadProgress {
   phase: 'resolve' | 'manifest' | 'cache' | 'load' | 'ready';
@@ -62,6 +63,7 @@ export interface DopplerLoadOptions {
   runtimeConfig?: Record<string, unknown>;
   isolatedLoader?: boolean;
   cache?: false | 'opfs';
+  resolutionPolicy?: DopplerResolutionPolicy | null;
 }
 
 export declare function createDefaultNodeLoadProgressLogger(): (event: DopplerLoadProgress) => void;

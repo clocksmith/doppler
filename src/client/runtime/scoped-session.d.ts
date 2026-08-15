@@ -3,10 +3,12 @@ import type { SequenceEncodeOptions, SequenceEncodeResult } from '../../inferenc
 import type {
   DopplerGenerateOptions,
   DopplerGenerationEvidence,
+  DopplerEmbeddingEvidence,
   DopplerModelHandle,
   DopplerModelInspectionReceipt,
 } from './model-session.js';
 import type { DopplerPersistentCacheReceipt } from './model-source.js';
+import type { ResolvedDopplerResolutionPolicy } from './resolution-policy.js';
 
 export type DopplerPromptInput = string | ChatMessage[] | { messages: ChatMessage[] };
 export type DopplerCapability =
@@ -86,6 +88,7 @@ export interface DopplerScopedModelSession {
   readonly modelId: string;
   readonly logicalModelId: string;
   readonly resolvedArtifactVariantId: `sha256:${string}` | null;
+  readonly resolutionPolicy: ResolvedDopplerResolutionPolicy;
   readonly manifestHash: string | null;
   readonly persistentCache: DopplerPersistentCacheReceipt | null;
   readonly manifest: unknown;
@@ -103,7 +106,7 @@ export interface DopplerScopedModelSession {
       onEvent?: (event: { type: 'inspection-complete'; receipt: DopplerModelInspectionReceipt }) => void;
     }
   ): Promise<DopplerModelInspectionReceipt>;
-  embed(input: string, options?: Record<string, unknown>): Promise<unknown>;
+  embed(input: string, options?: Record<string, unknown>): Promise<DopplerEmbeddingEvidence>;
   encodeSequence(sequence: string, options?: SequenceEncodeOptions): Promise<SequenceEncodeResult>;
   loadLoRA(adapter: unknown, options?: Record<string, unknown>): Promise<void>;
   unloadLoRA(): Promise<void>;

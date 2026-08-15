@@ -102,6 +102,7 @@ Returns a `DopplerModel` instance with:
 - experimental `unloadLoRA()`
 - `unload()`
 - `manifestHash`
+- `resolutionPolicy` (the normalized, immutable caller authorization policy)
 - `persistentCache` (`null` or the verified OPFS cache receipt)
 - `inspect.listPolicies()`
 - `inspect.generate(prompt, options)`
@@ -237,6 +238,31 @@ application requested, the artifact-variant ID is the verified manifest digest,
 and the execution ID binds the resolved runtime-session and observed backend.
 Missing artifact or runtime-session digests fail closed. The receipt records
 what ran; it does not by itself establish semantic correctness or output quality.
+
+`dr.load()` accepts a fail-closed `resolutionPolicy` with
+`allowedArtifactVariantIds` and `allowedExecutionIds`. Each field is either an
+array of exact `sha256:` identities, `null`/omitted for unrestricted resolution,
+or an empty array to reject every alternative. Unknown fields and malformed
+identities are errors.
+
+```js
+const model = await dr.load('qwen3-0.8b', {
+  resolutionPolicy: {
+    allowedArtifactVariantIds: [approvedArtifactId],
+    allowedExecutionIds: [approvedExecutionId],
+  },
+});
+
+const evidence = await model.generateWithEvidence('Describe WebGPU briefly');
+```
+
+Artifact authorization runs against the verified manifest digest before weight
+loading. Execution authorization runs against the final evidence identity, so
+an observed fallback or backend change cannot return an unauthorized result.
+When `allowedExecutionIds` is configured, use `generateWithEvidence()`,
+`embedWithEvidence()`, `rerankWithEvidence()`, `chatText()`, or scoped
+evidence-bearing operations. Raw streaming and low-level execution calls reject
+instead of exposing output before the final identity can be verified.
 
 Embedding handles expose `embedWithEvidence()`. Each returned
 `doppler_embedding_evidence/v1` record preserves the normal embedding result

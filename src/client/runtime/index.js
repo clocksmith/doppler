@@ -29,6 +29,10 @@ import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embe
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { initDevice } from '../../gpu/device.js';
 import { createScopedModelSession } from './scoped-session.js';
+import {
+  assertArtifactVariantAllowed,
+  resolveResolutionPolicy,
+} from './resolution-policy.js';
 
 function emitLoadProgress(callback, phase, percent, message) {
   if (typeof callback !== 'function') return;
@@ -44,6 +48,7 @@ function assertDopplerOptions(options, apiName) {
     || options.runtimeProfile !== undefined
     || options.runtimeConfigUrl !== undefined
     || options.cache !== undefined
+    || options.resolutionPolicy !== undefined
   ) {
     throw new Error(
       `${apiName} does not accept load-affecting options. Use doppler.load(model, options) instead.`
@@ -170,6 +175,7 @@ export function createDopplerRuntimeService({
 
   async function load(model, options = {}) {
     assertPersistentCacheMode(options.cache);
+    const resolutionPolicy = resolveResolutionPolicy(options.resolutionPolicy);
     const { userProgress, pipelineProgress } = resolveLoadProgressHandlers(options, defaultLoadProgressLogger);
 
     emitLoadProgress(userProgress, 'resolve', 5, 'Resolving model');
@@ -198,6 +204,7 @@ export function createDopplerRuntimeService({
         return { text, manifest: resolved.manifest, manifestHash };
       })()
       : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);
+    assertArtifactVariantAllowed(resolutionPolicy, manifestPayload.manifestHash);
     const resolvedArtifactSource = persistentSource
       ? {
         ...resolved,
@@ -283,6 +290,7 @@ export function createDopplerRuntimeService({
       ...resolved,
       manifestHash: manifestPayload.manifestHash,
       persistentCache: loadSource.persistentCache ?? null,
+      resolutionPolicy,
     });
   }
 
@@ -319,6 +327,7 @@ export function createDopplerRuntimeService({
       isolatedLoader,
       onProgress,
       runtimeConfig,
+      resolutionPolicy,
       ...generationOptions
     } = options;
     const session = await open(model, {
@@ -326,6 +335,7 @@ export function createDopplerRuntimeService({
       isolatedLoader,
       onProgress,
       runtimeConfig,
+      resolutionPolicy,
     });
     try {
       return await session.generate(input, generationOptions);

@@ -8,6 +8,7 @@ export {
 } from './client/doppler-api.js';
 export type {
   DopplerGenerationResult,
+  DopplerResolutionPolicy,
   DopplerPromptInput,
   DopplerScopedGenerateOptions,
   DopplerScopedModelSession,

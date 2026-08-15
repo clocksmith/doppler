@@ -1,4229 +1,4229 @@
 {
-  "schema": "doppler.rule-bundle/v1",
-  "sources": [
-    {
-      "path": "converter/execution.rules.json",
-      "digest": "sha256:ae259e6ea2ed52fa20b76f899de7f78c239cf23c261cc11c8540c3f1b070a4c0"
-    },
-    {
-      "path": "converter/tensor-roles.rules.json",
-      "digest": "sha256:5eed33348fe59c55d779fad81e87d045337e75c678e54da64a240d8b589e2f57"
-    },
-    {
-      "path": "converter/tokenizer.rules.json",
-      "digest": "sha256:5985376bfa9bfacc3bba877407e7be1c10554fda74ea73c2dc18b96ca4827a15"
-    },
-    {
-      "path": "inference/attention.rules.json",
-      "digest": "sha256:3089278056e554c053dc2086942786cec1b20dff9f83f9908b82f9333c34c566"
-    },
-    {
-      "path": "inference/config.rules.json",
-      "digest": "sha256:c774e14366d68cab96fa64c91000237ffed46fa9aacac3ebb10969102e3f279e"
-    },
-    {
-      "path": "inference/dtype.rules.json",
-      "digest": "sha256:e990acb12b1666ced2566f2cb332c8f49a8511bb25cbb1f70ff2a5aa4183c40b"
-    },
-    {
-      "path": "inference/execution.rules.json",
-      "digest": "sha256:269ba92d1615f607b94a7b8034ed9cb41561fb046aa03d96ad3ffb81c39c7162"
-    },
-    {
-      "path": "inference/ffn.rules.json",
-      "digest": "sha256:3aa3c66dcc3d154158d2fc59dc94165bbb47955c7c017612568f6825a995b260"
-    },
-    {
-      "path": "inference/layer-pattern.rules.json",
-      "digest": "sha256:c3fe086f991b2c89d0eacf6f21c169c97f30ef87a669e1fed83729da4f7f7c7e"
-    },
-    {
-      "path": "inference/layer.rules.json",
-      "digest": "sha256:4cd14673e534ed8f03779ee7396c637225f5cf4183977269526ac887d918b70a"
-    },
-    {
-      "path": "inference/moe.rules.json",
-      "digest": "sha256:2e0f6a2a2c079f93dc0d66bbe7424fff35b82b3ef3bae2f83805794ef4aeae97"
-    },
-    {
-      "path": "kernels/attention.rules.json",
-      "digest": "sha256:d26958ed2b0cd85cca8f4a20d4562fc1c994b375fa536fc202e17882ec187229"
-    },
-    {
-      "path": "kernels/conv2d.rules.json",
-      "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
-    },
-    {
-      "path": "kernels/depthwise-conv2d.rules.json",
-      "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
-    },
-    {
-      "path": "kernels/dequant.rules.json",
-      "digest": "sha256:a35d693164b8938e2de4c5185977d72eeeeecb095f91e44f87d9b88ad24c4650"
-    },
-    {
-      "path": "kernels/energy.rules.json",
-      "digest": "sha256:6a3e6975064228896abd1abd3500e2e4f05d87cb7a54f447456f7acddcc60e50"
-    },
-    {
-      "path": "kernels/fused-ffn.rules.json",
-      "digest": "sha256:cd5d0b36d51b3f036eb62596b039103307d27acc5447933632d99e3aa9bf8c79"
-    },
-    {
-      "path": "kernels/fused-matmul-residual.rules.json",
-      "digest": "sha256:cf5433a5d416705d3f04b9321e560d959a37b40c3f282e1ff058134244605ba7"
-    },
-    {
-      "path": "kernels/fused-matmul-rmsnorm.rules.json",
-      "digest": "sha256:6a5aca1f92300e35f8371fb13a05963c54ac56730cc4bedc93b2bc5d8d9b2e16"
-    },
-    {
-      "path": "kernels/gather.rules.json",
-      "digest": "sha256:041df41e7cfdf9e689c9b3fa38fd6dba173eb308d652ac76b4cd3e08ceb909a4"
-    },
-    {
-      "path": "kernels/gelu.rules.json",
-      "digest": "sha256:ead4f5f4216c9c0eeaf3e01d084d501bc66f314a956ffad442ca84160ee48d99"
-    },
-    {
-      "path": "kernels/grouped-pointwise-conv2d.rules.json",
-      "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
-    },
-    {
-      "path": "kernels/groupnorm.rules.json",
-      "digest": "sha256:019810e2473fdeb748c04aa92ffb247a3cac7b0bba890ed7fefb5f3061168040"
-    },
-    {
-      "path": "kernels/kv_quantize.rules.json",
-      "digest": "sha256:f0a56bea79a43bad2fd257aa36aa38a2afc16b583b20ed28fa7819e65120fece"
-    },
-    {
-      "path": "kernels/layernorm.rules.json",
-      "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
-    },
-    {
-      "path": "kernels/linear-attention.rules.json",
-      "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
-    },
-    {
-      "path": "kernels/lm-head-argmax.rules.json",
-      "digest": "sha256:a265a2cb85f96b869110fe1761798c8c9b274c9a4d0c73ec452743dfcdad176d"
-    },
-    {
-      "path": "kernels/matmul.rules.json",
-      "digest": "sha256:5e8877bd12eafab5eb3e071d85dd1a27c992e427886d6108432da24cb2122b6e"
-    },
-    {
-      "path": "kernels/modulate.rules.json",
-      "digest": "sha256:29b89188774997a0c32e4722d104a6a90c64fac88a89d623a86103df40321213"
-    },
-    {
-      "path": "kernels/moe.rules.gptoss.json",
-      "digest": "sha256:8471e2a19890e45d8be6431491e98c11520598f5e98b8ac8a28977bfbeec7966"
-    },
-    {
-      "path": "kernels/moe.rules.json",
-      "digest": "sha256:ef6bda6b2e6ef8f889c34d99c157295297375a5845f40cf7b90ea67daec36ae2"
-    },
-    {
-      "path": "kernels/moe.rules.mixtral.json",
-      "digest": "sha256:16454ff88c7bf99d0f66cb704b6d60b7f63850e378acda3cef6c2ffde21c2def"
-    },
-    {
-      "path": "kernels/pixel_shuffle.rules.json",
-      "digest": "sha256:cf5433a5d416705d3f04b9321e560d959a37b40c3f282e1ff058134244605ba7"
-    },
-    {
-      "path": "kernels/relu.rules.json",
-      "digest": "sha256:87256e54451a2834f42dcc4aa392dfdabfcdaf694fb8d01e10dcc661bbc8526c"
-    },
-    {
-      "path": "kernels/rep-penalty.rules.json",
-      "digest": "sha256:a8eba10370f282536e6b741895ea481f0c8ae33a7379e03a4f40812f26652f08"
-    },
-    {
-      "path": "kernels/repeat-channels.rules.json",
-      "digest": "sha256:87256e54451a2834f42dcc4aa392dfdabfcdaf694fb8d01e10dcc661bbc8526c"
-    },
-    {
-      "path": "kernels/residual.rules.json",
-      "digest": "sha256:f801dc9c88e34086261dfeb7c5dc74c8c1d7b18085e9b6fdb2ede597e5827a5e"
-    },
-    {
-      "path": "kernels/rmsnorm-qk.rules.json",
-      "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
-    },
-    {
-      "path": "kernels/rmsnorm.rules.json",
-      "digest": "sha256:fa5872e9d5bd9912775d45c678075d3e17221b0f8693366a3999c4322c503b2c"
-    },
-    {
-      "path": "kernels/rope-qk.rules.json",
-      "digest": "sha256:a8eba10370f282536e6b741895ea481f0c8ae33a7379e03a4f40812f26652f08"
-    },
-    {
-      "path": "kernels/rope.rules.json",
-      "digest": "sha256:a8eba10370f282536e6b741895ea481f0c8ae33a7379e03a4f40812f26652f08"
-    },
-    {
-      "path": "kernels/sample.rules.json",
-      "digest": "sha256:a988a3759bfa0d71752fb73031a49bc5b1783fb290bcdf756ed4efa706a49071"
-    },
-    {
-      "path": "kernels/scale.rules.json",
-      "digest": "sha256:53ce216b17a6a8d5866b48afaf09c7c307258121d6e4d37910f4ddb9bbb11d08"
-    },
-    {
-      "path": "kernels/silu.rules.json",
-      "digest": "sha256:03adb9334c1825f65e12f6af440d4837d7fe94d2772d67eb7c4e1a9abf787eaa"
-    },
-    {
-      "path": "kernels/softmax.rules.json",
-      "digest": "sha256:a71d5119bde8e08096920558a2e49a167aa5916524a567c5822c3d78a1abee7b"
-    },
-    {
-      "path": "kernels/split-qg.rules.json",
-      "digest": "sha256:d05077d4fc6cd001b956ca3fa8cc060c9e58ad4525d4db1e8c06860277e0d748"
-    },
-    {
-      "path": "kernels/split-qkv.rules.json",
-      "digest": "sha256:d05077d4fc6cd001b956ca3fa8cc060c9e58ad4525d4db1e8c06860277e0d748"
-    },
-    {
-      "path": "kernels/upsample2d.rules.json",
-      "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
-    },
-    {
-      "path": "loader/tensor-loader.rules.json",
-      "digest": "sha256:61bafd04ae60d45f478976f09df6a910b0ed750877008d2edb3b23659c972ead"
-    },
-    {
-      "path": "loader/weights.rules.json",
-      "digest": "sha256:121e76226c214d8aa30a2f4e1076488b207a31e8d5be86d8c08a2ae1df939ca3"
-    },
-    {
-      "path": "tooling/command-runtime.rules.json",
-      "digest": "sha256:4e191b70019913dc315ae18fa408ea729675dfca48c4815989475c52a64ea2b0"
-    }
-  ],
-  "files": {
-    "converter/execution.rules.json": {
-      "jobMode": [
-        {
-          "match": {
-            "workers": {
-              "lte": 1
-            }
-          },
-          "value": "main"
-        },
-        {
-          "match": {
-            "canChunkRows": true
-          },
-          "value": "row_chunks"
-        },
-        {
-          "match": {},
-          "value": "tensor"
-        }
-      ],
-      "rowChunkRows": [
-        {
-          "match": {
-            "canChunkRows": false
-          },
-          "value": 0
-        },
-        {
-          "match": {
-            "workers": {
-              "lte": 2
-            }
-          },
-          "value": 256
-        },
-        {
-          "match": {
-            "workers": {
-              "lte": 16
-            }
-          },
-          "value": 512
-        },
-        {
-          "match": {},
-          "value": 768
-        }
-      ],
-      "maxInFlightJobs": [
-        {
-          "match": {
-            "workers": {
-              "lte": 2
-            }
-          },
-          "value": 4
-        },
-        {
-          "match": {
-            "workers": {
-              "lte": 4
-            }
-          },
-          "value": 8
-        },
-        {
-          "match": {
-            "workers": {
-              "lte": 8
-            }
-          },
-          "value": 16
-        },
-        {
-          "match": {
-            "workers": {
-              "lte": 16
-            }
-          },
-          "value": 24
-        },
-        {
-          "match": {},
-          "value": 32
-        }
-      ]
-    },
-    "converter/tensor-roles.rules.json": {
-      "shouldQuantize": [
-        {
-          "match": {
-            "numElements": {
-              "lt": 1024
-            }
-          },
-          "value": false
-        },
-        {
-          "match": {
-            "role": "embedding",
-            "quantizeEmbeddings": true
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "role": "embedding"
-          },
-          "value": false
-        },
-        {
-          "match": {
-            "role": "lm_head",
-            "quantizeEmbeddings": true
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "role": "lm_head"
-          },
-          "value": false
-        },
-        {
-          "match": {
-            "role": "norm"
-          },
-          "value": false
-        },
-        {
-          "match": {
-            "role": "router"
-          },
-          "value": false
-        },
-        {
-          "match": {
-            "isBias": true
-          },
-          "value": false
-        },
-        {
-          "match": {},
-          "value": true
-        }
-      ]
-    },
-    "converter/tokenizer.rules.json": {
-      "type": [
-        {
-          "match": {
-            "isLiteRTPieceList": true
-          },
-          "value": "bpe"
-        },
-        {
-          "match": {
-            "hasMerges": true
-          },
-          "value": "bpe"
-        },
-        {
-          "match": {
-            "hasScores": true
-          },
-          "value": "unigram"
-        },
-        {
-          "match": {},
-          "value": "bpe"
-        }
-      ],
-      "addDummyPrefix": [
-        {
-          "match": {
-            "isLiteRTPieceList": true
-          },
-          "value": false
-        },
-        {
-          "match": {},
-          "value": true
-        }
-      ]
-    },
-    "inference/attention.rules.json": {
-      "useFusedQkv": [
-        {
-          "match": {
-            "hasQkvProj": true,
-            "hasQkvSizes": true,
-            "hasLoRA": false
-          },
-          "value": true
-        },
-        {
-          "match": {},
-          "value": false
-        }
-      ],
-      "useFusedOProjResidual": [
-        {
-          "match": {
-            "allowFusedResidual": true,
-            "hasResidual": true,
-            "residualMatches": true,
-            "attnIsF32": true,
-            "hasLoRA": false,
-            "oProjIsF16": true
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "allowFusedResidual": true,
-            "hasResidual": true,
-            "residualMatches": true,
-            "attnIsF16": true,
-            "hasLoRA": false,
-            "oProjIsF16": true
-          },
-          "value": true
-        },
-        {
-          "match": {},
-          "value": false
-        }
-      ],
-      "attentionKernelVariant": [
-        {
-          "match": {
-            "kvLayout": "tiered",
-            "numTokens": {
-              "gt": 1
-            }
-          },
-          "value": "contiguous"
-        },
-        {
-          "match": {
-            "kvLayout": "bdpa"
-          },
-          "value": "bdpa"
-        },
-        {
-          "match": {
-            "kvLayout": "contiguous_quantized",
-            "numTokens": {
-              "gt": 1
-            }
-          },
-          "value": "contiguous"
-        },
-        {
-          "match": {
-            "kvLayout": "contiguous_quantized"
-          },
-          "value": "contiguousQuant"
-        },
-        {
-          "match": {
-            "kvLayout": "tiered",
-            "coldQuantMode": {
-              "neq": "none"
-            }
-          },
-          "value": "tieredQuant"
-        },
-        {
-          "match": {
-            "kvLayout": "tiered"
-          },
-          "value": "tiered"
-        },
-        {
-          "match": {},
-          "value": "contiguous"
-        }
-      ]
-    },
-    "inference/config.rules.json": {
-      "hiddenActivation": [
-        {
-          "match": {
-            "activation": {
-              "in": [
-                "silu",
-                "swiglu"
-              ]
-            }
-          },
-          "value": "silu"
-        },
-        {
-          "match": {
-            "activation": {
-              "in": [
-                "gelu",
-                "geglu"
-              ]
-            }
-          },
-          "value": "gelu"
-        },
-        {
-          "match": {},
-          "value": "silu"
-        }
-      ],
-      "tracePath": [
-        {
-          "match": {
-            "useRecorder": true
-          },
-          "value": "fused"
-        },
-        {
-          "match": {},
-          "value": "debug-sync"
-        }
-      ],
-      "pipelineModules": [
-        {
-          "match": {
-            "modelTypeLower": {
-              "in": [
-                "diffusion_gemma"
-              ]
-            }
-          },
-          "value": [
-            "./diffusion-gemma/pipeline.js"
-          ]
-        },
-        {
-          "match": {
-            "modelTypeLower": {
-              "in": [
-                "diffusion"
-              ]
-            }
-          },
-          "value": [
-            "./diffusion/pipeline.js"
-          ]
-        },
-        {
-          "match": {
-            "modelTypeLower": {
-              "in": [
-                "energy"
-              ]
-            }
-          },
-          "value": [
-            "./energy/pipeline.js"
-          ]
-        },
-        {
-          "match": {
-            "modelTypeLower": {
-              "in": [
-                "dream_structured",
-                "dream_intent_posterior_head",
-                "dream_d1_to2_bridge",
-                "dream_synthesis",
-                "dream_energy_compose",
-                "structured_json_head",
-                "structured-json-head",
-                "dream-intent-posterior-head",
-                "dream-d1-to2-bridge",
-                "dream-synthesis",
-                "dream-energy-compose"
-              ]
-            }
-          },
-          "value": [
-            "./structured/json-head-pipeline.js"
-          ]
-        },
-        {
-          "match": {
-            "modelTypeLower": {
-              "in": [
-                "energy_row_head",
-                "energy-row-head",
-                "dream_energy_head",
-                "dream-energy-head",
-                "d1-to2-bridge-diffusion",
-                "synthesis-mixer-diffusion",
-                "ebrm-diffusion"
-              ]
-            }
-          },
-          "value": [
-            "./energy-head/row-head-pipeline.js"
-          ]
-        },
-        {
-          "match": {},
-          "value": []
-        }
-      ],
-      "embeddingSemanticStyle": [
-        {
-          "match": {
-            "manifestModelType": "embeddinggemma"
-          },
-          "value": "embeddinggemma"
-        },
-        {
-          "match": {
-            "modelType": "embedding",
-            "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B"
-          },
-          "value": "qwen3_embedding"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ],
-      "stableF32Logits": [
-        {
-          "match": {
-            "inputDtype": "f16",
-            "finalLogitSoftcapping": {
-              "gt": 0
-            }
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "inputDtype": "f16",
-            "rmsNormWeightOffset": true,
-            "hiddenSize": {
-              "lte": 768
-            }
-          },
-          "value": true
-        },
-        {
-          "match": {},
-          "value": false
-        }
-      ]
-    },
-    "inference/dtype.rules.json": {
-      "f16OrF32": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "dtypeFromAlias": [
-        {
-          "match": {
-            "dtype": "bf16"
-          },
-          "value": "bf16"
-        },
-        {
-          "match": {
-            "dtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "dtype": "fp16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "dtype": "float16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "dtype": "f32"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "dtype": "fp32"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "dtype": "float32"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "f16OrF32FromDtype": [
-        {
-          "match": {
-            "dtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "dtype": "f32"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "embeddingDtype": [
-        {
-          "match": {
-            "dtype": "litert_int4"
-          },
-          "value": "litert_int4"
-        },
-        {
-          "match": {
-            "dtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "f16OrF32FromDtypeAlias": [
-        {
-          "match": {
-            "dtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "dtype": "bf16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "dtype": "fp16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "dtype": "float16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "dtype": "f32"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "dtype": "fp32"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "dtype": "float32"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "f16OrF32FromBytes": [
-        {
-          "match": {
-            "bytesPerElement": {
-              "lte": 2
-            }
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "f16OrF32FromBytesOrFallback": [
-        {
-          "match": {
-            "bytesPerElement": {
-              "lt": 3
-            }
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "f16OrF32FromToken": [
-        {
-          "match": {
-            "token": "F16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "f16IfCap": [
-        {
-          "match": {
-            "hasF16": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "bothF16": [
-        {
-          "match": {
-            "aDtype": "f16",
-            "bDtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "diffusionActivationDtype": [
-        {
-          "match": {
-            "requested": "f16",
-            "hasF16": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "f16OrFallback": [
-        {
-          "match": {
-            "kvDtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "f16OrFallbackByFlag": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "attentionProjectionOutputDtype": [
-        {
-          "match": {
-            "forceF32": true
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "bytesPerElement": [
-        {
-          "match": {
-            "dtype": "f16"
-          },
-          "value": 2
-        },
-        {
-          "match": {
-            "dtype": "bf16"
-          },
-          "value": 2
-        },
-        {
-          "match": {
-            "dtype": "f32"
-          },
-          "value": 4
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "dtypeFromSize": [
-        {
-          "match": {
-            "bytesPerElement": 2
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "bytesPerElement": 4
-          },
-          "value": "f32"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "bytesFromDtype": [
-        {
-          "match": {
-            "dtype": "f16"
-          },
-          "value": 2
-        },
-        {
-          "match": {
-            "dtype": "bf16"
-          },
-          "value": 2
-        },
-        {
-          "match": {
-            "dtype": "f32"
-          },
-          "value": 4
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "matmulDtype": [
-        {
-          "match": {
-            "dtype": {
-              "in": [
-                "f16",
-                "bf16"
-              ]
-            }
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "dtype": "f32"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "dtype": "q4k"
-          },
-          "value": "q4k"
-        },
-        {
-          "match": {
-            "dtype": "litert_int4"
-          },
-          "value": "litert_int4"
-        },
-        {
-          "match": {
-            "dtype": "w4a16"
-          },
-          "value": "w4a16"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "fallback"
-          }
-        }
-      ],
-      "logitsDtype": [
-        {
-          "match": {
-            "logitsDtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "kvCacheDtype": [
-        {
-          "match": {
-            "forceF32": true
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "requested": "f16",
-            "useGPU": true,
-            "hasF16": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "requested": "f16"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "requested": "f32"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "lmHeadChunkWeightDtype": [
-        {
-          "match": {
-            "preferF16": true,
-            "lmHeadDtype": "f16",
-            "hasF16": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ]
-    },
-    "inference/execution.rules.json": {
-      "decodeRecorderEnabled": [
-        {
-          "match": {
-            "hasDevice": true,
-            "debug": false,
-            "disableCommandBatching": false,
-            "kvLayout": {
-              "neq": "bdpa_paged"
-            }
-          },
-          "value": true
-        },
-        {
-          "match": {},
-          "value": false
-        }
-      ],
-      "profileDecodeRecorderEnabled": [
-        {
-          "match": {
-            "hasDevice": true,
-            "debug": false,
-            "kvLayout": {
-              "neq": "bdpa_paged"
-            }
-          },
-          "value": true
-        },
-        {
-          "match": {},
-          "value": false
-        }
-      ],
-      "batchDecodeEnabled": [
-        {
-          "match": {
-            "batchSize": {
-              "gt": 1
-            },
-            "useGPU": true,
-            "gpuSamplingAvailable": true,
-            "disableMultiTokenDecode": {
-              "neq": true
-            },
-            "disableCommandBatching": false,
-            "isBdpaPagedLayout": false,
-            "finitenessFallbackWindowOpen": false,
-            "hasLinearAttentionLayers": false,
-            "hasRangeBackedPerLayerInputs": false
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "batchSize": {
-              "gt": 1
-            },
-            "useGPU": true,
-            "gpuSamplingAvailable": true,
-            "disableMultiTokenDecode": {
-              "neq": true
-            },
-            "disableCommandBatching": false,
-            "isBdpaPagedLayout": false,
-            "finitenessFallbackWindowOpen": false,
-            "hasLinearAttentionLayers": false,
-            "hasRangeBackedPerLayerInputs": true,
-            "selfSpeculationEnabled": false
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "batchSize": {
-              "gt": 1
-            },
-            "useGPU": true,
-            "gpuSamplingAvailable": true,
-            "disableMultiTokenDecode": {
-              "neq": true
-            },
-            "disableCommandBatching": false,
-            "isBdpaPagedLayout": false,
-            "finitenessFallbackWindowOpen": false,
-            "hasLinearAttentionLayers": true,
-            "hasRangeBackedPerLayerInputs": false
-          },
-          "value": true
-        },
-        {
-          "match": {},
-          "value": false
-        }
-      ],
-      "maxBatchDecodeTokens": [
-        {
-          "match": {
-            "hasHotVocabularyBatchDecode": true
-          },
-          "value": 1
-        },
-        {
-          "match": {
-            "hasLinearAttentionLayers": true
-          },
-          "value": 32
-        },
-        {
-          "match": {
-            "hasGpuSplitPerLayerInputs": true,
-            "currentSeqLen": {
-              "gte": 192
-            }
-          },
-          "value": 2
-        },
-        {
-          "match": {
-            "hasGpuSplitPerLayerInputs": true,
-            "maxDecodeTokens": {
-              "gt": 16
-            }
-          },
-          "value": 16
-        },
-        {
-          "match": {
-            "hasGpuSplitPerLayerInputs": true
-          },
-          "value": 8
-        },
-        {
-          "match": {
-            "modelId": {
-              "in": [
-                "gemma-4-12b-it-text-q4k-ehf16-af16",
-                "gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
-                "gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
-              ]
-            },
-            "activationDtype": "f16",
-            "numLayers": {
-              "gte": 48
-            },
-            "hiddenSize": {
-              "gte": 3840
-            },
-            "maxDecodeTokens": {
-              "gt": 8
-            }
-          },
-          "value": 8
-        },
-        {
-          "match": {
-            "numLayers": {
-              "gte": 48
-            },
-            "hiddenSize": {
-              "gte": 3840
-            },
-            "maxDecodeTokens": {
-              "gt": 16
-            }
-          },
-          "value": 16
-        },
-        {
-          "match": {},
-          "value": null
-        }
-      ],
-      "prefillRecorderChunkLayers": [
-        {
-          "match": {
-            "hasGpuSplitPerLayerInputs": true,
-            "numTokens": {
-              "lte": 32
-            }
-          },
-          "value": 8
-        },
-        {
-          "match": {},
-          "value": 4
-        }
-      ],
-      "finitenessFallbackActivationDtype": [
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ]
-    },
-    "inference/ffn.rules.json": {
-      "activationOp": [
-        {
-          "match": {
-            "hiddenActivation": "gelu"
-          },
-          "value": "gelu"
-        },
-        {
-          "match": {},
-          "value": "silu"
-        }
-      ],
-      "useFusedGateUp": [
-        {
-          "match": {
-            "hasGate": true,
-            "hasUp": true,
-            "hasDown": true,
-            "hasFusedWeights": false,
-            "inputIsSupported": true,
-            "hasLoRA": false,
-            "dtypeMatches": true,
-            "dtypeSupported": true,
-            "weightDtype": "f16",
-            "activationDtype": "f16",
-            "f16BatchSupported": true
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "hasGate": true,
-            "hasUp": true,
-            "hasDown": true,
-            "hasFusedWeights": false,
-            "inputIsSupported": true,
-            "hasLoRA": false,
-            "dtypeMatches": true,
-            "dtypeSupported": true,
-            "weightDtype": "f16",
-            "activationDtype": "f32",
-            "useLargeBatchF16F32FusedGateUp": true,
-            "batchSize": {
-              "gt": 4
-            }
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "hasGate": true,
-            "hasUp": true,
-            "hasDown": true,
-            "hasFusedWeights": false,
-            "inputIsSupported": true,
-            "hasLoRA": false,
-            "dtypeMatches": true,
-            "dtypeSupported": true,
-            "weightDtype": "f16",
-            "activationDtype": "f32",
-            "batchSize": {
-              "lte": 4
-            }
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "hasGate": true,
-            "hasUp": true,
-            "hasDown": true,
-            "hasFusedWeights": false,
-            "inputIsSupported": true,
-            "hasLoRA": false,
-            "dtypeMatches": true,
-            "dtypeSupported": true,
-            "weightDtype": "q4k",
-            "activationDtype": "f16",
-            "hiddenSizeAligned32": true,
-            "batchSize": {
-              "lte": 4
-            },
-            "useDoubleWideMlp": false
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "hasGate": true,
-            "hasUp": true,
-            "hasDown": true,
-            "hasFusedWeights": false,
-            "inputIsSupported": true,
-            "hasLoRA": false,
-            "dtypeMatches": true,
-            "dtypeSupported": true,
-            "weightDtype": "q4k",
-            "activationDtype": "f32",
-            "hiddenSizeAligned32": true,
-            "batchSize": {
-              "lte": 4
-            },
-            "useDoubleWideMlp": false
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "hasGate": true,
-            "hasUp": true,
-            "hasDown": true,
-            "hasFusedWeights": false,
-            "inputIsSupported": true,
-            "hasLoRA": false,
-            "dtypeMatches": true,
-            "dtypeSupported": true,
-            "hasQ4KMaterialization": true,
-            "activationDtype": "f32",
-            "hiddenSizeAligned32": true,
-            "batchSize": {
-              "lte": 4
-            },
-            "useDoubleWideMlp": false
-          },
-          "value": true
-        },
-        {
-          "match": {},
-          "value": false
-        }
-      ]
-    },
-    "inference/layer-pattern.rules.json": {
-      "patternKind": [
-        {
-          "match": {
-            "patternType": "alternating",
-            "globalPattern": "even"
-          },
-          "value": "alternating_even"
-        },
-        {
-          "match": {
-            "patternType": "alternating",
-            "globalPattern": "odd"
-          },
-          "value": "alternating_odd"
-        },
-        {
-          "match": {
-            "patternType": "every_n"
-          },
-          "value": "every_n"
-        },
-        {
-          "match": {},
-          "value": null
-        }
-      ],
-      "layerType": [
-        {
-          "match": {
-            "patternKind": "alternating_even",
-            "isEven": true
-          },
-          "value": "full_attention"
-        },
-        {
-          "match": {
-            "patternKind": "alternating_even"
-          },
-          "value": "sliding_attention"
-        },
-        {
-          "match": {
-            "patternKind": "alternating_odd",
-            "isEven": false
-          },
-          "value": "full_attention"
-        },
-        {
-          "match": {
-            "patternKind": "alternating_odd"
-          },
-          "value": "sliding_attention"
-        },
-        {
-          "match": {
-            "patternKind": "every_n",
-            "isStride": true
-          },
-          "value": "full_attention"
-        },
-        {
-          "match": {
-            "patternKind": "every_n"
-          },
-          "value": "sliding_attention"
-        }
-      ]
-    },
-    "inference/layer.rules.json": {
-      "ffnMode": [
-        {
-          "match": {
-            "variant": "moe"
-          },
-          "value": true
-        },
-        {
-          "match": {
-            "variant": "auto",
-            "canAutoMoe": true
-          },
-          "value": true
-        },
-        {
-          "match": {},
-          "value": false
-        }
-      ]
-    },
-    "inference/moe.rules.json": {
-      "executionProfile": [
-        {
-          "match": {
-            "expertFormat": "gpt-oss"
-          },
-          "value": {
-            "id": "gpt-oss-mxfp4",
-            "label": "GPT-OSS MXFP4 experts",
-            "expertExecutor": "gpt-oss",
-            "intermediateSizeSource": "architecture",
-            "requiresShaderF16": true,
-            "routerScaleMode": "none",
-            "topkRouteExecutor": null,
-            "vendorProfile": {
-              "kind": "rule",
-              "domain": "kernels",
-              "group": "moeGptoss",
-              "name": "vendorQuirkProfile"
-            },
-            "kernelPathProfileResolver": "gpt-oss",
-            "kernelRuleModelType": "gpt-oss",
-            "shapePolicy": {
-              "kind": "rule",
-              "domain": "kernels",
-              "group": "moeGptoss",
-              "name": "shapePolicy"
-            }
-          }
-        },
-        {
-          "match": {
-            "expertFormat": "mixtral"
-          },
-          "value": {
-            "id": "mixtral-dense",
-            "label": "Mixtral dense experts",
-            "expertExecutor": "mixtral",
-            "intermediateSizeSource": "architecture",
-            "requiresShaderF16": false,
-            "routerScaleMode": "none",
-            "topkRouteExecutor": null,
-            "vendorProfile": {
-              "kind": "rule",
-              "domain": "kernels",
-              "group": "moeMixtral",
-              "name": "vendorQuirkProfile"
-            },
-            "kernelPathProfileResolver": "mixtral",
-            "kernelRuleModelType": "mixtral",
-            "shapePolicy": null
-          }
-        },
-        {
-          "match": {
-            "modelType": "diffusion_gemma",
-            "expertFormat": "gemma4"
-          },
-          "value": {
-            "id": "diffusion-gemma-packed",
-            "label": "DiffusionGemma packed experts",
-            "expertExecutor": "gemma4-packed",
-            "intermediateSizeSource": "expert",
-            "requiresShaderF16": false,
-            "routerScaleMode": "required",
-            "topkRouteExecutor": "gemma4-route",
-            "vendorProfile": {
-              "kind": "static",
-              "value": {
-                "preferVec4Dequant": false,
-                "dequantTileShape": null,
-                "routerWorkgroupSize": 256,
-                "maxTokensPerExpertScale": 1
-              }
-            },
-            "kernelPathProfileResolver": null,
-            "kernelRuleModelType": null,
-            "shapePolicy": null
-          }
-        },
-        {
-          "match": {
-            "expertFormat": "gemma4"
-          },
-          "value": {
-            "id": "gemma4-packed",
-            "label": "Gemma packed experts",
-            "expertExecutor": "gemma4-packed",
-            "intermediateSizeSource": "expert",
-            "requiresShaderF16": false,
-            "routerScaleMode": "optional",
-            "topkRouteExecutor": "gemma4-route",
-            "vendorProfile": {
-              "kind": "static",
-              "value": {
-                "preferVec4Dequant": false,
-                "dequantTileShape": null,
-                "routerWorkgroupSize": 256,
-                "maxTokensPerExpertScale": 1
-              }
-            },
-            "kernelPathProfileResolver": null,
-            "kernelRuleModelType": null,
-            "shapePolicy": null
-          }
-        }
-      ],
-      "biasAddCode": [
-        {
-          "match": {
-            "logitsDtype": "f16",
-            "biasDtype": "f16"
-          },
-          "value": {
-            "logitsType": "f16",
-            "biasType": "f16",
-            "logitsRead": "f32(logits[idx])",
-            "biasRead": "f32(bias[e])",
-            "logitsWrite": "logits[idx] = f16(value);",
-            "enableF16": "enable f16;\n"
-          }
-        },
-        {
-          "match": {
-            "logitsDtype": "f16"
-          },
-          "value": {
-            "logitsType": "f16",
-            "biasType": "f32",
-            "logitsRead": "f32(logits[idx])",
-            "biasRead": "bias[e]",
-            "logitsWrite": "logits[idx] = f16(value);",
-            "enableF16": "enable f16;\n"
-          }
-        },
-        {
-          "match": {
-            "biasDtype": "f16"
-          },
-          "value": {
-            "logitsType": "f32",
-            "biasType": "f16",
-            "logitsRead": "logits[idx]",
-            "biasRead": "f32(bias[e])",
-            "logitsWrite": "logits[idx] = value;",
-            "enableF16": "enable f16;\n"
-          }
-        },
-        {
-          "match": {},
-          "value": {
-            "logitsType": "f32",
-            "biasType": "f32",
-            "logitsRead": "logits[idx]",
-            "biasRead": "bias[e]",
-            "logitsWrite": "logits[idx] = value;",
-            "enableF16": ""
-          }
-        }
-      ]
-    },
-    "kernels/attention.rules.json": {
-      "tier": [
-        {
-          "match": {
-            "canSubgroup": true
-          },
-          "value": "subgroup"
-        },
-        {
-          "match": {
-            "canLarge": true
-          },
-          "value": "tiled_large"
-        },
-        {
-          "match": {
-            "canSmall": true
-          },
-          "value": "tiled_small"
-        },
-        {
-          "match": {
-            "isDecode": true
-          },
-          "value": "streaming"
-        },
-        {
-          "match": {},
-          "value": "streaming"
-        }
-      ],
-      "phase": [
-        {
-          "match": {
-            "isDecode": true
-          },
-          "value": "decode"
-        },
-        {
-          "match": {},
-          "value": "prefill"
-        }
-      ],
-      "suffix": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "_f16"
-        },
-        {
-          "match": {
-            "useF16KV": true
-          },
-          "value": "_f16kv"
-        },
-        {
-          "match": {},
-          "value": ""
-        }
-      ],
-      "chunkedVariant": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "decode_chunked_f16"
-        },
-        {
-          "match": {},
-          "value": "decode_chunked_f16kv"
-        }
-      ],
-      "pagedVariant": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "decode_paged_f16"
-        },
-        {
-          "match": {},
-          "value": "decode_paged_f16kv"
-        }
-      ],
-      "optimizedVariant": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "decode_online_f16"
-        },
-        {
-          "match": {},
-          "value": "decode_online_f16kv"
-        }
-      ],
-      "tieredVariant": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "decode_tiered_f16"
-        },
-        {
-          "match": {},
-          "value": "decode_tiered_f16kv"
-        }
-      ],
-      "tieredQuantVariant": [
-        {
-          "match": {
-            "mode": "turboquant"
-          },
-          "value": "decode_tiered_turboquant_f16kv"
-        },
-        {
-          "match": {
-            "mode": "turboquant_prod"
-          },
-          "value": "decode_tiered_turboquant_prod_f16kv"
-        },
-        {
-          "match": {
-            "mode": "int4"
-          },
-          "value": "decode_tiered_int4_f16kv"
-        },
-        {
-          "match": {
-            "mode": "int8"
-          },
-          "value": "decode_tiered_int8_f16kv"
-        },
-        {
-          "match": {},
-          "value": "decode_tiered_int8_f16kv"
-        }
-      ],
-      "contiguousQuantVariant": [
-        {
-          "match": {
-            "mode": "turboquant"
-          },
-          "value": "decode_contiguous_turboquant_f16kv"
-        },
-        {
-          "match": {
-            "mode": "turboquant_prod"
-          },
-          "value": "decode_contiguous_turboquant_prod_f16kv"
-        },
-        {
-          "match": {},
-          "value": "decode_contiguous_turboquant_f16kv"
-        }
-      ],
-      "variant": [
-        {
-          "match": {
-            "canUseDecodeOptimized": true
-          },
-          "value": {
-            "context": "optimizedVariant"
-          }
-        },
-        {
-          "match": {
-            "platformId": {
-              "in": [
-                "apple-m2",
-                "apple-m3",
-                "amd-rdna3",
-                "nvidia-rtx30",
-                "nvidia-rtx40"
-              ]
-            },
-            "isDecode": true,
-            "tier": "subgroup",
-            "canUseDecodeSubgroup": true
-          },
-          "value": "decode_subgroup"
-        },
-        {
-          "match": {
-            "isPaged": true,
-            "isDecode": true,
-            "canUseChunked": true
-          },
-          "value": {
-            "context": "pagedVariant"
-          }
-        },
-        {
-          "match": {
-            "tier": "subgroup",
-            "useF16KV": true,
-            "canUseChunked": true
-          },
-          "value": {
-            "context": "chunkedVariant"
-          }
-        },
-        {
-          "match": {
-            "tier": "subgroup",
-            "useF16KV": true
-          },
-          "value": {
-            "template": "prefill_streaming{suffix}"
-          }
-        },
-        {
-          "match": {
-            "tier": "subgroup",
-            "canUseDecodeSubgroup": true
-          },
-          "value": "decode_subgroup"
-        },
-        {
-          "match": {
-            "tier": "subgroup"
-          },
-          "value": "prefill_streaming"
-        },
-        {
-          "match": {
-            "tier": "tiled_large"
-          },
-          "value": {
-            "template": "{base}{suffix}"
-          }
-        },
-        {
-          "match": {
-            "tier": "tiled_small"
-          },
-          "value": {
-            "template": "prefill_small{suffix}"
-          }
-        },
-        {
-          "match": {
-            "tier": "streaming",
-            "canUseChunked": true
-          },
-          "value": {
-            "context": "chunkedVariant"
-          }
-        },
-        {
-          "match": {
-            "tier": "streaming"
-          },
-          "value": {
-            "template": "prefill_streaming{suffix}"
-          }
-        },
-        {
-          "match": {},
-          "value": {
-            "template": "prefill_streaming{suffix}"
-          }
-        }
-      ]
-    },
-    "kernels/conv2d.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/depthwise-conv2d.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/dequant.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "platformId": {
-              "in": [
-                "apple-m2",
-                "apple-m3",
-                "nvidia-rtx30",
-                "nvidia-rtx40"
-              ]
-            },
-            "hasSubgroups": true,
-            "wantsF16Out": true
-          },
-          "value": "subgroup_f16out"
-        },
-        {
-          "match": {
-            "platformId": {
-              "in": [
-                "apple-m2",
-                "apple-m3",
-                "nvidia-rtx30",
-                "nvidia-rtx40"
-              ]
-            },
-            "hasSubgroups": true
-          },
-          "value": "subgroup"
-        },
-        {
-          "match": {
-            "hasSubgroups": true,
-            "wantsF16Out": true,
-            "useVec4": true
-          },
-          "value": "subgroup_vec4_f16out"
-        },
-        {
-          "match": {
-            "hasSubgroups": true,
-            "wantsF16Out": true
-          },
-          "value": "subgroup_f16out"
-        },
-        {
-          "match": {
-            "hasSubgroups": true,
-            "useVec4": true
-          },
-          "value": "subgroup_vec4"
-        },
-        {
-          "match": {
-            "hasSubgroups": true
-          },
-          "value": "subgroup"
-        },
-        {
-          "match": {
-            "wantsF16Out": true,
-            "useVec4": true
-          },
-          "value": "subgroup_vec4_f16out"
-        },
-        {
-          "match": {
-            "wantsF16Out": true
-          },
-          "value": "subgroup_f16out"
-        },
-        {
-          "match": {
-            "useVec4": true
-          },
-          "value": "shared"
-        },
-        {
-          "match": {},
-          "value": "shared"
-        }
-      ],
-      "rowwiseVariant": [
-        {
-          "match": {
-            "wantsF16Out": true
-          },
-          "value": "f16_rowwise"
-        },
-        {
-          "match": {},
-          "value": "f32_rowwise"
-        }
-      ],
-      "mxfp4ExpertVariant": [
-        {
-          "match": {
-            "modelType": "gpt-oss",
-            "hasF16": true,
-            "hasSubgroups": true,
-            "outputDtype": "f16",
-            "dequantTileShape": "vec4",
-            "groupSize": 32
-          },
-          "value": "mxfp4_expert_fused_f16"
-        },
-        {
-          "match": {
-            "modelType": "gpt-oss",
-            "hasF16": true,
-            "outputDtype": "f16"
-          },
-          "value": "mxfp4_expert_f16"
-        },
-        {
-          "match": {
-            "modelType": "gpt-oss"
-          },
-          "value": "mxfp4_expert"
-        },
-        {
-          "match": {
-            "outputDtype": "f16"
-          },
-          "value": "mxfp4_expert_f16"
-        },
-        {
-          "match": {},
-          "value": "mxfp4_expert"
-        }
-      ]
-    },
-    "kernels/energy.rules.json": {
-      "evalVariant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "eval_f16"
-        },
-        {
-          "match": {},
-          "value": "eval"
-        }
-      ],
-      "updateVariant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "update_f16"
-        },
-        {
-          "match": {},
-          "value": "update"
-        }
-      ],
-      "quintelUpdateVariant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "quintel_update_f16"
-        },
-        {
-          "match": {},
-          "value": "quintel_update"
-        }
-      ],
-      "quintelReduceVariant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "quintel_reduce_f16"
-        },
-        {
-          "match": {},
-          "value": "quintel_reduce"
-        }
-      ],
-      "quintelGradVariant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "quintel_grad_f16"
-        },
-        {
-          "match": {},
-          "value": "quintel_grad"
-        }
-      ]
-    },
-    "kernels/fused-ffn.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isQ4K": true,
-            "fusedAllowed": true,
-            "hiddenSubblockAligned": true,
-            "hasF16": true,
-            "useF16Input": true,
-            "batchSize": {
-              "gt": 1
-            }
-          },
-          "value": "q4k_batched_f16a"
-        },
-        {
-          "match": {
-            "isQ4K": true,
-            "fusedAllowed": true,
-            "hiddenSubblockAligned": true,
-            "hasF16": true,
-            "useF16Input": true
-          },
-          "value": "q4k_f16a"
-        },
-        {
-          "match": {
-            "isQ4K": true,
-            "fusedAllowed": true,
-            "hiddenSubblockAligned": true,
-            "batchSize": {
-              "gt": 1
-            }
-          },
-          "value": "q4k_batched"
-        },
-        {
-          "match": {
-            "isQ4K": true,
-            "fusedAllowed": true,
-            "hiddenSubblockAligned": true
-          },
-          "value": "q4k"
-        },
-        {
-          "match": {
-            "weightDtype": "f16",
-            "hasF16": true,
-            "useF16Input": true,
-            "batchSize": {
-              "gt": 1
-            }
-          },
-          "value": "f16_native_batched"
-        },
-        {
-          "match": {
-            "weightDtype": "f16",
-            "hasF16": true,
-            "useF16Input": true
-          },
-          "value": "f16_native"
-        },
-        {
-          "match": {
-            "weightDtype": "f16",
-            "batchSize": {
-              "gt": 1
-            }
-          },
-          "value": "f16_batched"
-        },
-        {
-          "match": {
-            "weightDtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "batchSize": {
-              "gt": 1
-            }
-          },
-          "value": "batched"
-        },
-        {
-          "match": {
-            "useMultiOutput": true
-          },
-          "value": "multi"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/fused-matmul-residual.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "dtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/fused-matmul-rmsnorm.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isSmall": true,
-            "isF16": true
-          },
-          "value": "small_f16"
-        },
-        {
-          "match": {
-            "isSmall": true
-          },
-          "value": "small"
-        },
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "medium_f16"
-        },
-        {
-          "match": {},
-          "value": "medium"
-        }
-      ]
-    },
-    "kernels/gather.rules.json": {
-      "splitConfig": [
-        {
-          "match": {
-            "forcedSectionCount": 4
-          },
-          "value": {
-            "op": "gather_split4",
-            "label": "gather_split4",
-            "sectionCount": 4,
-            "variants": {
-              "f16": "f16_vec4_f16_out"
-            }
-          }
-        },
-        {
-          "match": {
-            "forcedSectionCount": 8
-          },
-          "value": {
-            "op": "gather_split8",
-            "label": "gather_split8",
-            "sectionCount": 8,
-            "variants": {
-              "f16": "f16_vec4_f16_out",
-              "f32": "f16_vec4_f32_out"
-            }
-          }
-        },
-        {
-          "match": {
-            "outputDtype": "f32",
-            "sectionCount": {
-              "lte": 8
-            }
-          },
-          "value": {
-            "op": "gather_split8",
-            "label": "gather_split8",
-            "sectionCount": 8,
-            "variants": {
-              "f16": "f16_vec4_f16_out",
-              "f32": "f16_vec4_f32_out"
-            }
-          }
-        },
-        {
-          "match": {
-            "outputDtype": "f16",
-            "sectionCount": {
-              "lte": 4
-            }
-          },
-          "value": {
-            "op": "gather_split4",
-            "label": "gather_split4",
-            "sectionCount": 4,
-            "variants": {
-              "f16": "f16_vec4_f16_out"
-            }
-          }
-        },
-        {
-          "match": {
-            "outputDtype": "f16",
-            "sectionCount": {
-              "lte": 8
-            }
-          },
-          "value": {
-            "op": "gather_split8",
-            "label": "gather_split8",
-            "sectionCount": 8,
-            "variants": {
-              "f16": "f16_vec4_f16_out",
-              "f32": "f16_vec4_f32_out"
-            }
-          }
-        }
-      ],
-      "variant": [
-        {
-          "match": {
-            "useLiteRTInt4Input": true,
-            "useF16Output": false,
-            "useVec4": true
-          },
-          "value": "litert_int4_vec4_f32_out"
-        },
-        {
-          "match": {
-            "useLiteRTInt4Input": true,
-            "useF16Output": true,
-            "useVec4": true
-          },
-          "value": "litert_int4_vec4_f16_out"
-        },
-        {
-          "match": {
-            "useF16Input": true,
-            "useF16Output": true,
-            "useVec4": true
-          },
-          "value": "f16_vec4_f16_out"
-        },
-        {
-          "match": {
-            "useF16Input": true,
-            "useF16Output": true
-          },
-          "value": "f16_f16_out"
-        },
-        {
-          "match": {
-            "useF16Input": true,
-            "useVec4": true
-          },
-          "value": "f16_vec4"
-        },
-        {
-          "match": {
-            "useF16Input": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "useF16Output": true,
-            "useVec4": true
-          },
-          "value": "vec4_f16_out"
-        },
-        {
-          "match": {
-            "useF16Output": true
-          },
-          "value": "f16_out"
-        },
-        {
-          "match": {
-            "useVec4": true
-          },
-          "value": "vec4"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/gelu.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "gelu_f16"
-        },
-        {
-          "match": {},
-          "value": "gelu"
-        }
-      ],
-      "overrides": [
-        {
-          "match": {
-            "useRowsplit": true
-          },
-          "value": {
-            "USE_ROWSPLIT": true
-          }
-        },
-        {
-          "match": {
-            "hasGate": true
-          },
-          "value": {
-            "HAS_GATE": true
-          }
-        },
-        {
-          "match": {},
-          "value": {}
-        }
-      ]
-    },
-    "kernels/grouped-pointwise-conv2d.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/groupnorm.rules.json": {
-      "statsVariant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "stats_f16"
-        },
-        {
-          "match": {},
-          "value": "stats"
-        }
-      ],
-      "applyVariant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "apply_f16"
-        },
-        {
-          "match": {},
-          "value": "apply"
-        }
-      ]
-    },
-    "kernels/kv_quantize.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "mode": "turboquant"
-          },
-          "value": "turboquant"
-        },
-        {
-          "match": {
-            "mode": "turboquant_prod"
-          },
-          "value": "turboquant_prod"
-        },
-        {
-          "match": {
-            "mode": "int4"
-          },
-          "value": "int4"
-        },
-        {
-          "match": {
-            "mode": "int8"
-          },
-          "value": "int8"
-        },
-        {
-          "match": {},
-          "value": "int8"
-        }
-      ]
-    },
-    "kernels/layernorm.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/linear-attention.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/lm-head-argmax.rules.json": {
-      "phase1Variant": [
-        {
-          "match": {
-            "weightDtype": "q4k"
-          },
-          "value": "phase1_q4k_f32a"
-        },
-        {
-          "match": {
-            "weightDtype": "f16"
-          },
-          "value": "phase1_f16w_f32a"
-        }
-      ],
-      "phase2Variant": [
-        {
-          "match": {
-            "weightDtype": "q4k"
-          },
-          "value": "phase2_q4k"
-        },
-        {
-          "match": {},
-          "value": "phase2"
-        }
-      ]
-    },
-    "kernels/matmul.rules.json": {
-      "litertInt4FusedVariant": [
-        {
-          "match": {
-            "activationDtype": "f16",
-            "outputDtype": "f16",
-            "transposeB": true
-          },
-          "value": "litert_int4_multicol_f16a"
-        },
-        {
-          "match": {
-            "activationDtype": "f16",
-            "outputDtype": "f32",
-            "transposeB": true
-          },
-          "value": "litert_int4_multicol_f16a_f32out"
-        },
-        {
-          "match": {
-            "activationDtype": "f32",
-            "outputDtype": "f32",
-            "transposeB": true
-          },
-          "value": "litert_int4_multicol_f32a_f32out"
-        },
-        {
-          "match": {},
-          "value": null
-        }
-      ],
-      "w4a16FusedVariant": [
-        {
-          "match": {
-            "activationDtype": "f16",
-            "outputDtype": "f16",
-            "transposeB": true,
-            "isPrefill": true
-          },
-          "value": "w4a16_batched_f16a"
-        },
-        {
-          "match": {
-            "activationDtype": "f16",
-            "outputDtype": "f32",
-            "transposeB": true,
-            "isPrefill": true
-          },
-          "value": "w4a16_batched_f16a_f32out"
-        },
-        {
-          "match": {
-            "activationDtype": "f16",
-            "outputDtype": "f16",
-            "transposeB": true
-          },
-          "value": "w4a16_multicol_f16a"
-        },
-        {
-          "match": {
-            "activationDtype": "f16",
-            "outputDtype": "f32",
-            "transposeB": true
-          },
-          "value": "w4a16_multicol_f16a_f32out"
-        },
-        {
-          "match": {},
-          "value": null
-        }
-      ],
-      "q4kFusedVariant": [
-        {
-          "match": {
-            "useF16A": true,
-            "isM1": true
-          },
-          "value": "q4_fused_multicol_f16a"
-        },
-        {
-          "match": {
-            "useF16A": true
-          },
-          "value": "q4_fused_batched_f16a"
-        },
-        {
-          "match": {
-            "useF16Out": true,
-            "isM1": true
-          },
-          "value": "q4_fused_multicol_f16"
-        },
-        {
-          "match": {
-            "useF16Out": true
-          },
-          "value": "q4_fused_batched_f16"
-        },
-        {
-          "match": {
-            "isM1": true
-          },
-          "value": "q4_fused_multicol"
-        },
-        {
-          "match": {},
-          "value": "q4_fused_batched"
-        }
-      ],
-      "matmulKernel": [
-        {
-          "match": {
-            "useF16Matmul": true,
-            "useTiled": true
-          },
-          "value": "f16_tiled"
-        },
-        {
-          "match": {
-            "useF16Matmul": true,
-            "useVec4": true
-          },
-          "value": "f16_vec4"
-        },
-        {
-          "match": {
-            "useF16Matmul": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "useF16wF32a": true,
-            "useF16wF32aTiled": true
-          },
-          "value": "f16w_f32a_tiled"
-        },
-        {
-          "match": {
-            "useF16wF32a": true
-          },
-          "value": "f16w_f32a"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "gemvPathVariant": [
-        {
-          "match": {
-            "useF16GemvPath": true,
-            "useMulticol": true
-          },
-          "value": "gemv_subgroup_multicol_f16a"
-        },
-        {
-          "match": {
-            "useF16GemvPath": true
-          },
-          "value": "gemv_subgroup_f16a"
-        },
-        {
-          "match": {
-            "useF32GemvPath": true,
-            "useMulticol": true
-          },
-          "value": "gemv_subgroup_multicol"
-        },
-        {
-          "match": {
-            "useF32GemvPath": true
-          },
-          "value": "gemv_subgroup"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "pathVariant"
-          }
-        }
-      ],
-      "gemvVariant": [
-        {
-          "match": {
-            "platformId": {
-              "in": [
-                "apple-m2",
-                "apple-m3",
-                "amd-rdna3"
-              ]
-            },
-            "hasSubgroups": true,
-            "useF16Gemv": true
-          },
-          "value": "gemv_subgroup_f16a"
-        },
-        {
-          "match": {
-            "platformId": {
-              "in": [
-                "apple-m2",
-                "apple-m3",
-                "amd-rdna3"
-              ]
-            },
-            "hasSubgroups": true,
-            "useF32Gemv": true
-          },
-          "value": "gemv_subgroup"
-        },
-        {
-          "match": {
-            "hasSubgroups": true,
-            "useF16Gemv": true,
-            "useVec4": true,
-            "useMulticol": false
-          },
-          "value": "gemv_subgroup_vec4_f16a"
-        },
-        {
-          "match": {
-            "hasSubgroups": true,
-            "useF32Gemv": true,
-            "useVec4": true,
-            "useMulticol": false
-          },
-          "value": "gemv_subgroup_vec4"
-        },
-        {
-          "match": {
-            "hasSubgroups": true,
-            "useF16Gemv": true,
-            "useMulticol": true
-          },
-          "value": "gemv_subgroup_multicol_f16a"
-        },
-        {
-          "match": {
-            "hasSubgroups": true,
-            "useF16Gemv": true
-          },
-          "value": "gemv_subgroup_f16a"
-        },
-        {
-          "match": {
-            "hasSubgroups": true,
-            "useF32Gemv": true,
-            "useMulticol": true
-          },
-          "value": "gemv_subgroup_multicol"
-        },
-        {
-          "match": {
-            "hasSubgroups": true,
-            "useF32Gemv": true
-          },
-          "value": "gemv_subgroup"
-        },
-        {
-          "match": {
-            "useF16Gemv": true
-          },
-          "value": "gemv_f16a"
-        },
-        {
-          "match": {
-            "useF32Gemv": true
-          },
-          "value": "gemv"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "matmulSelection": [
-        {
-          "match": {
-            "useLiteRTInt4Fused": true
-          },
-          "value": {
-            "variant": {
-              "context": "litertInt4Variant"
-            },
-            "useQ4KFused": false,
-            "useGemv": false,
-            "useLiteRTInt4Fused": true
-          }
-        },
-        {
-          "match": {
-            "useW4A16Fused": true
-          },
-          "value": {
-            "variant": {
-              "context": "w4a16Variant"
-            },
-            "useQ4KFused": false,
-            "useGemv": false,
-            "useLiteRTInt4Fused": false,
-            "useW4A16Fused": true
-          }
-        },
-        {
-          "match": {
-            "isQ4K": true,
-            "hasSubgroups": true,
-            "fusedAllowed": true
-          },
-          "value": {
-            "variant": {
-              "context": "q4kVariant"
-            },
-            "useQ4KFused": true,
-            "useGemv": false
-          }
-        },
-        {
-          "match": {
-            "useGemv": true
-          },
-          "value": {
-            "variant": {
-              "context": "gemvVariant"
-            },
-            "useQ4KFused": false,
-            "useGemv": true
-          }
-        },
-        {
-          "match": {},
-          "value": {
-            "variant": {
-              "context": "matmulVariant"
-            },
-            "useQ4KFused": false,
-            "useGemv": false
-          }
-        }
-      ],
-      "preferredWeightDtype": [
-        {
-          "match": {
-            "variantWeightDtype": "f16",
-            "hasQ4KMaterialization": true,
-            "hasSubgroups": true
-          },
-          "value": "q4k"
-        },
-        {
-          "match": {},
-          "value": {
-            "context": "variantWeightDtype"
-          }
-        }
-      ],
-      "weightDtypeMismatchPolicy": [
-        {
-          "match": {
-            "actualWeightDtype": "f16",
-            "requiredWeightDtype": "q4k"
-          },
-          "value": "fallthrough"
-        },
-        {
-          "match": {
-            "actualWeightDtype": "q4k",
-            "requiredWeightDtype": "f16",
-            "hasSubgroups": true
-          },
-          "value": "fallthrough"
-        },
-        {
-          "match": {
-            "actualWeightDtype": "q4k",
-            "requiredWeightDtype": "f32",
-            "hasSubgroups": true
-          },
-          "value": "fallthrough"
-        },
-        {
-          "match": {
-            "actualWeightDtype": "litert_int4",
-            "requiredWeightDtype": "f16"
-          },
-          "value": "fallthrough"
-        },
-        {
-          "match": {
-            "actualWeightDtype": "litert_int4",
-            "requiredWeightDtype": "f32"
-          },
-          "value": "fallthrough"
-        },
-        {
-          "match": {
-            "actualWeightDtype": "w4a16",
-            "requiredWeightDtype": "f16"
-          },
-          "value": "fallthrough"
-        },
-        {
-          "match": {
-            "actualWeightDtype": "w4a16",
-            "requiredWeightDtype": "f32"
-          },
-          "value": "fallthrough"
-        },
-        {
-          "match": {},
-          "value": "reject"
-        }
-      ],
-      "q4kMaterializationMode": [
-        {
-          "match": {
-            "hasFusedProjections": true,
-            "hasDenseProjections": true
-          },
-          "value": "mixed"
-        },
-        {
-          "match": {
-            "hasFusedProjections": true
-          },
-          "value": "fused"
-        },
-        {
-          "match": {},
-          "value": "dense"
-        }
-      ],
-      "phase": [
-        {
-          "match": {
-            "isDecode": true
-          },
-          "value": "decode"
-        },
-        {
-          "match": {},
-          "value": "prefill"
-        }
-      ]
-    },
-    "kernels/modulate.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "inputDtype": "f16",
-            "modDtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/moe.rules.gptoss.json": {
-      "routerTopKVariant": [
-        {
-          "match": {
-            "modelType": "gpt-oss",
-            "hasF16": true,
-            "hasSubgroups": true,
-            "inputDtype": "f16",
-            "weightsDtype": "f16"
-          },
-          "value": "gptoss_router_topk"
-        },
-        {
-          "match": {
-            "modelType": "gpt-oss",
-            "hasF16": true,
-            "inputDtype": "f16",
-            "weightsDtype": "f16"
-          },
-          "value": "fused_f16_w16"
-        },
-        {
-          "match": {
-            "modelType": "gpt-oss",
-            "inputDtype": "f16"
-          },
-          "value": "fused_f16"
-        }
-      ],
-      "vendorQuirkProfile": [
-        {
-          "match": {
-            "vendor": {
-              "contains": [
-                "intel",
-                "amd"
-              ]
-            }
-          },
-          "value": {
-            "preferVec4Dequant": false,
-            "dequantTileShape": "scalar",
-            "routerWorkgroupSize": 128,
-            "maxTokensPerExpertScale": 0.85
-          }
-        },
-        {
-          "match": {
-            "vendor": {
-              "contains": [
-                "nvidia",
-                "apple",
-                "qualcomm"
-              ]
-            }
-          },
-          "value": {
-            "preferVec4Dequant": true,
-            "dequantTileShape": "vec4",
-            "routerWorkgroupSize": 256,
-            "maxTokensPerExpertScale": 1
-          }
-        },
-        {
-          "match": {},
-          "value": {
-            "preferVec4Dequant": false,
-            "dequantTileShape": "scalar",
-            "routerWorkgroupSize": 128,
-            "maxTokensPerExpertScale": 0.9
-          }
-        }
-      ],
-      "dequantVariant": [
-        {
-          "match": {
-            "modelType": "gpt-oss",
-            "outputDtype": "f16",
-            "hasF16": true,
-            "hasSubgroups": true,
-            "dequantTileShape": "vec4",
-            "groupSize": 32
-          },
-          "value": "mxfp4_expert_fused_f16"
-        },
-        {
-          "match": {
-            "modelType": "gpt-oss",
-            "outputDtype": "f16",
-            "hasF16": true
-          },
-          "value": "mxfp4_expert_f16"
-        },
-        {
-          "match": {
-            "modelType": "gpt-oss"
-          },
-          "value": "mxfp4_expert"
-        }
-      ],
-      "shapePolicy": [
-        {
-          "match": {
-            "modelType": "gpt-oss"
-          },
-          "value": {
-            "hiddenSizeDivisor": 32,
-            "intermediateSizeDivisor": 32,
-            "groupSize": 32,
-            "gateUpRowsplit": true
-          }
-        }
-      ]
-    },
-    "kernels/moe.rules.json": {
-      "variantSuffix": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "_f16"
-        },
-        {
-          "match": {},
-          "value": ""
-        }
-      ],
-      "scatterAddVariant": [
-        {
-          "match": {
-            "outputDtype": "f16",
-            "weightsDtype": "f16",
-            "hasExpertScale": true
-          },
-          "value": "dynamic_f16_w16_expert_scale"
-        },
-        {
-          "match": {
-            "outputDtype": "f16",
-            "hasExpertScale": true
-          },
-          "value": "dynamic_f16_expert_scale"
-        },
-        {
-          "match": {
-            "hasExpertScale": true
-          },
-          "value": "dynamic_expert_scale"
-        },
-        {
-          "match": {
-            "outputDtype": "f16",
-            "weightsDtype": "f16"
-          },
-          "value": "dynamic_f16_w16"
-        },
-        {
-          "match": {
-            "outputDtype": "f16"
-          },
-          "value": "dynamic_f16"
-        },
-        {
-          "match": {},
-          "value": "dynamic"
-        }
-      ]
-    },
-    "kernels/moe.rules.mixtral.json": {
-      "vendorQuirkProfile": [
-        {
-          "match": {
-            "vendor": {
-              "contains": [
-                "intel",
-                "amd"
-              ]
-            }
-          },
-          "value": {
-            "preferVec4Dequant": false,
-            "dequantTileShape": "scalar",
-            "routerWorkgroupSize": 128,
-            "maxTokensPerExpertScale": 0.85
-          }
-        },
-        {
-          "match": {
-            "vendor": {
-              "contains": [
-                "nvidia",
-                "apple",
-                "qualcomm"
-              ]
-            }
-          },
-          "value": {
-            "preferVec4Dequant": false,
-            "dequantTileShape": "scalar",
-            "routerWorkgroupSize": 256,
-            "maxTokensPerExpertScale": 1
-          }
-        },
-        {
-          "match": {},
-          "value": {
-            "preferVec4Dequant": false,
-            "dequantTileShape": "scalar",
-            "routerWorkgroupSize": 128,
-            "maxTokensPerExpertScale": 1
-          }
-        }
-      ],
-      "routerTopKVariant": [
-        {
-          "match": {
-            "modelType": "mixtral",
-            "hasF16": true,
-            "hasSubgroups": true,
-            "routerDtype": "f32"
-          },
-          "value": "softmax_topk_f32_subgroup"
-        },
-        {
-          "match": {
-            "modelType": "mixtral",
-            "routerDtype": "f32"
-          },
-          "value": "softmax_topk_f32"
-        },
-        {
-          "match": {
-            "modelType": "mixtral"
-          },
-          "value": "softmax_topk_f32"
-        }
-      ],
-      "dequantVariant": [
-        {
-          "match": {
-            "modelType": "mixtral",
-            "weightsDtype": "q4k",
-            "hasF16": true,
-            "hasSubgroups": true,
-            "outputDtype": "f32"
-          },
-          "value": "q4k_expert_dequant_f32_subgroup"
-        },
-        {
-          "match": {
-            "modelType": "mixtral",
-            "weightsDtype": "q4k",
-            "outputDtype": "f16",
-            "hasF16": true
-          },
-          "value": "q4k_expert_dequant_f16"
-        },
-        {
-          "match": {
-            "modelType": "mixtral",
-            "weightsDtype": "q4k"
-          },
-          "value": "q4k_expert_dequant_f32"
-        },
-        {
-          "match": {
-            "modelType": "mixtral",
-            "weightsDtype": "f16",
-            "outputDtype": "f16",
-            "hasF16": true
-          },
-          "value": "f16_expert_passthrough"
-        },
-        {
-          "match": {
-            "modelType": "mixtral"
-          },
-          "value": "f16_expert_upcast_f32"
-        }
-      ]
-    },
-    "kernels/pixel_shuffle.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "dtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/relu.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "dtype": "f16"
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/rep-penalty.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/repeat-channels.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "dtype": "f16"
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/residual.rules.json": {
-      "residualVariant": [
-        {
-          "match": {
-            "useVec4": true,
-            "outputDtype": "f16"
-          },
-          "value": "vec4_f16"
-        },
-        {
-          "match": {
-            "useVec4": true
-          },
-          "value": "vec4"
-        },
-        {
-          "match": {
-            "outputDtype": "f16"
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ],
-      "biasAddVariant": [
-        {
-          "match": {
-            "dataDtype": "f16",
-            "biasDtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/rmsnorm-qk.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/rmsnorm.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true,
-            "isSmall": true
-          },
-          "value": "small_f16"
-        },
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {
-            "residual": true
-          },
-          "value": "residual"
-        },
-        {
-          "match": {
-            "hasSubgroups": true,
-            "isSmall": true
-          },
-          "value": "small_subgroup"
-        },
-        {
-          "match": {
-            "hasSubgroups": true
-          },
-          "value": "subgroup"
-        },
-        {
-          "match": {
-            "isSmall": true
-          },
-          "value": "small"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/rope-qk.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/rope.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/sample.rules.json": {
-      "suffix": [
-        {
-          "match": {
-            "useF16": true
-          },
-          "value": "_f16"
-        },
-        {
-          "match": {},
-          "value": ""
-        }
-      ]
-    },
-    "kernels/scale.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true,
-            "inplace": true
-          },
-          "value": "inplace_f16"
-        },
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {
-            "inplace": true
-          },
-          "value": "inplace"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/silu.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ],
-      "overrides": [
-        {
-          "match": {
-            "useRowsplit": true
-          },
-          "value": {
-            "USE_ROWSPLIT": true
-          }
-        },
-        {
-          "match": {
-            "useSplit": true
-          },
-          "value": {
-            "USE_SPLIT": true
-          }
-        },
-        {
-          "match": {
-            "hasGate": true,
-            "useVec4": true
-          },
-          "value": {
-            "HAS_GATE": true,
-            "USE_VEC4": true
-          }
-        },
-        {
-          "match": {
-            "hasGate": true
-          },
-          "value": {
-            "HAS_GATE": true
-          }
-        },
-        {
-          "match": {
-            "useVec4": true
-          },
-          "value": {
-            "USE_VEC4": true
-          }
-        },
-        {
-          "match": {},
-          "value": {}
-        }
-      ],
-      "activationOp": [
-        {
-          "match": {
-            "activation": "gelu"
-          },
-          "value": "gelu"
-        },
-        {
-          "match": {},
-          "value": "silu"
-        }
-      ],
-      "swigluRowsplitBiasVariant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "rowsplit_bias_f16"
-        },
-        {
-          "match": {},
-          "value": "rowsplit_bias"
-        }
-      ]
-    },
-    "kernels/softmax.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "hasSubgroups": true,
-            "isSmall": true
-          },
-          "value": "small_subgroup"
-        },
-        {
-          "match": {
-            "hasSubgroups": true
-          },
-          "value": "subgroup"
-        },
-        {
-          "match": {
-            "isSmall": true
-          },
-          "value": "small"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ],
-      "topkVariant": [
-        {
-          "match": {
-            "modelType": "gpt-oss",
-            "hasF16": true,
-            "hasSubgroups": true,
-            "inputDtype": "f16",
-            "weightsDtype": "f16"
-          },
-          "value": "gptoss_router_topk"
-        },
-        {
-          "match": {
-            "modelType": "mixtral",
-            "inputDtype": "f16",
-            "weightsDtype": "f16"
-          },
-          "value": "fused_f16_w16"
-        },
-        {
-          "match": {
-            "modelType": "mixtral"
-          },
-          "value": "fused"
-        },
-        {
-          "match": {
-            "inputDtype": "f16",
-            "weightsDtype": "f16"
-          },
-          "value": "fused_f16_w16"
-        },
-        {
-          "match": {
-            "inputDtype": "f16"
-          },
-          "value": "fused_f16"
-        },
-        {
-          "match": {},
-          "value": "fused"
-        }
-      ]
-    },
-    "kernels/split-qg.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "outputDtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/split-qkv.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "outputDtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "kernels/upsample2d.rules.json": {
-      "variant": [
-        {
-          "match": {
-            "isF16": true
-          },
-          "value": "default_f16"
-        },
-        {
-          "match": {},
-          "value": "default"
-        }
-      ]
-    },
-    "loader/tensor-loader.rules.json": {
-      "gpuLoaderPath": [
-        {
-          "match": {
-            "dtype": "FUNCTIONAL_DESCRIPTOR"
-          },
-          "value": "functional_descriptor"
-        },
-        {
-          "match": {
-            "litertAffineInt4FusedEligible": true
-          },
-          "value": "litert_int4_fused"
-        },
-        {
-          "match": {
-            "w4a16FusedEligible": true
-          },
-          "value": "w4a16_fused"
-        },
-        {
-          "match": {
-            "dtype": {
-              "in": [
-                "Q4_K_M",
-                "Q4_K"
-              ]
-            },
-            "q4kDenseExceedsBindingLimit": true,
-            "q4kLimitFallbackEligible": true
-          },
-          "value": "q4k_fused"
-        },
-        {
-          "match": {
-            "dtype": {
-              "in": [
-                "Q4_K_M",
-                "Q4_K"
-              ]
-            },
-            "q4kMaterializationMode": "mixed"
-          },
-          "value": "q4k_mixed"
-        },
-        {
-          "match": {
-            "dtype": {
-              "in": [
-                "Q4_K_M",
-                "Q4_K"
-              ]
-            },
-            "requiresFusedQ4KRole": true
-          },
-          "value": "q4k_fused"
-        },
-        {
-          "match": {
-            "dtype": {
-              "in": [
-                "Q4_K_M",
-                "Q4_K"
-              ]
-            },
-            "useFusedQ4K": true
-          },
-          "value": "q4k_fused"
-        },
-        {
-          "match": {
-            "dtype": {
-              "in": [
-                "Q4_K_M",
-                "Q4_K"
-              ]
-            },
-            "useFusedQ4K": false,
-            "q4kCpuReferenceEligible": true,
-            "q4kBasicBackendClass": true
-          },
-          "value": "q4k_dequant_reference"
-        },
-        {
-          "match": {
-            "dtype": {
-              "in": [
-                "Q4_K_M",
-                "Q4_K"
-              ]
-            }
-          },
-          "value": "q4k_dequant"
-        },
-        {
-          "match": {
-            "dtype": "W4A16"
-          },
-          "value": "w4a16_dequant_reference"
-        },
-        {
-          "match": {
-            "dtype": {
-              "in": [
-                "Q4_0",
-                "WNA8O8"
-              ]
-            }
-          },
-          "value": "unsupported_packed_quantization"
-        },
-        {
-          "match": {
-            "dtype": "Q6_K"
-          },
-          "value": "q6k"
-        },
-        {
-          "match": {
-            "dtype": "BF16"
-          },
-          "value": "bf16"
-        },
-        {
-          "match": {},
-          "value": "float"
-        }
-      ],
-      "cpuLoaderPath": [
-        {
-          "match": {
-            "dtype": "FUNCTIONAL_DESCRIPTOR"
-          },
-          "value": "unsupported_functional_descriptor"
-        },
-        {
-          "match": {
-            "dtype": {
-              "in": [
-                "Q4_K_M",
-                "Q4_K",
-                "Q6_K"
-              ]
-            }
-          },
-          "value": "raw"
-        },
-        {
-          "match": {
-            "dtype": "W4A16"
-          },
-          "value": "w4a16_dequant_reference"
-        },
-        {
-          "match": {
-            "dtype": {
-              "in": [
-                "Q4_0",
-                "WNA8O8"
-              ]
-            }
-          },
-          "value": "unsupported_packed_quantization"
-        },
-        {
-          "match": {
-            "dtype": "BF16"
-          },
-          "value": "bf16_to_f32"
-        },
-        {
-          "match": {
-            "dtype": "F16"
-          },
-          "value": "f16_to_f32"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ]
-    },
-    "loader/weights.rules.json": {
-      "normWeightDtype": [
-        {
-          "match": {
-            "normWeightDtype": "f16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "normWeightDtype": "f32"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "normWeightDtypeFromSize": [
-        {
-          "match": {
-            "sizeMatchesF32": true
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "sizeMatchesF16": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "matmulWeightDtype": [
-        {
-          "match": {
-            "locationDtype": "F16",
-            "hasF16": false,
-            "isMatmulWeight": true
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "locationDtype": "F16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "locationDtype": "BF16",
-            "hasF16": true,
-            "isMatmulWeight": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "locationDtype": "BF16"
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "locationDtype": {
-              "in": [
-                "Q4_K",
-                "Q4_K_M"
-              ]
-            },
-            "hasF16": true,
-            "isMatmulWeight": true,
-            "keepF32Weights": false
-          },
-          "value": "f16"
-        },
-        {
-          "match": {
-            "locationDtype": {
-              "in": [
-                "Q4_K",
-                "Q4_K_M"
-              ]
-            }
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "locationDtype": "Q6_K"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "dequantizeToF16": [
-        {
-          "match": {
-            "role": {
-              "in": [
-                "matmul",
-                "embedding",
-                "lm_head",
-                "router",
-                "expert"
-              ]
-            }
-          },
-          "value": true
-        },
-        {
-          "match": {},
-          "value": false
-        }
-      ],
-      "floatLocationDtype": [
-        {
-          "match": {
-            "locationDtype": "F16"
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ],
-      "weightLayout": [
-        {
-          "match": {
-            "layout": "column"
-          },
-          "value": "column"
-        },
-        {
-          "match": {
-            "layout": "row"
-          },
-          "value": "row"
-        },
-        {
-          "match": {
-            "useColumnWise": true
-          },
-          "value": "column"
-        },
-        {
-          "match": {},
-          "value": "row"
-        }
-      ],
-      "q4kOutputDtype": [
-        {
-          "match": {
-            "isMatmulWeight": false
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "keepF32Weights": true
-          },
-          "value": "f32"
-        },
-        {
-          "match": {
-            "hasF16": true
-          },
-          "value": "f16"
-        },
-        {
-          "match": {},
-          "value": "f32"
-        }
-      ]
-    },
-    "tooling/command-runtime.rules.json": {
-      "runtimeContract": [
-        {
-          "match": {
-            "command": "debug"
-          },
-          "value": {
-            "workload": null,
-            "intent": "investigate"
-          }
-        },
-        {
-          "match": {
-            "command": "bench"
-          },
-          "value": {
-            "workload": null,
-            "intent": "calibrate"
-          }
-        },
-        {
-          "match": {
-            "command": "verify"
-          },
-          "value": {
-            "workload": null,
-            "intent": "verify"
-          }
-        },
-        {
-          "match": {
-            "command": "lora"
-          },
-          "value": {
-            "workload": null,
-            "intent": null
-          }
-        },
-        {
-          "match": {
-            "command": "distill"
-          },
-          "value": {
-            "workload": null,
-            "intent": null
-          }
-        },
-        {
-          "match": {
-            "command": "diagnose"
-          },
-          "value": {
-            "workload": null,
-            "intent": "investigate"
-          }
-        },
-        {
-          "match": {},
-          "value": {
-            "workload": null,
-            "intent": null
-          }
-        }
-      ]
-    }
+ "schema": "doppler.rule-bundle/v1",
+ "sources": [
+  {
+   "path": "converter/execution.rules.json",
+   "digest": "sha256:ae259e6ea2ed52fa20b76f899de7f78c239cf23c261cc11c8540c3f1b070a4c0"
+  },
+  {
+   "path": "converter/tensor-roles.rules.json",
+   "digest": "sha256:5eed33348fe59c55d779fad81e87d045337e75c678e54da64a240d8b589e2f57"
+  },
+  {
+   "path": "converter/tokenizer.rules.json",
+   "digest": "sha256:5985376bfa9bfacc3bba877407e7be1c10554fda74ea73c2dc18b96ca4827a15"
+  },
+  {
+   "path": "inference/attention.rules.json",
+   "digest": "sha256:3089278056e554c053dc2086942786cec1b20dff9f83f9908b82f9333c34c566"
+  },
+  {
+   "path": "inference/config.rules.json",
+   "digest": "sha256:c774e14366d68cab96fa64c91000237ffed46fa9aacac3ebb10969102e3f279e"
+  },
+  {
+   "path": "inference/dtype.rules.json",
+   "digest": "sha256:e990acb12b1666ced2566f2cb332c8f49a8511bb25cbb1f70ff2a5aa4183c40b"
+  },
+  {
+   "path": "inference/execution.rules.json",
+   "digest": "sha256:269ba92d1615f607b94a7b8034ed9cb41561fb046aa03d96ad3ffb81c39c7162"
+  },
+  {
+   "path": "inference/ffn.rules.json",
+   "digest": "sha256:3aa3c66dcc3d154158d2fc59dc94165bbb47955c7c017612568f6825a995b260"
+  },
+  {
+   "path": "inference/layer-pattern.rules.json",
+   "digest": "sha256:c3fe086f991b2c89d0eacf6f21c169c97f30ef87a669e1fed83729da4f7f7c7e"
+  },
+  {
+   "path": "inference/layer.rules.json",
+   "digest": "sha256:4cd14673e534ed8f03779ee7396c637225f5cf4183977269526ac887d918b70a"
+  },
+  {
+   "path": "inference/moe.rules.json",
+   "digest": "sha256:2e0f6a2a2c079f93dc0d66bbe7424fff35b82b3ef3bae2f83805794ef4aeae97"
+  },
+  {
+   "path": "kernels/attention.rules.json",
+   "digest": "sha256:d26958ed2b0cd85cca8f4a20d4562fc1c994b375fa536fc202e17882ec187229"
+  },
+  {
+   "path": "kernels/conv2d.rules.json",
+   "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
+  },
+  {
+   "path": "kernels/depthwise-conv2d.rules.json",
+   "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
+  },
+  {
+   "path": "kernels/dequant.rules.json",
+   "digest": "sha256:a35d693164b8938e2de4c5185977d72eeeeecb095f91e44f87d9b88ad24c4650"
+  },
+  {
+   "path": "kernels/energy.rules.json",
+   "digest": "sha256:6a3e6975064228896abd1abd3500e2e4f05d87cb7a54f447456f7acddcc60e50"
+  },
+  {
+   "path": "kernels/fused-ffn.rules.json",
+   "digest": "sha256:cd5d0b36d51b3f036eb62596b039103307d27acc5447933632d99e3aa9bf8c79"
+  },
+  {
+   "path": "kernels/fused-matmul-residual.rules.json",
+   "digest": "sha256:cf5433a5d416705d3f04b9321e560d959a37b40c3f282e1ff058134244605ba7"
+  },
+  {
+   "path": "kernels/fused-matmul-rmsnorm.rules.json",
+   "digest": "sha256:6a5aca1f92300e35f8371fb13a05963c54ac56730cc4bedc93b2bc5d8d9b2e16"
+  },
+  {
+   "path": "kernels/gather.rules.json",
+   "digest": "sha256:041df41e7cfdf9e689c9b3fa38fd6dba173eb308d652ac76b4cd3e08ceb909a4"
+  },
+  {
+   "path": "kernels/gelu.rules.json",
+   "digest": "sha256:ead4f5f4216c9c0eeaf3e01d084d501bc66f314a956ffad442ca84160ee48d99"
+  },
+  {
+   "path": "kernels/grouped-pointwise-conv2d.rules.json",
+   "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
+  },
+  {
+   "path": "kernels/groupnorm.rules.json",
+   "digest": "sha256:019810e2473fdeb748c04aa92ffb247a3cac7b0bba890ed7fefb5f3061168040"
+  },
+  {
+   "path": "kernels/kv_quantize.rules.json",
+   "digest": "sha256:f0a56bea79a43bad2fd257aa36aa38a2afc16b583b20ed28fa7819e65120fece"
+  },
+  {
+   "path": "kernels/layernorm.rules.json",
+   "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
+  },
+  {
+   "path": "kernels/linear-attention.rules.json",
+   "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
+  },
+  {
+   "path": "kernels/lm-head-argmax.rules.json",
+   "digest": "sha256:a265a2cb85f96b869110fe1761798c8c9b274c9a4d0c73ec452743dfcdad176d"
+  },
+  {
+   "path": "kernels/matmul.rules.json",
+   "digest": "sha256:5e8877bd12eafab5eb3e071d85dd1a27c992e427886d6108432da24cb2122b6e"
+  },
+  {
+   "path": "kernels/modulate.rules.json",
+   "digest": "sha256:29b89188774997a0c32e4722d104a6a90c64fac88a89d623a86103df40321213"
+  },
+  {
+   "path": "kernels/moe.rules.gptoss.json",
+   "digest": "sha256:8471e2a19890e45d8be6431491e98c11520598f5e98b8ac8a28977bfbeec7966"
+  },
+  {
+   "path": "kernels/moe.rules.json",
+   "digest": "sha256:ef6bda6b2e6ef8f889c34d99c157295297375a5845f40cf7b90ea67daec36ae2"
+  },
+  {
+   "path": "kernels/moe.rules.mixtral.json",
+   "digest": "sha256:16454ff88c7bf99d0f66cb704b6d60b7f63850e378acda3cef6c2ffde21c2def"
+  },
+  {
+   "path": "kernels/pixel_shuffle.rules.json",
+   "digest": "sha256:cf5433a5d416705d3f04b9321e560d959a37b40c3f282e1ff058134244605ba7"
+  },
+  {
+   "path": "kernels/relu.rules.json",
+   "digest": "sha256:87256e54451a2834f42dcc4aa392dfdabfcdaf694fb8d01e10dcc661bbc8526c"
+  },
+  {
+   "path": "kernels/rep-penalty.rules.json",
+   "digest": "sha256:a8eba10370f282536e6b741895ea481f0c8ae33a7379e03a4f40812f26652f08"
+  },
+  {
+   "path": "kernels/repeat-channels.rules.json",
+   "digest": "sha256:87256e54451a2834f42dcc4aa392dfdabfcdaf694fb8d01e10dcc661bbc8526c"
+  },
+  {
+   "path": "kernels/residual.rules.json",
+   "digest": "sha256:f801dc9c88e34086261dfeb7c5dc74c8c1d7b18085e9b6fdb2ede597e5827a5e"
+  },
+  {
+   "path": "kernels/rmsnorm-qk.rules.json",
+   "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
+  },
+  {
+   "path": "kernels/rmsnorm.rules.json",
+   "digest": "sha256:fa5872e9d5bd9912775d45c678075d3e17221b0f8693366a3999c4322c503b2c"
+  },
+  {
+   "path": "kernels/rope-qk.rules.json",
+   "digest": "sha256:a8eba10370f282536e6b741895ea481f0c8ae33a7379e03a4f40812f26652f08"
+  },
+  {
+   "path": "kernels/rope.rules.json",
+   "digest": "sha256:a8eba10370f282536e6b741895ea481f0c8ae33a7379e03a4f40812f26652f08"
+  },
+  {
+   "path": "kernels/sample.rules.json",
+   "digest": "sha256:a988a3759bfa0d71752fb73031a49bc5b1783fb290bcdf756ed4efa706a49071"
+  },
+  {
+   "path": "kernels/scale.rules.json",
+   "digest": "sha256:53ce216b17a6a8d5866b48afaf09c7c307258121d6e4d37910f4ddb9bbb11d08"
+  },
+  {
+   "path": "kernels/silu.rules.json",
+   "digest": "sha256:03adb9334c1825f65e12f6af440d4837d7fe94d2772d67eb7c4e1a9abf787eaa"
+  },
+  {
+   "path": "kernels/softmax.rules.json",
+   "digest": "sha256:a71d5119bde8e08096920558a2e49a167aa5916524a567c5822c3d78a1abee7b"
+  },
+  {
+   "path": "kernels/split-qg.rules.json",
+   "digest": "sha256:d05077d4fc6cd001b956ca3fa8cc060c9e58ad4525d4db1e8c06860277e0d748"
+  },
+  {
+   "path": "kernels/split-qkv.rules.json",
+   "digest": "sha256:d05077d4fc6cd001b956ca3fa8cc060c9e58ad4525d4db1e8c06860277e0d748"
+  },
+  {
+   "path": "kernels/upsample2d.rules.json",
+   "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
+  },
+  {
+   "path": "loader/tensor-loader.rules.json",
+   "digest": "sha256:61bafd04ae60d45f478976f09df6a910b0ed750877008d2edb3b23659c972ead"
+  },
+  {
+   "path": "loader/weights.rules.json",
+   "digest": "sha256:121e76226c214d8aa30a2f4e1076488b207a31e8d5be86d8c08a2ae1df939ca3"
+  },
+  {
+   "path": "tooling/command-runtime.rules.json",
+   "digest": "sha256:4e191b70019913dc315ae18fa408ea729675dfca48c4815989475c52a64ea2b0"
   }
+ ],
+ "files": {
+  "converter/execution.rules.json": {
+   "jobMode": [
+    {
+     "match": {
+      "workers": {
+       "lte": 1
+      }
+     },
+     "value": "main"
+    },
+    {
+     "match": {
+      "canChunkRows": true
+     },
+     "value": "row_chunks"
+    },
+    {
+     "match": {},
+     "value": "tensor"
+    }
+   ],
+   "rowChunkRows": [
+    {
+     "match": {
+      "canChunkRows": false
+     },
+     "value": 0
+    },
+    {
+     "match": {
+      "workers": {
+       "lte": 2
+      }
+     },
+     "value": 256
+    },
+    {
+     "match": {
+      "workers": {
+       "lte": 16
+      }
+     },
+     "value": 512
+    },
+    {
+     "match": {},
+     "value": 768
+    }
+   ],
+   "maxInFlightJobs": [
+    {
+     "match": {
+      "workers": {
+       "lte": 2
+      }
+     },
+     "value": 4
+    },
+    {
+     "match": {
+      "workers": {
+       "lte": 4
+      }
+     },
+     "value": 8
+    },
+    {
+     "match": {
+      "workers": {
+       "lte": 8
+      }
+     },
+     "value": 16
+    },
+    {
+     "match": {
+      "workers": {
+       "lte": 16
+      }
+     },
+     "value": 24
+    },
+    {
+     "match": {},
+     "value": 32
+    }
+   ]
+  },
+  "converter/tensor-roles.rules.json": {
+   "shouldQuantize": [
+    {
+     "match": {
+      "numElements": {
+       "lt": 1024
+      }
+     },
+     "value": false
+    },
+    {
+     "match": {
+      "role": "embedding",
+      "quantizeEmbeddings": true
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "role": "embedding"
+     },
+     "value": false
+    },
+    {
+     "match": {
+      "role": "lm_head",
+      "quantizeEmbeddings": true
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "role": "lm_head"
+     },
+     "value": false
+    },
+    {
+     "match": {
+      "role": "norm"
+     },
+     "value": false
+    },
+    {
+     "match": {
+      "role": "router"
+     },
+     "value": false
+    },
+    {
+     "match": {
+      "isBias": true
+     },
+     "value": false
+    },
+    {
+     "match": {},
+     "value": true
+    }
+   ]
+  },
+  "converter/tokenizer.rules.json": {
+   "type": [
+    {
+     "match": {
+      "isLiteRTPieceList": true
+     },
+     "value": "bpe"
+    },
+    {
+     "match": {
+      "hasMerges": true
+     },
+     "value": "bpe"
+    },
+    {
+     "match": {
+      "hasScores": true
+     },
+     "value": "unigram"
+    },
+    {
+     "match": {},
+     "value": "bpe"
+    }
+   ],
+   "addDummyPrefix": [
+    {
+     "match": {
+      "isLiteRTPieceList": true
+     },
+     "value": false
+    },
+    {
+     "match": {},
+     "value": true
+    }
+   ]
+  },
+  "inference/attention.rules.json": {
+   "useFusedQkv": [
+    {
+     "match": {
+      "hasQkvProj": true,
+      "hasQkvSizes": true,
+      "hasLoRA": false
+     },
+     "value": true
+    },
+    {
+     "match": {},
+     "value": false
+    }
+   ],
+   "useFusedOProjResidual": [
+    {
+     "match": {
+      "allowFusedResidual": true,
+      "hasResidual": true,
+      "residualMatches": true,
+      "attnIsF32": true,
+      "hasLoRA": false,
+      "oProjIsF16": true
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "allowFusedResidual": true,
+      "hasResidual": true,
+      "residualMatches": true,
+      "attnIsF16": true,
+      "hasLoRA": false,
+      "oProjIsF16": true
+     },
+     "value": true
+    },
+    {
+     "match": {},
+     "value": false
+    }
+   ],
+   "attentionKernelVariant": [
+    {
+     "match": {
+      "kvLayout": "tiered",
+      "numTokens": {
+       "gt": 1
+      }
+     },
+     "value": "contiguous"
+    },
+    {
+     "match": {
+      "kvLayout": "bdpa"
+     },
+     "value": "bdpa"
+    },
+    {
+     "match": {
+      "kvLayout": "contiguous_quantized",
+      "numTokens": {
+       "gt": 1
+      }
+     },
+     "value": "contiguous"
+    },
+    {
+     "match": {
+      "kvLayout": "contiguous_quantized"
+     },
+     "value": "contiguousQuant"
+    },
+    {
+     "match": {
+      "kvLayout": "tiered",
+      "coldQuantMode": {
+       "neq": "none"
+      }
+     },
+     "value": "tieredQuant"
+    },
+    {
+     "match": {
+      "kvLayout": "tiered"
+     },
+     "value": "tiered"
+    },
+    {
+     "match": {},
+     "value": "contiguous"
+    }
+   ]
+  },
+  "inference/config.rules.json": {
+   "hiddenActivation": [
+    {
+     "match": {
+      "activation": {
+       "in": [
+        "silu",
+        "swiglu"
+       ]
+      }
+     },
+     "value": "silu"
+    },
+    {
+     "match": {
+      "activation": {
+       "in": [
+        "gelu",
+        "geglu"
+       ]
+      }
+     },
+     "value": "gelu"
+    },
+    {
+     "match": {},
+     "value": "silu"
+    }
+   ],
+   "tracePath": [
+    {
+     "match": {
+      "useRecorder": true
+     },
+     "value": "fused"
+    },
+    {
+     "match": {},
+     "value": "debug-sync"
+    }
+   ],
+   "pipelineModules": [
+    {
+     "match": {
+      "modelTypeLower": {
+       "in": [
+        "diffusion_gemma"
+       ]
+      }
+     },
+     "value": [
+      "./diffusion-gemma/pipeline.js"
+     ]
+    },
+    {
+     "match": {
+      "modelTypeLower": {
+       "in": [
+        "diffusion"
+       ]
+      }
+     },
+     "value": [
+      "./diffusion/pipeline.js"
+     ]
+    },
+    {
+     "match": {
+      "modelTypeLower": {
+       "in": [
+        "energy"
+       ]
+      }
+     },
+     "value": [
+      "./energy/pipeline.js"
+     ]
+    },
+    {
+     "match": {
+      "modelTypeLower": {
+       "in": [
+        "dream_structured",
+        "dream_intent_posterior_head",
+        "dream_d1_to2_bridge",
+        "dream_synthesis",
+        "dream_energy_compose",
+        "structured_json_head",
+        "structured-json-head",
+        "dream-intent-posterior-head",
+        "dream-d1-to2-bridge",
+        "dream-synthesis",
+        "dream-energy-compose"
+       ]
+      }
+     },
+     "value": [
+      "./structured/json-head-pipeline.js"
+     ]
+    },
+    {
+     "match": {
+      "modelTypeLower": {
+       "in": [
+        "energy_row_head",
+        "energy-row-head",
+        "dream_energy_head",
+        "dream-energy-head",
+        "d1-to2-bridge-diffusion",
+        "synthesis-mixer-diffusion",
+        "ebrm-diffusion"
+       ]
+      }
+     },
+     "value": [
+      "./energy-head/row-head-pipeline.js"
+     ]
+    },
+    {
+     "match": {},
+     "value": []
+    }
+   ],
+   "embeddingSemanticStyle": [
+    {
+     "match": {
+      "manifestModelType": "embeddinggemma"
+     },
+     "value": "embeddinggemma"
+    },
+    {
+     "match": {
+      "modelType": "embedding",
+      "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B"
+     },
+     "value": "qwen3_embedding"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ],
+   "stableF32Logits": [
+    {
+     "match": {
+      "inputDtype": "f16",
+      "finalLogitSoftcapping": {
+       "gt": 0
+      }
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "inputDtype": "f16",
+      "rmsNormWeightOffset": true,
+      "hiddenSize": {
+       "lte": 768
+      }
+     },
+     "value": true
+    },
+    {
+     "match": {},
+     "value": false
+    }
+   ]
+  },
+  "inference/dtype.rules.json": {
+   "f16OrF32": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "dtypeFromAlias": [
+    {
+     "match": {
+      "dtype": "bf16"
+     },
+     "value": "bf16"
+    },
+    {
+     "match": {
+      "dtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "dtype": "fp16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "dtype": "float16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "dtype": "f32"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "dtype": "fp32"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "dtype": "float32"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "f16OrF32FromDtype": [
+    {
+     "match": {
+      "dtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "dtype": "f32"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "embeddingDtype": [
+    {
+     "match": {
+      "dtype": "litert_int4"
+     },
+     "value": "litert_int4"
+    },
+    {
+     "match": {
+      "dtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "f16OrF32FromDtypeAlias": [
+    {
+     "match": {
+      "dtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "dtype": "bf16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "dtype": "fp16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "dtype": "float16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "dtype": "f32"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "dtype": "fp32"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "dtype": "float32"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "f16OrF32FromBytes": [
+    {
+     "match": {
+      "bytesPerElement": {
+       "lte": 2
+      }
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "f16OrF32FromBytesOrFallback": [
+    {
+     "match": {
+      "bytesPerElement": {
+       "lt": 3
+      }
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "f16OrF32FromToken": [
+    {
+     "match": {
+      "token": "F16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "f16IfCap": [
+    {
+     "match": {
+      "hasF16": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "bothF16": [
+    {
+     "match": {
+      "aDtype": "f16",
+      "bDtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "diffusionActivationDtype": [
+    {
+     "match": {
+      "requested": "f16",
+      "hasF16": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "f16OrFallback": [
+    {
+     "match": {
+      "kvDtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "f16OrFallbackByFlag": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "attentionProjectionOutputDtype": [
+    {
+     "match": {
+      "forceF32": true
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "bytesPerElement": [
+    {
+     "match": {
+      "dtype": "f16"
+     },
+     "value": 2
+    },
+    {
+     "match": {
+      "dtype": "bf16"
+     },
+     "value": 2
+    },
+    {
+     "match": {
+      "dtype": "f32"
+     },
+     "value": 4
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "dtypeFromSize": [
+    {
+     "match": {
+      "bytesPerElement": 2
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "bytesPerElement": 4
+     },
+     "value": "f32"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "bytesFromDtype": [
+    {
+     "match": {
+      "dtype": "f16"
+     },
+     "value": 2
+    },
+    {
+     "match": {
+      "dtype": "bf16"
+     },
+     "value": 2
+    },
+    {
+     "match": {
+      "dtype": "f32"
+     },
+     "value": 4
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "matmulDtype": [
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "f16",
+        "bf16"
+       ]
+      }
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "dtype": "f32"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "dtype": "q4k"
+     },
+     "value": "q4k"
+    },
+    {
+     "match": {
+      "dtype": "litert_int4"
+     },
+     "value": "litert_int4"
+    },
+    {
+     "match": {
+      "dtype": "w4a16"
+     },
+     "value": "w4a16"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "fallback"
+     }
+    }
+   ],
+   "logitsDtype": [
+    {
+     "match": {
+      "logitsDtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "kvCacheDtype": [
+    {
+     "match": {
+      "forceF32": true
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "requested": "f16",
+      "useGPU": true,
+      "hasF16": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "requested": "f16"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "requested": "f32"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "lmHeadChunkWeightDtype": [
+    {
+     "match": {
+      "preferF16": true,
+      "lmHeadDtype": "f16",
+      "hasF16": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ]
+  },
+  "inference/execution.rules.json": {
+   "decodeRecorderEnabled": [
+    {
+     "match": {
+      "hasDevice": true,
+      "debug": false,
+      "disableCommandBatching": false,
+      "kvLayout": {
+       "neq": "bdpa_paged"
+      }
+     },
+     "value": true
+    },
+    {
+     "match": {},
+     "value": false
+    }
+   ],
+   "profileDecodeRecorderEnabled": [
+    {
+     "match": {
+      "hasDevice": true,
+      "debug": false,
+      "kvLayout": {
+       "neq": "bdpa_paged"
+      }
+     },
+     "value": true
+    },
+    {
+     "match": {},
+     "value": false
+    }
+   ],
+   "batchDecodeEnabled": [
+    {
+     "match": {
+      "batchSize": {
+       "gt": 1
+      },
+      "useGPU": true,
+      "gpuSamplingAvailable": true,
+      "disableMultiTokenDecode": {
+       "neq": true
+      },
+      "disableCommandBatching": false,
+      "isBdpaPagedLayout": false,
+      "finitenessFallbackWindowOpen": false,
+      "hasLinearAttentionLayers": false,
+      "hasRangeBackedPerLayerInputs": false
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "batchSize": {
+       "gt": 1
+      },
+      "useGPU": true,
+      "gpuSamplingAvailable": true,
+      "disableMultiTokenDecode": {
+       "neq": true
+      },
+      "disableCommandBatching": false,
+      "isBdpaPagedLayout": false,
+      "finitenessFallbackWindowOpen": false,
+      "hasLinearAttentionLayers": false,
+      "hasRangeBackedPerLayerInputs": true,
+      "selfSpeculationEnabled": false
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "batchSize": {
+       "gt": 1
+      },
+      "useGPU": true,
+      "gpuSamplingAvailable": true,
+      "disableMultiTokenDecode": {
+       "neq": true
+      },
+      "disableCommandBatching": false,
+      "isBdpaPagedLayout": false,
+      "finitenessFallbackWindowOpen": false,
+      "hasLinearAttentionLayers": true,
+      "hasRangeBackedPerLayerInputs": false
+     },
+     "value": true
+    },
+    {
+     "match": {},
+     "value": false
+    }
+   ],
+   "maxBatchDecodeTokens": [
+    {
+     "match": {
+      "hasHotVocabularyBatchDecode": true
+     },
+     "value": 1
+    },
+    {
+     "match": {
+      "hasLinearAttentionLayers": true
+     },
+     "value": 32
+    },
+    {
+     "match": {
+      "hasGpuSplitPerLayerInputs": true,
+      "currentSeqLen": {
+       "gte": 192
+      }
+     },
+     "value": 2
+    },
+    {
+     "match": {
+      "hasGpuSplitPerLayerInputs": true,
+      "maxDecodeTokens": {
+       "gt": 16
+      }
+     },
+     "value": 16
+    },
+    {
+     "match": {
+      "hasGpuSplitPerLayerInputs": true
+     },
+     "value": 8
+    },
+    {
+     "match": {
+      "modelId": {
+       "in": [
+        "gemma-4-12b-it-text-q4k-ehf16-af16",
+        "gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
+        "gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+       ]
+      },
+      "activationDtype": "f16",
+      "numLayers": {
+       "gte": 48
+      },
+      "hiddenSize": {
+       "gte": 3840
+      },
+      "maxDecodeTokens": {
+       "gt": 8
+      }
+     },
+     "value": 8
+    },
+    {
+     "match": {
+      "numLayers": {
+       "gte": 48
+      },
+      "hiddenSize": {
+       "gte": 3840
+      },
+      "maxDecodeTokens": {
+       "gt": 16
+      }
+     },
+     "value": 16
+    },
+    {
+     "match": {},
+     "value": null
+    }
+   ],
+   "prefillRecorderChunkLayers": [
+    {
+     "match": {
+      "hasGpuSplitPerLayerInputs": true,
+      "numTokens": {
+       "lte": 32
+      }
+     },
+     "value": 8
+    },
+    {
+     "match": {},
+     "value": 4
+    }
+   ],
+   "finitenessFallbackActivationDtype": [
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ]
+  },
+  "inference/ffn.rules.json": {
+   "activationOp": [
+    {
+     "match": {
+      "hiddenActivation": "gelu"
+     },
+     "value": "gelu"
+    },
+    {
+     "match": {},
+     "value": "silu"
+    }
+   ],
+   "useFusedGateUp": [
+    {
+     "match": {
+      "hasGate": true,
+      "hasUp": true,
+      "hasDown": true,
+      "hasFusedWeights": false,
+      "inputIsSupported": true,
+      "hasLoRA": false,
+      "dtypeMatches": true,
+      "dtypeSupported": true,
+      "weightDtype": "f16",
+      "activationDtype": "f16",
+      "f16BatchSupported": true
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "hasGate": true,
+      "hasUp": true,
+      "hasDown": true,
+      "hasFusedWeights": false,
+      "inputIsSupported": true,
+      "hasLoRA": false,
+      "dtypeMatches": true,
+      "dtypeSupported": true,
+      "weightDtype": "f16",
+      "activationDtype": "f32",
+      "useLargeBatchF16F32FusedGateUp": true,
+      "batchSize": {
+       "gt": 4
+      }
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "hasGate": true,
+      "hasUp": true,
+      "hasDown": true,
+      "hasFusedWeights": false,
+      "inputIsSupported": true,
+      "hasLoRA": false,
+      "dtypeMatches": true,
+      "dtypeSupported": true,
+      "weightDtype": "f16",
+      "activationDtype": "f32",
+      "batchSize": {
+       "lte": 4
+      }
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "hasGate": true,
+      "hasUp": true,
+      "hasDown": true,
+      "hasFusedWeights": false,
+      "inputIsSupported": true,
+      "hasLoRA": false,
+      "dtypeMatches": true,
+      "dtypeSupported": true,
+      "weightDtype": "q4k",
+      "activationDtype": "f16",
+      "hiddenSizeAligned32": true,
+      "batchSize": {
+       "lte": 4
+      },
+      "useDoubleWideMlp": false
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "hasGate": true,
+      "hasUp": true,
+      "hasDown": true,
+      "hasFusedWeights": false,
+      "inputIsSupported": true,
+      "hasLoRA": false,
+      "dtypeMatches": true,
+      "dtypeSupported": true,
+      "weightDtype": "q4k",
+      "activationDtype": "f32",
+      "hiddenSizeAligned32": true,
+      "batchSize": {
+       "lte": 4
+      },
+      "useDoubleWideMlp": false
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "hasGate": true,
+      "hasUp": true,
+      "hasDown": true,
+      "hasFusedWeights": false,
+      "inputIsSupported": true,
+      "hasLoRA": false,
+      "dtypeMatches": true,
+      "dtypeSupported": true,
+      "hasQ4KMaterialization": true,
+      "activationDtype": "f32",
+      "hiddenSizeAligned32": true,
+      "batchSize": {
+       "lte": 4
+      },
+      "useDoubleWideMlp": false
+     },
+     "value": true
+    },
+    {
+     "match": {},
+     "value": false
+    }
+   ]
+  },
+  "inference/layer-pattern.rules.json": {
+   "patternKind": [
+    {
+     "match": {
+      "patternType": "alternating",
+      "globalPattern": "even"
+     },
+     "value": "alternating_even"
+    },
+    {
+     "match": {
+      "patternType": "alternating",
+      "globalPattern": "odd"
+     },
+     "value": "alternating_odd"
+    },
+    {
+     "match": {
+      "patternType": "every_n"
+     },
+     "value": "every_n"
+    },
+    {
+     "match": {},
+     "value": null
+    }
+   ],
+   "layerType": [
+    {
+     "match": {
+      "patternKind": "alternating_even",
+      "isEven": true
+     },
+     "value": "full_attention"
+    },
+    {
+     "match": {
+      "patternKind": "alternating_even"
+     },
+     "value": "sliding_attention"
+    },
+    {
+     "match": {
+      "patternKind": "alternating_odd",
+      "isEven": false
+     },
+     "value": "full_attention"
+    },
+    {
+     "match": {
+      "patternKind": "alternating_odd"
+     },
+     "value": "sliding_attention"
+    },
+    {
+     "match": {
+      "patternKind": "every_n",
+      "isStride": true
+     },
+     "value": "full_attention"
+    },
+    {
+     "match": {
+      "patternKind": "every_n"
+     },
+     "value": "sliding_attention"
+    }
+   ]
+  },
+  "inference/layer.rules.json": {
+   "ffnMode": [
+    {
+     "match": {
+      "variant": "moe"
+     },
+     "value": true
+    },
+    {
+     "match": {
+      "variant": "auto",
+      "canAutoMoe": true
+     },
+     "value": true
+    },
+    {
+     "match": {},
+     "value": false
+    }
+   ]
+  },
+  "inference/moe.rules.json": {
+   "executionProfile": [
+    {
+     "match": {
+      "expertFormat": "gpt-oss"
+     },
+     "value": {
+      "id": "gpt-oss-mxfp4",
+      "label": "GPT-OSS MXFP4 experts",
+      "expertExecutor": "gpt-oss",
+      "intermediateSizeSource": "architecture",
+      "requiresShaderF16": true,
+      "routerScaleMode": "none",
+      "topkRouteExecutor": null,
+      "vendorProfile": {
+       "kind": "rule",
+       "domain": "kernels",
+       "group": "moeGptoss",
+       "name": "vendorQuirkProfile"
+      },
+      "kernelPathProfileResolver": "gpt-oss",
+      "kernelRuleModelType": "gpt-oss",
+      "shapePolicy": {
+       "kind": "rule",
+       "domain": "kernels",
+       "group": "moeGptoss",
+       "name": "shapePolicy"
+      }
+     }
+    },
+    {
+     "match": {
+      "expertFormat": "mixtral"
+     },
+     "value": {
+      "id": "mixtral-dense",
+      "label": "Mixtral dense experts",
+      "expertExecutor": "mixtral",
+      "intermediateSizeSource": "architecture",
+      "requiresShaderF16": false,
+      "routerScaleMode": "none",
+      "topkRouteExecutor": null,
+      "vendorProfile": {
+       "kind": "rule",
+       "domain": "kernels",
+       "group": "moeMixtral",
+       "name": "vendorQuirkProfile"
+      },
+      "kernelPathProfileResolver": "mixtral",
+      "kernelRuleModelType": "mixtral",
+      "shapePolicy": null
+     }
+    },
+    {
+     "match": {
+      "modelType": "diffusion_gemma",
+      "expertFormat": "gemma4"
+     },
+     "value": {
+      "id": "diffusion-gemma-packed",
+      "label": "DiffusionGemma packed experts",
+      "expertExecutor": "gemma4-packed",
+      "intermediateSizeSource": "expert",
+      "requiresShaderF16": false,
+      "routerScaleMode": "required",
+      "topkRouteExecutor": "gemma4-route",
+      "vendorProfile": {
+       "kind": "static",
+       "value": {
+        "preferVec4Dequant": false,
+        "dequantTileShape": null,
+        "routerWorkgroupSize": 256,
+        "maxTokensPerExpertScale": 1
+       }
+      },
+      "kernelPathProfileResolver": null,
+      "kernelRuleModelType": null,
+      "shapePolicy": null
+     }
+    },
+    {
+     "match": {
+      "expertFormat": "gemma4"
+     },
+     "value": {
+      "id": "gemma4-packed",
+      "label": "Gemma packed experts",
+      "expertExecutor": "gemma4-packed",
+      "intermediateSizeSource": "expert",
+      "requiresShaderF16": false,
+      "routerScaleMode": "optional",
+      "topkRouteExecutor": "gemma4-route",
+      "vendorProfile": {
+       "kind": "static",
+       "value": {
+        "preferVec4Dequant": false,
+        "dequantTileShape": null,
+        "routerWorkgroupSize": 256,
+        "maxTokensPerExpertScale": 1
+       }
+      },
+      "kernelPathProfileResolver": null,
+      "kernelRuleModelType": null,
+      "shapePolicy": null
+     }
+    }
+   ],
+   "biasAddCode": [
+    {
+     "match": {
+      "logitsDtype": "f16",
+      "biasDtype": "f16"
+     },
+     "value": {
+      "logitsType": "f16",
+      "biasType": "f16",
+      "logitsRead": "f32(logits[idx])",
+      "biasRead": "f32(bias[e])",
+      "logitsWrite": "logits[idx] = f16(value);",
+      "enableF16": "enable f16;\n"
+     }
+    },
+    {
+     "match": {
+      "logitsDtype": "f16"
+     },
+     "value": {
+      "logitsType": "f16",
+      "biasType": "f32",
+      "logitsRead": "f32(logits[idx])",
+      "biasRead": "bias[e]",
+      "logitsWrite": "logits[idx] = f16(value);",
+      "enableF16": "enable f16;\n"
+     }
+    },
+    {
+     "match": {
+      "biasDtype": "f16"
+     },
+     "value": {
+      "logitsType": "f32",
+      "biasType": "f16",
+      "logitsRead": "logits[idx]",
+      "biasRead": "f32(bias[e])",
+      "logitsWrite": "logits[idx] = value;",
+      "enableF16": "enable f16;\n"
+     }
+    },
+    {
+     "match": {},
+     "value": {
+      "logitsType": "f32",
+      "biasType": "f32",
+      "logitsRead": "logits[idx]",
+      "biasRead": "bias[e]",
+      "logitsWrite": "logits[idx] = value;",
+      "enableF16": ""
+     }
+    }
+   ]
+  },
+  "kernels/attention.rules.json": {
+   "tier": [
+    {
+     "match": {
+      "canSubgroup": true
+     },
+     "value": "subgroup"
+    },
+    {
+     "match": {
+      "canLarge": true
+     },
+     "value": "tiled_large"
+    },
+    {
+     "match": {
+      "canSmall": true
+     },
+     "value": "tiled_small"
+    },
+    {
+     "match": {
+      "isDecode": true
+     },
+     "value": "streaming"
+    },
+    {
+     "match": {},
+     "value": "streaming"
+    }
+   ],
+   "phase": [
+    {
+     "match": {
+      "isDecode": true
+     },
+     "value": "decode"
+    },
+    {
+     "match": {},
+     "value": "prefill"
+    }
+   ],
+   "suffix": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "_f16"
+    },
+    {
+     "match": {
+      "useF16KV": true
+     },
+     "value": "_f16kv"
+    },
+    {
+     "match": {},
+     "value": ""
+    }
+   ],
+   "chunkedVariant": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "decode_chunked_f16"
+    },
+    {
+     "match": {},
+     "value": "decode_chunked_f16kv"
+    }
+   ],
+   "pagedVariant": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "decode_paged_f16"
+    },
+    {
+     "match": {},
+     "value": "decode_paged_f16kv"
+    }
+   ],
+   "optimizedVariant": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "decode_online_f16"
+    },
+    {
+     "match": {},
+     "value": "decode_online_f16kv"
+    }
+   ],
+   "tieredVariant": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "decode_tiered_f16"
+    },
+    {
+     "match": {},
+     "value": "decode_tiered_f16kv"
+    }
+   ],
+   "tieredQuantVariant": [
+    {
+     "match": {
+      "mode": "turboquant"
+     },
+     "value": "decode_tiered_turboquant_f16kv"
+    },
+    {
+     "match": {
+      "mode": "turboquant_prod"
+     },
+     "value": "decode_tiered_turboquant_prod_f16kv"
+    },
+    {
+     "match": {
+      "mode": "int4"
+     },
+     "value": "decode_tiered_int4_f16kv"
+    },
+    {
+     "match": {
+      "mode": "int8"
+     },
+     "value": "decode_tiered_int8_f16kv"
+    },
+    {
+     "match": {},
+     "value": "decode_tiered_int8_f16kv"
+    }
+   ],
+   "contiguousQuantVariant": [
+    {
+     "match": {
+      "mode": "turboquant"
+     },
+     "value": "decode_contiguous_turboquant_f16kv"
+    },
+    {
+     "match": {
+      "mode": "turboquant_prod"
+     },
+     "value": "decode_contiguous_turboquant_prod_f16kv"
+    },
+    {
+     "match": {},
+     "value": "decode_contiguous_turboquant_f16kv"
+    }
+   ],
+   "variant": [
+    {
+     "match": {
+      "canUseDecodeOptimized": true
+     },
+     "value": {
+      "context": "optimizedVariant"
+     }
+    },
+    {
+     "match": {
+      "platformId": {
+       "in": [
+        "apple-m2",
+        "apple-m3",
+        "amd-rdna3",
+        "nvidia-rtx30",
+        "nvidia-rtx40"
+       ]
+      },
+      "isDecode": true,
+      "tier": "subgroup",
+      "canUseDecodeSubgroup": true
+     },
+     "value": "decode_subgroup"
+    },
+    {
+     "match": {
+      "isPaged": true,
+      "isDecode": true,
+      "canUseChunked": true
+     },
+     "value": {
+      "context": "pagedVariant"
+     }
+    },
+    {
+     "match": {
+      "tier": "subgroup",
+      "useF16KV": true,
+      "canUseChunked": true
+     },
+     "value": {
+      "context": "chunkedVariant"
+     }
+    },
+    {
+     "match": {
+      "tier": "subgroup",
+      "useF16KV": true
+     },
+     "value": {
+      "template": "prefill_streaming{suffix}"
+     }
+    },
+    {
+     "match": {
+      "tier": "subgroup",
+      "canUseDecodeSubgroup": true
+     },
+     "value": "decode_subgroup"
+    },
+    {
+     "match": {
+      "tier": "subgroup"
+     },
+     "value": "prefill_streaming"
+    },
+    {
+     "match": {
+      "tier": "tiled_large"
+     },
+     "value": {
+      "template": "{base}{suffix}"
+     }
+    },
+    {
+     "match": {
+      "tier": "tiled_small"
+     },
+     "value": {
+      "template": "prefill_small{suffix}"
+     }
+    },
+    {
+     "match": {
+      "tier": "streaming",
+      "canUseChunked": true
+     },
+     "value": {
+      "context": "chunkedVariant"
+     }
+    },
+    {
+     "match": {
+      "tier": "streaming"
+     },
+     "value": {
+      "template": "prefill_streaming{suffix}"
+     }
+    },
+    {
+     "match": {},
+     "value": {
+      "template": "prefill_streaming{suffix}"
+     }
+    }
+   ]
+  },
+  "kernels/conv2d.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/depthwise-conv2d.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/dequant.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "platformId": {
+       "in": [
+        "apple-m2",
+        "apple-m3",
+        "nvidia-rtx30",
+        "nvidia-rtx40"
+       ]
+      },
+      "hasSubgroups": true,
+      "wantsF16Out": true
+     },
+     "value": "subgroup_f16out"
+    },
+    {
+     "match": {
+      "platformId": {
+       "in": [
+        "apple-m2",
+        "apple-m3",
+        "nvidia-rtx30",
+        "nvidia-rtx40"
+       ]
+      },
+      "hasSubgroups": true
+     },
+     "value": "subgroup"
+    },
+    {
+     "match": {
+      "hasSubgroups": true,
+      "wantsF16Out": true,
+      "useVec4": true
+     },
+     "value": "subgroup_vec4_f16out"
+    },
+    {
+     "match": {
+      "hasSubgroups": true,
+      "wantsF16Out": true
+     },
+     "value": "subgroup_f16out"
+    },
+    {
+     "match": {
+      "hasSubgroups": true,
+      "useVec4": true
+     },
+     "value": "subgroup_vec4"
+    },
+    {
+     "match": {
+      "hasSubgroups": true
+     },
+     "value": "subgroup"
+    },
+    {
+     "match": {
+      "wantsF16Out": true,
+      "useVec4": true
+     },
+     "value": "subgroup_vec4_f16out"
+    },
+    {
+     "match": {
+      "wantsF16Out": true
+     },
+     "value": "subgroup_f16out"
+    },
+    {
+     "match": {
+      "useVec4": true
+     },
+     "value": "shared"
+    },
+    {
+     "match": {},
+     "value": "shared"
+    }
+   ],
+   "rowwiseVariant": [
+    {
+     "match": {
+      "wantsF16Out": true
+     },
+     "value": "f16_rowwise"
+    },
+    {
+     "match": {},
+     "value": "f32_rowwise"
+    }
+   ],
+   "mxfp4ExpertVariant": [
+    {
+     "match": {
+      "modelType": "gpt-oss",
+      "hasF16": true,
+      "hasSubgroups": true,
+      "outputDtype": "f16",
+      "dequantTileShape": "vec4",
+      "groupSize": 32
+     },
+     "value": "mxfp4_expert_fused_f16"
+    },
+    {
+     "match": {
+      "modelType": "gpt-oss",
+      "hasF16": true,
+      "outputDtype": "f16"
+     },
+     "value": "mxfp4_expert_f16"
+    },
+    {
+     "match": {
+      "modelType": "gpt-oss"
+     },
+     "value": "mxfp4_expert"
+    },
+    {
+     "match": {
+      "outputDtype": "f16"
+     },
+     "value": "mxfp4_expert_f16"
+    },
+    {
+     "match": {},
+     "value": "mxfp4_expert"
+    }
+   ]
+  },
+  "kernels/energy.rules.json": {
+   "evalVariant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "eval_f16"
+    },
+    {
+     "match": {},
+     "value": "eval"
+    }
+   ],
+   "updateVariant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "update_f16"
+    },
+    {
+     "match": {},
+     "value": "update"
+    }
+   ],
+   "quintelUpdateVariant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "quintel_update_f16"
+    },
+    {
+     "match": {},
+     "value": "quintel_update"
+    }
+   ],
+   "quintelReduceVariant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "quintel_reduce_f16"
+    },
+    {
+     "match": {},
+     "value": "quintel_reduce"
+    }
+   ],
+   "quintelGradVariant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "quintel_grad_f16"
+    },
+    {
+     "match": {},
+     "value": "quintel_grad"
+    }
+   ]
+  },
+  "kernels/fused-ffn.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isQ4K": true,
+      "fusedAllowed": true,
+      "hiddenSubblockAligned": true,
+      "hasF16": true,
+      "useF16Input": true,
+      "batchSize": {
+       "gt": 1
+      }
+     },
+     "value": "q4k_batched_f16a"
+    },
+    {
+     "match": {
+      "isQ4K": true,
+      "fusedAllowed": true,
+      "hiddenSubblockAligned": true,
+      "hasF16": true,
+      "useF16Input": true
+     },
+     "value": "q4k_f16a"
+    },
+    {
+     "match": {
+      "isQ4K": true,
+      "fusedAllowed": true,
+      "hiddenSubblockAligned": true,
+      "batchSize": {
+       "gt": 1
+      }
+     },
+     "value": "q4k_batched"
+    },
+    {
+     "match": {
+      "isQ4K": true,
+      "fusedAllowed": true,
+      "hiddenSubblockAligned": true
+     },
+     "value": "q4k"
+    },
+    {
+     "match": {
+      "weightDtype": "f16",
+      "hasF16": true,
+      "useF16Input": true,
+      "batchSize": {
+       "gt": 1
+      }
+     },
+     "value": "f16_native_batched"
+    },
+    {
+     "match": {
+      "weightDtype": "f16",
+      "hasF16": true,
+      "useF16Input": true
+     },
+     "value": "f16_native"
+    },
+    {
+     "match": {
+      "weightDtype": "f16",
+      "batchSize": {
+       "gt": 1
+      }
+     },
+     "value": "f16_batched"
+    },
+    {
+     "match": {
+      "weightDtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "batchSize": {
+       "gt": 1
+      }
+     },
+     "value": "batched"
+    },
+    {
+     "match": {
+      "useMultiOutput": true
+     },
+     "value": "multi"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/fused-matmul-residual.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "dtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/fused-matmul-rmsnorm.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isSmall": true,
+      "isF16": true
+     },
+     "value": "small_f16"
+    },
+    {
+     "match": {
+      "isSmall": true
+     },
+     "value": "small"
+    },
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "medium_f16"
+    },
+    {
+     "match": {},
+     "value": "medium"
+    }
+   ]
+  },
+  "kernels/gather.rules.json": {
+   "splitConfig": [
+    {
+     "match": {
+      "forcedSectionCount": 4
+     },
+     "value": {
+      "op": "gather_split4",
+      "label": "gather_split4",
+      "sectionCount": 4,
+      "variants": {
+       "f16": "f16_vec4_f16_out"
+      }
+     }
+    },
+    {
+     "match": {
+      "forcedSectionCount": 8
+     },
+     "value": {
+      "op": "gather_split8",
+      "label": "gather_split8",
+      "sectionCount": 8,
+      "variants": {
+       "f16": "f16_vec4_f16_out",
+       "f32": "f16_vec4_f32_out"
+      }
+     }
+    },
+    {
+     "match": {
+      "outputDtype": "f32",
+      "sectionCount": {
+       "lte": 8
+      }
+     },
+     "value": {
+      "op": "gather_split8",
+      "label": "gather_split8",
+      "sectionCount": 8,
+      "variants": {
+       "f16": "f16_vec4_f16_out",
+       "f32": "f16_vec4_f32_out"
+      }
+     }
+    },
+    {
+     "match": {
+      "outputDtype": "f16",
+      "sectionCount": {
+       "lte": 4
+      }
+     },
+     "value": {
+      "op": "gather_split4",
+      "label": "gather_split4",
+      "sectionCount": 4,
+      "variants": {
+       "f16": "f16_vec4_f16_out"
+      }
+     }
+    },
+    {
+     "match": {
+      "outputDtype": "f16",
+      "sectionCount": {
+       "lte": 8
+      }
+     },
+     "value": {
+      "op": "gather_split8",
+      "label": "gather_split8",
+      "sectionCount": 8,
+      "variants": {
+       "f16": "f16_vec4_f16_out",
+       "f32": "f16_vec4_f32_out"
+      }
+     }
+    }
+   ],
+   "variant": [
+    {
+     "match": {
+      "useLiteRTInt4Input": true,
+      "useF16Output": false,
+      "useVec4": true
+     },
+     "value": "litert_int4_vec4_f32_out"
+    },
+    {
+     "match": {
+      "useLiteRTInt4Input": true,
+      "useF16Output": true,
+      "useVec4": true
+     },
+     "value": "litert_int4_vec4_f16_out"
+    },
+    {
+     "match": {
+      "useF16Input": true,
+      "useF16Output": true,
+      "useVec4": true
+     },
+     "value": "f16_vec4_f16_out"
+    },
+    {
+     "match": {
+      "useF16Input": true,
+      "useF16Output": true
+     },
+     "value": "f16_f16_out"
+    },
+    {
+     "match": {
+      "useF16Input": true,
+      "useVec4": true
+     },
+     "value": "f16_vec4"
+    },
+    {
+     "match": {
+      "useF16Input": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "useF16Output": true,
+      "useVec4": true
+     },
+     "value": "vec4_f16_out"
+    },
+    {
+     "match": {
+      "useF16Output": true
+     },
+     "value": "f16_out"
+    },
+    {
+     "match": {
+      "useVec4": true
+     },
+     "value": "vec4"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/gelu.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "gelu_f16"
+    },
+    {
+     "match": {},
+     "value": "gelu"
+    }
+   ],
+   "overrides": [
+    {
+     "match": {
+      "useRowsplit": true
+     },
+     "value": {
+      "USE_ROWSPLIT": true
+     }
+    },
+    {
+     "match": {
+      "hasGate": true
+     },
+     "value": {
+      "HAS_GATE": true
+     }
+    },
+    {
+     "match": {},
+     "value": {}
+    }
+   ]
+  },
+  "kernels/grouped-pointwise-conv2d.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/groupnorm.rules.json": {
+   "statsVariant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "stats_f16"
+    },
+    {
+     "match": {},
+     "value": "stats"
+    }
+   ],
+   "applyVariant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "apply_f16"
+    },
+    {
+     "match": {},
+     "value": "apply"
+    }
+   ]
+  },
+  "kernels/kv_quantize.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "mode": "turboquant"
+     },
+     "value": "turboquant"
+    },
+    {
+     "match": {
+      "mode": "turboquant_prod"
+     },
+     "value": "turboquant_prod"
+    },
+    {
+     "match": {
+      "mode": "int4"
+     },
+     "value": "int4"
+    },
+    {
+     "match": {
+      "mode": "int8"
+     },
+     "value": "int8"
+    },
+    {
+     "match": {},
+     "value": "int8"
+    }
+   ]
+  },
+  "kernels/layernorm.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/linear-attention.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/lm-head-argmax.rules.json": {
+   "phase1Variant": [
+    {
+     "match": {
+      "weightDtype": "q4k"
+     },
+     "value": "phase1_q4k_f32a"
+    },
+    {
+     "match": {
+      "weightDtype": "f16"
+     },
+     "value": "phase1_f16w_f32a"
+    }
+   ],
+   "phase2Variant": [
+    {
+     "match": {
+      "weightDtype": "q4k"
+     },
+     "value": "phase2_q4k"
+    },
+    {
+     "match": {},
+     "value": "phase2"
+    }
+   ]
+  },
+  "kernels/matmul.rules.json": {
+   "litertInt4FusedVariant": [
+    {
+     "match": {
+      "activationDtype": "f16",
+      "outputDtype": "f16",
+      "transposeB": true
+     },
+     "value": "litert_int4_multicol_f16a"
+    },
+    {
+     "match": {
+      "activationDtype": "f16",
+      "outputDtype": "f32",
+      "transposeB": true
+     },
+     "value": "litert_int4_multicol_f16a_f32out"
+    },
+    {
+     "match": {
+      "activationDtype": "f32",
+      "outputDtype": "f32",
+      "transposeB": true
+     },
+     "value": "litert_int4_multicol_f32a_f32out"
+    },
+    {
+     "match": {},
+     "value": null
+    }
+   ],
+   "w4a16FusedVariant": [
+    {
+     "match": {
+      "activationDtype": "f16",
+      "outputDtype": "f16",
+      "transposeB": true,
+      "isPrefill": true
+     },
+     "value": "w4a16_batched_f16a"
+    },
+    {
+     "match": {
+      "activationDtype": "f16",
+      "outputDtype": "f32",
+      "transposeB": true,
+      "isPrefill": true
+     },
+     "value": "w4a16_batched_f16a_f32out"
+    },
+    {
+     "match": {
+      "activationDtype": "f16",
+      "outputDtype": "f16",
+      "transposeB": true
+     },
+     "value": "w4a16_multicol_f16a"
+    },
+    {
+     "match": {
+      "activationDtype": "f16",
+      "outputDtype": "f32",
+      "transposeB": true
+     },
+     "value": "w4a16_multicol_f16a_f32out"
+    },
+    {
+     "match": {},
+     "value": null
+    }
+   ],
+   "q4kFusedVariant": [
+    {
+     "match": {
+      "useF16A": true,
+      "isM1": true
+     },
+     "value": "q4_fused_multicol_f16a"
+    },
+    {
+     "match": {
+      "useF16A": true
+     },
+     "value": "q4_fused_batched_f16a"
+    },
+    {
+     "match": {
+      "useF16Out": true,
+      "isM1": true
+     },
+     "value": "q4_fused_multicol_f16"
+    },
+    {
+     "match": {
+      "useF16Out": true
+     },
+     "value": "q4_fused_batched_f16"
+    },
+    {
+     "match": {
+      "isM1": true
+     },
+     "value": "q4_fused_multicol"
+    },
+    {
+     "match": {},
+     "value": "q4_fused_batched"
+    }
+   ],
+   "matmulKernel": [
+    {
+     "match": {
+      "useF16Matmul": true,
+      "useTiled": true
+     },
+     "value": "f16_tiled"
+    },
+    {
+     "match": {
+      "useF16Matmul": true,
+      "useVec4": true
+     },
+     "value": "f16_vec4"
+    },
+    {
+     "match": {
+      "useF16Matmul": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "useF16wF32a": true,
+      "useF16wF32aTiled": true
+     },
+     "value": "f16w_f32a_tiled"
+    },
+    {
+     "match": {
+      "useF16wF32a": true
+     },
+     "value": "f16w_f32a"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "gemvPathVariant": [
+    {
+     "match": {
+      "useF16GemvPath": true,
+      "useMulticol": true
+     },
+     "value": "gemv_subgroup_multicol_f16a"
+    },
+    {
+     "match": {
+      "useF16GemvPath": true
+     },
+     "value": "gemv_subgroup_f16a"
+    },
+    {
+     "match": {
+      "useF32GemvPath": true,
+      "useMulticol": true
+     },
+     "value": "gemv_subgroup_multicol"
+    },
+    {
+     "match": {
+      "useF32GemvPath": true
+     },
+     "value": "gemv_subgroup"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "pathVariant"
+     }
+    }
+   ],
+   "gemvVariant": [
+    {
+     "match": {
+      "platformId": {
+       "in": [
+        "apple-m2",
+        "apple-m3",
+        "amd-rdna3"
+       ]
+      },
+      "hasSubgroups": true,
+      "useF16Gemv": true
+     },
+     "value": "gemv_subgroup_f16a"
+    },
+    {
+     "match": {
+      "platformId": {
+       "in": [
+        "apple-m2",
+        "apple-m3",
+        "amd-rdna3"
+       ]
+      },
+      "hasSubgroups": true,
+      "useF32Gemv": true
+     },
+     "value": "gemv_subgroup"
+    },
+    {
+     "match": {
+      "hasSubgroups": true,
+      "useF16Gemv": true,
+      "useVec4": true,
+      "useMulticol": false
+     },
+     "value": "gemv_subgroup_vec4_f16a"
+    },
+    {
+     "match": {
+      "hasSubgroups": true,
+      "useF32Gemv": true,
+      "useVec4": true,
+      "useMulticol": false
+     },
+     "value": "gemv_subgroup_vec4"
+    },
+    {
+     "match": {
+      "hasSubgroups": true,
+      "useF16Gemv": true,
+      "useMulticol": true
+     },
+     "value": "gemv_subgroup_multicol_f16a"
+    },
+    {
+     "match": {
+      "hasSubgroups": true,
+      "useF16Gemv": true
+     },
+     "value": "gemv_subgroup_f16a"
+    },
+    {
+     "match": {
+      "hasSubgroups": true,
+      "useF32Gemv": true,
+      "useMulticol": true
+     },
+     "value": "gemv_subgroup_multicol"
+    },
+    {
+     "match": {
+      "hasSubgroups": true,
+      "useF32Gemv": true
+     },
+     "value": "gemv_subgroup"
+    },
+    {
+     "match": {
+      "useF16Gemv": true
+     },
+     "value": "gemv_f16a"
+    },
+    {
+     "match": {
+      "useF32Gemv": true
+     },
+     "value": "gemv"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "matmulSelection": [
+    {
+     "match": {
+      "useLiteRTInt4Fused": true
+     },
+     "value": {
+      "variant": {
+       "context": "litertInt4Variant"
+      },
+      "useQ4KFused": false,
+      "useGemv": false,
+      "useLiteRTInt4Fused": true
+     }
+    },
+    {
+     "match": {
+      "useW4A16Fused": true
+     },
+     "value": {
+      "variant": {
+       "context": "w4a16Variant"
+      },
+      "useQ4KFused": false,
+      "useGemv": false,
+      "useLiteRTInt4Fused": false,
+      "useW4A16Fused": true
+     }
+    },
+    {
+     "match": {
+      "isQ4K": true,
+      "hasSubgroups": true,
+      "fusedAllowed": true
+     },
+     "value": {
+      "variant": {
+       "context": "q4kVariant"
+      },
+      "useQ4KFused": true,
+      "useGemv": false
+     }
+    },
+    {
+     "match": {
+      "useGemv": true
+     },
+     "value": {
+      "variant": {
+       "context": "gemvVariant"
+      },
+      "useQ4KFused": false,
+      "useGemv": true
+     }
+    },
+    {
+     "match": {},
+     "value": {
+      "variant": {
+       "context": "matmulVariant"
+      },
+      "useQ4KFused": false,
+      "useGemv": false
+     }
+    }
+   ],
+   "preferredWeightDtype": [
+    {
+     "match": {
+      "variantWeightDtype": "f16",
+      "hasQ4KMaterialization": true,
+      "hasSubgroups": true
+     },
+     "value": "q4k"
+    },
+    {
+     "match": {},
+     "value": {
+      "context": "variantWeightDtype"
+     }
+    }
+   ],
+   "weightDtypeMismatchPolicy": [
+    {
+     "match": {
+      "actualWeightDtype": "f16",
+      "requiredWeightDtype": "q4k"
+     },
+     "value": "fallthrough"
+    },
+    {
+     "match": {
+      "actualWeightDtype": "q4k",
+      "requiredWeightDtype": "f16",
+      "hasSubgroups": true
+     },
+     "value": "fallthrough"
+    },
+    {
+     "match": {
+      "actualWeightDtype": "q4k",
+      "requiredWeightDtype": "f32",
+      "hasSubgroups": true
+     },
+     "value": "fallthrough"
+    },
+    {
+     "match": {
+      "actualWeightDtype": "litert_int4",
+      "requiredWeightDtype": "f16"
+     },
+     "value": "fallthrough"
+    },
+    {
+     "match": {
+      "actualWeightDtype": "litert_int4",
+      "requiredWeightDtype": "f32"
+     },
+     "value": "fallthrough"
+    },
+    {
+     "match": {
+      "actualWeightDtype": "w4a16",
+      "requiredWeightDtype": "f16"
+     },
+     "value": "fallthrough"
+    },
+    {
+     "match": {
+      "actualWeightDtype": "w4a16",
+      "requiredWeightDtype": "f32"
+     },
+     "value": "fallthrough"
+    },
+    {
+     "match": {},
+     "value": "reject"
+    }
+   ],
+   "q4kMaterializationMode": [
+    {
+     "match": {
+      "hasFusedProjections": true,
+      "hasDenseProjections": true
+     },
+     "value": "mixed"
+    },
+    {
+     "match": {
+      "hasFusedProjections": true
+     },
+     "value": "fused"
+    },
+    {
+     "match": {},
+     "value": "dense"
+    }
+   ],
+   "phase": [
+    {
+     "match": {
+      "isDecode": true
+     },
+     "value": "decode"
+    },
+    {
+     "match": {},
+     "value": "prefill"
+    }
+   ]
+  },
+  "kernels/modulate.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "inputDtype": "f16",
+      "modDtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/moe.rules.gptoss.json": {
+   "routerTopKVariant": [
+    {
+     "match": {
+      "modelType": "gpt-oss",
+      "hasF16": true,
+      "hasSubgroups": true,
+      "inputDtype": "f16",
+      "weightsDtype": "f16"
+     },
+     "value": "gptoss_router_topk"
+    },
+    {
+     "match": {
+      "modelType": "gpt-oss",
+      "hasF16": true,
+      "inputDtype": "f16",
+      "weightsDtype": "f16"
+     },
+     "value": "fused_f16_w16"
+    },
+    {
+     "match": {
+      "modelType": "gpt-oss",
+      "inputDtype": "f16"
+     },
+     "value": "fused_f16"
+    }
+   ],
+   "vendorQuirkProfile": [
+    {
+     "match": {
+      "vendor": {
+       "contains": [
+        "intel",
+        "amd"
+       ]
+      }
+     },
+     "value": {
+      "preferVec4Dequant": false,
+      "dequantTileShape": "scalar",
+      "routerWorkgroupSize": 128,
+      "maxTokensPerExpertScale": 0.85
+     }
+    },
+    {
+     "match": {
+      "vendor": {
+       "contains": [
+        "nvidia",
+        "apple",
+        "qualcomm"
+       ]
+      }
+     },
+     "value": {
+      "preferVec4Dequant": true,
+      "dequantTileShape": "vec4",
+      "routerWorkgroupSize": 256,
+      "maxTokensPerExpertScale": 1
+     }
+    },
+    {
+     "match": {},
+     "value": {
+      "preferVec4Dequant": false,
+      "dequantTileShape": "scalar",
+      "routerWorkgroupSize": 128,
+      "maxTokensPerExpertScale": 0.9
+     }
+    }
+   ],
+   "dequantVariant": [
+    {
+     "match": {
+      "modelType": "gpt-oss",
+      "outputDtype": "f16",
+      "hasF16": true,
+      "hasSubgroups": true,
+      "dequantTileShape": "vec4",
+      "groupSize": 32
+     },
+     "value": "mxfp4_expert_fused_f16"
+    },
+    {
+     "match": {
+      "modelType": "gpt-oss",
+      "outputDtype": "f16",
+      "hasF16": true
+     },
+     "value": "mxfp4_expert_f16"
+    },
+    {
+     "match": {
+      "modelType": "gpt-oss"
+     },
+     "value": "mxfp4_expert"
+    }
+   ],
+   "shapePolicy": [
+    {
+     "match": {
+      "modelType": "gpt-oss"
+     },
+     "value": {
+      "hiddenSizeDivisor": 32,
+      "intermediateSizeDivisor": 32,
+      "groupSize": 32,
+      "gateUpRowsplit": true
+     }
+    }
+   ]
+  },
+  "kernels/moe.rules.json": {
+   "variantSuffix": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "_f16"
+    },
+    {
+     "match": {},
+     "value": ""
+    }
+   ],
+   "scatterAddVariant": [
+    {
+     "match": {
+      "outputDtype": "f16",
+      "weightsDtype": "f16",
+      "hasExpertScale": true
+     },
+     "value": "dynamic_f16_w16_expert_scale"
+    },
+    {
+     "match": {
+      "outputDtype": "f16",
+      "hasExpertScale": true
+     },
+     "value": "dynamic_f16_expert_scale"
+    },
+    {
+     "match": {
+      "hasExpertScale": true
+     },
+     "value": "dynamic_expert_scale"
+    },
+    {
+     "match": {
+      "outputDtype": "f16",
+      "weightsDtype": "f16"
+     },
+     "value": "dynamic_f16_w16"
+    },
+    {
+     "match": {
+      "outputDtype": "f16"
+     },
+     "value": "dynamic_f16"
+    },
+    {
+     "match": {},
+     "value": "dynamic"
+    }
+   ]
+  },
+  "kernels/moe.rules.mixtral.json": {
+   "vendorQuirkProfile": [
+    {
+     "match": {
+      "vendor": {
+       "contains": [
+        "intel",
+        "amd"
+       ]
+      }
+     },
+     "value": {
+      "preferVec4Dequant": false,
+      "dequantTileShape": "scalar",
+      "routerWorkgroupSize": 128,
+      "maxTokensPerExpertScale": 0.85
+     }
+    },
+    {
+     "match": {
+      "vendor": {
+       "contains": [
+        "nvidia",
+        "apple",
+        "qualcomm"
+       ]
+      }
+     },
+     "value": {
+      "preferVec4Dequant": false,
+      "dequantTileShape": "scalar",
+      "routerWorkgroupSize": 256,
+      "maxTokensPerExpertScale": 1
+     }
+    },
+    {
+     "match": {},
+     "value": {
+      "preferVec4Dequant": false,
+      "dequantTileShape": "scalar",
+      "routerWorkgroupSize": 128,
+      "maxTokensPerExpertScale": 1
+     }
+    }
+   ],
+   "routerTopKVariant": [
+    {
+     "match": {
+      "modelType": "mixtral",
+      "hasF16": true,
+      "hasSubgroups": true,
+      "routerDtype": "f32"
+     },
+     "value": "softmax_topk_f32_subgroup"
+    },
+    {
+     "match": {
+      "modelType": "mixtral",
+      "routerDtype": "f32"
+     },
+     "value": "softmax_topk_f32"
+    },
+    {
+     "match": {
+      "modelType": "mixtral"
+     },
+     "value": "softmax_topk_f32"
+    }
+   ],
+   "dequantVariant": [
+    {
+     "match": {
+      "modelType": "mixtral",
+      "weightsDtype": "q4k",
+      "hasF16": true,
+      "hasSubgroups": true,
+      "outputDtype": "f32"
+     },
+     "value": "q4k_expert_dequant_f32_subgroup"
+    },
+    {
+     "match": {
+      "modelType": "mixtral",
+      "weightsDtype": "q4k",
+      "outputDtype": "f16",
+      "hasF16": true
+     },
+     "value": "q4k_expert_dequant_f16"
+    },
+    {
+     "match": {
+      "modelType": "mixtral",
+      "weightsDtype": "q4k"
+     },
+     "value": "q4k_expert_dequant_f32"
+    },
+    {
+     "match": {
+      "modelType": "mixtral",
+      "weightsDtype": "f16",
+      "outputDtype": "f16",
+      "hasF16": true
+     },
+     "value": "f16_expert_passthrough"
+    },
+    {
+     "match": {
+      "modelType": "mixtral"
+     },
+     "value": "f16_expert_upcast_f32"
+    }
+   ]
+  },
+  "kernels/pixel_shuffle.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "dtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/relu.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "dtype": "f16"
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/rep-penalty.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/repeat-channels.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "dtype": "f16"
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/residual.rules.json": {
+   "residualVariant": [
+    {
+     "match": {
+      "useVec4": true,
+      "outputDtype": "f16"
+     },
+     "value": "vec4_f16"
+    },
+    {
+     "match": {
+      "useVec4": true
+     },
+     "value": "vec4"
+    },
+    {
+     "match": {
+      "outputDtype": "f16"
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ],
+   "biasAddVariant": [
+    {
+     "match": {
+      "dataDtype": "f16",
+      "biasDtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/rmsnorm-qk.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/rmsnorm.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true,
+      "isSmall": true
+     },
+     "value": "small_f16"
+    },
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {
+      "residual": true
+     },
+     "value": "residual"
+    },
+    {
+     "match": {
+      "hasSubgroups": true,
+      "isSmall": true
+     },
+     "value": "small_subgroup"
+    },
+    {
+     "match": {
+      "hasSubgroups": true
+     },
+     "value": "subgroup"
+    },
+    {
+     "match": {
+      "isSmall": true
+     },
+     "value": "small"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/rope-qk.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/rope.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/sample.rules.json": {
+   "suffix": [
+    {
+     "match": {
+      "useF16": true
+     },
+     "value": "_f16"
+    },
+    {
+     "match": {},
+     "value": ""
+    }
+   ]
+  },
+  "kernels/scale.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true,
+      "inplace": true
+     },
+     "value": "inplace_f16"
+    },
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {
+      "inplace": true
+     },
+     "value": "inplace"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/silu.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ],
+   "overrides": [
+    {
+     "match": {
+      "useRowsplit": true
+     },
+     "value": {
+      "USE_ROWSPLIT": true
+     }
+    },
+    {
+     "match": {
+      "useSplit": true
+     },
+     "value": {
+      "USE_SPLIT": true
+     }
+    },
+    {
+     "match": {
+      "hasGate": true,
+      "useVec4": true
+     },
+     "value": {
+      "HAS_GATE": true,
+      "USE_VEC4": true
+     }
+    },
+    {
+     "match": {
+      "hasGate": true
+     },
+     "value": {
+      "HAS_GATE": true
+     }
+    },
+    {
+     "match": {
+      "useVec4": true
+     },
+     "value": {
+      "USE_VEC4": true
+     }
+    },
+    {
+     "match": {},
+     "value": {}
+    }
+   ],
+   "activationOp": [
+    {
+     "match": {
+      "activation": "gelu"
+     },
+     "value": "gelu"
+    },
+    {
+     "match": {},
+     "value": "silu"
+    }
+   ],
+   "swigluRowsplitBiasVariant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "rowsplit_bias_f16"
+    },
+    {
+     "match": {},
+     "value": "rowsplit_bias"
+    }
+   ]
+  },
+  "kernels/softmax.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "hasSubgroups": true,
+      "isSmall": true
+     },
+     "value": "small_subgroup"
+    },
+    {
+     "match": {
+      "hasSubgroups": true
+     },
+     "value": "subgroup"
+    },
+    {
+     "match": {
+      "isSmall": true
+     },
+     "value": "small"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ],
+   "topkVariant": [
+    {
+     "match": {
+      "modelType": "gpt-oss",
+      "hasF16": true,
+      "hasSubgroups": true,
+      "inputDtype": "f16",
+      "weightsDtype": "f16"
+     },
+     "value": "gptoss_router_topk"
+    },
+    {
+     "match": {
+      "modelType": "mixtral",
+      "inputDtype": "f16",
+      "weightsDtype": "f16"
+     },
+     "value": "fused_f16_w16"
+    },
+    {
+     "match": {
+      "modelType": "mixtral"
+     },
+     "value": "fused"
+    },
+    {
+     "match": {
+      "inputDtype": "f16",
+      "weightsDtype": "f16"
+     },
+     "value": "fused_f16_w16"
+    },
+    {
+     "match": {
+      "inputDtype": "f16"
+     },
+     "value": "fused_f16"
+    },
+    {
+     "match": {},
+     "value": "fused"
+    }
+   ]
+  },
+  "kernels/split-qg.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "outputDtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/split-qkv.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "outputDtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "kernels/upsample2d.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "isF16": true
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {},
+     "value": "default"
+    }
+   ]
+  },
+  "loader/tensor-loader.rules.json": {
+   "gpuLoaderPath": [
+    {
+     "match": {
+      "dtype": "FUNCTIONAL_DESCRIPTOR"
+     },
+     "value": "functional_descriptor"
+    },
+    {
+     "match": {
+      "litertAffineInt4FusedEligible": true
+     },
+     "value": "litert_int4_fused"
+    },
+    {
+     "match": {
+      "w4a16FusedEligible": true
+     },
+     "value": "w4a16_fused"
+    },
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "Q4_K_M",
+        "Q4_K"
+       ]
+      },
+      "q4kDenseExceedsBindingLimit": true,
+      "q4kLimitFallbackEligible": true
+     },
+     "value": "q4k_fused"
+    },
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "Q4_K_M",
+        "Q4_K"
+       ]
+      },
+      "q4kMaterializationMode": "mixed"
+     },
+     "value": "q4k_mixed"
+    },
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "Q4_K_M",
+        "Q4_K"
+       ]
+      },
+      "requiresFusedQ4KRole": true
+     },
+     "value": "q4k_fused"
+    },
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "Q4_K_M",
+        "Q4_K"
+       ]
+      },
+      "useFusedQ4K": true
+     },
+     "value": "q4k_fused"
+    },
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "Q4_K_M",
+        "Q4_K"
+       ]
+      },
+      "useFusedQ4K": false,
+      "q4kCpuReferenceEligible": true,
+      "q4kBasicBackendClass": true
+     },
+     "value": "q4k_dequant_reference"
+    },
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "Q4_K_M",
+        "Q4_K"
+       ]
+      }
+     },
+     "value": "q4k_dequant"
+    },
+    {
+     "match": {
+      "dtype": "W4A16"
+     },
+     "value": "w4a16_dequant_reference"
+    },
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "Q4_0",
+        "WNA8O8"
+       ]
+      }
+     },
+     "value": "unsupported_packed_quantization"
+    },
+    {
+     "match": {
+      "dtype": "Q6_K"
+     },
+     "value": "q6k"
+    },
+    {
+     "match": {
+      "dtype": "BF16"
+     },
+     "value": "bf16"
+    },
+    {
+     "match": {},
+     "value": "float"
+    }
+   ],
+   "cpuLoaderPath": [
+    {
+     "match": {
+      "dtype": "FUNCTIONAL_DESCRIPTOR"
+     },
+     "value": "unsupported_functional_descriptor"
+    },
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "Q4_K_M",
+        "Q4_K",
+        "Q6_K"
+       ]
+      }
+     },
+     "value": "raw"
+    },
+    {
+     "match": {
+      "dtype": "W4A16"
+     },
+     "value": "w4a16_dequant_reference"
+    },
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "Q4_0",
+        "WNA8O8"
+       ]
+      }
+     },
+     "value": "unsupported_packed_quantization"
+    },
+    {
+     "match": {
+      "dtype": "BF16"
+     },
+     "value": "bf16_to_f32"
+    },
+    {
+     "match": {
+      "dtype": "F16"
+     },
+     "value": "f16_to_f32"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ]
+  },
+  "loader/weights.rules.json": {
+   "normWeightDtype": [
+    {
+     "match": {
+      "normWeightDtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "normWeightDtype": "f32"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "normWeightDtypeFromSize": [
+    {
+     "match": {
+      "sizeMatchesF32": true
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "sizeMatchesF16": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "matmulWeightDtype": [
+    {
+     "match": {
+      "locationDtype": "F16",
+      "hasF16": false,
+      "isMatmulWeight": true
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "locationDtype": "F16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "locationDtype": "BF16",
+      "hasF16": true,
+      "isMatmulWeight": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "locationDtype": "BF16"
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "locationDtype": {
+       "in": [
+        "Q4_K",
+        "Q4_K_M"
+       ]
+      },
+      "hasF16": true,
+      "isMatmulWeight": true,
+      "keepF32Weights": false
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "locationDtype": {
+       "in": [
+        "Q4_K",
+        "Q4_K_M"
+       ]
+      }
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "locationDtype": "Q6_K"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "dequantizeToF16": [
+    {
+     "match": {
+      "role": {
+       "in": [
+        "matmul",
+        "embedding",
+        "lm_head",
+        "router",
+        "expert"
+       ]
+      }
+     },
+     "value": true
+    },
+    {
+     "match": {},
+     "value": false
+    }
+   ],
+   "floatLocationDtype": [
+    {
+     "match": {
+      "locationDtype": "F16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ],
+   "weightLayout": [
+    {
+     "match": {
+      "layout": "column"
+     },
+     "value": "column"
+    },
+    {
+     "match": {
+      "layout": "row"
+     },
+     "value": "row"
+    },
+    {
+     "match": {
+      "useColumnWise": true
+     },
+     "value": "column"
+    },
+    {
+     "match": {},
+     "value": "row"
+    }
+   ],
+   "q4kOutputDtype": [
+    {
+     "match": {
+      "isMatmulWeight": false
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "keepF32Weights": true
+     },
+     "value": "f32"
+    },
+    {
+     "match": {
+      "hasF16": true
+     },
+     "value": "f16"
+    },
+    {
+     "match": {},
+     "value": "f32"
+    }
+   ]
+  },
+  "tooling/command-runtime.rules.json": {
+   "runtimeContract": [
+    {
+     "match": {
+      "command": "debug"
+     },
+     "value": {
+      "workload": null,
+      "intent": "investigate"
+     }
+    },
+    {
+     "match": {
+      "command": "bench"
+     },
+     "value": {
+      "workload": null,
+      "intent": "calibrate"
+     }
+    },
+    {
+     "match": {
+      "command": "verify"
+     },
+     "value": {
+      "workload": null,
+      "intent": "verify"
+     }
+    },
+    {
+     "match": {
+      "command": "lora"
+     },
+     "value": {
+      "workload": null,
+      "intent": null
+     }
+    },
+    {
+     "match": {
+      "command": "distill"
+     },
+     "value": {
+      "workload": null,
+      "intent": null
+     }
+    },
+    {
+     "match": {
+      "command": "diagnose"
+     },
+     "value": {
+      "workload": null,
+      "intent": "investigate"
+     }
+    },
+    {
+     "match": {},
+     "value": {
+      "workload": null,
+      "intent": null
+     }
+    }
+   ]
+  }
+ }
 }
