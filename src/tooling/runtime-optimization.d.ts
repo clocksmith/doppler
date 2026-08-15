@@ -10,6 +10,41 @@ export interface RuntimeOptimizationContract {
   schema: 'doppler.runtime-optimization-contract/v1';
   contractId: string;
   kind: RuntimeOptimizationCandidateKind;
+  campaign: {
+    owner: string;
+    changeClass:
+      | 'scheduling-allocation-cache'
+      | 'numerical-kernel'
+      | 'precision-quantization'
+      | 'model-artifact'
+      | 'adapter'
+      | 'provider-integration';
+    causalHypothesis: string;
+    expectedMetric: {
+      path: RuntimeOptimizationContract['measurement']['metricPath'];
+      direction: RuntimeOptimizationDirection;
+      minImprovementPercent: number;
+    };
+    controlMetric: {
+      path: RuntimeOptimizationContract['verification']['comparisons'][number]['path'];
+      expectation: 'unchanged';
+    };
+    endToEndAcceptanceMetric: {
+      path: RuntimeOptimizationContract['measurement']['metricPath'];
+      direction: RuntimeOptimizationDirection;
+      minImprovementPercent: number;
+    };
+    budgets: {
+      maxCandidates: number;
+      maxCommandRunsPerCandidate: number;
+    };
+    stoppingRule: {
+      kind: 'fixed-contract' | 'bonferroni-fixed-looks';
+      retainNegativeResults: true;
+    };
+    retryConditions: string[];
+    revocationConditions: string[];
+  };
   model: {
     modelId: string;
     modelUrl: string | null;
@@ -98,14 +133,23 @@ export interface RuntimeOptimizationReceipt {
   parentHash: `sha256:${string}`;
   candidateKind: string;
   registeredReference: { registryId: string; digest: `sha256:${string}` } | null;
+  campaign: RuntimeOptimizationContract['campaign'];
   model: RuntimeOptimizationContract['model'];
   runtimeInputs: Record<string, unknown>;
   verification: Record<string, unknown>;
   measurement: Record<string, unknown>;
+  neighboringWorkloadGuards: Record<string, unknown> | null;
   decision: {
     accepted: boolean;
     status: 'accepted' | 'rejected' | 'invalid';
     reasons: string[];
+  };
+  promotion: {
+    authority: 'human';
+    recommended: boolean;
+    runtimeMutationApplied: false;
+    requiredStages: ['shadow', 'canary'];
+    revocationConditions: string[];
   };
   receiptHash: `sha256:${string}`;
 }

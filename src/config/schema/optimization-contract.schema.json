@@ -8,6 +8,7 @@
     "schema",
     "contractId",
     "kind",
+    "campaign",
     "model",
     "baseline",
     "workload",
@@ -25,6 +26,9 @@
         "registered-kernel-variant",
         "registered-execution-graph-patch"
       ]
+    },
+    "campaign": {
+      "$ref": "#/$defs/campaign"
     },
     "model": {
       "type": "object",
@@ -261,6 +265,101 @@
     }
   ],
   "$defs": {
+    "metricGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "direction", "minImprovementPercent"],
+      "properties": {
+        "path": {
+          "enum": [
+            "result.metrics.decodeTokensPerSec",
+            "result.metrics.embeddingMs",
+            "result.metrics.rerankMs",
+            "result.timing.decodeTokensPerSec",
+            "result.timing.totalRunMs"
+          ]
+        },
+        "direction": { "enum": ["maximize", "minimize"] },
+        "minImprovementPercent": { "type": "number" }
+      }
+    },
+    "campaign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "changeClass",
+        "causalHypothesis",
+        "expectedMetric",
+        "controlMetric",
+        "endToEndAcceptanceMetric",
+        "budgets",
+        "stoppingRule",
+        "retryConditions",
+        "revocationConditions"
+      ],
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "changeClass": {
+          "enum": [
+            "scheduling-allocation-cache",
+            "numerical-kernel",
+            "precision-quantization",
+            "model-artifact",
+            "adapter",
+            "provider-integration"
+          ]
+        },
+        "causalHypothesis": { "type": "string", "minLength": 1 },
+        "expectedMetric": { "$ref": "#/$defs/metricGate" },
+        "controlMetric": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "expectation"],
+          "properties": {
+            "path": {
+              "enum": [
+                "result.output",
+                "result.metrics.referenceTranscript.tokens.generatedTokenIdsHash",
+                "result.metrics.referenceTranscript.output.textHash"
+              ]
+            },
+            "expectation": { "const": "unchanged" }
+          }
+        },
+        "endToEndAcceptanceMetric": { "$ref": "#/$defs/metricGate" },
+        "budgets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["maxCandidates", "maxCommandRunsPerCandidate"],
+          "properties": {
+            "maxCandidates": { "type": "integer", "minimum": 1, "maximum": 256 },
+            "maxCommandRunsPerCandidate": { "type": "integer", "minimum": 1, "maximum": 4096 }
+          }
+        },
+        "stoppingRule": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "retainNegativeResults"],
+          "properties": {
+            "kind": { "enum": ["fixed-contract", "bonferroni-fixed-looks"] },
+            "retainNegativeResults": { "const": true }
+          }
+        },
+        "retryConditions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "revocationConditions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"

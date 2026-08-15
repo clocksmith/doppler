@@ -71,6 +71,17 @@ const matrix = await readJson(MATRIX_PATH);
 
 {
   const broken = clone(matrix);
+  const goal = broken.goals.find((entry) => entry.id === 'correctness-performance-claims');
+  goal.rows = goal.rows.filter((row) => row.id !== 'bounded-recursive-improvement');
+  const errors = await validateFixture(broken);
+  assert.ok(
+    errors.includes('correctness-performance-claims: missing required row bounded-recursive-improvement'),
+    errors.join('\n')
+  );
+}
+
+{
+  const broken = clone(matrix);
   rowById(broken, 'local-webgpu-product-surface', 'bun-runtime').blockers = ['unknown-blocker'];
   const errors = await validateFixture(broken);
   assert.ok(

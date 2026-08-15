@@ -60,6 +60,7 @@ const REQUIRED_GOAL_ROWS = new Map([
       'explicit-kernel-paths',
       'apples-to-apples-compare-rules',
       'fail-closed-unsupported-paths',
+      'bounded-recursive-improvement',
       'claim-promotion-coverage',
     ],
   ],

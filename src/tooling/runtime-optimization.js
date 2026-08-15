@@ -2,6 +2,10 @@ import { cloneJsonValue } from '../utils/clone-json.js';
 import { computeCanonicalSha256, canonicalizeJson } from '../utils/canonical-hash.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { runBrowserCommand } from './browser-command-runner.js';
+import {
+  finalizeRuntimeOptimizationReceipt,
+  validateRuntimeOptimizationCampaign,
+} from './runtime-optimization-campaign.js';
 
 export const RUNTIME_OPTIMIZATION_CONTRACT_SCHEMA = 'doppler.runtime-optimization-contract/v1';
 export const RUNTIME_OPTIMIZATION_CANDIDATE_SCHEMA = 'doppler.runtime-optimization-candidate/v1';
@@ -225,7 +229,7 @@ function validateDimension(dimension, index, seenPaths) {
 export function validateRuntimeOptimizationContract(input) {
   const contract = cloneJsonValue(assertObject(input, 'contract'));
   assertExactKeys(contract, [
-    'schema', 'contractId', 'kind', 'model', 'baseline', 'workload',
+    'schema', 'contractId', 'kind', 'campaign', 'model', 'baseline', 'workload',
     'mutationPolicy', 'verification', 'measurement', 'neighboringWorkloads',
   ], 'contract');
   if (contract.schema !== RUNTIME_OPTIMIZATION_CONTRACT_SCHEMA) {
@@ -451,6 +455,7 @@ export function validateRuntimeOptimizationContract(input) {
       assertIntegerRange(guard.pairCount, `${label}.pairCount`, 1, 16);
     });
   }
+  validateRuntimeOptimizationCampaign(contract.campaign, contract);
   return contract;
 }
 
@@ -964,24 +969,19 @@ function baseReceipt(contract, candidate, runtimeInputs) {
     candidateKind: candidate.kind,
     registeredReference: cloneJsonValue(candidate.registeredReference ?? null),
     parentHash: candidate.parentHash,
+    campaign: cloneJsonValue(contract.campaign),
     model: cloneJsonValue(contract.model),
     runtimeInputs: {
       baseline: cloneJsonValue(contract.baseline),
       candidate: cloneJsonValue(runtimeInputs),
       candidateRuntimeConfigHash: computeCanonicalSha256(runtimeInputs.runtimeConfig),
     },
-  };
-}
-
-function finalizeReceipt(receipt) {
-  return {
-    ...receipt,
-    receiptHash: computeCanonicalSha256(receipt),
+    neighboringWorkloadGuards: null,
   };
 }
 
 function rejectedReceipt(base, verification, measurement, reasons, status = 'rejected') {
-  return finalizeReceipt({
+  return finalizeRuntimeOptimizationReceipt({
     ...base,
     verification,
     measurement,
@@ -1370,7 +1370,7 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
   if (!neighboringWorkloadGuards.passed) {
     reasons.push('neighboring_workload_guard_failed');
   }
-  const receipt = finalizeReceipt({
+  const receipt = finalizeRuntimeOptimizationReceipt({
     ...base,
     verification,
     measurement,

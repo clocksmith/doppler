@@ -5,6 +5,11 @@ function receipt(status, reason, suffix) {
   return {
     schema: 'doppler.runtime-optimization-receipt/v1',
     candidateKind: 'registered-kernel-variant',
+    campaign: {
+      changeClass: 'numerical-kernel',
+      retryConditions: ['kernel identity changes'],
+      revocationConditions: ['output parity regresses'],
+    },
     registeredReference: { digest: `sha256:${suffix.repeat(64)}` },
     candidateHash: `sha256:${suffix.repeat(64)}`,
     model: { modelId: 'test-model' },
@@ -34,10 +39,11 @@ assert.equal(index.schema, 'doppler.runtime-optimization-results-index/v1');
 assert.equal(index.receiptCount, 3);
 assert.equal(index.negativeResultCount, 2);
 assert.equal(index.entries.length, 2);
-assert.equal(
-  index.entries.find((entry) => entry.identity.candidateReferenceDigest.endsWith('1'.repeat(64)))
-    .reasons.neighboring_workload_guard_failed,
-  1
+const negativeEntry = index.entries.find(
+  (entry) => entry.identity.candidateReferenceDigest.endsWith('1'.repeat(64))
 );
+assert.equal(negativeEntry.reasons.neighboring_workload_guard_failed, 1);
+assert.equal(negativeEntry.retryConditions['kernel identity changes'], 2);
+assert.equal(negativeEntry.revocationConditions['output parity regresses'], 2);
 
 console.log('runtime-optimization-index.test: ok');
