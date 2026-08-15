@@ -10,6 +10,12 @@ import {
   validateDopplerRuntimeOwnershipReceipt,
   validateRuntimeOwnershipExecutionEvidence,
 } from './lib/runtime-ownership-execution-evidence.js';
+import {
+  RUNTIME_OWNERSHIP_DIMENSION_CLASSES,
+  computeRuntimeOwnershipDecisionEvidenceDigest,
+  validateRuntimeOwnershipDimensionEvidence,
+  validateRuntimeOwnershipHypothesisEvidence,
+} from './lib/runtime-ownership-decision-evidence.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(
@@ -18,27 +24,16 @@ const DEFAULT_POLICY_PATH = path.join(
   'vendors',
   'runtime-ownership-decisions.json'
 );
-const CAPTURE_SCHEMA = 'doppler.runtime-ownership-evaluation-capture/v1';
+const CAPTURE_SCHEMA = 'doppler.runtime-ownership-evaluation-capture/v2';
 const DISPOSITIONS = new Set(['incumbent', 'doppler', 'dual']);
 const EVIDENCE_FIELDS = Object.freeze([
   'sourceExecution',
   'incumbentExecution',
   'dopplerExecution',
-  'correctness',
-  'taskQuality',
-  'usability',
-  'memory',
-  'endToEndPerformance',
-  'diagnosticDepth',
-  'distributionCost',
-  'integrationBurden',
-  'providerRisk',
+  ...RUNTIME_OWNERSHIP_DIMENSION_CLASSES,
 ]);
 const RESULT_FIELDS = Object.freeze([
   'axis',
-  'passed',
-  'observedValue',
-  'evaluatedAtUtc',
   'evidencePath',
 ]);
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -98,6 +93,16 @@ async function requireRepoPath(value, label, repoRoot) {
   return normalized;
 }
 
+async function readEvidencePath(value, label, repoRoot) {
+  const evidencePath = await requireRepoPath(value, label, repoRoot);
+  const receipt = await readJson(path.join(repoRoot, evidencePath), label);
+  return {
+    path: evidencePath,
+    digest: computeRuntimeOwnershipDecisionEvidenceDigest(receipt),
+    receipt,
+  };
+}
+
 async function readJson(filePath, label) {
   try {
     return JSON.parse(await fs.readFile(filePath, 'utf8'));
@@ -133,7 +138,7 @@ function validateDisposition(disposition, hypothesisResults) {
   }
 }
 
-async function validateHypothesisResults(capture, decision, repoRoot) {
+async function validateHypothesisResults(capture, decision, identity, repoRoot) {
   if (!Array.isArray(capture.hypothesisResults)) {
     throw new Error('capture.hypothesisResults must be an array.');
   }
@@ -146,25 +151,31 @@ async function validateHypothesisResults(capture, decision, repoRoot) {
     if (!expectedAxes.includes(axis)) throw new Error(`Unexpected hypothesis result axis ${axis}.`);
     if (seenAxes.has(axis)) throw new Error(`Duplicate hypothesis result axis ${axis}.`);
     seenAxes.add(axis);
-    if (typeof result.passed !== 'boolean') {
-      throw new Error(`${axis}.passed must be boolean.`);
-    }
-    if (!Number.isFinite(result.observedValue) && !normalizeText(result.observedValue)) {
-      throw new Error(`${axis}.observedValue must be a finite number or non-empty string.`);
-    }
-    const evaluatedAt = parseIsoInstant(result.evaluatedAtUtc, `${axis}.evaluatedAtUtc`);
-    const evidencePath = await requireRepoPath(
+    const evidence = await readEvidencePath(
       result.evidencePath,
       `${axis}.evidencePath`,
       repoRoot
     );
+    const hypothesis = decision.hypotheses.find((entry) => entry.axis === axis);
+    const validation = validateRuntimeOwnershipHypothesisEvidence(evidence.receipt, {
+      ...identity,
+      decisionId: decision.id,
+      axis,
+      metric: hypothesis.metric,
+      controlMetric: hypothesis.controlMetric,
+      operator: hypothesis.threshold.operator,
+      thresholdValue: hypothesis.threshold.value,
+    });
+    if (validation.errors.length > 0) {
+      throw new Error(`${axis} hypothesis evidence is invalid: ${validation.errors.join('; ')}`);
+    }
     results.push({
       axis,
-      passed: result.passed,
-      observedValue: result.observedValue,
-      evaluatedAtUtc: evaluatedAt.toISOString(),
-      evidencePath,
-      evaluatedAt,
+      passed: validation.passed,
+      observedValue: validation.observedValue,
+      evaluatedAtUtc: validation.evaluatedAt.toISOString(),
+      evidence: { path: evidence.path, digest: evidence.digest },
+      evaluatedAt: validation.evaluatedAt,
     });
   }
   if (seenAxes.size !== expectedAxes.length) {
@@ -178,7 +189,7 @@ async function validateEvidencePaths(capture, repoRoot) {
   assertExactKeys(capture.evidence, EVIDENCE_FIELDS, 'capture.evidence');
   const evidence = {};
   for (const field of EVIDENCE_FIELDS) {
-    evidence[field] = await requireRepoPath(
+    evidence[field] = await readEvidencePath(
       capture.evidence[field],
       `capture.evidence.${field}`,
       repoRoot
@@ -187,12 +198,9 @@ async function validateEvidencePaths(capture, repoRoot) {
   return evidence;
 }
 
-async function validateExternalReceipt(evidence, decision, role, repoRoot) {
+function validateExternalReceipt(evidence, decision, role) {
   const evidenceField = `${role}Execution`;
-  const receipt = await readJson(
-    path.join(repoRoot, evidence[evidenceField]),
-    `${role} execution evidence`
-  );
+  const receipt = evidence[evidenceField].receipt;
   const source = role === 'source';
   const result = validateRuntimeOwnershipExecutionEvidence(receipt, {
     role,
@@ -207,11 +215,8 @@ async function validateExternalReceipt(evidence, decision, role, repoRoot) {
   return result;
 }
 
-async function validateDopplerReceipt(evidence, decision, repoRoot) {
-  const receipt = await readJson(
-    path.join(repoRoot, evidence.dopplerExecution),
-    'Doppler execution evidence'
-  );
+function validateDopplerReceipt(evidence, decision) {
+  const receipt = evidence.dopplerExecution.receipt;
   const result = validateDopplerRuntimeOwnershipReceipt(receipt, {
     logicalModelId: decision.logicalModelId,
     resolvedArtifactVariantId: decision.resolvedArtifactVariantId,
@@ -221,6 +226,27 @@ async function validateDopplerReceipt(evidence, decision, repoRoot) {
     throw new Error(`Doppler execution evidence is invalid: ${result.errors.join('; ')}`);
   }
   return result;
+}
+
+function validateDimensionReceipts(evidence, decision, identity) {
+  const results = [];
+  for (const evidenceClass of RUNTIME_OWNERSHIP_DIMENSION_CLASSES) {
+    const validation = validateRuntimeOwnershipDimensionEvidence(
+      evidence[evidenceClass].receipt,
+      {
+        ...identity,
+        decisionId: decision.id,
+        evidenceClass,
+      }
+    );
+    if (validation.errors.length > 0) {
+      throw new Error(
+        `${evidenceClass} evidence is invalid: ${validation.errors.join('; ')}`
+      );
+    }
+    results.push({ evidenceClass, ...validation });
+  }
+  return results;
 }
 
 async function validateCapture(capture, context) {
@@ -242,15 +268,10 @@ async function validateCapture(capture, context) {
     throw new Error(`capture.decisionId must be ${decision.id}.`);
   }
   const decisionRationale = requireText(capture.decisionRationale, 'capture.decisionRationale');
-  const hypothesisResults = await validateHypothesisResults(capture, decision, repoRoot);
-  validateDisposition(capture.recommendedDisposition, hypothesisResults);
   const qualifiedAt = parseIsoInstant(capture.qualifiedAtUtc, 'capture.qualifiedAtUtc');
   const expiresAt = parseIsoInstant(capture.expiresAtUtc, 'capture.expiresAtUtc');
   if (qualifiedAt.getTime() > now.getTime()) {
     throw new Error('capture.qualifiedAtUtc must not be in the future.');
-  }
-  if (hypothesisResults.some((result) => result.evaluatedAt.getTime() > qualifiedAt.getTime())) {
-    throw new Error('capture.qualifiedAtUtc must not predate hypothesis evaluation.');
   }
   if (expiresAt.getTime() <= qualifiedAt.getTime()) {
     throw new Error('capture.expiresAtUtc must be later than capture.qualifiedAtUtc.');
@@ -261,16 +282,55 @@ async function validateCapture(capture, context) {
     );
   }
   const evidence = await validateEvidencePaths(capture, repoRoot);
-  const source = await validateExternalReceipt(evidence, decision, 'source', repoRoot);
-  const incumbent = await validateExternalReceipt(evidence, decision, 'incumbent', repoRoot);
-  const doppler = await validateDopplerReceipt(evidence, decision, repoRoot);
+  const source = validateExternalReceipt(evidence, decision, 'source');
+  const incumbent = validateExternalReceipt(evidence, decision, 'incumbent');
+  const doppler = validateDopplerReceipt(evidence, decision);
+  const identity = {
+    workload: decision.workload,
+    logicalModelId: decision.logicalModelId,
+    sourceExecutionId: source.evidenceId,
+    incumbentExecutionId: incumbent.evidenceId,
+    resolvedArtifactVariantId: doppler.resolution?.resolvedArtifactVariantId ?? null,
+    resolvedExecutionId: doppler.resolution?.resolvedExecutionId ?? null,
+  };
+  const dimensions = validateDimensionReceipts(evidence, decision, identity);
+  const hypothesisResults = await validateHypothesisResults(
+    capture,
+    decision,
+    identity,
+    repoRoot
+  );
+  validateDisposition(capture.recommendedDisposition, hypothesisResults);
+  if (hypothesisResults.some((result) => result.evaluatedAt.getTime() > qualifiedAt.getTime())) {
+    throw new Error('capture.qualifiedAtUtc must not predate hypothesis evaluation.');
+  }
+  if (
+    source.completedAt?.getTime() > qualifiedAt.getTime()
+    || incumbent.completedAt?.getTime() > qualifiedAt.getTime()
+    || doppler.timestamp?.getTime() > qualifiedAt.getTime()
+  ) {
+    throw new Error('capture.qualifiedAtUtc must not predate execution evidence.');
+  }
+  if (dimensions.some((result) => result.capturedAt.getTime() > qualifiedAt.getTime())) {
+    throw new Error('capture.qualifiedAtUtc must not predate dimension evidence.');
+  }
+  const retainedPaths = [
+    ...Object.values(evidence).map((entry) => entry.path),
+    ...hypothesisResults.map((entry) => entry.evidence.path),
+  ];
+  if (new Set(retainedPaths).size !== retainedPaths.length) {
+    throw new Error('Runtime ownership evidence paths must be distinct.');
+  }
   return {
     disposition: capture.recommendedDisposition,
     decisionRationale,
     qualifiedAtUtc: qualifiedAt.toISOString(),
     expiresAtUtc: expiresAt.toISOString(),
     hypothesisResults,
-    evidence,
+    evidence: Object.fromEntries(Object.entries(evidence).map(([field, entry]) => [
+      field,
+      { path: entry.path, digest: entry.digest },
+    ])),
     source,
     incumbent,
     doppler,
@@ -329,7 +389,7 @@ export async function recordRuntimeOwnershipEvaluation(options) {
         passed: result.passed,
         observedValue: result.observedValue,
         evaluatedAtUtc: result.evaluatedAtUtc,
-        evidencePath: result.evidencePath,
+        evidence: result.evidence,
       },
     };
   });

@@ -10,6 +10,9 @@ import {
 import {
   computeRuntimeOwnershipEvidenceId,
 } from '../../tools/lib/runtime-ownership-execution-evidence.js';
+import {
+  computeRuntimeOwnershipDecisionEvidenceDigest,
+} from '../../tools/lib/runtime-ownership-decision-evidence.js';
 
 const POLICY_PATH = path.join(
   process.cwd(),
@@ -23,6 +26,8 @@ const EXECUTION_ID = `sha256:${'b'.repeat(64)}`;
 const ENVIRONMENT_ID = `sha256:${'c'.repeat(64)}`;
 const CONFIGURATION_ID = `sha256:${'d'.repeat(64)}`;
 const OUTPUT_ID = `sha256:${'e'.repeat(64)}`;
+const HELD_OUT_ID = `sha256:${'f'.repeat(64)}`;
+const HARNESS_REVISION = '1'.repeat(40);
 const TEST_ROOT = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-runtime-ownership-'));
 const EVIDENCE_ROOT = path.join(TEST_ROOT, 'evidence');
 
@@ -53,7 +58,7 @@ function hypothesis(workload, passed = true) {
       passed,
       observedValue: passed ? 1.5 : 1.0,
       evaluatedAtUtc: '2026-08-01T00:00:00.000Z',
-      evidencePath: 'evidence/shared.json',
+      evidence: null,
     },
   };
 }
@@ -72,7 +77,7 @@ function decision(workload, disposition = 'doppler') {
     'distributionCost',
     'integrationBurden',
     'providerRisk',
-  ].map((field) => [field, 'evidence/shared.json']));
+  ].map((field) => [field, null]));
   return {
     id: `${workload}-runtime-ownership`,
     workload,
@@ -92,7 +97,7 @@ function decision(workload, disposition = 'doppler') {
     hypotheses: [hypothesis(workload, disposition !== 'incumbent')],
     disposition,
     decisionRationale: `${disposition} is selected by the frozen material-advantage gate.`,
-    qualifiedAtUtc: '2026-08-01T00:00:00.000Z',
+    qualifiedAtUtc: '2026-08-01T01:00:00.000Z',
     expiresAtUtc: '2026-10-01T00:00:00.000Z',
     evidence,
     claimAllowed: true,
@@ -148,6 +153,128 @@ function dopplerExecutionReceipt(record) {
   };
 }
 
+function evidenceReference(relativePath, receipt) {
+  return {
+    path: relativePath,
+    digest: computeRuntimeOwnershipDecisionEvidenceDigest(receipt),
+  };
+}
+
+function dimensionObservations(evidenceClass) {
+  const observations = {
+    correctness: {
+      referenceValid: true,
+      workloadEquivalent: true,
+      incumbentAcceptable: true,
+      dopplerAcceptable: true,
+    },
+    taskQuality: {
+      heldOutSetDigest: HELD_OUT_ID,
+      sourceScore: 0.9,
+      incumbentScore: 0.88,
+      dopplerScore: 0.89,
+      minimumAcceptedScore: 0.85,
+      higherIsBetter: true,
+    },
+    usability: {
+      installSucceeded: true,
+      loadSucceeded: true,
+      invokeSucceeded: true,
+      fallbackExplicit: true,
+    },
+    memory: {
+      sourcePeakBytes: 500,
+      incumbentPeakBytes: 450,
+      dopplerPeakBytes: 400,
+      maximumDopplerBytes: 425,
+      measurementScopeMatched: true,
+    },
+    endToEndPerformance: {
+      sourceValue: 100,
+      incumbentValue: 80,
+      dopplerValue: 120,
+      unit: 'tokens-per-second',
+      sampleCount: 10,
+      minimumSampleCount: 5,
+      timingScopeMatched: true,
+      workloadEquivalent: true,
+    },
+    diagnosticDepth: {
+      firstDivergenceLocalized: true,
+      semanticBoundaryRecorded: true,
+      correctionPathActionable: true,
+      fallbackVisible: true,
+    },
+    distributionCost: {
+      sourceArtifactBytes: 500,
+      incumbentArtifactBytes: 450,
+      dopplerArtifactBytes: 400,
+      maximumDopplerBytes: 425,
+      dependencyBytesCounted: true,
+    },
+    integrationBurden: {
+      sourceSteps: 4,
+      incumbentSteps: 3,
+      dopplerSteps: 2,
+      maximumDopplerSteps: 3,
+      cleanInstallPassed: true,
+      apiInvocationPassed: true,
+    },
+    providerRisk: {
+      standardWebGpuPassed: true,
+      selectedNodeProviderPassed: true,
+      fallbackVisible: true,
+      doeRequired: false,
+      undeclaredProviderRequired: false,
+    },
+  };
+  return observations[evidenceClass];
+}
+
+function boundEvidence(record) {
+  return {
+    decisionId: record.id,
+    workload: record.workload,
+    logicalModelId: record.logicalModelId,
+    sourceExecutionId: record.sourceExecutionId,
+    incumbentExecutionId: record.incumbentExecutionId,
+    resolvedArtifactVariantId: record.resolvedArtifactVariantId,
+    resolvedExecutionId: record.resolvedExecutionId,
+    harnessRevision: HARNESS_REVISION,
+    environmentFingerprint: ENVIRONMENT_ID,
+  };
+}
+
+function dimensionEvidence(record, evidenceClass) {
+  return {
+    schema: 'doppler.runtime-ownership-dimension-evidence/v1',
+    ...boundEvidence(record),
+    evidenceClass,
+    capturedAtUtc: '2026-08-01T00:00:00.000Z',
+    result: {
+      passed: true,
+      observations: dimensionObservations(evidenceClass),
+    },
+  };
+}
+
+function hypothesisEvidence(record, passed) {
+  const frozen = record.hypotheses[0];
+  const qualitative = frozen.threshold.operator === 'pass';
+  return {
+    schema: 'doppler.runtime-ownership-hypothesis-evidence/v1',
+    ...boundEvidence(record),
+    axis: frozen.axis,
+    metric: frozen.metric,
+    controlMetric: frozen.controlMetric,
+    evaluatedAtUtc: '2026-08-01T00:00:00.000Z',
+    observedValue: qualitative ? (passed ? 'unsupported' : 'supported') : (passed ? 1.5 : 1),
+    qualitativePassed: qualitative ? passed : null,
+    controlPassed: true,
+    endToEndAcceptancePassed: true,
+  };
+}
+
 async function preparedDecision(workload, disposition = 'doppler') {
   const record = decision(workload, disposition);
   const source = externalExecutionEvidence(record, 'source');
@@ -157,18 +284,44 @@ async function preparedDecision(workload, disposition = 'doppler') {
   const dopplerPath = `evidence/${workload}-doppler-execution.json`;
   await writeJson(sourcePath, source);
   await writeJson(incumbentPath, incumbent);
-  await writeJson(dopplerPath, dopplerExecutionReceipt(record));
+  const doppler = dopplerExecutionReceipt(record);
+  await writeJson(dopplerPath, doppler);
   record.sourceExecutionId = computeRuntimeOwnershipEvidenceId(source);
   record.incumbentExecutionId = computeRuntimeOwnershipEvidenceId(incumbent);
-  record.evidence.sourceExecution = sourcePath;
-  record.evidence.incumbentExecution = incumbentPath;
-  record.evidence.dopplerExecution = dopplerPath;
+  record.evidence.sourceExecution = evidenceReference(sourcePath, source);
+  record.evidence.incumbentExecution = evidenceReference(incumbentPath, incumbent);
+  record.evidence.dopplerExecution = evidenceReference(dopplerPath, doppler);
+  for (const evidenceClass of [
+    'correctness',
+    'taskQuality',
+    'usability',
+    'memory',
+    'endToEndPerformance',
+    'diagnosticDepth',
+    'distributionCost',
+    'integrationBurden',
+    'providerRisk',
+  ]) {
+    const receipt = dimensionEvidence(record, evidenceClass);
+    const receiptPath = `evidence/${workload}-${evidenceClass}.json`;
+    await writeJson(receiptPath, receipt);
+    record.evidence[evidenceClass] = evidenceReference(receiptPath, receipt);
+  }
+  const advantagePassed = disposition !== 'incumbent';
+  const hypothesisReceipt = hypothesisEvidence(record, advantagePassed);
+  const hypothesisPath = `evidence/${workload}-hypothesis.json`;
+  await writeJson(hypothesisPath, hypothesisReceipt);
+  record.hypotheses[0].result = {
+    passed: advantagePassed,
+    observedValue: advantagePassed ? 1.5 : 1,
+    evaluatedAtUtc: hypothesisReceipt.evaluatedAtUtc,
+    evidence: evidenceReference(hypothesisPath, hypothesisReceipt),
+  };
   return record;
 }
 
 const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
 await fs.mkdir(EVIDENCE_ROOT, { recursive: true });
-await writeJson('evidence/shared.json', { fixture: true });
 
 {
   const report = await buildRuntimeOwnershipDecisionReport({ policyPath: POLICY_PATH, now: NOW });
@@ -206,7 +359,15 @@ await writeJson('evidence/shared.json', { fixture: true });
 {
   const unsupportedDoppler = clone(policy);
   const record = await preparedDecision('generation', 'doppler');
-  record.hypotheses = [hypothesis('generation', false)];
+  const receipt = hypothesisEvidence(record, false);
+  const reference = record.hypotheses[0].result.evidence;
+  await writeJson(reference.path, receipt);
+  record.hypotheses[0].result = {
+    passed: false,
+    observedValue: 1,
+    evaluatedAtUtc: receipt.evaluatedAtUtc,
+    evidence: evidenceReference(reference.path, receipt),
+  };
   unsupportedDoppler.decisions = [record];
   const report = await validateRuntimeOwnershipDecisions(unsupportedDoppler, {
     repoRoot: TEST_ROOT,
@@ -235,7 +396,7 @@ await writeJson('evidence/shared.json', { fixture: true });
     now: NOW,
   });
   assert.ok(
-    report.errors.some((error) => error.includes('passed does not match the declared threshold')),
+    report.errors.some((error) => error.includes('passed does not match semantic hypothesis evidence')),
     report.errors.join('\n')
   );
 }
@@ -286,7 +447,15 @@ await writeJson('evidence/shared.json', { fixture: true });
 {
   const incumbentConflict = clone(policy);
   const record = await preparedDecision('embedding', 'incumbent');
-  record.hypotheses = [hypothesis('embedding', true)];
+  const receipt = hypothesisEvidence(record, true);
+  const reference = record.hypotheses[0].result.evidence;
+  await writeJson(reference.path, receipt);
+  record.hypotheses[0].result = {
+    passed: true,
+    observedValue: 1.5,
+    evaluatedAtUtc: receipt.evaluatedAtUtc,
+    evidence: evidenceReference(reference.path, receipt),
+  };
   incumbentConflict.decisions = [record];
   const report = await validateRuntimeOwnershipDecisions(incumbentConflict, {
     repoRoot: TEST_ROOT,
@@ -330,9 +499,80 @@ await writeJson('evidence/shared.json', { fixture: true });
 }
 
 {
+  const unsupportedOperation = clone(policy);
+  const record = await preparedDecision('generation', 'doppler');
+  const incumbentPath = record.evidence.incumbentExecution.path;
+  const incumbent = JSON.parse(await fs.readFile(path.join(TEST_ROOT, incumbentPath), 'utf8'));
+  incumbent.result = {
+    status: 'failed',
+    outputDigest: null,
+    startedAtUtc: '2026-08-01T00:00:00.000Z',
+    completedAtUtc: '2026-08-01T00:01:00.000Z',
+  };
+  await writeJson(incumbentPath, incumbent);
+  record.incumbentExecutionId = computeRuntimeOwnershipEvidenceId(incumbent);
+  record.evidence.incumbentExecution = evidenceReference(incumbentPath, incumbent);
+  record.hypotheses[0] = {
+    axis: 'unsupported-operation',
+    statement: 'The incumbent cannot execute the frozen workload while Doppler can.',
+    metric: 'incumbent-operation-support',
+    controlMetric: 'source-and-doppler-correctness',
+    controlRequirement: 'Source and Doppler pass while the incumbent reports unsupported.',
+    threshold: {
+      operator: 'pass',
+      value: null,
+      unit: null,
+    },
+    declaredAtUtc: '2026-07-15T00:00:00.000Z',
+    result: {
+      passed: null,
+      observedValue: null,
+      evaluatedAtUtc: null,
+      evidence: null,
+    },
+  };
+  for (const evidenceClass of [
+    'correctness',
+    'taskQuality',
+    'usability',
+    'memory',
+    'endToEndPerformance',
+    'diagnosticDepth',
+    'distributionCost',
+    'integrationBurden',
+    'providerRisk',
+  ]) {
+    const receipt = dimensionEvidence(record, evidenceClass);
+    if (evidenceClass === 'correctness') {
+      receipt.result.observations.incumbentAcceptable = false;
+    }
+    const receiptPath = record.evidence[evidenceClass].path;
+    await writeJson(receiptPath, receipt);
+    record.evidence[evidenceClass] = evidenceReference(receiptPath, receipt);
+  }
+  const hypothesisReceipt = hypothesisEvidence(record, true);
+  const hypothesisPath = 'evidence/generation-unsupported-hypothesis.json';
+  await writeJson(hypothesisPath, hypothesisReceipt);
+  record.hypotheses[0].result = {
+    passed: true,
+    observedValue: 'unsupported',
+    evaluatedAtUtc: hypothesisReceipt.evaluatedAtUtc,
+    evidence: evidenceReference(hypothesisPath, hypothesisReceipt),
+  };
+  unsupportedOperation.decisions = [record];
+  const report = await validateRuntimeOwnershipDecisions(unsupportedOperation, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.deepEqual(report.errors, []);
+  assert.equal(report.decisions[0].qualified, true);
+  assert.ok(!report.decisions[0].reasons.includes('incumbent-execution-not-passed'));
+}
+
+{
   const tampered = clone(policy);
   const record = await preparedDecision('generation', 'doppler');
-  const receiptPath = record.evidence.sourceExecution;
+  const receiptPath = record.evidence.sourceExecution.path;
   const receipt = JSON.parse(await fs.readFile(path.join(TEST_ROOT, receiptPath), 'utf8'));
   receipt.result.outputDigest = `sha256:${'f'.repeat(64)}`;
   await writeJson(receiptPath, receipt);
@@ -342,9 +582,9 @@ await writeJson('evidence/shared.json', { fixture: true });
     now: NOW,
   });
   assert.ok(
-    report.errors.includes(
-      'generation-runtime-ownership.sourceExecutionId does not match canonical sourceExecution evidence identity'
-    ),
+    report.errors.some((error) => error.includes(
+      'generation-runtime-ownership.evidence.sourceExecution.digest does not match canonical JSON evidence'
+    )),
     report.errors.join('\n')
   );
 }
@@ -352,7 +592,7 @@ await writeJson('evidence/shared.json', { fixture: true });
 {
   const mismatchedDoppler = clone(policy);
   const record = await preparedDecision('reranking', 'doppler');
-  const receiptPath = record.evidence.dopplerExecution;
+  const receiptPath = record.evidence.dopplerExecution.path;
   const receipt = JSON.parse(await fs.readFile(path.join(TEST_ROOT, receiptPath), 'utf8'));
   receipt.resolution.resolvedExecutionId = `sha256:${'f'.repeat(64)}`;
   await writeJson(receiptPath, receipt);
@@ -363,6 +603,47 @@ await writeJson('evidence/shared.json', { fixture: true });
   });
   assert.ok(
     report.errors.some((error) => error.includes('Doppler execution identity')),
+    report.errors.join('\n')
+  );
+}
+
+{
+  const arbitraryDimension = clone(policy);
+  const record = await preparedDecision('generation', 'doppler');
+  const receiptPath = record.evidence.providerRisk.path;
+  const receipt = { fixture: true };
+  await writeJson(receiptPath, receipt);
+  record.evidence.providerRisk = evidenceReference(receiptPath, receipt);
+  arbitraryDimension.decisions = [record];
+  const report = await validateRuntimeOwnershipDecisions(arbitraryDimension, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.some((error) => error.includes(
+      'evidence.providerRisk: dimension evidence.schema is required'
+    )),
+    report.errors.join('\n')
+  );
+}
+
+{
+  const falseDimensionResult = clone(policy);
+  const record = await preparedDecision('generation', 'doppler');
+  const receiptPath = record.evidence.memory.path;
+  const receipt = JSON.parse(await fs.readFile(path.join(TEST_ROOT, receiptPath), 'utf8'));
+  receipt.result.observations.dopplerPeakBytes = 500;
+  await writeJson(receiptPath, receipt);
+  record.evidence.memory = evidenceReference(receiptPath, receipt);
+  falseDimensionResult.decisions = [record];
+  const report = await validateRuntimeOwnershipDecisions(falseDimensionResult, {
+    repoRoot: TEST_ROOT,
+    now: NOW,
+  });
+  assert.ok(
+    report.errors.some((error) => error.includes(
+      'dimension evidence.result.passed does not match its observations'
+    )),
     report.errors.join('\n')
   );
 }

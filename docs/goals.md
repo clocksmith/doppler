@@ -220,6 +220,10 @@ decision checker recomputes or cross-checks those identities rather than
 accepting operator-entered execution labels.
 `npm run runtime:ownership:record` can assemble a reviewable evaluation while
 preserving frozen hypotheses, but it cannot make the decision claimable.
+All retained ownership evidence is canonical-digest-bound. Decision dimensions
+and material-advantage results use semantic receipts tied to the exact source,
+incumbent, and Doppler executions; the checker derives their outcomes from
+observations and rejects arbitrary files or independently authored pass flags.
 
 ### Provider independence
 

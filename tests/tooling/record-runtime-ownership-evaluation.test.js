@@ -8,6 +8,9 @@ import {
   parseArgs,
   recordRuntimeOwnershipEvaluation,
 } from '../../tools/record-runtime-ownership-evaluation.js';
+import {
+  computeRuntimeOwnershipEvidenceId,
+} from '../../tools/lib/runtime-ownership-execution-evidence.js';
 
 const SOURCE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const NOW = new Date('2026-08-16T00:00:00.000Z');
@@ -16,6 +19,8 @@ const EXECUTION_ID = `sha256:${'b'.repeat(64)}`;
 const ENVIRONMENT_ID = `sha256:${'c'.repeat(64)}`;
 const CONFIGURATION_ID = `sha256:${'d'.repeat(64)}`;
 const OUTPUT_ID = `sha256:${'e'.repeat(64)}`;
+const HELD_OUT_ID = `sha256:${'f'.repeat(64)}`;
+const HARNESS_REVISION = '1'.repeat(40);
 
 async function writeJson(filePath, value) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -76,7 +81,7 @@ function dopplerReceipt() {
 
 function capture(overrides = {}) {
   return {
-    schema: 'doppler.runtime-ownership-evaluation-capture/v1',
+    schema: 'doppler.runtime-ownership-evaluation-capture/v2',
     decisionId: 'qwen35-generation-runtime-ownership',
     recommendedDisposition: 'doppler',
     decisionRationale: 'The frozen material-advantage threshold passed with controls intact.',
@@ -85,10 +90,7 @@ function capture(overrides = {}) {
     hypothesisResults: [
       {
         axis: 'end-to-end-performance',
-        passed: true,
-        observedValue: 1.5,
-        evaluatedAtUtc: '2026-08-15T20:00:00.000Z',
-        evidencePath: 'evidence/end-to-end-performance.json',
+        evidencePath: 'evidence/hypothesis-end-to-end-performance.json',
       },
     ],
     evidence: {
@@ -109,6 +111,130 @@ function capture(overrides = {}) {
   };
 }
 
+function dimensionObservations(evidenceClass) {
+  const observations = {
+    correctness: {
+      referenceValid: true,
+      workloadEquivalent: true,
+      incumbentAcceptable: true,
+      dopplerAcceptable: true,
+    },
+    taskQuality: {
+      heldOutSetDigest: HELD_OUT_ID,
+      sourceScore: 0.9,
+      incumbentScore: 0.88,
+      dopplerScore: 0.89,
+      minimumAcceptedScore: 0.85,
+      higherIsBetter: true,
+    },
+    usability: {
+      installSucceeded: true,
+      loadSucceeded: true,
+      invokeSucceeded: true,
+      fallbackExplicit: true,
+    },
+    memory: {
+      sourcePeakBytes: 500,
+      incumbentPeakBytes: 450,
+      dopplerPeakBytes: 400,
+      maximumDopplerBytes: 425,
+      measurementScopeMatched: true,
+    },
+    endToEndPerformance: {
+      sourceValue: 100,
+      incumbentValue: 80,
+      dopplerValue: 120,
+      unit: 'tokens-per-second',
+      sampleCount: 10,
+      minimumSampleCount: 5,
+      timingScopeMatched: true,
+      workloadEquivalent: true,
+    },
+    diagnosticDepth: {
+      firstDivergenceLocalized: true,
+      semanticBoundaryRecorded: true,
+      correctionPathActionable: true,
+      fallbackVisible: true,
+    },
+    distributionCost: {
+      sourceArtifactBytes: 500,
+      incumbentArtifactBytes: 450,
+      dopplerArtifactBytes: 400,
+      maximumDopplerBytes: 425,
+      dependencyBytesCounted: true,
+    },
+    integrationBurden: {
+      sourceSteps: 4,
+      incumbentSteps: 3,
+      dopplerSteps: 2,
+      maximumDopplerSteps: 3,
+      cleanInstallPassed: true,
+      apiInvocationPassed: true,
+    },
+    providerRisk: {
+      standardWebGpuPassed: true,
+      selectedNodeProviderPassed: true,
+      fallbackVisible: true,
+      doeRequired: false,
+      undeclaredProviderRequired: false,
+    },
+  };
+  return observations[evidenceClass];
+}
+
+function evidenceBinding(decision, source, incumbent) {
+  return {
+    decisionId: decision.id,
+    workload: decision.workload,
+    logicalModelId: decision.logicalModelId,
+    sourceExecutionId: computeRuntimeOwnershipEvidenceId(source),
+    incumbentExecutionId: computeRuntimeOwnershipEvidenceId(incumbent),
+    resolvedArtifactVariantId: ARTIFACT_ID,
+    resolvedExecutionId: EXECUTION_ID,
+    harnessRevision: HARNESS_REVISION,
+    environmentFingerprint: ENVIRONMENT_ID,
+  };
+}
+
+async function writeSemanticEvidence(repoRoot, decision, captureValue, source, incumbent, passed = true) {
+  const binding = evidenceBinding(decision, source, incumbent);
+  for (const evidenceClass of [
+    'correctness',
+    'taskQuality',
+    'usability',
+    'memory',
+    'endToEndPerformance',
+    'diagnosticDepth',
+    'distributionCost',
+    'integrationBurden',
+    'providerRisk',
+  ]) {
+    await writeJson(path.join(repoRoot, captureValue.evidence[evidenceClass]), {
+      schema: 'doppler.runtime-ownership-dimension-evidence/v1',
+      ...binding,
+      evidenceClass,
+      capturedAtUtc: '2026-08-15T20:00:00.000Z',
+      result: {
+        passed: true,
+        observations: dimensionObservations(evidenceClass),
+      },
+    });
+  }
+  const hypothesis = decision.hypotheses[0];
+  await writeJson(path.join(repoRoot, captureValue.hypothesisResults[0].evidencePath), {
+    schema: 'doppler.runtime-ownership-hypothesis-evidence/v1',
+    ...binding,
+    axis: hypothesis.axis,
+    metric: hypothesis.metric,
+    controlMetric: hypothesis.controlMetric,
+    evaluatedAtUtc: '2026-08-15T20:00:00.000Z',
+    observedValue: passed ? 1.5 : 1,
+    qualitativePassed: null,
+    controlPassed: true,
+    endToEndAcceptancePassed: true,
+  });
+}
+
 async function createFixture() {
   const repoRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-ownership-record-'));
   const policy = JSON.parse(await fs.readFile(
@@ -118,24 +244,34 @@ async function createFixture() {
   const policyPath = path.join(repoRoot, 'benchmarks/vendors/runtime-ownership-decisions.json');
   const capturePath = path.join(repoRoot, 'capture.json');
   const outputPolicyPath = path.join(repoRoot, 'runtime-ownership.next.json');
+  const captureValue = capture();
+  const source = externalReceipt('source');
+  const incumbent = externalReceipt('incumbent');
+  const decision = policy.decisions.find((entry) => entry.id === captureValue.decisionId);
   await writeJson(policyPath, policy);
-  for (const evidencePath of Object.values(capture().evidence)) {
-    await writeJson(path.join(repoRoot, evidencePath), { fixture: true });
-  }
   await writeJson(
-    path.join(repoRoot, capture().evidence.sourceExecution),
-    externalReceipt('source')
+    path.join(repoRoot, captureValue.evidence.sourceExecution),
+    source
   );
   await writeJson(
-    path.join(repoRoot, capture().evidence.incumbentExecution),
-    externalReceipt('incumbent')
+    path.join(repoRoot, captureValue.evidence.incumbentExecution),
+    incumbent
   );
   await writeJson(
-    path.join(repoRoot, capture().evidence.dopplerExecution),
+    path.join(repoRoot, captureValue.evidence.dopplerExecution),
     dopplerReceipt()
   );
-  await writeJson(capturePath, capture());
-  return { repoRoot, policyPath, capturePath, outputPolicyPath };
+  await writeSemanticEvidence(repoRoot, decision, captureValue, source, incumbent);
+  await writeJson(capturePath, captureValue);
+  return {
+    repoRoot,
+    policyPath,
+    capturePath,
+    outputPolicyPath,
+    decision,
+    source,
+    incumbent,
+  };
 }
 
 async function withFixture(run) {
@@ -163,6 +299,8 @@ await withFixture(async (fixture) => {
   assert.equal(decision.claimAllowed, false);
   assert.equal(decision.hypotheses[0].threshold.value, 1.25);
   assert.equal(decision.hypotheses[0].result.observedValue, 1.5);
+  assert.match(decision.hypotheses[0].result.evidence.digest, /^sha256:[0-9a-f]{64}$/);
+  assert.match(decision.evidence.correctness.digest, /^sha256:[0-9a-f]{64}$/);
 });
 
 await withFixture(async (fixture) => {
@@ -193,28 +331,43 @@ await withFixture(async (fixture) => {
 
 await withFixture(async (fixture) => {
   const sourcePath = path.join(fixture.repoRoot, capture().evidence.sourceExecution);
-  await writeJson(sourcePath, externalReceipt('source', {
+  const source = externalReceipt('source', {
     result: {
       status: 'failed',
       outputDigest: null,
       startedAtUtc: '2026-08-15T19:00:00.000Z',
       completedAtUtc: '2026-08-15T19:01:00.000Z',
     },
-  }));
-  await writeJson(fixture.capturePath, capture({
+  });
+  const captureValue = capture({
     recommendedDisposition: 'incumbent',
     decisionRationale: 'The material-advantage threshold did not pass.',
-    hypothesisResults: [
-      {
-        ...capture().hypothesisResults[0],
-        passed: false,
-        observedValue: 1,
-      },
-    ],
-  }));
+  });
+  await writeJson(sourcePath, source);
+  await writeSemanticEvidence(
+    fixture.repoRoot,
+    fixture.decision,
+    captureValue,
+    source,
+    fixture.incumbent,
+    false
+  );
+  await writeJson(fixture.capturePath, captureValue);
   const result = await recordRuntimeOwnershipEvaluation({ ...fixture, now: NOW });
   assert.equal(result.claimAllowed, false);
   assert.ok(result.blockers.includes('source-execution-not-passed'));
+});
+
+await withFixture(async (fixture) => {
+  await writeJson(
+    path.join(fixture.repoRoot, capture().evidence.providerRisk),
+    { fixture: true }
+  );
+  await assert.rejects(
+    () => recordRuntimeOwnershipEvaluation({ ...fixture, now: NOW }),
+    /providerRisk evidence is invalid.*dimension evidence.schema is required/
+  );
+  await assert.rejects(() => fs.stat(fixture.outputPolicyPath));
 });
 
 await withFixture(async (fixture) => {

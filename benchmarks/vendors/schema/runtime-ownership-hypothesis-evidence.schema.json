@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/runtime-ownership-hypothesis-evidence-v1.schema.json",
+  "title": "Doppler Runtime Ownership Hypothesis Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "decisionId",
+    "axis",
+    "metric",
+    "controlMetric",
+    "workload",
+    "logicalModelId",
+    "sourceExecutionId",
+    "incumbentExecutionId",
+    "resolvedArtifactVariantId",
+    "resolvedExecutionId",
+    "harnessRevision",
+    "environmentFingerprint",
+    "evaluatedAtUtc",
+    "observedValue",
+    "qualitativePassed",
+    "controlPassed",
+    "endToEndAcceptancePassed"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.runtime-ownership-hypothesis-evidence/v1" },
+    "decisionId": { "$ref": "#/$defs/id" },
+    "axis": {
+      "enum": [
+        "unsupported-operation",
+        "end-to-end-performance",
+        "memory",
+        "diagnostic-depth",
+        "offline-artifact-control",
+        "verified-correction-path"
+      ]
+    },
+    "metric": { "type": "string", "minLength": 1 },
+    "controlMetric": { "type": "string", "minLength": 1 },
+    "workload": { "enum": ["generation", "embedding", "reranking"] },
+    "logicalModelId": { "type": "string", "minLength": 1 },
+    "sourceExecutionId": { "$ref": "#/$defs/sha256" },
+    "incumbentExecutionId": { "$ref": "#/$defs/sha256" },
+    "resolvedArtifactVariantId": { "$ref": "#/$defs/sha256" },
+    "resolvedExecutionId": { "$ref": "#/$defs/sha256" },
+    "harnessRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "environmentFingerprint": { "$ref": "#/$defs/sha256" },
+    "evaluatedAtUtc": { "type": "string", "format": "date-time" },
+    "observedValue": {
+      "anyOf": [{ "type": "number" }, { "type": "string", "minLength": 1 }]
+    },
+    "qualitativePassed": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }]
+    },
+    "controlPassed": { "type": "boolean" },
+    "endToEndAcceptancePassed": { "type": "boolean" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}
