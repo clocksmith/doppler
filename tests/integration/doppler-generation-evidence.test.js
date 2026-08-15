@@ -196,6 +196,62 @@ assert.equal(
   `sha256:${'b'.repeat(64)}`
 );
 
+const adapterDigest = `sha256:${'c'.repeat(64)}`;
+pipeline.getActiveLoRA = () => ({
+  name: 'same-name-adapter',
+  identity: {
+    schema: 'doppler.lora-execution-identity/v1',
+    id: 'adapter-v1',
+    name: 'same-name-adapter',
+    tensorCount: 2,
+    digest: adapterDigest,
+  },
+});
+const adapterEvidence = await handle.generateWithEvidence('hello', {
+  maxTokens: 4,
+  temperature: 0,
+  topK: 1,
+  topP: 1,
+  useChatTemplate: false,
+});
+assert.equal(adapterEvidence.executionIdentity.activeAdapter, 'same-name-adapter');
+assert.equal(adapterEvidence.executionIdentity.activeAdapterId, 'adapter-v1');
+assert.equal(adapterEvidence.executionIdentity.activeAdapterDigest, adapterDigest);
+assert.notEqual(adapterEvidence.resolution.resolvedExecutionId, evidence.resolution.resolvedExecutionId);
+
+const originalGenerateTokenIds = pipeline.generateTokenIds;
+let changingAdapter = pipeline.getActiveLoRA();
+pipeline.getActiveLoRA = () => changingAdapter;
+pipeline.generateTokenIds = async (...args) => {
+  const result = await originalGenerateTokenIds(...args);
+  changingAdapter = {
+    ...changingAdapter,
+    identity: {
+      ...changingAdapter.identity,
+      digest: `sha256:${'d'.repeat(64)}`,
+    },
+  };
+  return result;
+};
+await assert.rejects(
+  () => handle.generateWithEvidence('hello', {
+    maxTokens: 4,
+    temperature: 0,
+    topK: 1,
+    topP: 1,
+    useChatTemplate: false,
+  }),
+  /adapter changed during Doppler execution/
+);
+pipeline.generateTokenIds = originalGenerateTokenIds;
+
+pipeline.getActiveLoRA = () => ({ name: 'unidentified-adapter' });
+await assert.rejects(
+  () => handle.generateWithEvidence('hello', { maxTokens: 1 }),
+  /lacks exact tensor identity/
+);
+pipeline.getActiveLoRA = () => null;
+
 const chatResponse = await handle.chatText([
   { role: 'user', content: 'hello' },
 ], { maxTokens: 2 });

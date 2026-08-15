@@ -159,7 +159,7 @@
     "artifact:contract:check": "node tools/check-model-artifact-contract.js",
     "product:readiness:report": "node tools/render-product-readiness-report.js",
     "product:integrations:check": "node tools/check-product-integration-qualification.js && node tools/run-node-tests.js tests/config/product-integration-qualification.test.js",
-    "runtime:identity:check": "node tools/run-node-tests.js tests/integration/doppler-generation-evidence.test.js tests/integration/doppler-rerank-evidence.test.js tests/integration/doppler-resolution-policy.test.js tests/integration/doppler-provider-contract.test.js tests/integration/doppler-serve-handler.test.js",
+    "runtime:identity:check": "node tools/run-node-tests.js tests/integration/doppler-generation-evidence.test.js tests/integration/doppler-rerank-evidence.test.js tests/integration/doppler-resolution-policy.test.js tests/integration/lora-loader-contract.test.js tests/integration/lora-activation-contract.test.js tests/integration/doppler-provider-contract.test.js tests/integration/doppler-serve-handler.test.js",
     "claims:evidence:check": "node tools/check-claim-evidence-contract.js",
     "policy:schemas:check": "node tools/check-policy-schema-registry.js"
   },

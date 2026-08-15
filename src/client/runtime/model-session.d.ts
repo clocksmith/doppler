@@ -67,6 +67,8 @@ export interface DopplerResolvedExecutionIdentity {
   };
   resolvedRuntimeSessionId: `sha256:${string}`;
   activeAdapter: string | null;
+  activeAdapterId: string | null;
+  activeAdapterDigest: `sha256:${string}` | null;
   backendIdentity: DopplerGenerationBackendIdentity;
 }
 
@@ -95,6 +97,8 @@ export interface DopplerGenerationEvidence {
       modelId: string | null;
       manifestHash: string | null;
       activeAdapter: string | null;
+      activeAdapterId: string | null;
+      activeAdapterDigest: `sha256:${string}` | null;
     };
     resolvedRuntimeSessionId: `sha256:${string}`;
     backendIdentity: DopplerGenerationBackendIdentity;

@@ -101,5 +101,6 @@ export declare function applyDeltaWeights(
  */
 export declare function loadLoRAFromSafetensors(
   data: ArrayBuffer,
-  manifest: AdapterManifest
+  manifest: AdapterManifest,
+  sourceDigest?: `sha256:${string}` | null
 ): Promise<LoRAAdapter>;

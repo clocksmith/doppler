@@ -3,6 +3,7 @@
 import { LORA_MODULE_ALIASES } from '../../inference/pipelines/text/lora.js';
 import { applyAdapterManifestDefaults, validateManifest } from './adapter-manifest.js';
 import { log } from '../../debug/index.js';
+import { computeCanonicalSha256 } from '../../utils/canonical-hash.js';
 
 // ============================================================================
 // Helper Functions
@@ -82,7 +83,10 @@ function asArrayBuffer(data) {
 }
 
 async function computeSHA256(data) {
-  const hashBuffer = await crypto.subtle.digest('SHA-256', asArrayBuffer(data));
+  const input = data instanceof ArrayBuffer || ArrayBuffer.isView(data)
+    ? data
+    : asArrayBuffer(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', input);
   const hashArray = new Uint8Array(hashBuffer);
   return Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
 }
@@ -125,15 +129,15 @@ async function readPathBytes(sourcePath, options = {}) {
 
 async function assertChecksum(data, manifest) {
   const expected = stripHashPrefix(manifest.checksum);
-  if (!expected) return;
   const algorithm = String(manifest.checksumAlgorithm || 'sha256').toLowerCase();
   if (algorithm !== 'sha256') {
     throw new Error(`Unsupported LoRA checksum algorithm: ${algorithm}`);
   }
   const computed = await computeSHA256(data);
-  if (computed.toLowerCase() !== expected) {
+  if (expected && computed.toLowerCase() !== expected) {
     throw new Error(`LoRA checksum mismatch: expected ${expected}, got ${computed}`);
   }
+  return `sha256:${computed}`;
 }
 
 async function loadExternalWeights(manifest, options = {}) {
@@ -142,10 +146,10 @@ async function loadExternalWeights(manifest, options = {}) {
     throw new Error(`Unsupported LoRA weightsFormat for external weights: ${format}`);
   }
   const data = await readPathBytes(manifest.weightsPath, options);
-  if (!options.skipVerify) {
-    await assertChecksum(data, manifest);
-  }
-  return loadLoRAFromSafetensors(asArrayBuffer(data), manifest);
+  const sourceDigest = options.skipVerify
+    ? `sha256:${await computeSHA256(data)}`
+    : await assertChecksum(data, manifest);
+  return loadLoRAFromSafetensors(asArrayBuffer(data), manifest, sourceDigest);
 }
 
 function assertCompleteAdapterLayers(adapter) {
@@ -175,6 +179,63 @@ function assertCompleteAdapterLayers(adapter) {
       );
     }
   }
+}
+
+async function buildAdapterExecutionIdentity(adapter, sourceDigest = null) {
+  const tensors = [];
+  const layers = [...adapter.layers.entries()]
+    .sort(([left], [right]) => Number(left) - Number(right));
+  for (const [layerIndex, layer] of layers) {
+    for (const [moduleName, weights] of Object.entries(layer).sort(([left], [right]) => (
+      left.localeCompare(right)
+    ))) {
+      if (!ArrayBuffer.isView(weights.a) || !ArrayBuffer.isView(weights.b)) {
+        throw new Error(
+          `LoRA adapter identity requires loaded tensor bytes for ${moduleName} at layer ${layerIndex}.`
+        );
+      }
+      const [a, b] = sourceDigest
+        ? [{ byteLength: weights.a.byteLength }, { byteLength: weights.b.byteLength }]
+        : await Promise.all([weights.a, weights.b].map(async (tensor) => ({
+          byteLength: tensor.byteLength,
+          sha256: `sha256:${await computeSHA256(tensor)}`,
+        })));
+      tensors.push({
+        layerIndex: Number(layerIndex),
+        moduleName,
+        rank: weights.rank,
+        alpha: weights.alpha,
+        scale: weights.scale,
+        a,
+        b,
+      });
+    }
+  }
+  const core = {
+    schema: 'doppler.lora-execution-identity/v1',
+    id: String(adapter.id || '').trim() || null,
+    name: String(adapter.name || '').trim(),
+    version: String(adapter.version || '').trim() || null,
+    baseModel: String(adapter.baseModel || '').trim(),
+    rank: adapter.rank,
+    alpha: adapter.alpha,
+    targetModules: [...(adapter.targetModules || [])].sort(),
+    sourceDigest,
+    tensors,
+  };
+  return Object.freeze({
+    schema: core.schema,
+    id: core.id,
+    name: core.name,
+    tensorCount: tensors.length * 2,
+    digest: computeCanonicalSha256(core),
+  });
+}
+
+async function finalizeAdapter(adapter, sourceDigest = null) {
+  assertCompleteAdapterLayers(adapter);
+  adapter.identity = await buildAdapterExecutionIdentity(adapter, sourceDigest);
+  return adapter;
 }
 
 // ============================================================================
@@ -314,6 +375,7 @@ export async function loadLoRAFromManifest(manifest, options = {}) {
   }
 
   const adapter = {
+    id: manifest.id,
     name: manifest.name,
     version: manifest.version,
     baseModel: manifest.baseModel,
@@ -377,8 +439,7 @@ export async function loadLoRAFromManifest(manifest, options = {}) {
     }
   }
 
-  assertCompleteAdapterLayers(adapter);
-  return adapter;
+  return finalizeAdapter(adapter);
 }
 
 
@@ -408,8 +469,9 @@ export function applyDeltaWeights(baseWeight, loraA, loraB, scale) {
 // ============================================================================
 
 
-export async function loadLoRAFromSafetensors(data, manifest) {
+export async function loadLoRAFromSafetensors(data, manifest, sourceDigest = null) {
   const buffer = asArrayBuffer(data);
+  sourceDigest ??= `sha256:${await computeSHA256(buffer)}`;
   // Parse safetensors header
   const view = new DataView(buffer);
   const headerSize = Number(view.getBigUint64(0, true));
@@ -419,6 +481,7 @@ export async function loadLoRAFromSafetensors(data, manifest) {
   const header = JSON.parse(headerJson);
 
   const adapter = {
+    id: manifest.id,
     name: manifest.name,
     version: manifest.version,
     baseModel: manifest.baseModel,
@@ -491,8 +554,7 @@ export async function loadLoRAFromSafetensors(data, manifest) {
     adapter.layers.set(parsed.layer, layer);
   }
 
-  assertCompleteAdapterLayers(adapter);
-  return adapter;
+  return finalizeAdapter(adapter, sourceDigest);
 }
 
 

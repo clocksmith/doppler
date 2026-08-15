@@ -99,6 +99,8 @@ function sha256Hex(bytes) {
   assert.equal(result.adapterName, 'columbo-peft-demo');
   assert.equal(result.source, 'adapterManifestPath:file');
   assert.equal(pipeline.lora.layers.get(0).q_proj.scale, 2);
+  assert.equal(pipeline.lora.identity.id, 'columbo-peft-demo');
+  assert.match(pipeline.lora.identity.digest, /^sha256:[a-f0-9]{64}$/);
 
   await assert.rejects(
     () => activateLoRAFromTrainingOutputForPipeline(pipeline, {

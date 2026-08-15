@@ -15,6 +15,7 @@ import {
 import {
   activateLoRAFromTrainingOutputForPipeline,
   getActiveLoRAForPipeline,
+  getActiveLoRAIdentityForPipeline,
   loadLoRAAdapterForPipeline,
   unloadLoRAAdapterForPipeline,
 } from './lora.js';
@@ -174,7 +175,9 @@ async function buildResolutionIdentity({
     schema: EXECUTION_IDENTITY_SCHEMA,
     runtime: runtimeIdentity,
     resolvedRuntimeSessionId: runtimeSessionId,
-    activeAdapter: cleanEvidenceString(activeAdapter),
+    activeAdapter: cleanEvidenceString(activeAdapter?.name),
+    activeAdapterId: cleanEvidenceString(activeAdapter?.id),
+    activeAdapterDigest: activeAdapter?.digest ?? null,
     backendIdentity,
   };
   const resolvedExecutionId = await hashEvidenceValue(executionIdentity);
@@ -236,7 +239,9 @@ async function buildGenerationEvidence({
     model: {
       modelId: identity.resolvedModelId,
       manifestHash: identity.resolvedArtifactVariantId,
-      activeAdapter: cleanEvidenceString(activeAdapter),
+      activeAdapter: cleanEvidenceString(activeAdapter?.name),
+      activeAdapterId: cleanEvidenceString(activeAdapter?.id),
+      activeAdapterDigest: activeAdapter?.digest ?? null,
     },
     resolvedRuntimeSessionId: identity.runtimeSessionId,
     backendIdentity,
@@ -413,6 +418,13 @@ function resolveInspectionGenerationOptions(options, policy) {
   return resolved;
 }
 
+function assertActiveAdapterUnchanged(pipeline, expected) {
+  const observed = getActiveLoRAIdentityForPipeline(pipeline);
+  if ((observed?.digest ?? null) !== (expected?.digest ?? null)) {
+    throw new Error('Active LoRA adapter changed during Doppler execution.');
+  }
+}
+
 export function createModelHandle(pipeline, resolved) {
   const resolutionPolicy = resolveResolutionPolicy(resolved.resolutionPolicy);
   assertArtifactVariantAllowed(resolutionPolicy, resolved.manifestHash);
@@ -423,6 +435,7 @@ export function createModelHandle(pipeline, resolved) {
 
   async function generateWithEvidence(prompt, options = {}) {
     assertExecutionMayStart(resolutionPolicy);
+    const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
     assertSupportedGenerationOptions(options);
     const generationConfig = resolveGenerationConfigEvidence(pipeline, options);
     const result = await pipeline.generateTokenIds(prompt, options);
@@ -437,6 +450,7 @@ export function createModelHandle(pipeline, resolved) {
       kernelCapabilities,
       stats,
     });
+    assertActiveAdapterUnchanged(pipeline, activeAdapter);
     return buildGenerationEvidence({
       outputText,
       tokenIds,
@@ -445,7 +459,7 @@ export function createModelHandle(pipeline, resolved) {
       modelId: resolved.modelId,
       manifestHash: resolved.manifestHash || null,
       resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
-      activeAdapter: getActiveLoRAForPipeline(pipeline),
+      activeAdapter,
       backendIdentity,
       stats,
       resolutionPolicy,
@@ -454,6 +468,7 @@ export function createModelHandle(pipeline, resolved) {
 
   async function embedWithEvidence(prompt, options = {}) {
     assertExecutionMayStart(resolutionPolicy);
+    const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
     const result = await pipeline.embed(prompt, options);
     const stats = pipeline.getStats?.() || null;
     const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
@@ -464,6 +479,7 @@ export function createModelHandle(pipeline, resolved) {
       kernelCapabilities,
       stats,
     });
+    assertActiveAdapterUnchanged(pipeline, activeAdapter);
     return buildEmbeddingEvidence({
       prompt,
       result,
@@ -471,7 +487,7 @@ export function createModelHandle(pipeline, resolved) {
       modelId: resolved.modelId,
       manifestHash: resolved.manifestHash || null,
       resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
-      activeAdapter: getActiveLoRAForPipeline(pipeline),
+      activeAdapter,
       backendIdentity,
       stats,
       resolutionPolicy,
@@ -480,6 +496,7 @@ export function createModelHandle(pipeline, resolved) {
 
   async function rerankWithEvidence(query, documents, options = {}) {
     assertExecutionMayStart(resolutionPolicy);
+    const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
     if (pipeline.manifest?.inference?.supportsRerank !== true) {
       throw new Error('Loaded Doppler manifest does not declare rerank support.');
     }
@@ -532,12 +549,13 @@ export function createModelHandle(pipeline, resolved) {
       kernelCapabilities,
       stats,
     });
+    assertActiveAdapterUnchanged(pipeline, activeAdapter);
     const identity = await buildResolutionIdentity({
       logicalModelId: resolved.logicalModelId ?? resolved.modelId,
       modelId: resolved.modelId,
       manifestHash: resolved.manifestHash || null,
       resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
-      activeAdapter: getActiveLoRAForPipeline(pipeline),
+      activeAdapter,
       backendIdentity,
       resolutionPolicy,
     });
