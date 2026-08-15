@@ -55,6 +55,7 @@ config/schema/program-bundle-json-schema.js
 config/schema/program-bundle.schema.json
 config/schema/provider-conformance-policy.schema.json
 config/schema/revocation-registry.schema.json
+config/schema/runtime-promotion-monitoring.schema.json
 config/schema/subsystem-support-contract.schema.json
 config/schema/trainer-artifact-bridge.schema.json
 config/schema/trainer-artifact-handoff.schema.json

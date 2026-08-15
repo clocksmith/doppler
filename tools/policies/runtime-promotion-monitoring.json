@@ -1,0 +1,14 @@
+{
+  "$schema": "../../src/config/schema/runtime-promotion-monitoring.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "requiredChangeClasses": [
+    "scheduling-allocation-cache",
+    "numerical-kernel",
+    "precision-quantization",
+    "model-artifact",
+    "adapter",
+    "provider-integration"
+  ],
+  "promotions": []
+}

@@ -53,6 +53,11 @@
       "schemaPath": "benchmarks/vendors/schema/runtime-ownership-decisions.schema.json"
     },
     {
+      "id": "runtime-promotion-monitoring",
+      "policyPath": "tools/policies/runtime-promotion-monitoring.json",
+      "schemaPath": "src/config/schema/runtime-promotion-monitoring.schema.json"
+    },
+    {
       "id": "capability-transform-policy",
       "policyPath": "src/rules/inference/capability-transforms.rules.json",
       "schemaPath": "src/config/schema/capability-transform-policy.schema.json"
