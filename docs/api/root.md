@@ -84,6 +84,9 @@ A bare string is treated as a bundled/known registry ID, not a path heuristic.
 - `cache` is rejected on the convenience-call surface; persistent caching is
   explicit model-instance policy on `dr.load()`
 - unsupported resolution inputs fail fast rather than silently falling back
+- bundled revocations reject matching logical, model, source-checkpoint,
+  weight-pack, manifest-variant, or exact manifest-hash identities; named
+  replacements are never selected automatically
 
 ## Primary Symbol Notes
 

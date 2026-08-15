@@ -33,6 +33,11 @@
       "schemaPath": "src/config/schema/model-artifact-contract.schema.json"
     },
     {
+      "id": "model-revocation-registry",
+      "policyPath": "src/config/revocation-registry.json",
+      "schemaPath": "src/config/schema/revocation-registry.schema.json"
+    },
+    {
       "id": "product-integration-qualification",
       "policyPath": "tools/policies/product-integration-qualification.json",
       "schemaPath": "src/config/schema/product-integration-qualification.schema.json"

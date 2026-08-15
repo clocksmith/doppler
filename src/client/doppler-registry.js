@@ -1,6 +1,7 @@
 import { getCdnBasePath } from '../storage/download-types.js';
 import { buildHfResolveBaseUrl } from '../utils/hf-resolve-url.js';
 import { loadJson } from '../utils/load-json.js';
+import { assertBundledResolutionNotRevoked } from '../config/revocation-policy.js';
 
 let registryPromise = null;
 
@@ -113,6 +114,13 @@ export async function resolveQuickstartModel(model) {
     entry.modelId === requested || entry.aliases.includes(requested)
   ));
   if (resolved) {
+    await assertBundledResolutionNotRevoked({
+      logicalModelId: requested,
+      modelId: resolved.modelId,
+      sourceCheckpointId: resolved.sourceCheckpointId,
+      weightPackId: resolved.weightPackId,
+      manifestVariantId: resolved.manifestVariantId,
+    });
     return resolved;
   }
 

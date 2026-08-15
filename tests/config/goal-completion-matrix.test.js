@@ -82,6 +82,17 @@ const matrix = await readJson(MATRIX_PATH);
 
 {
   const broken = clone(matrix);
+  const goal = broken.goals.find((entry) => entry.id === 'correctness-performance-claims');
+  goal.rows = goal.rows.filter((row) => row.id !== 'revocation-propagation');
+  const errors = await validateFixture(broken);
+  assert.ok(
+    errors.includes('correctness-performance-claims: missing required row revocation-propagation'),
+    errors.join('\n')
+  );
+}
+
+{
+  const broken = clone(matrix);
   const goal = broken.goals.find((entry) => entry.id === 'local-webgpu-product-surface');
   goal.rows = goal.rows.filter((row) => row.id !== 'maintained-application-integrations');
   const errors = await validateFixture(broken);

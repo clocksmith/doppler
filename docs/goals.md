@@ -413,6 +413,16 @@ source, incumbent, and Doppler execution evidence plus predeclared material-
 advantage thresholds. Performance evidence is necessary where claimed but is
 not sufficient by itself.
 
+`src/config/revocation-registry.json` is the bundled deny-only authority for
+logical models, resolved models, source checkpoints, weight packs, manifest
+variants, and exact manifest hashes. `npm run revocations:check` validates the
+registry, retained evidence, quickstart filtering, catalog lifecycle, and
+withdrawal from claims, integrations, provider suites, and runtime-ownership
+decisions. The runtime enforces matching records before device initialization
+and weight loading and never auto-selects a named replacement. The current
+authority is package-bundled, not live or cryptographically signed; that wider
+claim remains blocked.
+
 The report intentionally treats a row as complete only when it is claimable,
 has evidence paths, and declares an npm smoke command. Non-claimable rows must
 name blocker codes and keep `smokeCommand` set to `null` so partial status is

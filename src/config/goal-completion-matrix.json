@@ -278,6 +278,26 @@
           "blockers": []
         },
         {
+          "id": "bundled-artifact-revocation",
+          "label": "Bundled model and artifact revocation",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run revocations:check",
+          "evidencePaths": [
+            "docs/revocation.md",
+            "src/config/revocation-registry.json",
+            "src/config/revocation-policy.js",
+            "src/client/runtime/index.js",
+            "src/client/runtime/model-manager.js",
+            "tests/config/revocation-policy.test.js"
+          ],
+          "blockers": []
+        },
+        {
           "id": "provider-independent-runtime-qualification",
           "label": "Provider-independent runtime qualification",
           "tier": "tier1",
@@ -461,7 +481,8 @@
         "candidate-benchmark-lanes",
         "gemma4-target-receipts-missing",
         "provider-conformance-receipts-missing",
-        "runtime-ownership-decisions-missing"
+        "runtime-ownership-decisions-missing",
+        "signed-live-revocation-authority-missing"
       ],
       "rows": [
         {
@@ -619,6 +640,45 @@
           "blockers": []
         },
         {
+          "id": "revocation-propagation",
+          "label": "Revocation propagation across runtime and claims",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run revocations:check",
+          "evidencePaths": [
+            "docs/revocation.md",
+            "src/config/revocation-registry.json",
+            "src/config/schema/revocation-registry.schema.json",
+            "tools/check-revocation-registry.js",
+            "tools/sync-quickstart-registry.js",
+            "tests/config/revocation-policy.test.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "signed-live-revocation-authority",
+          "label": "Signed live revocation authority",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/revocation.md",
+            "src/config/revocation-registry.json",
+            "src/config/schema/revocation-registry.schema.json"
+          ],
+          "blockers": [
+            "signed-live-revocation-authority-missing"
+          ]
+        },
+        {
           "id": "provider-conformance-evidence",
           "label": "Provider conformance evidence",
           "tier": "tier1",
@@ -689,6 +749,16 @@
     }
   ],
   "blockers": [
+    {
+      "code": "signed-live-revocation-authority-missing",
+      "description": "Doppler enforces a package-bundled deny-only revocation registry, but it has no authenticated live update channel or cryptographic signature verification.",
+      "exitCriteria": "Implement and qualify signed revocation distribution with key rotation, anti-rollback state, offline behavior, compromise recovery, package/runtime refresh semantics, and deterministic tests proving a revoked loaded identity cannot continue silently.",
+      "evidencePaths": [
+        "docs/revocation.md",
+        "src/config/revocation-registry.json",
+        "tools/check-revocation-registry.js"
+      ]
+    },
     {
       "code": "maintained-application-integrations-missing",
       "description": "No maintained generation, embedding-retrieval, or reranking application integrations are currently qualified as product-supported.",

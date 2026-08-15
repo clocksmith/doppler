@@ -28,6 +28,7 @@ import { isNodeRuntime } from '../../utils/runtime-env.js';
 import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { initDevice } from '../../gpu/device.js';
+import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
 import { createScopedModelSession } from './scoped-session.js';
 import {
   assertArtifactVariantAllowed,
@@ -204,6 +205,14 @@ export function createDopplerRuntimeService({
         return { text, manifest: resolved.manifest, manifestHash };
       })()
       : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);
+    await assertBundledResolutionNotRevoked({
+      logicalModelId: resolved.logicalModelId,
+      modelId: manifestPayload.manifest?.modelId ?? resolved.modelId,
+      sourceCheckpointId: manifestPayload.manifest?.artifactIdentity?.sourceCheckpointId,
+      weightPackId: manifestPayload.manifest?.artifactIdentity?.weightPackId,
+      manifestVariantId: manifestPayload.manifest?.artifactIdentity?.manifestVariantId,
+      artifactVariantId: manifestPayload.manifestHash,
+    });
     assertArtifactVariantAllowed(resolutionPolicy, manifestPayload.manifestHash);
     const resolvedArtifactSource = persistentSource
       ? {
