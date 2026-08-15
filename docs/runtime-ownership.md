@@ -95,6 +95,11 @@ provider risk requires standard WebGPU and the selected Node provider without
 an undeclared Doe dependency. A generic file or independently authored
 `passed` value cannot satisfy a dimension.
 
+Every dimension and hypothesis in one decision must bind the same harness
+revision and environment fingerprint. Those identities are stored on the
+decision and checked across all semantic receipts, so results from unrelated
+evaluation runs cannot be composed into one disposition.
+
 Material-advantage results use
 `doppler.runtime-ownership-hypothesis-evidence/v1`, defined by
 `benchmarks/vendors/schema/runtime-ownership-hypothesis-evidence.schema.json`.
@@ -122,7 +127,18 @@ write the configured policy, and `--replace` is required when a candidate
 already contains evaluation state. A claimable decision cannot be replaced.
 Every recorded evaluation remains `claimAllowed: false` with an explicit
 promotion blocker; failed executions remain additional blockers. Promotion is
-a separate human decision after reviewing the complete comparison.
+a separate human decision after reviewing the complete comparison. The recorder
+clears promotion evidence and cannot replace a promoted disposition.
+
+`promotion` uses `doppler.runtime-ownership-promotion-evidence/v1`, defined by
+`benchmarks/vendors/schema/runtime-ownership-promotion-evidence.schema.json`.
+A human reviewer binds the exact source, incumbent, Doppler, harness,
+environment, correctness-class, disposition, and qualification identities plus
+canonical digests of every comparison reference and the complete hypothesis
+set. The decision must be `promote-disposition`. Editing `claimAllowed`,
+blockers, or a disposition cannot publish a runtime-ownership claim without
+this receipt, and changing any bound evidence or hypothesis invalidates prior
+promotion.
 
 Benchmark wins alone do not satisfy this contract. Missing memory, quality,
 usability, diagnostic, cost, burden, or provider-risk evidence keeps the

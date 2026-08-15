@@ -1,6 +1,6 @@
 {
   "$schema": "schema/runtime-ownership-decisions.schema.json",
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "source": "doppler",
   "goalIds": [
     "model-artifact-runtime-contract",
@@ -38,7 +38,8 @@
     "diagnosticDepth",
     "distributionCost",
     "integrationBurden",
-    "providerRisk"
+    "providerRisk",
+    "promotion"
   ],
   "decisions": [
     {
@@ -55,6 +56,8 @@
       "incumbentArtifactId": "onnx-community/Qwen3.5-0.8B-ONNX@q4f16",
       "incumbentExecutionId": null,
       "correctnessClass": "exact-token",
+      "harnessRevision": null,
+      "environmentFingerprint": null,
       "hypotheses": [
         {
           "axis": "end-to-end-performance",
@@ -92,7 +95,8 @@
         "diagnosticDepth": null,
         "distributionCost": null,
         "integrationBurden": null,
-        "providerRisk": null
+        "providerRisk": null,
+        "promotion": null
       },
       "claimAllowed": false,
       "blockers": [
@@ -100,6 +104,8 @@
         "exact-source-incumbent-doppler-execution-receipts-missing",
         "predeclared-material-advantage-hypothesis-not-evaluated",
         "decision-evidence-incomplete",
+        "decision-evidence-identity-incomplete",
+        "disposition-promotion-evidence-missing",
         "disposition-qualification-expiry-missing"
       ]
     },
@@ -117,6 +123,8 @@
       "incumbentArtifactId": "onnx-community/embeddinggemma-300m-ONNX@q4",
       "incumbentExecutionId": null,
       "correctnessClass": "held-out-task-metric",
+      "harnessRevision": null,
+      "environmentFingerprint": null,
       "hypotheses": [
         {
           "axis": "end-to-end-performance",
@@ -154,7 +162,8 @@
         "diagnosticDepth": null,
         "distributionCost": null,
         "integrationBurden": null,
-        "providerRisk": null
+        "providerRisk": null,
+        "promotion": null
       },
       "claimAllowed": false,
       "blockers": [
@@ -162,6 +171,8 @@
         "exact-source-incumbent-doppler-execution-receipts-missing",
         "predeclared-material-advantage-hypothesis-not-evaluated",
         "decision-evidence-incomplete",
+        "decision-evidence-identity-incomplete",
+        "disposition-promotion-evidence-missing",
         "disposition-qualification-expiry-missing"
       ]
     },
@@ -179,6 +190,8 @@
       "incumbentArtifactId": "onnx-community/Qwen3-Reranker-0.6B-ONNX@q4",
       "incumbentExecutionId": null,
       "correctnessClass": "held-out-task-metric",
+      "harnessRevision": null,
+      "environmentFingerprint": null,
       "hypotheses": [
         {
           "axis": "end-to-end-performance",
@@ -216,7 +229,8 @@
         "diagnosticDepth": null,
         "distributionCost": null,
         "integrationBurden": null,
-        "providerRisk": null
+        "providerRisk": null,
+        "promotion": null
       },
       "claimAllowed": false,
       "blockers": [
@@ -224,6 +238,8 @@
         "exact-source-incumbent-doppler-execution-receipts-missing",
         "predeclared-material-advantage-hypothesis-not-evaluated",
         "decision-evidence-incomplete",
+        "decision-evidence-identity-incomplete",
+        "disposition-promotion-evidence-missing",
         "disposition-qualification-expiry-missing"
       ]
     }

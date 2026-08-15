@@ -289,10 +289,13 @@ await withFixture(async (fixture) => {
   assert.equal(result.disposition, 'doppler');
   assert.equal(result.resolvedArtifactVariantId, ARTIFACT_ID);
   assert.equal(result.resolvedExecutionId, EXECUTION_ID);
+  assert.equal(result.harnessRevision, HARNESS_REVISION);
+  assert.equal(result.environmentFingerprint, ENVIRONMENT_ID);
   assert.match(result.sourceExecutionId, /^sha256:[0-9a-f]{64}$/);
   assert.match(result.incumbentExecutionId, /^sha256:[0-9a-f]{64}$/);
   assert.deepEqual(result.blockers, [
     'runtime-ownership-evaluation-awaiting-explicit-promotion',
+    'disposition-promotion-evidence-missing',
   ]);
   const output = JSON.parse(await fs.readFile(fixture.outputPolicyPath, 'utf8'));
   const decision = output.decisions.find((entry) => entry.id === capture().decisionId);
@@ -301,6 +304,29 @@ await withFixture(async (fixture) => {
   assert.equal(decision.hypotheses[0].result.observedValue, 1.5);
   assert.match(decision.hypotheses[0].result.evidence.digest, /^sha256:[0-9a-f]{64}$/);
   assert.match(decision.evidence.correctness.digest, /^sha256:[0-9a-f]{64}$/);
+  assert.equal(decision.harnessRevision, HARNESS_REVISION);
+  assert.equal(decision.environmentFingerprint, ENVIRONMENT_ID);
+  assert.equal(decision.evidence.promotion, null);
+});
+
+await withFixture(async (fixture) => {
+  const memoryPath = path.join(fixture.repoRoot, capture().evidence.memory);
+  const binding = evidenceBinding(fixture.decision, fixture.source, fixture.incumbent);
+  await writeJson(memoryPath, {
+    schema: 'doppler.runtime-ownership-dimension-evidence/v1',
+    ...binding,
+    environmentFingerprint: `sha256:${'9'.repeat(64)}`,
+    evidenceClass: 'memory',
+    capturedAtUtc: '2026-08-15T20:00:00.000Z',
+    result: {
+      passed: true,
+      observations: dimensionObservations('memory'),
+    },
+  });
+  await assert.rejects(
+    () => recordRuntimeOwnershipEvaluation({ ...fixture, now: NOW }),
+    /memory evidence is invalid.*environmentFingerprint does not match/
+  );
 });
 
 await withFixture(async (fixture) => {

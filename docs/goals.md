@@ -214,8 +214,10 @@ authority, validated by `npm run runtime:ownership:check`. A claimable decision
 must bind the exact source, incumbent, Doppler artifact and execution, frozen
 correctness class, predeclared hypothesis and threshold, all decision evidence,
 qualification date, expiry, and one `incumbent`, `doppler`, or `dual`
-disposition. An empty decision registry is valid but incomplete. See
-`docs/runtime-ownership.md`.
+disposition. All semantic receipts share an exact harness/environment identity,
+and publishing the disposition requires a human promotion receipt bound to the
+evidence and hypothesis sets. An empty decision registry is valid but
+incomplete. See `docs/runtime-ownership.md`.
 
 Source and incumbent execution identities are canonical SHA-256 digests of the
 provider-neutral execution receipts they reference. Doppler execution identity
