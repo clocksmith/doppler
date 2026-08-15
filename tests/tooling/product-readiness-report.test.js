@@ -6,7 +6,7 @@ const report = await buildProductReadinessReport();
 const revocations = report.contracts.revocations;
 
 assert.equal(report.ok, true);
-assert.equal(report.actions.length, 9);
+assert.equal(report.actions.length, 6);
 assert.equal(report.actions[0].code, 'maintained-application-integrations-missing');
 assert.equal(report.actions[0].owner, 'doppler-product');
 assert.equal(report.actions[0].completionClass, 'application');

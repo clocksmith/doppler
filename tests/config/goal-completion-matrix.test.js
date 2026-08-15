@@ -57,7 +57,7 @@ const matrix = await readJson(MATRIX_PATH);
     'correctness-performance-claims',
   ]);
   assert.equal(report.actions.length, matrix.blockers.length);
-  assert.deepEqual(report.actions.map((action) => action.priority), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.deepEqual(report.actions.map((action) => action.priority), [1, 2, 3, 4, 5, 6]);
   assert.equal(report.actions[0].code, 'maintained-application-integrations-missing');
   assert.equal(report.actions[0].completionClass, 'application');
   assert.equal(report.actions[0].statusCommand, 'npm run product:integrations:check');
