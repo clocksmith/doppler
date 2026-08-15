@@ -135,14 +135,16 @@
           "tier": "experimental",
           "status": "experimental",
           "claimAllowed": false,
-          "supportSubsystemId": null,
+          "supportSubsystemId": "runtime.bun-webgpu",
           "packageBin": null,
           "packageExport": null,
           "smokeCommand": null,
           "evidencePaths": [
+            "docs/goals.md",
             "docs/release-matrix.md",
             "benchmarks/vendors/release-matrix.json",
-            "docs/subsystem-support-matrix.md"
+            "docs/subsystem-support-matrix.md",
+            "docs/status/bun-product-support-candidate-audit-2026-08-15.json"
           ],
           "blockers": [
             "bun-runtime-tier-experimental"
@@ -825,9 +827,11 @@
       "owner": "doppler-runtime",
       "completionClass": "hardware",
       "statusCommand": "npm run support:subsystems:check",
-      "description": "Bun WebGPU rows exist as evidence lanes, but Bun is not a tier1 Doppler product surface.",
-      "exitCriteria": "Promote Bun through the support-tier registry and release matrix with committed runtime and compare receipts.",
+      "description": "Bun has an experimental generation harness and three old same-artifact comparisons, but no Bun-native three-workload product qualification.",
+      "exitCriteria": "Qualify generation, embedding, and reranking through Bun-native root API and CLI surfaces with exact resolution, load-execute-unload, correctness, failure, memory, cold/warm, incumbent, requalification, and revocation evidence; then promote runtime.bun-webgpu and the release engine together.",
       "evidencePaths": [
+        "docs/status/bun-product-support-candidate-audit-2026-08-15.json",
+        "src/config/support-tiers/subsystems.json",
         "docs/subsystem-support-matrix.md",
         "docs/release-matrix.md",
         "benchmarks/vendors/release-matrix.json"
