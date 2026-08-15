@@ -101,4 +101,6 @@ package does not configure a production endpoint or production keys. No live
 authority is claimable until Clocksmith deploys and qualifies the endpoint,
 online and recovery key custody, a production durable store, refresh behavior,
 and retained rotation and compromise-recovery drills. The goal matrix therefore
-keeps signed live revocation partial and `claimAllowed: false`.
+keeps signed live revocation partial and `claimAllowed: false`. The product
+readiness report exposes bundled signature state and signed-live mechanism and
+authority state separately so this boundary remains observable.

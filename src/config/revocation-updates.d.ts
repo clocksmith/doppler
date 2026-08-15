@@ -1,5 +1,13 @@
 import type { DopplerRevocationRegistry } from './revocation-policy.js';
 
+export declare const SIGNED_REVOCATION_PROTOCOL: Readonly<{
+  mechanismAvailable: true;
+  schema: 'doppler.signed-revocation-envelope/v1';
+  signatureAlgorithm: 'ECDSA-P256-SHA256';
+  configuration: 'explicit-application';
+  backgroundRefresh: false;
+}>;
+
 export interface DopplerRevocationPublicKey {
   id: string;
   publicKeyJwk: JsonWebKey;

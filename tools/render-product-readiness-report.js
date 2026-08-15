@@ -13,6 +13,7 @@ import { buildRuntimeOwnershipDecisionReport } from './check-runtime-ownership-d
 import { buildRevocationPropagationReport } from './check-revocation-registry.js';
 import { buildRuntimePromotionMonitoringReport } from './check-runtime-promotion-monitoring.js';
 import { buildSubsystemSupportContractReport } from './check-subsystem-support-contract.js';
+import { SIGNED_REVOCATION_PROTOCOL } from '../src/config/revocation-updates.js';
 
 function parseArgs(argv) {
   const args = {
@@ -46,6 +47,9 @@ function buildSummary(reports) {
     ...collectErrors('promotion monitoring', reports.promotionMonitoring),
     ...collectErrors('subsystem support', reports.subsystemSupport),
   ];
+  const signedLiveAuthorityQualified = !reports.goals.goals.some((goal) => (
+    goal.blockers.includes('signed-live-revocation-authority-missing')
+  ));
   return {
     ok: reports.goals.ok
       && reports.claimEvidence.ok
@@ -103,6 +107,14 @@ function buildSummary(reports) {
         ok: reports.revocations.ok,
         active: reports.revocations.activeRevocations,
         signatureVerification: reports.revocations.signatureVerification,
+        bundled: {
+          active: reports.revocations.activeRevocations,
+          signatureVerification: reports.revocations.signatureVerification,
+        },
+        signedLive: {
+          authorityQualified: signedLiveAuthorityQualified,
+          ...SIGNED_REVOCATION_PROTOCOL,
+        },
       },
       promotionMonitoring: {
         ok: reports.promotionMonitoring.ok,
@@ -144,7 +156,7 @@ function formatMarkdown(summary) {
     `- maintained application integrations: ${summary.contracts.productIntegrations.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.productIntegrations.qualified}/${summary.contracts.productIntegrations.required} qualified; missing ${summary.contracts.productIntegrations.missingWorkloads.join(', ') || 'none'})`,
     `- provider conformance: ${summary.contracts.providerConformance.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.providerConformance.qualified}/${summary.contracts.providerConformance.required} qualified; missing ${summary.contracts.providerConformance.missingWorkloads.join(', ') || 'none'})`,
     `- runtime ownership decisions: ${summary.contracts.runtimeOwnership.gateSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.runtimeOwnership.qualified}/${summary.contracts.runtimeOwnership.required} qualified; missing ${summary.contracts.runtimeOwnership.missingWorkloads.join(', ') || 'none'})`,
-    `- revocation propagation: ${summary.contracts.revocations.ok ? 'ok' : 'invalid'} (${summary.contracts.revocations.active} active; signature verification ${summary.contracts.revocations.signatureVerification})`,
+    `- revocation propagation: ${summary.contracts.revocations.ok ? 'ok' : 'invalid'} (bundled ${summary.contracts.revocations.bundled.active} active, signature ${summary.contracts.revocations.bundled.signatureVerification}; signed-live mechanism ${summary.contracts.revocations.signedLive.mechanismAvailable ? 'available' : 'missing'}, authority ${summary.contracts.revocations.signedLive.authorityQualified ? 'qualified' : 'incomplete'})`,
     `- post-promotion monitoring: ${summary.contracts.promotionMonitoring.coverageSatisfied ? 'satisfied' : 'incomplete'} (${summary.contracts.promotionMonitoring.promotions} promotions; ${summary.contracts.promotionMonitoring.monitoring} monitoring, ${summary.contracts.promotionMonitoring.retained} retained, ${summary.contracts.promotionMonitoring.revoked} revoked)`,
     `- subsystem support: ${summary.contracts.subsystemSupport.ok ? 'ok' : 'invalid'} (${summary.contracts.subsystemSupport.subsystems} subsystems, ${summary.contracts.subsystemSupport.primaryClaims} primary claims)`,
     ''

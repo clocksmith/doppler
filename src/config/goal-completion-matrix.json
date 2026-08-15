@@ -701,7 +701,9 @@
             "src/config/revocation-updates.js",
             "src/client/runtime/index.js",
             "src/inference/pipelines/text/generator-helpers.js",
-            "tests/config/signed-revocation-updates.test.js"
+            "tests/config/signed-revocation-updates.test.js",
+            "tools/render-product-readiness-report.js",
+            "tests/tooling/product-readiness-report.test.js"
           ],
           "blockers": [
             "signed-live-revocation-authority-missing"

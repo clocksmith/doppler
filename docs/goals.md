@@ -386,10 +386,14 @@ rendered as a stable product-status report with `npm run goals:report`.
 
 `npm run product:readiness:report` combines the goal matrix, command-surface,
 model-artifact, maintained-integration, provider-conformance,
-runtime-ownership, policy-schema, claim-evidence, and subsystem-support
-contracts into one markdown status report. Use
+runtime-ownership, policy-schema, claim-evidence, revocation,
+promotion-monitoring, and subsystem-support contracts into one markdown status
+report. Use
 `npm run product:readiness:report -- --json` when another tool needs the same
-status as machine-readable JSON.
+status as machine-readable JSON. Revocation status separates the bundled
+package authority from signed-live mechanism availability and operational
+authority qualification; it must not collapse those distinct trust states.
+`npm run product:readiness:check` keeps that projection in the default gate.
 
 `tools/policies/product-integration-qualification.json` is the source of truth
 for the decisive maintained-application gate. `npm run product:integrations:check`
