@@ -217,11 +217,21 @@ await withFixture(async (fixture) => {
   assert.equal(result.ownerConfirmedAtUtc, '2026-08-15T18:00:00.000Z');
   assert.equal(result.resolvedArtifactVariantId, ARTIFACT_ID);
   assert.equal(result.resolvedExecutionId, EXECUTION_ID);
-  assert.deepEqual(result.blockers, ['application-evaluation-awaiting-explicit-promotion']);
+  assert.equal(result.applicationRevision, APPLICATION_REVISION);
+  assert.equal(result.harnessRevision, HARNESS_REVISION);
+  assert.equal(result.environmentFingerprint, ENVIRONMENT_ID);
+  assert.deepEqual(result.blockers, [
+    'application-evaluation-awaiting-explicit-promotion',
+    'product-support-promotion-evidence-missing',
+  ]);
   const output = JSON.parse(await fs.readFile(fixture.outputPolicyPath, 'utf8'));
   const integration = output.integrations.find((entry) => entry.id === INTEGRATION_ID);
   assert.equal(integration.claimAllowed, false);
   assert.equal(integration.qualificationLevel, 'contract-ready');
+  assert.equal(integration.applicationRevision, APPLICATION_REVISION);
+  assert.equal(integration.harnessRevision, HARNESS_REVISION);
+  assert.equal(integration.environmentFingerprint, ENVIRONMENT_ID);
+  assert.equal(integration.evidence.promotion, null);
   for (const [field, evidencePath] of Object.entries(fixture.evidencePaths)) {
     const receipt = JSON.parse(await fs.readFile(path.join(fixture.repoRoot, evidencePath), 'utf8'));
     assert.deepEqual(integration.evidence[field], {
@@ -229,6 +239,29 @@ await withFixture(async (fixture) => {
       digest: computeCanonicalJsonSha256(receipt),
     });
   }
+});
+
+await withFixture(async (fixture) => {
+  const memoryPath = path.join(fixture.repoRoot, fixture.evidencePaths.memory);
+  await writeJson(memoryPath, outcomeReceipt(fixture.integration, 'memory', {
+    environmentFingerprint: `sha256:${'f'.repeat(64)}`,
+  }));
+  await assert.rejects(
+    () => recordProductIntegrationEvaluation({ ...fixture, now: NOW }),
+    /memory evidence is invalid.*environmentFingerprint.*does not match expected/
+  );
+});
+
+await withFixture(async (fixture) => {
+  const captureValue = capture({
+    ...fixture.evidencePaths,
+    memory: fixture.evidencePaths.reliability,
+  });
+  await writeJson(fixture.capturePath, captureValue);
+  await assert.rejects(
+    () => recordProductIntegrationEvaluation({ ...fixture, now: NOW }),
+    /must use a distinct path for every evidence class/
+  );
 });
 
 await withFixture(async (fixture) => {

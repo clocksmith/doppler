@@ -98,7 +98,11 @@ Candidate coverage is reported separately from qualified coverage so an empty
 registry cannot hide adoption work and available code cannot imply support.
 Qualification evidence is canonical-JSON-digest-bound. Owner confirmation and
 native Doppler identity have dedicated receipt contracts; every product outcome
-uses class-specific observations whose claimed pass is recomputed. See
+uses class-specific observations whose claimed pass is recomputed. Every outcome
+in one qualification binds the same application revision, harness revision, and
+environment fingerprint. Product support additionally requires a human
+promotion receipt bound to the canonical digest of the complete evaluation set;
+editing status fields alone cannot promote an integration. See
 `docs/product-integration-qualification.md`.
 
 ## Completion matrix

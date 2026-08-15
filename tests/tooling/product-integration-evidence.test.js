@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 
 import {
+  computeProductIntegrationEvidenceSetDigest,
   validateProductIntegrationOutcomeEvidence,
   validateProductIntegrationOwnerConfirmation,
+  validateProductIntegrationPromotionEvidence,
 } from '../../tools/lib/product-integration-evidence.js';
 
 const SHA_A = `sha256:${'a'.repeat(64)}`;
@@ -110,6 +112,9 @@ for (const [evidenceClass, observations] of Object.entries(passingObservations))
   );
   assert.deepEqual(passing.errors, [], `${evidenceClass}: ${passing.errors.join('\n')}`);
   assert.deepEqual(passing.reasons, []);
+  assert.equal(passing.applicationRevision, REVISION_A);
+  assert.equal(passing.harnessRevision, REVISION_B);
+  assert.equal(passing.environmentFingerprint, SHA_A);
 
   const failedValues = { ...observations, ...failingObservations[evidenceClass] };
   const failed = validateProductIntegrationOutcomeEvidence(
@@ -145,16 +150,69 @@ for (const [evidenceClass, observations] of Object.entries(passingObservations))
     applicationName: receipt.applicationName,
     workload: receipt.workload,
     owner: receipt.owner,
+    applicationRevision: receipt.applicationRevision,
     ownerConfirmedAtUtc: receipt.confirmedAtUtc,
   });
   assert.deepEqual(result.errors, []);
   assert.deepEqual(result.reasons, []);
+  assert.equal(result.applicationRevision, REVISION_A);
   const inactive = validateProductIntegrationOwnerConfirmation({
     ...receipt,
     maintenanceStatus: 'inactive',
   });
   assert.deepEqual(inactive.errors, []);
   assert.deepEqual(inactive.reasons, ['owner-maintenance-not-active']);
+}
+
+{
+  const evidenceReferences = {
+    ownerConfirmation: { path: 'evidence/owner.json', digest: SHA_A },
+    identity: { path: 'evidence/identity.json', digest: SHA_B },
+  };
+  const evidenceSetDigest = computeProductIntegrationEvidenceSetDigest(evidenceReferences);
+  const receipt = {
+    schema: 'doppler.product-integration-promotion-evidence/v1',
+    integrationId: 'fixture-integration',
+    applicationName: 'Fixture Application',
+    workload: 'generation',
+    owner: 'clocksmith/fixture',
+    logicalModelId: 'fixture-logical-model',
+    resolvedArtifactVariantId: SHA_B,
+    resolvedExecutionId: SHA_C,
+    applicationRevision: REVISION_A,
+    harnessRevision: REVISION_B,
+    environmentFingerprint: SHA_A,
+    evidenceSetDigest,
+    decision: 'promote-product-supported',
+    authority: 'human',
+    reviewer: 'fixture-reviewer',
+    reviewerRevision: '3'.repeat(40),
+    rationale: 'The exact evidence set qualifies this integration.',
+    promotedAtUtc: '2026-08-15T13:00:00.000Z',
+    qualifiedAtUtc: '2026-08-15T12:30:00.000Z',
+    expiresAtUtc: '2026-09-15T12:30:00.000Z',
+  };
+  const expected = {
+    integrationId: receipt.integrationId,
+    applicationName: receipt.applicationName,
+    workload: receipt.workload,
+    owner: receipt.owner,
+    logicalModelId: receipt.logicalModelId,
+    resolvedArtifactVariantId: receipt.resolvedArtifactVariantId,
+    resolvedExecutionId: receipt.resolvedExecutionId,
+    applicationRevision: receipt.applicationRevision,
+    harnessRevision: receipt.harnessRevision,
+    environmentFingerprint: receipt.environmentFingerprint,
+    evidenceSetDigest,
+    qualifiedAtUtc: receipt.qualifiedAtUtc,
+    expiresAtUtc: receipt.expiresAtUtc,
+  };
+  assert.deepEqual(validateProductIntegrationPromotionEvidence(receipt, expected).errors, []);
+  const staleDigest = validateProductIntegrationPromotionEvidence(
+    { ...receipt, evidenceSetDigest: SHA_C },
+    expected
+  );
+  assert.ok(staleDigest.errors.some((error) => error.includes('evidenceSetDigest')));
 }
 
 console.log('product-integration-evidence.test: ok');

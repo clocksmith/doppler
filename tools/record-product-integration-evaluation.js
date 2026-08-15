@@ -26,7 +26,7 @@ const DEFAULT_POLICY_PATH = path.join(
   'product-integration-qualification.json'
 );
 const CAPTURE_SCHEMA = 'doppler.product-integration-evaluation-capture/v1';
-const EVIDENCE_FIELDS = Object.freeze([
+const CAPTURE_EVIDENCE_FIELDS = Object.freeze([
   'ownerConfirmation',
   'installToFirstVerifiedOutput',
   'identity',
@@ -43,6 +43,7 @@ const REVIEW_REASONS = new Set([
   'qualification-level-not-product-supported',
   'lifecycle-not-active',
   'blockers-present',
+  'evidence-incomplete',
 ]);
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -151,9 +152,17 @@ async function validateCapture(capture, context) {
   if (expiresAt.getTime() > evaluatedAt.getTime() + maxAgeDays * DAY_MS) {
     throw new Error(`capture.expiresAtUtc exceeds the ${maxAgeDays}-day policy limit.`);
   }
-  assertExactKeys(capture.evidencePaths, EVIDENCE_FIELDS, 'capture.evidencePaths');
+  assertExactKeys(
+    capture.evidencePaths,
+    CAPTURE_EVIDENCE_FIELDS,
+    'capture.evidencePaths'
+  );
+  const distinctEvidencePaths = new Set(Object.values(capture.evidencePaths));
+  if (distinctEvidencePaths.size !== CAPTURE_EVIDENCE_FIELDS.length) {
+    throw new Error('capture.evidencePaths must use a distinct path for every evidence class.');
+  }
   const evidence = {};
-  for (const field of EVIDENCE_FIELDS) {
+  for (const field of CAPTURE_EVIDENCE_FIELDS) {
     evidence[field] = await readEvidencePath(
       capture.evidencePaths[field],
       `capture.evidencePaths.${field}`,
@@ -167,13 +176,6 @@ async function validateCapture(capture, context) {
     owner: integration.owner,
     logicalModelId: integration.logicalModelId,
   };
-  const owner = validateProductIntegrationOwnerConfirmation(
-    evidence.ownerConfirmation.receipt,
-    baseContext
-  );
-  if (owner.errors.length > 0) {
-    throw new Error(`Owner confirmation is invalid: ${owner.errors.join('; ')}`);
-  }
   const identity = validateDopplerRuntimeOwnershipReceipt(evidence.identity.receipt, {
     logicalModelId: integration.logicalModelId,
     resolvedArtifactVariantId: integration.resolvedArtifactVariantId,
@@ -188,15 +190,23 @@ async function validateCapture(capture, context) {
     resolvedExecutionId: identity.resolution?.resolvedExecutionId ?? null,
   };
   const outcomeResults = [];
+  let applicationEvidenceIdentity = null;
   for (const evidenceClass of PRODUCT_OUTCOME_EVIDENCE_CLASSES) {
     const result = validateProductIntegrationOutcomeEvidence(
       evidence[evidenceClass].receipt,
-      { ...outcomeContext, evidenceClass }
+      { ...outcomeContext, ...applicationEvidenceIdentity, evidenceClass }
     );
     if (result.errors.length > 0) {
       throw new Error(`${evidenceClass} evidence is invalid: ${result.errors.join('; ')}`);
     }
     outcomeResults.push({ evidenceClass, ...result });
+    if (!applicationEvidenceIdentity) {
+      applicationEvidenceIdentity = {
+        applicationRevision: result.applicationRevision,
+        harnessRevision: result.harnessRevision,
+        environmentFingerprint: result.environmentFingerprint,
+      };
+    }
     if (
       !outcomeContext.resolvedArtifactVariantId
       && !outcomeContext.resolvedExecutionId
@@ -208,6 +218,13 @@ async function validateCapture(capture, context) {
         resolvedExecutionId: result.resolution.resolvedExecutionId,
       };
     }
+  }
+  const owner = validateProductIntegrationOwnerConfirmation(
+    evidence.ownerConfirmation.receipt,
+    { ...baseContext, applicationRevision: applicationEvidenceIdentity?.applicationRevision }
+  );
+  if (owner.errors.length > 0) {
+    throw new Error(`Owner confirmation is invalid: ${owner.errors.join('; ')}`);
   }
   const evidenceInstants = [owner.confirmedAt, identity.timestamp]
     .concat(outcomeResults.map((result) => result.capturedAt))
@@ -222,6 +239,7 @@ async function validateCapture(capture, context) {
     owner,
     identity,
     outcomeResults,
+    applicationEvidenceIdentity,
   };
 }
 
@@ -253,6 +271,9 @@ export async function recordProductIntegrationEvaluation(options) {
   if (integration.claimAllowed) {
     throw new Error(`Recorder cannot replace claimable product integration ${integration.id}.`);
   }
+  if (integration.evidence.promotion !== null) {
+    throw new Error(`Recorder cannot replace promoted product integration ${integration.id}.`);
+  }
   if (hasPriorEvaluation(integration) && options.replace !== true) {
     throw new Error(`Integration ${integration.id} already contains evaluation state; use --replace.`);
   }
@@ -268,18 +289,27 @@ export async function recordProductIntegrationEvaluation(options) {
   outputIntegration.resolvedArtifactVariantId = validated.identity.resolution
     ?.resolvedArtifactVariantId ?? null;
   outputIntegration.resolvedExecutionId = validated.identity.resolution?.resolvedExecutionId ?? null;
+  outputIntegration.applicationRevision = validated.applicationEvidenceIdentity
+    ?.applicationRevision ?? null;
+  outputIntegration.harnessRevision = validated.applicationEvidenceIdentity?.harnessRevision ?? null;
+  outputIntegration.environmentFingerprint = validated.applicationEvidenceIdentity
+    ?.environmentFingerprint ?? null;
   outputIntegration.qualifiedAtUtc = validated.evaluatedAtUtc;
   outputIntegration.expiresAtUtc = validated.expiresAtUtc;
   outputIntegration.lifecycle = 'candidate';
   outputIntegration.claimAllowed = false;
-  outputIntegration.evidence = Object.fromEntries(EVIDENCE_FIELDS.map((field) => [
+  outputIntegration.evidence = Object.fromEntries(CAPTURE_EVIDENCE_FIELDS.map((field) => [
     field,
     {
       path: validated.evidence[field].path,
       digest: validated.evidence[field].digest,
     },
   ]));
-  outputIntegration.blockers = ['application-evaluation-awaiting-explicit-promotion'];
+  outputIntegration.evidence.promotion = null;
+  outputIntegration.blockers = [
+    'application-evaluation-awaiting-explicit-promotion',
+    'product-support-promotion-evidence-missing',
+  ];
   let outputReport = await validateProductIntegrationQualification(outputPolicy, { repoRoot, now });
   if (outputReport.errors.length > 0) {
     throw new Error(`Recorded product integration policy is invalid: ${outputReport.errors[0]}`);
@@ -287,6 +317,7 @@ export async function recordProductIntegrationEvaluation(options) {
   const integrationReport = outputReport.integrations.find((entry) => entry.id === integration.id);
   outputIntegration.blockers = Array.from(new Set([
     'application-evaluation-awaiting-explicit-promotion',
+    'product-support-promotion-evidence-missing',
     ...integrationReport.qualificationReasons.filter((reason) => !REVIEW_REASONS.has(reason)),
   ]));
   outputReport = await validateProductIntegrationQualification(outputPolicy, { repoRoot, now });
@@ -302,6 +333,9 @@ export async function recordProductIntegrationEvaluation(options) {
     ownerConfirmedAtUtc: outputIntegration.ownerConfirmedAtUtc,
     resolvedArtifactVariantId: outputIntegration.resolvedArtifactVariantId,
     resolvedExecutionId: outputIntegration.resolvedExecutionId,
+    applicationRevision: outputIntegration.applicationRevision,
+    harnessRevision: outputIntegration.harnessRevision,
+    environmentFingerprint: outputIntegration.environmentFingerprint,
     claimAllowed: false,
     blockers: outputIntegration.blockers,
   };

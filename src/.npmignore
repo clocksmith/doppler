@@ -56,6 +56,7 @@ config/schema/policy-schema-registry.json
 config/schema/product-integration-evaluation-capture.schema.json
 config/schema/product-integration-evidence.schema.json
 config/schema/product-integration-owner-confirmation.schema.json
+config/schema/product-integration-promotion-evidence.schema.json
 config/schema/product-integration-qualification.schema.json
 config/schema/program-bundle-json-schema.js
 config/schema/program-bundle.schema.json
