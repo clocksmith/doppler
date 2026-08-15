@@ -1,6 +1,6 @@
 {
   "$schema": "../../src/config/schema/runtime-promotion-monitoring.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "source": "doppler",
   "requiredChangeClasses": [
     "scheduling-allocation-cache",

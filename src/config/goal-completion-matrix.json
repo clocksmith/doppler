@@ -664,6 +664,7 @@
             "docs/evidence-loop.md",
             "tools/policies/runtime-promotion-monitoring.json",
             "src/config/schema/runtime-promotion-monitoring.schema.json",
+            "src/config/schema/runtime-promotion-observation-evidence.schema.json",
             "tools/check-runtime-promotion-monitoring.js",
             "tests/tooling/runtime-promotion-monitoring.test.js"
           ],
@@ -809,7 +810,9 @@
       "evidencePaths": [
         "docs/evidence-loop.md",
         "tools/policies/runtime-promotion-monitoring.json",
-        "tools/check-runtime-promotion-monitoring.js"
+        "src/config/schema/runtime-promotion-observation-evidence.schema.json",
+        "tools/check-runtime-promotion-monitoring.js",
+        "tests/tooling/runtime-promotion-monitoring.test.js"
       ]
     },
     {

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import path from 'node:path';
 
 import { computeCanonicalSha256 } from '../../src/utils/canonical-hash.js';
 import {
@@ -104,6 +105,7 @@ function scope() {
 
 function observation(id, value, observedAtUtc, passed = true) {
   return {
+    schema: 'doppler.runtime-promotion-observation-evidence/v1',
     id,
     observedAtUtc,
     scope: scope(),
@@ -117,13 +119,19 @@ function observation(id, value, observedAtUtc, passed = true) {
     neighbors: [
       { id: 'decode-p256-d128', passed },
     ],
-    evidencePath: 'docs/goals.md',
+  };
+}
+
+function evidenceReference(evidencePath, receipt) {
+  return {
+    path: evidencePath,
+    digest: computeCanonicalSha256(receipt),
   };
 }
 
 function policy(status = 'monitoring') {
   const receipt = optimizationReceipt();
-  const observations = status === 'monitoring'
+  const observationReceipts = status === 'monitoring'
     ? [observation('observation-1', 99, '2026-08-15T01:00:00.000Z')]
     : status === 'retain'
       ? [
@@ -131,11 +139,28 @@ function policy(status = 'monitoring') {
         observation('observation-2', 101, '2026-08-15T02:00:00.000Z'),
       ]
       : [observation('observation-1', 90, '2026-08-15T01:00:00.000Z')];
+  const evidence = new Map();
+  const addEvidence = (evidencePath, value) => {
+    evidence.set(evidencePath, value);
+    return evidenceReference(evidencePath, value);
+  };
+  const observations = observationReceipts.map((value, index) => addEvidence(
+    `evidence/observation-${index + 1}.json`,
+    value
+  ));
+  const rollbackEvidence = addEvidence('evidence/rollback.json', {
+    knownSafeTarget: 'baseline-profile-v1',
+    verified: true,
+  });
+  const decisionEvidence = status === 'monitoring'
+    ? []
+    : [addEvidence('evidence/decision.json', { status, reviewedBy: 'doppler-release' })];
   return {
     receipt,
+    evidence,
     value: {
       $schema: '../../src/config/schema/runtime-promotion-monitoring.schema.json',
-      schemaVersion: 1,
+      schemaVersion: 2,
       source: 'doppler',
       requiredChangeClasses: CHANGE_CLASSES,
       promotions: [
@@ -153,7 +178,7 @@ function policy(status = 'monitoring') {
             id: 'baseline-profile-v1',
             digest: ROLLBACK_HASH,
             knownSafe: true,
-            evidencePath: 'docs/goals.md',
+            evidence: rollbackEvidence,
           },
           plan: {
             owner: 'doppler-runtime',
@@ -189,7 +214,7 @@ function policy(status = 'monitoring') {
               revocationRecordId: status === 'revoke' ? 'candidate-regression' : null,
               authority: 'human',
               runtimeMutationApplied: false,
-              evidencePaths: ['docs/goals.md'],
+              evidencePaths: decisionEvidence,
             },
         },
       ],
@@ -201,7 +226,14 @@ async function validate(fixture, revocationRegistry = revocations(false)) {
   return validateRuntimePromotionMonitoringPolicy(fixture.value, {
     repoRoot: process.cwd(),
     revocationRegistry,
-    loadJson: async () => fixture.receipt,
+    loadJson: async (filePath) => {
+      const relativePath = path.relative(process.cwd(), filePath);
+      if (relativePath === 'artifacts/optimization-receipts/candidate-v1.json') {
+        return fixture.receipt;
+      }
+      if (fixture.evidence.has(relativePath)) return fixture.evidence.get(relativePath);
+      throw new Error(`Missing fixture evidence ${relativePath}`);
+    },
     pathExists: async () => true,
   });
 }
@@ -248,9 +280,22 @@ async function validate(fixture, revocationRegistry = revocations(false)) {
 
 {
   const fixture = policy('retain');
-  fixture.value.promotions[0].observations[1].scope.providerId = 'node-webgpu';
+  const reference = fixture.value.promotions[0].observations[1];
+  const receipt = fixture.evidence.get(reference.path);
+  receipt.scope.providerId = 'node-webgpu';
+  reference.digest = computeCanonicalSha256(receipt);
   const report = await validate(fixture);
   assert.ok(report.errors.some((error) => error.includes('scope does not match promotion scope')));
+}
+
+{
+  const fixture = policy('retain');
+  const reference = fixture.value.promotions[0].observations[1];
+  fixture.evidence.get(reference.path).primaryMetric.value = 102;
+  const report = await validate(fixture);
+  assert.ok(
+    report.errors.some((error) => error.includes('digest does not match canonical JSON evidence'))
+  );
 }
 
 {

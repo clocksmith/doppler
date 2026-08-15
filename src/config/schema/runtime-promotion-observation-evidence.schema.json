@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/runtime-promotion-observation-evidence-v1.schema.json",
+  "title": "Doppler Runtime Promotion Observation Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "observedAtUtc",
+    "scope",
+    "primaryMetric",
+    "controls",
+    "neighbors"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.runtime-promotion-observation-evidence/v1" },
+    "id": { "$ref": "#/$defs/text" },
+    "observedAtUtc": { "type": "string", "format": "date-time" },
+    "scope": { "$ref": "#/$defs/scope" },
+    "primaryMetric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "value"],
+      "properties": {
+        "id": { "$ref": "#/$defs/text" },
+        "value": { "type": "number" }
+      }
+    },
+    "controls": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "neighbors": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/check" }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "modelId",
+        "artifactVariantId",
+        "executionId",
+        "providerId",
+        "environmentFingerprint",
+        "workloadId"
+      ],
+      "properties": {
+        "modelId": { "$ref": "#/$defs/text" },
+        "artifactVariantId": { "$ref": "#/$defs/digest" },
+        "executionId": { "$ref": "#/$defs/digest" },
+        "providerId": { "$ref": "#/$defs/text" },
+        "environmentFingerprint": { "$ref": "#/$defs/text" },
+        "workloadId": { "$ref": "#/$defs/text" }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "passed"],
+      "properties": {
+        "id": { "$ref": "#/$defs/text" },
+        "passed": { "type": "boolean" }
+      }
+    }
+  }
+}
