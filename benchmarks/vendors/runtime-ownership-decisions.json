@@ -1,6 +1,6 @@
 {
   "$schema": "schema/runtime-ownership-decisions.schema.json",
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "source": "doppler",
   "goalIds": [
     "model-artifact-runtime-contract",
@@ -72,7 +72,7 @@
             "passed": null,
             "observedValue": null,
             "evaluatedAtUtc": null,
-            "evidencePath": null
+            "evidence": null
           }
         }
       ],
@@ -134,7 +134,7 @@
             "passed": null,
             "observedValue": null,
             "evaluatedAtUtc": null,
-            "evidencePath": null
+            "evidence": null
           }
         }
       ],
@@ -196,7 +196,7 @@
             "passed": null,
             "observedValue": null,
             "evaluatedAtUtc": null,
-            "evidencePath": null
+            "evidence": null
           }
         }
       ],

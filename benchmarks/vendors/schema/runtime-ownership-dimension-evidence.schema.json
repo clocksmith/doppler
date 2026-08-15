@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/runtime-ownership-dimension-evidence-v1.schema.json",
+  "title": "Doppler Runtime Ownership Dimension Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "decisionId",
+    "evidenceClass",
+    "workload",
+    "logicalModelId",
+    "sourceExecutionId",
+    "incumbentExecutionId",
+    "resolvedArtifactVariantId",
+    "resolvedExecutionId",
+    "harnessRevision",
+    "environmentFingerprint",
+    "capturedAtUtc",
+    "result"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.runtime-ownership-dimension-evidence/v1" },
+    "decisionId": { "$ref": "#/$defs/id" },
+    "evidenceClass": {
+      "enum": [
+        "correctness",
+        "taskQuality",
+        "usability",
+        "memory",
+        "endToEndPerformance",
+        "diagnosticDepth",
+        "distributionCost",
+        "integrationBurden",
+        "providerRisk"
+      ]
+    },
+    "workload": { "enum": ["generation", "embedding", "reranking"] },
+    "logicalModelId": { "type": "string", "minLength": 1 },
+    "sourceExecutionId": { "$ref": "#/$defs/sha256" },
+    "incumbentExecutionId": { "$ref": "#/$defs/sha256" },
+    "resolvedArtifactVariantId": { "$ref": "#/$defs/sha256" },
+    "resolvedExecutionId": { "$ref": "#/$defs/sha256" },
+    "harnessRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "environmentFingerprint": { "$ref": "#/$defs/sha256" },
+    "capturedAtUtc": { "type": "string", "format": "date-time" },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "observations"],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "observations": { "type": "object", "minProperties": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

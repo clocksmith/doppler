@@ -9,6 +9,12 @@ import {
   validateDopplerRuntimeOwnershipReceipt,
   validateRuntimeOwnershipExecutionEvidence,
 } from './lib/runtime-ownership-execution-evidence.js';
+import {
+  RUNTIME_OWNERSHIP_DIMENSION_CLASSES,
+  computeRuntimeOwnershipDecisionEvidenceDigest,
+  validateRuntimeOwnershipDimensionEvidence,
+  validateRuntimeOwnershipHypothesisEvidence,
+} from './lib/runtime-ownership-decision-evidence.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(
@@ -35,15 +41,7 @@ const EVIDENCE_FIELDS = Object.freeze([
   'sourceExecution',
   'incumbentExecution',
   'dopplerExecution',
-  'correctness',
-  'taskQuality',
-  'usability',
-  'memory',
-  'endToEndPerformance',
-  'diagnosticDepth',
-  'distributionCost',
-  'integrationBurden',
-  'providerRisk',
+  ...RUNTIME_OWNERSHIP_DIMENSION_CLASSES,
 ]);
 const CORRECTNESS_CLASSES = new Set([
   'exact-token',
@@ -149,19 +147,32 @@ function isRepoPath(value) {
   );
 }
 
-async function evidencePath(value, label, repoRoot, errors) {
+async function validateEvidenceReference(value, label, repoRoot, errors) {
   if (value === null) return null;
-  if (!isRepoPath(value)) {
-    errors.push(`${label} must be a repo-relative path or null`);
+  if (!exactKeys(value, ['path', 'digest'], label, errors)) return null;
+  if (!isRepoPath(value.path)) {
+    errors.push(`${label}.path must be a repo-relative path`);
     return null;
   }
-  const normalized = normalizeText(value);
-  try {
-    await fs.stat(path.join(repoRoot, normalized));
-  } catch {
-    errors.push(`${label} does not exist: ${normalized}`);
+  const evidencePath = normalizeText(value.path);
+  const evidenceDigest = normalizeText(value.digest).toLowerCase();
+  if (!SHA256_PATTERN.test(evidenceDigest)) {
+    errors.push(`${label}.digest must be a SHA-256 identity`);
   }
-  return normalized;
+  let receipt;
+  try {
+    receipt = JSON.parse(await fs.readFile(path.join(repoRoot, evidencePath), 'utf8'));
+  } catch (error) {
+    errors.push(`${label}.path is not readable JSON: ${error.message}`);
+    return null;
+  }
+  if (
+    SHA256_PATTERN.test(evidenceDigest)
+    && computeRuntimeOwnershipDecisionEvidenceDigest(receipt) !== evidenceDigest
+  ) {
+    errors.push(`${label}.digest does not match canonical JSON evidence`);
+  }
+  return { path: evidencePath, digest: evidenceDigest, receipt };
 }
 
 function validateClaimState(record, label, reasons, errors) {
@@ -185,23 +196,16 @@ function pushUnique(target, values) {
   }
 }
 
-async function readEvidenceJson(repoRoot, evidenceFile, label, errors) {
-  try {
-    return JSON.parse(await fs.readFile(path.join(repoRoot, evidenceFile), 'utf8'));
-  } catch (error) {
-    errors.push(`${label} is not readable JSON: ${error.message}`);
-    return null;
-  }
-}
-
-function thresholdMatches(operator, thresholdValue, observedValue) {
-  if (operator === 'greater-than-or-equal') return observedValue >= thresholdValue;
-  if (operator === 'less-than-or-equal') return observedValue <= thresholdValue;
-  return null;
-}
-
 async function validateHypothesis(hypothesis, context) {
-  const { errors, repoRoot, decisionId, seenAxes } = context;
+  const {
+    errors,
+    repoRoot,
+    decisionId,
+    seenAxes,
+    expectedIdentity,
+    retainedEvidencePaths,
+  } = context;
+  const initialErrorCount = errors.length;
   const fields = [
     'axis',
     'statement',
@@ -216,6 +220,7 @@ async function validateHypothesis(hypothesis, context) {
   const label = `${decisionId}: hypothesis ${axis}`;
   if (!exactKeys(hypothesis, fields, label, errors)) {
     return {
+      axis,
       complete: false,
       passed: null,
       declaredAt: null,
@@ -250,10 +255,10 @@ async function validateHypothesis(hypothesis, context) {
   }
   const declaredAt = isoInstant(hypothesis.declaredAtUtc, `${label}.declaredAtUtc`, errors);
   if (!declaredAt) reasons.push('declaration-date-missing');
-  const resultFields = ['passed', 'observedValue', 'evaluatedAtUtc', 'evidencePath'];
+  const resultFields = ['passed', 'observedValue', 'evaluatedAtUtc', 'evidence'];
   let passed = null;
   let evaluatedAt = null;
-  let resultPath = null;
+  let evidenceReference = null;
   if (!exactKeys(hypothesis.result, resultFields, `${label}.result`, errors)) {
     reasons.push('result-invalid');
   } else {
@@ -266,30 +271,62 @@ async function validateHypothesis(hypothesis, context) {
       `${label}.result.evaluatedAtUtc`,
       errors
     );
-    resultPath = await evidencePath(
-      hypothesis.result.evidencePath,
-      `${label}.result.evidencePath`,
+    evidenceReference = await validateEvidenceReference(
+      hypothesis.result.evidence,
+      `${label}.result.evidence`,
       repoRoot,
       errors
     );
-    if (passed === null || !evaluatedAt || !resultPath) reasons.push('result-incomplete');
+    const observedValue = hypothesis.result.observedValue;
+    const entirelyNull = passed === null
+      && observedValue === null
+      && hypothesis.result.evaluatedAtUtc === null
+      && hypothesis.result.evidence === null;
+    if (entirelyNull) {
+      reasons.push('result-incomplete');
+    } else if (passed === null || observedValue === null || !evaluatedAt || !evidenceReference) {
+      errors.push(`${label}.result must be complete or entirely null`);
+      reasons.push('result-invalid');
+    }
     if (declaredAt && evaluatedAt && evaluatedAt.getTime() < declaredAt.getTime()) {
       reasons.push('evaluated-before-declaration');
     }
-    if (operator !== 'pass' && passed !== null) {
-      const observed = hypothesis.result.observedValue;
-      if (!Number.isFinite(observed)) {
-        errors.push(`${label}: numeric threshold requires a finite observedValue`);
-      } else if (thresholdMatches(operator, thresholdValue, observed) !== passed) {
-        errors.push(`${label}: passed does not match the declared threshold and observedValue`);
+    if (evidenceReference) {
+      retainedEvidencePaths.push(evidenceReference.path);
+      const validation = validateRuntimeOwnershipHypothesisEvidence(
+        evidenceReference.receipt,
+        {
+          ...expectedIdentity,
+          decisionId,
+          axis,
+          metric: hypothesis.metric,
+          controlMetric: hypothesis.controlMetric,
+          operator,
+          thresholdValue,
+        }
+      );
+      for (const error of validation.errors) errors.push(`${label}.result.evidence: ${error}`);
+      if (validation.passed !== null && passed !== validation.passed) {
+        errors.push(`${label}.result.passed does not match semantic hypothesis evidence`);
       }
-    }
-    if (operator === 'pass' && passed !== null && hypothesis.result.observedValue === null) {
-      errors.push(`${label}: qualitative pass result requires observedValue`);
+      if (
+        validation.observedValue !== null
+        && !Object.is(observedValue, validation.observedValue)
+      ) {
+        errors.push(`${label}.result.observedValue does not match semantic hypothesis evidence`);
+      }
+      if (
+        validation.evaluatedAt
+        && evaluatedAt
+        && validation.evaluatedAt.getTime() !== evaluatedAt.getTime()
+      ) {
+        errors.push(`${label}.result.evaluatedAtUtc does not match semantic hypothesis evidence`);
+      }
     }
   }
   return {
-    complete: reasons.length === 0,
+    axis,
+    complete: reasons.length === 0 && errors.length === initialErrorCount,
     passed,
     declaredAt,
     evaluatedAt,
@@ -299,6 +336,7 @@ async function validateHypothesis(hypothesis, context) {
 
 async function validateDecision(decision, context) {
   const { errors, repoRoot, now, maxAgeDays, seenIds } = context;
+  const initialErrorCount = errors.length;
   const fields = [
     'id',
     'workload',
@@ -392,8 +430,24 @@ async function validateDecision(decision, context) {
   if (!Array.isArray(decision.hypotheses)) errors.push(`${id}.hypotheses must be an array`);
   const seenAxes = new Set();
   const hypotheses = [];
+  const retainedEvidencePaths = [];
+  const expectedIdentity = {
+    workload: decision.workload,
+    logicalModelId: identity.logicalModelId,
+    sourceExecutionId: identity.sourceExecutionId,
+    incumbentExecutionId: identity.incumbentExecutionId,
+    resolvedArtifactVariantId: identity.resolvedArtifactVariantId,
+    resolvedExecutionId: identity.resolvedExecutionId,
+  };
   for (const hypothesis of Array.isArray(decision.hypotheses) ? decision.hypotheses : []) {
-    hypotheses.push(await validateHypothesis(hypothesis, { errors, repoRoot, decisionId: id, seenAxes }));
+    hypotheses.push(await validateHypothesis(hypothesis, {
+      errors,
+      repoRoot,
+      decisionId: id,
+      seenAxes,
+      expectedIdentity,
+      retainedEvidencePaths,
+    }));
   }
   if (hypotheses.length === 0) reasons.push('material-advantage-hypothesis-missing');
   if (hypotheses.some((hypothesis) => !hypothesis.complete)) reasons.push('hypothesis-results-incomplete');
@@ -430,16 +484,18 @@ async function validateDecision(decision, context) {
   const evidence = {};
   if (exactKeys(decision.evidence, EVIDENCE_FIELDS, `${id}.evidence`, errors)) {
     await Promise.all(EVIDENCE_FIELDS.map(async (field) => {
-      evidence[field] = await evidencePath(
+      evidence[field] = await validateEvidenceReference(
         decision.evidence[field],
         `${id}.evidence.${field}`,
         repoRoot,
         errors
       );
+      if (evidence[field]) retainedEvidencePaths.push(evidence[field].path);
     }));
   }
   const missingEvidence = EVIDENCE_FIELDS.filter((field) => !evidence[field]);
   if (missingEvidence.length > 0) reasons.push('evidence-incomplete');
+  const externalStatuses = {};
   const externalExecutions = [
     {
       role: 'source',
@@ -458,13 +514,7 @@ async function validateDecision(decision, context) {
   ];
   for (const execution of externalExecutions) {
     if (!evidence[execution.evidenceField]) continue;
-    const receipt = await readEvidenceJson(
-      repoRoot,
-      evidence[execution.evidenceField],
-      `${id}.evidence.${execution.evidenceField}`,
-      errors
-    );
-    if (!receipt) continue;
+    const receipt = evidence[execution.evidenceField].receipt;
     const result = validateRuntimeOwnershipExecutionEvidence(receipt, {
       role: execution.role,
       providerId: execution.providerId,
@@ -472,10 +522,14 @@ async function validateDecision(decision, context) {
       workload: decision.workload,
       logicalModelId: identity.logicalModelId,
     });
+    externalStatuses[execution.role] = result.status;
     for (const error of result.errors) {
       errors.push(`${id}.evidence.${execution.evidenceField}: ${error}`);
     }
     pushUnique(reasons, result.reasons);
+    if (qualifiedAt && result.completedAt?.getTime() > qualifiedAt.getTime()) {
+      pushUnique(reasons, ['qualification-predates-execution-evidence']);
+    }
     if (
       execution.executionId
       && result.evidenceId
@@ -488,12 +542,7 @@ async function validateDecision(decision, context) {
     }
   }
   if (evidence.dopplerExecution) {
-    const receipt = await readEvidenceJson(
-      repoRoot,
-      evidence.dopplerExecution,
-      `${id}.evidence.dopplerExecution`,
-      errors
-    );
+    const receipt = evidence.dopplerExecution.receipt;
     if (receipt) {
       const result = validateDopplerRuntimeOwnershipReceipt(receipt, {
         logicalModelId: identity.logicalModelId,
@@ -504,7 +553,50 @@ async function validateDecision(decision, context) {
         errors.push(`${id}.evidence.dopplerExecution: ${error}`);
       }
       pushUnique(reasons, result.reasons);
+      if (qualifiedAt && result.timestamp?.getTime() > qualifiedAt.getTime()) {
+        pushUnique(reasons, ['qualification-predates-execution-evidence']);
+      }
     }
+  }
+  const dimensionResults = {};
+  for (const evidenceClass of RUNTIME_OWNERSHIP_DIMENSION_CLASSES) {
+    const reference = evidence[evidenceClass];
+    if (!reference) continue;
+    const result = validateRuntimeOwnershipDimensionEvidence(reference.receipt, {
+      ...expectedIdentity,
+      decisionId: id,
+      evidenceClass,
+    });
+    dimensionResults[evidenceClass] = result;
+    for (const error of result.errors) {
+      errors.push(`${id}.evidence.${evidenceClass}: ${error}`);
+    }
+    pushUnique(reasons, result.reasons);
+    if (qualifiedAt && result.capturedAt?.getTime() > qualifiedAt.getTime()) {
+      pushUnique(reasons, ['qualification-predates-dimension-evidence']);
+    }
+  }
+  const unsupportedOperationPassed = hypotheses.some(
+    (hypothesis) => hypothesis.axis === 'unsupported-operation' && hypothesis.passed === true
+  );
+  if (unsupportedOperationPassed) {
+    const correctness = dimensionResults.correctness;
+    const unsupportedOperationConfirmed = externalStatuses.incumbent === 'failed'
+      && correctness?.passed === true
+      && correctness.observations?.incumbentAcceptable === false
+      && correctness.observations?.dopplerAcceptable === true;
+    if (externalStatuses.incumbent !== 'failed') {
+      errors.push(`${id}: unsupported-operation advantage requires a failed incumbent execution`);
+    }
+    if (unsupportedOperationConfirmed) {
+      const reasonIndex = reasons.indexOf('incumbent-execution-not-passed');
+      if (reasonIndex >= 0) reasons.splice(reasonIndex, 1);
+    } else {
+      pushUnique(reasons, ['unsupported-operation-not-confirmed-by-correctness']);
+    }
+  }
+  if (new Set(retainedEvidencePaths).size !== retainedEvidencePaths.length) {
+    errors.push(`${id}: retained evidence paths must be distinct`);
   }
   const blockers = validateClaimState(decision, id, reasons, errors);
   return {
@@ -524,7 +616,9 @@ async function validateDecision(decision, context) {
     hypothesisAxes: Array.from(seenAxes),
     disposition: decision.disposition,
     claimAllowed: decision.claimAllowed,
-    qualified: decision.claimAllowed === true && reasons.length === 0,
+    qualified: decision.claimAllowed === true
+      && reasons.length === 0
+      && errors.length === initialErrorCount,
     passedAdvantages,
     missingEvidence,
     blockers,
@@ -563,7 +657,7 @@ export async function validateRuntimeOwnershipDecisions(policy, options = {}) {
   if (policy.$schema !== 'schema/runtime-ownership-decisions.schema.json') {
     errors.push('runtime ownership policy $schema is invalid');
   }
-  if (policy.schemaVersion !== 3) errors.push('runtime ownership policy schemaVersion must be 3');
+  if (policy.schemaVersion !== 4) errors.push('runtime ownership policy schemaVersion must be 4');
   if (policy.source !== 'doppler') errors.push('runtime ownership policy source must be "doppler"');
   const fixedArrays = [
     ['goalIds', GOAL_IDS],

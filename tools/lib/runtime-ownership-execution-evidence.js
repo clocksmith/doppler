@@ -150,6 +150,7 @@ export function validateRuntimeOwnershipExecutionEvidence(receipt, expected = {}
     );
   }
   let status = null;
+  let completedAt = null;
   if (exactKeys(
     receipt.result,
     ['status', 'outputDigest', 'startedAtUtc', 'completedAtUtc'],
@@ -173,7 +174,7 @@ export function validateRuntimeOwnershipExecutionEvidence(receipt, expected = {}
       'execution evidence.result.startedAtUtc',
       errors
     );
-    const completedAt = isoInstant(
+    completedAt = isoInstant(
       receipt.result.completedAtUtc,
       'execution evidence.result.completedAtUtc',
       errors
@@ -188,6 +189,7 @@ export function validateRuntimeOwnershipExecutionEvidence(receipt, expected = {}
     reasons,
     evidenceId: errors.length === 0 ? computeRuntimeOwnershipEvidenceId(receipt) : null,
     status,
+    completedAt,
   };
 }
 

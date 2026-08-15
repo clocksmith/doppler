@@ -25,13 +25,20 @@ The incumbent must be selected for relevance, not because it is easy for
 Doppler to beat. Every decision retains correctness, task quality, usability,
 memory, end-to-end performance, diagnostic depth, distribution cost,
 integration burden, and provider-risk evidence.
+Every retained evidence reference binds a repo-relative path and the canonical
+JSON SHA-256 of that receipt. Replacing bytes behind a path invalidates the
+decision even when the replacement remains valid JSON.
 
 ## Material advantage
 
 Before evaluation, a decision declares at least one falsifiable hypothesis with
 a metric, control metric, acceptance threshold, and declaration timestamp. A
-numeric result is checked against its frozen threshold. Evaluation evidence
-cannot predate the hypothesis.
+numeric result is derived from a semantic hypothesis receipt and checked against
+its frozen threshold. That receipt also binds the exact source, incumbent, and
+Doppler executions, harness revision, environment fingerprint, control result,
+and end-to-end acceptance result. Operators cannot author the retained observed
+value or pass/fail result independently. Evaluation evidence cannot predate the
+hypothesis.
 
 Recognized advantage axes are unsupported operation, end-to-end performance,
 memory, diagnostic depth, offline artifact control, and verified correction
@@ -69,8 +76,31 @@ Doppler does not substitute a receipt digest for its native execution identity.
 Its `dopplerExecution` evidence must be a local
 `doppler_provider_receipt_v1` whose resolved manifest and execution SHA-256
 values exactly match the decision. Fallback, failed, unresolved, or environment-
-free receipts remain retained but non-claimable. Failed external receipts are
-also valid negative evidence and cannot satisfy a claimable decision.
+free receipts remain retained but non-claimable. Failed source receipts remain
+negative evidence. A failed incumbent receipt can support a claim only when a
+predeclared unsupported-operation hypothesis passes and the correctness receipt
+independently records acceptable source and Doppler behavior plus unacceptable
+incumbent behavior; otherwise the failure remains disqualifying.
+
+The nine non-execution dimensions use
+`doppler.runtime-ownership-dimension-evidence/v1`, defined by
+`benchmarks/vendors/schema/runtime-ownership-dimension-evidence.schema.json`.
+Each receipt names one evidence class, binds the same immutable execution
+identities, records a harness revision and environment fingerprint, and carries
+class-specific observations. The checker recomputes its result: quality binds a
+held-out set and acceptance score; memory and distribution cost use measured
+byte budgets; performance requires matched work, timing scope, and sufficient
+samples; integration uses bounded steps plus clean-install and API success; and
+provider risk requires standard WebGPU and the selected Node provider without
+an undeclared Doe dependency. A generic file or independently authored
+`passed` value cannot satisfy a dimension.
+
+Material-advantage results use
+`doppler.runtime-ownership-hypothesis-evidence/v1`, defined by
+`benchmarks/vendors/schema/runtime-ownership-hypothesis-evidence.schema.json`.
+The checker derives threshold success only when both the frozen control and the
+end-to-end acceptance gate pass. Failed receipts remain retained negative
+evidence; they do not become a material advantage.
 
 ## Recording an evaluation
 
@@ -80,9 +110,11 @@ decision-evidence path, and results for the already declared hypotheses. The
 capture contract is
 `benchmarks/vendors/schema/runtime-ownership-evaluation-capture.schema.json`.
 It cannot provide execution IDs or change a hypothesis statement, metric,
-control, threshold, or declaration time. The recorder derives external receipt
-identities, reads Doppler's native identities, and rejects missing axes,
-retrospective evidence, threshold/result contradictions, and inconsistent
+control, threshold, declaration time, observed value, pass/fail result, or
+evidence digest. The recorder reads paths, derives canonical digests and external
+receipt identities, reads Doppler's native identities, validates every semantic
+dimension, derives hypothesis results, and rejects missing axes, retrospective
+evidence, false result claims, reused evidence paths, and inconsistent
 disposition recommendations.
 
 The default output is a separate policy for review. `--apply` is required to

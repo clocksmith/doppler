@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://clocksmith.dev/doppler/schemas/runtime-ownership-decisions-v3.schema.json",
-  "title": "Doppler Runtime Ownership Decisions v3",
+  "$id": "https://clocksmith.dev/doppler/schemas/runtime-ownership-decisions-v4.schema.json",
+  "title": "Doppler Runtime Ownership Decisions v4",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -19,7 +19,7 @@
   ],
   "properties": {
     "$schema": { "const": "schema/runtime-ownership-decisions.schema.json" },
-    "schemaVersion": { "const": 3 },
+    "schemaVersion": { "const": 4 },
     "source": { "const": "doppler" },
     "goalIds": {
       "const": ["model-artifact-runtime-contract", "correctness-performance-claims"]
@@ -73,19 +73,29 @@
     "nullableDateTime": {
       "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
     },
-    "nullableRepoPath": {
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          { "pattern": "^/" },
+          { "pattern": "\\\\" },
+          { "pattern": "(^|/)\\.\\.(/|$)" }
+        ]
+      }
+    },
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "digest"],
+      "properties": {
+        "path": { "$ref": "#/$defs/repoPath" },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "nullableEvidenceReference": {
       "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1,
-          "not": {
-            "anyOf": [
-              { "pattern": "^/" },
-              { "pattern": "\\\\" },
-              { "pattern": "(^|/)\\.\\.(/|$)" }
-            ]
-          }
-        },
+        { "$ref": "#/$defs/evidenceReference" },
         { "type": "null" }
       ]
     },
@@ -107,18 +117,18 @@
         "providerRisk"
       ],
       "properties": {
-        "sourceExecution": { "$ref": "#/$defs/nullableRepoPath" },
-        "incumbentExecution": { "$ref": "#/$defs/nullableRepoPath" },
-        "dopplerExecution": { "$ref": "#/$defs/nullableRepoPath" },
-        "correctness": { "$ref": "#/$defs/nullableRepoPath" },
-        "taskQuality": { "$ref": "#/$defs/nullableRepoPath" },
-        "usability": { "$ref": "#/$defs/nullableRepoPath" },
-        "memory": { "$ref": "#/$defs/nullableRepoPath" },
-        "endToEndPerformance": { "$ref": "#/$defs/nullableRepoPath" },
-        "diagnosticDepth": { "$ref": "#/$defs/nullableRepoPath" },
-        "distributionCost": { "$ref": "#/$defs/nullableRepoPath" },
-        "integrationBurden": { "$ref": "#/$defs/nullableRepoPath" },
-        "providerRisk": { "$ref": "#/$defs/nullableRepoPath" }
+        "sourceExecution": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "incumbentExecution": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "dopplerExecution": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "correctness": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "taskQuality": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "usability": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "memory": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "endToEndPerformance": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "diagnosticDepth": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "distributionCost": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "integrationBurden": { "$ref": "#/$defs/nullableEvidenceReference" },
+        "providerRisk": { "$ref": "#/$defs/nullableEvidenceReference" }
       }
     },
     "threshold": {
@@ -138,7 +148,7 @@
     "result": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["passed", "observedValue", "evaluatedAtUtc", "evidencePath"],
+      "required": ["passed", "observedValue", "evaluatedAtUtc", "evidence"],
       "properties": {
         "passed": {
           "anyOf": [{ "type": "boolean" }, { "type": "null" }]
@@ -147,7 +157,7 @@
           "anyOf": [{ "type": "number" }, { "type": "string", "minLength": 1 }, { "type": "null" }]
         },
         "evaluatedAtUtc": { "$ref": "#/$defs/nullableDateTime" },
-        "evidencePath": { "$ref": "#/$defs/nullableRepoPath" }
+        "evidence": { "$ref": "#/$defs/nullableEvidenceReference" }
       }
     },
     "hypothesis": {
