@@ -5,6 +5,8 @@ export interface DopplerRevocationTargets {
   weightPackIds: readonly string[];
   manifestVariantIds: readonly string[];
   artifactVariantIds: readonly `sha256:${string}`[];
+  adapterIds: readonly string[];
+  adapterDigests: readonly `sha256:${string}`[];
 }
 
 export interface DopplerRevocationRecord {
@@ -37,6 +39,8 @@ export interface DopplerRevocationIdentity {
   weightPackId?: string | null;
   manifestVariantId?: string | null;
   artifactVariantId?: string | null;
+  adapterId?: string | null;
+  adapterDigest?: string | null;
 }
 
 export declare function validateRevocationRegistry(value: unknown): DopplerRevocationRegistry;
@@ -53,3 +57,5 @@ export declare function assertResolutionNotRevoked(
   registry: DopplerRevocationRegistry
 ): void;
 export declare function assertBundledResolutionNotRevoked(identity: DopplerRevocationIdentity): Promise<void>;
+export declare function authorizeBundledAdapter<T extends object>(adapter: T): Promise<T>;
+export declare function assertBundledAdapterAuthorized(adapter: object | null | undefined): void;

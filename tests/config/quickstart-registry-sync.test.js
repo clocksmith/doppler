@@ -34,6 +34,8 @@ assert.deepEqual(
       weightPackIds: [],
       manifestVariantIds: [],
       artifactVariantIds: [],
+      adapterIds: [],
+      adapterDigests: [],
     },
     replacements: {
       logicalModelIds: [],
@@ -42,6 +44,8 @@ assert.deepEqual(
       weightPackIds: [],
       manifestVariantIds: [],
       artifactVariantIds: [],
+      adapterIds: [],
+      adapterDigests: [],
     },
     evidencePaths: ['docs/goals.md'],
   });

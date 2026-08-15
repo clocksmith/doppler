@@ -91,7 +91,7 @@ npx doppler-gpu lora --config ./workload.json --surface node
 
 Doppler supports SafeTensors LoRA loading and hot swap at runtime. SFT/LoRA
 training is available through the experimental Node, Bun, and browser training
-surface. Active adapters are listed in
+surface. Cataloged adapter identities and lifecycle states are listed in
 [`models/adapters/catalog.json`](models/adapters/catalog.json). See the
 [LoRA format](docs/lora-format.md), [training handbook](docs/training-handbook.md),
 and [Training API](docs/api/training.md).
@@ -176,7 +176,7 @@ correctness path are comparable. Unsupported paths fail closed.
 - [Component index](https://github.com/clocksmith/doppler/blob/main/docs/component-index.md) — generated authority and parent map
 - [`src/`](src/) — runtime, model loading, inference, and execution contracts
 - [`demo/`](demo/) — browser demo and its public API boundary
-- [`models/adapters/`](models/adapters/) — adapter catalog and active LoRA metadata
+- [`models/adapters/`](models/adapters/) — adapter catalog, lifecycle, identity, and evidence metadata
 - [`benchmarks/`](benchmarks/) — vendor comparisons and retained results
 - [`docs/`](docs/) — APIs, architecture, formats, methodology, and release matrices
 - [`tests/`](tests/) — runtime, contract, browser, and benchmark tests

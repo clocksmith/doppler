@@ -2,14 +2,18 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
 import {
+  assertBundledAdapterAuthorized,
   assertResolutionNotRevoked,
+  authorizeBundledAdapter,
   findResolutionRevocation,
   loadRevocationRegistry,
   validateRevocationRegistry,
 } from '../../src/config/revocation-policy.js';
 import { validateRevocationPropagation } from '../../tools/check-revocation-registry.js';
+import { InferencePipeline } from '../../src/inference/pipelines/text.js';
 
 const HASH = `sha256:${'a'.repeat(64)}`;
+const ADAPTER_HASH = `sha256:${'b'.repeat(64)}`;
 const EMPTY_TARGETS = Object.freeze({
   logicalModelIds: [],
   modelIds: [],
@@ -17,6 +21,8 @@ const EMPTY_TARGETS = Object.freeze({
   weightPackIds: [],
   manifestVariantIds: [],
   artifactVariantIds: [],
+  adapterIds: [],
+  adapterDigests: [],
 });
 
 function clone(value) {
@@ -47,6 +53,8 @@ function registry() {
           weightPackIds: ['weight-pack-v1'],
           manifestVariantIds: ['manifest-v1'],
           artifactVariantIds: [HASH],
+          adapterIds: ['unsafe-adapter'],
+          adapterDigests: [ADAPTER_HASH],
         },
         replacements: {
           ...EMPTY_TARGETS,
@@ -74,6 +82,8 @@ function registry() {
     { weightPackId: 'weight-pack-v1' },
     { manifestVariantId: 'manifest-v1' },
     { artifactVariantId: HASH.toUpperCase() },
+    { adapterId: 'unsafe-adapter' },
+    { adapterDigest: ADAPTER_HASH.toUpperCase() },
   ];
   for (const identity of identities) {
     assert.ok(findResolutionRevocation(identity, policy));
@@ -90,6 +100,28 @@ function registry() {
     );
   }
   assert.doesNotThrow(() => assertResolutionNotRevoked({ modelId: 'unrelated-model' }, policy));
+}
+
+{
+  const adapter = {
+    id: 'safe-adapter',
+    identity: {
+      schema: 'doppler.lora-execution-identity/v1',
+      id: 'safe-adapter',
+      digest: ADAPTER_HASH,
+    },
+  };
+  assert.throws(() => assertBundledAdapterAuthorized(adapter), /revocation-checked/);
+  assert.throws(
+    () => InferencePipeline.prototype.setLoRAAdapter.call({}, adapter),
+    /revocation-checked/
+  );
+  await authorizeBundledAdapter(adapter);
+  assert.doesNotThrow(() => assertBundledAdapterAuthorized(adapter));
+  const pipeline = {};
+  InferencePipeline.prototype.setLoRAAdapter.call(pipeline, adapter);
+  assert.equal(pipeline.lora, adapter);
+  assert.doesNotThrow(() => assertBundledAdapterAuthorized(null));
 }
 
 {
@@ -115,6 +147,13 @@ function registry() {
         quickstart: true,
         demoVisible: true,
         lifecycle: { status: { runtime: 'active' } },
+      }],
+    },
+    adapterCatalog: {
+      artifacts: [{
+        artifactId: 'unsafe-adapter',
+        lifecycle: 'promoted',
+        weights: { sha256: ADAPTER_HASH },
       }],
     },
     quickstart: {
@@ -178,6 +217,7 @@ function registry() {
   assert.equal(report.ok, false);
   for (const label of [
     'catalog resolved-model',
+    'adapter catalog unsafe-adapter',
     'quickstart resolved-model',
     'claim lane claim-lane',
     'release lane claim-lane',
@@ -193,6 +233,7 @@ function registry() {
   withdrawn.catalog.models[0].quickstart = false;
   withdrawn.catalog.models[0].demoVisible = false;
   withdrawn.catalog.models[0].lifecycle.status.runtime = 'revoked';
+  withdrawn.adapterCatalog.artifacts[0].lifecycle = 'revoked';
   withdrawn.quickstart.models = [];
   withdrawn.claimMatrix.lanes[0].status = 'revoked';
   withdrawn.releaseMatrix.localClaimLanes[0].status = 'revoked';

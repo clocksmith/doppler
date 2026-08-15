@@ -59,7 +59,9 @@
         "sourceCheckpointIds",
         "weightPackIds",
         "manifestVariantIds",
-        "artifactVariantIds"
+        "artifactVariantIds",
+        "adapterIds",
+        "adapterDigests"
       ],
       "properties": {
         "logicalModelIds": { "$ref": "#/$defs/uniqueStrings" },
@@ -67,7 +69,9 @@
         "sourceCheckpointIds": { "$ref": "#/$defs/uniqueStrings" },
         "weightPackIds": { "$ref": "#/$defs/uniqueStrings" },
         "manifestVariantIds": { "$ref": "#/$defs/uniqueStrings" },
-        "artifactVariantIds": { "$ref": "#/$defs/uniqueHashes" }
+        "artifactVariantIds": { "$ref": "#/$defs/uniqueHashes" },
+        "adapterIds": { "$ref": "#/$defs/uniqueStrings" },
+        "adapterDigests": { "$ref": "#/$defs/uniqueHashes" }
       }
     },
     "revocation": {
@@ -104,7 +108,9 @@
                 { "properties": { "sourceCheckpointIds": { "minItems": 1 } } },
                 { "properties": { "weightPackIds": { "minItems": 1 } } },
                 { "properties": { "manifestVariantIds": { "minItems": 1 } } },
-                { "properties": { "artifactVariantIds": { "minItems": 1 } } }
+                { "properties": { "artifactVariantIds": { "minItems": 1 } } },
+                { "properties": { "adapterIds": { "minItems": 1 } } },
+                { "properties": { "adapterDigests": { "minItems": 1 } } }
               ]
             }
           ]

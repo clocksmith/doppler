@@ -3,6 +3,7 @@
 import { loadLoRAWeights } from './lora-loader.js';
 import { log } from '../../debug/index.js';
 import { DEFAULT_ADAPTER_STACK_CONFIG } from '../../config/schema/index.js';
+import { assertBundledAdapterAuthorized } from '../../config/revocation-policy.js';
 
 
 function isFloat32Array(buf) {
@@ -118,6 +119,7 @@ export class AdapterManager {
     if (!state) {
       throw new Error(`Adapter '${id}' not found. Load it first.`);
     }
+    assertBundledAdapterAuthorized(state.adapter);
 
     // Validate base model if requested
     if (options.validateBaseModel && options.expectedBaseModel) {

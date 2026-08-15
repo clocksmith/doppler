@@ -51,6 +51,7 @@ import { registerPipeline, getPipelineFactory } from './registry.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { createObservationContext } from '../observation-context.js';
 import { createResolvedRuntimeSession } from './text/resolved-runtime-session.js';
+import { assertBundledAdapterAuthorized } from '../../config/revocation-policy.js';
 
 // AbortSignal contract: every public inference primitive on this pipeline
 // accepts `options.signal` (or `args.signal`). When the signal aborts the
@@ -2081,11 +2082,10 @@ export class InferencePipeline extends PipelineState {
     log.info('Pipeline', 'Unloaded');
   }
 
-
   setLoRAAdapter(adapter) {
+    assertBundledAdapterAuthorized(adapter);
     this.lora = adapter;
   }
-
 
   getActiveLoRA() {
     return this.lora;

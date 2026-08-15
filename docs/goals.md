@@ -415,13 +415,14 @@ not sufficient by itself.
 
 `src/config/revocation-registry.json` is the bundled deny-only authority for
 logical models, resolved models, source checkpoints, weight packs, manifest
-variants, and exact manifest hashes. `npm run revocations:check` validates the
-registry, retained evidence, quickstart filtering, catalog lifecycle, and
-withdrawal from claims, integrations, provider suites, and runtime-ownership
-decisions. The runtime enforces matching records before device initialization
-and weight loading and never auto-selects a named replacement. The current
-authority is package-bundled, not live or cryptographically signed; that wider
-claim remains blocked.
+variants, exact manifest hashes, adapter IDs, and adapter source or execution
+digests. `npm run revocations:check` validates the registry, retained evidence,
+quickstart filtering, model and adapter catalog lifecycle, and withdrawal from
+claims, integrations, provider suites, and runtime-ownership decisions. Model
+identity is enforced before device initialization and weight loading. Adapter
+identity is enforced before adapter bytes load and again before activation. No
+named replacement is selected automatically. The current authority is package-
+bundled, not live or cryptographically signed; that wider claim remains blocked.
 
 `tools/policies/runtime-promotion-monitoring.json` closes the control loop after
 a human promotion. `npm run promotion:monitoring:check` binds each promoted

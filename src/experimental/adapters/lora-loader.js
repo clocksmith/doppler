@@ -1,14 +1,11 @@
-
-
 import { LORA_MODULE_ALIASES } from '../../inference/pipelines/text/lora.js';
 import { applyAdapterManifestDefaults, validateManifest } from './adapter-manifest.js';
 import { log } from '../../debug/index.js';
 import { computeCanonicalSha256 } from '../../utils/canonical-hash.js';
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
+import {
+  assertBundledResolutionNotRevoked,
+  authorizeBundledAdapter,
+} from '../../config/revocation-policy.js';
 
 const parseTensorName = (name) => {
   const text = String(name || '');
@@ -232,16 +229,14 @@ async function buildAdapterExecutionIdentity(adapter, sourceDigest = null) {
   });
 }
 
-async function finalizeAdapter(adapter, sourceDigest = null) {
+export async function finalizeLoRAAdapter(adapter, sourceDigest = null) {
   assertCompleteAdapterLayers(adapter);
+  if (sourceDigest) {
+    await assertBundledResolutionNotRevoked({ adapterId: adapter.id, adapterDigest: sourceDigest });
+  }
   adapter.identity = await buildAdapterExecutionIdentity(adapter, sourceDigest);
-  return adapter;
+  return authorizeBundledAdapter(adapter);
 }
-
-// ============================================================================
-// Core Loading Functions
-// ============================================================================
-
 
 export async function loadLoRAWeights(path, options = {}) {
   if (path && typeof path === 'object') {
@@ -263,18 +258,15 @@ export async function loadLoRAWeights(path, options = {}) {
   let manifestJson;
   let loadedFromCache = false;
 
-  // Determine if path is URL or OPFS path
   const isUrl = path.startsWith('http://') || path.startsWith('https://');
 
   if (isUrl) {
-    // Load from URL
     const res = await fetch(path);
     if (!res.ok) {
       throw new Error(`Failed to fetch LoRA manifest: ${res.status} ${res.statusText}`);
     }
     manifestJson = await res.text();
   } else if (options.readOPFS) {
-    // Load from OPFS
     try {
       const buffer = await options.readOPFS(path);
       manifestJson = new TextDecoder().decode(buffer);
@@ -286,7 +278,6 @@ export async function loadLoRAWeights(path, options = {}) {
     throw new Error('Cannot load LoRA weights: path is not a URL and no OPFS reader provided');
   }
 
-  // Parse and validate manifest
   let manifest;
   try {
     manifest = JSON.parse(manifestJson);
@@ -301,10 +292,8 @@ export async function loadLoRAWeights(path, options = {}) {
     throw new Error(`Invalid LoRA manifest: ${errors}`);
   }
 
-  // Build base URL for relative paths
   const baseUrl = isUrl ? path.substring(0, path.lastIndexOf('/') + 1) : '';
 
-  // Create fetch function that resolves relative URLs
   const fetchWithBase = async (url) => {
     const fullUrl = url.startsWith('http') ? url : baseUrl + url;
     if (options.fetchUrl) {
@@ -370,6 +359,11 @@ export async function loadLoRAWeights(path, options = {}) {
 
 
 export async function loadLoRAFromManifest(manifest, options = {}) {
+  const checksum = stripHashPrefix(manifest?.checksum);
+  await assertBundledResolutionNotRevoked({
+    adapterId: manifest?.id,
+    adapterDigest: checksum ? `sha256:${checksum}` : null,
+  });
   if (manifest?.weightsPath && !Array.isArray(manifest.tensors)) {
     return loadExternalWeights(manifest, options);
   }
@@ -439,7 +433,7 @@ export async function loadLoRAFromManifest(manifest, options = {}) {
     }
   }
 
-  return finalizeAdapter(adapter);
+  return finalizeLoRAAdapter(adapter);
 }
 
 
@@ -450,29 +444,13 @@ export async function loadLoRAFromUrl(url, options = {}) {
 
 
 export function applyDeltaWeights(baseWeight, loraA, loraB, scale) {
-  // Infer dimensions from LoRA matrices
-  // A is rank x in_dim, B is out_dim x rank
-  // We need to compute: delta = B @ A and add to base weight
-
-  // For efficiency, we don't actually compute the full product
-  // Instead, we return the base weight with metadata indicating LoRA should be applied
-  // The actual fusion happens in the inference kernel
-
-  // This is a placeholder for direct weight fusion
-  // In practice, LoRA is applied dynamically during forward pass
   log.warn('LoRA', 'Direct weight fusion not implemented - use runtime application');
   return baseWeight;
 }
 
-// ============================================================================
-// Safetensors Support
-// ============================================================================
-
-
 export async function loadLoRAFromSafetensors(data, manifest, sourceDigest = null) {
   const buffer = asArrayBuffer(data);
   sourceDigest ??= `sha256:${await computeSHA256(buffer)}`;
-  // Parse safetensors header
   const view = new DataView(buffer);
   const headerSize = Number(view.getBigUint64(0, true));
   const headerJson = new TextDecoder().decode(
@@ -504,13 +482,11 @@ export async function loadLoRAFromSafetensors(data, manifest, sourceDigest = nul
     const [start, end] = tensorInfo.data_offsets;
     const tensorData = new Uint8Array(buffer, dataOffset + start, end - start);
 
-    // Convert to Float32Array based on dtype
     let floatData;
     if (tensorInfo.dtype === 'F32') {
       const aligned = tensorData.slice();
       floatData = new Float32Array(aligned.buffer, aligned.byteOffset, aligned.byteLength / 4);
     } else if (tensorInfo.dtype === 'F16' || tensorInfo.dtype === 'BF16') {
-      // Convert from f16/bf16 to f32
       const aligned = tensorData.slice();
       const f16View = new Uint16Array(aligned.buffer, aligned.byteOffset, aligned.byteLength / 2);
       floatData = new Float32Array(f16View.length);
@@ -554,7 +530,7 @@ export async function loadLoRAFromSafetensors(data, manifest, sourceDigest = nul
     adapter.layers.set(parsed.layer, layer);
   }
 
-  return finalizeAdapter(adapter, sourceDigest);
+  return finalizeLoRAAdapter(adapter, sourceDigest);
 }
 
 
@@ -565,7 +541,6 @@ function float16ToFloat32(h) {
 
   if (exp === 0) {
     if (frac === 0) return sign ? -0 : 0;
-    // Subnormal
     let e = -14;
     let m = frac;
     while ((m & 0x0400) === 0) {
@@ -584,7 +559,6 @@ function float16ToFloat32(h) {
 
 
 function bfloat16ToFloat32(bf) {
-  // bfloat16 is just the upper 16 bits of float32
   const bytes = new Uint8Array(4);
   bytes[2] = bf & 0xFF;
   bytes[3] = (bf >> 8) & 0xFF;

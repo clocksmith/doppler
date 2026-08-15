@@ -104,3 +104,8 @@ export declare function loadLoRAFromSafetensors(
   manifest: AdapterManifest,
   sourceDigest?: `sha256:${string}` | null
 ): Promise<LoRAAdapter>;
+
+export declare function finalizeLoRAAdapter(
+  adapter: LoRAAdapter,
+  sourceDigest?: `sha256:${string}` | null
+): Promise<LoRAAdapter>;

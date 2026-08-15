@@ -31,6 +31,8 @@ function emptyTargets() {
     weightPackIds: [],
     manifestVariantIds: [],
     artifactVariantIds: [],
+    adapterIds: [],
+    adapterDigests: [],
   };
 }
 

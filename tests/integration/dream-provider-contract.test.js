@@ -48,6 +48,8 @@ function createPipeline() {
   assert.equal(attached.scale, 4);
   assert.equal(attached.layerCount, 1);
   assert.equal(pipeline.getActiveLoRA().name, 'dream-intent-rewrite-v0');
+  assert.equal(pipeline.getActiveLoRA().identity.id, 'dream-intent-rewrite-v0');
+  assert.match(pipeline.getActiveLoRA().identity.digest, /^sha256:[a-f0-9]{64}$/);
   assert.equal(pipeline.getActiveLoRA().layers.get(0).q_proj.a instanceof Float32Array, true);
 
   const base = await provider.generate({
