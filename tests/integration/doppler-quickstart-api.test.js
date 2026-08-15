@@ -8,7 +8,10 @@ import {
   listQuickstartModels,
   resolveQuickstartModel,
 } from '../../src/client/doppler-registry.js';
-import { resolveManifestArtifactSource } from '../../src/client/runtime/model-source.js';
+import {
+  resolveManifestArtifactSource,
+  resolveModelSource,
+} from '../../src/client/runtime/model-source.js';
 
 assert.equal(typeof doppler, 'function');
 assert.equal(typeof doppler.load, 'function');
@@ -39,6 +42,15 @@ assert.equal(dr, doppler);
     buildQuickstartModelBaseUrl(resolved),
     `https://huggingface.co/${resolved.hf.repoId}/resolve/${resolved.hf.revision}/${resolved.hf.path}`
   );
+}
+
+{
+  const resolved = await resolveModelSource({
+    registryId: 'gemma3-270m',
+    logicalModelId: 'application-chat-model',
+  });
+  assert.equal(resolved.logicalModelId, 'application-chat-model');
+  assert.equal(resolved.modelId, 'gemma-3-270m-it-q4k-ehf16-af32');
 }
 
 {

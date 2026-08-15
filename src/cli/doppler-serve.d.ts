@@ -25,6 +25,13 @@ export interface ServeRegistryEntry {
   } | null;
 }
 
+export interface ServeResolutionIdentity {
+  schema: 'doppler.resolution-identity/v1';
+  logicalModelId: string;
+  resolvedArtifactVariantId: `sha256:${string}`;
+  resolvedExecutionId: `sha256:${string}`;
+}
+
 export interface ServeReceiptOptions {
   requestedModel: string;
   registryEntry: ServeRegistryEntry;
@@ -45,6 +52,9 @@ export interface ServeReceiptOptions {
     totalTokens: number;
   };
   runtimeModel?: unknown;
+  generationEvidence?: {
+    resolution: ServeResolutionIdentity;
+  } | null;
 }
 
 export interface ServeFailureReceiptOptions {
@@ -69,6 +79,9 @@ export interface ServeDependencies {
     chatText(messages: unknown[], options: Record<string, unknown>): Promise<{
       content: string;
       usage: ServeReceiptOptions['usage'];
+      evidence?: {
+        resolution: ServeResolutionIdentity;
+      };
     }>;
     chat(messages: unknown[], options: Record<string, unknown>): AsyncGenerator<string, void, void>;
   };
@@ -110,6 +123,9 @@ export interface ServeReceiptBase {
   modelId: string;
   requestedModel: string;
   resolvedModel: string;
+  resolutionStatus: 'resolved' | 'unavailable';
+  resolution: ServeResolutionIdentity | null;
+  resolutionUnavailableReason: string | null;
   artifact: {
     format: 'rdrr';
     source: 'quickstart-registry';

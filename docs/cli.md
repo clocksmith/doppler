@@ -194,6 +194,20 @@ JSON success and failure return envelopes:
 
 For automation, use the default JSON output or pass `--json` explicitly.
 
+## OpenAI-compatible server receipts
+
+`doppler-serve` accepts `include_receipt: true` on non-streaming
+`POST /v1/chat/completions` requests. A successful local runtime receipt sets
+`resolutionStatus` to `resolved` and carries `logicalModelId`,
+`resolvedArtifactVariantId`, and `resolvedExecutionId` in `resolution`.
+The logical ID preserves the model string requested by the client even when it
+resolves through a canonical registry ID or explicit artifact URL.
+
+If execution fails before those identities exist, the diagnostic receipt sets
+`resolutionStatus` to `unavailable` and records
+`resolutionUnavailableReason: execution-failed-before-resolution`. The server
+does not synthesize artifact or execution identity from catalog labels.
+
 ## Common launch patterns
 
 ### Hosted model (auto surface)

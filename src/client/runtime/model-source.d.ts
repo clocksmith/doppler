@@ -34,6 +34,10 @@ export interface DopplerModelSourceResolution {
 export type DopplerModelSource =
   | string
   | {
+    registryId: string;
+    logicalModelId?: string;
+  }
+  | {
     url: string;
     logicalModelId?: string;
     storageContext?: SourceStorageContext;

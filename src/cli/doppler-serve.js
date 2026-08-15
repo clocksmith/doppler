@@ -153,6 +153,28 @@ function buildJsonSha256Evidence(value) {
   return buildSha256Evidence(stableJson(value));
 }
 
+function normalizeResolutionIdentity(resolution) {
+  if (resolution == null) return null;
+  const normalized = {
+    schema: String(resolution.schema || ''),
+    logicalModelId: String(resolution.logicalModelId || '').trim(),
+    resolvedArtifactVariantId: String(resolution.resolvedArtifactVariantId || '').toLowerCase(),
+    resolvedExecutionId: String(resolution.resolvedExecutionId || '').toLowerCase(),
+  };
+  if (normalized.schema !== 'doppler.resolution-identity/v1') {
+    throw new Error('Doppler serve receipt requires doppler.resolution-identity/v1.');
+  }
+  if (!normalized.logicalModelId) {
+    throw new Error('Doppler serve receipt requires resolution.logicalModelId.');
+  }
+  for (const field of ['resolvedArtifactVariantId', 'resolvedExecutionId']) {
+    if (!/^sha256:[0-9a-f]{64}$/.test(normalized[field])) {
+      throw new Error(`Doppler serve receipt requires resolution.${field} as a SHA-256 digest.`);
+    }
+  }
+  return normalized;
+}
+
 function jsonError(res, statusCode, message, type, extra = null) {
   const payload = {
     error: {
@@ -301,6 +323,12 @@ function normalizeRuntimeModelSource(runtimeModel, registryEntry) {
       modelId: runtimeModel,
     };
   }
+  if (runtimeModel && typeof runtimeModel === 'object' && typeof runtimeModel.registryId === 'string') {
+    return {
+      kind: 'quickstart-registry',
+      modelId: runtimeModel.registryId,
+    };
+  }
   if (runtimeModel && typeof runtimeModel === 'object' && typeof runtimeModel.url === 'string') {
     return {
       kind: 'url',
@@ -322,8 +350,33 @@ function normalizeRuntimeModelSource(runtimeModel, registryEntry) {
   };
 }
 
-function buildServeReceiptBase({ requestedModel, registryEntry, messages, generationOptions, runtimeModel = null }) {
+function bindLogicalRuntimeModel(runtimeModel, requestedModel) {
+  if (typeof runtimeModel === 'string') {
+    return {
+      registryId: runtimeModel,
+      logicalModelId: requestedModel,
+    };
+  }
+  if (runtimeModel && typeof runtimeModel === 'object') {
+    return {
+      ...runtimeModel,
+      logicalModelId: runtimeModel.logicalModelId || requestedModel,
+    };
+  }
+  return runtimeModel;
+}
+
+function buildServeReceiptBase({
+  requestedModel,
+  registryEntry,
+  messages,
+  generationOptions,
+  runtimeModel = null,
+  resolution = null,
+  resolutionUnavailableReason = null,
+}) {
   const generation = buildGenerationOptionsReceipt(generationOptions);
+  const resolvedIdentity = normalizeResolutionIdentity(resolution);
   return {
     receiptVersion: 'doppler_serve_receipt_v1',
     schemaVersion: 1,
@@ -336,6 +389,11 @@ function buildServeReceiptBase({ requestedModel, registryEntry, messages, genera
     modelId: registryEntry.modelId,
     requestedModel,
     resolvedModel: registryEntry.modelId,
+    resolutionStatus: resolvedIdentity ? 'resolved' : 'unavailable',
+    resolution: resolvedIdentity,
+    resolutionUnavailableReason: resolvedIdentity
+      ? null
+      : String(resolutionUnavailableReason || 'not-provided'),
     artifact: {
       format: 'rdrr',
       source: 'quickstart-registry',
@@ -366,6 +424,7 @@ export function buildServeReceipt({
   outputContent,
   usage,
   runtimeModel = null,
+  generationEvidence = null,
 }) {
   const baseReceipt = buildServeReceiptBase({
     requestedModel,
@@ -373,6 +432,8 @@ export function buildServeReceipt({
     messages,
     generationOptions,
     runtimeModel,
+    resolution: generationEvidence?.resolution ?? null,
+    resolutionUnavailableReason: 'runtime-result-did-not-expose-generation-evidence',
   });
   const outputText = String(outputContent ?? '');
   return {
@@ -480,7 +541,14 @@ export function buildServeFailureReceipt({
   runtimeModel = null,
 }) {
   return {
-    ...buildServeReceiptBase({ requestedModel, registryEntry, messages, generationOptions, runtimeModel }),
+    ...buildServeReceiptBase({
+      requestedModel,
+      registryEntry,
+      messages,
+      generationOptions,
+      runtimeModel,
+      resolutionUnavailableReason: 'execution-failed-before-resolution',
+    }),
     status: 'diagnostic',
     failure: normalizeServeFailure(error, registryEntry),
   };
@@ -551,7 +619,10 @@ async function handleNonStreamingCompletion(
   dependencies
 ) {
   let result;
-  const runtimeModel = dependencies.resolveRuntimeModel(registryEntry, requestedModel);
+  const runtimeModel = bindLogicalRuntimeModel(
+    dependencies.resolveRuntimeModel(registryEntry, requestedModel),
+    requestedModel
+  );
   try {
     result = await dependencies.dopplerClient.chatText(messages, { model: runtimeModel, ...generationOptions });
   } catch (error) {
@@ -605,6 +676,7 @@ async function handleNonStreamingCompletion(
       outputContent: result.content,
       usage: result.usage,
       runtimeModel,
+      generationEvidence: result.evidence ?? null,
     });
   }
   jsonResponse(res, 200, body);
@@ -620,7 +692,10 @@ async function handleStreamingCompletion(
   created,
   dependencies
 ) {
-  const runtimeModel = dependencies.resolveRuntimeModel(registryEntry, requestedModel);
+  const runtimeModel = bindLogicalRuntimeModel(
+    dependencies.resolveRuntimeModel(registryEntry, requestedModel),
+    requestedModel
+  );
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',

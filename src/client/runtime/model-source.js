@@ -189,14 +189,17 @@ export async function resolveManifestArtifactSource(resolved, manifestPayload) {
 
 export async function resolveModelSource(model) {
   const trace = [];
+  const registryId = typeof model === 'string'
+    ? model
+    : normalizeText(model?.registryId);
 
-  if (typeof model === 'string') {
+  if (registryId) {
     try {
-      const entry = await resolveQuickstartModel(model);
-      trace.push({ source: 'quickstart-registry', id: model, outcome: 'resolved' });
+      const entry = await resolveQuickstartModel(registryId);
+      trace.push({ source: 'quickstart-registry', id: registryId, outcome: 'resolved' });
       log.debug('doppler', `Model resolved via quickstart-registry: ${entry.modelId}`, { trace });
       return {
-        logicalModelId: model,
+        logicalModelId: normalizeText(model?.logicalModelId) || registryId,
         modelId: entry.modelId,
         baseUrl: buildQuickstartModelBaseUrl(entry),
         manifest: null,
@@ -205,7 +208,7 @@ export async function resolveModelSource(model) {
     } catch (registryError) {
       trace.push({
         source: 'quickstart-registry',
-        id: model,
+        id: registryId,
         outcome: registryError?.message || 'not-found',
       });
     }
@@ -284,6 +287,6 @@ export async function resolveModelSource(model) {
     : 'no sources attempted';
   throw new Error(
     `Model not found. Attempted: ${traceDescription}. ` +
-    'doppler.load expects a quickstart registry id, { url }, or { manifest, baseUrl? }.'
+    'doppler.load expects a quickstart registry id, { registryId }, { url }, or { manifest, baseUrl? }.'
   );
 }
