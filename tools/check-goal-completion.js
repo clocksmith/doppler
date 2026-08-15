@@ -42,6 +42,7 @@ const REQUIRED_GOAL_ROWS = new Map([
     [
       'rdrr-manifest-runtime',
       'hosted-registry-ids',
+      'runtime-resolution-identities',
       'sharded-weights',
       'tokenizer-metadata',
       'quantization-contract',

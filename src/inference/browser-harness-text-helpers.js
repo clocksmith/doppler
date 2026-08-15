@@ -7,13 +7,25 @@ import { cloneJsonValue } from '../utils/clone-json.js';
 import { sha256BytesHex } from '../utils/sha256.js';
 import { resolvePromptInput } from './pipelines/text/generator-prefill-helpers.js';
 import { isExecutionObservationRequested } from '../tooling/execution-cost-ledger.js';
+import {
+  assertRerankLogitsVector,
+  buildRerankScoreRecord,
+  formatRerankPrompt,
+  resolveRerankScoringConfig,
+  scoreRerankDocument,
+} from './rerank.js';
+
+export {
+  formatRerankPrompt,
+  resolveRerankScoringConfig,
+  scoreRerankDocument,
+} from './rerank.js';
 
 const DEFAULT_IMAGE_TRANSCRIPTION_PROMPT = 'Describe the image in one short sentence.';
 const DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET = 70;
 const EMBEDDING_PREVIEW_LENGTH = 16;
 const GENERATION_TOKEN_DIAGNOSTIC_LIMIT = 32;
 const DECODE_RECORD_TOP_OP_LIMIT = 20;
-const RERANK_SCORE_POLICIES = new Set(['logit_difference', 'true_logit']);
 
 export function normalizeDecodeRecordOpLabels(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -587,200 +599,6 @@ export function resolvePrompt(runtimeConfig) {
   throw new Error('Harness embedding requires explicit runtime.inference.prompt.');
 }
 
-function assertRerankTokenId(value, label) {
-  const tokenId = Number(value);
-  if (!Number.isInteger(tokenId) || tokenId < 0) {
-    throw new Error(`Manifest rerank config requires non-negative integer ${label}.`);
-  }
-  return tokenId;
-}
-
-function assertRerankText(value, label, preserve = false) {
-  if (typeof value !== 'string') {
-    throw new Error(`Manifest rerank config requires non-empty ${label}.`);
-  }
-  const text = value.trim();
-  if (!text) {
-    throw new Error(`Manifest rerank config requires non-empty ${label}.`);
-  }
-  return preserve ? value : text;
-}
-
-export function resolveRerankScoringConfig(pipeline) {
-  const config = pipeline?.manifest?.inference?.rerank;
-  if (!isPlainObject(config)) {
-    throw new Error('Rerank workload requires manifest.inference.rerank scoring config.');
-  }
-  const format = assertRerankText(config.format, 'format');
-  if (format !== 'qwen3_yes_no_logit') {
-    throw new Error(`Unsupported rerank scoring format "${format}".`);
-  }
-  const trueTokenId = assertRerankTokenId(config.trueTokenId, 'trueTokenId');
-  const falseTokenId = assertRerankTokenId(config.falseTokenId, 'falseTokenId');
-  if (trueTokenId === falseTokenId) {
-    throw new Error('Manifest rerank config trueTokenId and falseTokenId must be distinct.');
-  }
-  const score = assertRerankText(config.score, 'score');
-  if (!RERANK_SCORE_POLICIES.has(score)) {
-    throw new Error(`Unsupported rerank score policy "${score}".`);
-  }
-  const probability = assertRerankText(config.probability, 'probability');
-  if (probability !== 'sigmoid') {
-    throw new Error(`Unsupported rerank probability policy "${probability}".`);
-  }
-  return {
-    format,
-    instruction: assertRerankText(config.instruction, 'instruction'),
-    inputTemplate: assertRerankText(config.inputTemplate, 'inputTemplate', true),
-    prefix: assertRerankText(config.prefix, 'prefix', true),
-    suffix: assertRerankText(config.suffix, 'suffix', true),
-    trueToken: assertRerankText(config.trueToken, 'trueToken'),
-    trueTokenId,
-    falseToken: assertRerankText(config.falseToken, 'falseToken'),
-    falseTokenId,
-    score,
-    probability,
-  };
-}
-
-function replaceRerankTemplate(template, values) {
-  let output = template;
-  for (const [key, value] of Object.entries(values)) {
-    const placeholder = `{${key}}`;
-    if (!output.includes(placeholder)) {
-      throw new Error(`Manifest rerank inputTemplate is missing ${placeholder}.`);
-    }
-    output = output.split(placeholder).join(value);
-  }
-  return output;
-}
-
-export function formatRerankPrompt(query, document, scoringConfig) {
-  const instruction = assertRerankText(scoringConfig?.instruction, 'instruction');
-  const normalizedQuery = assertRerankText(query, 'query');
-  const normalizedDocument = assertRerankText(document, 'document');
-  const input = replaceRerankTemplate(
-    assertRerankText(scoringConfig?.inputTemplate, 'inputTemplate', true),
-    {
-      instruction,
-      query: normalizedQuery,
-      document: normalizedDocument,
-    }
-  );
-  return `${assertRerankText(scoringConfig?.prefix, 'prefix', true)}${input}${assertRerankText(scoringConfig?.suffix, 'suffix', true)}`;
-}
-
-function sigmoid(value) {
-  return 1 / (1 + Math.exp(-value));
-}
-
-function computeRerankScore(scoringConfig, trueLogit, falseLogit) {
-  if (scoringConfig.score === 'logit_difference') {
-    return trueLogit - falseLogit;
-  }
-  if (scoringConfig.score === 'true_logit') {
-    return trueLogit;
-  }
-  throw new Error(`Unsupported rerank score policy "${scoringConfig.score}".`);
-}
-
-function assertLogitsVector(value) {
-  if (!ArrayBuffer.isView(value) && !Array.isArray(value)) {
-    throw new Error('Rerank prefillWithLogits result must include a logits vector.');
-  }
-  return value;
-}
-
-function buildRerankScoreRecord(query, document, prompt, tokenCount, trueLogit, falseLogit, config, scoringPath, phase = null) {
-  if (!Number.isFinite(trueLogit) || !Number.isFinite(falseLogit)) {
-    throw new Error(
-      `Rerank logits missing finite yes/no scores at token IDs ${config.trueTokenId}/${config.falseTokenId}.`
-    );
-  }
-  const score = computeRerankScore(config, trueLogit, falseLogit);
-  const probability = sigmoid(score);
-  return {
-    query,
-    document,
-    prompt,
-    tokenCount,
-    score,
-    probability,
-    trueLogit,
-    falseLogit,
-    trueTokenId: config.trueTokenId,
-    falseTokenId: config.falseTokenId,
-    scoringPath,
-    phase,
-  };
-}
-
-export async function scoreRerankDocument(pipeline, query, document, scoringConfig = null, options = {}) {
-  if (!pipeline || (typeof pipeline.prefillWithTokenLogits !== 'function' && typeof pipeline.prefillWithLogits !== 'function')) {
-    throw new Error('Rerank workload requires pipeline.prefillWithTokenLogits() or pipeline.prefillWithLogits().');
-  }
-  const config = scoringConfig ?? resolveRerankScoringConfig(pipeline);
-  const prompt = formatRerankPrompt(query, document, config);
-  pipeline.reset?.();
-  let trueLogit;
-  let falseLogit;
-  let tokenCount = 0;
-  let scoringPath = 'full-logits';
-  let resultPhase = null;
-  const totalStart = performance.now();
-  if (typeof pipeline.prefillWithTokenLogits === 'function') {
-    const prefillCallStart = performance.now();
-    const result = await pipeline.prefillWithTokenLogits(
-      prompt,
-      [config.trueTokenId, config.falseTokenId],
-      {
-        useChatTemplate: false,
-        benchmark: options.benchmark === true,
-      }
-    );
-    const prefillCallMs = performance.now() - prefillCallStart;
-    const logits = assertLogitsVector(result?.logits);
-    trueLogit = Number(logits[0]);
-    falseLogit = Number(logits[1]);
-    tokenCount = Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0;
-    scoringPath = 'selected-token-logits';
-    resultPhase = {
-      ...(isPlainObject(result?.phase) ? result.phase : {}),
-      prefillCallMs,
-    };
-  } else {
-    const prefillCallStart = performance.now();
-    const result = await pipeline.prefillWithLogits(prompt, {
-      useChatTemplate: false,
-      benchmark: options.benchmark === true,
-    });
-    const prefillCallMs = performance.now() - prefillCallStart;
-    const logits = assertLogitsVector(result?.logits);
-    trueLogit = Number(logits[config.trueTokenId]);
-    falseLogit = Number(logits[config.falseTokenId]);
-    tokenCount = Number.isFinite(result?.tokens?.length) ? result.tokens.length : 0;
-    resultPhase = {
-      ...(isPlainObject(result?.phase) ? result.phase : {}),
-      prefillCallMs,
-    };
-  }
-  return buildRerankScoreRecord(
-    query,
-    document,
-    prompt,
-    tokenCount,
-    trueLogit,
-    falseLogit,
-    config,
-    scoringPath,
-    {
-      ...(resultPhase ?? {}),
-      totalMs: performance.now() - totalStart,
-      promptChars: prompt.length,
-    }
-  );
-}
-
 function resolveRerankInput(runtimeConfig, runOverrides = null) {
   const source = isPlainObject(runOverrides?.rerank)
     ? runOverrides.rerank
@@ -911,7 +729,7 @@ async function scoreRerankDocumentFromPrefix(pipeline, query, document, config, 
       }
     );
     const prefillCallMs = performance.now() - prefillCallStart;
-    const logits = assertLogitsVector(result?.logits);
+    const logits = assertRerankLogitsVector(result?.logits);
     const trueLogit = Number(logits[0]);
     const falseLogit = Number(logits[1]);
     return buildRerankScoreRecord(

@@ -120,6 +120,32 @@ export interface DopplerEmbeddingEvidence {
   stats: PipelineStats | null;
 }
 
+export interface DopplerRerankScore {
+  index: number;
+  document: string;
+  score: number;
+  probability: number;
+  trueLogit: number;
+  falseLogit: number;
+  tokenCount: number;
+  scoringPath: string;
+}
+
+export interface DopplerRerankEvidence {
+  schema: 'doppler_rerank_evidence/v1';
+  query: string;
+  documents: string[];
+  scores: DopplerRerankScore[];
+  ranking: Array<DopplerRerankScore & { rank: number }>;
+  inputHash: `sha256:${string}`;
+  outputHash: `sha256:${string}`;
+  resolution: DopplerResolutionIdentity;
+  executionIdentity: DopplerResolvedExecutionIdentity;
+  backendIdentity: DopplerGenerationBackendIdentity;
+  backendIdentityHash: `sha256:${string}`;
+  stats: PipelineStats | null;
+}
+
 export interface DopplerChatResponse {
   content: string;
   usage: {
@@ -145,6 +171,11 @@ export interface DopplerModelHandle {
     options?: Record<string, unknown>
   ): Promise<DopplerEmbeddingEvidence>;
   embedBatch(prompts: string[], options?: Record<string, unknown>): Promise<unknown>;
+  rerankWithEvidence(
+    query: string,
+    documents: string[],
+    options?: { benchmark?: boolean }
+  ): Promise<DopplerRerankEvidence>;
   encodeSequence(sequence: string, options?: SequenceEncodeOptions): Promise<SequenceEncodeResult>;
   resetGenerationState(): void;
   loadLoRA(adapter: LoRAManifest | RDRRManifest | string, loadOptions?: LoRALoadOptions): Promise<void>;
@@ -179,6 +210,7 @@ export interface DopplerModelHandle {
   readonly deviceInfo: Record<string, unknown> | null;
   readonly supportsSequence: boolean;
   readonly supportsEmbedding: boolean;
+  readonly supportsRerank: boolean;
   readonly supportsTranscription: boolean;
   readonly supportsVision: boolean;
   readonly inspect: {
