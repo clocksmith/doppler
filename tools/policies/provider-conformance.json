@@ -50,5 +50,73 @@
       "contractPath": "src/tooling/provider-v1-contract.d.ts"
     }
   ],
-  "suites": []
+  "suites": [
+    {
+      "id": "qwen35-generation-browser-node",
+      "workload": "generation",
+      "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "resolvedArtifactVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+      "workloadContractPath": "benchmarks/vendors/compare-engines.config.json",
+      "declaredOperations": [
+        "prefill",
+        "decode"
+      ],
+      "correctnessClass": "exact-token",
+      "requiredProviderLaneIds": [
+        "browser-webgpu",
+        "node-webgpu"
+      ],
+      "claimAllowed": false,
+      "providers": [],
+      "blockers": [
+        "browser-provider-qualification-receipt-missing",
+        "node-provider-qualification-receipt-missing",
+        "cross-provider-resolution-lifecycle-correctness-evidence-missing"
+      ]
+    },
+    {
+      "id": "embeddinggemma-browser-node",
+      "workload": "embedding",
+      "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "resolvedArtifactVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+      "workloadContractPath": "benchmarks/vendors/embedding-compare.config.json",
+      "declaredOperations": [
+        "embed"
+      ],
+      "correctnessClass": "tolerance-bounded-numerical",
+      "requiredProviderLaneIds": [
+        "browser-webgpu",
+        "node-webgpu"
+      ],
+      "claimAllowed": false,
+      "providers": [],
+      "blockers": [
+        "browser-provider-qualification-receipt-missing",
+        "node-provider-qualification-receipt-missing",
+        "cross-provider-resolution-lifecycle-correctness-evidence-missing"
+      ]
+    },
+    {
+      "id": "qwen3-reranking-browser-node",
+      "workload": "reranking",
+      "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "resolvedArtifactVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
+      "workloadContractPath": "benchmarks/vendors/rerank-compare.config.json",
+      "declaredOperations": [
+        "rerank"
+      ],
+      "correctnessClass": "semantic",
+      "requiredProviderLaneIds": [
+        "browser-webgpu",
+        "node-webgpu"
+      ],
+      "claimAllowed": false,
+      "providers": [],
+      "blockers": [
+        "browser-provider-qualification-receipt-missing",
+        "node-provider-qualification-receipt-missing",
+        "cross-provider-resolution-lifecycle-correctness-evidence-missing"
+      ]
+    }
+  ]
 }

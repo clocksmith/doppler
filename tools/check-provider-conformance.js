@@ -351,6 +351,11 @@ async function validateSuite(suite, context) {
   return {
     id,
     workload: suite.workload,
+    logicalModelId,
+    resolvedArtifactVariantId,
+    workloadContractPath,
+    declaredOperations,
+    correctnessClass: suite.correctnessClass,
     claimAllowed: suite.claimAllowed,
     qualified: suite.claimAllowed === true && reasons.length === 0,
     reasons,
@@ -400,7 +405,15 @@ export async function validateProviderConformancePolicy(policy, options = {}) {
     'suites',
   ];
   if (!validateExactKeys(policy, fields, 'provider conformance policy', errors)) {
-    return { errors, suites: [], qualifiedSuites: 0, missingWorkloads: [...REQUIRED_WORKLOADS], gateSatisfied: false };
+    return {
+      errors,
+      suites: [],
+      qualifiedSuites: 0,
+      candidateSuites: 0,
+      candidateWorkloads: [],
+      missingWorkloads: [...REQUIRED_WORKLOADS],
+      gateSatisfied: false,
+    };
   }
   if (policy.schemaVersion !== 1) errors.push('provider conformance policy schemaVersion must be 1');
   if (policy.source !== 'doppler') errors.push('provider conformance policy source must be "doppler"');
@@ -485,6 +498,7 @@ export async function validateProviderConformancePolicy(policy, options = {}) {
     if (result) suites.push(result);
   }
   const qualified = suites.filter((suite) => suite.qualified);
+  const candidates = suites.filter((suite) => suite.claimAllowed === false);
   const missingWorkloads = REQUIRED_WORKLOADS.filter(
     (workload) => !qualified.some((suite) => suite.workload === workload)
   );
@@ -493,6 +507,8 @@ export async function validateProviderConformancePolicy(policy, options = {}) {
     providerLanes,
     suites,
     qualifiedSuites: qualified.length,
+    candidateSuites: candidates.length,
+    candidateWorkloads: Array.from(new Set(candidates.map((suite) => suite.workload))),
     missingWorkloads,
     gateSatisfied: errors.length === 0
       && qualified.length >= policy.minimumQualifiedSuites
@@ -522,7 +538,8 @@ export async function main(argv = process.argv.slice(2)) {
     const status = report.gateSatisfied ? 'satisfied' : 'incomplete';
     console.log(
       `provider-conformance: contract ok, gate ${status} `
-      + `(${report.qualifiedSuites}/3 qualified; missing ${report.missingWorkloads.join(', ') || 'none'})`
+      + `(${report.qualifiedSuites}/3 qualified; ${report.candidateSuites} candidates; `
+      + `missing ${report.missingWorkloads.join(', ') || 'none'})`
     );
   } else {
     for (const error of report.errors) console.error(`provider-conformance: ${error}`);
