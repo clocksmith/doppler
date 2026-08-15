@@ -5,9 +5,16 @@ import {
 
 const ENVELOPE_SCHEMA = 'doppler.signed-revocation-envelope/v1';
 const STATE_SCHEMA = 'doppler.revocation-update-state/v1';
+export const SIGNED_REVOCATION_PROTOCOL = Object.freeze({
+  mechanismAvailable: true,
+  schema: ENVELOPE_SCHEMA,
+  signatureAlgorithm: 'ECDSA-P256-SHA256',
+  configuration: 'explicit-application',
+  backgroundRefresh: false,
+});
 let authority = null;
 let state = null;
-let status = Object.freeze({ configured: false, signatureVerification: 'unavailable' });
+let status = Object.freeze({ configured: false, signatureVerification: 'unavailable', current: false });
 
 function object(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`${label} must be an object.`);
