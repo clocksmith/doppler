@@ -2,7 +2,7 @@ import { ERROR_CODES } from '../errors/doppler-error.js';
 
 // Canonical fine-grained failure class vocabulary. Single taxonomy shared
 // between the classifier, the receipt, and the policy fallbackOn list.
-// See ouroboros/docs/strategy/diagnose-router.md for the source of truth.
+// Standardized across governed diagnose routing and error receipts.
 export const FAILURE_CLASSES = Object.freeze({
   GPU_DEVICE_LOST: 'gpu_device_lost',
   GPU_OOM: 'gpu_oom',

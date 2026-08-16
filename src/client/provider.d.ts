@@ -4,7 +4,7 @@
  * @module client/provider
  */
 
-/** Canonical four routing modes (see ouroboros/docs/strategy/capabilities/30-hybrid-routing-sdk.md). */
+/** Canonical four routing modes. */
 export type PolicyMode = 'local-only' | 'prefer-local' | 'prefer-cloud' | 'cloud-only';
 
 export type InferenceSource = 'local' | 'fallback';
@@ -12,7 +12,6 @@ export type InferenceSource = 'local' | 'fallback';
 /**
  * Fine-grained failure class vocabulary. Single taxonomy shared between
  * the failure classifier, receipt payloads, and the `fallbackOn` policy list.
- * See ouroboros/docs/strategy/diagnose-router.md for the canonical enum.
  */
 export type FailureClass =
   | 'gpu_device_lost'
