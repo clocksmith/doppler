@@ -1,0 +1,24 @@
+{
+  "receiptVersion": "doppler_provider_receipt_v1",
+  "receiptId": "dream-local-embedding-identity-receipt-v1",
+  "source": "local",
+  "model": {
+    "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
+    "hash": "sha256:18a4175e7ff511ec88b6c7a45406c31f71e747dd36e509ab8cc25a2263f85d7c"
+  },
+  "device": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3"
+  },
+  "failure": null,
+  "fallbackDecision": null,
+  "timestamp": "2026-08-15T12:00:00.000Z",
+  "resolutionStatus": "resolved",
+  "resolution": {
+    "schema": "doppler.resolution-identity/v1",
+    "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+    "resolvedArtifactVariantId": "sha256:18a4175e7ff511ec88b6c7a45406c31f71e747dd36e509ab8cc25a2263f85d7c",
+    "resolvedExecutionId": "sha256:c40bfd945a3b1b82da73200df8761e459d747f08ddc694415d7b2a8e4a48ee7d"
+  }
+}

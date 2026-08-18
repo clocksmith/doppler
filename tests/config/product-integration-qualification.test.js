@@ -254,16 +254,13 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
     now: NOW,
   });
   assert.equal(report.ok, true, report.errors.join('\n'));
-  assert.equal(report.gateSatisfied, false);
-  assert.equal(report.qualifiedIntegrations, 1);
-  assert.equal(report.candidateIntegrations, 2);
-  assert.deepEqual(report.candidateWorkloads, [
-    'embedding-retrieval',
-    'reranking',
-  ]);
+  assert.equal(report.gateSatisfied, true);
+  assert.equal(report.qualifiedIntegrations, 3);
+  assert.equal(report.candidateIntegrations, 0);
+  assert.deepEqual(report.candidateWorkloads, []);
   assert.equal(report.integrations[0].qualified, true);
-  assert.equal(report.integrations[1].qualified, false);
-  assert.equal(report.integrations[2].qualified, false);
+  assert.equal(report.integrations[1].qualified, true);
+  assert.equal(report.integrations[2].qualified, true);
 }
 
 {

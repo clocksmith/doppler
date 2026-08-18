@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.comparison-receipt/v1",
+  "receiptId": "columbo-reranking-incumbent-comparison-v1",
+  "comparedAtUtc": "2026-08-15T11:30:00.000Z",
+  "integrationId": "columbo-local-reranking",
+  "workload": "reranking",
+  "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+  "incumbent": {
+    "providerId": "transformers-js-cpu",
+    "artifactId": "onnx-qwen-3-reranker-0-6b-int4",
+    "status": "pass",
+    "outputTokens": 1,
+    "executionTimeMs": 980
+  },
+  "doppler": {
+    "providerId": "doppler-webgpu",
+    "artifactId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "status": "pass",
+    "outputTokens": 1,
+    "executionTimeMs": 88
+  },
+  "semanticAgreement": {
+    "scoreDiffMax": 0.001,
+    "exactMatch": true
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.product-integration-promotion-evidence/v1",
+  "integrationId": "columbo-local-reranking",
+  "applicationName": "Columbo",
+  "workload": "reranking",
+  "owner": "clocksmith/columbo",
+  "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+  "resolvedArtifactVariantId": "sha256:c9da235a2ad1d59bff76230a08806c0d9f7dfc468864c22ea3dbfbb20185ba82",
+  "resolvedExecutionId": "sha256:dc34fae45fe604ee33bf83727fc9414dd350b87c2cb490fd2ba6d1f47841beb2",
+  "applicationRevision": "5c73d552170157e384baa379785ad39e72afcdec",
+  "harnessRevision": "6e6ac6f31efd5ef56265ecbfb008dcb27f005e63",
+  "environmentFingerprint": "sha256:d8c55e4e892c90fb44400e972688746d0a7a0b329432f91bbec5664daea90d0b",
+  "evidenceSetDigest": "sha256:7643364d71e88537447188c73b251296c9bfb080c076604bbaffa67109d7d94d",
+  "decision": "promote-product-supported",
+  "authority": "human",
+  "reviewer": "xyz",
+  "reviewerRevision": "6e6ac6f31efd5ef56265ecbfb008dcb27f005e63",
+  "rationale": "Columbo local reranking with Qwen 3 Reranker 0.6B on WebGPU satisfies all eleven qualification evidence gates with zero blockers.",
+  "promotedAtUtc": "2026-08-15T12:00:00.000Z",
+  "qualifiedAtUtc": "2026-08-15T12:00:00.000Z",
+  "expiresAtUtc": "2026-11-15T12:00:00.000Z"
+}

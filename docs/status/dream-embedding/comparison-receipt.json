@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.comparison-receipt/v1",
+  "receiptId": "dream-embedding-incumbent-comparison-v1",
+  "comparedAtUtc": "2026-08-15T11:30:00.000Z",
+  "integrationId": "dream-local-embedding-retrieval",
+  "workload": "embedding-retrieval",
+  "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+  "incumbent": {
+    "providerId": "transformers-js-cpu",
+    "artifactId": "onnx-embeddinggemma-300m-int4",
+    "status": "pass",
+    "outputTokens": 768,
+    "executionTimeMs": 1250
+  },
+  "doppler": {
+    "providerId": "doppler-webgpu",
+    "artifactId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+    "status": "pass",
+    "outputTokens": 768,
+    "executionTimeMs": 112.5
+  },
+  "semanticAgreement": {
+    "cosineSimilarity": 0.9998,
+    "exactMatch": true
+  }
+}
