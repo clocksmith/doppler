@@ -1,0 +1,25 @@
+{
+  "schema": "doppler.product-integration-evidence/v1",
+  "evidenceClass": "upgradeRequalification",
+  "integrationId": "reploid-local-generation",
+  "applicationName": "Reploid",
+  "workload": "generation",
+  "owner": "clocksmith/reploid",
+  "applicationRevision": "cf8a1e7bb5b2b8059e30399bb2db8f5e41c523e9",
+  "harnessRevision": "ee5a15758758317e4ab5432beb7de6f5bf1f9930",
+  "environmentFingerprint": "sha256:d8c55e4e892c90fb44400e972688746d0a7a0b329432f91bbec5664daea90d0b",
+  "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "resolvedArtifactVariantId": "sha256:b0e11d284d95b1e5f3f6819f978bc4b9a353a73f18054d137aaacf6c4de7cd56",
+  "resolvedExecutionId": "sha256:59eaedb61ffd0089c2f4e0c933d9ad2be74a6eceff2c03695b1fb5183933bef1",
+  "capturedAtUtc": "2026-08-15T12:00:00.000Z",
+  "result": {
+    "passed": true
+  },
+  "observations": {
+    "fromVersion": "0.5.0",
+    "toVersion": "0.5.1",
+    "migrationSucceeded": true,
+    "identityPreserved": true,
+    "taskGatePassed": true
+  }
+}

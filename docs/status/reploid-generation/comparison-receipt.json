@@ -1,0 +1,27 @@
+{
+  "schema": "doppler.comparison-receipt/v1",
+  "receiptId": "reploid-generation-incumbent-comparison-v1",
+  "comparedAtUtc": "2026-08-15T11:30:00.000Z",
+  "integrationId": "reploid-local-generation",
+  "workload": "generation",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "incumbent": {
+    "providerId": "transformers-js-cpu",
+    "artifactId": "onnx-qwen-3-5-0-8b-int4",
+    "status": "pass",
+    "outputTokens": 8,
+    "executionTimeMs": 3450
+  },
+  "doppler": {
+    "providerId": "doppler-webgpu",
+    "artifactId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+    "status": "pass",
+    "outputTokens": 8,
+    "executionTimeMs": 346.1
+  },
+  "semanticAgreement": {
+    "tokenMatch": true,
+    "exactOutput": "Let's analyze the user requirements and understand",
+    "exactMatch": true
+  }
+}

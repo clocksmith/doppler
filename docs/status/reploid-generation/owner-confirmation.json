@@ -1,0 +1,12 @@
+{
+  "schema": "doppler.product-integration-owner-confirmation/v1",
+  "integrationId": "reploid-local-generation",
+  "applicationName": "Reploid",
+  "workload": "generation",
+  "owner": "clocksmith/reploid",
+  "ownerRepository": "clocksmith/reploid",
+  "applicationRevision": "cf8a1e7bb5b2b8059e30399bb2db8f5e41c523e9",
+  "confirmedAtUtc": "2026-08-15T12:00:00.000Z",
+  "maintenanceStatus": "active",
+  "statement": "The maintainers of Reploid confirm active product maintenance of local generation using Doppler and Qwen 3.5 0.8B on WebGPU."
+}

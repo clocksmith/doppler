@@ -32,7 +32,18 @@ const sources = Object.fromEntries(await Promise.all(Object.entries(PATHS).map(
     'embedding',
     'reranking',
   ]);
-  assert.ok(report.workloads.every((entry) => entry.resolvedArtifactVariantId === null));
+  assert.equal(
+    report.workloads.find((entry) => entry.workload === 'generation')?.resolvedArtifactVariantId,
+    'sha256:b0e11d284d95b1e5f3f6819f978bc4b9a353a73f18054d137aaacf6c4de7cd56'
+  );
+  assert.equal(
+    report.workloads.find((entry) => entry.workload === 'embedding')?.resolvedArtifactVariantId,
+    null
+  );
+  assert.equal(
+    report.workloads.find((entry) => entry.workload === 'reranking')?.resolvedArtifactVariantId,
+    null
+  );
   assert.deepEqual(report.requiredGates, [
     'product-integration',
     'provider-conformance',

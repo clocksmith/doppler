@@ -1,0 +1,19 @@
+{
+  "schema": "doppler.product-integration-evaluation-capture/v1",
+  "integrationId": "reploid-local-generation",
+  "evaluatedAtUtc": "2026-08-18T08:00:00.000Z",
+  "expiresAtUtc": "2026-11-16T08:00:00.000Z",
+  "evidencePaths": {
+    "ownerConfirmation": "docs/status/reploid-generation/owner-confirmation.json",
+    "installToFirstVerifiedOutput": "docs/status/reploid-generation/installToFirstVerifiedOutput.json",
+    "identity": "docs/status/reploid-generation/identity.json",
+    "sourceTaskQualityRetention": "docs/status/reploid-generation/sourceTaskQualityRetention.json",
+    "reliability": "docs/status/reploid-generation/reliability.json",
+    "memory": "docs/status/reploid-generation/memory.json",
+    "coldWarmResponse": "docs/status/reploid-generation/coldWarmResponse.json",
+    "browserHardwareQualification": "docs/status/reploid-generation/browserHardwareQualification.json",
+    "incumbentControl": "docs/status/reploid-generation/incumbentControl.json",
+    "upgradeRequalification": "docs/status/reploid-generation/upgradeRequalification.json",
+    "rollbackRevocation": "docs/status/reploid-generation/rollbackRevocation.json"
+  }
+}

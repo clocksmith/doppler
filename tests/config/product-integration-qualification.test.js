@@ -255,14 +255,15 @@ const policy = JSON.parse(await fs.readFile(POLICY_PATH, 'utf8'));
   });
   assert.equal(report.ok, true, report.errors.join('\n'));
   assert.equal(report.gateSatisfied, false);
-  assert.equal(report.qualifiedIntegrations, 0);
-  assert.equal(report.candidateIntegrations, 3);
+  assert.equal(report.qualifiedIntegrations, 1);
+  assert.equal(report.candidateIntegrations, 2);
   assert.deepEqual(report.candidateWorkloads, [
-    'generation',
     'embedding-retrieval',
     'reranking',
   ]);
-  assert.ok(report.integrations.every((entry) => entry.qualified === false));
+  assert.equal(report.integrations[0].qualified, true);
+  assert.equal(report.integrations[1].qualified, false);
+  assert.equal(report.integrations[2].qualified, false);
 }
 
 {
