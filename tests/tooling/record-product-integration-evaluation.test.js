@@ -163,6 +163,27 @@ async function createFixture() {
     path.join(SOURCE_ROOT, 'tools/policies/product-integration-qualification.json'),
     'utf8'
   ));
+  for (const item of policy.integrations) {
+    item.qualificationLevel = 'contract-ready';
+    item.lifecycle = 'candidate';
+    item.claimAllowed = false;
+    item.ownerConfirmedAtUtc = null;
+    item.resolvedArtifactVariantId = null;
+    item.resolvedExecutionId = null;
+    item.applicationRevision = null;
+    item.harnessRevision = null;
+    item.environmentFingerprint = null;
+    item.qualifiedAtUtc = null;
+    item.expiresAtUtc = null;
+    item.blockers = [
+      'owner-confirmation-missing',
+      'resolved-artifact-and-execution-receipt-missing',
+      'application-evidence-identity-missing',
+      'product-support-promotion-evidence-missing',
+      'application-product-qualification-evidence-missing',
+    ];
+    item.evidence = Object.fromEntries(Object.keys(item.evidence).map((k) => [k, null]));
+  }
   const integration = policy.integrations.find((entry) => entry.id === INTEGRATION_ID);
   const policyPath = path.join(repoRoot, 'tools/policies/product-integration-qualification.json');
   const capturePath = path.join(repoRoot, 'capture.json');

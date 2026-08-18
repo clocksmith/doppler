@@ -16,39 +16,69 @@
       "applicationName": "Reploid",
       "workload": "generation",
       "owner": "clocksmith/reploid",
-      "ownerConfirmedAtUtc": null,
-      "qualificationLevel": "contract-ready",
-      "lifecycle": "candidate",
-      "claimAllowed": false,
+      "ownerConfirmedAtUtc": "2026-08-15T12:00:00.000Z",
+      "qualificationLevel": "product-supported",
+      "lifecycle": "active",
+      "claimAllowed": true,
       "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "resolvedArtifactVariantId": null,
-      "resolvedExecutionId": null,
-      "applicationRevision": null,
-      "harnessRevision": null,
-      "environmentFingerprint": null,
-      "qualifiedAtUtc": null,
-      "expiresAtUtc": null,
+      "resolvedArtifactVariantId": "sha256:b0e11d284d95b1e5f3f6819f978bc4b9a353a73f18054d137aaacf6c4de7cd56",
+      "resolvedExecutionId": "sha256:59eaedb61ffd0089c2f4e0c933d9ad2be74a6eceff2c03695b1fb5183933bef1",
+      "applicationRevision": "cf8a1e7bb5b2b8059e30399bb2db8f5e41c523e9",
+      "harnessRevision": "ee5a15758758317e4ab5432beb7de6f5bf1f9930",
+      "environmentFingerprint": "sha256:d8c55e4e892c90fb44400e972688746d0a7a0b329432f91bbec5664daea90d0b",
+      "qualifiedAtUtc": "2026-08-15T12:00:00.000Z",
+      "expiresAtUtc": "2026-11-15T12:00:00.000Z",
       "evidence": {
-        "ownerConfirmation": null,
-        "installToFirstVerifiedOutput": null,
-        "identity": null,
-        "sourceTaskQualityRetention": null,
-        "reliability": null,
-        "memory": null,
-        "coldWarmResponse": null,
-        "browserHardwareQualification": null,
-        "incumbentControl": null,
-        "upgradeRequalification": null,
-        "rollbackRevocation": null,
-        "promotion": null
+        "ownerConfirmation": {
+          "path": "docs/status/reploid-generation/owner-confirmation.json",
+          "digest": "sha256:5ff86b58eb9803d538e5a17a7246582f05266df753efad4676ff8769dc6575ff"
+        },
+        "installToFirstVerifiedOutput": {
+          "path": "docs/status/reploid-generation/installToFirstVerifiedOutput.json",
+          "digest": "sha256:32fe6079b0bd8a27ed0374875b24c557e0bbdd9b213567578c8a44160a492e57"
+        },
+        "identity": {
+          "path": "docs/status/reploid-generation/identity.json",
+          "digest": "sha256:9775df5b67dff90ca87ba697edbddfdec98f0cdd6804e4bbea3bd86fd1567e0a"
+        },
+        "sourceTaskQualityRetention": {
+          "path": "docs/status/reploid-generation/sourceTaskQualityRetention.json",
+          "digest": "sha256:d27af64ae47b0e58831c401022013163370de7f6a0f747edd23832d48494d55b"
+        },
+        "reliability": {
+          "path": "docs/status/reploid-generation/reliability.json",
+          "digest": "sha256:f2b9f9f833a5295653a219e19c21c7f49e27ccbcd96f9da2f62d8f54d49bf631"
+        },
+        "memory": {
+          "path": "docs/status/reploid-generation/memory.json",
+          "digest": "sha256:8abd4dc1aa38c76cf8cedd807e79d8599cac8eb41e5735c751a6fa15dc61dd9c"
+        },
+        "coldWarmResponse": {
+          "path": "docs/status/reploid-generation/coldWarmResponse.json",
+          "digest": "sha256:70638bc8054cd9053cf8f9e7dc631fd9ba7361039a255871bd68969682781bb2"
+        },
+        "browserHardwareQualification": {
+          "path": "docs/status/reploid-generation/browserHardwareQualification.json",
+          "digest": "sha256:5b0069947f9847676703bed69222e98317dfcc4d22dcb4c71a19ebe5d02fd736"
+        },
+        "incumbentControl": {
+          "path": "docs/status/reploid-generation/incumbentControl.json",
+          "digest": "sha256:c91038995a978ba5fe09f7c3db313fb08d15e490c980781176032f4950c76216"
+        },
+        "upgradeRequalification": {
+          "path": "docs/status/reploid-generation/upgradeRequalification.json",
+          "digest": "sha256:e3ed258080ea8ce01b6497a2221535708a1a14f7af698e6875151502906d5914"
+        },
+        "rollbackRevocation": {
+          "path": "docs/status/reploid-generation/rollbackRevocation.json",
+          "digest": "sha256:6db2c749a6ed4d3165fb7527981cc4244b130e1ff9a9143d3af615200a1753f3"
+        },
+        "promotion": {
+          "path": "docs/status/reploid-generation/promotion.json",
+          "digest": "sha256:da5c045305e5e746c25130835c60462359f8b5515d7a0dcb4f3728401c51d772"
+        }
       },
-      "blockers": [
-        "owner-confirmation-missing",
-        "resolved-artifact-and-execution-receipt-missing",
-        "application-evidence-identity-missing",
-        "product-support-promotion-evidence-missing",
-        "application-product-qualification-evidence-missing"
-      ]
+      "blockers": []
     },
     {
       "id": "dream-local-embedding-retrieval",

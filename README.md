@@ -126,8 +126,8 @@ modality.
 
 ## Evidence
 
-Doppler has accepted browser WebGPU comparisons with higher steady-state
-throughput than Transformers.js where the declared workload correctness and
+Doppler has accepted browser WebGPU comparisons with higher steady-state inference throughput
+(higher is faster) than Transformers.js where the declared workload correctness and
 throughput gates pass. Loading is a separate measurement; the referenced
 Vulkan embedding and reranker artifacts load faster in Transformers.js. The
 [scoreboard](https://github.com/clocksmith/doppler/blob/main/docs/model-competition-scoreboard.md)

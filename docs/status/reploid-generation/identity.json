@@ -1,0 +1,24 @@
+{
+  "receiptVersion": "doppler_provider_receipt_v1",
+  "receiptId": "reploid-local-generation-identity-receipt-v1",
+  "source": "local",
+  "model": {
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "hash": "sha256:b0e11d284d95b1e5f3f6819f978bc4b9a353a73f18054d137aaacf6c4de7cd56"
+  },
+  "device": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3"
+  },
+  "failure": null,
+  "fallbackDecision": null,
+  "timestamp": "2026-08-15T12:00:00.000Z",
+  "resolutionStatus": "resolved",
+  "resolution": {
+    "schema": "doppler.resolution-identity/v1",
+    "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "resolvedArtifactVariantId": "sha256:b0e11d284d95b1e5f3f6819f978bc4b9a353a73f18054d137aaacf6c4de7cd56",
+    "resolvedExecutionId": "sha256:59eaedb61ffd0089c2f4e0c933d9ad2be74a6eceff2c03695b1fb5183933bef1"
+  }
+}
