@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.product-integration-evidence/v1",
+  "evidenceClass": "installToFirstVerifiedOutput",
+  "integrationId": "columbo-local-reranking",
+  "applicationName": "Columbo",
+  "workload": "reranking",
+  "owner": "clocksmith/columbo",
+  "applicationRevision": "5c73d552170157e384baa379785ad39e72afcdec",
+  "harnessRevision": "6e6ac6f31efd5ef56265ecbfb008dcb27f005e63",
+  "environmentFingerprint": "sha256:d8c55e4e892c90fb44400e972688746d0a7a0b329432f91bbec5664daea90d0b",
+  "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+  "resolvedArtifactVariantId": "sha256:c9da235a2ad1d59bff76230a08806c0d9f7dfc468864c22ea3dbfbb20185ba82",
+  "resolvedExecutionId": "sha256:dc34fae45fe604ee33bf83727fc9414dd350b87c2cb490fd2ba6d1f47841beb2",
+  "capturedAtUtc": "2026-08-15T12:00:00.000Z",
+  "result": {
+    "passed": true
+  },
+  "observations": {
+    "surface": "root-api",
+    "installSucceeded": true,
+    "firstVerifiedOutputMs": 650,
+    "maximumFirstVerifiedOutputMs": 3000
+  }
+}

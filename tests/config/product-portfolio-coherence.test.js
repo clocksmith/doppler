@@ -38,11 +38,11 @@ const sources = Object.fromEntries(await Promise.all(Object.entries(PATHS).map(
   );
   assert.equal(
     report.workloads.find((entry) => entry.workload === 'embedding')?.resolvedArtifactVariantId,
-    null
+    'sha256:18a4175e7ff511ec88b6c7a45406c31f71e747dd36e509ab8cc25a2263f85d7c'
   );
   assert.equal(
     report.workloads.find((entry) => entry.workload === 'reranking')?.resolvedArtifactVariantId,
-    null
+    'sha256:c9da235a2ad1d59bff76230a08806c0d9f7dfc468864c22ea3dbfbb20185ba82'
   );
   assert.deepEqual(report.requiredGates, [
     'product-integration',

@@ -12,23 +12,15 @@ assert.equal(report.actions[0].owner, 'doppler-product');
 assert.equal(report.actions[0].completionClass, 'application');
 assert.equal(report.actions.at(-1).code, 'signed-live-revocation-authority-missing');
 assert.equal(report.actions.at(-1).completionClass, 'production-authority');
-assert.equal(report.contracts.productIntegrations.qualified, 0);
+assert.equal(report.contracts.productIntegrations.qualified, 3);
 assert.equal(report.contracts.productPortfolioCoherence.ok, true);
 assert.equal(report.contracts.productPortfolioCoherence.workloads.length, 3);
 assert.equal(report.contracts.productPortfolioCoherence.requiredGates.length, 4);
-assert.equal(report.contracts.productIntegrations.candidates, 3);
-assert.deepEqual(report.contracts.productIntegrations.candidateWorkloads, [
-  'generation',
-  'embedding-retrieval',
-  'reranking',
-]);
+assert.equal(report.contracts.productIntegrations.candidates, 0);
+assert.deepEqual(report.contracts.productIntegrations.candidateWorkloads, []);
 assert.deepEqual(
   report.contracts.productIntegrations.candidateDetails.map((entry) => entry.id),
-  [
-    'reploid-local-generation',
-    'dream-local-embedding-retrieval',
-    'columbo-local-reranking',
-  ]
+  []
 );
 assert.equal(report.contracts.providerConformance.qualified, 0);
 assert.equal(report.contracts.providerConformance.candidates, 3);

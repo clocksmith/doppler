@@ -1,0 +1,24 @@
+{
+  "receiptVersion": "doppler_provider_receipt_v1",
+  "receiptId": "columbo-local-reranking-identity-receipt-v1",
+  "source": "local",
+  "model": {
+    "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "hash": "sha256:c9da235a2ad1d59bff76230a08806c0d9f7dfc468864c22ea3dbfbb20185ba82"
+  },
+  "device": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3"
+  },
+  "failure": null,
+  "fallbackDecision": null,
+  "timestamp": "2026-08-15T12:00:00.000Z",
+  "resolutionStatus": "resolved",
+  "resolution": {
+    "schema": "doppler.resolution-identity/v1",
+    "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "resolvedArtifactVariantId": "sha256:c9da235a2ad1d59bff76230a08806c0d9f7dfc468864c22ea3dbfbb20185ba82",
+    "resolvedExecutionId": "sha256:dc34fae45fe604ee33bf83727fc9414dd350b87c2cb490fd2ba6d1f47841beb2"
+  }
+}

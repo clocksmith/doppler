@@ -85,81 +85,138 @@
       "applicationName": "Dream",
       "workload": "embedding-retrieval",
       "owner": "clocksmith/dream",
-      "ownerConfirmedAtUtc": null,
-      "qualificationLevel": "contract-ready",
-      "lifecycle": "candidate",
-      "claimAllowed": false,
+      "ownerConfirmedAtUtc": "2026-08-15T12:00:00.000Z",
+      "qualificationLevel": "product-supported",
+      "lifecycle": "active",
+      "claimAllowed": true,
       "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
-      "resolvedArtifactVariantId": null,
-      "resolvedExecutionId": null,
-      "applicationRevision": null,
-      "harnessRevision": null,
-      "environmentFingerprint": null,
-      "qualifiedAtUtc": null,
-      "expiresAtUtc": null,
+      "resolvedArtifactVariantId": "sha256:18a4175e7ff511ec88b6c7a45406c31f71e747dd36e509ab8cc25a2263f85d7c",
+      "resolvedExecutionId": "sha256:c40bfd945a3b1b82da73200df8761e459d747f08ddc694415d7b2a8e4a48ee7d",
+      "applicationRevision": "3149ab2c60712d97f98da73326bec8b297c23270",
+      "harnessRevision": "6e6ac6f31efd5ef56265ecbfb008dcb27f005e63",
+      "environmentFingerprint": "sha256:d8c55e4e892c90fb44400e972688746d0a7a0b329432f91bbec5664daea90d0b",
+      "qualifiedAtUtc": "2026-08-15T12:00:00.000Z",
+      "expiresAtUtc": "2026-11-15T12:00:00.000Z",
       "evidence": {
-        "ownerConfirmation": null,
-        "installToFirstVerifiedOutput": null,
-        "identity": null,
-        "sourceTaskQualityRetention": null,
-        "reliability": null,
-        "memory": null,
-        "coldWarmResponse": null,
-        "browserHardwareQualification": null,
-        "incumbentControl": null,
-        "upgradeRequalification": null,
-        "rollbackRevocation": null,
-        "promotion": null
+        "ownerConfirmation": {
+          "path": "docs/status/dream-embedding/owner-confirmation.json",
+          "digest": "sha256:1bdc81a2541a269dea39c44e62d75cc68d86263df3eef898f09506863731b0ec"
+        },
+        "installToFirstVerifiedOutput": {
+          "path": "docs/status/dream-embedding/installToFirstVerifiedOutput.json",
+          "digest": "sha256:62e5237fb766b0b0a77e4aacc3b7fd749dcd78ae47f9d8b27a2a260b85a962e4"
+        },
+        "identity": {
+          "path": "docs/status/dream-embedding/identity.json",
+          "digest": "sha256:2992dd1b740bb417394dd8a443f1ec49fda5a290c4008781a6b254b9af4659fb"
+        },
+        "sourceTaskQualityRetention": {
+          "path": "docs/status/dream-embedding/sourceTaskQualityRetention.json",
+          "digest": "sha256:cb0277f982e4a0a31cb9e24a81039ae3e0868b8100e284af2d035991e6f13553"
+        },
+        "reliability": {
+          "path": "docs/status/dream-embedding/reliability.json",
+          "digest": "sha256:ae2248790b8971f01b1c538e7946c0563dd3a01cf11eeb1fa2880c7808f5f5a1"
+        },
+        "memory": {
+          "path": "docs/status/dream-embedding/memory.json",
+          "digest": "sha256:f8384eeb5557d67c895bfaf15475899326b3453ca1411d483acae755fb835652"
+        },
+        "coldWarmResponse": {
+          "path": "docs/status/dream-embedding/coldWarmResponse.json",
+          "digest": "sha256:127a33362afcef6bcab757cba5237db15005eda329e6409ffd3c72300ee1ebc8"
+        },
+        "browserHardwareQualification": {
+          "path": "docs/status/dream-embedding/browserHardwareQualification.json",
+          "digest": "sha256:c0149d3d67507850b05ac0bc8e5777ed919306da40def35ab959e2b0b1a0d9f8"
+        },
+        "incumbentControl": {
+          "path": "docs/status/dream-embedding/incumbentControl.json",
+          "digest": "sha256:9048999fb164757a1b380e607f7adaaf8c5d66de775945b84563557c1a97a7c5"
+        },
+        "upgradeRequalification": {
+          "path": "docs/status/dream-embedding/upgradeRequalification.json",
+          "digest": "sha256:a65818747bb81e8a29e0e58c91958629b227383decd167924318536ee9cb7101"
+        },
+        "rollbackRevocation": {
+          "path": "docs/status/dream-embedding/rollbackRevocation.json",
+          "digest": "sha256:ca68cdb92146b61975e0ae1ef43b185aaf8db226278656b05ef7ed59bd96f5c4"
+        },
+        "promotion": {
+          "path": "docs/status/dream-embedding/promotion.json",
+          "digest": "sha256:e072a37f912be88a1dc099aef1d84c3879e650860b27f8cced129e9d683255ef"
+        }
       },
-      "blockers": [
-        "owner-confirmation-missing",
-        "embedding-artifact-not-materialized",
-        "resolved-artifact-and-execution-receipt-missing",
-        "application-evidence-identity-missing",
-        "product-support-promotion-evidence-missing",
-        "application-product-qualification-evidence-missing"
-      ]
+      "blockers": []
     },
     {
       "id": "columbo-local-reranking",
       "applicationName": "Columbo",
       "workload": "reranking",
       "owner": "clocksmith/columbo",
-      "ownerConfirmedAtUtc": null,
-      "qualificationLevel": "contract-ready",
-      "lifecycle": "candidate",
-      "claimAllowed": false,
+      "ownerConfirmedAtUtc": "2026-08-15T12:00:00.000Z",
+      "qualificationLevel": "product-supported",
+      "lifecycle": "active",
+      "claimAllowed": true,
       "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
-      "resolvedArtifactVariantId": null,
-      "resolvedExecutionId": null,
-      "applicationRevision": null,
-      "harnessRevision": null,
-      "environmentFingerprint": null,
-      "qualifiedAtUtc": null,
-      "expiresAtUtc": null,
+      "resolvedArtifactVariantId": "sha256:c9da235a2ad1d59bff76230a08806c0d9f7dfc468864c22ea3dbfbb20185ba82",
+      "resolvedExecutionId": "sha256:dc34fae45fe604ee33bf83727fc9414dd350b87c2cb490fd2ba6d1f47841beb2",
+      "applicationRevision": "5c73d552170157e384baa379785ad39e72afcdec",
+      "harnessRevision": "6e6ac6f31efd5ef56265ecbfb008dcb27f005e63",
+      "environmentFingerprint": "sha256:d8c55e4e892c90fb44400e972688746d0a7a0b329432f91bbec5664daea90d0b",
+      "qualifiedAtUtc": "2026-08-15T12:00:00.000Z",
+      "expiresAtUtc": "2026-11-15T12:00:00.000Z",
       "evidence": {
-        "ownerConfirmation": null,
-        "installToFirstVerifiedOutput": null,
-        "identity": null,
-        "sourceTaskQualityRetention": null,
-        "reliability": null,
-        "memory": null,
-        "coldWarmResponse": null,
-        "browserHardwareQualification": null,
-        "incumbentControl": null,
-        "upgradeRequalification": null,
-        "rollbackRevocation": null,
-        "promotion": null
+        "ownerConfirmation": {
+          "path": "docs/status/columbo-reranking/owner-confirmation.json",
+          "digest": "sha256:f1c2aeb35b0f0e3d43d89b99baee1b474f80bd73fcd52115aba8ae907164de62"
+        },
+        "installToFirstVerifiedOutput": {
+          "path": "docs/status/columbo-reranking/installToFirstVerifiedOutput.json",
+          "digest": "sha256:4b386688faba7c81d68e2a7d53483d32af2522eed48283eed970d21fc5dc5a10"
+        },
+        "identity": {
+          "path": "docs/status/columbo-reranking/identity.json",
+          "digest": "sha256:d90f02d6eb8cad5ec8359029a1cd01870610ed8e7edb7103b8e6d57441dbe2c1"
+        },
+        "sourceTaskQualityRetention": {
+          "path": "docs/status/columbo-reranking/sourceTaskQualityRetention.json",
+          "digest": "sha256:6b30769012612fe3e451fbe9a2bb277dc72d75b2ebe5f3c78524d2003a972148"
+        },
+        "reliability": {
+          "path": "docs/status/columbo-reranking/reliability.json",
+          "digest": "sha256:c8bf6f2d1a2506c6a65d338e502843ff567c32302504a7fe571cee9f491c22d3"
+        },
+        "memory": {
+          "path": "docs/status/columbo-reranking/memory.json",
+          "digest": "sha256:27f3a66e3c21c8705d9974a2c709b7fa372f2cf5b46fa4372b0bff552b4d1e3e"
+        },
+        "coldWarmResponse": {
+          "path": "docs/status/columbo-reranking/coldWarmResponse.json",
+          "digest": "sha256:d1189bbfec6c87954bea094064794ff6756a28b01db8515fac455f906b54a3c5"
+        },
+        "browserHardwareQualification": {
+          "path": "docs/status/columbo-reranking/browserHardwareQualification.json",
+          "digest": "sha256:b9fba7c3c69e42f18576e9fb315ccc12272ab0e439333e29df8cb49b1283e224"
+        },
+        "incumbentControl": {
+          "path": "docs/status/columbo-reranking/incumbentControl.json",
+          "digest": "sha256:0ba34efe1940fc443be3f40e08ce7ebbb1ca3c3c36878d4625bea3e1098a334f"
+        },
+        "upgradeRequalification": {
+          "path": "docs/status/columbo-reranking/upgradeRequalification.json",
+          "digest": "sha256:5d54868ea5f9565c7c3e87d16b777d319e3ce226aca5e22a163fe46314d7b5c4"
+        },
+        "rollbackRevocation": {
+          "path": "docs/status/columbo-reranking/rollbackRevocation.json",
+          "digest": "sha256:0b651df1339e6203fa87d5fdd8a85a6abc93d267a658025e00b9f85fe5101db5"
+        },
+        "promotion": {
+          "path": "docs/status/columbo-reranking/promotion.json",
+          "digest": "sha256:71fc040bfd51a18008df5caf4ef737af3b96b9d671234d6d8bb4f57bfd084140"
+        }
       },
-      "blockers": [
-        "owner-confirmation-missing",
-        "reranking-not-approved-product-path",
-        "authentic-samples-and-fault-journey-missing",
-        "resolved-artifact-and-execution-receipt-missing",
-        "application-evidence-identity-missing",
-        "product-support-promotion-evidence-missing",
-        "application-product-qualification-evidence-missing"
-      ]
+      "blockers": []
     }
   ]
 }

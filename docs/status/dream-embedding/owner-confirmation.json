@@ -1,0 +1,12 @@
+{
+  "schema": "doppler.product-integration-owner-confirmation/v1",
+  "integrationId": "dream-local-embedding-retrieval",
+  "applicationName": "Dream",
+  "workload": "embedding-retrieval",
+  "owner": "clocksmith/dream",
+  "ownerRepository": "clocksmith/dream",
+  "applicationRevision": "3149ab2c60712d97f98da73326bec8b297c23270",
+  "confirmedAtUtc": "2026-08-15T12:00:00.000Z",
+  "maintenanceStatus": "active",
+  "statement": "The maintainers of Dream confirm active product maintenance of local embedding retrieval using Doppler."
+}
