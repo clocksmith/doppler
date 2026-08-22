@@ -53,19 +53,84 @@ Doppler can integrate with [Reploid](https://github.com/clocksmith/reploid) via 
 SharedArrayBuffer for coordination plus VFS file exchange for inference plans and
 results. Integration notes are maintained in private wrapper docs.
 
-## Design Philosophy
+## Design Philosophy: Dual-Hexagon Compiler Pipeline & Immutable Pack Spine
 
-DOPPLER makes deliberate architectural tradeoffs that diverge from pre-compiled approaches (for example ONNX/TVM-style packaged graphs). The focus is explicit runtime control and auditable policy resolution in config/manifest contracts.
+See also: [ADR-0001: Dual-Hexagon Compiler Pipeline with an Immutable Pack Spine](adr/0001-dual-hexagon-pack-spine.md).
+
+DOPPLER is organized as two sharply separated systems connected by one immutable artifact:
+
+```text
+Source Model Checkpoint
+    ↓
+┌──────────────────────────────────────────────────────────────┐
+│                    DOPPLER FORGE                             │
+│  Inspect → Normalize → Analyze → Lower → Specialize → Search │
+│  → Verify → Qualify → Package → Sign                         │
+└──────────────────────────────┬───────────────────────────────┘
+                               │
+                    Immutable Doppler Pack
+                               │
+┌──────────────────────────────▼───────────────────────────────┐
+│                    DOPPLER RUNTIME                           │
+│  Validate → Select qualified target → Bind resources         │
+│  → Execute declared commands → Observe                       │
+└──────────────────────────────┬───────────────────────────────┘
+                               ↓
+                   Browser / Electron / Node App
+```
+
+### The Doppler Invariant Law
+
+> **Core Architectural Law:**  
+> *After a Doppler Pack has been qualified and signed, no Runtime code may change its semantic graph, kernel closure, dtype lane, fusion strategy, or memory model.*
+
+All graph-changing, kernel-changing, fusion-changing, layout-changing, and precision-changing work lives ahead-of-time in **Doppler Forge**. The **Doppler Runtime** is strictly an uncreative plan–bind–execute machine that selects among pre-qualified target plans.
+
+### Three Hashable Representations
+
+1. **`ModelIR` (Semantic Computation):**
+   * Hardware-agnostic representation of the model's computation graph: tensor roles, layer topology, attention geometry, normalization, RoPE semantics, FFN/MoE/linear-attention semantics, output topology, and prefill/decode phases.
+   * Zero WGSL filenames, zero dispatch formulas, and zero hardware-specific tile configurations.
+2. **`TargetPlan` (Concrete Hardware Specialization):**
+   * Complete implementation for a discrete hardware target class (e.g. `webgpu-f16-subgroups`, `webgpu-f16`, `webgpu-f32-safe`).
+   * Selected fusions, storage/compute dtypes, tensor layouts, memory slots, kernel IDs with cryptographic content digests (`sha256:...`), bindings, dispatch formulas, and capability predicates.
+3. **`SessionPlan` (Runtime Instance):**
+   * Instance of a `TargetPlan` bound to runtime parameters: actual prompt length, max generation length, sampling parameters, and concrete GPU buffer allocations within the Pack's preflighted envelope.
+   * Never alters the target graph or substitutes unqualified kernels.
+
+### Forge Compiler Stages
+
+1. **Inspect:** Read source files $\to$ `SourceIntake`.
+2. **Normalize:** `SourceIntake` $\to$ normalized source facts.
+3. **Analyze:** facts $\to$ `ModelIR`.
+4. **Lower:** `ModelIR` $\to$ conservative `TargetPlan` candidate.
+5. **Specialize:** candidate $\to$ fusion/layout/dtype/kernel variants.
+6. **Search:** variants $\to$ ranked candidates.
+7. **Verify:** candidates $\to$ operator, boundary, token, safety results.
+8. **Qualify:** verified candidates $\to$ target support envelopes.
+9. **Package:** model + targets + WGSL + artifacts $\to$ unsigned Pack.
+10. **Sign/Publish:** unsigned Pack + promotion receipt $\to$ immutable signed Pack.
+
+### Runtime Generic Units (Plan–Bind–Execute)
+
+The Runtime core contains zero model-family conditionals and operates strictly on generic units:
+* **`TargetSelector`:** Selects the highest-performance prequalified `TargetPlan` compatible with the device.
+* **`ResourceBinder`:** Binds symbolic memory slots to GPU buffers and uniform structures.
+* **`CommandExecutor`:** Dispatches declared phase commands without interpreting model semantics.
+* **`SessionController`:** Controls KV cache lifecycle, step sequencing, and abort signals.
+* **`ArtifactResolver`:** Streams and verifies weight shards and tokenizers via injected `ArtifactStore`.
+* **`Observer`:** Collects metrics, traces, and verification receipts.
 
 ### Key Principles
 
 | Principle | Implementation | Why |
 |-----------|----------------|-----|
-| **Code/Data Separation** | Generic WGSL kernels + weight shards | Enables shard verification and runtime adapter/component swaps |
-| **GPU Fusion** | Most hot-path tensor ops stay on GPU | Keeps JS orchestration overhead secondary when GPU compute dominates (workload-dependent) |
-| **Progressive Fusion** | Swap atomic kernels for fused kernels via config | Get the best of both worlds: hackability default, performance peaks |
+| **Ahead-of-Time Specialization** | Closed Doppler Packs with reachable WGSL closures | Eliminates generic ONNX interpreter bloat and runtime graph rediscovery |
+| **Code/Data Separation** | Pinned WGSL kernels + weight shards | Enables shard verification, OPFS streaming, and runtime adapter/component swaps |
+| **GPU Fusion** | Hot-path tensor ops stay on GPU | Keeps JS orchestration overhead secondary when GPU compute dominates |
+| **Progressive Fusion** | Swap atomic kernels for fused kernels via Forge TargetPlans | High debuggability during development, peak throughput in production |
 | **Minimal Readback** | Logit readback is cadence-controlled | Avoids unnecessary GPU→CPU transfer overhead during decode |
-| **JavaScript Orchestration** | JS dispatches GPU work, handles sampling | Debugging, rapid iteration, browser integration |
+| **JavaScript Orchestration** | Pure JS dispatches GPU work, handles sampling | Zero-daemon, sandboxed browser/Node embedding without native binaries |
 
 These principles are not independent product claims. Public claims require the
 support matrices and benchmark receipts named in [goals.md](goals.md).

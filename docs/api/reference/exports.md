@@ -30,6 +30,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `generate`
   - `load`
   - `open`
+  - `SequenceEncodeOptions`
+  - `SequenceEncodeResult`
 
 ## `doppler-gpu/provider`
 

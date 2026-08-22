@@ -76,6 +76,8 @@ None right now.
 | lfm2-5-1-2b-instruct-q4k-ehf16-af32 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
 | gpt_oss | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | janus_text | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| muse | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
+| qwen38 | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 
 ## Gemma 4 Target Coverage
 
@@ -106,12 +108,14 @@ Generated from `models/gemma4-targets.json`. This section tracks the latest offi
 | gpt_oss | transformer | active | 1 (src/config/conversion/gpt-oss-20b-f16-xmxfp4.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | janus_text | transformer | active | 1 (src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | minicpm | transformer | active | 1 (src/config/conversion/minicpm/minicpm4-0-5b-f16-af32.json) | 1 (minicpm4-0-5b-f16-af32) | no | none | failed | verification-failed | - |
+| muse | transformer | active | 1 (src/config/conversion/muse/muse-glimmer-30b-forge.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | nucleotide-transformer | transformer | active | 1 (src/config/conversion/nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32.json) | 1 (nucleotide-transformer-v2-50m-f32-af32) | yes | none | verified (2026-07-19) | verified | - |
+| qwen38 | transformer | active | 1 (src/config/conversion/qwen38/qwen3.8-27b-forge.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 
 ## Summary
 
-- Families tracked: 14
-- Families with conversion configs: 14
+- Families tracked: 16
+- Families with conversion configs: 16
 - Families present in catalog: 12
 - Verified families (active runtime + conversion + catalog + passing verification): 9
 - Cataloged families pending verification: 2

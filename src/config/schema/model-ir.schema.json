@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:model-ir-schema:v1",
+  "title": "Doppler ModelIR v1",
+  "description": "Hardware-agnostic semantic computation graph and architecture representation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "modelId",
+    "architecture",
+    "tensorRoles",
+    "layers",
+    "attentionGeometry",
+    "normalization",
+    "rope",
+    "ffn",
+    "outputTopology",
+    "phases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "doppler.model-ir/v1"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "modelId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "architecture": {
+      "type": "string",
+      "minLength": 1
+    },
+    "vocabSize": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "hiddenSize": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "numLayers": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "tensorRoles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["role", "shape"],
+        "properties": {
+          "role": { "type": "string" },
+          "shape": { "type": "array", "items": { "type": "integer" } },
+          "semanticDtype": { "type": "string" }
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["index", "type"],
+        "properties": {
+          "index": { "type": "integer", "minimum": 0 },
+          "type": { "type": "string", "enum": ["transformer", "linear-attention", "hybrid", "moe", "encoder-only"] },
+          "attention": { "type": "object" },
+          "ffn": { "type": "object" },
+          "norm": { "type": "object" }
+        }
+      }
+    },
+    "attentionGeometry": {
+      "type": "object",
+      "required": ["numHeads", "numKvHeads", "headDim"],
+      "properties": {
+        "numHeads": { "type": "integer", "minimum": 1 },
+        "numKvHeads": { "type": "integer", "minimum": 1 },
+        "headDim": { "type": "integer", "minimum": 1 },
+        "slidingWindow": { "type": ["integer", "null"] },
+        "qkNorm": { "type": "boolean" }
+      }
+    },
+    "normalization": {
+      "type": "object",
+      "required": ["type", "eps"],
+      "properties": {
+        "type": { "type": "string", "enum": ["rmsnorm", "layernorm", "gemma-rmsnorm"] },
+        "eps": { "type": "number", "minimum": 0 }
+      }
+    },
+    "rope": {
+      "type": ["object", "null"],
+      "properties": {
+        "dimension": { "type": "integer", "minimum": 1 },
+        "baseFreq": { "type": "number", "minimum": 1 },
+        "scaling": { "type": ["object", "null"] }
+      }
+    },
+    "ffn": {
+      "type": "object",
+      "required": ["type", "intermediateSize"],
+      "properties": {
+        "type": { "type": "string", "enum": ["swiglu", "gelu", "silu", "moe-swiglu"] },
+        "intermediateSize": { "type": "integer", "minimum": 1 },
+        "numExperts": { "type": ["integer", "null"] },
+        "numExpertsPerToken": { "type": ["integer", "null"] }
+      }
+    },
+    "outputTopology": {
+      "type": "object",
+      "required": ["headType"],
+      "properties": {
+        "headType": { "type": "string", "enum": ["causal-lm", "sequence-pool", "embedding", "cross-encoder-score"] },
+        "tieWeights": { "type": "boolean" },
+        "poolingMode": { "type": ["string", "null"], "enum": ["last", "mean", "cls", null] }
+      }
+    },
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["prefill", "decode", "encode", "embed"]
+      }
+    }
+  }
+}
