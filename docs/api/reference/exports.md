@@ -17,6 +17,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `doppler`
   - `DOPPLER_VERSION`
   - `DopplerGenerationResult`
+  - `DopplerPackOpenOptions`
   - `DopplerPromptInput`
   - `DopplerResolutionPolicy`
   - `DopplerRevocationPublicKey`
@@ -30,6 +31,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `generate`
   - `load`
   - `open`
+  - `openPack`
   - `SequenceEncodeOptions`
   - `SequenceEncodeResult`
 
