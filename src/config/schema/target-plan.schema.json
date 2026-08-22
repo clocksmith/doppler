@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:target-plan-schema:v1",
+  "title": "Doppler TargetPlan v1",
+  "description": "Concrete target implementation and hardware specialization plan.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "targetId",
+    "modelId",
+    "capabilityPredicate",
+    "dtypes",
+    "kernelClosure",
+    "memoryLayout",
+    "phases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "doppler.target-plan/v1"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "targetId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capabilityPredicate": {
+      "type": "object",
+      "required": ["requiresF16", "requiresSubgroups", "minBufferSize"],
+      "properties": {
+        "requiresF16": { "type": "boolean" },
+        "requiresSubgroups": { "type": "boolean" },
+        "minBufferSize": { "type": "integer", "minimum": 0 },
+        "supportedVendors": { "type": ["array", "null"], "items": { "type": "string" } }
+      }
+    },
+    "dtypes": {
+      "type": "object",
+      "required": ["activation", "kv", "weight"],
+      "properties": {
+        "activation": { "type": "string", "enum": ["f32", "f16", "f16-subgroups"] },
+        "kv": { "type": "string", "enum": ["f32", "f16", "q4k", "q8_0"] },
+        "weight": { "type": "string" }
+      }
+    },
+    "fusions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "kernelClosure": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "file", "entry", "digest"],
+        "properties": {
+          "id": { "type": "string" },
+          "file": { "type": "string" },
+          "entry": { "type": "string" },
+          "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "memoryLayout": {
+      "type": "object",
+      "required": ["kvCacheLayout", "estimatedPeakBytes"],
+      "properties": {
+        "kvCacheLayout": { "type": "string", "enum": ["paged", "contiguous", "sliding-window", "tiered"] },
+        "estimatedPeakBytes": { "type": "integer", "minimum": 0 },
+        "bufferSlots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["slotId", "role", "scope"],
+            "properties": {
+              "slotId": { "type": "string" },
+              "role": { "type": "string" },
+              "scope": { "type": "string", "enum": ["static", "layer-recycled", "transient", "session"] }
+            }
+          }
+        }
+      }
+    },
+    "phases": {
+      "type": "object",
+      "properties": {
+        "prefill": { "type": "array" },
+        "decode": { "type": "array" },
+        "encode": { "type": "array" }
+      }
+    }
+  }
+}

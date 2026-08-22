@@ -1,6 +1,11 @@
 import type { ChatMessage } from '../inference/pipelines/text/chat-format.js';
 import type { GenerateOptions } from '../generation/index.js';
-import type { LogitsStepResult, PrefillResult } from '../inference/pipelines/text/types.d.ts';
+import type {
+  LogitsStepResult,
+  PrefillResult,
+  SequenceEncodeOptions,
+  SequenceEncodeResult,
+} from '../inference/pipelines/text/types.d.ts';
 import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type {
   DopplerChatResponse,
@@ -96,6 +101,8 @@ export type {
 export type {
   LogitsStepResult,
   PrefillResult,
+  SequenceEncodeOptions,
+  SequenceEncodeResult,
   LoRAManifest,
   RDRRManifest,
 };

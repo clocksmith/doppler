@@ -24,6 +24,7 @@
     "trainer-handoff:verify": "node tools/verify-trainer-artifact-handoff.js verify --contract tools/policies/nativekd2-bf16-baseline-handoff.json --repo-root clocksmith/doppler=. --repo-root clocksmith/gamma=../gamma",
     "trainer-handoff:import": "node tools/verify-trainer-artifact-handoff.js import --contract tools/policies/nativekd2-bf16-baseline-handoff.json --repo-root clocksmith/doppler=. --repo-root clocksmith/gamma=../gamma",
     "program-bundle:export": "node tools/export-program-bundle.js",
+    "forge:pack": "node tools/forge-model-pack.js",
     "program-bundle:reference": "node tools/run-program-bundle-reference.js",
     "program-bundle:reference:gemma4-int4ple": "node tools/run-program-bundle-reference.js --manifest models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json --conversion-config src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json --out examples/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.program-bundle.json --surface browser --prompt \"The color of the sky is\" --max-tokens 8",
     "program-bundle:check": "node tools/check-program-bundle.js examples/program-bundles/*.json",

@@ -17,5 +17,7 @@ export type {
   DopplerSignedRevocationAuthorityOptions,
   DopplerSignedRevocationEnvelope,
   DopplerSignedRevocationStatus,
+  SequenceEncodeOptions,
+  SequenceEncodeResult,
 } from './client/doppler-api.js';
 export { createDopplerProvider } from './client/provider.js';

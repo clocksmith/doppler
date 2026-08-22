@@ -6,12 +6,13 @@ support and claims; this file states what the repo is optimizing toward and the
 boundaries that must constrain that work.
 
 Doppler exists to make local model execution usable, explicit, and auditable.
-It is an evidence-backed WebGPU runtime for JavaScript applications, built for a
-deliberately supported set of model workloads rather than maximum catalog size.
-Application developers should be able to obtain a valid local result through a
-small public surface. Runtime engineers should be able to establish exactly
-which artifact, tokenizer, execution graph, provider, kernel, precision, cache,
-and runtime policy produced that result.
+It is an AI-native model release foundry and evidence-backed WebGPU runtime for
+JavaScript applications, built to transform newly released open models into small,
+explicit, verified, zero-daemon JavaScript/WGSL programs faster than generic
+runtimes can responsibly support them. Application developers obtain verified local
+intelligence through a small, capability-driven public surface. Runtime engineers
+establish exactly which artifact, tokenizer, execution graph, provider, kernel,
+precision, cache, and runtime policy produced that result.
 
 The initial buyer is a JavaScript team shipping private, offline, or local
 inference that cannot continuously maintain model conversion, browser
@@ -39,10 +40,21 @@ Product contract:
   `docs/subsystem-support-matrix.md`, not by export shape alone.
 - Bun remains experimental until its own product-support evidence is promoted;
   its existence must not imply the same support as browser or Node.
-- The initial portfolio should provide complete generation, embedding, and
-  reranking stories for a small set of high-value Qwen and Gemma models.
-  Biological encoders and specialist models should enter the product portfolio
-  when a declared application requires them and their own qualification passes.
+- The portfolio is structured across four deliberate, production-qualified tiers:
+  1. **Ambient Models:** Instantaneous local generation, JSON extraction, and UI
+     support on ordinary consumer laptops and browser tabs (e.g. Gemma 3 270M/1B,
+     Qwen 3.5 0.8B/2B).
+  2. **Workstation Agents:** 20B–35B reasoning, coding, and autonomous tool
+     agents running on high-memory APUs and discrete GPUs (Qwen3.8-27B flagship
+     and Meta Muse Glimmer 30B challenger).
+  3. **Retrieval Specialists:** High-throughput dense embeddings and cross-encoder
+     reranking for local RAG (EmbeddingGemma 300M, Qwen 3 Reranker 0.6B).
+  4. **Biological Sequence Specialists:** In-process zero-egress protein and
+     nucleotide sequence encoders (ESM-2 35M, ESMC 300M, Nucleotide Transformer
+     50M) anchoring scientific research and mutation screening for Reploid.
+- The primary velocity metric is the **Release-to-JavaScript Scoreboard**:
+  median time from upstream open-model publication to a verified, reproducible
+  JavaScript pack with clean parity evidence and passing application gates.
 
 Technical contract:
 

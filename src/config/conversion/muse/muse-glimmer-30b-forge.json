@@ -1,0 +1,50 @@
+{
+  "schema": "doppler.conversion-config/v1",
+  "modelId": "muse-glimmer-30b",
+  "trial": "architectural-generalization",
+  "description": "Forge Trial 2: Multi-vendor architectural generalization trial for Meta Muse Glimmer 30B.",
+  "source": {
+    "architecture": "muse-glimmer",
+    "hiddenSize": 6144,
+    "numLayers": 48,
+    "numHeads": 48,
+    "numKvHeads": 8,
+    "headDim": 128,
+    "intermediateSize": 20480,
+    "vocabSize": 128256,
+    "normType": "rmsnorm",
+    "normEps": 1e-5,
+    "rope": {
+      "baseFreq": 500000.0,
+      "dimension": 128
+    }
+  },
+  "forgeTargets": [
+    {
+      "targetId": "webgpu-f16-subgroups",
+      "capabilityPredicate": {
+        "requiresF16": true,
+        "requiresSubgroups": true,
+        "minBufferSize": 134217728
+      },
+      "dtypes": {
+        "activation": "f16-subgroups",
+        "kv": "f16",
+        "weight": "q4k"
+      }
+    },
+    {
+      "targetId": "webgpu-f16",
+      "capabilityPredicate": {
+        "requiresF16": true,
+        "requiresSubgroups": false,
+        "minBufferSize": 67108864
+      },
+      "dtypes": {
+        "activation": "f16",
+        "kv": "f16",
+        "weight": "q4k"
+      }
+    }
+  ]
+}

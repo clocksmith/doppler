@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:pack-schema:v2",
+  "title": "Doppler Pack v2",
+  "description": "Ahead-of-Time specialized, immutable, multi-target Doppler model pack.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "packId",
+    "modelId",
+    "createdAtUtc",
+    "modelIR",
+    "targetPlans",
+    "wgslModules",
+    "artifacts"
+  ],
+  "properties": {
+    "schema": {
+      "const": "doppler.pack/v2"
+    },
+    "schemaVersion": {
+      "const": 2
+    },
+    "packId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "createdAtUtc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelIR": {
+      "$ref": "urn:doppler:model-ir-schema:v1"
+    },
+    "targetPlans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "urn:doppler:target-plan-schema:v1"
+      }
+    },
+    "wgslModules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "file", "entry", "digest"],
+        "properties": {
+          "id": { "type": "string" },
+          "file": { "type": "string" },
+          "entry": { "type": "string" },
+          "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "sourcePath": { "type": "string" },
+          "sourceHash": { "type": "string" }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["role", "path", "hash", "sizeBytes"],
+        "properties": {
+          "role": {
+            "enum": [
+              "manifest",
+              "weight-shard",
+              "tokenizer",
+              "conversion-config",
+              "reference-report",
+              "model-ir",
+              "target-plan",
+              "signature"
+            ]
+          },
+          "path": { "type": "string" },
+          "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "sizeBytes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "signature": {
+      "type": ["object", "null"],
+      "properties": {
+        "authority": { "type": "string" },
+        "algorithm": { "type": "string" },
+        "publicKeyDigest": { "type": "string" },
+        "signatureHex": { "type": "string" },
+        "signedDigest": { "type": "string" }
+      }
+    }
+  }
+}

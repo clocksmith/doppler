@@ -19,69 +19,54 @@ For exact evidence, use:
 - `runtime-needed`: catalog or conversion work exists, but runtime verification is not green.
 - `target-needed`: no concrete catalog target is ready to claim.
 
-## Tier 1: Qwen Publish Story
+## Tier 1: Ambient Models (Small & Ubiquitous Generation)
 
-Goal: one clean story across small generation, retrieval embeddings, and rerank.
+Goal: instant, private generation, JSON extraction, and UI intelligence on standard laptops and browser tabs.
 
 | Model | Status | Current state |
 | --- | --- | --- |
 | Qwen 3.5 0.8B | publish-story | Browser and Node runtime verification exist. The hosted browser/Vulkan p512 comparison is release-claimable with exact output and promotable throughput cadence. |
-| Qwen 3 Embedding 0.6B | publish-story | Browser and Node runtime verification exist. Fresh hosted browser/Vulkan evidence is release-claimable and Doppler leads steady-state embedding latency and throughput. |
-| Qwen 3 Reranker 0.6B | publish-story | Browser and Node runtime verification exist. Fresh 15-run hosted browser/Vulkan evidence is release-claimable and Doppler leads rerank latency, throughput, and semantic pair accuracy. |
+| Qwen 3.5 2B | publish-story | Browser and Node runtime verification exist. Local comparisons cover p064, p256, and p512 with exact output match and promotable throughput cadence. |
+| Gemma 3 270M | verified | Browser, Node, and Bun local compare receipts exist with exact output match across p064, p256, and p512. Standard lightweight ambient baseline. |
+| Gemma 3 1B | verified | Browser and Node runtime verification exist. Clean baseline for 1B-class text generation and assistant tasks. |
+| Gemma 4 E2B | publish-story | Node runtime verification exists. INT4-PLE has browser/Vulkan parity-section evidence under the product-format output policy. |
 
-## Tier 2: Next Practical Wins
+## Tier 2: Workstation Agents (The Flagship Frontier Pair)
 
-Goal: next small and medium models that can become clean benchmark stories.
-
-| Model | Status | Current state |
-| --- | --- | --- |
-| Qwen 3.5 2B | publish-story | Browser and Node runtime verification exist. Fresh browser/Vulkan local comparisons cover p064, p256, and p512 with exact output match and promotable throughput cadence; hosted release-grade promotion remains open. |
-| Gemma 4 E2B | publish-story | Node runtime verification exists. INT4-PLE has fresh browser/Vulkan p064 parity-section evidence that is local-comparable under the explicit product-format output policy; exact token parity is not claimed. The throughput-cadence section is still tuning evidence, and the plain Q4K local artifact needs a refreshed manifest before fair compare work resumes. |
-
-## P4 Supported Legacy Tier
-
-Goal: preserve older supported models with strong receipts without letting them
-compete with the current Tier 1 and Tier 2 publish work.
+Goal: autonomous coding, tool use, document analysis, and multi-step reasoning on 16GB–128GB unified APUs and discrete GPUs.
 
 | Model | Status | Current state |
 | --- | --- | --- |
-| Gemma 3 270M | verified | Browser, Node, and Bun local compare receipts exist with exact output match across p064, p256, and p512. Keep this as supported legacy evidence unless it becomes part of a new publish story. |
+| Qwen 3.8 27B | benchmark-needed | Primary workstation flagship. Forge Lineage Acceleration Trial: leverages historical Qwen execution graphs to synthesize and verify hybrid attention/MLP layers with minimal manual intervention. |
+| Meta Muse Glimmer 30B | target-needed | Strategic challenger and independence flagship. Forge Generalization Trial: validates automated architecture discovery, tokenizer extraction, and CPU-oracle parity on an independent non-Qwen open-weight model. |
+| Gemma 4 12B / 31B | benchmark-needed | Node runtime verification exists for 12B/31B lanes. Awaiting workstation pack qualification. |
 
-## Tier 3A: Large Dense
+## Tier 3: Retrieval Specialists (Embeddings & Reranking)
 
-Goal: scale the same evidence model to larger dense checkpoints with real catalog
-targets.
-
-| Model | Status | Current state |
-| --- | --- | --- |
-| Qwen 3.6 27B | benchmark-needed | Cataloged runtime evidence exists across the active 27B lanes, with browser support for the current web-demo lane. Fair competitor comparison is not yet promoted. |
-| Gemma 4 12B | benchmark-needed | Node runtime verification exists. Hosted promotion, browser evidence, and benchmark receipts remain open. |
-
-## Tier 3B: Experimental / Architecture Risk
-
-Goal: keep unusual architectures separate from normal benchmark work so they do
-not blur release claims.
+Goal: high-throughput dense embeddings and cross-encoder semantic reranking for local RAG pipelines.
 
 | Model | Status | Current state |
 | --- | --- | --- |
-| DiffusionGemma 26B A4B | runtime-needed | Cataloged as experimental. Runtime verification is the next gate before benchmark claims. |
-| Gemma 4 MoE | target-needed | Conversion-only work exists, but there is no concrete catalog target to claim yet. It should stay out of publish tiers until a catalog target exists. |
+| Google EmbeddingGemma 300M | verified | Browser and Node runtime verification exist with complete RDRR manifest and quickstart catalog exposure. |
+| Qwen 3 Embedding 0.6B | publish-story | Browser and Node runtime verification exist. Fresh hosted browser/Vulkan evidence is release-claimable and leads steady-state latency. |
+| Qwen 3 Reranker 0.6B | publish-story | Browser and Node runtime verification exist. Fresh 15-run hosted browser/Vulkan evidence is release-claimable and leads rerank latency and accuracy. |
 
-## Experimental Tier: Translation Specialists
+## Tier 4: Biological Sequence Specialists (First-Class for Reploid)
 
-Goal: surface narrow, evidence-backed language specialists without implying
-Tier 1 multilingual support or general-purpose generation quality.
-
-| Model | Status | Current state |
-| --- | --- | --- |
-| TranslateGemma 1B EN/ES NativeKD2 student | verified | The Q4K artifact is deterministic on the 128-row WMT13 receipt at 31.9149 BLEU / 58.2124 chrF, is 67.6% smaller than the cataloged 4B teacher, and passed directly from its pinned hosted revision in browser/WebGPU. Demo and hosted visibility carry explicit experimental, EN/ES-only, cross-runtime, and Radeon/Vulkan evidence boundaries. |
-
-## Stretch
-
-Goal: opportunistic larger targets after the core Qwen and Gemma stories are
-green.
+Goal: first-class protein and nucleotide sequence modeling for in-browser scientific research, mutation screening, and zero-egress discovery in Reploid.
 
 | Model | Status | Current state |
 | --- | --- | --- |
-| Gemma 4 31B | benchmark-needed | Node runtime verification exists. Browser/release evidence and current benchmark receipts remain open. |
-| Larger Qwen 3.6/3.7-class dense model | target-needed | No concrete catalog/HF target is currently selected. Add it only after the target exists in catalog and has an evidence path. |
+| ESM-2 35M (`esm2-t12-35m-ur50d`) | verified | Hosted Node/WebGPU sequence parity passed. Provides zero-egress residue and sequence embeddings in browser/Node sandboxes. |
+| ESMC 300M (`esmc-300m`) | verified | Hosted Node/WebGPU sequence parity passed. High-capacity protein representation model for biological decision memory. |
+| Nucleotide Transformer 50M (`nucleotide-transformer-v2-50m`) | verified | Multi-species DNA/RNA genomic sequence encoder verified under WebGPU qualification receipts. |
+
+## Experimental & Translation Tier
+
+Goal: narrow, evidence-backed translation specialists and research architecture candidates.
+
+| Model | Status | Current state |
+| --- | --- | --- |
+| TranslateGemma 1B EN/ES NativeKD2 student | verified | Deterministic on 128-row WMT13 receipt at 31.9149 BLEU / 58.2124 chrF, 67.6% smaller than 4B teacher in browser/WebGPU. |
+| DiffusionGemma 26B A4B | runtime-needed | Quarantined research lane. Runtime verification is the next gate before benchmark claims. |
+| Gemma 4 MoE | target-needed | Conversion-only research work. |
