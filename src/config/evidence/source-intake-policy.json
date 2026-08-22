@@ -118,5 +118,5 @@
     "architecture.attention.query_heads",
     "architecture.vocab_size"
   ],
-  "architectureKeyPattern": "(attention|head|hidden|layer|norm|rope|rotary|position|sliding|activation|expert|moe|vocab|embedding|architecture|model_type)"
+  "architectureKeyPattern": "(attention|head|hidden|layer|norm|rope|rotary|position|sliding|activation|expert|moe|vocab|embedding|architecture|model_type|vision|perception|delta|recurrent|mtp|multi_token|speculative|drafter|local|global|hybrid|linear)"
 }

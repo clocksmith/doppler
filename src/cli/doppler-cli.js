@@ -33,6 +33,7 @@ import {
   printMetricsSummary,
 } from './cli-output.js';
 import { formatRuntimeProfiles, listRuntimeProfiles } from './runtime-profiles.js';
+import { persistBrowserRelayReport } from './browser-report-output.js';
 
 export { resolveBrowserModelUrl, resolveNodeModelUrl } from './cli-model-resolution.js';
 
@@ -1569,6 +1570,7 @@ function buildBrowserRunOptions(runConfig, jsonOutput, request = {}) {
     baseUrl: asStringOrNull(browser.baseUrl),
     browserArgs: parseBrowserArgs(browser.browserArgs),
     headless: headed ? false : (explicitHeadless ?? true),
+    reportOutputPath: asStringOrNull(browser.reportOutputPath),
   };
   const rdrrRoot = resolveRdrrRoot(options);
   options.staticMounts = [
@@ -1708,7 +1710,7 @@ async function runCommandOnSurface(request, surface, runConfig, jsonOutput) {
   }
 
   const response = await runBrowserCommandInNode(browserRequest, browserOptions);
-  return finalizeCliCommandResponse(response, request);
+  return finalizeCliCommandResponse(await persistBrowserRelayReport(response, browserOptions.reportOutputPath), request);
 }
 
 async function runWithAutoSurface(request, runConfig, jsonOutput, policy = DEFAULT_CLI_POLICY) {
@@ -1751,8 +1753,6 @@ async function runWithAutoSurface(request, runConfig, jsonOutput, policy = DEFAU
     return runCommandOnSurface(request, 'browser', runConfig, jsonOutput);
   }
 }
-
-
 async function loadManifest(manifestPath) {
   const raw = await fs.readFile(path.resolve(manifestPath), 'utf-8');
   const manifest = JSON.parse(raw);

@@ -1,5 +1,6 @@
 import { getKernelCapabilities } from '../../gpu/device.js';
 import { formatChatMessages } from '../../inference/pipelines/text/chat-format.js';
+import { applyChatTemplate } from '../../inference/pipelines/text/init-chat-templates.js';
 import { resolveSamplingConfig } from '../../inference/pipelines/text/sampling-config.js';
 import { DOPPLER_VERSION } from '../../version.js';
 import { computeCanonicalSha256 } from '../../utils/canonical-hash.js';
@@ -57,6 +58,28 @@ function tokenizeText(pipeline, text) {
     throw new Error('Loaded Doppler tokenizer.encode() must return token IDs.');
   }
   return Array.from(tokenIds);
+}
+
+function tokenizePrompt(pipeline, prompt, options = {}) {
+  if (!pipeline?.tokenizer || typeof pipeline.tokenizer.encode !== 'function') {
+    throw new Error('Loaded Doppler pipeline does not expose tokenizer.encode().');
+  }
+  const templateEnabled = options.useChatTemplate === true
+    && pipeline?.manifest?.inference?.chatTemplate?.enabled !== false;
+  const templateType = templateEnabled
+    ? (pipeline?.manifest?.inference?.chatTemplate?.type ?? null)
+    : null;
+  let text;
+  if (typeof prompt === 'string') {
+    text = templateType
+      ? applyChatTemplate(prompt, templateType, pipeline.modelConfig?.chatTemplateThinking === true ? { thinking: true } : undefined)
+      : prompt;
+  } else {
+    const messages = Array.isArray(prompt) ? prompt : prompt?.messages;
+    if (!Array.isArray(messages)) throw new Error('Doppler advanced.tokenizePrompt requires text or chat messages.');
+    text = formatChatMessages(messages, templateType, pipeline.modelConfig?.chatTemplateThinking === true ? { thinking: true } : undefined);
+  }
+  return Array.from(pipeline.tokenizer.encode(text));
 }
 
 function resolveChatPromptForUsage(pipeline, messages) {
@@ -717,6 +740,26 @@ export function createModelHandle(pipeline, resolved) {
     advanced: {
       tokenizeText(text) {
         return tokenizeText(pipeline, text);
+      },
+      tokenizePrompt(prompt, options = {}) {
+        return tokenizePrompt(pipeline, prompt, options);
+      },
+      decodeTokenIds(tokenIds) {
+        if (!Array.isArray(tokenIds)) {
+          throw new Error('Doppler advanced.decodeTokenIds requires an array.');
+        }
+        return String(pipeline.tokenizer.decode(tokenIds, true, false));
+      },
+      getSpecialTokens() {
+        return pipeline.tokenizer?.getSpecialTokens?.() ?? {};
+      },
+      getStopTokenIds() {
+        return Array.isArray(pipeline.modelConfig?.stopTokenIds)
+          ? [...pipeline.modelConfig.stopTokenIds]
+          : [];
+      },
+      getStats() {
+        return pipeline.getStats?.() ?? null;
       },
       prefillKV(prompt, options = {}) {
         assertRaw('advanced.prefillKV');

@@ -1,47 +1,28 @@
-import type { ModelIR } from '../config/model-ir.js';
-import type { TargetPlan, TargetPlanKernelModule } from '../config/target-plan.js';
-import type { DopplerPackV2, PackV2Artifact } from '../tooling/pack-v2.js';
+import type { DopplerPackV2 } from '../config/pack-v2.js';
 
-export const FORGE_PIPELINE_VERSION = '1.0.0';
+export const FORGE_PIPELINE_VERSION: '2.0.0';
 
-export interface StageInspectInput {
-  modelDir: string;
-  manifest?: Record<string, unknown> | null;
-  config?: Record<string, unknown> | null;
+export interface ForgeStageResult extends Record<string, unknown> {
+  stage: string;
+  ok: true;
 }
 
-export declare function stageInspect(input: StageInspectInput): Promise<{
-  stage: 'inspect';
-  ok: boolean;
-  data: Record<string, unknown>;
-}>;
-
-export declare function stageAnalyze(intakeData: Record<string, unknown>): {
-  stage: 'analyze';
-  ok: boolean;
-  modelIR: ModelIR;
-  modelIRHash: `sha256:${string}`;
-};
-
-export declare function stageSpecialize(
-  modelIR: ModelIR,
-  kernelModules?: TargetPlanKernelModule[]
-): {
-  stage: 'specialize';
-  ok: boolean;
-  targetPlans: TargetPlan[];
-  targetPlanHashes: `sha256:${string}`[];
-};
-
-export declare function stagePackage(params: {
-  modelIR: ModelIR;
-  targetPlans?: TargetPlan[];
-  wgslModules?: TargetPlanKernelModule[];
-  artifacts?: PackV2Artifact[];
-  packId?: string | null;
-}): {
-  stage: 'package';
-  ok: boolean;
-  pack: DopplerPackV2;
-  packId: string;
-};
+export declare function stageInspect(input: Record<string, unknown>): Promise<ForgeStageResult & { data: Record<string, unknown> }>;
+export declare function stageNormalize(input: Record<string, unknown>): ForgeStageResult;
+export declare function stageAnalyze(input: Record<string, unknown>): ForgeStageResult;
+export declare function stageLower(input: Record<string, unknown>): ForgeStageResult;
+export declare function stageSpecialize(input: Record<string, unknown>): ForgeStageResult;
+export declare function stageSearch(input: Record<string, unknown>): ForgeStageResult;
+export declare function stageVerify(input: Record<string, unknown>): ForgeStageResult;
+export declare function stageQualify(input: Record<string, unknown>): ForgeStageResult;
+export declare function stagePackage(input: Record<string, unknown>): ForgeStageResult & { pack: DopplerPackV2 };
+export declare function stageSign(input: ForgeStageResult & { pack: DopplerPackV2 }, signer: {
+  authority: string;
+  privateKeyJwk: JsonWebKey;
+  publicKeyJwk: JsonWebKey;
+}): Promise<ForgeStageResult & { pack: DopplerPackV2 }>;
+export declare function runForgePipeline(input: Record<string, unknown>, signer: {
+  authority: string;
+  privateKeyJwk: JsonWebKey;
+  publicKeyJwk: JsonWebKey;
+}): Promise<{ pack: DopplerPackV2; stages: Array<{ stage: string; ok: true }> }>;

@@ -32,6 +32,64 @@
     "memory": ["config", "debug", "errors", "gpu", "memory", "types", "utils"],
     "storage": ["config", "debug", "errors", "formats", "memory", "storage", "tooling", "types", "utils"]
   },
+  "constitutionalDomains": {
+    "pack": [
+      "config/model-ir.js",
+      "config/target-plan.js",
+      "config/pack-v2.js"
+    ],
+    "forge": [
+      "converter/forge-stages.js"
+    ],
+    "runtime": [
+      "client/runtime/composition-root.js",
+      "client/runtime/resource-binder.js",
+      "client/runtime/command-executor.js",
+      "client/runtime/session-controller.js",
+      "client/runtime/target-selector.js",
+      "client/runtime/pack-program-adapter.js",
+      "client/runtime/fetch-pack-artifact-store.js"
+    ]
+  },
+  "constitutionalImportGraphs": [
+    {
+      "domain": "runtime",
+      "entryPoints": [
+        "client/runtime/composition-root.js",
+        "client/runtime/pack-program-adapter.js",
+        "client/runtime/fetch-pack-artifact-store.js"
+      ],
+      "forbiddenPathPrefixes": [
+        "converter/",
+        "config/transforms/",
+        "models/",
+        "experimental/distribution/"
+      ]
+    },
+    {
+      "domain": "pack",
+      "entryPoints": [
+        "config/model-ir.js",
+        "config/target-plan.js",
+        "config/pack-v2.js"
+      ],
+      "forbiddenPathPrefixes": [
+        "converter/",
+        "client/runtime/",
+        "models/",
+        "experimental/distribution/"
+      ]
+    },
+    {
+      "domain": "forge",
+      "entryPoints": ["converter/forge-stages.js"],
+      "forbiddenPathPrefixes": [
+        "client/runtime/",
+        "models/",
+        "experimental/distribution/"
+      ]
+    }
+  ],
   "dependencyExceptions": [
     { "from": "config/execution-contract-check.js", "toOwner": "gpu", "extractTo": "rules/execution-contract.js", "reason": "Move kernel rule evaluation behind the rules-owned execution contract." },
     { "from": "config/kernel-path-loader.js", "toOwner": "gpu", "extractTo": "config/kernel-registry-contract.js", "reason": "Move kernel registry metadata behind a config-owned contract." },

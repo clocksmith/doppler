@@ -1,93 +1,113 @@
+import { hashTargetPlan } from '../../config/target-plan.js';
+import { validatePackV2, verifyPackV2 } from '../../config/pack-v2.js';
 import { createResourceBinder } from './resource-binder.js';
 import { createCommandExecutor } from './command-executor.js';
 import { createSessionController } from './session-controller.js';
 import { selectTargetPlan } from './target-selector.js';
 
-export const RUNTIME_CORE_VERSION = '1.0.0';
+export const RUNTIME_CORE_VERSION = '2.0.0';
 
-/**
- * Creates an uncreative, deterministic Doppler Runtime instance bound to injected ports.
- *
- * @param {object} ports
- * @param {object} ports.device WebGPU device and capabilities provider
- * @param {object} [ports.packSource] Pack resolver/fetcher
- * @param {object} [ports.artifactStore] Shard and weights loader
- * @param {object} [ports.cache] Persistent cache adapter
- * @param {object} [ports.observer] Metrics and telemetry sink
- * @returns {object} Doppler runtime instance
- */
+function emit(observer, event) {
+  observer?.observe?.(Object.freeze({ ...event }));
+}
+
+async function loadModuleSources(pack, artifactStore) {
+  if (typeof artifactStore?.readArtifact !== 'function') return new Map();
+  const artifactById = new Map(pack.artifacts.map((artifact) => [artifact.artifactId, artifact]));
+  const modules = new Map();
+  for (const module of pack.wgslModules) {
+    const artifact = artifactById.get(module.sourceArtifactId);
+    const bytes = await artifactStore.readArtifact(artifact);
+    modules.set(module.id, { ...module, source: new TextDecoder().decode(bytes) });
+  }
+  return modules;
+}
+
+/** Creates the immutable validate -> select -> bind -> execute Pack runtime. */
 export function createDopplerRuntime(ports) {
-  if (!ports || typeof ports !== 'object') {
-    throw new Error('createDopplerRuntime requires an injected ports object.');
-  }
-  if (!ports.device) {
-    throw new Error('createDopplerRuntime requires an injected device port.');
-  }
-
-  const { device, packSource = null, artifactStore = null, cache = null, observer = null } = ports;
-  const resourceBinder = createResourceBinder(device);
-  const commandExecutor = createCommandExecutor(device, resourceBinder);
-  const sessionController = createSessionController(commandExecutor, resourceBinder);
+  if (!ports || typeof ports !== 'object') throw new Error('createDopplerRuntime requires injected ports.');
+  if (!ports.device) throw new Error('createDopplerRuntime requires a device port.');
+  if (!ports.artifactStore) throw new Error('createDopplerRuntime requires an artifactStore port.');
+  if (!ports.trustedSigners) throw new Error('createDopplerRuntime requires trustedSigners.');
+  if (typeof ports.programFactory !== 'function') throw new Error('createDopplerRuntime requires programFactory.');
+  const { device, packSource = null, artifactStore, cache = null, observer = null, trustedSigners, programFactory } = ports;
 
   return {
     version: RUNTIME_CORE_VERSION,
-    ports: {
-      device,
-      packSource,
-      artifactStore,
-      cache,
-      observer,
-    },
-    units: {
-      resourceBinder,
-      commandExecutor,
-      sessionController,
-    },
+    ports: { device, packSource, artifactStore, cache, observer },
 
-    /**
-     * Resolves and prepares a model session from a Doppler Pack.
-     *
-     * @param {string|object} packOrId
-     * @param {object} [options]
-     * @returns {Promise<object>}
-     */
     async openPack(packOrId, options = {}) {
-      let pack = packOrId;
-      if (typeof packOrId === 'string' && packSource?.fetchPack) {
-        pack = await packSource.fetchPack(packOrId, options);
-      }
-      if (!pack || typeof pack !== 'object') {
-        throw new Error(`Failed to resolve valid Doppler Pack for: ${packOrId}`);
-      }
+      const pack = typeof packOrId === 'string'
+        ? await packSource?.fetchPack?.(packOrId, options)
+        : packOrId;
+      const structural = validatePackV2(pack);
+      if (!structural.ok) throw new Error(`Invalid Doppler Pack v2: ${structural.errors.join('; ')}`);
+      emit(observer, { type: 'pack-validation-started', packId: pack.packId });
+      const verification = await verifyPackV2(pack, { trustedSigners, artifactStore });
+      await cache?.set?.(pack.semanticRoot, {
+        schema: 'doppler.pack-verification-cache/v1',
+        semanticRoot: pack.semanticRoot,
+        artifactReceipts: verification.artifactReceipts,
+      });
+      emit(observer, { type: 'pack-validation-complete', packId: pack.packId, semanticRoot: pack.semanticRoot });
 
-      // 1. Inspect device capabilities
       const deviceProfile = typeof device.getProfile === 'function'
         ? await device.getProfile()
-        : { hasF16: Boolean(device.hasF16), hasSubgroups: Boolean(device.hasSubgroups) };
+        : {
+            hasF16: Boolean(device.hasF16),
+            hasSubgroups: Boolean(device.hasSubgroups),
+            maxBufferSize: Number(device.maxBufferSize || 0),
+          };
+      const selectedPlan = selectTargetPlan(pack.targetPlans, deviceProfile);
+      const targetPlanDigest = hashTargetPlan(selectedPlan);
+      emit(observer, { type: 'target-selected', packId: pack.packId, targetId: selectedPlan.targetId, targetPlanDigest });
+      const modules = await loadModuleSources(pack, artifactStore);
+      const program = await programFactory({ pack, targetPlan: selectedPlan, artifactStore, deviceProfile, options });
+      const resourceBinder = createResourceBinder(device, program);
+      const commandExecutor = createCommandExecutor(device, resourceBinder, program);
+      const sessionController = createSessionController(commandExecutor, resourceBinder, program);
+      let closed = false;
 
-      // 2. Select pre-qualified TargetPlan (no mutation)
-      const targetPlans = Array.isArray(pack.targetPlans)
-        ? pack.targetPlans
-        : (pack.execution ? [{
-            targetId: 'legacy-execution-v1',
-            modelId: pack.modelId,
-            capabilityPredicate: { requiresF16: false, requiresSubgroups: false, minBufferSize: 0 },
-            dtypes: { activation: 'f32', kv: 'f32', weight: 'f32' },
-            kernelClosure: pack.wgslModules || [],
-            memoryLayout: { kvCacheLayout: 'contiguous', estimatedPeakBytes: 0 },
-            phases: pack.execution,
-          }] : []);
-
-      const selectedPlan = selectTargetPlan(targetPlans, deviceProfile);
+      function assertPlanUnchanged() {
+        const observed = hashTargetPlan(selectedPlan);
+        if (observed !== targetPlanDigest) {
+          throw new Error(`Pack Runtime mutated TargetPlan "${selectedPlan.targetId}" during execution.`);
+        }
+      }
 
       return {
         modelId: pack.modelId,
-        bundleId: pack.bundleId || pack.packId,
+        packId: pack.packId,
+        semanticRoot: pack.semanticRoot,
         selectedTargetId: selectedPlan.targetId,
+        selectedTargetPlanDigest: targetPlanDigest,
         selectedPlan,
         deviceProfile,
-        generate(generationOptions = {}) {
-          return sessionController.generateTokens(selectedPlan, generationOptions);
+        verification,
+        units: { resourceBinder, commandExecutor, sessionController },
+
+        async *generate(generationOptions = {}) {
+          if (closed) throw new Error('Pack runtime session is closed.');
+          try {
+            yield* sessionController.generateTokens(selectedPlan, { ...generationOptions, modules });
+          } finally {
+            assertPlanUnchanged();
+          }
+        },
+
+        async generateText(generationOptions = {}) {
+          const tokens = [];
+          for await (const tokenId of this.generate(generationOptions)) tokens.push(tokenId);
+          return { text: program.decodeTokens(tokens), tokenIds: tokens };
+        },
+
+        async close() {
+          if (closed) return;
+          closed = true;
+          await sessionController.close();
+          commandExecutor.clearPipelineCache();
+          assertPlanUnchanged();
+          emit(observer, { type: 'pack-session-closed', packId: pack.packId, targetPlanDigest });
         },
       };
     },

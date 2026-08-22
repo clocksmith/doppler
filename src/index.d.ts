@@ -5,6 +5,7 @@ export {
   generate,
   load,
   open,
+  openPack,
 } from './client/doppler-api.js';
 export type {
   DopplerRevocationPublicKey,
@@ -14,6 +15,7 @@ export type {
   DopplerPromptInput,
   DopplerScopedGenerateOptions,
   DopplerScopedModelSession,
+  DopplerPackOpenOptions,
   DopplerSignedRevocationAuthorityOptions,
   DopplerSignedRevocationEnvelope,
   DopplerSignedRevocationStatus,

@@ -50,6 +50,17 @@ export interface ProgramBundleReferenceTranscript {
   };
   executionGraphHash: string;
   surface: string | null;
+  generationConfig?: {
+    maxTokens: number;
+    temperature: number;
+    topP: number;
+    topK: number;
+    repetitionPenalty: number;
+    repetitionPenaltyWindow: number;
+    seed: number | null;
+    useChatTemplate: boolean;
+    [key: string]: unknown;
+  };
   prompt: {
     identity: string;
     hash: string;

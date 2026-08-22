@@ -343,6 +343,17 @@ function validateReferenceTranscript(referenceTranscript, expectedGraphHash) {
     throw new Error('program bundle: referenceTranscript.executionGraphHash must match sources.executionGraph.hash.');
   }
 
+  if (referenceTranscript.generationConfig !== undefined) {
+    assertPlainObject(referenceTranscript.generationConfig, 'referenceTranscript.generationConfig');
+    for (const field of ['maxTokens', 'temperature', 'topP', 'topK', 'repetitionPenalty', 'repetitionPenaltyWindow']) {
+      assertNullableFiniteNumber(referenceTranscript.generationConfig[field], `referenceTranscript.generationConfig.${field}`);
+    }
+    if (typeof referenceTranscript.generationConfig.useChatTemplate !== 'boolean') {
+      throw new Error('program bundle: referenceTranscript.generationConfig.useChatTemplate must be boolean.');
+    }
+    assertNullableFiniteNumber(referenceTranscript.generationConfig.seed, 'referenceTranscript.generationConfig.seed');
+  }
+
   assertPlainObject(referenceTranscript.source, 'referenceTranscript.source');
   assertString(referenceTranscript.source.kind, 'referenceTranscript.source.kind');
   assertString(referenceTranscript.source.path, 'referenceTranscript.source.path');

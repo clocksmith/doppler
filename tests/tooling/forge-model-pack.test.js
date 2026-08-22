@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -27,20 +28,34 @@ const logitsDigest = `sha256:${'b'.repeat(64)}`;
 const kvByteDigest = `sha256:${'c'.repeat(64)}`;
 const kvKeyDigest = `sha256:${'d'.repeat(64)}`;
 const kvValueDigest = `sha256:${'e'.repeat(64)}`;
+const shardBytes = Buffer.alloc(16);
+const shardHash = createHash('sha256').update(shardBytes).digest('hex');
 
 await fs.writeFile(path.join(modelDir, 'tokenizer.json'), '{"model":"unit"}\n', 'utf8');
+await fs.writeFile(path.join(modelDir, 'shard_00000.bin'), shardBytes);
 await fs.writeFile(conversionConfigPath, '{"modelId":"forge-unit-model"}\n', 'utf8');
 await fs.writeFile(manifestPath, `${JSON.stringify({
   version: 1,
   modelId: 'forge-unit-model',
   modelType: 'llm',
+  artifactIdentity: { sourceCheckpointId: 'test/forge-unit-model' },
+  architecture: {
+    numLayers: 1,
+    hiddenSize: 4,
+    intermediateSize: 8,
+    numAttentionHeads: 1,
+    numKeyValueHeads: 1,
+    headDim: 4,
+    vocabSize: 8,
+  },
+  quantizationInfo: { weights: 'f32' },
   hashAlgorithm: 'sha256',
   shards: [
     {
       index: 0,
       filename: 'shard_00000.bin',
       size: 16,
-      hash: '1'.repeat(64),
+      hash: shardHash,
       offset: 0,
     },
   ],
@@ -48,8 +63,21 @@ await fs.writeFile(manifestPath, `${JSON.stringify({
     type: 'bundled',
     file: 'tokenizer.json',
   },
+  tensors: {
+    weight: { role: 'matmul', shape: [4, 4], dtype: 'F32' },
+  },
   inference: {
     schema: 'doppler.execution/v1',
+    attention: { causal: true, slidingWindow: 4, queryKeyNorm: false },
+    normalization: { rmsNormEps: 1e-6, rmsNormWeightOffset: false },
+    ffn: { activation: 'gelu', gatedActivation: false },
+    rope: { ropeTheta: 10000, ropeLocalTheta: 10000 },
+    output: { tieWordEmbeddings: false },
+    layerPattern: { type: 'every_n', period: 1, offset: 0 },
+    session: {
+      compute: { defaults: { activationDtype: 'f32' } },
+      kvcache: { kvDtype: 'f32', layout: 'contiguous' },
+    },
     execution: {
       kernels: {
         embed: {
@@ -87,6 +115,11 @@ await fs.writeFile(reportPath, `${JSON.stringify({
       omitted: 0,
     },
     referenceTranscript: {
+      generationConfig: {
+        maxTokens: 1, temperature: 0, topP: 1, topK: 1,
+        repetitionPenalty: 1, repetitionPenaltyWindow: 8,
+        seed: null, useChatTemplate: false,
+      },
       prompt: {
         identity: 'The sky is',
         hash: `sha256:${'f'.repeat(64)}`,
@@ -125,6 +158,13 @@ await fs.writeFile(reportPath, `${JSON.stringify({
           digest: logitsDigest,
         }],
       },
+      tokens: {
+        ids: [42],
+      },
+      output: {
+        tokensGenerated: 1,
+        stopReason: 'max-tokens',
+      },
     },
   },
   output: ' blue',
@@ -157,16 +197,47 @@ const receipt = await forgeModelPack({
 assert.equal(receipt.ok, true);
 assert.equal(receipt.forgeVersion, FORGE_VERSION);
 assert.equal(receipt.modelId, 'forge-unit-model');
-assert.equal(typeof receipt.bundleId, 'string');
+assert.equal(typeof receipt.packId, 'string');
+assert.match(receipt.semanticRoot, /^sha256:[0-9a-f]{64}$/);
 assert.equal(receipt.wgslModuleCount, 1);
-assert.equal(receipt.reachableKernelDigests[0], gatherDigest);
 assert.ok(receipt.artifactCount >= 4);
+assert.deepEqual(receipt.stages.map((stage) => stage.stage), [
+  'inspect', 'normalize', 'analyze', 'lower', 'specialize',
+  'search', 'verify', 'qualify', 'package', 'sign',
+]);
 
 // Verify file written to disk is valid JSON
 const writtenRaw = await fs.readFile(outputPath, 'utf8');
 const writtenPack = JSON.parse(writtenRaw);
-assert.equal(writtenPack.schema, 'doppler.program-bundle/v1');
+assert.equal(writtenPack.schema, 'doppler.pack/v2');
 assert.equal(writtenPack.modelId, 'forge-unit-model');
 assert.equal(writtenPack.wgslModules[0].file, 'gather.wgsl');
+assert.ok(writtenPack.signature);
+
+const secondOutputPath = path.join(tmpRoot, 'second', 'compiled.pack.json');
+const second = await forgeModelPack({ ...options, outputPath: secondOutputPath });
+assert.equal(second.semanticRoot, receipt.semanticRoot);
+assert.equal(second.envelopeHash, receipt.envelopeHash);
+
+const qualificationReportPath = path.join(reportDir, 'browser-qualification-report.json');
+const qualificationReport = JSON.parse(await fs.readFile(reportPath, 'utf8'));
+qualificationReport.metrics.referenceTranscript.surface = 'browser-webgpu';
+qualificationReport.metrics.referenceTranscript.executionGraphHash = writtenPack.program.executionGraphHash;
+await fs.writeFile(qualificationReportPath, `${JSON.stringify(qualificationReport, null, 2)}\n`, 'utf8');
+const qualifiedOutputPath = path.join(tmpRoot, 'qualified', 'compiled.pack.json');
+const qualified = await forgeModelPack({
+  ...options,
+  programBundlePath: receipt.programBundlePath,
+  outputPath: qualifiedOutputPath,
+  qualificationReportPaths: [qualificationReportPath],
+});
+const qualifiedPack = JSON.parse(await fs.readFile(qualifiedOutputPath, 'utf8'));
+assert.ok(qualifiedPack.targetPlans[0].qualification.some((entry) => entry.surface === 'browser-webgpu'));
+const browserEvidence = qualifiedPack.artifacts.find((artifact) => artifact.role === 'qualification-evidence');
+assert.ok(browserEvidence);
+assert.equal(
+  await fs.readFile(path.join(path.dirname(qualifiedOutputPath), browserEvidence.path), 'utf8'),
+  await fs.readFile(qualificationReportPath, 'utf8')
+);
 
 console.log('✔ forge-model-pack.test.js: all tests passed');

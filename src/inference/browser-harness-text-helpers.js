@@ -1859,6 +1859,20 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     : Number.isFinite(sampling.seed)
       ? Math.max(0, Math.floor(sampling.seed))
       : null;
+  const generationConfig = {
+    maxTokens,
+    temperature: sampling.temperature,
+    topP: sampling.topP,
+    topK: sampling.topK,
+    repetitionPenalty: sampling.repetitionPenalty,
+    repetitionPenaltyWindow: sampling.repetitionPenaltyWindow,
+    greedyThreshold: sampling.greedyThreshold,
+    suppressSpecialTokens: sampling.suppressSpecialTokens,
+    suppressSpecialLikeTokens: sampling.suppressSpecialLikeTokens,
+    suppressTokenIds: Array.isArray(sampling.suppressTokenIds) ? [...sampling.suppressTokenIds] : [],
+    seed,
+    useChatTemplate,
+  };
   const debugProbes = runtimeConfig.shared?.debug?.probes || [];
   const executionObserverEnabled = isExecutionObservationRequested(runtimeConfig);
   const profile = executionObserverEnabled;
@@ -1877,7 +1891,11 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     topP: sampling.topP,
     topK: sampling.topK,
     repetitionPenalty: sampling.repetitionPenalty,
+    repetitionPenaltyWindow: sampling.repetitionPenaltyWindow,
     greedyThreshold: sampling.greedyThreshold,
+    suppressSpecialTokens: sampling.suppressSpecialTokens,
+    suppressSpecialLikeTokens: sampling.suppressSpecialLikeTokens,
+    suppressTokenIds: generationConfig.suppressTokenIds,
     useChatTemplate,
     benchmark: runOverrides?.benchmark === true,
     profile,
@@ -1921,6 +1939,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     promptInput,
     promptTokenIds,
     maxTokens,
+    generationConfig,
     tokens,
     tokenIds,
     tokenDiagnostics: summarizeGenerationTokens(tokenRecords),

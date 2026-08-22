@@ -1,68 +1,70 @@
 import assert from 'node:assert/strict';
 import { createDopplerRuntime } from '../../src/client/runtime/composition-root.js';
-import { createModelIR } from '../../src/config/model-ir.js';
-import { createTargetPlan } from '../../src/config/target-plan.js';
-import { buildPackV2 } from '../../src/tooling/pack-v2.js';
+import { hashTargetPlan } from '../../src/config/target-plan.js';
+import {
+  TEST_PACK_AUTHORITY,
+  TEST_PACK_PUBLIC_KEY,
+  createSignedPackFixture,
+} from '../helpers/pack-v2-fixture.js';
 
-const ir = createModelIR({
-  modelId: 'plan-bind-exec-model',
-  architecture: 'qwen3',
-  hiddenSize: 1024,
-  numLayers: 4,
-  vocabSize: 1000,
-});
-
-const targetPlan = createTargetPlan({
-  targetId: 'webgpu-f16',
-  modelId: 'plan-bind-exec-model',
-  capabilityPredicate: { requiresF16: true, requiresSubgroups: false, minBufferSize: 0 },
-  dtypes: { activation: 'f16', kv: 'f16', weight: 'q4k' },
-  kernelClosure: [
-    { id: 'k_main', file: 'matmul.wgsl', entry: 'main', digest: `sha256:${'0'.repeat(64)}` },
-  ],
-  memoryLayout: {
-    kvCacheLayout: 'paged',
-    estimatedPeakBytes: 1024 * 1024,
-    bufferSlots: [
-      { slotId: 'hidden_state', role: 'activation', scope: 'layer-recycled' },
-      { slotId: 'kv_cache', role: 'kv', scope: 'session' },
-    ],
+const fixture = await createSignedPackFixture();
+const buffers = [];
+const writes = [];
+const events = [];
+const gpuDevice = {
+  limits: { maxBufferSize: 1024 },
+  createBuffer(descriptor) {
+    const buffer = { descriptor, destroyed: false, destroy() { this.destroyed = true; } };
+    buffers.push(buffer);
+    return buffer;
   },
-  phases: {
-    prefill: [{ step: 'prefill_kernel' }],
-    decode: [{ step: 'decode_kernel' }],
+  createCommandEncoder() {},
+  queue: {
+    writeBuffer(buffer, offset, source, sourceOffset, size) {
+      writes.push({ buffer, offset, source, sourceOffset, size });
+    },
   },
-});
-
-const pack = buildPackV2({
-  modelId: 'plan-bind-exec-model',
-  modelIR: ir,
-  targetPlans: [targetPlan],
-  wgslModules: [
-    { id: 'k_main', file: 'matmul.wgsl', entry: 'main', digest: `sha256:${'0'.repeat(64)}` },
-  ],
-  artifacts: [
-    { role: 'manifest', path: 'manifest.json', hash: `sha256:${'b'.repeat(64)}`, sizeBytes: 64 },
-  ],
-});
-
-// Create runtime with mock device supporting F16
+};
+const program = {
+  executionGraphHash: fixture.pack.program.executionGraphHash,
+  tokenize() { return [1, 2, 3]; },
+  decodeTokens(tokens) { return tokens.join(','); },
+  getTokenContract() { return { padTokenId: null, eosTokenId: null, stopTokenIds: [] }; },
+  reset() {},
+  async executePhase(phase, request) {
+    const next = phase === 'prefill' ? 4 : request.context.contextTokens.at(-1) + 1;
+    const logits = new Float32Array(8).fill(-10);
+    logits[next] = 10;
+    return { logits };
+  },
+  releaseStepResult() {},
+  async close() {},
+};
 const runtime = createDopplerRuntime({
-  device: { hasF16: true, hasSubgroups: false },
+  device: {
+    getDevice: () => gpuDevice,
+    getProfile: () => ({ surface: 'test-webgpu', hasF16: false, hasSubgroups: false, maxBufferSize: 1024 }),
+  },
+  artifactStore: fixture.artifactStore,
+  trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+  observer: { observe(event) { events.push(event.type); } },
+  async programFactory() { return program; },
 });
-
-// Open pack -> Selects target without mutating
-const session = await runtime.openPack(pack);
-assert.equal(session.selectedTargetId, 'webgpu-f16');
-assert.equal(session.modelId, 'plan-bind-exec-model');
-
-// Run forward generation through sessionController
+const session = await runtime.openPack(fixture.pack);
+const before = hashTargetPlan(session.selectedPlan);
 const tokens = [];
-for await (const token of session.generate({ promptTokens: [1, 2, 3], maxTokens: 4 })) {
-  tokens.push(token);
-}
-
-assert.equal(tokens.length, 4);
+for await (const token of session.generate({
+  promptTokens: [1, 2, 3], maxTokens: 4, maxSeqLen: 16,
+  temperature: 0, topP: 1, topK: 1, repetitionPenalty: 1,
+  repetitionPenaltyWindow: 8, seed: 0, useChatTemplate: false,
+})) tokens.push(token);
 assert.deepEqual(tokens, [4, 5, 6, 7]);
+assert.equal(buffers.length, 1, 'ResourceBinder must allocate a physical GPU buffer');
+assert.equal(writes.length, 1, 'ResourceBinder must upload prompt token IDs');
+assert.equal(hashTargetPlan(session.selectedPlan), before);
+assert.deepEqual(events.slice(0, 3), ['pack-validation-started', 'pack-validation-complete', 'target-selected']);
+await session.close();
+assert.equal(buffers[0].destroyed, true);
+assert.equal(hashTargetPlan(session.selectedPlan), before);
 
 console.log('✔ plan-bind-execute.test.js passed');

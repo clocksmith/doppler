@@ -55,6 +55,58 @@ function exceptionKey(from, toOwner) {
   return `${from}->${toOwner}`;
 }
 
+function resolveSourceImport(filePath, specifier, sourceFiles) {
+  if (!specifier.startsWith('.')) return null;
+  const target = path.resolve(path.dirname(filePath), specifier);
+  for (const candidate of [target, `${target}.js`, path.join(target, 'index.js')]) {
+    if (sourceFiles.has(candidate)) return candidate;
+  }
+  return null;
+}
+
+async function validateConstitutionalDomains(policy, sourceRoot, files, errors) {
+  const sourceFiles = new Set(files.filter((filePath) => path.extname(filePath) === '.js'));
+  const domainFiles = new Map();
+  for (const [domain, relativePaths] of Object.entries(policy.constitutionalDomains ?? {})) {
+    const resolved = new Set();
+    for (const relative of relativePaths) {
+      const filePath = path.join(sourceRoot, relative);
+      if (!sourceFiles.has(filePath)) errors.push(`constitutional ${domain} owner is missing: ${relative}`);
+      else resolved.add(filePath);
+    }
+    domainFiles.set(domain, resolved);
+  }
+  for (const rule of policy.constitutionalImportGraphs ?? []) {
+    if (!domainFiles.has(rule.domain)) {
+      errors.push(`constitutional import graph references unknown domain: ${rule.domain}`);
+      continue;
+    }
+    const pending = [];
+    for (const relative of rule.entryPoints ?? []) {
+      const entryPath = path.join(sourceRoot, relative);
+      if (!sourceFiles.has(entryPath)) errors.push(`constitutional ${rule.domain} entry point is missing: ${relative}`);
+      else pending.push(entryPath);
+    }
+    const visited = new Set();
+    while (pending.length > 0) {
+      const filePath = pending.pop();
+      if (visited.has(filePath)) continue;
+      visited.add(filePath);
+      const relative = toPosix(path.relative(sourceRoot, filePath));
+      for (const prefix of rule.forbiddenPathPrefixes ?? []) {
+        if (relative.startsWith(prefix)) {
+          errors.push(`constitutional ${rule.domain} import graph reaches forbidden path ${relative}`);
+        }
+      }
+      const source = await fs.readFile(filePath, 'utf8');
+      for (const specifier of collectSpecifiers(source)) {
+        const imported = resolveSourceImport(filePath, specifier, sourceFiles);
+        if (imported && !visited.has(imported)) pending.push(imported);
+      }
+    }
+  }
+}
+
 async function main() {
   const policy = JSON.parse(await fs.readFile(policyPath, 'utf8'));
   const sourceRoot = path.join(repoRoot, policy.sourceRoot);
@@ -82,6 +134,7 @@ async function main() {
   const legacyOversize = new Map(Object.entries(policy.legacyOversize));
   const observedLegacy = new Set();
   const files = await walk(sourceRoot);
+  await validateConstitutionalDomains(policy, sourceRoot, files, errors);
   for (const filePath of files) {
     const relative = toPosix(path.relative(sourceRoot, filePath));
     const source = await fs.readFile(filePath, 'utf8');

@@ -596,7 +596,7 @@ function buildCaptureProfile(captureProfile = {}, context = {}) {
       : ['prefill', 'decode'],
     surfaces: Array.isArray(captureProfile.surfaces) && captureProfile.surfaces.length > 0
       ? captureProfile.surfaces
-      : ['browser-webgpu'],
+      : [context.adapter?.surface ?? 'unknown-webgpu'],
     adapter: context.adapter ?? {
       source: 'not-captured',
       surface: null,
@@ -696,9 +696,9 @@ function buildKvCacheTranscript(metrics, transcriptSeed) {
 }
 
 function buildReferenceAdapterStamp(report) {
+  const declaredSurface = report.surface === 'node' || report.surface === 'browser' ? `${report.surface}-webgpu` : (report.metrics?.referenceTranscript?.surface ?? report.env?.runtime ?? null);
   return {
-    source: 'reference-report',
-    surface: report.env?.runtime ?? (report.mode ? `browser-${report.mode}` : null),
+    source: 'reference-report', surface: declaredSurface,
     deviceInfoHash: hashStableJson(report.deviceInfo ?? null),
     deviceInfo: report.deviceInfo ?? null,
   };
@@ -765,7 +765,7 @@ async function buildReferenceTranscript(referenceReportPath, repoRoot, execution
         hash: reportArtifact.hash,
       },
       executionGraphHash,
-      surface: report.env?.runtime ?? (report.mode ? `browser-${report.mode}` : null),
+      surface: buildReferenceAdapterStamp(report).surface, generationConfig: transcriptSeed?.generationConfig ?? metrics.generationConfig ?? null,
       prompt: {
         identity: prompt.identity,
         hash: transcriptSeed?.prompt?.hash
