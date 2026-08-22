@@ -50,6 +50,20 @@ const runtime = createDopplerRuntime({
   observer: { observe(event) { events.push(event.type); } },
   async programFactory() { return program; },
 });
+
+const untrustedRuntime = createDopplerRuntime({
+  device: runtime.ports.device,
+  artifactStore: fixture.artifactStore,
+  trustedSigners: {},
+  async programFactory() {
+    throw new Error('programFactory must not run before signature trust is established');
+  },
+});
+await assert.rejects(
+  untrustedRuntime.openPack(fixture.pack),
+  /Untrusted Doppler Pack signing authority/,
+);
+
 const session = await runtime.openPack(fixture.pack);
 const before = hashTargetPlan(session.selectedPlan);
 const tokens = [];

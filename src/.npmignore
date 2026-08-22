@@ -27,6 +27,7 @@ config/merge-contract-check.d.ts
 config/merge-contract-check.js
 config/merge-helpers.d.ts
 config/pack-v0-trusted-signers.d.ts
+config/pack-v0-trusted-signers.js
 config/param-categories.d.ts
 config/param-validator.d.ts
 config/platforms/loader.d.ts

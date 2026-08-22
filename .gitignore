@@ -107,6 +107,9 @@ benchmarks/.tjs-bench-profile/
 bench/out/
 reports/**
 !reports/
+!reports/pack-v0/
+!reports/pack-v0/**/
+!reports/pack-v0/**/*-qualification.json
 !reports/program-bundles/
 !reports/program-bundles/**/
 !reports/program-bundles/**/*.reference.json

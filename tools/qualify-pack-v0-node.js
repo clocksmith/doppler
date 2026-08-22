@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { openPack } from '../src/index.js';
 import { destroyDevice } from '../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../src/tooling/node-webgpu.js';
+import { PACK_V0_TRUSTED_SIGNERS } from '../src/config/pack-v0-trusted-signers.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_PACK = 'reports/pack-v0/gemma-3-270m-it-q4k-ehf16-af32/model.pack.json';
@@ -38,7 +39,7 @@ export async function qualifyPackV0Node(options = parseArgs(process.argv.slice(2
   const reference = JSON.parse(await fs.readFile(path.resolve(REPO_ROOT, options.reference), 'utf8'));
   const expected = reference.metrics.referenceTranscript.tokens.ids;
   const generationConfig = reference.metrics.referenceTranscript.generationConfig;
-  const session = await openPack(packPath);
+  const session = await openPack(packPath, { trustedSigners: PACK_V0_TRUSTED_SIGNERS });
   const digestBefore = session.selectedTargetPlanDigest;
   try {
     if (session.deviceProfile.surface !== 'node-webgpu') {

@@ -53,6 +53,7 @@ export interface DopplerNamespace {
 
 export interface DopplerPackOpenOptions {
   artifactStore?: object;
+  /** Explicit Pack signing authorities. No development or package key is trusted by default. */
   trustedSigners?: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
   verificationCache?: { set(key: string, value: unknown): Promise<void> | void } | null;
   observer?: { observe(event: Record<string, unknown>): void } | null;

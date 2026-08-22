@@ -88,6 +88,37 @@ function resolveLogicalArtifactPath(artifact) {
   return toPosix(path.join('artifacts', 'source', name));
 }
 
+function assertModelTopologyRepresentable(manifest) {
+  const architecture = manifest?.architecture ?? {};
+  const inference = manifest?.inference ?? {};
+  const candidates = [
+    ['manifest.components', manifest?.components],
+    ['manifest.visionEncoder', manifest?.visionEncoder],
+    ['manifest.perceptionEncoder', manifest?.perceptionEncoder],
+    ['manifest.speculativeDrafter', manifest?.speculativeDrafter],
+    ['manifest.architecture.blockTypes', architecture.blockTypes],
+    ['manifest.architecture.blockTypePattern', architecture.blockTypePattern],
+    ['manifest.architecture.attentionGeometries', architecture.attentionGeometries],
+    ['manifest.architecture.linearAttention', architecture.linearAttention],
+    ['manifest.architecture.recurrentState', architecture.recurrentState],
+    ['manifest.inference.blockTopology', inference.blockTopology],
+    ['manifest.inference.linearAttention', inference.linearAttention],
+    ['manifest.inference.recurrentState', inference.recurrentState],
+    ['manifest.inference.multiTokenPrediction', inference.multiTokenPrediction],
+    ['manifest.inference.visionEncoder', inference.visionEncoder],
+    ['manifest.inference.perceptionEncoder', inference.perceptionEncoder],
+    ['manifest.inference.speculativeDrafter', inference.speculativeDrafter],
+  ];
+  const unsupported = candidates.filter(([, value]) => (
+    value !== undefined && value !== null && value !== false
+  ));
+  if (unsupported.length > 0) {
+    throw new Error(
+      `Forge ModelIR v1 cannot represent source topology: ${unsupported.map(([field]) => field).join(', ')}.`
+    );
+  }
+}
+
 function normalizePackArtifact(artifact, input) {
   const sourcePath = resolveArtifactSourcePath(artifact, input);
   const packPath = resolveLogicalArtifactPath(artifact);
@@ -219,6 +250,7 @@ export function stageNormalize(inspected) {
 export function stageAnalyze(normalized) {
   const source = requireObject(normalized, 'normalized source');
   const manifest = source.manifest;
+  assertModelTopologyRepresentable(manifest);
   const architecture = requireObject(manifest.architecture, 'manifest.architecture');
   const inference = requireObject(manifest.inference, 'manifest.inference');
   const attention = requireObject(inference.attention, 'manifest.inference.attention');

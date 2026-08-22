@@ -74,13 +74,18 @@ export async function qualifyPackV0Browser(options = parseArgs(process.argv.slic
       const adapter = await navigator.gpu?.requestAdapter({ powerPreference: 'high-performance' });
       if (!adapter) throw new Error('Physical browser qualification could not acquire a WebGPU adapter.');
       const adapterInfo = adapter.info ?? await adapter.requestAdapterInfo?.() ?? {};
-      const { openPack } = await import('/src/index-browser.js');
+      const [{ openPack }, { PACK_V0_TRUSTED_SIGNERS }] = await Promise.all([
+        import('/src/index-browser.js'),
+        import('/src/config/pack-v0-trusted-signers.js'),
+      ]);
       const referenceResponse = await fetch(`/${referencePath}`);
       if (!referenceResponse.ok) throw new Error(`Reference fetch failed: ${referenceResponse.status}`);
       const reference = await referenceResponse.json();
       const expected = reference.metrics.referenceTranscript.tokens.ids;
       const generationConfig = reference.metrics.referenceTranscript.generationConfig;
-      const session = await openPack(new URL(`/${packPath}`, location.href).href);
+      const session = await openPack(new URL(`/${packPath}`, location.href).href, {
+        trustedSigners: PACK_V0_TRUSTED_SIGNERS,
+      });
       const digestBefore = session.selectedTargetPlanDigest;
       try {
         const generated = await session.generateText({

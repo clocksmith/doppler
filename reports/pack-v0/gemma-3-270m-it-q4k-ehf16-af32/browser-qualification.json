@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.pack-v0-browser-qualification/v1",
+  "passed": true,
+  "generatedTokens": 128,
+  "expectedTokens": 128,
+  "firstMismatch": -1,
+  "packId": "gemma-3-270m-it-q4k-ehf16-af32-pack-v2-105e3d8aeb2e8916",
+  "semanticRoot": "sha256:105e3d8aeb2e89163ef1c382816ca3e6a1ca6d4225586477e6f46c02916f63fd",
+  "targetId": "webgpu-f32-f16-subgroups",
+  "targetPlanDigestBefore": "sha256:4fe451ab3194fb1522a5801c6ae0530436b8df2c4fdeb6dd8acff0178fb4afce",
+  "targetPlanDigestAfter": "sha256:4fe451ab3194fb1522a5801c6ae0530436b8df2c4fdeb6dd8acff0178fb4afce",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "0x0000",
+    "description": "Apple M3",
+    "isFallbackAdapter": false
+  },
+  "surface": "browser-webgpu",
+  "capturedAtUtc": "2026-08-22T21:27:28.633Z"
+}

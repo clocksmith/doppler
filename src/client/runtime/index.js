@@ -30,7 +30,6 @@ import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { getKernelCapabilities, initDevice } from '../../gpu/device.js';
 import { createDopplerRuntime } from './composition-root.js';
 import { createPackProgramAdapter } from './pack-program-adapter.js';
-import { PACK_V0_TRUSTED_SIGNERS } from '../../config/pack-v0-trusted-signers.js';
 import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
 import {
   configureSignedRevocationAuthority,
@@ -369,7 +368,7 @@ export function createDopplerRuntimeService({
     const packRuntime = createDopplerRuntime({
       device,
       artifactStore: resolvedPack.artifactStore,
-      trustedSigners: options.trustedSigners ?? PACK_V0_TRUSTED_SIGNERS,
+      trustedSigners: options.trustedSigners ?? {},
       cache: options.verificationCache ?? null,
       observer: options.observer ?? null,
       async programFactory({ pack, targetPlan, artifactStore }) {
