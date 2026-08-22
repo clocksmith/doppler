@@ -18,8 +18,11 @@ import type {
   DopplerPromptInput,
   DopplerScopedGenerateOptions,
   DopplerScopedModelSession,
+  DopplerPackOpenOptions,
   LoRAManifest,
 } from './runtime/index.js';
+import type { DopplerPackV2 } from '../config/pack-v2.js';
+import type { DopplerRuntimeSession } from './runtime/composition-root.js';
 import type {
   DopplerSignedRevocationAuthorityOptions,
   DopplerSignedRevocationStatus,
@@ -38,6 +41,7 @@ export interface DopplerNamespace {
   (prompt: string, options: DopplerCallOptions): AsyncGenerator<string, void, void>;
   load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModel>;
   open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
+  openPack(pack: string | DopplerPackV2, options?: DopplerPackOpenOptions): Promise<DopplerRuntimeSession>;
   generate(
     model: DopplerModelSource,
     input: DopplerPromptInput,
@@ -69,6 +73,11 @@ export declare function open(
   options?: DopplerLoadOptions
 ): Promise<DopplerScopedModelSession>;
 
+export declare function openPack(
+  pack: string | DopplerPackV2,
+  options?: DopplerPackOpenOptions
+): Promise<DopplerRuntimeSession>;
+
 export declare function generate(
   model: DopplerModelSource,
   input: DopplerPromptInput,
@@ -96,6 +105,7 @@ export type {
   DopplerPromptInput,
   DopplerScopedGenerateOptions,
   DopplerScopedModelSession,
+  DopplerPackOpenOptions,
 };
 
 export type {

@@ -1,43 +1,40 @@
+import type { DopplerPackV2, PackV2Artifact } from '../../config/pack-v2.js';
 import type { TargetPlan } from '../../config/target-plan.js';
 import type { DeviceProfile } from './target-selector.js';
-import type { ResourceBinder } from './resource-binder.js';
-import type { CommandExecutor } from './command-executor.js';
-import type { SessionController, GenerationRunOptions } from './session-controller.js';
+import type { GenerationRunOptions } from './session-controller.js';
 
-export const RUNTIME_CORE_VERSION = '1.0.0';
+export const RUNTIME_CORE_VERSION: '2.0.0';
 
 export interface RuntimePorts {
-  device: {
-    getProfile?: () => Promise<DeviceProfile> | DeviceProfile;
-    hasF16?: boolean;
-    hasSubgroups?: boolean;
+  device: object;
+  packSource?: { fetchPack(id: string, options?: object): Promise<DopplerPackV2> };
+  artifactStore: {
+    hashArtifact(artifact: PackV2Artifact): Promise<{ hash: string; sizeBytes: number }>;
+    readArtifact?(artifact: PackV2Artifact): Promise<Uint8Array>;
   };
-  packSource?: {
-    fetchPack?: (id: string, options?: Record<string, unknown>) => Promise<unknown>;
-  } | null;
-  artifactStore?: unknown;
-  cache?: unknown;
-  observer?: unknown;
+  trustedSigners: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
+  programFactory(args: Record<string, unknown>): Promise<object>;
+  cache?: { set(key: string, value: unknown): Promise<void> | void } | null;
+  observer?: { observe(event: Record<string, unknown>): void } | null;
 }
 
 export interface DopplerRuntimeSession {
   modelId: string;
-  bundleId?: string;
+  packId: string;
+  semanticRoot: string;
   selectedTargetId: string;
+  selectedTargetPlanDigest: string;
   selectedPlan: TargetPlan;
   deviceProfile: DeviceProfile;
-  generate(options?: GenerationRunOptions): AsyncGenerator<number, void, void>;
+  generate(options: GenerationRunOptions): AsyncGenerator<number, void, void>;
+  generateText(options: GenerationRunOptions): Promise<{ text: string; tokenIds: number[] }>;
+  close(): Promise<void>;
 }
 
 export interface DopplerRuntime {
   version: string;
   ports: RuntimePorts;
-  units: {
-    resourceBinder: ResourceBinder;
-    commandExecutor: CommandExecutor;
-    sessionController: SessionController;
-  };
-  openPack(packOrId: string | unknown, options?: Record<string, unknown>): Promise<DopplerRuntimeSession>;
+  openPack(packOrId: string | DopplerPackV2, options?: Record<string, unknown>): Promise<DopplerRuntimeSession>;
 }
 
 export declare function createDopplerRuntime(ports: RuntimePorts): DopplerRuntime;

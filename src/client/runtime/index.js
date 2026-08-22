@@ -27,7 +27,10 @@ import {
 import { isNodeRuntime } from '../../utils/runtime-env.js';
 import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
-import { initDevice } from '../../gpu/device.js';
+import { getKernelCapabilities, initDevice } from '../../gpu/device.js';
+import { createDopplerRuntime } from './composition-root.js';
+import { createPackProgramAdapter } from './pack-program-adapter.js';
+import { PACK_V0_TRUSTED_SIGNERS } from '../../config/pack-v0-trusted-signers.js';
 import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
 import {
   configureSignedRevocationAuthority,
@@ -165,6 +168,7 @@ function resolveArtifactStorageContext(loadSource) {
 export function createDopplerRuntimeService({
   ensureWebGPUAvailable,
   defaultLoadProgressLogger = null,
+  resolvePackInput = null,
 } = {}) {
   if (typeof ensureWebGPUAvailable !== 'function') {
     throw new Error('createDopplerRuntimeService requires ensureWebGPUAvailable.');
@@ -337,6 +341,51 @@ export function createDopplerRuntimeService({
     return createScopedModelSession(await load(model, options));
   }
 
+  async function openPack(packSource, options = {}) {
+    if (typeof resolvePackInput !== 'function') {
+      throw new Error('doppler.openPack() is unavailable because no Pack source resolver is configured.');
+    }
+    await ensureWebGPUAvailable();
+    const resolvedPack = await resolvePackInput(packSource, options);
+    if (!resolvedPack?.pack || !resolvedPack?.artifactStore) {
+      throw new Error('Pack source resolver must return pack and artifactStore.');
+    }
+    const gpuDevice = await initDevice();
+    const capabilities = getKernelCapabilities();
+    const device = {
+      getDevice() {
+        return gpuDevice;
+      },
+      getProfile() {
+        return {
+          surface: isNodeRuntime() ? 'node-webgpu' : 'browser-webgpu',
+          hasF16: capabilities.hasF16 === true,
+          hasSubgroups: capabilities.hasSubgroups === true,
+          maxBufferSize: Number(capabilities.maxBufferSize || gpuDevice.limits?.maxBufferSize || 0),
+          adapter: capabilities.adapterInfo ?? null,
+        };
+      },
+    };
+    const packRuntime = createDopplerRuntime({
+      device,
+      artifactStore: resolvedPack.artifactStore,
+      trustedSigners: options.trustedSigners ?? PACK_V0_TRUSTED_SIGNERS,
+      cache: options.verificationCache ?? null,
+      observer: options.observer ?? null,
+      async programFactory({ pack, targetPlan, artifactStore }) {
+        const manifestArtifact = pack.artifacts.find(
+          (artifact) => artifact.artifactId === pack.program.manifestArtifactId
+        );
+        const manifestUrl = artifactStore.resolveArtifactUrl?.(manifestArtifact);
+        if (!manifestUrl) throw new Error('Pack artifact store cannot resolve the manifest URL.');
+        const modelBaseUrl = new URL('.', manifestUrl).href;
+        const modelHandle = await load({ url: modelBaseUrl }, options.modelLoadOptions ?? {});
+        return createPackProgramAdapter(modelHandle, pack, targetPlan);
+      },
+    });
+    return packRuntime.openPack(resolvedPack.pack, options);
+  }
+
   async function generate(model, input, options = {}) {
     const {
       cache,
@@ -376,6 +425,7 @@ export function createDopplerRuntimeService({
 
   doppler.load = load;
   doppler.open = open;
+  doppler.openPack = openPack;
   doppler.generate = generate;
   doppler.text = async function text(prompt, options = {}) {
     if (!options || typeof options !== 'object' || options.model == null) {
@@ -454,6 +504,7 @@ export function createDopplerRuntimeService({
     doppler,
     load,
     open,
+    openPack,
     generate,
     clearModelCache,
     resolveLoadProgressHandlers(options = {}) {

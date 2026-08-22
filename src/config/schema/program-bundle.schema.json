@@ -614,6 +614,9 @@
             "null"
           ]
         },
+        "generationConfig": {
+          "type": "object"
+        },
         "prompt": {
           "type": "object"
         },

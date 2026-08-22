@@ -1,6 +1,7 @@
 import type { TargetPlan } from '../../config/target-plan.js';
 
 export interface DeviceProfile {
+  surface: string;
   hasF16?: boolean;
   hasSubgroups?: boolean;
   maxBufferSize?: number;

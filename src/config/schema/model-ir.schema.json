@@ -2,70 +2,54 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:doppler:model-ir-schema:v1",
   "title": "Doppler ModelIR v1",
-  "description": "Hardware-agnostic semantic computation graph and architecture representation.",
+  "description": "Fail-closed, hardware-independent model facts extracted from source artifacts.",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schema",
-    "schemaVersion",
-    "modelId",
-    "architecture",
-    "tensorRoles",
-    "layers",
-    "attentionGeometry",
-    "normalization",
-    "rope",
-    "ffn",
-    "outputTopology",
-    "phases"
+    "schema", "schemaVersion", "modelId", "architecture", "vocabSize", "hiddenSize",
+    "numLayers", "sourceIdentity", "tensorRoles", "layers", "attentionGeometry",
+    "normalization", "rope", "ffn", "outputTopology", "phases"
   ],
   "properties": {
-    "schema": {
-      "const": "doppler.model-ir/v1"
-    },
-    "schemaVersion": {
-      "const": 1
-    },
-    "modelId": {
-      "type": "string",
-      "minLength": 1
-    },
-    "architecture": {
-      "type": "string",
-      "minLength": 1
-    },
-    "vocabSize": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "hiddenSize": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "numLayers": {
-      "type": "integer",
-      "minimum": 1
+    "schema": { "const": "doppler.model-ir/v1" },
+    "schemaVersion": { "const": 1 },
+    "modelId": { "type": "string", "minLength": 1 },
+    "architecture": { "type": "string", "minLength": 1 },
+    "vocabSize": { "type": "integer", "minimum": 1 },
+    "hiddenSize": { "type": "integer", "minimum": 1 },
+    "numLayers": { "type": "integer", "minimum": 1 },
+    "sourceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifestArtifactId", "manifestHash"],
+      "properties": {
+        "manifestArtifactId": { "type": "string", "minLength": 1 },
+        "manifestHash": { "$ref": "#/$defs/digest" }
+      }
     },
     "tensorRoles": {
       "type": "object",
+      "minProperties": 1,
       "additionalProperties": {
         "type": "object",
-        "required": ["role", "shape"],
+        "additionalProperties": false,
+        "required": ["role", "shape", "semanticDtype"],
         "properties": {
-          "role": { "type": "string" },
-          "shape": { "type": "array", "items": { "type": "integer" } },
-          "semanticDtype": { "type": "string" }
+          "role": { "type": "string", "minLength": 1 },
+          "shape": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 } },
+          "semanticDtype": { "type": "string", "minLength": 1 }
         }
       }
     },
     "layers": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
         "required": ["index", "type"],
         "properties": {
           "index": { "type": "integer", "minimum": 0 },
-          "type": { "type": "string", "enum": ["transformer", "linear-attention", "hybrid", "moe", "encoder-only"] },
+          "type": { "type": "string", "minLength": 1 },
           "attention": { "type": "object" },
           "ffn": { "type": "object" },
           "norm": { "type": "object" }
@@ -79,7 +63,7 @@
         "numHeads": { "type": "integer", "minimum": 1 },
         "numKvHeads": { "type": "integer", "minimum": 1 },
         "headDim": { "type": "integer", "minimum": 1 },
-        "slidingWindow": { "type": ["integer", "null"] },
+        "slidingWindow": { "type": ["integer", "null"], "minimum": 1 },
         "qkNorm": { "type": "boolean" }
       }
     },
@@ -87,8 +71,8 @@
       "type": "object",
       "required": ["type", "eps"],
       "properties": {
-        "type": { "type": "string", "enum": ["rmsnorm", "layernorm", "gemma-rmsnorm"] },
-        "eps": { "type": "number", "minimum": 0 }
+        "type": { "type": "string", "minLength": 1 },
+        "eps": { "type": "number", "exclusiveMinimum": 0 }
       }
     },
     "rope": {
@@ -103,27 +87,24 @@
       "type": "object",
       "required": ["type", "intermediateSize"],
       "properties": {
-        "type": { "type": "string", "enum": ["swiglu", "gelu", "silu", "moe-swiglu"] },
+        "type": { "type": "string", "minLength": 1 },
         "intermediateSize": { "type": "integer", "minimum": 1 },
-        "numExperts": { "type": ["integer", "null"] },
-        "numExpertsPerToken": { "type": ["integer", "null"] }
+        "numExperts": { "type": ["integer", "null"], "minimum": 1 },
+        "numExpertsPerToken": { "type": ["integer", "null"], "minimum": 1 }
       }
     },
     "outputTopology": {
       "type": "object",
-      "required": ["headType"],
+      "required": ["headType", "tieWeights"],
       "properties": {
-        "headType": { "type": "string", "enum": ["causal-lm", "sequence-pool", "embedding", "cross-encoder-score"] },
+        "headType": { "type": "string", "minLength": 1 },
         "tieWeights": { "type": "boolean" },
-        "poolingMode": { "type": ["string", "null"], "enum": ["last", "mean", "cls", null] }
+        "poolingMode": { "type": ["string", "null"] }
       }
     },
-    "phases": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": ["prefill", "decode", "encode", "embed"]
-      }
-    }
+    "phases": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
   }
 }

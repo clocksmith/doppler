@@ -277,6 +277,16 @@ function addTensorFacts(facts, inventory) {
       ? 'Derived directly from SafeTensors headers without reading tensor payloads.'
       : 'No SafeTensors files were found.',
   }));
+  const unknownTensorNames = roles.unknown?.map((tensor) => tensor.name) ?? [];
+  if (unknownTensorNames.length > 0) {
+    facts.push(createFact({
+      factId: 'checkpoint.unmapped_tensors',
+      owner: 'converter.tensorMappings',
+      proposal: unknownTensorNames,
+      confidence: 'ambiguous',
+      note: 'Checkpoint tensors without an explicit semantic role block source intake.',
+    }));
+  }
   if (Number.isInteger(configuredLayers) && observedLayers > 0 && configuredLayers !== observedLayers) {
     facts.push(createFact({
       factId: 'checkpoint.layer_pattern_mismatch',
@@ -306,20 +316,27 @@ function collectUnknownArchitectureFacts(policy, config, facts) {
     policy.facts.flatMap((entry) => entry.sourcePointers)
   );
   const architecturePattern = new RegExp(policy.architectureKeyPattern, 'i');
-  for (const [key, value] of Object.entries(config.value)) {
-    const pointer = `/${key}`;
-    if (claimedPointers.has(pointer) || !architecturePattern.test(key)) continue;
-    if (key.endsWith('_config') && isObject(value)) continue;
-    facts.push(createFact({
-      factId: `source.unmapped.${key}`,
-      file: config.filename,
-      jsonPointer: pointer,
-      value,
-      owner: 'unassigned',
-      confidence: 'ambiguous',
-      note: 'Architecture-relevant source field has no Doppler intake owner mapping.',
-    }));
-  }
+  const visit = (object, parentPointer = '') => {
+    for (const [key, value] of Object.entries(object)) {
+      const escapedKey = key.replaceAll('~', '~0').replaceAll('/', '~1');
+      const pointer = `${parentPointer}/${escapedKey}`;
+      if (claimedPointers.has(pointer)) continue;
+      if (architecturePattern.test(key)) {
+        facts.push(createFact({
+          factId: `source.unmapped.${pointer.slice(1).replaceAll('/', '.')}`,
+          file: config.filename,
+          jsonPointer: pointer,
+          value,
+          owner: 'unassigned',
+          confidence: 'ambiguous',
+          note: 'Architecture-relevant source field has no Doppler intake owner mapping.',
+        }));
+        continue;
+      }
+      if (isObject(value)) visit(value, pointer);
+    }
+  };
+  visit(config.value);
 }
 
 function buildProposedArtifacts(facts, sourceDigest) {

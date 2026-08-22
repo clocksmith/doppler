@@ -1,155 +1,519 @@
 /**
- * Doppler Forge Compiler Pipeline Stages
+ * Doppler Forge's ten ahead-of-time compiler stages.
+ *
+ * Every semantic value in these stages comes from a manifest, a closed Program
+ * Bundle, or qualification evidence. Unknown source facts are compile errors.
  *
  * @module converter/forge-stages
  */
 
+import path from 'node:path';
 import { createModelIR, hashModelIR, validateModelIR } from '../config/model-ir.js';
 import { createTargetPlan, hashTargetPlan, validateTargetPlan } from '../config/target-plan.js';
+import {
+  PACK_V2_PROGRAM_SCHEMA_ID,
+  buildPackV2,
+  signPackV2,
+} from '../config/pack-v2.js';
 import { sha256Hex } from '../utils/sha256.js';
+import { stableSortObject } from '../utils/stable-sort-object.js';
 
-export const FORGE_PIPELINE_VERSION = '1.0.0';
+export const FORGE_PIPELINE_VERSION = '2.0.0';
 
-/**
- * Stage 1: Inspect
- * Reads raw model metadata and file paths into a normalized intake record.
- */
+function isObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function requireObject(value, label) {
+  if (!isObject(value)) throw new Error(`Forge requires ${label} as an object.`);
+  return value;
+}
+
+function requireString(value, label) {
+  if (typeof value !== 'string' || !value.trim()) throw new Error(`Forge requires ${label}.`);
+  return value.trim();
+}
+
+function requirePositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value < 1) throw new Error(`Forge requires ${label} as a positive integer.`);
+  return value;
+}
+
+function hashStable(value) {
+  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
+}
+
+function toPosix(value) {
+  return value.split(path.sep).join('/');
+}
+
+function artifactId(role, artifactPath, hash) {
+  const name = path.basename(artifactPath).replace(/[^a-zA-Z0-9._-]+/g, '-');
+  return `${role}:${name}:${hash.slice('sha256:'.length, 'sha256:'.length + 12)}`;
+}
+
+function resolveLayerType(layerIndex, layerPattern) {
+  if (layerPattern.type === 'every_n') {
+    const period = requirePositiveInteger(layerPattern.period, 'manifest.inference.layerPattern.period');
+    if (!Number.isInteger(layerPattern.offset) || layerPattern.offset < 0 || layerPattern.offset >= period) {
+      throw new Error('Forge requires manifest.inference.layerPattern.offset within the declared period.');
+    }
+    return layerIndex % period === layerPattern.offset ? 'global-attention' : 'local-attention';
+  }
+  if (layerPattern.type === 'explicit') {
+    return requireString(layerPattern.layerTypes?.[layerIndex], `manifest.inference.layerPattern.layerTypes[${layerIndex}]`);
+  }
+  throw new Error(`Forge does not support layerPattern.type "${layerPattern.type}" without an explicit lowering.`);
+}
+
+function resolveArtifactSourcePath(artifact, input) {
+  const bundleRoot = path.dirname(input.programBundlePath);
+  if (artifact.role === 'wgsl-source' || artifact.role === 'host-source') {
+    return path.resolve(bundleRoot, artifact.path);
+  }
+  return path.resolve(input.repoRoot, artifact.path);
+}
+
+function resolveLogicalArtifactPath(artifact) {
+  const name = path.basename(artifact.path);
+  if (artifact.role === 'wgsl-source' || artifact.role === 'host-source') {
+    return toPosix(path.join('artifacts', artifact.path));
+  }
+  if (artifact.role === 'manifest' || artifact.role === 'weight-shard' || artifact.role === 'tokenizer') {
+    return toPosix(path.join('artifacts', 'model', name));
+  }
+  if (artifact.role === 'reference-report' || artifact.role === 'qualification-evidence') {
+    return toPosix(path.join('artifacts', 'evidence', name));
+  }
+  return toPosix(path.join('artifacts', 'source', name));
+}
+
+function normalizePackArtifact(artifact, input) {
+  const sourcePath = resolveArtifactSourcePath(artifact, input);
+  const packPath = resolveLogicalArtifactPath(artifact);
+  return {
+    artifactId: artifactId(artifact.role, packPath, artifact.hash),
+    role: artifact.role,
+    path: packPath,
+    hash: artifact.hash,
+    sizeBytes: artifact.sizeBytes,
+    sourcePath,
+  };
+}
+
+function normalizeQualificationEvidence(evidence) {
+  requireObject(evidence, 'qualification evidence');
+  const surface = requireString(evidence.surface, 'qualificationEvidence.surface');
+  const evidenceHash = requireString(evidence.evidenceHash, 'qualificationEvidence.evidenceHash');
+  const sourcePath = path.resolve(requireString(evidence.sourcePath, 'qualificationEvidence.sourcePath'));
+  const sizeBytes = requirePositiveInteger(evidence.sizeBytes, 'qualificationEvidence.sizeBytes');
+  const generatedTokens = requirePositiveInteger(evidence.generatedTokens, 'qualificationEvidence.generatedTokens');
+  const transcriptHash = requireString(evidence.transcriptHash, 'qualificationEvidence.transcriptHash');
+  if (evidence.status !== 'passed') throw new Error('Forge only packages passed qualification evidence.');
+  const packPath = toPosix(path.join(
+    'artifacts',
+    'evidence',
+    `qualification-${surface.replace(/[^a-zA-Z0-9._-]+/g, '-')}-${evidenceHash.slice('sha256:'.length, 'sha256:'.length + 12)}.json`
+  ));
+  const artifact = {
+    artifactId: artifactId('qualification-evidence', packPath, evidenceHash),
+    role: 'qualification-evidence',
+    path: packPath,
+    hash: evidenceHash,
+    sizeBytes,
+    sourcePath,
+  };
+  return {
+    surface,
+    status: 'passed',
+    evidenceArtifactId: artifact.artifactId,
+    evidenceHash,
+    transcriptHash,
+    generatedTokens,
+    artifact,
+  };
+}
+
+function stripForgeOnlyArtifactFields(artifact) {
+  const { sourcePath: ignoredSourcePath, ...packArtifact } = artifact;
+  void ignoredSourcePath;
+  return packArtifact;
+}
+
+/** Stage 1: Inspect pinned source objects and identities. */
 export async function stageInspect(input) {
-  const { modelDir, manifest = null, config = null } = input;
+  requireObject(input, 'inspect input');
+  const manifest = requireObject(input.manifest, 'manifest');
+  const programBundle = requireObject(input.programBundle, 'Program Bundle');
+  if (typeof input.manifestRaw !== 'string' || input.manifestRaw.length === 0) {
+    throw new Error('Forge requires raw manifest bytes.');
+  }
+  if (typeof input.programBundleRaw !== 'string' || input.programBundleRaw.length === 0) {
+    throw new Error('Forge requires raw Program Bundle bytes.');
+  }
+  const manifestRaw = input.manifestRaw;
+  const programBundleRaw = input.programBundleRaw;
+  const repoRoot = path.resolve(requireString(input.repoRoot, 'repoRoot'));
+  const programBundlePath = path.resolve(requireString(input.programBundlePath, 'programBundlePath'));
+  const outputPath = path.resolve(requireString(input.outputPath, 'outputPath'));
+  if (manifest.modelId !== programBundle.modelId) {
+    throw new Error(`Forge source mismatch: manifest modelId "${manifest.modelId}" != Program Bundle modelId "${programBundle.modelId}".`);
+  }
   return {
     stage: 'inspect',
     ok: true,
     data: {
-      modelDir,
-      hasManifest: Boolean(manifest),
-      hasConfig: Boolean(config),
-      sourceManifest: manifest,
-      sourceConfig: config,
+      manifest,
+      manifestRaw,
+      programBundle,
+      programBundleRaw,
+      repoRoot,
+      programBundlePath,
+      outputPath,
+      qualificationEvidence: Array.isArray(input.qualificationEvidence) ? input.qualificationEvidence : [],
     },
   };
 }
 
-/**
- * Stage 2 & 3: Analyze
- * Extracts hardware-agnostic semantic ModelIR from source facts.
- */
-export function stageAnalyze(intakeData) {
-  const manifest = intakeData.sourceManifest || {};
-  const config = intakeData.sourceConfig || {};
+/** Stage 2: Normalize source identities and Pack-relative artifact locations. */
+export function stageNormalize(inspected) {
+  const input = requireObject(inspected, 'inspect output');
+  const bundle = input.programBundle;
+  const manifestHash = `sha256:${sha256Hex(input.manifestRaw)}`;
+  if (bundle.sources?.manifest?.hash !== manifestHash) {
+    throw new Error(`Forge manifest bytes do not match Program Bundle: expected ${bundle.sources?.manifest?.hash}, got ${manifestHash}.`);
+  }
+  if (bundle.execution?.graphHash !== bundle.sources?.executionGraph?.hash) {
+    throw new Error('Forge Program Bundle execution graph identities disagree.');
+  }
+  const artifacts = bundle.artifacts.map((artifact) => normalizePackArtifact(artifact, input));
+  const qualificationEvidence = input.qualificationEvidence.map(normalizeQualificationEvidence);
+  artifacts.push(...qualificationEvidence.map((evidence) => evidence.artifact));
+  const programBundleArtifact = {
+    artifactId: artifactId('program-bundle', 'artifacts/program-bundle.json', `sha256:${sha256Hex(input.programBundleRaw)}`),
+    role: 'program-bundle',
+    path: 'artifacts/program-bundle.json',
+    hash: `sha256:${sha256Hex(input.programBundleRaw)}`,
+    sizeBytes: new TextEncoder().encode(input.programBundleRaw).byteLength,
+    sourcePath: input.programBundlePath,
+  };
+  artifacts.push(programBundleArtifact);
+  const ids = new Set();
+  for (const artifact of artifacts) {
+    if (ids.has(artifact.artifactId)) throw new Error(`Forge produced duplicate artifactId "${artifact.artifactId}".`);
+    ids.add(artifact.artifactId);
+  }
+  return {
+    ...input,
+    stage: 'normalize',
+    ok: true,
+    manifestHash,
+    programBundleHash: programBundleArtifact.hash,
+    artifacts,
+    qualificationEvidence,
+    programBundleArtifactId: programBundleArtifact.artifactId,
+  };
+}
 
-  const modelId = manifest.modelId || config.modelId || 'unnamed-model';
-  const architecture = manifest.modelType || config.architecture || 'transformer';
-  const hiddenSize = manifest.hiddenSize || config.hiddenSize || 2048;
-  const numLayers = manifest.numLayers || config.numLayers || 18;
-  const vocabSize = manifest.vocabSize || config.vocabSize || 32000;
-
-  const ir = createModelIR({
-    modelId,
-    architecture,
-    hiddenSize,
+/** Stage 3: Analyze source facts into hardware-independent ModelIR. */
+export function stageAnalyze(normalized) {
+  const source = requireObject(normalized, 'normalized source');
+  const manifest = source.manifest;
+  const architecture = requireObject(manifest.architecture, 'manifest.architecture');
+  const inference = requireObject(manifest.inference, 'manifest.inference');
+  const attention = requireObject(inference.attention, 'manifest.inference.attention');
+  const normalization = requireObject(inference.normalization, 'manifest.inference.normalization');
+  const ffn = requireObject(inference.ffn, 'manifest.inference.ffn');
+  const output = requireObject(inference.output, 'manifest.inference.output');
+  const layerPattern = requireObject(inference.layerPattern, 'manifest.inference.layerPattern');
+  const session = requireObject(inference.session, 'manifest.inference.session');
+  const tensors = requireObject(manifest.tensors, 'manifest.tensors');
+  const numLayers = requirePositiveInteger(architecture.numLayers, 'manifest.architecture.numLayers');
+  const tensorRoles = Object.fromEntries(Object.entries(tensors).map(([name, tensor]) => {
+    requireObject(tensor, `manifest.tensors.${name}`);
+    return [name, {
+      role: requireString(tensor.role, `manifest.tensors.${name}.role`),
+      shape: Array.isArray(tensor.shape) ? tensor.shape : null,
+      semanticDtype: requireString(tensor.dtype, `manifest.tensors.${name}.dtype`),
+    }];
+  }));
+  const modelIR = createModelIR({
+    modelId: requireString(manifest.modelId, 'manifest.modelId'),
+    architecture: requireString(manifest.modelType, 'manifest.modelType'),
+    vocabSize: requirePositiveInteger(architecture.vocabSize, 'manifest.architecture.vocabSize'),
+    hiddenSize: requirePositiveInteger(architecture.hiddenSize, 'manifest.architecture.hiddenSize'),
     numLayers,
-    vocabSize,
+    sourceIdentity: {
+      manifestArtifactId: source.artifacts.find((artifact) => artifact.role === 'manifest')?.artifactId,
+      manifestHash: source.manifestHash,
+      sourceCheckpointId: requireString(manifest.artifactIdentity?.sourceCheckpointId, 'manifest.artifactIdentity.sourceCheckpointId'),
+    },
+    tensorRoles,
+    layers: Array.from({ length: numLayers }, (_, index) => ({
+      index,
+      type: resolveLayerType(index, layerPattern),
+      attention: {
+        causal: attention.causal,
+        slidingWindow: resolveLayerType(index, layerPattern) === 'local-attention'
+          ? requirePositiveInteger(attention.slidingWindow, 'manifest.inference.attention.slidingWindow')
+          : null,
+      },
+    })),
     attentionGeometry: {
-      numHeads: manifest.numHeads || config.numHeads || 16,
-      numKvHeads: manifest.numKvHeads || config.numKvHeads || 4,
-      headDim: Math.floor(hiddenSize / (manifest.numHeads || 16)),
+      numHeads: requirePositiveInteger(architecture.numAttentionHeads, 'manifest.architecture.numAttentionHeads'),
+      numKvHeads: requirePositiveInteger(architecture.numKeyValueHeads, 'manifest.architecture.numKeyValueHeads'),
+      headDim: requirePositiveInteger(architecture.headDim, 'manifest.architecture.headDim'),
+      qkNorm: attention.queryKeyNorm === true,
     },
     normalization: {
-      type: manifest.normType || 'rmsnorm',
-      eps: manifest.normEps || 1e-6,
+      type: normalization.rmsNormWeightOffset === true ? 'gemma-rmsnorm' : 'rmsnorm',
+      eps: normalization.rmsNormEps,
+    },
+    rope: {
+      dimension: requirePositiveInteger(architecture.headDim, 'manifest.architecture.headDim'),
+      baseFreq: requirePositiveInteger(inference.rope?.ropeTheta, 'manifest.inference.rope.ropeTheta'),
+      localBaseFreq: requirePositiveInteger(inference.rope?.ropeLocalTheta, 'manifest.inference.rope.ropeLocalTheta'),
+    },
+    ffn: {
+      type: ffn.gatedActivation === true ? `gated-${requireString(ffn.activation, 'manifest.inference.ffn.activation')}` : requireString(ffn.activation, 'manifest.inference.ffn.activation'),
+      intermediateSize: requirePositiveInteger(architecture.intermediateSize, 'manifest.architecture.intermediateSize'),
+    },
+    outputTopology: {
+      headType: 'causal-lm',
+      tieWeights: output.tieWordEmbeddings === true,
     },
     phases: ['prefill', 'decode'],
+    session,
   });
+  return { stage: 'analyze', ok: true, modelIR, modelIRHash: hashModelIR(modelIR), normalized: source };
+}
 
-  const irHash = hashModelIR(ir);
+/** Stage 4: Lower the closed Program Bundle into phase commands. */
+export function stageLower(analyzed) {
+  const validation = validateModelIR(analyzed?.modelIR);
+  if (!validation.ok) throw new Error(`Forge lower requires valid ModelIR: ${validation.errors.join('; ')}`);
+  const bundle = analyzed.normalized.programBundle;
+  const steps = bundle.execution?.steps;
+  if (!Array.isArray(steps) || steps.length === 0) throw new Error('Forge lower requires expanded Program Bundle execution steps.');
+  const buildPhase = (phase) => [{
+    kind: 'program-phase',
+    phase,
+    executionGraphHash: bundle.execution.graphHash,
+    declaredStepIds: steps
+      .filter((step) => step.phase === phase || step.phase === 'both')
+      .map((step) => step.id),
+  }];
   return {
-    stage: 'analyze',
+    ...analyzed,
+    stage: 'lower',
     ok: true,
-    modelIR: ir,
-    modelIRHash: irHash,
+    loweredProgram: {
+      execution: bundle.execution,
+      phases: { prefill: buildPhase('prefill'), decode: buildPhase('decode') },
+    },
   };
 }
 
-/**
- * Stage 4 & 5: Lower & Specialize
- * Lowers ModelIR into a set of discrete, specialized TargetPlans (e.g. f16-subgroups, f16, f32-safe).
- */
-export function stageSpecialize(modelIR, kernelModules = []) {
-  const validation = validateModelIR(modelIR);
-  if (!validation.ok) {
-    throw new Error(`stageSpecialize requires valid ModelIR: ${validation.errors.join('; ')}`);
+function buildQualificationRecords(lowered) {
+  const normalized = lowered.normalized;
+  const referenceArtifact = normalized.artifacts.find((artifact) => artifact.role === 'reference-report');
+  if (!referenceArtifact) throw new Error('Forge requires a packaged reference-report artifact.');
+  const transcript = normalized.programBundle.referenceTranscript;
+  const tokens = transcript?.tokens?.ids;
+  if (!Array.isArray(tokens) || tokens.length === 0) throw new Error('Forge requires reference transcript token IDs.');
+  const generationConfig = transcript?.generationConfig;
+  if (!isObject(generationConfig) || !Number.isFinite(generationConfig.temperature)) {
+    throw new Error('Forge requires reference transcript generationConfig.');
   }
+  if (generationConfig.temperature > 0 && !Number.isFinite(generationConfig.seed)) {
+    throw new Error('Forge rejects nondeterministic qualification evidence without a seed.');
+  }
+  const surfaces = normalized.programBundle.captureProfile?.surfaces;
+  if (!Array.isArray(surfaces) || surfaces.length === 0) throw new Error('Forge requires captureProfile.surfaces qualification evidence.');
+  const records = surfaces.map((surface) => ({
+    surface,
+    status: 'passed',
+    evidenceArtifactId: referenceArtifact.artifactId,
+    evidenceHash: referenceArtifact.hash,
+    transcriptHash: hashStable({ surface, captureProfile: normalized.programBundle.captureProfile, transcript }),
+    generatedTokens: tokens.length,
+  }));
+  for (const evidence of normalized.qualificationEvidence) {
+    const { artifact: ignoredArtifact, ...record } = evidence;
+    void ignoredArtifact;
+    records.push(record);
+  }
+  return records;
+}
 
-  // 1. High performance target: webgpu-f16-subgroups
-  const f16SubgroupsPlan = createTargetPlan({
-    targetId: 'webgpu-f16-subgroups',
-    modelId: modelIR.modelId,
-    capabilityPredicate: { requiresF16: true, requiresSubgroups: true, minBufferSize: 128 * 1024 * 1024 },
-    dtypes: { activation: 'f16-subgroups', kv: 'f16', weight: 'q4k' },
-    kernelClosure: kernelModules,
-    memoryLayout: { kvCacheLayout: 'paged', estimatedPeakBytes: modelIR.hiddenSize * modelIR.numLayers * 1024 },
+/** Stage 5: Specialize exactly the execution plan present in source evidence. */
+export function stageSpecialize(lowered) {
+  const modelIR = lowered.modelIR;
+  const normalized = lowered.normalized;
+  const manifest = normalized.manifest;
+  const session = manifest.inference.session;
+  const modules = normalized.programBundle.wgslModules;
+  if (!Array.isArray(modules) || modules.length === 0) throw new Error('Forge specialize requires a non-empty WGSL closure.');
+  const moduleArtifactByHash = new Map(normalized.artifacts
+    .filter((artifact) => artifact.role === 'wgsl-source')
+    .map((artifact) => [artifact.hash, artifact]));
+  const wgslModules = modules.map((module) => {
+    const sourceArtifact = moduleArtifactByHash.get(module.sourceHash);
+    if (!sourceArtifact) throw new Error(`Forge cannot bind WGSL source bytes for module "${module.id}".`);
+    return {
+      id: module.id,
+      file: module.file,
+      entry: module.entry,
+      digest: module.digest,
+      sourceHash: module.sourceHash,
+      sourceArtifactId: sourceArtifact.artifactId,
+      metadata: module.metadata,
+    };
   });
-
-  // 2. Standard mobile / laptop target: webgpu-f16
-  const f16StandardPlan = createTargetPlan({
-    targetId: 'webgpu-f16',
+  const activationDtype = requireString(session.compute?.defaults?.activationDtype, 'manifest.inference.session.compute.defaults.activationDtype');
+  const kvDtype = requireString(session.kvcache?.kvDtype, 'manifest.inference.session.kvcache.kvDtype');
+  const weightDtype = requireString(manifest.quantizationInfo?.weights, 'manifest.quantizationInfo.weights');
+  const requiresSubgroups = wgslModules.some((module) => module.metadata?.requiresSubgroups === true);
+  const bytesPerActivation = activationDtype === 'f16' ? 2 : 4;
+  const bytesPerKv = kvDtype === 'f16' ? 2 : 4;
+  const targetPlan = createTargetPlan({
+    targetId: `webgpu-${activationDtype}-${kvDtype}-${requiresSubgroups ? 'subgroups' : 'portable'}`,
     modelId: modelIR.modelId,
-    capabilityPredicate: { requiresF16: true, requiresSubgroups: false, minBufferSize: 64 * 1024 * 1024 },
-    dtypes: { activation: 'f16', kv: 'f16', weight: 'q4k' },
-    kernelClosure: kernelModules,
-    memoryLayout: { kvCacheLayout: 'contiguous', estimatedPeakBytes: modelIR.hiddenSize * modelIR.numLayers * 1024 },
+    modelIRHash: lowered.modelIRHash,
+    executionGraphHash: normalized.programBundle.execution.graphHash,
+    programBundleHash: normalized.programBundleHash,
+    capabilityPredicate: {
+      requiresF16: activationDtype === 'f16' || kvDtype === 'f16',
+      requiresSubgroups,
+      minBufferSize: Math.max(...manifest.shards.map((shard) => requirePositiveInteger(shard.size, 'manifest.shards[].size'))),
+    },
+    dtypes: { activation: activationDtype, kv: kvDtype, weight: weightDtype },
+    fusions: [],
+    kernelClosure: wgslModules.map((module) => ({
+      moduleId: module.id,
+      digest: module.digest,
+      sourceHash: module.sourceHash,
+    })),
+    memoryLayout: {
+      kvCacheLayout: requireString(session.kvcache.layout, 'manifest.inference.session.kvcache.layout'),
+      bufferSlots: [
+        {
+          slotId: 'input_tokens', role: 'token-ids', scope: 'transient', owner: 'runtime',
+          usage: ['storage', 'copy-dst'],
+          size: { op: 'affine', constantBytes: 0, terms: { seqLen: 4 }, alignment: 256, minimumBytes: 256 },
+        },
+        {
+          slotId: 'hidden_state', role: 'activation', scope: 'layer-recycled', owner: 'program',
+          usage: ['storage'],
+          size: { op: 'affine', constantBytes: 0, terms: { seqLen: modelIR.hiddenSize * bytesPerActivation }, alignment: 256, minimumBytes: 256 },
+        },
+        {
+          slotId: 'kv_cache', role: 'kv', scope: 'session', owner: 'program',
+          usage: ['storage'],
+          size: { op: 'affine', constantBytes: 0, terms: { maxSeqLen: modelIR.numLayers * modelIR.attentionGeometry.numKvHeads * modelIR.attentionGeometry.headDim * 2 * bytesPerKv }, alignment: 256, minimumBytes: 256 },
+        },
+        {
+          slotId: 'logits', role: 'logits', scope: 'transient', owner: 'program',
+          usage: ['storage', 'copy-src'],
+          size: { op: 'constant', bytes: modelIR.vocabSize * 4 },
+        },
+      ],
+    },
+    phases: lowered.loweredProgram.phases,
+    qualification: buildQualificationRecords(lowered),
   });
-
-  // 3. Fallback safe target: webgpu-f32-safe
-  const f32SafePlan = createTargetPlan({
-    targetId: 'webgpu-f32-safe',
-    modelId: modelIR.modelId,
-    capabilityPredicate: { requiresF16: false, requiresSubgroups: false, minBufferSize: 32 * 1024 * 1024 },
-    dtypes: { activation: 'f32', kv: 'f32', weight: 'f32' },
-    kernelClosure: kernelModules,
-    memoryLayout: { kvCacheLayout: 'contiguous', estimatedPeakBytes: modelIR.hiddenSize * modelIR.numLayers * 2048 },
-  });
-
-  const targetPlans = [f16SubgroupsPlan, f16StandardPlan, f32SafePlan];
-  const targetPlanHashes = targetPlans.map((p) => hashTargetPlan(p));
-
   return {
-    stage: 'specialize',
-    ok: true,
-    targetPlans,
-    targetPlanHashes,
+    ...lowered, stage: 'specialize', ok: true,
+    targetPlans: [targetPlan], targetPlanHashes: [hashTargetPlan(targetPlan)], wgslModules,
   };
 }
 
-/**
- * Stage 6: Package
- * Packages ModelIR, TargetPlans, WGSL modules, and artifact descriptors into an immutable Doppler Pack v2.
- */
-export function stagePackage(params) {
-  const { modelIR, targetPlans = [], wgslModules = [], artifacts = [], packId = null } = params;
-  const validation = validateModelIR(modelIR);
-  if (!validation.ok) {
-    throw new Error(`stagePackage requires valid ModelIR: ${validation.errors.join('; ')}`);
-  }
+/** Stage 6: Record the selected prequalified search result without runtime search. */
+export function stageSearch(specialized) {
+  return {
+    ...specialized, stage: 'search', ok: true,
+    searchReceipt: {
+      candidateTargetPlanHashes: [...specialized.targetPlanHashes],
+      selectedTargetPlanHashes: [...specialized.targetPlanHashes],
+      policy: 'closed-program-source-plan',
+    },
+  };
+}
 
-  const generatedPackId = packId || `${modelIR.modelId}-pack-v2-${Date.now().toString(16)}`;
-  const pack = {
-    schema: 'doppler.pack/v2',
-    schemaVersion: 2,
-    packId: generatedPackId,
-    modelId: modelIR.modelId,
-    createdAtUtc: new Date().toISOString(),
-    modelIR,
-    targetPlans,
-    wgslModules,
+/** Stage 7: Verify graph, ModelIR, plan, and kernel closure bindings. */
+export function stageVerify(searched) {
+  const modelValidation = validateModelIR(searched.modelIR);
+  if (!modelValidation.ok) throw new Error(`Forge verify rejected ModelIR: ${modelValidation.errors.join('; ')}`);
+  const moduleIds = new Set(searched.wgslModules.map((module) => module.id));
+  for (const plan of searched.targetPlans) {
+    const validation = validateTargetPlan(plan);
+    if (!validation.ok) throw new Error(`Forge verify rejected TargetPlan: ${validation.errors.join('; ')}`);
+    if (plan.modelIRHash !== searched.modelIRHash) throw new Error('Forge verify found a TargetPlan bound to a different ModelIR.');
+    if (plan.kernelClosure.some((kernel) => !moduleIds.has(kernel.moduleId))) {
+      throw new Error('Forge verify found a TargetPlan kernel outside the WGSL closure.');
+    }
+  }
+  return { ...searched, stage: 'verify', ok: true, verificationReceipt: { modelIRHash: searched.modelIRHash, targetPlanHashes: searched.targetPlanHashes } };
+}
+
+/** Stage 8: Require passed, packaged execution evidence for every plan. */
+export function stageQualify(verified) {
+  for (const plan of verified.targetPlans) {
+    if (!plan.qualification.every((record) => record.status === 'passed')) {
+      throw new Error(`Forge qualify rejected target "${plan.targetId}".`);
+    }
+  }
+  return { ...verified, stage: 'qualify', ok: true, qualificationReceipt: { targetIds: verified.targetPlans.map((plan) => plan.targetId) } };
+}
+
+/** Stage 9: Package the deterministic unsigned envelope. */
+export function stagePackage(qualified) {
+  const normalized = qualified.normalized;
+  const artifacts = normalized.artifacts.map(stripForgeOnlyArtifactFields);
+  const findIds = (role) => artifacts.filter((artifact) => artifact.role === role).map((artifact) => artifact.artifactId);
+  const pack = buildPackV2({
+    modelId: qualified.modelIR.modelId,
+    createdAtUtc: requireString(normalized.programBundle.createdAtUtc, 'Program Bundle createdAtUtc'),
+    modelIR: qualified.modelIR,
+    targetPlans: qualified.targetPlans,
+    wgslModules: qualified.wgslModules,
     artifacts,
-    signature: null,
-  };
+    program: {
+      schema: PACK_V2_PROGRAM_SCHEMA_ID,
+      programBundleHash: normalized.programBundleHash,
+      programBundleArtifactId: normalized.programBundleArtifactId,
+      executionGraphHash: normalized.programBundle.execution.graphHash,
+      manifestArtifactId: findIds('manifest')[0],
+      tokenizerArtifactIds: findIds('tokenizer'),
+      weightArtifactIds: findIds('weight-shard'),
+      execution: normalized.programBundle.execution,
+      referenceTranscript: normalized.programBundle.referenceTranscript,
+    },
+  });
+  return { ...qualified, stage: 'package', ok: true, pack };
+}
 
+/** Stage 10: Ed25519-sign the immutable semantic root. */
+export async function stageSign(packaged, signer) {
+  const pack = await signPackV2(packaged.pack, signer);
+  return { ...packaged, stage: 'sign', ok: true, pack, semanticRoot: pack.semanticRoot };
+}
+
+/** Runs the complete Forge pipeline in its fixed constitutional order. */
+export async function runForgePipeline(input, signer) {
+  const inspected = await stageInspect(input);
+  const normalized = stageNormalize(inspected.data);
+  const analyzed = stageAnalyze(normalized);
+  const lowered = stageLower(analyzed);
+  const specialized = stageSpecialize(lowered);
+  const searched = stageSearch(specialized);
+  const verified = stageVerify(searched);
+  const qualified = stageQualify(verified);
+  const packaged = stagePackage(qualified);
+  const signed = await stageSign(packaged, signer);
   return {
-    stage: 'package',
-    ok: true,
-    pack,
-    packId: generatedPackId,
+    pack: signed.pack,
+    stages: [inspected, normalized, analyzed, lowered, specialized, searched, verified, qualified, packaged, signed]
+      .map((stage) => ({ stage: stage.stage, ok: stage.ok })),
   };
 }

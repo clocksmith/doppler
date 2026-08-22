@@ -1,48 +1,59 @@
 #!/usr/bin/env node
 
-/**
- * Doppler Forge: Ahead-of-Time (AOT) Model Pack Compiler
- *
- * Transforms model manifests, conversion configs, and reference reports into
- * sealed, self-contained Doppler Packs (Program Bundles) containing only the
- * reachable WGSL kernel closure, execution-v1 DAG, artifact hashes, and
- * preflighted memory profiles.
- *
- * @module tools/forge-model-pack
- */
+/** Doppler Forge: deterministic Program Bundle v1 -> signed Pack v2 compiler. */
 
+import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import {
   createProgramBundleCliDefaults,
-  writeProgramBundle,
+  loadProgramBundle,
   verifyClosedProgramBundle,
+  writeProgramBundle,
 } from '../src/tooling/program-bundle.js';
+import { runForgePipeline } from '../src/converter/forge-stages.js';
+import { hashTargetPlan } from '../src/config/target-plan.js';
+import { loadPackSigningKey, writePackV2 } from '../src/tooling/pack-v2.js';
+import { stableSortObject } from '../src/utils/stable-sort-object.js';
+import {
+  PACK_V0_DEVELOPMENT_AUTHORITY,
+  PACK_V0_TRUSTED_SIGNERS,
+} from '../src/config/pack-v0-trusted-signers.js';
 
-export const FORGE_VERSION = '1.0.0';
+export const FORGE_VERSION = '2.0.0';
+
+const DEFAULT_PRIVATE_KEY_PATH = fileURLToPath(
+  new URL('./fixtures/pack-v0-development-signing-private.jwk.json', import.meta.url)
+);
 
 export function usage() {
   return [
-    'Doppler Forge: Ahead-of-Time (AOT) Model Pack Compiler',
+    'Doppler Forge: deterministic signed Pack v2 compiler',
     '',
     'Usage:',
-    '  node tools/forge-model-pack.js --manifest <path> --reference-report <path> --out <path> [--conversion-config <path>]',
+    '  node tools/forge-model-pack.js --program-bundle <path> --out <pack.json>',
+    '  node tools/forge-model-pack.js --manifest <path> --reference-report <path> --out <pack.json> [--conversion-config <path>]',
     '  node tools/forge-model-pack.js --config <path|json>',
     '',
     'Flags:',
-    '  --manifest <path>           Path to model manifest.json',
-    '  --reference-report <path>   Path to reference report.json containing execution transcript',
-    '  --conversion-config <path>  Path to conversion configuration json',
-    '  --runtime-config <path>     Path to runtime configuration json',
-    '  --model-dir <path>          Model directory root (defaults to manifest directory)',
-    '  --out <path>                Output path for compiled .program-bundle.json / .pack',
-    '  --bundle-id <string>        Explicit bundle ID override',
-    '  --created-at <iso8601>      Explicit creation timestamp override',
-    '  --config <path|json>        Inline JSON or config file containing all options',
-    '  --json                      Emit machine-readable JSON output',
-    '  --help, -h                  Show this help message',
+    '  --program-bundle <path>       Existing verified Program Bundle v1',
+    '  --manifest <path>             Source manifest used to build a Program Bundle',
+    '  --reference-report <path>     Physical execution reference report',
+    '  --qualification-report <path> Additional physical-surface qualification report (repeatable)',
+    '  --conversion-config <path>    Conversion configuration',
+    '  --runtime-config <path>       Runtime configuration',
+    '  --model-dir <path>            Model artifact directory',
+    '  --out <path>                  Signed Pack v2 output path',
+    '  --signing-private-key <path>  Ed25519 private JWK',
+    '  --signing-public-key <path>   Ed25519 public JWK',
+    '  --signing-authority <id>      Trusted signing authority ID',
+    '  --created-at <iso8601>        Stable Program Bundle timestamp',
+    '  --config <path|json>          Inline JSON or config file',
+    '  --json                        Emit machine-readable JSON',
+    '  --help, -h                    Show this help',
   ].join('\n');
 }
 
@@ -58,15 +69,15 @@ export function parseArgs(argv) {
       flags.json = true;
       continue;
     }
-    if (!token.startsWith('--')) {
-      throw new Error(`Unsupported positional argument "${token}".`);
-    }
+    if (!token.startsWith('--')) throw new Error(`Unsupported positional argument "${token}".`);
     const key = token.slice(2);
     const value = argv[index + 1];
-    if (value === undefined || value.startsWith('--')) {
-      throw new Error(`Missing value for --${key}.`);
+    if (value === undefined || value.startsWith('--')) throw new Error(`Missing value for --${key}.`);
+    if (key === 'qualification-report') {
+      flags[key] = [...(Array.isArray(flags[key]) ? flags[key] : []), value];
+    } else {
+      flags[key] = value;
     }
-    flags[key] = value;
     index += 1;
   }
   return flags;
@@ -74,75 +85,280 @@ export function parseArgs(argv) {
 
 export async function readJsonInput(value) {
   const normalized = String(value || '').trim();
-  if (!normalized) {
-    throw new Error('--config must be a JSON object or path.');
-  }
-  if (normalized.startsWith('{')) {
-    return JSON.parse(normalized);
-  }
-  const raw = await fs.readFile(path.resolve(normalized), 'utf8');
-  return JSON.parse(raw);
+  if (!normalized) throw new Error('--config must be a JSON object or path.');
+  if (normalized.startsWith('{')) return JSON.parse(normalized);
+  return JSON.parse(await fs.readFile(path.resolve(normalized), 'utf8'));
 }
 
 export async function buildForgeOptions(flags, metaUrl = import.meta.url) {
   const defaults = createProgramBundleCliDefaults(metaUrl);
-  if (flags.config) {
-    const config = await readJsonInput(flags.config);
-    if (!config || typeof config !== 'object' || Array.isArray(config)) {
-      throw new Error('--config must resolve to a JSON object.');
-    }
-    return {
-      ...defaults,
-      ...config,
-      outputPath: config.outputPath ?? config.out ?? null,
-    };
-  }
-  return {
-    ...defaults,
+  const values = flags.config ? await readJsonInput(flags.config) : {
+    programBundlePath: flags['program-bundle'] ?? null,
     manifestPath: flags.manifest ?? null,
     modelDir: flags['model-dir'] ?? null,
     referenceReportPath: flags['reference-report'] ?? null,
+    qualificationReportPaths: flags['qualification-report'] ?? [],
     conversionConfigPath: flags['conversion-config'] ?? null,
     runtimeConfigPath: flags['runtime-config'] ?? null,
     outputPath: flags.out ?? null,
-    bundleId: flags['bundle-id'] ?? null,
     createdAtUtc: flags['created-at'] ?? null,
+    signingPrivateKeyPath: flags['signing-private-key'] ?? null,
+    signingPublicKeyPath: flags['signing-public-key'] ?? null,
+    signingAuthority: flags['signing-authority'] ?? null,
+  };
+  if (!values || typeof values !== 'object' || Array.isArray(values)) {
+    throw new Error('--config must resolve to a JSON object.');
+  }
+  return {
+    ...defaults,
+    ...values,
+    outputPath: values.outputPath ?? values.out ?? null,
   };
 }
 
+async function readJsonFile(filePath, label) {
+  const resolved = path.resolve(filePath);
+  const raw = await fs.readFile(resolved, 'utf8');
+  const json = JSON.parse(raw);
+  if (!json || typeof json !== 'object' || Array.isArray(json)) throw new Error(`${label} must be a JSON object.`);
+  return { path: resolved, raw, json };
+}
+
+async function hashFile(filePath) {
+  const hash = createHash('sha256');
+  let sizeBytes = 0;
+  for await (const chunk of createReadStream(filePath)) {
+    hash.update(chunk);
+    sizeBytes += chunk.byteLength;
+  }
+  return { hash: `sha256:${hash.digest('hex')}`, sizeBytes };
+}
+
+function hashCanonical(value) {
+  return `sha256:${createHash('sha256').update(JSON.stringify(stableSortObject(value))).digest('hex')}`;
+}
+
+async function loadQualificationEvidence(reportPaths, bundle) {
+  const referenceTokens = bundle.referenceTranscript?.tokens?.ids;
+  if (!Array.isArray(referenceTokens) || referenceTokens.length === 0) {
+    throw new Error('Forge qualification requires Program Bundle reference token IDs.');
+  }
+  const evidence = [];
+  for (const reportPath of reportPaths || []) {
+    const reportFile = await readJsonFile(reportPath, 'qualification report');
+    const report = reportFile.json;
+    const transcript = report.metrics?.referenceTranscript;
+    const surface = transcript?.surface;
+    const tokens = transcript?.tokens?.ids;
+    const generationConfig = transcript?.generationConfig;
+    if (report.modelId !== bundle.modelId) {
+      throw new Error(`Forge qualification report modelId "${report.modelId}" does not match "${bundle.modelId}".`);
+    }
+    if (!report.results?.some((result) => result?.name === 'generation' && result?.passed === true)) {
+      throw new Error(`Forge qualification report "${reportPath}" has no passed generation result.`);
+    }
+    if (typeof surface !== 'string' || !surface.endsWith('-webgpu')) {
+      throw new Error(`Forge qualification report "${reportPath}" lacks an explicit WebGPU surface.`);
+    }
+    if (!generationConfig || !Number.isFinite(generationConfig.temperature)) {
+      throw new Error(`Forge qualification report "${reportPath}" lacks explicit generationConfig.`);
+    }
+    if (generationConfig.temperature > 0 && !Number.isFinite(generationConfig.seed)) {
+      throw new Error(`Forge qualification report "${reportPath}" is stochastic without an explicit seed.`);
+    }
+    if (!Array.isArray(tokens)
+      || tokens.length !== referenceTokens.length
+      || tokens.some((tokenId, index) => tokenId !== referenceTokens[index])) {
+      throw new Error(`Forge qualification report "${reportPath}" does not exactly match the Program Bundle transcript.`);
+    }
+    if (transcript.executionGraphHash !== bundle.execution.graphHash) {
+      throw new Error(`Forge qualification report "${reportPath}" execution graph does not match the Program Bundle.`);
+    }
+    const observed = await hashFile(reportFile.path);
+    evidence.push({
+      surface,
+      status: 'passed',
+      evidenceHash: observed.hash,
+      sizeBytes: observed.sizeBytes,
+      sourcePath: reportFile.path,
+      transcriptHash: hashCanonical(transcript),
+      generatedTokens: tokens.length,
+    });
+  }
+  return evidence;
+}
+
+function resolveBundleArtifactPath(artifact, bundlePath, repoRoot) {
+  if (artifact.role === 'wgsl-source' || artifact.role === 'host-source') {
+    return path.resolve(path.dirname(bundlePath), artifact.path);
+  }
+  return path.resolve(repoRoot, artifact.path);
+}
+
+async function verifySourceArtifactBytes(bundle, bundlePath, repoRoot) {
+  const receipts = [];
+  for (const artifact of bundle.artifacts) {
+    const sourcePath = resolveBundleArtifactPath(artifact, bundlePath, repoRoot);
+    const observed = await hashFile(sourcePath);
+    if (observed.hash !== artifact.hash || observed.sizeBytes !== artifact.sizeBytes) {
+      throw new Error(
+        `Forge source artifact mismatch for "${artifact.path}": ` +
+        `expected ${artifact.hash}/${artifact.sizeBytes}, got ${observed.hash}/${observed.sizeBytes}.`
+      );
+    }
+    receipts.push({ path: sourcePath, ...observed });
+  }
+  return receipts;
+}
+
+async function materializeProgramBundle(options) {
+  if (options.programBundlePath) {
+    const bundlePath = path.resolve(options.programBundlePath);
+    const raw = await fs.readFile(bundlePath, 'utf8');
+    const bundle = await loadProgramBundle(bundlePath);
+    await verifyClosedProgramBundle(bundlePath, bundle);
+    return { bundle, bundlePath, raw };
+  }
+  if (!options.outputPath) throw new Error('Doppler Forge requires outputPath.');
+  let createdAtUtc = options.createdAtUtc;
+  if (!createdAtUtc && options.referenceReportPath) {
+    const reference = await readJsonFile(options.referenceReportPath, 'reference report');
+    createdAtUtc = reference.json.timestamp ?? reference.json.createdAtUtc ?? null;
+  }
+  if (!createdAtUtc) {
+    throw new Error('Forge requires a stable --created-at or a timestamp in the reference report.');
+  }
+  const outputPath = path.resolve(options.outputPath);
+  const bundlePath = path.resolve(
+    options.programBundleOutputPath
+      ?? path.join(path.dirname(outputPath), 'artifacts', 'program-bundle.json')
+  );
+  const result = await writeProgramBundle({
+    ...options,
+    outputPath: bundlePath,
+    createdAtUtc,
+  });
+  return {
+    bundle: result.bundle,
+    bundlePath: result.outputPath,
+    raw: await fs.readFile(result.outputPath, 'utf8'),
+  };
+}
+
+async function resolveSigner(options) {
+  const privateKeyJwk = await loadPackSigningKey(options.signingPrivateKeyPath ?? DEFAULT_PRIVATE_KEY_PATH);
+  const authority = options.signingAuthority ?? PACK_V0_DEVELOPMENT_AUTHORITY;
+  const publicKeyJwk = options.signingPublicKeyPath
+    ? await loadPackSigningKey(options.signingPublicKeyPath)
+    : (PACK_V0_TRUSTED_SIGNERS[authority] ?? {
+        crv: privateKeyJwk.crv,
+        x: privateKeyJwk.x,
+        kty: privateKeyJwk.kty,
+      });
+  return { authority, privateKeyJwk, publicKeyJwk };
+}
+
+async function materializePackArtifactClosure(pack, sourceBundle, sourceBundlePath, repoRoot, outputPath, qualificationEvidence = []) {
+  const outputRoot = path.dirname(path.resolve(outputPath));
+  const remainingSources = sourceBundle.artifacts.map((artifact) => ({
+    artifact,
+    sourcePath: resolveBundleArtifactPath(artifact, sourceBundlePath, repoRoot),
+    used: false,
+  }));
+  remainingSources.push(...qualificationEvidence.map((evidence) => ({
+    artifact: {
+      role: 'qualification-evidence',
+      hash: evidence.evidenceHash,
+      sizeBytes: evidence.sizeBytes,
+    },
+    sourcePath: evidence.sourcePath,
+    used: false,
+  })));
+  for (const artifact of pack.artifacts) {
+    let sourcePath;
+    if (artifact.role === 'program-bundle') {
+      sourcePath = sourceBundlePath;
+    } else {
+      const match = remainingSources.find((candidate) => (
+        !candidate.used
+        && candidate.artifact.role === artifact.role
+        && candidate.artifact.hash === artifact.hash
+        && candidate.artifact.sizeBytes === artifact.sizeBytes
+      ));
+      if (!match) throw new Error(`Forge cannot materialize Pack artifact "${artifact.artifactId}".`);
+      match.used = true;
+      sourcePath = match.sourcePath;
+    }
+    const destination = path.resolve(outputRoot, artifact.path);
+    const relative = path.relative(outputRoot, destination);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      throw new Error(`Forge Pack artifact path escapes output root: ${artifact.path}.`);
+    }
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    if (path.resolve(sourcePath) !== destination) await fs.copyFile(sourcePath, destination);
+    const observed = await hashFile(destination);
+    if (observed.hash !== artifact.hash || observed.sizeBytes !== artifact.sizeBytes) {
+      throw new Error(`Forge materialized artifact verification failed for "${artifact.path}".`);
+    }
+  }
+}
+
 /**
- * Compiles an AOT specialized Doppler Pack from manifest and reference inputs.
- *
  * @param {object} options
- * @returns {Promise<object>} Forge receipt summary
+ * @returns {Promise<object>}
  */
 export async function forgeModelPack(options) {
-  const writeResult = await writeProgramBundle(options);
-  const bundle = writeResult.bundle;
-
-  // Verify that the written pack satisfies the closed-program contract
-  const verification = await verifyClosedProgramBundle(writeResult.outputPath, bundle);
-  if (!verification || verification.ok !== true) {
-    throw new Error('Forge pack verification failed: bundle does not meet closed-program invariants.');
-  }
-
-  const relativeOut = path.relative(process.cwd(), writeResult.outputPath);
+  if (!options?.outputPath) throw new Error('Doppler Forge requires --out / outputPath.');
+  const repoRoot = path.resolve(options.repoRoot ?? process.cwd());
+  const source = await materializeProgramBundle({ ...options, repoRoot });
+  await verifySourceArtifactBytes(source.bundle, source.bundlePath, repoRoot);
+  const manifestPath = path.resolve(
+    options.manifestPath ?? path.join(repoRoot, source.bundle.sources.manifest.path)
+  );
+  const manifest = await readJsonFile(manifestPath, 'manifest');
+  const signer = await resolveSigner(options);
+  const qualificationEvidence = await loadQualificationEvidence(
+    options.qualificationReportPaths ?? [],
+    source.bundle
+  );
+  const { pack, stages } = await runForgePipeline({
+    manifest: manifest.json,
+    manifestRaw: manifest.raw,
+    programBundle: source.bundle,
+    programBundleRaw: source.raw,
+    programBundlePath: source.bundlePath,
+    repoRoot,
+    outputPath: path.resolve(options.outputPath),
+    qualificationEvidence,
+  }, signer);
+  await materializePackArtifactClosure(
+    pack,
+    source.bundle,
+    source.bundlePath,
+    repoRoot,
+    options.outputPath,
+    qualificationEvidence
+  );
+  const written = await writePackV2(options.outputPath, pack);
   return {
     ok: true,
     forgeVersion: FORGE_VERSION,
-    outputPath: relativeOut.startsWith('..') ? writeResult.outputPath : relativeOut,
-    absoluteOutputPath: writeResult.outputPath,
-    modelId: bundle.modelId,
-    bundleId: bundle.bundleId,
-    schema: bundle.schema,
-    schemaVersion: bundle.schemaVersion,
-    createdAtUtc: bundle.createdAtUtc,
-    executionGraphHash: bundle.sources.executionGraph.hash,
-    artifactCount: bundle.artifacts.length,
-    wgslModuleCount: bundle.wgslModules.length,
-    reachableKernelDigests: bundle.wgslModules.map((m) => m.digest),
-    packagedFiles: bundle.package?.files?.length ?? 0,
-    referencePromptHash: bundle.referenceTranscript?.prompt?.hash ?? null,
+    outputPath: path.relative(process.cwd(), written.outputPath),
+    absoluteOutputPath: written.outputPath,
+    modelId: pack.modelId,
+    packId: pack.packId,
+    semanticRoot: pack.semanticRoot,
+    envelopeHash: written.envelopeHash,
+    schema: pack.schema,
+    schemaVersion: pack.schemaVersion,
+    createdAtUtc: pack.createdAtUtc,
+    sourceBundleId: source.bundle.bundleId,
+    programBundlePath: source.bundlePath,
+    executionGraphHash: pack.program.executionGraphHash,
+    artifactCount: pack.artifacts.length,
+    wgslModuleCount: pack.wgslModules.length,
+    targetPlanDigests: pack.targetPlans.map((plan) => hashTargetPlan(plan)),
+    stages,
   };
 }
 
@@ -152,20 +368,17 @@ export async function main(argv = process.argv.slice(2)) {
     console.log(usage());
     return;
   }
-  const options = await buildForgeOptions(flags);
-  const receipt = await forgeModelPack(options);
-
+  const receipt = await forgeModelPack(await buildForgeOptions(flags));
   if (flags.json) {
     console.log(JSON.stringify(receipt, null, 2));
-  } else {
-    console.log('✔ Doppler Forge: Pack compiled successfully');
-    console.log(`  Model ID:             ${receipt.modelId}`);
-    console.log(`  Bundle ID:            ${receipt.bundleId}`);
-    console.log(`  Execution Graph Hash: ${receipt.executionGraphHash}`);
-    console.log(`  Reachable WGSLs:      ${receipt.wgslModuleCount} modules`);
-    console.log(`  Bundled Artifacts:    ${receipt.artifactCount} artifacts`);
-    console.log(`  Output Pack:          ${receipt.outputPath}`);
+    return;
   }
+  console.log('✔ Doppler Forge: signed Pack v2 compiled');
+  console.log(`  Model ID:       ${receipt.modelId}`);
+  console.log(`  Pack ID:        ${receipt.packId}`);
+  console.log(`  Semantic root:  ${receipt.semanticRoot}`);
+  console.log(`  Target plans:   ${receipt.targetPlanDigests.length}`);
+  console.log(`  Output Pack:    ${receipt.outputPath}`);
 }
 
 function isMainModule(metaUrl) {

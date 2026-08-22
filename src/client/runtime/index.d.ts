@@ -1,6 +1,8 @@
 import type { ChatMessage } from '../../inference/pipelines/text/chat-format.js';
 import type { GenerateOptions } from '../../generation/index.js';
 import type { LogitsStepResult, PrefillResult } from '../../inference/pipelines/text/types.d.ts';
+import type { DopplerPackV2 } from '../../config/pack-v2.js';
+import type { DopplerRuntimeSession } from './composition-root.js';
 import type {
   DopplerLoadOptions,
   DopplerLoadProgress,
@@ -32,6 +34,7 @@ export interface DopplerNamespace {
   (prompt: string, options: DopplerCallOptions): AsyncGenerator<string, void, void>;
   load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
   open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
+  openPack(pack: string | DopplerPackV2, options?: DopplerPackOpenOptions): Promise<DopplerRuntimeSession>;
   generate(
     model: DopplerModelSource,
     input: DopplerPromptInput,
@@ -48,6 +51,14 @@ export interface DopplerNamespace {
   removePersistentModel(model: DopplerModelSource): Promise<boolean>;
 }
 
+export interface DopplerPackOpenOptions {
+  artifactStore?: object;
+  trustedSigners?: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
+  verificationCache?: { set(key: string, value: unknown): Promise<void> | void } | null;
+  observer?: { observe(event: Record<string, unknown>): void } | null;
+  modelLoadOptions?: DopplerLoadOptions;
+}
+
 export interface DopplerCallOptions extends DopplerGenerateOptions {
   model: DopplerModelSource;
   onProgress?: (event: DopplerLoadProgress) => void;
@@ -57,6 +68,7 @@ export interface DopplerRuntimeService {
   doppler: DopplerNamespace;
   load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
   open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
+  openPack(pack: string | DopplerPackV2, options?: DopplerPackOpenOptions): Promise<DopplerRuntimeSession>;
   generate(
     model: DopplerModelSource,
     input: DopplerPromptInput,
@@ -73,6 +85,7 @@ export interface DopplerRuntimeService {
 export declare function createDopplerRuntimeService(options: {
   ensureWebGPUAvailable: () => Promise<void>;
   defaultLoadProgressLogger?: ((event: DopplerLoadProgress) => void) | null;
+  resolvePackInput?: ((source: unknown, options?: DopplerPackOpenOptions) => Promise<{ pack: DopplerPackV2; artifactStore: object }>) | null;
 }): DopplerRuntimeService;
 
 export declare function resolvePersistentBrowserLoadSource(

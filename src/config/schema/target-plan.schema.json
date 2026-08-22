@@ -2,86 +2,79 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:doppler:target-plan-schema:v1",
   "title": "Doppler TargetPlan v1",
-  "description": "Concrete target implementation and hardware specialization plan.",
+  "description": "Immutable, prequalified implementation of one exact ModelIR and Program Bundle.",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schema",
-    "schemaVersion",
-    "targetId",
-    "modelId",
-    "capabilityPredicate",
-    "dtypes",
-    "kernelClosure",
-    "memoryLayout",
-    "phases"
+    "schema", "schemaVersion", "targetId", "modelId", "modelIRHash", "executionGraphHash",
+    "programBundleHash", "capabilityPredicate", "dtypes", "fusions", "kernelClosure",
+    "memoryLayout", "phases", "qualification"
   ],
   "properties": {
-    "schema": {
-      "const": "doppler.target-plan/v1"
-    },
-    "schemaVersion": {
-      "const": 1
-    },
-    "targetId": {
-      "type": "string",
-      "minLength": 1
-    },
-    "modelId": {
-      "type": "string",
-      "minLength": 1
-    },
+    "schema": { "const": "doppler.target-plan/v1" },
+    "schemaVersion": { "const": 1 },
+    "targetId": { "type": "string", "minLength": 1 },
+    "modelId": { "type": "string", "minLength": 1 },
+    "modelIRHash": { "$ref": "#/$defs/digest" },
+    "executionGraphHash": { "$ref": "#/$defs/digest" },
+    "programBundleHash": { "$ref": "#/$defs/digest" },
     "capabilityPredicate": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["requiresF16", "requiresSubgroups", "minBufferSize"],
       "properties": {
         "requiresF16": { "type": "boolean" },
         "requiresSubgroups": { "type": "boolean" },
         "minBufferSize": { "type": "integer", "minimum": 0 },
-        "supportedVendors": { "type": ["array", "null"], "items": { "type": "string" } }
+        "supportedVendors": { "type": "array", "items": { "type": "string", "minLength": 1 } }
       }
     },
     "dtypes": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["activation", "kv", "weight"],
       "properties": {
-        "activation": { "type": "string", "enum": ["f32", "f16", "f16-subgroups"] },
-        "kv": { "type": "string", "enum": ["f32", "f16", "q4k", "q8_0"] },
-        "weight": { "type": "string" }
+        "activation": { "type": "string", "minLength": 1 },
+        "kv": { "type": "string", "minLength": 1 },
+        "weight": { "type": "string", "minLength": 1 }
       }
     },
-    "fusions": {
-      "type": "array",
-      "items": { "type": "string" }
-    },
+    "fusions": { "type": "array", "items": { "type": "string" } },
     "kernelClosure": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["id", "file", "entry", "digest"],
+        "additionalProperties": false,
+        "required": ["moduleId", "digest", "sourceHash"],
         "properties": {
-          "id": { "type": "string" },
-          "file": { "type": "string" },
-          "entry": { "type": "string" },
-          "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+          "moduleId": { "type": "string", "minLength": 1 },
+          "digest": { "$ref": "#/$defs/digest" },
+          "sourceHash": { "$ref": "#/$defs/digest" }
         }
       }
     },
     "memoryLayout": {
       "type": "object",
-      "required": ["kvCacheLayout", "estimatedPeakBytes"],
+      "additionalProperties": false,
+      "required": ["kvCacheLayout", "bufferSlots"],
       "properties": {
-        "kvCacheLayout": { "type": "string", "enum": ["paged", "contiguous", "sliding-window", "tiered"] },
-        "estimatedPeakBytes": { "type": "integer", "minimum": 0 },
+        "kvCacheLayout": { "type": "string", "minLength": 1 },
         "bufferSlots": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["slotId", "role", "scope"],
+            "additionalProperties": false,
+            "required": ["slotId", "role", "scope", "owner", "size"],
             "properties": {
-              "slotId": { "type": "string" },
-              "role": { "type": "string" },
-              "scope": { "type": "string", "enum": ["static", "layer-recycled", "transient", "session"] }
+              "slotId": { "type": "string", "minLength": 1 },
+              "role": { "type": "string", "minLength": 1 },
+              "scope": { "enum": ["static", "layer-recycled", "transient", "session"] },
+              "owner": { "enum": ["runtime", "program"] },
+              "usage": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+              "usageBits": { "type": "integer", "minimum": 1 },
+              "size": { "$ref": "#/$defs/memoryExpression" }
             }
           }
         }
@@ -89,11 +82,52 @@
     },
     "phases": {
       "type": "object",
+      "required": ["prefill", "decode"],
       "properties": {
-        "prefill": { "type": "array" },
-        "decode": { "type": "array" },
-        "encode": { "type": "array" }
+        "prefill": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+        "decode": { "type": "array", "minItems": 1, "items": { "type": "object" } }
       }
+    },
+    "qualification": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["surface", "status", "evidenceArtifactId", "evidenceHash", "generatedTokens"],
+        "properties": {
+          "surface": { "type": "string", "minLength": 1 },
+          "status": { "const": "passed" },
+          "evidenceArtifactId": { "type": "string", "minLength": 1 },
+          "evidenceHash": { "$ref": "#/$defs/digest" },
+          "transcriptHash": { "$ref": "#/$defs/digest" },
+          "generatedTokens": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "memoryExpression": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "bytes"],
+          "properties": { "op": { "const": "constant" }, "bytes": { "type": "integer", "minimum": 1 } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["op", "constantBytes", "terms", "alignment", "minimumBytes"],
+          "properties": {
+            "op": { "const": "affine" },
+            "constantBytes": { "type": "integer", "minimum": 0 },
+            "terms": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "integer", "minimum": 0 } },
+            "alignment": { "type": "integer", "minimum": 1 },
+            "minimumBytes": { "type": "integer", "minimum": 1 }
+          }
+        }
+      ]
     }
   }
 }

@@ -235,7 +235,12 @@ export interface DopplerModelHandle {
     ): Promise<DopplerModelInspectionReceipt>;
   };
   readonly advanced: {
-    tokenizeText(text: string): number[];
+  tokenizeText(text: string): number[];
+  tokenizePrompt(prompt: unknown, options?: { useChatTemplate?: boolean }): number[];
+    decodeTokenIds(tokenIds: number[]): string;
+    getSpecialTokens(): Record<string, number | undefined>;
+    getStopTokenIds(): number[];
+    getStats(): Record<string, unknown> | null;
     prefillKV(prompt: string, options?: DopplerGenerateOptions): Promise<KVCacheSnapshot>;
     resetToSeqLen(seqLen: number): void;
     prefillWithLogits(

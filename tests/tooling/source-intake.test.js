@@ -48,7 +48,10 @@ try {
     rms_norm_eps: 0.000001,
     rope_theta: 1000000,
     tie_word_embeddings: true,
-    novel_attention_mode: 'new-layout',
+    text_config: {
+      novel_attention_mode: 'new-layout',
+      recurrent_state_size: 8,
+    },
   }));
   await fs.writeFile(
     path.join(sourceDir, 'model.safetensors'),
@@ -56,6 +59,7 @@ try {
       { name: 'model.embed_tokens.weight', shape: [64, 16] },
       { name: 'model.layers.0.self_attn.q_proj.weight', shape: [16, 16] },
       { name: 'model.layers.0.mlp.down_proj.weight', shape: [16, 32] },
+      { name: 'model.layers.0.delta_state.weight', shape: [16, 16] },
     ])
   );
 
@@ -74,15 +78,16 @@ try {
     'tied-token-embedding'
   );
   assert.equal(
-    first.report.facts.find((fact) => fact.factId === 'source.unmapped.novel_attention_mode')
+    first.report.facts.find((fact) => fact.factId === 'source.unmapped.text_config.novel_attention_mode')
       .confidence,
     'ambiguous'
   );
   assert.equal(first.report.ok, false);
   assert.equal(first.artifacts.conversion.completeness, 'skeleton');
   assert.ok(first.artifacts.conversion.unresolvedFactIds.includes(
-    'source.unmapped.novel_attention_mode'
+    'source.unmapped.text_config.novel_attention_mode'
   ));
+  assert.ok(first.artifacts.conversion.unresolvedFactIds.includes('checkpoint.unmapped_tensors'));
 
   const cliOutputDir = path.join(sourceDir, 'cli-output');
   const cli = spawnSync(
