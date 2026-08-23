@@ -375,6 +375,11 @@
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
         "digest": "sha256:b9aec655be0dfc674ba7ffc22dcb41bfccd655f9f8c0844b5eab4349494bb6b3"
+      },
+      "gemv": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
       }
     },
     "preLayer": [
@@ -391,17 +396,17 @@
       ],
       [
         "q_proj",
-        "tiled",
+        "gemv",
         "layer.{L}.self_attn.q_proj"
       ],
       [
         "k_proj",
-        "tiled",
+        "gemv",
         "layer.{L}.self_attn.k_proj"
       ],
       [
         "v_proj",
-        "tiled",
+        "gemv",
         "layer.{L}.self_attn.v_proj"
       ],
       [
@@ -418,7 +423,7 @@
       ],
       [
         "o_proj",
-        "tiled",
+        "gemv",
         "layer.{L}.self_attn.o_proj"
       ],
       [
@@ -431,12 +436,12 @@
       ],
       [
         "gate_proj",
-        "tiled",
+        "gemv",
         "layer.{L}.mlp.gate_proj"
       ],
       [
         "up_proj",
-        "tiled",
+        "gemv",
         "layer.{L}.mlp.up_proj"
       ],
       [
@@ -445,7 +450,7 @@
       ],
       [
         "down_proj",
-        "tiled",
+        "gemv",
         "layer.{L}.mlp.down_proj"
       ],
       [
