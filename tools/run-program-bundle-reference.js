@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runNodeCommand } from '../src/tooling/node-command-runner.js';
 import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
 import { writeProgramBundle } from '../src/tooling/program-bundle.js';
+import { sha256Hex } from '../src/utils/sha256.js';
 
 const DEFAULT_PROMPT = 'The color of the sky is';
 const DEFAULT_MAX_TOKENS = 8;
@@ -176,6 +177,20 @@ async function readJsonFile(filePath, label) {
   }
 }
 
+async function readJsonEvidenceFile(filePath, label) {
+  const resolved = path.resolve(filePath);
+  const raw = await fs.readFile(resolved, 'utf8');
+  try {
+    return {
+      path: resolved,
+      hash: `sha256:${sha256Hex(raw)}`,
+      json: JSON.parse(raw),
+    };
+  } catch (error) {
+    throw new Error(`${label} must contain valid JSON: ${error.message}`);
+  }
+}
+
 function toRepoRelativeUrlPath(repoRoot, modelDir) {
   const relative = path.relative(path.resolve(repoRoot), path.resolve(modelDir));
   if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
@@ -230,6 +245,9 @@ async function resolveOptions(args) {
       modelId,
       `${timestampLabel()}.reference.json`
     );
+  const expectedTranscriptFile = args.expectedTranscriptPath
+    ? await readJsonEvidenceFile(args.expectedTranscriptPath, 'expected transcript')
+    : null;
 
   return {
     repoRoot,
@@ -246,10 +264,11 @@ async function resolveOptions(args) {
       : modelDir,
     conversionConfigPath: args.conversionConfigPath ? path.resolve(args.conversionConfigPath) : null,
     runtimeConfig: args.runtimeConfig,
-    expectedTranscript: args.expectedTranscriptPath
+    expectedTranscript: expectedTranscriptFile
       ? {
-        path: path.relative(repoRoot, path.resolve(args.expectedTranscriptPath)).split(path.sep).join('/'),
-        json: await readJsonFile(args.expectedTranscriptPath, 'expected transcript'),
+        path: path.relative(repoRoot, expectedTranscriptFile.path).split(path.sep).join('/'),
+        hash: expectedTranscriptFile.hash,
+        json: expectedTranscriptFile.json,
       }
       : null,
     surface: args.surface,
@@ -457,6 +476,18 @@ function compareTokenIds(expected, observed) {
 
 export function buildSourceParity(report, expectedTranscript) {
   const expected = expectedTranscript.json;
+  if (!/^sha256:[0-9a-f]{64}$/.test(expectedTranscript.hash || '')) {
+    throw new Error('expected transcript evidence requires a SHA-256 hash.');
+  }
+  for (const [label, value] of [
+    ['model', expected.model],
+    ['revision', expected.revision],
+    ['execution.sampling', expected.execution?.sampling],
+  ]) {
+    if (typeof value !== 'string' || !value.trim()) {
+      throw new Error(`expected transcript must declare ${label}.`);
+    }
+  }
   if (!Array.isArray(expected.promptTokenIds) || expected.promptTokenIds.length < 1) {
     throw new Error('expected transcript must contain non-empty promptTokenIds.');
   }
@@ -479,6 +510,7 @@ export function buildSourceParity(report, expectedTranscript) {
     schema: 'doppler.source-token-parity/v1',
     status: prompt.passed && generation.passed ? 'passed' : 'failed',
     expectedTranscriptPath: expectedTranscript.path,
+    expectedTranscriptHash: expectedTranscript.hash,
     sourceModel: expected.model ?? null,
     sourceRevision: expected.revision ?? null,
     sampling: expected.execution?.sampling ?? null,

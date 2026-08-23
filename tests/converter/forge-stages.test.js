@@ -65,6 +65,11 @@ const programBundle = {
     sourceParity: {
       schema: 'doppler.source-token-parity/v1',
       status: 'passed',
+      expectedTranscriptPath: 'reports/source.json',
+      expectedTranscriptHash: `sha256:${'8'.repeat(64)}`,
+      sourceModel: 'test/forge-model',
+      sourceRevision: 'fixture-revision',
+      sampling: 'greedy',
       prompt: { passed: true, expectedCount: 1, observedCount: 1, firstMismatchIndex: null },
       generation: { passed: true, expectedCount: 4, observedCount: 4, firstMismatchIndex: null },
     },

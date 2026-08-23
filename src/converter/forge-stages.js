@@ -131,6 +131,10 @@ function promoteQualifiedModelIRV2(modelIR, programBundle) {
     || parity.prompt?.passed !== true || parity.generation?.passed !== true) {
     throw new Error('Forge ModelIR v2 promotion requires exact passed source-token parity.');
   }
+  if (parity.sourceRevision !== modelIR.sourceIdentity.revision
+    || ![modelIR.sourceIdentity.checkpointId, modelIR.sourceIdentity.repository].includes(parity.sourceModel)) {
+    throw new Error('Forge source-token parity identity does not match ModelIR source identity.');
+  }
   const surface = programBundle.referenceTranscript?.surface;
   if (typeof surface !== 'string' || !surface.endsWith('-webgpu') || surface.startsWith('unknown')) {
     throw new Error('Forge ModelIR v2 promotion requires an explicit physical WebGPU surface.');

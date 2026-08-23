@@ -65,9 +65,10 @@ export interface ProgramBundleReferenceTranscript {
     schema: 'doppler.source-token-parity/v1';
     status: 'passed';
     expectedTranscriptPath: string;
-    sourceModel: string | null;
-    sourceRevision: string | null;
-    sampling: string | null;
+    expectedTranscriptHash: `sha256:${string}`;
+    sourceModel: string;
+    sourceRevision: string;
+    sampling: string;
     prompt: { passed: true; expectedCount: number; observedCount: number; firstMismatchIndex: null };
     generation: { passed: true; expectedCount: number; observedCount: number; firstMismatchIndex: null };
   } | null;

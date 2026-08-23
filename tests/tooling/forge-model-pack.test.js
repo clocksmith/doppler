@@ -11,6 +11,7 @@ import {
   usage,
 } from '../../tools/forge-model-pack.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
+import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';
 
 const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-forge-test-'));
 const fixtureRoot = path.join(tmpRoot, 'fixture');
@@ -38,7 +39,11 @@ await fs.writeFile(manifestPath, `${JSON.stringify({
   version: 1,
   modelId: 'forge-unit-model',
   modelType: 'llm',
-  artifactIdentity: { sourceCheckpointId: 'test/forge-unit-model' },
+  artifactIdentity: {
+    sourceCheckpointId: 'test/forge-unit-model',
+    sourceRepo: 'test/forge-unit-model',
+    sourceRevision: 'fixture-revision',
+  },
   architecture: {
     numLayers: 1,
     hiddenSize: 4,
@@ -100,6 +105,7 @@ await fs.writeFile(reportPath, `${JSON.stringify({
   suite: 'debug',
   modelId: 'forge-unit-model',
   timestamp: '2026-04-22T00:00:00.000Z',
+  surface: 'node',
   results: [{ name: 'generation', passed: true }],
   metrics: {
     prompt: 'The sky is',
@@ -165,6 +171,17 @@ await fs.writeFile(reportPath, `${JSON.stringify({
         tokensGenerated: 1,
         stopReason: 'max-tokens',
       },
+    },
+    sourceParity: {
+      schema: 'doppler.source-token-parity/v1',
+      status: 'passed',
+      expectedTranscriptPath: 'reports/source.json',
+      expectedTranscriptHash: `sha256:${'0'.repeat(64)}`,
+      sourceModel: 'test/forge-unit-model',
+      sourceRevision: 'fixture-revision',
+      sampling: 'greedy',
+      prompt: { passed: true, expectedCount: 3, observedCount: 3, firstMismatchIndex: null },
+      generation: { passed: true, expectedCount: 1, observedCount: 1, firstMismatchIndex: null },
     },
   },
   output: ' blue',
@@ -238,6 +255,56 @@ assert.ok(browserEvidence);
 assert.equal(
   await fs.readFile(path.join(path.dirname(qualifiedOutputPath), browserEvidence.path), 'utf8'),
   await fs.readFile(qualificationReportPath, 'utf8')
+);
+
+const sourceModelIR = JSON.parse(await fs.readFile(
+  'reports/model-ir-v2/qwen3.8-27b.model-ir-receipt.json',
+  'utf8'
+)).modelIR;
+const packModelIR = {
+  ...sourceModelIR,
+  modelId: 'forge-unit-model',
+  sourceIdentity: {
+    ...sourceModelIR.sourceIdentity,
+    checkpointId: 'test/forge-unit-model',
+    repository: 'test/forge-unit-model',
+    revision: 'fixture-revision',
+  },
+};
+const modelIRReceiptPath = path.join(tmpRoot, 'forge-unit-model.model-ir.json');
+const modelIRReceiptRaw = `${JSON.stringify({ modelIR: packModelIR }, null, 2)}\n`;
+await fs.writeFile(modelIRReceiptPath, modelIRReceiptRaw, 'utf8');
+const identityPath = path.join(tmpRoot, 'forge-unit-model.initial-identity.json');
+const initialExecutionIdentity = createInitialExecutionIdentity({
+  executionGraphHash: writtenPack.program.executionGraphHash,
+  resolvedGraphHash: `sha256:${'6'.repeat(64)}`,
+  kernelClosure: [{ moduleId: 'embed', file: 'gather.wgsl', entry: 'main', digest: gatherDigest }],
+  dtypeLane: { activation: 'f32', kv: 'f32' },
+  fusionSet: [],
+  kvLayout: { layout: 'contiguous' },
+  memoryPolicy: { kvcache: { layout: 'contiguous' } },
+  executionPlanDigest: `sha256:${'7'.repeat(64)}`,
+  runtimeEngine: { schema: 'fixture' },
+});
+await fs.writeFile(identityPath, `${JSON.stringify(initialExecutionIdentity, null, 2)}\n`, 'utf8');
+const v2OutputPath = path.join(tmpRoot, 'v2', 'compiled.pack.json');
+await forgeModelPack({
+  ...options,
+  programBundlePath: receipt.programBundlePath,
+  outputPath: v2OutputPath,
+  modelIRReceiptPath,
+  initialExecutionIdentityPath: identityPath,
+});
+const v2Pack = JSON.parse(await fs.readFile(v2OutputPath, 'utf8'));
+assert.equal(v2Pack.modelIR.schema, 'doppler.model-ir/v2');
+assert.deepEqual(v2Pack.modelIR.supportScope.qualifiedEntryPoints, ['text.generate']);
+const modelIREvidence = v2Pack.artifacts.find((artifact) => (
+  artifact.artifactId === v2Pack.program.modelIREvidenceArtifactId
+));
+assert.equal(modelIREvidence.role, 'source-truth-evidence');
+assert.equal(
+  await fs.readFile(path.join(path.dirname(v2OutputPath), modelIREvidence.path), 'utf8'),
+  modelIRReceiptRaw
 );
 
 console.log('✔ forge-model-pack.test.js: all tests passed');

@@ -359,6 +359,10 @@ function validateReferenceTranscript(referenceTranscript, expectedGraphHash) {
     if (sourceParity.schema !== 'doppler.source-token-parity/v1' || sourceParity.status !== 'passed') {
       throw new Error('program bundle: referenceTranscript.sourceParity must be a passed v1 source-token receipt.');
     }
+    for (const field of ['expectedTranscriptPath', 'sourceModel', 'sourceRevision', 'sampling']) {
+      assertString(sourceParity[field], `referenceTranscript.sourceParity.${field}`);
+    }
+    assertDigest(sourceParity.expectedTranscriptHash, 'referenceTranscript.sourceParity.expectedTranscriptHash');
     for (const field of ['prompt', 'generation']) {
       assertPlainObject(sourceParity[field], `referenceTranscript.sourceParity.${field}`);
       if (sourceParity[field].passed !== true

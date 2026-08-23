@@ -148,6 +148,11 @@ await fs.writeFile(reportPath, `${JSON.stringify({
     sourceParity: {
       schema: 'doppler.source-token-parity/v1',
       status: 'passed',
+      expectedTranscriptPath: 'reports/source.json',
+      expectedTranscriptHash: `sha256:${'0'.repeat(64)}`,
+      sourceModel: 'source/model',
+      sourceRevision: 'source-revision',
+      sampling: 'greedy',
       prompt: { passed: true, expectedCount: 3, observedCount: 3, firstMismatchIndex: null },
       generation: { passed: true, expectedCount: 1, observedCount: 1, firstMismatchIndex: null },
     },
