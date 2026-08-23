@@ -21,6 +21,8 @@ assert.equal(checked.receipt.vocabularyEvidence.scope, 'semantic-contracts');
 assert.equal(checked.receipt.audit.entryPointStatus, 'unlowered');
 assert.deepEqual(checked.receipt.audit.requiredPhases, ['prefill', 'decode']);
 assert.deepEqual(checked.receipt.audit.unimplementedStateKinds, []);
+assert.equal(checked.receipt.audit.component.compatible, false);
+assert.equal(checked.receipt.audit.outputHeads[0].compatible, false);
 assert.match(JSON.stringify(checked.receipt.audit.blockClasses), /local-attention/);
 assert.match(JSON.stringify(checked.receipt.audit.blockClasses), /rmsnorm-with-postnorm/);
 

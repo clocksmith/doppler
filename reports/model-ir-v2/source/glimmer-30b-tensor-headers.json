@@ -8,6 +8,9 @@
     }
   ],
   "tensors": {
+    "model.language_model.layers.0.post_attention_layernorm.weight": { "dtype": "BF16", "shape": [6656] },
+    "model.language_model.layers.0.post_feedforward_layernorm.weight": { "dtype": "BF16", "shape": [6656] },
+    "model.language_model.layers.0.self_attn.gate_proj.weight": { "dtype": "BF16", "shape": [4096, 6656] },
     "model.language_model.layers.0.self_attn.q_proj.weight": { "dtype": "BF16", "shape": [4096, 6656] },
     "model.language_model.layers.3.self_attn.q_proj.weight": { "dtype": "BF16", "shape": [4096, 6656] },
     "model.vision_tower.layers.0.attn.q_proj.weight": { "dtype": "BF16", "shape": [1536, 1536] },

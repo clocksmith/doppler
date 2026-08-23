@@ -204,9 +204,11 @@ production-signing, multimodal, speculative, application, or Doe support.
 Glimmer intake under the same directory proves representation construction
 only and must not be described as execution support. Its deterministic
 lowerability audit now compares source semantics with the admitted generic
-vocabulary and fails closed on missing local attention, QK scaling, output
-multiplication, post-normalization, and no-RoPE full-attention contracts. Those
-are reusable capability gaps, not permission to add a Glimmer-named Runtime
-branch. The source receipt preserves the corresponding operational formulas and
-ordering as unresolved facts outside signed ModelIR semantics until pinned
-implementation evidence resolves them.
+vocabulary and fails closed on missing local attention, weightless embedding
+normalization, scaleless Q/K normalization and query scaling, sigmoid gate
+placement, centered post-normalization, no-RoPE full-attention, and final-logit
+contracts. Those are reusable capability gaps, not permission to add a
+Glimmer-named Runtime branch. The receipt now pins reference implementation
+source hashes and source spans, places the pre-softcap multiplier on the output
+head, and has zero unresolved text operational facts. Neither entry point is
+lowered or qualified.
