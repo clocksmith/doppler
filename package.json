@@ -38,6 +38,7 @@
     "forge:preflight:glimmer:check": "node tools/create-manifest-conversion-preflight.js --policy src/config/forge/conversion-preflight/glimmer-30b-text.json --check",
     "forge:acquisition:glimmer:sync": "node tools/verify-source-acquisition.js --policy src/config/forge/source-acquisition/glimmer-30b.json",
     "forge:acquisition:glimmer:check": "node tools/verify-source-acquisition.js --policy src/config/forge/source-acquisition/glimmer-30b.json --check",
+    "forge:reference:glimmer": "python3 tools/glimmer-hf-text-reference.py --policy src/config/forge/reference/glimmer-30b-text.json",
     "forge:lineage:qwen38:sync": "node tools/materialize-lineage-conversion.js --recipe src/config/forge/lineage/qwen3.8-27b.json",
     "forge:lineage:qwen38:check": "node tools/materialize-lineage-conversion.js --recipe src/config/forge/lineage/qwen3.8-27b.json --check",
     "pack-v2:gpu:node": "node tools/qualify-pack-v0-node.js",
