@@ -423,6 +423,13 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
   if (recipe.chatTemplate.enabled !== false || recipe.chatTemplate.type !== null) {
     throw new Error('Unproven chat templates must remain explicitly disabled during semantic lowering.');
   }
+  requireExactKeys(recipe.conversion, ['convertedAt', 'tool'], 'conversion identity policy');
+  if (typeof recipe.conversion.convertedAt !== 'string'
+    || Number.isNaN(Date.parse(recipe.conversion.convertedAt))
+    || new Date(recipe.conversion.convertedAt).toISOString() !== recipe.conversion.convertedAt) {
+    throw new Error('conversion identity policy convertedAt must be an ISO-8601 timestamp.');
+  }
+  requireEqual(recipe.conversion.tool, SEMANTIC_MANIFEST_LOWERING_SCHEMA_ID, 'conversion identity policy tool');
 
   const entryPoint = requireNode(modelIR.entryPoints, (candidate) => candidate.id === recipe.entryPointId, `entry point "${recipe.entryPointId}"`);
   requireEqual(entryPoint.kind, 'generate', 'entry-point kind');
@@ -516,6 +523,11 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
       .map((candidate) => candidate.id)
       .sort(),
     disposition: 'accepted',
+  }, {
+    kind: 'reproducible-conversion-identity',
+    conversion: clone(recipe.conversion),
+    disposition: 'accepted',
+    rationale: 'Forge freezes conversion identity before execution so rebuilds do not inherit wall-clock manifest drift.',
   }];
   if (typeof recipe.templateRationale !== 'string' || !recipe.templateRationale.trim()) {
     throw new Error('Semantic manifest lowering requires templateRationale.');
@@ -535,6 +547,7 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
         sourceRevision: modelIR.sourceIdentity.revision,
         artifactCompleteness: 'complete',
       },
+      conversion: clone(recipe.conversion),
       eosTokenId: component.properties.eosTokenId,
     },
     inference,

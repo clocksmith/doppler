@@ -26,3 +26,8 @@ export declare function materializeSafetensorsHeaderEvidence(
     end: number;
   }) => Promise<Uint8Array>
 ): Promise<Record<string, unknown>>;
+
+export declare function validateSafetensorsIndexEvidence(
+  headers: Record<string, unknown>,
+  index: Record<string, unknown>
+): Record<string, unknown>;

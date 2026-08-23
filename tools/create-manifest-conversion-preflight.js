@@ -24,21 +24,34 @@ async function readJson(file) {
 const options = parseArgs(process.argv.slice(2));
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const policy = await readJson(path.resolve(options.policy));
-const [rawConfig, conversionConfig, semanticReceipt, headers, tensorPolicy, tensorClosureReceipt] = await Promise.all([
+const [
+  rawConfig,
+  conversionConfig,
+  semanticReceipt,
+  headers,
+  weightIndex,
+  tensorPolicy,
+  tensorClosureReceipt,
+  sourceAcquisitionReceipt,
+] = await Promise.all([
   readJson(path.resolve(repoRoot, policy.rawConfig)),
   readJson(path.resolve(repoRoot, policy.conversionConfig)),
   readJson(path.resolve(repoRoot, policy.semanticReceipt)),
   readJson(path.resolve(repoRoot, policy.headerEvidence)),
+  readJson(path.resolve(repoRoot, policy.weightIndex)),
   readJson(path.resolve(repoRoot, policy.tensorPolicy)),
   readJson(path.resolve(repoRoot, policy.tensorClosureReceipt)),
+  readJson(path.resolve(repoRoot, policy.sourceAcquisitionReceipt)),
 ]);
 const receipt = createManifestConversionPreflightReceipt({
   rawConfig,
   conversionConfig,
   semanticReceipt,
   headers,
+  weightIndex,
   tensorPolicy,
   tensorClosureReceipt,
+  sourceAcquisitionReceipt,
   policy,
 });
 const outputPath = path.resolve(repoRoot, policy.output);

@@ -1,0 +1,27 @@
+{
+  "schema": "doppler.source-acquisition/v1",
+  "checkpointId": "meta-models/Muse-Glimmer-30B",
+  "repository": "meta-models/Muse-Glimmer-30B",
+  "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+  "localDir": "models/source/glimmer-30b",
+  "output": "reports/model-ir-v2/glimmer-30b.source-acquisition.json",
+  "upstreamEvidence": {
+    "kind": "huggingface-model-revision",
+    "api": "https://huggingface.co/api/models/meta-models/Muse-Glimmer-30B/revision/a4e59da52a7bc87ae7251dd5545c0dd437c44b68?blobs=true"
+  },
+  "files": [
+    { "path": "chat_template.jinja", "size": 9992, "sha256": "cfc67e5f349f37690dfd31ed1f18bc4442a9dd32fe39a648f993cb4eb3cae678", "role": "chat-template-source" },
+    { "path": "config.json", "size": 5109, "sha256": "5a9df2d8a385b3d361ab6ae68d73586f4e775033933bd0cd863fb7f3820e6a14", "role": "model-config" },
+    { "path": "generation_config.json", "size": 202, "sha256": "1fa51889b1f8d3659802dedaa27e005b81e5c58483f13ecf13f2d97306bc6e35", "role": "generation-config" },
+    { "path": "model-00001-of-00002.safetensors", "size": 49950112952, "sha256": "8eef61530e1283642c77ce2e6721feb5c6f348fa055c00e90f2844a136372694", "role": "weight-shard" },
+    { "path": "model-00002-of-00002.safetensors", "size": 9603322320, "sha256": "b58cc2144ba1ba1af4420f67f4ca3ced7f09298510b80464cc75018a0be14381", "role": "weight-shard" },
+    { "path": "model.safetensors.index.json", "size": 132674, "sha256": "7d817b4dccb1b123fc6c1939356c65cee3a0ad462a5b821ac88280990a27d1ba", "role": "weight-index" },
+    { "path": "processor_config.json", "size": 1084, "sha256": "97e2a486dd9866b81f40cf4b8bc0c9ced9a7cd8a5bc65aa4cc2f4de0712dae77", "role": "processor-config" },
+    { "path": "tokenizer.json", "size": 28129897, "sha256": "c9dbee66967b58f31a7c27f723c3760da3526ccd0427578e8905b0abb0031c4d", "role": "tokenizer" },
+    { "path": "tokenizer_config.json", "size": 79936, "sha256": "781e6c74f571642c71202167b67d9255b28cc439bdda1582ff31346182f5a9c5", "role": "tokenizer-config" }
+  ],
+  "author": {
+    "kind": "tool",
+    "actor": "doppler-source-acquisition"
+  }
+}

@@ -53,6 +53,10 @@ assert.equal(session.speculation.mode, 'none');
 assert.equal(session.useSandwichRMSNormPairFusion, false);
 assert.equal(session.usePostFfnNextInputRMSNormPairFusion, false);
 assert.equal(session.usePostAttnNormFusedGateUp, false);
+assert.deepEqual(receipt.conversionConfig.manifest.conversion, {
+  convertedAt: '2026-08-23T08:59:59.000Z',
+  tool: 'doppler.semantic-manifest-lowering/v1',
+});
 
 assert.ok(
   receipt.dispositions.some((item) => item.kind === 'kernel-digest-binding' && item.changed),

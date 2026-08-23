@@ -5,6 +5,23 @@ export const SAFETENSORS_HEADER_EVIDENCE_SCHEMA_ID = 'doppler.safetensors-header
 
 const MAX_HEADER_BYTES = 64 * 1024 * 1024;
 const SHA256_PATTERN = /^(?:sha256:)?([0-9a-f]{64})$/;
+const DTYPE_BYTES = Object.freeze({
+  BOOL: 1,
+  U8: 1,
+  I8: 1,
+  F8_E4M3: 1,
+  F8_E5M2: 1,
+  U16: 2,
+  I16: 2,
+  F16: 2,
+  BF16: 2,
+  U32: 4,
+  I32: 4,
+  F32: 4,
+  U64: 8,
+  I64: 8,
+  F64: 8,
+});
 
 function requireObject(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -83,6 +100,44 @@ export function parseSafetensorsHeaderEvidence(bytes, { sourceFile, expectedSha2
     headerLength,
     tensorCount: Object.keys(tensors).length,
     tensors,
+  });
+}
+
+export function validateSafetensorsIndexEvidence(headers, index) {
+  requireObject(headers, 'SafeTensors header evidence');
+  const weightMap = requireObject(index?.weight_map, 'SafeTensors index weight_map');
+  const headerNames = Object.keys(requireObject(headers.tensors, 'SafeTensors header tensors')).sort();
+  const indexNames = Object.keys(weightMap).sort();
+  if (JSON.stringify(indexNames) !== JSON.stringify(headerNames)) {
+    const missing = headerNames.filter((name) => !Object.hasOwn(weightMap, name));
+    const unexpected = indexNames.filter((name) => !Object.hasOwn(headers.tensors, name));
+    throw new Error(`SafeTensors index closure failed: ${missing.length} missing, ${unexpected.length} unexpected tensors.`);
+  }
+  const shardCounts = {};
+  let totalSize = 0;
+  for (const tensorName of headerNames) {
+    const descriptor = headers.tensors[tensorName];
+    const sourceFile = requireString(descriptor.sourceFile, `SafeTensors tensor "${tensorName}" sourceFile`);
+    if (weightMap[tensorName] !== sourceFile) {
+      throw new Error(
+        `SafeTensors index maps "${tensorName}" to "${weightMap[tensorName]}", expected "${sourceFile}".`
+      );
+    }
+    const bytesPerElement = DTYPE_BYTES[descriptor.dtype];
+    if (!bytesPerElement) throw new Error(`SafeTensors tensor "${tensorName}" has unsupported dtype "${descriptor.dtype}".`);
+    totalSize += descriptor.shape.reduce((product, dimension) => product * dimension, 1) * bytesPerElement;
+    shardCounts[sourceFile] = (shardCounts[sourceFile] ?? 0) + 1;
+  }
+  if (index.metadata?.total_size !== totalSize) {
+    throw new Error(
+      `SafeTensors index total_size mismatch: expected ${totalSize}, got ${String(index.metadata?.total_size)}.`
+    );
+  }
+  return Object.freeze({
+    schema: 'doppler.safetensors-index-evidence/v1',
+    tensorCount: headerNames.length,
+    totalSize,
+    shardCounts: Object.fromEntries(Object.entries(shardCounts).sort(([left], [right]) => left.localeCompare(right))),
   });
 }
 

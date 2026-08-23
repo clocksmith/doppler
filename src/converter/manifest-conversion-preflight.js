@@ -4,6 +4,7 @@ import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
 import { normalizeQuantTag } from './quantization-info.js';
 import { resolveConversionPlan } from './conversion-plan.js';
+import { validateSafetensorsIndexEvidence } from './safetensors-header-evidence.js';
 import { createTensorRoleClosureReceipt } from './tensor-role-closure.js';
 
 export const MANIFEST_CONVERSION_PREFLIGHT_SCHEMA_ID = 'doppler.manifest-conversion-preflight/v1';
@@ -55,13 +56,40 @@ function jsonClone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function validateSourceAcquisition(receipt, headers) {
+  requireObject(receipt, 'Source acquisition receipt');
+  if (receipt.schema !== 'doppler.source-acquisition-receipt/v1' || receipt.complete !== true) {
+    throw new Error('Manifest conversion preflight requires complete source acquisition evidence.');
+  }
+  for (const field of ['checkpointId', 'repository', 'revision']) {
+    if (receipt[field] !== headers[field]) {
+      throw new Error(`Source acquisition ${field} does not match header evidence.`);
+    }
+  }
+  if (!Array.isArray(receipt.files) || receipt.files.some((file) => file.verified !== true)) {
+    throw new Error('Source acquisition receipt contains unverified files.');
+  }
+  const expectedShards = [
+    headers.sourceFile,
+    ...headers.additionalSourceHeaders.map((header) => header.sourceFile),
+  ].sort();
+  const acquiredShards = receipt.files
+    .filter((file) => file.role === 'weight-shard')
+    .map((file) => file.path)
+    .sort();
+  requireEqual(acquiredShards, expectedShards, 'Acquired weight-shard closure');
+  return receipt;
+}
+
 export function createManifestConversionPreflightReceipt({
   rawConfig,
   conversionConfig,
   semanticReceipt,
   headers,
+  weightIndex,
   tensorPolicy,
   tensorClosureReceipt,
+  sourceAcquisitionReceipt,
   policy,
 }) {
   requireObject(policy, 'Manifest conversion preflight policy');
@@ -88,6 +116,8 @@ export function createManifestConversionPreflightReceipt({
     || tensorClosureReceipt.unexpectedTensors.length > 0) {
     throw new Error('Manifest conversion preflight requires complete tensor-role closure.');
   }
+  const acquisition = validateSourceAcquisition(sourceAcquisitionReceipt, headers);
+  const indexEvidence = validateSafetensorsIndexEvidence(headers, weightIndex);
 
   const tensors = selectScopedTensors(headers, tensorPolicy);
   if (tensors.length !== tensorClosureReceipt.expectedTensorCount) {
@@ -127,6 +157,12 @@ export function createManifestConversionPreflightReceipt({
       expectedTensorCount: tensorClosureReceipt.expectedTensorCount,
       observedTensorCount: tensorClosureReceipt.observedTensorCount,
     },
+    sourceAcquisitionEvidence: {
+      receiptDigest: acquisition.receiptDigest,
+      fileCount: acquisition.fileCount,
+      totalBytes: acquisition.totalBytes,
+      weightShardCount: acquisition.files.filter((file) => file.role === 'weight-shard').length,
+    },
     sourceEvidence: {
       checkpointId: headers.checkpointId,
       repository: headers.repository,
@@ -137,6 +173,7 @@ export function createManifestConversionPreflightReceipt({
       scopedTensorCount: tensors.length,
       tensorDescriptorDigest: digest(tensors),
       tensorRoles,
+      weightIndex: indexEvidence,
     },
     conversionPlan: {
       executionVersion: plan.executionVersion,
@@ -154,7 +191,7 @@ export function createManifestConversionPreflightReceipt({
     dispositions: {
       headerPreflightPassed: true,
       weightBodiesRequired: true,
-      weightBodiesPresent: false,
+      weightBodiesPresent: true,
       conversionExecuted: false,
       qualificationStarted: false,
       packEligible: false,

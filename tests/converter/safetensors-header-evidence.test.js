@@ -4,6 +4,7 @@ import {
   materializeSafetensorsHeaderEvidence,
   parseSafetensorsHeaderEvidence,
   readSafetensorsHeaderLength,
+  validateSafetensorsIndexEvidence,
 } from '../../src/converter/safetensors-header-evidence.js';
 
 function headerBytes(header) {
@@ -51,6 +52,31 @@ const receipt = await materializeSafetensorsHeaderEvidence(pin, async ({ sourceF
 assert.equal(receipt.tensorCount, 2);
 assert.deepEqual(Object.keys(receipt.tensors), ['lm_head.weight', 'model.embed_tokens.weight']);
 assert.equal(receipt.additionalSourceHeaders[0].tensorCount, 1);
+assert.deepEqual(
+  validateSafetensorsIndexEvidence(receipt, {
+    metadata: { total_size: 512 },
+    weight_map: {
+      'model.embed_tokens.weight': 'a.safetensors',
+      'lm_head.weight': 'b.safetensors',
+    },
+  }),
+  {
+    schema: 'doppler.safetensors-index-evidence/v1',
+    tensorCount: 2,
+    totalSize: 512,
+    shardCounts: { 'a.safetensors': 1, 'b.safetensors': 1 },
+  }
+);
+assert.throws(
+  () => validateSafetensorsIndexEvidence(receipt, {
+    metadata: { total_size: 512 },
+    weight_map: {
+      'model.embed_tokens.weight': 'b.safetensors',
+      'lm_head.weight': 'b.safetensors',
+    },
+  }),
+  /maps .* expected/
+);
 
 assert.throws(
   () => parseSafetensorsHeaderEvidence(shardA, {
