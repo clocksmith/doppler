@@ -136,19 +136,24 @@ export function validateReleaseToJavaScriptReceipt(receipt) {
       errors.push('acceptedCode.files must be a non-empty array of file evidence objects.');
     } else {
       const paths = [];
+      let filesValid = true;
       for (const [index, file] of receipt.acceptedCode.files.entries()) {
         requireString(file.path, `acceptedCode.files[${index}].path`, errors);
+        if (typeof file.path !== 'string' || !file.path.trim()) filesValid = false;
         if (!DIGEST_PATTERN.test(file.digest || '')) {
           errors.push(`acceptedCode.files[${index}].digest must be a SHA-256 digest.`);
+          filesValid = false;
         }
         paths.push(file.path);
       }
-      if (new Set(paths).size !== paths.length) {
-        errors.push('acceptedCode.files paths must be unique.');
-      }
-      const sortedPaths = [...paths].sort((left, right) => left.localeCompare(right));
-      if (paths.some((filePath, index) => filePath !== sortedPaths[index])) {
-        errors.push('acceptedCode.files must be sorted by path.');
+      if (filesValid) {
+        if (new Set(paths).size !== paths.length) {
+          errors.push('acceptedCode.files paths must be unique.');
+        }
+        const sortedPaths = [...paths].sort((left, right) => left.localeCompare(right));
+        if (paths.some((filePath, index) => filePath !== sortedPaths[index])) {
+          errors.push('acceptedCode.files must be sorted by path.');
+        }
       }
     }
     if (!DIGEST_PATTERN.test(receipt.acceptedCode.digest || '')) {

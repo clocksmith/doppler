@@ -56,6 +56,12 @@ const codeValidation = validateReleaseToJavaScriptReceipt(driftedCode);
 assert.equal(codeValidation.ok, false);
 assert.match(codeValidation.errors.join('; '), /acceptedCode\.digest mismatch|receiptDigest mismatch/);
 
+const invalidCodeFile = structuredClone(receipt);
+invalidCodeFile.acceptedCode.files[0] = { digest: digest('f') };
+const invalidCodeValidation = validateReleaseToJavaScriptReceipt(invalidCodeFile);
+assert.equal(invalidCodeValidation.ok, false);
+assert.match(invalidCodeValidation.errors.join('; '), /acceptedCode\.files\[0\]\.path|receiptDigest mismatch/);
+
 const unresolvedPublication = createReleaseToJavaScriptReceipt({
   ...structuredClone(fields),
   campaignId: 'heterogeneous-model-ir-v2:unresolved-publication',
