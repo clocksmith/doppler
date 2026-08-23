@@ -141,6 +141,7 @@ function cloneExecutionGraph(execution) {
         ([key, kernel]) => [key, cloneKernelDeclaration(kernel)]
       )
     ),
+    mechanismKernels: Array.isArray(execution?.mechanismKernels) ? [...execution.mechanismKernels] : execution?.mechanismKernels,
     preLayer: (execution?.preLayer ?? []).map((entry) => cloneExecutionEntry(entry)),
     decode: (execution?.decode ?? []).map((entry) => cloneExecutionEntry(entry)),
     prefill: (execution?.prefill ?? []).map((entry) => cloneExecutionEntry(entry)),
@@ -148,7 +149,6 @@ function cloneExecutionGraph(execution) {
     policies: execution?.policies ? { ...execution.policies } : execution?.policies,
   };
 }
-
 function normalizePatchSection(section, label) {
   if (section == null) {
     return null;

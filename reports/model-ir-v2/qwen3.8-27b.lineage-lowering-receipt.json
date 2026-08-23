@@ -1,0 +1,1219 @@
+{
+  "schema": "doppler.lineage-lowering-receipt/v1",
+  "modelId": "qwen3.8-27b-text-q4k-ehaf16",
+  "modelIRHash": "sha256:29774ddfc88b818dd4f2ee4440c39cb2def44d56a930c0e8be9f9f4f9cf168f7",
+  "template": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "qwen3.8-lineage-conservative-v1"
+  },
+  "generatedCandidates": 3,
+  "rejectedCandidates": [
+    {
+      "candidateId": "flat-homogeneous",
+      "reason": "Rejected because it omits recurrent and convolutional state."
+    },
+    {
+      "candidateId": "multimodal-all-entrypoints",
+      "reason": "Rejected because vision.encode and speculative.generate are not lowered or qualified."
+    }
+  ],
+  "acceptedCandidateId": "qwen3.8-lineage-conservative-v1",
+  "dispositions": [
+    {
+      "kind": "compatibility-requirement",
+      "factId": "text.modelType",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/model_type"
+        }
+      ]
+    },
+    {
+      "kind": "compatibility-requirement",
+      "factId": "text.layerTypes",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/layer_types"
+        }
+      ]
+    },
+    {
+      "kind": "compatibility-requirement",
+      "factId": "linear.recurrentUpdate",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "reference",
+          "file": "modeling_qwen3_5.py",
+          "pointer": "/facts/recurrentUpdate/value"
+        }
+      ]
+    },
+    {
+      "kind": "compatibility-requirement",
+      "factId": "linear.stateDtype",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/mamba_ssm_dtype"
+        }
+      ]
+    },
+    {
+      "kind": "compatibility-requirement",
+      "factId": "linear.qkL2Norm",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "reference",
+          "file": "modeling_qwen3_5.py",
+          "pointer": "/facts/linearQkL2Norm/value"
+        }
+      ]
+    },
+    {
+      "kind": "compatibility-requirement",
+      "factId": "full.outputGate",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/attn_output_gate"
+        }
+      ]
+    },
+    {
+      "kind": "compatibility-requirement",
+      "factId": "text.decoderNormWeightOffset",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "reference",
+          "file": "modeling_qwen3_5.py",
+          "pointer": "/facts/decoderRmsNormWeightOffset/value"
+        }
+      ]
+    },
+    {
+      "kind": "compatibility-requirement",
+      "factId": "linear.normWeightOffset",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "reference",
+          "file": "modeling_qwen3_5.py",
+          "pointer": "/facts/linearNormWeightOffset/value"
+        }
+      ]
+    },
+    {
+      "kind": "template-assertion",
+      "factId": "full.headDim",
+      "targetPointer": "/inference/attention/queryPreAttnScalar",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/head_dim"
+        }
+      ]
+    },
+    {
+      "kind": "template-assertion",
+      "factId": "text.rmsNormEps",
+      "targetPointer": "/inference/normalization/rmsNormEps",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/rms_norm_eps"
+        }
+      ]
+    },
+    {
+      "kind": "template-assertion",
+      "factId": "text.hiddenActivation",
+      "targetPointer": "/inference/ffn/activation",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/hidden_act"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "text.eosTokenIds",
+      "targetPointer": "/manifest/eosTokenId",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "generation",
+          "file": "generation_config.json",
+          "pointer": "/eos_token_id"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "full.headDim",
+      "targetPointer": "/inference/attention/queryPreAttnScalar",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/head_dim"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "text.attentionBias",
+      "targetPointer": "/inference/attention/attentionBias",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/attention_bias"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "text.attentionCausal",
+      "targetPointer": "/inference/attention/causal",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "reference",
+          "file": "modeling_qwen3_5.py",
+          "pointer": "/facts/attentionCausal/value"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "full.queryKeyNorm",
+      "targetPointer": "/inference/attention/queryKeyNorm",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "reference",
+          "file": "modeling_qwen3_5.py",
+          "pointer": "/facts/queryKeyNorm/value"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "full.outputGate",
+      "targetPointer": "/inference/attention/attentionOutputGate",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/attn_output_gate"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "full.outputGateType",
+      "targetPointer": "/inference/attention/outputGateType",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/output_gate_type"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "text.rmsNormEps",
+      "targetPointer": "/inference/normalization/rmsNormEps",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/rms_norm_eps"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "text.decoderNormWeightOffset",
+      "targetPointer": "/inference/normalization/rmsNormWeightOffset",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "reference",
+          "file": "modeling_qwen3_5.py",
+          "pointer": "/facts/decoderRmsNormWeightOffset/value"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "text.postAttentionNorm",
+      "targetPointer": "/inference/normalization/postAttentionNorm",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "reference",
+          "file": "modeling_qwen3_5.py",
+          "pointer": "/facts/postAttentionNorm/value"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "text.hiddenActivation",
+      "targetPointer": "/inference/ffn/activation",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/hidden_act"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "text.gatedMlp",
+      "targetPointer": "/inference/ffn/gatedActivation",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "reference",
+          "file": "modeling_qwen3_5.py",
+          "pointer": "/facts/gatedMlp/value"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "full.rope",
+      "targetPointer": "/inference/rope/ropeTheta",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/rope_parameters"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "full.rope",
+      "targetPointer": "/inference/rope/mropeInterleaved",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/rope_parameters"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "full.rope",
+      "targetPointer": "/inference/rope/mropeSection",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/rope_parameters"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "full.rope",
+      "targetPointer": "/inference/rope/partialRotaryFactor",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/rope_parameters"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "text.tieWordEmbeddings",
+      "targetPointer": "/inference/output/tieWordEmbeddings",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/tie_word_embeddings"
+        }
+      ]
+    },
+    {
+      "kind": "source-fact-binding",
+      "factId": "text.layerTypes",
+      "targetPointer": "/inference/layerPattern/layerTypes",
+      "disposition": "accepted",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/layer_types"
+        }
+      ]
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/output/textOnly",
+      "lifecycle": "pack-scope",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-conservative-v1"
+      },
+      "rationale": "The complete multimodal source topology remains in ModelIR while this candidate lowers only text.generate."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/session/kvcache/maxSeqLen",
+      "lifecycle": "qualification",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-conservative-v1"
+      },
+      "rationale": "The first signed text target is qualified within an explicit bounded sequence envelope."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/session/speculation/mode",
+      "lifecycle": "pack-scope",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-conservative-v1"
+      },
+      "rationale": "The source MTP drafter is represented but remains unlowered and cannot affect text.generate qualification."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/kernels/gated_delta_conv",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-conservative-v1"
+      },
+      "rationale": "The accepted linear-attention block class requires a content-addressed causal convolution mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/kernels/gated_delta_recurrent",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-conservative-v1"
+      },
+      "rationale": "The accepted gated-delta state contract requires a content-addressed recurrent update mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/kernels/gated_delta_fused_decode",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-conservative-v1"
+      },
+      "rationale": "The signed decode candidate must close over the optional single-token fused implementation selected by resolved policy."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/mechanismKernels",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-conservative-v1"
+      },
+      "rationale": "The heterogeneous block executor loads this complete recurrent mechanism closure outside the homogeneous layer-step sequence."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/session/useLinearAttentionABProjectionFusion",
+      "lifecycle": "qualification",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-conservative-v1"
+      },
+      "rationale": "The first qualification candidate uses separately declared A and B projections."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/session/useLinearAttentionQKVZProjectionFusion",
+      "lifecycle": "qualification",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-conservative-v1"
+      },
+      "rationale": "The first qualification candidate uses separately declared QKV and output-gate projections."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/session/useLinearAttentionFusedDecodeCore",
+      "lifecycle": "qualification",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-conservative-v1"
+      },
+      "rationale": "The first qualification candidate dispatches the separately content-addressed convolution and recurrent kernels."
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "gather_f16.wgsl#main",
+      "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "rmsnorm.wgsl#main",
+      "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "fused_matmul_q4.wgsl#main_multicol",
+      "digest": "sha256:53d5573ae047f553dac3c226507c6e1d80a2a2a2939acb65acd8092dd229677b",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "fused_matmul_q4.wgsl#main_gemv",
+      "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "rope.wgsl#main",
+      "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "attention_decode_online_f16kv.wgsl#main",
+      "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "residual.wgsl#main",
+      "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "silu.wgsl#main",
+      "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "fused_matmul_q4_batched_multicol_shared.wgsl#main",
+      "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "fused_matmul_q4_widetile.wgsl#main",
+      "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "matmul_f16w_f32a.wgsl#main",
+      "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "attention_streaming_f16kv.wgsl#main",
+      "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "attention_head256_f16kv.wgsl#main",
+      "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "matmul_gemv_subgroup.wgsl#main_multicol",
+      "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "fused_matmul_q4.wgsl#main_gemv",
+      "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "sample.wgsl#sample_single_pass",
+      "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "gated_delta_conv.wgsl#main",
+      "digest": "sha256:2b7230e68f4fd54eb4991c998d7e54ca94b82a100cea3d9672816dd36b5bacd9",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "gated_delta_recurrent.wgsl#main",
+      "digest": "sha256:8a6a6392caa11b5f14500b543268df7b87ee3d56deaa72827f9b39692ccb835d",
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "gated_delta_fused_decode.wgsl#main",
+      "digest": "sha256:b9aec655be0dfc674ba7ffc22dcb41bfccd655f9f8c0844b5eab4349494bb6b3",
+      "disposition": "accepted"
+    }
+  ],
+  "unresolvedFacts": [],
+  "conversionConfigDigest": "sha256:6c8f0e935ce9da61a9bd7451381cee1d99dc1b154673b5c8391e5aa6207846f4",
+  "conversionConfig": {
+    "modelType": "transformer",
+    "output": {
+      "baseDir": "models/local",
+      "modelBaseId": "qwen3.8-27b-text-q4k-ehaf16",
+      "textOnly": true,
+      "fast": false
+    },
+    "quantization": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "lmHead": "q4k",
+      "vision": "f16",
+      "projector": "f16",
+      "modulesToNotConvert": [
+        "linear_attn.conv1d.weight",
+        "linear_attn.in_proj_a.weight",
+        "linear_attn.in_proj_b.weight"
+      ],
+      "computePrecision": "f32",
+      "q4kLayout": "row"
+    },
+    "manifest": {
+      "hashAlgorithm": "blake3",
+      "artifactIdentity": {
+        "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+        "sourceRepo": "Qwen/Qwen3.8-27B",
+        "sourceRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+        "artifactCompleteness": "complete"
+      },
+      "eosTokenId": [
+        248046,
+        248044
+      ]
+    },
+    "inference": {
+      "attention": {
+        "queryPreAttnScalar": 256,
+        "attnLogitSoftcapping": null,
+        "slidingWindow": null,
+        "queryKeyNorm": true,
+        "valueNorm": false,
+        "causal": true,
+        "attentionBias": false,
+        "attentionOutputGate": true,
+        "outputGateType": "swish"
+      },
+      "normalization": {
+        "rmsNormEps": 0.000001,
+        "rmsNormWeightOffset": true,
+        "postAttentionNorm": true,
+        "preFeedforwardNorm": false,
+        "postFeedforwardNorm": false
+      },
+      "ffn": {
+        "activation": "silu",
+        "gatedActivation": true,
+        "branchMode": "auto",
+        "useDoubleWideMlp": false,
+        "swigluLimit": null
+      },
+      "rope": {
+        "ropeTheta": 10000000,
+        "ropeLocalTheta": null,
+        "mropeInterleaved": true,
+        "mropeSection": [
+          11,
+          11,
+          10
+        ],
+        "partialRotaryFactor": 0.25,
+        "ropeLocalPartialRotaryFactor": null,
+        "ropeFrequencyBaseDim": null,
+        "ropeLocalFrequencyBaseDim": null,
+        "ropeScalingType": null,
+        "ropeScalingFactor": 1,
+        "ropeLocalScalingType": null,
+        "ropeLocalScalingFactor": 1,
+        "yarnBetaFast": null,
+        "yarnBetaSlow": null,
+        "yarnOriginalMaxPos": null,
+        "ropeLocalYarnBetaFast": null,
+        "ropeLocalYarnBetaSlow": null,
+        "ropeLocalYarnOriginalMaxPos": null,
+        "longropeShortFactor": null,
+        "longropeLongFactor": null,
+        "longropeOriginalMaxPos": null
+      },
+      "output": {
+        "finalLogitSoftcapping": null,
+        "tieWordEmbeddings": false,
+        "scaleEmbeddings": false,
+        "embeddingTranspose": false,
+        "embeddingVocabSize": null,
+        "embeddingPostprocessor": null,
+        "embeddingScale": null,
+        "logitInputScale": 1
+      },
+      "layerPattern": {
+        "type": "custom",
+        "globalPattern": null,
+        "period": null,
+        "offset": null,
+        "layerTypes": [
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention"
+        ],
+        "residualBranchScale": 1
+      },
+      "chatTemplate": {
+        "type": "qwen",
+        "enabled": true
+      }
+    },
+    "session": {
+      "compute": {
+        "defaults": {
+          "activationDtype": "f32",
+          "mathDtype": "f32",
+          "accumDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "kvcache": {
+        "kvDtype": "f16",
+        "layout": "contiguous",
+        "maxSeqLen": 8192,
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "decodeLoop": {
+        "batchSize": 12,
+        "stopCheckMode": "batch",
+        "readbackInterval": 32,
+        "readbackMode": "sequential",
+        "submitLatencyThresholdMs": null,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": false
+      },
+      "perLayerInputs": {
+        "materialization": "auto",
+        "rowCache": {
+          "mode": "lru",
+          "maxRows": 256,
+          "maxBytes": 134217728,
+          "decodedDtype": "f32"
+        },
+        "prefetch": {
+          "mode": "next_token",
+          "rowsAhead": 1
+        },
+        "gpuUpload": {
+          "mode": "per_step_slices",
+          "stagingRows": 2
+        },
+        "hotCache": {
+          "mode": "prepared_tokens",
+          "maxTokens": 1024,
+          "maxBytes": 134217728,
+          "outputDtype": "f32"
+        }
+      },
+      "speculation": {
+        "mode": "none",
+        "tokens": 1,
+        "verify": "greedy",
+        "threshold": null,
+        "rollbackOnReject": true
+      },
+      "prefillChunkSubmitMode": "async",
+      "useFlashPrefillAttention": false,
+      "useWideTileQ4KPrefill": false,
+      "retainQ4KMaterialization": false,
+      "useLinearAttentionABProjectionFusion": false,
+      "useLinearAttentionQKVZProjectionFusion": false,
+      "useLinearAttentionFusedDecodeCore": false
+    },
+    "largeWeights": {
+      "gpuResidentOverrides": null
+    },
+    "execution": {
+      "inlineKernelPath": true,
+      "kernels": {
+        "embed": {
+          "kernel": "gather_f16.wgsl",
+          "entry": "main",
+          "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+        },
+        "rmsnorm": {
+          "kernel": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+        },
+        "q4_decode": {
+          "kernel": "fused_matmul_q4.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:53d5573ae047f553dac3c226507c6e1d80a2a2a2939acb65acd8092dd229677b"
+        },
+        "q4_decode_gemv": {
+          "kernel": "fused_matmul_q4.wgsl",
+          "entry": "main_gemv",
+          "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
+        },
+        "rope": {
+          "kernel": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+        },
+        "attn_decode": {
+          "kernel": "attention_decode_online_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
+        "residual": {
+          "kernel": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        "silu": {
+          "kernel": "silu.wgsl",
+          "entry": "main",
+          "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+          "constants": {
+            "HAS_GATE": true
+          }
+        },
+        "q4_prefill": {
+          "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+          "entry": "main",
+          "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+        },
+        "q4_widetile": {
+          "kernel": "fused_matmul_q4_widetile.wgsl",
+          "entry": "main",
+          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62"
+        },
+        "tiled": {
+          "kernel": "matmul_f16w_f32a.wgsl",
+          "entry": "main",
+          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+        },
+        "attn_stream": {
+          "kernel": "attention_streaming_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
+        "attn_head256": {
+          "kernel": "attention_head256_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
+        "lm_head_gemv": {
+          "kernel": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+          "constants": {
+            "MULTICOL_COLS_PER_WG": 64,
+            "MULTICOL_THREADS_PER_COL": 4
+          }
+        },
+        "lm_head_q4": {
+          "kernel": "fused_matmul_q4.wgsl",
+          "entry": "main_gemv",
+          "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+          "constants": {
+            "COLS_PER_WG": 64,
+            "THREADS_PER_COL_GEMV": 4
+          }
+        },
+        "sample": {
+          "kernel": "sample.wgsl",
+          "entry": "sample_single_pass",
+          "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+        },
+        "gated_delta_conv": {
+          "kernel": "gated_delta_conv.wgsl",
+          "entry": "main",
+          "digest": "sha256:2b7230e68f4fd54eb4991c998d7e54ca94b82a100cea3d9672816dd36b5bacd9"
+        },
+        "gated_delta_recurrent": {
+          "kernel": "gated_delta_recurrent.wgsl",
+          "entry": "main",
+          "digest": "sha256:8a6a6392caa11b5f14500b543268df7b87ee3d56deaa72827f9b39692ccb835d"
+        },
+        "gated_delta_fused_decode": {
+          "kernel": "gated_delta_fused_decode.wgsl",
+          "entry": "main",
+          "digest": "sha256:b9aec655be0dfc674ba7ffc22dcb41bfccd655f9f8c0844b5eab4349494bb6b3"
+        }
+      },
+      "preLayer": [
+        [
+          "embed",
+          "embed",
+          "embed_tokens"
+        ]
+      ],
+      "decode": [
+        [
+          "input_norm",
+          "rmsnorm"
+        ],
+        [
+          "q_proj",
+          "q4_decode_gemv",
+          "layer.{L}.self_attn.q_proj"
+        ],
+        [
+          "k_proj",
+          "q4_decode_gemv",
+          "layer.{L}.self_attn.k_proj"
+        ],
+        [
+          "v_proj",
+          "q4_decode_gemv",
+          "layer.{L}.self_attn.v_proj"
+        ],
+        [
+          "rope_q",
+          "rope"
+        ],
+        [
+          "rope_k",
+          "rope"
+        ],
+        [
+          "attention",
+          "attn_decode"
+        ],
+        [
+          "o_proj",
+          "q4_decode_gemv",
+          "layer.{L}.self_attn.o_proj"
+        ],
+        [
+          "attn_residual",
+          "residual"
+        ],
+        [
+          "post_attn_norm",
+          "rmsnorm"
+        ],
+        [
+          "gate_proj",
+          "q4_decode_gemv",
+          "layer.{L}.mlp.gate_proj"
+        ],
+        [
+          "up_proj",
+          "q4_decode_gemv",
+          "layer.{L}.mlp.up_proj"
+        ],
+        [
+          "activation",
+          "silu"
+        ],
+        [
+          "down_proj",
+          "q4_decode_gemv",
+          "layer.{L}.mlp.down_proj"
+        ],
+        [
+          "ffn_residual",
+          "residual"
+        ]
+      ],
+      "prefill": [
+        [
+          "input_norm",
+          "rmsnorm"
+        ],
+        [
+          "q_proj",
+          "q4_widetile",
+          "layer.{L}.self_attn.q_proj"
+        ],
+        [
+          "k_proj",
+          "q4_widetile",
+          "layer.{L}.self_attn.k_proj"
+        ],
+        [
+          "v_proj",
+          "q4_widetile",
+          "layer.{L}.self_attn.v_proj"
+        ],
+        [
+          "rope_q",
+          "rope"
+        ],
+        [
+          "rope_k",
+          "rope"
+        ],
+        [
+          "attention",
+          "attn_head256"
+        ],
+        [
+          "o_proj",
+          "q4_widetile",
+          "layer.{L}.self_attn.o_proj"
+        ],
+        [
+          "attn_residual",
+          "residual"
+        ],
+        [
+          "post_attn_norm",
+          "rmsnorm"
+        ],
+        [
+          "gate_proj",
+          "q4_widetile",
+          "layer.{L}.mlp.gate_proj"
+        ],
+        [
+          "up_proj",
+          "q4_widetile",
+          "layer.{L}.mlp.up_proj"
+        ],
+        [
+          "activation",
+          "silu"
+        ],
+        [
+          "down_proj",
+          "q4_widetile",
+          "layer.{L}.mlp.down_proj"
+        ],
+        [
+          "ffn_residual",
+          "residual"
+        ]
+      ],
+      "postLayer": [
+        [
+          "final_norm",
+          "rmsnorm"
+        ],
+        [
+          "lm_head",
+          "lm_head_q4",
+          "lm_head"
+        ],
+        [
+          "lm_head_prefill",
+          "q4_prefill",
+          "lm_head"
+        ],
+        [
+          "sample",
+          "sample"
+        ]
+      ],
+      "policies": {
+        "unsupportedPrecision": "error",
+        "dtypeTransition": "require_cast_step",
+        "unresolvedKernel": "error"
+      },
+      "mechanismKernels": [
+        "gated_delta_conv",
+        "gated_delta_recurrent",
+        "gated_delta_fused_decode"
+      ]
+    }
+  }
+}

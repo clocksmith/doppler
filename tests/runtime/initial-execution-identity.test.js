@@ -80,9 +80,14 @@ assert.equal(buffersCreated, 0, 'identity mismatch must fail before resource bin
 
 const resolvedRuntimeSession = {
   schema: 'doppler.resolved-runtime-session/v1',
+  id: digest('9'),
   manifestInference: {
     execution: {
-      kernels: { main: { kernel: 'main.wgsl', entry: 'main', digest: digest('6') } },
+      kernels: {
+        main: { kernel: 'main.wgsl', entry: 'main', digest: digest('6') },
+        recurrent: { kernel: 'gated_delta_recurrent.wgsl', entry: 'main', digest: digest('a') },
+      },
+      mechanismKernels: ['recurrent'],
       preLayer: [['embed', 'main']], prefill: [['attention', 'main']],
       decode: [['attention', 'main']], postLayer: [['sample', 'main']],
     },
@@ -107,6 +112,8 @@ const resolvedRuntimeSession = {
 };
 const observed = observeInitialExecutionIdentity(resolvedRuntimeSession);
 assert.equal(observed.kernelClosure[0].moduleId, 'main');
+assert.equal(observed.kernelClosure[1].moduleId, 'recurrent');
+assert.equal(observed.runtimeEngine.resolvedRuntimeSessionId, digest('9'));
 assert.deepEqual(observed.fusionSet, [{ id: 'fuse-qkv' }]);
 for (const [field, mutate] of [
   ['executionGraphHash', (value) => { value.manifestInference.execution.decode.push(['extra', 'main']); }],

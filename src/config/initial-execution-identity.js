@@ -26,6 +26,12 @@ function buildObservedKernelClosure(execution) {
   for (const section of ['preLayer', 'decode', 'prefill', 'postLayer']) {
     collectKernelIds(execution?.[section], ids);
   }
+  for (const moduleId of execution?.mechanismKernels ?? []) {
+    if (typeof moduleId !== 'string' || !moduleId.trim()) {
+      throw new Error('Observed execution contains an invalid mechanism kernel reference.');
+    }
+    ids.add(moduleId);
+  }
   return [...ids].sort().map((moduleId) => {
     const declaration = execution?.kernels?.[moduleId];
     if (!isObject(declaration) || !SHA256_PATTERN.test(declaration.digest || '')) {
@@ -104,6 +110,9 @@ export function createInitialExecutionIdentity(fields) {
 
 export function observeInitialExecutionIdentity(resolved) {
   if (!isObject(resolved)) throw new Error('Loaded program did not expose a resolved runtime session.');
+  if (!SHA256_PATTERN.test(resolved.id || '')) {
+    throw new Error('Resolved runtime session is missing its canonical identity digest.');
+  }
   const execution = resolved.manifestInference?.execution;
   if (!isObject(execution)) throw new Error('Resolved runtime session is missing manifest execution graph.');
   if (!Array.isArray(resolved.execution?.resolvedSteps)) {
@@ -118,6 +127,7 @@ export function observeInitialExecutionIdentity(resolved) {
     ? resolved.execution.appliedTransforms
     : [];
   const runtimeEngine = {
+    resolvedRuntimeSessionId: resolved.id,
     resolvedRuntimeSchema: resolved.schema,
     kernelPath: resolved.kernelPath,
     capabilityPolicy: resolved.capabilityPolicy,
@@ -130,7 +140,11 @@ export function observeInitialExecutionIdentity(resolved) {
   };
   return createInitialExecutionIdentity({
     executionGraphHash: hashValue(execution),
-    resolvedGraphHash: hashValue(resolved.execution.resolvedSteps),
+    resolvedGraphHash: hashValue({
+      steps: resolved.execution.resolvedSteps,
+      mechanismKernels: execution.mechanismKernels ?? [],
+      layerPattern: resolved.manifestInference?.layerPattern ?? null,
+    }),
     kernelClosure,
     dtypeLane: resolved.dtypes,
     fusionSet,
