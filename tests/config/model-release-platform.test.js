@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+
+import {
+  buildModelReleasePlatformReport,
+  validateModelReleasePlatform,
+} from '../../tools/check-model-release-platform.js';
+
+const policy = JSON.parse(await fs.readFile('tools/policies/model-release-platform.json', 'utf8'));
+const matrix = JSON.parse(await fs.readFile('src/config/goal-completion-matrix.json', 'utf8'));
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+{
+  const report = await buildModelReleasePlatformReport();
+  assert.equal(report.ok, true, report.errors.join('\n'));
+  assert.equal(report.commercialAssessment, 'unestablished');
+  assert.deepEqual(report.migrationSurfaces, ['openai-server', 'generation', 'embedding-reranking']);
+  assert.ok(report.partialRequirements.includes('version-supersession-migration'));
+  assert.ok(report.partialRequirements.includes('portable-state-snapshot-identity'));
+}
+
+{
+  const broken = clone(policy);
+  broken.providers.doeRequired = true;
+  const report = await validateModelReleasePlatform(broken, matrix);
+  assert.ok(report.errors.includes('providers.doeRequired must be false'), report.errors.join('\n'));
+}
+
+{
+  const broken = clone(policy);
+  broken.pack.requiredReleaseElements
+    .find((row) => row.id === 'version-supersession-migration').blockerCode = null;
+  const report = await validateModelReleasePlatform(broken, matrix);
+  assert.ok(
+    report.errors.includes('pack.requiredReleaseElements.version-supersession-migration: partial rows require a blockerCode'),
+    report.errors.join('\n')
+  );
+}
+
+{
+  const broken = clone(policy);
+  broken.apiConvergence.find((row) => row.id === 'generation').evidencePaths = ['missing/path.js'];
+  const report = await validateModelReleasePlatform(broken, matrix);
+  assert.ok(
+    report.errors.includes('apiConvergence.generation.evidencePaths references missing path missing/path.js'),
+    report.errors.join('\n')
+  );
+}
+
+{
+  const broken = clone(matrix);
+  const goal = broken.goals.find((row) => row.id === 'local-webgpu-product-surface');
+  goal.rows = goal.rows.filter((row) => row.id !== 'model-release-qualification-offer');
+  const report = await validateModelReleasePlatform(policy, broken);
+  assert.ok(
+    report.errors.includes('goal matrix is missing local-webgpu-product-surface/model-release-qualification-offer'),
+    report.errors.join('\n')
+  );
+}
+
+console.log('model-release-platform.test: ok');

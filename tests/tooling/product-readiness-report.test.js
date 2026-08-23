@@ -6,12 +6,16 @@ const report = await buildProductReadinessReport();
 const revocations = report.contracts.revocations;
 
 assert.equal(report.ok, true);
-assert.equal(report.actions.length, 6);
+assert.equal(report.actions.length, 9);
 assert.equal(report.actions[0].code, 'maintained-application-integrations-missing');
 assert.equal(report.actions[0].owner, 'doppler-product');
 assert.equal(report.actions[0].completionClass, 'application');
-assert.equal(report.actions.at(-1).code, 'signed-live-revocation-authority-missing');
-assert.equal(report.actions.at(-1).completionClass, 'production-authority');
+assert.equal(report.actions.at(-1).code, 'paid-model-release-qualification-missing');
+assert.equal(report.actions.at(-1).completionClass, 'application');
+assert.equal(
+  report.actions.find((action) => action.code === 'signed-live-revocation-authority-missing')?.completionClass,
+  'production-authority'
+);
 assert.equal(report.contracts.productIntegrations.qualified, 3);
 assert.equal(report.contracts.productPortfolioCoherence.ok, true);
 assert.equal(report.contracts.productPortfolioCoherence.workloads.length, 3);

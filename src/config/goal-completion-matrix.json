@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "doppler",
-  "updatedAtUtc": "2026-08-15T00:00:00.000Z",
+  "updatedAtUtc": "2026-08-22T00:00:00.000Z",
   "goals": [
     {
       "id": "local-webgpu-product-surface",
@@ -15,7 +15,9 @@
       ],
       "blockers": [
         "bun-runtime-tier-experimental",
-        "maintained-application-integrations-missing"
+        "maintained-application-integrations-missing",
+        "pack-first-surface-migration-incomplete",
+        "paid-model-release-qualification-missing"
       ],
       "rows": [
         {
@@ -212,6 +214,55 @@
           "blockers": [
             "maintained-application-integrations-missing"
           ]
+        },
+        {
+          "id": "pack-first-runtime-convergence",
+          "label": "Pack-first public runtime convergence",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/model-release-platform.md",
+            "docs/api/root.md",
+            "docs/api/compat.md",
+            "tools/policies/model-release-platform.json",
+            "src/config/schema/model-release-platform.schema.json",
+            "src/pack-runtime.js",
+            "src/cli/doppler-serve.js",
+            "src/inference/pipelines/text.js",
+            "tools/check-model-release-platform.js",
+            "tests/config/model-release-platform.test.js"
+          ],
+          "blockers": [
+            "pack-first-surface-migration-incomplete"
+          ]
+        },
+        {
+          "id": "model-release-qualification-offer",
+          "label": "External Model Release Qualification offer",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/model-release-platform.md",
+            "docs/goals.md",
+            "tools/policies/model-release-platform.json",
+            "src/config/schema/model-release-platform.schema.json",
+            "tools/check-model-release-platform.js",
+            "tests/config/model-release-platform.test.js",
+            "tools/policies/product-integration-qualification.json"
+          ],
+          "blockers": [
+            "paid-model-release-qualification-missing"
+          ]
         }
       ]
     },
@@ -228,7 +279,8 @@
       ],
       "blockers": [
         "provider-conformance-receipts-missing",
-        "runtime-ownership-decisions-missing"
+        "runtime-ownership-decisions-missing",
+        "pack-release-closure-incomplete"
       ],
       "rows": [
         {
@@ -502,6 +554,30 @@
             "tests/config/product-portfolio-coherence.test.js"
           ],
           "blockers": []
+        },
+        {
+          "id": "complete-pack-release-closure",
+          "label": "Complete supported-release Pack closure",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/model-release-platform.md",
+            "docs/architecture.md",
+            "tools/policies/model-release-platform.json",
+            "src/config/schema/model-release-platform.schema.json",
+            "src/config/pack-v2.js",
+            "src/config/schema/pack-v2.schema.json",
+            "tools/check-model-release-platform.js",
+            "tests/config/model-release-platform.test.js"
+          ],
+          "blockers": [
+            "pack-release-closure-incomplete"
+          ]
         }
       ]
     },
@@ -997,6 +1073,63 @@
         "tools/record-runtime-ownership-evaluation.js",
         "tests/tooling/runtime-ownership-execution-evidence.test.js",
         "tests/tooling/record-runtime-ownership-evaluation.test.js"
+      ]
+    },
+    {
+      "code": "pack-release-closure-incomplete",
+      "priority": 7,
+      "owner": "doppler-forge",
+      "completionClass": "repository",
+      "statusCommand": "npm run model-release:check",
+      "description": "Pack v2 proves immutable plan execution, but the supported-release unit does not yet close source and license provenance, application workload and oracle identity, typed exclusions, supersession and migration, failed-upgrade preservation, and portable state-snapshot identity under one contract.",
+      "exitCriteria": "Extend the Pack and Runtime contracts so every listed release element is immutable, validated, typed, hash-bound, exercised by negative tests, and represented as implemented in the model-release platform policy without weakening existing Pack identity or qualification gates.",
+      "evidencePaths": [
+        "docs/model-release-platform.md",
+        "docs/architecture.md",
+        "tools/policies/model-release-platform.json",
+        "src/config/schema/model-release-platform.schema.json",
+        "src/config/pack-v2.js",
+        "src/config/schema/pack-v2.schema.json",
+        "tools/check-model-release-platform.js",
+        "tests/config/model-release-platform.test.js"
+      ]
+    },
+    {
+      "code": "pack-first-surface-migration-incomplete",
+      "priority": 8,
+      "owner": "doppler-runtime",
+      "completionClass": "repository",
+      "statusCommand": "npm run model-release:check",
+      "description": "The root openPack surface is authoritative, but the OpenAI-compatible server and lower-level generation, embedding, and reranking paths have not converged on one Pack-authoritative resolution and execution path.",
+      "exitCriteria": "Route the declared production server and application APIs through Pack validation, qualified TargetPlan selection, SessionPlan binding, execution, and evidence while retaining dynamic loading only as an explicit compatibility intake surface and adding parity plus fail-closed regression tests.",
+      "evidencePaths": [
+        "docs/model-release-platform.md",
+        "docs/api/root.md",
+        "docs/api/compat.md",
+        "tools/policies/model-release-platform.json",
+        "src/pack-runtime.js",
+        "src/cli/doppler-serve.js",
+        "src/inference/pipelines/text.js",
+        "tools/check-model-release-platform.js",
+        "tests/config/model-release-platform.test.js"
+      ]
+    },
+    {
+      "code": "paid-model-release-qualification-missing",
+      "priority": 9,
+      "owner": "doppler-product",
+      "completionClass": "application",
+      "statusCommand": "npm run model-release:check",
+      "description": "No external application has accepted a Doppler-qualified Pack, later upgraded through the same process, and depended on Doppler's qualification or revocation decision.",
+      "exitCriteria": "Retain an authorized external application agreement, pinned model and application intake, signed Pack, declared browser and Node qualification, known exclusions, upgrade or requalification, rollback and revocation evidence, and proof that the application's release decision depended on Doppler; then promote the commercial assessment through human review.",
+      "evidencePaths": [
+        "docs/model-release-platform.md",
+        "docs/goals.md",
+        "tools/policies/model-release-platform.json",
+        "src/config/schema/model-release-platform.schema.json",
+        "tools/policies/product-integration-qualification.json",
+        "tools/check-model-release-platform.js",
+        "tests/config/model-release-platform.test.js"
       ]
     }
   ]

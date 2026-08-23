@@ -28,6 +28,32 @@ does not provide. Otherwise Doppler should qualify, wrap, or interoperate with
 the strongest eligible provider while applying the same identity and evidence
 standards.
 
+## Standalone product and commercial offer
+
+Doppler's independent category is the **release platform for local models in
+JavaScript**. Its authoritative unit of value is a supported model release: a
+signed immutable Pack, one or more qualified TargetPlans, declared application
+and hardware evidence, known exclusions, and operational upgrade, rollback,
+requalification, and revocation procedures.
+
+The first paid offer is **Model Release Qualification**. A customer provides one
+pinned upstream model and one real application. Doppler returns a source-derived
+Pack and qualifies the declared browser and Node targets. The promotion gate is
+external and repeatable: that application must accept the Pack, later accept an
+upgrade through the same process, and depend on Doppler's qualification or
+revocation decision. An internal Pack proof does not satisfy the gate.
+
+`tools/policies/model-release-platform.json` is the validated projection of
+this product contract. `npm run model-release:check` binds its Forge, ModelIR,
+Pack, provider, API, recovery, commercial, custody, and promotion obligations to
+the completion matrix. The check passes when the contract is coherent and gaps
+are honestly declared; it does not promote those gaps.
+
+Doppler remains provider-neutral. Runtime selects a qualified plan already
+carried by the Pack and never invents one on the user's device. Doe is an
+optional target, not a dependency. A stronger eligible incumbent remains valid
+when it satisfies the application contract.
+
 ## Goal 1: Make local WebGPU inference a real product surface
 
 Product contract:
