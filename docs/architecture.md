@@ -56,6 +56,8 @@ results. Integration notes are maintained in private wrapper docs.
 ## Design Philosophy: Dual-Hexagon Compiler Pipeline & Immutable Pack Spine
 
 See also: [ADR-0001: Dual-Hexagon Compiler Pipeline with an Immutable Pack Spine](adr/0001-dual-hexagon-pack-spine.md).
+The heterogeneous semantic and provenance contract is specified in
+[Heterogeneous ModelIR v2 and Source-Truth Forge](model-ir-v2-source-truth-forge.md).
 
 DOPPLER is organized as two sharply separated systems connected by one immutable artifact:
 
