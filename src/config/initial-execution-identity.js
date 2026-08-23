@@ -3,7 +3,8 @@ import { stableSortObject } from '../utils/stable-sort-object.js';
 
 export const INITIAL_EXECUTION_IDENTITY_SCHEMA_ID = 'doppler.initial-execution-identity/v1';
 export const INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID = 'doppler.initial-execution-identity/v2';
-export const PROGRAM_LOAD_POLICY_SCHEMA_ID = 'doppler.pack-program-load-policy/v1';
+export const PROGRAM_LOAD_POLICY_V1_SCHEMA_ID = 'doppler.pack-program-load-policy/v1';
+export const PROGRAM_LOAD_POLICY_SCHEMA_ID = 'doppler.pack-program-load-policy/v2';
 
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 
@@ -86,8 +87,14 @@ export function validateInitialExecutionIdentity(identity) {
     if (!isObject(identity.programLoadPolicy)) {
       errors.push('programLoadPolicy must be an object.');
     } else {
-      if (identity.programLoadPolicy.schema !== PROGRAM_LOAD_POLICY_SCHEMA_ID) {
-        errors.push(`programLoadPolicy.schema must be "${PROGRAM_LOAD_POLICY_SCHEMA_ID}".`);
+      const policySchema = identity.programLoadPolicy.schema;
+      const isPolicyV1 = policySchema === PROGRAM_LOAD_POLICY_V1_SCHEMA_ID;
+      const isPolicyV2 = policySchema === PROGRAM_LOAD_POLICY_SCHEMA_ID;
+      if (!isPolicyV1 && !isPolicyV2) {
+        errors.push(
+          `programLoadPolicy.schema must be "${PROGRAM_LOAD_POLICY_V1_SCHEMA_ID}" or `
+          + `"${PROGRAM_LOAD_POLICY_SCHEMA_ID}".`
+        );
       }
       const runtimeConfig = identity.programLoadPolicy.runtimeConfig;
       if (!isObject(runtimeConfig) || !isObject(runtimeConfig.inference)) {
@@ -99,11 +106,38 @@ export function validateInitialExecutionIdentity(identity) {
         if (!isObject(runtimeConfig.inference.compute)) {
           errors.push('programLoadPolicy.runtimeConfig.inference.compute must be an object.');
         }
+        if (isPolicyV2) {
+          const generation = runtimeConfig.inference.generation;
+          if (!isObject(generation)) {
+            errors.push('programLoadPolicy.runtimeConfig.inference.generation must be an object.');
+          } else {
+            if (typeof generation.disableMultiTokenDecode !== 'boolean') {
+              errors.push(
+                'programLoadPolicy.runtimeConfig.inference.generation.disableMultiTokenDecode '
+                + 'must be a boolean.'
+              );
+            }
+            const extraGenerationFields = Object.keys(generation)
+              .filter((field) => field !== 'disableMultiTokenDecode');
+            if (extraGenerationFields.length > 0) {
+              errors.push(
+                'programLoadPolicy.runtimeConfig.inference.generation may contain only '
+                + 'disableMultiTokenDecode.'
+              );
+            }
+          }
+        }
+        const allowedInferenceFields = isPolicyV2
+          ? ['session', 'compute', 'generation']
+          : ['session', 'compute'];
         const extraInferenceFields = Object.keys(runtimeConfig.inference)
-          .filter((field) => field !== 'session' && field !== 'compute');
+          .filter((field) => !allowedInferenceFields.includes(field));
         if (extraInferenceFields.length > 0) {
           errors.push(
-            'programLoadPolicy.runtimeConfig.inference may contain only session and compute.'
+            isPolicyV2
+              ? 'programLoadPolicy.runtimeConfig.inference may contain only session, compute, '
+                + 'and generation.'
+              : 'programLoadPolicy.runtimeConfig.inference may contain only session and compute.'
           );
         }
       }
@@ -236,6 +270,10 @@ export function observeInitialExecutionIdentity(resolved) {
         inference: {
           session: resolved.runtime.session,
           compute: resolved.runtime.compute,
+          generation: {
+            disableMultiTokenDecode:
+              resolved.execution.primary?.defaultDisableMultiTokenDecode === true,
+          },
         },
       },
     },

@@ -32,15 +32,54 @@ const expectedIdentity = createInitialExecutionIdentity(fields);
 const expectedIdentityV2 = createInitialExecutionIdentityV2({
   ...fields,
   programLoadPolicy: {
-    schema: 'doppler.pack-program-load-policy/v1',
+    schema: 'doppler.pack-program-load-policy/v2',
     runtimeConfig: {
       inference: {
         session: { decodeLoop: { batchSize: 1 } },
         compute: { outputDtype: 'f32' },
+        generation: { disableMultiTokenDecode: true },
       },
     },
   },
 });
+const legacyPolicyIdentity = createInitialExecutionIdentityV2({
+  ...fields,
+  programLoadPolicy: {
+    schema: 'doppler.pack-program-load-policy/v1',
+    runtimeConfig: { inference: { session: {}, compute: {} } },
+  },
+});
+assert.deepEqual(resolveProgramLoadRuntimeConfig(legacyPolicyIdentity), {
+  inference: { session: {}, compute: {} },
+});
+assert.throws(
+  () => createInitialExecutionIdentityV2({
+    ...fields,
+    programLoadPolicy: {
+      schema: 'doppler.pack-program-load-policy/v2',
+      runtimeConfig: { inference: { session: {}, compute: {} } },
+    },
+  }),
+  /generation must be an object/,
+  'identity v2 must bind every runtime input that changes execution-plan identity'
+);
+assert.throws(
+  () => createInitialExecutionIdentityV2({
+    ...fields,
+    programLoadPolicy: {
+      schema: 'doppler.pack-program-load-policy/v2',
+      runtimeConfig: {
+        inference: {
+          session: {},
+          compute: {},
+          generation: { disableMultiTokenDecode: true, maxTokens: 128 },
+        },
+      },
+    },
+  }),
+  /generation may contain only disableMultiTokenDecode/,
+  'application generation policy must not leak into the signed program-load policy'
+);
 const fixture = await createSignedPackFixture({ initialExecutionIdentity: expectedIdentity });
 const events = [];
 let buffersCreated = 0;
@@ -79,6 +118,7 @@ assert.deepEqual(resolveProgramLoadRuntimeConfig(expectedIdentityV2), {
   inference: {
     session: { decodeLoop: { batchSize: 1 } },
     compute: { outputDtype: 'f32' },
+    generation: { disableMultiTokenDecode: true },
   },
 });
 assert.equal(buffersCreated, 0, 'opening a bound session must not dispatch or allocate transient buffers');
@@ -150,6 +190,9 @@ assert.equal(observed.kernelClosure[0].moduleId, 'main');
 assert.equal(observed.kernelClosure[1].moduleId, 'recurrent');
 assert.equal(observed.runtimeEngine.resolvedRuntimeSessionId, digest('9'));
 assert.deepEqual(observed.fusionSet, [{ id: 'fuse-qkv' }]);
+assert.deepEqual(observed.programLoadPolicy.runtimeConfig.inference.generation, {
+  disableMultiTokenDecode: false,
+});
 for (const [field, mutate] of [
   ['executionGraphHash', (value) => { value.manifestInference.execution.decode.push(['extra', 'main']); }],
   ['resolvedGraphHash', (value) => { value.execution.resolvedSteps.all.push({ id: 'extra' }); }],

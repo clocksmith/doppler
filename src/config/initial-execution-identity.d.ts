@@ -1,6 +1,7 @@
 export const INITIAL_EXECUTION_IDENTITY_SCHEMA_ID: 'doppler.initial-execution-identity/v1';
 export const INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID: 'doppler.initial-execution-identity/v2';
-export const PROGRAM_LOAD_POLICY_SCHEMA_ID: 'doppler.pack-program-load-policy/v1';
+export const PROGRAM_LOAD_POLICY_V1_SCHEMA_ID: 'doppler.pack-program-load-policy/v1';
+export const PROGRAM_LOAD_POLICY_SCHEMA_ID: 'doppler.pack-program-load-policy/v2';
 
 export interface InitialExecutionIdentityV1 {
   schema: 'doppler.initial-execution-identity/v1';
@@ -29,6 +30,17 @@ export interface InitialExecutionIdentityV2 extends Omit<InitialExecutionIdentit
       inference: {
         session: Record<string, unknown>;
         compute: Record<string, unknown>;
+      };
+    };
+  } | {
+    schema: 'doppler.pack-program-load-policy/v2';
+    runtimeConfig: {
+      inference: {
+        session: Record<string, unknown>;
+        compute: Record<string, unknown>;
+        generation: {
+          disableMultiTokenDecode: boolean;
+        };
       };
     };
   };

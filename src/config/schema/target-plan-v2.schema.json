@@ -52,28 +52,10 @@
         "runtimeEngine": { "type": "object" },
         "runtimeEngineDigest": { "$ref": "#/$defs/digest" },
         "programLoadPolicy": {
-          "type": "object",
-          "required": ["schema", "runtimeConfig"],
-          "properties": {
-            "schema": { "const": "doppler.pack-program-load-policy/v1" },
-            "runtimeConfig": {
-              "type": "object",
-              "required": ["inference"],
-              "properties": {
-                "inference": {
-                  "type": "object",
-                  "required": ["session", "compute"],
-                  "properties": {
-                    "session": { "type": "object" },
-                    "compute": { "type": "object" }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
+          "oneOf": [
+            { "$ref": "#/$defs/programLoadPolicyV1" },
+            { "$ref": "#/$defs/programLoadPolicyV2" }
+          ]
         },
         "programLoadPolicyHash": { "$ref": "#/$defs/digest" },
         "digest": { "$ref": "#/$defs/digest" }
@@ -91,5 +73,63 @@
       }]
     }
   },
-  "$defs": { "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" } }
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "programLoadPolicyV1": {
+      "type": "object",
+      "required": ["schema", "runtimeConfig"],
+      "properties": {
+        "schema": { "const": "doppler.pack-program-load-policy/v1" },
+        "runtimeConfig": {
+          "type": "object",
+          "required": ["inference"],
+          "properties": {
+            "inference": {
+              "type": "object",
+              "required": ["session", "compute"],
+              "properties": {
+                "session": { "type": "object" },
+                "compute": { "type": "object" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "programLoadPolicyV2": {
+      "type": "object",
+      "required": ["schema", "runtimeConfig"],
+      "properties": {
+        "schema": { "const": "doppler.pack-program-load-policy/v2" },
+        "runtimeConfig": {
+          "type": "object",
+          "required": ["inference"],
+          "properties": {
+            "inference": {
+              "type": "object",
+              "required": ["session", "compute", "generation"],
+              "properties": {
+                "session": { "type": "object" },
+                "compute": { "type": "object" },
+                "generation": {
+                  "type": "object",
+                  "required": ["disableMultiTokenDecode"],
+                  "properties": {
+                    "disableMultiTokenDecode": { "type": "boolean" }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

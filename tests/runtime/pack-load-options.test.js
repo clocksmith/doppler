@@ -18,11 +18,12 @@ assert.equal(webGpuChecks, 0);
 
 const digest = (character) => `sha256:${character.repeat(64)}`;
 const programLoadPolicy = {
-  schema: 'doppler.pack-program-load-policy/v1',
+  schema: 'doppler.pack-program-load-policy/v2',
   runtimeConfig: {
     inference: {
       session: { decodeLoop: { batchSize: 1, readbackInterval: 1 } },
       compute: { outputDtype: 'f32' },
+      generation: { disableMultiTokenDecode: true },
     },
   },
 };
