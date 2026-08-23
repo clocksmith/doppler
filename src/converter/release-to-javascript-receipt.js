@@ -33,6 +33,13 @@ function receiptCore(receipt) {
   return core;
 }
 
+function acceptedCodeDigest(acceptedCode) {
+  return hashValue({
+    revision: acceptedCode.revision,
+    files: acceptedCode.files,
+  });
+}
+
 export function validateReleaseToJavaScriptReceipt(receipt) {
   const errors = [];
   if (!isObject(receipt)) return { ok: false, errors: ['Release-to-JavaScript receipt must be an object.'] };
@@ -125,11 +132,30 @@ export function validateReleaseToJavaScriptReceipt(receipt) {
   } else {
     requireString(receipt.acceptedCode.revision, 'acceptedCode.revision', errors);
     if (!Array.isArray(receipt.acceptedCode.files) || receipt.acceptedCode.files.length < 1
-      || receipt.acceptedCode.files.some((file) => typeof file !== 'string' || !file.trim())) {
-      errors.push('acceptedCode.files must be a non-empty string array.');
+      || receipt.acceptedCode.files.some((file) => !isObject(file))) {
+      errors.push('acceptedCode.files must be a non-empty array of file evidence objects.');
+    } else {
+      const paths = [];
+      for (const [index, file] of receipt.acceptedCode.files.entries()) {
+        requireString(file.path, `acceptedCode.files[${index}].path`, errors);
+        if (!DIGEST_PATTERN.test(file.digest || '')) {
+          errors.push(`acceptedCode.files[${index}].digest must be a SHA-256 digest.`);
+        }
+        paths.push(file.path);
+      }
+      if (new Set(paths).size !== paths.length) {
+        errors.push('acceptedCode.files paths must be unique.');
+      }
+      const sortedPaths = [...paths].sort((left, right) => left.localeCompare(right));
+      if (paths.some((filePath, index) => filePath !== sortedPaths[index])) {
+        errors.push('acceptedCode.files must be sorted by path.');
+      }
     }
     if (!DIGEST_PATTERN.test(receipt.acceptedCode.digest || '')) {
       errors.push('acceptedCode.digest must be a SHA-256 digest.');
+    } else if (Array.isArray(receipt.acceptedCode.files)
+      && receipt.acceptedCode.digest !== acceptedCodeDigest(receipt.acceptedCode)) {
+      errors.push('acceptedCode.digest mismatch.');
     }
   }
   if (!isObject(receipt.qualification) || receipt.qualification.status !== 'passed') {
