@@ -78,7 +78,7 @@ if (!Number.isInteger(concurrency) || concurrency < 1) {
 const shardObservations = await mapConcurrent(manifest.shards, concurrency, async (shard) => ({
   index: shard.index,
   filename: shard.filename,
-  ...await observeFile(path.join(modelDir, shard.filename)),
+  ...await observeFile(workspacePath(modelDir, shard.filename, `manifest.shards[${shard.index}].filename`)),
 }));
 if (!Array.isArray(policy.artifacts) || policy.artifacts.length < 1) {
   throw new Error('policy.artifacts must be a non-empty array.');
