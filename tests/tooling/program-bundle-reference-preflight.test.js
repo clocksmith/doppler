@@ -10,6 +10,7 @@ import {
   normalizeModelUrl,
   parseArgs,
   resolveRuntimeConfigArtifactPath,
+  runOwnedNodeReferenceCommand,
 } from '../../tools/run-program-bundle-reference.js';
 import {
   resolveProgramBundleStorageArtifact,
@@ -170,6 +171,40 @@ try {
   }, expectedTranscript);
   assert.equal(mismatch.status, 'failed');
   assert.equal(mismatch.generation.firstMismatchIndex, 1);
+
+  const lifecycleEvents = [];
+  const success = await runOwnedNodeReferenceCommand({ command: 'verify' }, {
+    async runCommand(request) {
+      lifecycleEvents.push(`run:${request.command}`);
+      return { ok: true };
+    },
+    destroyDevice() {
+      lifecycleEvents.push('destroy');
+    },
+    async releaseNodeWebGPU() {
+      lifecycleEvents.push('release');
+    },
+  });
+  assert.deepEqual(success, { ok: true });
+  assert.deepEqual(lifecycleEvents, ['run:verify', 'destroy', 'release']);
+
+  lifecycleEvents.length = 0;
+  await assert.rejects(
+    () => runOwnedNodeReferenceCommand({ command: 'verify' }, {
+      async runCommand() {
+        lifecycleEvents.push('run');
+        throw new Error('qualification failed');
+      },
+      destroyDevice() {
+        lifecycleEvents.push('destroy');
+      },
+      async releaseNodeWebGPU() {
+        lifecycleEvents.push('release');
+      },
+    }),
+    /qualification failed/
+  );
+  assert.deepEqual(lifecycleEvents, ['run', 'destroy', 'release']);
 } finally {
   await fs.rm(tmpRoot, { recursive: true, force: true });
 }
