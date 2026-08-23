@@ -1,7 +1,2398 @@
 {
   "schema": "doppler.lineage-lowering-receipt/v1",
   "modelId": "qwen3.8-27b-text-q4k-ehaf16",
-  "modelIRHash": "sha256:646f863c20dd6330420e3cc58da367c4145136dc604dee9fde7d114c1850e6f3",
+  "sourceModelIRHash": "sha256:646f863c20dd6330420e3cc58da367c4145136dc604dee9fde7d114c1850e6f3",
+  "modelIRHash": "sha256:96312e7ba6d809ab8578d667560b293192f3fc459e4487c6b9765c9901879e9f",
+  "modelIR": {
+    "schema": "doppler.model-ir/v2",
+    "schemaVersion": 2,
+    "modelId": "qwen3.8-27b-text-q4k-ehaf16",
+    "sourceIdentity": {
+      "checkpointId": "Qwen/Qwen3.8-27B",
+      "repository": "Qwen/Qwen3.8-27B",
+      "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+      "artifacts": [
+        {
+          "artifactId": "config",
+          "path": "config.json",
+          "role": "normalized-source-config",
+          "hash": "sha256:032ded2488b87e4f03b64a97b3e159318e1c78298338b9c9609dad586d1465b8",
+          "upstreamHash": "sha256:191e0af232104ed8b65258cf3fb2b842e288008baca7633c11b82a1ac7203aab"
+        },
+        {
+          "artifactId": "headers",
+          "path": "model-00001-of-00018.safetensors#header",
+          "role": "tensor-header-receipt",
+          "hash": "sha256:730c6fe341179842eb35c2aad0ba12b5ac99474bd581e82f2c470cbdfc24901b"
+        },
+        {
+          "artifactId": "generation",
+          "path": "generation_config.json",
+          "role": "normalized-generation-config",
+          "hash": "sha256:7f3839093e832e8e81d93f4f23a931b2d1924b0869961f508fa60cd3e4afaab6",
+          "upstreamHash": "sha256:e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e"
+        },
+        {
+          "artifactId": "reference",
+          "path": "src/transformers/models/qwen3_5/modeling_qwen3_5.py#semantic-index",
+          "role": "reference-implementation-semantic-index",
+          "hash": "sha256:9a8e2bf512e81d349ded0243644d3c2b0b6f7c34796f9fd66af4b528282c1558",
+          "upstreamHash": "sha256:3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528"
+        }
+      ]
+    },
+    "provenance": {
+      "forgeVersion": "2.0.0",
+      "intakeDigest": "sha256:d4b4a28ac5a6b66e0c963a54c59306a86f9ca7a53633009959c171cd53be301b",
+      "facts": [
+        {
+          "id": "root.architecture",
+          "subject": "model",
+          "predicate": "architecture",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/architectures/0"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": "Qwen3_5ForConditionalGeneration",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:7a3ae3a148ddd78890b63da008cf91008451f6550516f9cd4d88c69ea5fbb4db"
+          }
+        },
+        {
+          "id": "root.modelType",
+          "subject": "model",
+          "predicate": "modelType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/model_type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": "qwen3_5",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a77263e197475de3343b5a6f775f9d2862bb4ba8fada77f33aaceaf21bf83156"
+          }
+        },
+        {
+          "id": "root.languageOnly",
+          "subject": "model",
+          "predicate": "languageModelOnly",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/language_model_only"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:69684470c21b6a07121db869059bc1a43b241afe527428ff4ff9a6105e89c0f3"
+          }
+        },
+        {
+          "id": "text.modelType",
+          "subject": "component.text",
+          "predicate": "modelType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/model_type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": "qwen3_5_text",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:9a70002a65e6222692405fbad38bedab67cd0147390101bdc560c5249e114cbd"
+          }
+        },
+        {
+          "id": "text.hiddenSize",
+          "subject": "component.text",
+          "predicate": "hiddenSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/hidden_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 5120,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:979e72d812aeb0f2df6c564b60ae1f2e6863625813689b74ac524ea689a387e6"
+          }
+        },
+        {
+          "id": "text.vocabSize",
+          "subject": "component.text",
+          "predicate": "vocabSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/vocab_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 248320,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:eef64b5560a2eaf3ef93a68c3b96becaaf65b4fffa668c088eec95f5b739ad47"
+          }
+        },
+        {
+          "id": "text.layerTypes",
+          "subject": "component.text",
+          "predicate": "layerTypes",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/layer_types"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": [
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention",
+            "linear_attention",
+            "linear_attention",
+            "linear_attention",
+            "full_attention"
+          ],
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:67da0068e3bc272618b554f9aa6fc5fe4f844092dff3af157fd31890e6321500"
+          }
+        },
+        {
+          "id": "text.numLayers",
+          "subject": "component.text",
+          "predicate": "numLayers",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/num_hidden_layers"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 64,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:f9cde69ce2ecabc188ecea0bc05f7772b8bcc837aa42a5ceb398799fa18412f1"
+          }
+        },
+        {
+          "id": "text.intermediateSize",
+          "subject": "component.text",
+          "predicate": "intermediateSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/intermediate_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 17408,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:566900ae4a57d806b34d85bdd8a86f876459fbbd7aadf39017c3e53fbc9f3e2e"
+          }
+        },
+        {
+          "id": "text.hiddenActivation",
+          "subject": "component.text",
+          "predicate": "hiddenActivation",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/hidden_act"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": "silu",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4b1ed00de2a4cccecc548a7a7fb00da5282728b9fdea3dcd72b2460f5ca0f7da"
+          }
+        },
+        {
+          "id": "text.rmsNormEps",
+          "subject": "component.text",
+          "predicate": "rmsNormEps",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/rms_norm_eps"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 0.000001,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4d13b4f59f87aed829203bb9de418720651bbc86dbeb334299a8a7f4584133bd"
+          }
+        },
+        {
+          "id": "text.useCache",
+          "subject": "component.text",
+          "predicate": "useCache",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/use_cache"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:feefc01d881857efb21f55d704ae611220956e19898c562dd9edea96b6d3d031"
+          }
+        },
+        {
+          "id": "text.maxPosition",
+          "subject": "component.text",
+          "predicate": "maxPosition",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/max_position_embeddings"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 262144,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:2e89198f595ce8858673a0835c6c9b14ba9ea27d99139e323d75f91cf3f4ccc7"
+          }
+        },
+        {
+          "id": "text.attentionBias",
+          "subject": "component.text",
+          "predicate": "attentionBias",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/attention_bias"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b6fba4f4638bdc75071bc78c5172903dabb194406dd76e723e113400b7b36252"
+          }
+        },
+        {
+          "id": "text.tieWordEmbeddings",
+          "subject": "component.text",
+          "predicate": "tieWordEmbeddings",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/tie_word_embeddings"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:e34c6ca378d6186d11348b98ef72651726219486eab9497832692eb43f9295c4"
+          }
+        },
+        {
+          "id": "text.eosTokenIds",
+          "subject": "component.text",
+          "predicate": "eosTokenIds",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/eos_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": [
+            248046,
+            248044
+          ],
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d452444f701bfd9e8b71c3f81287c2d687c3f552caccb0f86634717230953cec"
+          }
+        },
+        {
+          "id": "text.attentionCausal",
+          "subject": "component.text",
+          "predicate": "attentionCausal",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/attentionCausal/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:2b49f6c8f1386dacafa46e56423227fcc1723b5350e2a6dde042ae06133f5bc6"
+          }
+        },
+        {
+          "id": "text.decoderNormWeightOffset",
+          "subject": "component.text",
+          "predicate": "decoderNormWeightOffset",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/decoderRmsNormWeightOffset/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c37327d6258786e6b5c002cd11e73bfa1c9adf1dda2f08c05440dd0d405dbf05"
+          }
+        },
+        {
+          "id": "text.gatedMlp",
+          "subject": "component.text",
+          "predicate": "gatedMlp",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/gatedMlp/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:efbecd480f4af470ee563b04eb0aa50eb12418b38b19b586fdf4702efb2f98eb"
+          }
+        },
+        {
+          "id": "text.postAttentionNorm",
+          "subject": "component.text",
+          "predicate": "postAttentionNorm",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/postAttentionNorm/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b9acb43b725674727cdbbb02b410a91293559789e51a2adead1531005db8261e"
+          }
+        },
+        {
+          "id": "full.queryKeyNorm",
+          "subject": "block.full",
+          "predicate": "queryKeyNorm",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/queryKeyNorm/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d1c2a57452710890d355bd7133fc9a8fe2c7b9cda7758098fef2f095fb78636d"
+          }
+        },
+        {
+          "id": "linear.normWeightOffset",
+          "subject": "block.linear",
+          "predicate": "normWeightOffset",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/linearNormWeightOffset/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ecb098654946a8883ecfc4eac2ea46219d2c10cd022229c7c84d3de94600ee60"
+          }
+        },
+        {
+          "id": "linear.qkL2Norm",
+          "subject": "block.linear",
+          "predicate": "qkL2Norm",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/linearQkL2Norm/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a12c0934ed5b64cbbc0a6399907a3f2b8616a00dc8f036e2d9814ef7c2779c93"
+          }
+        },
+        {
+          "id": "linear.recurrentUpdate",
+          "subject": "block.linear",
+          "predicate": "recurrentUpdate",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/recurrentUpdate/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": "gated-delta",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:269b94daaeb525522df0b61cd7942f8994f65c028bc1a4d59193c763512d7db8"
+          }
+        },
+        {
+          "id": "full.numHeads",
+          "subject": "block.full",
+          "predicate": "numHeads",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/num_attention_heads"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 24,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:f2cc43625aa0ea2668091d35769f9e6948f6a2748d5eec363c41877eb0f9ab3c"
+          }
+        },
+        {
+          "id": "full.numKvHeads",
+          "subject": "block.full",
+          "predicate": "numKvHeads",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/num_key_value_heads"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 4,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:e1cd75d26faaf41a78c0e159d215850805797275339f41b13758e8e93b9a6d50"
+          }
+        },
+        {
+          "id": "full.headDim",
+          "subject": "block.full",
+          "predicate": "headDim",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/head_dim"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 256,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:30e7ecdcec131c810e13c3ff351e6358d9373a2e21adc1b041fae5969cddedff"
+          }
+        },
+        {
+          "id": "full.rope",
+          "subject": "block.full",
+          "predicate": "rope",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/rope_parameters"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": {
+            "mrope_interleaved": true,
+            "mrope_section": [
+              11,
+              11,
+              10
+            ],
+            "partial_rotary_factor": 0.25,
+            "rope_theta": 10000000,
+            "rope_type": "default"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:032c58c39799cdd638fcbe7bea7af55a7459ff044a51f195d969b76120634806"
+          }
+        },
+        {
+          "id": "full.outputGate",
+          "subject": "block.full",
+          "predicate": "outputGate",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/attn_output_gate"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:68927684f16449397cc4e958ecdeaf95fd31259ce0bb4e9c36311e944d4a754c"
+          }
+        },
+        {
+          "id": "full.outputGateType",
+          "subject": "block.full",
+          "predicate": "outputGateType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/output_gate_type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": "swish",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:5640c0267479f2aaa87437e737cca31c30371e82846087857945ded796922046"
+          }
+        },
+        {
+          "id": "linear.keyHeads",
+          "subject": "block.linear",
+          "predicate": "keyHeads",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/linear_num_key_heads"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 16,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4baf030bef6f57385b8acb5022187fb2333c9bbefa0197b79fca5c5e37e4cfa7"
+          }
+        },
+        {
+          "id": "linear.valueHeads",
+          "subject": "block.linear",
+          "predicate": "valueHeads",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/linear_num_value_heads"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 48,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c85b12b7537264ae5b5d4ba30515133dd1f3a4ee48cc8af01ced5f20c6f3b7da"
+          }
+        },
+        {
+          "id": "linear.keyHeadDim",
+          "subject": "block.linear",
+          "predicate": "keyHeadDim",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/linear_key_head_dim"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 128,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:cf6f7d58d3a0b41e5516d852925261a9875a74fc4d78f8f5f36f78b94a0b8bfd"
+          }
+        },
+        {
+          "id": "linear.valueHeadDim",
+          "subject": "block.linear",
+          "predicate": "valueHeadDim",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/linear_value_head_dim"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 128,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:546987b000240355393f7ab0ca808e3f297a331ae19b38ba756f1a63ff2c5244"
+          }
+        },
+        {
+          "id": "linear.convKernel",
+          "subject": "block.linear",
+          "predicate": "convKernel",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/linear_conv_kernel_dim"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 4,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:38f5af1aeb2a2ef5f68c51b6a343fa452d0bc1d11615989ab4061315e16a7744"
+          }
+        },
+        {
+          "id": "linear.stateDtype",
+          "subject": "block.linear",
+          "predicate": "stateDtype",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/mamba_ssm_dtype"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": "float32",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:cf91e1c34051950f6911a0c3c7cb3906b78871f9fb3b3fffc714b68b87459194"
+          }
+        },
+        {
+          "id": "mtp.numLayers",
+          "subject": "component.mtp",
+          "predicate": "numLayers",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/mtp_num_hidden_layers"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 1,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ed16a53953d3549ecc51016b67416b453598ac188db9837ddcb84c747f245443"
+          }
+        },
+        {
+          "id": "mtp.dedicatedEmbeddings",
+          "subject": "component.mtp",
+          "predicate": "dedicatedEmbeddings",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/mtp_use_dedicated_embeddings"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c5269a8c2b8721806222209fa3b57bcad6ab631ec6d34830d07766dcbbe555ff"
+          }
+        },
+        {
+          "id": "vision.modelType",
+          "subject": "component.vision",
+          "predicate": "modelType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/model_type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": "qwen3_5",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4c1df0efe810a5119dcf64a5e3e52dd1b95a78203b0f2678938f26869f15548b"
+          }
+        },
+        {
+          "id": "vision.depth",
+          "subject": "component.vision",
+          "predicate": "depth",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/depth"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 27,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a990e641c7e334ab8a74e6fd8792b2bfa951cd68e78f7737a712b7abae5e06c4"
+          }
+        },
+        {
+          "id": "vision.hiddenSize",
+          "subject": "component.vision",
+          "predicate": "hiddenSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/hidden_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 1152,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:2b1999d6cefe9c8bc77d0c220aaa61a2da3e47e89f8dad1575c87e8d575307cb"
+          }
+        },
+        {
+          "id": "vision.intermediateSize",
+          "subject": "component.vision",
+          "predicate": "intermediateSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/intermediate_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 4304,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:720b0bde64d5dc1412b6272ff881475b7fb5aaff20fde3d062b8292be387b628"
+          }
+        },
+        {
+          "id": "vision.numHeads",
+          "subject": "component.vision",
+          "predicate": "numHeads",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/num_heads"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 16,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:deb66e46820c8eca7dbb3a11da0a79a3f7ccc22451b305f8ef3ad229fdb649bf"
+          }
+        },
+        {
+          "id": "vision.outHiddenSize",
+          "subject": "component.vision",
+          "predicate": "outHiddenSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/out_hidden_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 5120,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a614da67f1593872cfb155dd53c883d51672f29e084ca11738e574629852511b"
+          }
+        },
+        {
+          "id": "vision.patchSize",
+          "subject": "component.vision",
+          "predicate": "patchSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/patch_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 16,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a9b753864231765cf901dec5b5f4f19c2b4e599ef573965045198261c5359cb5"
+          }
+        },
+        {
+          "id": "vision.temporalPatch",
+          "subject": "component.vision",
+          "predicate": "temporalPatch",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/temporal_patch_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 2,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:7f20d06fbd5fd197e8524af9f6344357be01e96ba4cda5493d338dc0374e648f"
+          }
+        },
+        {
+          "id": "vision.mergeSize",
+          "subject": "component.vision",
+          "predicate": "mergeSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/spatial_merge_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 2,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:280ef13737d01fcd6ed5af3b4adca6ac7ba99c3d96bf140fa1dbfd1dbccc91d4"
+          }
+        },
+        {
+          "id": "tensor.linearState",
+          "subject": "tensor.linearState",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00018.safetensors",
+              "tensorName": "model.language_model.layers.0.linear_attn.A_log",
+              "dtype": "BF16",
+              "shape": [
+                48
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": {
+            "shape": [
+              48
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:6ff6354fdfc8a2e09d6f46a98e3404176510a8852feaf8889072324076680987"
+          }
+        },
+        {
+          "id": "tensor.linearConv",
+          "subject": "tensor.linearConv",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00018.safetensors",
+              "tensorName": "model.language_model.layers.0.linear_attn.conv1d.weight",
+              "dtype": "BF16",
+              "shape": [
+                10240,
+                1,
+                4
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": {
+            "shape": [
+              10240,
+              1,
+              4
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:91b7387157e4c9bc3132f7051c6f911b715682c851ad669fa6a7152b0348d1f1"
+          }
+        },
+        {
+          "id": "tensor.linearQkv",
+          "subject": "tensor.linearQkv",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00018.safetensors",
+              "tensorName": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight",
+              "dtype": "BF16",
+              "shape": [
+                10240,
+                5120
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": {
+            "shape": [
+              10240,
+              5120
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:10709464a4e250070d135bf65273fc3e3649616b19da77df7f476585eaff8dd8"
+          }
+        },
+        {
+          "id": "tensor.fullQuery",
+          "subject": "tensor.fullQuery",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00018.safetensors",
+              "tensorName": "model.language_model.layers.3.self_attn.q_proj.weight",
+              "dtype": "BF16",
+              "shape": [
+                12288,
+                5120
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": {
+            "shape": [
+              12288,
+              5120
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d7e48e74981236c2d7fd9d7ddaf33e43e777557e972b6c8b599c4ca04b5e8918"
+          }
+        },
+        {
+          "id": "tensor.visionPatch",
+          "subject": "tensor.visionPatch",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00018.safetensors",
+              "tensorName": "model.visual.patch_embed.proj.weight",
+              "dtype": "BF16",
+              "shape": [
+                1152,
+                3,
+                2,
+                16,
+                16
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": {
+            "shape": [
+              1152,
+              3,
+              2,
+              16,
+              16
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:fb269549370c51ae01a3d3f22190299dc9ddf0673f5a7ab7ef6c5de093db6a5f"
+          }
+        },
+        {
+          "id": "tensor.projector",
+          "subject": "tensor.projector",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00018.safetensors",
+              "tensorName": "model.visual.merger.linear_fc2.weight",
+              "dtype": "BF16",
+              "shape": [
+                5120,
+                4608
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": {
+            "shape": [
+              5120,
+              4608
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:9e8ac13cfc7664e44d96b340c2c85553552790bbdd476a8948fd595582c7e41e"
+          }
+        }
+      ]
+    },
+    "components": [
+      {
+        "id": "text-decoder",
+        "factRefs": [
+          "text.modelType",
+          "text.hiddenSize",
+          "text.vocabSize",
+          "text.numLayers"
+        ],
+        "type": "text-decoder",
+        "role": "primary",
+        "properties": {
+          "modelType": "qwen3_5_text",
+          "hiddenSize": 5120,
+          "vocabSize": 248320,
+          "numLayers": 64
+        }
+      },
+      {
+        "id": "vision-encoder",
+        "factRefs": [
+          "vision.modelType",
+          "vision.depth",
+          "vision.hiddenSize",
+          "vision.patchSize",
+          "tensor.visionPatch"
+        ],
+        "type": "vision-encoder",
+        "role": "auxiliary",
+        "properties": {
+          "modelType": "qwen3_5",
+          "depth": 27,
+          "hiddenSize": 1152,
+          "patchSize": 16,
+          "temporalPatchSize": 2
+        }
+      },
+      {
+        "id": "vision-projector",
+        "factRefs": [
+          "vision.outHiddenSize",
+          "vision.mergeSize",
+          "tensor.projector"
+        ],
+        "type": "projector",
+        "role": "connector",
+        "properties": {
+          "outputSize": 5120,
+          "mergeSize": 2
+        }
+      },
+      {
+        "id": "mtp-drafter",
+        "factRefs": [
+          "mtp.numLayers",
+          "mtp.dedicatedEmbeddings"
+        ],
+        "type": "speculative-drafter",
+        "role": "auxiliary",
+        "properties": {
+          "numLayers": 1,
+          "dedicatedEmbeddings": false
+        }
+      }
+    ],
+    "blockClasses": [
+      {
+        "id": "linear-recurrent",
+        "factRefs": [
+          "linear.keyHeads",
+          "linear.valueHeads",
+          "linear.keyHeadDim",
+          "linear.valueHeadDim",
+          "linear.convKernel",
+          "linear.stateDtype",
+          "linear.normWeightOffset",
+          "linear.qkL2Norm",
+          "linear.recurrentUpdate",
+          "text.rmsNormEps",
+          "text.intermediateSize",
+          "text.hiddenActivation",
+          "text.gatedMlp"
+        ],
+        "kind": "linear-recurrent-attention",
+        "geometry": {
+          "keyHeads": 16,
+          "valueHeads": 48,
+          "keyHeadDim": 128,
+          "valueHeadDim": 128,
+          "qkL2Norm": true,
+          "recurrentUpdate": "gated-delta"
+        },
+        "normalization": {
+          "type": "rmsnorm",
+          "eps": 0.000001,
+          "weightOffset": false
+        },
+        "positional": {},
+        "feedForward": {
+          "type": "gated-dense",
+          "gated": true,
+          "activation": "silu",
+          "intermediateSize": 17408
+        },
+        "phaseBehavior": {
+          "prefill": true,
+          "decode": true
+        }
+      },
+      {
+        "id": "full-attention",
+        "factRefs": [
+          "full.numHeads",
+          "full.numKvHeads",
+          "full.headDim",
+          "full.rope",
+          "full.outputGate",
+          "full.outputGateType",
+          "full.queryKeyNorm",
+          "text.attentionCausal",
+          "text.decoderNormWeightOffset",
+          "text.rmsNormEps",
+          "text.intermediateSize",
+          "text.hiddenActivation",
+          "text.gatedMlp"
+        ],
+        "kind": "full-attention",
+        "geometry": {
+          "numHeads": 24,
+          "numKvHeads": 4,
+          "headDim": 256,
+          "queryKeyNorm": true,
+          "causal": true,
+          "outputGate": true,
+          "outputGateType": "swish"
+        },
+        "normalization": {
+          "type": "rmsnorm",
+          "eps": 0.000001,
+          "weightOffset": true
+        },
+        "positional": {
+          "mrope_interleaved": true,
+          "mrope_section": [
+            11,
+            11,
+            10
+          ],
+          "partial_rotary_factor": 0.25,
+          "rope_theta": 10000000,
+          "rope_type": "default"
+        },
+        "feedForward": {
+          "type": "gated-dense",
+          "gated": true,
+          "activation": "silu",
+          "intermediateSize": 17408
+        },
+        "phaseBehavior": {
+          "prefill": true,
+          "decode": true
+        }
+      },
+      {
+        "id": "vision-attention",
+        "factRefs": [
+          "vision.numHeads",
+          "vision.hiddenSize",
+          "vision.intermediateSize"
+        ],
+        "kind": "full-attention",
+        "geometry": {
+          "numHeads": 16,
+          "hiddenSize": 1152
+        },
+        "normalization": {
+          "type": "layernorm"
+        },
+        "positional": {
+          "type": "learned"
+        },
+        "feedForward": {
+          "type": "dense",
+          "intermediateSize": 4304
+        },
+        "phaseBehavior": {
+          "encode": true
+        }
+      },
+      {
+        "id": "mtp-attention",
+        "factRefs": [
+          "mtp.numLayers",
+          "full.numHeads",
+          "full.numKvHeads",
+          "full.headDim"
+        ],
+        "kind": "multi-token-prediction",
+        "geometry": {
+          "numHeads": 24,
+          "numKvHeads": 4,
+          "headDim": 256
+        },
+        "normalization": {
+          "type": "rmsnorm"
+        },
+        "positional": {
+          "mrope_interleaved": true,
+          "mrope_section": [
+            11,
+            11,
+            10
+          ],
+          "partial_rotary_factor": 0.25,
+          "rope_theta": 10000000,
+          "rope_type": "default"
+        },
+        "feedForward": {
+          "type": "gated-dense"
+        },
+        "phaseBehavior": {
+          "draft": true
+        }
+      }
+    ],
+    "blockSchedules": [
+      {
+        "id": "text.schedule",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "text.layerTypes",
+          "text.numLayers"
+        ],
+        "blocks": [
+          {
+            "index": 0,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 1,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 2,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 3,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 4,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 5,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 6,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 7,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 8,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 9,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 10,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 11,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 12,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 13,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 14,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 15,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 16,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 17,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 18,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 19,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 20,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 21,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 22,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 23,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 24,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 25,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 26,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 27,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 28,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 29,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 30,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 31,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 32,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 33,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 34,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 35,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 36,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 37,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 38,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 39,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 40,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 41,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 42,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 43,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 44,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 45,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 46,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 47,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 48,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 49,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 50,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 51,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 52,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 53,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 54,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 55,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 56,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 57,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 58,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 59,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 60,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 61,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 62,
+            "blockClassId": "linear-recurrent"
+          },
+          {
+            "index": 63,
+            "blockClassId": "full-attention"
+          }
+        ]
+      },
+      {
+        "id": "vision.schedule",
+        "componentId": "vision-encoder",
+        "factRefs": [
+          "vision.depth"
+        ],
+        "blocks": [
+          {
+            "index": 0,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 1,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 2,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 3,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 4,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 5,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 6,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 7,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 8,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 9,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 10,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 11,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 12,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 13,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 14,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 15,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 16,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 17,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 18,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 19,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 20,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 21,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 22,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 23,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 24,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 25,
+            "blockClassId": "vision-attention"
+          },
+          {
+            "index": 26,
+            "blockClassId": "vision-attention"
+          }
+        ]
+      },
+      {
+        "id": "mtp.schedule",
+        "componentId": "mtp-drafter",
+        "factRefs": [
+          "mtp.numLayers"
+        ],
+        "blocks": [
+          {
+            "index": 0,
+            "blockClassId": "mtp-attention"
+          }
+        ]
+      }
+    ],
+    "stateSpaces": [
+      {
+        "id": "text.kv-state",
+        "factRefs": [
+          "text.useCache",
+          "full.numKvHeads",
+          "full.headDim"
+        ],
+        "kind": "kv",
+        "persistence": "session",
+        "contract": {
+          "numKvHeads": 4,
+          "headDim": 256
+        }
+      },
+      {
+        "id": "text.recurrent-state",
+        "factRefs": [
+          "linear.keyHeads",
+          "linear.valueHeads",
+          "linear.keyHeadDim",
+          "linear.valueHeadDim",
+          "linear.stateDtype",
+          "tensor.linearState"
+        ],
+        "kind": "recurrent",
+        "persistence": "session",
+        "contract": {
+          "keyHeads": 16,
+          "valueHeads": 48,
+          "dtype": "float32"
+        }
+      },
+      {
+        "id": "text.convolutional-state",
+        "factRefs": [
+          "linear.convKernel",
+          "linear.stateDtype",
+          "tensor.linearConv"
+        ],
+        "kind": "convolutional",
+        "persistence": "session",
+        "contract": {
+          "kernelSize": 4,
+          "dtype": "float32"
+        }
+      }
+    ],
+    "tensorRoleBindings": [
+      {
+        "id": "linear.state-binding",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "tensor.linearState"
+        ],
+        "role": "recurrent-transition",
+        "selector": {
+          "exact": "model.language_model.layers.0.linear_attn.A_log"
+        }
+      },
+      {
+        "id": "linear.conv-binding",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "tensor.linearConv"
+        ],
+        "role": "convolution-kernel",
+        "selector": {
+          "exact": "model.language_model.layers.0.linear_attn.conv1d.weight"
+        }
+      },
+      {
+        "id": "linear.qkv-binding",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "tensor.linearQkv"
+        ],
+        "role": "linear-qkv-projection",
+        "selector": {
+          "exact": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight"
+        }
+      },
+      {
+        "id": "full.query-binding",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "tensor.fullQuery"
+        ],
+        "role": "query-projection",
+        "selector": {
+          "exact": "model.language_model.layers.3.self_attn.q_proj.weight"
+        }
+      },
+      {
+        "id": "vision.patch-binding",
+        "componentId": "vision-encoder",
+        "factRefs": [
+          "tensor.visionPatch"
+        ],
+        "role": "patch-embedding",
+        "selector": {
+          "exact": "model.visual.patch_embed.proj.weight"
+        }
+      },
+      {
+        "id": "projector.output-binding",
+        "componentId": "vision-projector",
+        "factRefs": [
+          "tensor.projector"
+        ],
+        "role": "connector-output",
+        "selector": {
+          "exact": "model.visual.merger.linear_fc2.weight"
+        }
+      }
+    ],
+    "entryPoints": [
+      {
+        "id": "text.generate",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "text.modelType",
+          "text.layerTypes",
+          "text.vocabSize"
+        ],
+        "kind": "generate",
+        "status": "lowered",
+        "phases": [
+          "prefill",
+          "decode"
+        ]
+      },
+      {
+        "id": "vision.encode",
+        "componentId": "vision-encoder",
+        "factRefs": [
+          "root.languageOnly",
+          "vision.modelType",
+          "vision.depth"
+        ],
+        "kind": "encode",
+        "status": "unlowered",
+        "reason": "No qualified vision lowering is present.",
+        "phases": []
+      },
+      {
+        "id": "speculative.generate",
+        "componentId": "mtp-drafter",
+        "factRefs": [
+          "mtp.numLayers",
+          "mtp.dedicatedEmbeddings"
+        ],
+        "kind": "speculative-generate",
+        "status": "unlowered",
+        "reason": "No qualified multi-token prediction lowering is present.",
+        "phases": []
+      }
+    ],
+    "outputHeads": [
+      {
+        "id": "text.lm-head",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "text.vocabSize"
+        ],
+        "kind": "causal-lm",
+        "properties": {
+          "vocabSize": 248320
+        }
+      },
+      {
+        "id": "mtp.prediction-head",
+        "componentId": "mtp-drafter",
+        "factRefs": [
+          "mtp.numLayers",
+          "text.vocabSize"
+        ],
+        "kind": "multi-token-prediction",
+        "properties": {
+          "vocabSize": 248320
+        }
+      }
+    ],
+    "supportScope": {
+      "sourceTopology": "complete",
+      "loweredEntryPoints": [
+        "text.generate"
+      ],
+      "qualifiedEntryPoints": [],
+      "unloweredEntryPoints": [
+        "vision.encode",
+        "speculative.generate"
+      ]
+    }
+  },
   "template": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
   "author": {
     "kind": "ai",

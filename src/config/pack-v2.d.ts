@@ -41,6 +41,7 @@ export interface DopplerPackV2 {
     programBundleArtifactId: string;
     executionGraphHash: `sha256:${string}`;
     manifestArtifactId: string;
+    modelIREvidenceArtifactId?: string;
     tokenizerArtifactIds: string[];
     weightArtifactIds: string[];
   };

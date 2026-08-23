@@ -61,6 +61,13 @@ const programBundle = {
   }],
   captureProfile: { surfaces: ['test-webgpu'] },
   referenceTranscript: {
+    surface: 'test-webgpu',
+    sourceParity: {
+      schema: 'doppler.source-token-parity/v1',
+      status: 'passed',
+      prompt: { passed: true, expectedCount: 1, observedCount: 1, firstMismatchIndex: null },
+      generation: { passed: true, expectedCount: 4, observedCount: 4, firstMismatchIndex: null },
+    },
     generationConfig: { temperature: 0 },
     tokens: { ids: [1, 2, 3, 4] },
   },
@@ -97,6 +104,12 @@ const modelIRV2 = {
     repository: 'test/forge-model',
     revision: 'fixture-revision',
   },
+};
+const modelIREvidenceRaw = `${JSON.stringify({ modelIR: modelIRV2 })}\n`;
+const modelIREvidence = {
+  sourcePath: '/tmp/model-ir-receipt.json',
+  hash: hash(modelIREvidenceRaw),
+  sizeBytes: modelIREvidenceRaw.length,
 };
 const v2Manifest = {
   ...manifest,
@@ -143,6 +156,7 @@ const v2Result = await runForgePipeline({
   repoRoot: '/tmp',
   outputPath: '/tmp/model-v2.pack.json',
   modelIR: modelIRV2,
+  modelIREvidence,
   initialExecutionIdentity,
 }, {
   authority: TEST_PACK_AUTHORITY,
@@ -150,8 +164,15 @@ const v2Result = await runForgePipeline({
   publicKeyJwk: TEST_PACK_PUBLIC_KEY,
 });
 assert.equal(v2Result.pack.modelIR.schema, 'doppler.model-ir/v2');
+assert.deepEqual(v2Result.pack.modelIR.supportScope.qualifiedEntryPoints, ['text.generate']);
 assert.equal(v2Result.pack.targetPlans[0].schema, 'doppler.target-plan/v2');
 assert.equal(v2Result.pack.targetPlans[0].initialExecutionIdentity.digest, initialExecutionIdentity.digest);
+assert.equal(
+  v2Result.pack.artifacts.find((artifact) => (
+    artifact.artifactId === v2Result.pack.program.modelIREvidenceArtifactId
+  ))?.role,
+  'source-truth-evidence'
+);
 assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'recurrent_state'));
 assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'convolutional_state'));
 
@@ -176,6 +197,7 @@ await assert.rejects(
     repoRoot: '/tmp',
     outputPath: '/tmp/model-v2.pack.json',
     modelIR: modelIRV2,
+    modelIREvidence,
     initialExecutionIdentity: wrongKernelIdentity,
   }, {
     authority: TEST_PACK_AUTHORITY,

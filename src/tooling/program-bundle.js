@@ -766,6 +766,7 @@ async function buildReferenceTranscript(referenceReportPath, repoRoot, execution
       },
       executionGraphHash,
       surface: buildReferenceAdapterStamp(report).surface, generationConfig: transcriptSeed?.generationConfig ?? metrics.generationConfig ?? null,
+      sourceParity: metrics.sourceParity ?? null,
       prompt: {
         identity: prompt.identity,
         hash: transcriptSeed?.prompt?.hash
@@ -1082,7 +1083,6 @@ export async function verifyClosedProgramBundle(bundlePath, providedBundle = nul
     files,
   };
 }
-
 export async function checkProgramBundleFile(bundlePath) {
   const closed = await verifyClosedProgramBundle(bundlePath);
   const bundle = closed.bundle;

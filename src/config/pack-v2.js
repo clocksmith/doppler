@@ -23,6 +23,7 @@ const ARTIFACT_ROLES = new Set([
   'runtime-config',
   'reference-report',
   'qualification-evidence',
+  'source-truth-evidence',
   'program-bundle',
   'host-source',
   'wgsl-source',
@@ -176,6 +177,10 @@ function validateProgram(pack, artifacts, errors) {
   }
   if (artifacts.get(program.manifestArtifactId)?.role !== 'manifest') {
     errors.push('program.manifestArtifactId must reference the manifest artifact.');
+  }
+  if (program.modelIREvidenceArtifactId !== undefined
+    && artifacts.get(program.modelIREvidenceArtifactId)?.role !== 'source-truth-evidence') {
+    errors.push('program.modelIREvidenceArtifactId must reference source-truth evidence.');
   }
   for (const [field, role] of [['tokenizerArtifactIds', 'tokenizer'], ['weightArtifactIds', 'weight-shard']]) {
     if (!Array.isArray(program[field]) || program[field].length === 0) {

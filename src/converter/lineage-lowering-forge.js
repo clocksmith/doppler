@@ -187,11 +187,18 @@ export function materializeLineageConversionCandidate({ modelIR, template, recip
     sourceRevision: modelIR.sourceIdentity.revision,
     artifactCompleteness: 'complete',
   };
+  const packModelIR = { ...clone(modelIR), modelId: recipe.modelId };
+  const packModelIRValidation = validateModelIR(packModelIR);
+  if (!packModelIRValidation.ok) {
+    throw new Error(`Lineage lowering produced invalid Pack-bound ModelIR: ${packModelIRValidation.errors.join('; ')}`);
+  }
   const configDigest = digest(config);
   return Object.freeze({
     schema: 'doppler.lineage-lowering-receipt/v1',
     modelId: recipe.modelId,
-    modelIRHash: digest(modelIR),
+    sourceModelIRHash: digest(modelIR),
+    modelIRHash: digest(packModelIR),
+    modelIR: packModelIR,
     template: recipe.template,
     author: recipe.author,
     generatedCandidates: Number(recipe.candidateAudit?.generated || 1),

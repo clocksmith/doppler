@@ -145,6 +145,12 @@ await fs.writeFile(reportPath, `${JSON.stringify({
         }],
       },
     },
+    sourceParity: {
+      schema: 'doppler.source-token-parity/v1',
+      status: 'passed',
+      prompt: { passed: true, expectedCount: 3, observedCount: 3, firstMismatchIndex: null },
+      generation: { passed: true, expectedCount: 1, observedCount: 1, firstMismatchIndex: null },
+    },
   },
   output: ' blue',
 }, null, 2)}\n`, 'utf8');
@@ -167,6 +173,7 @@ assert.deepEqual(bundle.execution.kernelClosure.reachableKernelIds, ['embed_alia
 assert.equal(bundle.execution.kernelClosure.expandedStepCount, 1);
 assert.equal(bundle.execution.steps[0].kernelId, 'embed_alias');
 assert.equal(bundle.referenceTranscript.output.tokensGenerated, 1);
+assert.equal(bundle.referenceTranscript.sourceParity.status, 'passed');
 assert.equal(bundle.referenceTranscript.phase.prefillTokens, 3);
 assert.equal(bundle.referenceTranscript.prompt.tokenIdsHash, promptTokenDigest);
 assert.equal(bundle.referenceTranscript.prompt.tokenCount, 3);

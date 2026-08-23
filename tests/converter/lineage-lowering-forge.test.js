@@ -41,6 +41,10 @@ assert.equal('shardSetHash' in receipt.conversionConfig.manifest.artifactIdentit
 assert.equal(receipt.generatedCandidates, 2);
 assert.equal(receipt.rejectedCandidates.length, 1);
 assert.equal(receipt.unresolvedFacts.length, 0);
+assert.equal(receipt.sourceModelIRHash.startsWith('sha256:'), true);
+assert.equal(receipt.modelIR.modelId, recipe.modelId);
+assert.equal(receipt.modelIR.sourceIdentity.checkpointId, modelIR.sourceIdentity.checkpointId);
+assert.notEqual(receipt.modelIRHash, receipt.sourceModelIRHash);
 
 assert.throws(() => materializeLineageConversionCandidate({
   modelIR,

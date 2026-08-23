@@ -62,7 +62,7 @@
           "role": {
             "enum": [
               "manifest", "weight-shard", "tokenizer", "conversion-config", "runtime-config",
-              "reference-report", "qualification-evidence", "program-bundle", "host-source", "wgsl-source"
+              "reference-report", "qualification-evidence", "source-truth-evidence", "program-bundle", "host-source", "wgsl-source"
             ]
           },
           "path": { "type": "string", "minLength": 1 },
@@ -83,6 +83,7 @@
         "programBundleArtifactId": { "type": "string", "minLength": 1 },
         "executionGraphHash": { "$ref": "#/$defs/digest" },
         "manifestArtifactId": { "type": "string", "minLength": 1 },
+        "modelIREvidenceArtifactId": { "type": "string", "minLength": 1 },
         "tokenizerArtifactIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
         "weightArtifactIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
         "execution": { "type": "object" },
