@@ -157,7 +157,6 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
   const { numLayers, numHeads, numKVHeads, headDim, hiddenSize } = modelConfig;
   const qSize = numHeads * headDim;
   const hasAttentionOutputGate = modelConfig?.attentionOutputGate === true;
-  const qProjSize = hasAttentionOutputGate ? qSize * 2 : qSize;
   const kSize = numKVHeads * headDim;
   const vSize = numKVHeads * headDim;
   const qkvSize = qSize + kSize + vSize;
@@ -211,6 +210,8 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
       continue;
     }
 
+    const hasSeparateGateProjection = hasAttentionOutputGate && Boolean(weights.qGateProj);
+    const qProjSize = hasAttentionOutputGate && !hasSeparateGateProjection ? qSize * 2 : qSize;
     const qFormat = resolveProjectionStorageFormat(qProj, qProjSize, hiddenSize);
     const kFormat = resolveProjectionStorageFormat(kProj, kSize, hiddenSize);
     const vFormat = resolveProjectionStorageFormat(vProj, vSize, hiddenSize);
@@ -248,7 +249,7 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
     }
 
     const qBytes = qSize * qFormat.bytesPerRow;
-    const qGateBytes = hasAttentionOutputGate ? qBytes : 0;
+    const qGateBytes = hasAttentionOutputGate && !hasSeparateGateProjection ? qBytes : 0;
 
     // Create fused QKV buffer: [qkvSize, hiddenSize] row-major.
     // attentionOutputGate models keep Q rows in qkvProj and gate rows in qGateProj.
@@ -257,7 +258,7 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
       size: qBytes + kFormat.byteLength + vFormat.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
-    const qGateBuffer = hasAttentionOutputGate
+    const qGateBuffer = hasAttentionOutputGate && !hasSeparateGateProjection
       ? device.createBuffer({
         label: `layer_${l}_q_gate_proj`,
         size: qGateBytes,
@@ -292,7 +293,7 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
     }
 
     const encoder = device.createCommandEncoder({ label: 'qkv_fusion' });
-    if (hasAttentionOutputGate) {
+    if (hasAttentionOutputGate && !hasSeparateGateProjection) {
       for (let head = 0; head < numHeads; head++) {
         const srcHeadOffset = head * headDim * 2 * qFormat.bytesPerRow;
         const dstHeadOffset = head * headDim * qFormat.bytesPerRow;

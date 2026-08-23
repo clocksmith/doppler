@@ -38,7 +38,7 @@ Goal: autonomous coding, tool use, document analysis, and multi-step reasoning o
 | Model | Status | Current state |
 | --- | --- | --- |
 | Qwen 3.8 27B | benchmark-needed | The lineage-acceleration campaign produced a development-signed text Pack with 128/128 exact tokens on physical AMD Node WebGPU, complete artifact verification, prefill identity binding, and immutable TargetPlan identity. Browser, application, comparative benchmark, and production-signing gates remain open. |
-| [Meta Muse Glimmer 30B](programs/glimmer-architectural-generalization.md) | source-truth-only | Text, vision, and projector topology plus pinned reference formulas are represented with zero unresolved text operational facts. The generic audit still rejects local attention, component norms, scaleless Q/K normalization and scaling, gate placement, postnorm, NoPE, and the final logits path; no execution support is claimed. |
+| [Meta Muse Glimmer 30B](programs/glimmer-architectural-generalization.md) | source-truth-only | Text, vision, and projector topology plus pinned reference formulas are represented with zero unresolved text operational facts. Generic Runtime mechanisms now cover explicit query scaling, per-layer NoPE, and a separate attention-gate projection, but Forge has not admitted their bindings and still rejects local attention, component norms, postnorm, embeddings, and final logits; no execution support is claimed. |
 | Gemma 4 12B / 31B | benchmark-needed | Node runtime verification exists for 12B/31B lanes. Awaiting workstation pack qualification. |
 
 ## Tier 3: Retrieval Specialists (Embeddings & Reranking)

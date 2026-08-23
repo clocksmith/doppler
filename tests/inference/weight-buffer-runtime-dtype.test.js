@@ -231,6 +231,37 @@ try {
   assert.deepEqual(Array.from(gatedFused.shape), [12, 4]);
   assert.deepEqual(Array.from(gatedGate.shape), [4, 4]);
   assert.deepEqual(Array.from(gatedLayerWeights.get('layer_0').qkvSizes), [4, 4, 4]);
+
+  const separateGateProj = new GPUBuffer({
+    size: 4 * 4 * 2,
+    usage: GPUBufferUsage.STORAGE,
+    label: 'separate_gate_proj_raw',
+  });
+  tagBufferDtype(separateGateProj, 'f16');
+  const separateGateLayerWeights = new Map();
+  separateGateLayerWeights.set('layer_0', {
+    qProj,
+    qGateProj: separateGateProj,
+    kProj,
+    vProj,
+    qkvProj: null,
+  });
+  fuseQKVWeights(separateGateLayerWeights, {
+    numLayers: 1,
+    numHeads: 1,
+    numKVHeads: 1,
+    headDim: 4,
+    hiddenSize: 4,
+    attentionOutputGate: true,
+  });
+  const separateGateFused = separateGateLayerWeights.get('layer_0');
+  assert.ok(separateGateFused.qkvProj, 'separate-gate Q/K/V projections should remain fusible');
+  assert.equal(
+    separateGateFused.qGateProj,
+    separateGateProj,
+    'QKV fusion must preserve the independently loaded gate projection'
+  );
+  assert.deepEqual(Array.from(separateGateFused.qkvProj.shape), [12, 4]);
 } finally {
   setDevice(null, { platformConfig: null });
 }

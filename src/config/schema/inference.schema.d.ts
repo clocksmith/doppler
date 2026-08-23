@@ -18,6 +18,9 @@ export interface RoPEConfigSchema {
   /** Local RoPE theta for sliding window layers (Gemma 3 uses 10000) */
   ropeLocalTheta?: number;
 
+  /** Layer indices that bypass rotary position embeddings. */
+  disabledLayers?: number[];
+
   /** Apply adjacent-pair rotary layout instead of rotate-half layout for standard RoPE. */
   ropeInterleaved?: boolean;
 
@@ -78,6 +81,8 @@ export interface RoPEConfigSchema {
 
 /** Attention mechanism configuration */
 export interface AttentionSchema {
+  /** Multiplier applied to Q after optional Q/K normalization and before RoPE. */
+  queryScale?: number;
   /** Use sliding window attention */
   slidingWindow?: number | null;
   /** Softcap attention logits before softmax */

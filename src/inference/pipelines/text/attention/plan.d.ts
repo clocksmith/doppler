@@ -8,6 +8,7 @@ export interface SemanticAttentionPlan {
   readonly dtypes: Readonly<Record<string, string>>;
   readonly transitions: Readonly<Record<string, string | null>>;
   readonly fusion: Readonly<Record<string, boolean>>;
+  readonly queryTransform: Readonly<{ scale: number; rope: 'enabled' | 'disabled' }>;
   readonly kv: Readonly<Record<string, unknown>>;
   readonly attention: Readonly<Record<string, unknown>>;
   readonly outputGate: Readonly<Record<string, unknown>>;

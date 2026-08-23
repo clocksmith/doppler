@@ -169,6 +169,7 @@ export interface ParsedModelConfig {
   slidingWindow: number | null;
   ropeTheta: number;
   ropeLocalTheta: number | null;
+  ropeDisabledLayers: number[];
   ropeRotaryDim: number;
   ropeLocalRotaryDim: number;
   ropeFrequencyBaseDim: number;
@@ -225,7 +226,9 @@ export interface ParsedModelConfig {
   queryKeyNormWeightLayers: number[] | null;
   valueNorm: boolean;
   attentionOutputGate: boolean;
+  outputGateType: 'sigmoid' | 'swish' | 'silu' | null;
   queryPreAttnScalar: number;
+  queryScale: number;
   layerPipeline?: LayerPipelineSchema | null;
   chatTemplateType?: string | null;
   chatTemplateEnabled: boolean;

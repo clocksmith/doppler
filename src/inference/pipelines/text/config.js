@@ -2,6 +2,7 @@ import { log } from '../../../debug/index.js';
 import { mergeConfig, dumpConfigSources } from '../../../config/merge.js';
 import { validateModelOverrides } from '../../../config/param-validator.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from './attention/heterogeneous-contract.js';
 import {
   PER_LAYER_INPUT_MATERIALIZATION_MODES,
   PER_LAYER_INPUT_ROW_CACHE_MODES,
@@ -691,8 +692,6 @@ export function assertSupportedManifestInference(manifest) {
     (recommendation ? ` ${recommendation}` : '')
   );
 }
-
-
 export function validateRequiredInferenceFields(inf, modelId) {
   inf = inf ?? {};
   inf.attention = inf.attention ?? {};
@@ -708,6 +707,7 @@ export function validateRequiredInferenceFields(inf, modelId) {
   if (inf.attention.queryPreAttnScalar == null) {
     errors.push('attention.queryPreAttnScalar is required');
   }
+  appendHeterogeneousAttentionValidation(errors, inf);
   if (inf.attention.queryKeyNorm == null) {
     errors.push('attention.queryKeyNorm is required');
   }
@@ -839,7 +839,6 @@ export function validateRequiredInferenceFields(inf, modelId) {
       errors.push('ffn.swigluLimit must be a positive number or null');
     }
   }
-
   // RoPE fields - non-nullable required
   if (inf.rope.ropeTheta == null) {
     errors.push('rope.ropeTheta is required');
@@ -1631,7 +1630,6 @@ function toParsedConfigFromMerged(merged, manifest) {
       }
     }
   }
-
   if (!Array.isArray(layerTypes) && Array.isArray(config.layer_types) && config.layer_types.length > 0) {
     layerTypes = parseCustomLayerTypes(config.layer_types, arch.numLayers, merged.modelId);
   }
@@ -1886,7 +1884,7 @@ function toParsedConfigFromMerged(merged, manifest) {
   const embeddingScale = inf.output.embeddingScale;
   const logitInputScale = inf.output.logitInputScale;
   const residualBranchScale = inf.layerPattern.residualBranchScale;
-
+  const heterogeneousAttention = resolveHeterogeneousAttentionContract(inf, arch.numLayers, merged.modelId);
   return {
     modelType: manifest.modelType,
     numLayers: arch.numLayers,
@@ -1970,6 +1968,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     attentionOutputGate: inf.attention.attentionOutputGate === true,
     outputGateType: inf.attention.outputGateType ?? null,
     queryPreAttnScalar,
+    ...heterogeneousAttention,
     layerPipeline: inf.pipeline ?? null,
     chatTemplateType,
     chatTemplateEnabled,

@@ -31,6 +31,7 @@ const STAGE_DEFAULT_CATEGORY = {
   k_proj: 'attn',
   v_proj: 'attn',
   q_norm: 'attn',
+  q_scale: 'attn',
   k_norm: 'attn',
   v_norm: 'attn',
   q_rope: 'attn',

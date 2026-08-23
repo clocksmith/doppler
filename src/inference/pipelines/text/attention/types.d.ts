@@ -42,6 +42,8 @@ export interface AttentionConfig {
   attnSoftcap?: number;
   /** Gemma 2 attention scaling: uses head_dim (256) instead of sqrt(head_dim) (16). */
   queryPreAttnScalar?: number;
+  /** Multiplier applied to Q after optional Q/K normalization and before RoPE. */
+  queryScale?: number;
   /** Apply query/key RMSNorm where per-head weights are declared. */
   queryKeyNorm?: boolean;
   queryKeyNormType?: 'rmsnorm' | 'layernorm';
@@ -54,6 +56,8 @@ export interface AttentionConfig {
   valueNorm?: boolean;
   /** Apply sigmoid gate from q_proj split to attention output before o_proj. */
   attentionOutputGate?: boolean;
+  /** Output-gate activation. Null preserves the historical sigmoid contract. */
+  outputGateType?: 'sigmoid' | 'swish' | 'silu' | null;
   /** Gemma 2 RMS scaling: (1+w)*x */
   rmsNormWeightOffset?: boolean;
   /** Whether causal masking is enabled (default true). */
