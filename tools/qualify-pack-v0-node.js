@@ -27,15 +27,78 @@ function parseArgs(argv) {
   return options;
 }
 
-function isSoftwareAdapter(profile) {
+export function isSoftwareAdapter(profile) {
   const adapter = profile?.adapter ?? {};
   const identity = [adapter.vendor, adapter.architecture, adapter.device, adapter.description]
     .map((value) => String(value ?? '').toLowerCase()).join(' ');
   return ['swiftshader', 'llvmpipe', 'software rasterizer'].some((marker) => identity.includes(marker));
 }
 
+export function createPackNodeQualificationReceipt({
+  pack,
+  session,
+  generatedTokenIds,
+  expectedTokenIds,
+  targetPlanDigestBefore,
+  capturedAtUtc,
+}) {
+  const firstMismatch = generatedTokenIds.findIndex((tokenId, index) => tokenId !== expectedTokenIds[index]);
+  const declaredIdentity = session.selectedPlan?.initialExecutionIdentity ?? null;
+  const observedIdentity = session.observedInitialExecutionIdentity ?? null;
+  if (!declaredIdentity?.digest || !observedIdentity?.digest) {
+    throw new Error('Node Pack qualification requires declared and observed initial execution identities.');
+  }
+  if (declaredIdentity.digest !== observedIdentity.digest) {
+    throw new Error(
+      `Node Pack initial execution identity mismatch: declared ${declaredIdentity.digest}, ` +
+      `observed ${observedIdentity.digest}.`
+    );
+  }
+  const digestAfter = session.selectedTargetPlanDigest;
+  return {
+    schema: 'doppler.pack-node-qualification/v2',
+    passed: generatedTokenIds.length === expectedTokenIds.length
+      && firstMismatch === -1
+      && targetPlanDigestBefore === digestAfter,
+    generatedTokens: generatedTokenIds.length,
+    expectedTokens: expectedTokenIds.length,
+    firstMismatch,
+    packId: session.packId,
+    semanticRoot: session.semanticRoot,
+    signature: {
+      authority: pack.signature?.authority ?? null,
+      algorithm: pack.signature?.algorithm ?? null,
+      publicKeyDigest: pack.signature?.publicKeyDigest ?? null,
+      disposition: 'explicitly-trusted-for-qualification',
+    },
+    closure: {
+      artifacts: pack.artifacts.length,
+      verifiedArtifacts: session.verification?.artifactReceipts?.length ?? 0,
+      wgslModules: pack.wgslModules.length,
+      qualifiedEntryPoints: [...(pack.modelIR?.supportScope?.qualifiedEntryPoints ?? [])],
+    },
+    targetId: session.selectedTargetId,
+    targetPlanDigestBefore,
+    targetPlanDigestAfter: digestAfter,
+    targetPlanImmutable: targetPlanDigestBefore === digestAfter,
+    initialExecutionIdentity: {
+      declaredDigest: declaredIdentity.digest,
+      observedDigest: observedIdentity.digest,
+      boundBeforePrefill: true,
+      executionGraphHash: observedIdentity.executionGraphHash,
+      kernelClosureHash: observedIdentity.kernelClosureHash,
+      runtimeEngineDigest: observedIdentity.runtimeEngineDigest,
+    },
+    adapter: session.deviceProfile.adapter,
+    surface: session.deviceProfile.surface,
+    softwareAdapter: false,
+    capturedAtUtc,
+  };
+}
+
 export async function qualifyPackV0Node(options = parseArgs(process.argv.slice(2))) {
   const packPath = path.resolve(REPO_ROOT, options.pack);
+  const pack = JSON.parse(await fs.readFile(packPath, 'utf8'));
   const reference = JSON.parse(await fs.readFile(path.resolve(REPO_ROOT, options.reference), 'utf8'));
   const expected = reference.metrics.referenceTranscript.tokens.ids;
   const generationConfig = reference.metrics.referenceTranscript.generationConfig;
@@ -54,22 +117,14 @@ export async function qualifyPackV0Node(options = parseArgs(process.argv.slice(2
       maxSeqLen: 4096,
       stopSequences: [],
     });
-    const firstMismatch = generated.tokenIds.findIndex((tokenId, index) => tokenId !== expected[index]);
-    const receipt = {
-      schema: 'doppler.pack-v0-node-qualification/v1',
-      passed: generated.tokenIds.length === expected.length && firstMismatch === -1,
-      generatedTokens: generated.tokenIds.length,
-      expectedTokens: expected.length,
-      firstMismatch,
-      packId: session.packId,
-      semanticRoot: session.semanticRoot,
-      targetId: session.selectedTargetId,
+    const receipt = createPackNodeQualificationReceipt({
+      pack,
+      session,
+      generatedTokenIds: generated.tokenIds,
+      expectedTokenIds: expected,
       targetPlanDigestBefore: digestBefore,
-      targetPlanDigestAfter: session.selectedTargetPlanDigest,
-      adapter: session.deviceProfile.adapter,
-      surface: session.deviceProfile.surface,
       capturedAtUtc: new Date().toISOString(),
-    };
+    });
     if (!receipt.passed) throw new Error(`Node Pack parity failed at token ${receipt.firstMismatch}.`);
     const outputPath = path.resolve(REPO_ROOT, options.out);
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
