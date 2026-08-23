@@ -1,5 +1,12 @@
 export const MODEL_IR_SCHEMA_ID: 'doppler.model-ir/v1';
 export const MODEL_IR_SCHEMA_VERSION: 1;
+export {
+  MODEL_IR_V2_SCHEMA_ID,
+  MODEL_IR_V2_SCHEMA_VERSION,
+  createModelIRV2,
+  validateModelIRV2,
+} from './model-ir-v2.js';
+export type { ModelIRV2, ModelIRV2Fact, ModelIRV2Node } from './model-ir-v2.js';
 
 export interface ModelIRLayer {
   index: number;
