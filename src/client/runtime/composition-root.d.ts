@@ -28,6 +28,10 @@ export interface DopplerRuntimeSession {
   selectedPlan: TargetPlan;
   observedInitialExecutionIdentity: InitialExecutionIdentity | null;
   deviceProfile: DeviceProfile;
+  verification: {
+    pack: DopplerPackV2;
+    artifactReceipts: Array<Record<string, unknown>>;
+  };
   generate(options: GenerationRunOptions): AsyncGenerator<number, void, void>;
   generateText(options: GenerationRunOptions): Promise<{ text: string; tokenIds: number[] }>;
   close(): Promise<void>;
