@@ -1,14 +1,14 @@
 {
   "schema": "doppler.lineage-lowering-forge/v1",
-  "modelId": "qwen3.8-27b-text-q4k-ehaf16",
+  "modelId": "qwen3.8-27b-text-f16-af32",
   "modelIRReceipt": "reports/model-ir-v2/qwen3.8-27b.model-ir-receipt.json",
   "template": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
-  "output": "src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
+  "output": "src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
   "receiptOutput": "reports/model-ir-v2/qwen3.8-27b.lineage-lowering-receipt.json",
   "author": {
     "kind": "ai",
     "actor": "openai-codex",
-    "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+    "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
   },
   "compatibilityRequirements": [
     { "factId": "text.modelType", "equals": "qwen3_5_text" },
@@ -51,6 +51,12 @@
       "value": true,
       "lifecycle": "pack-scope",
       "rationale": "The complete multimodal source topology remains in ModelIR while this candidate lowers only text.generate."
+    },
+    {
+      "targetPointer": "/output/modelBaseId",
+      "value": "qwen3.8-27b-text-f16-af32",
+      "lifecycle": "forge",
+      "rationale": "The candidate identity must truthfully describe full-f16 weights rather than retain the rejected Q4 product identity."
     },
     {
       "targetPointer": "/manifest/hashAlgorithm",
@@ -126,18 +132,106 @@
       "rationale": "The first qualification candidate dispatches the separately content-addressed convolution and recurrent kernels."
     },
     {
+      "targetPointer": "/quantization/weights",
+      "value": "f16",
+      "lifecycle": "forge",
+      "rationale": "Two physical recurrent-f16 replays reproduced a first divergence at token 81, so the next conservative candidate removes remaining Q4 body quantization without adding model-specific Runtime policy."
+    },
+    {
       "targetPointer": "/quantization/lmHead",
       "value": "f16",
       "lifecycle": "forge",
-      "rationale": "Physical Q4-head qualification first diverged after 97 source tokens; retain the reusable higher-fidelity output-head lane while Forge tests the independently identified recurrent-body boundary."
+      "rationale": "Physical Q4-head qualification first diverged after 97 source tokens; every subsequent conservative candidate retains the reusable higher-fidelity output-head lane."
     },
     {
       "targetPointer": "/quantization/modulesToNotConvert",
-      "value": [
-        "model.language_model.layers.*.linear_attn"
-      ],
+      "value": [],
       "lifecycle": "forge",
-      "rationale": "A fresh-process f16-head replay reproduced the same token stream, first divergence, logits digest, graph hash, and execution identity, disproving the output-head-only hypothesis. Preserve recurrent-attention tensors as f16 while retaining Q4 FFN and full-attention weights."
+      "rationale": "The full-f16 weight policy now covers recurrent, full-attention, and FFN tensors uniformly; no model-specific exclusion is required."
+    },
+    {
+      "targetPointer": "/execution/decode/1/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "The f16 q projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "targetPointer": "/execution/decode/2/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "The f16 k projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "targetPointer": "/execution/decode/3/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "The f16 v projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "targetPointer": "/execution/decode/7/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "The f16 attention output projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "targetPointer": "/execution/decode/10/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "The f16 FFN gate projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "targetPointer": "/execution/decode/11/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "The f16 FFN up projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "targetPointer": "/execution/decode/13/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "The f16 FFN down projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "targetPointer": "/execution/prefill/1/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "Prefill must use the same generic f16 q projection mechanism."
+    },
+    {
+      "targetPointer": "/execution/prefill/2/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "Prefill must use the same generic f16 k projection mechanism."
+    },
+    {
+      "targetPointer": "/execution/prefill/3/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "Prefill must use the same generic f16 v projection mechanism."
+    },
+    {
+      "targetPointer": "/execution/prefill/7/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "Prefill must use the same generic f16 attention output projection mechanism."
+    },
+    {
+      "targetPointer": "/execution/prefill/10/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "Prefill must use the same generic f16 FFN gate projection mechanism."
+    },
+    {
+      "targetPointer": "/execution/prefill/11/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "Prefill must use the same generic f16 FFN up projection mechanism."
+    },
+    {
+      "targetPointer": "/execution/prefill/13/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "Prefill must use the same generic f16 FFN down projection mechanism."
     },
     {
       "targetPointer": "/execution/postLayer/1/1",
@@ -158,7 +252,7 @@
     "/manifest/artifactIdentity/manifestVariantId"
   ],
   "candidateAudit": {
-    "generated": 6,
+    "generated": 7,
     "rejected": [
       {
         "candidateId": "flat-homogeneous",
@@ -196,8 +290,24 @@
       {
         "candidateId": "f16-recurrent-blake3-closure",
         "reason": "Rejected during Pack closure preflight because the inherited BLAKE3 shard hashes cannot enter the SHA-256 Pack artifact contract. Conversion was canceled before completion and no qualification claim was produced."
+      },
+      {
+        "candidateId": "f16-recurrent-q4-body-sha256",
+        "reason": "Rejected after two physical Node WebGPU processes produced the same 128-token stream and first selected Luxembourg instead of Switzerland at generation index 81. Luxembourg led by 0.02722930908203125 logits with identical mismatch logits, graph, execution-plan, and initial-execution-identity digests.",
+        "evidence": {
+          "path": "reports/model-ir-v2/qwen3.8-27b.recurrent-f16.node-webgpu-negative.json",
+          "sha256": "5ea9b1dddffbe1632337cefe4b5f51d59a4feaf4a7403635acfc51e0deec43d1",
+          "manifestSha256": "e9d463978e4aea04baefce32ce68c04498686c8085bd1a545f98a62a41d32846",
+          "conversionConfigSha256": "5263a53a288d2e0d73f01190a7d92055086d66ab6e1a92fb30ed0e22e51fdd67",
+          "conversionConfigDigest": "sha256:d3639ac5260efdc894afdb3cda739f75d3dcb540ce3a4ad9b34cd54c7d7dc486",
+          "generatedTokenIdsHash": "sha256:17aa892a16ad59de93bdfa32c8b882f12d3dad54f6679d664f8c44fa2929784e",
+          "mismatchLogitsDigest": "sha256:8646b0db46beea7940b2e7eab475715382ed6b3184c33467a85fe3b4967d8dbf",
+          "executionGraphHash": "sha256:8640729b40ca4051e063fa146d685e1ba97ed2f52f6976934b021e44d9415e92",
+          "executionPlanDigest": "sha256:921fee36a78ffc806d0404a7f65d0e809f3eb1264905ba4eaaddf378ca5aeff6",
+          "initialExecutionIdentityDigest": "sha256:9050981c41fad606bd6c0f0003e6a22cc82be281a5693349ee75e6d5bb222308"
+        }
       }
     ],
-    "acceptedCandidateId": "qwen3.8-lineage-f16-recurrent-sha256-v4"
+    "acceptedCandidateId": "qwen3.8-lineage-full-f16-sha256-v5"
   }
 }
