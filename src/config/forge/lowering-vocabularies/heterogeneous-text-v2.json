@@ -1,0 +1,269 @@
+{
+  "schema": "doppler.execution-candidate-forge/v1",
+  "vocabularyId": "heterogeneous-text-v2",
+  "scope": "semantic-contracts-and-manifest-bindings",
+  "supportedStateKinds": [
+    "kv",
+    "recurrent",
+    "convolutional"
+  ],
+  "componentContracts": {
+    "text-decoder": {
+      "allowedValues": {},
+      "dynamicFields": [
+        "modelType",
+        "hiddenSize",
+        "vocabSize",
+        "numLayers",
+        "maxPositionEmbeddings",
+        "bosTokenId",
+        "eosTokenId",
+        "tieWordEmbeddings",
+        "embeddingNormalization",
+        "finalNormalization"
+      ]
+    }
+  },
+  "outputHeadContracts": {
+    "causal-lm": {
+      "allowedValues": {},
+      "dynamicFields": [
+        "vocabSize",
+        "tieWordEmbeddings",
+        "preSoftcapMultiplier",
+        "finalLogitSoftcap",
+        "operationOrder"
+      ]
+    }
+  },
+  "blockLowerings": [
+    {
+      "id": "portable-full-attention-v2",
+      "blockKinds": [
+        "full-attention"
+      ],
+      "blockContract": {
+        "geometry": {
+          "allowedValues": {},
+          "dynamicFields": [
+            "numHeads",
+            "numKvHeads",
+            "headDim",
+            "attentionScale",
+            "queryKeyNorm",
+            "queryScale",
+            "causal",
+            "attentionBias",
+            "outputGate",
+            "outputGateType",
+            "outputGatePosition"
+          ]
+        },
+        "normalization": {
+          "allowedValues": {
+            "type": [
+              "rmsnorm",
+              "centered-rmsnorm-with-postnorm"
+            ]
+          },
+          "dynamicFields": [
+            "eps",
+            "weightOffset",
+            "postNormEps",
+            "postNormWeightOffset",
+            "postNormPosition"
+          ]
+        },
+        "positional": {
+          "allowedValues": {},
+          "dynamicFields": [
+            "type",
+            "theta",
+            "ropeType",
+            "mrope_interleaved",
+            "mrope_section",
+            "partial_rotary_factor",
+            "rope_theta",
+            "rope_type"
+          ]
+        },
+        "feedForward": {
+          "allowedValues": {
+            "type": [
+              "gated-dense"
+            ],
+            "activation": [
+              "silu"
+            ]
+          },
+          "dynamicFields": [
+            "gated",
+            "operation",
+            "intermediateSize"
+          ]
+        }
+      },
+      "phases": {
+        "prefill": [
+          {
+            "id": "attention",
+            "kernelId": "full_prefill"
+          }
+        ],
+        "decode": [
+          {
+            "id": "attention",
+            "kernelId": "full_decode"
+          }
+        ]
+      }
+    },
+    {
+      "id": "portable-local-attention-v2",
+      "blockKinds": [
+        "local-attention"
+      ],
+      "blockContract": {
+        "geometry": {
+          "allowedValues": {},
+          "dynamicFields": [
+            "numHeads",
+            "numKvHeads",
+            "headDim",
+            "window",
+            "attentionScale",
+            "queryKeyNorm",
+            "queryScale",
+            "causal",
+            "attentionBias",
+            "outputGate",
+            "outputGateType",
+            "outputGatePosition"
+          ]
+        },
+        "normalization": {
+          "allowedValues": {
+            "type": [
+              "rmsnorm",
+              "centered-rmsnorm-with-postnorm"
+            ]
+          },
+          "dynamicFields": [
+            "eps",
+            "weightOffset",
+            "postNormEps",
+            "postNormWeightOffset",
+            "postNormPosition"
+          ]
+        },
+        "positional": {
+          "allowedValues": {},
+          "dynamicFields": [
+            "type",
+            "theta",
+            "ropeType"
+          ]
+        },
+        "feedForward": {
+          "allowedValues": {
+            "type": [
+              "gated-dense"
+            ],
+            "activation": [
+              "silu"
+            ]
+          },
+          "dynamicFields": [
+            "gated",
+            "operation",
+            "intermediateSize"
+          ]
+        }
+      },
+      "phases": {
+        "prefill": [
+          {
+            "id": "attention",
+            "kernelId": "local_prefill"
+          }
+        ],
+        "decode": [
+          {
+            "id": "attention",
+            "kernelId": "local_decode"
+          }
+        ]
+      }
+    },
+    {
+      "id": "portable-linear-recurrent-v2",
+      "blockKinds": [
+        "linear-recurrent-attention"
+      ],
+      "blockContract": {
+        "geometry": {
+          "allowedValues": {},
+          "dynamicFields": [
+            "keyHeads",
+            "valueHeads",
+            "keyHeadDim",
+            "valueHeadDim",
+            "qkL2Norm",
+            "recurrentUpdate"
+          ]
+        },
+        "normalization": {
+          "allowedValues": {
+            "type": [
+              "rmsnorm"
+            ]
+          },
+          "dynamicFields": [
+            "eps",
+            "weightOffset"
+          ]
+        },
+        "positional": {
+          "allowedValues": {},
+          "dynamicFields": []
+        },
+        "feedForward": {
+          "allowedValues": {
+            "type": [
+              "gated-dense"
+            ],
+            "activation": [
+              "silu"
+            ]
+          },
+          "dynamicFields": [
+            "gated",
+            "intermediateSize"
+          ]
+        }
+      },
+      "phases": {
+        "prefill": [
+          {
+            "id": "linear",
+            "kernelId": "linear_prefill"
+          },
+          {
+            "id": "state",
+            "kernelId": "recurrent_update"
+          }
+        ],
+        "decode": [
+          {
+            "id": "linear",
+            "kernelId": "linear_decode"
+          },
+          {
+            "id": "state",
+            "kernelId": "recurrent_update"
+          }
+        ]
+      }
+    }
+  ]
+}
