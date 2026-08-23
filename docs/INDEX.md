@@ -14,6 +14,7 @@ Primary documentation index.
 
 - [Architecture](architecture.md) - system model and boundaries.
 - [Heterogeneous ModelIR v2 and Source-Truth Forge](model-ir-v2-source-truth-forge.md) - provenance, component/block semantics, partial entry-point scope, and promotion contract.
+- [Glimmer Architectural Generalization Campaign](programs/glimmer-architectural-generalization.md) - one-product capability profiles, current source-truth boundary, and text, split-KV, DFlash, multimodal, and Doe qualification gates.
 - [Pipeline Contract](pipeline-contract.md) - command-to-output runtime contract boundaries.
 - [Config](config.md) - kernel paths, config behavior, and runtime contract notes.
 - [CLI Reference](cli.md) - command flags, config inputs, surface selection, and examples.
