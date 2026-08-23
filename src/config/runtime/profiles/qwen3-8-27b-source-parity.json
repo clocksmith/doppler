@@ -1,0 +1,80 @@
+{
+  "id": "profiles/qwen3-8-27b-source-parity",
+  "name": "qwen3-8-27b-source-parity",
+  "description": "Deterministic raw-text source-parity profile for the pinned Qwen3.8 27B checkpoint. Uses only manifest-declared execution policy and fails instead of remapping an incompatible kernel path.",
+  "intent": "verify",
+  "compatibleIntents": ["verify"],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-08-22T00:00:00Z",
+  "extends": "profiles/production",
+  "model": "qwen3.8-27b-text-q4k-ehaf16",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "warn"
+        },
+        "trace": {
+          "enabled": false
+        },
+        "profiler": {
+          "enabled": false
+        }
+      }
+    },
+    "inference": {
+      "prompt": "The capital of France is",
+      "chatTemplate": {
+        "enabled": false,
+        "type": null,
+        "thinking": false
+      },
+      "generation": {
+        "maxTokens": 128,
+        "disableMultiTokenDecode": true
+      },
+      "batching": {
+        "maxTokens": 128,
+        "batchSize": 1,
+        "readbackInterval": 1,
+        "stopCheckMode": "per-token",
+        "readbackMode": "sequential",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 0,
+        "greedyThreshold": 0,
+        "suppressSpecialTokens": false,
+        "suppressSpecialLikeTokens": false,
+        "suppressTokenIds": []
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 1,
+          "readbackInterval": 1,
+          "stopCheckMode": "per-token",
+          "readbackMode": "sequential",
+          "submitLatencyThresholdMs": null,
+          "maxBatchDecodeTokens": 1,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1,
+          "disableCommandBatching": false
+        }
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": ["manifest"],
+        "allowSources": ["manifest"],
+        "onIncompatible": "error"
+      }
+    }
+  }
+}
