@@ -1,0 +1,20 @@
+{
+  "schema": "doppler.manifest-conversion-postflight/v1",
+  "modelDir": "models/local/muse-glimmer-30b-text-f16-af32",
+  "manifest": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
+  "conversionConfig": "src/config/conversion/muse-glimmer/muse-glimmer-30b-text-f16-af32.json",
+  "conversionReport": "reports/muse-glimmer-30b-text-f16-af32/2026-08-23T08-59-59.000Z.json",
+  "preflightReceipt": "reports/model-ir-v2/glimmer-30b.conversion-preflight.json",
+  "artifacts": [
+    {
+      "role": "tokenizer",
+      "path": "tokenizer.json"
+    }
+  ],
+  "hashConcurrency": 8,
+  "output": "reports/model-ir-v2/glimmer-30b.conversion-postflight.json",
+  "author": {
+    "kind": "tool",
+    "actor": "doppler-manifest-conversion-postflight"
+  }
+}
