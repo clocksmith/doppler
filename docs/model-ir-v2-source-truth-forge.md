@@ -192,8 +192,15 @@ does not measure Forge quality.
 ## Current evidence boundaries
 
 The permanent Gemma Pack Runtime v0 golden slice is frozen by tag
-`pack-runtime-v0-gemma3-270m-golden`. Qwen3.8 source-intake, ModelIR, lineage,
-and reference evidence live under `reports/model-ir-v2/`; those files do not by
-themselves claim Doppler execution parity or a signed Qwen Pack. Glimmer intake
-under the same directory proves representation construction only and must not
-be described as execution support.
+`pack-runtime-v0-gemma3-270m-golden`. Qwen3.8 `text.generate` now has a
+development-signed Pack on physical Node WebGPU: the AMD/RADV receipt records
+128/128 exact greedy tokens, 824/824 verified artifacts, initial execution
+identity equality before prefill, and an unchanged TargetPlan digest. The
+Release-to-JavaScript receipt under `reports/model-ir-v2/` binds its candidate
+population, accepted code, unresolved source-publication time, explicit
+development signer, and evidence bytes. It does not establish browser, Apple,
+production-signing, multimodal, speculative, application, or Doe support.
+
+Glimmer intake under the same directory proves representation construction
+only and must not be described as execution support. Its next gate is a generic
+`text.generate` lowering with zero Glimmer-named Runtime branches.

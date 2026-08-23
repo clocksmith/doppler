@@ -1,0 +1,425 @@
+{
+  "schema": "doppler.release-to-javascript-receipt/v2",
+  "campaignId": "heterogeneous-model-ir-v2:qwen3.8-27b-text-generate",
+  "source": {
+    "checkpointId": "Qwen/Qwen3.8-27B",
+    "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+    "publicationTimestampDisposition": "unresolved",
+    "publishedAt": null
+  },
+  "startedAt": "2026-08-23T00:56:24.000Z",
+  "completedAt": "2026-08-23T07:18:00.618Z",
+  "elapsed": {
+    "publicationToSignedPackMs": null,
+    "forgeCampaignMs": 22896618
+  },
+  "humanInterventions": [
+    {
+      "id": "campaign-authorization",
+      "kind": "campaign-governance",
+      "actor": "repository-owner",
+      "disposition": "accepted"
+    }
+  ],
+  "humanAuthoredSemanticDecisions": 0,
+  "unresolvedFacts": [
+    {
+      "id": "source-publication-timestamp",
+      "disposition": "unresolved",
+      "evidence": "The pinned checkpoint snapshot used by this campaign has no admitted authoritative publication timestamp."
+    },
+    {
+      "id": "production-signing-authority",
+      "disposition": "unresolved",
+      "evidence": "The accepted Pack is signed by doppler-pack-v0-development and was trusted explicitly for qualification; production publication is not claimed."
+    }
+  ],
+  "candidates": {
+    "generated": 10,
+    "rejected": [
+      {
+        "id": "flat-homogeneous",
+        "stage": "lineage-lowering",
+        "reason": "Omitted recurrent and convolutional state."
+      },
+      {
+        "id": "multimodal-all-entrypoints",
+        "stage": "lineage-lowering",
+        "reason": "Claimed unlowered vision.encode and speculative.generate entry points."
+      },
+      {
+        "id": "q4-output-head",
+        "stage": "physical-qualification",
+        "reason": "First diverged from the pinned source transcript at generated token 97.",
+        "evidencePath": "reports/model-ir-v2/qwen3.8-27b.q4-head.node-webgpu-negative.json"
+      },
+      {
+        "id": "f16-output-head",
+        "stage": "physical-qualification",
+        "reason": "Deterministically reproduced the same first divergence at generated token 97.",
+        "evidencePath": "reports/model-ir-v2/qwen3.8-27b.f16-head.node-webgpu-negative.json"
+      },
+      {
+        "id": "f16-recurrent-blake3-closure",
+        "stage": "closure-preflight",
+        "reason": "Inherited BLAKE3 shard hashes could not enter the SHA-256 Pack artifact contract."
+      },
+      {
+        "id": "f16-recurrent-q4-body-sha256",
+        "stage": "physical-qualification",
+        "reason": "Deterministically first diverged from the pinned source transcript at generated token 81.",
+        "evidencePath": "reports/model-ir-v2/qwen3.8-27b.recurrent-f16.node-webgpu-negative.json"
+      },
+      {
+        "id": "full-f16-tiled-decode",
+        "stage": "lineage-review",
+        "reason": "Canceled because the established generic subgroup GEMV mechanism already covered this lane."
+      },
+      {
+        "id": "signed-pack-initial-identity-v1",
+        "stage": "pack-physical-qualification",
+        "packId": "qwen3-8-27b-text-f16-af32-pack-v2-5519cf5e6fe25753",
+        "packDigest": "sha256:9a600db228df727e2605baa20ea8bffda79adc19884a43100767821dae91de5b",
+        "semanticRoot": "sha256:5519cf5e6fe25753155df7db74ed60dbd90f9e33802aeb8134ef422ba75536bd",
+        "reason": "Failed closed before prefill because identity v1 could not reconstruct the qualified program-load policy."
+      },
+      {
+        "id": "signed-pack-program-load-policy-v1",
+        "stage": "pack-physical-qualification",
+        "packId": "qwen3-8-27b-text-f16-af32-pack-v2-262fef036f7b24bb",
+        "packDigest": "sha256:5c5e46f48807fbeb50279701597b62f7662b1b94531d836c2f099c8165fb0e50",
+        "semanticRoot": "sha256:262fef036f7b24bbd061db47dde746df3f27e4d7a89b99ed127b22232518acbf",
+        "reason": "Failed closed before prefill because the signed policy omitted generation.disableMultiTokenDecode; execution-plan and runtime-engine identities differed."
+      }
+    ],
+    "accepted": [
+      {
+        "id": "signed-pack-program-load-policy-v2",
+        "stage": "pack-physical-qualification",
+        "lineageCandidateId": "qwen3.8-lineage-full-f16-gemv-sha256-v6",
+        "packId": "qwen3-8-27b-text-f16-af32-pack-v2-f8eeda316e12875b",
+        "packDigest": "sha256:165ce82989e116028be1a7e81ed7138332014b4ff894d59edb4bb658ee8b7782",
+        "semanticRoot": "sha256:f8eeda316e12875b6f5669c415de21d110fad4b44f6372fe93afa2fe9a246154",
+        "targetPlanDigest": "sha256:c00b1c08208631e25cc37e213e992e9d358a807715ad6453d00bfabbbf73a0ec"
+      }
+    ]
+  },
+  "acceptedCode": {
+    "revision": "1cfc1c09b48c8d96567f363985a0e61b72d66f50",
+    "files": [
+      {
+        "path": "package.json",
+        "digest": "sha256:609b6c45858830c93bdb237e3d7a422afba37dfc84ee8d8e576ddb84b6db412f"
+      },
+      {
+        "path": "src/.npmignore",
+        "digest": "sha256:921ab98bfb5cfdaf27120b6f4eb85ebc0d7cab0246c5f4891f045abb8a53223b"
+      },
+      {
+        "path": "src/client/runtime/composition-root.d.ts",
+        "digest": "sha256:18cb0d6be0b8ef2beff54b9c26b1ae9a65e84d7b76808cf30afb055aa3b43838"
+      },
+      {
+        "path": "src/client/runtime/composition-root.js",
+        "digest": "sha256:a121d8b1cf92b7de495c24faa2c4b02be97ce6e311ce42144dda679ec7251da0"
+      },
+      {
+        "path": "src/client/runtime/index.d.ts",
+        "digest": "sha256:d6e244ec270ff4acee4c0f6a8bd7c55f5d540ccaf4035d9d79ae30b56f236f89"
+      },
+      {
+        "path": "src/client/runtime/index.js",
+        "digest": "sha256:6ac64a329d446ceb26023a283ca67771b3f5775b91703e27948e1cbef869c52f"
+      },
+      {
+        "path": "src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
+        "digest": "sha256:1226d0ac64d228e23f9b06bc85d5df7621311f07256910c37ff29452675166e4"
+      },
+      {
+        "path": "src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
+        "digest": "sha256:5263a53a288d2e0d73f01190a7d92055086d66ab6e1a92fb30ed0e22e51fdd67"
+      },
+      {
+        "path": "src/config/forge/lineage/qwen3.8-27b.json",
+        "digest": "sha256:b6ae5de381bc6192af84a1b37e41417249779ef68fab59d85620a037a4b1059d"
+      },
+      {
+        "path": "src/config/initial-execution-identity.d.ts",
+        "digest": "sha256:8a79285319b9e3bd98238b8f8d0c64017de2bddc5644df997181fd7f419528a6"
+      },
+      {
+        "path": "src/config/initial-execution-identity.js",
+        "digest": "sha256:bd472e41f052a68d255f9b00151f9ec29ca738e71d4f20d5924154678272cb26"
+      },
+      {
+        "path": "src/config/kernels/kernel-ref-digests.js",
+        "digest": "sha256:1d416b65f7a5f38f145757b1dad22e06e3968f44c4a181bb1c025022e61f6934"
+      },
+      {
+        "path": "src/config/kernels/registry.json",
+        "digest": "sha256:533077c316212f2238afeb196353056331201f8b4563687ae5584d14c52d8a05"
+      },
+      {
+        "path": "src/config/pack-v2.d.ts",
+        "digest": "sha256:045db8e8a8875cc7bbc6f90793319ea7f2104e82411e9a3e41301f2b6e0f098c"
+      },
+      {
+        "path": "src/config/pack-v2.js",
+        "digest": "sha256:d7cee5fc12c1c9c6a0cdbd86935e1e70c384c348ad47cd8ffe445a0df31554d3"
+      },
+      {
+        "path": "src/config/runtime/profiles/qwen3-8-27b-source-parity.json",
+        "digest": "sha256:a2b6b4b4131483249b59aa04e68cc3bdad3c4ae7ac9b96caadcd839e01b7c75d"
+      },
+      {
+        "path": "src/config/schema/execution-v1.schema.d.ts",
+        "digest": "sha256:28e6854528234c3f179346bb31c9c6ef4bb8cc43d06877f0760b7e2d05d11870"
+      },
+      {
+        "path": "src/config/schema/execution-v1.schema.js",
+        "digest": "sha256:414ed850ac55982f847d14556f58e618d884f85087ac3ae8138fb4cea1f086b8"
+      },
+      {
+        "path": "src/config/schema/harness.schema.d.ts",
+        "digest": "sha256:c4b836d857f3f4540ed29537b7690b826fddbd2caa949c04b082c49dc8dde641"
+      },
+      {
+        "path": "src/config/schema/harness.schema.js",
+        "digest": "sha256:8ebe7fd17f9c3a56136438e585d9288fcb2e5ffe6d4ce56d9e6581952c1766f2"
+      },
+      {
+        "path": "src/config/schema/pack-v2.schema.json",
+        "digest": "sha256:8489e7fb3c89d79a75b57a3986756384929344ebe2d34c18ae409f56fd33eb65"
+      },
+      {
+        "path": "src/config/schema/program-bundle-json-schema.js",
+        "digest": "sha256:5b06160ad65c52abf456baf1cf79f924bd37ce9736f2d79ea7468cd01fcb6f64"
+      },
+      {
+        "path": "src/config/schema/program-bundle.schema.d.ts",
+        "digest": "sha256:5a9bdee1311cd5c3539c3d7e6bd7d2b1d44bf4d10acedcde84d216cc13afdc7f"
+      },
+      {
+        "path": "src/config/schema/program-bundle.schema.js",
+        "digest": "sha256:9b6eca0151447ff6dbbc9de7837baa51200ed3e36f1df367dc32922fb5c25b46"
+      },
+      {
+        "path": "src/config/schema/program-bundle.schema.json",
+        "digest": "sha256:1877504f75fcf2d1c9d01d9b2ac7c60913431bfae79cccd5f8d3b06adc4a247e"
+      },
+      {
+        "path": "src/config/schema/target-plan-v2.schema.json",
+        "digest": "sha256:2503664f516141e925fea76ba88aa4b37de28ace9b483deb9efbd166c94372df"
+      },
+      {
+        "path": "src/converter/execution-candidate-forge.js",
+        "digest": "sha256:d25dc0e5ba42e38110dc56f49e05dfc28f699eaab4373c1658c3de7e217becea"
+      },
+      {
+        "path": "src/converter/forge-stages.js",
+        "digest": "sha256:26ba1ace664575bdc2691cd2ba2750fc6bf8c165fe30a3a6f5e790ff1de59023"
+      },
+      {
+        "path": "src/converter/lineage-lowering-forge.d.ts",
+        "digest": "sha256:3436ff7546970cfb4ee4bfa1419d0024b63de1eeae7df7a615ed5e8276d04ae0"
+      },
+      {
+        "path": "src/converter/lineage-lowering-forge.js",
+        "digest": "sha256:c423b837e015d6ddbf348bb285bd1c0aa0df7db22169f93b65e962a454f399ec"
+      },
+      {
+        "path": "src/converter/release-to-javascript-receipt.d.ts",
+        "digest": "sha256:5b8e09839ba273ef5fe488487297dd3b16a9f87ef1a6922d7f8a48eb857bc5d5"
+      },
+      {
+        "path": "src/converter/release-to-javascript-receipt.js",
+        "digest": "sha256:b14f04b1c13ba9eef3bebf045419486914f920db694398342b304dca4d647845"
+      },
+      {
+        "path": "src/gpu/kernels/gated_delta_conv.wgsl",
+        "digest": "sha256:2347834915527612b62e6d98a9cd7af635ce39fc5c0d91b00345b27203f723d0"
+      },
+      {
+        "path": "src/gpu/kernels/gated_delta_fused_decode.wgsl",
+        "digest": "sha256:39c0211b618dbe5c426e0c04a66cd7ddcb26e09f61287b2c97d7c695cc95c626"
+      },
+      {
+        "path": "src/gpu/kernels/gated_delta_recurrent.wgsl",
+        "digest": "sha256:419e7cc015ce2452b5090d5fe98932e684c87af729400f65a1bc125e3d0c113b"
+      },
+      {
+        "path": "src/gpu/kernels/linear-attention-core.js",
+        "digest": "sha256:ce505d881f520a866be2d4a0126cc2fb6c4eb7e45f81fa7bf53575e5ade8bf7d"
+      },
+      {
+        "path": "src/inference/browser-harness-text-helpers.js",
+        "digest": "sha256:e994a137e5d6f3b2aba6de50acc3cb85e74ba57970de296ff180d334c9353ed8"
+      },
+      {
+        "path": "src/inference/browser-harness.js",
+        "digest": "sha256:29e0b6ac39874e0b8f1f7b32c42e96d76e48777e980d3d8f1a59a73cc435c4aa"
+      },
+      {
+        "path": "src/inference/pipelines/text/execution-v1.js",
+        "digest": "sha256:8b8826861ca61d890ff04b2327e03dd29a9b2055553d076d5b7477de4031dc70"
+      },
+      {
+        "path": "src/inference/pipelines/text/generator-logits-observation.d.ts",
+        "digest": "sha256:0f6630f9e03f88e705ece97b2a695283c985ccfe40592f9e10096200f9101cf6"
+      },
+      {
+        "path": "src/inference/pipelines/text/generator-logits-observation.js",
+        "digest": "sha256:5df2f05bc15125a9b8e4700879b5d8a64345beb8a0311f293f8d69ee94991f57"
+      },
+      {
+        "path": "src/inference/pipelines/text/generator-steps.js",
+        "digest": "sha256:9ee6d02446d77bc5c8621004c46fb6c177bcddd83d8f60c893a7f5501012848e"
+      },
+      {
+        "path": "src/tooling/program-bundle.js",
+        "digest": "sha256:a9766aba5fec4a29e40dd5faab59fe7d5c5b8762907f8ccf139934ad6a13a573"
+      },
+      {
+        "path": "src/tooling/program-bundle/validation.d.ts",
+        "digest": "sha256:c6066cc872ce385a638c0eae0e617e83304364a0355763655d4917bb0f8ebfee"
+      },
+      {
+        "path": "src/tooling/program-bundle/validation.js",
+        "digest": "sha256:038420e32f11af8270280095c698c97b2eb003345a9858c19fe2d099913331e6"
+      },
+      {
+        "path": "tests/config/execution-v1-schema.test.js",
+        "digest": "sha256:4682a9670dee340580a5f4b3427f4ce476231556ed6aa757b07ee1fff4649203"
+      },
+      {
+        "path": "tests/config/qwen38-source-parity-profile.test.js",
+        "digest": "sha256:f4df2a8925fc33fd975ff182d4a3fa4568a56cd302f029328b5641bbb03bf636"
+      },
+      {
+        "path": "tests/converter/execution-candidate-forge.test.js",
+        "digest": "sha256:68176c368aad8122c377463674c55c52a00f1d30127073ed3284787111e78c37"
+      },
+      {
+        "path": "tests/converter/forge-stages.test.js",
+        "digest": "sha256:67f8b176e0d572997975c841092c5fba7b79398c19f1c87ef0931dfee9d223ad"
+      },
+      {
+        "path": "tests/converter/lineage-lowering-forge.test.js",
+        "digest": "sha256:744d96d162404c0e6bd8a88f597b51b60067f6f61e0c8ff720c8580e8d6e5c62"
+      },
+      {
+        "path": "tests/converter/release-to-javascript-receipt.test.js",
+        "digest": "sha256:08b7bc23a011bd254ea84dc468e47a9bc51c596994ccb37e8cee87be79d00867"
+      },
+      {
+        "path": "tests/inference/generator-steps-cleanup.test.js",
+        "digest": "sha256:b0a2689f3f085be11e72a8e2b964ec0babb9f19348a760c052ec7336447fc05d"
+      },
+      {
+        "path": "tests/integration/browser-harness-generation-diagnostics.test.js",
+        "digest": "sha256:7efe77e002e975ade222945b4058fd87877596e14166663291448258db26d481"
+      },
+      {
+        "path": "tests/runtime/initial-execution-identity.test.js",
+        "digest": "sha256:a88daab2849393fca9dd0ee635bf76e4a8d7a2ee9b78f4eccbfa0261afb50bbc"
+      },
+      {
+        "path": "tests/runtime/pack-load-options.test.js",
+        "digest": "sha256:a92c08634d5660c21e0607b4059a6d87b3fb13ce6b7fdd91f64191af646052fa"
+      },
+      {
+        "path": "tests/tooling/create-release-to-javascript-receipt.test.js",
+        "digest": "sha256:a809e860ec35dec23f0afefa5d6a6dccfff0a08b2f71e64691edfb588dfe6884"
+      },
+      {
+        "path": "tests/tooling/forge-model-pack.test.js",
+        "digest": "sha256:0faf0ee0883388dc6cc99f7c7dbceeebacc4218821a46fd01835b2d96006361a"
+      },
+      {
+        "path": "tests/tooling/program-bundle-exporter.test.js",
+        "digest": "sha256:a5531983eb58b07cedd6bb3b151e43d07c58aae6e2cae845ed11380b721665cc"
+      },
+      {
+        "path": "tests/tooling/program-bundle-reference-preflight.test.js",
+        "digest": "sha256:c2c08a013598cc05a18b24f8df49563345f59d0c010d8b1f5339c621805dd3e3"
+      },
+      {
+        "path": "tests/tooling/qualify-pack-v0-node.test.js",
+        "digest": "sha256:1420757dd11aa72359ccdaf93ff4644aea5871a93a57089f9f8b3af241a0dbab"
+      },
+      {
+        "path": "tools/create-release-to-javascript-receipt.js",
+        "digest": "sha256:9d48cbdb403ab23cd63e63e713da12d032cf1bf7a4194a8f289fa00c2442e828"
+      },
+      {
+        "path": "tools/forge-model-pack.js",
+        "digest": "sha256:c29ea2d20530917f6be87e2b69c13d4f3dce1347960ab664b08731b930147d0e"
+      },
+      {
+        "path": "tools/materialize-lineage-conversion.js",
+        "digest": "sha256:f2915f229deb0f16ce76b8ddb194f5ef6dbe2eb082aa42bc995aefb6411d225f"
+      },
+      {
+        "path": "tools/policies/source-architecture-policy.json",
+        "digest": "sha256:98197cd05c466811801f2739eaefe9c5232d43704b48979084861faf4b616e0d"
+      },
+      {
+        "path": "tools/qualify-pack-v0-node.js",
+        "digest": "sha256:97d04f5c71fdb421cb2fd01b8811c9d8203aa2997d5278e0ef6aec510daa6cb7"
+      },
+      {
+        "path": "tools/run-program-bundle-reference.js",
+        "digest": "sha256:dffe18e85dc438a15629c18eaff4e0e569f7f55265aee49772c62f60d504fef0"
+      }
+    ],
+    "digest": "sha256:fd4755da188110c3b0b2c720442b0f3815894318c0047085e19df4b3474f48f9"
+  },
+  "qualification": {
+    "status": "passed",
+    "packId": "qwen3-8-27b-text-f16-af32-pack-v2-f8eeda316e12875b",
+    "packDigest": "sha256:165ce82989e116028be1a7e81ed7138332014b4ff894d59edb4bb658ee8b7782"
+  },
+  "evidence": [
+    {
+      "kind": "source-truth-model-ir",
+      "path": "reports/model-ir-v2/qwen3.8-27b.model-ir-receipt.json",
+      "digest": "sha256:61a35f75a72e3cf0001fda5f02f429edb4cd66894b299013c70e218f8d700f7e"
+    },
+    {
+      "kind": "lineage-lowering",
+      "path": "reports/model-ir-v2/qwen3.8-27b.lineage-lowering-receipt.json",
+      "digest": "sha256:d9933c00532217f7d74b3081ae8ccfd8d863c14f913e6ef028f5e5aac432382b"
+    },
+    {
+      "kind": "q4-head-negative",
+      "path": "reports/model-ir-v2/qwen3.8-27b.q4-head.node-webgpu-negative.json",
+      "digest": "sha256:bec28bbee6a3e90ad60cdf2234c249fa8d1249cbbd8cfdaf23d25e3f4290e0bd"
+    },
+    {
+      "kind": "f16-head-negative",
+      "path": "reports/model-ir-v2/qwen3.8-27b.f16-head.node-webgpu-negative.json",
+      "digest": "sha256:63c68760831e6a1f9e6d3237b03b4b8c8fa5deccc7160bea678481cfbc0b03ac"
+    },
+    {
+      "kind": "recurrent-f16-negative",
+      "path": "reports/model-ir-v2/qwen3.8-27b.recurrent-f16.node-webgpu-negative.json",
+      "digest": "sha256:5ea9b1dddffbe1632337cefe4b5f51d59a4feaf4a7403635acfc51e0deec43d1"
+    },
+    {
+      "kind": "pinned-reference-transcript",
+      "path": "reports/model-ir-v2/qwen3.8-27b.reference-transcript.json",
+      "digest": "sha256:4d11b51fcdd7dc47ec276f807de48fb282b6eb6f40085af48f14a81d2277558c"
+    },
+    {
+      "kind": "source-node-webgpu-qualification",
+      "path": "reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json",
+      "digest": "sha256:4f268823ca79b2d2510ded4383b02a93e096970ea48cf6fe44196b551160dcc3"
+    },
+    {
+      "kind": "signed-pack-node-webgpu-qualification",
+      "path": "reports/model-ir-v2/qwen3.8-27b.pack-node-qualification.json",
+      "digest": "sha256:88f0f659a7c69350629d470e1a0e612f5129445f08b739d73f5fb8496773d3a0"
+    }
+  ],
+  "receiptDigest": "sha256:c846bfdc17ad9422a1cf78d74dee68b517ab606f662019c669ff3bd83635e369"
+}
