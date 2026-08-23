@@ -7,12 +7,12 @@
     "actor": "doppler-manifest-conversion-preflight"
   },
   "semanticEvidence": {
-    "sourceModelIRHash": "sha256:50c7b087df45b25b54d99bdd13596e810a8d6dc76eff102f1656db51d5091957",
-    "modelIRHash": "sha256:aa9b09c824662a81bd29100ae8e3611874cc75ccd24acb4528e216855bbff62c",
-    "conversionConfigDigest": "sha256:f4256e861918c5379b8e4ccdd3f9a08c327bc57ca40007b7a10b18e2a8fa094f"
+    "sourceModelIRHash": "sha256:2f2d89c0cd20b9ad6a8c6374148c3188d42451db2bf8a8b59152946f6fefdef2",
+    "modelIRHash": "sha256:e5a72acbf9903b52ee860fa6bce657e712607b911a7f905482c36d0295c0a3ff",
+    "conversionConfigDigest": "sha256:a6ace864c77e7f0b2f3f49bea5aefb64b46c5fa194ea5302e5e915a05a9f96ee"
   },
   "tensorClosureEvidence": {
-    "receiptDigest": "sha256:b18330006cc0c76f13a064bce6b6b37eb8bb865841daf612fdf81f28ba7a9f01",
+    "receiptDigest": "sha256:b36f1e3d8335a0c36ed71185a0bd125e4c0673e95739a2eca36a215ccdd500bb",
     "expectedTensorCount": 627,
     "observedTensorCount": 627
   },
@@ -95,5 +95,5 @@
     "qualificationStarted": false,
     "packEligible": false
   },
-  "receiptDigest": "sha256:a05a3ba7673a712f549d033184d31113c1a7c9d24813ab4e3d19b2268632d25b"
+  "receiptDigest": "sha256:a0a2bfc571fab44cd9496aff5b830c741f27558a34737256e68b454bc68d839f"
 }

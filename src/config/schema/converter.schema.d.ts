@@ -67,6 +67,7 @@ export interface ConverterWeightLayoutConfigSchema {
 
 export interface ConverterManifestConfigSchema {
   hashAlgorithm: HashAlgorithm;
+  eosTokenId: number | number[] | null;
   optimizations: RuntimeOptimizationsSchema | null;
   conversion: ConversionInfoSchema | null;
   artifactIdentity: ManifestArtifactIdentitySchema | null;

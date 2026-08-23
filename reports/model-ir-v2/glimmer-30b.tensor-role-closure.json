@@ -8,7 +8,7 @@
     "actor": "openai-codex",
     "proposalId": "heterogeneous-text-tensor-role-closure-v1"
   },
-  "modelIRHash": "sha256:aa9b09c824662a81bd29100ae8e3611874cc75ccd24acb4528e216855bbff62c",
+  "modelIRHash": "sha256:e5a72acbf9903b52ee860fa6bce657e712607b911a7f905482c36d0295c0a3ff",
   "headerEvidence": {
     "schema": "doppler.safetensors-header-evidence/v1",
     "checkpointId": "meta-models/Muse-Glimmer-30B",
@@ -261,5 +261,5 @@
   "missingTensors": [],
   "unexpectedTensors": [],
   "complete": true,
-  "receiptDigest": "sha256:b18330006cc0c76f13a064bce6b6b37eb8bb865841daf612fdf81f28ba7a9f01"
+  "receiptDigest": "sha256:b36f1e3d8335a0c36ed71185a0bd125e4c0673e95739a2eca36a215ccdd500bb"
 }
