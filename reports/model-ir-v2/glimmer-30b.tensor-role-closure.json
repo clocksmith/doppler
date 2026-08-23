@@ -1,0 +1,265 @@
+{
+  "schema": "doppler.tensor-role-closure-receipt/v1",
+  "modelId": "muse-glimmer-30b-text-f16-af32",
+  "entryPointId": "text.generate",
+  "sourceTopology": "complete",
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "heterogeneous-text-tensor-role-closure-v1"
+  },
+  "modelIRHash": "sha256:aa9b09c824662a81bd29100ae8e3611874cc75ccd24acb4528e216855bbff62c",
+  "headerEvidence": {
+    "schema": "doppler.safetensors-header-evidence/v1",
+    "checkpointId": "meta-models/Muse-Glimmer-30B",
+    "repository": "meta-models/Muse-Glimmer-30B",
+    "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+    "sourceHeaderSha256": "fc1320b5952281e16ffb38d38e4c198be66cd04271e195d5cfcce3a73c63e12e",
+    "additionalSourceHeaders": [
+      {
+        "sourceFile": "model-00002-of-00002.safetensors",
+        "sourceHeaderSha256": "b622bd09c89b472daad7f39b70fcad77f950cbd147ae7acd9c01eeb5bf5d8d89",
+        "headerLength": 11720,
+        "tensorCount": 89
+      }
+    ],
+    "tensorCount": 1436,
+    "digest": "sha256:844bc94bb0c305d3c1de4bed978e9ff2a8fe1a9d663f190367e6016a91f6366d"
+  },
+  "policyDigest": "sha256:e97390fc17d33f5b085d64b870163c0bd3eb6e4c7e333939885353963f2a4276",
+  "dimensionSymbols": {
+    "hiddenSize": 6656,
+    "vocabSize": 202048,
+    "numLayers": 52,
+    "numHeads": 32,
+    "numKvHeads": 2,
+    "headDim": 128,
+    "intermediateSize": 19968
+  },
+  "bindings": [
+    {
+      "scope": "component",
+      "role": "token-embedding",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        202048,
+        6656
+      ],
+      "matchedTensors": 1,
+      "tensorEvidenceDigest": "sha256:d3f103a8ffaa6911f1e67be3dfceb32447eb9b4021f03acd2fc04e3effbc34c0",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "component",
+      "role": "final-normalization",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        6656
+      ],
+      "matchedTensors": 1,
+      "tensorEvidenceDigest": "sha256:b21b88a84d51eed8cb3963157867b31e69cd656aea90aa409d52111ad8692734",
+      "sourceFiles": [
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "component",
+      "role": "language-model-head",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        202048,
+        6656
+      ],
+      "matchedTensors": 1,
+      "tensorEvidenceDigest": "sha256:5c5925e5880d956d5008cac41dc4c63f7aed8ba02f5fa7354a197c270e96019c",
+      "sourceFiles": [
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "input-normalization",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        6656
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:0087e31ec7c56c3298209e82cb02cceddf1e657cfef82da37259bc27fdbef664",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "query-projection",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        4096,
+        6656
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:1c6a7fc56861cda06c7e2cf891576b3a581a0066a18916319a9582bea49eb257",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "key-projection",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        256,
+        6656
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:f4705c0796567af53d0b1c4c2894fd9e3a16d92d732b5c8e295e7af77050faf7",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "value-projection",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        256,
+        6656
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:8da5018604d5b69d71ecfaf707036a16a7a7a951a9217f0ca1df9023338121cb",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "attention-output-projection",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        6656,
+        4096
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:e0ae40974992bfd085e726ac6385ac9a54e62c618c8ef780a7a8f35fab418158",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "attention-output-gate-projection",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        4096,
+        6656
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:93dfeaa9f56b50f8fb21db2c0ea7829484ce54a072f33d9289e24461e9a72207",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "post-attention-normalization",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        6656
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:3ec611feb9b83e223b3b3518ebad4462ca8c94b319027d7d75d5bd7208a80aee",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "pre-feed-forward-normalization",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        6656
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:90c70c4a4537fd78a5aa6967467fe261f078122ab37092afcc07c272b336984c",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "feed-forward-gate-projection",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        19968,
+        6656
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:110483ae734eed4b96003fbda7210cd5094126a3571c107a6711b20956595e7a",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "feed-forward-up-projection",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        19968,
+        6656
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:26628fdcd0acbea7bdbd003d04edb685d96e0d1e347b4009d4efad7db7a3efdf",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "feed-forward-down-projection",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        6656,
+        19968
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:eaf92b26a2362a38c687cfef12538bf99fd65d1644cd0ebbd3d08b2419d5a37d",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    },
+    {
+      "scope": "layer",
+      "role": "post-feed-forward-normalization",
+      "expectedDtype": "BF16",
+      "expectedShape": [
+        6656
+      ],
+      "matchedTensors": 52,
+      "tensorEvidenceDigest": "sha256:7d3f2ecf70866a06f452917dfae3d348b8fcce15725fae62b764772672a53f67",
+      "sourceFiles": [
+        "model-00001-of-00002.safetensors",
+        "model-00002-of-00002.safetensors"
+      ]
+    }
+  ],
+  "expectedTensorCount": 627,
+  "observedTensorCount": 627,
+  "outOfScopeTensorCount": 809,
+  "missingTensors": [],
+  "unexpectedTensors": [],
+  "complete": true,
+  "receiptDigest": "sha256:b18330006cc0c76f13a064bce6b6b37eb8bb865841daf612fdf81f28ba7a9f01"
+}

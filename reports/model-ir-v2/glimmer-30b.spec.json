@@ -21,7 +21,7 @@
         "artifactId": "headers",
         "path": "model-00001-of-00002.safetensors#header+model-00002-of-00002.safetensors#header",
         "role": "tensor-header-receipt",
-        "hash": "sha256:665b9486109c4ab9e7da868516e67cff4596eba20032e580c7ec6a7bb380705a"
+        "hash": "sha256:844bc94bb0c305d3c1de4bed978e9ff2a8fe1a9d663f190367e6016a91f6366d"
       },
       {
         "artifactId": "reference",

@@ -1,0 +1,17 @@
+{
+  "schema": "doppler.safetensors-header-pin/v1",
+  "checkpointId": "meta-models/Muse-Glimmer-30B",
+  "repository": "meta-models/Muse-Glimmer-30B",
+  "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+  "shards": [
+    {
+      "sourceFile": "model-00001-of-00002.safetensors",
+      "headerSha256": "fc1320b5952281e16ffb38d38e4c198be66cd04271e195d5cfcce3a73c63e12e"
+    },
+    {
+      "sourceFile": "model-00002-of-00002.safetensors",
+      "headerSha256": "b622bd09c89b472daad7f39b70fcad77f950cbd147ae7acd9c01eeb5bf5d8d89"
+    }
+  ],
+  "output": "reports/model-ir-v2/source/glimmer-30b-tensor-headers.json"
+}
