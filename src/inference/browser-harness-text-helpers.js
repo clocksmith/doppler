@@ -5,6 +5,7 @@ import { loadJson } from '../utils/load-json.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import { cloneJsonValue } from '../utils/clone-json.js';
 import { sha256BytesHex } from '../utils/sha256.js';
+import { observeInitialExecutionIdentity } from '../config/initial-execution-identity.js';
 import { resolvePromptInput } from './pipelines/text/generator-prefill-helpers.js';
 import { isExecutionObservationRequested } from '../tooling/execution-cost-ledger.js';
 import {
@@ -1839,6 +1840,9 @@ export function isCoherentOutput(tokens, output) {
 }
 
 export async function runGeneration(pipeline, runtimeConfig, runOverrides = null) {
+  const initialExecutionIdentity = pipeline?.resolvedRuntimeSession
+    ? observeInitialExecutionIdentity(pipeline.resolvedRuntimeSession)
+    : null;
   const tokens = [];
   const tokenIds = [];
   const tokenRecords = [];
@@ -1938,6 +1942,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     prompt: promptLabel,
     promptInput,
     promptTokenIds,
+    initialExecutionIdentity,
     maxTokens,
     generationConfig,
     tokens,

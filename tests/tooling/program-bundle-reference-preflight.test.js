@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 
 import {
   assertLocalModelArtifactsReadable,
+  buildSourceParity,
   normalizeModelUrl,
   parseArgs,
 } from '../../tools/run-program-bundle-reference.js';
@@ -121,6 +122,46 @@ try {
     ]),
     /--tsir-fixture-dir requires --surface node/
   );
+
+  const expectedTranscriptPath = path.join(tmpRoot, 'expected.json');
+  const parsed = parseArgs([
+    '--surface', 'node',
+    '--manifest', path.join(variantDir, 'manifest.json'),
+    '--out', path.join(tmpRoot, 'bundle.json'),
+    '--expected-transcript', expectedTranscriptPath,
+  ]);
+  assert.equal(parsed.expectedTranscriptPath, expectedTranscriptPath);
+
+  const expectedTranscript = {
+    path: 'expected.json',
+    json: {
+      model: 'source/model',
+      revision: 'pinned',
+      execution: { sampling: 'greedy' },
+      promptTokenIds: [1, 2],
+      generatedTokenIds: [3, 4],
+      generatedTokens: 2,
+    },
+  };
+  const report = {
+    metrics: {
+      referenceTranscript: {
+        prompt: { ids: [1, 2] },
+        tokens: { ids: [3, 4] },
+      },
+    },
+  };
+  assert.equal(buildSourceParity(report, expectedTranscript).status, 'passed');
+  const mismatch = buildSourceParity({
+    metrics: {
+      referenceTranscript: {
+        prompt: { ids: [1, 2] },
+        tokens: { ids: [3, 5] },
+      },
+    },
+  }, expectedTranscript);
+  assert.equal(mismatch.status, 'failed');
+  assert.equal(mismatch.generation.firstMismatchIndex, 1);
 } finally {
   await fs.rm(tmpRoot, { recursive: true, force: true });
 }

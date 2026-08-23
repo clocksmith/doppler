@@ -40,7 +40,7 @@
     },
     "provenance": {
       "forgeVersion": "2.0.0",
-      "intakeDigest": "sha256:7d741d1c7fe499e032d195e62143734407b81e6197a4c46332a1aefc3e91a25c",
+      "intakeDigest": "sha256:d4b4a28ac5a6b66e0c963a54c59306a86f9ca7a53633009959c171cd53be301b",
       "facts": [
         {
           "id": "root.architecture",
@@ -2232,12 +2232,14 @@
         "id": "text.convolutional-state",
         "factRefs": [
           "linear.convKernel",
+          "linear.stateDtype",
           "tensor.linearConv"
         ],
         "kind": "convolutional",
         "persistence": "session",
         "contract": {
-          "kernelSize": 4
+          "kernelSize": 4,
+          "dtype": "float32"
         }
       }
     ],
@@ -2388,7 +2390,7 @@
       ]
     }
   },
-  "intakeDigest": "sha256:7d741d1c7fe499e032d195e62143734407b81e6197a4c46332a1aefc3e91a25c",
+  "intakeDigest": "sha256:d4b4a28ac5a6b66e0c963a54c59306a86f9ca7a53633009959c171cd53be301b",
   "unresolvedFacts": [],
   "generatedCandidates": 4,
   "rejectedCandidates": 3,

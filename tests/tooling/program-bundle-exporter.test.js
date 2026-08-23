@@ -18,6 +18,7 @@ await fs.mkdir(modelDir, { recursive: true });
 await fs.mkdir(reportDir, { recursive: true });
 
 const gatherDigest = `sha256:${KERNEL_REF_CONTENT_DIGESTS['gather.wgsl#main']}`;
+const mechanismDigest = `sha256:${KERNEL_REF_CONTENT_DIGESTS['activation_static_qdq.wgsl#main']}`;
 const manifestPath = path.join(modelDir, 'manifest.json');
 const reportPath = path.join(reportDir, 'report.json');
 const conversionConfigPath = path.join(fixtureRoot, 'conversion.json');
@@ -60,7 +61,13 @@ await fs.writeFile(manifestPath, `${JSON.stringify({
           entry: 'main',
           digest: gatherDigest,
         },
+        mechanism: {
+          kernel: 'activation_static_qdq.wgsl',
+          entry: 'main',
+          digest: mechanismDigest,
+        },
       },
+      mechanismKernels: ['mechanism'],
       preLayer: [['embed', 'embed_alias']],
       decode: [],
       prefill: [],
@@ -89,6 +96,16 @@ await fs.writeFile(reportPath, `${JSON.stringify({
       omitted: 0,
     },
     referenceTranscript: {
+      generationConfig: {
+        maxTokens: 1,
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        repetitionPenalty: 1,
+        repetitionPenaltyWindow: 0,
+        seed: 0,
+        useChatTemplate: false,
+      },
       prompt: {
         identity: 'The sky is',
         hash: `sha256:${'f'.repeat(64)}`,
@@ -143,9 +160,10 @@ const bundle = await exportProgramBundle({
 
 assert.equal(bundle.modelId, 'unit-model');
 assert.equal(bundle.artifacts.filter((artifact) => artifact.role === 'weight-shard').length, 1);
-assert.equal(bundle.wgslModules.length, 1);
-assert.equal(bundle.wgslModules[0].id, 'embed_alias');
-assert.equal(bundle.wgslModules[0].digest, gatherDigest);
+assert.equal(bundle.wgslModules.length, 2);
+assert.equal(bundle.wgslModules.find((module) => module.id === 'embed_alias')?.digest, gatherDigest);
+assert.equal(bundle.wgslModules.find((module) => module.id === 'mechanism')?.digest, mechanismDigest);
+assert.deepEqual(bundle.execution.kernelClosure.reachableKernelIds, ['embed_alias', 'mechanism']);
 assert.equal(bundle.execution.kernelClosure.expandedStepCount, 1);
 assert.equal(bundle.execution.steps[0].kernelId, 'embed_alias');
 assert.equal(bundle.referenceTranscript.output.tokensGenerated, 1);

@@ -1,7 +1,7 @@
 {
   "schema": "doppler.lineage-lowering-receipt/v1",
   "modelId": "qwen3.8-27b-text-q4k-ehaf16",
-  "modelIRHash": "sha256:29774ddfc88b818dd4f2ee4440c39cb2def44d56a930c0e8be9f9f4f9cf168f7",
+  "modelIRHash": "sha256:646f863c20dd6330420e3cc58da367c4145136dc604dee9fde7d114c1850e6f3",
   "template": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
   "author": {
     "kind": "ai",

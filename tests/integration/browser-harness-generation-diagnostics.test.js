@@ -4,6 +4,8 @@ const { runBrowserSuite } = await import('../../src/inference/browser-harness.js
 const { runGeneration } = await import('../../src/inference/browser-harness-text-helpers.js');
 const { setRuntimeConfig } = await import('../../src/config/runtime.js');
 
+const digest = (character) => `sha256:${character.repeat(64)}`;
+
 setRuntimeConfig({
   inference: {
     prompt: 'The sky is',
@@ -78,6 +80,74 @@ function createHarnessOverride(records) {
     },
     pipeline,
   };
+}
+
+{
+  let generationStarted = false;
+  const resolvedRuntimeSession = {
+    id: digest('1'),
+    schema: 'doppler.resolved-runtime-session/v1',
+    manifestInference: {
+      execution: {
+        kernels: {
+          embed: { kernel: 'gather.wgsl', entry: 'main', digest: digest('2') },
+        },
+        preLayer: [['embed', 'embed']],
+        decode: [],
+        prefill: [],
+        postLayer: [],
+      },
+      layerPattern: { type: 'explicit', layerTypes: ['full-attention'] },
+    },
+    execution: {
+      resolvedSteps: [],
+      resolvedStepsHash: digest('3'),
+      primary: 'default',
+      appliedTransforms: [],
+    },
+    runtime: {
+      session: {
+        kvcache: { layout: 'contiguous', kvDtype: 'f16' },
+        perLayerInputs: null,
+        largeWeights: null,
+      },
+    },
+    dtypes: { activation: 'f32', kv: 'f16', weight: 'q4k' },
+    kernelPath: { id: 'default' },
+    capabilityPolicy: { mode: 'strict' },
+    laneIntegrity: { status: 'passed' },
+  };
+  const run = await runGeneration({
+    get resolvedRuntimeSession() {
+      assert.equal(generationStarted, false, 'identity must be observed before the first dispatch');
+      return resolvedRuntimeSession;
+    },
+    tokenizer: {
+      encode: () => [1],
+      decode: () => 'Blue',
+    },
+    async *generate(_prompt, options) {
+      generationStarted = true;
+      options.onToken?.(2, 'Blue');
+      yield 'Blue';
+    },
+    getStats: () => ({
+      prefillTimeMs: 1,
+      ttftMs: 1,
+      decodeTimeMs: 1,
+      prefillTokens: 1,
+      decodeTokens: 1,
+      decodeProfileSteps: [],
+    }),
+  }, {
+    shared: {},
+    inference: {
+      prompt: 'The sky is',
+      generation: { maxTokens: 1 },
+      sampling: { temperature: 0, topK: 1, topP: 1 },
+    },
+  });
+  assert.equal(run.initialExecutionIdentity.schema, 'doppler.initial-execution-identity/v1');
 }
 
 {

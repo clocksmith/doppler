@@ -45,6 +45,8 @@ export function usage() {
     '  --qualification-report <path> Additional physical-surface qualification report (repeatable)',
     '  --conversion-config <path>    Conversion configuration',
     '  --runtime-config <path>       Runtime configuration',
+    '  --model-ir-receipt <path>     Validated ModelIR receipt containing modelIR',
+    '  --initial-identity <path>     Pre-dispatch observed execution identity or report',
     '  --model-dir <path>            Model artifact directory',
     '  --out <path>                  Signed Pack v2 output path',
     '  --signing-private-key <path>  Ed25519 private JWK',
@@ -100,6 +102,8 @@ export async function buildForgeOptions(flags, metaUrl = import.meta.url) {
     qualificationReportPaths: flags['qualification-report'] ?? [],
     conversionConfigPath: flags['conversion-config'] ?? null,
     runtimeConfigPath: flags['runtime-config'] ?? null,
+    modelIRReceiptPath: flags['model-ir-receipt'] ?? null,
+    initialExecutionIdentityPath: flags['initial-identity'] ?? null,
     outputPath: flags.out ?? null,
     createdAtUtc: flags['created-at'] ?? null,
     signingPrivateKeyPath: flags['signing-private-key'] ?? null,
@@ -321,6 +325,25 @@ export async function forgeModelPack(options) {
     options.qualificationReportPaths ?? [],
     source.bundle
   );
+  let modelIR = null;
+  if (options.modelIRReceiptPath) {
+    const modelIRReceipt = (await readJsonFile(options.modelIRReceiptPath, 'ModelIR receipt')).json;
+    if (!modelIRReceipt.modelIR || typeof modelIRReceipt.modelIR !== 'object'
+      || Array.isArray(modelIRReceipt.modelIR)) {
+      throw new Error('ModelIR receipt must contain a modelIR object.');
+    }
+    modelIR = modelIRReceipt.modelIR;
+  }
+  let initialExecutionIdentity = null;
+  if (options.initialExecutionIdentityPath) {
+    const identitySource = (await readJsonFile(
+      options.initialExecutionIdentityPath,
+      'initial execution identity'
+    )).json;
+    initialExecutionIdentity = identitySource.initialExecutionIdentity
+      ?? identitySource.metrics?.initialExecutionIdentity
+      ?? identitySource;
+  }
   const { pack, stages } = await runForgePipeline({
     manifest: manifest.json,
     manifestRaw: manifest.raw,
@@ -330,6 +353,8 @@ export async function forgeModelPack(options) {
     repoRoot,
     outputPath: path.resolve(options.outputPath),
     qualificationEvidence,
+    modelIR,
+    initialExecutionIdentity,
   }, signer);
   await materializePackArtifactClosure(
     pack,

@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 import { runForgePipeline, stageAnalyze } from '../../src/converter/forge-stages.js';
+import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';
 import { sha256Hex } from '../../src/utils/sha256.js';
 import { TEST_PACK_AUTHORITY, TEST_PACK_PUBLIC_KEY } from '../helpers/pack-v2-fixture.js';
 
@@ -81,6 +83,107 @@ assert.equal(result.pack.schema, 'doppler.pack/v2');
 assert.equal(result.pack.signature.authority, TEST_PACK_AUTHORITY);
 assert.equal(result.pack.modelIR.hiddenSize, 4);
 assert.equal(result.pack.targetPlans.length, 1, 'Forge must not invent unsupported target variants');
+
+const qwenReceipt = JSON.parse(await fs.readFile(
+  'reports/model-ir-v2/qwen3.8-27b.model-ir-receipt.json',
+  'utf8'
+));
+const modelIRV2 = {
+  ...qwenReceipt.modelIR,
+  modelId: manifest.modelId,
+  sourceIdentity: {
+    ...qwenReceipt.modelIR.sourceIdentity,
+    checkpointId: manifest.artifactIdentity.sourceCheckpointId,
+    repository: 'test/forge-model',
+    revision: 'fixture-revision',
+  },
+};
+const v2Manifest = {
+  ...manifest,
+  artifactIdentity: {
+    ...manifest.artifactIdentity,
+    sourceRepo: 'test/forge-model',
+    sourceRevision: 'fixture-revision',
+  },
+  inference: {
+    ...manifest.inference,
+    linearAttention: { stateDtype: 'f32' },
+  },
+};
+const v2ManifestRaw = `${JSON.stringify(v2Manifest)}\n`;
+const v2ProgramBundle = {
+  ...programBundle,
+  sources: {
+    ...programBundle.sources,
+    manifest: { hash: hash(v2ManifestRaw) },
+  },
+  artifacts: programBundle.artifacts.map((artifact) => (
+    artifact.role === 'manifest'
+      ? { ...artifact, hash: hash(v2ManifestRaw), sizeBytes: v2ManifestRaw.length }
+      : artifact
+  )),
+};
+const initialExecutionIdentity = createInitialExecutionIdentity({
+  executionGraphHash: graphHash,
+  resolvedGraphHash: `sha256:${'6'.repeat(64)}`,
+  kernelClosure: [{ moduleId: 'main', file: 'main.wgsl', entry: 'main', digest: wgslHash }],
+  dtypeLane: { activation: 'f32', kv: 'f32', weight: 'f32' },
+  fusionSet: [],
+  kvLayout: { layout: 'contiguous' },
+  memoryPolicy: { kvcache: { layout: 'contiguous' } },
+  executionPlanDigest: `sha256:${'7'.repeat(64)}`,
+  runtimeEngine: { schema: 'fixture' },
+});
+const v2Result = await runForgePipeline({
+  manifest: v2Manifest,
+  manifestRaw: v2ManifestRaw,
+  programBundle: v2ProgramBundle,
+  programBundleRaw: `${JSON.stringify(v2ProgramBundle)}\n`,
+  programBundlePath: '/tmp/program-bundle-v2.json',
+  repoRoot: '/tmp',
+  outputPath: '/tmp/model-v2.pack.json',
+  modelIR: modelIRV2,
+  initialExecutionIdentity,
+}, {
+  authority: TEST_PACK_AUTHORITY,
+  privateKeyJwk,
+  publicKeyJwk: TEST_PACK_PUBLIC_KEY,
+});
+assert.equal(v2Result.pack.modelIR.schema, 'doppler.model-ir/v2');
+assert.equal(v2Result.pack.targetPlans[0].schema, 'doppler.target-plan/v2');
+assert.equal(v2Result.pack.targetPlans[0].initialExecutionIdentity.digest, initialExecutionIdentity.digest);
+assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'recurrent_state'));
+assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'convolutional_state'));
+
+const wrongKernelIdentity = createInitialExecutionIdentity({
+  executionGraphHash: graphHash,
+  resolvedGraphHash: `sha256:${'6'.repeat(64)}`,
+  kernelClosure: [{ moduleId: 'other', file: 'other.wgsl', entry: 'main', digest: wgslHash }],
+  dtypeLane: { activation: 'f32', kv: 'f32', weight: 'f32' },
+  fusionSet: [],
+  kvLayout: { layout: 'contiguous' },
+  memoryPolicy: { kvcache: { layout: 'contiguous' } },
+  executionPlanDigest: `sha256:${'7'.repeat(64)}`,
+  runtimeEngine: { schema: 'fixture' },
+});
+await assert.rejects(
+  () => runForgePipeline({
+    manifest: v2Manifest,
+    manifestRaw: v2ManifestRaw,
+    programBundle: v2ProgramBundle,
+    programBundleRaw: `${JSON.stringify(v2ProgramBundle)}\n`,
+    programBundlePath: '/tmp/program-bundle-v2.json',
+    repoRoot: '/tmp',
+    outputPath: '/tmp/model-v2.pack.json',
+    modelIR: modelIRV2,
+    initialExecutionIdentity: wrongKernelIdentity,
+  }, {
+    authority: TEST_PACK_AUTHORITY,
+    privateKeyJwk,
+    publicKeyJwk: TEST_PACK_PUBLIC_KEY,
+  }),
+  /kernel closure different from the observed initial execution/
+);
 
 assert.throws(
   () => stageAnalyze({ manifest: { ...manifest, architecture: { ...manifest.architecture, headDim: undefined } }, artifacts, manifestHash: hash(manifestRaw) }),

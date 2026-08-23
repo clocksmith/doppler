@@ -126,7 +126,7 @@
     "stateSpaces": [
       { "id": "text.kv-state", "factRefs": ["text.useCache", "full.numKvHeads", "full.headDim"], "kind": "kv", "persistence": "session", "contract": { "numKvHeads": { "$fact": "full.numKvHeads" }, "headDim": { "$fact": "full.headDim" } } },
       { "id": "text.recurrent-state", "factRefs": ["linear.keyHeads", "linear.valueHeads", "linear.keyHeadDim", "linear.valueHeadDim", "linear.stateDtype", "tensor.linearState"], "kind": "recurrent", "persistence": "session", "contract": { "keyHeads": { "$fact": "linear.keyHeads" }, "valueHeads": { "$fact": "linear.valueHeads" }, "dtype": { "$fact": "linear.stateDtype" } } },
-      { "id": "text.convolutional-state", "factRefs": ["linear.convKernel", "tensor.linearConv"], "kind": "convolutional", "persistence": "session", "contract": { "kernelSize": { "$fact": "linear.convKernel" } } }
+      { "id": "text.convolutional-state", "factRefs": ["linear.convKernel", "linear.stateDtype", "tensor.linearConv"], "kind": "convolutional", "persistence": "session", "contract": { "kernelSize": { "$fact": "linear.convKernel" }, "dtype": { "$fact": "linear.stateDtype" } } }
     ],
     "tensorRoleBindings": [
       { "id": "linear.state-binding", "componentId": "text-decoder", "factRefs": ["tensor.linearState"], "role": "recurrent-transition", "selector": { "exact": "model.language_model.layers.0.linear_attn.A_log" } },
