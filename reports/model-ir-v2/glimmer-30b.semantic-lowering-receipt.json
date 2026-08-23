@@ -3741,6 +3741,15 @@
       "disposition": "accepted"
     },
     {
+      "kind": "reproducible-conversion-identity",
+      "conversion": {
+        "convertedAt": "2026-08-23T08:59:59.000Z",
+        "tool": "doppler.semantic-manifest-lowering/v1"
+      },
+      "disposition": "accepted",
+      "rationale": "Forge freezes conversion identity before execution so rebuilds do not inherit wall-clock manifest drift."
+    },
+    {
       "kind": "conservative-session-policy",
       "speculation": "none",
       "disabledFusions": [
@@ -3849,7 +3858,7 @@
     }
   ],
   "unresolvedFacts": [],
-  "conversionConfigDigest": "sha256:e9d62888547c51668fbd382bcfffe9b8f310e7618d84b98659e29dd85f8f1c0f",
+  "conversionConfigDigest": "sha256:f4256e861918c5379b8e4ccdd3f9a08c327bc57ca40007b7a10b18e2a8fa094f",
   "conversionConfig": {
     "modelType": "transformer",
     "quantization": {
@@ -4204,6 +4213,10 @@
         "sourceRepo": "meta-models/Muse-Glimmer-30B",
         "sourceRevision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
         "artifactCompleteness": "complete"
+      },
+      "conversion": {
+        "convertedAt": "2026-08-23T08:59:59.000Z",
+        "tool": "doppler.semantic-manifest-lowering/v1"
       },
       "eosTokenId": 200001
     },

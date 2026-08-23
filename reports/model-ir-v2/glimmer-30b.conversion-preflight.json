@@ -9,12 +9,18 @@
   "semanticEvidence": {
     "sourceModelIRHash": "sha256:50c7b087df45b25b54d99bdd13596e810a8d6dc76eff102f1656db51d5091957",
     "modelIRHash": "sha256:aa9b09c824662a81bd29100ae8e3611874cc75ccd24acb4528e216855bbff62c",
-    "conversionConfigDigest": "sha256:e9d62888547c51668fbd382bcfffe9b8f310e7618d84b98659e29dd85f8f1c0f"
+    "conversionConfigDigest": "sha256:f4256e861918c5379b8e4ccdd3f9a08c327bc57ca40007b7a10b18e2a8fa094f"
   },
   "tensorClosureEvidence": {
     "receiptDigest": "sha256:b18330006cc0c76f13a064bce6b6b37eb8bb865841daf612fdf81f28ba7a9f01",
     "expectedTensorCount": 627,
     "observedTensorCount": 627
+  },
+  "sourceAcquisitionEvidence": {
+    "receiptDigest": "sha256:195a80161679da782ade8c31bdfcd4180defde7454387ec5ccead0e0512e4f5b",
+    "fileCount": 9,
+    "totalBytes": 59581794166,
+    "weightShardCount": 2
   },
   "sourceEvidence": {
     "checkpointId": "meta-models/Muse-Glimmer-30B",
@@ -32,6 +38,15 @@
       "lm_head": 1,
       "matmul": 416,
       "norm": 209
+    },
+    "weightIndex": {
+      "schema": "doppler.safetensors-index-evidence/v1",
+      "tensorCount": 1436,
+      "totalSize": 59553253376,
+      "shardCounts": {
+        "model-00001-of-00002.safetensors": 1347,
+        "model-00002-of-00002.safetensors": 89
+      }
     }
   },
   "conversionPlan": {
@@ -75,10 +90,10 @@
   "dispositions": {
     "headerPreflightPassed": true,
     "weightBodiesRequired": true,
-    "weightBodiesPresent": false,
+    "weightBodiesPresent": true,
     "conversionExecuted": false,
     "qualificationStarted": false,
     "packEligible": false
   },
-  "receiptDigest": "sha256:5fa253a267b06e16e86ab68127fad1183bc1e9db0deade4e11c9f2b348d6825b"
+  "receiptDigest": "sha256:a05a3ba7673a712f549d033184d31113c1a7c9d24813ab4e3d19b2268632d25b"
 }

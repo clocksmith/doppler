@@ -4,8 +4,10 @@
   "conversionConfig": "src/config/conversion/muse-glimmer/muse-glimmer-30b-text-f16-af32.json",
   "semanticReceipt": "reports/model-ir-v2/glimmer-30b.semantic-lowering-receipt.json",
   "headerEvidence": "reports/model-ir-v2/source/glimmer-30b-tensor-headers.json",
+  "weightIndex": "models/source/glimmer-30b/model.safetensors.index.json",
   "tensorPolicy": "src/config/forge/tensor-role-closure/glimmer-30b-text.json",
   "tensorClosureReceipt": "reports/model-ir-v2/glimmer-30b.tensor-role-closure.json",
+  "sourceAcquisitionReceipt": "reports/model-ir-v2/glimmer-30b.source-acquisition.json",
   "output": "reports/model-ir-v2/glimmer-30b.conversion-preflight.json",
   "author": {
     "kind": "tool",

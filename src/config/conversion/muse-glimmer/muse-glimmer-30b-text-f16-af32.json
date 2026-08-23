@@ -353,6 +353,10 @@
       "sourceRevision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
       "artifactCompleteness": "complete"
     },
+    "conversion": {
+      "convertedAt": "2026-08-23T08:59:59.000Z",
+      "tool": "doppler.semantic-manifest-lowering/v1"
+    },
     "eosTokenId": 200001
   },
   "inference": {
