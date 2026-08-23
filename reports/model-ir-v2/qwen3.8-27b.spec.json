@@ -2,7 +2,9 @@
   "modelId": "qwen3.8-27b",
   "sources": {
     "config": "reports/model-ir-v2/source/qwen3.8-27b-config.json",
-    "headers": "reports/model-ir-v2/source/qwen3.8-27b-tensor-headers.json"
+    "generation": "reports/model-ir-v2/source/qwen3.8-27b-generation-config.json",
+    "headers": "reports/model-ir-v2/source/qwen3.8-27b-tensor-headers.json",
+    "reference": "reports/model-ir-v2/source/qwen3.8-27b-reference-semantics.json"
   },
   "sourceIdentity": {
     "checkpointId": "Qwen/Qwen3.8-27B",
@@ -21,6 +23,20 @@
         "path": "model-00001-of-00018.safetensors#header",
         "role": "tensor-header-receipt",
         "hash": "sha256:730c6fe341179842eb35c2aad0ba12b5ac99474bd581e82f2c470cbdfc24901b"
+      },
+      {
+        "artifactId": "generation",
+        "path": "generation_config.json",
+        "role": "normalized-generation-config",
+        "hash": "sha256:7f3839093e832e8e81d93f4f23a931b2d1924b0869961f508fa60cd3e4afaab6",
+        "upstreamHash": "sha256:e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e"
+      },
+      {
+        "artifactId": "reference",
+        "path": "src/transformers/models/qwen3_5/modeling_qwen3_5.py#semantic-index",
+        "role": "reference-implementation-semantic-index",
+        "hash": "sha256:9a8e2bf512e81d349ded0243644d3c2b0b6f7c34796f9fd66af4b528282c1558",
+        "upstreamHash": "sha256:3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528"
       }
     ]
   },
@@ -47,6 +63,18 @@
     { "id": "text.hiddenActivation", "subject": "component.text", "predicate": "hiddenActivation", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/hidden_act" } },
     { "id": "text.rmsNormEps", "subject": "component.text", "predicate": "rmsNormEps", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/rms_norm_eps" } },
     { "id": "text.useCache", "subject": "component.text", "predicate": "useCache", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/use_cache" } },
+    { "id": "text.maxPosition", "subject": "component.text", "predicate": "maxPosition", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/max_position_embeddings" } },
+    { "id": "text.attentionBias", "subject": "component.text", "predicate": "attentionBias", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/attention_bias" } },
+    { "id": "text.tieWordEmbeddings", "subject": "component.text", "predicate": "tieWordEmbeddings", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/tie_word_embeddings" } },
+    { "id": "text.eosTokenIds", "subject": "component.text", "predicate": "eosTokenIds", "source": { "artifactId": "generation", "file": "generation_config.json", "pointer": "/eos_token_id" } },
+    { "id": "text.attentionCausal", "subject": "component.text", "predicate": "attentionCausal", "source": { "artifactId": "reference", "file": "modeling_qwen3_5.py", "pointer": "/facts/attentionCausal/value" } },
+    { "id": "text.decoderNormWeightOffset", "subject": "component.text", "predicate": "decoderNormWeightOffset", "source": { "artifactId": "reference", "file": "modeling_qwen3_5.py", "pointer": "/facts/decoderRmsNormWeightOffset/value" } },
+    { "id": "text.gatedMlp", "subject": "component.text", "predicate": "gatedMlp", "source": { "artifactId": "reference", "file": "modeling_qwen3_5.py", "pointer": "/facts/gatedMlp/value" } },
+    { "id": "text.postAttentionNorm", "subject": "component.text", "predicate": "postAttentionNorm", "source": { "artifactId": "reference", "file": "modeling_qwen3_5.py", "pointer": "/facts/postAttentionNorm/value" } },
+    { "id": "full.queryKeyNorm", "subject": "block.full", "predicate": "queryKeyNorm", "source": { "artifactId": "reference", "file": "modeling_qwen3_5.py", "pointer": "/facts/queryKeyNorm/value" } },
+    { "id": "linear.normWeightOffset", "subject": "block.linear", "predicate": "normWeightOffset", "source": { "artifactId": "reference", "file": "modeling_qwen3_5.py", "pointer": "/facts/linearNormWeightOffset/value" } },
+    { "id": "linear.qkL2Norm", "subject": "block.linear", "predicate": "qkL2Norm", "source": { "artifactId": "reference", "file": "modeling_qwen3_5.py", "pointer": "/facts/linearQkL2Norm/value" } },
+    { "id": "linear.recurrentUpdate", "subject": "block.linear", "predicate": "recurrentUpdate", "source": { "artifactId": "reference", "file": "modeling_qwen3_5.py", "pointer": "/facts/recurrentUpdate/value" } },
     { "id": "full.numHeads", "subject": "block.full", "predicate": "numHeads", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/num_attention_heads" } },
     { "id": "full.numKvHeads", "subject": "block.full", "predicate": "numKvHeads", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/num_key_value_heads" } },
     { "id": "full.headDim", "subject": "block.full", "predicate": "headDim", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/head_dim" } },
@@ -85,8 +113,8 @@
       { "id": "mtp-drafter", "factRefs": ["mtp.numLayers", "mtp.dedicatedEmbeddings"], "type": "speculative-drafter", "role": "auxiliary", "properties": { "numLayers": { "$fact": "mtp.numLayers" }, "dedicatedEmbeddings": { "$fact": "mtp.dedicatedEmbeddings" } } }
     ],
     "blockClasses": [
-      { "id": "linear-recurrent", "factRefs": ["linear.keyHeads", "linear.valueHeads", "linear.keyHeadDim", "linear.valueHeadDim", "linear.convKernel", "linear.stateDtype", "text.rmsNormEps", "text.intermediateSize", "text.hiddenActivation"], "kind": "linear-recurrent-attention", "geometry": { "keyHeads": { "$fact": "linear.keyHeads" }, "valueHeads": { "$fact": "linear.valueHeads" }, "keyHeadDim": { "$fact": "linear.keyHeadDim" }, "valueHeadDim": { "$fact": "linear.valueHeadDim" } }, "normalization": { "type": "rmsnorm", "eps": { "$fact": "text.rmsNormEps" } }, "positional": {}, "feedForward": { "type": "gated-dense", "activation": { "$fact": "text.hiddenActivation" }, "intermediateSize": { "$fact": "text.intermediateSize" } }, "phaseBehavior": { "prefill": true, "decode": true } },
-      { "id": "full-attention", "factRefs": ["full.numHeads", "full.numKvHeads", "full.headDim", "full.rope", "full.outputGate", "full.outputGateType", "text.rmsNormEps", "text.intermediateSize", "text.hiddenActivation"], "kind": "full-attention", "geometry": { "numHeads": { "$fact": "full.numHeads" }, "numKvHeads": { "$fact": "full.numKvHeads" }, "headDim": { "$fact": "full.headDim" }, "outputGate": { "$fact": "full.outputGate" }, "outputGateType": { "$fact": "full.outputGateType" } }, "normalization": { "type": "rmsnorm", "eps": { "$fact": "text.rmsNormEps" } }, "positional": { "$fact": "full.rope" }, "feedForward": { "type": "gated-dense", "activation": { "$fact": "text.hiddenActivation" }, "intermediateSize": { "$fact": "text.intermediateSize" } }, "phaseBehavior": { "prefill": true, "decode": true } },
+      { "id": "linear-recurrent", "factRefs": ["linear.keyHeads", "linear.valueHeads", "linear.keyHeadDim", "linear.valueHeadDim", "linear.convKernel", "linear.stateDtype", "linear.normWeightOffset", "linear.qkL2Norm", "linear.recurrentUpdate", "text.rmsNormEps", "text.intermediateSize", "text.hiddenActivation", "text.gatedMlp"], "kind": "linear-recurrent-attention", "geometry": { "keyHeads": { "$fact": "linear.keyHeads" }, "valueHeads": { "$fact": "linear.valueHeads" }, "keyHeadDim": { "$fact": "linear.keyHeadDim" }, "valueHeadDim": { "$fact": "linear.valueHeadDim" }, "qkL2Norm": { "$fact": "linear.qkL2Norm" }, "recurrentUpdate": { "$fact": "linear.recurrentUpdate" } }, "normalization": { "type": "rmsnorm", "eps": { "$fact": "text.rmsNormEps" }, "weightOffset": { "$fact": "linear.normWeightOffset" } }, "positional": {}, "feedForward": { "type": "gated-dense", "gated": { "$fact": "text.gatedMlp" }, "activation": { "$fact": "text.hiddenActivation" }, "intermediateSize": { "$fact": "text.intermediateSize" } }, "phaseBehavior": { "prefill": true, "decode": true } },
+      { "id": "full-attention", "factRefs": ["full.numHeads", "full.numKvHeads", "full.headDim", "full.rope", "full.outputGate", "full.outputGateType", "full.queryKeyNorm", "text.attentionCausal", "text.decoderNormWeightOffset", "text.rmsNormEps", "text.intermediateSize", "text.hiddenActivation", "text.gatedMlp"], "kind": "full-attention", "geometry": { "numHeads": { "$fact": "full.numHeads" }, "numKvHeads": { "$fact": "full.numKvHeads" }, "headDim": { "$fact": "full.headDim" }, "queryKeyNorm": { "$fact": "full.queryKeyNorm" }, "causal": { "$fact": "text.attentionCausal" }, "outputGate": { "$fact": "full.outputGate" }, "outputGateType": { "$fact": "full.outputGateType" } }, "normalization": { "type": "rmsnorm", "eps": { "$fact": "text.rmsNormEps" }, "weightOffset": { "$fact": "text.decoderNormWeightOffset" } }, "positional": { "$fact": "full.rope" }, "feedForward": { "type": "gated-dense", "gated": { "$fact": "text.gatedMlp" }, "activation": { "$fact": "text.hiddenActivation" }, "intermediateSize": { "$fact": "text.intermediateSize" } }, "phaseBehavior": { "prefill": true, "decode": true } },
       { "id": "vision-attention", "factRefs": ["vision.numHeads", "vision.hiddenSize", "vision.intermediateSize"], "kind": "full-attention", "geometry": { "numHeads": { "$fact": "vision.numHeads" }, "hiddenSize": { "$fact": "vision.hiddenSize" } }, "normalization": { "type": "layernorm" }, "positional": { "type": "learned" }, "feedForward": { "type": "dense", "intermediateSize": { "$fact": "vision.intermediateSize" } }, "phaseBehavior": { "encode": true } },
       { "id": "mtp-attention", "factRefs": ["mtp.numLayers", "full.numHeads", "full.numKvHeads", "full.headDim"], "kind": "multi-token-prediction", "geometry": { "numHeads": { "$fact": "full.numHeads" }, "numKvHeads": { "$fact": "full.numKvHeads" }, "headDim": { "$fact": "full.headDim" } }, "normalization": { "type": "rmsnorm" }, "positional": { "$fact": "full.rope" }, "feedForward": { "type": "gated-dense" }, "phaseBehavior": { "draft": true } }
     ],

@@ -21,12 +21,26 @@
           "path": "model-00001-of-00018.safetensors#header",
           "role": "tensor-header-receipt",
           "hash": "sha256:730c6fe341179842eb35c2aad0ba12b5ac99474bd581e82f2c470cbdfc24901b"
+        },
+        {
+          "artifactId": "generation",
+          "path": "generation_config.json",
+          "role": "normalized-generation-config",
+          "hash": "sha256:7f3839093e832e8e81d93f4f23a931b2d1924b0869961f508fa60cd3e4afaab6",
+          "upstreamHash": "sha256:e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e"
+        },
+        {
+          "artifactId": "reference",
+          "path": "src/transformers/models/qwen3_5/modeling_qwen3_5.py#semantic-index",
+          "role": "reference-implementation-semantic-index",
+          "hash": "sha256:9a8e2bf512e81d349ded0243644d3c2b0b6f7c34796f9fd66af4b528282c1558",
+          "upstreamHash": "sha256:3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528"
         }
       ]
     },
     "provenance": {
       "forgeVersion": "2.0.0",
-      "intakeDigest": "sha256:10861847b564251d7483f14fa55f434455a63fa4be40b8694a02db6782025e7a",
+      "intakeDigest": "sha256:7d741d1c7fe499e032d195e62143734407b81e6197a4c46332a1aefc3e91a25c",
       "facts": [
         {
           "id": "root.architecture",
@@ -403,6 +417,321 @@
             "status": "passed",
             "validator": "doppler.source-truth-forge/v2",
             "receipt": "sha256:feefc01d881857efb21f55d704ae611220956e19898c562dd9edea96b6d3d031"
+          }
+        },
+        {
+          "id": "text.maxPosition",
+          "subject": "component.text",
+          "predicate": "maxPosition",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/max_position_embeddings"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": 262144,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:2e89198f595ce8858673a0835c6c9b14ba9ea27d99139e323d75f91cf3f4ccc7"
+          }
+        },
+        {
+          "id": "text.attentionBias",
+          "subject": "component.text",
+          "predicate": "attentionBias",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/attention_bias"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b6fba4f4638bdc75071bc78c5172903dabb194406dd76e723e113400b7b36252"
+          }
+        },
+        {
+          "id": "text.tieWordEmbeddings",
+          "subject": "component.text",
+          "predicate": "tieWordEmbeddings",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/tie_word_embeddings"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:e34c6ca378d6186d11348b98ef72651726219486eab9497832692eb43f9295c4"
+          }
+        },
+        {
+          "id": "text.eosTokenIds",
+          "subject": "component.text",
+          "predicate": "eosTokenIds",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/eos_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": [
+            248046,
+            248044
+          ],
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d452444f701bfd9e8b71c3f81287c2d687c3f552caccb0f86634717230953cec"
+          }
+        },
+        {
+          "id": "text.attentionCausal",
+          "subject": "component.text",
+          "predicate": "attentionCausal",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/attentionCausal/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:2b49f6c8f1386dacafa46e56423227fcc1723b5350e2a6dde042ae06133f5bc6"
+          }
+        },
+        {
+          "id": "text.decoderNormWeightOffset",
+          "subject": "component.text",
+          "predicate": "decoderNormWeightOffset",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/decoderRmsNormWeightOffset/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c37327d6258786e6b5c002cd11e73bfa1c9adf1dda2f08c05440dd0d405dbf05"
+          }
+        },
+        {
+          "id": "text.gatedMlp",
+          "subject": "component.text",
+          "predicate": "gatedMlp",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/gatedMlp/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:efbecd480f4af470ee563b04eb0aa50eb12418b38b19b586fdf4702efb2f98eb"
+          }
+        },
+        {
+          "id": "text.postAttentionNorm",
+          "subject": "component.text",
+          "predicate": "postAttentionNorm",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/postAttentionNorm/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b9acb43b725674727cdbbb02b410a91293559789e51a2adead1531005db8261e"
+          }
+        },
+        {
+          "id": "full.queryKeyNorm",
+          "subject": "block.full",
+          "predicate": "queryKeyNorm",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/queryKeyNorm/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d1c2a57452710890d355bd7133fc9a8fe2c7b9cda7758098fef2f095fb78636d"
+          }
+        },
+        {
+          "id": "linear.normWeightOffset",
+          "subject": "block.linear",
+          "predicate": "normWeightOffset",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/linearNormWeightOffset/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ecb098654946a8883ecfc4eac2ea46219d2c10cd022229c7c84d3de94600ee60"
+          }
+        },
+        {
+          "id": "linear.qkL2Norm",
+          "subject": "block.linear",
+          "predicate": "qkL2Norm",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/linearQkL2Norm/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a12c0934ed5b64cbbc0a6399907a3f2b8616a00dc8f036e2d9814ef7c2779c93"
+          }
+        },
+        {
+          "id": "linear.recurrentUpdate",
+          "subject": "block.linear",
+          "predicate": "recurrentUpdate",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_qwen3_5.py",
+              "pointer": "/facts/recurrentUpdate/value"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "qwen3.8-source-truth-v1"
+          },
+          "value": "gated-delta",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:269b94daaeb525522df0b61cd7942f8994f65c028bc1a4d59193c763512d7db8"
           }
         },
         {
@@ -1318,24 +1647,32 @@
           "linear.valueHeadDim",
           "linear.convKernel",
           "linear.stateDtype",
+          "linear.normWeightOffset",
+          "linear.qkL2Norm",
+          "linear.recurrentUpdate",
           "text.rmsNormEps",
           "text.intermediateSize",
-          "text.hiddenActivation"
+          "text.hiddenActivation",
+          "text.gatedMlp"
         ],
         "kind": "linear-recurrent-attention",
         "geometry": {
           "keyHeads": 16,
           "valueHeads": 48,
           "keyHeadDim": 128,
-          "valueHeadDim": 128
+          "valueHeadDim": 128,
+          "qkL2Norm": true,
+          "recurrentUpdate": "gated-delta"
         },
         "normalization": {
           "type": "rmsnorm",
-          "eps": 0.000001
+          "eps": 0.000001,
+          "weightOffset": false
         },
         "positional": {},
         "feedForward": {
           "type": "gated-dense",
+          "gated": true,
           "activation": "silu",
           "intermediateSize": 17408
         },
@@ -1353,21 +1690,28 @@
           "full.rope",
           "full.outputGate",
           "full.outputGateType",
+          "full.queryKeyNorm",
+          "text.attentionCausal",
+          "text.decoderNormWeightOffset",
           "text.rmsNormEps",
           "text.intermediateSize",
-          "text.hiddenActivation"
+          "text.hiddenActivation",
+          "text.gatedMlp"
         ],
         "kind": "full-attention",
         "geometry": {
           "numHeads": 24,
           "numKvHeads": 4,
           "headDim": 256,
+          "queryKeyNorm": true,
+          "causal": true,
           "outputGate": true,
           "outputGateType": "swish"
         },
         "normalization": {
           "type": "rmsnorm",
-          "eps": 0.000001
+          "eps": 0.000001,
+          "weightOffset": true
         },
         "positional": {
           "mrope_interleaved": true,
@@ -1382,6 +1726,7 @@
         },
         "feedForward": {
           "type": "gated-dense",
+          "gated": true,
           "activation": "silu",
           "intermediateSize": 17408
         },
@@ -2043,7 +2388,7 @@
       ]
     }
   },
-  "intakeDigest": "sha256:10861847b564251d7483f14fa55f434455a63fa4be40b8694a02db6782025e7a",
+  "intakeDigest": "sha256:7d741d1c7fe499e032d195e62143734407b81e6197a4c46332a1aefc3e91a25c",
   "unresolvedFacts": [],
   "generatedCandidates": 4,
   "rejectedCandidates": 3,

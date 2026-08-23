@@ -130,7 +130,6 @@
     "experimental/training/runner.js": { "maxLines": 1241, "extractTo": ["experimental/training/runner/lifecycle.js", "experimental/training/runner/evaluation.js"] },
     "experimental/training/suite.js": { "maxLines": 2196, "extractTo": ["experimental/training/suite/plan.js", "experimental/training/suite/execution.js", "experimental/training/suite/report.js"] },
     "gpu/kernels/attention.js": { "maxLines": 2283, "extractTo": ["gpu/kernels/attention/plan.js", "gpu/kernels/attention/uniforms.js", "gpu/kernels/attention/executors.js", "gpu/kernels/attention/variants/"] },
-    "gpu/kernels/linear-attention-core.js": { "maxLines": 1041, "extractTo": ["gpu/kernels/linear-attention/plan.js", "gpu/kernels/linear-attention/executor.js"] },
     "inference/browser-harness-text-helpers.js": { "maxLines": 2248, "extractTo": ["inference/browser-harness/text-input.js", "inference/browser-harness/text-evidence.js", "inference/browser-harness/text-execution.js"] },
     "inference/browser-harness.js": { "maxLines": 2367, "extractTo": ["inference/browser-harness/request.js", "inference/browser-harness/execution.js", "inference/browser-harness/report.js"] },
     "inference/kv-cache/base.js": { "maxLines": 1269, "extractTo": ["inference/kv-cache/layout.js", "inference/kv-cache/lifecycle.js", "inference/kv-cache/update.js"] },

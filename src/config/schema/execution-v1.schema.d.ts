@@ -254,6 +254,9 @@ export interface ExecutionV1GraphSchema {
   /** Kernel declarations — each key is a shorthand used in step tuples */
   kernels: ExecutionV1KernelMap;
 
+  /** Content-addressed kernels invoked by semantic block mechanisms outside the homogeneous step arrays. */
+  mechanismKernels?: string[];
+
   /**
    * Whether compileExecutionV1 should lower the graph into an inline kernelPath.
    * Use false when the execution graph is kept for manifest/session contract

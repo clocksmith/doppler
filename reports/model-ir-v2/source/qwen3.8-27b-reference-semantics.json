@@ -1,0 +1,52 @@
+{
+  "schema": "doppler.reference-semantic-index/v1",
+  "implementation": {
+    "package": "transformers",
+    "version": "5.6.2",
+    "repository": "huggingface/transformers",
+    "files": [
+      {
+        "path": "src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+        "hash": "sha256:3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528"
+      },
+      {
+        "path": "src/transformers/models/qwen3_5/configuration_qwen3_5.py",
+        "hash": "sha256:e2ca3e05c3f3e7ed2c4f452043bc33640c67a24799adb054ba24fab6badfbd8c"
+      }
+    ]
+  },
+  "facts": {
+    "attentionCausal": {
+      "value": true,
+      "sourcePointer": "Qwen3_5Attention.__init__:self.is_causal"
+    },
+    "decoderRmsNormWeightOffset": {
+      "value": true,
+      "sourcePointer": "Qwen3_5RMSNorm.forward:output*(1.0+self.weight.float())"
+    },
+    "gatedMlp": {
+      "value": true,
+      "sourcePointer": "Qwen3_5MLP.forward:act(gate_proj(x))*up_proj(x)"
+    },
+    "linearNormWeightOffset": {
+      "value": false,
+      "sourcePointer": "Qwen3_5RMSNormGated.forward:self.weight*normalized_hidden_states"
+    },
+    "linearQkL2Norm": {
+      "value": true,
+      "sourcePointer": "Qwen3_5GatedDeltaNet.forward:use_qk_l2norm_in_kernel=True"
+    },
+    "postAttentionNorm": {
+      "value": true,
+      "sourcePointer": "Qwen3_5DecoderLayer.forward:self.post_attention_layernorm"
+    },
+    "queryKeyNorm": {
+      "value": true,
+      "sourcePointer": "Qwen3_5Attention.__init__:q_norm+k_norm"
+    },
+    "recurrentUpdate": {
+      "value": "gated-delta",
+      "sourcePointer": "torch_recurrent_gated_delta_rule"
+    }
+  }
+}

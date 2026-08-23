@@ -154,6 +154,24 @@ function validateKernelMap(kernels, options = {}) {
   }
 }
 
+function validateMechanismKernels(mechanismKernels, kernels) {
+  if (mechanismKernels == null) return;
+  if (!Array.isArray(mechanismKernels) || mechanismKernels.length === 0) {
+    throw new Error('execution.mechanismKernels must be a non-empty kernel-key array when provided.');
+  }
+  const seen = new Set();
+  for (const [index, kernelKey] of mechanismKernels.entries()) {
+    if (typeof kernelKey !== 'string' || !kernelKey.trim()) {
+      throw new Error(`execution.mechanismKernels[${index}] must be a non-empty kernel key.`);
+    }
+    if (seen.has(kernelKey)) {
+      throw new Error(`execution.mechanismKernels contains duplicate kernel key "${kernelKey}".`);
+    }
+    resolveKernel(kernels, kernelKey, `execution.mechanismKernels[${index}]`);
+    seen.add(kernelKey);
+  }
+}
+
 
 function resolveKernel(kernels, kernelKey, context) {
   const decl = kernels[kernelKey];
@@ -250,6 +268,7 @@ export function expandExecutionV1(graph, options = {}) {
 
   const kernels = graph.kernels;
   validateKernelMap(kernels, { skipDigestValidation });
+  validateMechanismKernels(graph.mechanismKernels, kernels);
 
   const MAX_STEPS_PER_SECTION = 200;
 

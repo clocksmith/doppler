@@ -137,7 +137,8 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
@@ -372,7 +373,8 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
@@ -639,7 +641,8 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -663,7 +666,8 @@
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
-       "qwen3/qwen-3-6-27b-q4k-ehaf16"
+       "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
       "wgslOnDisk": true
@@ -696,7 +700,8 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -914,7 +919,8 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -1942,7 +1948,8 @@
        "qwen3/qwen-3-5-9b-f16-af32",
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
-       "qwen3/qwen-3-6-27b-q4k-ehaf16"
+       "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -2072,7 +2079,8 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -2113,7 +2121,8 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -2178,7 +2187,8 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["attention.rules.json#optimizedVariant"],
       "wgslOnDisk": true
@@ -3315,7 +3325,8 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["rmsnorm.rules.json#variant"],
       "wgslOnDisk": true
@@ -4451,7 +4462,8 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["rope.rules.json#variant"],
       "wgslOnDisk": true
@@ -4728,7 +4740,8 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["silu.rules.json#variant"],
       "wgslOnDisk": true
@@ -5694,7 +5707,8 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["gather.rules.json#variant"],
       "wgslOnDisk": true
@@ -6196,7 +6210,8 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["residual.rules.json#biasAddVariant","residual.rules.json#residualVariant"],
       "wgslOnDisk": true
@@ -8208,7 +8223,8 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -10811,6 +10827,490 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "gated_delta_conv": {
+   "description": "Causal depthwise convolution stage for gated-delta recurrent attention",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "qkv",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "conv_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "conv_state",
+     "type": "storage"
+    },
+    {
+     "index": 4,
+     "name": "conv_out",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 64,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "conv_dim",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "conv_kernel_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "num_v_heads",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "num_k_heads",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "head_k_dim",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "head_v_dim",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "q_size",
+      "type": "u32",
+      "offset": 28
+     },
+     {
+      "name": "k_size",
+      "type": "u32",
+      "offset": 32
+     },
+     {
+      "name": "value_dim",
+      "type": "u32",
+      "offset": 36
+     },
+     {
+      "name": "q_rep",
+      "type": "u32",
+      "offset": 40
+     },
+     {
+      "name": "norm_mode",
+      "type": "u32",
+      "offset": 44
+     },
+     {
+      "name": "rms_norm_eps",
+      "type": "f32",
+      "offset": 48
+     },
+     {
+      "name": "qk_l2norm_eps",
+      "type": "f32",
+      "offset": 52
+     },
+     {
+      "name": "packed_flags",
+      "type": "u32",
+      "offset": 56
+     },
+     {
+      "name": "b_proj_offset_elements",
+      "type": "u32",
+      "offset": 60
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "gated_delta_conv.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen3.8-27b-text-q4k-ehaf16"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "default_f16": {
+     "wgsl": "gated_delta_conv_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "gated_delta_recurrent": {
+   "description": "Stateful gated-delta recurrent update, output normalization, and gate stage",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "conv_out",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "z_proj",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "a_proj",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "b_proj",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "dt_bias",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 6,
+     "name": "a_neg_exp",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 7,
+     "name": "norm_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 8,
+     "name": "recurrent_state",
+     "type": "storage"
+    },
+    {
+     "index": 9,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 64,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "conv_dim",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "conv_kernel_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "num_v_heads",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "num_k_heads",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "head_k_dim",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "head_v_dim",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "q_size",
+      "type": "u32",
+      "offset": 28
+     },
+     {
+      "name": "k_size",
+      "type": "u32",
+      "offset": 32
+     },
+     {
+      "name": "value_dim",
+      "type": "u32",
+      "offset": 36
+     },
+     {
+      "name": "q_rep",
+      "type": "u32",
+      "offset": 40
+     },
+     {
+      "name": "norm_mode",
+      "type": "u32",
+      "offset": 44
+     },
+     {
+      "name": "rms_norm_eps",
+      "type": "f32",
+      "offset": 48
+     },
+     {
+      "name": "qk_l2norm_eps",
+      "type": "f32",
+      "offset": 52
+     },
+     {
+      "name": "packed_flags",
+      "type": "u32",
+      "offset": 56
+     },
+     {
+      "name": "b_proj_offset_elements",
+      "type": "u32",
+      "offset": 60
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "gated_delta_recurrent.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen3.8-27b-text-q4k-ehaf16"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "default_f16": {
+     "wgsl": "gated_delta_recurrent_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "gated_delta_fused_decode": {
+   "description": "Single-token fused convolution and gated-delta recurrent decode stage",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "qkv",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "z_proj",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "ab_proj",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "conv_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "conv_state",
+     "type": "storage"
+    },
+    {
+     "index": 6,
+     "name": "dt_bias",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 7,
+     "name": "a_neg_exp",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 8,
+     "name": "norm_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 9,
+     "name": "recurrent_state",
+     "type": "storage"
+    },
+    {
+     "index": 10,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 64,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "conv_dim",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "conv_kernel_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "num_v_heads",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "num_k_heads",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "head_k_dim",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "head_v_dim",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "q_size",
+      "type": "u32",
+      "offset": 28
+     },
+     {
+      "name": "k_size",
+      "type": "u32",
+      "offset": 32
+     },
+     {
+      "name": "value_dim",
+      "type": "u32",
+      "offset": 36
+     },
+     {
+      "name": "q_rep",
+      "type": "u32",
+      "offset": 40
+     },
+     {
+      "name": "norm_mode",
+      "type": "u32",
+      "offset": 44
+     },
+     {
+      "name": "rms_norm_eps",
+      "type": "f32",
+      "offset": 48
+     },
+     {
+      "name": "qk_l2norm_eps",
+      "type": "f32",
+      "offset": 52
+     },
+     {
+      "name": "packed_flags",
+      "type": "u32",
+      "offset": 56
+     },
+     {
+      "name": "b_proj_offset_elements",
+      "type": "u32",
+      "offset": 60
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "gated_delta_fused_decode.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen3.8-27b-text-q4k-ehaf16"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "default_f16": {
+     "wgsl": "gated_delta_fused_decode_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
      "reachability": {
       "status": "unused",
       "inlineConfigs": [],

@@ -73,6 +73,7 @@ if (hasExecutionV1({})) throw new Error('hasExecutionV1 should handle empty');
 
 // === expandExecutionV1 ===
 const graph = makeGraph();
+graph.mechanismKernels = ['attn'];
 const expanded = expandExecutionV1(graph);
 if (expanded.length !== 24) throw new Error(`Expected 24 steps, got ${expanded.length}`);
 
@@ -82,6 +83,14 @@ const bothSteps = expanded.filter((s) => s.phase === 'both');
 if (decodeSteps.length !== 15) throw new Error(`Expected 15 decode, got ${decodeSteps.length}`);
 if (prefillSteps.length !== 5) throw new Error(`Expected 5 prefill, got ${prefillSteps.length}`);
 if (bothSteps.length !== 4) throw new Error(`Expected 4 both, got ${bothSteps.length}`);
+assert.throws(
+  () => expandExecutionV1({ ...makeGraph(), mechanismKernels: ['missing'] }),
+  /mechanismKernels\[0\].*kernel key "missing" not found/
+);
+assert.throws(
+  () => expandExecutionV1({ ...makeGraph(), mechanismKernels: ['attn', 'attn'] }),
+  /duplicate kernel key "attn"/
+);
 
 // First step is embed (preLayer, both)
 if (expanded[0].op !== 'embed') throw new Error(`First op should be embed, got ${expanded[0].op}`);

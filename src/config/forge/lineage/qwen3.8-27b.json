@@ -1,0 +1,142 @@
+{
+  "schema": "doppler.lineage-lowering-forge/v1",
+  "modelId": "qwen3.8-27b-text-q4k-ehaf16",
+  "modelIRReceipt": "reports/model-ir-v2/qwen3.8-27b.model-ir-receipt.json",
+  "template": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
+  "output": "src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
+  "receiptOutput": "reports/model-ir-v2/qwen3.8-27b.lineage-lowering-receipt.json",
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "qwen3.8-lineage-conservative-v1"
+  },
+  "compatibilityRequirements": [
+    { "factId": "text.modelType", "equals": "qwen3_5_text" },
+    { "factId": "text.layerTypes", "includes": ["linear_attention", "full_attention"] },
+    { "factId": "linear.recurrentUpdate", "equals": "gated-delta" },
+    { "factId": "linear.stateDtype", "equals": "float32" },
+    { "factId": "linear.qkL2Norm", "equals": true },
+    { "factId": "full.outputGate", "equals": true },
+    { "factId": "text.decoderNormWeightOffset", "equals": true },
+    { "factId": "linear.normWeightOffset", "equals": false }
+  ],
+  "factBindings": [
+    { "factId": "text.eosTokenIds", "targetPointer": "/manifest/eosTokenId" },
+    { "factId": "full.headDim", "targetPointer": "/inference/attention/queryPreAttnScalar" },
+    { "factId": "text.attentionBias", "targetPointer": "/inference/attention/attentionBias" },
+    { "factId": "text.attentionCausal", "targetPointer": "/inference/attention/causal" },
+    { "factId": "full.queryKeyNorm", "targetPointer": "/inference/attention/queryKeyNorm" },
+    { "factId": "full.outputGate", "targetPointer": "/inference/attention/attentionOutputGate" },
+    { "factId": "full.outputGateType", "targetPointer": "/inference/attention/outputGateType" },
+    { "factId": "text.rmsNormEps", "targetPointer": "/inference/normalization/rmsNormEps" },
+    { "factId": "text.decoderNormWeightOffset", "targetPointer": "/inference/normalization/rmsNormWeightOffset" },
+    { "factId": "text.postAttentionNorm", "targetPointer": "/inference/normalization/postAttentionNorm" },
+    { "factId": "text.hiddenActivation", "targetPointer": "/inference/ffn/activation" },
+    { "factId": "text.gatedMlp", "targetPointer": "/inference/ffn/gatedActivation" },
+    { "factId": "full.rope", "valuePointer": "/rope_theta", "targetPointer": "/inference/rope/ropeTheta" },
+    { "factId": "full.rope", "valuePointer": "/mrope_interleaved", "targetPointer": "/inference/rope/mropeInterleaved" },
+    { "factId": "full.rope", "valuePointer": "/mrope_section", "targetPointer": "/inference/rope/mropeSection" },
+    { "factId": "full.rope", "valuePointer": "/partial_rotary_factor", "targetPointer": "/inference/rope/partialRotaryFactor" },
+    { "factId": "text.tieWordEmbeddings", "targetPointer": "/inference/output/tieWordEmbeddings" },
+    { "factId": "text.layerTypes", "targetPointer": "/inference/layerPattern/layerTypes" }
+  ],
+  "templateAssertions": [
+    { "factId": "full.headDim", "targetPointer": "/inference/attention/queryPreAttnScalar" },
+    { "factId": "text.rmsNormEps", "targetPointer": "/inference/normalization/rmsNormEps" },
+    { "factId": "text.hiddenActivation", "targetPointer": "/inference/ffn/activation" }
+  ],
+  "policyOverrides": [
+    {
+      "targetPointer": "/output/textOnly",
+      "value": true,
+      "lifecycle": "pack-scope",
+      "rationale": "The complete multimodal source topology remains in ModelIR while this candidate lowers only text.generate."
+    },
+    {
+      "targetPointer": "/session/kvcache/maxSeqLen",
+      "value": 8192,
+      "lifecycle": "qualification",
+      "rationale": "The first signed text target is qualified within an explicit bounded sequence envelope."
+    },
+    {
+      "targetPointer": "/session/speculation/mode",
+      "value": "none",
+      "lifecycle": "pack-scope",
+      "rationale": "The source MTP drafter is represented but remains unlowered and cannot affect text.generate qualification."
+    },
+    {
+      "targetPointer": "/execution/kernels/gated_delta_conv",
+      "value": {
+        "kernel": "gated_delta_conv.wgsl",
+        "entry": "main"
+      },
+      "lifecycle": "forge",
+      "rationale": "The accepted linear-attention block class requires a content-addressed causal convolution mechanism."
+    },
+    {
+      "targetPointer": "/execution/kernels/gated_delta_recurrent",
+      "value": {
+        "kernel": "gated_delta_recurrent.wgsl",
+        "entry": "main"
+      },
+      "lifecycle": "forge",
+      "rationale": "The accepted gated-delta state contract requires a content-addressed recurrent update mechanism."
+    },
+    {
+      "targetPointer": "/execution/kernels/gated_delta_fused_decode",
+      "value": {
+        "kernel": "gated_delta_fused_decode.wgsl",
+        "entry": "main"
+      },
+      "lifecycle": "forge",
+      "rationale": "The signed decode candidate must close over the optional single-token fused implementation selected by resolved policy."
+    },
+    {
+      "targetPointer": "/execution/mechanismKernels",
+      "value": [
+        "gated_delta_conv",
+        "gated_delta_recurrent",
+        "gated_delta_fused_decode"
+      ],
+      "lifecycle": "forge",
+      "rationale": "The heterogeneous block executor loads this complete recurrent mechanism closure outside the homogeneous layer-step sequence."
+    },
+    {
+      "targetPointer": "/session/useLinearAttentionABProjectionFusion",
+      "value": false,
+      "lifecycle": "qualification",
+      "rationale": "The first qualification candidate uses separately declared A and B projections."
+    },
+    {
+      "targetPointer": "/session/useLinearAttentionQKVZProjectionFusion",
+      "value": false,
+      "lifecycle": "qualification",
+      "rationale": "The first qualification candidate uses separately declared QKV and output-gate projections."
+    },
+    {
+      "targetPointer": "/session/useLinearAttentionFusedDecodeCore",
+      "value": false,
+      "lifecycle": "qualification",
+      "rationale": "The first qualification candidate dispatches the separately content-addressed convolution and recurrent kernels."
+    }
+  ],
+  "removePointers": [
+    "/manifest/artifactIdentity/shardSetHash",
+    "/manifest/artifactIdentity/weightPackId",
+    "/manifest/artifactIdentity/manifestVariantId"
+  ],
+  "candidateAudit": {
+    "generated": 3,
+    "rejected": [
+      {
+        "candidateId": "flat-homogeneous",
+        "reason": "Rejected because it omits recurrent and convolutional state."
+      },
+      {
+        "candidateId": "multimodal-all-entrypoints",
+        "reason": "Rejected because vision.encode and speculative.generate are not lowered or qualified."
+      }
+    ],
+    "acceptedCandidateId": "qwen3.8-lineage-conservative-v1"
+  }
+}
