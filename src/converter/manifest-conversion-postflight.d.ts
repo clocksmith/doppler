@@ -56,6 +56,10 @@ export interface ManifestConversionPostflightReceipt {
   receiptDigest: `sha256:${string}`;
 }
 
+export declare function validateManifestConversionPostflightReceipt(
+  receipt: unknown
+): { ok: boolean; errors: string[] };
+
 export declare function createManifestConversionPostflightReceipt(options: {
   conversionConfig: Record<string, unknown>;
   conversionReport: Record<string, unknown>;

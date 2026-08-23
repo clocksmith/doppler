@@ -1,0 +1,67 @@
+{
+  "schema": "doppler.manifest-conversion-postflight-receipt/v1",
+  "modelId": "muse-glimmer-30b-text-f16-af32",
+  "entryPointId": "text.generate",
+  "author": {
+    "kind": "tool",
+    "actor": "doppler-manifest-conversion-postflight"
+  },
+  "preflightEvidence": {
+    "receiptDigest": "sha256:a0a2bfc571fab44cd9496aff5b830c741f27558a34737256e68b454bc68d839f",
+    "conversionConfigDigest": "sha256:a6ace864c77e7f0b2f3f49bea5aefb64b46c5fa194ea5302e5e915a05a9f96ee",
+    "expectedTensorCount": 627
+  },
+  "conversionEvidence": {
+    "reportDigest": "sha256:65bb6e262f2b623ead7e7cc1ed101dbfa230f84d0eef8ff55a5bdef84255a908",
+    "startedAtUtc": "2026-08-23T09:27:04.350Z",
+    "completedAtUtc": "2026-08-23T10:04:52.886Z",
+    "durationMs": 2268535.492118,
+    "modelType": "transformer",
+    "tensorCount": 627,
+    "shardCount": 831,
+    "totalBytes": 55709561856
+  },
+  "manifestEvidence": {
+    "digest": "sha256:e97078b4209e29162b9e0ac6c0fbc0697509a392c1d0d46891cc22aa581136bf",
+    "inferenceDigest": "sha256:e93a601d2d8ae36d4e2f6f7fe38221873b9d4101624a34b208bc23086aa3cc32",
+    "executionDigest": "sha256:a18fadbd39d2f484ca05386c01a3fdcf10d4cc8ecfb3a73b6b3e84b5f8839fce",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:a6ace864c77e7f0b2f3f49bea5aefb64b46c5fa194ea5302e5e915a05a9f96ee",
+      "conversionConfigPath": "src/config/conversion/muse-glimmer/muse-glimmer-30b-text-f16-af32.json",
+      "manifestVariantId": "muse-glimmer-30b-text-f16-af32-mv-bd2ff7555715",
+      "materializationProfile": "auto",
+      "modalitySet": [
+        "text"
+      ],
+      "shardSetHash": "sha256:604d76ad2e0f5d173dbe313b3c3dbc05ec2278a165e12622b4d2396d09650a4a",
+      "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+      "sourceFormat": "safetensors",
+      "sourceRepo": "meta-models/Muse-Glimmer-30B",
+      "sourceRevision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "weightPackHash": "sha256:da829391e53b822e2776e7c8f1efda576df0243a5f5b4b91b072feb91a630078",
+      "weightPackId": "muse-glimmer-30b-text-f16-af32-wp-da829391e53b"
+    }
+  },
+  "physicalClosure": {
+    "digest": "sha256:aeea27171e6b60e6902c3c3932e3fe5045eadd668fbcaf3ce06a951320129966",
+    "shardCount": 831,
+    "shardBytes": 55709561856,
+    "artifactCount": 1,
+    "artifacts": [
+      {
+        "role": "tokenizer",
+        "path": "tokenizer.json",
+        "size": 12320307,
+        "digest": "sha256:ab880a16a72b1c8941d6438044d40d435b0241bbee110c0534d9394464b421b1"
+      }
+    ]
+  },
+  "dispositions": {
+    "conversionExecuted": true,
+    "physicalShardClosureVerified": true,
+    "qualificationStarted": false,
+    "packEligible": false
+  },
+  "receiptDigest": "sha256:1990dce0ab44e547e85c20ae906d936f28bd6afa188372624b426dd2acffd84f"
+}

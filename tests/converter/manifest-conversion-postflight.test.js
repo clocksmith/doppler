@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 
 import { CONVERSION_REPORT_SCHEMA_VERSION } from '../../src/config/schema/conversion-report.schema.js';
 import { createConverterConfig } from '../../src/config/schema/converter.schema.js';
-import { createManifestConversionPostflightReceipt } from '../../src/converter/manifest-conversion-postflight.js';
+import {
+  createManifestConversionPostflightReceipt,
+  validateManifestConversionPostflightReceipt,
+} from '../../src/converter/manifest-conversion-postflight.js';
 import { sha256Hex } from '../../src/utils/sha256.js';
 import { stableSortObject } from '../../src/utils/stable-sort-object.js';
 
@@ -124,6 +128,14 @@ assert.equal(receipt.dispositions.qualificationStarted, false);
 assert.equal(receipt.dispositions.packEligible, false);
 assert.equal(receipt.conversionEvidence.durationMs, 60000);
 assert.equal(receipt.physicalClosure.shardBytes, 64);
+assert.equal(validateManifestConversionPostflightReceipt(receipt).ok, true);
+
+const driftedReceipt = structuredClone(receipt);
+driftedReceipt.physicalClosure.shardBytes = 65;
+assert.match(
+  validateManifestConversionPostflightReceipt(driftedReceipt).errors.join('; '),
+  /Receipt digest does not match/
+);
 
 const corruptedShard = structuredClone(inputs.shardObservations);
 corruptedShard[0].digest = stableDigest('corrupt');
@@ -141,9 +153,16 @@ assert.throws(
   /measured physical conversion timing/
 );
 
-const familyNames = await import('node:fs/promises').then((fs) => (
-  fs.readFile('src/converter/manifest-conversion-postflight.js', 'utf8')
+const checkedIn = JSON.parse(await fs.readFile(
+  'reports/model-ir-v2/glimmer-30b.conversion-postflight.json',
+  'utf8'
 ));
+assert.equal(validateManifestConversionPostflightReceipt(checkedIn).ok, true);
+assert.equal(checkedIn.conversionEvidence.tensorCount, 627);
+assert.equal(checkedIn.physicalClosure.shardCount, 831);
+assert.equal(checkedIn.dispositions.packEligible, false);
+
+const familyNames = await fs.readFile('src/converter/manifest-conversion-postflight.js', 'utf8');
 assert.doesNotMatch(familyNames, /glimmer|qwen/i, 'generic postflight must not contain model-family names');
 
 console.log('✔ manifest-conversion-postflight.test.js passed');

@@ -51,6 +51,61 @@ function requirePassedArtifact(value, label) {
   }
 }
 
+function receiptCore(receipt) {
+  const { receiptDigest: ignored, ...core } = receipt;
+  void ignored;
+  return core;
+}
+
+export function validateManifestConversionPostflightReceipt(receipt) {
+  const errors = [];
+  try {
+    requireObject(receipt, 'Manifest conversion postflight receipt');
+    if (receipt.schema !== 'doppler.manifest-conversion-postflight-receipt/v1') {
+      throw new Error('Manifest conversion postflight receipt schema is invalid.');
+    }
+    requireString(receipt.modelId, 'receipt.modelId');
+    requireString(receipt.entryPointId, 'receipt.entryPointId');
+    requireAuthor(receipt.author);
+    requireObject(receipt.preflightEvidence, 'receipt.preflightEvidence');
+    requireDigest(receipt.preflightEvidence.receiptDigest, 'receipt.preflightEvidence.receiptDigest');
+    requireDigest(receipt.preflightEvidence.conversionConfigDigest, 'receipt.preflightEvidence.conversionConfigDigest');
+    requireObject(receipt.conversionEvidence, 'receipt.conversionEvidence');
+    requireDigest(receipt.conversionEvidence.reportDigest, 'receipt.conversionEvidence.reportDigest');
+    if (!Number.isFinite(Date.parse(receipt.conversionEvidence.startedAtUtc))
+      || !Number.isFinite(Date.parse(receipt.conversionEvidence.completedAtUtc))
+      || Date.parse(receipt.conversionEvidence.completedAtUtc) < Date.parse(receipt.conversionEvidence.startedAtUtc)
+      || !Number.isFinite(receipt.conversionEvidence.durationMs)
+      || receipt.conversionEvidence.durationMs < 0) {
+      throw new Error('receipt.conversionEvidence physical timing is invalid.');
+    }
+    requireObject(receipt.manifestEvidence, 'receipt.manifestEvidence');
+    for (const field of ['digest', 'inferenceDigest', 'executionDigest']) {
+      requireDigest(receipt.manifestEvidence[field], `receipt.manifestEvidence.${field}`);
+    }
+    requireObject(receipt.manifestEvidence.artifactIdentity, 'receipt.manifestEvidence.artifactIdentity');
+    requireObject(receipt.physicalClosure, 'receipt.physicalClosure');
+    requireDigest(receipt.physicalClosure.digest, 'receipt.physicalClosure.digest');
+    if (!Number.isInteger(receipt.physicalClosure.shardCount) || receipt.physicalClosure.shardCount < 1
+      || !Number.isInteger(receipt.physicalClosure.shardBytes) || receipt.physicalClosure.shardBytes < 1
+      || !Number.isInteger(receipt.physicalClosure.artifactCount) || receipt.physicalClosure.artifactCount < 1
+      || !Array.isArray(receipt.physicalClosure.artifacts)
+      || receipt.physicalClosure.artifacts.length !== receipt.physicalClosure.artifactCount) {
+      throw new Error('receipt.physicalClosure counts are invalid.');
+    }
+    requireEqual(receipt.dispositions, {
+      conversionExecuted: true,
+      physicalShardClosureVerified: true,
+      qualificationStarted: false,
+      packEligible: false,
+    }, 'Receipt dispositions');
+    requireEqual(requireDigest(receipt.receiptDigest, 'receipt.receiptDigest'), digest(receiptCore(receipt)), 'Receipt digest');
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : String(error));
+  }
+  return { ok: errors.length === 0, errors };
+}
+
 function normalizeManifestShard(shard) {
   const hash = requireString(shard?.hash, `manifest shard ${shard?.index} hash`).replace(/^sha256:/, '');
   if (!/^[0-9a-f]{64}$/.test(hash)) throw new Error(`Manifest shard ${shard?.index} hash is invalid.`);
@@ -258,5 +313,8 @@ export function createManifestConversionPostflightReceipt({
       packEligible: false,
     },
   };
-  return Object.freeze({ ...core, receiptDigest: digest(core) });
+  const receipt = { ...core, receiptDigest: digest(core) };
+  const validation = validateManifestConversionPostflightReceipt(receipt);
+  if (!validation.ok) throw new Error(`Invalid manifest conversion postflight receipt: ${validation.errors.join('; ')}`);
+  return Object.freeze(receipt);
 }
