@@ -1,12 +1,19 @@
-export declare const RELEASE_TO_JAVASCRIPT_RECEIPT_SCHEMA_ID: 'doppler.release-to-javascript-receipt/v1';
+export declare const RELEASE_TO_JAVASCRIPT_RECEIPT_SCHEMA_ID: 'doppler.release-to-javascript-receipt/v2';
+
+export type SourcePublicationTimestampDisposition = 'observed' | 'unresolved';
 
 export interface ReleaseToJavaScriptReceipt {
   schema: typeof RELEASE_TO_JAVASCRIPT_RECEIPT_SCHEMA_ID;
   campaignId: string;
-  source: { checkpointId: string; revision: string; publishedAt: string };
+  source: {
+    checkpointId: string;
+    revision: string;
+    publicationTimestampDisposition: SourcePublicationTimestampDisposition;
+    publishedAt: string | null;
+  };
   startedAt: string;
   completedAt: string;
-  elapsed: { publicationToSignedPackMs: number; forgeCampaignMs: number };
+  elapsed: { publicationToSignedPackMs: number | null; forgeCampaignMs: number };
   humanInterventions: Array<{ id: string; kind: string; actor: string; disposition: string }>;
   humanAuthoredSemanticDecisions: number;
   unresolvedFacts: unknown[];

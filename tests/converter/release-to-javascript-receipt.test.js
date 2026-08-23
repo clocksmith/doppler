@@ -10,6 +10,7 @@ const fields = {
   source: {
     checkpointId: 'upstream/test',
     revision: 'abc123',
+    publicationTimestampDisposition: 'observed',
     publishedAt: '2026-08-20T00:00:00.000Z',
   },
   startedAt: '2026-08-21T00:00:00.000Z',
@@ -40,5 +41,36 @@ drifted.candidates.generated = 4;
 const validation = validateReleaseToJavaScriptReceipt(drifted);
 assert.equal(validation.ok, false);
 assert.match(validation.errors.join('; '), /candidates\.generated|receiptDigest mismatch/);
+
+const unresolvedPublication = createReleaseToJavaScriptReceipt({
+  ...structuredClone(fields),
+  campaignId: 'heterogeneous-model-ir-v2:unresolved-publication',
+  source: {
+    checkpointId: 'upstream/unpublished-date',
+    revision: 'def456',
+    publicationTimestampDisposition: 'unresolved',
+    publishedAt: null,
+  },
+  unresolvedFacts: [{
+    id: 'source-publication-timestamp',
+    disposition: 'unresolved',
+    evidence: 'Pinned source snapshot contains no authoritative publication timestamp.',
+  }],
+});
+assert.equal(unresolvedPublication.elapsed.publicationToSignedPackMs, null);
+assert.equal(unresolvedPublication.elapsed.forgeCampaignMs, 86400000);
+assert.equal(validateReleaseToJavaScriptReceipt(unresolvedPublication).ok, true);
+
+const inventedPublication = structuredClone(unresolvedPublication);
+inventedPublication.source.publishedAt = '2026-08-20T00:00:00.000Z';
+const inventedValidation = validateReleaseToJavaScriptReceipt(inventedPublication);
+assert.equal(inventedValidation.ok, false);
+assert.match(inventedValidation.errors.join('; '), /publishedAt must be null|receiptDigest mismatch/);
+
+const missingPublicationFact = structuredClone(unresolvedPublication);
+missingPublicationFact.unresolvedFacts = [];
+const unresolvedValidation = validateReleaseToJavaScriptReceipt(missingPublicationFact);
+assert.equal(unresolvedValidation.ok, false);
+assert.match(unresolvedValidation.errors.join('; '), /source-publication-timestamp|receiptDigest mismatch/);
 
 console.log('✔ release-to-javascript-receipt.test.js passed');

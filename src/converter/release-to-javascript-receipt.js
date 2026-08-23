@@ -1,7 +1,9 @@
 import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
 
-export const RELEASE_TO_JAVASCRIPT_RECEIPT_SCHEMA_ID = 'doppler.release-to-javascript-receipt/v1';
+export const RELEASE_TO_JAVASCRIPT_RECEIPT_SCHEMA_ID = 'doppler.release-to-javascript-receipt/v2';
+
+const SOURCE_PUBLICATION_TIMESTAMP_DISPOSITIONS = new Set(['observed', 'unresolved']);
 
 const DIGEST_PATTERN = /^sha256:[0-9a-f]{64}$/;
 
@@ -38,25 +40,39 @@ export function validateReleaseToJavaScriptReceipt(receipt) {
     errors.push(`schema must be "${RELEASE_TO_JAVASCRIPT_RECEIPT_SCHEMA_ID}".`);
   }
   requireString(receipt.campaignId, 'campaignId', errors);
+  let publicationTimestampDisposition = null;
+  let publishedAt = null;
   if (!isObject(receipt.source)) {
     errors.push('source must be an object.');
   } else {
     requireString(receipt.source.checkpointId, 'source.checkpointId', errors);
     requireString(receipt.source.revision, 'source.revision', errors);
+    publicationTimestampDisposition = receipt.source.publicationTimestampDisposition;
+    if (!SOURCE_PUBLICATION_TIMESTAMP_DISPOSITIONS.has(publicationTimestampDisposition)) {
+      errors.push('source.publicationTimestampDisposition must be "observed" or "unresolved".');
+    } else if (publicationTimestampDisposition === 'observed') {
+      publishedAt = timestamp(receipt.source.publishedAt, 'source.publishedAt', errors);
+    } else if (receipt.source.publishedAt !== null) {
+      errors.push('source.publishedAt must be null when publicationTimestampDisposition is "unresolved".');
+    }
   }
-  const publishedAt = timestamp(receipt.source?.publishedAt, 'source.publishedAt', errors);
   const startedAt = timestamp(receipt.startedAt, 'startedAt', errors);
   const completedAt = timestamp(receipt.completedAt, 'completedAt', errors);
   if (!isObject(receipt.elapsed)) {
     errors.push('elapsed must be an object.');
-  } else if (publishedAt != null && startedAt != null && completedAt != null) {
-    if (receipt.elapsed.publicationToSignedPackMs !== completedAt - publishedAt) {
+  } else if (startedAt != null && completedAt != null) {
+    if (publicationTimestampDisposition === 'observed' && publishedAt != null
+      && receipt.elapsed.publicationToSignedPackMs !== completedAt - publishedAt) {
       errors.push('elapsed.publicationToSignedPackMs does not match source publication and completion timestamps.');
+    } else if (publicationTimestampDisposition === 'unresolved'
+      && receipt.elapsed.publicationToSignedPackMs !== null) {
+      errors.push('elapsed.publicationToSignedPackMs must be null when source publication is unresolved.');
     }
-    if (receipt.elapsed.forgeCampaignMs !== completedAt - startedAt) {
+    if (!Number.isFinite(receipt.elapsed.forgeCampaignMs)
+      || receipt.elapsed.forgeCampaignMs !== completedAt - startedAt) {
       errors.push('elapsed.forgeCampaignMs does not match campaign timestamps.');
     }
-    if (completedAt < startedAt || startedAt < publishedAt) {
+    if (completedAt < startedAt || (publishedAt != null && startedAt < publishedAt)) {
       errors.push('timestamps must satisfy publishedAt <= startedAt <= completedAt.');
     }
   }
@@ -80,7 +96,19 @@ export function validateReleaseToJavaScriptReceipt(receipt) {
       errors.push('humanAuthoredSemanticDecisions must equal accepted human semantic-decision interventions.');
     }
   }
-  if (!Array.isArray(receipt.unresolvedFacts)) errors.push('unresolvedFacts must be an array.');
+  if (!Array.isArray(receipt.unresolvedFacts)) {
+    errors.push('unresolvedFacts must be an array.');
+  } else {
+    const publicationFact = receipt.unresolvedFacts.find((entry) => (
+      isObject(entry) && entry.id === 'source-publication-timestamp'
+    ));
+    if (publicationTimestampDisposition === 'unresolved' && !publicationFact) {
+      errors.push('unresolvedFacts must identify source-publication-timestamp when publication is unresolved.');
+    }
+    if (publicationTimestampDisposition === 'observed' && publicationFact) {
+      errors.push('unresolvedFacts cannot identify source-publication-timestamp when publication is observed.');
+    }
+  }
   if (!isObject(receipt.candidates)) {
     errors.push('candidates must be an object.');
   } else {
@@ -130,7 +158,9 @@ export function validateReleaseToJavaScriptReceipt(receipt) {
 }
 
 export function createReleaseToJavaScriptReceipt(fields) {
-  const publishedAt = Date.parse(fields?.source?.publishedAt);
+  const publishedAt = fields?.source?.publicationTimestampDisposition === 'observed'
+    ? Date.parse(fields.source.publishedAt)
+    : null;
   const startedAt = Date.parse(fields?.startedAt);
   const completedAt = Date.parse(fields?.completedAt);
   const humanInterventions = structuredClone(fields?.humanInterventions ?? []);
@@ -141,7 +171,7 @@ export function createReleaseToJavaScriptReceipt(fields) {
     startedAt: fields?.startedAt,
     completedAt: fields?.completedAt,
     elapsed: {
-      publicationToSignedPackMs: completedAt - publishedAt,
+      publicationToSignedPackMs: publishedAt == null ? null : completedAt - publishedAt,
       forgeCampaignMs: completedAt - startedAt,
     },
     humanInterventions,
