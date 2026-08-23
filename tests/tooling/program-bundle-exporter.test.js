@@ -187,6 +187,22 @@ assert.deepEqual(bundle.referenceTranscript.logits.perStepDigests, [logitsDigest
 assert.equal(bundle.referenceTranscript.kvCache.byteDigest, kvByteDigest);
 assert.equal(bundle.referenceTranscript.kvCache.byteDigests[0].keyDigest, kvKeyDigest);
 
+const blake3ManifestPath = path.join(modelDir, 'manifest-blake3.json');
+const blake3Manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+blake3Manifest.hashAlgorithm = 'blake3';
+await fs.writeFile(blake3ManifestPath, `${JSON.stringify(blake3Manifest, null, 2)}\n`, 'utf8');
+await assert.rejects(
+  () => exportProgramBundle({
+    repoRoot,
+    manifestPath: blake3ManifestPath,
+    modelDir,
+    referenceReportPath: reportPath,
+    conversionConfigPath,
+    createdAtUtc: '2026-04-22T00:00:00.000Z',
+  }),
+  /requires manifest hashAlgorithm "sha256"; got "blake3"/,
+);
+
 const writtenBundlePath = path.join(fixtureRoot, 'closed', 'program-bundle.json');
 const written = await writeProgramBundle({
   repoRoot,

@@ -2398,9 +2398,9 @@
   "author": {
     "kind": "ai",
     "actor": "openai-codex",
-    "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+    "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
   },
-  "generatedCandidates": 5,
+  "generatedCandidates": 6,
   "rejectedCandidates": [
     {
       "candidateId": "flat-homogeneous",
@@ -2434,9 +2434,13 @@
         "executionGraphHash": "sha256:8640729b40ca4051e063fa146d685e1ba97ed2f52f6976934b021e44d9415e92",
         "initialExecutionIdentityDigest": "sha256:9050981c41fad606bd6c0f0003e6a22cc82be281a5693349ee75e6d5bb222308"
       }
+    },
+    {
+      "candidateId": "f16-recurrent-blake3-closure",
+      "reason": "Rejected during Pack closure preflight because the inherited BLAKE3 shard hashes cannot enter the SHA-256 Pack artifact contract. Conversion was canceled before completion and no qualification claim was produced."
     }
   ],
-  "acceptedCandidateId": "qwen3.8-lineage-f16-recurrent-v3",
+  "acceptedCandidateId": "qwen3.8-lineage-f16-recurrent-sha256-v4",
   "dispositions": [
     {
       "kind": "compatibility-requirement",
@@ -2844,9 +2848,21 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The complete multimodal source topology remains in ModelIR while this candidate lowers only text.generate."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/manifest/hashAlgorithm",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+      },
+      "rationale": "Signed Pack artifact closure requires SHA-256 weight-shard identities and must reject rather than relabel a BLAKE3 source manifest."
     },
     {
       "kind": "policy-override",
@@ -2856,7 +2872,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The first signed text target is qualified within an explicit bounded sequence envelope."
     },
@@ -2868,7 +2884,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The source MTP drafter is represented but remains unlowered and cannot affect text.generate qualification."
     },
@@ -2880,7 +2896,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The accepted linear-attention block class requires a content-addressed causal convolution mechanism."
     },
@@ -2892,7 +2908,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The accepted gated-delta state contract requires a content-addressed recurrent update mechanism."
     },
@@ -2904,7 +2920,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The signed decode candidate must close over the optional single-token fused implementation selected by resolved policy."
     },
@@ -2916,7 +2932,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The heterogeneous block executor loads this complete recurrent mechanism closure outside the homogeneous layer-step sequence."
     },
@@ -2928,7 +2944,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The first qualification candidate uses separately declared A and B projections."
     },
@@ -2940,7 +2956,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The first qualification candidate uses separately declared QKV and output-gate projections."
     },
@@ -2952,7 +2968,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The first qualification candidate dispatches the separately content-addressed convolution and recurrent kernels."
     },
@@ -2964,7 +2980,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "Physical Q4-head qualification first diverged after 97 source tokens; retain the reusable higher-fidelity output-head lane while Forge tests the independently identified recurrent-body boundary."
     },
@@ -2976,7 +2992,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "A fresh-process f16-head replay reproduced the same token stream, first divergence, logits digest, graph hash, and execution identity, disproving the output-head-only hypothesis. Preserve recurrent-attention tensors as f16 while retaining Q4 FFN and full-attention weights."
     },
@@ -2988,7 +3004,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The f16 output-head candidate must dispatch the manifest-declared f16 matmul mechanism for decode."
     },
@@ -3000,7 +3016,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
       },
       "rationale": "The f16 output-head candidate must dispatch the same manifest-declared f16 matmul mechanism for prefill."
     },
@@ -3126,7 +3142,7 @@
     }
   ],
   "unresolvedFacts": [],
-  "conversionConfigDigest": "sha256:7ec446c78e37ba7066a3173728e9d56aaf54592ce50d485099db50863357ff11",
+  "conversionConfigDigest": "sha256:d3639ac5260efdc894afdb3cda739f75d3dcb540ce3a4ad9b34cd54c7d7dc486",
   "conversionConfig": {
     "modelType": "transformer",
     "output": {
@@ -3148,7 +3164,7 @@
       "q4kLayout": "row"
     },
     "manifest": {
-      "hashAlgorithm": "blake3",
+      "hashAlgorithm": "sha256",
       "artifactIdentity": {
         "sourceCheckpointId": "Qwen/Qwen3.8-27B",
         "sourceRepo": "Qwen/Qwen3.8-27B",

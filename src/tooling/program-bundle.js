@@ -15,6 +15,12 @@ import {
 } from '../config/schema/program-bundle.schema.js';
 import { sha256BytesHex, sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
+import {
+  assertSha256ShardHashAlgorithm,
+  normalizeDigest,
+  requirePlainObject,
+  requireString,
+} from './program-bundle/validation.js';
 
 const DEFAULT_HOST_ENTRYPOINTS = Object.freeze([
   Object.freeze({
@@ -35,15 +41,6 @@ function hashStableJson(value) {
 
 function normalizeSlash(value) {
   return String(value || '').replace(/\\/g, '/');
-}
-
-function normalizeDigest(value, label) {
-  const raw = String(value || '').trim().toLowerCase();
-  const digest = raw.startsWith('sha256:') ? raw : `sha256:${raw}`;
-  if (!/^sha256:[0-9a-f]{64}$/.test(digest)) {
-    throw new Error(`program bundle export: ${label} must be a sha256 digest.`);
-  }
-  return digest;
 }
 
 function digestText(value) {
@@ -76,20 +73,6 @@ function createPackageSourceFile({ role, id, extension, source }) {
 
 function toRepoRelativePath(filePath, repoRoot) {
   return normalizeSlash(path.relative(repoRoot, filePath));
-}
-
-function requirePlainObject(value, label) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`program bundle export: ${label} must be a non-null object.`);
-  }
-  return value;
-}
-
-function requireString(value, label) {
-  if (typeof value !== 'string' || !value.trim()) {
-    throw new Error(`program bundle export: ${label} must be a non-empty string.`);
-  }
-  return value.trim();
 }
 
 async function readTextFile(filePath, label) {
@@ -131,8 +114,9 @@ async function fileArtifact({ role, filePath, repoRoot, artifactPath = null }) {
   };
 }
 
-function shardArtifact(shard, modelDir, repoRoot) {
+function shardArtifact(shard, modelDir, repoRoot, hashAlgorithm) {
   const filename = requireString(shard?.filename ?? shard?.path, 'shard filename');
+  assertSha256ShardHashAlgorithm(hashAlgorithm, filename);
   const shardPath = path.resolve(modelDir, filename);
   return {
     role: 'weight-shard',
@@ -854,7 +838,12 @@ async function collectArtifacts(options, manifest, manifestArtifact, referenceRe
 
   if (Array.isArray(storageManifest.shards)) {
     for (const shard of storageManifest.shards) {
-      artifacts.push(shardArtifact(shard, storageModelDir, options.repoRoot));
+      artifacts.push(shardArtifact(
+        shard,
+        storageModelDir,
+        options.repoRoot,
+        storageManifest.hashAlgorithm
+      ));
     }
   }
 
