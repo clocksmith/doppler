@@ -1,0 +1,451 @@
+{
+  "schema": "doppler.pinned-source-transcript/v1",
+  "model": "meta-models/Muse-Glimmer-30B",
+  "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+  "entryPoint": "text.generate",
+  "prompt": "A rigorous explanation of why local GPU execution receipts matter begins with",
+  "promptTokenIds": [
+    200000,
+    45,
+    68572,
+    20966,
+    323,
+    5959,
+    2743,
+    33157,
+    20112,
+    98466,
+    9280,
+    22397,
+    517
+  ],
+  "generatedTokenIds": [
+    290,
+    12982,
+    2353,
+    323,
+    13719,
+    310,
+    13787,
+    26731,
+    26,
+    4802,
+    262,
+    5258,
+    110775,
+    262,
+    5313,
+    328,
+    262,
+    14750,
+    33157,
+    24,
+    290,
+    5258,
+    3066,
+    15726,
+    511,
+    290,
+    26731,
+    812,
+    10977,
+    16815,
+    24,
+    511,
+    290,
+    35159,
+    8461,
+    1610,
+    8086,
+    1792,
+    24,
+    341,
+    511,
+    290,
+    1289,
+    373,
+    24640,
+    26,
+    72058,
+    17205,
+    32273,
+    436,
+    6192,
+    46209,
+    21247,
+    330,
+    12438,
+    373,
+    21857,
+    341,
+    11574,
+    21,
+    537,
+    143415,
+    58659,
+    330,
+    12438,
+    583,
+    91007,
+    31237,
+    3160,
+    393,
+    4399,
+    33157,
+    154262,
+    678,
+    589,
+    9998,
+    31742,
+    323,
+    544,
+    1345,
+    373,
+    511,
+    675,
+    713,
+    14549,
+    1497,
+    39049,
+    20112,
+    618,
+    13936,
+    300,
+    290,
+    33157,
+    948,
+    20112,
+    6103,
+    328,
+    10021,
+    262,
+    19253,
+    24,
+    25668,
+    159732,
+    1497,
+    39049,
+    4114,
+    323,
+    290,
+    26731,
+    948,
+    9508,
+    2474,
+    19979,
+    15762,
+    24,
+    290,
+    8636,
+    323,
+    7927,
+    140699,
+    341,
+    3266,
+    5962,
+    18697,
+    2474,
+    49045,
+    38734,
+    290
+  ],
+  "generatedTokens": 128,
+  "generation": {
+    "maxNewTokens": 128,
+    "sampling": "greedy-argmax-f32-logits",
+    "useChatTemplate": false,
+    "addSpecialTokens": true,
+    "stopOnEos": true
+  },
+  "execution": {
+    "sampling": "greedy-argmax-f32-logits",
+    "device": "cpu",
+    "dtype": "bfloat16",
+    "attentionImplementation": "eager"
+  },
+  "identity": {
+    "policySha256": "sha256:badd22c735659a794f88377478b20577ae1126d441bdfc584de9ec45e516d813",
+    "scriptSha256": "sha256:24fac89a5eef7cd7ce8fbbed0f51777657199d3616f2bff5d4215dc1584fcab2",
+    "promptSha256": "sha256:eca02946b77b284e13f3e7c725524488c67f526472e588e5f16bf651c64aa915",
+    "configSha256": "sha256:5a9df2d8a385b3d361ab6ae68d73586f4e775033933bd0cd863fb7f3820e6a14",
+    "generationConfigSha256": "sha256:1fa51889b1f8d3659802dedaa27e005b81e5c58483f13ecf13f2d97306bc6e35",
+    "tokenizerSha256": "sha256:c9dbee66967b58f31a7c27f723c3760da3526ccd0427578e8905b0abb0031c4d",
+    "sourceAcquisitionReceiptDigest": "sha256:195a80161679da782ade8c31bdfcd4180defde7454387ec5ccead0e0512e4f5b",
+    "transformersCommit": "c7e57f79348480f73d3ef0ad8c47f807ef1378c8"
+  },
+  "runtime": {
+    "python": "3.14.4",
+    "torch": "2.11.0+cu130",
+    "transformers": "5.16.0.dev0",
+    "machine": "x86_64",
+    "processor": ""
+  },
+  "loadEvidence": {
+    "loadedTextParameters": 627,
+    "preservedAuxiliaryParameters": 809,
+    "weightShardCount": 2
+  },
+  "boundaries": [
+    {
+      "boundaryId": "model.embedding.output",
+      "phase": "prefill",
+      "shape": [
+        6656
+      ],
+      "dtype": "float32",
+      "elementCount": 6656,
+      "samples": [
+        0.087890625,
+        -0.2578125,
+        0.038818359375,
+        -0.01495361328125,
+        -0.35546875,
+        -1.6328125,
+        -0.35546875,
+        0.27734375
+      ],
+      "fullTensorDigest": "sha256:d399bf0c61e5e2e5d2bae54790fc3eea52fdd0e812e4643d0620bee55cc219ae",
+      "statistics": {
+        "min": -30.125,
+        "max": 34.75,
+        "maxAbs": 34.75,
+        "mean": -0.01102559082210064,
+        "std": 0.9991293549537659
+      },
+      "finite": true
+    },
+    {
+      "boundaryId": "layer.0.input_norm",
+      "phase": "prefill",
+      "shape": [
+        6656
+      ],
+      "dtype": "float32",
+      "elementCount": 6656,
+      "samples": [
+        0.09619140625,
+        -0.287109375,
+        0.052734375,
+        -0.021728515625,
+        -0.419921875,
+        -2.21875,
+        -0.44140625,
+        0.369140625
+      ],
+      "fullTensorDigest": "sha256:5f705aca6bd66435ca797ce9f0eb717a64bb1b6e9917640710860e82ba4d2305",
+      "statistics": {
+        "min": -14.9375,
+        "max": 26.125,
+        "maxAbs": 26.125,
+        "mean": -0.006701195612549782,
+        "std": 0.8596199154853821
+      },
+      "finite": true
+    },
+    {
+      "boundaryId": "layer.0.attention.output",
+      "phase": "prefill",
+      "shape": [
+        6656
+      ],
+      "dtype": "float32",
+      "elementCount": 6656,
+      "samples": [
+        -0.06396484375,
+        0.0966796875,
+        0.00102996826171875,
+        -0.09619140625,
+        0.006195068359375,
+        0.0228271484375,
+        0.06689453125,
+        0.038818359375
+      ],
+      "fullTensorDigest": "sha256:6ace45281084dc73705f3267e36d7b350f588877f1665f1e03520ef69d41c508",
+      "statistics": {
+        "min": -9.1875,
+        "max": 10.125,
+        "maxAbs": 10.125,
+        "mean": -7.052905857563019e-05,
+        "std": 0.21665257215499878
+      },
+      "finite": true
+    },
+    {
+      "boundaryId": "layer.0.post_attention_norm",
+      "phase": "prefill",
+      "shape": [
+        6656
+      ],
+      "dtype": "float32",
+      "elementCount": 6656,
+      "samples": [
+        -0.140625,
+        0.2314453125,
+        0.003631591796875,
+        -0.396484375,
+        0.0162353515625,
+        0.0693359375,
+        0.216796875,
+        0.11279296875
+      ],
+      "fullTensorDigest": "sha256:27c33533e14464f6200705c0a0101a8389634d4f8884ed37cbbec887edd6a6a0",
+      "statistics": {
+        "min": -28.625,
+        "max": 31.5,
+        "maxAbs": 31.5,
+        "mean": -0.0026060515083372593,
+        "std": 0.7798441648483276
+      },
+      "finite": true
+    },
+    {
+      "boundaryId": "layer.0.pre_ffn_norm",
+      "phase": "prefill",
+      "shape": [
+        6656
+      ],
+      "dtype": "float32",
+      "elementCount": 6656,
+      "samples": [
+        -0.06982421875,
+        -0.034423828125,
+        0.07275390625,
+        -0.7734375,
+        -0.482421875,
+        -2.40625,
+        -0.2158203125,
+        0.59375
+      ],
+      "fullTensorDigest": "sha256:405e03e8f5477042f290f7fd562c49987ffd2010ae30c3f8ab2f970a8c11d90e",
+      "statistics": {
+        "min": -12.8125,
+        "max": 11.25,
+        "maxAbs": 12.8125,
+        "mean": -0.013235758990049362,
+        "std": 0.8574022054672241
+      },
+      "finite": true
+    },
+    {
+      "boundaryId": "layer.0.ffn.output",
+      "phase": "prefill",
+      "shape": [
+        6656
+      ],
+      "dtype": "float32",
+      "elementCount": 6656,
+      "samples": [
+        0.376953125,
+        -0.004302978515625,
+        0.0113525390625,
+        0.392578125,
+        0.2236328125,
+        0.1953125,
+        0.1689453125,
+        0.0341796875
+      ],
+      "fullTensorDigest": "sha256:db2e1ed3ab93b42de952d5425eaf7fa72b5b85f9e9da1eef982f86c176366feb",
+      "statistics": {
+        "min": -74.0,
+        "max": 77.0,
+        "maxAbs": 77.0,
+        "mean": -0.0011820732615888119,
+        "std": 1.3791950941085815
+      },
+      "finite": true
+    },
+    {
+      "boundaryId": "layer.0.post_ffn_norm",
+      "phase": "prefill",
+      "shape": [
+        6656
+      ],
+      "dtype": "float32",
+      "elementCount": 6656,
+      "samples": [
+        0.17578125,
+        -0.0019683837890625,
+        0.00665283203125,
+        0.251953125,
+        0.11376953125,
+        0.11181640625,
+        0.08740234375,
+        0.0169677734375
+      ],
+      "fullTensorDigest": "sha256:2335aa6c7d7ed0e62e2c40867ee708c72c8977c4373c6edf51098bb2f7767da7",
+      "statistics": {
+        "min": -14.25,
+        "max": 17.875,
+        "maxAbs": 17.875,
+        "mean": 0.0018253326416015625,
+        "std": 0.3986186385154724
+      },
+      "finite": true
+    },
+    {
+      "boundaryId": "layer.0.output",
+      "phase": "prefill",
+      "shape": [
+        6656
+      ],
+      "dtype": "float32",
+      "elementCount": 6656,
+      "samples": [
+        0.123046875,
+        -0.0283203125,
+        0.049072265625,
+        -0.16015625,
+        -0.2265625,
+        -1.453125,
+        -0.05126953125,
+        0.408203125
+      ],
+      "fullTensorDigest": "sha256:8b881992621864fa42cb93f3bc9e67db6caf09a0023bf721ef81a41d4715dfdf",
+      "statistics": {
+        "min": -22.125,
+        "max": 6.6875,
+        "maxAbs": 22.125,
+        "mean": -0.011832216754555702,
+        "std": 0.5703676342964172
+      },
+      "finite": true
+    },
+    {
+      "boundaryId": "model.logits",
+      "phase": "prefill",
+      "shape": [
+        202048
+      ],
+      "dtype": "float32",
+      "elementCount": 202048,
+      "samples": [
+        -14.394142150878906,
+        -14.441241264343262,
+        -14.441241264343262,
+        -13.434523582458496,
+        -13.955089569091797,
+        -13.541440963745117,
+        -14.394142150878906,
+        -14.104497909545898
+      ],
+      "fullTensorDigest": "sha256:2df525d6cbd7289f19668719a28759726f8e6d09f6ce5ba844883de12031864a",
+      "statistics": {
+        "min": -15.668091773986816,
+        "max": 18.42838478088379,
+        "maxAbs": 18.42838478088379,
+        "mean": -4.2741241455078125,
+        "std": 3.258467435836792
+      },
+      "finite": true
+    }
+  ],
+  "decoded": {
+    "withSpecialTokens": " the fundamental problem of trust in distributed computation. When a client delegates a task to a remote GPU, the client must verify that the computation was performed correctly, that the claimed resources were actually used, and that the result is authentic. Traditional approaches rely on either trusted hardware (which is expensive and limited) or cryptographic proofs (which are computationally prohibitive for general GPU workloads). The core insight of this work is that we can achieve verifiable execution by instrumenting the GPU's execution environment to produce a compact, cryptographically verifiable record of the computation's behavior\u2014specifically, the sequence of memory accesses and control flow decisions\u2014without requiring the",
+    "withoutSpecialTokens": " the fundamental problem of trust in distributed computation. When a client delegates a task to a remote GPU, the client must verify that the computation was performed correctly, that the claimed resources were actually used, and that the result is authentic. Traditional approaches rely on either trusted hardware (which is expensive and limited) or cryptographic proofs (which are computationally prohibitive for general GPU workloads). The core insight of this work is that we can achieve verifiable execution by instrumenting the GPU's execution environment to produce a compact, cryptographically verifiable record of the computation's behavior\u2014specifically, the sequence of memory accesses and control flow decisions\u2014without requiring the"
+  },
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "glimmer-pinned-text-reference-v1"
+  }
+}
