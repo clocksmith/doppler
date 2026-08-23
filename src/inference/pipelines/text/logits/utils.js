@@ -16,6 +16,15 @@ export function resolveLogitInputScale(config) {
   return scale;
 }
 
+export function resolveLogitOutputScale(config) {
+  const value = config?.logitOutputScale ?? 1;
+  const scale = Number(value);
+  if (!Number.isFinite(scale) || scale <= 0) {
+    throw new Error(`[Logits] logitOutputScale must be a positive finite number; got "${String(value)}".`);
+  }
+  return scale;
+}
+
 export function extractLastPositionLogits(
   logits,
   numTokens,
@@ -66,6 +75,10 @@ export async function finalizeLogits(
     logits = paddedLogits;
   }
 
+  const outputScale = resolveLogitOutputScale(config);
+  if (outputScale !== 1) {
+    for (let index = 0; index < logits.length; index += 1) logits[index] *= outputScale;
+  }
   if (config.finalLogitSoftcapping != null) {
     applySoftcapping(logits, config.finalLogitSoftcapping);
   }

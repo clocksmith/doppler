@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 
 const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js');
 const { initDevice } = await import('../../src/gpu/device.js');
-const { acquireBuffer, releaseBuffer, uploadData } = await import('../../src/memory/buffer-pool.js');
+const { acquireBuffer, releaseBuffer, readBuffer, uploadData } = await import('../../src/memory/buffer-pool.js');
 const { createWeightBuffer, isWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
 const { loadLayer } = await import('../../src/loader/layer-loader.js');
 const { quantizeToQ4KM } = await import('../../src/converter/quantizer.js');
+const { embed } = await import('../../src/inference/pipelines/text/embed.js');
 
 let webgpuReady = false;
 try {
@@ -21,6 +22,23 @@ if (!webgpuReady) {
 }
 
 await initDevice();
+
+const normalizedEmbedding = await embed([0], new Float32Array([3, 4]), {
+  hiddenSize: 2,
+  vocabSize: 1,
+  scaleEmbeddings: false,
+  embeddingScale: null,
+  embeddingNormalization: {
+    type: 'rmsnorm', withScale: false, eps: 1e-5, position: 'after-scale',
+  },
+  activationDtype: 'f32',
+  embeddingDtype: 'f32',
+});
+const normalizedValues = new Float32Array(await readBuffer(normalizedEmbedding.buffer, 8));
+const inverseRms = 1 / Math.sqrt(((3 * 3) + (4 * 4)) / 2 + 1e-5);
+assert.ok(Math.abs(normalizedValues[0] - (3 * inverseRms)) < 1e-5);
+assert.ok(Math.abs(normalizedValues[1] - (4 * inverseRms)) < 1e-5);
+releaseBuffer(normalizedEmbedding.buffer);
 
 const separateAttentionGate = new Float32Array(16);
 const separateGateLayer = await loadLayer({

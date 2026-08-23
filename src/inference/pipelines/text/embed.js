@@ -11,6 +11,8 @@ import { castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernels/cast.js';
 import { isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { resolveEmbeddingNormalization } from './embedding-contract.js';
+import { finalizeEmbeddingOutput } from './embedding-normalization.js';
 
 const bf16ScratchU32 = new Uint32Array(1);
 const bf16ScratchF32 = new Float32Array(bf16ScratchU32.buffer);
@@ -100,6 +102,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     vocabSize,
     scaleEmbeddings,
     embeddingScale,
+    embeddingNormalization = null,
     debug = false,
     recorder,
     outputBuffer: preAllocatedOutput,
@@ -115,6 +118,8 @@ export async function embed(tokenIds, embedBuffer, config) {
   } = config;
   const device = getDevice();
   const resolvedEmbeddingScale = resolveEmbeddingScale({ scaleEmbeddings, embeddingScale }, hiddenSize);
+  const resolvedEmbeddingNormalization = resolveEmbeddingNormalization(embeddingNormalization);
+  const intermediateOutputBuffer = resolvedEmbeddingNormalization ? null : preAllocatedOutput;
   const tokenBufferInput = isGpuBufferInstance(tokenIds);
   let tokenIdArray = tokenBufferInput ? null :  (tokenIds);
   const numTokens = tokenBufferInput
@@ -298,7 +303,7 @@ export async function embed(tokenIds, embedBuffer, config) {
       device.queue.writeBuffer(f32Buffer, 0, output);
       const f32Tensor = createTensor(f32Buffer, 'f32', [numTokens, hiddenSize], 'embed_cpu_f32');
       const outputBytes = numTokens * hiddenSize * 2;
-      const outputBuffer = preAllocatedOutput && preAllocatedOutput.size >= outputBytes ? preAllocatedOutput : null;
+      const outputBuffer = intermediateOutputBuffer && intermediateOutputBuffer.size >= outputBytes ? intermediateOutputBuffer : null;
       const f16Tensor = recorder
         ? await recordCastF32ToF16(recorder, f32Tensor, { outputBuffer })
         : await castF32ToF16(f32Tensor, { outputBuffer });
@@ -307,34 +312,31 @@ export async function embed(tokenIds, embedBuffer, config) {
       } else {
         releaseBuffer(f32Buffer);
       }
-      await runProbes(probeStage, f16Tensor.buffer, {
-        numTokens,
-        hiddenSize,
-        probes: config.debugProbes,
-        recorder,
-        operatorDiagnostics,
-        dtype: 'f16',
+      return finalizeEmbeddingOutput(f16Tensor, resolvedEmbeddingNormalization, {
+        recorder, numTokens, hiddenSize,
+        outputBuffer: preAllocatedOutput && preAllocatedOutput.size >= outputBytes ? preAllocatedOutput : null,
+        probeStage, debugProbes: config.debugProbes, operatorDiagnostics,
       });
-      return f16Tensor;
     }
 
     const outputBytes = output.byteLength;
-    const outputBuffer = preAllocatedOutput && preAllocatedOutput.size >= outputBytes
-      ? preAllocatedOutput
+    const outputBuffer = intermediateOutputBuffer && intermediateOutputBuffer.size >= outputBytes
+      ? intermediateOutputBuffer
       : acquireBuffer(outputBytes, undefined, 'embed_cpu_f32_out');
     device.queue.writeBuffer(outputBuffer, 0, output);
     if (stats) {
       stats.pleWriteBufferCount = (stats.pleWriteBufferCount ?? 0) + 1;
       stats.pleWriteBufferBytes = (stats.pleWriteBufferBytes ?? 0) + outputBytes;
     }
-    await runProbes(probeStage, outputBuffer, {
-      numTokens,
-      hiddenSize,
-      probes: config.debugProbes,
-      recorder,
-      operatorDiagnostics,
-    });
-    return createTensor(outputBuffer, dtype, [numTokens, hiddenSize], 'embed_output');
+    return finalizeEmbeddingOutput(
+      createTensor(outputBuffer, dtype, [numTokens, hiddenSize], 'embed_output'),
+      resolvedEmbeddingNormalization,
+      {
+        recorder, numTokens, hiddenSize,
+        outputBuffer: preAllocatedOutput && preAllocatedOutput.size >= outputBytes ? preAllocatedOutput : null,
+        probeStage, debugProbes: config.debugProbes, operatorDiagnostics,
+      }
+    );
   }
 
   if (tokenBufferInput && numTokens <= 0) {
@@ -351,7 +353,7 @@ export async function embed(tokenIds, embedBuffer, config) {
   // Pass outputDtype to enable F16 output when in F16 activation mode
   // Pass embeddingDtype so gather kernel uses correct input format
   const gatherOptions = {
-    outputBuffer: preAllocatedOutput,
+    outputBuffer: intermediateOutputBuffer,
     transpose,
     outputDtype: selectRuleValue('shared', 'dtype', 'f16OrF32', { useF16 }),
     embeddingDtype,
@@ -406,15 +408,10 @@ export async function embed(tokenIds, embedBuffer, config) {
   }
 
   if (resolvedEmbeddingScale === 1) {
-    await runProbes(probeStage, gatherOutput.buffer, {
-      numTokens,
-      hiddenSize,
-      probes: config.debugProbes,
-      recorder,
-      operatorDiagnostics,
-      dtype: gatherOptions.outputDtype,
+    return finalizeEmbeddingOutput(gatherOutput, resolvedEmbeddingNormalization, {
+      recorder, numTokens, hiddenSize, outputBuffer: preAllocatedOutput,
+      probeStage, debugProbes: config.debugProbes, operatorDiagnostics,
     });
-    return gatherOutput;
   }
 
   // Debug: check raw embedding values before scaling
@@ -448,12 +445,12 @@ export async function embed(tokenIds, embedBuffer, config) {
   if (recorder) {
     // Only track if we created this buffer (not pre-allocated)
     // Pre-allocated buffers are managed by the caller (e.g., DecodeBufferManager)
-    if (!preAllocatedOutput) {
+    if (!intermediateOutputBuffer) {
       recorder.trackTemporaryBuffer(gatherOutput.buffer);
     }
   } else {
     // For sync path: only release if not pre-allocated
-    if (!preAllocatedOutput) {
+    if (!intermediateOutputBuffer) {
       releaseBuffer(gatherOutput.buffer);
     }
   }
@@ -474,14 +471,12 @@ export async function embed(tokenIds, embedBuffer, config) {
       throw new Error('[Embed] Scaled embedding contains NaN/Inf');
     }
   }
-  await runProbes(probeStage, scaledBuffer, {
-    numTokens,
-    hiddenSize,
-    probes: config.debugProbes,
-    recorder,
-    operatorDiagnostics,
-    dtype,
-  });
-
-  return createTensor(scaledBuffer, dtype, [numTokens, hiddenSize], 'embed_output');
+  return finalizeEmbeddingOutput(
+    createTensor(scaledBuffer, dtype, [numTokens, hiddenSize], 'embed_output'),
+    resolvedEmbeddingNormalization,
+    {
+      recorder, numTokens, hiddenSize, outputBuffer: preAllocatedOutput,
+      probeStage, debugProbes: config.debugProbes, operatorDiagnostics,
+    }
+  );
 }

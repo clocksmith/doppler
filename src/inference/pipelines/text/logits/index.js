@@ -20,7 +20,7 @@ import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { runProbes } from '../probes.js';
 import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
 import { resolveCpuWeightDims, computeChunkedLogitsGPU, computeSplitLogitsGPU } from './gpu.js';
-import { finalizeLogits, readBufferWithCleanup, resolveLogitInputScale } from './utils.js';
+import { finalizeLogits, readBufferWithCleanup, resolveLogitInputScale, resolveLogitOutputScale } from './utils.js';
 import { getLogitsHealth } from '../debug-utils/index.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../../../config/kernel-path-loader.js';
@@ -582,7 +582,7 @@ export async function computeLogits(
     matmulInputOwned = true;
   }
 
-  if (selectedTokenIds) {
+  if (selectedTokenIds && resolveLogitOutputScale(config) === 1) {
     if (lastPositionOnly !== true) {
       throw new Error('[Logits] selectedTokenIds requires lastPositionOnly=true.');
     }
@@ -656,5 +656,9 @@ export async function computeLogits(
   if (isTraceEnabled('logits')) {
     trace.logits('LM_HEAD_RAW_LOGITS_HEALTH', getLogitsHealth(rawLogits));
   }
-  return finalizeLogits(rawLogits, matmulRows, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
+  const finalized = await finalizeLogits(
+    rawLogits, matmulRows, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics
+  );
+  if (!selectedTokenIds) return finalized;
+  return Float32Array.from(selectedTokenIds, (tokenId) => finalized[tokenId]);
 }

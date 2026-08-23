@@ -17,6 +17,7 @@ const config = {
   embeddingVocabSize: null,
   finalLogitSoftcapping: null,
   logitInputScale: 1,
+  logitOutputScale: 1,
   activationDtype: 'f32',
 };
 
@@ -31,6 +32,18 @@ const logits = await computeLogits(
 assert.deepEqual(Array.from(logits), [
   0.25, -0.5, 1.75,
   0.25, -0.5, 1.75,
+]);
+
+const scaledLogits = await computeLogits(
+  hiddenStates,
+  2,
+  { finalNorm, lmHead, lmHeadBias },
+  { ...config, logitOutputScale: 0.5 },
+  false
+);
+assert.deepEqual(Array.from(scaledLogits), [
+  0.125, -0.25, 0.875,
+  0.125, -0.25, 0.875,
 ]);
 
 await assert.rejects(

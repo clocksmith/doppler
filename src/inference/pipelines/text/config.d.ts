@@ -21,6 +21,7 @@ import type {
 import type { MergedConfig, RuntimeInferenceOverrides } from '../../../config/merge.js';
 import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
 import type { RuntimeModelContract } from '../../runtime-model.js';
+import type { WeightlessEmbeddingNormalization } from './embedding-contract.js';
 
 export type ActivationType = 'silu' | 'gelu';
 export type ParsedLayerType =
@@ -191,12 +192,16 @@ export interface ParsedModelConfig {
   finalNormBiasTensor: string | null;
   rmsNormEps: number;
   rmsNormWeightOffset: boolean;
+  postNormEps: number;
+  postNormWeightOffset: boolean;
   postAttentionNorm: boolean;
   preFeedforwardNorm: boolean;
   postFeedforwardNorm: boolean;
   scaleEmbeddings: boolean;
   embeddingScale: number | null;
+  embeddingNormalization: WeightlessEmbeddingNormalization | null;
   logitInputScale: number;
+  logitOutputScale: number;
   residualBranchScale: number;
   useTiedEmbeddings: boolean;
   embeddingTranspose: boolean;

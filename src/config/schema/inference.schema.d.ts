@@ -115,6 +115,10 @@ export interface NormalizationSchema {
   rmsNormWeightOffset?: boolean;
   /** RMSNorm epsilon */
   rmsNormEps?: number;
+  /** Post-sublayer RMSNorm epsilon; null inherits rmsNormEps. */
+  postNormEps?: number | null;
+  /** Post-sublayer centered-weight offset; null inherits rmsNormWeightOffset. */
+  postNormWeightOffset?: boolean | null;
   /** Use post-attention norm */
   postAttentionNorm?: boolean;
   /** Use pre-feedforward norm */
@@ -241,8 +245,17 @@ export interface OutputSchema {
   scaleEmbeddings?: boolean;
   /** Explicit embedding multiplier, null to use scaleEmbeddings semantics. */
   embeddingScale?: number | null;
+  /** Optional weightless normalization applied after embedding scaling. */
+  embeddingNormalization?: {
+    type: 'rmsnorm';
+    withScale: false;
+    eps: number;
+    position: 'after-scale';
+  } | null;
   /** Multiplier applied after final norm before LM head projection. */
   logitInputScale?: number;
+  /** Multiplier applied to LM-head logits before final softcapping. */
+  logitOutputScale?: number;
 }
 
 /** Layer type for hybrid models */

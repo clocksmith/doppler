@@ -44,12 +44,13 @@ async function applyBranchRMSNorm(layerIdx, tensor, layerWeights, key, label, co
   const { config, weightConfig, debugFlags, recorder } = context;
   const weight = requireNormWeight(layerIdx, layerWeights, key);
   const normWeightBuf = getNormWeightBuffer(weight, label, weightConfig, debugFlags);
-  const output = await doRMSNorm(tensor, normWeightBuf, config.rmsNormEps, {
+  const isPostNorm = key.startsWith('post');
+  const output = await doRMSNorm(tensor, normWeightBuf, isPostNorm ? config.postNormEps : config.rmsNormEps, {
     batchSize: numTokens,
     hiddenSize,
     label: `L${layerIdx}.${label}`,
     layerIdx,
-    rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+    rmsNormWeightOffset: isPostNorm ? config.postNormWeightOffset : config.rmsNormWeightOffset,
   }, recorder);
   if (!isGpuBufferInstance(weight) && !isWeightBuffer(weight)) {
     releaseOrTrack(recorder, normWeightBuf);
@@ -69,7 +70,7 @@ async function runDensePlusMoeFFN(
   finalOutputScale
 ) {
   const { config, recorder, weightConfig, debugFlags } = context;
-  const { hiddenSize, rmsNormEps } = config;
+  const { hiddenSize, postNormEps = config.rmsNormEps, postNormWeightOffset = config.rmsNormWeightOffset } = config;
   const denseRaw = await runDenseFFNGPU(layerIdx, ffnInput, numTokens, context, layerWeights);
   const denseNorm = await applyBranchRMSNorm(
     layerIdx,
@@ -125,7 +126,7 @@ async function runDensePlusMoeFFN(
     && !context.debugProbes?.length
     ? finalOutputScale
     : 1;
-  const output = await doRMSNorm(combined, finalNormWeightBuf, rmsNormEps, {
+  const output = await doRMSNorm(combined, finalNormWeightBuf, postNormEps, {
     batchSize: numTokens,
     hiddenSize,
     residual: postAttn,
@@ -133,7 +134,7 @@ async function runDensePlusMoeFFN(
     outputScale: rmsNormOutputScale,
     label: `L${layerIdx}.post_ffn_norm`,
     layerIdx,
-    rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+    rmsNormWeightOffset: postNormWeightOffset,
   }, recorder);
   if (rmsNormOutputScale !== 1) {
     context.__layerScalarFusedFired = true;
@@ -161,7 +162,7 @@ export async function processFFNWithSandwichNorm(
   precomputedFfnInput = null
 ) {
   const { config, weightConfig, debugFlags, recorder, decodeBuffers } = context;
-  const { hiddenSize, rmsNormEps } = config;
+  const { hiddenSize, rmsNormEps, postNormEps = rmsNormEps, postNormWeightOffset = config.rmsNormWeightOffset } = config;
   const requestedFinalOutputScale = finalOutputScale == null ? 1 : Number(finalOutputScale);
   if (!Number.isFinite(requestedFinalOutputScale)) {
     throw new Error(`Layer ${layerIdx} finalOutputScale must be finite; got "${String(finalOutputScale)}".`);
@@ -270,7 +271,7 @@ export async function processFFNWithSandwichNorm(
     ffnOutput = await runDenseFFNWithFusedPostNormGPU(
       layerIdx, ffnInput, numTokens, context, layerWeights,
       postAttn,
-      rmsNormEps,
+      postNormEps,
       !downWeightIsColumnMajor,
       decodeOutputBuffer
     );
@@ -371,7 +372,7 @@ export async function processFFNWithSandwichNorm(
         }
       }
     } else {
-      output = await doRMSNorm(ffnOutput, normWeightBuf, rmsNormEps, {
+      output = await doRMSNorm(ffnOutput, normWeightBuf, postNormEps, {
         batchSize: numTokens,
         hiddenSize,
         residual: postAttn,
@@ -379,7 +380,7 @@ export async function processFFNWithSandwichNorm(
         outputScale: rmsNormOutputScale,
         label: `L${layerIdx}.post_ffn_norm`,
         layerIdx,
-        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+        rmsNormWeightOffset: postNormWeightOffset,
       }, recorder);
       if (rmsNormOutputScale !== 1) {
         context.__layerScalarFusedFired = true;

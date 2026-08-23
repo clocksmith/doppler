@@ -29,6 +29,7 @@ import { createPerLayerInputTensor, resolveDensePleProjectionWeight } from './pe
 import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { processLayerPlanGPU } from './layer-plan-gpu.js';
 import { isRoPEDisabledForLayer } from './attention/heterogeneous-contract.js';
+import { postNormContractMatchesBase } from './normalization-contract.js';
 // ============================================================================
 // Architecture Detection
 // ============================================================================
@@ -55,7 +56,7 @@ function shouldUseSandwichRMSNormPairFusion({
   attnOutput,
   inputTensor,
 }) {
-  if (context.config?.normalizationType === 'layernorm') return false;
+  if (context.config?.normalizationType === 'layernorm' || !postNormContractMatchesBase(context.config)) return false;
   if (context.useSandwichRMSNormPairFusion !== true) {
     return false;
   }
@@ -121,7 +122,7 @@ function shouldUsePostFfnNextInputRMSNormPairFusion({
   activationDtype,
   layerScalar,
 }) {
-  if (config.normalizationType === 'layernorm') return false;
+  if (config.normalizationType === 'layernorm' || !postNormContractMatchesBase(config)) return false;
   if (context.usePostFfnNextInputRMSNormPairFusion !== true) {
     return false;
   }
@@ -211,7 +212,6 @@ function shouldUseStandardPostFfnNextInputRMSNormPairFusion({
   }
   return true;
 }
-
 
 export function isMoELayer(layerIdx, config) {
   if (!config.useMoE) return false;
@@ -687,7 +687,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   if (!device) throw new Error('No GPU device available');
 
   assertSupportedLayerRuntime(layerIdx, config);
-  const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps } = config;
+  const { hiddenSize, numHeads, numKVHeads, headDim, rmsNormEps, postNormEps = rmsNormEps, postNormWeightOffset = config.rmsNormWeightOffset } = config;
   const residualBranchScale = Number(config.residualBranchScale);
   if (!Number.isFinite(residualBranchScale) || residualBranchScale <= 0) {
     throw new Error(
@@ -999,12 +999,12 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       }
     } else if (sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm && layerWeights?.postAttentionNorm) {
       const normWeightBuf = getNormWeightBuffer(layerWeights.postAttentionNorm, 'post_attention_norm', weightConfig, debugFlags);
-      postAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
+      postAttn = await doRMSNorm(attnOutput, normWeightBuf, postNormEps, {
         batchSize: numTokens,
         hiddenSize,
         label: `L${layerIdx}.post_attn_norm`,
         layerIdx,
-        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+        rmsNormWeightOffset: postNormWeightOffset,
       }, recorder);
       if (!isGpuBufferInstance(layerWeights.postAttentionNorm) && !isWeightBuffer(layerWeights.postAttentionNorm)) releaseOrTrack(recorder, normWeightBuf);
       if (recorder) {
@@ -1036,21 +1036,21 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       precomputedFfnInput = pair.ffnInput;
       if (!isGpuBufferInstance(layerWeights.preFeedforwardNorm) && !isWeightBuffer(layerWeights.preFeedforwardNorm)) releaseOrTrack(recorder, preNormWeightBuf);
     } else if (attnOutput.dtype === inputTensor.dtype) {
-      postAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
+      postAttn = await doRMSNorm(attnOutput, normWeightBuf, postNormEps, {
         batchSize: numTokens,
         hiddenSize,
         residual: inputTensor,
         label: `L${layerIdx}.post_attn_norm`,
         layerIdx,
-        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+        rmsNormWeightOffset: postNormWeightOffset,
       }, recorder);
     } else {
-      const normalizedAttn = await doRMSNorm(attnOutput, normWeightBuf, rmsNormEps, {
+      const normalizedAttn = await doRMSNorm(attnOutput, normWeightBuf, postNormEps, {
         batchSize: numTokens,
         hiddenSize,
         label: `L${layerIdx}.post_attn_norm`,
         layerIdx,
-        rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+        rmsNormWeightOffset: postNormWeightOffset,
       }, recorder);
       postAttn = await doResidualAdd(normalizedAttn, inputTensor, size, recorder, {
         label: `L${layerIdx}.post_attn_residual`,

@@ -133,6 +133,18 @@ function mergeNormalization(
       runtime?.rmsNormWeightOffset,
       sources
     ),
+    postNormEps: overlay(
+      `${prefix}.postNormEps`,
+      manifest.postNormEps,
+      runtime?.postNormEps,
+      sources
+    ),
+    postNormWeightOffset: overlay(
+      `${prefix}.postNormWeightOffset`,
+      manifest.postNormWeightOffset,
+      runtime?.postNormWeightOffset,
+      sources
+    ),
     postAttentionNorm: overlay(
       `${prefix}.postAttentionNorm`,
       manifest.postAttentionNorm,
@@ -379,10 +391,22 @@ function mergeOutput(
       runtime?.embeddingScale,
       sources
     ),
+    embeddingNormalization: overlay(
+      `${prefix}.embeddingNormalization`,
+      manifest.embeddingNormalization,
+      runtime?.embeddingNormalization,
+      sources
+    ),
     logitInputScale: overlay(
       `${prefix}.logitInputScale`,
       manifest.logitInputScale,
       runtime?.logitInputScale,
+      sources
+    ),
+    logitOutputScale: overlay(
+      `${prefix}.logitOutputScale`,
+      manifest.logitOutputScale,
+      runtime?.logitOutputScale,
       sources
     ),
     embeddingTranspose: overlay(

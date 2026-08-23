@@ -1883,7 +1883,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
       outputBuffer,
       transposeB,
       label: `L${layerIdx}.ffn_down`,
-      rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+      rmsNormWeightOffset: config.postNormWeightOffset ?? config.rmsNormWeightOffset,
     },
     recorder
   );

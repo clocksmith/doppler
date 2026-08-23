@@ -291,6 +291,10 @@ export interface ManifestNormalizationSchema {
   rmsNormEps: number;
   /** Use (1 + weight) pattern for RMSNorm (Gemma models) */
   rmsNormWeightOffset: boolean;
+  /** Post-sublayer RMSNorm epsilon; null inherits rmsNormEps. */
+  postNormEps: number | null;
+  /** Post-sublayer centered-weight offset; null inherits rmsNormWeightOffset. */
+  postNormWeightOffset: boolean | null;
   /** Has post-attention normalization (sandwich norm) */
   postAttentionNorm: boolean;
   /** Has pre-feedforward normalization (sandwich norm) */
@@ -384,8 +388,12 @@ export interface ManifestOutputSchema {
   scaleEmbeddings: boolean;
   /** Explicit embedding multiplier, null to use scaleEmbeddings semantics. */
   embeddingScale: number | null;
+  /** Optional weightless normalization applied to gathered embeddings. */
+  embeddingNormalization: ManifestEmbeddingNormalizationSchema | null;
   /** Multiplier applied after final norm before LM head projection. */
   logitInputScale: number;
+  /** Multiplier applied to LM-head logits before final softcapping. */
+  logitOutputScale: number;
   /** Whether embedding weights are stored as [hidden, vocab] (transpose on gather) */
   embeddingTranspose: boolean;
   /** Embedding vocab size from weight tensor (null = use architecture.vocabSize) */
@@ -394,6 +402,13 @@ export interface ManifestOutputSchema {
   embeddingPostprocessor: ManifestEmbeddingPostprocessorSchema | null;
   /** Optional exact tensor name for an additive decoder/LM-head bias. */
   lmHeadBiasTensor: string | null;
+}
+
+export interface ManifestEmbeddingNormalizationSchema {
+  type: 'rmsnorm';
+  withScale: false;
+  eps: number;
+  position: 'after-scale';
 }
 
 export interface ManifestSequencePoolingSchema {
