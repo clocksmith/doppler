@@ -57,6 +57,14 @@ assert.deepEqual(receipt.conversionConfig.manifest.conversion, {
   convertedAt: '2026-08-23T08:59:59.000Z',
   tool: 'doppler.semantic-manifest-lowering/v1',
 });
+assert.deepEqual(receipt.conversionConfig.manifest.eosTokenId, [200001, 200008]);
+assert.ok(
+  receipt.dispositions.some((item) => (
+    item.kind === 'source-generation-defaults'
+    && item.disposition === 'preserved-with-qualified-override'
+  )),
+  'source generation defaults must remain explicit when qualification selects greedy decoding'
+);
 
 assert.ok(
   receipt.dispositions.some((item) => item.kind === 'kernel-digest-binding' && item.changed),
@@ -89,6 +97,15 @@ assert.throws(
   () => materializeSemanticManifestCandidate({ modelIR: wrongOutput, template, recipe }),
   /logit operation order/,
   'unsupported output semantics must fail closed'
+);
+
+const incompleteStopContract = structuredClone(sourceReceipt.modelIR);
+incompleteStopContract.entryPoints.find((entryPoint) => entryPoint.id === 'text.generate')
+  .sourceDefaults.stopTokenIds = [200008];
+assert.throws(
+  () => materializeSemanticManifestCandidate({ modelIR: incompleteStopContract, template, recipe }),
+  /must include the component EOS token/,
+  'generation termination must preserve the primary model EOS token'
 );
 
 const wrongPostNorm = structuredClone(sourceReceipt.modelIR);

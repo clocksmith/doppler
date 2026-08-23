@@ -2,6 +2,7 @@
   "modelId": "muse-glimmer-30b",
   "sources": {
     "config": "reports/model-ir-v2/source/glimmer-30b-config.json",
+    "generation": "reports/model-ir-v2/source/glimmer-30b-generation-config.json",
     "headers": "reports/model-ir-v2/source/glimmer-30b-tensor-headers.json",
     "reference": "reports/model-ir-v2/source/glimmer-30b-reference-semantics.json"
   },
@@ -16,6 +17,13 @@
         "role": "normalized-source-config",
         "hash": "sha256:82056d17239486da0e73816aa12e9a65c864a31704cfb82dc8eb7de24a27c891",
         "upstreamHash": "sha256:5a9df2d8a385b3d361ab6ae68d73586f4e775033933bd0cd863fb7f3820e6a14"
+      },
+      {
+        "artifactId": "generation",
+        "path": "generation_config.json",
+        "role": "normalized-generation-policy",
+        "hash": "sha256:16f368abc350898ea17be8e7703bfde9e01283b4bc5cb2b46c8dfcf93bce6288",
+        "upstreamHash": "sha256:1fa51889b1f8d3659802dedaa27e005b81e5c58483f13ecf13f2d97306bc6e35"
       },
       {
         "artifactId": "headers",
@@ -65,6 +73,14 @@
     { "id": "text.maxPositionEmbeddings", "subject": "component.text", "predicate": "maxPositionEmbeddings", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/max_position_embeddings" } },
     { "id": "text.bosTokenId", "subject": "component.text", "predicate": "bosTokenId", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/bos_token_id" } },
     { "id": "text.eosTokenId", "subject": "component.text", "predicate": "eosTokenId", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/eos_token_id" } },
+    { "id": "generation.bosTokenId", "subject": "entry.text.generate", "predicate": "bosTokenId", "source": { "artifactId": "generation", "file": "generation_config.json", "pointer": "/bos_token_id" } },
+    { "id": "generation.stopTokenIds", "subject": "entry.text.generate", "predicate": "stopTokenIds", "source": { "artifactId": "generation", "file": "generation_config.json", "pointer": "/eos_token_id" } },
+    { "id": "generation.padTokenId", "subject": "entry.text.generate", "predicate": "padTokenId", "source": { "artifactId": "generation", "file": "generation_config.json", "pointer": "/pad_token_id" } },
+    { "id": "generation.maxLength", "subject": "entry.text.generate", "predicate": "maxLength", "source": { "artifactId": "generation", "file": "generation_config.json", "pointer": "/max_length" } },
+    { "id": "generation.doSample", "subject": "entry.text.generate", "predicate": "doSample", "source": { "artifactId": "generation", "file": "generation_config.json", "pointer": "/do_sample" } },
+    { "id": "generation.temperature", "subject": "entry.text.generate", "predicate": "temperature", "source": { "artifactId": "generation", "file": "generation_config.json", "pointer": "/temperature" } },
+    { "id": "generation.topP", "subject": "entry.text.generate", "predicate": "topP", "source": { "artifactId": "generation", "file": "generation_config.json", "pointer": "/top_p" } },
+    { "id": "generation.topK", "subject": "entry.text.generate", "predicate": "topK", "source": { "artifactId": "generation", "file": "generation_config.json", "pointer": "/top_k" } },
     { "id": "text.tieWordEmbeddings", "subject": "component.text", "predicate": "tieWordEmbeddings", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/tie_word_embeddings" } },
     { "id": "text.layerTypes", "subject": "component.text", "predicate": "layerTypes", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/layer_types" } },
     { "id": "text.numHeads", "subject": "component.text", "predicate": "numHeads", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/num_attention_heads" } },
@@ -155,7 +171,7 @@
       { "id": "text.lm-head-binding", "componentId": "text-decoder", "factRefs": ["tensor.lmHead"], "role": "language-model-head", "selector": { "exact": "lm_head.weight" } }
     ],
     "entryPoints": [
-      { "id": "text.generate", "componentId": "text-decoder", "factRefs": ["text.modelType", "text.layerTypes", "text.vocabSize", "text.bosTokenId", "text.eosTokenId", "text.embeddingNormalization", "text.logitOperationOrder"], "kind": "generate", "status": "unlowered", "reason": "Source intake is complete; execution remains prohibited until the generic semantic lowering audit passes.", "phases": [] },
+      { "id": "text.generate", "componentId": "text-decoder", "factRefs": ["text.modelType", "text.layerTypes", "text.vocabSize", "text.bosTokenId", "text.eosTokenId", "text.embeddingNormalization", "text.logitOperationOrder", "generation.bosTokenId", "generation.stopTokenIds", "generation.padTokenId", "generation.maxLength", "generation.doSample", "generation.temperature", "generation.topP", "generation.topK"], "kind": "generate", "status": "unlowered", "reason": "Source intake is complete; execution remains prohibited until the generic semantic lowering audit passes.", "phases": [], "sourceDefaults": { "bosTokenId": { "$fact": "generation.bosTokenId" }, "stopTokenIds": { "$fact": "generation.stopTokenIds" }, "padTokenId": { "$fact": "generation.padTokenId" }, "maxLength": { "$fact": "generation.maxLength" }, "sampling": { "doSample": { "$fact": "generation.doSample" }, "temperature": { "$fact": "generation.temperature" }, "topP": { "$fact": "generation.topP" }, "topK": { "$fact": "generation.topK" } } } },
       { "id": "vision.encode", "componentId": "vision-encoder", "factRefs": ["vision.modelType", "vision.layerTypes"], "kind": "encode", "status": "unlowered", "reason": "No qualified vision lowering is present.", "phases": [] }
     ],
     "outputHeads": [

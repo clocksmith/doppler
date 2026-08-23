@@ -357,7 +357,10 @@
       "convertedAt": "2026-08-23T08:59:59.000Z",
       "tool": "doppler.semantic-manifest-lowering/v1"
     },
-    "eosTokenId": 200001
+    "eosTokenId": [
+      200001,
+      200008
+    ]
   },
   "inference": {
     "attention": {

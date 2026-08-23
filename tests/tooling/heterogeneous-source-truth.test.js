@@ -53,6 +53,14 @@ assert.equal(fullAttention.geometry.queryScale, 3.87);
 assert.equal(fullAttention.geometry.outputGateType, 'sigmoid');
 assert.equal(fullAttention.normalization.postNormPosition, 'sublayer-output-before-residual');
 assert.equal(glimmerIR.outputHeads[0].properties.preSoftcapMultiplier, 0.19611613513818404);
+const glimmerTextEntryPoint = glimmerIR.entryPoints.find((entryPoint) => entryPoint.id === 'text.generate');
+assert.deepEqual(glimmerTextEntryPoint.sourceDefaults, {
+  bosTokenId: 200000,
+  stopTokenIds: [200001, 200008],
+  padTokenId: 200018,
+  maxLength: 131072,
+  sampling: { doSample: true, temperature: 1, topP: 0.95, topK: 64 },
+});
 assert.ok(glimmerIR.sourceIdentity.artifacts.some((artifact) => (
   artifact.role === 'pinned-reference-implementation-semantics'
 )));

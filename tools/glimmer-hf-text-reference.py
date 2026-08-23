@@ -201,6 +201,7 @@ def main() -> None:
     torch.set_grad_enabled(False)
     torch.set_num_threads(max(1, torch.get_num_threads()))
     config = MuseGlimmerConfig.from_pretrained(model_dir, local_files_only=True)
+    generation_config = json.loads((model_dir / "generation_config.json").read_text(encoding="utf-8"))
     config.text_config._attn_implementation = policy["execution"]["attentionImplementation"]
     tokenizer = AutoTokenizer.from_pretrained(model_dir, local_files_only=True, trust_remote_code=False)
     encoded = tokenizer(
@@ -218,7 +219,7 @@ def main() -> None:
     generated_ids: list[int] = []
     past_key_values = None
     next_input = input_ids
-    eos_ids = config.text_config.eos_token_id
+    eos_ids = generation_config["eos_token_id"]
     eos_set = {int(item) for item in (eos_ids if isinstance(eos_ids, list) else [eos_ids])}
     try:
         for step in range(policy["generation"]["maxNewTokens"]):
@@ -270,6 +271,7 @@ def main() -> None:
             "scriptSha256": "sha256:" + sha256_file(Path(__file__).resolve()),
             "promptSha256": "sha256:" + sha256_text(policy["prompt"]),
             "configSha256": "sha256:" + sha256_file(model_dir / "config.json"),
+            "generationConfigSha256": "sha256:" + sha256_file(model_dir / "generation_config.json"),
             "tokenizerSha256": "sha256:" + sha256_file(model_dir / "tokenizer.json"),
             "sourceAcquisitionReceiptDigest": acquisition["receiptDigest"],
             "transformersCommit": observed_commit,

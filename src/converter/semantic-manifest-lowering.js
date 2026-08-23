@@ -61,6 +61,13 @@ function requireNonNegativeInteger(value, label) {
   return value;
 }
 
+function requireUniqueNonNegativeIntegers(value, label) {
+  if (!Array.isArray(value) || value.length === 0) throw new Error(`${label} must be a non-empty array.`);
+  const resolved = value.map((entry, index) => requireNonNegativeInteger(entry, `${label}[${index}]`));
+  if (new Set(resolved).size !== resolved.length) throw new Error(`${label} must contain unique token IDs.`);
+  return resolved;
+}
+
 function requirePositiveNumber(value, label) {
   if (!Number.isFinite(value) || value <= 0) throw new Error(`${label} must be a positive finite number.`);
   return value;
@@ -448,6 +455,31 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
   );
   requireNonNegativeInteger(component.properties.bosTokenId, 'text bosTokenId');
   requireNonNegativeInteger(component.properties.eosTokenId, 'text eosTokenId');
+  requireExactKeys(
+    entryPoint.sourceDefaults,
+    ['bosTokenId', 'stopTokenIds', 'padTokenId', 'maxLength', 'sampling'],
+    'entry-point source defaults'
+  );
+  const stopTokenIds = requireUniqueNonNegativeIntegers(
+    entryPoint.sourceDefaults.stopTokenIds,
+    'entry-point source stopTokenIds'
+  );
+  requireEqual(entryPoint.sourceDefaults.bosTokenId, component.properties.bosTokenId, 'source BOS token');
+  if (!stopTokenIds.includes(component.properties.eosTokenId)) {
+    throw new Error('Entry-point source stopTokenIds must include the component EOS token.');
+  }
+  requireNonNegativeInteger(entryPoint.sourceDefaults.padTokenId, 'entry-point source padTokenId');
+  requireEqual(entryPoint.sourceDefaults.maxLength, maxSequenceLength, 'entry-point source maxLength');
+  requireExactKeys(
+    entryPoint.sourceDefaults.sampling,
+    ['doSample', 'temperature', 'topP', 'topK'],
+    'entry-point source sampling defaults'
+  );
+  requireBoolean(entryPoint.sourceDefaults.sampling.doSample, 'entry-point source doSample');
+  requirePositiveNumber(entryPoint.sourceDefaults.sampling.temperature, 'entry-point source temperature');
+  const sourceTopP = requirePositiveNumber(entryPoint.sourceDefaults.sampling.topP, 'entry-point source topP');
+  if (sourceTopP > 1) throw new Error('entry-point source topP must not exceed 1.');
+  requirePositiveInteger(entryPoint.sourceDefaults.sampling.topK, 'entry-point source topK');
 
   const schedule = requireNode(
     modelIR.blockSchedules,
@@ -528,6 +560,12 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
     conversion: clone(recipe.conversion),
     disposition: 'accepted',
     rationale: 'Forge freezes conversion identity before execution so rebuilds do not inherit wall-clock manifest drift.',
+  }, {
+    kind: 'source-generation-defaults',
+    sourceDefaults: clone(entryPoint.sourceDefaults),
+    qualifiedSampling: 'greedy-argmax',
+    disposition: 'preserved-with-qualified-override',
+    rationale: 'The source sampling defaults remain represented while deterministic qualification selects greedy argmax.',
   }];
   if (typeof recipe.templateRationale !== 'string' || !recipe.templateRationale.trim()) {
     throw new Error('Semantic manifest lowering requires templateRationale.');
@@ -548,7 +586,7 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
         artifactCompleteness: 'complete',
       },
       conversion: clone(recipe.conversion),
-      eosTokenId: component.properties.eosTokenId,
+      eosTokenId: clone(stopTokenIds),
     },
     inference,
     output: {

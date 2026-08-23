@@ -17,6 +17,13 @@
           "upstreamHash": "sha256:5a9df2d8a385b3d361ab6ae68d73586f4e775033933bd0cd863fb7f3820e6a14"
         },
         {
+          "artifactId": "generation",
+          "path": "generation_config.json",
+          "role": "normalized-generation-policy",
+          "hash": "sha256:16f368abc350898ea17be8e7703bfde9e01283b4bc5cb2b46c8dfcf93bce6288",
+          "upstreamHash": "sha256:1fa51889b1f8d3659802dedaa27e005b81e5c58483f13ecf13f2d97306bc6e35"
+        },
+        {
           "artifactId": "headers",
           "path": "model-00001-of-00002.safetensors#header+model-00002-of-00002.safetensors#header",
           "role": "tensor-header-receipt",
@@ -42,7 +49,7 @@
     },
     "provenance": {
       "forgeVersion": "2.0.0",
-      "intakeDigest": "sha256:a36264d140a59cf115c72489298d6b8a23e59d167c300769fd1f8d4326ef2925",
+      "intakeDigest": "sha256:e09531ef23c178b16ed6ad244b68e8d1410f54e17715b1c370c766e7e1dd5861",
       "facts": [
         {
           "id": "root.architecture",
@@ -354,6 +361,217 @@
             "status": "passed",
             "validator": "doppler.source-truth-forge/v2",
             "receipt": "sha256:53dd365263ff81c3ab8b5b38631e8ffbf77a9281d364480494e222a29dc8dd88"
+          }
+        },
+        {
+          "id": "generation.bosTokenId",
+          "subject": "entry.text.generate",
+          "predicate": "bosTokenId",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/bos_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 200000,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:3d79c73022346e7018451e9999e01e7c03aaafaa421df8f48c198964b796f1a6"
+          }
+        },
+        {
+          "id": "generation.stopTokenIds",
+          "subject": "entry.text.generate",
+          "predicate": "stopTokenIds",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/eos_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": [
+            200001,
+            200008
+          ],
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ef22195f3839f0e73ce51005cef55840158615e797a5a3693fdb4cc77fb6e36f"
+          }
+        },
+        {
+          "id": "generation.padTokenId",
+          "subject": "entry.text.generate",
+          "predicate": "padTokenId",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/pad_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 200018,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a50a3256ff3ca6ff3614c09ba2978288b2d896946bd2c3e732a40052176e1dfc"
+          }
+        },
+        {
+          "id": "generation.maxLength",
+          "subject": "entry.text.generate",
+          "predicate": "maxLength",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/max_length"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 131072,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:87fd27b3575f0ed2117387fdecea95afd4882409861b2b3377befbd23248457a"
+          }
+        },
+        {
+          "id": "generation.doSample",
+          "subject": "entry.text.generate",
+          "predicate": "doSample",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/do_sample"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:434fc52762b46dff0268b0637dce0587f61c080008323acccce9143510840387"
+          }
+        },
+        {
+          "id": "generation.temperature",
+          "subject": "entry.text.generate",
+          "predicate": "temperature",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/temperature"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 1,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:30d73ba38d46ccaac9b5c14bc383ebf7d43e83ffdbdf5f73e4b6425a5a95c16c"
+          }
+        },
+        {
+          "id": "generation.topP",
+          "subject": "entry.text.generate",
+          "predicate": "topP",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/top_p"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 0.95,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:44b16650104b6e5fbc34823d62b7aa2be8220ffc48a579c9f40ba781960aa7e9"
+          }
+        },
+        {
+          "id": "generation.topK",
+          "subject": "entry.text.generate",
+          "predicate": "topK",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/top_k"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 64,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1911d76748554781b053efade776aff27a6ff99e432236b30c67ade0305fc288"
           }
         },
         {
@@ -2928,12 +3146,35 @@
           "text.bosTokenId",
           "text.eosTokenId",
           "text.embeddingNormalization",
-          "text.logitOperationOrder"
+          "text.logitOperationOrder",
+          "generation.bosTokenId",
+          "generation.stopTokenIds",
+          "generation.padTokenId",
+          "generation.maxLength",
+          "generation.doSample",
+          "generation.temperature",
+          "generation.topP",
+          "generation.topK"
         ],
         "kind": "generate",
         "status": "unlowered",
         "reason": "Source intake is complete; execution remains prohibited until the generic semantic lowering audit passes.",
-        "phases": []
+        "phases": [],
+        "sourceDefaults": {
+          "bosTokenId": 200000,
+          "stopTokenIds": [
+            200001,
+            200008
+          ],
+          "padTokenId": 200018,
+          "maxLength": 131072,
+          "sampling": {
+            "doSample": true,
+            "temperature": 1,
+            "topP": 0.95,
+            "topK": 64
+          }
+        }
       },
       {
         "id": "vision.encode",
@@ -2987,7 +3228,7 @@
       ]
     }
   },
-  "intakeDigest": "sha256:a36264d140a59cf115c72489298d6b8a23e59d167c300769fd1f8d4326ef2925",
+  "intakeDigest": "sha256:e09531ef23c178b16ed6ad244b68e8d1410f54e17715b1c370c766e7e1dd5861",
   "unresolvedFacts": [],
   "generatedCandidates": 4,
   "rejectedCandidates": 3,
