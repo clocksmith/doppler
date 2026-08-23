@@ -1,0 +1,73 @@
+{
+  "schema": "doppler.lowerability-audit-receipt/v1",
+  "modelIREvidence": {
+    "path": "reports/model-ir-v2/glimmer-30b.model-ir-receipt.json",
+    "digest": "sha256:3a150a57039bddd1ccbf260fc1e8636eba5b8848f4cb7124c47b073e2e405dbd"
+  },
+  "vocabularyEvidence": {
+    "path": "src/config/forge/lowering-vocabularies/hybrid-text-v1.json",
+    "digest": "sha256:483ea85355ad3bb9b37daecf6f93a703239d41c83262e7eb310b6be45ac961e5",
+    "vocabularyId": "hybrid-full-recurrent-text-v1",
+    "scope": "semantic-contracts"
+  },
+  "audit": {
+    "schema": "doppler.entry-point-lowerability-audit/v1",
+    "modelId": "muse-glimmer-30b",
+    "modelIRHash": "sha256:dcd6da8cc32be63aad8e9da05f8cb7b58734eb0df0cc4877dec83610813d89c4",
+    "entryPointId": "text.generate",
+    "entryPointStatus": "unlowered",
+    "requiredPhases": [
+      "prefill",
+      "decode"
+    ],
+    "scheduleId": "text.schedule",
+    "lowerable": false,
+    "blockClasses": [
+      {
+        "blockClassId": "sliding-attention",
+        "blockKind": "local-attention",
+        "compatibleLoweringIds": [],
+        "rejectedLowerings": [
+          {
+            "loweringId": "portable-full-attention",
+            "reasons": [
+              "Lowering \"portable-full-attention\" cannot implement block kind \"local-attention\"."
+            ]
+          },
+          {
+            "loweringId": "portable-linear-recurrent",
+            "reasons": [
+              "Lowering \"portable-linear-recurrent\" cannot implement block kind \"local-attention\"."
+            ]
+          }
+        ]
+      },
+      {
+        "blockClassId": "full-attention",
+        "blockKind": "full-attention",
+        "compatibleLoweringIds": [],
+        "rejectedLowerings": [
+          {
+            "loweringId": "portable-full-attention",
+            "reasons": [
+              "Lowering \"portable-full-attention\" does not bind geometry.qkScale.",
+              "Lowering \"portable-full-attention\" does not bind geometry.outputMultiplier.",
+              "Lowering \"portable-full-attention\" does not admit normalization.type=\"rmsnorm-with-postnorm\".",
+              "Lowering \"portable-full-attention\" does not bind normalization.postNormEps.",
+              "Lowering \"portable-full-attention\" does not bind positional.type.",
+              "Lowering \"portable-full-attention\" does not bind positional.theta."
+            ]
+          },
+          {
+            "loweringId": "portable-linear-recurrent",
+            "reasons": [
+              "Lowering \"portable-linear-recurrent\" cannot implement block kind \"full-attention\"."
+            ]
+          }
+        ]
+      }
+    ],
+    "unimplementedStateKinds": []
+  },
+  "receiptDigest": "sha256:c17f01092cb6d15d50a22035dbdff95c025749e96ffc2707c4cfd5217e6fa1bd"
+}

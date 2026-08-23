@@ -26,10 +26,12 @@ function requireAttribution(proposal) {
   }
 }
 
-function resolveEntryPoint(modelIR, entryPointId) {
+function resolveEntryPoint(modelIR, entryPointId, requireLowered = true) {
   const entryPoint = modelIR.entryPoints.find((candidate) => candidate.id === entryPointId);
   if (!entryPoint) throw new Error(`ModelIR has no entry point "${entryPointId}".`);
-  if (entryPoint.status !== 'lowered') throw new Error(`Entry point "${entryPointId}" is not lowered.`);
+  if (requireLowered && entryPoint.status !== 'lowered') {
+    throw new Error(`Entry point "${entryPointId}" is not lowered.`);
+  }
   return entryPoint;
 }
 
@@ -37,6 +39,14 @@ function reachableSchedule(modelIR, componentId) {
   const schedules = modelIR.blockSchedules.filter((schedule) => schedule.componentId === componentId);
   if (schedules.length !== 1) throw new Error(`Component "${componentId}" must have exactly one block schedule.`);
   return schedules[0];
+}
+
+function entryPointAuditPhases(entryPoint) {
+  if (Array.isArray(entryPoint.phases) && entryPoint.phases.length > 0) return entryPoint.phases;
+  if (entryPoint.kind === 'generate') return ['prefill', 'decode'];
+  if (entryPoint.kind === 'encode') return ['encode'];
+  if (entryPoint.kind === 'speculative-generate') return ['draft', 'verify'];
+  throw new Error(`Entry point "${entryPoint.id}" has no declared or known phases.`);
 }
 
 function resolveKernelClosure(kernelIds, kernels) {
@@ -48,6 +58,112 @@ function resolveKernelClosure(kernelIds, kernels) {
     }
     return { moduleId, digest: kernel.digest, sourceHash: kernel.sourceHash };
   });
+}
+
+function valuesEqual(left, right) {
+  return JSON.stringify(stableSortObject(left)) === JSON.stringify(stableSortObject(right));
+}
+
+function semanticSectionErrors(blockClass, lowering, sectionName) {
+  const errors = [];
+  const semantics = blockClass[sectionName];
+  const contract = lowering.blockContract?.[sectionName];
+  if (!isObject(semantics)) {
+    return [`Block class "${blockClass.id}" has no ${sectionName} semantics.`];
+  }
+  if (!isObject(contract)) {
+    return [`Lowering "${lowering.id}" does not declare a ${sectionName} contract.`];
+  }
+  const dynamicFields = new Set(contract.dynamicFields || []);
+  const allowedValues = contract.allowedValues || {};
+  if (!Array.isArray(contract.dynamicFields) || !isObject(allowedValues)) {
+    return [`Lowering "${lowering.id}" has an invalid ${sectionName} contract.`];
+  }
+  for (const [field, value] of Object.entries(semantics)) {
+    if (Object.hasOwn(allowedValues, field)) {
+      const admitted = allowedValues[field];
+      if (!Array.isArray(admitted) || !admitted.some((candidate) => valuesEqual(candidate, value))) {
+        errors.push(
+          `Lowering "${lowering.id}" does not admit ${sectionName}.${field}=${JSON.stringify(value)}.`
+        );
+      }
+      continue;
+    }
+    if (!dynamicFields.has(field)) {
+      errors.push(`Lowering "${lowering.id}" does not bind ${sectionName}.${field}.`);
+    }
+  }
+  return errors;
+}
+
+function loweringCompatibilityErrors(blockClass, lowering, phases) {
+  const errors = [];
+  if (!Array.isArray(lowering.blockKinds) || !lowering.blockKinds.includes(blockClass.kind)) {
+    errors.push(`Lowering "${lowering.id}" cannot implement block kind "${blockClass.kind}".`);
+    return errors;
+  }
+  for (const sectionName of ['geometry', 'normalization', 'positional', 'feedForward']) {
+    errors.push(...semanticSectionErrors(blockClass, lowering, sectionName));
+  }
+  for (const phase of phases) {
+    if (blockClass.phaseBehavior?.[phase] !== true) {
+      errors.push(`Block class "${blockClass.id}" does not admit phase "${phase}".`);
+    }
+    const steps = lowering.phases?.[phase];
+    if (!Array.isArray(steps) || steps.length === 0) {
+      errors.push(`Lowering "${lowering.id}" has no ${phase} program.`);
+    }
+  }
+  return errors;
+}
+
+export function auditEntryPointLowerability({ modelIR, entryPointId, vocabulary }) {
+  const modelValidation = validateModelIR(modelIR);
+  if (!modelValidation.ok || modelIR.schema !== 'doppler.model-ir/v2') {
+    throw new Error(`Lowerability audit requires ModelIR v2: ${modelValidation.errors.join('; ')}`);
+  }
+  if (!isObject(vocabulary) || vocabulary.schema !== EXECUTION_CANDIDATE_FORGE_SCHEMA_ID) {
+    throw new Error(`Lowerability audit requires vocabulary "${EXECUTION_CANDIDATE_FORGE_SCHEMA_ID}".`);
+  }
+  const entryPoint = resolveEntryPoint(modelIR, entryPointId, false);
+  const schedule = reachableSchedule(modelIR, entryPoint.componentId);
+  const phases = entryPointAuditPhases(entryPoint);
+  const classById = new Map(modelIR.blockClasses.map((blockClass) => [blockClass.id, blockClass]));
+  const blockClasses = [...new Set(schedule.blocks.map((block) => block.blockClassId))].map((blockClassId) => {
+    const blockClass = classById.get(blockClassId);
+    const compatibleLoweringIds = [];
+    const rejectedLowerings = [];
+    for (const lowering of vocabulary.blockLowerings || []) {
+      const reasons = loweringCompatibilityErrors(blockClass, lowering, phases);
+      if (reasons.length === 0) compatibleLoweringIds.push(lowering.id);
+      else rejectedLowerings.push({ loweringId: lowering.id, reasons });
+    }
+    return {
+      blockClassId,
+      blockKind: blockClass.kind,
+      compatibleLoweringIds,
+      rejectedLowerings,
+    };
+  });
+  const supportedStateKinds = new Set(vocabulary.supportedStateKinds || []);
+  const unimplementedStateKinds = [...new Set(modelIR.stateSpaces
+    .filter((state) => state.persistence === 'session')
+    .map((state) => state.kind)
+    .filter((kind) => !supportedStateKinds.has(kind)))].sort();
+  const lowerable = blockClasses.every((entry) => entry.compatibleLoweringIds.length > 0)
+    && unimplementedStateKinds.length === 0;
+  return {
+    schema: 'doppler.entry-point-lowerability-audit/v1',
+    modelId: modelIR.modelId,
+    modelIRHash: hashModelIR(modelIR),
+    entryPointId: entryPoint.id,
+    entryPointStatus: entryPoint.status,
+    requiredPhases: phases,
+    scheduleId: schedule.id,
+    lowerable,
+    blockClasses,
+    unimplementedStateKinds,
+  };
 }
 
 function compileProposal(modelIR, entryPoint, schedule, vocabulary, proposal) {
@@ -62,14 +178,10 @@ function compileProposal(modelIR, entryPoint, schedule, vocabulary, proposal) {
     const loweringId = proposal.selections?.[blockClassId];
     const lowering = loweringsById.get(loweringId);
     if (!lowering) throw new Error(`Proposal "${proposal.id}" does not lower block class "${blockClassId}".`);
-    if (!Array.isArray(lowering.blockKinds) || !lowering.blockKinds.includes(blockClass.kind)) {
-      throw new Error(`Lowering "${lowering.id}" cannot implement block kind "${blockClass.kind}".`);
-    }
+    const compatibilityErrors = loweringCompatibilityErrors(blockClass, lowering, entryPoint.phases);
+    if (compatibilityErrors.length > 0) throw new Error(compatibilityErrors.join(' '));
     for (const phase of entryPoint.phases) {
       const steps = lowering.phases?.[phase];
-      if (!Array.isArray(steps) || steps.length === 0) {
-        throw new Error(`Lowering "${lowering.id}" has no ${phase} program.`);
-      }
       kernelIds.push(...steps.map((step) => step.kernelId));
     }
     classPrograms[blockClassId] = {

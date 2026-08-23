@@ -3,6 +3,11 @@ import type { TargetPlanV2 } from '../config/target-plan.js';
 
 export const EXECUTION_CANDIDATE_FORGE_SCHEMA_ID: 'doppler.execution-candidate-forge/v1';
 
+export declare function auditEntryPointLowerability(options: {
+  modelIR: ModelIRV2;
+  entryPointId: string;
+  vocabulary: Record<string, unknown>;
+}): Record<string, unknown>;
 export declare function searchExecutionCandidates(options: {
   modelIR: ModelIRV2;
   entryPointId: string;

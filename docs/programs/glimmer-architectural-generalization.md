@@ -39,6 +39,15 @@ The preceding Qwen3.8 lineage campaign has now passed its physical signed-Pack
 gate, so Glimmer lowering may begin. This changes campaign sequencing only; it
 does not upgrade Glimmer's current `source-truth-only` status.
 
+The deterministic
+[`text.generate` lowerability audit](../../reports/model-ir-v2/glimmer-30b.lowerability-audit.json)
+tests the source ModelIR against the established hybrid full/recurrent text
+vocabulary without inspecting the model name. It currently fails closed because
+no admitted lowering implements local attention, and the existing full-attention
+lowering does not bind QK scaling, output multiplication, RMSNorm postnorm, or
+the source model's no-RoPE full blocks. KV state is already representable. These
+are the exact generic contracts to add before an execution candidate can exist.
+
 DFlash is absent from the current ModelIR and requires a separate pinned source,
 revision, license, tensor, and reference-behavior intake. The current receipt has
 one generic `text.kv-state`; it does not yet encode 39 local ring-buffer states

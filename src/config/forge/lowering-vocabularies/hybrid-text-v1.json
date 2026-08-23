@@ -1,0 +1,151 @@
+{
+  "schema": "doppler.execution-candidate-forge/v1",
+  "vocabularyId": "hybrid-full-recurrent-text-v1",
+  "scope": "semantic-contracts",
+  "supportedStateKinds": [
+    "kv",
+    "recurrent",
+    "convolutional"
+  ],
+  "blockLowerings": [
+    {
+      "id": "portable-full-attention",
+      "blockKinds": [
+        "full-attention"
+      ],
+      "blockContract": {
+        "geometry": {
+          "allowedValues": {},
+          "dynamicFields": [
+            "numHeads",
+            "numKvHeads",
+            "headDim",
+            "queryKeyNorm",
+            "causal",
+            "outputGate",
+            "outputGateType"
+          ]
+        },
+        "normalization": {
+          "allowedValues": {
+            "type": [
+              "rmsnorm"
+            ]
+          },
+          "dynamicFields": [
+            "eps",
+            "weightOffset"
+          ]
+        },
+        "positional": {
+          "allowedValues": {},
+          "dynamicFields": [
+            "mrope_interleaved",
+            "mrope_section",
+            "partial_rotary_factor",
+            "rope_theta",
+            "rope_type"
+          ]
+        },
+        "feedForward": {
+          "allowedValues": {
+            "type": [
+              "gated-dense"
+            ],
+            "activation": [
+              "silu"
+            ]
+          },
+          "dynamicFields": [
+            "gated",
+            "intermediateSize"
+          ]
+        }
+      },
+      "phases": {
+        "prefill": [
+          {
+            "id": "attention",
+            "kernelId": "full_prefill"
+          }
+        ],
+        "decode": [
+          {
+            "id": "attention",
+            "kernelId": "full_decode"
+          }
+        ]
+      }
+    },
+    {
+      "id": "portable-linear-recurrent",
+      "blockKinds": [
+        "linear-recurrent-attention"
+      ],
+      "blockContract": {
+        "geometry": {
+          "allowedValues": {},
+          "dynamicFields": [
+            "keyHeads",
+            "valueHeads",
+            "keyHeadDim",
+            "valueHeadDim",
+            "qkL2Norm",
+            "recurrentUpdate"
+          ]
+        },
+        "normalization": {
+          "allowedValues": {
+            "type": [
+              "rmsnorm"
+            ]
+          },
+          "dynamicFields": [
+            "eps",
+            "weightOffset"
+          ]
+        },
+        "positional": {
+          "allowedValues": {},
+          "dynamicFields": []
+        },
+        "feedForward": {
+          "allowedValues": {
+            "type": [
+              "gated-dense"
+            ],
+            "activation": [
+              "silu"
+            ]
+          },
+          "dynamicFields": [
+            "gated",
+            "intermediateSize"
+          ]
+        }
+      },
+      "phases": {
+        "prefill": [
+          {
+            "id": "linear",
+            "kernelId": "linear_prefill"
+          },
+          {
+            "id": "state",
+            "kernelId": "recurrent_update"
+          }
+        ],
+        "decode": [
+          {
+            "id": "linear",
+            "kernelId": "linear_decode"
+          },
+          {
+            "id": "state",
+            "kernelId": "recurrent_update"
+          }
+        ]
+      }
+    }
+  ]
+}
