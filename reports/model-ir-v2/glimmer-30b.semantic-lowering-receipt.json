@@ -3,8 +3,8 @@
   "modelId": "muse-glimmer-30b-text-f16-af32",
   "requestedModelId": "muse-glimmer-30b-text-f16-af32",
   "entryPointId": "text.generate",
-  "sourceModelIRHash": "sha256:ed5a51b837d38cbb51c7b82490be6852985a8467e653e9f61526cf0131387b19",
-  "modelIRHash": "sha256:a7b7c9de70b421497c0a7b4a1cf0af6fbd2a54b8b35233ca76d5bd7c1747a60b",
+  "sourceModelIRHash": "sha256:50c7b087df45b25b54d99bdd13596e810a8d6dc76eff102f1656db51d5091957",
+  "modelIRHash": "sha256:aa9b09c824662a81bd29100ae8e3611874cc75ccd24acb4528e216855bbff62c",
   "modelIR": {
     "schema": "doppler.model-ir/v2",
     "schemaVersion": 2,
@@ -25,7 +25,7 @@
           "artifactId": "headers",
           "path": "model-00001-of-00002.safetensors#header+model-00002-of-00002.safetensors#header",
           "role": "tensor-header-receipt",
-          "hash": "sha256:665b9486109c4ab9e7da868516e67cff4596eba20032e580c7ec6a7bb380705a"
+          "hash": "sha256:844bc94bb0c305d3c1de4bed978e9ff2a8fe1a9d663f190367e6016a91f6366d"
         },
         {
           "artifactId": "reference",
@@ -47,7 +47,7 @@
     },
     "provenance": {
       "forgeVersion": "2.0.0",
-      "intakeDigest": "sha256:7c87946409d077380b1057f3691ea0912b5a1c377669af1c500cf06f0fa4d696",
+      "intakeDigest": "sha256:a36264d140a59cf115c72489298d6b8a23e59d167c300769fd1f8d4326ef2925",
       "facts": [
         {
           "id": "root.architecture",
