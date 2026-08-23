@@ -1,0 +1,46 @@
+{
+  "schema": "doppler.pack-node-qualification/v2",
+  "passed": true,
+  "generatedTokens": 128,
+  "expectedTokens": 128,
+  "firstMismatch": -1,
+  "packId": "qwen3-8-27b-text-f16-af32-pack-v2-f8eeda316e12875b",
+  "semanticRoot": "sha256:f8eeda316e12875b6f5669c415de21d110fad4b44f6372fe93afa2fe9a246154",
+  "signature": {
+    "authority": "doppler-pack-v0-development",
+    "algorithm": "Ed25519",
+    "publicKeyDigest": "sha256:a3c2c90dba51571f20bc2f0c279ee74b72562e41628b556de0f2ffb6ca674e34",
+    "disposition": "explicitly-trusted-for-qualification"
+  },
+  "closure": {
+    "artifacts": 824,
+    "verifiedArtifacts": 824,
+    "wgslModules": 13,
+    "qualifiedEntryPoints": [
+      "text.generate"
+    ]
+  },
+  "targetId": "webgpu-f32-f16-subgroups",
+  "targetPlanDigestBefore": "sha256:c00b1c08208631e25cc37e213e992e9d358a807715ad6453d00bfabbbf73a0ec",
+  "targetPlanDigestAfter": "sha256:c00b1c08208631e25cc37e213e992e9d358a807715ad6453d00bfabbbf73a0ec",
+  "targetPlanImmutable": true,
+  "initialExecutionIdentity": {
+    "schema": "doppler.initial-execution-identity/v2",
+    "declaredDigest": "sha256:81eef155476326731abe8e10a5bdce272ce7260beb364c29622d922f1eb526c1",
+    "observedDigest": "sha256:81eef155476326731abe8e10a5bdce272ce7260beb364c29622d922f1eb526c1",
+    "boundBeforePrefill": true,
+    "executionGraphHash": "sha256:2de788da8e63c898825da2878c2b51b8eeb101a125f0105526efaff1833f9511",
+    "kernelClosureHash": "sha256:b5eaa5d48a0e065a2e014f7daa9a04d671cd3d36c8aa2fccc600e1d4b3b9bdc9",
+    "runtimeEngineDigest": "sha256:8f95d25443fc8db048ef4b7ef7ee83866c3585d5f32cdecc97ded498c51890b9",
+    "programLoadPolicyHash": "sha256:7377ef182eafbae55bdbd58898cbb4c0ea28705205cfb667d261321b0d511085"
+  },
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "surface": "node-webgpu",
+  "softwareAdapter": false,
+  "capturedAtUtc": "2026-08-23T07:18:00.618Z"
+}
