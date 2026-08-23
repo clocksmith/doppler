@@ -53,6 +53,7 @@ config/schema/host-teacher-task-bank.schema.json
 config/schema/model-artifact-contract.schema.json
 config/schema/model-ir-v2.schema.json
 config/schema/model-ir.schema.json
+config/schema/model-release-platform.schema.json
 config/schema/observation-policy-registry.schema.json
 config/schema/optimization-candidate.schema.json
 config/schema/optimization-contract.schema.json

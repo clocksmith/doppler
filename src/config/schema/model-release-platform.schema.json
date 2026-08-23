@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://doppler.local/schemas/model-release-platform.schema.json",
+  "title": "Doppler model release platform strategy contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contractVersion",
+    "id",
+    "positioning",
+    "architecture",
+    "modelIR",
+    "pack",
+    "providers",
+    "apiConvergence",
+    "recovery",
+    "commercialOffer",
+    "promotionSequence",
+    "compatibilityGraph",
+    "dataCustody",
+    "acquisitionBoundary",
+    "claimBoundary"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "../../src/config/schema/model-release-platform.schema.json"
+    },
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "contractVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "id": { "type": "string", "const": "doppler-model-release-platform" },
+    "positioning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "promise", "buyer", "unitOfValue"],
+      "properties": {
+        "category": { "type": "string", "minLength": 1 },
+        "promise": { "type": "string", "minLength": 1 },
+        "buyer": { "type": "string", "minLength": 1 },
+        "unitOfValue": { "type": "string", "const": "supported-model-release" }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorityPaths", "invariant", "forgeStages", "runtimeSteps", "runtimeForbidden"],
+      "properties": {
+        "authorityPaths": { "$ref": "#/$defs/pathList" },
+        "invariant": { "type": "string", "minLength": 1 },
+        "forgeStages": { "$ref": "#/$defs/idList" },
+        "runtimeSteps": { "$ref": "#/$defs/idList" },
+        "runtimeForbidden": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "modelIR": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorityPaths", "requirements"],
+      "properties": {
+        "authorityPaths": { "$ref": "#/$defs/pathList" },
+        "requirements": { "$ref": "#/$defs/idList" }
+      }
+    },
+    "pack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorityPaths", "authoritativeFor", "requiredReleaseElements"],
+      "properties": {
+        "authorityPaths": { "$ref": "#/$defs/pathList" },
+        "authoritativeFor": { "$ref": "#/$defs/idList" },
+        "requiredReleaseElements": {
+          "type": "array",
+          "minItems": 12,
+          "items": { "$ref": "#/$defs/trackedRequirement" }
+        }
+      }
+    },
+    "providers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectionLaw", "runtimeMayInventPlan", "doeRequired", "targets"],
+      "properties": {
+        "selectionLaw": { "type": "string", "const": "qualified-only" },
+        "runtimeMayInventPlan": { "type": "boolean", "const": false },
+        "doeRequired": { "type": "boolean", "const": false },
+        "targets": {
+          "type": "array",
+          "minItems": 6,
+          "items": { "$ref": "#/$defs/provider" }
+        }
+      }
+    },
+    "apiConvergence": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/apiSurface" }
+    },
+    "recovery": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/trackedRequirement" }
+    },
+    "commercialOffer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "promise",
+        "applicationClasses",
+        "intake",
+        "deliverables",
+        "paidSurfaces",
+        "promotionGate",
+        "currentAssessment",
+        "blockerCode"
+      ],
+      "properties": {
+        "id": { "type": "string", "const": "model-release-qualification" },
+        "name": { "type": "string", "const": "Model Release Qualification" },
+        "promise": { "type": "string", "minLength": 1 },
+        "applicationClasses": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["generation", "embedding", "reranking"] }
+        },
+        "intake": { "$ref": "#/$defs/stringList" },
+        "deliverables": { "$ref": "#/$defs/stringList" },
+        "paidSurfaces": { "$ref": "#/$defs/stringList" },
+        "promotionGate": { "type": "string", "minLength": 1 },
+        "currentAssessment": { "type": "string", "const": "unestablished" },
+        "blockerCode": { "type": "string", "const": "paid-model-release-qualification-missing" }
+      }
+    },
+    "promotionSequence": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["order", "id", "gate"],
+        "properties": {
+          "order": { "type": "integer", "minimum": 1, "maximum": 7 },
+          "id": { "$ref": "#/$defs/id" },
+          "gate": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "compatibilityGraph": { "$ref": "#/$defs/idList" },
+    "dataCustody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defaultRule", "shareableClasses"],
+      "properties": {
+        "defaultRule": { "type": "string", "minLength": 1 },
+        "shareableClasses": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "acquisitionBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operatingObjective", "candidateBuyerClasses", "rule"],
+      "properties": {
+        "operatingObjective": { "type": "string", "minLength": 1 },
+        "candidateBuyerClasses": { "$ref": "#/$defs/stringList" },
+        "rule": { "type": "string", "minLength": 1 }
+      }
+    },
+    "claimBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["goalStateAuthority", "forbiddenInferences"],
+      "properties": {
+        "goalStateAuthority": { "$ref": "#/$defs/path" },
+        "forbiddenInferences": { "$ref": "#/$defs/stringList" }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "idList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    },
+    "pathList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/path" }
+    },
+    "trackedRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "implementationState", "evidencePaths", "blockerCode"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "implementationState": { "type": "string", "enum": ["implemented", "partial"] },
+        "evidencePaths": { "$ref": "#/$defs/pathList" },
+        "blockerCode": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/id" }
+          ]
+        }
+      }
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "qualificationAuthority"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "role": { "type": "string", "enum": ["owned", "incumbent", "optional", "reference"] },
+        "qualificationAuthority": { "$ref": "#/$defs/path" }
+      }
+    },
+    "apiSurface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "mode", "evidencePaths", "blockerCode"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "mode": { "type": "string", "enum": ["pack-authoritative", "compatibility-intake", "migration-required"] },
+        "evidencePaths": { "$ref": "#/$defs/pathList" },
+        "blockerCode": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/id" }
+          ]
+        }
+      }
+    }
+  }
+}

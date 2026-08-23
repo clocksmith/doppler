@@ -42,6 +42,8 @@ const REQUIRED_GOAL_ROWS = new Map([
       'bun-runtime',
       'openai-compatible-server',
       'maintained-application-integrations',
+      'pack-first-runtime-convergence',
+      'model-release-qualification-offer',
     ],
   ],
   [
@@ -60,6 +62,7 @@ const REQUIRED_GOAL_ROWS = new Map([
       'dtype-session-policy',
       'model-support-matrix',
       'deliberate-model-portfolio',
+      'complete-pack-release-closure',
     ],
   ],
   [
