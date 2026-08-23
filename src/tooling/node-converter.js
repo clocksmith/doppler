@@ -5,6 +5,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
+import { createRowChunks, mapOrderedChunkBatches } from './node-converter-chunk-batches.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { buildManifestIntegrityFromModelDir } from './rdrr-integrity-refresh.js';
 import { applySourceTensorRules } from '../converter/source-tensor-rules.js';
@@ -990,54 +991,53 @@ function createNodeLargeTensorTransformer(options) {
       );
     }
 
+    const maxInFlightJobs = execution.maxInFlightJobs ?? selectRuleValue(
+      'converter', 'execution', 'maxInFlightJobs', { workers: execution.effectiveWorkers }
+    );
+    const batchSize = Number.isInteger(maxInFlightJobs) && maxInFlightJobs > 0
+      ? maxInFlightJobs : execution.effectiveWorkers;
+    const chunks = createRowChunks(chunkPlan);
+
     let processedBytes = 0;
     let outDtype = null;
     let outLayout = null;
     let storage = null;
 
-    for (let rowStart = 0; rowStart < chunkPlan.rows; rowStart += chunkPlan.rowChunkRows) {
-      const rowCount = Math.min(chunkPlan.rowChunkRows, chunkPlan.rows - rowStart);
-      const chunkOffset = rowStart * chunkPlan.rowSourceBytes;
-      const chunkLength = rowCount * chunkPlan.rowSourceBytes;
-      const chunkTensor = {
-        ...tensor,
-        shape: [rowCount, chunkPlan.cols],
-        size: chunkLength,
-      };
-      const rawChunk = await readRange(
-        tensor.sourcePath,
-        tensor.offset + chunkOffset,
-        chunkLength
-      );
-      const chunkTensorData = new Uint8Array(rawChunk);
-      const transformed = await pool.transformTensor(chunkTensor, chunkTensorData, {
-        ...transformContext,
-        forceQuantizeDecision: chunkPlan.forceQuantizeDecision,
-        originalTensorShape: tensor.shape,
-      });
-      const normalized = normalizeWorkerTransformResult(transformed, chunkTensor);
-      if (outDtype == null) {
-        outDtype = normalized.outDtype ?? tensor.dtype;
-        outLayout = normalized.outLayout ?? null;
-        storage = normalized.storage ?? null;
-      } else {
-        if ((normalized.outDtype ?? tensor.dtype) !== outDtype) {
-          throw new Error(`node convert: inconsistent streamed chunk dtype for ${tensor.name}.`);
+    await mapOrderedChunkBatches({
+      chunks, batchSize,
+      async transform(chunk) {
+        const chunkTensor = { ...tensor, shape: [chunk.rowCount, chunkPlan.cols], size: chunk.length };
+        const rawChunk = await readRange(tensor.sourcePath, tensor.offset + chunk.offset, chunk.length);
+        const chunkTensorData = new Uint8Array(rawChunk);
+        const transformed = await pool.transformTensor(chunkTensor, chunkTensorData, {
+          ...transformContext,
+          forceQuantizeDecision: chunkPlan.forceQuantizeDecision,
+          originalTensorShape: tensor.shape,
+        });
+        const normalized = normalizeWorkerTransformResult(transformed, chunkTensor);
+        processedBytes += chunk.length;
+        reportProgress?.(Math.min(processedBytes, tensorByteLength), tensorByteLength);
+        return normalized;
+      },
+      async consume(normalized) {
+        if (outDtype == null) {
+          outDtype = normalized.outDtype ?? tensor.dtype;
+          outLayout = normalized.outLayout ?? null;
+          storage = normalized.storage ?? null;
+        } else {
+          if ((normalized.outDtype ?? tensor.dtype) !== outDtype) {
+            throw new Error(`node convert: inconsistent streamed chunk dtype for ${tensor.name}.`);
+          }
+          if ((normalized.outLayout ?? null) !== outLayout) {
+            throw new Error(`node convert: inconsistent streamed chunk layout for ${tensor.name}.`);
+          }
+          if (JSON.stringify(normalized.storage ?? null) !== JSON.stringify(storage)) {
+            throw new Error(`node convert: inconsistent streamed chunk storage descriptor for ${tensor.name}.`);
+          }
         }
-        if ((normalized.outLayout ?? null) !== outLayout) {
-          throw new Error(`node convert: inconsistent streamed chunk layout for ${tensor.name}.`);
-        }
-        if (JSON.stringify(normalized.storage ?? null) !== JSON.stringify(storage)) {
-          throw new Error(`node convert: inconsistent streamed chunk storage descriptor for ${tensor.name}.`);
-        }
-      }
-      await writeChunk(normalized);
-      processedBytes += chunkLength;
-      reportProgress?.(
-        Math.min(processedBytes, tensorByteLength),
-        tensorByteLength
-      );
-    }
+        await writeChunk(normalized);
+      },
+    });
 
     return {
       outDtype: outDtype ?? tensor.dtype,
