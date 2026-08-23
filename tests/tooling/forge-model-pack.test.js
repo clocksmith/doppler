@@ -11,7 +11,7 @@ import {
   usage,
 } from '../../tools/forge-model-pack.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
-import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';
+import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 
 const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-forge-test-'));
 const fixtureRoot = path.join(tmpRoot, 'fixture');
@@ -275,7 +275,7 @@ const modelIRReceiptPath = path.join(tmpRoot, 'forge-unit-model.model-ir.json');
 const modelIRReceiptRaw = `${JSON.stringify({ modelIR: packModelIR }, null, 2)}\n`;
 await fs.writeFile(modelIRReceiptPath, modelIRReceiptRaw, 'utf8');
 const identityPath = path.join(tmpRoot, 'forge-unit-model.initial-identity.json');
-const initialExecutionIdentity = createInitialExecutionIdentity({
+const initialExecutionIdentity = createInitialExecutionIdentityV2({
   executionGraphHash: writtenPack.program.executionGraphHash,
   resolvedGraphHash: `sha256:${'6'.repeat(64)}`,
   kernelClosure: [{ moduleId: 'embed', file: 'gather.wgsl', entry: 'main', digest: gatherDigest }],
@@ -285,6 +285,10 @@ const initialExecutionIdentity = createInitialExecutionIdentity({
   memoryPolicy: { kvcache: { layout: 'contiguous' } },
   executionPlanDigest: `sha256:${'7'.repeat(64)}`,
   runtimeEngine: { schema: 'fixture' },
+  programLoadPolicy: {
+    schema: 'doppler.pack-program-load-policy/v1',
+    runtimeConfig: { inference: { session: {}, compute: {} } },
+  },
 });
 await fs.writeFile(identityPath, `${JSON.stringify(initialExecutionIdentity, null, 2)}\n`, 'utf8');
 const v2OutputPath = path.join(tmpRoot, 'v2', 'compiled.pack.json');

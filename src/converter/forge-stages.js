@@ -15,7 +15,10 @@ import {
   hashTargetPlan,
   validateTargetPlan,
 } from '../config/target-plan.js';
-import { validateInitialExecutionIdentity } from '../config/initial-execution-identity.js';
+import {
+  INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID,
+  validateInitialExecutionIdentity,
+} from '../config/initial-execution-identity.js';
 import {
   PACK_V2_PROGRAM_SCHEMA_ID,
   buildPackV2,
@@ -611,8 +614,12 @@ export function stageSpecialize(lowered) {
   const kvDtype = requireString(session.kvcache?.kvDtype, 'manifest.inference.session.kvcache.kvDtype');
   const weightDtype = requireString(manifest.quantizationInfo?.weights, 'manifest.quantizationInfo.weights');
   const specialization = resolveModelIRSpecialization(modelIR, manifest);
-  if (modelIR.schema === 'doppler.model-ir/v2' && normalized.initialExecutionIdentity === null) {
-    throw new Error('Forge requires a pre-dispatch initial execution identity for ModelIR v2 specialization.');
+  if (modelIR.schema === 'doppler.model-ir/v2'
+    && normalized.initialExecutionIdentity?.schema !== INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID) {
+    throw new Error(
+      'Forge requires a pre-dispatch initial execution identity v2 with signed program-load policy '
+      + 'for ModelIR v2 specialization.'
+    );
   }
   const requiresSubgroups = wgslModules.some((module) => module.metadata?.requiresSubgroups === true);
   const bytesPerActivation = activationDtype === 'f16' ? 2 : 4;

@@ -122,8 +122,9 @@ Promotion requires:
 - explicit dtype, layout, fusion, state, and memory policy;
 - deterministic boundary and token evidence;
 - a named hardware/surface qualification envelope; and
-- an observed initial execution identity matching the TargetPlan before first
-  prefill dispatch.
+- an observed initial execution identity v2 whose signed `programLoadPolicy`
+  recreates the qualified runtime session and compute policy, then matches the
+  TargetPlan before first prefill dispatch.
 
 `tools/run-program-bundle-reference.js --expected-transcript <path>` is the
 promotion gate from an upstream reference to a Program Bundle. It records the
@@ -142,7 +143,7 @@ node tools/forge-model-pack.js \
   --out <model.pack.json>
 ```
 
-For ModelIR v2, Forge refuses specialization unless the identity was observed
+For ModelIR v2, Forge refuses specialization unless identity v2 was observed
 before dispatch. Program Bundle reachability includes both phase-dispatched
 kernels and `execution.mechanismKernels`; recurrent and convolutional
 mechanisms therefore cannot execute outside the signed WGSL closure.

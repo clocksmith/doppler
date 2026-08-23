@@ -65,21 +65,26 @@ export function createDopplerRuntime(ports) {
       const modules = await loadModuleSources(pack, artifactStore);
       const program = await programFactory({ pack, targetPlan: selectedPlan, artifactStore, deviceProfile, options });
       let observedInitialExecutionIdentity = null;
-      if (selectedPlan.schema === 'doppler.target-plan/v2') {
-        if (typeof program?.getInitialExecutionIdentity !== 'function') {
-          throw new Error('TargetPlan v2 requires the loaded program to report initial execution identity.');
+      try {
+        if (selectedPlan.schema === 'doppler.target-plan/v2') {
+          if (typeof program?.getInitialExecutionIdentity !== 'function') {
+            throw new Error('TargetPlan v2 requires the loaded program to report initial execution identity.');
+          }
+          observedInitialExecutionIdentity = await program.getInitialExecutionIdentity();
+          assertInitialExecutionIdentity(
+            selectedPlan.initialExecutionIdentity,
+            observedInitialExecutionIdentity
+          );
+          emit(observer, {
+            type: 'initial-execution-identity-bound',
+            packId: pack.packId,
+            targetId: selectedPlan.targetId,
+            identityDigest: observedInitialExecutionIdentity.digest,
+          });
         }
-        observedInitialExecutionIdentity = await program.getInitialExecutionIdentity();
-        assertInitialExecutionIdentity(
-          selectedPlan.initialExecutionIdentity,
-          observedInitialExecutionIdentity
-        );
-        emit(observer, {
-          type: 'initial-execution-identity-bound',
-          packId: pack.packId,
-          targetId: selectedPlan.targetId,
-          identityDigest: observedInitialExecutionIdentity.digest,
-        });
+      } catch (error) {
+        await program?.close?.();
+        throw error;
       }
       const resourceBinder = createResourceBinder(device, program);
       const commandExecutor = createCommandExecutor(device, resourceBinder, program);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';
+import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 import { promoteExecutionCandidate, searchExecutionCandidates } from '../../src/converter/execution-candidate-forge.js';
 
 const qwenReceipt = JSON.parse(await fs.readFile('reports/model-ir-v2/qwen3.8-27b.model-ir-receipt.json', 'utf8'));
@@ -86,7 +86,7 @@ assert.equal(search.acceptedCandidate.executionGraph.schedule.length, 64);
 assert.ok(search.acceptedCandidate.kernelClosure.some((entry) => entry.moduleId === 'recurrent_update'));
 
 const candidate = search.acceptedCandidate;
-const identity = createInitialExecutionIdentity({
+const identity = createInitialExecutionIdentityV2({
   executionGraphHash: candidate.executionGraphHash,
   resolvedGraphHash: digest('8'),
   kernelClosure: [{ moduleId: 'embed', file: 'embed.wgsl', entry: 'main', digest: digest('1') }],
@@ -94,6 +94,10 @@ const identity = createInitialExecutionIdentity({
   fusionSet: [], kvLayout: { layout: 'heterogeneous-contiguous' },
   memoryPolicy: { kvcache: { layout: 'heterogeneous-contiguous' } },
   executionPlanDigest: digest('9'), runtimeEngine: { schema: 'test' },
+  programLoadPolicy: {
+    schema: 'doppler.pack-program-load-policy/v1',
+    runtimeConfig: { inference: { session: {}, compute: {} } },
+  },
 });
 const plan = promoteExecutionCandidate(candidate, {
   qualification: [{

@@ -70,6 +70,15 @@ digest, and runtime-engine identity. Runtime compares that canonical identity
 with the signed TargetPlan before creating the resource binder or dispatching
 prefill. Any mismatch fails closed.
 
+Newly forged ModelIR v2 targets require
+`doppler.initial-execution-identity/v2`. Its signed `programLoadPolicy` contains
+only the fully resolved runtime `session` and `compute` JSON required to create
+the declared program. Public `modelLoadOptions` remain prohibited. Runtime
+applies this Pack-owned policy before loading the mature execution mechanism,
+then independently observes and compares the complete identity before prefill.
+Identity v1 remains accepted only for compatibility with already frozen Pack v0
+targets.
+
 ## Architecture boundary
 
 JSON declares semantic and execution policy. JavaScript validates, binds, and
