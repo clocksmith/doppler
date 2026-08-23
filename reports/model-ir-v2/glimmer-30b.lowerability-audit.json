@@ -2,18 +2,18 @@
   "schema": "doppler.lowerability-audit-receipt/v1",
   "modelIREvidence": {
     "path": "reports/model-ir-v2/glimmer-30b.model-ir-receipt.json",
-    "digest": "sha256:613c11bb99ef6ba59b1c671d5500d4a1b0bfb082e20a71d0b05a5db8f295600c"
+    "digest": "sha256:10af47d63ed13ffb25e0f571947e41e7aa5d9f93a85fd9efea62fe2e3da64ad4"
   },
   "vocabularyEvidence": {
-    "path": "src/config/forge/lowering-vocabularies/hybrid-text-v1.json",
-    "digest": "sha256:b3d5c8b8fa8485425f8b95f48b6eb51d2c0c8f7c51cfc85b226d5d7c8d74f0e3",
-    "vocabularyId": "hybrid-full-recurrent-text-v1",
-    "scope": "semantic-contracts"
+    "path": "src/config/forge/lowering-vocabularies/heterogeneous-text-v2.json",
+    "digest": "sha256:ce928016b336a47f3673ff77a4ab5f682545449ebfddfd09e634b7e4cff517f2",
+    "vocabularyId": "heterogeneous-text-v2",
+    "scope": "semantic-contracts-and-manifest-bindings"
   },
   "audit": {
     "schema": "doppler.entry-point-lowerability-audit/v1",
     "modelId": "muse-glimmer-30b",
-    "modelIRHash": "sha256:6a949aa376faff5dd6ec3a9d4c1b85623f01f40a9f9498900497ddab54499801",
+    "modelIRHash": "sha256:ed5a51b837d38cbb51c7b82490be6852985a8467e653e9f61526cf0131387b19",
     "entryPointId": "text.generate",
     "entryPointStatus": "unlowered",
     "requiredPhases": [
@@ -21,26 +21,19 @@
       "decode"
     ],
     "scheduleId": "text.schedule",
-    "lowerable": false,
+    "lowerable": true,
     "component": {
       "componentId": "text-decoder",
       "componentType": "text-decoder",
-      "compatible": false,
-      "reasons": [
-        "Component contract \"text-decoder\" does not bind properties.embeddingNormalization.",
-        "Component contract \"text-decoder\" does not bind properties.finalNormalization."
-      ]
+      "compatible": true,
+      "reasons": []
     },
     "outputHeads": [
       {
         "outputHeadId": "text.lm-head",
         "outputHeadKind": "causal-lm",
-        "compatible": false,
-        "reasons": [
-          "Output-head contract \"causal-lm\" does not bind properties.preSoftcapMultiplier.",
-          "Output-head contract \"causal-lm\" does not bind properties.finalLogitSoftcap.",
-          "Output-head contract \"causal-lm\" does not bind properties.operationOrder."
-        ]
+        "compatible": true,
+        "reasons": []
       }
     ],
     "outputHeadReasons": [],
@@ -48,18 +41,20 @@
       {
         "blockClassId": "sliding-attention",
         "blockKind": "local-attention",
-        "compatibleLoweringIds": [],
+        "compatibleLoweringIds": [
+          "portable-local-attention-v2"
+        ],
         "rejectedLowerings": [
           {
-            "loweringId": "portable-full-attention",
+            "loweringId": "portable-full-attention-v2",
             "reasons": [
-              "Lowering \"portable-full-attention\" cannot implement block kind \"local-attention\"."
+              "Lowering \"portable-full-attention-v2\" cannot implement block kind \"local-attention\"."
             ]
           },
           {
-            "loweringId": "portable-linear-recurrent",
+            "loweringId": "portable-linear-recurrent-v2",
             "reasons": [
-              "Lowering \"portable-linear-recurrent\" cannot implement block kind \"local-attention\"."
+              "Lowering \"portable-linear-recurrent-v2\" cannot implement block kind \"local-attention\"."
             ]
           }
         ]
@@ -67,27 +62,20 @@
       {
         "blockClassId": "full-attention",
         "blockKind": "full-attention",
-        "compatibleLoweringIds": [],
+        "compatibleLoweringIds": [
+          "portable-full-attention-v2"
+        ],
         "rejectedLowerings": [
           {
-            "loweringId": "portable-full-attention",
+            "loweringId": "portable-local-attention-v2",
             "reasons": [
-              "Lowering \"portable-full-attention\" does not bind geometry.attentionScale.",
-              "Lowering \"portable-full-attention\" does not bind geometry.queryScale.",
-              "Lowering \"portable-full-attention\" does not bind geometry.outputGatePosition.",
-              "Lowering \"portable-full-attention\" does not admit normalization.type=\"centered-rmsnorm-with-postnorm\".",
-              "Lowering \"portable-full-attention\" does not bind normalization.postNormEps.",
-              "Lowering \"portable-full-attention\" does not bind normalization.postNormWeightOffset.",
-              "Lowering \"portable-full-attention\" does not bind normalization.postNormPosition.",
-              "Lowering \"portable-full-attention\" does not bind positional.type.",
-              "Lowering \"portable-full-attention\" does not bind positional.theta.",
-              "Lowering \"portable-full-attention\" does not bind feedForward.operation."
+              "Lowering \"portable-local-attention-v2\" cannot implement block kind \"full-attention\"."
             ]
           },
           {
-            "loweringId": "portable-linear-recurrent",
+            "loweringId": "portable-linear-recurrent-v2",
             "reasons": [
-              "Lowering \"portable-linear-recurrent\" cannot implement block kind \"full-attention\"."
+              "Lowering \"portable-linear-recurrent-v2\" cannot implement block kind \"full-attention\"."
             ]
           }
         ]
@@ -95,5 +83,5 @@
     ],
     "unimplementedStateKinds": []
   },
-  "receiptDigest": "sha256:b4c215d67198b550bfd68159285420f3a332396a8e84e9167bee3bc884e856a7"
+  "receiptDigest": "sha256:0924f98b8f66bff14ac35687161ea38db1a22e7a3c3349fc18a18cdcf5dc7d46"
 }

@@ -1,0 +1,42 @@
+{
+  "schema": "doppler.semantic-manifest-lowering/v1",
+  "modelId": "muse-glimmer-30b-text-f16-af32",
+  "modelIRReceipt": "reports/model-ir-v2/glimmer-30b.model-ir-receipt.json",
+  "template": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+  "output": "src/config/conversion/muse-glimmer/muse-glimmer-30b-text-f16-af32.json",
+  "receiptOutput": "reports/model-ir-v2/glimmer-30b.semantic-lowering-receipt.json",
+  "entryPointId": "text.generate",
+  "runtimeModelType": "transformer",
+  "outputBaseDir": "models/local",
+  "supportScope": {
+    "loweredEntryPoint": "text.generate"
+  },
+  "chatTemplate": {
+    "type": null,
+    "enabled": false
+  },
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "heterogeneous-text-semantic-lowering-v1"
+  },
+  "templateRationale": "Reuse only the generic full-f16 transformer mechanism policy. Every model semantic field is reconstructed from accepted ModelIR facts, and the unproven chat path remains disabled.",
+  "candidateAudit": {
+    "generated": 4,
+    "rejected": [
+      {
+        "candidateId": "flat-homogeneous-decoder",
+        "reason": "Rejected because it discards the heterogeneous local/full block schedule and per-block positional contract."
+      },
+      {
+        "candidateId": "vocabulary-only-lowering",
+        "reason": "Rejected because declaring vocabulary compatibility without materializing and validating the runtime manifest would leave a semantic truth gap."
+      },
+      {
+        "candidateId": "all-entrypoints",
+        "reason": "Rejected because vision.encode has complete source representation but no generic lowering or qualification."
+      }
+    ],
+    "acceptedCandidateId": "heterogeneous-text-semantic-lowering-v1"
+  }
+}

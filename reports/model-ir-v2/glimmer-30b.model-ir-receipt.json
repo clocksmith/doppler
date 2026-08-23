@@ -42,7 +42,7 @@
     },
     "provenance": {
       "forgeVersion": "2.0.0",
-      "intakeDigest": "sha256:3b8c8b758f148170c87a36a0f4cfecca02b373dcf830cd9ffa3287f8d6957e8a",
+      "intakeDigest": "sha256:7c87946409d077380b1057f3691ea0912b5a1c377669af1c500cf06f0fa4d696",
       "facts": [
         {
           "id": "root.architecture",
@@ -276,6 +276,110 @@
             "status": "passed",
             "validator": "doppler.source-truth-forge/v2",
             "receipt": "sha256:511192646d8941bad0c3be5000d2c5521e46b0dc67e47cf01250ded9ff5d4a1d"
+          }
+        },
+        {
+          "id": "text.maxPositionEmbeddings",
+          "subject": "component.text",
+          "predicate": "maxPositionEmbeddings",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/max_position_embeddings"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 131072,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:fe5ff8e9cfef77b8db0b49bd43b7cb2226f8771ba922313a3a2a72f8f67eaad0"
+          }
+        },
+        {
+          "id": "text.bosTokenId",
+          "subject": "component.text",
+          "predicate": "bosTokenId",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/bos_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 200000,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a42a59df5877700165f685a424371e6e292dea913dae8a4fdfe6da4e4027c7d4"
+          }
+        },
+        {
+          "id": "text.eosTokenId",
+          "subject": "component.text",
+          "predicate": "eosTokenId",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/eos_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 200001,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:53dd365263ff81c3ab8b5b38631e8ffbf77a9281d364480494e222a29dc8dd88"
+          }
+        },
+        {
+          "id": "text.tieWordEmbeddings",
+          "subject": "component.text",
+          "predicate": "tieWordEmbeddings",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/tie_word_embeddings"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:e34c6ca378d6186d11348b98ef72651726219486eab9497832692eb43f9295c4"
           }
         },
         {
@@ -592,6 +696,32 @@
           }
         },
         {
+          "id": "text.ropeType",
+          "subject": "block.sliding",
+          "predicate": "ropeType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/rope_parameters/rope_type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "default",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0dcee1637c4481571098c784b9f3903cde1a344b265c9be261a8d5db6ece6206"
+          }
+        },
+        {
           "id": "text.fullRopeTheta",
           "subject": "block.full",
           "predicate": "ropeTheta",
@@ -719,6 +849,32 @@
             "status": "passed",
             "validator": "doppler.source-truth-forge/v2",
             "receipt": "sha256:feefc01d881857efb21f55d704ae611220956e19898c562dd9edea96b6d3d031"
+          }
+        },
+        {
+          "id": "text.attentionBias",
+          "subject": "block.text-attention",
+          "predicate": "attentionBias",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/attention_bias"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b6fba4f4638bdc75071bc78c5172903dabb194406dd76e723e113400b7b36252"
           }
         },
         {
@@ -1935,6 +2091,10 @@
           "text.hiddenSize",
           "text.vocabSize",
           "text.numLayers",
+          "text.maxPositionEmbeddings",
+          "text.bosTokenId",
+          "text.eosTokenId",
+          "text.tieWordEmbeddings",
           "text.embeddingNormalization",
           "text.finalNormalization"
         ],
@@ -1945,6 +2105,10 @@
           "hiddenSize": 6656,
           "vocabSize": 202048,
           "numLayers": 52,
+          "maxPositionEmbeddings": 131072,
+          "bosTokenId": 200000,
+          "eosTokenId": 200001,
+          "tieWordEmbeddings": false,
           "embeddingNormalization": {
             "type": "rmsnorm",
             "withScale": false
@@ -2001,8 +2165,10 @@
           "text.headDim",
           "text.slidingWindow",
           "text.slidingRopeTheta",
+          "text.ropeType",
           "text.attentionScale",
           "text.causalAttention",
+          "text.attentionBias",
           "text.queryKeyNorm",
           "text.queryScaleApplication",
           "text.outputGateEnabled",
@@ -2032,6 +2198,7 @@
           "window": 2048,
           "attentionScale": "inverse-sqrt-head-dim",
           "causal": true,
+          "attentionBias": false,
           "queryKeyNorm": {
             "type": "rmsnorm",
             "withScale": false
@@ -2051,7 +2218,8 @@
         },
         "positional": {
           "type": "rope",
-          "theta": 500000
+          "theta": 500000,
+          "ropeType": "default"
         },
         "feedForward": {
           "type": "gated-dense",
@@ -2074,6 +2242,7 @@
           "text.fullRopeTheta",
           "text.attentionScale",
           "text.causalAttention",
+          "text.attentionBias",
           "text.queryKeyNorm",
           "text.queryScaleApplication",
           "text.outputGateEnabled",
@@ -2102,6 +2271,7 @@
           "headDim": 128,
           "attentionScale": "inverse-sqrt-head-dim",
           "causal": true,
+          "attentionBias": false,
           "queryKeyNorm": {
             "type": "rmsnorm",
             "withScale": false
@@ -2633,14 +2803,16 @@
           "text.useCache",
           "text.numKvHeads",
           "text.headDim",
-          "text.slidingWindow"
+          "text.slidingWindow",
+          "text.maxPositionEmbeddings"
         ],
         "kind": "kv",
         "persistence": "session",
         "contract": {
           "numKvHeads": 2,
           "headDim": 128,
-          "localWindow": 2048
+          "localWindow": 2048,
+          "maxSequenceLength": 131072
         }
       }
     ],
@@ -2753,6 +2925,8 @@
           "text.modelType",
           "text.layerTypes",
           "text.vocabSize",
+          "text.bosTokenId",
+          "text.eosTokenId",
           "text.embeddingNormalization",
           "text.logitOperationOrder"
         ],
@@ -2780,6 +2954,7 @@
         "componentId": "text-decoder",
         "factRefs": [
           "text.vocabSize",
+          "text.tieWordEmbeddings",
           "text.outputMultiplier",
           "text.preSoftcapMultiplier",
           "text.finalSoftcap",
@@ -2789,6 +2964,7 @@
         "kind": "causal-lm",
         "properties": {
           "vocabSize": 202048,
+          "tieWordEmbeddings": false,
           "preSoftcapMultiplier": 0.19611613513818404,
           "finalLogitSoftcap": 20,
           "operationOrder": [
@@ -2811,7 +2987,7 @@
       ]
     }
   },
-  "intakeDigest": "sha256:3b8c8b758f148170c87a36a0f4cfecca02b373dcf830cd9ffa3287f8d6957e8a",
+  "intakeDigest": "sha256:7c87946409d077380b1057f3691ea0912b5a1c377669af1c500cf06f0fa4d696",
   "unresolvedFacts": [],
   "generatedCandidates": 4,
   "rejectedCandidates": 3,
