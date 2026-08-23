@@ -9,6 +9,17 @@
 
 import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
+import {
+  MODEL_IR_V2_SCHEMA_ID,
+  validateModelIRV2,
+} from './model-ir-v2.js';
+
+export {
+  MODEL_IR_V2_SCHEMA_ID,
+  MODEL_IR_V2_SCHEMA_VERSION,
+  createModelIRV2,
+  validateModelIRV2,
+} from './model-ir-v2.js';
 
 export const MODEL_IR_SCHEMA_ID = 'doppler.model-ir/v1';
 export const MODEL_IR_SCHEMA_VERSION = 1;
@@ -42,6 +53,7 @@ export function validateModelIR(ir) {
   if (!isObject(ir)) {
     return { ok: false, errors: ['ModelIR must be a non-null object.'] };
   }
+  if (ir.schema === MODEL_IR_V2_SCHEMA_ID) return validateModelIRV2(ir);
   if (ir.schema !== MODEL_IR_SCHEMA_ID) {
     errors.push(`schema must be "${MODEL_IR_SCHEMA_ID}", received "${ir.schema}".`);
   }
