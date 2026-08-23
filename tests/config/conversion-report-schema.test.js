@@ -54,6 +54,38 @@ import {
   assert.equal(report.schemaVersion, 1);
   assert.equal(report.suite, 'convert');
   assert.equal(report.command, 'convert');
+  assert.equal(report.durationMs, 0);
+}
+
+{
+  assert.throws(
+    () => validateConversionReport({
+      ...DEFAULT_CONVERSION_REPORT,
+      durationMs: -1,
+    }),
+    /durationMs must be a non-negative finite number/
+  );
+  assert.throws(
+    () => validateConversionReport({
+      ...DEFAULT_CONVERSION_REPORT,
+      completedAtUtc: '1969-12-31T23:59:59.999Z',
+    }),
+    /completedAtUtc must not precede startedAtUtc/
+  );
+  assert.throws(
+    () => validateConversionReport({
+      ...DEFAULT_CONVERSION_REPORT,
+      startedAtUtc: undefined,
+    }),
+    /physical timing fields must be provided together/
+  );
+  assert.throws(
+    () => validateConversionReport({
+      ...DEFAULT_CONVERSION_REPORT,
+      startedAtUtc: 'not-a-timestamp',
+    }),
+    /startedAtUtc must be a canonical ISO timestamp/
+  );
 }
 
 {

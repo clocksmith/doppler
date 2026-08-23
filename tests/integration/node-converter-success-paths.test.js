@@ -254,6 +254,8 @@ const minimalV1Inference = {
     assert.equal(result.layerPatternContractArtifact?.ok, true);
     assert.equal(result.requiredInferenceFieldsArtifact?.ok, true);
     assert.equal(result.report?.suite, 'convert');
+    assert.ok(Number.isFinite(result.report?.durationMs) && result.report.durationMs >= 0);
+    assert.ok(Date.parse(result.report?.completedAtUtc) >= Date.parse(result.report?.startedAtUtc));
     assert.equal(result.report?.executionContractArtifact?.ok, true);
 
     assert.equal(result.report?.layerPatternContractArtifact?.ok, true);
@@ -265,6 +267,7 @@ const minimalV1Inference = {
       : path.resolve(process.cwd(), result.reportInfo.path);
     const reportJson = JSON.parse(readFileSync(reportPath, 'utf8'));
     assert.equal(reportJson.suite, 'convert');
+    assert.equal(reportJson.durationMs, result.report.durationMs);
     assert.equal(reportJson.executionContractArtifact?.ok, true);
 
     assert.equal(reportJson.layerPatternContractArtifact?.ok, true);

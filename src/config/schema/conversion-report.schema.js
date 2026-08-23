@@ -22,6 +22,31 @@ function assertNullableFiniteNumber(value, label) {
   }
 }
 
+function assertIsoTimestamp(value, label) {
+  assertString(value, label);
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed) || new Date(parsed).toISOString() !== value) {
+    throw new Error(`conversion report: ${label} must be a canonical ISO timestamp.`);
+  }
+}
+
+function validatePhysicalTiming(report) {
+  const values = [report.startedAtUtc, report.completedAtUtc, report.durationMs];
+  const provided = values.filter((value) => value !== null && value !== undefined).length;
+  if (provided === 0) return;
+  if (provided !== values.length) {
+    throw new Error('conversion report: physical timing fields must be provided together.');
+  }
+  assertIsoTimestamp(report.startedAtUtc, 'startedAtUtc');
+  assertIsoTimestamp(report.completedAtUtc, 'completedAtUtc');
+  if (typeof report.durationMs !== 'number' || !Number.isFinite(report.durationMs) || report.durationMs < 0) {
+    throw new Error('conversion report: durationMs must be a non-negative finite number.');
+  }
+  if (Date.parse(report.completedAtUtc) < Date.parse(report.startedAtUtc)) {
+    throw new Error('conversion report: completedAtUtc must not precede startedAtUtc.');
+  }
+}
+
 function assertNullablePlainObject(value, label) {
   if (value === null || value === undefined) return;
   assertPlainObject(value, label);
@@ -35,6 +60,9 @@ export const DEFAULT_CONVERSION_REPORT = Object.freeze({
   command: 'convert',
   modelId: 'unknown',
   timestamp: '1970-01-01T00:00:00.000Z',
+  startedAtUtc: '1970-01-01T00:00:00.000Z',
+  completedAtUtc: '1970-01-01T00:00:00.000Z',
+  durationMs: 0,
   source: 'doppler',
   result: {
     modelType: null,
@@ -73,6 +101,7 @@ export function validateConversionReport(report) {
   }
   assertString(report.modelId, 'modelId');
   assertString(report.timestamp, 'timestamp');
+  validatePhysicalTiming(report);
   assertPlainObject(report.result, 'result');
   assertNullableString(report.result.modelType, 'result.modelType');
   assertNullableString(report.result.outputDir, 'result.outputDir');

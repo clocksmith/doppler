@@ -20,6 +20,9 @@ export interface ConversionReportSchema {
   command: 'convert';
   modelId: string;
   timestamp: string;
+  startedAtUtc: string;
+  completedAtUtc: string;
+  durationMs: number;
   source: 'doppler';
   result: ConversionReportResultSchema;
   manifest: ConversionReportManifestSchema | null;
