@@ -8,7 +8,7 @@
   "author": {
     "kind": "ai",
     "actor": "openai-codex",
-    "proposalId": "qwen3.8-lineage-conservative-v2"
+    "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
   },
   "compatibilityRequirements": [
     { "factId": "text.modelType", "equals": "qwen3_5_text" },
@@ -123,7 +123,15 @@
       "targetPointer": "/quantization/lmHead",
       "value": "f16",
       "lifecycle": "forge",
-      "rationale": "Physical Q4-head qualification matched 97 source tokens before a 0.2323169708251953-logit first divergence; preserve Q4 body weights while testing the reusable higher-fidelity output-head lane."
+      "rationale": "Physical Q4-head qualification first diverged after 97 source tokens; retain the reusable higher-fidelity output-head lane while Forge tests the independently identified recurrent-body boundary."
+    },
+    {
+      "targetPointer": "/quantization/modulesToNotConvert",
+      "value": [
+        "model.language_model.layers.*.linear_attn"
+      ],
+      "lifecycle": "forge",
+      "rationale": "A fresh-process f16-head replay reproduced the same token stream, first divergence, logits digest, graph hash, and execution identity, disproving the output-head-only hypothesis. Preserve recurrent-attention tensors as f16 while retaining Q4 FFN and full-attention weights."
     },
     {
       "targetPointer": "/execution/postLayer/1/1",
@@ -144,7 +152,7 @@
     "/manifest/artifactIdentity/manifestVariantId"
   ],
   "candidateAudit": {
-    "generated": 4,
+    "generated": 5,
     "rejected": [
       {
         "candidateId": "flat-homogeneous",
@@ -163,8 +171,23 @@
           "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "conversionConfigDigest": "sha256:6c8f0e935ce9da61a9bd7451381cee1d99dc1b154673b5c8391e5aa6207846f4"
         }
+      },
+      {
+        "candidateId": "f16-output-head",
+        "reason": "Rejected after two physical Node WebGPU processes produced the same 128-token stream and first selected Poland instead of Denmark at generation index 97. The preserved replay selected Poland by a 0.3783988952636719-logit margin with an identical logits digest, graph hash, and initial execution identity.",
+        "evidence": {
+          "path": "reports/model-ir-v2/qwen3.8-27b.f16-head.node-webgpu-negative.json",
+          "sha256": "63c68760831e6a1f9e6d3237b03b4b8c8fa5deccc7160bea678481cfbc0b03ac",
+          "manifestSha256": "a3b624a354649993260090553726dd8c04819862d86b2f3622ff98beb3d690f7",
+          "conversionConfigSha256": "6e703c46137a0f885164e982a360196f0e49ed5b84bd73fdba5905f06e750c99",
+          "conversionConfigDigest": "sha256:87fe980b90ac22bbb3a3ab90f47216eff4285ed99634383ba646cda3da54d660",
+          "generatedTokenIdsHash": "sha256:85765aab392cbf5ce0823153173522b33feb2c90646e26430b1bf4d7529205b5",
+          "mismatchLogitsDigest": "sha256:e86f9708796ed38f6b65db768026499256a9f3f0a75a10f73ffe5dcad0845c20",
+          "executionGraphHash": "sha256:8640729b40ca4051e063fa146d685e1ba97ed2f52f6976934b021e44d9415e92",
+          "initialExecutionIdentityDigest": "sha256:9050981c41fad606bd6c0f0003e6a22cc82be281a5693349ee75e6d5bb222308"
+        }
       }
     ],
-    "acceptedCandidateId": "qwen3.8-lineage-f16-head-v2"
+    "acceptedCandidateId": "qwen3.8-lineage-f16-recurrent-v3"
   }
 }
