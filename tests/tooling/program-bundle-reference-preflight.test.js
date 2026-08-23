@@ -134,6 +134,7 @@ try {
 
   const expectedTranscript = {
     path: 'expected.json',
+    hash: `sha256:${'f'.repeat(64)}`,
     json: {
       model: 'source/model',
       revision: 'pinned',
