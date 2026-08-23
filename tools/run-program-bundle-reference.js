@@ -36,6 +36,8 @@ function usage() {
     '                                 and write them as .npy under <dir>/layer_<N>/<probe>.npy.',
     '                                 Used to produce Doe frozen Doppler reference fixtures.',
     '  --tsir-fixture-layers <list>   Comma-separated layer indices to capture (default: all).',
+    '  --tsir-fixture-generation-step <n>',
+    '                                 Also capture the declared generated-token step (1-based).',
   ].join('\n');
 }
 
@@ -65,6 +67,7 @@ export function parseArgs(argv) {
     bundleId: null,
     tsirFixtureDir: null,
     tsirFixtureLayers: null,
+    tsirFixtureGenerationStep: null,
     help: false,
   };
 
@@ -158,6 +161,15 @@ export function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (arg === '--tsir-fixture-generation-step') {
+      const value = Number(readFlag(argv, index));
+      if (!Number.isInteger(value) || value < 1) {
+        throw new Error('--tsir-fixture-generation-step must be a positive integer.');
+      }
+      args.tsirFixtureGenerationStep = value;
+      index += 1;
+      continue;
+    }
     throw new Error(`Unknown argument: ${arg}`);
   }
 
@@ -166,6 +178,9 @@ export function parseArgs(argv) {
   }
   if (args.surface === 'browser' && args.tsirFixtureDir) {
     throw new Error('--tsir-fixture-dir requires --surface node because fixture capture writes local .npy files.');
+  }
+  if (args.tsirFixtureGenerationStep != null && !args.tsirFixtureDir) {
+    throw new Error('--tsir-fixture-generation-step requires --tsir-fixture-dir.');
   }
   return args;
 }
@@ -285,6 +300,7 @@ async function resolveOptions(args) {
     tsirFixtureLayers: args.tsirFixtureLayers
       ? args.tsirFixtureLayers.split(',').map((s) => Number.parseInt(s.trim(), 10)).filter((n) => Number.isInteger(n))
       : null,
+    tsirFixtureGenerationStep: args.tsirFixtureGenerationStep,
   };
 }
 
@@ -333,6 +349,8 @@ function withReferenceTranscriptRuntimeConfig(runtimeInput, options = {}) {
     harnessPatch.tsirFixture = {
       dir: options.tsirFixtureDir,
       layerFilter: options.tsirFixtureLayers ?? null,
+      prefillOnly: options.tsirFixtureGenerationStep == null,
+      generationStep: options.tsirFixtureGenerationStep ?? null,
     };
   }
   const proofRuntimeConfig = {
@@ -437,6 +455,7 @@ async function runReferenceVerify(options) {
     {
       tsirFixtureDir: options.tsirFixtureDir,
       tsirFixtureLayers: options.tsirFixtureLayers,
+      tsirFixtureGenerationStep: options.tsirFixtureGenerationStep,
     },
   );
   const request = {

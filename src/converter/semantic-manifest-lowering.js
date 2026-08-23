@@ -409,6 +409,35 @@ function bindConservativeSessionPolicy(session, dispositions) {
   });
 }
 
+function bindPrefillAttentionMechanism(execution, headDim, dispositions) {
+  if (headDim > 512) {
+    throw new Error(`Semantic text lowering has no prefill attention mechanism for headDim=${headDim}.`);
+  }
+  const kernelId = headDim === 256 ? 'attn_head256' : 'attn_stream';
+  const kernel = requireObject(
+    execution.kernels[kernelId],
+    `Semantic lowering template execution.kernels.${kernelId}`
+  );
+  const prefill = Array.isArray(execution.prefill) ? execution.prefill : [];
+  const attentionSteps = prefill.filter((step) => Array.isArray(step) && step[0] === 'attention');
+  if (attentionSteps.length !== 1) {
+    throw new Error('Semantic lowering template must declare exactly one prefill attention step.');
+  }
+  const step = attentionSteps[0];
+  const templateKernelId = step[1];
+  step[1] = kernelId;
+  dispositions.push({
+    kind: 'prefill-attention-mechanism-binding',
+    headDim,
+    templateKernelId,
+    kernelId,
+    kernel: kernel.kernel,
+    changed: templateKernelId !== kernelId,
+    disposition: 'accepted',
+    rationale: 'Forge binds the prefill mechanism from declared head geometry; the head256 specialization is valid only for 256-wide attention heads.',
+  });
+}
+
 export function materializeSemanticManifestCandidate({ modelIR, template, recipe }) {
   const validation = validateModelIR(modelIR);
   if (!validation.ok || modelIR?.schema !== 'doppler.model-ir/v2') {
@@ -601,6 +630,7 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
   }
   config.session.kvcache.maxSeqLen = maxSequenceLength;
   bindConservativeSessionPolicy(config.session, dispositions);
+  bindPrefillAttentionMechanism(config.execution, blockContract.headDim, dispositions);
   bindKernelDigests(config.execution, dispositions);
   expandExecutionV1(config.execution);
 

@@ -71,6 +71,7 @@ try {
         type: 'BPE',
         vocab: {
           hello: 0,
+          '<unk>': 1,
         },
         merges: [],
       },
@@ -91,6 +92,45 @@ try {
       },
     });
     assert.deepEqual(tokenizer.encode('hello'), [2, 0]);
+  }
+
+  {
+    const tokenizer = new BundledTokenizer({
+      vocabSize: 1,
+      deferSpecialTokens: true,
+      addEosToken: false,
+    });
+    tokenizer.load({
+      model: {
+        type: 'BPE',
+        vocab: {
+          hello: 0,
+        },
+        merges: [],
+      },
+      added_tokens: [
+        { id: 200000, content: '<|begin_of_text|>', special: true },
+        { id: 200001, content: '<|end_of_text|>', special: true },
+        { id: 1, content: '<unk>', special: true },
+      ],
+      post_processor: {
+        type: 'TemplateProcessing',
+        single: [
+          { SpecialToken: { id: '<|begin_of_text|>', type_id: 0 } },
+          { Sequence: { id: 'A', type_id: 0 } },
+        ],
+        special_tokens: {
+          '<|begin_of_text|>': {
+            id: '<|begin_of_text|>',
+            ids: [200000],
+            tokens: ['<|begin_of_text|>'],
+          },
+        },
+      },
+    });
+    assert.equal(tokenizer.specialTokens.bos, 200000);
+    assert.equal(tokenizer.specialTokens.eos, 200001);
+    assert.deepEqual(tokenizer.encode('hello'), [200000, 0]);
   }
 } finally {
   resetRuntimeConfig();

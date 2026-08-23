@@ -1,0 +1,2118 @@
+{
+  "mode": "verify",
+  "workload": "inference",
+  "suite": "inference",
+  "modelId": "muse-glimmer-30b-text-bf16-af32",
+  "surface": "node",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "submitProbeMs": 0.464966000000004
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 4409.831072000001
+    },
+    {
+      "name": "source-token-parity",
+      "passed": false,
+      "duration": 0,
+      "error": "First source-token mismatch at generation index 0."
+    }
+  ],
+  "durationMs": 28949.056197,
+  "timestamp": "2026-08-23T12:33:35.346Z",
+  "metrics": {
+    "prompt": "A rigorous explanation of why local GPU execution receipts matter begins with",
+    "maxTokens": 8,
+    "tokensGenerated": 8,
+    "tokensPerSec": 1.81,
+    "totalRunMs": 4370.23,
+    "firstTokenMs": 1680.48,
+    "firstResponseMs": 26129.89,
+    "prefillMs": 1642.36,
+    "decodeMs": 2727.87,
+    "wallRunMs": 4409.12,
+    "prefillTokens": 13,
+    "decodeTokens": 8,
+    "stopReason": "max-tokens",
+    "stopTokenId": null,
+    "prefillTokensPerSec": 7.92,
+    "prefillTokensPerSecTtft": 7.74,
+    "decodeTokensPerSec": 2.93,
+    "modelLoadMs": 24449.41,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeRecordOps": 0,
+      "decodeRecordPasses": 0,
+      "uniformCache": {
+        "hits": 4850,
+        "misses": 38,
+        "totalLookups": 4888,
+        "hitRateRatio": 0.9922258592471358,
+        "hitRate": "99.2%",
+        "evictions": 0,
+        "currentSize": 38,
+        "pendingDestruction": 0
+      },
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0,
+      "decodeReadbackMapWaitMs": 0,
+      "decodeReadbackCleanupMs": 0,
+      "decodeReadbackCopyMs": 0,
+      "prefillRecordMs": 1500.5177530000183,
+      "prefillRecordOps": 0,
+      "prefillRecordPasses": 0,
+      "prefillSubmitWaitMs": 0,
+      "decodeOrchestrationMs": 2727.86895,
+      "singleTokenSubmitWaitMs": 0,
+      "singleTokenReadbackWaitMs": 0,
+      "singleTokenReadbackMapWaitMs": 0,
+      "singleTokenReadbackCleanupMs": 0,
+      "singleTokenReadbackCopyMs": 0,
+      "singleTokenOrchestrationMs": 0
+    },
+    "batching": {
+      "batchedForwardCalls": 0,
+      "unbatchedForwardCalls": 0,
+      "totalBatchedTimeMs": 0,
+      "totalUnbatchedTimeMs": 0,
+      "gpuSubmissions": 0,
+      "requestedBatchTokens": 0,
+      "effectiveBatchTokens": 0,
+      "executedBatchTokens": 0,
+      "resolvedBatchTokens": 0,
+      "batchClampCount": 0
+    },
+    "plePreparedTokenCache": {
+      "hits": 0,
+      "misses": 0,
+      "entries": 0,
+      "bytes": 0
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "muse-glimmer-30b-text-bf16-af32-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "maxBatchDecodeTokens": 1,
+        "batchSize": 1,
+        "stopCheckMode": "per-token",
+        "disableCommandBatching": false,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "muse-glimmer-30b-text-bf16-af32-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 13437,
+          "text": "�",
+          "fallbackText": "�"
+        },
+        {
+          "id": 177861,
+          "text": " militer",
+          "fallbackText": " militer"
+        },
+        {
+          "id": 192766,
+          "text": "ISL",
+          "fallbackText": "ISL"
+        },
+        {
+          "id": 75778,
+          "text": "Opened",
+          "fallbackText": "Opened"
+        },
+        {
+          "id": 21052,
+          "text": "UTH",
+          "fallbackText": "UTH"
+        },
+        {
+          "id": 152254,
+          "text": " قوات",
+          "fallbackText": " قوات"
+        },
+        {
+          "id": 75778,
+          "text": "Opened",
+          "fallbackText": "Opened"
+        },
+        {
+          "id": 21052,
+          "text": "UTH",
+          "fallbackText": "UTH"
+        }
+      ],
+      "total": 8,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "generationConfig": {
+      "maxTokens": 8,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 1,
+      "greedyThreshold": 0,
+      "suppressSpecialTokens": false,
+      "suppressSpecialLikeTokens": false,
+      "suppressTokenIds": [],
+      "seed": null,
+      "useChatTemplate": false
+    },
+    "initialExecutionIdentity": {
+      "schema": "doppler.initial-execution-identity/v2",
+      "executionGraphHash": "sha256:74b5ccc9a81aaf6b9d65468085a41f36f595be0327b205da079e69b6953eacae",
+      "resolvedGraphHash": "sha256:b1aece74d520c73348e672fae3baec4467087835e12c5de55fecd84299f9ddea",
+      "kernelClosure": [
+        {
+          "moduleId": "attn_decode",
+          "file": "attention_decode_online_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1"
+        },
+        {
+          "moduleId": "attn_stream",
+          "file": "attention_streaming_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f"
+        },
+        {
+          "moduleId": "embed",
+          "file": "gather_bf16.wgsl",
+          "entry": "main",
+          "digest": "sha256:731db73075cd054369b51259791ca3d99ef08431cc3a75d9547f2aa29771d08a"
+        },
+        {
+          "moduleId": "gemv",
+          "file": "matmul_gemv_subgroup_bf16w.wgsl",
+          "entry": "main_vec4",
+          "digest": "sha256:b250bc6594767a6a6c856134b7d75095d797aa118dfeff3069fd7860e05e1f16"
+        },
+        {
+          "moduleId": "lm_head_gemv",
+          "file": "matmul_gemv_subgroup_bf16w.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:fd985dbb0949f764de431c0002fe10ba3a1be48e7e9a759ff5cf8face6055977"
+        },
+        {
+          "moduleId": "residual",
+          "file": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        {
+          "moduleId": "rmsnorm",
+          "file": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+        },
+        {
+          "moduleId": "rope",
+          "file": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+        },
+        {
+          "moduleId": "sample",
+          "file": "sample.wgsl",
+          "entry": "sample_single_pass",
+          "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+        },
+        {
+          "moduleId": "silu",
+          "file": "silu.wgsl",
+          "entry": "main",
+          "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca"
+        },
+        {
+          "moduleId": "tiled",
+          "file": "matmul_bf16w_f32a.wgsl",
+          "entry": "main",
+          "digest": "sha256:57e8ebd35a3d0963db3db6b7b54f25a8e0cccb9e3e2d0d1d9a2b96b2bcc77344"
+        }
+      ],
+      "kernelClosureHash": "sha256:b8640f0f3d1c3500fb781c01b13a4bffc92fe676c83e81c14ad884156994958e",
+      "dtypeLane": {
+        "activation": "f32",
+        "output": "f32",
+        "kv": "f16",
+        "math": "f32",
+        "accumulation": "f32"
+      },
+      "fusionSet": [],
+      "fusionSetHash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "kvLayout": {
+        "maxSeqLen": 256,
+        "gpuPagedFallbackMaxSeqLen": 4096,
+        "kvDtype": "f16",
+        "forceF32Softcap": false,
+        "layout": "contiguous",
+        "pageSize": 256,
+        "bdpaVocabSize": 2048,
+        "windowSize": 1024,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "kvLayoutHash": "sha256:bba3f1ef82d8cabc6efa3e2355be71c254035512c5ad8bdfa34b51cb71b21a7f",
+      "memoryPolicy": {
+        "kvcache": {
+          "maxSeqLen": 256,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f16",
+          "forceF32Softcap": false,
+          "layout": "contiguous",
+          "pageSize": 256,
+          "bdpaVocabSize": 2048,
+          "windowSize": 1024,
+          "tiering": {
+            "mode": "off",
+            "hotWindow": 1024,
+            "coldPageSize": 256,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "none",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "auto",
+              "minAluBwRatio": 0
+            }
+          },
+          "quantization": {
+            "mode": "none",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        },
+        "perLayerInputs": {
+          "materialization": "auto",
+          "rowCache": {
+            "mode": "lru",
+            "maxRows": 256,
+            "maxBytes": 134217728,
+            "decodedDtype": "f32"
+          },
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "mode": "prepared_tokens",
+            "maxTokens": 1024,
+            "maxBytes": 134217728,
+            "outputDtype": "f32"
+          }
+        },
+        "largeWeights": null
+      },
+      "memoryPolicyHash": "sha256:7e6d4f4e867bcb919f22b8d9547f35851460ff0fedb666280c85ce40c2a7f2ea",
+      "executionPlanDigest": "sha256:853b3672422b3bb1d0fabd37886f1122332b7fd1133b59f38149e2bfdc4acd7a",
+      "runtimeEngine": {
+        "resolvedRuntimeSessionId": "sha256:b7e739c12cf6a7bf28ca26b96b5cc7567aea3654ed86ecfc481371f79ba720a9",
+        "resolvedRuntimeSchema": "doppler.resolved-runtime-session/v1",
+        "kernelPath": {
+          "id": "muse-glimmer-30b-text-bf16-af32-execution-inline",
+          "source": "execution-v1",
+          "hash": "sha256:bf802d97d35e66434543bc20cd5d9d700449305fe1a3ac8b58e2f8d1f4d80446",
+          "definition": {
+            "id": "muse-glimmer-30b-text-bf16-af32-execution-inline",
+            "name": "Execution inline kernel path",
+            "description": "Generated from manifest.inference.execution",
+            "activationDtype": "f32",
+            "kvDtype": "f16",
+            "decode": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "matmul_gemv_subgroup_bf16w.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.q_proj"
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "matmul_gemv_subgroup_bf16w.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.k_proj"
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "matmul_gemv_subgroup_bf16w.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.v_proj"
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_decode_online_f16kv.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f16"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "matmul_gemv_subgroup_bf16w.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.o_proj"
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "gate_proj",
+                  "kernel": "matmul_gemv_subgroup_bf16w.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.gate_proj"
+                },
+                {
+                  "op": "up_proj",
+                  "kernel": "matmul_gemv_subgroup_bf16w.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.up_proj"
+                },
+                {
+                  "op": "activation",
+                  "kernel": "silu.wgsl",
+                  "entry": "main",
+                  "constants": {
+                    "HAS_GATE": true
+                  }
+                },
+                {
+                  "op": "down_proj",
+                  "kernel": "matmul_gemv_subgroup_bf16w.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.down_proj"
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "prefill": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "matmul_bf16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.q_proj"
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "matmul_bf16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.k_proj"
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "matmul_bf16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.v_proj"
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_streaming_f16kv.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f16"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "matmul_bf16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.o_proj"
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "gate_proj",
+                  "kernel": "matmul_bf16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.gate_proj"
+                },
+                {
+                  "op": "up_proj",
+                  "kernel": "matmul_bf16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.up_proj"
+                },
+                {
+                  "op": "activation",
+                  "kernel": "silu.wgsl",
+                  "entry": "main",
+                  "constants": {
+                    "HAS_GATE": true
+                  }
+                },
+                {
+                  "op": "down_proj",
+                  "kernel": "matmul_bf16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.down_proj"
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "preLayer": [
+              {
+                "op": "embed",
+                "kernel": "gather_bf16.wgsl",
+                "entry": "main",
+                "weights": "embed_tokens"
+              }
+            ],
+            "postLayer": [
+              {
+                "op": "final_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "lm_head",
+                "kernel": "matmul_gemv_subgroup_bf16w.wgsl",
+                "entry": "main_multicol",
+                "weights": "lm_head",
+                "constants": {
+                  "MULTICOL_COLS_PER_WG": 64,
+                  "MULTICOL_THREADS_PER_COL": 4
+                }
+              },
+              {
+                "op": "lm_head_prefill",
+                "kernel": "matmul_bf16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "lm_head"
+              },
+              {
+                "op": "sample",
+                "kernel": "sample.wgsl",
+                "entry": "sample_single_pass"
+              }
+            ]
+          }
+        },
+        "capabilityPolicy": {
+          "kind": "default-noop",
+          "dtypeEffect": "none",
+          "reason": "GPU supports all required features.",
+          "evidence": []
+        },
+        "laneIntegrity": {
+          "declared": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "kvDtype": "f16"
+          },
+          "executed": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "kvDtype": "f16"
+          },
+          "status": "matches",
+          "transforms": [],
+          "policy": {
+            "kind": "default-noop",
+            "dtypeEffect": "none",
+            "reason": "GPU supports all required features.",
+            "evidence": []
+          }
+        }
+      },
+      "runtimeEngineDigest": "sha256:e38a2c00806a049cb6577d1d5928228752abb5298ca7a1dd9210e8c2da17429b",
+      "programLoadPolicy": {
+        "schema": "doppler.pack-program-load-policy/v2",
+        "runtimeConfig": {
+          "inference": {
+            "session": {
+              "kvcache": {
+                "maxSeqLen": 256,
+                "gpuPagedFallbackMaxSeqLen": 4096,
+                "kvDtype": "f16",
+                "forceF32Softcap": false,
+                "layout": "contiguous",
+                "pageSize": 256,
+                "bdpaVocabSize": 2048,
+                "windowSize": 1024,
+                "tiering": {
+                  "mode": "off",
+                  "hotWindow": 1024,
+                  "coldPageSize": 256,
+                  "coldDtype": "f16",
+                  "compression": {
+                    "mode": "none",
+                    "blockSize": 1,
+                    "bitWidth": 4,
+                    "prodMode": false
+                  },
+                  "gating": {
+                    "mode": "auto",
+                    "minAluBwRatio": 0
+                  }
+                },
+                "quantization": {
+                  "mode": "none",
+                  "bitWidth": 4,
+                  "prodMode": false
+                }
+              },
+              "speculation": {
+                "mode": "none",
+                "tokens": 1,
+                "verify": "greedy",
+                "threshold": null,
+                "rollbackOnReject": true
+              },
+              "prefillChunkSubmitMode": "sync",
+              "prefillChunkLayers": 4,
+              "prefillTokenChunkSize": null,
+              "skipEmbeddingKVCacheWrites": false,
+              "useFlashPrefillAttention": false,
+              "useFusedGateUpGelu": false,
+              "useLargeBatchF16F32FusedGateUp": false,
+              "useTiledQ4KPrefill": false,
+              "retainQ4KMaterialization": false,
+              "useWideTileQ4KPrefill": false,
+              "useWideTileQ4KDecode": false,
+              "useSandwichRMSNormPairFusion": false,
+              "usePostFfnNextInputRMSNormPairFusion": false,
+              "usePostAttnNormFusedGateUp": false,
+              "fusedFfnQ4K": null,
+              "lmHeadArgmaxQ4K": null,
+              "attentionDecodeOnline": null,
+              "useLinearAttentionABProjectionFusion": false,
+              "useLinearAttentionQKVZProjectionFusion": false,
+              "useLinearAttentionFusedDecodeCore": false,
+              "useOrtFlashPrefillAttention": false,
+              "useWideTileResidualFusion": false,
+              "useFusedRmsnormWideTile": false,
+              "useFusedQKVSplitQKNorm": false,
+              "useFusedQKVSplitQKNormRoPE": false,
+              "useGreedyLmHeadArgmaxFusion": false,
+              "decodeLoop": {
+                "batchSize": 1,
+                "readbackInterval": 1,
+                "stopCheckMode": "per-token",
+                "readbackMode": "sequential",
+                "submitLatencyThresholdMs": null,
+                "maxBatchDecodeTokens": 1,
+                "ringTokens": 1,
+                "ringStop": 1,
+                "ringStaging": 1,
+                "disableCommandBatching": false
+              },
+              "compute": {
+                "defaults": {
+                  "activationDtype": "f32",
+                  "mathDtype": "f32",
+                  "accumDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              "perLayerInputs": {
+                "materialization": "auto",
+                "rowCache": {
+                  "mode": "lru",
+                  "maxRows": 256,
+                  "maxBytes": 134217728,
+                  "decodedDtype": "f32"
+                },
+                "prefetch": {
+                  "mode": "next_token",
+                  "rowsAhead": 1
+                },
+                "gpuUpload": {
+                  "mode": "per_step_slices",
+                  "stagingRows": 2
+                },
+                "hotCache": {
+                  "mode": "prepared_tokens",
+                  "maxTokens": 1024,
+                  "maxBytes": 134217728,
+                  "outputDtype": "f32"
+                }
+              }
+            },
+            "compute": {
+              "activationDtype": "f32"
+            },
+            "generation": {
+              "disableMultiTokenDecode": true
+            }
+          }
+        }
+      },
+      "programLoadPolicyHash": "sha256:e8fd58cbe5e3b97a2d438eb3333e9a8079a3a36e2b353e368c2af0857b40ce1e",
+      "digest": "sha256:0b2947b8635e641b45aa80e2660106c1492c5159f2650b7859f1425ac508e789"
+    },
+    "kvCache": {
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "seqLen": 20,
+      "maxSeqLen": 256,
+      "usedBytes": 1064960,
+      "allocatedBytes": 13631488,
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 416,
+        "tokensWritten": 1040
+      }
+    },
+    "referenceTranscript": {
+      "schema": "doppler.reference-transcript/v1",
+      "source": {
+        "kind": "inline-browser-suite",
+        "path": "inline",
+        "hash": "sha256:5c4e5751780d68179a2f2322ee8dd2ca5c6fe7dea68f20e305365259e9e9520b"
+      },
+      "executionGraphHash": "sha256:74b5ccc9a81aaf6b9d65468085a41f36f595be0327b205da079e69b6953eacae",
+      "surface": "node-webgpu",
+      "generationConfig": {
+        "maxTokens": 8,
+        "temperature": 0,
+        "topP": 1,
+        "topK": 1,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 1,
+        "greedyThreshold": 0,
+        "suppressSpecialTokens": false,
+        "suppressSpecialLikeTokens": false,
+        "suppressTokenIds": [],
+        "seed": null,
+        "useChatTemplate": false
+      },
+      "prompt": {
+        "identity": "A rigorous explanation of why local GPU execution receipts matter begins with",
+        "hash": "sha256:99beddc6f26540433f8dec9fc0babbe3f22e3e8854ee965dcc918b381658eeed",
+        "ids": [
+          200000,
+          45,
+          68572,
+          20966,
+          323,
+          5959,
+          2743,
+          33157,
+          20112,
+          98466,
+          9280,
+          22397,
+          517
+        ],
+        "tokenIdsHash": "sha256:dfce2cbf44f1ddce25f30bb777040f2b6fba5a178be80766f92b70affdd71e26",
+        "tokenCount": 13
+      },
+      "output": {
+        "textHash": "sha256:4d58f44e8ed032caf7b52733e9dda8ddb088b45fcb03b4739b82cea67de38eda",
+        "tokensGenerated": 8,
+        "stopReason": "max-tokens",
+        "stopTokenId": null
+      },
+      "tokens": {
+        "ids": [
+          13437,
+          177861,
+          192766,
+          75778,
+          21052,
+          152254,
+          75778,
+          21052
+        ],
+        "generatedTokenIdsHash": "sha256:5a806ff50a5c2f3ceaabc3f5b0340803f41088aa5cde74638f41af359291012f",
+        "generatedTextHash": "sha256:4d58f44e8ed032caf7b52733e9dda8ddb088b45fcb03b4739b82cea67de38eda",
+        "preview": [
+          {
+            "id": 13437,
+            "text": "�",
+            "fallbackText": "�"
+          },
+          {
+            "id": 177861,
+            "text": " militer",
+            "fallbackText": " militer"
+          },
+          {
+            "id": 192766,
+            "text": "ISL",
+            "fallbackText": "ISL"
+          },
+          {
+            "id": 75778,
+            "text": "Opened",
+            "fallbackText": "Opened"
+          },
+          {
+            "id": 21052,
+            "text": "UTH",
+            "fallbackText": "UTH"
+          },
+          {
+            "id": 152254,
+            "text": " قوات",
+            "fallbackText": " قوات"
+          },
+          {
+            "id": 75778,
+            "text": "Opened",
+            "fallbackText": "Opened"
+          },
+          {
+            "id": 21052,
+            "text": "UTH",
+            "fallbackText": "UTH"
+          }
+        ],
+        "perStep": [
+          {
+            "index": 0,
+            "tokenId": 13437,
+            "tokenHash": "sha256:e25c98c3e2a1751537a3a544b61ff208bbde17c3c116d6e1c84cc917e13ec3e6"
+          },
+          {
+            "index": 1,
+            "tokenId": 177861,
+            "tokenHash": "sha256:cb5a759a07362a7d64557942093539dbae0291a474fd3b3992c329acad0cbf9c"
+          },
+          {
+            "index": 2,
+            "tokenId": 192766,
+            "tokenHash": "sha256:5aa61fede40c976e91e973faa09ebd11c8a045e871206c74cb61575fdf9c5d2c"
+          },
+          {
+            "index": 3,
+            "tokenId": 75778,
+            "tokenHash": "sha256:cbe59885e57e2df7989fe804d254f801da3e1d8ff97ab9d9270da730733024fc"
+          },
+          {
+            "index": 4,
+            "tokenId": 21052,
+            "tokenHash": "sha256:aa1b1284f84a5b71472b744386f8bf57ae3ae58429b3b53244f2deab6bb0a966"
+          },
+          {
+            "index": 5,
+            "tokenId": 152254,
+            "tokenHash": "sha256:5420f591ffc0aeebaf23a77a6468931579eb6a3ff414b49abc0de0a8f10b7720"
+          },
+          {
+            "index": 6,
+            "tokenId": 75778,
+            "tokenHash": "sha256:3f6b4ad4441a6b7201c765d6a597b96f6e0c08c34b4cfd6174362ad2d790eeff"
+          },
+          {
+            "index": 7,
+            "tokenId": 21052,
+            "tokenHash": "sha256:cc0ed58739e60f532957413c165d685254ad8135e6045e316f4877187f153a49"
+          }
+        ],
+        "coverage": {
+          "mode": "full-token-ids",
+          "omitted": 0
+        }
+      },
+      "phase": {
+        "prefillMs": 1642.3563240000003,
+        "decodeMs": 2727.86895,
+        "prefillTokens": 13,
+        "decodeTokens": 8
+      },
+      "kvCache": {
+        "mode": "stats+sha256-layer-kv-bytes",
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "seqLen": 20,
+        "maxSeqLen": 256,
+        "usedBytes": 1064960,
+        "allocatedBytes": 13631488,
+        "counters": {
+          "updateCalls": 0,
+          "gpuUpdateCalls": 0,
+          "recordedGpuUpdateCalls": 416,
+          "tokensWritten": 1040
+        },
+        "byteDigestMode": "sha256-layer-kv-bytes",
+        "byteDigest": "sha256:2a0b45b5bbc666474ea1455ad95714f4297184ec7cb5b401c66cf040fb94d5aa",
+        "byteDigests": [
+          {
+            "layer": 0,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:923275218058100cc92c88e79509003c452e4262747b85a0316aae3fc710a486",
+            "valueDigest": "sha256:18c4fece2b48869e3aa2df7af41be2f6e122fb610f6c5fc4d4f949dd465966b8"
+          },
+          {
+            "layer": 1,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:8855c2467371cfce05dcfad3dfd30f45754cd9868db8fd40666c34bec5c09729",
+            "valueDigest": "sha256:3511b136e5da44f5523361977a357fcc10081d951bf235e89432fdb437989f43"
+          },
+          {
+            "layer": 2,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:ad03b5b699a841f3bedbe5048574fd8c69e35259b3858860dd6df5cf4c78ad98",
+            "valueDigest": "sha256:734e80e1e1cf17588f7815c217e0011bbd216c3f4b644514607b091141196e71"
+          },
+          {
+            "layer": 3,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:06b20da09870817aa7ff09449d9c21f07d0ded9d35d123c8b9621e9cb277b388",
+            "valueDigest": "sha256:307e2a7279d1630c4825da4dd0c2e5a63a943caa37b428d7d171d2bd15d1b515"
+          },
+          {
+            "layer": 4,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:eaebf5d5ef3a8582c5477203b1751342bf4baddb912b3b030b8379e8af56d38a",
+            "valueDigest": "sha256:8936631fabaa2af1b092e93705c738f47f0f4de7bf1ed58e2738da419cec4039"
+          },
+          {
+            "layer": 5,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:8508cdafd3d0fcaf31172f8422844f5c47c886ffd4250905c466f30dc58f04cd",
+            "valueDigest": "sha256:80ef9cfecf106debe42c6715bc1789097c709fb645652070f81c486df5badcc0"
+          },
+          {
+            "layer": 6,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:2b038641338547875a2f70a20c52485e583c456b98eca76f83c860cf89a7a807",
+            "valueDigest": "sha256:972a287c92c2ff612bd1aa12eb23724afcc3ff04492762c43d1e11ad6ae1098b"
+          },
+          {
+            "layer": 7,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:ba2d8c698a75fd2bcb24e7c3ca058a4d788db6eff17112f1d87e7dfadb4083ff",
+            "valueDigest": "sha256:7f9833b99da3510e1298bd9a99cf167bcf3eb3ec46df757ae9229871ba610066"
+          },
+          {
+            "layer": 8,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:9ae0ae04b9b8de0abb70e8c1955bcaa50d2351c106b9976c847029d6309d7879",
+            "valueDigest": "sha256:04d5a4054e314ba57548544a87a6776c5531c0a623211116730036a79ef866b3"
+          },
+          {
+            "layer": 9,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:59db7175c26ad130ed6294924a74a8699e02f0a706b602b0b8aa32491b430439",
+            "valueDigest": "sha256:de14814f2c7995a595e567f91085ae9e08c4c2a0f22ef9e833bb4b20b8c42691"
+          },
+          {
+            "layer": 10,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:5c6d3869bce79b5a4a417a1f9492b7c45ae2cffed3ee4b7d69d3fc4684c10a3a",
+            "valueDigest": "sha256:d5c72b54f2d003651ec51e81f65a9e8c895116cf9d8753af62e6714d0eb6ce2f"
+          },
+          {
+            "layer": 11,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:f18045be43e784540442d467173f36d5b750531bd1aa3c4c611bf46ea58723ec",
+            "valueDigest": "sha256:ad53766a35af428e2984987afbaa580d321a21dd6572b60983ae013f9451cfaf"
+          },
+          {
+            "layer": 12,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:86adfe913ec09c3036f2748453aa336d05e5424024bcb121b9b454d5cc4c59dc",
+            "valueDigest": "sha256:402d57dea43458154b74ce2c26e08414fd5437b2107ba72db035875b1b08d257"
+          },
+          {
+            "layer": 13,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:0acb3a2371bed4f9810d5d826ade4a5a9aa4661ae57e628023c66f967c952d3d",
+            "valueDigest": "sha256:1288b8027cf7a2d3e1560f8b55ce37938ca4e024c093335e6a1e64c3718c43c1"
+          },
+          {
+            "layer": 14,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:4418b89ec3f6c0f765b5e8b2857b4112b3ab6ea097db4f347a21d99ba0815204",
+            "valueDigest": "sha256:ce2dd84e9e940d388b52374fcca58873b18d5cd336cf9b7346c1f2e8bc7d0584"
+          },
+          {
+            "layer": 15,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:dc09b818c66d8e79c385e267b500f05a2449727f6df116e812fc79ca48c2b695",
+            "valueDigest": "sha256:78d96ddbfa49d012e4cef066c537ddefb45d8904010563b5f32cee1acc9f6784"
+          },
+          {
+            "layer": 16,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:916c8a3f2a440801128776c6cd1fe6a3da51f831c784aa5a752ff6c0e3680f4e",
+            "valueDigest": "sha256:c4d8e790500eeac31a2acbe78780e1208b118a798923bb2105667e208ce2a814"
+          },
+          {
+            "layer": 17,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:c2751527d968f76baa1b721820cf67cb862bdfe7d83618467226e1b57cf722b8",
+            "valueDigest": "sha256:a377a290ade2a3442e8f31bcf9ef95a5a113be097596e85491ad0439510fde6b"
+          },
+          {
+            "layer": 18,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:1d715410a5a3ef689a249a1d72beb44b5e95968bf978124c62023b80d0e4ba3f",
+            "valueDigest": "sha256:252da2c0b669c7d0cdaade4d6ef51819f4d4570e534c29d73a066133ce70f552"
+          },
+          {
+            "layer": 19,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:4770584ff69543e65fd420e4e1052dedb3de178d8c7060d529847851e2ce727a",
+            "valueDigest": "sha256:a1a494f65a928cb58f968f3ea009eb787b48be76e59d6d2d69b83df773161472"
+          },
+          {
+            "layer": 20,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:f387e2b5c883c8b1639dab181ba6624cead17d4376305862f6ba90638c80dde7",
+            "valueDigest": "sha256:4d6f51045a40646e5152b99bc3f8a176a0fa047891f41b9c87b7b996ab62090a"
+          },
+          {
+            "layer": 21,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:0e705a3c349a63f8ca21e4a3160bf385d12094b172845f5aa29a0fe0f8636a4d",
+            "valueDigest": "sha256:48a8d91535122baa9497c885271fbc4a140338583d7dda9bf1bd66666bebe6b8"
+          },
+          {
+            "layer": 22,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:519bdb3af5421b1184e251f81bdd3a3e8cd20e37fa54d7c8dc29b9fb3b4af436",
+            "valueDigest": "sha256:b7278199ce4e74948730d3ce53607b53c5565a9782340d9d91a99fe2a624d86f"
+          },
+          {
+            "layer": 23,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:7dab31a57c55c71728a8f190cbf55dc67d5575396d26da3368be955b10450f72",
+            "valueDigest": "sha256:908d48f83a23a5745beb390ee5266480e41b41536fb9b5887c50462e8c2aa5a3"
+          },
+          {
+            "layer": 24,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:3512a653f3d3383089fbca94f4072742af2ffcef23b65ecb117e8842f3d4f437",
+            "valueDigest": "sha256:0a936095d121c8345d90fa025d33ed12e119be0c38f08db4ada23f4e5220ca90"
+          },
+          {
+            "layer": 25,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:0036dada7130cb4dc0ba280b486efe45e582a76d80c12d826ed913c8f79a53f3",
+            "valueDigest": "sha256:00e425472f608834284a8e471d69b028832a1b08401741531527e05e68050882"
+          },
+          {
+            "layer": 26,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:d5765652c8914eb8edb7068d82008307431096c158a4bc4ab96aa82803486549",
+            "valueDigest": "sha256:2ef719e4cde624286ea983bc9075f5de64d54b347eeb05cd6032e75f4ac45fae"
+          },
+          {
+            "layer": 27,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:0524b0ba47b22c793700b310ceb1dd5819ac51ce71a4a0a826c515bde6ca8f66",
+            "valueDigest": "sha256:78f2da79cf095d52b9fdbedd77a999c0572e6b63c7f29e4e714877e983978df1"
+          },
+          {
+            "layer": 28,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:4e48cf257c69fa3505ebe9d0111a381c7132619d4bd45dd06f780a8483c00ae4",
+            "valueDigest": "sha256:af6f44e2cebf072ce01a4eb360226402bfdba4b10cd35f1ca277502542fcc693"
+          },
+          {
+            "layer": 29,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:a8c96fcfd5b91f0a59dd84ecb74218379be4badf85c82e6ec9adf37fe57df2de",
+            "valueDigest": "sha256:2ed3fcc1c3d3b584607b22727ad0fc234d441f2bb62cd767ef37dfe70d6232ce"
+          },
+          {
+            "layer": 30,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:455444aeb4fa6c6df3913ddda0b2d6ce9fe70dbe882f64480f3f73a80276e52c",
+            "valueDigest": "sha256:533a0a5aadcbfa0310fc2a25dcad9c497ed12f780acc66e7023c83c4e4b8838a"
+          },
+          {
+            "layer": 31,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:346c478fb1fdcf5637b97509f3c9ff50e50aa1815428f4774c91c6891285e029",
+            "valueDigest": "sha256:a9191d60c4a2244b174a018c2c2030cc6ce0131e341a69254ba60064c284837d"
+          },
+          {
+            "layer": 32,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:0bafd92142d949eb8604e4bc1d858ca352732c80401db4d49e3ab213718b6a58",
+            "valueDigest": "sha256:54196cbcce52d0e782f35fcac65ece66afd67e3019233e7a286f7060ead8ebbf"
+          },
+          {
+            "layer": 33,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:0a5fe0068510d1c626340c7568820b3e92b1dfb2a2f6bfac6ef8ea8f004d98a4",
+            "valueDigest": "sha256:541bce55399f7a24ea1535275d3155e017639f89517c512fe026f8934ac2cd58"
+          },
+          {
+            "layer": 34,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:ad80c84af530a85f3d2afd5b567f00abdae8f61b819ad81ffe99972ccc2eefbe",
+            "valueDigest": "sha256:3acacc28ceb9266fc440c948a99247829eb7932279aa8b60514f3cec27afbf3a"
+          },
+          {
+            "layer": 35,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:172ca5513b60b00de5dbfbb11d3b86f4be6719c7738f016dc7c2ae3083e3a24f",
+            "valueDigest": "sha256:c8979b845c8128f913193baf4de04359c7673476c905c86a601f8755e6b3a216"
+          },
+          {
+            "layer": 36,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:be25e1966f9cdbfd65629b2fd99e510aed67ec1d438a1da97d0c659297b37543",
+            "valueDigest": "sha256:89605963fbdb24300439611c734e5b6e39fedd5a41993ac7da160f21be66bfd3"
+          },
+          {
+            "layer": 37,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:f6c1deded4cd9a387cea76755ae6fa3e0039b23401285a954f35778baa67cbe1",
+            "valueDigest": "sha256:f115ec254082f5ec5033a112a189d9e055f815d61b860c4ae0539d458c9253f6"
+          },
+          {
+            "layer": 38,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:0e5d56fb1d6316c0dd297cf38e7eba5638d0b5864cc19e93392f6eb47603d7e7",
+            "valueDigest": "sha256:2aca8dbfb479f3fb0b05cb106112216e82a3f78bd9c7257d7cd28c30d31882b7"
+          },
+          {
+            "layer": 39,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:9194652be390fe9df23a7d7fae25b0d9fea887d3f2a7fd14f0b8d33470706ac9",
+            "valueDigest": "sha256:2400a37afa7b8134bfb49fbc9157ab4d1d97bdf3b42b935fdb8ce05124b550b3"
+          },
+          {
+            "layer": 40,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:426a2df160b3dc1a6534c4487e5e7a4ba35590e67e943d6d9812fe7d2aa2a735",
+            "valueDigest": "sha256:2976a2f8830c4f9d130b3a2a5094215659606ee07ef2700ac66dd7f0ef999f8e"
+          },
+          {
+            "layer": 41,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:3aa967f9705b8bd822f53378daef2183343ef7176f59f1dcaab44f59c30b08a0",
+            "valueDigest": "sha256:7c21d5804a884ad0f9e8d4d7826adde0610ab7f3238e615ffd5ca982ac355328"
+          },
+          {
+            "layer": 42,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:0d58a419b78b2d42adc46524968ea2c1e35375e3f3ccb962665399c025ade54a",
+            "valueDigest": "sha256:cae9836bd76e3e2d0f4c60a56da91cd5782c3e93e84fb3c96f19cdeddf521a0a"
+          },
+          {
+            "layer": 43,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:63a019943414e662aab153d85fe4e8077c4c92756093d2a069a35452f2a25e01",
+            "valueDigest": "sha256:a8a68e9005839565b960d6e003be1f20d5f8cfb168d256bd8781e4bbac6cc433"
+          },
+          {
+            "layer": 44,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:d090d1044318180bc669ddc02ad457c76e749a96f51d4ea5c417cffcd9cda3dc",
+            "valueDigest": "sha256:67d6902e86fc59b20f5c6870d63a0e2b0e21f3f93a3f3a9f0a7d80ca781cbf00"
+          },
+          {
+            "layer": 45,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:0c806cbc43a01c0136036e682edb452eb32b9f9e227363001e5f6f04e910d8aa",
+            "valueDigest": "sha256:12a8df2f0015535ad0e93fc202dc3a3ef88f4f7ed9b392e72301818271bc438b"
+          },
+          {
+            "layer": 46,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:cf4518eeb580ee920f6de745184f4072d61fd0a556b08e90bd9aece63369d210",
+            "valueDigest": "sha256:2101545489c18c3c985d5a2e5770b35770c0b6f293fb2ab1bdfc38fdca32b523"
+          },
+          {
+            "layer": 47,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:fe626bacde12a66d48c4fa8f0774b163fb5731b45abc991347dc87619f18e117",
+            "valueDigest": "sha256:b6a8790a6d8f15fd3265c7af9c10941714ffc7fd0c5c905d09ea5629fa9d86eb"
+          },
+          {
+            "layer": 48,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:1f787f60d5b0d97ed7e85a6c7f2acc6493f56235abf53783a2301a39eb6185b2",
+            "valueDigest": "sha256:b27a215f826848cac820561d2f15fe36cbd559c960b088f18e84019fa2a1964f"
+          },
+          {
+            "layer": 49,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:a0ab4fca00e772135fff0886baf105d378b35e79712a452539b73672b0743e49",
+            "valueDigest": "sha256:21df5eb8b9cd54c01c8383042d86c74b945d0beb7d8ebf0de076fcbb858556b3"
+          },
+          {
+            "layer": 50,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:dfe663ec708ab7a3b763e4262a349e1b1c88e3a5c56aaa1610f0914e3354e594",
+            "valueDigest": "sha256:06d04968cb3f68f94c6f3fddea5d9fc1bf4d79da77f1d22bc8d751682dd766c7"
+          },
+          {
+            "layer": 51,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:489072aed2a53f8f00cee1480bcf7d24a4e5977415873976890064f21a920f48",
+            "valueDigest": "sha256:5fccd7a8166e394794a61f33254fa75915343693440c49284e68b9533fb39bcd"
+          }
+        ],
+        "stateHash": "sha256:23cfa11392d6dbd8be7ed3a6524bfafb2d84544dd5a7df0181ad65816d584339"
+      },
+      "logits": {
+        "mode": "sha256-per-step",
+        "perStepDigests": [
+          "sha256:852ae0801f90b73bedd746e15c3692d2ff0255af1c9ccab506866dea7d9a2051",
+          "sha256:ea08f5f7f01525a6991f243f7f521b75dca25703ce5b64458b84b0a61432e808",
+          "sha256:ede545ce28f2dab3c1fa5010b4c2588422848a9c5ac969a8da2b50a4c6b7f3d7",
+          "sha256:e98c9f38125f3c5d03c6498e45e3eb9bc8e73327017b5d23acd41b3e2c51a702",
+          "sha256:77c693746a887fc431d84c46fedbd6c1786664ebd95c3cc03774f0bd35efff28",
+          "sha256:ee3ba35bb8c990bf251c8ad45c614a17f0c3ec298638f41c303874cec46aec47",
+          "sha256:80071b1c73a83aa9f6a523b053cb954ba2f5701d61d5496bc16f2642c5a6570f",
+          "sha256:d99c7b20d1524c50325952d7542b186e6b9db380b454f7f84bbd6aa8ff270269"
+        ],
+        "steps": [
+          {
+            "index": 0,
+            "tokenId": 13437,
+            "inputTokenCount": 13,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:852ae0801f90b73bedd746e15c3692d2ff0255af1c9ccab506866dea7d9a2051",
+            "top": [
+              {
+                "tokenId": 13437,
+                "logit": 10.63720417022705,
+                "text": "�"
+              },
+              {
+                "tokenId": 193273,
+                "logit": 9.7666015625,
+                "text": " peninsula"
+              },
+              {
+                "tokenId": 188857,
+                "logit": 9.204290390014648,
+                "text": " العسكرية"
+              },
+              {
+                "tokenId": 75778,
+                "logit": 9.201351165771484,
+                "text": "Opened"
+              },
+              {
+                "tokenId": 177861,
+                "logit": 9.081476211547852,
+                "text": " militer"
+              },
+              {
+                "tokenId": 14328,
+                "logit": 8.699616432189941,
+                "text": "Connect"
+              },
+              {
+                "tokenId": 184303,
+                "logit": 8.457636833190918,
+                "text": "コーナ"
+              },
+              {
+                "tokenId": 78446,
+                "logit": 8.375663757324219,
+                "text": "插件"
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "tokenId": 177861,
+            "inputTokenCount": 14,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:ea08f5f7f01525a6991f243f7f521b75dca25703ce5b64458b84b0a61432e808",
+            "top": [
+              {
+                "tokenId": 177861,
+                "logit": 1.943181037902832,
+                "text": " militer"
+              },
+              {
+                "tokenId": 85703,
+                "logit": 1.9329088926315308,
+                "text": "ocab"
+              },
+              {
+                "tokenId": 2638,
+                "logit": 1.9036744832992554,
+                "text": "ours"
+              },
+              {
+                "tokenId": 75778,
+                "logit": 1.9005827903747559,
+                "text": "Opened"
+              },
+              {
+                "tokenId": 148825,
+                "logit": 1.8125371932983398,
+                "text": " vastly"
+              },
+              {
+                "tokenId": 6281,
+                "logit": 1.791904091835022,
+                "text": "Part"
+              },
+              {
+                "tokenId": 197128,
+                "logit": 1.7783911228179932,
+                "text": "uggable"
+              },
+              {
+                "tokenId": 44610,
+                "logit": 1.772356390953064,
+                "text": "blick"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "tokenId": 192766,
+            "inputTokenCount": 15,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:ede545ce28f2dab3c1fa5010b4c2588422848a9c5ac969a8da2b50a4c6b7f3d7",
+            "top": [
+              {
+                "tokenId": 192766,
+                "logit": 1.9719901084899902,
+                "text": "ISL"
+              },
+              {
+                "tokenId": 20543,
+                "logit": 1.9678584337234497,
+                "text": "Cur"
+              },
+              {
+                "tokenId": 152254,
+                "logit": 1.9028615951538086,
+                "text": " قوات"
+              },
+              {
+                "tokenId": 23436,
+                "logit": 1.902680516242981,
+                "text": "TV"
+              },
+              {
+                "tokenId": 36013,
+                "logit": 1.8915680646896362,
+                "text": "Ê"
+              },
+              {
+                "tokenId": 75778,
+                "logit": 1.8524006605148315,
+                "text": "Opened"
+              },
+              {
+                "tokenId": 36503,
+                "logit": 1.8473777770996094,
+                "text": "QR"
+              },
+              {
+                "tokenId": 37504,
+                "logit": 1.8178954124450684,
+                "text": " τε"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "tokenId": 75778,
+            "inputTokenCount": 16,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:e98c9f38125f3c5d03c6498e45e3eb9bc8e73327017b5d23acd41b3e2c51a702",
+            "top": [
+              {
+                "tokenId": 75778,
+                "logit": 2.377237558364868,
+                "text": "Opened"
+              },
+              {
+                "tokenId": 59189,
+                "logit": 2.242457151412964,
+                "text": "Dies"
+              },
+              {
+                "tokenId": 12593,
+                "logit": 1.9626559019088745,
+                "text": " предпри"
+              },
+              {
+                "tokenId": 152254,
+                "logit": 1.8988016843795776,
+                "text": " قوات"
+              },
+              {
+                "tokenId": 55521,
+                "logit": 1.8619426488876343,
+                "text": " tourism"
+              },
+              {
+                "tokenId": 76081,
+                "logit": 1.8509154319763184,
+                "text": " Tourism"
+              },
+              {
+                "tokenId": 184303,
+                "logit": 1.8363761901855469,
+                "text": "コーナ"
+              },
+              {
+                "tokenId": 12856,
+                "logit": 1.8312077522277832,
+                "text": " Dies"
+              }
+            ]
+          },
+          {
+            "index": 4,
+            "tokenId": 21052,
+            "inputTokenCount": 17,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:77c693746a887fc431d84c46fedbd6c1786664ebd95c3cc03774f0bd35efff28",
+            "top": [
+              {
+                "tokenId": 21052,
+                "logit": 2.12032413482666,
+                "text": "UTH"
+              },
+              {
+                "tokenId": 93211,
+                "logit": 2.116671323776245,
+                "text": "গুলি"
+              },
+              {
+                "tokenId": 38665,
+                "logit": 2.1142988204956055,
+                "text": " توس"
+              },
+              {
+                "tokenId": 120980,
+                "logit": 1.8962526321411133,
+                "text": " наступи"
+              },
+              {
+                "tokenId": 17446,
+                "logit": 1.8537321090698242,
+                "text": "Descriptor"
+              },
+              {
+                "tokenId": 3110,
+                "logit": 1.8418291807174683,
+                "text": "스"
+              },
+              {
+                "tokenId": 109716,
+                "logit": 1.8205161094665527,
+                "text": " exhaustive"
+              },
+              {
+                "tokenId": 69168,
+                "logit": 1.758872389793396,
+                "text": "زب"
+              }
+            ]
+          },
+          {
+            "index": 5,
+            "tokenId": 152254,
+            "inputTokenCount": 18,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:ee3ba35bb8c990bf251c8ad45c614a17f0c3ec298638f41c303874cec46aec47",
+            "top": [
+              {
+                "tokenId": 152254,
+                "logit": 2.078808307647705,
+                "text": " قوات"
+              },
+              {
+                "tokenId": 49057,
+                "logit": 1.9274876117706299,
+                "text": ".shared"
+              },
+              {
+                "tokenId": 73614,
+                "logit": 1.896517038345337,
+                "text": " relaxing"
+              },
+              {
+                "tokenId": 87399,
+                "logit": 1.8439687490463257,
+                "text": "Cool"
+              },
+              {
+                "tokenId": 184303,
+                "logit": 1.8093841075897217,
+                "text": "コーナ"
+              },
+              {
+                "tokenId": 173686,
+                "logit": 1.7879151105880737,
+                "text": " twisting"
+              },
+              {
+                "tokenId": 169337,
+                "logit": 1.7667434215545654,
+                "text": " शुभ"
+              },
+              {
+                "tokenId": 155439,
+                "logit": 1.7580960988998413,
+                "text": "Unified"
+              }
+            ]
+          },
+          {
+            "index": 6,
+            "tokenId": 75778,
+            "inputTokenCount": 19,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:80071b1c73a83aa9f6a523b053cb954ba2f5701d61d5496bc16f2642c5a6570f",
+            "top": [
+              {
+                "tokenId": 75778,
+                "logit": 2.462123155593872,
+                "text": "Opened"
+              },
+              {
+                "tokenId": 136609,
+                "logit": 1.9140937328338623,
+                "text": "ознания"
+              },
+              {
+                "tokenId": 132804,
+                "logit": 1.9082565307617188,
+                "text": " Oncology"
+              },
+              {
+                "tokenId": 41616,
+                "logit": 1.8826549053192139,
+                "text": " Dienst"
+              },
+              {
+                "tokenId": 2528,
+                "logit": 1.7820197343826294,
+                "text": "ends"
+              },
+              {
+                "tokenId": 9081,
+                "logit": 1.7747584581375122,
+                "text": " basic"
+              },
+              {
+                "tokenId": 133028,
+                "logit": 1.7711952924728394,
+                "text": " lumbar"
+              },
+              {
+                "tokenId": 110058,
+                "logit": 1.7363946437835693,
+                "text": " bona"
+              }
+            ]
+          },
+          {
+            "index": 7,
+            "tokenId": 21052,
+            "inputTokenCount": 20,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:d99c7b20d1524c50325952d7542b186e6b9db380b454f7f84bbd6aa8ff270269",
+            "top": [
+              {
+                "tokenId": 21052,
+                "logit": 2.229732036590576,
+                "text": "UTH"
+              },
+              {
+                "tokenId": 93211,
+                "logit": 2.080409049987793,
+                "text": "গুলি"
+              },
+              {
+                "tokenId": 109716,
+                "logit": 2.0408360958099365,
+                "text": " exhaustive"
+              },
+              {
+                "tokenId": 38665,
+                "logit": 1.9337363243103027,
+                "text": " توس"
+              },
+              {
+                "tokenId": 21863,
+                "logit": 1.855199933052063,
+                "text": " Centre"
+              },
+              {
+                "tokenId": 152254,
+                "logit": 1.8434549570083618,
+                "text": " قوات"
+              },
+              {
+                "tokenId": 120980,
+                "logit": 1.8228869438171387,
+                "text": " наступи"
+              },
+              {
+                "tokenId": 172172,
+                "logit": 1.8106547594070435,
+                "text": "<Element"
+              }
+            ]
+          }
+        ]
+      },
+      "tolerance": {
+        "tokenPolicy": "exact generated token IDs",
+        "logitsPolicy": "exact sha256 digest per generated step over finalized f32 logits before sampling",
+        "kvPolicy": "exact sha256 digest over used KV cache bytes by layer/key/value"
+      }
+    },
+    "operatorDiagnostics": null,
+    "decodeBottleneck": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "dominant": {
+        "id": "orchestration",
+        "label": "decode orchestration",
+        "ms": 2727.87,
+        "shareOfDecode": 1
+      },
+      "bottleneckClass": "orchestration",
+      "decodeWallMs": 2727.87,
+      "componentsMs": {
+        "commandRecordMs": 0,
+        "submitWaitMs": 0,
+        "readbackWaitMs": 0,
+        "effectiveSubmitReadbackWaitMs": 0,
+        "readbackMapWaitMs": 0,
+        "readbackCleanupMs": 0,
+        "readbackCopyMs": 0,
+        "readbackUnattributedMs": null,
+        "gpuTimestampMs": null,
+        "submitReadbackSlackMs": null,
+        "orchestrationMs": 2727.87,
+        "residualMs": 0
+      },
+      "recording": {
+        "opCount": 0,
+        "passCount": 0,
+        "uniqueOpLabels": null,
+        "msPerOp": null,
+        "msPerPass": null,
+        "passesPerOp": null,
+        "msPerExecutedBatchToken": null,
+        "opsPerExecutedBatchToken": null,
+        "passesPerExecutedBatchToken": null,
+        "topOps": [],
+        "topOpGroups": [],
+        "uniformCache": {
+          "hits": 4850,
+          "misses": 38,
+          "totalLookups": 4888,
+          "hitRateRatio": 0.9922258592471358,
+          "evictions": 0,
+          "currentSize": 38,
+          "pendingDestruction": 0,
+          "hitRate": "99.2%"
+        }
+      },
+      "shares": {
+        "commandRecord": 0,
+        "submitWait": 0,
+        "readbackWait": 0,
+        "effectiveSubmitReadbackWait": 0,
+        "readbackMapWait": 0,
+        "readbackCleanup": 0,
+        "readbackCopy": 0,
+        "readbackUnattributed": null,
+        "gpuTimestamp": null,
+        "submitReadbackSlack": null,
+        "orchestration": 1,
+        "residual": 0
+      },
+      "semantics": {
+        "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+        "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+        "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured.",
+        "topOps": "Highest-count exact compute-pass labels observed during command recording.",
+        "topOpGroups": "Highest-count compute-pass labels after grouping repeated per-layer labels.",
+        "uniformCache": "Current uniform-buffer cache counters at the end of the measured suite."
+      }
+    },
+    "load": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "semantics": {
+        "modelLoadMs": "suite initialization time before generation",
+        "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+        "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+        "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+        "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+        "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+      },
+      "modelLoadMs": 24449.41,
+      "loader": {
+        "schemaVersion": 1,
+        "source": "doppler-loader",
+        "modelId": "muse-glimmer-30b-text-bf16-af32",
+        "status": "complete",
+        "customShardLoader": true,
+        "byteAccountingMode": "custom-loader-read-progress",
+        "totalBytes": 55709561856,
+        "totalShards": 831,
+        "bytesLoaded": 55709561856,
+        "shardsLoaded": 831,
+        "bytesPerSecond": 2378063438,
+        "phasesMs": {
+          "preflight": 2.13,
+          "tensorLocations": 2.68,
+          "embeddings": 1733.23,
+          "layers": 20068.09,
+          "finalWeights": 1619.74,
+          "cleanup": 0.07
+        },
+        "layers": {
+          "count": 52,
+          "totalMs": 20002.15,
+          "meanMs": 384.66,
+          "maxMs": 429.53,
+          "maxLayer": 49
+        },
+        "totalMs": 23426.44,
+        "failedPhase": null,
+        "error": null
+      },
+      "pipeline": {
+        "schemaVersion": 1,
+        "source": "doppler-pipeline",
+        "modelId": "muse-glimmer-30b-text-bf16-af32",
+        "status": "complete",
+        "phasesMs": {
+          "reset": 0.07,
+          "configResolution": 6.71,
+          "kernelWarmup": 0.05,
+          "tokenizer": 570.01,
+          "executionSetup": 21.06,
+          "loadWeights": 23648.21,
+          "rope": 181.7,
+          "convStates": 0.56
+        },
+        "details": {
+          "tokenizer": {
+            "schemaVersion": 1,
+            "source": "doppler-tokenizer",
+            "modelId": "muse-glimmer-30b-text-bf16-af32",
+            "status": "complete",
+            "tokenizerType": "bundled",
+            "tokenizerFile": "tokenizer.json",
+            "backend": "bundled",
+            "assetSource": "custom-loader",
+            "cacheHit": false,
+            "phasesMs": {
+              "configResolution": 0.04,
+              "cacheLookup": 0.04,
+              "backendCreate": 0.08,
+              "assetLoad": 279.45,
+              "assetParse": 0.22,
+              "backendLoad": 289.71,
+              "cacheStore": 0.01
+            },
+            "totalMs": 569.72,
+            "error": null
+          }
+        },
+        "totalMs": 24428.61
+      },
+      "residualsMs": {
+        "modelLoadMinusLoaderMs": 1022.97,
+        "modelLoadMinusPipelineMs": 20.8,
+        "pipelineMinusLoaderMs": 1002.17
+      },
+      "consistent": {
+        "loaderWithinModelLoad": true,
+        "pipelineWithinModelLoad": true,
+        "loaderWithinPipeline": true
+      }
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "muse-glimmer-30b-text-bf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "muse-glimmer-30b-text-bf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 12,
+        "headDim": 128,
+        "kvLen": 131072,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "muse-glimmer-30b-text-bf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "muse-glimmer-30b-text-bf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 51,
+        "nullableCases": 27,
+        "nonNullableCases": 24
+      }
+    },
+    "sourceParity": {
+      "schema": "doppler.source-token-parity/v1",
+      "status": "failed",
+      "expectedTranscriptPath": "reports/model-ir-v2/glimmer-30b.hf-text-transcript.json",
+      "expectedTranscriptHash": "sha256:0dafbf7792a623dcbac49654f9aa188263e0a3f2866abac97da01b951cbdbb2f",
+      "sourceModel": "meta-models/Muse-Glimmer-30B",
+      "sourceRevision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sampling": "greedy-argmax-f32-logits",
+      "prompt": {
+        "passed": true,
+        "expectedCount": 13,
+        "observedCount": 13,
+        "firstMismatchIndex": null,
+        "expectedTokenId": null,
+        "observedTokenId": null
+      },
+      "generation": {
+        "passed": false,
+        "expectedCount": 128,
+        "observedCount": 8,
+        "firstMismatchIndex": 0,
+        "expectedTokenId": 290,
+        "observedTokenId": 13437
+      }
+    }
+  },
+  "output": "� militerISLOpenedUTH قواتOpenedUTH",
+  "memory": {
+    "used": 55811019264,
+    "pool": {
+      "allocations": 4613,
+      "reuses": 5044,
+      "totalBytesAllocated": 55935541760,
+      "peakBytesAllocated": 55812849920,
+      "currentBytesAllocated": 55797387776,
+      "totalBytesRequested": 55915122944,
+      "peakBytesRequested": 55806582784,
+      "currentBytesRequested": 55782328064,
+      "activeBuffers": 636,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "52.2%"
+    },
+    "kvCache": {
+      "theoretical": 13631488,
+      "allocated": 13631488,
+      "used": 1064960,
+      "efficiency": 0.078125,
+      "seqLen": 20,
+      "maxSeqLen": 256,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 416,
+        "tokensWritten": 1040
+      }
+    }
+  },
+  "debugSnapshot": null
+}

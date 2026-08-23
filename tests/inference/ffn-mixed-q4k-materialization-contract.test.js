@@ -143,6 +143,18 @@ setDevice({
 }, { platformConfig: null });
 
 try {
+  const bf16Weights = {
+    gate: { buffer: { label: 'gate_bf16' }, dtype: 'bf16', layout: 'row', shape: [6912, 1152] },
+    up: { buffer: { label: 'up_bf16' }, dtype: 'bf16', layout: 'row', shape: [6912, 1152] },
+  };
+  const retainedBF16 = resolveFusedGateUpWeights(bf16Weights, {
+    activationDtype: 'f32',
+    hiddenSize: 1152,
+    kernelPath: denseKernelPath,
+  });
+  assert.equal(retainedBF16.gateDtype, 'bf16');
+  assert.equal(retainedBF16.upDtype, 'bf16');
+
   const widenedFused = resolveFusedGateUpWeights(mixedWeights, {
     activationDtype: 'f32',
     hiddenSize: 1152,

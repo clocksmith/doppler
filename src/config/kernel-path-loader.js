@@ -591,6 +591,29 @@ export function kernelPathRequiresF32MatmulWeights(path = undefined) {
   return kernelSteps.some((step) => normalizeKernelFile(step.kernel) === 'matmul_f32.wgsl');
 }
 
+export function kernelPathRequiresBF16Weights(path = undefined) {
+  const lookupPath = path === undefined ? activeKernelPath : path;
+  if (!lookupPath) return false;
+  const kernelSteps = getKernelPathKernelSteps(lookupPath);
+  return kernelSteps.some((step) => {
+    const kernel = normalizeKernelFile(step.kernel);
+    return kernel === 'gather_bf16.wgsl'
+      || kernel === 'matmul_bf16w_f32a.wgsl'
+      || kernel === 'matmul_gemv_subgroup_bf16w.wgsl';
+  });
+}
+
+export function executionKernelClosureRequiresBF16Weights(execution) {
+  const kernels = execution?.kernels;
+  if (!kernels || typeof kernels !== 'object' || Array.isArray(kernels)) return false;
+  return Object.values(kernels).some((entry) => {
+    const kernel = normalizeKernelFile(entry?.kernel);
+    return kernel === 'gather_bf16.wgsl'
+      || kernel === 'matmul_bf16w_f32a.wgsl'
+      || kernel === 'matmul_gemv_subgroup_bf16w.wgsl';
+  });
+}
+
 export function isActiveKernelPathFusedQ4K() {
   return isKernelPathFusedQ4K(activeKernelPath);
 }

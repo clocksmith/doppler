@@ -1,0 +1,30 @@
+{
+  "id": "profiles/muse-glimmer-30b-source-parity-f32kv",
+  "name": "muse-glimmer-30b-source-parity-f32kv",
+  "description": "Rejected-or-promotable Glimmer source-parity search candidate that preserves the f32 activation plan while testing f32 contiguous KV state against the frozen source oracle.",
+  "intent": "verify",
+  "compatibleIntents": ["verify"],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-08-23T00:00:00Z",
+  "extends": "profiles/muse-glimmer-30b-source-parity",
+  "model": "muse-glimmer-30b-text-f16-af32",
+  "runtime": {
+    "inference": {
+      "kvcache": {
+        "kvDtype": "f32"
+      },
+      "session": {
+        "kvcache": {
+          "kvDtype": "f32"
+        }
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": ["manifest"],
+        "allowSources": ["manifest"],
+        "onIncompatible": "remap"
+      }
+    }
+  }
+}

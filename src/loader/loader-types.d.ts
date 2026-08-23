@@ -278,6 +278,8 @@ export interface Q4KConfig {
   q4kLayout: 'row' | 'col' | null;
   /** Keep weights as F32 (disable F16 downcasting) */
   keepF32Weights: boolean;
+  /** Keep stored BF16 buffers packed for BF16-aware kernels. */
+  keepBF16Weights?: boolean;
   /** Explicit dense/fused/mixed projection materialization mode */
   q4kMaterializationMode?: 'dense' | 'fused' | 'mixed';
   /** Tensor roles that must keep raw Q4K materialization because the execution graph pins a fused Q4K kernel */

@@ -1,0 +1,81 @@
+{
+  "schema": "doppler.source-boundary-comparison-policy/v1",
+  "sourceTranscript": "reports/model-ir-v2/glimmer-30b.hf-text-transcript.json",
+  "candidateReport": "reports/model-ir-v2/glimmer-30b.node-candidate-23-bf16w-boundary-qualification.json",
+  "candidateRoot": "reports/model-ir-v2/glimmer-30b.node-candidate-23-bf16w-tsir",
+  "output": "reports/model-ir-v2/glimmer-30b.node-candidate-23-bf16w-boundary-comparison.json",
+  "phase": "prefill",
+  "generationStep": 0,
+  "candidateSelection": "last-row",
+  "layers": [0, 13, 26, 39, 51],
+  "globalMappings": [
+    {
+      "id": "embedding",
+      "sourceBoundaryId": "model.embedding.output",
+      "candidatePath": "layer_0/pre_layer_input.npy"
+    }
+  ],
+  "layerMappings": [
+    {
+      "id": "input-norm",
+      "sourceBoundaryTemplate": "layer.{L}.input_norm",
+      "candidateFile": "post_rmsnorm.npy"
+    },
+    {
+      "id": "q-projection",
+      "sourceBoundaryTemplate": "layer.{L}.attention.q_proj",
+      "candidateFile": "post_qproj.npy"
+    },
+    {
+      "id": "q-normalization",
+      "sourceBoundaryTemplate": "layer.{L}.attention.q_norm",
+      "candidateFile": "post_qnorm.npy"
+    },
+    {
+      "id": "k-projection",
+      "sourceBoundaryTemplate": "layer.{L}.attention.k_proj",
+      "candidateFile": "post_kproj.npy"
+    },
+    {
+      "id": "k-normalization",
+      "sourceBoundaryTemplate": "layer.{L}.attention.k_norm",
+      "candidateFile": "post_knorm.npy"
+    },
+    {
+      "id": "v-projection",
+      "sourceBoundaryTemplate": "layer.{L}.attention.v_proj",
+      "candidateFile": "post_vproj.npy"
+    },
+    {
+      "id": "attention-output",
+      "sourceBoundaryTemplate": "layer.{L}.attention.output",
+      "candidateFile": "post_oproj.npy"
+    },
+    {
+      "id": "pre-ffn",
+      "sourceBoundaryTemplate": "layer.{L}.pre_ffn_norm",
+      "candidateFile": "pre_ffn.npy"
+    },
+    {
+      "id": "ffn-output",
+      "sourceBoundaryTemplate": "layer.{L}.ffn.output",
+      "candidateFile": "ffn_mlp_out.npy"
+    },
+    {
+      "id": "layer-output",
+      "sourceBoundaryTemplate": "layer.{L}.output",
+      "candidateFile": "post_ffn.npy"
+    }
+  ],
+  "tolerance": {
+    "id": "bf16-source-vs-f32-activation-diagnostic/v1",
+    "maximumRelativeRmse": 0.02,
+    "minimumCosineSimilarity": 0.9998,
+    "maximumAbsoluteError": 3
+  },
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "glimmer-bf16-prefill-boundary-comparison-v1"
+  }
+}

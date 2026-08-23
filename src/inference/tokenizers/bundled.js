@@ -346,10 +346,26 @@ function registerAddedTokens(addedTokens, vocab, reverseVocab, patterns, special
       if (derivedSpecialTokens) {
         if (
           derivedSpecialTokens.bos == null
-          && (content === '<bos>' || content === '<s>' || content === '<cls>' || content.includes('bos'))
+          && (
+            content === '<bos>'
+            || content === '<s>'
+            || content === '<cls>'
+            || content.includes('bos')
+            || content.includes('begin_of_text')
+            || content.includes('beginoftext')
+          )
         ) {
           derivedSpecialTokens.bos = id;
-        } else if (derivedSpecialTokens.eos == null && (content === '<eos>' || content === '</s>' || content.includes('eos'))) {
+        } else if (
+          derivedSpecialTokens.eos == null
+          && (
+            content === '<eos>'
+            || content === '</s>'
+            || content.includes('eos')
+            || content.includes('end_of_text')
+            || content.includes('endoftext')
+          )
+        ) {
           derivedSpecialTokens.eos = id;
         } else if (derivedSpecialTokens.pad == null && (content === '<pad>' || content.includes('pad'))) {
           derivedSpecialTokens.pad = id;

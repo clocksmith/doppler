@@ -240,7 +240,7 @@ export function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, tran
     bBindingSize = Math.ceil((N * groupsPerRow * 16) / 4) * 4;
     bRequired = bOffset + bBindingSize;
   } else {
-    const bBytesPerElem = bDtype === 'f16' ? 2 : 4;
+    const bBytesPerElem = bDtype === 'f16' || bDtype === 'bf16' ? 2 : 4;
     const bElements = transposeB ? N * K : K * N;
     bBindingSize = Math.ceil((bElements * bBytesPerElem) / 4) * 4;
     bRequired = bOffset + bBindingSize;

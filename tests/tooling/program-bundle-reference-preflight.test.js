@@ -133,6 +133,23 @@ try {
     '--expected-transcript', expectedTranscriptPath,
   ]);
   assert.equal(parsed.expectedTranscriptPath, expectedTranscriptPath);
+  const parsedDecodeCapture = parseArgs([
+    '--surface', 'node',
+    '--manifest', path.join(variantDir, 'manifest.json'),
+    '--out', path.join(tmpRoot, 'bundle.json'),
+    '--tsir-fixture-dir', path.join(tmpRoot, 'fixture'),
+    '--tsir-fixture-generation-step', '7',
+  ]);
+  assert.equal(parsedDecodeCapture.tsirFixtureGenerationStep, 7);
+  assert.throws(
+    () => parseArgs([
+      '--surface', 'node',
+      '--manifest', path.join(variantDir, 'manifest.json'),
+      '--out', path.join(tmpRoot, 'bundle.json'),
+      '--tsir-fixture-generation-step', '7',
+    ]),
+    /requires --tsir-fixture-dir/
+  );
   const runtimeConfigPath = path.join(tmpRoot, 'runtime-config.json');
   assert.equal(
     resolveRuntimeConfigArtifactPath(runtimeConfigPath),

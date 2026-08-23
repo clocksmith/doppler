@@ -13,6 +13,7 @@ export const DEFAULT_HARNESS_CONFIG = {
     captureLogits: false,
     captureKvBytes: false,
   },
+  tsirFixture: null,
   trainingBench: {
     ebmRecorded: {
       dims: {

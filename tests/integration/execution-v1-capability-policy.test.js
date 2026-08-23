@@ -176,6 +176,77 @@ assert.ok(
   'lane integrity must expose capability policy evidence'
 );
 
+const mixedWeightF32KvManifest = {
+  schema: 'doppler.execution/v1',
+  session: {
+    compute: {
+      defaults: {
+        activationDtype: 'f32',
+        mathDtype: 'f32',
+        accumDtype: 'f32',
+        outputDtype: 'f32',
+      },
+    },
+    kvcache: {
+      kvDtype: 'f32',
+      layout: 'contiguous',
+      pageSize: 256,
+      tiering: { mode: 'off' },
+    },
+    decodeLoop: SUBGROUP_MANIFEST.session.decodeLoop,
+  },
+  execution: {
+    ...SUBGROUP_MANIFEST.execution,
+    kernels: {
+      proj: {
+        kernel: 'matmul_f16w_f32a.wgsl',
+        entry: 'main',
+        digest: 'sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+        precision: { inputDtype: 'f32', outputDtype: 'f32' },
+      },
+      attn: {
+        kernel: 'attention_decode_online_f16kv.wgsl',
+        entry: 'main',
+        digest: 'sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+        precision: { activationDtype: 'f32', kvDtype: 'f16' },
+      },
+    },
+  },
+};
+const mixedWeightF32Kv = compileExecutionV1({
+  manifestInference: mixedWeightF32KvManifest,
+  modelId: 'test-f16-weights-f32-kv',
+  numLayers: 1,
+  capabilities: {
+    hasSubgroups: true,
+    hasF16: true,
+    hasSubgroupsF16: true,
+  },
+  platform: {
+    id: 'test-gpu',
+    vendor: 'test',
+    architecture: 'test',
+  },
+  kernelPathPolicy: {
+    mode: 'capability-aware',
+    sourceScope: ['manifest'],
+    onIncompatible: 'remap',
+  },
+});
+const mixedWeightSteps = mixedWeightF32Kv.runtimeInferencePatch.kernelPath.decode.steps;
+assert.equal(
+  mixedWeightSteps.find((step) => step.op === 'q_proj')?.kernel,
+  'matmul_f16w_f32a.wgsl',
+  'f32 KV compatibility must preserve manifest-declared f16 weights on shader-f16 hardware'
+);
+assert.equal(
+  mixedWeightSteps.find((step) => step.op === 'attention')?.kernel,
+  'attention_streaming.wgsl',
+  'f32 KV compatibility must replace the f16-KV attention kernel'
+);
+assert.ok(mixedWeightF32Kv.appliedTransforms.includes('widenToF32CorrectnessFallback'));
+assert.equal(mixedWeightF32Kv.laneIntegrity.executed.kvDtype, 'f32');
+
 const qwen08Config = JSON.parse(
   readFileSync('src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json', 'utf8')
 );

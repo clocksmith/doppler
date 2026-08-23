@@ -21,7 +21,9 @@ globalThis.GPUBuffer = class GPUBuffer {
 const { setDevice } = await import('../../src/gpu/device.js');
 const { Q4K_BLOCK_BYTES, q4kBlockCount } = await import('../../src/config/schema/index.js');
 const { createWeightBuffer, getWeightDtype, tagBufferDtype } = await import('../../src/gpu/weight-buffer.js');
+const { toMatmulDtype } = await import('../../src/gpu/kernels/matmul-selection.js');
 const { fuseQKVWeights } = await import('../../src/inference/pipelines/text/init.js');
+const { selectRuleValue } = await import('../../src/rules/rule-registry.js');
 
 function createFakeDevice() {
   return {
@@ -56,6 +58,13 @@ function createFakeDevice() {
 setDevice(createFakeDevice(), { platformConfig: null });
 
 try {
+  assert.equal(toMatmulDtype('bf16'), 'bf16', 'matmul dispatch must preserve BF16 storage identity');
+  assert.equal(
+    selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: 'bf16' }),
+    'bf16',
+    'embedding dispatch must preserve BF16 storage identity'
+  );
+
   const tagged = new GPUBuffer({
     size: 80,
     usage: GPUBufferUsage.STORAGE,
@@ -92,6 +101,50 @@ try {
   assert.equal(fused.dtype, 'f16');
   assert.deepEqual(Array.from(fused.shape), [12, 4]);
   assert.equal(fused.buffer.size, 12 * 4 * 2);
+
+  const qProjBF16 = createWeightBuffer(
+    new GPUBuffer({ size: 80, usage: GPUBufferUsage.STORAGE, label: 'q_proj_bf16' }),
+    'bf16',
+    'row',
+    [4, 4],
+    'q_proj_bf16'
+  );
+  const kProjBF16 = createWeightBuffer(
+    new GPUBuffer({ size: 80, usage: GPUBufferUsage.STORAGE, label: 'k_proj_bf16' }),
+    'bf16',
+    'row',
+    [4, 4],
+    'k_proj_bf16'
+  );
+  const vProjBF16 = createWeightBuffer(
+    new GPUBuffer({ size: 80, usage: GPUBufferUsage.STORAGE, label: 'v_proj_bf16' }),
+    'bf16',
+    'row',
+    [4, 4],
+    'v_proj_bf16'
+  );
+  const bf16LayerWeights = new Map();
+  bf16LayerWeights.set('layer_0', {
+    qProj: qProjBF16,
+    kProj: kProjBF16,
+    vProj: vProjBF16,
+    qkvProj: null,
+  });
+
+  fuseQKVWeights(bf16LayerWeights, {
+    numLayers: 1,
+    numHeads: 1,
+    numKVHeads: 1,
+    headDim: 4,
+    hiddenSize: 4,
+  });
+
+  assert.equal(
+    bf16LayerWeights.get('layer_0').qkvProj,
+    null,
+    'BF16 projections must remain separate until a plan selects a BF16 fused kernel'
+  );
+  assert.equal(bf16LayerWeights.get('layer_0').qProj.dtype, 'bf16');
 
   const qProjBias = new GPUBuffer({ size: 4 * 4, usage: GPUBufferUsage.STORAGE, label: 'q_proj_bias' });
   const kProjBias = new GPUBuffer({ size: 4 * 4, usage: GPUBufferUsage.STORAGE, label: 'k_proj_bias' });

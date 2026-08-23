@@ -22,11 +22,11 @@
   "author": {
     "kind": "ai",
     "actor": "openai-codex",
-    "proposalId": "heterogeneous-text-semantic-lowering-v1"
+    "proposalId": "heterogeneous-text-semantic-lowering-v4"
   },
   "templateRationale": "Reuse only the generic full-f16 transformer mechanism policy. Every model semantic field is reconstructed from accepted ModelIR facts, and the unproven chat path remains disabled.",
   "candidateAudit": {
-    "generated": 4,
+    "generated": 8,
     "rejected": [
       {
         "candidateId": "flat-homogeneous-decoder",
@@ -39,8 +39,50 @@
       {
         "candidateId": "all-entrypoints",
         "reason": "Rejected because vision.encode has complete source representation but no generic lowering or qualification."
+      },
+      {
+        "candidateId": "template-head256-prefill",
+        "author": {
+          "kind": "ai",
+          "actor": "openai-codex",
+          "proposalId": "heterogeneous-text-semantic-lowering-v1"
+        },
+        "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-1-rejection.json",
+        "reason": "Rejected by physical Node WebGPU validation because the inherited head256 prefill specialization cannot execute the source-proven 128-wide attention geometry."
+      },
+      {
+        "candidateId": "template-bos-unaware-tokenizer",
+        "author": {
+          "kind": "ai",
+          "actor": "openai-codex",
+          "proposalId": "heterogeneous-text-semantic-lowering-v2"
+        },
+        "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-2-rejection.json",
+        "reason": "Rejected by exact physical parity because the generic bundled tokenizer failed to recognize the source TemplateProcessing begin_of_text boundary as BOS."
+      },
+      {
+        "candidateId": "centered-offset-unit-qk-norm",
+        "author": {
+          "kind": "ai",
+          "actor": "openai-codex",
+          "proposalId": "heterogeneous-text-semantic-lowering-v3"
+        },
+        "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-3-rejection.json",
+        "reason": "Rejected at the first semantic boundary because a source-declared weightless Q/K RMSNorm was executed with the centered learned-weight offset and doubled both normalized projections."
+      },
+      {
+        "candidateId": "weightless-unit-qk-norm-f32kv",
+        "author": {
+          "kind": "ai",
+          "actor": "openai-codex",
+          "proposalId": "glimmer-f32-kv-candidate-v1"
+        },
+        "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-10-rejection.json",
+        "reason": "Rejected because widening persistent KV state to f32 preserved the same seven-token prefix and the same token-7 divergence as the f16-KV candidate."
       }
     ],
-    "acceptedCandidateId": "heterogeneous-text-semantic-lowering-v1"
+    "acceptedCandidateId": "weightless-unit-qk-norm-f16kv",
+    "acceptedCandidateEvidence": "reports/model-ir-v2/glimmer-30b.node-candidate-11-rejection.json",
+    "acceptedCandidateScope": "semantic lowering only; exact-token execution qualification remains rejected"
   }
 }

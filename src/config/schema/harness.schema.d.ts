@@ -22,6 +22,13 @@ export interface TrainingBenchConfigSchema {
   ebmRecorded: EbmRecordedBenchConfigSchema;
 }
 
+export interface TsirFixtureHarnessConfigSchema {
+  dir: string;
+  layerFilter: number[] | null;
+  prefillOnly: boolean;
+  generationStep: number | null;
+}
+
 export interface HarnessConfigSchema {
   mode: HarnessMode;
   workload: HarnessWorkload;
@@ -33,6 +40,7 @@ export interface HarnessConfigSchema {
     captureLogits: boolean;
     captureKvBytes: boolean;
   };
+  tsirFixture: TsirFixtureHarnessConfigSchema | null;
   trainingBench: TrainingBenchConfigSchema;
 }
 

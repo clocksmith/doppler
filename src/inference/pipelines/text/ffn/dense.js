@@ -420,7 +420,7 @@ export function resolveFusedGateUpWeights(layerWeights, options = {}) {
 }
 
 function requireFusedWeightDtype(dtype, label) {
-  if (dtype !== 'f16' && dtype !== 'f32' && dtype !== 'q4k') {
+  if (dtype !== 'bf16' && dtype !== 'f16' && dtype !== 'f32' && dtype !== 'q4k') {
     throw new Error(`[FFN] ${label} dtype metadata is required for fused gate/up planning.`);
   }
   return dtype;

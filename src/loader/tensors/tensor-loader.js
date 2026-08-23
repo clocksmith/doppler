@@ -939,6 +939,24 @@ export async function loadBF16(shardData, location, name, config) {
     const isMatmulWeight = shouldDequantizeToF16(location);
     const keepF32Weights = config.keepF32Weights === true;
 
+    const keepPackedBF16 = config.keepBF16Weights === true
+      && (isMatmulWeight || location.role === 'embedding');
+    if (keepPackedBF16) {
+      const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
+        layout: location.layout ?? null,
+        useColumnWise: false,
+      });
+      const data = isMatmulWeight
+        ? createWeightBuffer(srcBuffer, 'bf16', layout, location.shape, name)
+        : applyBufferLayout(srcBuffer, location, 'bf16');
+      ownsSrcBuffer = false;
+      debugTrace.loader(`Retaining packed BF16 storage for declared kernel path: ${name}`);
+      return {
+        data,
+        allocatedBuffers: [srcBuffer],
+      };
+    }
+
     if (caps?.hasF16 && isMatmulWeight && !keepF32Weights) {
       const f16Tensor = await runBF16ToF16(srcBuffer, [numElements], name);
       resultBuffer = f16Tensor.buffer;

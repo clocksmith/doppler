@@ -3239,10 +3239,10 @@
   "author": {
     "kind": "ai",
     "actor": "openai-codex",
-    "proposalId": "heterogeneous-text-semantic-lowering-v1"
+    "proposalId": "heterogeneous-text-semantic-lowering-v4"
   },
   "template": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
-  "generatedCandidates": 4,
+  "generatedCandidates": 8,
   "rejectedCandidates": [
     {
       "candidateId": "flat-homogeneous-decoder",
@@ -3255,9 +3255,49 @@
     {
       "candidateId": "all-entrypoints",
       "reason": "Rejected because vision.encode has complete source representation but no generic lowering or qualification."
+    },
+    {
+      "candidateId": "template-head256-prefill",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "heterogeneous-text-semantic-lowering-v1"
+      },
+      "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-1-rejection.json",
+      "reason": "Rejected by physical Node WebGPU validation because the inherited head256 prefill specialization cannot execute the source-proven 128-wide attention geometry."
+    },
+    {
+      "candidateId": "template-bos-unaware-tokenizer",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "heterogeneous-text-semantic-lowering-v2"
+      },
+      "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-2-rejection.json",
+      "reason": "Rejected by exact physical parity because the generic bundled tokenizer failed to recognize the source TemplateProcessing begin_of_text boundary as BOS."
+    },
+    {
+      "candidateId": "centered-offset-unit-qk-norm",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "heterogeneous-text-semantic-lowering-v3"
+      },
+      "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-3-rejection.json",
+      "reason": "Rejected at the first semantic boundary because a source-declared weightless Q/K RMSNorm was executed with the centered learned-weight offset and doubled both normalized projections."
+    },
+    {
+      "candidateId": "weightless-unit-qk-norm-f32kv",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "glimmer-f32-kv-candidate-v1"
+      },
+      "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-10-rejection.json",
+      "reason": "Rejected because widening persistent KV state to f32 preserved the same seven-token prefix and the same token-7 divergence as the f16-KV candidate."
     }
   ],
-  "acceptedCandidateId": "heterogeneous-text-semantic-lowering-v1",
+  "acceptedCandidateId": "weightless-unit-qk-norm-f16kv",
   "dispositions": [
     {
       "kind": "semantic-fact-closure",
@@ -4078,7 +4118,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "heterogeneous-text-semantic-lowering-v1"
+        "proposalId": "heterogeneous-text-semantic-lowering-v4"
       },
       "rationale": "Reuse only the generic full-f16 transformer mechanism policy. Every model semantic field is reconstructed from accepted ModelIR facts, and the unproven chat path remains disabled."
     },
@@ -4133,6 +4173,16 @@
       ],
       "disposition": "accepted",
       "rationale": "No speculative drafter or post-normalization fusion has qualification evidence for this entry point."
+    },
+    {
+      "kind": "prefill-attention-mechanism-binding",
+      "headDim": 128,
+      "templateKernelId": "attn_head256",
+      "kernelId": "attn_stream",
+      "kernel": "attention_streaming_f16kv.wgsl",
+      "changed": true,
+      "disposition": "accepted",
+      "rationale": "Forge binds the prefill mechanism from declared head geometry; the head256 specialization is valid only for 256-wide attention heads."
     },
     {
       "kind": "kernel-digest-binding",
@@ -4232,7 +4282,7 @@
     }
   ],
   "unresolvedFacts": [],
-  "conversionConfigDigest": "sha256:a6ace864c77e7f0b2f3f49bea5aefb64b46c5fa194ea5302e5e915a05a9f96ee",
+  "conversionConfigDigest": "sha256:e2273b70e9c43c02c90b6443499ac22bdfaa5928a4b64cec98eebc00c96604b7",
   "conversionConfig": {
     "modelType": "transformer",
     "quantization": {
@@ -4515,7 +4565,7 @@
         ],
         [
           "attention",
-          "attn_head256"
+          "attn_stream"
         ],
         [
           "o_proj",

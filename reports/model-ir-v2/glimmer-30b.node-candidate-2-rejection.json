@@ -1,0 +1,59 @@
+{
+  "schema": "doppler.physical-execution-candidate-rejection/v1",
+  "candidateId": "template-bos-unaware-tokenizer",
+  "modelId": "muse-glimmer-30b-text-f16-af32",
+  "entryPointId": "text.generate",
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "heterogeneous-text-semantic-lowering-v2"
+  },
+  "sourceRevision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+  "dopplerCommit": "11eb1c4b",
+  "surface": "node-webgpu",
+  "provider": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "driver": "radv: Mesa 26.0.3-1ubuntu1",
+    "hasF16": true,
+    "hasSubgroups": true,
+    "maxBufferSizeBytes": 4294967292,
+    "fallback": false
+  },
+  "request": {
+    "prompt": "A rigorous explanation of why local GPU execution receipts matter begins with",
+    "maxNewTokens": 128,
+    "sampling": "greedy-argmax",
+    "runtimeProfile": "profiles/muse-glimmer-30b-source-parity"
+  },
+  "evidence": {
+    "physicalReport": "reports/model-ir-v2/glimmer-30b.node-webgpu-qualification.json",
+    "physicalReportDigest": "sha256:cb02148c764c95e1bfdb61735c7b7883893e2d2b598be1d916cd634bd5ef6605",
+    "expectedTranscriptDigest": "sha256:02156934ff5fd77c16f82e1f7b74df4e7a6971fd5c827f03a6f714d7397d7e3d",
+    "runtimeProfileDigest": "sha256:926166e7089ef5d5ccc75732916a1e816506ea4542bb1e6d7fc1cf61a122220a",
+    "timestamp": "2026-08-23T10:18:02.055Z",
+    "durationMs": 75514.12545400001
+  },
+  "observation": {
+    "processExitCode": 1,
+    "dispatchStarted": true,
+    "generatedTokens": 128,
+    "expectedPromptTokens": 13,
+    "observedPromptTokens": 12,
+    "firstPromptMismatchIndex": 0,
+    "expectedPromptTokenId": 200000,
+    "observedPromptTokenId": 45,
+    "firstGenerationMismatchIndex": 4,
+    "expectedGenerationTokenId": 13719,
+    "observedGenerationTokenId": 13787,
+    "generatedTokenIdsDigest": "sha256:27439cbf31188f185d0d4a827dd0e3fde52009911ce1c4aa90f712dadc1ea0e6",
+    "failureClass": "source-tokenizer-boundary-mismatch"
+  },
+  "decision": {
+    "status": "rejected",
+    "promotionEligible": false,
+    "fallbackAttempted": false,
+    "correctionScope": "generic-bundled-tokenizer-template-boundary-recognition"
+  }
+}

@@ -4,6 +4,7 @@ import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/manifest.sch
 import { validateRequiredInferenceFields } from '../../src/inference/pipelines/text/config.js';
 import { isRoPEDisabledForLayer } from '../../src/inference/pipelines/text/attention/heterogeneous-contract.js';
 import { projectSeparateAttentionGate } from '../../src/inference/pipelines/text/attention/gate-projection.js';
+import { resolveAttentionQKNormState } from '../../src/inference/pipelines/text/attention/projections.js';
 
 const valid = structuredClone(DEFAULT_MANIFEST_INFERENCE);
 valid.attention.queryScale = 3.87;
@@ -46,5 +47,38 @@ assert.equal(await projectSeparateAttentionGate({
 }), projectedGate);
 assert.deepEqual(matmulCalls[0].slice(0, 5), [projectionInput, gateWeight, 2, 8, 16]);
 assert.equal(matmulCalls[0][5].role, 'q_gate_proj');
+
+const unitQkNorm = resolveAttentionQKNormState({
+  config: {
+    queryKeyNorm: true,
+    queryKeyNormWeightLayers: [],
+    rmsNormWeightOffset: true,
+  },
+  layerWeights: {},
+  layerIdx: 0,
+  reusesSharedKV: false,
+});
+assert.equal(unitQkNorm.allowUnitQKNorm, true);
+assert.equal(
+  unitQkNorm.rmsNormWeightOffset,
+  false,
+  'weightless Q/K RMSNorm must not inherit centered learned-weight offset semantics'
+);
+
+const learnedQkNorm = resolveAttentionQKNormState({
+  config: {
+    queryKeyNorm: true,
+    queryKeyNormWeightLayers: null,
+    rmsNormWeightOffset: true,
+  },
+  layerWeights: {
+    qNorm: { shape: [128] },
+    kNorm: { shape: [128] },
+  },
+  layerIdx: 0,
+  reusesSharedKV: false,
+});
+assert.equal(learnedQkNorm.allowUnitQKNorm, false);
+assert.equal(learnedQkNorm.rmsNormWeightOffset, true);
 
 console.log('heterogeneous-attention-contract.test: ok');

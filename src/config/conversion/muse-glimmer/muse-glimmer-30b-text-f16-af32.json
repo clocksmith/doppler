@@ -280,7 +280,7 @@
       ],
       [
         "attention",
-        "attn_head256"
+        "attn_stream"
       ],
       [
         "o_proj",

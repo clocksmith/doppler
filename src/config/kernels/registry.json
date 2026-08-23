@@ -130,6 +130,7 @@
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -138,9 +139,25 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["matmul.rules.json#matmulKernel"],
+      "wgslOnDisk": true
+     }
+    },
+    "bf16w_f32a": {
+     "wgsl": "matmul_bf16w_f32a.wgsl",
+     "entryPoint": "main",
+     "workgroup": [16,16,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "bf16",
+     "description": "Packed BF16 checkpoint weights expanded to F32 at use with F32 activations and output.",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["muse-glimmer/muse-glimmer-30b-text-bf16-af32"],
+      "ruleChains": [],
       "wgslOnDisk": true
      }
     },
@@ -218,6 +235,58 @@
       "wgslOnDisk": true
      }
     },
+    "gemv_subgroup_bf16w": {
+     "wgsl": "matmul_gemv_subgroup_bf16w.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "weightDtype": "bf16",
+     "variantMetadata": {
+      "colsPerWg": 4
+     },
+     "description": "Subgroup GEMV over packed BF16 checkpoint weights with F32 activations and output.",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "gemv_subgroup_bf16w_vec4": {
+     "wgsl": "matmul_gemv_subgroup_bf16w.wgsl",
+     "entryPoint": "main_vec4",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "weightDtype": "bf16",
+     "variantMetadata": {
+      "colsPerWg": 4
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["muse-glimmer/muse-glimmer-30b-text-bf16-af32"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "gemv_subgroup_bf16w_multicol": {
+     "wgsl": "matmul_gemv_subgroup_bf16w.wgsl",
+     "entryPoint": "main_multicol",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "weightDtype": "bf16",
+     "variantMetadata": {
+      "colsPerWg": 64
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["muse-glimmer/muse-glimmer-30b-text-bf16-af32"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "gemv_subgroup_f16a": {
      "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
      "entryPoint": "main",
@@ -270,9 +339,11 @@
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-9b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
-       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+       "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32"
       ],
       "ruleChains": ["matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
@@ -367,6 +438,7 @@
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
@@ -374,6 +446,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
@@ -642,6 +715,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
@@ -667,6 +741,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
@@ -701,6 +776,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
@@ -920,6 +996,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
@@ -1943,12 +2020,15 @@
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+       "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
@@ -2071,6 +2151,8 @@
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -2080,6 +2162,7 @@
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
@@ -2113,6 +2196,8 @@
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -2122,6 +2207,7 @@
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
@@ -2179,6 +2265,8 @@
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -2188,6 +2276,7 @@
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["attention.rules.json#optimizedVariant"],
@@ -3317,6 +3406,8 @@
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -3326,6 +3417,7 @@
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["rmsnorm.rules.json#variant"],
@@ -4453,6 +4545,8 @@
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
@@ -4463,6 +4557,7 @@
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["rope.rules.json#variant"],
@@ -4731,6 +4826,8 @@
        "amplify/amplify-120m-f16-af32",
        "esmc/esmc-300m-f32-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
@@ -4741,6 +4838,7 @@
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["silu.rules.json#variant"],
@@ -5639,6 +5737,21 @@
     ]
    },
    "variants": {
+    "bf16": {
+     "wgsl": "gather_bf16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "bf16",
+     "description": "Packed BF16 embeddings expanded to F32 at gather time.",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["muse-glimmer/muse-glimmer-30b-text-bf16-af32"],
+      "ruleChains": ["gather.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    },
     "default": {
      "wgsl": "gather.wgsl",
      "entryPoint": "main",
@@ -5699,6 +5812,7 @@
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -5708,6 +5822,7 @@
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["gather.rules.json#variant"],
@@ -6201,6 +6316,8 @@
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
@@ -6211,6 +6328,7 @@
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": ["residual.rules.json#biasAddVariant","residual.rules.json#residualVariant"],
@@ -8216,6 +8334,8 @@
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
+       "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -8224,6 +8344,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
       "ruleChains": [],
@@ -10959,7 +11080,7 @@
      "outputDtype": "f32",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen3.8-27b-text-q4k-ehaf16"],
+      "inlineConfigs": ["qwen3/qwen3.8-27b-text-f16-af32","qwen3/qwen3.8-27b-text-q4k-ehaf16"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -11127,7 +11248,7 @@
      "outputDtype": "f32",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen3.8-27b-text-q4k-ehaf16"],
+      "inlineConfigs": ["qwen3/qwen3.8-27b-text-f16-af32","qwen3/qwen3.8-27b-text-q4k-ehaf16"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -11300,7 +11421,7 @@
      "outputDtype": "f32",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen3.8-27b-text-q4k-ehaf16"],
+      "inlineConfigs": ["qwen3/qwen3.8-27b-text-f16-af32","qwen3/qwen3.8-27b-text-q4k-ehaf16"],
       "ruleChains": [],
       "wgslOnDisk": true
      }

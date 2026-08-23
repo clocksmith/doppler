@@ -25,6 +25,8 @@ export interface TensorLoadConfig {
   loaderDebug?: LoaderDebugConfigSchema | null;
   /** Keep weights as F32 (disable F16 downcasting) */
   keepF32Weights: boolean;
+  /** Keep stored BF16 buffers packed for BF16-aware kernels. */
+  keepBF16Weights?: boolean;
   /** Allow F16->F32 upcast for non-matmul weights */
   allowF32UpcastNonMatmul: boolean;
   /** Q4K layout: 'row' = fused kernel (fast), 'col' = dequant fallback */

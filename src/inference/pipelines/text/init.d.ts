@@ -254,6 +254,7 @@ export interface ResolvedQ4KConfig {
   useFusedQ4K: boolean;
   q4kLayout: 'row' | 'col' | null;
   keepF32Weights: boolean;
+  keepBF16Weights: boolean;
   q4kMaterializationMode: 'dense' | 'fused' | 'mixed';
   q4kFusedRoles: string[];
 }

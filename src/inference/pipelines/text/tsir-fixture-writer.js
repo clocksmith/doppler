@@ -89,18 +89,23 @@ export function mapStageToTsirBoundary(stage) {
 // captures arrived. Returns a record describing the action (write,
 // pending more partials, or write failure) so callers can append it to
 // the fixture's records list.
-async function trackQkvPartialAndMaybeWrite(tsirFixture, stage, layerIdx, numTokens, hiddenSize, arr) {
+async function trackQkvPartialAndMaybeWrite(tsirFixture, stage, layerIdx, numTokens, hiddenSize, arr, capture) {
   const qkvByLayer = (tsirFixture.qkvByLayer ??= new Map());
-  let entry = qkvByLayer.get(layerIdx);
+  const captureLayerKey = `${capture.key}:${layerIdx}`;
+  let entry = qkvByLayer.get(captureLayerKey);
   if (!entry) {
     entry = { numTokens, q: null, k: null, v: null, qHidden: 0, kHidden: 0, vHidden: 0 };
-    qkvByLayer.set(layerIdx, entry);
+    qkvByLayer.set(captureLayerKey, entry);
   }
   if (stage === 'q_proj') { entry.q = arr; entry.qHidden = hiddenSize; }
   else if (stage === 'k_proj') { entry.k = arr; entry.kHidden = hiddenSize; }
   else if (stage === 'v_proj') { entry.v = arr; entry.vHidden = hiddenSize; }
   if (!entry.q || !entry.k || !entry.v) {
-    return { stage: 'q_proj+k_proj+v_proj', tsirStage: 'post_qkv', layerIdx, written: false, note: 'pending-other-projections' };
+    return {
+      stage: 'q_proj+k_proj+v_proj', tsirStage: 'post_qkv', layerIdx,
+      phase: capture.phase, generationStep: capture.generationStep,
+      written: false, note: 'pending-other-projections',
+    };
   }
   const node = await getNodeFs();
   if (!node) {
@@ -115,15 +120,17 @@ async function trackQkvPartialAndMaybeWrite(tsirFixture, stage, layerIdx, numTok
     merged.set(entry.k.subarray(t * entry.kHidden, (t + 1) * entry.kHidden), dstBase + entry.qHidden);
     merged.set(entry.v.subarray(t * entry.vHidden, (t + 1) * entry.vHidden), dstBase + entry.qHidden + entry.kHidden);
   }
-  const layerDir = path.join(tsirFixture.dir, `layer_${layerIdx}`);
+  const layerDir = path.join(capture.dir, `layer_${layerIdx}`);
   const filePath = path.join(layerDir, 'post_qkv.npy');
-  qkvByLayer.delete(layerIdx);
+  qkvByLayer.delete(captureLayerKey);
   try {
     const info = await writeNpyF32(filePath, [entry.numTokens, totalHidden], merged);
     return {
       stage: 'q_proj+k_proj+v_proj',
       tsirStage: 'post_qkv',
       layerIdx,
+      phase: capture.phase,
+      generationStep: capture.generationStep,
       filePath,
       shape: [entry.numTokens, totalHidden],
       dtype: 'float32',
@@ -134,6 +141,37 @@ async function trackQkvPartialAndMaybeWrite(tsirFixture, stage, layerIdx, numTok
   } catch (e) {
     return { stage: 'q_proj+k_proj+v_proj', tsirStage: 'post_qkv', layerIdx, written: false, note: `qkv-concat-write-failed: ${e?.message ?? e}` };
   }
+}
+
+function resolveCaptureContext(tsirFixture, stage, layerIdx, numTokens) {
+  if (numTokens !== 1) {
+    return {
+      dir: tsirFixture.dir,
+      key: 'prefill',
+      phase: 'prefill',
+      generationStep: 0,
+    };
+  }
+  const generationStep = tsirFixture.generationStep;
+  if (tsirFixture.prefillOnly !== false && generationStep == null) return null;
+  if (generationStep != null) {
+    if (!Number.isInteger(generationStep) || generationStep < 1) {
+      throw new Error('tsirFixture.generationStep must be a positive integer when decode capture is enabled.');
+    }
+    if (tsirFixture.currentGenerationStep !== generationStep) return null;
+    return {
+      dir: `${tsirFixture.dir}/generation_step_${generationStep}`,
+      key: `generation-step-${generationStep}`,
+      phase: 'decode',
+      generationStep,
+    };
+  }
+  return {
+    dir: tsirFixture.dir,
+    key: 'decode-latest',
+    phase: 'decode',
+    generationStep: null,
+  };
 }
 
 // numpy .npy v1.0 writer for f32. Shape is a flat array of ints.
@@ -227,10 +265,8 @@ export async function maybeWriteFixtureSnapshot(stage, buffer, options) {
   if (!tsirStage) return null;
   const layerFilter = tsirFixture.layerFilter ?? null;
   if (Array.isArray(layerFilter) && !layerFilter.includes(layerIdx)) return null;
-  // Skip decode-step writes (numTokens === 1) so prefill snapshots aren't
-  // overwritten by single-token decode passes. Fixture semantics expect a
-  // multi-token prefill capture.
-  if (tsirFixture.prefillOnly !== false && numTokens === 1) return null;
+  const capture = resolveCaptureContext(tsirFixture, stage, layerIdx, numTokens);
+  if (!capture) return null;
   // When a prefill recorder is in-flight, the buffer doesn't have the
   // recorded ops applied yet — the staging copy would return zeros from
   // the pool. Defer the snapshot until the recorder has been submitted
@@ -257,8 +293,16 @@ export async function maybeWriteFixtureSnapshot(stage, buffer, options) {
       return { stage, tsirStage, layerIdx, written: false, note: `carry-copy-failed: ${e?.message ?? e}` };
     }
     const pending = (tsirFixture.pendingReads ??= []);
-    pending.push({ stage, tsirStage, layerIdx, numTokens, hiddenSize, dtype, carry, alignedBytes });
-    return { stage, tsirStage, layerIdx, written: false, note: 'pending-recorder-submit' };
+    pending.push({
+      stage, tsirStage, layerIdx, numTokens, hiddenSize, dtype, carry, alignedBytes,
+      captureDir: capture.dir, captureKey: capture.key,
+      phase: capture.phase, generationStep: capture.generationStep,
+    });
+    return {
+      stage, tsirStage, layerIdx, phase: capture.phase,
+      generationStep: capture.generationStep,
+      written: false, note: 'pending-recorder-submit',
+    };
   }
 
   const expectedElems = numTokens * hiddenSize;
@@ -284,7 +328,7 @@ export async function maybeWriteFixtureSnapshot(stage, buffer, options) {
     };
   }
   const { path } = node;
-  const layerDir = path.join(tsirFixture.dir, `layer_${layerIdx}`);
+  const layerDir = path.join(capture.dir, `layer_${layerIdx}`);
   const filePath = path.join(layerDir, `${tsirStage}.npy`);
   let perStageRecord;
   try {
@@ -293,6 +337,8 @@ export async function maybeWriteFixtureSnapshot(stage, buffer, options) {
       stage,
       tsirStage,
       layerIdx,
+      phase: capture.phase,
+      generationStep: capture.generationStep,
       filePath,
       shape: [numTokens, hiddenSize],
       dtype: 'float32',
@@ -315,6 +361,7 @@ export async function maybeWriteFixtureSnapshot(stage, buffer, options) {
   if (stage === 'q_proj' || stage === 'k_proj' || stage === 'v_proj') {
     const qkvRecord = await trackQkvPartialAndMaybeWrite(
       tsirFixture, stage, layerIdx, numTokens, hiddenSize, data,
+      capture,
     );
     if (qkvRecord && qkvRecord.written && Array.isArray(tsirFixture.records)) {
       tsirFixture.records.push(qkvRecord);
@@ -345,7 +392,10 @@ export async function drainPendingTsirReads(tsirFixture) {
   const node = await getNodeFs();
   const records = [];
   for (const item of pending) {
-    const { stage, tsirStage, layerIdx, numTokens, hiddenSize, dtype, carry, alignedBytes } = item;
+    const {
+      stage, tsirStage, layerIdx, numTokens, hiddenSize, dtype, carry, alignedBytes,
+      captureDir, captureKey, phase, generationStep,
+    } = item;
     let arr = null;
     let staging = null;
     let mapped = false;
@@ -380,11 +430,14 @@ export async function drainPendingTsirReads(tsirFixture) {
       continue;
     }
     const { path } = node;
-    const layerDir = path.join(tsirFixture.dir, `layer_${layerIdx}`);
+    const layerDir = path.join(captureDir, `layer_${layerIdx}`);
     const filePath = path.join(layerDir, `${tsirStage}.npy`);
     try {
       const info = await writeNpyF32(filePath, [numTokens, hiddenSize], arr);
-      records.push({ stage, tsirStage, layerIdx, filePath, shape: [numTokens, hiddenSize], dtype: 'float32', ...info, written: true });
+      records.push({
+        stage, tsirStage, layerIdx, phase, generationStep,
+        filePath, shape: [numTokens, hiddenSize], dtype: 'float32', ...info, written: true,
+      });
     } catch (e) {
       records.push({ stage, tsirStage, layerIdx, written: false, note: `write-failed: ${e?.message ?? e}` });
       continue;
@@ -396,6 +449,7 @@ export async function drainPendingTsirReads(tsirFixture) {
     if (stage === 'q_proj' || stage === 'k_proj' || stage === 'v_proj') {
       const qkvRecord = await trackQkvPartialAndMaybeWrite(
         tsirFixture, stage, layerIdx, numTokens, hiddenSize, arr,
+        { dir: captureDir, key: captureKey, phase, generationStep },
       );
       if (qkvRecord && qkvRecord.written) records.push(qkvRecord);
     }
