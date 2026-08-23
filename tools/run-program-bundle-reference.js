@@ -6,6 +6,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runNodeCommand } from '../src/tooling/node-command-runner.js';
 import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
 import { writeProgramBundle } from '../src/tooling/program-bundle.js';
+import { destroyDevice } from '../src/gpu/device.js';
+import { releaseNodeWebGPU } from '../src/tooling/node-webgpu.js';
 import { sha256Hex } from '../src/utils/sha256.js';
 
 const DEFAULT_PROMPT = 'The color of the sky is';
@@ -451,7 +453,7 @@ async function runReferenceVerify(options) {
   };
 
   if (options.surface === 'node') {
-    return runNodeCommand(request);
+    return runOwnedNodeReferenceCommand(request);
   }
 
   return runBrowserCommandInNode(request, {
@@ -459,6 +461,21 @@ async function runReferenceVerify(options) {
     timeoutMs: 600000,
     staticRootDir: options.repoRoot,
   });
+}
+
+export async function runOwnedNodeReferenceCommand(request, lifecycle = {}) {
+  const runCommand = lifecycle.runCommand ?? runNodeCommand;
+  const destroy = lifecycle.destroyDevice ?? destroyDevice;
+  const release = lifecycle.releaseNodeWebGPU ?? releaseNodeWebGPU;
+  try {
+    return await runCommand(request);
+  } finally {
+    try {
+      destroy();
+    } finally {
+      await release();
+    }
+  }
 }
 
 function compareTokenIds(expected, observed) {
