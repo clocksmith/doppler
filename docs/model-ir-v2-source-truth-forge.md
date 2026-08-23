@@ -202,5 +202,9 @@ development signer, and evidence bytes. It does not establish browser, Apple,
 production-signing, multimodal, speculative, application, or Doe support.
 
 Glimmer intake under the same directory proves representation construction
-only and must not be described as execution support. Its next gate is a generic
-`text.generate` lowering with zero Glimmer-named Runtime branches.
+only and must not be described as execution support. Its deterministic
+lowerability audit now compares source semantics with the admitted generic
+vocabulary and fails closed on missing local attention, QK scaling, output
+multiplication, post-normalization, and no-RoPE full-attention contracts. Those
+are reusable capability gaps, not permission to add a Glimmer-named Runtime
+branch.

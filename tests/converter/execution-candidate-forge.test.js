@@ -1,38 +1,30 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
-import { promoteExecutionCandidate, searchExecutionCandidates } from '../../src/converter/execution-candidate-forge.js';
+import {
+  auditEntryPointLowerability,
+  promoteExecutionCandidate,
+  searchExecutionCandidates,
+} from '../../src/converter/execution-candidate-forge.js';
 
 const qwenReceipt = JSON.parse(await fs.readFile('reports/model-ir-v2/qwen3.8-27b.model-ir-receipt.json', 'utf8'));
 const glimmerReceipt = JSON.parse(await fs.readFile('reports/model-ir-v2/glimmer-30b.model-ir-receipt.json', 'utf8'));
+const loweringVocabulary = JSON.parse(await fs.readFile(
+  'src/config/forge/lowering-vocabularies/hybrid-text-v1.json',
+  'utf8'
+));
 const digest = (character) => `sha256:${character.repeat(64)}`;
 const kernel = (id, character) => ({
   file: `${id}.wgsl`, entry: 'main', digest: digest(character), sourceHash: digest(character),
 });
 const vocabulary = {
-  schema: 'doppler.execution-candidate-forge/v1',
+  ...loweringVocabulary,
   kernels: {
     embed: kernel('embed', '1'), full_prefill: kernel('full_prefill', '2'), full_decode: kernel('full_decode', '3'),
     linear_prefill: kernel('linear_prefill', '4'), linear_decode: kernel('linear_decode', '5'),
     recurrent_update: kernel('recurrent_update', '6'), sample: kernel('sample', '7'),
   },
   entryPointKernels: { generate: ['embed', 'sample'] },
-  blockLowerings: [
-    {
-      id: 'portable-full-attention', blockKinds: ['full-attention'],
-      phases: {
-        prefill: [{ id: 'attention', kernelId: 'full_prefill' }],
-        decode: [{ id: 'attention', kernelId: 'full_decode' }],
-      },
-    },
-    {
-      id: 'portable-linear-recurrent', blockKinds: ['linear-recurrent-attention'],
-      phases: {
-        prefill: [{ id: 'linear', kernelId: 'linear_prefill' }, { id: 'state', kernelId: 'recurrent_update' }],
-        decode: [{ id: 'linear', kernelId: 'linear_decode' }, { id: 'state', kernelId: 'recurrent_update' }],
-      },
-    },
-  ],
 };
 const common = {
   supportedStateKinds: ['kv', 'recurrent', 'convolutional'],
@@ -84,6 +76,25 @@ assert.equal(search.rejectedCandidates.length, 2);
 assert.equal(search.acceptedCandidate.programBundle.schema, 'doppler.generated-program-bundle/v2');
 assert.equal(search.acceptedCandidate.executionGraph.schedule.length, 64);
 assert.ok(search.acceptedCandidate.kernelClosure.some((entry) => entry.moduleId === 'recurrent_update'));
+
+const glimmerAudit = auditEntryPointLowerability({
+  modelIR: glimmerReceipt.modelIR,
+  entryPointId: 'text.generate',
+  vocabulary,
+});
+assert.equal(glimmerAudit.lowerable, false);
+assert.equal(glimmerAudit.entryPointStatus, 'unlowered');
+assert.deepEqual(glimmerAudit.unimplementedStateKinds, []);
+assert.equal(
+  glimmerAudit.blockClasses.find((entry) => entry.blockClassId === 'sliding-attention')
+    .compatibleLoweringIds.length,
+  0
+);
+assert.match(
+  JSON.stringify(glimmerAudit.blockClasses),
+  /local-attention|qkScale|rmsnorm-with-postnorm/,
+  'the audit must expose semantic capability gaps without inspecting a model-family name'
+);
 
 const candidate = search.acceptedCandidate;
 const identity = createInitialExecutionIdentityV2({
