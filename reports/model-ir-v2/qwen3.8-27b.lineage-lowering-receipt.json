@@ -1,13 +1,13 @@
 {
   "schema": "doppler.lineage-lowering-receipt/v1",
-  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
-  "requestedModelId": "qwen3.8-27b-text-q4k-ehaf16",
+  "modelId": "qwen3-8-27b-text-f16-af32",
+  "requestedModelId": "qwen3.8-27b-text-f16-af32",
   "sourceModelIRHash": "sha256:646f863c20dd6330420e3cc58da367c4145136dc604dee9fde7d114c1850e6f3",
-  "modelIRHash": "sha256:40343e69863fa13866bfd6a18645f7feece620bf63b93b65b402168b2a0cfdfa",
+  "modelIRHash": "sha256:7808c222091fd17e1fabcc06ed57eacf0003ccad8efb0ba041c0b3905d5cba55",
   "modelIR": {
     "schema": "doppler.model-ir/v2",
     "schemaVersion": 2,
-    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+    "modelId": "qwen3-8-27b-text-f16-af32",
     "sourceIdentity": {
       "checkpointId": "Qwen/Qwen3.8-27B",
       "repository": "Qwen/Qwen3.8-27B",
@@ -2398,9 +2398,9 @@
   "author": {
     "kind": "ai",
     "actor": "openai-codex",
-    "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+    "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
   },
-  "generatedCandidates": 6,
+  "generatedCandidates": 7,
   "rejectedCandidates": [
     {
       "candidateId": "flat-homogeneous",
@@ -2438,9 +2438,25 @@
     {
       "candidateId": "f16-recurrent-blake3-closure",
       "reason": "Rejected during Pack closure preflight because the inherited BLAKE3 shard hashes cannot enter the SHA-256 Pack artifact contract. Conversion was canceled before completion and no qualification claim was produced."
+    },
+    {
+      "candidateId": "f16-recurrent-q4-body-sha256",
+      "reason": "Rejected after two physical Node WebGPU processes produced the same 128-token stream and first selected Luxembourg instead of Switzerland at generation index 81. Luxembourg led by 0.02722930908203125 logits with identical mismatch logits, graph, execution-plan, and initial-execution-identity digests.",
+      "evidence": {
+        "path": "reports/model-ir-v2/qwen3.8-27b.recurrent-f16.node-webgpu-negative.json",
+        "sha256": "5ea9b1dddffbe1632337cefe4b5f51d59a4feaf4a7403635acfc51e0deec43d1",
+        "manifestSha256": "e9d463978e4aea04baefce32ce68c04498686c8085bd1a545f98a62a41d32846",
+        "conversionConfigSha256": "5263a53a288d2e0d73f01190a7d92055086d66ab6e1a92fb30ed0e22e51fdd67",
+        "conversionConfigDigest": "sha256:d3639ac5260efdc894afdb3cda739f75d3dcb540ce3a4ad9b34cd54c7d7dc486",
+        "generatedTokenIdsHash": "sha256:17aa892a16ad59de93bdfa32c8b882f12d3dad54f6679d664f8c44fa2929784e",
+        "mismatchLogitsDigest": "sha256:8646b0db46beea7940b2e7eab475715382ed6b3184c33467a85fe3b4967d8dbf",
+        "executionGraphHash": "sha256:8640729b40ca4051e063fa146d685e1ba97ed2f52f6976934b021e44d9415e92",
+        "executionPlanDigest": "sha256:921fee36a78ffc806d0404a7f65d0e809f3eb1264905ba4eaaddf378ca5aeff6",
+        "initialExecutionIdentityDigest": "sha256:9050981c41fad606bd6c0f0003e6a22cc82be281a5693349ee75e6d5bb222308"
+      }
     }
   ],
-  "acceptedCandidateId": "qwen3.8-lineage-f16-recurrent-sha256-v4",
+  "acceptedCandidateId": "qwen3.8-lineage-full-f16-sha256-v5",
   "dispositions": [
     {
       "kind": "compatibility-requirement",
@@ -2848,9 +2864,21 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The complete multimodal source topology remains in ModelIR while this candidate lowers only text.generate."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/output/modelBaseId",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "The candidate identity must truthfully describe full-f16 weights rather than retain the rejected Q4 product identity."
     },
     {
       "kind": "policy-override",
@@ -2860,7 +2888,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "Signed Pack artifact closure requires SHA-256 weight-shard identities and must reject rather than relabel a BLAKE3 source manifest."
     },
@@ -2872,7 +2900,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The first signed text target is qualified within an explicit bounded sequence envelope."
     },
@@ -2884,7 +2912,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The source MTP drafter is represented but remains unlowered and cannot affect text.generate qualification."
     },
@@ -2896,7 +2924,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The accepted linear-attention block class requires a content-addressed causal convolution mechanism."
     },
@@ -2908,7 +2936,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The accepted gated-delta state contract requires a content-addressed recurrent update mechanism."
     },
@@ -2920,7 +2948,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The signed decode candidate must close over the optional single-token fused implementation selected by resolved policy."
     },
@@ -2932,7 +2960,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The heterogeneous block executor loads this complete recurrent mechanism closure outside the homogeneous layer-step sequence."
     },
@@ -2944,7 +2972,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The first qualification candidate uses separately declared A and B projections."
     },
@@ -2956,7 +2984,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The first qualification candidate uses separately declared QKV and output-gate projections."
     },
@@ -2968,9 +2996,21 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The first qualification candidate dispatches the separately content-addressed convolution and recurrent kernels."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/quantization/weights",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "Two physical recurrent-f16 replays reproduced a first divergence at token 81, so the next conservative candidate removes remaining Q4 body quantization without adding model-specific Runtime policy."
     },
     {
       "kind": "policy-override",
@@ -2980,9 +3020,9 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
-      "rationale": "Physical Q4-head qualification first diverged after 97 source tokens; retain the reusable higher-fidelity output-head lane while Forge tests the independently identified recurrent-body boundary."
+      "rationale": "Physical Q4-head qualification first diverged after 97 source tokens; every subsequent conservative candidate retains the reusable higher-fidelity output-head lane."
     },
     {
       "kind": "policy-override",
@@ -2992,9 +3032,177 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
-      "rationale": "A fresh-process f16-head replay reproduced the same token stream, first divergence, logits digest, graph hash, and execution identity, disproving the output-head-only hypothesis. Preserve recurrent-attention tensors as f16 while retaining Q4 FFN and full-attention weights."
+      "rationale": "The full-f16 weight policy now covers recurrent, full-attention, and FFN tensors uniformly; no model-specific exclusion is required."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/decode/1/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "The f16 q projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/decode/2/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "The f16 k projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/decode/3/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "The f16 v projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/decode/7/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "The f16 attention output projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/decode/10/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "The f16 FFN gate projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/decode/11/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "The f16 FFN up projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/decode/13/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "The f16 FFN down projection must dispatch the generic manifest-declared f16 matmul mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/prefill/1/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "Prefill must use the same generic f16 q projection mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/prefill/2/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "Prefill must use the same generic f16 k projection mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/prefill/3/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "Prefill must use the same generic f16 v projection mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/prefill/7/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "Prefill must use the same generic f16 attention output projection mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/prefill/10/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "Prefill must use the same generic f16 FFN gate projection mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/prefill/11/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "Prefill must use the same generic f16 FFN up projection mechanism."
+    },
+    {
+      "kind": "policy-override",
+      "targetPointer": "/execution/prefill/13/1",
+      "lifecycle": "forge",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+      },
+      "rationale": "Prefill must use the same generic f16 FFN down projection mechanism."
     },
     {
       "kind": "policy-override",
@@ -3004,7 +3212,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The f16 output-head candidate must dispatch the manifest-declared f16 matmul mechanism for decode."
     },
@@ -3016,7 +3224,7 @@
       "author": {
         "kind": "ai",
         "actor": "openai-codex",
-        "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
+        "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
       },
       "rationale": "The f16 output-head candidate must dispatch the same manifest-declared f16 matmul mechanism for prefill."
     },
@@ -3136,30 +3344,28 @@
     },
     {
       "kind": "artifact-identity-normalization",
-      "requestedModelId": "qwen3.8-27b-text-q4k-ehaf16",
-      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "requestedModelId": "qwen3.8-27b-text-f16-af32",
+      "modelId": "qwen3-8-27b-text-f16-af32",
       "disposition": "accepted"
     }
   ],
   "unresolvedFacts": [],
-  "conversionConfigDigest": "sha256:d3639ac5260efdc894afdb3cda739f75d3dcb540ce3a4ad9b34cd54c7d7dc486",
+  "conversionConfigDigest": "sha256:fea3151181e4b5bb55a177c490c877a992b5ebc6478790e59bc7e9d825d07744",
   "conversionConfig": {
     "modelType": "transformer",
     "output": {
       "baseDir": "models/local",
-      "modelBaseId": "qwen3.8-27b-text-q4k-ehaf16",
+      "modelBaseId": "qwen3.8-27b-text-f16-af32",
       "textOnly": true,
       "fast": false
     },
     "quantization": {
-      "weights": "q4k",
+      "weights": "f16",
       "embeddings": "f16",
       "lmHead": "f16",
       "vision": "f16",
       "projector": "f16",
-      "modulesToNotConvert": [
-        "model.language_model.layers.*.linear_attn"
-      ],
+      "modulesToNotConvert": [],
       "computePrecision": "f32",
       "q4kLayout": "row"
     },
@@ -3538,17 +3744,17 @@
         ],
         [
           "q_proj",
-          "q4_decode_gemv",
+          "tiled",
           "layer.{L}.self_attn.q_proj"
         ],
         [
           "k_proj",
-          "q4_decode_gemv",
+          "tiled",
           "layer.{L}.self_attn.k_proj"
         ],
         [
           "v_proj",
-          "q4_decode_gemv",
+          "tiled",
           "layer.{L}.self_attn.v_proj"
         ],
         [
@@ -3565,7 +3771,7 @@
         ],
         [
           "o_proj",
-          "q4_decode_gemv",
+          "tiled",
           "layer.{L}.self_attn.o_proj"
         ],
         [
@@ -3578,12 +3784,12 @@
         ],
         [
           "gate_proj",
-          "q4_decode_gemv",
+          "tiled",
           "layer.{L}.mlp.gate_proj"
         ],
         [
           "up_proj",
-          "q4_decode_gemv",
+          "tiled",
           "layer.{L}.mlp.up_proj"
         ],
         [
@@ -3592,7 +3798,7 @@
         ],
         [
           "down_proj",
-          "q4_decode_gemv",
+          "tiled",
           "layer.{L}.mlp.down_proj"
         ],
         [
@@ -3607,17 +3813,17 @@
         ],
         [
           "q_proj",
-          "q4_widetile",
+          "tiled",
           "layer.{L}.self_attn.q_proj"
         ],
         [
           "k_proj",
-          "q4_widetile",
+          "tiled",
           "layer.{L}.self_attn.k_proj"
         ],
         [
           "v_proj",
-          "q4_widetile",
+          "tiled",
           "layer.{L}.self_attn.v_proj"
         ],
         [
@@ -3634,7 +3840,7 @@
         ],
         [
           "o_proj",
-          "q4_widetile",
+          "tiled",
           "layer.{L}.self_attn.o_proj"
         ],
         [
@@ -3647,12 +3853,12 @@
         ],
         [
           "gate_proj",
-          "q4_widetile",
+          "tiled",
           "layer.{L}.mlp.gate_proj"
         ],
         [
           "up_proj",
-          "q4_widetile",
+          "tiled",
           "layer.{L}.mlp.up_proj"
         ],
         [
@@ -3661,7 +3867,7 @@
         ],
         [
           "down_proj",
-          "q4_widetile",
+          "tiled",
           "layer.{L}.mlp.down_proj"
         ],
         [
