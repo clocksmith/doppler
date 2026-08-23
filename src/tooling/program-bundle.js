@@ -256,13 +256,13 @@ function collectKernelRefsFromEntries(entries, section, refs) {
     }
   }
 }
-
 function collectReachableKernelRefs(execution) {
   const refs = [];
   collectKernelRefsFromEntries(execution.preLayer, 'preLayer', refs);
   collectKernelRefsFromEntries(execution.decode, 'decode', refs);
   collectKernelRefsFromEntries(execution.prefill, 'prefill', refs);
   collectKernelRefsFromEntries(execution.postLayer, 'postLayer', refs);
+  for (const [index, id] of (execution.mechanismKernels ?? []).entries()) refs.push({ id, section: 'mechanismKernels', index });
   return refs;
 }
 

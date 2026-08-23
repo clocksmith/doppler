@@ -602,6 +602,7 @@ export function buildReferenceTranscriptSeed(run, context = {}) {
     prompt: {
       identity: typeof run.prompt === 'string' && run.prompt.trim() ? run.prompt : 'promptInput',
       hash: hashStableJson(promptPayload),
+      ids: promptTokenIds,
       tokenIdsHash: promptTokenIds ? hashStableJson(promptTokenIds) : null,
       tokenCount: promptTokenIds ? promptTokenIds.length : null,
     },
@@ -697,7 +698,6 @@ async function runKernelSuite(options = {}) {
     deviceInfo: resolveDeviceInfo(),
   };
 }
-
 async function runInferenceSuite(options = {}) {
   const startTime = performance.now();
   const cacheMode = normalizeCacheMode(options.cacheMode);
@@ -1021,6 +1021,7 @@ async function runInferenceSuite(options = {}) {
       kernelPathId: run.phase.kernelPathId,
       kernelPathSource: run.phase.kernelPathSource,
       generationDiagnostics: run.tokenDiagnostics, generationConfig: run.generationConfig,
+      initialExecutionIdentity: run.initialExecutionIdentity,
       kvCache: run.phase.kvCache ?? null,
       referenceTranscript: buildReferenceTranscriptSeed(run, {
         executionGraphHash: resolveExecutionGraphHash(harness.manifest),
@@ -1110,7 +1111,6 @@ async function runInferenceSuite(options = {}) {
     pipeline: options.keepPipeline ? harness.pipeline : null,
   };
 }
-
 function resolveBenchmarkIterationSettings(runtimeConfig) {
   const benchConfig = runtimeConfig?.shared?.benchmark?.run || {};
   return {

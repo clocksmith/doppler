@@ -9,7 +9,13 @@
 
 import path from 'node:path';
 import { createModelIR, hashModelIR, validateModelIR } from '../config/model-ir.js';
-import { createTargetPlan, hashTargetPlan, validateTargetPlan } from '../config/target-plan.js';
+import {
+  createTargetPlan,
+  createTargetPlanV2,
+  hashTargetPlan,
+  validateTargetPlan,
+} from '../config/target-plan.js';
+import { validateInitialExecutionIdentity } from '../config/initial-execution-identity.js';
 import {
   PACK_V2_PROGRAM_SCHEMA_ID,
   buildPackV2,
@@ -202,6 +208,8 @@ export async function stageInspect(input) {
       programBundlePath,
       outputPath,
       qualificationEvidence: Array.isArray(input.qualificationEvidence) ? input.qualificationEvidence : [],
+      modelIR: input.modelIR ?? null,
+      initialExecutionIdentity: input.initialExecutionIdentity ?? null,
     },
   };
 }
@@ -250,6 +258,45 @@ export function stageNormalize(inspected) {
 export function stageAnalyze(normalized) {
   const source = requireObject(normalized, 'normalized source');
   const manifest = source.manifest;
+  if (source.modelIR !== null && source.modelIR !== undefined) {
+    const validation = validateModelIR(source.modelIR);
+    if (!validation.ok) {
+      throw new Error(`Forge analyze rejected supplied ModelIR: ${validation.errors.join('; ')}`);
+    }
+    if (source.modelIR.modelId !== manifest.modelId) {
+      throw new Error(
+        `Forge ModelIR modelId "${source.modelIR.modelId}" does not match manifest modelId "${manifest.modelId}".`
+      );
+    }
+    const sourceIdentity = source.modelIR.sourceIdentity;
+    if (source.modelIR.schema === 'doppler.model-ir/v2') {
+      const artifactIdentity = requireObject(manifest.artifactIdentity, 'manifest.artifactIdentity');
+      const checkpointId = requireString(
+        artifactIdentity.sourceCheckpointId,
+        'manifest.artifactIdentity.sourceCheckpointId'
+      );
+      if (sourceIdentity.checkpointId !== checkpointId) {
+        throw new Error(
+          `Forge ModelIR checkpointId "${sourceIdentity.checkpointId}" does not match manifest source checkpoint "${checkpointId}".`
+        );
+      }
+      if (artifactIdentity.sourceRepo !== undefined
+        && sourceIdentity.repository !== artifactIdentity.sourceRepo) {
+        throw new Error('Forge ModelIR repository does not match manifest artifact identity.');
+      }
+      if (artifactIdentity.sourceRevision !== undefined
+        && sourceIdentity.revision !== artifactIdentity.sourceRevision) {
+        throw new Error('Forge ModelIR revision does not match manifest artifact identity.');
+      }
+    }
+    return {
+      stage: 'analyze',
+      ok: true,
+      modelIR: source.modelIR,
+      modelIRHash: hashModelIR(source.modelIR),
+      normalized: source,
+    };
+  }
   assertModelTopologyRepresentable(manifest);
   const architecture = requireObject(manifest.architecture, 'manifest.architecture');
   const inference = requireObject(manifest.inference, 'manifest.inference');
@@ -318,6 +365,101 @@ export function stageAnalyze(normalized) {
     session,
   });
   return { stage: 'analyze', ok: true, modelIR, modelIRHash: hashModelIR(modelIR), normalized: source };
+}
+
+function dtypeByteWidth(dtype, label) {
+  const normalized = requireString(dtype, label).toLowerCase();
+  if (normalized === 'f16' || normalized === 'float16' || normalized === 'bf16') return 2;
+  if (normalized === 'f32' || normalized === 'float32') return 4;
+  throw new Error(`Forge cannot size state with unsupported dtype "${dtype}" at ${label}.`);
+}
+
+function resolveModelIRSpecialization(modelIR, manifest) {
+  if (modelIR.schema !== 'doppler.model-ir/v2') {
+    return {
+      hiddenSize: modelIR.hiddenSize,
+      vocabSize: modelIR.vocabSize,
+      kvElementsPerToken: modelIR.numLayers
+        * modelIR.attentionGeometry.numKvHeads
+        * modelIR.attentionGeometry.headDim
+        * 2,
+      recurrentStateBytes: 0,
+      convolutionalStateBytes: 0,
+    };
+  }
+
+  const loweredGenerate = modelIR.entryPoints.filter((entryPoint) => (
+    entryPoint.kind === 'generate'
+      && entryPoint.status === 'lowered'
+      && entryPoint.phases.includes('prefill')
+      && entryPoint.phases.includes('decode')
+  ));
+  if (loweredGenerate.length !== 1) {
+    throw new Error('Forge requires exactly one lowered ModelIR v2 generate entry point with prefill and decode.');
+  }
+  const entryPoint = loweredGenerate[0];
+  if (!modelIR.supportScope.loweredEntryPoints.includes(entryPoint.id)) {
+    throw new Error('Forge generate entry point is absent from ModelIR supportScope.loweredEntryPoints.');
+  }
+  const component = modelIR.components.find((candidate) => candidate.id === entryPoint.componentId);
+  const schedule = modelIR.blockSchedules.find((candidate) => candidate.componentId === entryPoint.componentId);
+  if (!component || !schedule) {
+    throw new Error('Forge cannot resolve the lowered entry point component and block schedule.');
+  }
+  const hiddenSize = requirePositiveInteger(component.properties.hiddenSize, `${component.id}.properties.hiddenSize`);
+  const vocabSize = requirePositiveInteger(component.properties.vocabSize, `${component.id}.properties.vocabSize`);
+  const numLayers = requirePositiveInteger(component.properties.numLayers, `${component.id}.properties.numLayers`);
+  if (schedule.blocks.length !== numLayers) {
+    throw new Error(`Forge block schedule "${schedule.id}" does not contain ${numLayers} blocks.`);
+  }
+
+  const classes = new Map(modelIR.blockClasses.map((blockClass) => [blockClass.id, blockClass]));
+  let kvElementsPerToken = 0;
+  let recurrentStateElements = 0;
+  let convolutionalStateElements = 0;
+  for (const block of schedule.blocks) {
+    const blockClass = classes.get(block.blockClassId);
+    if (!blockClass) throw new Error(`Forge cannot resolve block class "${block.blockClassId}".`);
+    if (blockClass.kind === 'full-attention' || blockClass.kind === 'local-attention') {
+      kvElementsPerToken += requirePositiveInteger(
+        blockClass.geometry.numKvHeads,
+        `${blockClass.id}.geometry.numKvHeads`
+      ) * requirePositiveInteger(blockClass.geometry.headDim, `${blockClass.id}.geometry.headDim`) * 2;
+    }
+    if (blockClass.kind === 'linear-recurrent-attention') {
+      const valueHeads = requirePositiveInteger(blockClass.geometry.valueHeads, `${blockClass.id}.geometry.valueHeads`);
+      const keyHeadDim = requirePositiveInteger(blockClass.geometry.keyHeadDim, `${blockClass.id}.geometry.keyHeadDim`);
+      const valueHeadDim = requirePositiveInteger(blockClass.geometry.valueHeadDim, `${blockClass.id}.geometry.valueHeadDim`);
+      const keyHeads = requirePositiveInteger(blockClass.geometry.keyHeads, `${blockClass.id}.geometry.keyHeads`);
+      const convState = modelIR.stateSpaces.find((state) => state.kind === 'convolutional');
+      const kernelSize = requirePositiveInteger(
+        convState?.contract?.kernelSize,
+        'ModelIR convolutional state contract.kernelSize'
+      );
+      recurrentStateElements += valueHeads * keyHeadDim * valueHeadDim;
+      convolutionalStateElements += (keyHeads * keyHeadDim * 2 + valueHeads * valueHeadDim) * kernelSize;
+    }
+  }
+  const recurrentState = modelIR.stateSpaces.find((state) => state.kind === 'recurrent');
+  if (recurrentStateElements > 0 && !recurrentState) {
+    throw new Error('Forge heterogeneous lowering requires a recurrent state-space contract.');
+  }
+  const recurrentStateBytes = recurrentStateElements > 0
+    ? recurrentStateElements * dtypeByteWidth(recurrentState.contract.dtype, 'ModelIR recurrent state contract.dtype')
+    : 0;
+  const convolutionalState = modelIR.stateSpaces.find((state) => state.kind === 'convolutional');
+  return {
+    hiddenSize,
+    vocabSize,
+    kvElementsPerToken,
+    recurrentStateBytes,
+    convolutionalStateBytes: convolutionalStateElements > 0
+      ? convolutionalStateElements * dtypeByteWidth(
+        convolutionalState.contract.dtype,
+        'ModelIR convolutional state contract.dtype'
+      )
+      : 0,
+  };
 }
 
 /** Stage 4: Lower the closed Program Bundle into phase commands. */
@@ -405,10 +547,53 @@ export function stageSpecialize(lowered) {
   const activationDtype = requireString(session.compute?.defaults?.activationDtype, 'manifest.inference.session.compute.defaults.activationDtype');
   const kvDtype = requireString(session.kvcache?.kvDtype, 'manifest.inference.session.kvcache.kvDtype');
   const weightDtype = requireString(manifest.quantizationInfo?.weights, 'manifest.quantizationInfo.weights');
+  const specialization = resolveModelIRSpecialization(modelIR, manifest);
+  if (modelIR.schema === 'doppler.model-ir/v2' && normalized.initialExecutionIdentity === null) {
+    throw new Error('Forge requires a pre-dispatch initial execution identity for ModelIR v2 specialization.');
+  }
   const requiresSubgroups = wgslModules.some((module) => module.metadata?.requiresSubgroups === true);
   const bytesPerActivation = activationDtype === 'f16' ? 2 : 4;
   const bytesPerKv = kvDtype === 'f16' ? 2 : 4;
-  const targetPlan = createTargetPlan({
+  const bufferSlots = [
+    {
+      slotId: 'input_tokens', role: 'token-ids', scope: 'transient', owner: 'runtime',
+      usage: ['storage', 'copy-dst'],
+      size: { op: 'affine', constantBytes: 0, terms: { seqLen: 4 }, alignment: 256, minimumBytes: 256 },
+    },
+    {
+      slotId: 'hidden_state', role: 'activation', scope: 'layer-recycled', owner: 'program',
+      usage: ['storage'],
+      size: { op: 'affine', constantBytes: 0, terms: { seqLen: specialization.hiddenSize * bytesPerActivation }, alignment: 256, minimumBytes: 256 },
+    },
+  ];
+  if (specialization.kvElementsPerToken > 0) {
+    bufferSlots.push({
+      slotId: 'kv_cache', role: 'kv', scope: 'session', owner: 'program',
+      usage: ['storage'],
+      size: { op: 'affine', constantBytes: 0, terms: { maxSeqLen: specialization.kvElementsPerToken * bytesPerKv }, alignment: 256, minimumBytes: 256 },
+    });
+  }
+  if (specialization.recurrentStateBytes > 0) {
+    bufferSlots.push({
+      slotId: 'recurrent_state', role: 'recurrent-state', scope: 'session', owner: 'program',
+      usage: ['storage', 'copy-dst'],
+      size: { op: 'constant', bytes: specialization.recurrentStateBytes },
+    });
+  }
+  if (specialization.convolutionalStateBytes > 0) {
+    bufferSlots.push({
+      slotId: 'convolutional_state', role: 'convolutional-state', scope: 'session', owner: 'program',
+      usage: ['storage', 'copy-dst'],
+      size: { op: 'constant', bytes: specialization.convolutionalStateBytes },
+    });
+  }
+  bufferSlots.push({
+    slotId: 'logits', role: 'logits', scope: 'transient', owner: 'program',
+    usage: ['storage', 'copy-src'],
+    size: { op: 'constant', bytes: specialization.vocabSize * 4 },
+  });
+
+  const targetPlanFields = {
     targetId: `webgpu-${activationDtype}-${kvDtype}-${requiresSubgroups ? 'subgroups' : 'portable'}`,
     modelId: modelIR.modelId,
     modelIRHash: lowered.modelIRHash,
@@ -428,32 +613,24 @@ export function stageSpecialize(lowered) {
     })),
     memoryLayout: {
       kvCacheLayout: requireString(session.kvcache.layout, 'manifest.inference.session.kvcache.layout'),
-      bufferSlots: [
-        {
-          slotId: 'input_tokens', role: 'token-ids', scope: 'transient', owner: 'runtime',
-          usage: ['storage', 'copy-dst'],
-          size: { op: 'affine', constantBytes: 0, terms: { seqLen: 4 }, alignment: 256, minimumBytes: 256 },
-        },
-        {
-          slotId: 'hidden_state', role: 'activation', scope: 'layer-recycled', owner: 'program',
-          usage: ['storage'],
-          size: { op: 'affine', constantBytes: 0, terms: { seqLen: modelIR.hiddenSize * bytesPerActivation }, alignment: 256, minimumBytes: 256 },
-        },
-        {
-          slotId: 'kv_cache', role: 'kv', scope: 'session', owner: 'program',
-          usage: ['storage'],
-          size: { op: 'affine', constantBytes: 0, terms: { maxSeqLen: modelIR.numLayers * modelIR.attentionGeometry.numKvHeads * modelIR.attentionGeometry.headDim * 2 * bytesPerKv }, alignment: 256, minimumBytes: 256 },
-        },
-        {
-          slotId: 'logits', role: 'logits', scope: 'transient', owner: 'program',
-          usage: ['storage', 'copy-src'],
-          size: { op: 'constant', bytes: modelIR.vocabSize * 4 },
-        },
-      ],
+      bufferSlots,
     },
     phases: lowered.loweredProgram.phases,
     qualification: buildQualificationRecords(lowered),
-  });
+  };
+  let targetPlan;
+  if (normalized.initialExecutionIdentity !== null) {
+    const identityValidation = validateInitialExecutionIdentity(normalized.initialExecutionIdentity);
+    if (!identityValidation.ok) {
+      throw new Error(`Forge rejected initial execution identity: ${identityValidation.errors.join('; ')}`);
+    }
+    targetPlan = createTargetPlanV2({
+      ...targetPlanFields,
+      initialExecutionIdentity: normalized.initialExecutionIdentity,
+    });
+  } else {
+    targetPlan = createTargetPlan(targetPlanFields);
+  }
   return {
     ...lowered, stage: 'specialize', ok: true,
     targetPlans: [targetPlan], targetPlanHashes: [hashTargetPlan(targetPlan)], wgslModules,
@@ -472,6 +649,30 @@ export function stageSearch(specialized) {
   };
 }
 
+function assertTargetPlanMatchesInitialExecutionIdentity(plan) {
+  if (plan.schema !== 'doppler.target-plan/v2') return;
+  const plannedKernels = plan.kernelClosure
+    .map(({ moduleId, digest }) => ({ moduleId, digest }))
+    .sort((left, right) => left.moduleId.localeCompare(right.moduleId));
+  const observedKernels = plan.initialExecutionIdentity.kernelClosure
+    .map(({ moduleId, digest }) => ({ moduleId, digest }))
+    .sort((left, right) => left.moduleId.localeCompare(right.moduleId));
+  if (hashStable(plannedKernels) !== hashStable(observedKernels)) {
+    throw new Error('Forge verify found a TargetPlan kernel closure different from the observed initial execution.');
+  }
+  for (const lane of ['activation', 'kv']) {
+    if (plan.dtypes[lane] !== plan.initialExecutionIdentity.dtypeLane[lane]) {
+      throw new Error(`Forge verify found TargetPlan dtype lane "${lane}" different from initial execution.`);
+    }
+  }
+  if (hashStable(plan.fusions) !== hashStable(plan.initialExecutionIdentity.fusionSet)) {
+    throw new Error('Forge verify found a TargetPlan fusion set different from the observed initial execution.');
+  }
+  if (plan.memoryLayout.kvCacheLayout !== plan.initialExecutionIdentity.kvLayout.layout) {
+    throw new Error('Forge verify found a TargetPlan KV layout different from the observed initial execution.');
+  }
+}
+
 /** Stage 7: Verify graph, ModelIR, plan, and kernel closure bindings. */
 export function stageVerify(searched) {
   const modelValidation = validateModelIR(searched.modelIR);
@@ -484,6 +685,7 @@ export function stageVerify(searched) {
     if (plan.kernelClosure.some((kernel) => !moduleIds.has(kernel.moduleId))) {
       throw new Error('Forge verify found a TargetPlan kernel outside the WGSL closure.');
     }
+    assertTargetPlanMatchesInitialExecutionIdentity(plan);
   }
   return { ...searched, stage: 'verify', ok: true, verificationReceipt: { modelIRHash: searched.modelIRHash, targetPlanHashes: searched.targetPlanHashes } };
 }

@@ -113,6 +113,28 @@ Promotion requires:
 - an observed initial execution identity matching the TargetPlan before first
   prefill dispatch.
 
+`tools/run-program-bundle-reference.js --expected-transcript <path>` is the
+promotion gate from an upstream reference to a Program Bundle. It records the
+raw prompt-token comparison, the complete generated-token comparison, and the
+first mismatch. A mismatch report is retained, but no Program Bundle is
+emitted.
+
+The Pack compiler accepts these promoted inputs explicitly:
+
+```bash
+node tools/forge-model-pack.js \
+  --program-bundle <program-bundle.json> \
+  --model-ir-receipt <model-ir-receipt.json> \
+  --initial-identity <physical-qualification-report.json> \
+  --qualification-report <physical-qualification-report.json> \
+  --out <model.pack.json>
+```
+
+For ModelIR v2, Forge refuses specialization unless the identity was observed
+before dispatch. Program Bundle reachability includes both phase-dispatched
+kernels and `execution.mechanismKernels`; recurrent and convolutional
+mechanisms therefore cannot execute outside the signed WGSL closure.
+
 The observed identity binds the resolved graph, semantic-block mechanism
 kernels, dtype lane, fusion set, KV layout, memory policy, execution plan, and
 canonical resolved runtime-session digest. A later transition is still an

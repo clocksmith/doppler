@@ -21,6 +21,7 @@ function usage() {
     '  --model-url <url|path>         Replay model URL; defaults to file://<model-dir>.',
     '  --conversion-config <path>     Conversion config artifact to include.',
     '  --runtime-config <path|json>   Runtime config input for the verify run.',
+    '  --expected-transcript <path>  Pinned upstream transcript required for exact token parity.',
     '  --surface <node|browser>       Reference surface; default browser.',
     '  --prompt <text>                Prompt for the bounded proof run.',
     '  --max-tokens <n>               Max generated tokens; default 8.',
@@ -51,6 +52,7 @@ export function parseArgs(argv) {
     modelUrl: null,
     conversionConfigPath: null,
     runtimeConfig: null,
+    expectedTranscriptPath: null,
     surface: 'browser',
     prompt: DEFAULT_PROMPT,
     maxTokens: DEFAULT_MAX_TOKENS,
@@ -96,6 +98,11 @@ export function parseArgs(argv) {
     }
     if (arg === '--runtime-config') {
       args.runtimeConfig = readFlag(argv, index);
+      index += 1;
+      continue;
+    }
+    if (arg === '--expected-transcript') {
+      args.expectedTranscriptPath = readFlag(argv, index);
       index += 1;
       continue;
     }
@@ -239,6 +246,12 @@ async function resolveOptions(args) {
       : modelDir,
     conversionConfigPath: args.conversionConfigPath ? path.resolve(args.conversionConfigPath) : null,
     runtimeConfig: args.runtimeConfig,
+    expectedTranscript: args.expectedTranscriptPath
+      ? {
+        path: path.relative(repoRoot, path.resolve(args.expectedTranscriptPath)).split(path.sep).join('/'),
+        json: await readJsonFile(args.expectedTranscriptPath, 'expected transcript'),
+      }
+      : null,
     surface: args.surface,
     prompt: args.prompt,
     maxTokens: args.maxTokens,
@@ -421,7 +434,60 @@ async function runReferenceVerify(options) {
   });
 }
 
-async function writeReferenceReport(response, reportPath) {
+function compareTokenIds(expected, observed) {
+  const expectedIds = Array.isArray(expected) ? expected : [];
+  const observedIds = Array.isArray(observed) ? observed : [];
+  const compared = Math.max(expectedIds.length, observedIds.length);
+  let firstMismatchIndex = null;
+  for (let index = 0; index < compared; index += 1) {
+    if (expectedIds[index] !== observedIds[index]) {
+      firstMismatchIndex = index;
+      break;
+    }
+  }
+  return {
+    passed: firstMismatchIndex === null,
+    expectedCount: expectedIds.length,
+    observedCount: observedIds.length,
+    firstMismatchIndex,
+    expectedTokenId: firstMismatchIndex === null ? null : (expectedIds[firstMismatchIndex] ?? null),
+    observedTokenId: firstMismatchIndex === null ? null : (observedIds[firstMismatchIndex] ?? null),
+  };
+}
+
+export function buildSourceParity(report, expectedTranscript) {
+  const expected = expectedTranscript.json;
+  if (!Array.isArray(expected.promptTokenIds) || expected.promptTokenIds.length < 1) {
+    throw new Error('expected transcript must contain non-empty promptTokenIds.');
+  }
+  const prompt = compareTokenIds(
+    expected.promptTokenIds,
+    report.metrics?.referenceTranscript?.prompt?.ids
+  );
+  const generation = compareTokenIds(
+    expected.generatedTokenIds,
+    report.metrics?.referenceTranscript?.tokens?.ids
+  );
+  const expectedCount = expected.generatedTokens ?? expected.generation?.maxNewTokens;
+  if (!Number.isInteger(expectedCount) || expectedCount < 1) {
+    throw new Error('expected transcript must declare generatedTokens or generation.maxNewTokens.');
+  }
+  if (!Array.isArray(expected.generatedTokenIds) || expected.generatedTokenIds.length !== expectedCount) {
+    throw new Error('expected transcript generatedTokenIds length does not match its declared generated token count.');
+  }
+  return {
+    schema: 'doppler.source-token-parity/v1',
+    status: prompt.passed && generation.passed ? 'passed' : 'failed',
+    expectedTranscriptPath: expectedTranscript.path,
+    sourceModel: expected.model ?? null,
+    sourceRevision: expected.revision ?? null,
+    sampling: expected.execution?.sampling ?? null,
+    prompt,
+    generation,
+  };
+}
+
+async function writeReferenceReport(response, reportPath, expectedTranscript = null) {
   const report = response?.result?.report;
   if (!report || typeof report !== 'object' || Array.isArray(report)) {
     throw new Error(
@@ -429,9 +495,27 @@ async function writeReferenceReport(response, reportPath) {
       'Use a command runner that returns the full report object.'
     );
   }
+  const sourceParity = expectedTranscript ? buildSourceParity(report, expectedTranscript) : null;
+  if (sourceParity) {
+    const mismatch = sourceParity.prompt.firstMismatchIndex === null
+      ? `generation index ${sourceParity.generation.firstMismatchIndex}`
+      : `prompt index ${sourceParity.prompt.firstMismatchIndex}`;
+    report.metrics.sourceParity = sourceParity;
+    report.results = [
+      ...(Array.isArray(report.results) ? report.results : []),
+      {
+        name: 'source-token-parity',
+        passed: sourceParity.status === 'passed',
+        duration: 0,
+        ...(sourceParity.status === 'passed'
+          ? {}
+          : { error: `First source-token mismatch at ${mismatch}.` }),
+      },
+    ];
+  }
   await fs.mkdir(path.dirname(reportPath), { recursive: true });
   await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
-  return report;
+  return { report, sourceParity };
 }
 
 async function main() {
@@ -442,7 +526,17 @@ async function main() {
   }
   const options = await resolveOptions(args);
   const response = await runReferenceVerify(options);
-  const report = await writeReferenceReport(response, options.referenceReportPath);
+  const { report, sourceParity } = await writeReferenceReport(
+    response,
+    options.referenceReportPath,
+    options.expectedTranscript
+  );
+  if (sourceParity?.status === 'failed') {
+    throw new Error(
+      `source-token parity failed: prompt mismatch ${sourceParity.prompt.firstMismatchIndex}, `
+      + `generation mismatch ${sourceParity.generation.firstMismatchIndex}.`
+    );
+  }
   const result = await writeProgramBundle({
     repoRoot: options.repoRoot,
     manifestPath: options.manifestPath,
