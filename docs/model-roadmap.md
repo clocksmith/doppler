@@ -37,7 +37,7 @@ Goal: autonomous coding, tool use, document analysis, and multi-step reasoning o
 
 | Model | Status | Current state |
 | --- | --- | --- |
-| Qwen 3.8 27B | benchmark-needed | Primary workstation flagship. Forge Lineage Acceleration Trial: leverages historical Qwen execution graphs to synthesize and verify hybrid attention/MLP layers with minimal manual intervention. |
+| Qwen 3.8 27B | benchmark-needed | The lineage-acceleration campaign produced a development-signed text Pack with 128/128 exact tokens on physical AMD Node WebGPU, complete artifact verification, prefill identity binding, and immutable TargetPlan identity. Browser, application, comparative benchmark, and production-signing gates remain open. |
 | [Meta Muse Glimmer 30B](programs/glimmer-architectural-generalization.md) | source-truth-only | Doppler's architectural-generalization campaign. Text, vision, and projector topology are pinned, but entry points remain unlowered; DFlash, split KV, qualified capability profiles, and execution evidence remain gated. |
 | Gemma 4 12B / 31B | benchmark-needed | Node runtime verification exists for 12B/31B lanes. Awaiting workstation pack qualification. |
 

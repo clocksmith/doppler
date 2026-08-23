@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 import { sha256Hex } from '../../src/utils/sha256.js';
 import { stableSortObject } from '../../src/utils/stable-sort-object.js';
 import {
@@ -92,5 +93,25 @@ missingPublicationFact.unresolvedFacts = [];
 const unresolvedValidation = validateReleaseToJavaScriptReceipt(missingPublicationFact);
 assert.equal(unresolvedValidation.ok, false);
 assert.match(unresolvedValidation.errors.join('; '), /source-publication-timestamp|receiptDigest mismatch/);
+
+const qwenRelease = JSON.parse(await fs.readFile(
+  'reports/model-ir-v2/qwen3.8-27b.release-to-javascript-receipt.json',
+  'utf8'
+));
+assert.equal(validateReleaseToJavaScriptReceipt(qwenRelease).ok, true);
+assert.deepEqual(
+  {
+    generated: qwenRelease.candidates.generated,
+    rejected: qwenRelease.candidates.rejected.length,
+    accepted: qwenRelease.candidates.accepted.length,
+  },
+  { generated: 10, rejected: 9, accepted: 1 }
+);
+assert.equal(qwenRelease.humanAuthoredSemanticDecisions, 0);
+assert.equal(qwenRelease.qualification.status, 'passed');
+assert.equal(
+  qwenRelease.qualification.packId,
+  'qwen3-8-27b-text-f16-af32-pack-v2-f8eeda316e12875b'
+);
 
 console.log('✔ release-to-javascript-receipt.test.js passed');

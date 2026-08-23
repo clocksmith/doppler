@@ -35,6 +35,10 @@ are both `unlowered`. It does not establish token parity, application support,
 physical performance, browser support, Bun support, Doe execution, or a signed
 release Pack.
 
+The preceding Qwen3.8 lineage campaign has now passed its physical signed-Pack
+gate, so Glimmer lowering may begin. This changes campaign sequencing only; it
+does not upgrade Glimmer's current `source-truth-only` status.
+
 DFlash is absent from the current ModelIR and requires a separate pinned source,
 revision, license, tensor, and reference-behavior intake. The current receipt has
 one generic `text.kv-state`; it does not yet encode 39 local ring-buffer states

@@ -1,0 +1,211 @@
+{
+  "campaignId": "heterogeneous-model-ir-v2:qwen3.8-27b-text-generate",
+  "source": {
+    "checkpointId": "Qwen/Qwen3.8-27B",
+    "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+    "publicationTimestampDisposition": "unresolved",
+    "publishedAt": null
+  },
+  "startedAt": "2026-08-23T00:56:24.000Z",
+  "completedAt": "2026-08-23T07:18:00.618Z",
+  "humanInterventions": [
+    {
+      "id": "campaign-authorization",
+      "kind": "campaign-governance",
+      "actor": "repository-owner",
+      "disposition": "accepted"
+    }
+  ],
+  "unresolvedFacts": [
+    {
+      "id": "source-publication-timestamp",
+      "disposition": "unresolved",
+      "evidence": "The pinned checkpoint snapshot used by this campaign has no admitted authoritative publication timestamp."
+    },
+    {
+      "id": "production-signing-authority",
+      "disposition": "unresolved",
+      "evidence": "The accepted Pack is signed by doppler-pack-v0-development and was trusted explicitly for qualification; production publication is not claimed."
+    }
+  ],
+  "candidates": {
+    "generated": 10,
+    "rejected": [
+      {
+        "id": "flat-homogeneous",
+        "stage": "lineage-lowering",
+        "reason": "Omitted recurrent and convolutional state."
+      },
+      {
+        "id": "multimodal-all-entrypoints",
+        "stage": "lineage-lowering",
+        "reason": "Claimed unlowered vision.encode and speculative.generate entry points."
+      },
+      {
+        "id": "q4-output-head",
+        "stage": "physical-qualification",
+        "reason": "First diverged from the pinned source transcript at generated token 97.",
+        "evidencePath": "reports/model-ir-v2/qwen3.8-27b.q4-head.node-webgpu-negative.json"
+      },
+      {
+        "id": "f16-output-head",
+        "stage": "physical-qualification",
+        "reason": "Deterministically reproduced the same first divergence at generated token 97.",
+        "evidencePath": "reports/model-ir-v2/qwen3.8-27b.f16-head.node-webgpu-negative.json"
+      },
+      {
+        "id": "f16-recurrent-blake3-closure",
+        "stage": "closure-preflight",
+        "reason": "Inherited BLAKE3 shard hashes could not enter the SHA-256 Pack artifact contract."
+      },
+      {
+        "id": "f16-recurrent-q4-body-sha256",
+        "stage": "physical-qualification",
+        "reason": "Deterministically first diverged from the pinned source transcript at generated token 81.",
+        "evidencePath": "reports/model-ir-v2/qwen3.8-27b.recurrent-f16.node-webgpu-negative.json"
+      },
+      {
+        "id": "full-f16-tiled-decode",
+        "stage": "lineage-review",
+        "reason": "Canceled because the established generic subgroup GEMV mechanism already covered this lane."
+      },
+      {
+        "id": "signed-pack-initial-identity-v1",
+        "stage": "pack-physical-qualification",
+        "packId": "qwen3-8-27b-text-f16-af32-pack-v2-5519cf5e6fe25753",
+        "packDigest": "sha256:9a600db228df727e2605baa20ea8bffda79adc19884a43100767821dae91de5b",
+        "semanticRoot": "sha256:5519cf5e6fe25753155df7db74ed60dbd90f9e33802aeb8134ef422ba75536bd",
+        "reason": "Failed closed before prefill because identity v1 could not reconstruct the qualified program-load policy."
+      },
+      {
+        "id": "signed-pack-program-load-policy-v1",
+        "stage": "pack-physical-qualification",
+        "packId": "qwen3-8-27b-text-f16-af32-pack-v2-262fef036f7b24bb",
+        "packDigest": "sha256:5c5e46f48807fbeb50279701597b62f7662b1b94531d836c2f099c8165fb0e50",
+        "semanticRoot": "sha256:262fef036f7b24bbd061db47dde746df3f27e4d7a89b99ed127b22232518acbf",
+        "reason": "Failed closed before prefill because the signed policy omitted generation.disableMultiTokenDecode; execution-plan and runtime-engine identities differed."
+      }
+    ],
+    "accepted": [
+      {
+        "id": "signed-pack-program-load-policy-v2",
+        "stage": "pack-physical-qualification",
+        "lineageCandidateId": "qwen3.8-lineage-full-f16-gemv-sha256-v6",
+        "packId": "qwen3-8-27b-text-f16-af32-pack-v2-f8eeda316e12875b",
+        "packDigest": "sha256:165ce82989e116028be1a7e81ed7138332014b4ff894d59edb4bb658ee8b7782",
+        "semanticRoot": "sha256:f8eeda316e12875b6f5669c415de21d110fad4b44f6372fe93afa2fe9a246154",
+        "targetPlanDigest": "sha256:c00b1c08208631e25cc37e213e992e9d358a807715ad6453d00bfabbbf73a0ec"
+      }
+    ]
+  },
+  "acceptedCode": {
+    "revision": "1cfc1c09b48c8d96567f363985a0e61b72d66f50",
+    "files": [
+      "package.json",
+      "src/.npmignore",
+      "src/client/runtime/composition-root.d.ts",
+      "src/client/runtime/composition-root.js",
+      "src/client/runtime/index.d.ts",
+      "src/client/runtime/index.js",
+      "src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
+      "src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
+      "src/config/forge/lineage/qwen3.8-27b.json",
+      "src/config/initial-execution-identity.d.ts",
+      "src/config/initial-execution-identity.js",
+      "src/config/kernels/kernel-ref-digests.js",
+      "src/config/kernels/registry.json",
+      "src/config/pack-v2.d.ts",
+      "src/config/pack-v2.js",
+      "src/config/runtime/profiles/qwen3-8-27b-source-parity.json",
+      "src/config/schema/execution-v1.schema.d.ts",
+      "src/config/schema/execution-v1.schema.js",
+      "src/config/schema/harness.schema.d.ts",
+      "src/config/schema/harness.schema.js",
+      "src/config/schema/pack-v2.schema.json",
+      "src/config/schema/program-bundle-json-schema.js",
+      "src/config/schema/program-bundle.schema.d.ts",
+      "src/config/schema/program-bundle.schema.js",
+      "src/config/schema/program-bundle.schema.json",
+      "src/config/schema/target-plan-v2.schema.json",
+      "src/converter/execution-candidate-forge.js",
+      "src/converter/forge-stages.js",
+      "src/converter/lineage-lowering-forge.d.ts",
+      "src/converter/lineage-lowering-forge.js",
+      "src/converter/release-to-javascript-receipt.d.ts",
+      "src/converter/release-to-javascript-receipt.js",
+      "src/gpu/kernels/gated_delta_conv.wgsl",
+      "src/gpu/kernels/gated_delta_fused_decode.wgsl",
+      "src/gpu/kernels/gated_delta_recurrent.wgsl",
+      "src/gpu/kernels/linear-attention-core.js",
+      "src/inference/browser-harness-text-helpers.js",
+      "src/inference/browser-harness.js",
+      "src/inference/pipelines/text/execution-v1.js",
+      "src/inference/pipelines/text/generator-logits-observation.d.ts",
+      "src/inference/pipelines/text/generator-logits-observation.js",
+      "src/inference/pipelines/text/generator-steps.js",
+      "src/tooling/program-bundle.js",
+      "src/tooling/program-bundle/validation.d.ts",
+      "src/tooling/program-bundle/validation.js",
+      "tests/config/execution-v1-schema.test.js",
+      "tests/config/qwen38-source-parity-profile.test.js",
+      "tests/converter/execution-candidate-forge.test.js",
+      "tests/converter/forge-stages.test.js",
+      "tests/converter/lineage-lowering-forge.test.js",
+      "tests/converter/release-to-javascript-receipt.test.js",
+      "tests/inference/generator-steps-cleanup.test.js",
+      "tests/integration/browser-harness-generation-diagnostics.test.js",
+      "tests/runtime/initial-execution-identity.test.js",
+      "tests/runtime/pack-load-options.test.js",
+      "tests/tooling/create-release-to-javascript-receipt.test.js",
+      "tests/tooling/forge-model-pack.test.js",
+      "tests/tooling/program-bundle-exporter.test.js",
+      "tests/tooling/program-bundle-reference-preflight.test.js",
+      "tests/tooling/qualify-pack-v0-node.test.js",
+      "tools/create-release-to-javascript-receipt.js",
+      "tools/forge-model-pack.js",
+      "tools/materialize-lineage-conversion.js",
+      "tools/policies/source-architecture-policy.json",
+      "tools/qualify-pack-v0-node.js",
+      "tools/run-program-bundle-reference.js"
+    ]
+  },
+  "qualification": {
+    "status": "passed",
+    "packId": "qwen3-8-27b-text-f16-af32-pack-v2-f8eeda316e12875b",
+    "packPath": ".tmp/model-ir-v2/qwen3.8-27b/pack.json"
+  },
+  "evidence": [
+    {
+      "kind": "source-truth-model-ir",
+      "path": "reports/model-ir-v2/qwen3.8-27b.model-ir-receipt.json"
+    },
+    {
+      "kind": "lineage-lowering",
+      "path": "reports/model-ir-v2/qwen3.8-27b.lineage-lowering-receipt.json"
+    },
+    {
+      "kind": "q4-head-negative",
+      "path": "reports/model-ir-v2/qwen3.8-27b.q4-head.node-webgpu-negative.json"
+    },
+    {
+      "kind": "f16-head-negative",
+      "path": "reports/model-ir-v2/qwen3.8-27b.f16-head.node-webgpu-negative.json"
+    },
+    {
+      "kind": "recurrent-f16-negative",
+      "path": "reports/model-ir-v2/qwen3.8-27b.recurrent-f16.node-webgpu-negative.json"
+    },
+    {
+      "kind": "pinned-reference-transcript",
+      "path": "reports/model-ir-v2/qwen3.8-27b.reference-transcript.json"
+    },
+    {
+      "kind": "source-node-webgpu-qualification",
+      "path": "reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json"
+    },
+    {
+      "kind": "signed-pack-node-webgpu-qualification",
+      "path": "reports/model-ir-v2/qwen3.8-27b.pack-node-qualification.json"
+    }
+  ]
+}
