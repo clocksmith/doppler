@@ -9,7 +9,7 @@
   "quantization": {
     "weights": "q4k",
     "embeddings": "f16",
-    "lmHead": "q4k",
+    "lmHead": "f16",
     "vision": "f16",
     "projector": "f16",
     "modulesToNotConvert": [
@@ -533,12 +533,12 @@
       ],
       [
         "lm_head",
-        "lm_head_q4",
+        "tiled",
         "lm_head"
       ],
       [
         "lm_head_prefill",
-        "q4_prefill",
+        "tiled",
         "lm_head"
       ],
       [

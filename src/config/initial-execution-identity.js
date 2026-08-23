@@ -115,7 +115,8 @@ export function observeInitialExecutionIdentity(resolved) {
   }
   const execution = resolved.manifestInference?.execution;
   if (!isObject(execution)) throw new Error('Resolved runtime session is missing manifest execution graph.');
-  if (!Array.isArray(resolved.execution?.resolvedSteps)) {
+  const resolvedSteps = resolved.execution?.resolvedSteps;
+  if (!isObject(resolvedSteps) || !Array.isArray(resolvedSteps.all)) {
     throw new Error('Resolved runtime session is missing compiled execution steps.');
   }
   const kernelClosure = buildObservedKernelClosure(execution);
@@ -141,7 +142,7 @@ export function observeInitialExecutionIdentity(resolved) {
   return createInitialExecutionIdentity({
     executionGraphHash: hashValue(execution),
     resolvedGraphHash: hashValue({
-      steps: resolved.execution.resolvedSteps,
+      steps: resolvedSteps,
       mechanismKernels: execution.mechanismKernels ?? [],
       layerPattern: resolved.manifestInference?.layerPattern ?? null,
     }),

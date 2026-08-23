@@ -19,6 +19,20 @@ const {
   resolveBatchStop,
   shouldUseFusedDecodeSampling,
 } = await import('../../src/inference/pipelines/text/generator-steps.js');
+const { emitObservedLogits } = await import('../../src/inference/pipelines/text/generator-logits-observation.js');
+
+{
+  const calls = [];
+  const logits = new Float32Array([0.25, 0.75]);
+  assert.equal(emitObservedLogits((value, context) => calls.push({ value, context }), logits, 1, [4, 5]), true);
+  assert.equal(emitObservedLogits(null, logits, 1, [4, 5]), false);
+  assert.deepEqual(calls, [{ value: logits, context: { tokenId: 1, inputTokenCount: 2 } }]);
+  assert.equal(
+    generatorStepsSource.includes('captureObservedFusedDecodeLogits(state, opts, logitsBuffer, vocabSize, logitsDtype, fusedNextToken, currentIds)'),
+    true,
+    'fused GPU decode must emit the exact observed logits used by qualification capture'
+  );
+}
 
 function createRingTracker() {
   return {

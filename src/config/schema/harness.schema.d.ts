@@ -28,6 +28,11 @@ export interface HarnessConfigSchema {
   autorun: boolean;
   skipLoad: boolean;
   modelId: string | null;
+  referenceTranscript: {
+    enabled: boolean;
+    captureLogits: boolean;
+    captureKvBytes: boolean;
+  };
   trainingBench: TrainingBenchConfigSchema;
 }
 

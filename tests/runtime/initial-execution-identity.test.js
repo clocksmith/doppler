@@ -101,7 +101,11 @@ const resolvedRuntimeSession = {
   },
   execution: {
     primary: { id: 'primary', activationDtype: 'f32' },
-    resolvedSteps: [{ id: 'prefill.attention' }, { id: 'decode.attention' }],
+    resolvedSteps: {
+      prefill: [{ id: 'prefill.attention' }],
+      decode: [{ id: 'decode.attention' }],
+      all: [{ id: 'prefill.attention' }, { id: 'decode.attention' }],
+    },
     resolvedStepsHash: digest('7'),
     appliedTransforms: [{ id: 'fuse-qkv' }],
   },
@@ -117,7 +121,7 @@ assert.equal(observed.runtimeEngine.resolvedRuntimeSessionId, digest('9'));
 assert.deepEqual(observed.fusionSet, [{ id: 'fuse-qkv' }]);
 for (const [field, mutate] of [
   ['executionGraphHash', (value) => { value.manifestInference.execution.decode.push(['extra', 'main']); }],
-  ['resolvedGraphHash', (value) => { value.execution.resolvedSteps.push({ id: 'extra' }); }],
+  ['resolvedGraphHash', (value) => { value.execution.resolvedSteps.all.push({ id: 'extra' }); }],
   ['dtypeLane', (value) => { value.dtypes.activation = 'f16'; }],
   ['fusionSet', (value) => { value.execution.appliedTransforms = []; }],
   ['kvLayout', (value) => { value.runtime.session.kvcache.layout = 'paged'; }],
@@ -130,5 +134,13 @@ for (const [field, mutate] of [
   assert.notEqual(changedIdentity.digest, observed.digest, `${field} must change observed identity`);
   assert.throws(() => assertInitialExecutionIdentity(observed, changedIdentity), new RegExp(field));
 }
+
+const legacyArraySteps = structuredClone(resolvedRuntimeSession);
+legacyArraySteps.execution.resolvedSteps = [{ id: 'legacy' }];
+assert.throws(
+  () => observeInitialExecutionIdentity(legacyArraySteps),
+  /missing compiled execution steps/,
+  'observed identity must consume the canonical phase-partitioned execution-v1 shape'
+);
 
 console.log('✔ initial-execution-identity.test.js passed');

@@ -13,7 +13,7 @@ const template = {
 };
 const recipe = {
   schema: 'doppler.lineage-lowering-forge/v1',
-  modelId: 'candidate',
+  modelId: 'candidate.v2',
   template: 'fixture',
   author: { kind: 'ai', actor: 'test-agent' },
   compatibilityRequirements: [{ factId: 'text.layerTypes', includes: ['linear_attention', 'full_attention'] }],
@@ -42,7 +42,10 @@ assert.equal(receipt.generatedCandidates, 2);
 assert.equal(receipt.rejectedCandidates.length, 1);
 assert.equal(receipt.unresolvedFacts.length, 0);
 assert.equal(receipt.sourceModelIRHash.startsWith('sha256:'), true);
-assert.equal(receipt.modelIR.modelId, recipe.modelId);
+assert.equal(receipt.conversionConfig.output.modelBaseId, recipe.modelId);
+assert.equal(receipt.requestedModelId, recipe.modelId);
+assert.equal(receipt.modelId, 'candidate-v2');
+assert.equal(receipt.modelIR.modelId, receipt.modelId);
 assert.equal(receipt.modelIR.sourceIdentity.checkpointId, modelIR.sourceIdentity.checkpointId);
 assert.notEqual(receipt.modelIRHash, receipt.sourceModelIRHash);
 

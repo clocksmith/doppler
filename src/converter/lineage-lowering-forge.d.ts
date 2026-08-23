@@ -5,6 +5,7 @@ export const LINEAGE_LOWERING_FORGE_SCHEMA_ID: 'doppler.lineage-lowering-forge/v
 export interface LineageLoweringReceipt {
   schema: 'doppler.lineage-lowering-receipt/v1';
   modelId: string;
+  requestedModelId: string;
   sourceModelIRHash: `sha256:${string}`;
   modelIRHash: `sha256:${string}`;
   modelIR: ModelIRV2;
