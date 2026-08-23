@@ -8,7 +8,7 @@
   "author": {
     "kind": "ai",
     "actor": "openai-codex",
-    "proposalId": "qwen3.8-lineage-full-f16-sha256-v5"
+    "proposalId": "qwen3.8-lineage-full-f16-gemv-sha256-v6"
   },
   "compatibilityRequirements": [
     { "factId": "text.modelType", "equals": "qwen3_5_text" },
@@ -114,6 +114,15 @@
       "rationale": "The heterogeneous block executor loads this complete recurrent mechanism closure outside the homogeneous layer-step sequence."
     },
     {
+      "targetPointer": "/execution/kernels/gemv",
+      "value": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4"
+      },
+      "lifecycle": "forge",
+      "rationale": "Reuse the content-addressed subgroup f16 GEMV mechanism already qualified by Doppler's established Qwen f16 lineage."
+    },
+    {
       "targetPointer": "/session/useLinearAttentionABProjectionFusion",
       "value": false,
       "lifecycle": "qualification",
@@ -151,45 +160,45 @@
     },
     {
       "targetPointer": "/execution/decode/1/1",
-      "value": "tiled",
+      "value": "gemv",
       "lifecycle": "forge",
-      "rationale": "The f16 q projection must dispatch the generic manifest-declared f16 matmul mechanism."
+      "rationale": "The f16 q projection reuses the established generic subgroup GEMV decode mechanism."
     },
     {
       "targetPointer": "/execution/decode/2/1",
-      "value": "tiled",
+      "value": "gemv",
       "lifecycle": "forge",
-      "rationale": "The f16 k projection must dispatch the generic manifest-declared f16 matmul mechanism."
+      "rationale": "The f16 k projection reuses the established generic subgroup GEMV decode mechanism."
     },
     {
       "targetPointer": "/execution/decode/3/1",
-      "value": "tiled",
+      "value": "gemv",
       "lifecycle": "forge",
-      "rationale": "The f16 v projection must dispatch the generic manifest-declared f16 matmul mechanism."
+      "rationale": "The f16 v projection reuses the established generic subgroup GEMV decode mechanism."
     },
     {
       "targetPointer": "/execution/decode/7/1",
-      "value": "tiled",
+      "value": "gemv",
       "lifecycle": "forge",
-      "rationale": "The f16 attention output projection must dispatch the generic manifest-declared f16 matmul mechanism."
+      "rationale": "The f16 attention output projection reuses the established generic subgroup GEMV decode mechanism."
     },
     {
       "targetPointer": "/execution/decode/10/1",
-      "value": "tiled",
+      "value": "gemv",
       "lifecycle": "forge",
-      "rationale": "The f16 FFN gate projection must dispatch the generic manifest-declared f16 matmul mechanism."
+      "rationale": "The f16 FFN gate projection reuses the established generic subgroup GEMV decode mechanism."
     },
     {
       "targetPointer": "/execution/decode/11/1",
-      "value": "tiled",
+      "value": "gemv",
       "lifecycle": "forge",
-      "rationale": "The f16 FFN up projection must dispatch the generic manifest-declared f16 matmul mechanism."
+      "rationale": "The f16 FFN up projection reuses the established generic subgroup GEMV decode mechanism."
     },
     {
       "targetPointer": "/execution/decode/13/1",
-      "value": "tiled",
+      "value": "gemv",
       "lifecycle": "forge",
-      "rationale": "The f16 FFN down projection must dispatch the generic manifest-declared f16 matmul mechanism."
+      "rationale": "The f16 FFN down projection reuses the established generic subgroup GEMV decode mechanism."
     },
     {
       "targetPointer": "/execution/prefill/1/1",
@@ -252,7 +261,7 @@
     "/manifest/artifactIdentity/manifestVariantId"
   ],
   "candidateAudit": {
-    "generated": 7,
+    "generated": 8,
     "rejected": [
       {
         "candidateId": "flat-homogeneous",
@@ -306,8 +315,12 @@
           "executionPlanDigest": "sha256:921fee36a78ffc806d0404a7f65d0e809f3eb1264905ba4eaaddf378ca5aeff6",
           "initialExecutionIdentityDigest": "sha256:9050981c41fad606bd6c0f0003e6a22cc82be281a5693349ee75e6d5bb222308"
         }
+      },
+      {
+        "candidateId": "full-f16-tiled-decode",
+        "reason": "Rejected during lineage review before complete materialization because Doppler's established Qwen f16 lineage already supplies a generic content-addressed subgroup GEMV decode mechanism. Conversion was canceled and no qualification claim was produced."
       }
     ],
-    "acceptedCandidateId": "qwen3.8-lineage-full-f16-sha256-v5"
+    "acceptedCandidateId": "qwen3.8-lineage-full-f16-gemv-sha256-v6"
   }
 }
