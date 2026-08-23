@@ -163,6 +163,55 @@ function validateFact(fact, factsById, sources) {
   };
 }
 
+function validateUnresolvedFact(fact, sources) {
+  if (!isObject(fact)) throw new Error('Unresolved source-truth facts must be objects.');
+  if (!['ambiguous', 'unsupported', 'missing-evidence'].includes(fact.confidence)) {
+    throw new Error(`Unresolved fact "${fact.id}" requires an unresolved confidence class.`);
+  }
+  if (fact.disposition !== 'unresolved') {
+    throw new Error(`Unresolved fact "${fact.id}" disposition must be "unresolved".`);
+  }
+  if (!isObject(fact.authorship) || !['human', 'ai', 'tool'].includes(fact.authorship.kind)
+    || typeof fact.authorship.actor !== 'string' || !fact.authorship.actor.trim()) {
+    throw new Error(`Unresolved fact "${fact.id}" requires attributable authorship.`);
+  }
+  if (typeof fact.reason !== 'string' || !fact.reason.trim()) {
+    throw new Error(`Unresolved fact "${fact.id}" requires a reason.`);
+  }
+  if (!Array.isArray(fact.evidence) || fact.evidence.length === 0) {
+    throw new Error(`Unresolved fact "${fact.id}" requires source evidence.`);
+  }
+  for (const evidence of fact.evidence) {
+    const source = sources[evidence.artifactId];
+    if (source === undefined) {
+      throw new Error(
+        `Unresolved fact "${fact.id}" references unavailable artifact "${evidence.artifactId}".`
+      );
+    }
+    if (evidence.kind === 'json-pointer') {
+      resolveJsonPointer(sourceContent(source), evidence.pointer);
+      continue;
+    }
+    if (evidence.kind === 'tensor-header') {
+      if (!sourceContent(source)?.tensors?.[evidence.tensorName]) {
+        throw new Error(`Unresolved fact "${fact.id}" tensor "${evidence.tensorName}" is absent.`);
+      }
+      continue;
+    }
+    if (evidence.kind !== 'artifact') {
+      throw new Error(`Unresolved fact "${fact.id}" has unsupported evidence kind "${evidence.kind}".`);
+    }
+  }
+  return {
+    ...fact,
+    validation: {
+      status: 'preserved-unresolved',
+      validator: 'doppler.source-truth-forge/v2',
+      receipt: canonicalDigest(fact),
+    },
+  };
+}
+
 function verifyArtifactDigests(sourceIdentity, sources) {
   for (const artifact of sourceIdentity.artifacts || []) {
     const source = sources[artifact.artifactId];
@@ -185,13 +234,24 @@ export function forgeModelIRV2(packet, sources) {
   const factsById = new Map((packet.facts || []).map((fact) => [fact.id, fact]));
   if (factsById.size !== packet.facts?.length) throw new Error('Source-truth fact IDs must be unique.');
   const facts = packet.facts.map((fact) => validateFact(fact, factsById, sources));
+  const unresolvedFactSpecs = packet.unresolvedFacts || [];
+  const unresolvedIds = new Set(unresolvedFactSpecs.map((fact) => fact?.id));
+  if (unresolvedIds.size !== unresolvedFactSpecs.length) {
+    throw new Error('Unresolved source-truth fact IDs must be unique.');
+  }
+  for (const factId of unresolvedIds) {
+    if (factsById.has(factId)) throw new Error(`Source-truth fact ID "${factId}" is duplicated.`);
+  }
+  const unresolvedFacts = unresolvedFactSpecs.map((fact) => validateUnresolvedFact(fact, sources));
   const validatedFactsById = new Map(facts.map((fact) => [fact.id, fact]));
   const topology = expandBlockSchedules(packet.topology, validatedFactsById);
-  const intakeDigest = canonicalDigest({
+  const intakeCore = {
     sourceIdentity: packet.sourceIdentity,
     facts,
     topology,
-  });
+  };
+  if (unresolvedFacts.length > 0) intakeCore.unresolvedFacts = unresolvedFacts;
+  const intakeDigest = canonicalDigest(intakeCore);
   const modelIR = createModelIRV2({
     modelId: packet.modelId,
     sourceIdentity: packet.sourceIdentity,
@@ -204,7 +264,7 @@ export function forgeModelIRV2(packet, sources) {
     schema: 'doppler.source-truth-forge-receipt/v2',
     modelIR,
     intakeDigest,
-    unresolvedFacts: [],
+    unresolvedFacts,
     generatedCandidates: Number(packet.candidateAudit?.generated || 1),
     rejectedCandidates: Number(packet.candidateAudit?.rejected || 0),
     acceptedCandidates: 1,
@@ -262,11 +322,39 @@ export function createSourceTruthPacket(spec, sources) {
   for (const fact of facts) {
     if (fact.confidence === 'derived') fact.value = resolveDerivedValue(fact, factsById);
   }
+  const unresolvedFacts = (spec.unresolvedFacts || []).map((factSpec) => {
+    const sourceSpec = factSpec.source;
+    const evidence = sourceSpec?.kind === 'tensor-header'
+      ? [{
+        kind: 'tensor-header',
+        artifactId: sourceSpec.artifactId,
+        file: sourceSpec.file,
+        tensorName: sourceSpec.tensorName,
+      }]
+      : sourceSpec
+        ? [{
+          kind: sourceSpec.kind ?? 'json-pointer',
+          artifactId: sourceSpec.artifactId,
+          file: sourceSpec.file,
+          pointer: sourceSpec.pointer,
+        }]
+        : factSpec.evidence;
+    const fact = {
+      ...factSpec,
+      confidence: factSpec.confidence ?? 'ambiguous',
+      disposition: 'unresolved',
+      evidence,
+      authorship: factSpec.authorship ?? spec.defaultAuthorship,
+    };
+    delete fact.source;
+    return fact;
+  });
   return {
     schema: SOURCE_TRUTH_FORGE_SCHEMA_ID,
     modelId: spec.modelId,
     sourceIdentity: spec.sourceIdentity,
     facts,
+    unresolvedFacts,
     topology: spec.topology,
     candidateAudit: spec.candidateAudit,
   };

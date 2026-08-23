@@ -47,6 +47,9 @@ no admitted lowering implements local attention, and the existing full-attention
 lowering does not bind QK scaling, output multiplication, RMSNorm postnorm, or
 the source model's no-RoPE full blocks. KV state is already representable. These
 are the exact generic contracts to add before an execution candidate can exist.
+The source receipt preserves their operational application and ordering as four
+unresolved facts: config values alone are not accepted as proof of reference
+formulas. A pinned implementation source must resolve them before lowering.
 
 DFlash is absent from the current ModelIR and requires a separate pinned source,
 revision, license, tensor, and reference-behavior intake. The current receipt has

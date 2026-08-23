@@ -34,6 +34,56 @@
     "rejected": 2,
     "acceptedProposalId": "glimmer-source-truth-v1"
   },
+  "unresolvedFacts": [
+    {
+      "id": "text.qkScaleApplication",
+      "subject": "block.text-attention",
+      "predicate": "qkScaleApplication",
+      "confidence": "ambiguous",
+      "reason": "The config pins qk_scale_factor but does not prove where the reference implementation applies it.",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/text_config/qk_scale_factor"
+      }
+    },
+    {
+      "id": "text.outputMultiplierApplication",
+      "subject": "block.text-attention",
+      "predicate": "outputMultiplierApplication",
+      "confidence": "ambiguous",
+      "reason": "The config pins output_multiplier but does not prove which attention boundary the reference implementation scales.",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/text_config/output_multiplier"
+      }
+    },
+    {
+      "id": "text.postNormOrdering",
+      "subject": "block.text-attention",
+      "predicate": "postNormOrdering",
+      "confidence": "ambiguous",
+      "reason": "The config pins post_norm_eps but does not prove the reference residual and post-normalization ordering.",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/text_config/post_norm_eps"
+      }
+    },
+    {
+      "id": "text.zeroThetaSemantics",
+      "subject": "block.full-attention",
+      "predicate": "zeroThetaSemantics",
+      "confidence": "ambiguous",
+      "reason": "The per-layer theta is zero for full-attention blocks, but the config alone does not prove the exact no-RoPE reference branch.",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/text_config/layer_rope_theta/3"
+      }
+    }
+  ],
   "facts": [
     { "id": "root.architecture", "subject": "model", "predicate": "architecture", "source": { "artifactId": "config", "file": "config.json", "pointer": "/architectures/0" } },
     { "id": "root.modelType", "subject": "model", "predicate": "modelType", "source": { "artifactId": "config", "file": "config.json", "pointer": "/model_type" } },

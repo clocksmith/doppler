@@ -42,6 +42,16 @@ const refs = facts.map((fact) => fact.id);
 const node = (id, extra) => ({ id, factRefs: refs, ...extra });
 const packet = {
   schema: 'doppler.source-truth-forge/v2', modelId: 'fixture', sourceIdentity, facts,
+  unresolvedFacts: [{
+    id: 'attention.scale.application',
+    subject: 'block.attention',
+    predicate: 'scaleApplication',
+    confidence: 'ambiguous',
+    disposition: 'unresolved',
+    reason: 'The config value does not establish the operational formula.',
+    evidence: [{ kind: 'json-pointer', artifactId: 'config', file: 'config.json', pointer: '/hidden_size' }],
+    authorship: { kind: 'ai', actor: 'codex', proposalId: 'fixture-proposal' },
+  }],
   candidateAudit: { generated: 3, rejected: 2, acceptedProposalId: 'fixture-proposal' },
   topology: {
     components: [node('decoder', { type: 'text-decoder', role: 'primary', properties: { hiddenSize: 8 } })],
@@ -79,6 +89,10 @@ assert.equal(receipt.generatedCandidates, 3);
 assert.equal(receipt.rejectedCandidates, 2);
 assert.equal(receipt.acceptedCandidates, 1);
 assert.ok(receipt.modelIR.provenance.facts.every((fact) => fact.validation.status === 'passed'));
+assert.equal(receipt.unresolvedFacts[0].validation.status, 'preserved-unresolved');
+assert.equal(receipt.modelIR.provenance.facts.some((fact) => (
+  fact.id === 'attention.scale.application'
+)), false);
 
 const invented = structuredClone(packet);
 invented.facts[2].value = 16;
@@ -89,5 +103,14 @@ assert.throws(() => forgeModelIRV2(inferred, { config, headers }), /cannot enter
 const unattributed = structuredClone(packet);
 delete unattributed.facts[0].authorship;
 assert.throws(() => forgeModelIRV2(unattributed, { config, headers }), /attributable authorship/);
+const promotedUnresolved = structuredClone(packet);
+promotedUnresolved.unresolvedFacts[0].disposition = 'accepted';
+assert.throws(() => forgeModelIRV2(promotedUnresolved, { config, headers }), /must be "unresolved"/);
+const unsupportedUnresolvedEvidence = structuredClone(packet);
+unsupportedUnresolvedEvidence.unresolvedFacts[0].evidence[0].kind = 'family-memory';
+assert.throws(
+  () => forgeModelIRV2(unsupportedUnresolvedEvidence, { config, headers }),
+  /unsupported evidence kind/
+);
 
 console.log('✔ source-truth-forge.test.js passed');
