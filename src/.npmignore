@@ -18,6 +18,7 @@ client/runtime/source-runtime.d.ts
 client/runtime/storage.d.ts
 config/evidence/token-cost-classifier-policy.json
 config/evidence/workflow-ownership-policy.json
+config/forge/lineage/qwen3.8-27b.json
 config/goal-completion-matrix.json
 config/kernels/kernel-ref-digests.d.ts
 config/kernels/moe/gpt-oss.paths.json
@@ -120,12 +121,16 @@ converter/forge-stages.d.ts
 converter/forge-stages.js
 converter/index.d.ts
 converter/index.js
+converter/lineage-lowering-forge.d.ts
+converter/lineage-lowering-forge.js
 converter/parsers/diffusion.d.ts
 converter/parsers/gguf.d.ts
 converter/parsers/index.d.ts
 converter/parsers/index.js
 converter/parsers/transformer.d.ts
 converter/quantization-info.d.ts
+converter/release-to-javascript-receipt.d.ts
+converter/release-to-javascript-receipt.js
 converter/rope-config.d.ts
 converter/source-truth-forge.d.ts
 converter/source-truth-forge.js
