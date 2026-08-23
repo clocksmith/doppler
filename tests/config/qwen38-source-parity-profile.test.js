@@ -24,7 +24,7 @@ assert.deepEqual(profile.runtime.inference.sampling, {
   topK: 1,
   topP: 1,
   repetitionPenalty: 1,
-  repetitionPenaltyWindow: 0,
+  repetitionPenaltyWindow: 1,
   greedyThreshold: 0,
   suppressSpecialTokens: false,
   suppressSpecialLikeTokens: false,
