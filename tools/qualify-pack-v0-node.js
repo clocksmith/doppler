@@ -82,12 +82,14 @@ export function createPackNodeQualificationReceipt({
     targetPlanDigestAfter: digestAfter,
     targetPlanImmutable: targetPlanDigestBefore === digestAfter,
     initialExecutionIdentity: {
+      schema: observedIdentity.schema ?? null,
       declaredDigest: declaredIdentity.digest,
       observedDigest: observedIdentity.digest,
       boundBeforePrefill: true,
       executionGraphHash: observedIdentity.executionGraphHash,
       kernelClosureHash: observedIdentity.kernelClosureHash,
       runtimeEngineDigest: observedIdentity.runtimeEngineDigest,
+      programLoadPolicyHash: observedIdentity.programLoadPolicyHash ?? null,
     },
     adapter: session.deviceProfile.adapter,
     surface: session.deviceProfile.surface,
@@ -96,49 +98,64 @@ export function createPackNodeQualificationReceipt({
   };
 }
 
+export async function withNodePackQualificationLifecycle(openSession, runSession, lifecycle = {}) {
+  const destroy = lifecycle.destroyDevice ?? destroyDevice;
+  const release = lifecycle.releaseNodeWebGPU ?? releaseNodeWebGPU;
+  let session = null;
+  try {
+    session = await openSession();
+    return await runSession(session);
+  } finally {
+    try {
+      await session?.close?.();
+    } finally {
+      try {
+        destroy();
+      } finally {
+        await release();
+      }
+    }
+  }
+}
+
 export async function qualifyPackV0Node(options = parseArgs(process.argv.slice(2))) {
   const packPath = path.resolve(REPO_ROOT, options.pack);
   const pack = JSON.parse(await fs.readFile(packPath, 'utf8'));
   const reference = JSON.parse(await fs.readFile(path.resolve(REPO_ROOT, options.reference), 'utf8'));
   const expected = reference.metrics.referenceTranscript.tokens.ids;
   const generationConfig = reference.metrics.referenceTranscript.generationConfig;
-  const session = await openPack(packPath, { trustedSigners: PACK_V0_TRUSTED_SIGNERS });
-  const digestBefore = session.selectedTargetPlanDigest;
-  try {
-    if (session.deviceProfile.surface !== 'node-webgpu') {
-      throw new Error(`Node qualification selected unexpected surface "${session.deviceProfile.surface}".`);
+  return withNodePackQualificationLifecycle(
+    () => openPack(packPath, { trustedSigners: PACK_V0_TRUSTED_SIGNERS }),
+    async (session) => {
+      const digestBefore = session.selectedTargetPlanDigest;
+      if (session.deviceProfile.surface !== 'node-webgpu') {
+        throw new Error(`Node qualification selected unexpected surface "${session.deviceProfile.surface}".`);
+      }
+      if (isSoftwareAdapter(session.deviceProfile)) {
+        throw new Error(`Node qualification selected a software adapter: ${JSON.stringify(session.deviceProfile.adapter)}`);
+      }
+      const generated = await session.generateText({
+        ...generationConfig,
+        prompt: reference.metrics.prompt,
+        maxSeqLen: 4096,
+        stopSequences: [],
+      });
+      const receipt = createPackNodeQualificationReceipt({
+        pack,
+        session,
+        generatedTokenIds: generated.tokenIds,
+        expectedTokenIds: expected,
+        targetPlanDigestBefore: digestBefore,
+        capturedAtUtc: new Date().toISOString(),
+      });
+      if (!receipt.passed) throw new Error(`Node Pack parity failed at token ${receipt.firstMismatch}.`);
+      const outputPath = path.resolve(REPO_ROOT, options.out);
+      await fs.mkdir(path.dirname(outputPath), { recursive: true });
+      await fs.writeFile(outputPath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
+      console.log(JSON.stringify({ ...receipt, outputPath: path.relative(REPO_ROOT, outputPath) }, null, 2));
+      return receipt;
     }
-    if (isSoftwareAdapter(session.deviceProfile)) {
-      throw new Error(`Node qualification selected a software adapter: ${JSON.stringify(session.deviceProfile.adapter)}`);
-    }
-    const generated = await session.generateText({
-      ...generationConfig,
-      prompt: reference.metrics.prompt,
-      maxSeqLen: 4096,
-      stopSequences: [],
-    });
-    const receipt = createPackNodeQualificationReceipt({
-      pack,
-      session,
-      generatedTokenIds: generated.tokenIds,
-      expectedTokenIds: expected,
-      targetPlanDigestBefore: digestBefore,
-      capturedAtUtc: new Date().toISOString(),
-    });
-    if (!receipt.passed) throw new Error(`Node Pack parity failed at token ${receipt.firstMismatch}.`);
-    const outputPath = path.resolve(REPO_ROOT, options.out);
-    await fs.mkdir(path.dirname(outputPath), { recursive: true });
-    await fs.writeFile(outputPath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
-    console.log(JSON.stringify({ ...receipt, outputPath: path.relative(REPO_ROOT, outputPath) }, null, 2));
-    return receipt;
-  } finally {
-    await session.close();
-    try {
-      destroyDevice();
-    } finally {
-      await releaseNodeWebGPU();
-    }
-  }
+  );
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

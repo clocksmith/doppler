@@ -100,9 +100,13 @@ function createHarnessOverride(records) {
       layerPattern: { type: 'explicit', layerTypes: ['full-attention'] },
     },
     execution: {
-      resolvedSteps: [],
+      resolvedSteps: {
+        prefill: [],
+        decode: [],
+        all: [],
+      },
       resolvedStepsHash: digest('3'),
-      primary: 'default',
+      primary: { id: 'default' },
       appliedTransforms: [],
     },
     runtime: {
@@ -111,6 +115,7 @@ function createHarnessOverride(records) {
         perLayerInputs: null,
         largeWeights: null,
       },
+      compute: { outputDtype: 'f32' },
     },
     dtypes: { activation: 'f32', kv: 'f16', weight: 'q4k' },
     kernelPath: { id: 'default' },
@@ -147,7 +152,7 @@ function createHarnessOverride(records) {
       sampling: { temperature: 0, topK: 1, topP: 1 },
     },
   });
-  assert.equal(run.initialExecutionIdentity.schema, 'doppler.initial-execution-identity/v1');
+  assert.equal(run.initialExecutionIdentity.schema, 'doppler.initial-execution-identity/v2');
 }
 
 {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { runForgePipeline, stageAnalyze } from '../../src/converter/forge-stages.js';
-import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';
+import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 import { sha256Hex } from '../../src/utils/sha256.js';
 import { TEST_PACK_AUTHORITY, TEST_PACK_PUBLIC_KEY } from '../helpers/pack-v2-fixture.js';
 
@@ -141,7 +141,7 @@ const v2ProgramBundle = {
       : artifact
   )),
 };
-const initialExecutionIdentity = createInitialExecutionIdentity({
+const initialExecutionIdentity = createInitialExecutionIdentityV2({
   executionGraphHash: graphHash,
   resolvedGraphHash: `sha256:${'6'.repeat(64)}`,
   kernelClosure: [{ moduleId: 'main', file: 'main.wgsl', entry: 'main', digest: wgslHash }],
@@ -151,6 +151,10 @@ const initialExecutionIdentity = createInitialExecutionIdentity({
   memoryPolicy: { kvcache: { layout: 'contiguous' } },
   executionPlanDigest: `sha256:${'7'.repeat(64)}`,
   runtimeEngine: { schema: 'fixture' },
+  programLoadPolicy: {
+    schema: 'doppler.pack-program-load-policy/v1',
+    runtimeConfig: { inference: { session: {}, compute: {} } },
+  },
 });
 const v2Result = await runForgePipeline({
   manifest: v2Manifest,
@@ -181,7 +185,7 @@ assert.equal(
 assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'recurrent_state'));
 assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'convolutional_state'));
 
-const wrongKernelIdentity = createInitialExecutionIdentity({
+const wrongKernelIdentity = createInitialExecutionIdentityV2({
   executionGraphHash: graphHash,
   resolvedGraphHash: `sha256:${'6'.repeat(64)}`,
   kernelClosure: [{ moduleId: 'other', file: 'other.wgsl', entry: 'main', digest: wgslHash }],
@@ -191,6 +195,10 @@ const wrongKernelIdentity = createInitialExecutionIdentity({
   memoryPolicy: { kvcache: { layout: 'contiguous' } },
   executionPlanDigest: `sha256:${'7'.repeat(64)}`,
   runtimeEngine: { schema: 'fixture' },
+  programLoadPolicy: {
+    schema: 'doppler.pack-program-load-policy/v1',
+    runtimeConfig: { inference: { session: {}, compute: {} } },
+  },
 });
 await assert.rejects(
   () => runForgePipeline({

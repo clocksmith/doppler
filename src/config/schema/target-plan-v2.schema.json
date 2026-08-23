@@ -31,7 +31,12 @@
         "memoryPolicyHash", "executionPlanDigest", "runtimeEngine", "runtimeEngineDigest", "digest"
       ],
       "properties": {
-        "schema": { "const": "doppler.initial-execution-identity/v1" },
+        "schema": {
+          "enum": [
+            "doppler.initial-execution-identity/v1",
+            "doppler.initial-execution-identity/v2"
+          ]
+        },
         "executionGraphHash": { "$ref": "#/$defs/digest" },
         "resolvedGraphHash": { "$ref": "#/$defs/digest" },
         "kernelClosure": { "type": "array", "minItems": 1 },
@@ -46,8 +51,44 @@
         "executionPlanDigest": { "$ref": "#/$defs/digest" },
         "runtimeEngine": { "type": "object" },
         "runtimeEngineDigest": { "$ref": "#/$defs/digest" },
+        "programLoadPolicy": {
+          "type": "object",
+          "required": ["schema", "runtimeConfig"],
+          "properties": {
+            "schema": { "const": "doppler.pack-program-load-policy/v1" },
+            "runtimeConfig": {
+              "type": "object",
+              "required": ["inference"],
+              "properties": {
+                "inference": {
+                  "type": "object",
+                  "required": ["session", "compute"],
+                  "properties": {
+                    "session": { "type": "object" },
+                    "compute": { "type": "object" }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "programLoadPolicyHash": { "$ref": "#/$defs/digest" },
         "digest": { "$ref": "#/$defs/digest" }
-      }
+      },
+      "allOf": [{
+        "if": {
+          "properties": {
+            "schema": { "const": "doppler.initial-execution-identity/v2" }
+          },
+          "required": ["schema"]
+        },
+        "then": {
+          "required": ["programLoadPolicy", "programLoadPolicyHash"]
+        }
+      }]
     }
   },
   "$defs": { "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" } }

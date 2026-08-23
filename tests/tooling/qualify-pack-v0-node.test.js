@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
-import { createPackNodeQualificationReceipt, isSoftwareAdapter } from '../../tools/qualify-pack-v0-node.js';
+import {
+  createPackNodeQualificationReceipt,
+  isSoftwareAdapter,
+  withNodePackQualificationLifecycle,
+} from '../../tools/qualify-pack-v0-node.js';
 
 const digest = (character) => `sha256:${character.repeat(64)}`;
 const identity = {
@@ -46,6 +50,7 @@ assert.equal(receipt.targetPlanImmutable, true);
 assert.equal(receipt.initialExecutionIdentity.boundBeforePrefill, true);
 assert.equal(receipt.initialExecutionIdentity.declaredDigest, identity.digest);
 assert.equal(receipt.initialExecutionIdentity.observedDigest, identity.digest);
+assert.equal(receipt.initialExecutionIdentity.programLoadPolicyHash, null);
 assert.equal(receipt.closure.artifacts, 2);
 assert.equal(receipt.closure.verifiedArtifacts, 2);
 assert.deepEqual(receipt.closure.qualifiedEntryPoints, ['text.generate']);
@@ -64,4 +69,27 @@ await assert.rejects(async () => createPackNodeQualificationReceipt({
 
 assert.equal(isSoftwareAdapter({ adapter: { description: 'SwiftShader Device' } }), true);
 assert.equal(isSoftwareAdapter(session.deviceProfile), false);
+
+const lifecycleEvents = [];
+await assert.rejects(
+  () => withNodePackQualificationLifecycle(
+    async () => {
+      lifecycleEvents.push('open');
+      throw new Error('initial identity mismatch');
+    },
+    async () => {
+      lifecycleEvents.push('run');
+    },
+    {
+      destroyDevice() {
+        lifecycleEvents.push('destroy');
+      },
+      async releaseNodeWebGPU() {
+        lifecycleEvents.push('release');
+      },
+    }
+  ),
+  /initial identity mismatch/
+);
+assert.deepEqual(lifecycleEvents, ['open', 'destroy', 'release']);
 console.log('✔ qualify-pack-v0-node.test.js passed');

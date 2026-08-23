@@ -3,6 +3,7 @@ import type { GenerateOptions } from '../../generation/index.js';
 import type { LogitsStepResult, PrefillResult } from '../../inference/pipelines/text/types.d.ts';
 import type { DopplerPackV2 } from '../../config/pack-v2.js';
 import type { DopplerRuntimeSession } from './composition-root.js';
+import type { TargetPlan } from '../../config/target-plan.js';
 import type {
   DopplerLoadOptions,
   DopplerLoadProgress,
@@ -87,6 +88,10 @@ export declare function createDopplerRuntimeService(options: {
   defaultLoadProgressLogger?: ((event: DopplerLoadProgress) => void) | null;
   resolvePackInput?: ((source: unknown, options?: DopplerPackOpenOptions) => Promise<{ pack: DopplerPackV2; artifactStore: object }>) | null;
 }): DopplerRuntimeService;
+
+export declare function resolvePackProgramLoadOptions(targetPlan: TargetPlan): {
+  runtimeConfig?: Record<string, unknown>;
+};
 
 export declare function resolvePersistentBrowserLoadSource(
   loadSource: DopplerModelSourceResolution,

@@ -3,7 +3,9 @@ import { createDopplerRuntime } from '../../src/client/runtime/composition-root.
 import {
   assertInitialExecutionIdentity,
   createInitialExecutionIdentity,
+  createInitialExecutionIdentityV2,
   observeInitialExecutionIdentity,
+  resolveProgramLoadRuntimeConfig,
 } from '../../src/config/initial-execution-identity.js';
 import {
   TEST_PACK_AUTHORITY,
@@ -27,6 +29,18 @@ const fields = {
   runtimeEngine: { resolvedRuntimeSchema: 'doppler.resolved-runtime-session/v1', kernelPath: null },
 };
 const expectedIdentity = createInitialExecutionIdentity(fields);
+const expectedIdentityV2 = createInitialExecutionIdentityV2({
+  ...fields,
+  programLoadPolicy: {
+    schema: 'doppler.pack-program-load-policy/v1',
+    runtimeConfig: {
+      inference: {
+        session: { decodeLoop: { batchSize: 1 } },
+        compute: { outputDtype: 'f32' },
+      },
+    },
+  },
+});
 const fixture = await createSignedPackFixture({ initialExecutionIdentity: expectedIdentity });
 const events = [];
 let buffersCreated = 0;
@@ -47,7 +61,7 @@ const device = {
   },
 };
 const baseProgram = {
-  getInitialExecutionIdentity() { return expectedIdentity; },
+  getInitialExecutionIdentity() { return expectedIdentityV2; },
   tokenize() { return [1]; }, decodeTokens() { return ''; }, getTokenContract() { return {}; }, reset() {},
   executePhase() { throw new Error('not reached'); }, releaseStepResult() {}, close() {},
 };
@@ -59,24 +73,40 @@ const runtime = createDopplerRuntime({
   async programFactory() { return baseProgram; },
 });
 const session = await runtime.openPack(fixture.pack);
-assert.equal(session.observedInitialExecutionIdentity.digest, expectedIdentity.digest);
+assert.equal(session.observedInitialExecutionIdentity.digest, expectedIdentityV2.digest);
+assertInitialExecutionIdentity(expectedIdentity, session.observedInitialExecutionIdentity);
+assert.deepEqual(resolveProgramLoadRuntimeConfig(expectedIdentityV2), {
+  inference: {
+    session: { decodeLoop: { batchSize: 1 } },
+    compute: { outputDtype: 'f32' },
+  },
+});
 assert.equal(buffersCreated, 0, 'opening a bound session must not dispatch or allocate transient buffers');
 assert.ok(events.includes('initial-execution-identity-bound'));
 await session.close();
 
-const mismatch = createInitialExecutionIdentity({
+const mismatch = createInitialExecutionIdentityV2({
   ...fields,
   dtypeLane: { ...fields.dtypeLane, activation: 'f16' },
+  programLoadPolicy: expectedIdentityV2.programLoadPolicy,
 });
 buffersCreated = 0;
+let mismatchProgramClosed = false;
 const mismatchedRuntime = createDopplerRuntime({
   device,
   artifactStore: fixture.artifactStore,
   trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
-  async programFactory() { return { ...baseProgram, getInitialExecutionIdentity() { return mismatch; } }; },
+  async programFactory() {
+    return {
+      ...baseProgram,
+      getInitialExecutionIdentity() { return mismatch; },
+      close() { mismatchProgramClosed = true; },
+    };
+  },
 });
 await assert.rejects(mismatchedRuntime.openPack(fixture.pack), /dtypeLane/);
 assert.equal(buffersCreated, 0, 'identity mismatch must fail before resource binding or first dispatch');
+assert.equal(mismatchProgramClosed, true, 'identity mismatch must close the loaded program');
 
 const resolvedRuntimeSession = {
   schema: 'doppler.resolved-runtime-session/v1',
@@ -98,6 +128,7 @@ const resolvedRuntimeSession = {
       perLayerInputs: { materialization: 'eager' },
       largeWeights: { residency: 'gpu' },
     },
+    compute: { outputDtype: 'f32' },
   },
   execution: {
     primary: { id: 'primary', activationDtype: 'f32' },
@@ -127,6 +158,7 @@ for (const [field, mutate] of [
   ['kvLayout', (value) => { value.runtime.session.kvcache.layout = 'paged'; }],
   ['memoryPolicy', (value) => { value.runtime.session.perLayerInputs.materialization = 'lazy'; }],
   ['runtimeEngine', (value) => { value.kernelPath.id = 'different'; }],
+  ['programLoadPolicy', (value) => { value.runtime.compute.outputDtype = 'f16'; }],
 ]) {
   const changedRuntime = structuredClone(resolvedRuntimeSession);
   mutate(changedRuntime);

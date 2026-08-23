@@ -2,6 +2,8 @@ import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
 
 export const INITIAL_EXECUTION_IDENTITY_SCHEMA_ID = 'doppler.initial-execution-identity/v1';
+export const INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID = 'doppler.initial-execution-identity/v2';
+export const PROGRAM_LOAD_POLICY_SCHEMA_ID = 'doppler.pack-program-load-policy/v1';
 
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 
@@ -55,8 +57,13 @@ function coreIdentity(identity) {
 export function validateInitialExecutionIdentity(identity) {
   const errors = [];
   if (!isObject(identity)) return { ok: false, errors: ['Initial execution identity must be an object.'] };
-  if (identity.schema !== INITIAL_EXECUTION_IDENTITY_SCHEMA_ID) {
-    errors.push(`schema must be "${INITIAL_EXECUTION_IDENTITY_SCHEMA_ID}".`);
+  const isV1 = identity.schema === INITIAL_EXECUTION_IDENTITY_SCHEMA_ID;
+  const isV2 = identity.schema === INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID;
+  if (!isV1 && !isV2) {
+    errors.push(
+      `schema must be "${INITIAL_EXECUTION_IDENTITY_SCHEMA_ID}" or `
+      + `"${INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID}".`
+    );
   }
   for (const field of [
     'executionGraphHash', 'resolvedGraphHash', 'kernelClosureHash', 'fusionSetHash',
@@ -72,12 +79,51 @@ export function validateInitialExecutionIdentity(identity) {
   if (!isObject(identity.kvLayout)) errors.push('kvLayout must be an object.');
   if (!isObject(identity.memoryPolicy)) errors.push('memoryPolicy must be an object.');
   if (!isObject(identity.runtimeEngine)) errors.push('runtimeEngine must be an object.');
+  if (isV2) {
+    if (!SHA256_PATTERN.test(identity.programLoadPolicyHash || '')) {
+      errors.push('programLoadPolicyHash must be a SHA-256 digest.');
+    }
+    if (!isObject(identity.programLoadPolicy)) {
+      errors.push('programLoadPolicy must be an object.');
+    } else {
+      if (identity.programLoadPolicy.schema !== PROGRAM_LOAD_POLICY_SCHEMA_ID) {
+        errors.push(`programLoadPolicy.schema must be "${PROGRAM_LOAD_POLICY_SCHEMA_ID}".`);
+      }
+      const runtimeConfig = identity.programLoadPolicy.runtimeConfig;
+      if (!isObject(runtimeConfig) || !isObject(runtimeConfig.inference)) {
+        errors.push('programLoadPolicy.runtimeConfig.inference must be an object.');
+      } else {
+        if (!isObject(runtimeConfig.inference.session)) {
+          errors.push('programLoadPolicy.runtimeConfig.inference.session must be an object.');
+        }
+        if (!isObject(runtimeConfig.inference.compute)) {
+          errors.push('programLoadPolicy.runtimeConfig.inference.compute must be an object.');
+        }
+        const extraInferenceFields = Object.keys(runtimeConfig.inference)
+          .filter((field) => field !== 'session' && field !== 'compute');
+        if (extraInferenceFields.length > 0) {
+          errors.push(
+            'programLoadPolicy.runtimeConfig.inference may contain only session and compute.'
+          );
+        }
+      }
+      const extraRuntimeFields = isObject(runtimeConfig)
+        ? Object.keys(runtimeConfig).filter((field) => field !== 'inference')
+        : [];
+      if (extraRuntimeFields.length > 0) {
+        errors.push('programLoadPolicy.runtimeConfig may contain only inference.');
+      }
+    }
+  }
   if (errors.length === 0) {
     if (identity.kernelClosureHash !== hashValue(identity.kernelClosure)) errors.push('kernelClosureHash mismatch.');
     if (identity.fusionSetHash !== hashValue(identity.fusionSet)) errors.push('fusionSetHash mismatch.');
     if (identity.kvLayoutHash !== hashValue(identity.kvLayout)) errors.push('kvLayoutHash mismatch.');
     if (identity.memoryPolicyHash !== hashValue(identity.memoryPolicy)) errors.push('memoryPolicyHash mismatch.');
     if (identity.runtimeEngineDigest !== hashValue(identity.runtimeEngine)) errors.push('runtimeEngineDigest mismatch.');
+    if (isV2 && identity.programLoadPolicyHash !== hashValue(identity.programLoadPolicy)) {
+      errors.push('programLoadPolicyHash mismatch.');
+    }
     if (identity.digest !== hashValue(coreIdentity(identity))) errors.push('digest mismatch.');
   }
   return { ok: errors.length === 0, errors };
@@ -105,6 +151,34 @@ export function createInitialExecutionIdentity(fields) {
   const identity = { ...core, digest: hashValue(core) };
   const validation = validateInitialExecutionIdentity(identity);
   if (!validation.ok) throw new Error(`Invalid initial execution identity: ${validation.errors.join('; ')}`);
+  return identity;
+}
+
+export function createInitialExecutionIdentityV2(fields) {
+  if (!isObject(fields)) throw new Error('createInitialExecutionIdentityV2 requires an object.');
+  const programLoadPolicy = fields.programLoadPolicy;
+  const core = {
+    schema: INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID,
+    executionGraphHash: fields.executionGraphHash,
+    resolvedGraphHash: fields.resolvedGraphHash,
+    kernelClosure: fields.kernelClosure,
+    kernelClosureHash: hashValue(fields.kernelClosure),
+    dtypeLane: fields.dtypeLane,
+    fusionSet: fields.fusionSet,
+    fusionSetHash: hashValue(fields.fusionSet),
+    kvLayout: fields.kvLayout,
+    kvLayoutHash: hashValue(fields.kvLayout),
+    memoryPolicy: fields.memoryPolicy,
+    memoryPolicyHash: hashValue(fields.memoryPolicy),
+    executionPlanDigest: fields.executionPlanDigest,
+    runtimeEngine: fields.runtimeEngine,
+    runtimeEngineDigest: hashValue(fields.runtimeEngine),
+    programLoadPolicy,
+    programLoadPolicyHash: hashValue(programLoadPolicy),
+  };
+  const identity = { ...core, digest: hashValue(core) };
+  const validation = validateInitialExecutionIdentity(identity);
+  if (!validation.ok) throw new Error(`Invalid initial execution identity v2: ${validation.errors.join('; ')}`);
   return identity;
 }
 
@@ -139,7 +213,7 @@ export function observeInitialExecutionIdentity(resolved) {
     perLayerInputs: session.perLayerInputs ?? null,
     largeWeights: session.largeWeights ?? null,
   };
-  return createInitialExecutionIdentity({
+  return createInitialExecutionIdentityV2({
     executionGraphHash: hashValue(execution),
     resolvedGraphHash: hashValue({
       steps: resolvedSteps,
@@ -156,7 +230,39 @@ export function observeInitialExecutionIdentity(resolved) {
       resolvedStepsHash: resolved.execution.resolvedStepsHash,
     }),
     runtimeEngine,
+    programLoadPolicy: {
+      schema: PROGRAM_LOAD_POLICY_SCHEMA_ID,
+      runtimeConfig: {
+        inference: {
+          session: resolved.runtime.session,
+          compute: resolved.runtime.compute,
+        },
+      },
+    },
   });
+}
+
+function projectV2IdentityToV1(identity) {
+  return createInitialExecutionIdentity({
+    executionGraphHash: identity.executionGraphHash,
+    resolvedGraphHash: identity.resolvedGraphHash,
+    kernelClosure: identity.kernelClosure,
+    dtypeLane: identity.dtypeLane,
+    fusionSet: identity.fusionSet,
+    kvLayout: identity.kvLayout,
+    memoryPolicy: identity.memoryPolicy,
+    executionPlanDigest: identity.executionPlanDigest,
+    runtimeEngine: identity.runtimeEngine,
+  });
+}
+
+export function resolveProgramLoadRuntimeConfig(identity) {
+  const validation = validateInitialExecutionIdentity(identity);
+  if (!validation.ok) {
+    throw new Error(`Initial execution identity is invalid: ${validation.errors.join('; ')}`);
+  }
+  if (identity.schema === INITIAL_EXECUTION_IDENTITY_SCHEMA_ID) return null;
+  return structuredClone(identity.programLoadPolicy.runtimeConfig);
 }
 
 export function assertInitialExecutionIdentity(expected, observed) {
@@ -168,9 +274,16 @@ export function assertInitialExecutionIdentity(expected, observed) {
   if (!observedValidation.ok) {
     throw new Error(`Observed initial execution identity is invalid: ${observedValidation.errors.join('; ')}`);
   }
-  if (expected.digest === observed.digest) return true;
-  const fields = Object.keys(coreIdentity(expected)).filter((field) => (
-    !valuesEqual(expected[field], observed[field])
+  const comparableObserved = expected.schema === INITIAL_EXECUTION_IDENTITY_SCHEMA_ID
+    && observed.schema === INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID
+    ? projectV2IdentityToV1(observed)
+    : observed;
+  if (expected.digest === comparableObserved.digest) return true;
+  const fields = [...new Set([
+    ...Object.keys(coreIdentity(expected)),
+    ...Object.keys(coreIdentity(comparableObserved)),
+  ])].filter((field) => (
+    !valuesEqual(expected[field], comparableObserved[field])
   ));
   throw new Error(`Loaded execution identity does not match TargetPlan: ${fields.join(', ')}.`);
 }
