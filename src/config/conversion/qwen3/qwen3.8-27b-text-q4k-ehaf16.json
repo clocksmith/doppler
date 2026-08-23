@@ -19,7 +19,7 @@
     "q4kLayout": "row"
   },
   "manifest": {
-    "hashAlgorithm": "blake3",
+    "hashAlgorithm": "sha256",
     "artifactIdentity": {
       "sourceCheckpointId": "Qwen/Qwen3.8-27B",
       "sourceRepo": "Qwen/Qwen3.8-27B",

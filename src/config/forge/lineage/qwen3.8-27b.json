@@ -8,7 +8,7 @@
   "author": {
     "kind": "ai",
     "actor": "openai-codex",
-    "proposalId": "qwen3.8-lineage-recurrent-f16-v3"
+    "proposalId": "qwen3.8-lineage-recurrent-f16-sha256-v4"
   },
   "compatibilityRequirements": [
     { "factId": "text.modelType", "equals": "qwen3_5_text" },
@@ -51,6 +51,12 @@
       "value": true,
       "lifecycle": "pack-scope",
       "rationale": "The complete multimodal source topology remains in ModelIR while this candidate lowers only text.generate."
+    },
+    {
+      "targetPointer": "/manifest/hashAlgorithm",
+      "value": "sha256",
+      "lifecycle": "forge",
+      "rationale": "Signed Pack artifact closure requires SHA-256 weight-shard identities and must reject rather than relabel a BLAKE3 source manifest."
     },
     {
       "targetPointer": "/session/kvcache/maxSeqLen",
@@ -152,7 +158,7 @@
     "/manifest/artifactIdentity/manifestVariantId"
   ],
   "candidateAudit": {
-    "generated": 5,
+    "generated": 6,
     "rejected": [
       {
         "candidateId": "flat-homogeneous",
@@ -186,8 +192,12 @@
           "executionGraphHash": "sha256:8640729b40ca4051e063fa146d685e1ba97ed2f52f6976934b021e44d9415e92",
           "initialExecutionIdentityDigest": "sha256:9050981c41fad606bd6c0f0003e6a22cc82be281a5693349ee75e6d5bb222308"
         }
+      },
+      {
+        "candidateId": "f16-recurrent-blake3-closure",
+        "reason": "Rejected during Pack closure preflight because the inherited BLAKE3 shard hashes cannot enter the SHA-256 Pack artifact contract. Conversion was canceled before completion and no qualification claim was produced."
       }
     ],
-    "acceptedCandidateId": "qwen3.8-lineage-f16-recurrent-v3"
+    "acceptedCandidateId": "qwen3.8-lineage-f16-recurrent-sha256-v4"
   }
 }
