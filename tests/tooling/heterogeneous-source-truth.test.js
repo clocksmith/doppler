@@ -41,20 +41,21 @@ assert.ok(qwenIR.provenance.facts.every((fact) => (
 
 const glimmer = await forgeCheckedInSpec('glimmer-30b');
 const glimmerIR = glimmer.receipt.modelIR;
-assert.deepEqual(glimmer.receipt.unresolvedFacts.map((fact) => fact.id), [
-  'text.qkScaleApplication',
-  'text.outputMultiplierApplication',
-  'text.postNormOrdering',
-  'text.zeroThetaSemantics',
-]);
-assert.ok(glimmer.receipt.unresolvedFacts.every((fact) => (
-  fact.disposition === 'unresolved'
-  && fact.validation.status === 'preserved-unresolved'
-)));
+assert.deepEqual(glimmer.receipt.unresolvedFacts, []);
 assert.equal(glimmerIR.blockSchedules.find((schedule) => schedule.id === 'text.schedule').blocks.length, 52);
 assert.equal(glimmerIR.blockSchedules.find((schedule) => schedule.id === 'vision.schedule').blocks.length, 50);
 assert.equal(glimmerIR.blockClasses.find((block) => block.id === 'sliding-attention').positional.theta, 500000);
-assert.equal(glimmerIR.blockClasses.find((block) => block.id === 'full-attention').positional.theta, 0);
+const fullAttention = glimmerIR.blockClasses.find((block) => block.id === 'full-attention');
+assert.equal(fullAttention.positional.theta, 0);
+assert.equal(fullAttention.positional.type, 'no-rope');
+assert.deepEqual(fullAttention.geometry.queryKeyNorm, { type: 'rmsnorm', withScale: false });
+assert.equal(fullAttention.geometry.queryScale, 3.87);
+assert.equal(fullAttention.geometry.outputGateType, 'sigmoid');
+assert.equal(fullAttention.normalization.postNormPosition, 'sublayer-output-before-residual');
+assert.equal(glimmerIR.outputHeads[0].properties.preSoftcapMultiplier, 0.19611613513818404);
+assert.ok(glimmerIR.sourceIdentity.artifacts.some((artifact) => (
+  artifact.role === 'pinned-reference-implementation-semantics'
+)));
 assert.deepEqual(glimmerIR.supportScope.loweredEntryPoints, []);
 assert.deepEqual(glimmerIR.supportScope.unloweredEntryPoints, ['text.generate', 'vision.encode']);
 

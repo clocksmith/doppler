@@ -7,6 +7,25 @@
     "recurrent",
     "convolutional"
   ],
+  "componentContracts": {
+    "text-decoder": {
+      "allowedValues": {},
+      "dynamicFields": [
+        "modelType",
+        "hiddenSize",
+        "vocabSize",
+        "numLayers"
+      ]
+    }
+  },
+  "outputHeadContracts": {
+    "causal-lm": {
+      "allowedValues": {},
+      "dynamicFields": [
+        "vocabSize"
+      ]
+    }
+  },
   "blockLowerings": [
     {
       "id": "portable-full-attention",

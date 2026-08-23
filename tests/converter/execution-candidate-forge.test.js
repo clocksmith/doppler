@@ -85,6 +85,10 @@ const glimmerAudit = auditEntryPointLowerability({
 assert.equal(glimmerAudit.lowerable, false);
 assert.equal(glimmerAudit.entryPointStatus, 'unlowered');
 assert.deepEqual(glimmerAudit.unimplementedStateKinds, []);
+assert.equal(glimmerAudit.component.compatible, false);
+assert.match(JSON.stringify(glimmerAudit.component.reasons), /embeddingNormalization|finalNormalization/);
+assert.equal(glimmerAudit.outputHeads[0].compatible, false);
+assert.match(JSON.stringify(glimmerAudit.outputHeads[0].reasons), /preSoftcapMultiplier|operationOrder/);
 assert.equal(
   glimmerAudit.blockClasses.find((entry) => entry.blockClassId === 'sliding-attention')
     .compatibleLoweringIds.length,
@@ -95,6 +99,16 @@ assert.match(
   /local-attention|qkScale|rmsnorm-with-postnorm/,
   'the audit must expose semantic capability gaps without inspecting a model-family name'
 );
+
+const incompleteVocabulary = structuredClone(vocabulary);
+delete incompleteVocabulary.outputHeadContracts;
+const qwenWithoutHeadContract = auditEntryPointLowerability({
+  modelIR: qwenReceipt.modelIR,
+  entryPointId: 'text.generate',
+  vocabulary: incompleteVocabulary,
+});
+assert.equal(qwenWithoutHeadContract.lowerable, false);
+assert.match(JSON.stringify(qwenWithoutHeadContract.outputHeads), /not declared/);
 
 const candidate = search.acceptedCandidate;
 const identity = createInitialExecutionIdentityV2({

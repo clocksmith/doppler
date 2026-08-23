@@ -44,12 +44,18 @@ The deterministic
 tests the source ModelIR against the established hybrid full/recurrent text
 vocabulary without inspecting the model name. It currently fails closed because
 no admitted lowering implements local attention, and the existing full-attention
-lowering does not bind QK scaling, output multiplication, RMSNorm postnorm, or
-the source model's no-RoPE full blocks. KV state is already representable. These
+lowering does not bind scaleless Q/K RMSNorm and query scaling, sigmoid gate
+placement, centered RMSNorm postnorm, or the source model's no-RoPE full blocks.
+The component and output-head audit also rejects the weightless embedding norm
+and pre-softcap logit multiplier/order. KV state is already representable. These
 are the exact generic contracts to add before an execution candidate can exist.
-The source receipt preserves their operational application and ordering as four
-unresolved facts: config values alone are not accepted as proof of reference
-formulas. A pinned implementation source must resolve them before lowering.
+
+The operational meanings are no longer inferred from config names. The source
+receipt pins the Hugging Face Transformers implementation and source hashes,
+records exact symbol and line spans, and admits zero unresolved text operational
+facts. In particular, `output_multiplier` is represented on the final logits
+path, not as an attention multiplier. This upgrades semantic source truth only;
+it does not make either entry point lowerable or executable.
 
 DFlash is absent from the current ModelIR and requires a separate pinned source,
 revision, license, tensor, and reference-behavior intake. The current receipt has

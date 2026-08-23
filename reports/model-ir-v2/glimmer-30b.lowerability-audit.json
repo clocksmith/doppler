@@ -2,18 +2,18 @@
   "schema": "doppler.lowerability-audit-receipt/v1",
   "modelIREvidence": {
     "path": "reports/model-ir-v2/glimmer-30b.model-ir-receipt.json",
-    "digest": "sha256:d795af9c89bed49cf81d002ff96e483b9fcab5affd11eb062c051cbea640d729"
+    "digest": "sha256:613c11bb99ef6ba59b1c671d5500d4a1b0bfb082e20a71d0b05a5db8f295600c"
   },
   "vocabularyEvidence": {
     "path": "src/config/forge/lowering-vocabularies/hybrid-text-v1.json",
-    "digest": "sha256:483ea85355ad3bb9b37daecf6f93a703239d41c83262e7eb310b6be45ac961e5",
+    "digest": "sha256:b3d5c8b8fa8485425f8b95f48b6eb51d2c0c8f7c51cfc85b226d5d7c8d74f0e3",
     "vocabularyId": "hybrid-full-recurrent-text-v1",
     "scope": "semantic-contracts"
   },
   "audit": {
     "schema": "doppler.entry-point-lowerability-audit/v1",
     "modelId": "muse-glimmer-30b",
-    "modelIRHash": "sha256:5563734160e3b3c98f515dc03fe241d994ccc8e9fded7e48687a003d0c5269ea",
+    "modelIRHash": "sha256:6a949aa376faff5dd6ec3a9d4c1b85623f01f40a9f9498900497ddab54499801",
     "entryPointId": "text.generate",
     "entryPointStatus": "unlowered",
     "requiredPhases": [
@@ -22,6 +22,28 @@
     ],
     "scheduleId": "text.schedule",
     "lowerable": false,
+    "component": {
+      "componentId": "text-decoder",
+      "componentType": "text-decoder",
+      "compatible": false,
+      "reasons": [
+        "Component contract \"text-decoder\" does not bind properties.embeddingNormalization.",
+        "Component contract \"text-decoder\" does not bind properties.finalNormalization."
+      ]
+    },
+    "outputHeads": [
+      {
+        "outputHeadId": "text.lm-head",
+        "outputHeadKind": "causal-lm",
+        "compatible": false,
+        "reasons": [
+          "Output-head contract \"causal-lm\" does not bind properties.preSoftcapMultiplier.",
+          "Output-head contract \"causal-lm\" does not bind properties.finalLogitSoftcap.",
+          "Output-head contract \"causal-lm\" does not bind properties.operationOrder."
+        ]
+      }
+    ],
+    "outputHeadReasons": [],
     "blockClasses": [
       {
         "blockClassId": "sliding-attention",
@@ -50,12 +72,16 @@
           {
             "loweringId": "portable-full-attention",
             "reasons": [
-              "Lowering \"portable-full-attention\" does not bind geometry.qkScale.",
-              "Lowering \"portable-full-attention\" does not bind geometry.outputMultiplier.",
-              "Lowering \"portable-full-attention\" does not admit normalization.type=\"rmsnorm-with-postnorm\".",
+              "Lowering \"portable-full-attention\" does not bind geometry.attentionScale.",
+              "Lowering \"portable-full-attention\" does not bind geometry.queryScale.",
+              "Lowering \"portable-full-attention\" does not bind geometry.outputGatePosition.",
+              "Lowering \"portable-full-attention\" does not admit normalization.type=\"centered-rmsnorm-with-postnorm\".",
               "Lowering \"portable-full-attention\" does not bind normalization.postNormEps.",
+              "Lowering \"portable-full-attention\" does not bind normalization.postNormWeightOffset.",
+              "Lowering \"portable-full-attention\" does not bind normalization.postNormPosition.",
               "Lowering \"portable-full-attention\" does not bind positional.type.",
-              "Lowering \"portable-full-attention\" does not bind positional.theta."
+              "Lowering \"portable-full-attention\" does not bind positional.theta.",
+              "Lowering \"portable-full-attention\" does not bind feedForward.operation."
             ]
           },
           {
@@ -69,5 +95,5 @@
     ],
     "unimplementedStateKinds": []
   },
-  "receiptDigest": "sha256:15b67349d7b80436b343dd1de8e5c5870dc2498178271dcc3e7c4b049f2aab2b"
+  "receiptDigest": "sha256:b4c215d67198b550bfd68159285420f3a332396a8e84e9167bee3bc884e856a7"
 }

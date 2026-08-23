@@ -1,0 +1,143 @@
+{
+  "schema": "doppler.pinned-reference-semantics/v1",
+  "upstream": {
+    "repository": "huggingface/transformers",
+    "revision": "c7e57f79348480f73d3ef0ad8c47f807ef1378c8",
+    "files": [
+      {
+        "path": "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py",
+        "sha256": "sha256:fd285c1dc9f4dd996e875250c2b76016cbc359aa85d55aea2102527c88fa7050"
+      },
+      {
+        "path": "src/transformers/models/muse_glimmer/configuration_muse_glimmer.py",
+        "sha256": "sha256:67900ce9164c509c9067687b1ed60e37270510d028c848ff2397ab92edfb3c16"
+      }
+    ]
+  },
+  "facts": {
+    "textAttention": {
+      "value": {
+        "attentionScale": "inverse-sqrt-head-dim",
+        "causal": true,
+        "queryKeyNormalization": {
+          "type": "rmsnorm",
+          "withScale": false
+        },
+        "queryScale": 3.87,
+        "outputGate": {
+          "enabled": true,
+          "activation": "sigmoid",
+          "position": "attention-output-before-output-projection"
+        }
+      },
+      "sourceSpans": [
+        {
+          "file": "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py",
+          "symbol": "MuseGlimmerTextAttention.__init__",
+          "lines": [296, 324]
+        },
+        {
+          "file": "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py",
+          "symbol": "MuseGlimmerTextAttention.forward",
+          "lines": [337, 370]
+        }
+      ]
+    },
+    "textFeedForward": {
+      "value": {
+        "type": "gated-dense",
+        "gated": true,
+        "operation": "down(silu(gate(x))*up(x))"
+      },
+      "sourceSpans": [
+        {
+          "file": "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py",
+          "symbol": "MuseGlimmerTextMLP.forward",
+          "lines": [144, 157]
+        }
+      ]
+    },
+    "textNormalization": {
+      "value": {
+        "type": "centered-rmsnorm-with-postnorm",
+        "weightOffset": 1,
+        "postNormWeightOffset": 1,
+        "postNormPosition": "sublayer-output-before-residual"
+      },
+      "sourceSpans": [
+        {
+          "file": "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py",
+          "symbol": "MuseGlimmerTextCenteredRMSNorm.forward",
+          "lines": [124, 138]
+        },
+        {
+          "file": "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py",
+          "symbol": "MuseGlimmerTextDecoderLayer.forward",
+          "lines": [374, 415]
+        }
+      ]
+    },
+    "textPositional": {
+      "value": {
+        "zeroTheta": "no-rope",
+        "nonzeroTheta": "rope"
+      },
+      "sourceSpans": [
+        {
+          "file": "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py",
+          "symbol": "MuseGlimmerTextModel.forward",
+          "lines": [512, 524]
+        },
+        {
+          "file": "src/transformers/models/muse_glimmer/configuration_muse_glimmer.py",
+          "symbol": "MuseGlimmerTextConfig.__post_init__",
+          "lines": [138, 153]
+        }
+      ]
+    },
+    "textEmbedding": {
+      "value": {
+        "normalization": {
+          "type": "rmsnorm",
+          "withScale": false
+        },
+        "finalNormalization": {
+          "type": "rmsnorm",
+          "withScale": true
+        }
+      },
+      "sourceSpans": [
+        {
+          "file": "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py",
+          "symbol": "MuseGlimmerTextNormedEmbedding",
+          "lines": [436, 444]
+        },
+        {
+          "file": "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py",
+          "symbol": "MuseGlimmerTextModel.__init__",
+          "lines": [455, 466]
+        }
+      ]
+    },
+    "textLogits": {
+      "value": {
+        "preSoftcapMultiplier": 0.19611613513818404,
+        "softcap": 20,
+        "operationOrder": [
+          "language-model-head",
+          "multiply",
+          "divide-by-softcap",
+          "tanh",
+          "multiply-by-softcap"
+        ]
+      },
+      "sourceSpans": [
+        {
+          "file": "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py",
+          "symbol": "MuseGlimmerForConditionalGeneration.forward",
+          "lines": [1251, 1260]
+        }
+      ]
+    }
+  }
+}
