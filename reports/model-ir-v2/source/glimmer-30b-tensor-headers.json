@@ -1,0 +1,19 @@
+{
+  "sourceFile": "model-00001-of-00002.safetensors",
+  "sourceHeaderSha256": "fc1320b5952281e16ffb38d38e4c198be66cd04271e195d5cfcce3a73c63e12e",
+  "additionalSourceHeaders": [
+    {
+      "sourceFile": "model-00002-of-00002.safetensors",
+      "sourceHeaderSha256": "b622bd09c89b472daad7f39b70fcad77f950cbd147ae7acd9c01eeb5bf5d8d89"
+    }
+  ],
+  "tensors": {
+    "model.language_model.layers.0.self_attn.q_proj.weight": { "dtype": "BF16", "shape": [4096, 6656] },
+    "model.language_model.layers.3.self_attn.q_proj.weight": { "dtype": "BF16", "shape": [4096, 6656] },
+    "model.vision_tower.layers.0.attn.q_proj.weight": { "dtype": "BF16", "shape": [1536, 1536] },
+    "model.vision_adapter.fc1.weight": { "dtype": "BF16", "shape": [4096, 6144] },
+    "model.vision_adapter.fc2.weight": { "dtype": "BF16", "shape": [4096, 4096] },
+    "model.vision_projection.weight": { "dtype": "BF16", "shape": [6656, 4096] },
+    "lm_head.weight": { "dtype": "BF16", "shape": [202048, 6656] }
+  }
+}

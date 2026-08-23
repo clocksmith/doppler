@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "doppler",
-  "updatedAtUtc": "2026-08-15T18:49:21.000Z",
+  "updatedAtUtc": "2026-08-22T00:00:00.000Z",
   "subsystems": [
     {
       "id": "api.root-facade",
@@ -20,10 +20,31 @@
         "docs/api/root.md"
       ],
       "entrypoints": [
+        "src/pack-runtime.js",
+        "src/client/runtime/composition-root.js"
+      ],
+      "notes": "Preferred Pack-native application surface with explicit trust and injected execution ports."
+    },
+    {
+      "id": "api.compat-facade",
+      "label": "Legacy manifest-loading compatibility facade",
+      "scope": "api",
+      "tier": "experimental",
+      "owner": "client-surface",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "secondary",
+      "packageExport": "./compat",
+      "command": null,
+      "docs": [
+        "docs/api/compat.md"
+      ],
+      "entrypoints": [
         "src/index.js",
         "src/client/doppler-api.js"
       ],
-      "notes": "Preferred public surface for application authors."
+      "notes": "Explicit compatibility surface for legacy manifest loading and provider-oriented application APIs."
     },
     {
       "id": "cli.quickstart",

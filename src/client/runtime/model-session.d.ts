@@ -241,6 +241,7 @@ export interface DopplerModelHandle {
     getSpecialTokens(): Record<string, number | undefined>;
     getStopTokenIds(): number[];
     getStats(): Record<string, unknown> | null;
+    getResolvedRuntimeSession(): Readonly<Record<string, unknown>>;
     prefillKV(prompt: string, options?: DopplerGenerateOptions): Promise<KVCacheSnapshot>;
     resetToSeqLen(seqLen: number): void;
     prefillWithLogits(

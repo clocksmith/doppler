@@ -46,33 +46,41 @@ npx doppler-gpu --list-models
 
 The live browser demo is at [d4da.com/doppler](https://d4da.com/doppler).
 The first documentation path is [getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md),
-followed by the [Root API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
+followed by the [Pack Runtime API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
-### Root API
+### Pack Runtime API
 
 ```js
-import { dr } from 'doppler-gpu';
+import { createFetchPackArtifactStore, openPack } from 'doppler-gpu';
 
-const session = await dr.open('qwen3-0.8b');
-const result = await session.generate('Describe WebGPU briefly');
-console.log(result.outputText, result.fingerprint);
+const packUrl = new URL('./model.pack.json', import.meta.url).href;
+const artifactStore = createFetchPackArtifactStore(packUrl);
+const pack = await (await fetch(packUrl)).json();
+const session = await openPack(pack, {
+  device,
+  artifactStore,
+  trustedSigners: new Map([[signerId, signerPublicKey]]),
+  programFactory,
+});
+const result = await session.generateText(generationOptions);
+console.log(result.text, session.selectedTargetPlanDigest);
 await session.close();
 ```
 
-For streaming and evidence-bound output:
+The application supplies its device adapter, trusted signer set, and generic
+program factory. Pack validation selects one qualified TargetPlan; TargetPlan
+v2 additionally binds the loaded program's observed initial execution identity
+before resource allocation or prefill dispatch.
+
+The former manifest-loading facade remains available only as an explicit
+compatibility import:
 
 ```js
-const model = await dr.load('qwen3-0.8b');
-for await (const token of model.generate('Describe WebGPU briefly')) {
-  process.stdout.write(token);
-}
+import { dr } from 'doppler-gpu/compat';
 
-const evidence = await model.generateWithEvidence('Explain WebGPU in one sentence', {
-  maxTokens: 64,
-  temperature: 0,
-});
-console.log(evidence.outputText, evidence.transcriptHash);
-await model.unload();
+const session = await dr.open('qwen3-0.8b');
+const result = await session.generate('Describe WebGPU briefly');
+await session.close();
 ```
 
 ### OpenAI-compatible server

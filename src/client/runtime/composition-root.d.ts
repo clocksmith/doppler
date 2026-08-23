@@ -1,5 +1,6 @@
 import type { DopplerPackV2, PackV2Artifact } from '../../config/pack-v2.js';
 import type { TargetPlan } from '../../config/target-plan.js';
+import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import type { DeviceProfile } from './target-selector.js';
 import type { GenerationRunOptions } from './session-controller.js';
 
@@ -25,6 +26,7 @@ export interface DopplerRuntimeSession {
   selectedTargetId: string;
   selectedTargetPlanDigest: string;
   selectedPlan: TargetPlan;
+  observedInitialExecutionIdentity: InitialExecutionIdentity | null;
   deviceProfile: DeviceProfile;
   generate(options: GenerationRunOptions): AsyncGenerator<number, void, void>;
   generateText(options: GenerationRunOptions): Promise<{ text: string; tokenIds: number[] }>;

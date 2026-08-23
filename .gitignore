@@ -110,6 +110,12 @@ reports/**
 !reports/pack-v0/
 !reports/pack-v0/**/
 !reports/pack-v0/**/*-qualification.json
+!reports/model-ir-v2/
+!reports/model-ir-v2/**/
+!reports/model-ir-v2/**/*.json
+!reports/pack-runtime/
+!reports/pack-runtime/**/
+!reports/pack-runtime/**/*.json
 !reports/program-bundles/
 !reports/program-bundles/**/
 !reports/program-bundles/**/*.reference.json

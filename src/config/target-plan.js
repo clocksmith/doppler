@@ -6,9 +6,12 @@
 
 import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
+import { validateInitialExecutionIdentity } from './initial-execution-identity.js';
 
 export const TARGET_PLAN_SCHEMA_ID = 'doppler.target-plan/v1';
 export const TARGET_PLAN_SCHEMA_VERSION = 1;
+export const TARGET_PLAN_V2_SCHEMA_ID = 'doppler.target-plan/v2';
+export const TARGET_PLAN_V2_SCHEMA_VERSION = 2;
 
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const SLOT_SCOPES = new Set(['static', 'layer-recycled', 'transient', 'session']);
@@ -98,11 +101,13 @@ export function validateTargetPlan(plan) {
   if (!isObject(plan)) {
     return { ok: false, errors: ['TargetPlan must be a non-null object.'] };
   }
-  if (plan.schema !== TARGET_PLAN_SCHEMA_ID) {
-    errors.push(`schema must be "${TARGET_PLAN_SCHEMA_ID}", received "${plan.schema}".`);
-  }
-  if (plan.schemaVersion !== TARGET_PLAN_SCHEMA_VERSION) {
-    errors.push(`schemaVersion must be ${TARGET_PLAN_SCHEMA_VERSION}, received ${plan.schemaVersion}.`);
+  const isV1 = plan.schema === TARGET_PLAN_SCHEMA_ID && plan.schemaVersion === TARGET_PLAN_SCHEMA_VERSION;
+  const isV2 = plan.schema === TARGET_PLAN_V2_SCHEMA_ID && plan.schemaVersion === TARGET_PLAN_V2_SCHEMA_VERSION;
+  if (!isV1 && !isV2) {
+    errors.push(
+      `schema/version must be "${TARGET_PLAN_SCHEMA_ID}"/${TARGET_PLAN_SCHEMA_VERSION} ` +
+      `or "${TARGET_PLAN_V2_SCHEMA_ID}"/${TARGET_PLAN_V2_SCHEMA_VERSION}.`
+    );
   }
   requireString(plan.targetId, 'targetId', errors);
   requireString(plan.modelId, 'modelId', errors);
@@ -204,6 +209,15 @@ export function validateTargetPlan(plan) {
     }
   }
 
+  if (isV2) {
+    const identityValidation = validateInitialExecutionIdentity(plan.initialExecutionIdentity);
+    if (!identityValidation.ok) {
+      errors.push(...identityValidation.errors.map((error) => `initialExecutionIdentity.${error}`));
+    } else if (plan.initialExecutionIdentity.executionGraphHash !== plan.executionGraphHash) {
+      errors.push('initialExecutionIdentity.executionGraphHash must equal executionGraphHash.');
+    }
+  }
+
   return { ok: errors.length === 0, errors };
 }
 
@@ -256,6 +270,32 @@ export function createTargetPlan(params) {
   const validation = validateTargetPlan(plan);
   if (!validation.ok) {
     throw new Error(`Failed to create valid TargetPlan: ${validation.errors.join('; ')}`);
+  }
+  return plan;
+}
+
+export function createTargetPlanV2(params) {
+  if (!isObject(params)) throw new Error('createTargetPlanV2 requires an object.');
+  const plan = {
+    schema: TARGET_PLAN_V2_SCHEMA_ID,
+    schemaVersion: TARGET_PLAN_V2_SCHEMA_VERSION,
+    targetId: params.targetId,
+    modelId: params.modelId,
+    modelIRHash: params.modelIRHash,
+    executionGraphHash: params.executionGraphHash,
+    programBundleHash: params.programBundleHash,
+    capabilityPredicate: params.capabilityPredicate,
+    dtypes: params.dtypes,
+    fusions: Array.isArray(params.fusions) ? params.fusions : [],
+    kernelClosure: params.kernelClosure,
+    memoryLayout: params.memoryLayout,
+    phases: params.phases,
+    qualification: params.qualification,
+    initialExecutionIdentity: params.initialExecutionIdentity,
+  };
+  const validation = validateTargetPlan(plan);
+  if (!validation.ok) {
+    throw new Error(`Failed to create valid TargetPlan v2: ${validation.errors.join('; ')}`);
   }
   return plan;
 }

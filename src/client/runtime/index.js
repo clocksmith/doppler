@@ -344,6 +344,9 @@ export function createDopplerRuntimeService({
     if (typeof resolvePackInput !== 'function') {
       throw new Error('doppler.openPack() is unavailable because no Pack source resolver is configured.');
     }
+    if (options.modelLoadOptions !== undefined) {
+      throw new Error('doppler.openPack() prohibits modelLoadOptions because signed TargetPlan policy is authoritative.');
+    }
     await ensureWebGPUAvailable();
     const resolvedPack = await resolvePackInput(packSource, options);
     if (!resolvedPack?.pack || !resolvedPack?.artifactStore) {
@@ -378,7 +381,7 @@ export function createDopplerRuntimeService({
         const manifestUrl = artifactStore.resolveArtifactUrl?.(manifestArtifact);
         if (!manifestUrl) throw new Error('Pack artifact store cannot resolve the manifest URL.');
         const modelBaseUrl = new URL('.', manifestUrl).href;
-        const modelHandle = await load({ url: modelBaseUrl }, options.modelLoadOptions ?? {});
+        const modelHandle = await load({ url: modelBaseUrl }, {});
         return createPackProgramAdapter(modelHandle, pack, targetPlan);
       },
     });

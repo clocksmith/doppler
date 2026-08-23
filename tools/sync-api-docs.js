@@ -17,7 +17,19 @@ const EXPORT_META = {
     audience: 'app authors',
     stability: 'preferred public',
     docPath: 'docs/api/root.md',
-    notes: 'Primary application-facing surface. Prefer this over lower-level exports.',
+    notes: 'Primary Pack-native surface. Pack identity, trust, and execution ports are explicit.',
+  },
+  './runtime': {
+    audience: 'app authors',
+    stability: 'preferred public',
+    docPath: 'docs/api/root.md',
+    notes: 'Stable alias of the Pack-native root surface.',
+  },
+  './compat': {
+    audience: 'legacy application authors',
+    stability: 'compatibility',
+    docPath: 'docs/api/compat.md',
+    notes: 'Explicit legacy manifest-loading facade; new production integrations should use signed Packs.',
   },
   './tooling': {
     audience: 'tool builders',

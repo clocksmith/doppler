@@ -8,10 +8,41 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Audience: app authors
 - Stability: preferred public (tier1)
 - Manual guide: [docs/api/root.md](../root.md)
+- Types: [src/pack-runtime.d.ts](../../../src/pack-runtime.d.ts)
+- Implementation: [src/pack-runtime.js](../../../src/pack-runtime.js)
+- Notes: Primary Pack-native surface. Pack identity, trust, and execution ports are explicit.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.root-facade)
+- Exported symbols:
+  - `createDopplerRuntime`
+  - `createFetchPackArtifactStore`
+  - `DOPPLER_VERSION`
+  - `openPack`
+  - `RUNTIME_CORE_VERSION`
+
+## `doppler-gpu/runtime`
+
+- Audience: app authors
+- Stability: preferred public
+- Manual guide: [docs/api/root.md](../root.md)
+- Types: [src/pack-runtime.d.ts](../../../src/pack-runtime.d.ts)
+- Implementation: [src/pack-runtime.js](../../../src/pack-runtime.js)
+- Notes: Stable alias of the Pack-native root surface.
+- Exported symbols:
+  - `createDopplerRuntime`
+  - `createFetchPackArtifactStore`
+  - `DOPPLER_VERSION`
+  - `openPack`
+  - `RUNTIME_CORE_VERSION`
+
+## `doppler-gpu/compat`
+
+- Audience: legacy application authors
+- Stability: experimental export
+- Manual guide: [docs/api/compat.md](../compat.md)
 - Types: [src/index.d.ts](../../../src/index.d.ts)
 - Implementation: [src/index.js](../../../src/index.js)
-- Notes: Primary application-facing surface. Prefer this over lower-level exports.
-- Support tier source: `src/config/support-tiers/subsystems.json` (api.root-facade)
+- Notes: Explicit legacy manifest-loading facade; new production integrations should use signed Packs.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.compat-facade)
 - Exported symbols:
   - `createDopplerProvider`
   - `doppler`

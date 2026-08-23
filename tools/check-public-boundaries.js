@@ -14,7 +14,7 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
   maxEntryCount: 1450,
   maxPackedSize: 1_920_000,
-  maxUnpackedSize: 10_000_000,
+  maxUnpackedSize: 10_200_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -33,6 +33,49 @@ const FORBIDDEN_PACKAGE_FILES = Object.freeze(['assets/doppler-runtime-map.svg']
 const FORBIDDEN_PACKAGE_SUFFIXES = Object.freeze(['.diff', '.py']);
 
 const FILE_RULES = [
+  {
+    file: 'src/pack-runtime.js',
+    allowed: new Set([
+      './version.js',
+      './client/runtime/composition-root.js',
+      './client/runtime/fetch-pack-artifact-store.js',
+    ]),
+    forbidden: [
+      'export * from',
+      './index.js',
+      './client/doppler-api.js',
+      './client/provider.js',
+      './tooling-exports',
+      './converter/',
+      './experimental/',
+      './models/',
+      './inference/',
+      './gpu/',
+      './storage/',
+    ],
+  },
+  {
+    file: 'src/pack-runtime.d.ts',
+    allowed: new Set([
+      './version.js',
+      './config/pack-v2.js',
+      './client/runtime/composition-root.js',
+      './client/runtime/fetch-pack-artifact-store.js',
+    ]),
+    forbidden: [
+      'export * from',
+      './index.js',
+      './client/doppler-api.js',
+      './client/provider.js',
+      './tooling-exports',
+      './converter/',
+      './experimental/',
+      './models/',
+      './inference/',
+      './gpu/',
+      './storage/',
+    ],
+  },
   {
     file: 'src/index.js',
     allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js']),
@@ -375,6 +418,8 @@ async function validatePackageExports() {
   const exportsField = packageJson.exports || {};
 
   assert(exportsField['.'], 'package.json exports is missing the root entry.');
+  assert(exportsField['./runtime'], 'package.json exports must include ./runtime.');
+  assert(exportsField['./compat'], 'package.json exports must include ./compat.');
   assert(exportsField['./provider'], 'package.json exports must include ./provider.');
   assert(!exportsField['./internal'], 'package.json exports must not include ./internal.');
   assert(exportsField['./tooling'], 'package.json exports must include ./tooling.');
@@ -386,8 +431,20 @@ async function validatePackageExports() {
 
   const rootExport = exportsField['.'];
   assert(
-    rootExport?.import === './src/index.js' && rootExport?.types === './src/index.d.ts',
-    'package.json root export must point to src/index.js and src/index.d.ts.'
+    rootExport?.import === './src/pack-runtime.js' && rootExport?.types === './src/pack-runtime.d.ts',
+    'package.json root export must point to src/pack-runtime.js and src/pack-runtime.d.ts.'
+  );
+
+  const runtimeExport = exportsField['./runtime'];
+  assert(
+    runtimeExport?.import === rootExport.import && runtimeExport?.types === rootExport.types,
+    'package.json ./runtime export must alias the Pack-native root export.'
+  );
+
+  const compatExport = exportsField['./compat'];
+  assert(
+    compatExport?.import === './src/index.js' && compatExport?.types === './src/index.d.ts',
+    'package.json ./compat export must point to src/index.js and src/index.d.ts.'
   );
 
   const providerExport = exportsField['./provider'];

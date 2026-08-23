@@ -2,8 +2,8 @@
   "name": "doppler-gpu",
   "version": "0.5.1",
   "description": "Browser-native WebGPU inference engine for local intent and inference loops",
-  "main": "src/index.js",
-  "types": "src/index.d.ts",
+  "main": "src/pack-runtime.js",
+  "types": "src/pack-runtime.d.ts",
   "type": "module",
   "bin": {
     "doppler": "src/cli/doppler-cli.js",
@@ -25,7 +25,7 @@
     "trainer-handoff:import": "node tools/verify-trainer-artifact-handoff.js import --contract tools/policies/nativekd2-bf16-baseline-handoff.json --repo-root clocksmith/doppler=. --repo-root clocksmith/gamma=../gamma",
     "program-bundle:export": "node tools/export-program-bundle.js",
     "forge:pack": "node tools/forge-model-pack.js",
-    "pack-v2:check": "node tools/run-node-tests.js tests/config/model-ir.test.js tests/config/target-plan.test.js tests/converter/forge-stages.test.js tests/pack/pack-v2.test.js tests/runtime/plan-bind-execute.test.js tests/runtime/target-selector.test.js tests/tooling/forge-model-pack.test.js tests/tooling/forge-source-truth.test.js tests/tooling/source-intake.test.js",
+    "pack-v2:check": "node tools/run-node-tests.js tests/config/model-ir.test.js tests/config/model-ir-v2.test.js tests/config/target-plan.test.js tests/converter/execution-candidate-forge.test.js tests/converter/forge-stages.test.js tests/converter/source-truth-forge.test.js tests/pack/pack-v2.test.js tests/runtime/initial-execution-identity.test.js tests/runtime/pack-load-options.test.js tests/runtime/pack-runtime-entrypoint.test.js tests/runtime/plan-bind-execute.test.js tests/runtime/target-selector.test.js tests/tooling/forge-model-pack.test.js tests/tooling/forge-source-truth.test.js tests/tooling/heterogeneous-source-truth.test.js tests/tooling/source-intake.test.js",
     "pack-v2:gpu:node": "node tools/qualify-pack-v0-node.js",
     "pack-v2:gpu:dispatch": "node --input-type=module -e \"const {bootstrapNodeWebGPU}=await import('./src/tooling/node-webgpu.js'); const result=await bootstrapNodeWebGPU(); if(!result.ok) throw new Error(result.detail); globalThis.__DOPPLER_REQUIRE_PHYSICAL_WEBGPU__=true; await import('./tests/kernels/pack-command-executor-physical.test.js')\"",
     "pack-v2:gpu:browser": "node tools/qualify-pack-v0-browser.js",
@@ -108,7 +108,7 @@
     "goals:check": "node tools/check-goal-completion.js",
     "goals:report": "node tools/render-goal-completion-summary.js",
     "commands:surface:check": "node tools/check-command-surface-contract.js",
-    "check:green": "npm run agents:verify && npm run catscan:check && npm run goals:check && npm run product:portfolio:check && npm run product:readiness:check && npm run revocations:check && npm run revocations:authority:check && npm run product:integrations:check && npm run provider:conformance:check && npm run runtime:ownership:check && npm run bun:qualification:check && npm run public:boundaries:check && npm run package:smoke && npm run commands:surface:check && npm run api:docs:check && npm run config:single-source:check && npm run rules:bundle:check && npm run routing:audit:check && npm run negative-results:check && npm run evidence:workflows:check && npm run optimization:control:check && npm run promotion:monitoring:check && npm run inference:boundaries:check && npm run source:architecture:check && npm run capability-policy:check && npm run imports:check:browser && npm run pending:check && npm run exports:parity:check && npm run artifact:contract:check && npm run adapter-artifacts:check && npm run claims:evidence:check && npm run release-claims:check && npm run support:matrix:check && npm run support:subsystems:check && npm run policy:schemas:check && npm run program-bundle:schema:check && npm run program-bundle:check && npm run pack-v2:check",
+    "check:green": "npm run agents:verify && npm run catscan:check && npm run goals:check && npm run product:portfolio:check && npm run product:readiness:check && npm run revocations:check && npm run revocations:authority:check && npm run product:integrations:check && npm run provider:conformance:check && npm run runtime:ownership:check && npm run runtime:closure:check && npm run bun:qualification:check && npm run public:boundaries:check && npm run package:smoke && npm run commands:surface:check && npm run api:docs:check && npm run config:single-source:check && npm run rules:bundle:check && npm run routing:audit:check && npm run negative-results:check && npm run evidence:workflows:check && npm run optimization:control:check && npm run promotion:monitoring:check && npm run inference:boundaries:check && npm run source:architecture:check && npm run capability-policy:check && npm run imports:check:browser && npm run pending:check && npm run exports:parity:check && npm run artifact:contract:check && npm run adapter-artifacts:check && npm run claims:evidence:check && npm run release-claims:check && npm run support:matrix:check && npm run support:subsystems:check && npm run policy:schemas:check && npm run program-bundle:schema:check && npm run program-bundle:check && npm run pack-v2:check",
     "verify:model": "node src/cli/doppler-cli.js verify",
     "quickstart:sync": "node tools/sync-quickstart-registry.js",
     "quickstart:check": "node tools/sync-quickstart-registry.js --check",
@@ -174,6 +174,8 @@
     "runtime:ownership:evidence-id": "node tools/hash-runtime-ownership-execution-evidence.js",
     "runtime:ownership:record": "node tools/record-runtime-ownership-evaluation.js",
     "runtime:ownership:check": "node tools/check-runtime-ownership-decisions.js && node tools/run-node-tests.js tests/config/runtime-ownership-decisions.test.js tests/tooling/runtime-ownership-execution-evidence.test.js tests/tooling/record-runtime-ownership-evaluation.test.js",
+    "runtime:closure:sync": "node tools/check-pack-runtime-closure.js --write",
+    "runtime:closure:check": "node tools/check-pack-runtime-closure.js",
     "bun:qualification:record": "node tools/record-bun-product-qualification.js",
     "bun:qualification:check": "node tools/check-bun-product-qualification.js && node tools/run-node-tests.js tests/config/bun-product-qualification.test.js tests/tooling/record-bun-product-qualification.test.js",
     "revocations:check": "node tools/check-revocation-registry.js && node tools/run-node-tests.js tests/config/revocation-policy.test.js tests/config/quickstart-registry-sync.test.js tests/config/signed-revocation-updates.test.js",
@@ -185,6 +187,14 @@
   },
   "exports": {
     ".": {
+      "types": "./src/pack-runtime.d.ts",
+      "import": "./src/pack-runtime.js"
+    },
+    "./runtime": {
+      "types": "./src/pack-runtime.d.ts",
+      "import": "./src/pack-runtime.js"
+    },
+    "./compat": {
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
     },
