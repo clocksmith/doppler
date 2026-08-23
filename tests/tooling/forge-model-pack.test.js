@@ -286,8 +286,12 @@ const initialExecutionIdentity = createInitialExecutionIdentityV2({
   executionPlanDigest: `sha256:${'7'.repeat(64)}`,
   runtimeEngine: { schema: 'fixture' },
   programLoadPolicy: {
-    schema: 'doppler.pack-program-load-policy/v1',
-    runtimeConfig: { inference: { session: {}, compute: {} } },
+    schema: 'doppler.pack-program-load-policy/v2',
+    runtimeConfig: {
+      inference: {
+        session: {}, compute: {}, generation: { disableMultiTokenDecode: false },
+      },
+    },
   },
 });
 await fs.writeFile(identityPath, `${JSON.stringify(initialExecutionIdentity, null, 2)}\n`, 'utf8');

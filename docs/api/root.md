@@ -72,11 +72,14 @@ prefill. Any mismatch fails closed.
 
 Newly forged ModelIR v2 targets require
 `doppler.initial-execution-identity/v2`. Its signed `programLoadPolicy` contains
-only the fully resolved runtime `session` and `compute` JSON required to create
-the declared program. Public `modelLoadOptions` remain prohibited. Runtime
-applies this Pack-owned policy before loading the mature execution mechanism,
-then independently observes and compares the complete identity before prefill.
-Identity v1 remains accepted only for compatibility with already frozen Pack v0
+only the fully resolved runtime `session`, `compute`, and
+`generation.disableMultiTokenDecode` JSON required to create the declared
+execution plan. Public `modelLoadOptions` remain prohibited. Runtime applies
+this Pack-owned policy before loading the mature execution mechanism, then
+independently observes and compares the complete identity before prefill.
+Program-load policy v1 remains readable for rejected or previously frozen
+evidence, but Forge promotes only reconstructive policy v2. Initial execution
+identity v1 remains accepted only for compatibility with already frozen Pack v0
 targets.
 
 ## Architecture boundary

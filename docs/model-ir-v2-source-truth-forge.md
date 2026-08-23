@@ -123,8 +123,9 @@ Promotion requires:
 - deterministic boundary and token evidence;
 - a named hardware/surface qualification envelope; and
 - an observed initial execution identity v2 whose signed `programLoadPolicy`
-  recreates the qualified runtime session and compute policy, then matches the
-  TargetPlan before first prefill dispatch.
+  uses policy schema v2 to recreate the qualified runtime session, compute
+  policy, and multi-token decode setting, then matches the TargetPlan before
+  first prefill dispatch.
 
 `tools/run-program-bundle-reference.js --expected-transcript <path>` is the
 promotion gate from an upstream reference to a Program Bundle. It records the

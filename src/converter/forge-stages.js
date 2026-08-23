@@ -17,6 +17,7 @@ import {
 } from '../config/target-plan.js';
 import {
   INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID,
+  PROGRAM_LOAD_POLICY_SCHEMA_ID,
   validateInitialExecutionIdentity,
 } from '../config/initial-execution-identity.js';
 import {
@@ -615,9 +616,12 @@ export function stageSpecialize(lowered) {
   const weightDtype = requireString(manifest.quantizationInfo?.weights, 'manifest.quantizationInfo.weights');
   const specialization = resolveModelIRSpecialization(modelIR, manifest);
   if (modelIR.schema === 'doppler.model-ir/v2'
-    && normalized.initialExecutionIdentity?.schema !== INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID) {
+    && (normalized.initialExecutionIdentity?.schema !== INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID
+      || normalized.initialExecutionIdentity?.programLoadPolicy?.schema
+        !== PROGRAM_LOAD_POLICY_SCHEMA_ID)) {
     throw new Error(
-      'Forge requires a pre-dispatch initial execution identity v2 with signed program-load policy '
+      'Forge requires a pre-dispatch initial execution identity v2 with current signed '
+      + 'program-load policy '
       + 'for ModelIR v2 specialization.'
     );
   }

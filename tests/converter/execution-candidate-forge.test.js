@@ -95,8 +95,12 @@ const identity = createInitialExecutionIdentityV2({
   memoryPolicy: { kvcache: { layout: 'heterogeneous-contiguous' } },
   executionPlanDigest: digest('9'), runtimeEngine: { schema: 'test' },
   programLoadPolicy: {
-    schema: 'doppler.pack-program-load-policy/v1',
-    runtimeConfig: { inference: { session: {}, compute: {} } },
+    schema: 'doppler.pack-program-load-policy/v2',
+    runtimeConfig: {
+      inference: {
+        session: {}, compute: {}, generation: { disableMultiTokenDecode: false },
+      },
+    },
   },
 });
 const plan = promoteExecutionCandidate(candidate, {
@@ -108,6 +112,21 @@ const plan = promoteExecutionCandidate(candidate, {
 });
 assert.equal(plan.schema, 'doppler.target-plan/v2');
 assert.equal(plan.executionGraphHash, candidate.executionGraphHash);
+const legacyPolicyIdentity = createInitialExecutionIdentityV2({
+  ...identity,
+  programLoadPolicy: {
+    schema: 'doppler.pack-program-load-policy/v1',
+    runtimeConfig: { inference: { session: {}, compute: {} } },
+  },
+});
+assert.throws(
+  () => promoteExecutionCandidate(candidate, {
+    qualification: plan.qualification,
+    initialExecutionIdentity: legacyPolicyIdentity,
+  }),
+  /current signed program-load policy/,
+  'Forge must not promote a non-reconstructive legacy load policy'
+);
 
 assert.throws(() => searchExecutionCandidates({
   modelIR: glimmerReceipt.modelIR,

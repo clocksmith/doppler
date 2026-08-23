@@ -1,6 +1,9 @@
 import { hashModelIR, validateModelIR } from '../config/model-ir.js';
 import { createTargetPlanV2 } from '../config/target-plan.js';
-import { INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID } from '../config/initial-execution-identity.js';
+import {
+  INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID,
+  PROGRAM_LOAD_POLICY_SCHEMA_ID,
+} from '../config/initial-execution-identity.js';
 import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
 
@@ -179,8 +182,12 @@ export function promoteExecutionCandidate(candidate, evidence) {
   if (!isObject(candidate) || candidate.schema !== 'doppler.target-plan-candidate/v2') {
     throw new Error('Only a validated TargetPlan candidate can be promoted.');
   }
-  if (evidence?.initialExecutionIdentity?.schema !== INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID) {
-    throw new Error('Execution candidate promotion requires initial execution identity v2 with signed program-load policy.');
+  if (evidence?.initialExecutionIdentity?.schema !== INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID
+    || evidence.initialExecutionIdentity?.programLoadPolicy?.schema !== PROGRAM_LOAD_POLICY_SCHEMA_ID) {
+    throw new Error(
+      'Execution candidate promotion requires initial execution identity v2 with current signed '
+      + 'program-load policy.'
+    );
   }
   return createTargetPlanV2({
     targetId: candidate.targetId,
