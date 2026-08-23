@@ -5,6 +5,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
+import { createConversionRunTiming } from './conversion-run-timing.js';
 import { createRowChunks, mapOrderedChunkBatches } from './node-converter-chunk-batches.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { buildManifestIntegrityFromModelDir } from './rdrr-integrity-refresh.js';
@@ -21,7 +22,6 @@ import {
   CONVERSION_REPORT_SCHEMA_VERSION,
   validateConversionReport,
 } from '../config/schema/conversion-report.schema.js';
-
 function asPositiveInteger(value, label) {
   if (!Number.isInteger(value) || value < 1) {
     throw new Error(`node convert: ${label} must be a positive integer.`);
@@ -751,7 +751,6 @@ function normalizeTokenizerManifest(manifest) {
   }
   return manifest;
 }
-
 function buildConvertReport(result, context) {
   const manifest = result?.manifest ?? null;
   const inference = manifest?.inference && typeof manifest.inference === 'object'
@@ -763,6 +762,7 @@ function buildConvertReport(result, context) {
     command: 'convert',
     modelId: manifest?.modelId ?? context.modelId ?? 'unknown',
     timestamp: manifest?.metadata?.convertedAt ?? new Date().toISOString(),
+    ...context.physicalTiming,
     source: 'doppler',
     result: {
       modelType: context.modelType ?? null,
@@ -1048,6 +1048,7 @@ function createNodeLargeTensorTransformer(options) {
 }
 
 export async function convertSafetensorsDirectory(options) {
+  const conversionRunTiming = createConversionRunTiming();
   const inputDir = assertPath(options?.inputDir, 'inputDir');
   const outputDirOverride = readOptionalNonEmptyString(options?.outputDir);
   const converterConfigOverride = normalizeConverterConfigOverride(options?.converterConfig);
@@ -1063,7 +1064,6 @@ export async function convertSafetensorsDirectory(options) {
 
   installNodeFileFetchShim();
   const fileRangeReader = createFileRangeReader();
-  const totalTimer = createStageTimer('Total');
   let gpuRuntimeForCleanup = null;
   try {
 
@@ -1622,6 +1622,7 @@ export async function convertSafetensorsDirectory(options) {
   await io.writeManifest(result.manifest);
 
   const report = buildConvertReport(result, {
+    physicalTiming: conversionRunTiming.complete(),
     modelType: resolvedModelType,
     outputDir,
     modelId: result.manifest?.modelId ?? modelId,
@@ -1656,6 +1657,5 @@ export async function convertSafetensorsDirectory(options) {
         }
       }
     }
-    totalTimer.stop();
   }
 }
