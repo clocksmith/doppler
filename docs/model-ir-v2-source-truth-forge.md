@@ -207,4 +207,6 @@ lowerability audit now compares source semantics with the admitted generic
 vocabulary and fails closed on missing local attention, QK scaling, output
 multiplication, post-normalization, and no-RoPE full-attention contracts. Those
 are reusable capability gaps, not permission to add a Glimmer-named Runtime
-branch.
+branch. The source receipt preserves the corresponding operational formulas and
+ordering as unresolved facts outside signed ModelIR semantics until pinned
+implementation evidence resolves them.

@@ -7,7 +7,19 @@ export interface SourceTruthForgeReceipt {
   schema: 'doppler.source-truth-forge-receipt/v2';
   modelIR: ModelIRV2;
   intakeDigest: `sha256:${string}`;
-  unresolvedFacts: [];
+  unresolvedFacts: Array<{
+    id: string;
+    confidence: 'ambiguous' | 'unsupported' | 'missing-evidence';
+    disposition: 'unresolved';
+    reason: string;
+    evidence: Array<Record<string, unknown>>;
+    authorship: Record<string, unknown>;
+    validation: {
+      status: 'preserved-unresolved';
+      validator: 'doppler.source-truth-forge/v2';
+      receipt: `sha256:${string}`;
+    };
+  }>;
   generatedCandidates: number;
   rejectedCandidates: number;
   acceptedCandidates: 1;

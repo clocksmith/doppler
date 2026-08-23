@@ -2,7 +2,7 @@
   "schema": "doppler.lowerability-audit-receipt/v1",
   "modelIREvidence": {
     "path": "reports/model-ir-v2/glimmer-30b.model-ir-receipt.json",
-    "digest": "sha256:3a150a57039bddd1ccbf260fc1e8636eba5b8848f4cb7124c47b073e2e405dbd"
+    "digest": "sha256:d795af9c89bed49cf81d002ff96e483b9fcab5affd11eb062c051cbea640d729"
   },
   "vocabularyEvidence": {
     "path": "src/config/forge/lowering-vocabularies/hybrid-text-v1.json",
@@ -13,7 +13,7 @@
   "audit": {
     "schema": "doppler.entry-point-lowerability-audit/v1",
     "modelId": "muse-glimmer-30b",
-    "modelIRHash": "sha256:dcd6da8cc32be63aad8e9da05f8cb7b58734eb0df0cc4877dec83610813d89c4",
+    "modelIRHash": "sha256:5563734160e3b3c98f515dc03fe241d994ccc8e9fded7e48687a003d0c5269ea",
     "entryPointId": "text.generate",
     "entryPointStatus": "unlowered",
     "requiredPhases": [
@@ -69,5 +69,5 @@
     ],
     "unimplementedStateKinds": []
   },
-  "receiptDigest": "sha256:c17f01092cb6d15d50a22035dbdff95c025749e96ffc2707c4cfd5217e6fa1bd"
+  "receiptDigest": "sha256:15b67349d7b80436b343dd1de8e5c5870dc2498178271dcc3e7c4b049f2aab2b"
 }

@@ -26,7 +26,7 @@
     },
     "provenance": {
       "forgeVersion": "2.0.0",
-      "intakeDigest": "sha256:7ccf7f375408622dea60c1fca5b23c6a90dd79d8028b2e7095646dcc4ad30771",
+      "intakeDigest": "sha256:e7ab06a5d440c29914af34cd4a055072ea764d3e0446a35b7c4b290980bb2390",
       "facts": [
         {
           "id": "root.architecture",
@@ -2039,8 +2039,113 @@
       ]
     }
   },
-  "intakeDigest": "sha256:7ccf7f375408622dea60c1fca5b23c6a90dd79d8028b2e7095646dcc4ad30771",
-  "unresolvedFacts": [],
+  "intakeDigest": "sha256:e7ab06a5d440c29914af34cd4a055072ea764d3e0446a35b7c4b290980bb2390",
+  "unresolvedFacts": [
+    {
+      "id": "text.qkScaleApplication",
+      "subject": "block.text-attention",
+      "predicate": "qkScaleApplication",
+      "confidence": "ambiguous",
+      "reason": "The config pins qk_scale_factor but does not prove where the reference implementation applies it.",
+      "disposition": "unresolved",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/qk_scale_factor"
+        }
+      ],
+      "authorship": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "glimmer-source-truth-v1"
+      },
+      "validation": {
+        "status": "preserved-unresolved",
+        "validator": "doppler.source-truth-forge/v2",
+        "receipt": "sha256:e9387565d5ba920d97ad1744bdc47f0641aceac783252dd46c8b585445a5d732"
+      }
+    },
+    {
+      "id": "text.outputMultiplierApplication",
+      "subject": "block.text-attention",
+      "predicate": "outputMultiplierApplication",
+      "confidence": "ambiguous",
+      "reason": "The config pins output_multiplier but does not prove which attention boundary the reference implementation scales.",
+      "disposition": "unresolved",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/output_multiplier"
+        }
+      ],
+      "authorship": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "glimmer-source-truth-v1"
+      },
+      "validation": {
+        "status": "preserved-unresolved",
+        "validator": "doppler.source-truth-forge/v2",
+        "receipt": "sha256:fac16f8c67637617d07054e661973978625ef0721b8daa113a9a896f20a1827b"
+      }
+    },
+    {
+      "id": "text.postNormOrdering",
+      "subject": "block.text-attention",
+      "predicate": "postNormOrdering",
+      "confidence": "ambiguous",
+      "reason": "The config pins post_norm_eps but does not prove the reference residual and post-normalization ordering.",
+      "disposition": "unresolved",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/post_norm_eps"
+        }
+      ],
+      "authorship": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "glimmer-source-truth-v1"
+      },
+      "validation": {
+        "status": "preserved-unresolved",
+        "validator": "doppler.source-truth-forge/v2",
+        "receipt": "sha256:3e433e420d4622073548a66be1c4f0f157f44304125d02b1c05da66eb41c3e84"
+      }
+    },
+    {
+      "id": "text.zeroThetaSemantics",
+      "subject": "block.full-attention",
+      "predicate": "zeroThetaSemantics",
+      "confidence": "ambiguous",
+      "reason": "The per-layer theta is zero for full-attention blocks, but the config alone does not prove the exact no-RoPE reference branch.",
+      "disposition": "unresolved",
+      "evidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/text_config/layer_rope_theta/3"
+        }
+      ],
+      "authorship": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "glimmer-source-truth-v1"
+      },
+      "validation": {
+        "status": "preserved-unresolved",
+        "validator": "doppler.source-truth-forge/v2",
+        "receipt": "sha256:977805885b012df795cb4d7b80a2cdb17b43b892435bc4dd392628b0d4660d37"
+      }
+    }
+  ],
   "generatedCandidates": 3,
   "rejectedCandidates": 2,
   "acceptedCandidates": 1,
