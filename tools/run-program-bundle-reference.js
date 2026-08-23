@@ -264,6 +264,7 @@ async function resolveOptions(args) {
       : modelDir,
     conversionConfigPath: args.conversionConfigPath ? path.resolve(args.conversionConfigPath) : null,
     runtimeConfig: args.runtimeConfig,
+    runtimeConfigPath: resolveRuntimeConfigArtifactPath(args.runtimeConfig),
     expectedTranscript: expectedTranscriptFile
       ? {
         path: path.relative(repoRoot, expectedTranscriptFile.path).split(path.sep).join('/'),
@@ -283,6 +284,13 @@ async function resolveOptions(args) {
       ? args.tsirFixtureLayers.split(',').map((s) => Number.parseInt(s.trim(), 10)).filter((n) => Number.isInteger(n))
       : null,
   };
+}
+
+export function resolveRuntimeConfigArtifactPath(input) {
+  if (input == null) return null;
+  const raw = String(input).trim();
+  if (!raw || raw.startsWith('{')) return null;
+  return path.resolve(raw);
 }
 
 async function normalizeRuntimeConfigInput(input) {
@@ -575,6 +583,7 @@ async function main() {
     modelDir: options.modelDir,
     referenceReportPath: options.referenceReportPath,
     conversionConfigPath: options.conversionConfigPath,
+    runtimeConfigPath: options.runtimeConfigPath,
     outputPath: options.outputPath,
     createdAtUtc: options.createdAtUtc,
     bundleId: options.bundleId,

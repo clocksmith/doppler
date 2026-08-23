@@ -9,6 +9,7 @@ import {
   buildSourceParity,
   normalizeModelUrl,
   parseArgs,
+  resolveRuntimeConfigArtifactPath,
 } from '../../tools/run-program-bundle-reference.js';
 import {
   resolveProgramBundleStorageArtifact,
@@ -131,6 +132,12 @@ try {
     '--expected-transcript', expectedTranscriptPath,
   ]);
   assert.equal(parsed.expectedTranscriptPath, expectedTranscriptPath);
+  const runtimeConfigPath = path.join(tmpRoot, 'runtime-config.json');
+  assert.equal(
+    resolveRuntimeConfigArtifactPath(runtimeConfigPath),
+    path.resolve(runtimeConfigPath),
+  );
+  assert.equal(resolveRuntimeConfigArtifactPath('{"runtime":{}}'), null);
 
   const expectedTranscript = {
     path: 'expected.json',
