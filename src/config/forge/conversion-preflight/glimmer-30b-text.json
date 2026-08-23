@@ -1,0 +1,14 @@
+{
+  "schema": "doppler.manifest-conversion-preflight/v1",
+  "rawConfig": "reports/model-ir-v2/source/glimmer-30b-config.json",
+  "conversionConfig": "src/config/conversion/muse-glimmer/muse-glimmer-30b-text-f16-af32.json",
+  "semanticReceipt": "reports/model-ir-v2/glimmer-30b.semantic-lowering-receipt.json",
+  "headerEvidence": "reports/model-ir-v2/source/glimmer-30b-tensor-headers.json",
+  "tensorPolicy": "src/config/forge/tensor-role-closure/glimmer-30b-text.json",
+  "tensorClosureReceipt": "reports/model-ir-v2/glimmer-30b.tensor-role-closure.json",
+  "output": "reports/model-ir-v2/glimmer-30b.conversion-preflight.json",
+  "author": {
+    "kind": "tool",
+    "actor": "doppler-manifest-conversion-preflight"
+  }
+}
