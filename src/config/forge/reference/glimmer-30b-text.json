@@ -1,0 +1,35 @@
+{
+  "schema": "doppler.pinned-transformers-text-reference/v1",
+  "model": "meta-models/Muse-Glimmer-30B",
+  "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+  "localModelDir": "models/source/glimmer-30b",
+  "sourceAcquisitionReceipt": "reports/model-ir-v2/glimmer-30b.source-acquisition.json",
+  "sourceAcquisitionReceiptDigest": "sha256:195a80161679da782ade8c31bdfcd4180defde7454387ec5ccead0e0512e4f5b",
+  "transformersRoot": "models/reference/transformers-c7e57f",
+  "transformersCommit": "c7e57f79348480f73d3ef0ad8c47f807ef1378c8",
+  "transformersFiles": {
+    "src/transformers/models/muse_glimmer/modeling_muse_glimmer.py": "fd285c1dc9f4dd996e875250c2b76016cbc359aa85d55aea2102527c88fa7050",
+    "src/transformers/models/muse_glimmer/configuration_muse_glimmer.py": "67900ce9164c509c9067687b1ed60e37270510d028c848ff2397ab92edfb3c16"
+  },
+  "dependencyPath": "models/reference/python-deps",
+  "prompt": "A rigorous explanation of why local GPU execution receipts matter begins with",
+  "generation": {
+    "maxNewTokens": 128,
+    "sampling": "greedy-argmax-f32-logits",
+    "useChatTemplate": false,
+    "addSpecialTokens": true,
+    "stopOnEos": true
+  },
+  "execution": {
+    "device": "cpu",
+    "dtype": "bfloat16",
+    "attentionImplementation": "eager"
+  },
+  "boundaryLayers": [0],
+  "output": "reports/model-ir-v2/glimmer-30b.hf-text-transcript.json",
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "glimmer-pinned-text-reference-v1"
+  }
+}
