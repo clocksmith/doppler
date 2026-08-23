@@ -6,6 +6,7 @@ import type { CommandRecorder } from '../../../gpu/command-recorder.js';
 import type { ProbeConfigSchema } from '../../../config/schema/index.js';
 import type { ExecutionV1PoliciesSchema } from '../../../config/schema/execution-v1.schema.js';
 import type { Tensor } from '../../../gpu/tensor.js';
+import type { WeightlessEmbeddingNormalization } from './embedding-contract.js';
 import type { CpuWeightBuffer, SplitWeightBuffer, WeightStorageEncoding } from '../../../gpu/weight-buffer.js';
 
 export interface EmbedConfig {
@@ -13,6 +14,7 @@ export interface EmbedConfig {
   vocabSize: number;
   scaleEmbeddings: boolean;
   embeddingScale: number | null;
+  embeddingNormalization?: WeightlessEmbeddingNormalization | null;
   debug?: boolean;
   recorder?: CommandRecorder;
   debugProbes?: ProbeConfigSchema[];

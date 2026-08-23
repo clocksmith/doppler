@@ -50,13 +50,14 @@ The component and output-head audit also rejects the weightless embedding norm
 and pre-softcap logit multiplier/order. KV state is already representable. These
 are the exact generic contracts to add before an execution candidate can exist.
 
-The generic execution engine now has independently tested mechanisms for an
-explicit post-Q/K-normalization query multiplier, per-layer NoPE selection, and
-a separately stored sigmoid attention-gate projection. These mechanisms are
-part of immutable attention-plan identity and contain no Glimmer-named branch.
-They do not change the audit result: Forge has not yet admitted their ModelIR
-bindings, and the remaining normalization, local-attention, embedding, and
-output-head contracts still prevent candidate promotion.
+The generic execution engine now has independently tested mechanisms for the
+pinned text contracts: explicit post-Q/K-normalization query scaling, per-layer
+NoPE, a separately stored sigmoid attention gate, independent centered postnorm
+epsilon and offset, weightless embedding RMSNorm, and post-head/pre-softcap
+logit scaling. The embedding normalization has exact numeric evidence on
+physical AMD WebGPU. These mechanisms contain no Glimmer-named Runtime branch.
+They do not change the audit result: Forge has not yet bound the ModelIR facts
+to a runtime manifest and TargetPlan, so no execution candidate may be promoted.
 
 The operational meanings are no longer inferred from config names. The source
 receipt pins the Hugging Face Transformers implementation and source hashes,

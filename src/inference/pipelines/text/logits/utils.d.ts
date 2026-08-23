@@ -10,6 +10,7 @@ import type { ProbeConfigSchema } from '../../../../config/schema/index.js';
 import type { LogitsConfig } from './types.js';
 
 export function resolveLogitInputScale(config: LogitsConfig): number;
+export function resolveLogitOutputScale(config: LogitsConfig): number;
 
 /**
  * Extract logits for only the last position.

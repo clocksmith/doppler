@@ -3,6 +3,8 @@ import { mergeConfig, dumpConfigSources } from '../../../config/merge.js';
 import { validateModelOverrides } from '../../../config/param-validator.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from './attention/heterogeneous-contract.js';
+import { resolvePostNormContract } from './normalization-contract.js';
+import { resolveEmbeddingNormalization } from './embedding-contract.js';
 import {
   PER_LAYER_INPUT_MATERIALIZATION_MODES,
   PER_LAYER_INPUT_ROW_CACHE_MODES,
@@ -661,7 +663,6 @@ export function resolveLayerIntermediateSize(config, layerIdx) {
 // Manifest-First Config Resolution (NEW)
 // =============================================================================
 
-
 function hasManifestInference(manifest) {
   return 'inference' in manifest && manifest.inference != null;
 }
@@ -898,7 +899,6 @@ export function validateRequiredInferenceFields(inf, modelId) {
       errors.push('rope.ropeLocalFrequencyBaseDim must be a positive even integer or null');
     }
   }
-
   // Output fields - non-nullable required
   if (inf.output.tieWordEmbeddings == null) {
     errors.push('output.tieWordEmbeddings is required');
@@ -926,6 +926,7 @@ export function validateRequiredInferenceFields(inf, modelId) {
   ) {
     errors.push('output.logitInputScale must be a positive finite number');
   }
+  if (inf.output.logitOutputScale !== undefined && (typeof inf.output.logitOutputScale !== 'number' || !Number.isFinite(inf.output.logitOutputScale) || inf.output.logitOutputScale <= 0)) errors.push('output.logitOutputScale must be a positive finite number');
   if (inf.output.embeddingTranspose == null) {
     errors.push('output.embeddingTranspose is required');
   }
@@ -1508,7 +1509,6 @@ function parseLinearNormMode(value, sharedFlag = null, modelId = 'unknown') {
   return null;
 }
 
-
 function toParsedConfigFromMerged(merged, manifest) {
   const mergedConfig = merged?.config ?? manifest.config ?? {};
   const rawConfig = mergedConfig.text_config ?? mergedConfig;
@@ -1885,6 +1885,7 @@ function toParsedConfigFromMerged(merged, manifest) {
   const logitInputScale = inf.output.logitInputScale;
   const residualBranchScale = inf.layerPattern.residualBranchScale;
   const heterogeneousAttention = resolveHeterogeneousAttentionContract(inf, arch.numLayers, merged.modelId);
+  const postNormContract = resolvePostNormContract(inf.normalization);
   return {
     modelType: manifest.modelType,
     numLayers: arch.numLayers,
@@ -1931,12 +1932,15 @@ function toParsedConfigFromMerged(merged, manifest) {
     finalNormBiasTensor: inf.normalization.finalNormBiasTensor ?? null,
     rmsNormEps: inf.normalization.rmsNormEps,
     rmsNormWeightOffset: inf.normalization.rmsNormWeightOffset,
+    ...postNormContract,
     postAttentionNorm: inf.normalization.postAttentionNorm,
     preFeedforwardNorm: inf.normalization.preFeedforwardNorm,
     postFeedforwardNorm: inf.normalization.postFeedforwardNorm,
     scaleEmbeddings: inf.output.scaleEmbeddings,
     embeddingScale,
+    embeddingNormalization: resolveEmbeddingNormalization(inf.output.embeddingNormalization),
     logitInputScale,
+    logitOutputScale: inf.output.logitOutputScale ?? 1,
     residualBranchScale,
     useTiedEmbeddings: inf.output.tieWordEmbeddings,
     embeddingTranspose: inf.output.embeddingTranspose,
@@ -1984,7 +1988,6 @@ function toParsedConfigFromMerged(merged, manifest) {
   };
 }
 
-
 export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
   assertSupportedRuntimeModelType(manifest);
   validateModelOverrides(runtimeOverrides, 'runtime.inference.modelOverrides');
@@ -2019,11 +2022,9 @@ export function parseModelConfigFromManifest(manifest, runtimeOverrides) {
   // Convert to ParsedModelConfig
   return toParsedConfigFromMerged(merged, manifest);
 }
-
 // =============================================================================
 // Main Entry Point
 // =============================================================================
-
 
 export function parseModelConfig(manifest, runtimeOverrides) {
   // Manifest-first architecture: inference config is required

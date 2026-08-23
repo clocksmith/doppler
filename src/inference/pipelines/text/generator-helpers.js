@@ -250,6 +250,7 @@ export function getLogitsConfig(state) {
     embeddingVocabSize: state.embeddingVocabSize,
     finalLogitSoftcapping: config.finalLogitSoftcapping,
     logitInputScale: config.logitInputScale,
+    logitOutputScale: config.logitOutputScale,
     largeWeights: state.runtimeConfig.inference.largeWeights,
     activationDtype: effectiveActivationDtype,
     kernelPath: activeKernelPath,

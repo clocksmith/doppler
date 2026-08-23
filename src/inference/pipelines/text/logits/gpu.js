@@ -22,6 +22,7 @@ import { runProbes } from '../probes.js';
 import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 import { f16BufferToF32 } from './cpu.js';
 import { readBufferWithCleanup, resolveLogitInputScale } from './utils.js';
+import { finalizeLogitOutputTensor } from './output-transform.js';
 import { f16ToF32 } from '../../../../loader/dtype-utils.js';
 import { shouldForceStableF32Logits, createStableF32LogitsKernelPath } from './precision-policy.js';
 
@@ -882,18 +883,15 @@ export async function computeLogitsGPU(
       ? embeddingVocabSize
       : vocabSize;
 
-    const logitsTensor = await runMatmul(lmHeadInputTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
+    let logitsTensor = await runMatmul(lmHeadInputTensor, lmHeadBuffer, numTokens, matmulVocabSize, hiddenSize, {
       transposeB: 'auto',
       role: lmHeadRole,
       kernelPath: stableKernelPath,
       outputDtype: lmHeadOutputDtype,
       executionPolicies: config.executionPolicies ?? null,
     });
-    await runProbes('logits', logitsTensor.buffer, {
-      numTokens,
-      hiddenSize: matmulVocabSize,
-      operatorDiagnostics,
-      dtype: logitsTensor.dtype,
+    logitsTensor = await finalizeLogitOutputTensor(logitsTensor, config, {
+      numTokens, vocabSize: matmulVocabSize, operatorDiagnostics,
     });
 
     // Cleanup intermediate buffers (but keep logitsBuffer)
@@ -1136,19 +1134,15 @@ export async function recordLogitsGPU(
     operatorDiagnostics
   );
 
-  const logitsTensor = await recordMatmul(recorder, tail.lmHeadInputTensor, tail.lmHeadBuffer, numTokens, tail.matmulVocabSize, tail.hiddenSize, {
+  let logitsTensor = await recordMatmul(recorder, tail.lmHeadInputTensor, tail.lmHeadBuffer, numTokens, tail.matmulVocabSize, tail.hiddenSize, {
     transposeB: 'auto',
     role: tail.lmHeadRole,
     kernelPath: tail.stableKernelPath,
     outputDtype: tail.lmHeadOutputDtype,
     executionPolicies: config.executionPolicies ?? null,
   });
-  await runProbes('logits', logitsTensor.buffer, {
-    numTokens,
-    hiddenSize: tail.matmulVocabSize,
-    recorder,
-    operatorDiagnostics,
-    dtype: logitsTensor.dtype,
+  logitsTensor = await finalizeLogitOutputTensor(logitsTensor, config, {
+    recorder, numTokens, vocabSize: tail.matmulVocabSize, operatorDiagnostics,
   });
 
   trackRecordedLogitsTail(recorder, tail);

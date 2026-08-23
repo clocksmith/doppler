@@ -196,7 +196,7 @@ export function shouldUseFusedDecodeSampling(config) {
 
 function shouldUseGreedyLmHeadArgmaxFusion(state, opts, samplingDefaults, repetitionPenalty) {
   const probes = state.runtimeConfig?.shared?.debug?.probes;
-  return state.runtimeConfig?.inference?.session?.useGreedyLmHeadArgmaxFusion === true
+  return state.runtimeConfig?.inference?.session?.useGreedyLmHeadArgmaxFusion === true && (state.modelConfig?.logitOutputScale ?? 1) === 1
     && opts.temperature < samplingDefaults.greedyThreshold
     && repetitionPenalty === 1.0
     && state.operatorDiagnostics == null
@@ -466,7 +466,7 @@ async function runDecodeLayers(state, tokenId, opts, helpers) {
     hiddenSize: config.hiddenSize,
     vocabSize: config.vocabSize,
     scaleEmbeddings: config.scaleEmbeddings,
-    embeddingScale: config.embeddingScale,
+    embeddingScale: config.embeddingScale, embeddingNormalization: config.embeddingNormalization,
     outputBuffer: decodeHiddenBuffer ?? undefined,
     transpose: state.embeddingTranspose,
     debugProbes: state.runtimeConfig.shared.debug.probes,
@@ -631,7 +631,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     hiddenSize: config.hiddenSize,
     vocabSize: config.vocabSize,
     scaleEmbeddings: config.scaleEmbeddings,
-    embeddingScale: config.embeddingScale,
+    embeddingScale: config.embeddingScale, embeddingNormalization: config.embeddingNormalization,
     recorder,
     outputBuffer: decodeHiddenBuffer ?? undefined,
     transpose: state.embeddingTranspose,
@@ -1555,7 +1555,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         hiddenSize: config.hiddenSize,
         vocabSize: config.vocabSize,
         scaleEmbeddings: config.scaleEmbeddings,
-        embeddingScale: config.embeddingScale,
+        embeddingScale: config.embeddingScale, embeddingNormalization: config.embeddingNormalization,
         recorder,
         outputBuffer: context.decodeBuffers?.getHiddenBuffer() ?? undefined,
         transpose: state.embeddingTranspose,

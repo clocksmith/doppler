@@ -213,7 +213,9 @@ source hashes and source spans, places the pre-softcap multiplier on the output
 head, and has zero unresolved text operational facts. Neither entry point is
 lowered or qualified.
 
-Runtime now exposes generic, plan-identified mechanisms for explicit query
-scaling, per-layer NoPE, and a distinct attention-gate projection. Forge still
-rejects those facts until the vocabulary and lowering bind them, so mechanism
-availability cannot be mistaken for a supported Glimmer execution path.
+Runtime now exposes generic mechanisms for explicit query scaling, per-layer
+NoPE, a distinct attention-gate projection, independent centered postnorm,
+weightless embedding RMSNorm, and exact post-head/pre-softcap scaling. Forge
+still rejects those facts until a deterministic lowering binds them to manifest
+and TargetPlan data, so mechanism availability cannot be mistaken for a
+supported Glimmer execution path.
