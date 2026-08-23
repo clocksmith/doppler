@@ -244,7 +244,7 @@
       "kind": "runtime-session-compatibility",
       "dtypeEffect": "full-f32",
       "match": { "kvDtype": "f32", "hasSubgroups": false, "hasF16": true },
-      "transforms": ["removeSubgroups", "widenToF32Activations"],
+      "transforms": ["removeSubgroups", "widenToF32CorrectnessFallback"],
       "reason": "Runtime KV cache resolved f32 on a non-subgroup shader-f16 GPU.",
       "evidence": [
         "tests/integration/execution-v1-capability-policy.test.js"
@@ -254,7 +254,7 @@
       "kind": "runtime-session-compatibility",
       "dtypeEffect": "full-f32",
       "match": { "kvDtype": "f32", "hasSubgroups": true, "hasF16": true },
-      "transforms": ["widenToF32Activations"],
+      "transforms": ["widenToF32CorrectnessFallback"],
       "reason": "Runtime KV cache resolved f32.",
       "evidence": [
         "tests/integration/execution-v1-capability-policy.test.js"

@@ -9,7 +9,7 @@
   "semanticEvidence": {
     "sourceModelIRHash": "sha256:2f2d89c0cd20b9ad6a8c6374148c3188d42451db2bf8a8b59152946f6fefdef2",
     "modelIRHash": "sha256:e5a72acbf9903b52ee860fa6bce657e712607b911a7f905482c36d0295c0a3ff",
-    "conversionConfigDigest": "sha256:a6ace864c77e7f0b2f3f49bea5aefb64b46c5fa194ea5302e5e915a05a9f96ee"
+    "conversionConfigDigest": "sha256:e2273b70e9c43c02c90b6443499ac22bdfaa5928a4b64cec98eebc00c96604b7"
   },
   "tensorClosureEvidence": {
     "receiptDigest": "sha256:b36f1e3d8335a0c36ed71185a0bd125e4c0673e95739a2eca36a215ccdd500bb",
@@ -60,8 +60,8 @@
       "compute": "f32",
       "variantTag": "f16-af32"
     },
-    "inferenceDigest": "sha256:e93a601d2d8ae36d4e2f6f7fe38221873b9d4101624a34b208bc23086aa3cc32",
-    "executionDigest": "sha256:a18fadbd39d2f484ca05386c01a3fdcf10d4cc8ecfb3a73b6b3e84b5f8839fce",
+    "inferenceDigest": "sha256:4e70eeeedf189dc2b8598a9401dfdc064511e3a695788043f11740cea50935fd",
+    "executionDigest": "sha256:ca468a9626e5e5704f647cf8fa18c79aae803a71b3cdc30063e723cb7a5e0d76",
     "commandCount": 35,
     "commandsByPhase": {
       "both": 5,
@@ -75,7 +75,7 @@
     },
     "kernelClosure": [
       "attention_decode_online_f16kv.wgsl#main",
-      "attention_head256_f16kv.wgsl#main",
+      "attention_streaming_f16kv.wgsl#main",
       "gather_f16.wgsl#main",
       "matmul_f16w_f32a.wgsl#main",
       "matmul_gemv_subgroup.wgsl#main_multicol",
@@ -95,5 +95,5 @@
     "qualificationStarted": false,
     "packEligible": false
   },
-  "receiptDigest": "sha256:a0a2bfc571fab44cd9496aff5b830c741f27558a34737256e68b454bc68d839f"
+  "receiptDigest": "sha256:44ea9daaaf5ceb483c500d64293b80d0aa18c097880cc51ce170c92af27cca2c"
 }

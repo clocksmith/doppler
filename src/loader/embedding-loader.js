@@ -443,9 +443,7 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
   if (isGpuBufferInstance(promoted) && loc?.shape && loc.shape.length === 2) {
     const layout = ctx.resolveWeightLayout(loc);
     
-    const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
-      locationDtype: loc.dtype,
-    });
+    const dtype = getEmbeddingFloatDtype(loc, ctx.embeddingKernel);
     const wrapped = createWeightBuffer(promoted, dtype, layout, loc.shape, name);
     log.info('Loader', `Wrapped embeddings as WeightBuffer (layout=${layout}, dtype=${dtype})`);
     return maybeDowncastEmbeddings(ctx, wrapped, name, loc);

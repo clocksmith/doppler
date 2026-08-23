@@ -224,6 +224,7 @@ export function resolveAttentionQKNormState({ config, layerWeights, layerIdx, re
     hasKNorm,
     allowUnitQKNorm,
     skipKNorm: reusesSharedKV,
+    rmsNormWeightOffset: allowUnitQKNorm ? false : config.rmsNormWeightOffset === true,
   };
 }
 
@@ -1196,6 +1197,7 @@ export async function applyAttentionQKNorm({
   const kNormSize = normalizationAxis === 'projection' ? numKVHeads * headDim : headDim;
   const qNormBatchSize = normalizationAxis === 'projection' ? numTokens : numTokens * numHeads;
   const kNormBatchSize = normalizationAxis === 'projection' ? numTokens : numTokens * numKVHeads;
+  const effectiveRmsNormWeightOffset = allowUnitQKNorm ? false : rmsNormWeightOffset;
   let nextQ = qTensor;
   let nextK = kTensor;
   let qNormBuf = null;
@@ -1243,7 +1245,7 @@ export async function applyAttentionQKNorm({
         numHeads,
         numKVHeads,
         headDim,
-        rmsNormWeightOffset,
+        rmsNormWeightOffset: effectiveRmsNormWeightOffset,
       });
       releaseTemporary(nextQ.buffer);
       if (!retainKInput) {
@@ -1272,7 +1274,7 @@ export async function applyAttentionQKNorm({
         : await runRmsNormForMode(nextQ, qNormBuf, rmsNormEps, {
           batchSize: qNormBatchSize,
           hiddenSize: qNormSize,
-          rmsNormWeightOffset,
+          rmsNormWeightOffset: effectiveRmsNormWeightOffset,
           label: 'q_norm',
         });
       releaseTemporary(nextQ.buffer);
@@ -1294,7 +1296,7 @@ export async function applyAttentionQKNorm({
         : await runRmsNormForMode(nextK, kNormBuf, rmsNormEps, {
           batchSize: kNormBatchSize,
           hiddenSize: kNormSize,
-          rmsNormWeightOffset,
+          rmsNormWeightOffset: effectiveRmsNormWeightOffset,
           label: 'k_norm',
         });
       if (!retainKInput) {

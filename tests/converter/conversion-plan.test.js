@@ -9,7 +9,12 @@ const {
   resolveConversionPlan,
   resolveConvertedModelId,
 } = await import('../../src/converter/conversion-plan.js');
-const { resolveEffectiveQuantizationInfo } = await import('../../src/converter/quantization-info.js');
+const {
+  resolveEffectiveQuantizationInfo,
+  toWebGPUDtype,
+} = await import('../../src/converter/quantization-info.js');
+
+assert.equal(toWebGPUDtype('bf16'), 'BF16', 'stored BF16 truth must survive manifest lowering');
 
 const converterConfig = createConverterConfig();
 

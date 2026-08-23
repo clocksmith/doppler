@@ -1,0 +1,43 @@
+{
+  "schema": "doppler.physical-execution-candidate-rejection/v1",
+  "candidateId": "template-head256-prefill",
+  "modelId": "muse-glimmer-30b-text-f16-af32",
+  "entryPointId": "text.generate",
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "heterogeneous-text-semantic-lowering-v1"
+  },
+  "sourceRevision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+  "dopplerCommit": "11eb1c4b",
+  "surface": "node-webgpu",
+  "provider": {
+    "adapter": "amd rdna-3",
+    "features": [
+      "shader-f16",
+      "subgroups"
+    ],
+    "maxBufferSizeBytes": 4294967296,
+    "fallback": false
+  },
+  "request": {
+    "prompt": "A rigorous explanation of why local GPU execution receipts matter begins with",
+    "maxNewTokens": 128,
+    "sampling": "greedy-argmax",
+    "runtimeProfile": "profiles/muse-glimmer-30b-source-parity"
+  },
+  "observation": {
+    "processExitCode": 1,
+    "dispatchStarted": false,
+    "generatedTokens": 0,
+    "harnessElapsedMsAtRejection": 1201.8,
+    "failureClass": "target-plan-kernel-geometry-incompatible",
+    "message": "Attention kernel prefill_head256_f16kv requires headDim == 256 but got 128."
+  },
+  "decision": {
+    "status": "rejected",
+    "promotionEligible": false,
+    "fallbackAttempted": false,
+    "correctionScope": "generic-forge-prefill-mechanism-selection"
+  }
+}

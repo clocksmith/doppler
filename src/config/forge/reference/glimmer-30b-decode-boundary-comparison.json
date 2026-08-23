@@ -1,0 +1,50 @@
+{
+  "schema": "doppler.source-boundary-comparison-policy/v1",
+  "sourceTranscript": "reports/model-ir-v2/glimmer-30b.hf-text-transcript.json",
+  "candidateReport": "reports/model-ir-v2/glimmer-30b.node-candidate-11-f16kv-qualification.json",
+  "candidateRoot": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7",
+  "output": "reports/model-ir-v2/glimmer-30b.node-candidate-11-boundary-comparison.json",
+  "phase": "decode",
+  "generationStep": 7,
+  "layers": [0, 13, 26, 39, 51],
+  "globalMappings": [
+    {
+      "id": "embedding",
+      "sourceBoundaryId": "generation.7.model.embedding.output",
+      "candidatePath": "layer_0/pre_layer_input.npy"
+    }
+  ],
+  "layerMappings": [
+    {
+      "id": "attention-output",
+      "sourceBoundaryTemplate": "generation.7.layer.{L}.attention.output",
+      "candidateFile": "post_oproj.npy"
+    },
+    {
+      "id": "pre-ffn",
+      "sourceBoundaryTemplate": "generation.7.layer.{L}.pre_ffn_norm",
+      "candidateFile": "pre_ffn.npy"
+    },
+    {
+      "id": "ffn-output",
+      "sourceBoundaryTemplate": "generation.7.layer.{L}.ffn.output",
+      "candidateFile": "ffn_mlp_out.npy"
+    },
+    {
+      "id": "layer-output",
+      "sourceBoundaryTemplate": "generation.7.layer.{L}.output",
+      "candidateFile": "post_ffn.npy"
+    }
+  ],
+  "tolerance": {
+    "id": "bf16-source-vs-f32-activation-diagnostic/v1",
+    "maximumRelativeRmse": 0.02,
+    "minimumCosineSimilarity": 0.9998,
+    "maximumAbsoluteError": 3
+  },
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "glimmer-decode-boundary-comparison-v1"
+  }
+}

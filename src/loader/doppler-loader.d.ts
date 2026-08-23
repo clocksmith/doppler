@@ -103,6 +103,7 @@ export declare class DopplerLoader {
   // Q4K layout: 'row' = fused kernel compatible (fast), 'col' = dequant fallback
   q4kLayout: 'row' | 'col' | null;
   keepF32Weights: boolean;
+  keepBF16Weights: boolean;
   q4kMaterializationMode: 'dense' | 'fused' | 'mixed';
   q4kFusedRoles: string[];
 

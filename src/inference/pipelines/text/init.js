@@ -22,6 +22,8 @@ import { log, trace as debugTrace } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../../config/schema/index.js';
 import {
+  executionKernelClosureRequiresBF16Weights,
+  kernelPathRequiresBF16Weights,
   kernelPathRequiresF32MatmulWeights,
 } from '../../../config/kernel-path-loader.js';
 import { resolveCapabilityTransforms } from '../../../config/transforms/capability-transform-resolver.js';
@@ -340,10 +342,14 @@ export function resolveQ4KConfig(
     );
   }
   const hasExplicitKernelPath = kernelPath != null;
-  let useFused = hasExplicitKernelPath
-    ? q4kMaterializationMode !== 'dense'
-    : hasSubgroups;
+  let useFused = isQ4KModel && (
+    hasExplicitKernelPath
+      ? q4kMaterializationMode !== 'dense'
+      : hasSubgroups
+  );
   const kernelPathKeepsF32Weights = kernelPathRequiresF32MatmulWeights(kernelPath);
+  const keepBF16Weights = kernelPathRequiresBF16Weights(kernelPath)
+    || executionKernelClosureRequiresBF16Weights(manifest?.inference?.execution);
   if (q4kLayout === 'col') {
     useFused = false;
   }
@@ -354,13 +360,15 @@ export function resolveQ4KConfig(
   debugTrace.loader(
     `Q4K config: fused=${useFused}, kernelPath=${pathLabel}, source=${kernelPathSource}, ` +
     `layout=${layoutLabel}, materialization=${q4kMaterializationMode}, ` +
-    `keepF32Weights=${resolvedKeepF32Weights}, subgroups=${hasSubgroups}`
+    `keepF32Weights=${resolvedKeepF32Weights}, keepBF16Weights=${keepBF16Weights}, ` +
+    `subgroups=${hasSubgroups}`
   );
 
   return {
     useFusedQ4K: useFused,
     q4kLayout,
     keepF32Weights: resolvedKeepF32Weights,
+    keepBF16Weights,
     q4kMaterializationMode,
     q4kFusedRoles,
   };

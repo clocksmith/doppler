@@ -537,7 +537,10 @@ const WEBGPU_DTYPE_NAMES = {
   'q4_0': 'Q4_0',
   'w4a16': 'W4A16',
   'wna8o8': 'WNA8O8',
-  'bf16': 'F16',
+  // Manifests describe stored artifact truth, not the materialized shader type.
+  // The loader may expand BF16 into an admitted execution dtype, but narrowing
+  // the manifest declaration to F16 would erase the signed source precision.
+  'bf16': 'BF16',
 };
 
 export function toWebGPUDtype(dtype) {

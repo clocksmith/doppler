@@ -8,7 +8,14 @@ export const MAX_SPLIT8_EMBEDDING_SECTIONS = 8;
 export const MAX_SPLIT_EMBEDDING_SECTIONS = MAX_SPLIT8_EMBEDDING_SECTIONS;
 export const SPLIT_EMBEDDING_STORAGE_BUFFER_OVERHEAD = 2;
 
-export function getEmbeddingFloatDtype(location) {
+export function getEmbeddingFloatDtype(location, embeddingKernel = null) {
+  if (
+    String(location?.dtype ?? '').toUpperCase() === 'BF16'
+    && embeddingKernel?.kernel === 'gather_bf16.wgsl'
+    && embeddingKernel?.entry === 'main'
+  ) {
+    return 'bf16';
+  }
   return selectRuleValue('loader', 'weights', 'floatLocationDtype', {
     locationDtype: location?.dtype,
   });
@@ -66,7 +73,7 @@ function alignByteLength(byteLength) {
   return Math.ceil(byteLength / 4) * 4;
 }
 
-function estimateEmbeddingTensorBytes(location) {
+function estimateEmbeddingTensorBytes(location, embeddingKernel = null) {
   if (!location?.shape || location.shape.length !== 2) {
     return null;
   }
@@ -74,7 +81,7 @@ function estimateEmbeddingTensorBytes(location) {
   if (!Number.isFinite(rows) || rows <= 0 || !Number.isFinite(hidden) || hidden <= 0) {
     return null;
   }
-  const dtype = getEmbeddingFloatDtype(location);
+  const dtype = getEmbeddingFloatDtype(location, embeddingKernel);
   const bytesPerElement = DTYPE_SIZES[dtype];
   if (!Number.isFinite(bytesPerElement) || bytesPerElement <= 0) {
     return null;
@@ -94,7 +101,7 @@ function estimateEmbeddingTensorBytes(location) {
 }
 
 export function createGpuResidentEmbeddingLimitError({ name, location, embeddingKernel = null }) {
-  const estimate = estimateEmbeddingTensorBytes(location);
+  const estimate = estimateEmbeddingTensorBytes(location, embeddingKernel);
   if (!estimate) {
     return null;
   }

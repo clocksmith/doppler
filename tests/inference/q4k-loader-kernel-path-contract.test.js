@@ -57,6 +57,20 @@ const manifest = {
     layout: 'row',
   },
 };
+const bf16Manifest = {
+  modelId: 'unit-bf16',
+  quantization: 'BF16',
+  quantizationInfo: {
+    weights: 'bf16',
+  },
+  inference: {
+    execution: {
+      kernels: {
+        tiled: { kernel: 'matmul_bf16w_f32a.wgsl', entry: 'main' },
+      },
+    },
+  },
+};
 
 const defaultPath = {
   id: 'unit-q4k-dequant',
@@ -81,6 +95,23 @@ const f32WeightPath = {
       { op: 'q_proj', kernel: 'matmul_f32.wgsl', entry: 'main' },
     ],
   },
+};
+const bf16WeightPath = {
+  ...defaultPath,
+  id: 'unit-bf16-direct',
+  decode: {
+    steps: [
+      { op: 'q_proj', kernel: 'matmul_gemv_subgroup_bf16w.wgsl', entry: 'main_vec4' },
+    ],
+  },
+  prefill: {
+    steps: [
+      { op: 'q_proj', kernel: 'matmul_bf16w_f32a.wgsl', entry: 'main' },
+    ],
+  },
+  preLayer: [
+    { op: 'embed', kernel: 'gather_bf16.wgsl', entry: 'main' },
+  ],
 };
 const mixedPath = {
   id: 'unit-q4k-mixed',
@@ -129,6 +160,7 @@ try {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: false,
+    keepBF16Weights: false,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: [],
   });
@@ -137,6 +169,7 @@ try {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: true,
+    keepBF16Weights: false,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: [],
   });
@@ -145,6 +178,25 @@ try {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: true,
+    keepBF16Weights: false,
+    q4kMaterializationMode: 'dense',
+    q4kFusedRoles: [],
+  });
+
+  assert.deepEqual(resolveQ4KConfig(manifest, bf16WeightPath, 'execution-v1', false), {
+    useFusedQ4K: false,
+    q4kLayout: 'row',
+    keepF32Weights: false,
+    keepBF16Weights: true,
+    q4kMaterializationMode: 'dense',
+    q4kFusedRoles: [],
+  });
+
+  assert.deepEqual(resolveQ4KConfig(bf16Manifest, null, 'none', false), {
+    useFusedQ4K: false,
+    q4kLayout: null,
+    keepF32Weights: false,
+    keepBF16Weights: true,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: [],
   });
@@ -153,6 +205,7 @@ try {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: false,
+    keepBF16Weights: false,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: ['lm_head'],
   });
@@ -173,6 +226,7 @@ try {
     useFusedQ4K: true,
     q4kLayout: 'row',
     keepF32Weights: false,
+    keepBF16Weights: false,
     q4kMaterializationMode: 'mixed',
     q4kFusedRoles: ['q_proj'],
   });
@@ -181,6 +235,7 @@ try {
     useFusedQ4K: true,
     q4kLayout: 'row',
     keepF32Weights: false,
+    keepBF16Weights: false,
     q4kMaterializationMode: 'mixed',
     q4kFusedRoles: ['linear_qkv_proj'],
   });

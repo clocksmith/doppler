@@ -1,0 +1,2118 @@
+{
+  "mode": "verify",
+  "workload": "inference",
+  "suite": "inference",
+  "modelId": "muse-glimmer-30b-text-f16-af32",
+  "surface": "node",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967292,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 65536,
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "submitProbeMs": 0.4605280000000107
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 4099.339002000001
+    },
+    {
+      "name": "source-token-parity",
+      "passed": false,
+      "duration": 0,
+      "error": "First source-token mismatch at generation index 7."
+    }
+  ],
+  "durationMs": 30517.873504000003,
+  "timestamp": "2026-08-23T10:47:42.666Z",
+  "metrics": {
+    "prompt": "A rigorous explanation of why local GPU execution receipts matter begins with",
+    "maxTokens": 8,
+    "tokensGenerated": 8,
+    "tokensPerSec": 1.95,
+    "totalRunMs": 4059.44,
+    "firstTokenMs": 1568.99,
+    "firstResponseMs": 27896.76,
+    "prefillMs": 1530.57,
+    "decodeMs": 2528.86,
+    "wallRunMs": 4098.63,
+    "prefillTokens": 13,
+    "decodeTokens": 8,
+    "stopReason": "max-tokens",
+    "stopTokenId": null,
+    "prefillTokensPerSec": 8.49,
+    "prefillTokensPerSecTtft": 8.29,
+    "decodeTokensPerSec": 3.16,
+    "modelLoadMs": 26327.77,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeRecordOps": 0,
+      "decodeRecordPasses": 0,
+      "uniformCache": {
+        "hits": 4432,
+        "misses": 40,
+        "totalLookups": 4472,
+        "hitRateRatio": 0.9910554561717353,
+        "hitRate": "99.1%",
+        "evictions": 0,
+        "currentSize": 40,
+        "pendingDestruction": 0
+      },
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0,
+      "decodeReadbackMapWaitMs": 0,
+      "decodeReadbackCleanupMs": 0,
+      "decodeReadbackCopyMs": 0,
+      "prefillRecordMs": 1296.8435609999979,
+      "prefillRecordOps": 0,
+      "prefillRecordPasses": 0,
+      "prefillSubmitWaitMs": 0,
+      "decodeOrchestrationMs": 2528.8642529999997,
+      "singleTokenSubmitWaitMs": 0,
+      "singleTokenReadbackWaitMs": 0,
+      "singleTokenReadbackMapWaitMs": 0,
+      "singleTokenReadbackCleanupMs": 0,
+      "singleTokenReadbackCopyMs": 0,
+      "singleTokenOrchestrationMs": 0
+    },
+    "batching": {
+      "batchedForwardCalls": 0,
+      "unbatchedForwardCalls": 0,
+      "totalBatchedTimeMs": 0,
+      "totalUnbatchedTimeMs": 0,
+      "gpuSubmissions": 0,
+      "requestedBatchTokens": 0,
+      "effectiveBatchTokens": 0,
+      "executedBatchTokens": 0,
+      "resolvedBatchTokens": 0,
+      "batchClampCount": 0
+    },
+    "plePreparedTokenCache": {
+      "hits": 0,
+      "misses": 0,
+      "entries": 0,
+      "bytes": 0
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "muse-glimmer-30b-text-f16-af32-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "maxBatchDecodeTokens": 1,
+        "batchSize": 1,
+        "stopCheckMode": "per-token",
+        "disableCommandBatching": false,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "muse-glimmer-30b-text-f16-af32-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 290,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 12982,
+          "text": " fundamental",
+          "fallbackText": " fundamental"
+        },
+        {
+          "id": 2353,
+          "text": " problem",
+          "fallbackText": " problem"
+        },
+        {
+          "id": 323,
+          "text": " of",
+          "fallbackText": " of"
+        },
+        {
+          "id": 13719,
+          "text": " trust",
+          "fallbackText": " trust"
+        },
+        {
+          "id": 310,
+          "text": " in",
+          "fallbackText": " in"
+        },
+        {
+          "id": 13787,
+          "text": " distributed",
+          "fallbackText": " distributed"
+        },
+        {
+          "id": 5825,
+          "text": " systems",
+          "fallbackText": " systems"
+        }
+      ],
+      "total": 8,
+      "omitted": 0,
+      "emptyTextCount": 0,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 0
+    },
+    "generationConfig": {
+      "maxTokens": 8,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 1,
+      "greedyThreshold": 0,
+      "suppressSpecialTokens": false,
+      "suppressSpecialLikeTokens": false,
+      "suppressTokenIds": [],
+      "seed": null,
+      "useChatTemplate": false
+    },
+    "initialExecutionIdentity": {
+      "schema": "doppler.initial-execution-identity/v2",
+      "executionGraphHash": "sha256:ca468a9626e5e5704f647cf8fa18c79aae803a71b3cdc30063e723cb7a5e0d76",
+      "resolvedGraphHash": "sha256:d94f6a17ecc3aaf3441d4901055a2c33a51beff8d9ba0ee771facf316cb809cd",
+      "kernelClosure": [
+        {
+          "moduleId": "attn_decode",
+          "file": "attention_decode_online_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1"
+        },
+        {
+          "moduleId": "attn_stream",
+          "file": "attention_streaming_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f"
+        },
+        {
+          "moduleId": "embed",
+          "file": "gather_f16.wgsl",
+          "entry": "main",
+          "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+        },
+        {
+          "moduleId": "gemv",
+          "file": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_vec4",
+          "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+        },
+        {
+          "moduleId": "lm_head_gemv",
+          "file": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f"
+        },
+        {
+          "moduleId": "residual",
+          "file": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        {
+          "moduleId": "rmsnorm",
+          "file": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+        },
+        {
+          "moduleId": "rope",
+          "file": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+        },
+        {
+          "moduleId": "sample",
+          "file": "sample.wgsl",
+          "entry": "sample_single_pass",
+          "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+        },
+        {
+          "moduleId": "silu",
+          "file": "silu.wgsl",
+          "entry": "main",
+          "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca"
+        },
+        {
+          "moduleId": "tiled",
+          "file": "matmul_f16w_f32a.wgsl",
+          "entry": "main",
+          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+        }
+      ],
+      "kernelClosureHash": "sha256:cdc421d23fcfc1d86ad10bd73c98827def113bf35219735757f7dbf1957a6ded",
+      "dtypeLane": {
+        "activation": "f32",
+        "output": "f32",
+        "kv": "f16",
+        "math": "f32",
+        "accumulation": "f32"
+      },
+      "fusionSet": [],
+      "fusionSetHash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "kvLayout": {
+        "maxSeqLen": 256,
+        "gpuPagedFallbackMaxSeqLen": 4096,
+        "kvDtype": "f16",
+        "forceF32Softcap": false,
+        "layout": "contiguous",
+        "pageSize": 256,
+        "bdpaVocabSize": 2048,
+        "windowSize": 1024,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "kvLayoutHash": "sha256:bba3f1ef82d8cabc6efa3e2355be71c254035512c5ad8bdfa34b51cb71b21a7f",
+      "memoryPolicy": {
+        "kvcache": {
+          "maxSeqLen": 256,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f16",
+          "forceF32Softcap": false,
+          "layout": "contiguous",
+          "pageSize": 256,
+          "bdpaVocabSize": 2048,
+          "windowSize": 1024,
+          "tiering": {
+            "mode": "off",
+            "hotWindow": 1024,
+            "coldPageSize": 256,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "none",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "auto",
+              "minAluBwRatio": 0
+            }
+          },
+          "quantization": {
+            "mode": "none",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        },
+        "perLayerInputs": {
+          "materialization": "auto",
+          "rowCache": {
+            "mode": "lru",
+            "maxRows": 256,
+            "maxBytes": 134217728,
+            "decodedDtype": "f32"
+          },
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "mode": "prepared_tokens",
+            "maxTokens": 1024,
+            "maxBytes": 134217728,
+            "outputDtype": "f32"
+          }
+        },
+        "largeWeights": null
+      },
+      "memoryPolicyHash": "sha256:7e6d4f4e867bcb919f22b8d9547f35851460ff0fedb666280c85ce40c2a7f2ea",
+      "executionPlanDigest": "sha256:aac864af55a6355568ca7a8aed1f6484af0997918e930bc9a4da05946a7fa5bf",
+      "runtimeEngine": {
+        "resolvedRuntimeSessionId": "sha256:ec176362b4bfd8c4e97626350618a8c222c8ad8a534a90a21bd5bf705f38d1ed",
+        "resolvedRuntimeSchema": "doppler.resolved-runtime-session/v1",
+        "kernelPath": {
+          "id": "muse-glimmer-30b-text-f16-af32-execution-inline",
+          "source": "execution-v1",
+          "hash": "sha256:02ac48c35ba8fa3cf95b7ad87c188b83c38ad1671e3e08242a6047b6d3500aa7",
+          "definition": {
+            "id": "muse-glimmer-30b-text-f16-af32-execution-inline",
+            "name": "Execution inline kernel path",
+            "description": "Generated from manifest.inference.execution",
+            "activationDtype": "f32",
+            "kvDtype": "f16",
+            "decode": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.q_proj"
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.k_proj"
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.v_proj"
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_decode_online_f16kv.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f16"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.o_proj"
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "gate_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.gate_proj"
+                },
+                {
+                  "op": "up_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.up_proj"
+                },
+                {
+                  "op": "activation",
+                  "kernel": "silu.wgsl",
+                  "entry": "main",
+                  "constants": {
+                    "HAS_GATE": true
+                  }
+                },
+                {
+                  "op": "down_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.down_proj"
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "prefill": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.q_proj"
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.k_proj"
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.v_proj"
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_streaming_f16kv.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f16"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.o_proj"
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "gate_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.gate_proj"
+                },
+                {
+                  "op": "up_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.up_proj"
+                },
+                {
+                  "op": "activation",
+                  "kernel": "silu.wgsl",
+                  "entry": "main",
+                  "constants": {
+                    "HAS_GATE": true
+                  }
+                },
+                {
+                  "op": "down_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.down_proj"
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "preLayer": [
+              {
+                "op": "embed",
+                "kernel": "gather_f16.wgsl",
+                "entry": "main",
+                "weights": "embed_tokens"
+              }
+            ],
+            "postLayer": [
+              {
+                "op": "final_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "lm_head",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_multicol",
+                "weights": "lm_head",
+                "constants": {
+                  "MULTICOL_COLS_PER_WG": 64,
+                  "MULTICOL_THREADS_PER_COL": 4
+                }
+              },
+              {
+                "op": "lm_head_prefill",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "lm_head"
+              },
+              {
+                "op": "sample",
+                "kernel": "sample.wgsl",
+                "entry": "sample_single_pass"
+              }
+            ]
+          }
+        },
+        "capabilityPolicy": {
+          "kind": "default-noop",
+          "dtypeEffect": "none",
+          "reason": "GPU supports all required features.",
+          "evidence": []
+        },
+        "laneIntegrity": {
+          "declared": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "kvDtype": "f16"
+          },
+          "executed": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "kvDtype": "f16"
+          },
+          "status": "matches",
+          "transforms": [],
+          "policy": {
+            "kind": "default-noop",
+            "dtypeEffect": "none",
+            "reason": "GPU supports all required features.",
+            "evidence": []
+          }
+        }
+      },
+      "runtimeEngineDigest": "sha256:3c0ba082ccd0fbb42f43d47b505f0d7b9b1765e76f4731d23858beceadc50bc8",
+      "programLoadPolicy": {
+        "schema": "doppler.pack-program-load-policy/v2",
+        "runtimeConfig": {
+          "inference": {
+            "session": {
+              "kvcache": {
+                "maxSeqLen": 256,
+                "gpuPagedFallbackMaxSeqLen": 4096,
+                "kvDtype": "f16",
+                "forceF32Softcap": false,
+                "layout": "contiguous",
+                "pageSize": 256,
+                "bdpaVocabSize": 2048,
+                "windowSize": 1024,
+                "tiering": {
+                  "mode": "off",
+                  "hotWindow": 1024,
+                  "coldPageSize": 256,
+                  "coldDtype": "f16",
+                  "compression": {
+                    "mode": "none",
+                    "blockSize": 1,
+                    "bitWidth": 4,
+                    "prodMode": false
+                  },
+                  "gating": {
+                    "mode": "auto",
+                    "minAluBwRatio": 0
+                  }
+                },
+                "quantization": {
+                  "mode": "none",
+                  "bitWidth": 4,
+                  "prodMode": false
+                }
+              },
+              "speculation": {
+                "mode": "none",
+                "tokens": 1,
+                "verify": "greedy",
+                "threshold": null,
+                "rollbackOnReject": true
+              },
+              "prefillChunkSubmitMode": "sync",
+              "prefillChunkLayers": 4,
+              "prefillTokenChunkSize": null,
+              "skipEmbeddingKVCacheWrites": false,
+              "useFlashPrefillAttention": false,
+              "useFusedGateUpGelu": false,
+              "useLargeBatchF16F32FusedGateUp": false,
+              "useTiledQ4KPrefill": false,
+              "retainQ4KMaterialization": false,
+              "useWideTileQ4KPrefill": false,
+              "useWideTileQ4KDecode": false,
+              "useSandwichRMSNormPairFusion": false,
+              "usePostFfnNextInputRMSNormPairFusion": false,
+              "usePostAttnNormFusedGateUp": false,
+              "fusedFfnQ4K": null,
+              "lmHeadArgmaxQ4K": null,
+              "attentionDecodeOnline": null,
+              "useLinearAttentionABProjectionFusion": false,
+              "useLinearAttentionQKVZProjectionFusion": false,
+              "useLinearAttentionFusedDecodeCore": false,
+              "useOrtFlashPrefillAttention": false,
+              "useWideTileResidualFusion": false,
+              "useFusedRmsnormWideTile": false,
+              "useFusedQKVSplitQKNorm": false,
+              "useFusedQKVSplitQKNormRoPE": false,
+              "useGreedyLmHeadArgmaxFusion": false,
+              "decodeLoop": {
+                "batchSize": 1,
+                "readbackInterval": 1,
+                "stopCheckMode": "per-token",
+                "readbackMode": "sequential",
+                "submitLatencyThresholdMs": null,
+                "maxBatchDecodeTokens": 1,
+                "ringTokens": 1,
+                "ringStop": 1,
+                "ringStaging": 1,
+                "disableCommandBatching": false
+              },
+              "compute": {
+                "defaults": {
+                  "activationDtype": "f32",
+                  "mathDtype": "f32",
+                  "accumDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              "perLayerInputs": {
+                "materialization": "auto",
+                "rowCache": {
+                  "mode": "lru",
+                  "maxRows": 256,
+                  "maxBytes": 134217728,
+                  "decodedDtype": "f32"
+                },
+                "prefetch": {
+                  "mode": "next_token",
+                  "rowsAhead": 1
+                },
+                "gpuUpload": {
+                  "mode": "per_step_slices",
+                  "stagingRows": 2
+                },
+                "hotCache": {
+                  "mode": "prepared_tokens",
+                  "maxTokens": 1024,
+                  "maxBytes": 134217728,
+                  "outputDtype": "f32"
+                }
+              }
+            },
+            "compute": {
+              "activationDtype": "f32"
+            },
+            "generation": {
+              "disableMultiTokenDecode": true
+            }
+          }
+        }
+      },
+      "programLoadPolicyHash": "sha256:e8fd58cbe5e3b97a2d438eb3333e9a8079a3a36e2b353e368c2af0857b40ce1e",
+      "digest": "sha256:f386eca39704c3d5ab16576616c9dc3ef3ff2e2c709a7068c584b7d8350920ab"
+    },
+    "kvCache": {
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "seqLen": 20,
+      "maxSeqLen": 256,
+      "usedBytes": 1064960,
+      "allocatedBytes": 13631488,
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 416,
+        "tokensWritten": 1040
+      }
+    },
+    "referenceTranscript": {
+      "schema": "doppler.reference-transcript/v1",
+      "source": {
+        "kind": "inline-browser-suite",
+        "path": "inline",
+        "hash": "sha256:e4d2770937644257f64f90b5eed126f40f60a1518b292c04ab4d3be183e12599"
+      },
+      "executionGraphHash": "sha256:ca468a9626e5e5704f647cf8fa18c79aae803a71b3cdc30063e723cb7a5e0d76",
+      "surface": "node-webgpu",
+      "generationConfig": {
+        "maxTokens": 8,
+        "temperature": 0,
+        "topP": 1,
+        "topK": 1,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 1,
+        "greedyThreshold": 0,
+        "suppressSpecialTokens": false,
+        "suppressSpecialLikeTokens": false,
+        "suppressTokenIds": [],
+        "seed": null,
+        "useChatTemplate": false
+      },
+      "prompt": {
+        "identity": "A rigorous explanation of why local GPU execution receipts matter begins with",
+        "hash": "sha256:99beddc6f26540433f8dec9fc0babbe3f22e3e8854ee965dcc918b381658eeed",
+        "ids": [
+          200000,
+          45,
+          68572,
+          20966,
+          323,
+          5959,
+          2743,
+          33157,
+          20112,
+          98466,
+          9280,
+          22397,
+          517
+        ],
+        "tokenIdsHash": "sha256:dfce2cbf44f1ddce25f30bb777040f2b6fba5a178be80766f92b70affdd71e26",
+        "tokenCount": 13
+      },
+      "output": {
+        "textHash": "sha256:610931099da1315b4b64997ea23f5e109c3163b4ebf567bdd8188d440c518179",
+        "tokensGenerated": 8,
+        "stopReason": "max-tokens",
+        "stopTokenId": null
+      },
+      "tokens": {
+        "ids": [
+          290,
+          12982,
+          2353,
+          323,
+          13719,
+          310,
+          13787,
+          5825
+        ],
+        "generatedTokenIdsHash": "sha256:256f5416fd59f433f826f73dabcfd2c366d7ca4f8cd9c752fb373495b4b1c286",
+        "generatedTextHash": "sha256:610931099da1315b4b64997ea23f5e109c3163b4ebf567bdd8188d440c518179",
+        "preview": [
+          {
+            "id": 290,
+            "text": " the",
+            "fallbackText": " the"
+          },
+          {
+            "id": 12982,
+            "text": " fundamental",
+            "fallbackText": " fundamental"
+          },
+          {
+            "id": 2353,
+            "text": " problem",
+            "fallbackText": " problem"
+          },
+          {
+            "id": 323,
+            "text": " of",
+            "fallbackText": " of"
+          },
+          {
+            "id": 13719,
+            "text": " trust",
+            "fallbackText": " trust"
+          },
+          {
+            "id": 310,
+            "text": " in",
+            "fallbackText": " in"
+          },
+          {
+            "id": 13787,
+            "text": " distributed",
+            "fallbackText": " distributed"
+          },
+          {
+            "id": 5825,
+            "text": " systems",
+            "fallbackText": " systems"
+          }
+        ],
+        "perStep": [
+          {
+            "index": 0,
+            "tokenId": 290,
+            "tokenHash": "sha256:0a9290dfd1fd9d2727c1e2293ad93a5b994ecffb391e0f0d3ab772cc0847a4ac"
+          },
+          {
+            "index": 1,
+            "tokenId": 12982,
+            "tokenHash": "sha256:8c3f2986ab47fe78e84f15093d245854329c9627927f4e091bfc800a8045a38b"
+          },
+          {
+            "index": 2,
+            "tokenId": 2353,
+            "tokenHash": "sha256:6003eef337832f83d4fd98591a3f1feb9186651777e3537136d7138174ad0f9e"
+          },
+          {
+            "index": 3,
+            "tokenId": 323,
+            "tokenHash": "sha256:bdc141fb451d20239c673d31375c66a0dc14071a75cad5161564137969dfc2b2"
+          },
+          {
+            "index": 4,
+            "tokenId": 13719,
+            "tokenHash": "sha256:ba684e3644accbce69b19905db7a02919f8214bad3bc7170739c40fb0d6ead15"
+          },
+          {
+            "index": 5,
+            "tokenId": 310,
+            "tokenHash": "sha256:98212237c8ccd48c07f3108e1ddf4de2b7f0e19b68f52cc19af2e4d6e4561ffc"
+          },
+          {
+            "index": 6,
+            "tokenId": 13787,
+            "tokenHash": "sha256:47dafa3b32b92eec1c1e125be403fdfb53ce6a9f32e72f2764dc92bee72ec380"
+          },
+          {
+            "index": 7,
+            "tokenId": 5825,
+            "tokenHash": "sha256:6a12acb9aea0a7d6182b36f59f63f3e786b6bff9f90ce197a31d6a45ec82e1ae"
+          }
+        ],
+        "coverage": {
+          "mode": "full-token-ids",
+          "omitted": 0
+        }
+      },
+      "phase": {
+        "prefillMs": 1530.5734300000004,
+        "decodeMs": 2528.8642529999997,
+        "prefillTokens": 13,
+        "decodeTokens": 8
+      },
+      "kvCache": {
+        "mode": "stats+sha256-layer-kv-bytes",
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "seqLen": 20,
+        "maxSeqLen": 256,
+        "usedBytes": 1064960,
+        "allocatedBytes": 13631488,
+        "counters": {
+          "updateCalls": 0,
+          "gpuUpdateCalls": 0,
+          "recordedGpuUpdateCalls": 416,
+          "tokensWritten": 1040
+        },
+        "byteDigestMode": "sha256-layer-kv-bytes",
+        "byteDigest": "sha256:1f4072b17790e912971bd56ade5185cae0acbcfd6d7bf5ffc352541a2648102f",
+        "byteDigests": [
+          {
+            "layer": 0,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:f4bc48d7816aea2fb129fda0645dd3bbe8f9c741c9bb0b534de6d996dd4b9dc2",
+            "valueDigest": "sha256:055a280354a43e09e9f1c3fffd79760ee7f21d5a05fc6f7569164595bb9bc3d5"
+          },
+          {
+            "layer": 1,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:b5a2a70c5ff28b219d87cc90c4d509456dffd3deb3037df8c260957c952468a1",
+            "valueDigest": "sha256:1a8393079b272b9e1a8c8cea2cc543d2ff10bc17d5f82d608ef9bbc9e36598e8"
+          },
+          {
+            "layer": 2,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:ffeca142c00a4b5f3ef202d2683e2dbbf7dadc22310719ebd0911cf9d14dc169",
+            "valueDigest": "sha256:61443dc6a8edcde4c9093460244bf9569de12a0049390cd3e01ebd0523049177"
+          },
+          {
+            "layer": 3,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:5564f012240f26c63f2307d154e67881699e0ff09f4c62e005b97ad1853cc3c5",
+            "valueDigest": "sha256:4ef883fd9c46148dfe5f003f9724b492e1083a77df17e5b87ecf28f8fb3b5048"
+          },
+          {
+            "layer": 4,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:1c590737568f89374119acdfd9b1411b239823c1851574543f63811402f19cb1",
+            "valueDigest": "sha256:6d07e2d0a09d8c9bf947eed8b81b3ef81e6dc8a36c25229f4b3935860b1ce166"
+          },
+          {
+            "layer": 5,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:80c0a775f595dee9a9d733a6228f0c30376b36cef54b6ac06e9c6d28d11b7928",
+            "valueDigest": "sha256:d163265d963218bec7a27a34cf6ad3cd4a43a05144ed39d79f1a80632f8ab686"
+          },
+          {
+            "layer": 6,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:337fd9c685fd5e78582fc16a78026c7d488ffe58333384d7202c897ffc078603",
+            "valueDigest": "sha256:52629e14e5eb65ca80708829f80f76ada6a40e8e50e3c06a867c1135d1009fc8"
+          },
+          {
+            "layer": 7,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:4322bb642218e18e52a24886264f5db870235b57c26ece2932cc5fac3f772c70",
+            "valueDigest": "sha256:4521434c4c011ef32996861272faa5fa4acf2b6c025cc3750ccaec7c7dad28d5"
+          },
+          {
+            "layer": 8,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:f7c5af51081ca27ffecb6dff266df395537aa4f82888f568152fe981ef21459d",
+            "valueDigest": "sha256:5529f0c98b1d178d0ed864ee1989611f49b5fe0eec4af1573356016bf8b98465"
+          },
+          {
+            "layer": 9,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:ba5560424f9588eebf8523db8309454679e687a4dc22fec6cb9d6637aa2d2252",
+            "valueDigest": "sha256:8aa77bb44d3dd08aa038a0931409ca4d9cc4aa534b6ea191fdb8b95f33c28acb"
+          },
+          {
+            "layer": 10,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:a3a7b311b4ab5f95cd0c4540ae707965ade8508e81c2cb8a3986cce86f38e7f5",
+            "valueDigest": "sha256:5ee537a8fb8b3f1312c70e29eb5cb4395e1d0a0061a5bdcc53dfd3353ba6ce9d"
+          },
+          {
+            "layer": 11,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:266b660a3a5207abbc25c2ef3b59edb44ce26d1768fea518b2baf34aa95ef178",
+            "valueDigest": "sha256:33ebd6bc02b0f1860270727bd1d0a19fed7149ad7e0e402f039d7af9f1924fab"
+          },
+          {
+            "layer": 12,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:818321d88a10dc6a73b45bf61b352f3ed04e7f16265e5fee511669d6dc44a3d9",
+            "valueDigest": "sha256:ff32cee5d765b41cf15120843c1ae5906d22e4ae434f09e7cc57f2278ffbcb2f"
+          },
+          {
+            "layer": 13,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:fca2d349f08a627d4bc85c7c3d019940620c7a7919459950f9f717949b11ac2e",
+            "valueDigest": "sha256:a1a2bfc7f8d46a3fe424e0172bb1564c86fbaaaa5f65d4abbdb6f45b47909188"
+          },
+          {
+            "layer": 14,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:d7b78a7eecdabef95b0a7724662f1634b8401070bfbf4b8baae860e5c1d0640f",
+            "valueDigest": "sha256:1ecf7fbccfecfe682216485712a150ee146eca9335166e70904332375c07a08a"
+          },
+          {
+            "layer": 15,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:2f5f35748c9b2cd9ea1e0ac2d14de993dea658176eb2910491375c5c695c9826",
+            "valueDigest": "sha256:423c591af2c2275307c4f48f3ff2119d1ff31a7a3724f5e13a03fdca7e642d42"
+          },
+          {
+            "layer": 16,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:ca13ddbe0017c285524f696546e5bdd4d50ab9d350c8fb5bdb09155d1a8e88cc",
+            "valueDigest": "sha256:c266704939f4db91ffdcda74d680d598264e095daf74e31e7cdb94017ca0f920"
+          },
+          {
+            "layer": 17,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:4c3d9bdff575a45cc5e46bb96bb0d60450d20640df1d7bd8f6a90906731ba412",
+            "valueDigest": "sha256:8574eb6f739c3830470868dd47f186c49b6b451d9460eb57df28a49a728df25d"
+          },
+          {
+            "layer": 18,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:3d1ec59ad203ad9c932627837bf24fce3b8efbc2bf70463b7211654095491a47",
+            "valueDigest": "sha256:99d94fb6c39a522ed9981ca1e25843f130768474551e354d14205f8d317fa964"
+          },
+          {
+            "layer": 19,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:3088d5cc4acc05dd3dff686a02754234bc90b682e7d78cc6e8ea1dd080ad55aa",
+            "valueDigest": "sha256:194faf4c9b18dbde7bac2ee32031b5a273c4d2af4ddea834204309d1decad180"
+          },
+          {
+            "layer": 20,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:ffbe2305fe04063d389c581ee6c9889fefb01b1f0e86bd18f90077a7abdd7308",
+            "valueDigest": "sha256:ab54806b260d9f650b3d106cc1b880cc74581cf1829605c803ccf162412a7be1"
+          },
+          {
+            "layer": 21,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:d238a2823119497b71a80aca8e5bef1c3637db0897401cfd046c509cd8abc32e",
+            "valueDigest": "sha256:e38c21f32cb26780cf5b4a0802baec388ec6afe09ad6d19122099d7e194d7c9a"
+          },
+          {
+            "layer": 22,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:e204e6b6820787ba48dcc5fdf6d5aaeab389d7ba33277742b4dfa6c93927a1a1",
+            "valueDigest": "sha256:518a8823ba75860db9d57dc8032a2828b66aec91d27204f05ba1938f1d108341"
+          },
+          {
+            "layer": 23,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:9207d69920c7ff01922111c309b43249d1af622c749e6975e5c5eb580d4c63f7",
+            "valueDigest": "sha256:d3c6074cbbdc3dae87149ab8ddd5744965ce49f4e1d862262476b1aeba14eeb2"
+          },
+          {
+            "layer": 24,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:fa59ab827a598410322f2d8e70b1ac3a5094d5bac5b4264edeeb11e271120db3",
+            "valueDigest": "sha256:4d2c282286cabfcc76a0f84a8e8c86c4144213a963be6217653fd1ca8880f08e"
+          },
+          {
+            "layer": 25,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:cdb8f11c3afaf2acc83f1e4e70d31586d65935d8d9b2a706a869cd5f76fd76ce",
+            "valueDigest": "sha256:1237c40c43afa5f668eb5f7babbc8c2bf2ea2c43efe0a8972a5f522d954ebd15"
+          },
+          {
+            "layer": 26,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:2b3773734ae045bf0feca52783bafc94b5b73578c1ddd3dc0818e0de441956ad",
+            "valueDigest": "sha256:acd8fca81a78014f246827df2a93fecb56acd0afe3dd61ed1fa48ecf02b40a96"
+          },
+          {
+            "layer": 27,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:1319cdb4c64cb6d71ea22288e88366e45b3bc3bcba15da31dfc60606e5f41d88",
+            "valueDigest": "sha256:63701f33a08a3ecd91e8eeeeaa16b7178cf89a404322638afa4b3b8ad590faa4"
+          },
+          {
+            "layer": 28,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:f200c5940997e7ce6a31e55bf9d99224a0fb7b15709dd0ce9069ac4ff146d05a",
+            "valueDigest": "sha256:3c71afa862a14ab45ce8fc4f9fcc7e3274c135361067f8ca68c4332a8389a326"
+          },
+          {
+            "layer": 29,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:7cf05a571c0034f5c426138da127c5c94c4163291f680503469dbb98db280f9a",
+            "valueDigest": "sha256:6b9e9990c2b892514e8d8f3527f589351f8c4fde456236d922a44b1e8e5fd30e"
+          },
+          {
+            "layer": 30,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:9867c5ecc412fa7e2b51d996b6b74374c0a2ad74f2da8603e3a87f82fe55175b",
+            "valueDigest": "sha256:ac686128612caa9d652fa712c07e5f4352988229639d08aad0bbb94a1ebecb5f"
+          },
+          {
+            "layer": 31,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:79b3e5cc9969fdf011fd7ef5157c7e684a155cf7c12ddd1b61ed19af253bbadc",
+            "valueDigest": "sha256:3afd4806489c6e406df9c9783c3d129f3603d84998252892408b16ad6451a2e7"
+          },
+          {
+            "layer": 32,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:2b1ce371e1b964611e8d57a0e42b26cd8a728b331fa9b99950a5f6e01114dc93",
+            "valueDigest": "sha256:a3cb87e430b2ae388dae9ba60b0e11ddcef61269d85d7ae59e5f3e5e1e9d0aea"
+          },
+          {
+            "layer": 33,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:802134556fbbe05f8fb95c8b9f3e273520a2f4c463596116530a06c81c18b052",
+            "valueDigest": "sha256:57347bb845a8283074eadfc2007c5c07a6c607738827922484ad8f67165cea25"
+          },
+          {
+            "layer": 34,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:de179b4e28ed9c6fed956d3667c7778d8b79b58b7dc3c0c696e5cc9018a9a216",
+            "valueDigest": "sha256:d56955546bd2d9a4d6e2457220305e8bed2cc4eca98fdfaf447a635472655d70"
+          },
+          {
+            "layer": 35,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:4412801ea06c14505c4ae255f55423fbc6831e3e14988656de9d3eaa83f44cdb",
+            "valueDigest": "sha256:067fe479152554ef1a403a88737ce767e769270b587efdd7c8cba5a569e5b2f6"
+          },
+          {
+            "layer": 36,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:52997181f646b6db62bc577689defc735da0a22d7e38b7a1c05bb3c9c63ce217",
+            "valueDigest": "sha256:4cc58d83f881de797a549ecff70d5365131e45a14be3f8d09caef287d0e18040"
+          },
+          {
+            "layer": 37,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:e82f0473e3d2103bcb932cf1105b9aa4bc6c9324376b56df79935dd5bc3fc730",
+            "valueDigest": "sha256:32a3b4caafeee2fc56533f3dbb3cd4a4d2c319ba192194ce093a50a71432f82f"
+          },
+          {
+            "layer": 38,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:6326e7c43505ed0d1385af35207ef610da2817a431ac4226741bd76041552eca",
+            "valueDigest": "sha256:280032593a0531af2d6e75904189441275fcc1ba4b8082bca7166d07ea16e854"
+          },
+          {
+            "layer": 39,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:c44e187da1804bc2fba68164676196d44c0430d092ffcd01a87587edcf4e4679",
+            "valueDigest": "sha256:57a892a96def9135a326174fb49aa3dd6e4640251a215166bc201627d760d5e8"
+          },
+          {
+            "layer": 40,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:26e744df23358f5d4711232a41d9ab8284caad58f3ef0229884e16979964b357",
+            "valueDigest": "sha256:a6db1e374969d2a4e7c9df9226c0cbf2490168066da1cfee85d60e8a45105354"
+          },
+          {
+            "layer": 41,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:0315a110cdd11206d278b59fdcb925d2cab3bc31062a52b122ac64083e3c6a59",
+            "valueDigest": "sha256:62840288987cdcb678cdf608c7640d590d4fc65d36d534f04373c55d8e82f285"
+          },
+          {
+            "layer": 42,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:775b7bbe6e5bfb1dcfff6bae63404afd5d01a435e038971ca9138379f4316d2e",
+            "valueDigest": "sha256:fa5e7cb3d441cb464f3ab6bd2bd5dbc1336a46b23e9c5a37133458ff6e9b234b"
+          },
+          {
+            "layer": 43,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:75c6fa720049ea534d514147e3871bb7ccb0e453ecb840f86fff97c2cdb33219",
+            "valueDigest": "sha256:7b6d2b340694816e86ea9be60c34a2b35a40f99cbbaf945fcfb0a5fb04dcedba"
+          },
+          {
+            "layer": 44,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:62ead55451ceaa366ed6d5b08725a2ce2e0a94e206309704e9aafa5cdb1a7c59",
+            "valueDigest": "sha256:2c7bf48383a7f1df77d5ea376d13b3ec9eef41f19187e2b9ec5bacda55f93e4e"
+          },
+          {
+            "layer": 45,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:9bb8d845d7678f9004698e5ddd7932485911b6425b86324f75074479c9a33c91",
+            "valueDigest": "sha256:cc002b1d1260b5fdc96b7bed5afdeda8562bc97f4ba9fc162c3d3f62cf233439"
+          },
+          {
+            "layer": 46,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:dd6016536bee6b5b21970f62292c3497a4f852f07263b868b630a7cdbf5f59f0",
+            "valueDigest": "sha256:6710a6b1158444772af3fd01f61c2631e7d8f960a0ad32627793e4eb6067e45e"
+          },
+          {
+            "layer": 47,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:ae2a9a3e879c41c948d3c4c042b72f9060a1cad1cb6b362eada6199ae0a91cd6",
+            "valueDigest": "sha256:f6c24b321969f003fde2b3df071820623780d1236ac6ad3e6ded480f51632a8d"
+          },
+          {
+            "layer": 48,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:e8ce89d22d8356d250695068b3c8d61c0a4bc27de559220c4b7c0ead0b8296df",
+            "valueDigest": "sha256:a31f46f11eaf46754e5c21e1952e2aa48e8299057df4ec82600f7b5c67192612"
+          },
+          {
+            "layer": 49,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:63f38f61c457545be95a7ebcb65dd41653336f03f0ee3b2c02d2eeac5ae853a7",
+            "valueDigest": "sha256:c7a48e5dd20f897139ba444386c44ecbae6c6a415b9a139cafaecb3f0c1256f8"
+          },
+          {
+            "layer": 50,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:bfb87d1f37f3ef3848c44ff5deed0c7c7c81de5fd452b0f751e79b424485d79b",
+            "valueDigest": "sha256:7a532d99467c6158798ed18ea3e430386852d0fe302c300f6d32f0131d29d621"
+          },
+          {
+            "layer": 51,
+            "seqLen": 20,
+            "keyBytes": 10240,
+            "valueBytes": 10240,
+            "keyDigest": "sha256:63c863ad0c81ef62313691aa2fb5fdd859a2e3df04982f29f7d4b8705fe132b4",
+            "valueDigest": "sha256:aaf7bd39ef6035e1f31cc6dd320e2f3addc8f4bd3ffebe8cb58b604c618699eb"
+          }
+        ],
+        "stateHash": "sha256:41936384eac3dca1b5f15e76f22046a2c6a32f492da888afd0004ecf43a71715"
+      },
+      "logits": {
+        "mode": "sha256-per-step",
+        "perStepDigests": [
+          "sha256:618567f3407fbb22e0c75d143f2670bc5ee55822eab90d14725517154c5da945",
+          "sha256:9e83976506cfb6b7cdd64b4a919e06c82a19fbca902abfadc601b3eca9269313",
+          "sha256:67858bd09617e0f302aa77db04f5dad72ee984ff08c67414ad5709672a6dcaf7",
+          "sha256:41808fdd6ac363bb10f0cffc4a54706d4b7d019668bf6018fc9c6ca733e4ef50",
+          "sha256:22c812b97e706954c6fd51c298b03b8d4524192d99e8dee623bc3b8f9ba6b47a",
+          "sha256:a7ca619f0eaebc2210902f72f25e0e50535780c90316e1b8766e0dc33e6f2613",
+          "sha256:30128b32f75697d251b3401d6bb48fe0fdc7375c862426021cce880db8e47ea1",
+          "sha256:2a030605390fb60604a7e0946c806e79a1890bb08835aa41095fbc8abfe7350c"
+        ],
+        "steps": [
+          {
+            "index": 0,
+            "tokenId": 290,
+            "inputTokenCount": 13,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:618567f3407fbb22e0c75d143f2670bc5ee55822eab90d14725517154c5da945",
+            "top": [
+              {
+                "tokenId": 290,
+                "logit": 18.41605567932129,
+                "text": " the"
+              },
+              {
+                "tokenId": 10276,
+                "logit": 17.38370132446289,
+                "text": " understanding"
+              },
+              {
+                "tokenId": 262,
+                "logit": 17.047969818115234,
+                "text": " a"
+              },
+              {
+                "tokenId": 315,
+                "logit": 15.445350646972656,
+                "text": " an"
+              },
+              {
+                "tokenId": 1780,
+                "logit": 14.575895309448242,
+                "text": " what"
+              },
+              {
+                "tokenId": 84713,
+                "logit": 14.287715911865234,
+                "text": " recognizing"
+              },
+              {
+                "tokenId": 51661,
+                "logit": 13.473522186279297,
+                "text": " establishing"
+              },
+              {
+                "tokenId": 348,
+                "logit": 13.339420318603516,
+                "text": " re"
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "tokenId": 12982,
+            "inputTokenCount": 14,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:9e83976506cfb6b7cdd64b4a919e06c82a19fbca902abfadc601b3eca9269313",
+            "top": [
+              {
+                "tokenId": 12982,
+                "logit": 4.654769420623779,
+                "text": " fundamental"
+              },
+              {
+                "tokenId": 22955,
+                "logit": 4.112361431121826,
+                "text": " observation"
+              },
+              {
+                "tokenId": 2353,
+                "logit": 3.7822203636169434,
+                "text": " problem"
+              },
+              {
+                "tokenId": 8865,
+                "logit": 3.6916005611419678,
+                "text": " nature"
+              },
+              {
+                "tokenId": 17112,
+                "logit": 3.4030535221099854,
+                "text": " threat"
+              },
+              {
+                "tokenId": 22908,
+                "logit": 3.371213436126709,
+                "text": " architecture"
+              },
+              {
+                "tokenId": 18495,
+                "logit": 3.274043083190918,
+                "text": " physics"
+              },
+              {
+                "tokenId": 74783,
+                "logit": 3.239445924758911,
+                "text": " realization"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "tokenId": 2353,
+            "inputTokenCount": 15,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:67858bd09617e0f302aa77db04f5dad72ee984ff08c67414ad5709672a6dcaf7",
+            "top": [
+              {
+                "tokenId": 2353,
+                "logit": 4.877694129943848,
+                "text": " problem"
+              },
+              {
+                "tokenId": 24103,
+                "logit": 4.276261806488037,
+                "text": " tension"
+              },
+              {
+                "tokenId": 9283,
+                "logit": 4.138198375701904,
+                "text": " security"
+              },
+              {
+                "tokenId": 22908,
+                "logit": 4.022701263427734,
+                "text": " architecture"
+              },
+              {
+                "tokenId": 8865,
+                "logit": 3.9274837970733643,
+                "text": " nature"
+              },
+              {
+                "tokenId": 22955,
+                "logit": 3.927269697189331,
+                "text": " observation"
+              },
+              {
+                "tokenId": 81980,
+                "logit": 3.744135856628418,
+                "text": " asymmetry"
+              },
+              {
+                "tokenId": 184677,
+                "logit": 3.5501694679260254,
+                "text": " misalignment"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "tokenId": 323,
+            "inputTokenCount": 16,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:41808fdd6ac363bb10f0cffc4a54706d4b7d019668bf6018fc9c6ca733e4ef50",
+            "top": [
+              {
+                "tokenId": 323,
+                "logit": 6.8713226318359375,
+                "text": " of"
+              },
+              {
+                "tokenId": 1451,
+                "logit": 4.73406982421875,
+                "text": " they"
+              },
+              {
+                "tokenId": 38,
+                "logit": 4.621944427490234,
+                "text": ":"
+              },
+              {
+                "tokenId": 511,
+                "logit": 4.436222553253174,
+                "text": " that"
+              },
+              {
+                "tokenId": 310,
+                "logit": 3.546247720718384,
+                "text": " in"
+              },
+              {
+                "tokenId": 290,
+                "logit": 3.2898149490356445,
+                "text": " the"
+              },
+              {
+                "tokenId": 544,
+                "logit": 3.20046329498291,
+                "text": " this"
+              },
+              {
+                "tokenId": 2037,
+                "logit": 3.1924521923065186,
+                "text": " these"
+              }
+            ]
+          },
+          {
+            "index": 4,
+            "tokenId": 13719,
+            "inputTokenCount": 17,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:22c812b97e706954c6fd51c298b03b8d4524192d99e8dee623bc3b8f9ba6b47a",
+            "top": [
+              {
+                "tokenId": 13719,
+                "logit": 5.1410064697265625,
+                "text": " trust"
+              },
+              {
+                "tokenId": 1497,
+                "logit": 3.9708220958709717,
+                "text": " ver"
+              },
+              {
+                "tokenId": 34874,
+                "logit": 3.522263526916504,
+                "text": " verification"
+              },
+              {
+                "tokenId": 13787,
+                "logit": 3.5204591751098633,
+                "text": " distributed"
+              },
+              {
+                "tokenId": 23414,
+                "logit": 3.5201292037963867,
+                "text": " computational"
+              },
+              {
+                "tokenId": 7844,
+                "logit": 3.240455389022827,
+                "text": " digital"
+              },
+              {
+                "tokenId": 110460,
+                "logit": 3.196989059448242,
+                "text": " decentralized"
+              },
+              {
+                "tokenId": 143415,
+                "logit": 3.1486926078796387,
+                "text": " cryptographic"
+              }
+            ]
+          },
+          {
+            "index": 5,
+            "tokenId": 310,
+            "inputTokenCount": 18,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:a7ca619f0eaebc2210902f72f25e0e50535780c90316e1b8766e0dc33e6f2613",
+            "top": [
+              {
+                "tokenId": 310,
+                "logit": 6.08747673034668,
+                "text": " in"
+              },
+              {
+                "tokenId": 81980,
+                "logit": 3.9961369037628174,
+                "text": " asymmetry"
+              },
+              {
+                "tokenId": 341,
+                "logit": 3.4438674449920654,
+                "text": " and"
+              },
+              {
+                "tokenId": 436,
+                "logit": 3.1911566257476807,
+                "text": " on"
+              },
+              {
+                "tokenId": 3655,
+                "logit": 3.0823569297790527,
+                "text": "less"
+              },
+              {
+                "tokenId": 5902,
+                "logit": 3.0631959438323975,
+                "text": " distribution"
+              },
+              {
+                "tokenId": 26,
+                "logit": 2.9500298500061035,
+                "text": "."
+              },
+              {
+                "tokenId": 31545,
+                "logit": 2.9005126953125,
+                "text": " boundaries"
+              }
+            ]
+          },
+          {
+            "index": 6,
+            "tokenId": 13787,
+            "inputTokenCount": 19,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:30128b32f75697d251b3401d6bb48fe0fdc7375c862426021cce880db8e47ea1",
+            "top": [
+              {
+                "tokenId": 13787,
+                "logit": 4.56403112411499,
+                "text": " distributed"
+              },
+              {
+                "tokenId": 110460,
+                "logit": 4.536897659301758,
+                "text": " decentralized"
+              },
+              {
+                "tokenId": 262,
+                "logit": 3.9366953372955322,
+                "text": " a"
+              },
+              {
+                "tokenId": 23414,
+                "logit": 3.3809914588928223,
+                "text": " computational"
+              },
+              {
+                "tokenId": 1835,
+                "logit": 3.2753183841705322,
+                "text": " off"
+              },
+              {
+                "tokenId": 315,
+                "logit": 3.2024037837982178,
+                "text": " an"
+              },
+              {
+                "tokenId": 51980,
+                "logit": 3.147995710372925,
+                "text": " outs"
+              },
+              {
+                "tokenId": 12917,
+                "logit": 3.110466241836548,
+                "text": " cloud"
+              }
+            ]
+          },
+          {
+            "index": 7,
+            "tokenId": 5825,
+            "inputTokenCount": 20,
+            "dtype": "f32",
+            "elementCount": 202048,
+            "digest": "sha256:2a030605390fb60604a7e0946c806e79a1890bb08835aa41095fbc8abfe7350c",
+            "top": [
+              {
+                "tokenId": 5825,
+                "logit": 4.5313591957092285,
+                "text": " systems"
+              },
+              {
+                "tokenId": 26731,
+                "logit": 4.3507609367370605,
+                "text": " computation"
+              },
+              {
+                "tokenId": 8875,
+                "logit": 3.5911922454833984,
+                "text": " machine"
+              },
+              {
+                "tokenId": 12133,
+                "logit": 3.4297780990600586,
+                "text": " AI"
+              },
+              {
+                "tokenId": 22820,
+                "logit": 3.266660213470459,
+                "text": " computing"
+              },
+              {
+                "tokenId": 13678,
+                "logit": 3.1008431911468506,
+                "text": " compute"
+              },
+              {
+                "tokenId": 24,
+                "logit": 3.0963542461395264,
+                "text": ","
+              },
+              {
+                "tokenId": 11358,
+                "logit": 3.045201301574707,
+                "text": " deep"
+              }
+            ]
+          }
+        ]
+      },
+      "tolerance": {
+        "tokenPolicy": "exact generated token IDs",
+        "logitsPolicy": "exact sha256 digest per generated step over finalized f32 logits before sampling",
+        "kvPolicy": "exact sha256 digest over used KV cache bytes by layer/key/value"
+      }
+    },
+    "operatorDiagnostics": null,
+    "decodeBottleneck": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "dominant": {
+        "id": "orchestration",
+        "label": "decode orchestration",
+        "ms": 2528.86,
+        "shareOfDecode": 1
+      },
+      "bottleneckClass": "orchestration",
+      "decodeWallMs": 2528.86,
+      "componentsMs": {
+        "commandRecordMs": 0,
+        "submitWaitMs": 0,
+        "readbackWaitMs": 0,
+        "effectiveSubmitReadbackWaitMs": 0,
+        "readbackMapWaitMs": 0,
+        "readbackCleanupMs": 0,
+        "readbackCopyMs": 0,
+        "readbackUnattributedMs": null,
+        "gpuTimestampMs": null,
+        "submitReadbackSlackMs": null,
+        "orchestrationMs": 2528.86,
+        "residualMs": 0
+      },
+      "recording": {
+        "opCount": 0,
+        "passCount": 0,
+        "uniqueOpLabels": null,
+        "msPerOp": null,
+        "msPerPass": null,
+        "passesPerOp": null,
+        "msPerExecutedBatchToken": null,
+        "opsPerExecutedBatchToken": null,
+        "passesPerExecutedBatchToken": null,
+        "topOps": [],
+        "topOpGroups": [],
+        "uniformCache": {
+          "hits": 4432,
+          "misses": 40,
+          "totalLookups": 4472,
+          "hitRateRatio": 0.9910554561717353,
+          "evictions": 0,
+          "currentSize": 40,
+          "pendingDestruction": 0,
+          "hitRate": "99.1%"
+        }
+      },
+      "shares": {
+        "commandRecord": 0,
+        "submitWait": 0,
+        "readbackWait": 0,
+        "effectiveSubmitReadbackWait": 0,
+        "readbackMapWait": 0,
+        "readbackCleanup": 0,
+        "readbackCopy": 0,
+        "readbackUnattributed": null,
+        "gpuTimestamp": null,
+        "submitReadbackSlack": null,
+        "orchestration": 1,
+        "residual": 0
+      },
+      "semantics": {
+        "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+        "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+        "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured.",
+        "topOps": "Highest-count exact compute-pass labels observed during command recording.",
+        "topOpGroups": "Highest-count compute-pass labels after grouping repeated per-layer labels.",
+        "uniformCache": "Current uniform-buffer cache counters at the end of the measured suite."
+      }
+    },
+    "load": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "semantics": {
+        "modelLoadMs": "suite initialization time before generation",
+        "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+        "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+        "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+        "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+        "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+      },
+      "modelLoadMs": 26327.77,
+      "loader": {
+        "schemaVersion": 1,
+        "source": "doppler-loader",
+        "modelId": "muse-glimmer-30b-text-f16-af32",
+        "status": "complete",
+        "customShardLoader": true,
+        "byteAccountingMode": "custom-loader-read-progress",
+        "totalBytes": 55709561856,
+        "totalShards": 831,
+        "bytesLoaded": 55709561856,
+        "shardsLoaded": 831,
+        "bytesPerSecond": 2218929655,
+        "phasesMs": {
+          "preflight": 1.95,
+          "tensorLocations": 2.13,
+          "embeddings": 1804,
+          "layers": 21543.06,
+          "finalWeights": 1754.76,
+          "cleanup": 0.07
+        },
+        "layers": {
+          "count": 52,
+          "totalMs": 21477.09,
+          "meanMs": 413.02,
+          "maxMs": 450.03,
+          "maxLayer": 0
+        },
+        "totalMs": 25106.5,
+        "failedPhase": null,
+        "error": null
+      },
+      "pipeline": {
+        "schemaVersion": 1,
+        "source": "doppler-pipeline",
+        "modelId": "muse-glimmer-30b-text-f16-af32",
+        "status": "complete",
+        "phasesMs": {
+          "reset": 0.07,
+          "configResolution": 6.79,
+          "kernelWarmup": 0.05,
+          "tokenizer": 531.92,
+          "executionSetup": 19.95,
+          "loadWeights": 25569.39,
+          "rope": 178.42,
+          "convStates": 0.51
+        },
+        "details": {
+          "tokenizer": {
+            "schemaVersion": 1,
+            "source": "doppler-tokenizer",
+            "modelId": "muse-glimmer-30b-text-f16-af32",
+            "status": "complete",
+            "tokenizerType": "bundled",
+            "tokenizerFile": "tokenizer.json",
+            "backend": "bundled",
+            "assetSource": "custom-loader",
+            "cacheHit": false,
+            "phasesMs": {
+              "configResolution": 0.04,
+              "cacheLookup": 0.06,
+              "backendCreate": 0.08,
+              "assetLoad": 245.07,
+              "assetParse": 0.29,
+              "backendLoad": 285.92,
+              "cacheStore": 0.01
+            },
+            "totalMs": 531.63,
+            "error": null
+          }
+        },
+        "totalMs": 26307.36
+      },
+      "residualsMs": {
+        "modelLoadMinusLoaderMs": 1221.27,
+        "modelLoadMinusPipelineMs": 20.41,
+        "pipelineMinusLoaderMs": 1200.86
+      },
+      "consistent": {
+        "loaderWithinModelLoad": true,
+        "pipelineWithinModelLoad": true,
+        "loaderWithinPipeline": true
+      }
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "muse-glimmer-30b-text-f16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "muse-glimmer-30b-text-f16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": true,
+        "decodeBatchSize": 12,
+        "headDim": 128,
+        "kvLen": 131072,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.patternKind.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.shape",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.semantics",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.even",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.odd",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6,
+        "patternKindContexts": 16,
+        "layerTypeContexts": 12
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "muse-glimmer-30b-text-f16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "muse-glimmer-30b-text-f16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 51,
+        "nullableCases": 27,
+        "nonNullableCases": 24
+      }
+    },
+    "sourceParity": {
+      "schema": "doppler.source-token-parity/v1",
+      "status": "failed",
+      "expectedTranscriptPath": "reports/model-ir-v2/glimmer-30b.hf-text-transcript.json",
+      "expectedTranscriptHash": "sha256:5ab5fe3bb41b47d5793d835fd9de567f06b96308dfdf04fe85953e2cea9b757a",
+      "sourceModel": "meta-models/Muse-Glimmer-30B",
+      "sourceRevision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sampling": "greedy-argmax-f32-logits",
+      "prompt": {
+        "passed": true,
+        "expectedCount": 13,
+        "observedCount": 13,
+        "firstMismatchIndex": null,
+        "expectedTokenId": null,
+        "observedTokenId": null
+      },
+      "generation": {
+        "passed": false,
+        "expectedCount": 128,
+        "observedCount": 8,
+        "firstMismatchIndex": 7,
+        "expectedTokenId": 26731,
+        "observedTokenId": 5825
+      }
+    }
+  },
+  "output": " the fundamental problem of trust in distributed systems",
+  "memory": {
+    "used": 55810876928,
+    "pool": {
+      "allocations": 5123,
+      "reuses": 4179,
+      "totalBytesAllocated": 55989761536,
+      "peakBytesAllocated": 55910662400,
+      "currentBytesAllocated": 55797245440,
+      "totalBytesRequested": 55962462464,
+      "peakBytesRequested": 55890475008,
+      "currentBytesRequested": 55782406912,
+      "activeBuffers": 643,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "44.9%"
+    },
+    "kvCache": {
+      "theoretical": 13631488,
+      "allocated": 13631488,
+      "used": 1064960,
+      "efficiency": 0.078125,
+      "seqLen": 20,
+      "maxSeqLen": 256,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 416,
+        "tokensWritten": 1040
+      }
+    }
+  },
+  "debugSnapshot": null
+}

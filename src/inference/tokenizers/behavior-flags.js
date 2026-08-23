@@ -11,7 +11,9 @@ function isBosLikeLabel(value) {
     || normalized === '<s>'
     || normalized === '<cls>'
     || normalized === 'cls'
-    || normalized.includes('bos');
+    || normalized.includes('bos')
+    || normalized.includes('begin_of_text')
+    || normalized.includes('beginoftext');
 }
 
 function isEosLikeLabel(value) {
@@ -19,6 +21,7 @@ function isEosLikeLabel(value) {
   return normalized === '<eos>'
     || normalized === '</s>'
     || normalized.includes('eos')
+    || normalized.includes('end_of_text')
     || normalized.includes('endoftext');
 }
 

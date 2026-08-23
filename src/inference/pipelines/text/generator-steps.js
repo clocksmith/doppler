@@ -584,6 +584,11 @@ async function submitDecodeRecorderProfile(state, opts, recorder, profileLabel) 
   }
 }
 
+function setTsirGenerationStep(state) {
+  const fixture = state.operatorDiagnostics?.tsirFixture;
+  if (fixture) fixture.currentGenerationStep = state.decodeStepCount;
+}
+
 export async function decodeStep(state, currentIds, opts, helpers) {
   const stepWallStart = performance.now();
   const lastToken = currentIds[currentIds.length - 1];
@@ -594,6 +599,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const debugCheckBuffer = state.debug ? helpers.debugCheckBuffer : undefined;
 
   state.decodeStepCount++;
+  setTsirGenerationStep(state);
   const isDebugStep = opts.debug && state.decodeStepCount <= 5;
   if (isDebugStep) {
     const tokenText = getTokenTextOrUnknown(state.tokenizer, lastToken);
@@ -1083,6 +1089,7 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
   const config = state.modelConfig;
 
   state.decodeStepCount++;
+  setTsirGenerationStep(state);
   const recorder = createDecodeRecorder(state, opts);
 
   const { hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer } = await runDecodeLayers(
@@ -1169,6 +1176,7 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
 
 export async function advanceWithToken(state, tokenId, opts, helpers) {
   state.decodeStepCount++;
+  setTsirGenerationStep(state);
 
   const { hiddenStates, decodeHiddenBuffer, decodeAltBuffer } = await runDecodeLayers(
     state,
@@ -1188,6 +1196,7 @@ export async function advanceWithToken(state, tokenId, opts, helpers) {
 export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers, embeddingMode) {
 
   state.decodeStepCount++;
+  setTsirGenerationStep(state);
 
   const { hiddenStates, decodeHiddenBuffer, decodeAltBuffer } = await runDecodeLayers(
     state,

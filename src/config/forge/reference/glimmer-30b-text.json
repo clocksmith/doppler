@@ -25,11 +25,13 @@
     "dtype": "bfloat16",
     "attentionImplementation": "eager"
   },
-  "boundaryLayers": [0],
+  "boundaryLayers": [0, 13, 26, 39, 51],
+  "boundaryGenerationSteps": [0, 7],
+  "boundaryOutputDir": "reports/model-ir-v2/glimmer-30b.hf-boundaries",
   "output": "reports/model-ir-v2/glimmer-30b.hf-text-transcript.json",
   "author": {
     "kind": "ai",
     "actor": "openai-codex",
-    "proposalId": "glimmer-pinned-text-reference-v1"
+    "proposalId": "glimmer-pinned-text-reference-v4"
   }
 }

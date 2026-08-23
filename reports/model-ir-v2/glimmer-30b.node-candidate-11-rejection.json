@@ -1,0 +1,55 @@
+{
+  "schema": "doppler.physical-execution-candidate-rejection/v1",
+  "candidateId": "weightless-unit-qk-norm-f16kv",
+  "modelId": "muse-glimmer-30b-text-f16-af32",
+  "entryPointId": "text.generate",
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "heterogeneous-text-semantic-lowering-v4"
+  },
+  "sourceRevision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+  "dopplerBaseCommit": "11eb1c4b",
+  "surface": "node-webgpu",
+  "provider": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "driver": "radv: Mesa 26.0.3-1ubuntu1",
+    "hasF16": true,
+    "hasSubgroups": true,
+    "maxBufferSizeBytes": 4294967292,
+    "fallback": false
+  },
+  "evidence": {
+    "physicalReport": "reports/model-ir-v2/glimmer-30b.node-candidate-11-f16kv-qualification.json",
+    "physicalReportDigest": "sha256:f55cf09c6c5b362ee65044487f2b573cb7f173d21a46ee86eaf0d220a254363f",
+    "boundaryComparison": "reports/model-ir-v2/glimmer-30b.node-candidate-11-boundary-comparison.json",
+    "boundaryComparisonDigest": "sha256:fec7867d48bdc7f209c05f3ab67f60cd701049aff6224680f3dcf89506320b67",
+    "expectedTranscriptDigest": "sha256:0dafbf7792a623dcbac49654f9aa188263e0a3f2866abac97da01b951cbdbb2f",
+    "runtimeProfileDigest": "sha256:926166e7089ef5d5ccc75732916a1e816506ea4542bb1e6d7fc1cf61a122220a"
+  },
+  "observation": {
+    "artifactClosureResealed": true,
+    "convertedTensorCount": 627,
+    "convertedShardCount": 831,
+    "convertedBytes": 55709561856,
+    "promptParityPassed": true,
+    "matchingGeneratedTokenPrefix": 7,
+    "firstGenerationMismatchIndex": 7,
+    "expectedGenerationTokenId": 26731,
+    "observedGenerationTokenId": 5825,
+    "kvDtype": "f16",
+    "firstExactBoundaryDivergence": "generation.7.model.embedding.output",
+    "firstToleranceBoundaryDivergence": null,
+    "boundaryClassification": "precision-lane-drift-within-diagnostic-tolerance",
+    "failureClass": "exact-token-parity-failed-after-bf16-to-f32-numerical-drift"
+  },
+  "decision": {
+    "status": "rejected-for-pack-promotion",
+    "semanticLoweringAccepted": true,
+    "promotionEligible": false,
+    "fallbackAttempted": false,
+    "correctionScope": "unresolved-source-vs-target-numerical-lane"
+  }
+}

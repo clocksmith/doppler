@@ -47,8 +47,7 @@ function normalizeProjectionDtype(weight) {
   const dtype = typeof weight?.dtype === 'string'
     ? weight.dtype.toLowerCase()
     : null;
-  if (dtype === 'bf16') return 'f16';
-  if (dtype === 'f16' || dtype === 'f32' || dtype === 'q4k') return dtype;
+  if (dtype === 'bf16' || dtype === 'f16' || dtype === 'f32' || dtype === 'q4k') return dtype;
   return null;
 }
 
@@ -73,8 +72,8 @@ function resolveProjectionStorageFormat(weight, expectedRows, hiddenSize) {
     };
   }
 
-  if (dtype === 'f16' || dtype === 'f32') {
-    const bytesPerElement = dtype === 'f16' ? 2 : 4;
+  if (dtype === 'bf16' || dtype === 'f16' || dtype === 'f32') {
+    const bytesPerElement = dtype === 'f32' ? 4 : 2;
     const byteLength = expectedRows * hiddenSize * bytesPerElement;
     if (weight?.buffer?.size < byteLength) {
       return null;
@@ -223,6 +222,15 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
         'QKV Fusion',
         `Layer ${l}: inconsistent projection storage formats, skipping`
       );
+      continue;
+    }
+
+    // BF16 is a distinct numeric encoding, not an F16 storage alias. The
+    // current fused-QKV kernels do not declare BF16 weight decoding, so keep
+    // these source projections separate until a signed plan selects a BF16
+    // fused implementation explicitly.
+    if (qFormat.dtype === 'bf16') {
+      log.debug('QKV Fusion', `Layer ${l}: BF16 projections require split execution`);
       continue;
     }
 

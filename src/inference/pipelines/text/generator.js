@@ -929,6 +929,8 @@ export class PipelineGenerator {
           layerFilter: Array.isArray(tsirFixtureCfg.layerFilter)
             ? tsirFixtureCfg.layerFilter
             : null,
+          prefillOnly: tsirFixtureCfg.prefillOnly,
+          generationStep: tsirFixtureCfg.generationStep ?? null,
           records: [],
         } : null,
       };
@@ -1957,6 +1959,8 @@ export class PipelineGenerator {
           layerFilter: Array.isArray(tsirFixtureCfg.layerFilter)
             ? tsirFixtureCfg.layerFilter
             : null,
+          prefillOnly: tsirFixtureCfg.prefillOnly,
+          generationStep: tsirFixtureCfg.generationStep ?? null,
           records: [],
         } : null,
       };
@@ -2255,6 +2259,8 @@ export class PipelineGenerator {
           layerFilter: Array.isArray(tsirFixtureCfg.layerFilter)
             ? tsirFixtureCfg.layerFilter
             : null,
+          prefillOnly: tsirFixtureCfg.prefillOnly,
+          generationStep: tsirFixtureCfg.generationStep ?? null,
           records: [],
         } : null,
       };

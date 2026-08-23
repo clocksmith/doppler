@@ -3,7 +3,7 @@ export const MAX_SPLIT8_EMBEDDING_SECTIONS: 8;
 export const MAX_SPLIT_EMBEDDING_SECTIONS: 8;
 export const SPLIT_EMBEDDING_STORAGE_BUFFER_OVERHEAD: 2;
 
-export function getEmbeddingFloatDtype(location: unknown): string;
+export function getEmbeddingFloatDtype(location: unknown, embeddingKernel?: unknown): string;
 
 export function expectsSplitGpuEmbeddingKernel(embeddingKernel: unknown): boolean;
 

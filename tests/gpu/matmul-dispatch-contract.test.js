@@ -5,6 +5,7 @@ import {
 } from '../../src/gpu/kernels/matmul-dispatch.js';
 
 import {
+  getMatmulBindingSizes,
   validateMatmulDimensions,
   requiresF32Input,
 } from '../../src/gpu/kernels/matmul-selection.js';
@@ -30,6 +31,19 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   assert.throws(
     () => validateMatmulDimensions('test', 1, 2048, 0),
     /Dimensions must be positive/
+  );
+}
+
+// === getMatmulBindingSizes: BF16 weights remain two-byte storage ===
+{
+  const M = 2;
+  const N = 3;
+  const K = 4;
+  const A = { size: M * K * 4 };
+  const B = { size: N * K * 2 };
+  assert.deepEqual(
+    getMatmulBindingSizes('bf16', A, B, M, N, K, 'f32', 'bf16', true, 0, 0),
+    { aBindingSize: M * K * 4, bBindingSize: N * K * 2 }
   );
 }
 

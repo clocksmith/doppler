@@ -37,16 +37,39 @@ def read_policy(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     require_equal(value.get("schema"), SCHEMA, "reference policy schema")
     require_equal(value.get("execution", {}).get("device"), "cpu", "reference device")
-    require_equal(value.get("execution", {}).get("dtype"), "bfloat16", "reference dtype")
+    if value.get("execution", {}).get("dtype") not in {"bfloat16", "float32"}:
+        raise ValueError("reference dtype must be bfloat16 or float32")
     require_equal(value.get("execution", {}).get("attentionImplementation"), "eager", "attention implementation")
     if value.get("generation", {}).get("sampling") != "greedy-argmax-f32-logits":
         raise ValueError("reference sampling must be deterministic greedy argmax over f32 logits")
     if not isinstance(value.get("generation", {}).get("maxNewTokens"), int):
         raise ValueError("reference maxNewTokens must be an integer")
+    boundary_steps = value.get("boundaryGenerationSteps")
+    if (
+        not isinstance(boundary_steps, list)
+        or not boundary_steps
+        or any(not isinstance(step, int) or step < 0 for step in boundary_steps)
+        or boundary_steps != sorted(set(boundary_steps))
+    ):
+        raise ValueError("boundaryGenerationSteps must be a non-empty sorted set of non-negative integers")
+    if boundary_steps[-1] >= value["generation"]["maxNewTokens"]:
+        raise ValueError("boundaryGenerationSteps must remain within maxNewTokens")
+    boundary_layers = value.get("boundaryLayers")
+    if (
+        not isinstance(boundary_layers, list)
+        or not boundary_layers
+        or any(not isinstance(layer, int) or layer < 0 for layer in boundary_layers)
+        or boundary_layers != sorted(set(boundary_layers))
+    ):
+        raise ValueError("boundaryLayers must be a non-empty sorted set of non-negative integers")
     return value
 
 
-def tensor_summary(tensor: Any) -> dict[str, Any]:
+def tensor_summary(
+    tensor: Any,
+    artifact_path: Path | None = None,
+    repo_root: Path | None = None,
+) -> dict[str, Any]:
     import torch
 
     value = tensor.detach().to(device="cpu", dtype=torch.float32).contiguous()
@@ -55,12 +78,13 @@ def tensor_summary(tensor: Any) -> dict[str, Any]:
     if value.ndim >= 2:
         value = value[-1].contiguous()
     flat = value.reshape(-1)
-    return {
+    array = value.numpy()
+    summary = {
         "shape": list(value.shape),
         "dtype": "float32",
         "elementCount": int(flat.numel()),
         "samples": [float(item) for item in flat[:8].tolist()],
-        "fullTensorDigest": "sha256:" + hashlib.sha256(value.numpy().tobytes()).hexdigest(),
+        "fullTensorDigest": "sha256:" + hashlib.sha256(array.tobytes()).hexdigest(),
         "statistics": {
             "min": float(flat.min().item()),
             "max": float(flat.max().item()),
@@ -70,6 +94,19 @@ def tensor_summary(tensor: Any) -> dict[str, Any]:
         },
         "finite": bool(torch.isfinite(flat).all().item()),
     }
+    if artifact_path is not None:
+        if repo_root is None:
+            raise ValueError("boundary artifact requires repo_root")
+        import numpy
+
+        artifact_path.parent.mkdir(parents=True, exist_ok=True)
+        numpy.save(artifact_path, array, allow_pickle=False)
+        summary["artifact"] = {
+            "path": artifact_path.relative_to(repo_root).as_posix(),
+            "fileSha256": "sha256:" + sha256_file(artifact_path),
+            "payloadSha256": summary["fullTensorDigest"],
+        }
+    return summary
 
 
 def output_tensor(value: Any) -> Any:
@@ -88,7 +125,7 @@ def assign_parameter(root: Any, name: str, tensor: Any) -> None:
     setattr(parent, parameter_name, torch.nn.Parameter(tensor, requires_grad=False))
 
 
-def load_text_only_model(model_dir: Path, config: Any) -> tuple[Any, dict[str, int]]:
+def load_text_only_model(model_dir: Path, config: Any, execution_dtype: str) -> tuple[Any, dict[str, Any]]:
     import torch
     from safetensors import safe_open
     from transformers.models.muse_glimmer.modeling_muse_glimmer import MuseGlimmerTextModel
@@ -123,6 +160,8 @@ def load_text_only_model(model_dir: Path, config: Any) -> tuple[Any, dict[str, i
                 tensor = handle.get_tensor(name)
                 if tensor.dtype != torch.bfloat16:
                     raise ValueError(f"text parameter {name} must be BF16, got {tensor.dtype}")
+                if execution_dtype == "float32":
+                    tensor = tensor.to(dtype=torch.float32)
                 assign_parameter(model, name, tensor)
                 loaded.add(name)
     require_equal(loaded, expected, "loaded text parameter closure")
@@ -140,15 +179,29 @@ def load_text_only_model(model_dir: Path, config: Any) -> tuple[Any, dict[str, i
         "loadedTextParameters": len(loaded),
         "preservedAuxiliaryParameters": len(weight_map) - len(loaded),
         "weightShardCount": len(shard_names),
+        "sourceParameterDtype": "bfloat16",
+        "executionParameterDtype": execution_dtype,
     }
 
 
-def capture_boundaries(text_model: Any, layer_index: int) -> tuple[dict[str, dict[str, Any]], list[Any]]:
+def boundary_artifact_path(boundary_dir: Path, name: str) -> Path:
+    return boundary_dir / (name.replace(".", "__") + ".npy")
+
+
+def capture_boundaries(
+    text_model: Any,
+    layer_index: int,
+    boundary_dir: Path,
+    repo_root: Path,
+    generation_step: int,
+    include_embedding: bool,
+) -> tuple[dict[str, dict[str, Any]], list[Any]]:
     captures: dict[str, dict[str, Any]] = {}
     handles = []
     layer = text_model.layers[layer_index]
+    phase = "prefill" if generation_step == 0 else "decode"
+    prefix = "" if generation_step == 0 else f"generation.{generation_step}."
     modules = {
-        "model.embedding.output": text_model.embed_tokens,
         f"layer.{layer_index}.input_norm": layer.input_layernorm,
         f"layer.{layer_index}.attention.output": layer.self_attn,
         f"layer.{layer_index}.post_attention_norm": layer.post_attention_layernorm,
@@ -156,16 +209,72 @@ def capture_boundaries(text_model: Any, layer_index: int) -> tuple[dict[str, dic
         f"layer.{layer_index}.ffn.output": layer.mlp,
         f"layer.{layer_index}.post_ffn_norm": layer.post_feedforward_layernorm,
         f"layer.{layer_index}.output": layer,
+        f"layer.{layer_index}.attention.q_proj": layer.self_attn.q_proj,
+        f"layer.{layer_index}.attention.k_proj": layer.self_attn.k_proj,
+        f"layer.{layer_index}.attention.v_proj": layer.self_attn.v_proj,
+        f"layer.{layer_index}.attention.gate_proj": layer.self_attn.gate_proj,
+        f"layer.{layer_index}.ffn.gate_proj": layer.mlp.gate_proj,
+        f"layer.{layer_index}.ffn.up_proj": layer.mlp.up_proj,
+        f"layer.{layer_index}.ffn.down_proj": layer.mlp.down_proj,
     }
+    if include_embedding:
+        modules["model.embedding.output"] = text_model.embed_tokens
 
     def hook(name: str):
         def capture(_module: Any, _inputs: Any, output: Any) -> None:
-            captures[name] = tensor_summary(output_tensor(output))
+            boundary_name = prefix + name
+            captures[boundary_name] = {
+                "phase": phase,
+                "generationStep": generation_step,
+                **tensor_summary(
+                    output_tensor(output),
+                    boundary_artifact_path(boundary_dir, boundary_name),
+                    repo_root,
+                ),
+            }
 
         return capture
 
     for name, module in modules.items():
         handles.append(module.register_forward_hook(hook(name)))
+
+    qk_norm_calls = 0
+
+    def capture_qk_norm(_module: Any, _inputs: Any, output: Any) -> None:
+        nonlocal qk_norm_calls
+        base_name = (
+            f"layer.{layer_index}.attention.q_norm"
+            if qk_norm_calls == 0
+            else f"layer.{layer_index}.attention.k_norm"
+        )
+        name = prefix + base_name
+        value = output_tensor(output)
+        value = value.transpose(1, 2).contiguous().reshape(value.shape[0], value.shape[2], -1)
+        captures[name] = {
+            "phase": phase,
+            "generationStep": generation_step,
+            **tensor_summary(
+                value,
+                boundary_artifact_path(boundary_dir, name),
+                repo_root,
+            ),
+        }
+        qk_norm_calls += 1
+
+    def capture_o_proj_input(_module: Any, inputs: Any) -> None:
+        name = prefix + f"layer.{layer_index}.attention.gated_output"
+        captures[name] = {
+            "phase": phase,
+            "generationStep": generation_step,
+            **tensor_summary(
+                output_tensor(inputs),
+                boundary_artifact_path(boundary_dir, name),
+                repo_root,
+            ),
+        }
+
+    handles.append(layer.self_attn.qk_norm.register_forward_hook(capture_qk_norm))
+    handles.append(layer.self_attn.o_proj.register_forward_pre_hook(capture_o_proj_input))
     return captures, handles
 
 
@@ -180,6 +289,11 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[1]
     policy_path = args.policy.resolve()
     policy = read_policy(policy_path)
+    boundary_dir = (repo_root / policy["boundaryOutputDir"]).resolve()
+    boundary_dir.relative_to(repo_root)
+    boundary_dir.mkdir(parents=True, exist_ok=True)
+    for stale_boundary in boundary_dir.glob("*.npy"):
+        stale_boundary.unlink()
     model_dir = (repo_root / policy["localModelDir"]).resolve()
     transformers_root = (repo_root / policy["transformersRoot"]).resolve()
     dependency_path = (repo_root / policy["dependencyPath"]).resolve()
@@ -211,18 +325,35 @@ def main() -> None:
     )
     input_ids = encoded["input_ids"]
     attention_mask = encoded.get("attention_mask", torch.ones_like(input_ids))
-    model, load_evidence = load_text_only_model(model_dir, config)
+    model, load_evidence = load_text_only_model(model_dir, config, policy["execution"]["dtype"])
     text_model = model.model.language_model
-    layer_index = policy["boundaryLayers"][0]
-    captures, handles = capture_boundaries(text_model, layer_index)
+    layer_indices = policy["boundaryLayers"]
+    captures: dict[str, dict[str, Any]] = {}
+    boundary_generation_steps = set(policy["boundaryGenerationSteps"])
 
     generated_ids: list[int] = []
+    generation_steps: list[dict[str, Any]] = []
     past_key_values = None
     next_input = input_ids
     eos_ids = generation_config["eos_token_id"]
     eos_set = {int(item) for item in (eos_ids if isinstance(eos_ids, list) else [eos_ids])}
-    try:
-        for step in range(policy["generation"]["maxNewTokens"]):
+    for step in range(policy["generation"]["maxNewTokens"]):
+        step_captures: dict[str, dict[str, Any]] = {}
+        layer_capture_sets: list[dict[str, dict[str, Any]]] = []
+        handles: list[Any] = []
+        if step in boundary_generation_steps:
+            for layer_offset, layer_index in enumerate(layer_indices):
+                layer_captures, layer_handles = capture_boundaries(
+                    text_model,
+                    layer_index,
+                    boundary_dir,
+                    repo_root,
+                    step,
+                    include_embedding=layer_offset == 0,
+                )
+                layer_capture_sets.append(layer_captures)
+                handles.extend(layer_handles)
+        try:
             outputs = text_model(
                 input_ids=next_input,
                 attention_mask=attention_mask,
@@ -234,20 +365,40 @@ def main() -> None:
             logits = logits * config.text_config.output_multiplier
             logits = torch.tanh(logits / config.text_config.final_logit_softcapping)
             logits = logits * config.text_config.final_logit_softcapping
-            if step == 0:
-                captures["model.logits"] = tensor_summary(logits)
-                for handle in handles:
-                    handle.remove()
-                handles = []
-            next_token = int(torch.argmax(logits[0, -1]).item())
-            generated_ids.append(next_token)
-            if policy["generation"]["stopOnEos"] and next_token in eos_set:
-                break
-            next_input = torch.tensor([[next_token]], dtype=torch.long)
-            attention_mask = torch.cat((attention_mask, torch.ones((1, 1), dtype=attention_mask.dtype)), dim=1)
-    finally:
-        for handle in handles:
-            handle.remove()
+            if step in boundary_generation_steps:
+                for layer_captures in layer_capture_sets:
+                    step_captures.update(layer_captures)
+                logits_name = "model.logits" if step == 0 else f"generation.{step}.model.logits"
+                step_captures[logits_name] = {
+                    "phase": "prefill" if step == 0 else "decode",
+                    "generationStep": step,
+                    **tensor_summary(
+                        logits,
+                        boundary_artifact_path(boundary_dir, logits_name),
+                        repo_root,
+                    ),
+                }
+                captures.update(step_captures)
+        finally:
+            for handle in handles:
+                handle.remove()
+        step_logits = logits[0, -1].detach().to(device="cpu", dtype=torch.float32).contiguous()
+        top_values, top_ids = torch.topk(step_logits, k=8)
+        next_token = int(top_ids[0].item())
+        generated_ids.append(next_token)
+        generation_steps.append({
+            "index": step,
+            "tokenId": next_token,
+            "logitsDigest": "sha256:" + hashlib.sha256(step_logits.numpy().tobytes()).hexdigest(),
+            "top": [
+                {"tokenId": int(token_id), "logit": float(logit)}
+                for token_id, logit in zip(top_ids.tolist(), top_values.tolist(), strict=True)
+            ],
+        })
+        if policy["generation"]["stopOnEos"] and next_token in eos_set:
+            break
+        next_input = torch.tensor([[next_token]], dtype=torch.long)
+        attention_mask = torch.cat((attention_mask, torch.ones((1, 1), dtype=attention_mask.dtype)), dim=1)
 
     prompt_ids = [int(item) for item in input_ids[0].tolist()]
     output = {
@@ -259,6 +410,7 @@ def main() -> None:
         "promptTokenIds": prompt_ids,
         "generatedTokenIds": generated_ids,
         "generatedTokens": len(generated_ids),
+        "generationSteps": generation_steps,
         "generation": policy["generation"],
         "execution": {
             "sampling": policy["generation"]["sampling"],
@@ -285,7 +437,7 @@ def main() -> None:
         },
         "loadEvidence": load_evidence,
         "boundaries": [
-            {"boundaryId": name, "phase": "prefill", **capture}
+            {"boundaryId": name, **capture}
             for name, capture in captures.items()
         ],
         "decoded": {

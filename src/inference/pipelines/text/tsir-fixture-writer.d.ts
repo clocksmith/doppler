@@ -2,9 +2,11 @@ export interface TsirFixture {
   dir: string;
   layerFilter?: number[] | null;
   prefillOnly?: boolean;
+  generationStep?: number | null;
+  currentGenerationStep?: number | null;
   pendingReads?: TsirPendingRead[];
   records?: TsirFixtureRecord[];
-  qkvByLayer?: Map<number, unknown>;
+  qkvByLayer?: Map<string, unknown>;
 }
 
 export interface TsirPendingRead {
@@ -16,6 +18,10 @@ export interface TsirPendingRead {
   dtype: 'f16' | 'f32';
   carry: GPUBuffer;
   alignedBytes: number;
+  captureDir: string;
+  captureKey: string;
+  phase: 'prefill' | 'decode';
+  generationStep: number | null;
 }
 
 export interface TsirFixtureRecord {
@@ -29,6 +35,8 @@ export interface TsirFixtureRecord {
   payloadByteLength?: number;
   written: boolean;
   note?: string;
+  phase?: 'prefill' | 'decode';
+  generationStep?: number | null;
 }
 
 export declare const TSIR_BOUNDARY_STAGES: string[];

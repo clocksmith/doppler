@@ -53,6 +53,11 @@ assert.equal(session.speculation.mode, 'none');
 assert.equal(session.useSandwichRMSNormPairFusion, false);
 assert.equal(session.usePostFfnNextInputRMSNormPairFusion, false);
 assert.equal(session.usePostAttnNormFusedGateUp, false);
+assert.deepEqual(
+  receipt.conversionConfig.execution.prefill.find((step) => step[0] === 'attention'),
+  ['attention', 'attn_stream'],
+  'Forge must select a prefill kernel compatible with the source-proven 128-wide heads'
+);
 assert.deepEqual(receipt.conversionConfig.manifest.conversion, {
   convertedAt: '2026-08-23T08:59:59.000Z',
   tool: 'doppler.semantic-manifest-lowering/v1',
@@ -73,6 +78,16 @@ assert.ok(
 assert.ok(
   receipt.dispositions.some((item) => item.kind === 'conservative-session-policy'),
   'unqualified session policy must have an explicit disposition'
+);
+assert.ok(
+  receipt.dispositions.some((item) => (
+    item.kind === 'prefill-attention-mechanism-binding'
+    && item.headDim === 128
+    && item.templateKernelId === 'attn_head256'
+    && item.kernelId === 'attn_stream'
+    && item.changed === true
+  )),
+  'geometry-driven mechanism selection must disclose replacement of an incompatible template specialization'
 );
 
 const lowerability = auditEntryPointLowerability({

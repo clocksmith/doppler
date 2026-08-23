@@ -129,4 +129,49 @@ const sequencePostProcessorManifest = createManifest(
 assert.equal(sequencePostProcessorManifest.tokenizer?.addBosToken, undefined);
 assert.equal(sequencePostProcessorManifest.tokenizer?.addEosToken, true);
 
+const beginOfTextModel = {
+  ...model,
+  tokenizerConfig: {},
+  tokenizerJson: {
+    post_processor: {
+      type: 'TemplateProcessing',
+      single: [
+        { SpecialToken: { id: '<|begin_of_text|>', type_id: 0 } },
+        { Sequence: { id: 'A', type_id: 0 } },
+      ],
+      special_tokens: {
+        '<|begin_of_text|>': {
+          id: '<|begin_of_text|>',
+          ids: [200000],
+          tokens: ['<|begin_of_text|>'],
+        },
+      },
+    },
+    model: {
+      vocab: {
+        a: 0,
+        b: 1,
+        c: 2,
+        d: 3,
+      },
+    },
+  },
+};
+
+const beginOfTextManifest = createManifest(
+  'bundled-tokenizer-begin-of-text-test',
+  beginOfTextModel,
+  [],
+  {},
+  {
+    source: 'unit-test',
+    modelType: 'transformer',
+    quantization: 'F16',
+    hashAlgorithm: 'blake3',
+    inference: { ...DEFAULT_MANIFEST_INFERENCE },
+  }
+);
+
+assert.equal(beginOfTextManifest.tokenizer?.addBosToken, true);
+
 console.log('core-bundled-tokenizer-flags.test: ok');

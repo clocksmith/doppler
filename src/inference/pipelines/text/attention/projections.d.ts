@@ -84,6 +84,7 @@ export interface AttentionQKNormState {
   hasKNorm: boolean;
   allowUnitQKNorm: boolean;
   skipKNorm: boolean;
+  rmsNormWeightOffset: boolean;
 }
 
 export function hasAttentionProjectionDiagnostics(state: {
@@ -111,6 +112,7 @@ export function resolveAttentionQKNormState(options: {
     queryKeyNormType?: 'rmsnorm' | 'layernorm';
     queryKeyNormAxis?: 'head' | 'projection';
     queryKeyNormWeightLayers?: number[] | null;
+    rmsNormWeightOffset?: boolean;
   };
   layerWeights: LayerWeights;
   layerIdx: number;

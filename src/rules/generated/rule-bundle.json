@@ -23,7 +23,7 @@
   },
   {
    "path": "inference/dtype.rules.json",
-   "digest": "sha256:e990acb12b1666ced2566f2cb332c8f49a8511bb25cbb1f70ff2a5aa4183c40b"
+   "digest": "sha256:3f58b85a48d7c390573d914f4e6d0097b0e7099ce5cb8449685472e25adf1526"
   },
   {
    "path": "inference/execution.rules.json",
@@ -79,7 +79,7 @@
   },
   {
    "path": "kernels/gather.rules.json",
-   "digest": "sha256:041df41e7cfdf9e689c9b3fa38fd6dba173eb308d652ac76b4cd3e08ceb909a4"
+   "digest": "sha256:435163572c60ea1f1a8e7b5a8ab991b958b0f938edb92c50eb1c3b035049f16d"
   },
   {
    "path": "kernels/gelu.rules.json",
@@ -748,6 +748,12 @@
     },
     {
      "match": {
+      "dtype": "bf16"
+     },
+     "value": "bf16"
+    },
+    {
+     "match": {
       "dtype": "f16"
      },
      "value": "f16"
@@ -1010,12 +1016,13 @@
    "matmulDtype": [
     {
      "match": {
-      "dtype": {
-       "in": [
-        "f16",
-        "bf16"
-       ]
-      }
+      "dtype": "bf16"
+     },
+     "value": "bf16"
+    },
+    {
+     "match": {
+      "dtype": "f16"
      },
      "value": "f16"
     },
@@ -2397,6 +2404,13 @@
     }
    ],
    "variant": [
+    {
+     "match": {
+      "useBF16Input": true,
+      "useF16Output": false
+     },
+     "value": "bf16"
+    },
     {
      "match": {
       "useLiteRTInt4Input": true,

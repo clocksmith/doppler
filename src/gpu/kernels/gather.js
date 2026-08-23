@@ -12,11 +12,17 @@ const SPLIT_GATHER_STORAGE_BUFFER_OVERHEAD = 2;
 const SPLIT4_GATHER_SECTION_COUNT = 4;
 const SPLIT8_GATHER_SECTION_COUNT = 8;
 
-function selectGatherVariant(useF16Input, useF16Output, useVec4, useLiteRTInt4Input = false) {
+function selectGatherVariant(
+  useF16Input,
+  useBF16Input,
+  useF16Output,
+  useVec4,
+  useLiteRTInt4Input = false
+) {
   return selectKernelRuleValue(
     'gather',
     'variant',
-    { useF16Input, useF16Output, useVec4, useLiteRTInt4Input }
+    { useF16Input, useBF16Input, useF16Output, useVec4, useLiteRTInt4Input }
   );
 }
 
@@ -265,7 +271,12 @@ async function _gather(
     throw new Error('[Gather] outputDtype is required.');
   }
   const useLiteRTInt4Input = embeddingDtype === 'litert_int4';
-  if (embeddingDtype !== 'f16' && embeddingDtype !== 'f32' && !useLiteRTInt4Input) {
+  if (
+    embeddingDtype !== 'f16'
+    && embeddingDtype !== 'bf16'
+    && embeddingDtype !== 'f32'
+    && !useLiteRTInt4Input
+  ) {
     throw new Error(`[Gather] unsupported embeddingDtype="${embeddingDtype}".`);
   }
   if (embeddingDtype === 'f16' && !caps.hasF16) {
@@ -273,6 +284,9 @@ async function _gather(
   }
   if (outputDtype === 'f16' && !caps.hasF16) {
     throw new Error('[Gather] outputDtype=f16 requires shader-f16 support.');
+  }
+  if (embeddingDtype === 'bf16' && outputDtype !== 'f32') {
+    throw new Error('[Gather] packed BF16 embeddings require outputDtype=f32.');
   }
 
   const usesHiddenSlice = inputHiddenSize !== hiddenSize || hiddenOffset !== 0;
@@ -289,8 +303,12 @@ async function _gather(
   }
 
   const useF16Input = embeddingDtype === 'f16';
+  const useBF16Input = embeddingDtype === 'bf16';
   const useF16Output = outputDtype === 'f16';
-  const useVec4 = wantsVec4 && hiddenSize % 4 === 0;
+  // The packed-BF16 kernel consumes one logical element per invocation.
+  // Do not pair it with the vec4 dispatch divisor until a BF16 vec4 entry
+  // point is explicitly registered.
+  const useVec4 = !useBF16Input && wantsVec4 && hiddenSize % 4 === 0;
   if (useLiteRTInt4Input) {
     resolveLiteRTInt4StorageEncoding(storageEncoding);
     if (outputDtype !== 'f16' && outputDtype !== 'f32') {
@@ -315,7 +333,13 @@ async function _gather(
     `useF16Input=${useF16Input}, useF16Output=${useF16Output}`
   );
 
-  const variant = selectGatherVariant(useF16Input, useF16Output, useVec4, useLiteRTInt4Input);
+  const variant = selectGatherVariant(
+    useF16Input,
+    useBF16Input,
+    useF16Output,
+    useVec4,
+    useLiteRTInt4Input
+  );
   trace.embed(`Gather variant: ${variant}`);
   const constants = useLiteRTInt4Input
     ? { STORAGE_OFFSET_BINARY: resolveLiteRTInt4StorageEncoding(storageEncoding) === 'offset_binary' ? 1 : 0 }

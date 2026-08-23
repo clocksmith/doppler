@@ -276,6 +276,8 @@ export class DopplerLoader {
   
   keepF32Weights = false;
 
+  keepBF16Weights = false;
+
   q4kMaterializationMode = 'dense';
 
   q4kFusedRoles = [];
@@ -335,6 +337,7 @@ export class DopplerLoader {
     this.useFusedQ4K = config.useFusedQ4K;
     this.q4kLayout = config.q4kLayout;
     this.keepF32Weights = config.keepF32Weights;
+    this.keepBF16Weights = config.keepBF16Weights === true;
     this.q4kMaterializationMode = config.q4kMaterializationMode ?? 'dense';
     this.q4kFusedRoles = Array.isArray(config.q4kFusedRoles)
       ? [...new Set(config.q4kFusedRoles.map((role) => String(role)).filter(Boolean))].sort()
@@ -1011,6 +1014,7 @@ export class DopplerLoader {
         q4kMaterializationMode: this.q4kMaterializationMode,
         q4kFusedRoles: this.q4kFusedRoles,
         keepF32Weights: this.keepF32Weights,
+        keepBF16Weights: this.keepBF16Weights,
         q4kLayout: this.q4kLayout,
         loaderDebug: this.#loaderDebug,
         gpuCapabilities: this.gpuCapabilities,

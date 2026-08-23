@@ -12,7 +12,7 @@ import type { SplitWeightBuffer, WeightDtype, WeightStorageEncoding } from '../w
 /** Gather kernel options */
 export interface GatherOptions extends OutputBufferOptions {
   useVec4?: boolean;
-  embeddingDtype?: Extract<WeightDtype, 'f16' | 'f32' | 'litert_int4'>;
+  embeddingDtype?: Extract<WeightDtype, 'f16' | 'bf16' | 'f32' | 'litert_int4'>;
   /**
    * Output dtype. When 'f16', converts F32 embeddings to F16 output.
    * Default: 'f32'

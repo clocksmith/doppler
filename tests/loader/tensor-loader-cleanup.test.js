@@ -23,6 +23,7 @@ const {
 } = await import('../../src/loader/tensors/tensor-loader.js');
 const { loadEmbeddings } = await import('../../src/loader/embedding-loader.js');
 const { loadFinalWeights } = await import('../../src/loader/final-weights-loader.js');
+const { getWeightDtype } = await import('../../src/gpu/weight-buffer.js');
 
 class FakeBuffer {
   constructor({ size, usage }) {
@@ -180,6 +181,50 @@ const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|cr
   await flushDeferredDestroy();
   assertPoolClean();
   assert.equal(device.createdBuffers[0]?.destroyed, true);
+}
+
+{
+  const device = createFakeDevice({ withShaders: true, features: ['shader-f16'] });
+  resetRuntimeState(device);
+
+  const result = await loadBF16(
+    new Uint8Array([1, 0, 2, 0]),
+    { size: 4, shape: [1, 2], dtype: 'BF16', role: 'matmul' },
+    'bf16_matmul_packed',
+    {
+      gpuCapabilities: { hasF16: true },
+      keepF32Weights: false,
+      keepBF16Weights: true,
+    }
+  );
+
+  assert.equal(result.data.dtype, 'bf16');
+  assert.ok(result.data.buffer.size >= 4);
+  assert.equal(result.allocatedBuffers.length, 1);
+  assert.equal(result.allocatedBuffers[0], result.data.buffer);
+  resetRuntimeState(null);
+}
+
+{
+  const device = createFakeDevice({ withShaders: true, features: ['shader-f16'] });
+  resetRuntimeState(device);
+
+  const result = await loadBF16(
+    new Uint8Array([1, 0, 2, 0]),
+    { size: 4, shape: [2], dtype: 'BF16', role: 'norm' },
+    'bf16_norm_f32',
+    {
+      gpuCapabilities: { hasF16: true },
+      keepF32Weights: false,
+      keepBF16Weights: true,
+    }
+  );
+
+  assert.equal(getWeightDtype(result.data), 'f32');
+  assert.ok(result.data.size >= 8);
+  assert.equal(result.allocatedBuffers.length, 1);
+  assert.equal(result.allocatedBuffers[0], result.data);
+  resetRuntimeState(null);
 }
 
 {
