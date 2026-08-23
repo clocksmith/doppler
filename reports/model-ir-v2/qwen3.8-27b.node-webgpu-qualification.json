@@ -19,13 +19,13 @@
       "device": "radeon-8060s-graphics-radv-strix-halo-",
       "description": "radv: Mesa 26.0.3-1ubuntu1"
     },
-    "submitProbeMs": 0.5191290000000208
+    "submitProbeMs": 0.604088000000047
   },
   "results": [
     {
       "name": "generation",
       "passed": true,
-      "duration": 47327.38123
+      "duration": 47004.721959
     },
     {
       "name": "source-token-parity",
@@ -33,27 +33,27 @@
       "duration": 0
     }
   ],
-  "durationMs": 74505.555499,
-  "timestamp": "2026-08-23T06:36:36.536Z",
+  "durationMs": 74180.90767599999,
+  "timestamp": "2026-08-23T06:57:12.251Z",
   "metrics": {
     "prompt": "The capital of France is",
     "maxTokens": 128,
     "tokensGenerated": 128,
-    "tokensPerSec": 2.7,
-    "totalRunMs": 47264.51,
-    "firstTokenMs": 1811.37,
-    "firstResponseMs": 28691.65,
-    "prefillMs": 1759.26,
-    "decodeMs": 45505.25,
-    "wallRunMs": 47317.78,
+    "tokensPerSec": 2.72,
+    "totalRunMs": 46953.59,
+    "firstTokenMs": 1783.46,
+    "firstResponseMs": 28674.69,
+    "prefillMs": 1733.91,
+    "decodeMs": 45219.69,
+    "wallRunMs": 47004,
     "prefillTokens": 5,
     "decodeTokens": 128,
     "stopReason": "max-tokens",
     "stopTokenId": null,
-    "prefillTokensPerSec": 2.84,
-    "prefillTokensPerSecTtft": 2.76,
-    "decodeTokensPerSec": 2.81,
-    "modelLoadMs": 26880.28,
+    "prefillTokensPerSec": 2.88,
+    "prefillTokensPerSecTtft": 2.8,
+    "decodeTokensPerSec": 2.83,
+    "modelLoadMs": 26891.23,
     "gpu": {
       "decodeRecordMs": 0,
       "decodeRecordOps": 0,
@@ -73,17 +73,17 @@
       "decodeReadbackMapWaitMs": 0,
       "decodeReadbackCleanupMs": 0,
       "decodeReadbackCopyMs": 0,
-      "prefillRecordMs": 1565.3448390000158,
+      "prefillRecordMs": 1600.8775220000025,
       "prefillRecordOps": 0,
       "prefillRecordPasses": 0,
       "prefillSubmitWaitMs": 0,
-      "decodeOrchestrationMs": 45505.24689,
+      "decodeOrchestrationMs": 45219.68857300001,
       "singleTokenSubmitWaitMs": 0,
-      "singleTokenReadbackWaitMs": 10404.3243460001,
+      "singleTokenReadbackWaitMs": 10037.597404999899,
       "singleTokenReadbackMapWaitMs": 0,
       "singleTokenReadbackCleanupMs": 0,
       "singleTokenReadbackCopyMs": 0,
-      "singleTokenOrchestrationMs": 35090.3808039999
+      "singleTokenOrchestrationMs": 35171.88611700006
     },
     "batching": {
       "batchedForwardCalls": 0,
@@ -312,7 +312,7 @@
       "useChatTemplate": false
     },
     "initialExecutionIdentity": {
-      "schema": "doppler.initial-execution-identity/v1",
+      "schema": "doppler.initial-execution-identity/v2",
       "executionGraphHash": "sha256:2de788da8e63c898825da2878c2b51b8eeb101a125f0105526efaff1833f9511",
       "resolvedGraphHash": "sha256:2d413d2a73da93deed95ea9724fc8b60c2a637ad45977696506739a33fb9ca6e",
       "kernelClosure": [
@@ -757,7 +757,127 @@
         }
       },
       "runtimeEngineDigest": "sha256:8f95d25443fc8db048ef4b7ef7ee83866c3585d5f32cdecc97ded498c51890b9",
-      "digest": "sha256:e8f0fad13a29f119726ded7567c81cd6e5de9ad31a9bbb01ed77237d764d7752"
+      "programLoadPolicy": {
+        "schema": "doppler.pack-program-load-policy/v1",
+        "runtimeConfig": {
+          "inference": {
+            "session": {
+              "kvcache": {
+                "maxSeqLen": 4096,
+                "gpuPagedFallbackMaxSeqLen": 4096,
+                "kvDtype": "f16",
+                "forceF32Softcap": false,
+                "layout": "contiguous",
+                "pageSize": 256,
+                "bdpaVocabSize": 2048,
+                "windowSize": 1024,
+                "tiering": {
+                  "mode": "off",
+                  "hotWindow": 1024,
+                  "coldPageSize": 256,
+                  "coldDtype": "f16",
+                  "compression": {
+                    "mode": "none",
+                    "blockSize": 1,
+                    "bitWidth": 4,
+                    "prodMode": false
+                  },
+                  "gating": {
+                    "mode": "auto",
+                    "minAluBwRatio": 0
+                  }
+                },
+                "quantization": {
+                  "mode": "none",
+                  "bitWidth": 4,
+                  "prodMode": false
+                }
+              },
+              "speculation": {
+                "mode": "none",
+                "tokens": 1,
+                "verify": "greedy",
+                "threshold": null,
+                "rollbackOnReject": true
+              },
+              "prefillChunkSubmitMode": "sync",
+              "prefillChunkLayers": 4,
+              "prefillTokenChunkSize": null,
+              "skipEmbeddingKVCacheWrites": false,
+              "useFlashPrefillAttention": false,
+              "useFusedGateUpGelu": false,
+              "useLargeBatchF16F32FusedGateUp": false,
+              "useTiledQ4KPrefill": false,
+              "retainQ4KMaterialization": false,
+              "useWideTileQ4KPrefill": false,
+              "useWideTileQ4KDecode": false,
+              "useSandwichRMSNormPairFusion": false,
+              "usePostFfnNextInputRMSNormPairFusion": false,
+              "usePostAttnNormFusedGateUp": false,
+              "fusedFfnQ4K": null,
+              "lmHeadArgmaxQ4K": null,
+              "attentionDecodeOnline": null,
+              "useLinearAttentionABProjectionFusion": false,
+              "useLinearAttentionQKVZProjectionFusion": false,
+              "useLinearAttentionFusedDecodeCore": false,
+              "useOrtFlashPrefillAttention": false,
+              "useWideTileResidualFusion": false,
+              "useFusedRmsnormWideTile": false,
+              "useFusedQKVSplitQKNorm": false,
+              "useFusedQKVSplitQKNormRoPE": false,
+              "useGreedyLmHeadArgmaxFusion": false,
+              "decodeLoop": {
+                "batchSize": 1,
+                "readbackInterval": 1,
+                "stopCheckMode": "per-token",
+                "readbackMode": "sequential",
+                "submitLatencyThresholdMs": null,
+                "maxBatchDecodeTokens": 1,
+                "ringTokens": 1,
+                "ringStop": 1,
+                "ringStaging": 1,
+                "disableCommandBatching": false
+              },
+              "compute": {
+                "defaults": {
+                  "activationDtype": "f32",
+                  "mathDtype": "f32",
+                  "accumDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              "perLayerInputs": {
+                "materialization": "auto",
+                "rowCache": {
+                  "mode": "lru",
+                  "maxRows": 256,
+                  "maxBytes": 134217728,
+                  "decodedDtype": "f32"
+                },
+                "prefetch": {
+                  "mode": "next_token",
+                  "rowsAhead": 1
+                },
+                "gpuUpload": {
+                  "mode": "per_step_slices",
+                  "stagingRows": 2
+                },
+                "hotCache": {
+                  "mode": "prepared_tokens",
+                  "maxTokens": 1024,
+                  "maxBytes": 134217728,
+                  "outputDtype": "f32"
+                }
+              }
+            },
+            "compute": {
+              "activationDtype": "f32"
+            }
+          }
+        }
+      },
+      "programLoadPolicyHash": "sha256:5c73e1d273fc900cf26eb0217de4a8d40ececd21894095d966ed503d38574451",
+      "digest": "sha256:799b2cae60adb95b6c54dc3bc3829fe707dcde7fdce9cd55eae180b25cda3eef"
     },
     "kvCache": {
       "layout": "contiguous",
@@ -778,7 +898,7 @@
       "source": {
         "kind": "inline-browser-suite",
         "path": "inline",
-        "hash": "sha256:39b50d5e64912a65f509c32256be80a8ae9e9e7cdbce2c34accfd1f0f07f2452"
+        "hash": "sha256:8abeccf943a792f5e06bba48f51fd6c183ecc647403b2c9f8444efcf4e8c38dd"
       },
       "executionGraphHash": "sha256:2de788da8e63c898825da2878c2b51b8eeb101a125f0105526efaff1833f9511",
       "surface": "node-webgpu",
@@ -1758,8 +1878,8 @@
         }
       },
       "phase": {
-        "prefillMs": 1759.2582470000016,
-        "decodeMs": 45505.24689,
+        "prefillMs": 1733.906171999999,
+        "decodeMs": 45219.68857300001,
         "prefillTokens": 5,
         "decodeTokens": 128
       },
@@ -8843,11 +8963,11 @@
       "dominant": {
         "id": "orchestration",
         "label": "decode orchestration",
-        "ms": 45505.25,
+        "ms": 45219.69,
         "shareOfDecode": 1
       },
       "bottleneckClass": "orchestration",
-      "decodeWallMs": 45505.25,
+      "decodeWallMs": 45219.69,
       "componentsMs": {
         "commandRecordMs": 0,
         "submitWaitMs": 0,
@@ -8859,7 +8979,7 @@
         "readbackUnattributedMs": null,
         "gpuTimestampMs": null,
         "submitReadbackSlackMs": null,
-        "orchestrationMs": 45505.25,
+        "orchestrationMs": 45219.69,
         "residualMs": 0
       },
       "recording": {
@@ -8919,7 +9039,7 @@
         "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
         "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
       },
-      "modelLoadMs": 26880.28,
+      "modelLoadMs": 26891.23,
       "loader": {
         "schemaVersion": 1,
         "source": "doppler-loader",
@@ -8931,23 +9051,23 @@
         "totalShards": 802,
         "bytesLoaded": 53791996928,
         "shardsLoaded": 802,
-        "bytesPerSecond": 2129169655,
+        "bytesPerSecond": 2126893462,
         "phasesMs": {
-          "preflight": 2.15,
-          "tensorLocations": 3.66,
-          "embeddings": 1650.56,
-          "layers": 22087.79,
-          "finalWeights": 1519.47,
+          "preflight": 1.92,
+          "tensorLocations": 2.71,
+          "embeddings": 1584.02,
+          "layers": 21913.66,
+          "finalWeights": 1788.43,
           "cleanup": 0.07
         },
         "layers": {
           "count": 64,
-          "totalMs": 22046.69,
-          "meanMs": 344.48,
-          "maxMs": 412.26,
+          "totalMs": 21869.94,
+          "meanMs": 341.72,
+          "maxMs": 419.6,
           "maxLayer": 0
         },
-        "totalMs": 25264.31,
+        "totalMs": 25291.35,
         "failedPhase": null,
         "error": null
       },
@@ -8957,14 +9077,14 @@
         "modelId": "qwen3-8-27b-text-f16-af32",
         "status": "complete",
         "phasesMs": {
-          "reset": 0.22,
-          "configResolution": 8.28,
-          "kernelWarmup": 0.06,
-          "tokenizer": 283.57,
-          "executionSetup": 55.8,
-          "loadWeights": 25683.47,
-          "rope": 818.76,
-          "convStates": 0.95
+          "reset": 0.06,
+          "configResolution": 6.59,
+          "kernelWarmup": 0.04,
+          "tokenizer": 286.68,
+          "executionSetup": 57.46,
+          "loadWeights": 25727.47,
+          "rope": 791.25,
+          "convStates": 0.93
         },
         "details": {
           "tokenizer": {
@@ -8978,24 +9098,24 @@
             "assetSource": "custom-loader",
             "cacheHit": false,
             "phasesMs": {
-              "configResolution": 0.05,
-              "cacheLookup": 0.05,
-              "backendCreate": 0.09,
-              "assetLoad": 150.78,
-              "assetParse": 0.26,
-              "backendLoad": 131.85,
+              "configResolution": 0.04,
+              "cacheLookup": 0.04,
+              "backendCreate": 0.07,
+              "assetLoad": 153.41,
+              "assetParse": 0.24,
+              "backendLoad": 132.4,
               "cacheStore": 0.01
             },
-            "totalMs": 283.25,
+            "totalMs": 286.39,
             "error": null
           }
         },
-        "totalMs": 26851.6
+        "totalMs": 26870.81
       },
       "residualsMs": {
-        "modelLoadMinusLoaderMs": 1615.97,
-        "modelLoadMinusPipelineMs": 28.68,
-        "pipelineMinusLoaderMs": 1587.29
+        "modelLoadMinusLoaderMs": 1599.88,
+        "modelLoadMinusPipelineMs": 20.42,
+        "pipelineMinusLoaderMs": 1579.46
       },
       "consistent": {
         "loaderWithinModelLoad": true,
