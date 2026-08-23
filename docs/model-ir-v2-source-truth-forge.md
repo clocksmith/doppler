@@ -212,3 +212,8 @@ Glimmer-named Runtime branch. The receipt now pins reference implementation
 source hashes and source spans, places the pre-softcap multiplier on the output
 head, and has zero unresolved text operational facts. Neither entry point is
 lowered or qualified.
+
+Runtime now exposes generic, plan-identified mechanisms for explicit query
+scaling, per-layer NoPE, and a distinct attention-gate projection. Forge still
+rejects those facts until the vocabulary and lowering bind them, so mechanism
+availability cannot be mistaken for a supported Glimmer execution path.

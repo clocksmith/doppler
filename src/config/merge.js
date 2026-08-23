@@ -21,6 +21,12 @@ function mergeAttention(
 ) {
   const prefix = 'inference.attention';
   return {
+    queryScale: overlay(
+      `${prefix}.queryScale`,
+      manifest.queryScale,
+      runtime?.queryScale,
+      sources
+    ),
     queryPreAttnScalar: overlay(
       `${prefix}.queryPreAttnScalar`,
       manifest.queryPreAttnScalar,
@@ -211,6 +217,12 @@ function mergeRoPE(
       `${prefix}.ropeLocalTheta`,
       manifest.ropeLocalTheta,
       runtime?.ropeLocalTheta,
+      sources
+    ),
+    disabledLayers: overlay(
+      `${prefix}.disabledLayers`,
+      manifest.disabledLayers,
+      runtime?.disabledLayers,
       sources
     ),
     ropeInterleaved: overlay(

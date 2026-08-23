@@ -69,6 +69,8 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   supportsVision: false,
   attention: {
     queryPreAttnScalar: 64, // headDim for standard 64-dim heads; attnScale = 1/sqrt(scalar)
+    // Explicit multiplier applied to Q after optional Q/K normalization and before RoPE.
+    queryScale: 1,
     attnLogitSoftcapping: null,  // No softcapping (null = disabled)
     slidingWindow: null,  // Full attention (null = no sliding window)
     queryKeyNorm: false,
@@ -110,6 +112,8 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   rope: {
     ropeTheta: 10000,
     ropeLocalTheta: null,  // Same as ropeTheta (null = use ropeTheta)
+    // Exact layer indices that bypass rotary position embeddings.
+    disabledLayers: [],
     ropeInterleaved: false,
     mropeInterleaved: false,
     mropeSection: null,

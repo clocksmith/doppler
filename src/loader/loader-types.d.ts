@@ -40,6 +40,7 @@ export interface LayerWeights {
   inputNorm: GPUBuffer | Float32Array | null;
   inputNormBias?: GPUBuffer | Float32Array | null;
   qProj: GPUBuffer | WeightBuffer | Float32Array | null;
+  qGateProj?: GPUBuffer | WeightBuffer | Float32Array | null;
   qProjBias?: GPUBuffer | Float32Array | null;
   kProj: GPUBuffer | WeightBuffer | Float32Array | null;
   kProjBias?: GPUBuffer | Float32Array | null;

@@ -254,6 +254,8 @@ export interface ArchitectureSchema {
 export interface ManifestAttentionSchema {
   /** Query pre-attention scalar: attnScale = 1/sqrt(scalar). Standard = headDim. */
   queryPreAttnScalar: number;
+  /** Multiplier applied to Q after optional Q/K normalization and before RoPE. */
+  queryScale: number;
   /** Attention logit softcapping (Gemma 2: 50, null = disabled) */
   attnLogitSoftcapping: number | null;
   /** Sliding window size for local attention (null = full attention) */
@@ -325,6 +327,8 @@ export interface ManifestRoPESchema {
   ropeTheta: number;
   /** Local theta for sliding window layers (null = same as ropeTheta) */
   ropeLocalTheta: number | null;
+  /** Layer indices that bypass rotary position embeddings. */
+  disabledLayers: number[];
   /** Use adjacent-pair rotary layout instead of rotate-half layout for standard RoPE. */
   ropeInterleaved: boolean;
   /** Use adjacent-pair rotary layout for mRoPE section pairing. */

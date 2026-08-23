@@ -173,6 +173,7 @@ export function validateKernelPath(path) {
 
 const MATMUL_STEP_ROLE_ALIASES = {
   q_proj: { section: 'layer', ops: ['q_proj'] },
+  q_gate_proj: { section: 'layer', ops: ['q_gate_proj', 'q_proj'] },
   k_proj: { section: 'layer', ops: ['k_proj'] },
   v_proj: { section: 'layer', ops: ['v_proj'] },
   qkv_proj: { section: 'layer', ops: ['qkv_proj', 'q_proj'] },

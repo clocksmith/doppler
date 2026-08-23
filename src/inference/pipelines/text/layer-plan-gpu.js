@@ -10,6 +10,7 @@ import { getLayerPlanSteps, filterLayerPlanStepsByPhase } from './layer-plan.js'
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
+import { isRoPEDisabledForLayer } from './attention/heterogeneous-contract.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import {
   isSlidingLayerType,
@@ -266,7 +267,10 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             residualTensor,
             attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
             queryPreAttnScalar: config.queryPreAttnScalar,
+            queryScale: config.queryScale,
             queryKeyNorm: config.queryKeyNorm,
+            queryKeyNormType: config.queryKeyNormType,
+            queryKeyNormAxis: config.queryKeyNormAxis,
             queryKeyNormWeightLayers: config.queryKeyNormWeightLayers,
             valueNorm: config.valueNorm,
             attentionOutputGate: config.attentionOutputGate,
@@ -276,6 +280,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             ropeRotaryDim: resolveAttentionRotaryDim(config, layerType),
             ropeFrequencyBaseDim: resolveAttentionFrequencyBaseDim(config, layerType),
             ropeInterleaved: config.ropeInterleaved,
+            disableRoPE: isRoPEDisabledForLayer(config, layerIdx),
             tokenIds: context.currentTokenIds ?? null,
             skipInputNorm: step.skipInputNorm === true,
             activationDtype,

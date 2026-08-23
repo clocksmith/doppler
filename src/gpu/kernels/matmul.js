@@ -61,7 +61,8 @@ function normalizeMatmulDebugConfig(config) {
 }
 
 function isAttentionProjectionRole(role = '') {
-  return role === 'qkv_proj' || role === 'q_proj' || role === 'k_proj' || role === 'v_proj';
+  return role === 'qkv_proj' || role === 'q_proj' || role === 'q_gate_proj'
+    || role === 'k_proj' || role === 'v_proj';
 }
 
 function getDebugCounter(isRecord) {

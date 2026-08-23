@@ -28,11 +28,10 @@ import { validateAttnConfig } from './attention/attn-config.js';
 import { createPerLayerInputTensor, resolveDensePleProjectionWeight } from './per-layer-inputs.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { processLayerPlanGPU } from './layer-plan-gpu.js';
-
+import { isRoPEDisabledForLayer } from './attention/heterogeneous-contract.js';
 // ============================================================================
 // Architecture Detection
 // ============================================================================
-
 
 export function detectSandwichNorm(config) {
   const hasPreFeedforwardNorm = config?.preFeedforwardNorm === true;
@@ -823,7 +822,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     let attentionNumHeads = numHeads;
     let attentionHeadDim = resolveAttentionHeadDim(config, layerType);
     let attentionNumKVHeads = resolveAttentionNumKVHeads(config, layerType, layerWeights, attentionHeadDim);
-    let disableRoPE = false;
+    const disableRoPE = isRoPEDisabledForLayer(config, layerIdx);
     let queryKeyNorm = config.queryKeyNorm === true;
     const diffusionGemmaDecoder = context.diffusionGemmaDecoder === true;
     if (queryKeyNorm && Array.isArray(config.queryKeyNormLayers)) {
@@ -849,6 +848,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
         : null,
       attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
       queryPreAttnScalar: config.queryPreAttnScalar,
+      queryScale: config.queryScale,
       queryKeyNorm,
       queryKeyNormType: config.queryKeyNormType,
       queryKeyNormAxis: config.queryKeyNormAxis,

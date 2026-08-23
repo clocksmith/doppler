@@ -35,6 +35,7 @@ import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { getQKNormOnesBuffer, getQKNormZerosBuffer } from './types.js';
 import { getVectorTensor } from '../weights.js';
+import { projectSeparateAttentionGate } from './gate-projection.js';
 
 function getMatmulRunner(recorder) {
   if (!recorder) {
@@ -135,39 +136,6 @@ function getSplitQKVRMSNormRoPEQKRunner(recorder) {
     eps,
     options
   );
-}
-
-async function projectFusedQGate({
-  runMatmulForMode,
-  projectionInput,
-  layerWeights,
-  numTokens,
-  qSize,
-  hiddenSize,
-  layerIdx,
-  kernelPath,
-  projectionOutputDtype,
-  matmulDebug,
-  executionPolicies,
-  fusedNormWeight,
-  fusedNormEps,
-  fusedNormOffset,
-}) {
-  if (!layerWeights?.qGateProj) {
-    return null;
-  }
-  return runMatmulForMode(projectionInput, layerWeights.qGateProj, numTokens, qSize, hiddenSize, {
-    transposeB: 'auto',
-    role: 'q_proj',
-    layerIdx,
-    kernelPath,
-    outputDtype: projectionOutputDtype,
-    matmulDebug,
-    executionPolicies,
-    normWeight: fusedNormWeight,
-    rmsNormEps: fusedNormEps,
-    rmsNormOffset: fusedNormOffset,
-  });
 }
 
 function releaseOwnedWeightBuffer(layerWeight, resolvedWeightBuffer, releaseTemporary) {
@@ -505,7 +473,8 @@ async function projectQueryWithOptionalGate({
 }) {
   const qSize = numHeads * headDim;
   const qWeight = layerWeights?.qProj;
-  const hasGateProjection = attentionOutputGate === true
+  const separateGateWeight = attentionOutputGate === true ? layerWeights?.qGateProj : null;
+  const hasGateProjection = !separateGateWeight && attentionOutputGate === true
     && !!qWeight
     && !!getWeightBuffer
     && (resolveProjectionOutputSize(qWeight, hiddenSize) ?? 0) >= (qSize * 2);
@@ -533,7 +502,19 @@ async function projectQueryWithOptionalGate({
       fusedNormEps,
       fusedNormOffset,
     });
-    return { qTensor, qGateTensor: null };
+    if (!separateGateWeight) return { qTensor, qGateTensor: null };
+    try {
+      const qGateTensor = await projectSeparateAttentionGate({
+        runMatmul: getMatmulRunner(recorder), projectionInput: normed, gateWeight: separateGateWeight,
+        numTokens, outputSize: qSize, hiddenSize, layerIdx, kernelPath,
+        outputDtype: matmulOutputDtype, matmulDebug, executionPolicies,
+        fusedNormWeight, fusedNormEps, fusedNormOffset,
+      });
+      return { qTensor, qGateTensor };
+    } catch (error) {
+      releaseTemporary(qTensor.buffer);
+      throw error;
+    }
   }
 
   // q_proj weights are stored with interleaved head layout: for head h,
@@ -816,16 +797,16 @@ export async function projectAttentionQKV({
           let qGateTensor = null;
           if (hasSeparateGateProjection) {
             try {
-              qGateTensor = await projectFusedQGate({
-                runMatmulForMode,
+              qGateTensor = await projectSeparateAttentionGate({
+                runMatmul: runMatmulForMode,
                 projectionInput,
-                layerWeights,
+                gateWeight: layerWeights.qGateProj,
                 numTokens,
-                qSize: qProjectionSize,
+                outputSize: qProjectionSize,
                 hiddenSize,
                 layerIdx,
                 kernelPath,
-                projectionOutputDtype,
+                outputDtype: projectionOutputDtype,
                 matmulDebug,
                 executionPolicies,
                 fusedNormWeight,
@@ -897,16 +878,16 @@ export async function projectAttentionQKV({
           let qGateTensor = null;
           if (hasSeparateGateProjection) {
             try {
-              qGateTensor = await projectFusedQGate({
-                runMatmulForMode,
+              qGateTensor = await projectSeparateAttentionGate({
+                runMatmul: runMatmulForMode,
                 projectionInput,
-                layerWeights,
+                gateWeight: layerWeights.qGateProj,
                 numTokens,
-                qSize: qProjectionSize,
+                outputSize: qProjectionSize,
                 hiddenSize,
                 layerIdx,
                 kernelPath,
-                projectionOutputDtype,
+                outputDtype: projectionOutputDtype,
                 matmulDebug,
                 executionPolicies,
                 fusedNormWeight,
@@ -954,16 +935,16 @@ export async function projectAttentionQKV({
       let qGateTensor = null;
       if (hasSeparateGateProjection) {
         try {
-          qGateTensor = await projectFusedQGate({
-            runMatmulForMode,
+          qGateTensor = await projectSeparateAttentionGate({
+            runMatmul: runMatmulForMode,
             projectionInput,
-            layerWeights,
+            gateWeight: layerWeights.qGateProj,
             numTokens,
-            qSize: qProjectionSize,
+            outputSize: qProjectionSize,
             hiddenSize,
             layerIdx,
             kernelPath,
-            projectionOutputDtype,
+            outputDtype: projectionOutputDtype,
             matmulDebug,
             executionPolicies,
             fusedNormWeight,

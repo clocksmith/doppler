@@ -249,6 +249,7 @@ export type ProbeStage =
   | 'k_proj'          // K projection output
   | 'v_proj'          // V projection output
   | 'q_norm'          // Q normalization output (Q/K pre-RoPE)
+  | 'q_scale'         // Explicit post-normalization query scaling output
   | 'k_norm'          // K normalization output (Q/K pre-RoPE)
   | 'q_rope'          // Q after RoPE
   | 'k_rope'          // K after RoPE

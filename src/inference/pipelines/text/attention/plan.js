@@ -28,6 +28,14 @@ function requireDtype(value, label) {
   return value;
 }
 
+function requirePositiveFinite(value, label, fallback) {
+  const resolved = value ?? fallback;
+  if (!Number.isFinite(resolved) || resolved <= 0) {
+    throw new Error(`[AttentionPlan] ${label} must be a positive finite number.`);
+  }
+  return resolved;
+}
+
 function resolveAttentionImplementation(input) {
   return selectRuleValue('inference', 'attention', 'attentionKernelVariant', {
     kvLayout: input.kv.layout,
@@ -149,6 +157,10 @@ export function resolveAttentionPlan(input = {}) {
       qkNorm: input.fusion?.qkNorm === true,
       qkNormRoPE: input.fusion?.qkNormRoPE === true,
     },
+    queryTransform: {
+      scale: requirePositiveFinite(input.queryTransform?.scale, 'queryTransform.scale', 1),
+      rope: input.queryTransform?.rope === 'disabled' ? 'disabled' : 'enabled',
+    },
     outputGate: {
       enabled: input.outputGate?.enabled === true,
       tensorDtype: input.outputGate?.tensorDtype ?? null,
@@ -184,6 +196,7 @@ export function resolveAttentionPlan(input = {}) {
         : `${normalized.dtypes.projection}->${normalized.dtypes.outputProjectionInput}`,
     },
     fusion: normalized.fusion,
+    queryTransform: normalized.queryTransform,
     kv: {
       ...normalized.kv,
       implementation,
@@ -273,6 +286,10 @@ export function resolveAttentionPlanForDispatch(options = {}) {
     session: options.session,
     capabilities: options.capabilities,
     fusion: options.fusion,
+    queryTransform: {
+      scale: config.queryScale ?? 1,
+      rope: config.disableRoPE === true ? 'disabled' : 'enabled',
+    },
     outputGate: {
       enabled: config.attentionOutputGate === true,
       tensorDtype: options.qGateTensor?.dtype ?? null,

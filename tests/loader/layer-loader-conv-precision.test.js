@@ -22,6 +22,24 @@ if (!webgpuReady) {
 
 await initDevice();
 
+const separateAttentionGate = new Float32Array(16);
+const separateGateLayer = await loadLayer({
+  tensorLocations: new Map(),
+  loadTensor: async (name) => (
+    name === 'model.layers.0.self_attn.gate_proj.weight' ? separateAttentionGate : null
+  ),
+  needsNormWeightOffset: () => false,
+  gpuBuffers: new Set(),
+  keepF32Weights: true,
+  isMoE: false,
+  isExpertLayer: () => false,
+}, 0);
+assert.equal(
+  separateGateLayer.qGateProj,
+  separateAttentionGate,
+  'a distinct attention gate projection must not be classified as an FFN gate'
+);
+
 function makeQ4KWeight(values, shape, label) {
   const { quantized } = quantizeToQ4KM(new Float32Array(values), shape);
   const buffer = acquireBuffer(quantized.byteLength, undefined, label);

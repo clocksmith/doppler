@@ -54,6 +54,10 @@ function createPlanInput() {
       qkNorm: false,
       qkNormRoPE: false,
     },
+    queryTransform: {
+      scale: 1,
+      rope: 'enabled',
+    },
     outputGate: {
       enabled: false,
       tensorDtype: null,
@@ -104,6 +108,21 @@ test('changing one semantic decision changes the plan identity', () => {
 
   assert.notEqual(baseline.id, changed.id);
   assert.notEqual(baseline.attention.implementation, changed.attention.implementation);
+});
+
+test('query scaling and NoPE are immutable plan identity', () => {
+  const baseline = resolveAttentionPlan(createPlanInput());
+  const changedInput = createPlanInput();
+  changedInput.queryTransform.scale = 3.87;
+  changedInput.queryTransform.rope = 'disabled';
+  const changed = resolveAttentionPlan(changedInput);
+
+  assert.notEqual(baseline.id, changed.id);
+  assert.deepEqual(changed.queryTransform, { scale: 3.87, rope: 'disabled' });
+  assert.throws(() => resolveAttentionPlan({
+    ...createPlanInput(),
+    queryTransform: { scale: 0, rope: 'enabled' },
+  }), /positive finite number/);
 });
 
 test('semantic plans are deeply immutable and JSON-safe', () => {

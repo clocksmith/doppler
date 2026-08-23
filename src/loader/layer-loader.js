@@ -37,6 +37,7 @@ const ATTN_SUFFIXES = {
   inputNorm: ['input_layernorm.weight', 'attn_norm.weight', 'operator_norm.weight'],
   inputNormBias: ['input_layernorm.bias', 'attn_norm.bias', 'operator_norm.bias'],
   qProj: ['self_attn.q_proj.weight', 'attention.wq.weight', 'attn_q.weight'],
+  qGateProj: ['self_attn.gate_proj.weight', 'self_attn.q_gate_proj.weight', 'attention.q_gate.weight'],
   qProjBias: ['self_attn.q_proj.bias', 'attention.wq.bias', 'attn_q.bias'],
   kProj: ['self_attn.k_proj.weight', 'attention.wk.weight', 'attn_k.weight'],
   kProjBias: ['self_attn.k_proj.bias', 'attention.wk.bias', 'attn_k.bias'],
@@ -345,6 +346,7 @@ export async function loadLayer(ctx, layerIdx) {
     inputNorm: null,
     inputNormBias: null,
     qProj: null,
+    qGateProj: null,
     qProjBias: null,
     kProj: null,
     kProjBias: null,
@@ -516,6 +518,7 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     inputNorm,
     inputNormBias,
     qProj,
+    qGateProj,
     qProjBias,
     kProj,
     kProjBias,
@@ -550,6 +553,7 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     tryLoadNorm(ATTN_SUFFIXES.inputNorm),
     tryLoadNorm(ATTN_SUFFIXES.inputNormBias),
     tryLoad(ATTN_SUFFIXES.qProj),
+    tryLoad(ATTN_SUFFIXES.qGateProj),
     tryLoadNorm(ATTN_SUFFIXES.qProjBias),
     tryLoad(ATTN_SUFFIXES.kProj),
     tryLoadNorm(ATTN_SUFFIXES.kProjBias),
@@ -586,6 +590,7 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
   weights.inputNorm = inputNorm;
   weights.inputNormBias = inputNormBias;
   weights.qProj = qProj;
+  weights.qGateProj = qGateProj;
   weights.qProjBias = qProjBias;
   weights.kProj = kProj;
   weights.kProjBias = kProjBias;

@@ -2,7 +2,7 @@
 
 import { isGpuBufferInstance, isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { getKernelCapabilities } from '../../../../gpu/device.js';
-import { acquireBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
+import { acquireBuffer } from '../../../../memory/buffer-pool.js';
 import {
   recordMatmul,
   recordRMSNorm,
@@ -24,7 +24,7 @@ import {
 import { createTensor } from '../../../../gpu/tensor.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
-import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
+import { log, trace } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import {
   recordAttentionInputs,
@@ -39,8 +39,6 @@ import {
 } from './projections.js';
 import { prepareAttentionProjectionInput } from './output-projection.js';
 import { runProbes } from '../probes.js';
-import { decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
-
 import { shouldDebugLayer } from './types.js';
 import {
   getKernelPathMatmulPrecision,
@@ -72,26 +70,11 @@ import {
 } from './plan.js';
 import { createRecordedResourceScope } from '../../../resource-scope.js';
 import { captureAttentionRefactorReceipt } from './receipt.js';
+import { applyAttentionQueryScale } from './query-transform.js';
+import { resolveQueryScale } from './heterogeneous-contract.js';
+import { enqueueRecordedTensorHealth, shouldTraceRecordedHealth } from './recorded-health.js';
 
 const ATTENTION_DTYPE_LOGGED = new Set();
-
-function shouldTraceRecordedHealth(layerIdx, debugFlags) {
-  const debugLayers = debugFlags?.debugLayers;
-  return isTraceEnabled('logits')
-    && Array.isArray(debugLayers)
-    && shouldDebugLayer(layerIdx, debugLayers);
-}
-
-function enqueueRecordedTensorHealth(recorder, label, tensor, dtype, elementCount) {
-  if (!recorder || !tensor?.buffer || !Number.isFinite(elementCount) || elementCount <= 0) {
-    return;
-  }
-  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
-  recorder.enqueueCompletionTask(async () => {
-    const data = await readBuffer(tensor.buffer, elementCount * bytesPerElement);
-    trace.logits(label, getLogitsHealth(decodeReadback(data, dtype)));
-  });
-}
 
 function resolveDirectF16KVCacheWrite(options) {
   const {
@@ -182,6 +165,7 @@ export async function interpretAttentionWithRecorder(
     residualTensor,
     attnSoftcap,
     queryPreAttnScalar,
+    queryScale = 1,
     skipInputNorm = false,
     tokenIds = null,
     kernelPath = null,
@@ -194,6 +178,7 @@ export async function interpretAttentionWithRecorder(
   } = config;
 
   const phase = isPrefill ? 'prefill' : 'decode';
+  const resolvedQueryScale = resolveQueryScale(queryScale);
   const runtimeSession = resolveAttentionRuntimeSession(state);
   const resourceScope = createRecordedResourceScope(recorder);
   const attentionPrecisionContract = resolveAttentionPrecisionContract(config, state);
@@ -473,6 +458,7 @@ export async function interpretAttentionWithRecorder(
         && qkNormState.wantsQKNorm
         && config.queryKeyNormType === 'rmsnorm'
         && config.queryKeyNormAxis === 'head'
+        && resolvedQueryScale === 1
         && !disableRoPE
         && !!state.ropeFreqsCos
         && !!state.ropeFreqsSin,
@@ -597,6 +583,17 @@ export async function interpretAttentionWithRecorder(
       );
     }
   }
+
+  qTensor = await applyAttentionQueryScale({
+    recorder, tensor: qTensor, scale: resolvedQueryScale,
+    count: numTokens * numHeads * headDim,
+    release: (buffer) => resourceScope.release(buffer),
+    observe: (scaled) => runProbes('q_scale', scaled.buffer, {
+      layerIdx, numTokens, hiddenSize: numHeads * headDim,
+      probes: state.debugProbes, recorder,
+      operatorDiagnostics: state.operatorDiagnostics, dtype: scaled.dtype,
+    }),
+  });
 
   if (!kvCacheWriteFused && config.valueNorm === true && !reusesSharedKV) {
     const valueNormInputAliasesKey = vTensor.buffer === kTensor.buffer;
