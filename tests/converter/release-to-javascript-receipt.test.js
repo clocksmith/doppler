@@ -1,10 +1,14 @@
 import assert from 'node:assert/strict';
+import { sha256Hex } from '../../src/utils/sha256.js';
+import { stableSortObject } from '../../src/utils/stable-sort-object.js';
 import {
   createReleaseToJavaScriptReceipt,
   validateReleaseToJavaScriptReceipt,
 } from '../../src/converter/release-to-javascript-receipt.js';
 
 const digest = (character) => `sha256:${character.repeat(64)}`;
+const hashValue = (value) => `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
+const acceptedFiles = [{ path: 'src/example.js', digest: digest('d') }];
 const fields = {
   campaignId: 'heterogeneous-model-ir-v2:qwen-test',
   source: {
@@ -25,7 +29,11 @@ const fields = {
     rejected: [{ id: 'unsafe' }, { id: 'unsupported' }],
     accepted: [{ id: 'conservative' }],
   },
-  acceptedCode: { revision: 'deadbeef', files: ['src/example.js'], digest: digest('a') },
+  acceptedCode: {
+    revision: 'deadbeef',
+    files: acceptedFiles,
+    digest: hashValue({ revision: 'deadbeef', files: acceptedFiles }),
+  },
   qualification: { status: 'passed', packId: 'test.pack', packDigest: digest('b') },
   evidence: [{ kind: 'parity', path: 'reports/parity.json', digest: digest('c') }],
 };
@@ -41,6 +49,12 @@ drifted.candidates.generated = 4;
 const validation = validateReleaseToJavaScriptReceipt(drifted);
 assert.equal(validation.ok, false);
 assert.match(validation.errors.join('; '), /candidates\.generated|receiptDigest mismatch/);
+
+const driftedCode = structuredClone(receipt);
+driftedCode.acceptedCode.files[0].digest = digest('e');
+const codeValidation = validateReleaseToJavaScriptReceipt(driftedCode);
+assert.equal(codeValidation.ok, false);
+assert.match(codeValidation.errors.join('; '), /acceptedCode\.digest mismatch|receiptDigest mismatch/);
 
 const unresolvedPublication = createReleaseToJavaScriptReceipt({
   ...structuredClone(fields),

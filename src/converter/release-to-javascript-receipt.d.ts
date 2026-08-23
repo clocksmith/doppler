@@ -18,7 +18,11 @@ export interface ReleaseToJavaScriptReceipt {
   humanAuthoredSemanticDecisions: number;
   unresolvedFacts: unknown[];
   candidates: { generated: number; rejected: unknown[]; accepted: unknown[] };
-  acceptedCode: { revision: string; files: string[]; digest: `sha256:${string}` };
+  acceptedCode: {
+    revision: string;
+    files: Array<{ path: string; digest: `sha256:${string}` }>;
+    digest: `sha256:${string}`;
+  };
   qualification: { status: 'passed'; packId: string; packDigest: `sha256:${string}` };
   evidence: Array<{ kind: string; path: string; digest: `sha256:${string}` }>;
   receiptDigest: `sha256:${string}`;
