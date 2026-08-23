@@ -24,6 +24,7 @@ import { processLayer } from './layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
+import { captureObservedFusedDecodeLogits, emitObservedLogits } from './generator-logits-observation.js';
 import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { hasLinearAttentionLayers } from './linear-attention.js';
@@ -40,7 +41,6 @@ import {
 const UNKNOWN_TOKEN_TEXT = '<unknown>';
 const FINITENESS_RESET_WORDS = new Uint32Array(4);
 const FINITENESS_STATUS_BYTES = FINITENESS_RESET_WORDS.byteLength;
-
 export function sumProfileTimings(timings) {
   if (!timings || Object.keys(timings).length === 0) return null;
   let total = 0;
@@ -322,7 +322,6 @@ export async function readSampledTokenFromStagingBuffer(stagingBuffer, options =
     ring?.advance();
   }
 }
-
 
 export async function readMappedBufferCopy(stagingBuffer, options = {}) {
   const ownsStagingBuffer = options.ownsStagingBuffer !== false;
@@ -848,6 +847,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     const invalidToken = fusedNextToken >= config.vocabSize
       || (padTokenId != null && fusedNextToken === padTokenId)
       || (padTokenId == null && fusedNextToken === 0);
+    if (!invalidToken) await captureObservedFusedDecodeLogits(state, opts, logitsBuffer, vocabSize, logitsDtype, fusedNextToken, currentIds);
     if (!invalidToken) {
       schedulePlePrefetchForToken(state, fusedNextToken);
     }
@@ -1016,7 +1016,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         padTokenId,
         seed: opts.seed,
       });
-
+      emitObservedLogits(opts.onLogits, sampledLogits, nextToken, currentIds);
       if (!context.decodeBuffers?.ownsBuffer(hiddenStates)) {
         releaseBuffer(hiddenStates);
       }

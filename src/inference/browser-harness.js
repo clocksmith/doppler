@@ -640,7 +640,7 @@ export function buildReferenceTranscriptSeed(run, context = {}) {
     } : {
       mode: 'not-captured',
       reason: logitsDigests.length > 0
-        ? 'Per-step logits digest count did not match generated token count.'
+        ? `Per-step logits digest count did not match generated token count (${logitsDigests.length}/${tokenIds.length}).`
         : 'Per-step logits digests were not requested for this browser harness run.',
       perStepDigests: null,
     },

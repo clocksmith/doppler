@@ -8,6 +8,11 @@ export const DEFAULT_HARNESS_CONFIG = {
   autorun: false,
   skipLoad: false,
   modelId: null,
+  referenceTranscript: {
+    enabled: false,
+    captureLogits: false,
+    captureKvBytes: false,
+  },
   trainingBench: {
     ebmRecorded: {
       dims: {

@@ -1,5 +1,6 @@
 import { validateModelIR } from '../config/model-ir.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../config/kernels/kernel-ref-digests.js';
+import { sanitizeModelId } from './core.js';
 import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
 
@@ -181,13 +182,23 @@ export function materializeLineageConversionCandidate({ modelIR, template, recip
   bindKernelDigests(config, dispositions);
 
   config.output.modelBaseId = recipe.modelId;
+  const artifactModelId = sanitizeModelId(recipe.modelId);
+  if (!artifactModelId) {
+    throw new Error(`Lineage lowering cannot derive an artifact model id from "${String(recipe.modelId)}".`);
+  }
+  dispositions.push({
+    kind: 'artifact-identity-normalization',
+    requestedModelId: recipe.modelId,
+    modelId: artifactModelId,
+    disposition: 'accepted',
+  });
   config.manifest.artifactIdentity = {
     sourceCheckpointId: modelIR.sourceIdentity.checkpointId,
     sourceRepo: modelIR.sourceIdentity.repository,
     sourceRevision: modelIR.sourceIdentity.revision,
     artifactCompleteness: 'complete',
   };
-  const packModelIR = { ...clone(modelIR), modelId: recipe.modelId };
+  const packModelIR = { ...clone(modelIR), modelId: artifactModelId };
   const packModelIRValidation = validateModelIR(packModelIR);
   if (!packModelIRValidation.ok) {
     throw new Error(`Lineage lowering produced invalid Pack-bound ModelIR: ${packModelIRValidation.errors.join('; ')}`);
@@ -195,7 +206,8 @@ export function materializeLineageConversionCandidate({ modelIR, template, recip
   const configDigest = digest(config);
   return Object.freeze({
     schema: 'doppler.lineage-lowering-receipt/v1',
-    modelId: recipe.modelId,
+    modelId: artifactModelId,
+    requestedModelId: recipe.modelId,
     sourceModelIRHash: digest(modelIR),
     modelIRHash: digest(packModelIR),
     modelIR: packModelIR,

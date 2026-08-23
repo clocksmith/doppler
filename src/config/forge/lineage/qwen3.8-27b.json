@@ -8,7 +8,7 @@
   "author": {
     "kind": "ai",
     "actor": "openai-codex",
-    "proposalId": "qwen3.8-lineage-conservative-v1"
+    "proposalId": "qwen3.8-lineage-conservative-v2"
   },
   "compatibilityRequirements": [
     { "factId": "text.modelType", "equals": "qwen3_5_text" },
@@ -118,6 +118,24 @@
       "value": false,
       "lifecycle": "qualification",
       "rationale": "The first qualification candidate dispatches the separately content-addressed convolution and recurrent kernels."
+    },
+    {
+      "targetPointer": "/quantization/lmHead",
+      "value": "f16",
+      "lifecycle": "forge",
+      "rationale": "Physical Q4-head qualification matched 97 source tokens before a 0.2323179-logit first divergence; preserve Q4 body weights while testing the reusable higher-fidelity output-head lane."
+    },
+    {
+      "targetPointer": "/execution/postLayer/1/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "The f16 output-head candidate must dispatch the manifest-declared f16 matmul mechanism for decode."
+    },
+    {
+      "targetPointer": "/execution/postLayer/2/1",
+      "value": "tiled",
+      "lifecycle": "forge",
+      "rationale": "The f16 output-head candidate must dispatch the same manifest-declared f16 matmul mechanism for prefill."
     }
   ],
   "removePointers": [
@@ -126,7 +144,7 @@
     "/manifest/artifactIdentity/manifestVariantId"
   ],
   "candidateAudit": {
-    "generated": 3,
+    "generated": 4,
     "rejected": [
       {
         "candidateId": "flat-homogeneous",
@@ -135,8 +153,18 @@
       {
         "candidateId": "multimodal-all-entrypoints",
         "reason": "Rejected because vision.encode and speculative.generate are not lowered or qualified."
+      },
+      {
+        "candidateId": "q4-output-head",
+        "reason": "Rejected after physical Node WebGPU matched 97 source tokens and first selected Poland instead of Denmark at a 0.2323179-logit margin.",
+        "evidence": {
+          "path": "reports/model-ir-v2/qwen3.8-27b.q4-head.node-webgpu-negative.json",
+          "sha256": "bec28bbee6a3e90ad60cdf2234c249fa8d1249cbbd8cfdaf23d25e3f4290e0bd",
+          "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+          "conversionConfigDigest": "sha256:6c8f0e935ce9da61a9bd7451381cee1d99dc1b154673b5c8391e5aa6207846f4"
+        }
       }
     ],
-    "acceptedCandidateId": "qwen3.8-lineage-conservative-v1"
+    "acceptedCandidateId": "qwen3.8-lineage-f16-head-v2"
   }
 }

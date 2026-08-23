@@ -349,6 +349,7 @@ inference/pipelines/text/finiteness-guard-status.d.ts
 inference/pipelines/text/finiteness-policy.d.ts
 inference/pipelines/text/generator-decode-policy.d.ts
 inference/pipelines/text/generator-helpers.d.ts
+inference/pipelines/text/generator-logits-observation.d.ts
 inference/pipelines/text/generator-prefill-helpers.d.ts
 inference/pipelines/text/generator-runtime.d.ts
 inference/pipelines/text/generator-steps.d.ts
