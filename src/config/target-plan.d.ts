@@ -1,5 +1,9 @@
+import type { InitialExecutionIdentity } from './initial-execution-identity.js';
+
 export const TARGET_PLAN_SCHEMA_ID: 'doppler.target-plan/v1';
 export const TARGET_PLAN_SCHEMA_VERSION: 1;
+export const TARGET_PLAN_V2_SCHEMA_ID: 'doppler.target-plan/v2';
+export const TARGET_PLAN_V2_SCHEMA_VERSION: 2;
 
 export interface TargetPlanMemoryExpression {
   op: 'constant' | 'affine';
@@ -23,7 +27,7 @@ export interface TargetPlanMemoryLayout {
   }>;
 }
 
-export interface TargetPlan {
+export interface TargetPlanV1 {
   schema: 'doppler.target-plan/v1';
   schemaVersion: 1;
   targetId: string;
@@ -52,7 +56,16 @@ export interface TargetPlan {
   }>;
 }
 
+export interface TargetPlanV2 extends Omit<TargetPlanV1, 'schema' | 'schemaVersion'> {
+  schema: 'doppler.target-plan/v2';
+  schemaVersion: 2;
+  initialExecutionIdentity: InitialExecutionIdentity;
+}
+
+export type TargetPlan = TargetPlanV1 | TargetPlanV2;
+
 export declare function validateTargetPlan(plan: unknown): { ok: boolean; errors: string[] };
 export declare function hashTargetPlan(plan: unknown): `sha256:${string}`;
 export declare function matchesDeviceCapability(targetPlan: TargetPlan, deviceProfile: Record<string, unknown>): boolean;
-export declare function createTargetPlan(params: Omit<TargetPlan, 'schema' | 'schemaVersion'>): TargetPlan;
+export declare function createTargetPlan(params: Omit<TargetPlanV1, 'schema' | 'schemaVersion'>): TargetPlanV1;
+export declare function createTargetPlanV2(params: Omit<TargetPlanV2, 'schema' | 'schemaVersion'>): TargetPlanV2;

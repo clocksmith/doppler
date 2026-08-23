@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:model-ir-schema:v2",
+  "title": "Doppler heterogeneous ModelIR v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "schemaVersion", "modelId", "sourceIdentity", "provenance", "components",
+    "blockClasses", "blockSchedules", "stateSpaces", "tensorRoleBindings", "entryPoints",
+    "outputHeads", "supportScope"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.model-ir/v2" },
+    "schemaVersion": { "const": 2 },
+    "modelId": { "type": "string", "minLength": 1 },
+    "sourceIdentity": {
+      "type": "object",
+      "required": ["checkpointId", "repository", "revision", "artifacts"],
+      "properties": {
+        "checkpointId": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "minLength": 1 },
+        "revision": { "type": "string", "minLength": 1 },
+        "artifacts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/artifact" } }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["forgeVersion", "intakeDigest", "facts"],
+      "properties": {
+        "forgeVersion": { "type": "string", "minLength": 1 },
+        "intakeDigest": { "$ref": "#/$defs/digest" },
+        "facts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/fact" } }
+      }
+    },
+    "components": { "$ref": "#/$defs/nodes" },
+    "blockClasses": { "$ref": "#/$defs/nodes" },
+    "blockSchedules": { "$ref": "#/$defs/nodes" },
+    "stateSpaces": { "$ref": "#/$defs/nodes" },
+    "tensorRoleBindings": { "$ref": "#/$defs/nodes" },
+    "entryPoints": { "$ref": "#/$defs/nodes" },
+    "outputHeads": { "$ref": "#/$defs/nodes" },
+    "supportScope": {
+      "type": "object",
+      "required": ["sourceTopology", "loweredEntryPoints", "qualifiedEntryPoints", "unloweredEntryPoints"],
+      "properties": {
+        "sourceTopology": { "const": "complete" },
+        "loweredEntryPoints": { "type": "array", "items": { "type": "string" } },
+        "qualifiedEntryPoints": { "type": "array", "items": { "type": "string" } },
+        "unloweredEntryPoints": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "artifact": {
+      "type": "object",
+      "required": ["artifactId", "path", "role", "hash"],
+      "properties": {
+        "artifactId": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "minLength": 1 },
+        "hash": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["kind", "artifactId", "file"],
+      "properties": {
+        "kind": { "enum": ["json-pointer", "tensor-header"] },
+        "artifactId": { "type": "string", "minLength": 1 },
+        "file": { "type": "string", "minLength": 1 },
+        "pointer": { "type": "string" },
+        "tensorName": { "type": "string" },
+        "dtype": { "type": "string" },
+        "shape": { "type": "array", "items": { "type": "integer", "minimum": 1 } }
+      }
+    },
+    "fact": {
+      "type": "object",
+      "required": ["id", "subject", "predicate", "value", "confidence", "disposition", "evidence", "authorship", "validation"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "subject": { "type": "string", "minLength": 1 },
+        "predicate": { "type": "string", "minLength": 1 },
+        "value": true,
+        "confidence": { "enum": ["direct", "derived"] },
+        "disposition": { "const": "accepted" },
+        "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidence" } },
+        "authorship": { "type": "object", "required": ["kind", "actor"] },
+        "validation": { "type": "object", "required": ["status", "validator", "receipt"] }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "factRefs"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "factRefs": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    }
+  }
+}

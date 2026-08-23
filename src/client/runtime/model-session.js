@@ -761,6 +761,11 @@ export function createModelHandle(pipeline, resolved) {
       getStats() {
         return pipeline.getStats?.() ?? null;
       },
+      getResolvedRuntimeSession() {
+        const resolvedSession = pipeline.resolvedRuntimeSession;
+        if (!resolvedSession) throw new Error('Loaded Doppler pipeline has no resolved runtime session.');
+        return resolvedSession;
+      },
       prefillKV(prompt, options = {}) {
         assertRaw('advanced.prefillKV');
         assertSupportedGenerationOptions(options);

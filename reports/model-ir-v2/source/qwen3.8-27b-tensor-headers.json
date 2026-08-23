@@ -1,0 +1,12 @@
+{
+  "sourceFile": "model-00001-of-00018.safetensors",
+  "sourceHeaderSha256": "f4cbd9978d80810a0e91ff1b9eee98afb230fdc94ef59550954079df3752ca05",
+  "tensors": {
+    "model.language_model.layers.0.linear_attn.A_log": { "dtype": "BF16", "shape": [48] },
+    "model.language_model.layers.0.linear_attn.conv1d.weight": { "dtype": "BF16", "shape": [10240, 1, 4] },
+    "model.language_model.layers.0.linear_attn.in_proj_qkv.weight": { "dtype": "BF16", "shape": [10240, 5120] },
+    "model.language_model.layers.3.self_attn.q_proj.weight": { "dtype": "BF16", "shape": [12288, 5120] },
+    "model.visual.patch_embed.proj.weight": { "dtype": "BF16", "shape": [1152, 3, 2, 16, 16] },
+    "model.visual.merger.linear_fc2.weight": { "dtype": "BF16", "shape": [5120, 4608] }
+  }
+}

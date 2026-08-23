@@ -1,4 +1,5 @@
 import { releaseBuffer } from '../../memory/buffer-pool.js';
+import { observeInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 
 function arraysEqual(left, right) {
   return Array.isArray(left)
@@ -46,6 +47,10 @@ export function createPackProgramAdapter(modelHandle, pack, targetPlan) {
 
   return {
     executionGraphHash: pack.program.executionGraphHash,
+
+    getInitialExecutionIdentity() {
+      return observeInitialExecutionIdentity(modelHandle.advanced.getResolvedRuntimeSession());
+    },
 
     tokenize(prompt, options = {}) {
       return modelHandle.advanced.tokenizePrompt(prompt, options);

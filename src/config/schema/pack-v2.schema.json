@@ -16,8 +16,22 @@
     "modelId": { "type": "string", "minLength": 1 },
     "createdAtUtc": { "type": "string", "format": "date-time" },
     "semanticRoot": { "$ref": "#/$defs/digest" },
-    "modelIR": { "$ref": "urn:doppler:model-ir-schema:v1" },
-    "targetPlans": { "type": "array", "minItems": 1, "items": { "$ref": "urn:doppler:target-plan-schema:v1" } },
+    "modelIR": {
+      "oneOf": [
+        { "$ref": "urn:doppler:model-ir-schema:v1" },
+        { "$ref": "urn:doppler:model-ir-schema:v2" }
+      ]
+    },
+    "targetPlans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          { "$ref": "urn:doppler:target-plan-schema:v1" },
+          { "$ref": "urn:doppler:target-plan-schema:v2" }
+        ]
+      }
+    },
     "wgslModules": {
       "type": "array",
       "minItems": 1,

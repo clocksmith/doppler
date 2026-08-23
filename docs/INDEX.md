@@ -49,7 +49,8 @@ Primary documentation index.
 ## Public API Docs
 
 - [API Docs Index](api/index.md) - canonical public API navigation.
-- [Root API](api/root.md) - app-facing `doppler` facade.
+- [Pack Runtime API](api/root.md) - signed-Pack application facade.
+- [Compatibility API](api/compat.md) - explicit legacy manifest-loading facade.
 - [Advanced Root Exports](api/advanced-root-exports.md) - root-level loaders, adapters, and advanced exports.
 - [Loaders API](api/loaders.md) - explicit loader and manifest/bootstrap helpers.
 - [Orchestration API](api/orchestration.md) - KV cache, routers, adapters, and logit merge helpers.

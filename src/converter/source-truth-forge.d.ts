@@ -18,3 +18,7 @@ export declare function forgeModelIRV2(
   packet: Record<string, unknown>,
   sources: Record<string, unknown>
 ): SourceTruthForgeReceipt;
+export declare function createSourceTruthPacket(
+  spec: Record<string, unknown>,
+  sources: Record<string, unknown>
+): Record<string, unknown>;

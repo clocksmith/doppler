@@ -1,0 +1,127 @@
+{
+  "modelId": "qwen3.8-27b",
+  "sources": {
+    "config": "reports/model-ir-v2/source/qwen3.8-27b-config.json",
+    "headers": "reports/model-ir-v2/source/qwen3.8-27b-tensor-headers.json"
+  },
+  "sourceIdentity": {
+    "checkpointId": "Qwen/Qwen3.8-27B",
+    "repository": "Qwen/Qwen3.8-27B",
+    "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+    "artifacts": [
+      {
+        "artifactId": "config",
+        "path": "config.json",
+        "role": "normalized-source-config",
+        "hash": "sha256:032ded2488b87e4f03b64a97b3e159318e1c78298338b9c9609dad586d1465b8",
+        "upstreamHash": "sha256:191e0af232104ed8b65258cf3fb2b842e288008baca7633c11b82a1ac7203aab"
+      },
+      {
+        "artifactId": "headers",
+        "path": "model-00001-of-00018.safetensors#header",
+        "role": "tensor-header-receipt",
+        "hash": "sha256:730c6fe341179842eb35c2aad0ba12b5ac99474bd581e82f2c470cbdfc24901b"
+      }
+    ]
+  },
+  "defaultAuthorship": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "qwen3.8-source-truth-v1"
+  },
+  "candidateAudit": {
+    "generated": 4,
+    "rejected": 3,
+    "acceptedProposalId": "qwen3.8-source-truth-v1"
+  },
+  "facts": [
+    { "id": "root.architecture", "subject": "model", "predicate": "architecture", "source": { "artifactId": "config", "file": "config.json", "pointer": "/architectures/0" } },
+    { "id": "root.modelType", "subject": "model", "predicate": "modelType", "source": { "artifactId": "config", "file": "config.json", "pointer": "/model_type" } },
+    { "id": "root.languageOnly", "subject": "model", "predicate": "languageModelOnly", "source": { "artifactId": "config", "file": "config.json", "pointer": "/language_model_only" } },
+    { "id": "text.modelType", "subject": "component.text", "predicate": "modelType", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/model_type" } },
+    { "id": "text.hiddenSize", "subject": "component.text", "predicate": "hiddenSize", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/hidden_size" } },
+    { "id": "text.vocabSize", "subject": "component.text", "predicate": "vocabSize", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/vocab_size" } },
+    { "id": "text.layerTypes", "subject": "component.text", "predicate": "layerTypes", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/layer_types" } },
+    { "id": "text.numLayers", "subject": "component.text", "predicate": "numLayers", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/num_hidden_layers" } },
+    { "id": "text.intermediateSize", "subject": "component.text", "predicate": "intermediateSize", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/intermediate_size" } },
+    { "id": "text.hiddenActivation", "subject": "component.text", "predicate": "hiddenActivation", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/hidden_act" } },
+    { "id": "text.rmsNormEps", "subject": "component.text", "predicate": "rmsNormEps", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/rms_norm_eps" } },
+    { "id": "text.useCache", "subject": "component.text", "predicate": "useCache", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/use_cache" } },
+    { "id": "full.numHeads", "subject": "block.full", "predicate": "numHeads", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/num_attention_heads" } },
+    { "id": "full.numKvHeads", "subject": "block.full", "predicate": "numKvHeads", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/num_key_value_heads" } },
+    { "id": "full.headDim", "subject": "block.full", "predicate": "headDim", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/head_dim" } },
+    { "id": "full.rope", "subject": "block.full", "predicate": "rope", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/rope_parameters" } },
+    { "id": "full.outputGate", "subject": "block.full", "predicate": "outputGate", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/attn_output_gate" } },
+    { "id": "full.outputGateType", "subject": "block.full", "predicate": "outputGateType", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/output_gate_type" } },
+    { "id": "linear.keyHeads", "subject": "block.linear", "predicate": "keyHeads", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/linear_num_key_heads" } },
+    { "id": "linear.valueHeads", "subject": "block.linear", "predicate": "valueHeads", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/linear_num_value_heads" } },
+    { "id": "linear.keyHeadDim", "subject": "block.linear", "predicate": "keyHeadDim", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/linear_key_head_dim" } },
+    { "id": "linear.valueHeadDim", "subject": "block.linear", "predicate": "valueHeadDim", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/linear_value_head_dim" } },
+    { "id": "linear.convKernel", "subject": "block.linear", "predicate": "convKernel", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/linear_conv_kernel_dim" } },
+    { "id": "linear.stateDtype", "subject": "block.linear", "predicate": "stateDtype", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/mamba_ssm_dtype" } },
+    { "id": "mtp.numLayers", "subject": "component.mtp", "predicate": "numLayers", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/mtp_num_hidden_layers" } },
+    { "id": "mtp.dedicatedEmbeddings", "subject": "component.mtp", "predicate": "dedicatedEmbeddings", "source": { "artifactId": "config", "file": "config.json", "pointer": "/text_config/mtp_use_dedicated_embeddings" } },
+    { "id": "vision.modelType", "subject": "component.vision", "predicate": "modelType", "source": { "artifactId": "config", "file": "config.json", "pointer": "/vision_config/model_type" } },
+    { "id": "vision.depth", "subject": "component.vision", "predicate": "depth", "source": { "artifactId": "config", "file": "config.json", "pointer": "/vision_config/depth" } },
+    { "id": "vision.hiddenSize", "subject": "component.vision", "predicate": "hiddenSize", "source": { "artifactId": "config", "file": "config.json", "pointer": "/vision_config/hidden_size" } },
+    { "id": "vision.intermediateSize", "subject": "component.vision", "predicate": "intermediateSize", "source": { "artifactId": "config", "file": "config.json", "pointer": "/vision_config/intermediate_size" } },
+    { "id": "vision.numHeads", "subject": "component.vision", "predicate": "numHeads", "source": { "artifactId": "config", "file": "config.json", "pointer": "/vision_config/num_heads" } },
+    { "id": "vision.outHiddenSize", "subject": "component.vision", "predicate": "outHiddenSize", "source": { "artifactId": "config", "file": "config.json", "pointer": "/vision_config/out_hidden_size" } },
+    { "id": "vision.patchSize", "subject": "component.vision", "predicate": "patchSize", "source": { "artifactId": "config", "file": "config.json", "pointer": "/vision_config/patch_size" } },
+    { "id": "vision.temporalPatch", "subject": "component.vision", "predicate": "temporalPatch", "source": { "artifactId": "config", "file": "config.json", "pointer": "/vision_config/temporal_patch_size" } },
+    { "id": "vision.mergeSize", "subject": "component.vision", "predicate": "mergeSize", "source": { "artifactId": "config", "file": "config.json", "pointer": "/vision_config/spatial_merge_size" } },
+    { "id": "tensor.linearState", "subject": "tensor.linearState", "predicate": "header", "source": { "kind": "tensor-header", "artifactId": "headers", "file": "model-00001-of-00018.safetensors", "tensorName": "model.language_model.layers.0.linear_attn.A_log" } },
+    { "id": "tensor.linearConv", "subject": "tensor.linearConv", "predicate": "header", "source": { "kind": "tensor-header", "artifactId": "headers", "file": "model-00001-of-00018.safetensors", "tensorName": "model.language_model.layers.0.linear_attn.conv1d.weight" } },
+    { "id": "tensor.linearQkv", "subject": "tensor.linearQkv", "predicate": "header", "source": { "kind": "tensor-header", "artifactId": "headers", "file": "model-00001-of-00018.safetensors", "tensorName": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight" } },
+    { "id": "tensor.fullQuery", "subject": "tensor.fullQuery", "predicate": "header", "source": { "kind": "tensor-header", "artifactId": "headers", "file": "model-00001-of-00018.safetensors", "tensorName": "model.language_model.layers.3.self_attn.q_proj.weight" } },
+    { "id": "tensor.visionPatch", "subject": "tensor.visionPatch", "predicate": "header", "source": { "kind": "tensor-header", "artifactId": "headers", "file": "model-00001-of-00018.safetensors", "tensorName": "model.visual.patch_embed.proj.weight" } },
+    { "id": "tensor.projector", "subject": "tensor.projector", "predicate": "header", "source": { "kind": "tensor-header", "artifactId": "headers", "file": "model-00001-of-00018.safetensors", "tensorName": "model.visual.merger.linear_fc2.weight" } }
+  ],
+  "topology": {
+    "components": [
+      { "id": "text-decoder", "factRefs": ["text.modelType", "text.hiddenSize", "text.vocabSize", "text.numLayers"], "type": "text-decoder", "role": "primary", "properties": { "modelType": { "$fact": "text.modelType" }, "hiddenSize": { "$fact": "text.hiddenSize" }, "vocabSize": { "$fact": "text.vocabSize" }, "numLayers": { "$fact": "text.numLayers" } } },
+      { "id": "vision-encoder", "factRefs": ["vision.modelType", "vision.depth", "vision.hiddenSize", "vision.patchSize", "tensor.visionPatch"], "type": "vision-encoder", "role": "auxiliary", "properties": { "modelType": { "$fact": "vision.modelType" }, "depth": { "$fact": "vision.depth" }, "hiddenSize": { "$fact": "vision.hiddenSize" }, "patchSize": { "$fact": "vision.patchSize" }, "temporalPatchSize": { "$fact": "vision.temporalPatch" } } },
+      { "id": "vision-projector", "factRefs": ["vision.outHiddenSize", "vision.mergeSize", "tensor.projector"], "type": "projector", "role": "connector", "properties": { "outputSize": { "$fact": "vision.outHiddenSize" }, "mergeSize": { "$fact": "vision.mergeSize" } } },
+      { "id": "mtp-drafter", "factRefs": ["mtp.numLayers", "mtp.dedicatedEmbeddings"], "type": "speculative-drafter", "role": "auxiliary", "properties": { "numLayers": { "$fact": "mtp.numLayers" }, "dedicatedEmbeddings": { "$fact": "mtp.dedicatedEmbeddings" } } }
+    ],
+    "blockClasses": [
+      { "id": "linear-recurrent", "factRefs": ["linear.keyHeads", "linear.valueHeads", "linear.keyHeadDim", "linear.valueHeadDim", "linear.convKernel", "linear.stateDtype", "text.rmsNormEps", "text.intermediateSize", "text.hiddenActivation"], "kind": "linear-recurrent-attention", "geometry": { "keyHeads": { "$fact": "linear.keyHeads" }, "valueHeads": { "$fact": "linear.valueHeads" }, "keyHeadDim": { "$fact": "linear.keyHeadDim" }, "valueHeadDim": { "$fact": "linear.valueHeadDim" } }, "normalization": { "type": "rmsnorm", "eps": { "$fact": "text.rmsNormEps" } }, "positional": {}, "feedForward": { "type": "gated-dense", "activation": { "$fact": "text.hiddenActivation" }, "intermediateSize": { "$fact": "text.intermediateSize" } }, "phaseBehavior": { "prefill": true, "decode": true } },
+      { "id": "full-attention", "factRefs": ["full.numHeads", "full.numKvHeads", "full.headDim", "full.rope", "full.outputGate", "full.outputGateType", "text.rmsNormEps", "text.intermediateSize", "text.hiddenActivation"], "kind": "full-attention", "geometry": { "numHeads": { "$fact": "full.numHeads" }, "numKvHeads": { "$fact": "full.numKvHeads" }, "headDim": { "$fact": "full.headDim" }, "outputGate": { "$fact": "full.outputGate" }, "outputGateType": { "$fact": "full.outputGateType" } }, "normalization": { "type": "rmsnorm", "eps": { "$fact": "text.rmsNormEps" } }, "positional": { "$fact": "full.rope" }, "feedForward": { "type": "gated-dense", "activation": { "$fact": "text.hiddenActivation" }, "intermediateSize": { "$fact": "text.intermediateSize" } }, "phaseBehavior": { "prefill": true, "decode": true } },
+      { "id": "vision-attention", "factRefs": ["vision.numHeads", "vision.hiddenSize", "vision.intermediateSize"], "kind": "full-attention", "geometry": { "numHeads": { "$fact": "vision.numHeads" }, "hiddenSize": { "$fact": "vision.hiddenSize" } }, "normalization": { "type": "layernorm" }, "positional": { "type": "learned" }, "feedForward": { "type": "dense", "intermediateSize": { "$fact": "vision.intermediateSize" } }, "phaseBehavior": { "encode": true } },
+      { "id": "mtp-attention", "factRefs": ["mtp.numLayers", "full.numHeads", "full.numKvHeads", "full.headDim"], "kind": "multi-token-prediction", "geometry": { "numHeads": { "$fact": "full.numHeads" }, "numKvHeads": { "$fact": "full.numKvHeads" }, "headDim": { "$fact": "full.headDim" } }, "normalization": { "type": "rmsnorm" }, "positional": { "$fact": "full.rope" }, "feedForward": { "type": "gated-dense" }, "phaseBehavior": { "draft": true } }
+    ],
+    "blockSchedules": [
+      { "id": "text.schedule", "componentId": "text-decoder", "factRefs": ["text.layerTypes", "text.numLayers"], "blocksFromFact": { "factId": "text.layerTypes", "classByValue": { "linear_attention": "linear-recurrent", "full_attention": "full-attention" } } },
+      { "id": "vision.schedule", "componentId": "vision-encoder", "factRefs": ["vision.depth"], "blocksFromCount": { "factId": "vision.depth", "blockClassId": "vision-attention" } },
+      { "id": "mtp.schedule", "componentId": "mtp-drafter", "factRefs": ["mtp.numLayers"], "blocksFromCount": { "factId": "mtp.numLayers", "blockClassId": "mtp-attention" } }
+    ],
+    "stateSpaces": [
+      { "id": "text.kv-state", "factRefs": ["text.useCache", "full.numKvHeads", "full.headDim"], "kind": "kv", "persistence": "session", "contract": { "numKvHeads": { "$fact": "full.numKvHeads" }, "headDim": { "$fact": "full.headDim" } } },
+      { "id": "text.recurrent-state", "factRefs": ["linear.keyHeads", "linear.valueHeads", "linear.keyHeadDim", "linear.valueHeadDim", "linear.stateDtype", "tensor.linearState"], "kind": "recurrent", "persistence": "session", "contract": { "keyHeads": { "$fact": "linear.keyHeads" }, "valueHeads": { "$fact": "linear.valueHeads" }, "dtype": { "$fact": "linear.stateDtype" } } },
+      { "id": "text.convolutional-state", "factRefs": ["linear.convKernel", "tensor.linearConv"], "kind": "convolutional", "persistence": "session", "contract": { "kernelSize": { "$fact": "linear.convKernel" } } }
+    ],
+    "tensorRoleBindings": [
+      { "id": "linear.state-binding", "componentId": "text-decoder", "factRefs": ["tensor.linearState"], "role": "recurrent-transition", "selector": { "exact": "model.language_model.layers.0.linear_attn.A_log" } },
+      { "id": "linear.conv-binding", "componentId": "text-decoder", "factRefs": ["tensor.linearConv"], "role": "convolution-kernel", "selector": { "exact": "model.language_model.layers.0.linear_attn.conv1d.weight" } },
+      { "id": "linear.qkv-binding", "componentId": "text-decoder", "factRefs": ["tensor.linearQkv"], "role": "linear-qkv-projection", "selector": { "exact": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight" } },
+      { "id": "full.query-binding", "componentId": "text-decoder", "factRefs": ["tensor.fullQuery"], "role": "query-projection", "selector": { "exact": "model.language_model.layers.3.self_attn.q_proj.weight" } },
+      { "id": "vision.patch-binding", "componentId": "vision-encoder", "factRefs": ["tensor.visionPatch"], "role": "patch-embedding", "selector": { "exact": "model.visual.patch_embed.proj.weight" } },
+      { "id": "projector.output-binding", "componentId": "vision-projector", "factRefs": ["tensor.projector"], "role": "connector-output", "selector": { "exact": "model.visual.merger.linear_fc2.weight" } }
+    ],
+    "entryPoints": [
+      { "id": "text.generate", "componentId": "text-decoder", "factRefs": ["text.modelType", "text.layerTypes", "text.vocabSize"], "kind": "generate", "status": "lowered", "phases": ["prefill", "decode"] },
+      { "id": "vision.encode", "componentId": "vision-encoder", "factRefs": ["root.languageOnly", "vision.modelType", "vision.depth"], "kind": "encode", "status": "unlowered", "reason": "No qualified vision lowering is present.", "phases": [] },
+      { "id": "speculative.generate", "componentId": "mtp-drafter", "factRefs": ["mtp.numLayers", "mtp.dedicatedEmbeddings"], "kind": "speculative-generate", "status": "unlowered", "reason": "No qualified multi-token prediction lowering is present.", "phases": [] }
+    ],
+    "outputHeads": [
+      { "id": "text.lm-head", "componentId": "text-decoder", "factRefs": ["text.vocabSize"], "kind": "causal-lm", "properties": { "vocabSize": { "$fact": "text.vocabSize" } } },
+      { "id": "mtp.prediction-head", "componentId": "mtp-drafter", "factRefs": ["mtp.numLayers", "text.vocabSize"], "kind": "multi-token-prediction", "properties": { "vocabSize": { "$fact": "text.vocabSize" } } }
+    ],
+    "supportScope": {
+      "sourceTopology": "complete",
+      "loweredEntryPoints": ["text.generate"],
+      "qualifiedEntryPoints": [],
+      "unloweredEntryPoints": ["vision.encode", "speculative.generate"]
+    }
+  }
+}

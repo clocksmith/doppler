@@ -11,7 +11,9 @@
 ## Documented Package Surface
 
 Exports:
-- `"."` — `src/index.js` (main library API)
+- `"."` — `src/pack-runtime.js` (Pack-native main library API)
+- `"./runtime"` — `src/pack-runtime.js` (stable alias)
+- `"./compat"` — `src/index.js` (legacy manifest-loading facade)
 - `"./tooling"` — `src/tooling-exports.js` (command runners, harness API)
 - `"./loaders"` — `src/loaders/index.js`
 - `"./orchestration"` — `src/experimental/orchestration/index.js`
@@ -32,7 +34,7 @@ Everything in `tools/` except `convert-safetensors-node.js`:
 
 - `tools/` scripts may import from `src/` directly (they run in the repo, not as a package consumer).
 - Published package consumers use only the documented exports.
-- New docs should center the root `doppler` facade; do not route fresh public examples through legacy provider/internal surfaces.
+- New docs should center signed Pack execution from the root surface; legacy manifest loading belongs under `doppler-gpu/compat`.
 - Tooling commands currently include `convert`, `debug`, `bench`, `verify`, `diagnose`, `lora`, and `distill`.
 - CLI-local maintenance/discovery commands such as `program-bundle` and `profiles` are outside the shared browser/Node command-runner contract.
 - Agents should run `node src/cli/doppler-cli.js profiles --json` before guessing runtime profile names.

@@ -1,5 +1,5 @@
 import { createModelIR, hashModelIR } from '../../src/config/model-ir.js';
-import { createTargetPlan } from '../../src/config/target-plan.js';
+import { createTargetPlan, createTargetPlanV2 } from '../../src/config/target-plan.js';
 import { buildPackV2, signPackV2 } from '../../src/config/pack-v2.js';
 import { sha256BytesHex } from '../../src/utils/sha256.js';
 
@@ -24,7 +24,7 @@ function digest(value) {
   return `sha256:${sha256BytesHex(value)}`;
 }
 
-export async function createSignedPackFixture() {
+export async function createSignedPackFixture(options = {}) {
   const artifactBytes = new Map([
     ['manifest', bytes('{"modelId":"pack-test-model"}\n')],
     ['tokenizer', bytes('{"type":"test"}\n')],
@@ -72,7 +72,8 @@ export async function createSignedPackFixture() {
     executionGraphHash,
     declaredStepIds: [`${phase}-step`],
   }];
-  const targetPlan = createTargetPlan({
+  const createPlan = options.initialExecutionIdentity ? createTargetPlanV2 : createTargetPlan;
+  const targetPlan = createPlan({
     targetId: 'webgpu-f32-portable',
     modelId: modelIR.modelId,
     modelIRHash: hashModelIR(modelIR),
@@ -96,6 +97,9 @@ export async function createSignedPackFixture() {
       evidenceHash: artifacts.find((artifact) => artifact.artifactId === 'evidence').hash,
       generatedTokens: 4,
     }],
+    ...(options.initialExecutionIdentity
+      ? { initialExecutionIdentity: options.initialExecutionIdentity }
+      : {}),
   });
   const unsignedPack = buildPackV2({
     modelId: modelIR.modelId,

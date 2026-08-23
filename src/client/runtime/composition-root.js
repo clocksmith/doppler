@@ -1,4 +1,5 @@
 import { hashTargetPlan } from '../../config/target-plan.js';
+import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import { validatePackV2, verifyPackV2 } from '../../config/pack-v2.js';
 import { createResourceBinder } from './resource-binder.js';
 import { createCommandExecutor } from './command-executor.js';
@@ -63,6 +64,23 @@ export function createDopplerRuntime(ports) {
       emit(observer, { type: 'target-selected', packId: pack.packId, targetId: selectedPlan.targetId, targetPlanDigest });
       const modules = await loadModuleSources(pack, artifactStore);
       const program = await programFactory({ pack, targetPlan: selectedPlan, artifactStore, deviceProfile, options });
+      let observedInitialExecutionIdentity = null;
+      if (selectedPlan.schema === 'doppler.target-plan/v2') {
+        if (typeof program?.getInitialExecutionIdentity !== 'function') {
+          throw new Error('TargetPlan v2 requires the loaded program to report initial execution identity.');
+        }
+        observedInitialExecutionIdentity = await program.getInitialExecutionIdentity();
+        assertInitialExecutionIdentity(
+          selectedPlan.initialExecutionIdentity,
+          observedInitialExecutionIdentity
+        );
+        emit(observer, {
+          type: 'initial-execution-identity-bound',
+          packId: pack.packId,
+          targetId: selectedPlan.targetId,
+          identityDigest: observedInitialExecutionIdentity.digest,
+        });
+      }
       const resourceBinder = createResourceBinder(device, program);
       const commandExecutor = createCommandExecutor(device, resourceBinder, program);
       const sessionController = createSessionController(commandExecutor, resourceBinder, program);
@@ -84,6 +102,7 @@ export function createDopplerRuntime(ports) {
         selectedPlan,
         deviceProfile,
         verification,
+        observedInitialExecutionIdentity,
         units: { resourceBinder, commandExecutor, sessionController },
 
         async *generate(generationOptions = {}) {

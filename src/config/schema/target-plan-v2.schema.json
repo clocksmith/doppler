@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:target-plan-schema:v2",
+  "title": "Doppler TargetPlan v2",
+  "type": "object",
+  "required": [
+    "schema", "schemaVersion", "targetId", "modelId", "modelIRHash", "executionGraphHash",
+    "programBundleHash", "capabilityPredicate", "dtypes", "fusions", "kernelClosure",
+    "memoryLayout", "phases", "qualification", "initialExecutionIdentity"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.target-plan/v2" },
+    "schemaVersion": { "const": 2 },
+    "targetId": { "type": "string", "minLength": 1 },
+    "modelId": { "type": "string", "minLength": 1 },
+    "modelIRHash": { "$ref": "#/$defs/digest" },
+    "executionGraphHash": { "$ref": "#/$defs/digest" },
+    "programBundleHash": { "$ref": "#/$defs/digest" },
+    "capabilityPredicate": { "type": "object" },
+    "dtypes": { "type": "object" },
+    "fusions": { "type": "array", "items": { "type": "string" } },
+    "kernelClosure": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+    "memoryLayout": { "type": "object" },
+    "phases": { "type": "object", "required": ["prefill", "decode"] },
+    "qualification": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+    "initialExecutionIdentity": {
+      "type": "object",
+      "required": [
+        "schema", "executionGraphHash", "resolvedGraphHash", "kernelClosure", "kernelClosureHash",
+        "dtypeLane", "fusionSet", "fusionSetHash", "kvLayout", "kvLayoutHash", "memoryPolicy",
+        "memoryPolicyHash", "executionPlanDigest", "runtimeEngine", "runtimeEngineDigest", "digest"
+      ],
+      "properties": {
+        "schema": { "const": "doppler.initial-execution-identity/v1" },
+        "executionGraphHash": { "$ref": "#/$defs/digest" },
+        "resolvedGraphHash": { "$ref": "#/$defs/digest" },
+        "kernelClosure": { "type": "array", "minItems": 1 },
+        "kernelClosureHash": { "$ref": "#/$defs/digest" },
+        "dtypeLane": { "type": "object" },
+        "fusionSet": { "type": "array" },
+        "fusionSetHash": { "$ref": "#/$defs/digest" },
+        "kvLayout": { "type": "object" },
+        "kvLayoutHash": { "$ref": "#/$defs/digest" },
+        "memoryPolicy": { "type": "object" },
+        "memoryPolicyHash": { "$ref": "#/$defs/digest" },
+        "executionPlanDigest": { "$ref": "#/$defs/digest" },
+        "runtimeEngine": { "type": "object" },
+        "runtimeEngineDigest": { "$ref": "#/$defs/digest" },
+        "digest": { "$ref": "#/$defs/digest" }
+      }
+    }
+  },
+  "$defs": { "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" } }
+}

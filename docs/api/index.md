@@ -9,7 +9,8 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 
 ### Primary app-facing surface
 
-- [Root API](root.md) - `doppler-gpu`
+- [Pack Runtime API](root.md) - `doppler-gpu` and `doppler-gpu/runtime`
+- [Compatibility API](compat.md) - `doppler-gpu/compat`
 
 ### Exported advanced surfaces
 
@@ -52,6 +53,7 @@ Generated reference pages provide:
 ### Stable and preferred
 
 - `doppler-gpu`
+- `doppler-gpu/runtime`
 
 ### Tier1 advanced
 
@@ -61,6 +63,7 @@ Generated reference pages provide:
 
 ### Exported but experimental
 
+- `doppler-gpu/compat`
 - `doppler-gpu/orchestration`
 - `doppler-gpu/diffusion`
 - `doppler-gpu/energy`
