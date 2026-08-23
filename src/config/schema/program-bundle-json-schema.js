@@ -289,6 +289,7 @@ export const PROGRAM_BUNDLE_JSON_SCHEMA = Object.freeze({
         executionGraphHash: digest,
         surface: { type: ['string', 'null'] },
         generationConfig: { type: 'object' },
+        sourceParity: { type: ['object', 'null'] },
         prompt: { type: 'object' },
         output: { type: 'object' },
         tokens: { type: 'object' },

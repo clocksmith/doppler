@@ -125,6 +125,36 @@ function assertModelTopologyRepresentable(manifest) {
   }
 }
 
+function promoteQualifiedModelIRV2(modelIR, programBundle) {
+  const parity = programBundle.referenceTranscript?.sourceParity;
+  if (parity?.schema !== 'doppler.source-token-parity/v1' || parity.status !== 'passed'
+    || parity.prompt?.passed !== true || parity.generation?.passed !== true) {
+    throw new Error('Forge ModelIR v2 promotion requires exact passed source-token parity.');
+  }
+  const surface = programBundle.referenceTranscript?.surface;
+  if (typeof surface !== 'string' || !surface.endsWith('-webgpu') || surface.startsWith('unknown')) {
+    throw new Error('Forge ModelIR v2 promotion requires an explicit physical WebGPU surface.');
+  }
+  const entryPoints = modelIR.entryPoints.filter((entryPoint) => (
+    entryPoint.kind === 'generate'
+      && entryPoint.status === 'lowered'
+      && modelIR.supportScope.loweredEntryPoints.includes(entryPoint.id)
+  ));
+  if (entryPoints.length !== 1) {
+    throw new Error('Forge ModelIR v2 promotion requires exactly one lowered generate entry point.');
+  }
+  return {
+    ...structuredClone(modelIR),
+    supportScope: {
+      ...structuredClone(modelIR.supportScope),
+      qualifiedEntryPoints: [...new Set([
+        ...modelIR.supportScope.qualifiedEntryPoints,
+        entryPoints[0].id,
+      ])].sort(),
+    },
+  };
+}
+
 function normalizePackArtifact(artifact, input) {
   const sourcePath = resolveArtifactSourcePath(artifact, input);
   const packPath = resolveLogicalArtifactPath(artifact);
@@ -209,6 +239,7 @@ export async function stageInspect(input) {
       outputPath,
       qualificationEvidence: Array.isArray(input.qualificationEvidence) ? input.qualificationEvidence : [],
       modelIR: input.modelIR ?? null,
+      modelIREvidence: input.modelIREvidence ?? null,
       initialExecutionIdentity: input.initialExecutionIdentity ?? null,
     },
   };
@@ -228,6 +259,28 @@ export function stageNormalize(inspected) {
   const artifacts = bundle.artifacts.map((artifact) => normalizePackArtifact(artifact, input));
   const qualificationEvidence = input.qualificationEvidence.map(normalizeQualificationEvidence);
   artifacts.push(...qualificationEvidence.map((evidence) => evidence.artifact));
+  let modelIREvidenceArtifactId = null;
+  if (input.modelIREvidence !== null) {
+    const evidence = requireObject(input.modelIREvidence, 'ModelIR evidence');
+    const sourcePath = path.resolve(requireString(evidence.sourcePath, 'modelIREvidence.sourcePath'));
+    const hash = requireString(evidence.hash, 'modelIREvidence.hash');
+    const sizeBytes = requirePositiveInteger(evidence.sizeBytes, 'modelIREvidence.sizeBytes');
+    const packPath = toPosix(path.join(
+      'artifacts',
+      'evidence',
+      `model-ir-${hash.slice('sha256:'.length, 'sha256:'.length + 12)}.json`
+    ));
+    const artifact = {
+      artifactId: artifactId('source-truth-evidence', packPath, hash),
+      role: 'source-truth-evidence',
+      path: packPath,
+      hash,
+      sizeBytes,
+      sourcePath,
+    };
+    artifacts.push(artifact);
+    modelIREvidenceArtifactId = artifact.artifactId;
+  }
   const programBundleArtifact = {
     artifactId: artifactId('program-bundle', 'artifacts/program-bundle.json', `sha256:${sha256Hex(input.programBundleRaw)}`),
     role: 'program-bundle',
@@ -250,6 +303,7 @@ export function stageNormalize(inspected) {
     programBundleHash: programBundleArtifact.hash,
     artifacts,
     qualificationEvidence,
+    modelIREvidenceArtifactId,
     programBundleArtifactId: programBundleArtifact.artifactId,
   };
 }
@@ -268,8 +322,12 @@ export function stageAnalyze(normalized) {
         `Forge ModelIR modelId "${source.modelIR.modelId}" does not match manifest modelId "${manifest.modelId}".`
       );
     }
-    const sourceIdentity = source.modelIR.sourceIdentity;
+    let modelIR = source.modelIR;
+    const sourceIdentity = modelIR.sourceIdentity;
     if (source.modelIR.schema === 'doppler.model-ir/v2') {
+      if (!source.modelIREvidenceArtifactId) {
+        throw new Error('Forge ModelIR v2 requires packaged source-truth evidence.');
+      }
       const artifactIdentity = requireObject(manifest.artifactIdentity, 'manifest.artifactIdentity');
       const checkpointId = requireString(
         artifactIdentity.sourceCheckpointId,
@@ -288,12 +346,13 @@ export function stageAnalyze(normalized) {
         && sourceIdentity.revision !== artifactIdentity.sourceRevision) {
         throw new Error('Forge ModelIR revision does not match manifest artifact identity.');
       }
+      modelIR = promoteQualifiedModelIRV2(modelIR, source.programBundle);
     }
     return {
       stage: 'analyze',
       ok: true,
-      modelIR: source.modelIR,
-      modelIRHash: hashModelIR(source.modelIR),
+      modelIR,
+      modelIRHash: hashModelIR(modelIR),
       normalized: source,
     };
   }
@@ -718,6 +777,9 @@ export function stagePackage(qualified) {
       programBundleArtifactId: normalized.programBundleArtifactId,
       executionGraphHash: normalized.programBundle.execution.graphHash,
       manifestArtifactId: findIds('manifest')[0],
+      ...(normalized.modelIREvidenceArtifactId
+        ? { modelIREvidenceArtifactId: normalized.modelIREvidenceArtifactId }
+        : {}),
       tokenizerArtifactIds: findIds('tokenizer'),
       weightArtifactIds: findIds('weight-shard'),
       execution: normalized.programBundle.execution,

@@ -262,7 +262,7 @@ async function resolveSigner(options) {
   return { authority, privateKeyJwk, publicKeyJwk };
 }
 
-async function materializePackArtifactClosure(pack, sourceBundle, sourceBundlePath, repoRoot, outputPath, qualificationEvidence = []) {
+async function materializePackArtifactClosure(pack, sourceBundle, sourceBundlePath, repoRoot, outputPath, qualificationEvidence = [], modelIREvidence = null) {
   const outputRoot = path.dirname(path.resolve(outputPath));
   const remainingSources = sourceBundle.artifacts.map((artifact) => ({
     artifact,
@@ -278,6 +278,17 @@ async function materializePackArtifactClosure(pack, sourceBundle, sourceBundlePa
     sourcePath: evidence.sourcePath,
     used: false,
   })));
+  if (modelIREvidence) {
+    remainingSources.push({
+      artifact: {
+        role: 'source-truth-evidence',
+        hash: modelIREvidence.hash,
+        sizeBytes: modelIREvidence.sizeBytes,
+      },
+      sourcePath: modelIREvidence.sourcePath,
+      used: false,
+    });
+  }
   for (const artifact of pack.artifacts) {
     let sourcePath;
     if (artifact.role === 'program-bundle') {
@@ -326,13 +337,20 @@ export async function forgeModelPack(options) {
     source.bundle
   );
   let modelIR = null;
+  let modelIREvidence = null;
   if (options.modelIRReceiptPath) {
-    const modelIRReceipt = (await readJsonFile(options.modelIRReceiptPath, 'ModelIR receipt')).json;
+    const modelIRReceiptFile = await readJsonFile(options.modelIRReceiptPath, 'ModelIR receipt');
+    const modelIRReceipt = modelIRReceiptFile.json;
     if (!modelIRReceipt.modelIR || typeof modelIRReceipt.modelIR !== 'object'
       || Array.isArray(modelIRReceipt.modelIR)) {
       throw new Error('ModelIR receipt must contain a modelIR object.');
     }
     modelIR = modelIRReceipt.modelIR;
+    modelIREvidence = {
+      sourcePath: modelIRReceiptFile.path,
+      hash: `sha256:${createHash('sha256').update(modelIRReceiptFile.raw).digest('hex')}`,
+      sizeBytes: new TextEncoder().encode(modelIRReceiptFile.raw).byteLength,
+    };
   }
   let initialExecutionIdentity = null;
   if (options.initialExecutionIdentityPath) {
@@ -354,6 +372,7 @@ export async function forgeModelPack(options) {
     outputPath: path.resolve(options.outputPath),
     qualificationEvidence,
     modelIR,
+    modelIREvidence,
     initialExecutionIdentity,
   }, signer);
   await materializePackArtifactClosure(
@@ -362,7 +381,8 @@ export async function forgeModelPack(options) {
     source.bundlePath,
     repoRoot,
     options.outputPath,
-    qualificationEvidence
+    qualificationEvidence,
+    modelIREvidence
   );
   const written = await writePackV2(options.outputPath, pack);
   return {

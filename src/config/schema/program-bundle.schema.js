@@ -353,6 +353,21 @@ function validateReferenceTranscript(referenceTranscript, expectedGraphHash) {
     }
     assertNullableFiniteNumber(referenceTranscript.generationConfig.seed, 'referenceTranscript.generationConfig.seed');
   }
+  if (referenceTranscript.sourceParity !== undefined && referenceTranscript.sourceParity !== null) {
+    const sourceParity = referenceTranscript.sourceParity;
+    assertPlainObject(sourceParity, 'referenceTranscript.sourceParity');
+    if (sourceParity.schema !== 'doppler.source-token-parity/v1' || sourceParity.status !== 'passed') {
+      throw new Error('program bundle: referenceTranscript.sourceParity must be a passed v1 source-token receipt.');
+    }
+    for (const field of ['prompt', 'generation']) {
+      assertPlainObject(sourceParity[field], `referenceTranscript.sourceParity.${field}`);
+      if (sourceParity[field].passed !== true
+        || sourceParity[field].firstMismatchIndex !== null
+        || sourceParity[field].expectedCount !== sourceParity[field].observedCount) {
+        throw new Error(`program bundle: referenceTranscript.sourceParity.${field} must prove exact parity.`);
+      }
+    }
+  }
 
   assertPlainObject(referenceTranscript.source, 'referenceTranscript.source');
   assertString(referenceTranscript.source.kind, 'referenceTranscript.source.kind');

@@ -617,6 +617,12 @@
         "generationConfig": {
           "type": "object"
         },
+        "sourceParity": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
         "prompt": {
           "type": "object"
         },

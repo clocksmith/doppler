@@ -61,6 +61,16 @@ export interface ProgramBundleReferenceTranscript {
     useChatTemplate: boolean;
     [key: string]: unknown;
   };
+  sourceParity?: {
+    schema: 'doppler.source-token-parity/v1';
+    status: 'passed';
+    expectedTranscriptPath: string;
+    sourceModel: string | null;
+    sourceRevision: string | null;
+    sampling: string | null;
+    prompt: { passed: true; expectedCount: number; observedCount: number; firstMismatchIndex: null };
+    generation: { passed: true; expectedCount: number; observedCount: number; firstMismatchIndex: null };
+  } | null;
   prompt: {
     identity: string;
     hash: string;

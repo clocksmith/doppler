@@ -80,6 +80,13 @@ they cannot be promoted as semantic truth.
 lineage template is reused. Template reuse is permitted only after explicit
 compatibility assertions pass against current source facts.
 
+The source receipt retains the upstream semantic model identity. A lineage
+receipt derives a Pack-bound ModelIR copy whose `modelId` identifies the
+materialized artifact while `sourceIdentity` and every semantic fact remain
+unchanged. Forge packages that receipt as `source-truth-evidence`, binds its
+artifact ID into the Pack program, and verifies its bytes with the rest of the
+artifact closure.
+
 ## Complete source topology and partial Pack scope
 
 Forge preserves everything the source checkpoint contains. Product support is
@@ -94,6 +101,11 @@ represented separately:
 A text-only Pack may therefore represent perception and drafter components
 while leaving their entry points unlowered. It may claim `text.generate`; it
 may not claim complete multimodal or speculative support.
+
+Forge promotes `qualifiedEntryPoints` only after a Program Bundle carries a
+passed, exact source-token receipt on an explicit physical WebGPU surface. The
+promotion requires exactly one lowered generation entry point, so evidence for
+one path cannot silently qualify another.
 
 ## Lowering and promotion
 
