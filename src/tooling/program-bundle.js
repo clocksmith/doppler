@@ -540,7 +540,7 @@ async function buildHostContract(host = {}, repoRoot) {
     const packageFile = createPackageSourceFile({
       role: 'host-source',
       id: entrypoint.id,
-      extension: 'mjs',
+      extension: 'js',
       source,
     });
     packageFiles.push(packageFile);

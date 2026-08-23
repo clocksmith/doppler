@@ -218,7 +218,7 @@ assert.equal(closed.ok, true);
 assert.equal(closed.files.length, written.bundle.package.files.length);
 assert.ok(closed.files.some((file) => file.role === 'wgsl-source'));
 assert.ok(closed.files.some((file) => file.role === 'host-source'));
-assert.ok(written.bundle.host.entrypoints[0].module.endsWith('.mjs'));
+assert.ok(written.bundle.host.entrypoints[0].module.endsWith('.js'));
 
 const tamperedFile = closed.files.find((file) => file.role === 'wgsl-source');
 await fs.appendFile(tamperedFile.absolutePath, '// tampered\n', 'utf8');
