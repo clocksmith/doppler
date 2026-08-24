@@ -1,0 +1,933 @@
+{
+  "schemaVersion": 1,
+  "invariant": "INV-COMPUTE-008",
+  "categories": [
+    {
+      "id": "artifact-construction",
+      "runtimeTensorCompute": false,
+      "description": "Deterministic Forge or converter construction before Pack signing."
+    },
+    {
+      "id": "artifact-codec-materialization",
+      "runtimeTensorCompute": false,
+      "description": "Descriptor-bound byte decoding or materialization before model execution."
+    },
+    {
+      "id": "host-input-preprocessing",
+      "runtimeTensorCompute": false,
+      "description": "Application input conversion before creation of a runtime model tensor."
+    },
+    {
+      "id": "scalar-control",
+      "runtimeTensorCompute": false,
+      "description": "Explicit scalar sampling or control-plane computation after readback."
+    },
+    {
+      "id": "observation",
+      "runtimeTensorCompute": false,
+      "description": "Evidence or diagnostics that cannot feed a modified tensor into execution."
+    },
+    {
+      "id": "gpu-orchestration",
+      "runtimeTensorCompute": false,
+      "description": "Typed resource metadata, uniforms, offsets, or copies without tensor arithmetic."
+    },
+    {
+      "id": "reference",
+      "runtimeTensorCompute": false,
+      "description": "Deterministic test or quarantined reference implementation unavailable to production execution."
+    },
+    {
+      "id": "quarantined-experimental",
+      "runtimeTensorCompute": false,
+      "description": "Numerical prototype isolated from every production owner and excluded from Pack Runtime support claims."
+    },
+    {
+      "id": "non-tensor-data",
+      "runtimeTensorCompute": false,
+      "description": "Typed-array manipulation of protocol, cryptographic, token, or metadata bytes rather than model tensors."
+    },
+    {
+      "id": "runtime-tensor-compute",
+      "runtimeTensorCompute": true,
+      "description": "Forbidden model-runtime tensor arithmetic or tensor-layout transformation implemented in JavaScript."
+    }
+  ],
+  "reviews": [
+    {
+      "id": "src/client/runtime/session-controller.js#applyRepetitionPenalty",
+      "category": "scalar-control",
+      "reason": "Pack sampling is an explicitly contracted scalar control-plane operation performed after declared logit readback."
+    },
+    {
+      "id": "src/client/runtime/session-controller.js#samplePackLogits",
+      "category": "scalar-control",
+      "reason": "Pack sampling is an explicitly contracted scalar control-plane operation performed after declared logit readback."
+    },
+    {
+      "id": "src/client/wrap-pipeline-handle.js#normalizeDreamLayerMap",
+      "category": "non-tensor-data",
+      "reason": "This compatibility adapter normalizes declared layer metadata and byte views without executing model tensor arithmetic."
+    },
+    {
+      "id": "src/converter/core.js#buildTensorMap",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/core.js#convertModel",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/core.js#appendTensorBytes",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/quantizer.js#quantizeToQ4KMRowWise",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/quantizer.js#dequantizeQ4KMRowWise",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/safetensors-header-evidence.js#parseSafetensorsHeaderEvidence",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/safetensors-header-evidence.js#validateSafetensorsIndexEvidence",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/safetensors-header-evidence.js#materializeSafetensorsHeaderEvidence",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/shard-packer.js#ShardPacker.#buildGroups",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/tensor-transform.js#toFloat32ForQ4K",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/tensor-transform.js#toFloat32FromTensor",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/converter/tensor-transform.js#transformTensorBytes",
+      "category": "artifact-construction",
+      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+    },
+    {
+      "id": "src/debug/tensor.js#inspect",
+      "category": "observation",
+      "reason": "This diagnostic symbol reads or formats tensor evidence and cannot feed a modified tensor back into model execution."
+    },
+    {
+      "id": "src/debug/tensor.js#snapshotFromArray",
+      "category": "observation",
+      "reason": "This diagnostic symbol reads or formats tensor evidence and cannot feed a modified tensor back into model execution."
+    },
+    {
+      "id": "src/experimental/adapters/adapter-manager.js#AdapterManager.#mergeByWeightedSum",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/adapters/adapter-manager.js#AdapterManager.#applyWeight",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/adapters/lora-loader.js#loadLoRAWeights",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/adapters/lora-loader.js#loadLoRAFromManifest",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/adapters/lora-loader.js#loadLoRAFromSafetensors",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/browser/gguf-importer.js#streamToShards",
+      "category": "artifact-construction",
+      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+    },
+    {
+      "id": "src/experimental/browser/gguf-importer.js#buildTensorLocations",
+      "category": "artifact-construction",
+      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+    },
+    {
+      "id": "src/experimental/browser/quantization.js#decodeFloat32Chunks",
+      "category": "artifact-construction",
+      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+    },
+    {
+      "id": "src/experimental/browser/quantization.js#createQ4KChunkStream",
+      "category": "artifact-construction",
+      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+    },
+    {
+      "id": "src/experimental/browser/quantization.js#createF16ChunkStream",
+      "category": "artifact-construction",
+      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+    },
+    {
+      "id": "src/experimental/browser/safetensors-parser-browser.js#parseSafetensorsSharded",
+      "category": "artifact-construction",
+      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+    },
+    {
+      "id": "src/experimental/training/attention-backward.js#computeAttentionBackwardData",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/autograd.js#computeSiluGatedBackwardValues",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/autograd.js#AutogradTape.runBackward",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/autograd.js#AutogradTape.runSiluRowsplitBackwardCpu",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/clip.js#clipGradients",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/datasets/token-batch.js#flattenTokenBatch",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/distillation/student-fixture/model.js#buildStudentEmbeddingInput",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/export.js#serializeLoRASafetensors",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/lora/recovery.js#assertCausalLmTensorCoverage",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/lora-pipeline.js#batches",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/objectives/distill_kd.js#softmax",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/objectives/distill_kd.js#normalizeProbRow",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/objectives/distill_kd.js#gatherStudentLogitsRow",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/objectives/distill_kd.js#computeLoss",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/objectives/distill_triplet.js#computeLoss",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/qwen-gated-delta-reference.js#gatedDeltaRecurrentCheckpointedBackward",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/qwen-linear-attention-reference.js#causalConvSiluForward",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/qwen-linear-attention-reference.js#causalConvSiluBackward",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/qwen-linear-attention-reference.js#gatedRmsNormForward",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/qwen-linear-attention-reference.js#gatedRmsNormBackward",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/qwen-linear-attention-reference.js#l2NormalizeBackward",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/runner/lifecycle.js#selectTrainableParamGroups",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/runner.js#collectObjectiveMetrics",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/runner.js#createTrainingCheckpointPayload",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/suite/plan.js#selectTopKIndices",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/suite/plan.js#gatherLogitsByIndices",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/suite/plan.js#softmax",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/suite/plan.js#batches",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/suite/plan.js#loadDistillDatasetFromJsonl",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/trainer.js#selectTrainableParamGroups",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/trainer.js#trainStep",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/experimental/training/ul_dataset.js#buildNoisyLatentsFromInputTensor",
+      "category": "quarantined-experimental",
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+    },
+    {
+      "id": "src/formats/gguf/types.js#detectQuantization",
+      "category": "non-tensor-data",
+      "reason": "This symbol decodes or assembles format, integrity, or protocol metadata bytes and does not execute a model tensor operation."
+    },
+    {
+      "id": "src/formats/gguf/types.js#parseGGUF",
+      "category": "non-tensor-data",
+      "reason": "This symbol decodes or assembles format, integrity, or protocol metadata bytes and does not execute a model tensor operation."
+    },
+    {
+      "id": "src/formats/gguf/types.js#groupTensorsByLayer",
+      "category": "non-tensor-data",
+      "reason": "This symbol decodes or assembles format, integrity, or protocol metadata bytes and does not execute a model tensor operation."
+    },
+    {
+      "id": "src/formats/rdrr/integrity.js#readLeafHashesForTensor",
+      "category": "non-tensor-data",
+      "reason": "This symbol decodes or assembles format, integrity, or protocol metadata bytes and does not execute a model tensor operation."
+    },
+    {
+      "id": "src/formats/rdrr/integrity.js#buildIntegrityExtensions",
+      "category": "non-tensor-data",
+      "reason": "This symbol decodes or assembles format, integrity, or protocol metadata bytes and does not execute a model tensor operation."
+    },
+    {
+      "id": "src/formats/rdrr/merkle.js#digestHexToBytes",
+      "category": "non-tensor-data",
+      "reason": "This symbol decodes or assembles format, integrity, or protocol metadata bytes and does not execute a model tensor operation."
+    },
+    {
+      "id": "src/formats/safetensors/types.js#groupTensorsByLayer",
+      "category": "non-tensor-data",
+      "reason": "This symbol decodes or assembles format, integrity, or protocol metadata bytes and does not execute a model tensor operation."
+    },
+    {
+      "id": "src/gpu/kernels/logit-merge.js#LogitMergeKernel.init",
+      "category": "gpu-orchestration",
+      "reason": "The wrapper packs caller-declared GPU input bindings into staging metadata; the registered WGSL program performs logit arithmetic."
+    },
+    {
+      "id": "src/gpu/kernels/turboquant-codebook.js#generateRotationMatrix",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/browser-harness/text-evidence.js#groupDecodeRecordOpLabels",
+      "category": "observation",
+      "reason": "The browser harness groups execution receipt counters for evidence and does not alter any runtime tensor."
+    },
+    {
+      "id": "src/inference/browser-harness/text-input.js#decodeBase64ToBytes",
+      "category": "host-input-preprocessing",
+      "reason": "The browser harness decodes application-supplied image or protocol bytes before creating a runtime model tensor."
+    },
+    {
+      "id": "src/inference/browser-harness/text-input.js#normalizeRawImageBytes",
+      "category": "host-input-preprocessing",
+      "reason": "The browser harness decodes application-supplied image or protocol bytes before creating a runtime model tensor."
+    },
+    {
+      "id": "src/inference/moe-router.js#MoERouter.computeRouterLogitsCPU",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/moe-router.js#MoERouter.softmax",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/moe-router.js#MoERouter.selectExpertsForToken",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/moe-router.js#MoERouter.computeLoadBalanceLoss",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/moe-router.js#createExpertExecutionPlan",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/moe-router.js#combineExpertOutputs",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/multi-model-network.js#buildAgreementWeights",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/multi-model-network.js#mergeLogitsCpu",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/multi-model-network.js#MultiModelNetwork.executeBatch",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/multi-model-network.js#MultiModelNetwork.generateWithABE",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/multi-model-network.js#MultiModelNetwork.combineOutputs",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/multi-model-network.js#MultiModelNetwork.executeGenome",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/multi-model-network.js#MultiModelNetwork.executeGraph",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/audio/gemma4.js#runConformerFFN",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/audio/gemma4.js#runConformerAttention",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/audio/gemma4.js#runConformerConvModule",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/audio/gemma4.js#encodeGemma4Audio",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/audio/mel.js#melFilterBank",
+      "category": "host-input-preprocessing",
+      "reason": "Audio samples are transformed into the manifest-declared model input representation before runtime tensor execution begins."
+    },
+    {
+      "id": "src/inference/pipelines/audio/mel.js#extractLogMelSpectrogram",
+      "category": "host-input-preprocessing",
+      "reason": "Audio samples are transformed into the manifest-declared model input representation before runtime tensor execution begins."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion/pipeline.js#generateLatents",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion/pipeline.js#generateNoiseVector",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion/pipeline.js#readTensorToFloat32",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion/pipeline.js#DiffusionPipeline.ensureTextEncoderWeights",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion/pipeline.js#DiffusionPipeline.generateGPU",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion/scheduler.js#stepScmScheduler",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion/text-encoder-gpu.js#runClipTextEncoder",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion/text-encoder-gpu.js#buildTimestepEmbedding",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion/vae.js#decodeLatentsGPU",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion-gemma/pipeline.js#DiffusionGemmaPipeline.generateTokenIds",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion-gemma/sampling.js#softmaxStats",
+      "category": "scalar-control",
+      "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion-gemma/sampling.js#applyEntropyBoundStep",
+      "category": "scalar-control",
+      "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/inference/pipelines/diffusion-gemma/sampling.js#applyEntropyBoundStatsStep",
+      "category": "scalar-control",
+      "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/inference/pipelines/energy/pipeline.js#generateRandomArray",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/energy/quintel.js#computeQuintelEnergy",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/energy/quintel.js#runQuintelEnergyLoop",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/energy-head/row-head-pipeline.js#scoreRowCpu",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/embed.js#decodeRangeChunkIntoOutput",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/embed.js#embed",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/embedding-pooling.js#poolSequenceTokenEmbeddings",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/execution.js#embedImage",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/execution.js#embedAudio",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/generator/decode.js#runDecodeLayers",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/generator/decode.js#decodeStep",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/generator/prefill-runtime.js#_prefill",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/generator/training.js#prefillWithTokenLogits",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/generator/training.js#prefillWithTokenLogitsFromKV",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/generator-runtime.js#extractTokenEmbeddingsFromHidden",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/generator-runtime.js#extractEmbeddingFromHidden",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/generator-steps.js#generateNTokensGPU",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/init-rope.js#computeRoPEFreqsForTheta",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/init.js#loadWeights",
+      "category": "gpu-orchestration",
+      "reason": "This symbol assembles declared weight or state buffer resources without performing model tensor arithmetic."
+    },
+    {
+      "id": "src/inference/pipelines/text/lifecycle.js#_initConvLayerStates",
+      "category": "gpu-orchestration",
+      "reason": "This symbol assembles declared weight or state buffer resources without performing model tensor arithmetic."
+    },
+    {
+      "id": "src/inference/pipelines/text/linear-attention/plan.js#readWeightAsF32",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/linear-attention/plan.js#createLayerRuntimeState",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/logits/cpu-output.js#extractLastPositionLogits",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/logits/cpu-output.js#finalizeLogits",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/logits/cpu.js#rmsNormCPU",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/logits/cpu.js#layerNormCPU",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/logits/cpu.js#matmulCPU",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/logits/cpu.js#applySoftcapping",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/logits/index.js#applyLmHeadBias",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/logits/index.js#computeLogits",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/logits/plan.js#readTypedLmHeadChunk",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/moe/cpu-routing.js#gatherTokens",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/moe/plan.js#buildActiveExpertScheduleFromIndices",
+      "category": "scalar-control",
+      "reason": "The symbol converts GPU-selected expert indices into an execution schedule; expert tensor arithmetic remains in WGSL."
+    },
+    {
+      "id": "src/inference/pipelines/text/moe-cpu.js#moeFeedForwardCPU",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/per-layer/materialize.js#scalePerLayerProjectionNormWeights",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/per-layer/materialize.js#ensurePleGpuSplitTablesRuntime",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/per-layer/materialize.js#ensurePleGpuHotVocabularyRuntime",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/per-layer-inputs.js#preparePerLayerInputs",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/text/probes.js#readTokenRow",
+      "category": "observation",
+      "reason": "This symbol records or decodes bounded diagnostic evidence and cannot feed modified tensor values back into execution."
+    },
+    {
+      "id": "src/inference/pipelines/text/sampling.js#applyRepetitionPenalty",
+      "category": "scalar-control",
+      "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/inference/pipelines/text/sampling.js#softmax",
+      "category": "scalar-control",
+      "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/inference/pipelines/text/sampling.js#selectTopKLogitCandidates",
+      "category": "scalar-control",
+      "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/inference/pipelines/text/sampling.js#sample",
+      "category": "scalar-control",
+      "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/inference/pipelines/text/tsir-fixture-writer.js#trackQkvPartialAndMaybeWrite",
+      "category": "observation",
+      "reason": "This symbol records or decodes bounded diagnostic evidence and cannot feed modified tensor values back into execution."
+    },
+    {
+      "id": "src/inference/pipelines/vision/gemma4.js#resizeImageToRgbFloat32",
+      "category": "host-input-preprocessing",
+      "reason": "Application image pixels are resized or normalized before creation of the manifest-declared runtime input tensor."
+    },
+    {
+      "id": "src/inference/pipelines/vision/gemma4.js#preprocessGemma4Image",
+      "category": "host-input-preprocessing",
+      "reason": "Application image pixels are resized or normalized before creation of the manifest-declared runtime input tensor."
+    },
+    {
+      "id": "src/inference/pipelines/vision/gemma4.js#encodeGemma4Image",
+      "category": "runtime-tensor-compute",
+      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+    },
+    {
+      "id": "src/inference/pipelines/vision/image-preprocess.js#preprocessImage",
+      "category": "host-input-preprocessing",
+      "reason": "Application image pixels are resized or normalized before creation of the manifest-declared runtime input tensor."
+    },
+    {
+      "id": "src/inference/speculative.js#SpeculativeDecoder.sampleToken",
+      "category": "scalar-control",
+      "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/inference/speculative.js#SpeculativeDecoder.logSoftmax",
+      "category": "scalar-control",
+      "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/inference/speculative.js#SpeculativeDecoder.sampleFromResidual",
+      "category": "scalar-control",
+      "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/loader/experts/expert-loader.js#downcastExpertWeights",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/layer-loader.js#cloneWeightMaterializations",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/layer-loader.js#dequantConvQ4KWeights",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/model-executor.js#_assertDescriptorHash",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/model-executor.js#_assembleShardData",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/tensors/functional-descriptor-loader.js#cropMatrix",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/tensors/functional-descriptor-loader.js#loadFunctionalDescriptor",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/tensors/source-transform.js#materializeTensorSourceTransform",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/tensors/tensor-loader.js#readW4A16Scales",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/tensors/tensor-loader.js#dequantizeW4A16ToF16",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/tensors/tensor-reader.js#assembleLocationBytes",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/tensors/tensor-reader.js#loadLocationRange",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/tensors/tensor-reader.js#assembleShardData",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/loader/tensors/tensor-reader.js#loadTensorRange",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/tooling/litert-package-runtime.js#collectGemma412BLayerScalarTensors",
+      "category": "artifact-codec-materialization",
+      "reason": "The tooling surface parses descriptor-bound LiteRT package bytes before constructing a runtime model contract."
+    },
+    {
+      "id": "src/tooling/litert-package-runtime.js#parseLiteRTLMPackage",
+      "category": "artifact-codec-materialization",
+      "reason": "The tooling surface parses descriptor-bound LiteRT package bytes before constructing a runtime model contract."
+    },
+    {
+      "id": "src/tooling/node-convert-worker-pool.js#NodeConvertWorkerPool.#dispatch",
+      "category": "artifact-construction",
+      "reason": "Node conversion tooling transports and constructs deterministic artifact data before Pack signing."
+    },
+    {
+      "id": "src/tooling/node-converter/input.js#tensorTransformer",
+      "category": "artifact-construction",
+      "reason": "Node conversion tooling transports and constructs deterministic artifact data before Pack signing."
+    },
+    {
+      "id": "src/tooling/precision-replay-math.js#tree64DotF32",
+      "category": "reference",
+      "reason": "Precision replay is an offline deterministic evidence/reference calculation and is unavailable to Pack Runtime execution."
+    },
+    {
+      "id": "src/tooling/precision-replay-math.js#buildModeScoreMaps",
+      "category": "reference",
+      "reason": "Precision replay is an offline deterministic evidence/reference calculation and is unavailable to Pack Runtime execution."
+    }
+  ]
+}

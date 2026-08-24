@@ -24,11 +24,13 @@ See also: [INDEX.md](INDEX.md)
 
 The mainline product/technical goals are defined in [goals.md](goals.md):
 
-1. make local WebGPU inference a real product surface,
-2. own the model artifact and runtime contract,
-3. make correctness, performance, and support evidence-backed,
-4. reduce release-to-JavaScript through source-truth Forge automation without
-   moving creative decisions into Runtime.
+1. ship an external Electron production release whose eligibility decision is
+   delegated to Doppler and relied upon by the customer's activation system;
+2. own the model artifact and runtime contract; and
+3. make correctness, performance, and support evidence-backed.
+
+Source-truth Forge automation and an uncreative Pack Runtime are the
+architecture used to deliver those goals, not a separate portfolio objective.
 
 Architecture changes should map to one of those goals or stay clearly marked as
 experimental/internal in the subsystem support matrix.
@@ -166,7 +168,10 @@ Behavior-changing choices must be fully represented before dispatch:
 - No implicit runtime detection from model names at execution time.
 - No hidden policy branching in WGSL.
 - No implicit defaults for capability fallback; unresolved decisions fail fast.
-- No tensor mathematics or tensor-layout transforms in JavaScript.
+- No model-runtime tensor mathematics or tensor-layout transforms in
+  JavaScript. Reviewed Forge construction, artifact codecs/materialization,
+  host input preprocessing, scalar control, observation, and reference code
+  remain separate boundaries and cannot act as runtime fallbacks.
 - No inferred semantic geometry; dimensions required for execution are declared
   by ModelIR/TargetPlan or resolved manifest/session contracts.
 
