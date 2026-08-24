@@ -1,7 +1,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 import {
   freezePackV2,
   hashPackV2,

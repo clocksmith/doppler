@@ -1,7 +1,7 @@
 import { createDopplerConfig, DEFAULT_TRAINING_SETTINGS } from './schema/index.js';
 import { validateDistillTrainingConfig } from './schema/distill-training.schema.js';
 import { validateUlTrainingConfig } from './schema/ul-training.schema.js';
-import { cloneJsonValue as cloneConfigTree } from '../utils/clone-json.js';
+import { cloneJsonValue as cloneConfigTree } from '../formats/clone-json.js';
 
 function mergeTrainingSettings(base, overrides) {
   const baseConfig = cloneConfigTree(base);

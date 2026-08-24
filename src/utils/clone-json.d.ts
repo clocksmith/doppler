@@ -1,1 +1,1 @@
-export declare function cloneJsonValue<T>(value: T): T;
+export { cloneJsonValue } from '../formats/clone-json.js';

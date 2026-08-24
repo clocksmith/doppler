@@ -42,7 +42,7 @@ import {
 import { fuseQKVWeights } from './init-qkv-fusion.js';
 import { rewriteWeightLoadError } from './load-errors.js';
 import { resolveWeightLoadingConfig } from './weight-loading-config.js';
-import { toArrayBuffer } from '../../../utils/array-buffer.js';
+import { toArrayBuffer } from '../../../formats/array-buffer.js';
 
 // Re-exports for backwards compatibility
 export { initRoPEFrequencies, isGPURoPEBuffers } from './init-rope.js';

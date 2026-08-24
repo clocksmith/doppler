@@ -1,4 +1,4 @@
-import { loadJson } from '../utils/load-json.js';
+import { loadJson } from '../formats/load-json.js';
 import { validateBackwardRegistry } from './schema/backward-registry.schema.js';
 
 function deepFreeze(value, seen = new WeakSet()) {

@@ -1,5 +1,5 @@
-import { isPlainObject } from '../utils/plain-object.js';
-import { cloneJsonValue as cloneCommandValue } from '../utils/clone-json.js';
+import { isPlainObject } from '../formats/plain-object.js';
+import { cloneJsonValue as cloneCommandValue } from '../formats/clone-json.js';
 import {
   DISTILL_ACTION_SET,
   LORA_ACTION_SET,

@@ -7,7 +7,7 @@ import {
   DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION,
   getSourceRuntimeMetadata,
 } from './source-runtime-bundle.js';
-import { cloneJsonValue } from '../utils/clone-json.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
 
 function toRelativeArtifactPath(value, artifactDir, label) {
   const raw = String(value || '').trim();

@@ -11,16 +11,16 @@
  */
 
 // GGUF format
-export * as gguf from './gguf/index.js';
+export * as gguf from './gguf/types.js';
 
 // SafeTensors format
-export * as safetensors from './safetensors/index.js';
+export * as safetensors from './safetensors/types.js';
 
 // TFLite / LiteRT flatbuffer format
-export * as tflite from './tflite/index.js';
+export * as tflite from './tflite/types.js';
 
 // LiteRT package containers (.task / .litertlm)
-export * as litert from './litert/index.js';
+export * as litert from './litert/types.js';
 
 // RDRR format
 export * as rdrr from './rdrr/index.js';
@@ -35,7 +35,7 @@ export type {
   GGUFConfig,
   GGUFTokenizer,
   ParsedGGUF,
-} from './gguf/index.js';
+} from './gguf/types.js';
 
 export type {
   SafetensorsTensor,
@@ -44,14 +44,14 @@ export type {
   ParsedSafetensorsHeader,
   SafetensorsDtype,
   SafetensorsDType,
-} from './safetensors/index.js';
+} from './safetensors/types.js';
 
 export type {
   ParsedTFLite,
   TFLiteTensor,
   TFLiteSource,
   TFLiteTensorTypeId,
-} from './tflite/index.js';
+} from './tflite/types.js';
 
 export type {
   LiteRTSource,
@@ -60,7 +60,7 @@ export type {
   LiteRTLMSectionItem,
   LiteRTLMSection,
   ParsedLiteRTLM,
-} from './litert/index.js';
+} from './litert/types.js';
 
 export type {
   RDRRManifest,

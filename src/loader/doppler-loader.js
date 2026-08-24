@@ -49,7 +49,7 @@ import { loadEmbeddings } from './embedding-loader.js';
 import { loadPerLayerInputWeights } from './per-layer-input-loader.js';
 import { loadLayer } from './layer-loader.js';
 import { loadFinalWeights } from './final-weights-loader.js';
-import { cloneJsonValue } from '../utils/clone-json.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
 import { assertFunctionalDescriptorManifest } from '../formats/rdrr/functional-descriptor.js';
 import {
   loadExpert as loadExpertFromModule,

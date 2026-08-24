@@ -1,4 +1,4 @@
-import { cloneJsonValue as cloneThresholdTree } from '../../utils/clone-json.js';
+import { cloneJsonValue as cloneThresholdTree } from '../../formats/clone-json.js';
 
 // =============================================================================
 // Matmul Thresholds

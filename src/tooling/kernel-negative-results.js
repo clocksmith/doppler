@@ -1,4 +1,4 @@
-import { cloneJsonValue } from '../utils/clone-json.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
 
 export const KERNEL_NEGATIVE_RESULTS_SCHEMA = 'doppler.kernel-negative-results/v1';
 

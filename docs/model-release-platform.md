@@ -1,69 +1,111 @@
-# Doppler model release platform
+# Doppler Production Release platform
 
-Doppler's standalone product is the release platform for local models in
-JavaScript. The supported unit is an immutable Model Pack plus its qualified
-application and target evidence—not a model that merely loads and not a runtime
-benchmark in isolation.
+Doppler is an AI-native model release foundry for JavaScript and WebGPU. Its
+initial product contract is deliberately narrow:
+
+- Entry product: **Doppler Production Release**.
+- Recurring product: **Doppler Release Operations**.
+- Initial ICP: **TypeScript/Electron desktop products on Windows and macOS**.
+- North star: **Production model releases whose eligibility decision is
+  delegated to Doppler and relied upon by the customer’s activation system.**
+
+Doppler signs an `eligible` or `blocked` recommendation. The customer’s updater,
+deployment system, feature flag, or administrator retains authority to activate
+and roll back the release. Doppler tooling and its GitHub Action must never
+self-promote or deploy the customer application.
 
 The validated contract is
-`tools/policies/model-release-platform.json`. It records the Forge/Pack/Runtime
-boundary, model-neutral ModelIR obligations, complete Pack target, provider
-neutrality, Pack-first API migration, recovery obligations, commercial offer,
-promotion sequence, compatibility graph, custody boundary, and explicit gaps.
-`npm run model-release:check` rejects drift between that contract and the goal
-completion matrix.
+`tools/policies/model-release-platform.json`. `npm run model-release:check`
+binds that policy to the goal matrix and verifies the Forge/Pack/Runtime split,
+the seven Pack release requirements, provider neutrality, Pack-first migration,
+recovery, commercial boundary, and ordered promotion gates. A passing check
+means the contract describes its gaps honestly; it does not establish external
+adoption or production authority.
 
-## Standalone offer
+## Entry and recurring products
 
-The first paid offer is **Model Release Qualification**:
+For one Doppler Production Release, a customer supplies:
 
-> Give Doppler one pinned model and one real application. Receive a signed Pack,
-> declared browser and Node qualification, known exclusions, and supported
-> upgrade, rollback, requalification, and revocation procedures.
+- a pinned model revision, source and licence facts;
+- a pinned Electron application revision and application-owned acceptance tests;
+- an explicit workload and oracle identity;
+- a supported Windows/macOS device policy, including Electron, GPU, and driver
+  constraints;
+- the incumbent provider control and data-custody rules;
+- the previous working release, rollout rules, and rollback target.
 
-Generation, embedding, and reranking are the first application classes. The
-free SDK, verifier, schemas, Forge tooling, and public examples create adoption.
-Paid surfaces are private Packs, qualification campaigns, supported matrices,
-private registries, recurring upgrades, incident response, tuning, and ongoing
-release maintenance.
+Doppler returns an immutable Pack, a signed eligible-or-blocked release decision,
+qualification receipts, typed exclusions, retained failure evidence, the
+previous working Pack and rollback target, and revocation configuration.
+Doppler Release Operations repeats that process for upgrades, requalification,
+incidents, revocation, and support-fleet changes.
 
-Commercial promotion remains unestablished. It requires an external application
-to accept a qualified Pack, later accept an upgrade through the same process,
-and depend on Doppler's qualification or revocation decision. An internal Pack
-proof cannot satisfy that gate.
+The immediate reference episode is an Electron document-search application
+upgrading to `qwen-3-reranker-0-6b-q4k-ehf16-af32`. It is a checked-in acceptance
+fixture, not evidence of external demand.
 
-## Honest implementation boundary
+## Internal evidence and external proof
 
-Pack v2, `openPack()`, the dual-hexagon split, source-proven ModelIR machinery,
-qualified TargetPlan selection, semantic hashing, signing, artifact validation,
-and physical execution are implemented in bounded lanes. The contract also
-records three unfinished groups:
+Reploid generation, Dream embedding retrieval, and Columbo reranking are:
 
-- Pack closure still needs complete source/license, workload/oracle, exclusion,
-  supersession/migration, upgrade preservation, and portable snapshot identity.
-- The OpenAI-compatible server and lower-level generation, embedding, and
-  reranking surfaces have not converged on one Pack-authoritative path.
-- No external team has completed and repeated the paid release qualification.
+> Internally controlled reference integrations proving application-integration
+> mechanics.
 
-These gaps are rows and blockers in
-`src/config/goal-completion-matrix.json`. A passing contract check proves they
-are accurately wired; it does not mark them complete.
+Their 3/3 qualification establishes neither external adoption nor commercial
+demand. Commercial proof requires one paid external Electron release whose
+customer activation system relies on Doppler’s eligibility decision, followed
+by a subsequent upgrade through the same process. Two additional unrelated
+customers must then repeat the path.
 
-## Provider hedge
+## Pack release closure
 
-Runtime selects only prequalified TargetPlans and cannot invent a plan on the
-user's device. Doe is an optional provider, never a dependency. Dawn, ONNX
-Runtime, WebNN, vendor-native paths, and a CPU reference may be qualified when
-they best satisfy the application contract. Provider availability alone never
-authorizes fallback.
+The immutable Pack is the supported release unit. Pack v2 now binds and rejects
+drift across all seven release elements:
 
-## Data and acquisition boundary
+1. Source revision, licence, and provenance.
+2. Application workload and oracle identities.
+3. Known exclusions and typed rejections.
+4. Version supersession and migration.
+5. Revocation policy.
+6. Failed-upgrade preservation.
+7. Portable state-snapshot identity.
 
-Customer-private models, inputs, outputs, and application facts remain isolated
-without explicit authority. Shared learning is limited to sanitized failure
+Complete immutable release binding is the enclosing requirement, not an eighth
+element. This closes the repository Pack representation; it does not qualify a
+production revocation authority or supply external customer evidence.
+
+## Pack-first production path
+
+The first production path is Electron reranking. It must validate the Pack,
+select a qualified TargetPlan for the exact device tuple, bind a SessionPlan,
+execute the application workload, and retain application and fleet evidence.
+The runtime now exposes this narrow path as a Pack-bound rerank session: the
+caller must present the exact application revision, workload, and oracle
+identities signed into the Pack, and the result is a receipt bound to the Pack,
+selected TargetPlan, lifecycle, and revocation policy. Repository tests use a
+mock program and therefore establish contract behavior, not WebGPU fleet
+qualification.
+Dynamic model loading remains an explicit intake/conversion compatibility
+surface; it cannot bypass production qualification. Generic OpenAI, generation,
+browser expansion, and unrelated embedding surfaces are not on the immediate
+gate unless the external Electron release requires them.
+
+Chromium/WebGPU correctness remains required because Electron executes WebGPU
+in its renderer. A hosted GitHub runner may orchestrate customer-operated
+Windows and macOS qualification agents, but cannot stand in for the supported
+fleet.
+
+## Provider and custody boundaries
+
+Runtime selects only prequalified TargetPlans and cannot invent a plan or
+fallback on the customer device. Doe and incumbent providers remain eligible
+only when explicitly qualified for the application contract.
+
+Customer-private models, inputs, outputs, application facts, activation state,
+and rollback authority remain customer-controlled unless explicit authority
+grants a narrower use. Shared learning is limited to sanitized failure
 signatures, minimized synthetic reproductions, public evidence, and
 customer-approved derived patterns.
 
 External release dependence is the operating objective. Acquisition interest
-from model hubs, browsers, developer platforms, OEMs, silicon vendors, or
-local-AI companies is a possible consequence, not the promotion gate.
+is a possible consequence, not a substitute for completing the release path.

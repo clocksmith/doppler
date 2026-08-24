@@ -22,7 +22,7 @@ import {
   aggregateTopDecodeTimers,
   buildKernelPathBuilderRuntimeOverlay,
 } from './runtime-overlay.js';
-import { isPlainObject } from '../../utils/plain-object.js';
+import { isPlainObject } from '../../formats/plain-object.js';
 import { buildComparableKernelPathFromResolvedSteps, cloneJsonLike, compareField, diffKernelPathShape, normalizeInteger, normalizeKernelPathShape, normalizeLayers, normalizeText, stableStringify, stableValue, verifyKernelPathProposal } from './validation.js';
 
 function normalizeObject(value) {

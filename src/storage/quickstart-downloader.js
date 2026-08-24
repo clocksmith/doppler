@@ -8,7 +8,7 @@ import {
 import { formatBytes } from './quota.js';
 import { getCdnBasePath } from './download-types.js';
 import quickstartRegistry from '../config/quickstart-registry.json' with { type: 'json' };
-import { buildHfResolveBaseUrl, DEFAULT_HF_CDN_BASE_URL } from '../utils/hf-resolve-url.js';
+import { buildHfResolveBaseUrl, DEFAULT_HF_CDN_BASE_URL } from '../storage/hf-resolve-url.js';
 
 // ============================================================================
 // Model Registry

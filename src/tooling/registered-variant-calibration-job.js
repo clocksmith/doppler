@@ -1,4 +1,4 @@
-import { computeCanonicalSha256 } from '../utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 import {
   calibrateRegisteredVariants,
 } from './registered-variant-calibration.js';

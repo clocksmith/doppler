@@ -1,6 +1,6 @@
 import { isExecutionV1Digest } from './execution-v1.schema.js';
-import { sha256Hex } from '../../utils/sha256.js';
-import { stableSortObject } from '../../utils/stable-sort-object.js';
+import { sha256Hex } from '../../formats/sha256.js';
+import { stableSortObject } from '../../formats/stable-sort-object.js';
 
 export const PROGRAM_BUNDLE_SCHEMA_VERSION = 1;
 export const PROGRAM_BUNDLE_SCHEMA_ID = 'doppler.program-bundle/v1';

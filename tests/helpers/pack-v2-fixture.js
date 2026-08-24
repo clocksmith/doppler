@@ -24,6 +24,77 @@ function digest(value) {
   return `sha256:${sha256BytesHex(value)}`;
 }
 
+export function createPackReleaseFixture(options = {}) {
+  const targetIds = options.targetIds ?? ['webgpu-f32-portable'];
+  const previousPackId = options.previousPackId ?? 'pack-test-model-pack-v2-previous';
+  const previousSemanticRoot = options.previousSemanticRoot ?? `sha256:${'9'.repeat(64)}`;
+  return {
+    schema: 'doppler.pack-release/v1',
+    source: {
+      repository: 'https://example.invalid/pack-test-model',
+      revision: 'fixture-revision',
+      revisionDigest: `sha256:${'a'.repeat(64)}`,
+      provenanceDigest: `sha256:${'b'.repeat(64)}`,
+      license: {
+        spdxId: 'Apache-2.0',
+        name: 'Apache License 2.0',
+        sourceUrl: 'https://www.apache.org/licenses/LICENSE-2.0.txt',
+        textDigest: `sha256:${'c'.repeat(64)}`,
+      },
+    },
+    application: {
+      applicationId: 'pack-test-application',
+      applicationRevision: 'fixture-application-revision',
+      applicationRevisionDigest: `sha256:${'d'.repeat(64)}`,
+      workload: { id: 'fixture-workload', digest: `sha256:${'e'.repeat(64)}` },
+      oracle: { id: 'fixture-oracle', digest: `sha256:${'f'.repeat(64)}` },
+    },
+    exclusions: {
+      rejectionTypes: [
+        'acceptance-failed',
+        'application-gate-failed',
+        'artifact-invalid',
+        'evidence-expired',
+        'migration-required',
+        'revoked',
+        'unsupported-device',
+      ],
+      known: [{
+        code: 'unsupported-device',
+        scope: 'fixture-unsupported-device',
+        reason: 'The reference Pack is qualified only for its declared target.',
+        evidenceDigest: `sha256:${'1'.repeat(64)}`,
+      }],
+    },
+    lifecycle: {
+      releaseVersion: '1.0.0',
+      supersedes: { packId: previousPackId, semanticRoot: previousSemanticRoot },
+      migration: {
+        id: 'fixture-v1-migration',
+        policyDigest: `sha256:${'2'.repeat(64)}`,
+        required: true,
+      },
+      failedUpgrade: {
+        preservePrevious: true,
+        previousPackId,
+        previousSemanticRoot,
+      },
+    },
+    revocation: {
+      authorityId: 'doppler-pack-test-authority',
+      policyDigest: `sha256:${'4'.repeat(64)}`,
+      offlineExpirySeconds: 86400,
+      failClosedAfterExpiry: true,
+    },
+    stateSnapshot: {
+      schema: 'doppler.pack-state-snapshot/v1',
+      format: 'canonical-json',
+      identityDigest: `sha256:${'5'.repeat(64)}`,
+      portableAcrossTargetIds: targetIds,
+    },
+  };
+}
+
 export async function createSignedPackFixture(options = {}) {
   const artifactBytes = new Map([
     ['manifest', bytes('{"modelId":"pack-test-model"}\n')],
@@ -122,6 +193,7 @@ export async function createSignedPackFixture(options = {}) {
       execution: { steps: [{ id: 'prefill-step' }, { id: 'decode-step' }] },
       referenceTranscript: { tokens: { ids: [4, 5, 6, 7] } },
     },
+    release: createPackReleaseFixture({ targetIds: [targetPlan.targetId] }),
   });
   const pack = await signPackV2(unsignedPack, {
     authority: TEST_PACK_AUTHORITY,

@@ -22,8 +22,8 @@ import {
 } from '../artifacts.js';
 import { loadCheckpoint, saveCheckpoint } from '../checkpoint.js';
 import { validateTrainingMetricsEntry } from '../../../config/schema/training-metrics.schema.js';
-import { sha256Hex } from '../../../utils/sha256.js';
-import { stableSortObject } from '../../../utils/stable-sort-object.js';
+import { sha256Hex } from '../../../formats/sha256.js';
+import { stableSortObject } from '../../../formats/stable-sort-object.js';
 
 export function buildProgressSnapshot(step, elapsedMs, context) {
   const shardIndex = context?.shardIndex ?? 1;

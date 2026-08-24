@@ -12,8 +12,8 @@ import {
 } from '../experimental/bridge/trainer-artifact-bridge.js';
 import { loadLoRAWeights } from '../experimental/adapters/lora-loader.js';
 import { resolveNodeSourceRuntimeBundle } from './node-source-runtime.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const TRAINER_ARTIFACT_HANDOFF_VERIFICATION_SCHEMA_ID =
   'doppler.trainer-artifact-handoff-verification/v1';

@@ -2,8 +2,8 @@ import { validateModelIR } from '../config/model-ir.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../config/kernels/kernel-ref-digests.js';
 import { expandExecutionV1 } from '../config/schema/index.js';
 import { validateRequiredInferenceFields } from '../inference/pipelines/text/config.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 import { sanitizeModelId } from './core.js';
 
 export const SEMANTIC_MANIFEST_LOWERING_SCHEMA_ID = 'doppler.semantic-manifest-lowering/v1';

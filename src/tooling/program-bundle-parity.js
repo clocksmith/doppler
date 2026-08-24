@@ -11,8 +11,9 @@ import {
 import {
   buildDeterministicTokenEvidenceFromReferenceTranscript,
 } from './boundary-evidence.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
+import { runNodeCommandExecution } from './node-command-execution.js';
 
 export const PROGRAM_BUNDLE_PARITY_SCHEMA_ID = 'doppler.program-bundle-parity/v2';
 
@@ -179,13 +180,12 @@ async function executeNodeWebGpu(bundle, options) {
   }
   try {
     try {
-      const { runNodeCommand } = await import('./node-command-runner.js');
       const repoRoot = path.resolve(options.repoRoot || process.cwd());
       const modelUrl = resolveModelUrl(bundle, repoRoot);
       if (!modelUrl) {
         throw new Error('program bundle parity: cannot resolve modelUrl from sources.manifest.path.');
       }
-      const envelope = await runNodeCommand({
+      const envelope = await runNodeCommandExecution({
         command: 'verify',
         workload: 'inference',
         modelId: bundle.modelId,

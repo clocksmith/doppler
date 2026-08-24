@@ -1,6 +1,6 @@
 import { TRANSFORMS } from '../config/transforms/execution-graph-transforms.js';
 import { matchesRule } from './rule-matcher.js';
-import { loadJson } from '../utils/load-json.js';
+import { loadJson } from '../formats/load-json.js';
 
 const rules = await loadJson(
   './inference/capability-transforms.rules.json',

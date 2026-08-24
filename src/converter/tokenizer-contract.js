@@ -37,7 +37,7 @@ import {
   quantizeToQ4KMColumnWise,
   quantizeToInt4PerRowSymmetric,
 } from './quantizer.js';
-import { cloneJsonValue } from '../utils/clone-json.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
 import { SOURCE_PACKED_QUANT_DTYPES, isGemma4PerLayerEmbedTensor, normalizeModulesToNotConvert, normalizeStorageQuant, resolveQuantizeEmbeddings, transformTensorBytes } from './tensor-transform.js';
 import { buildArtifactIdentity, extractArchitecture, getNestedTextConfig, sanitizeModelId } from './artifact-identity.js';
 import { RDRR_VERSION, createManifest, modelHasMoETensors } from './manifest-builder.js';

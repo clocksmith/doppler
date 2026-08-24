@@ -1,5 +1,5 @@
 
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 
 export function assertCommandRequestIsObject(commandRequest, surface) {
   if (!isPlainObject(commandRequest)) {

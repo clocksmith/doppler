@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID } from '../../config/schema/program-bundle.schema.js';
-import { sha256Hex } from '../../utils/sha256.js';
-import { stableSortObject } from '../../utils/stable-sort-object.js';
+import { sha256Hex } from '../../formats/sha256.js';
+import { stableSortObject } from '../../formats/stable-sort-object.js';
 import { normalizeDigest, requirePlainObject } from './validation.js';
 
 function stableJson(value) {

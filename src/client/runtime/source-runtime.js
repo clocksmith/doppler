@@ -9,7 +9,7 @@ import { parseSafetensorsHeader } from '../../formats/safetensors/types.js';
 import { parseTFLiteFromSource } from '../../formats/tflite/types.js';
 import { log } from '../../debug/index.js';
 import { computeHash } from '../../storage/shard-manager.js';
-import { toArrayBuffer } from '../../utils/array-buffer.js';
+import { toArrayBuffer } from '../../formats/array-buffer.js';
 import {
   createSourceStorageContext,
   getSourceRuntimeMetadata,

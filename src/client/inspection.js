@@ -1,5 +1,5 @@
 import observationPolicyRegistry from '../config/inspection/observation-policies.json' with { type: 'json' };
-import { computeCanonicalSha256 } from '../utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 
 export const OBSERVATION_POLICY_REGISTRY_SCHEMA = 'doppler.observation-policy-registry/v1';
 export const COMPARISON_FINGERPRINT_SCHEMA = 'doppler.comparison-fingerprint/v1';

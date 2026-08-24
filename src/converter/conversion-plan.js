@@ -9,7 +9,7 @@ import {
   resolveManifestQuantization,
   resolveModelId,
 } from './quantization-info.js';
-import { cloneJsonValue } from '../utils/clone-json.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
 import { resolveManifestMoEConfig, sanitizeModelId } from './core.js';
 import { resolveTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';

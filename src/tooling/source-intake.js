@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parseSafetensorsHeader } from '../formats/safetensors/types.js';
-import { computeCanonicalSha256 } from '../utils/canonical-hash.js';
-import { sha256Hex } from '../utils/sha256.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
+import { sha256Hex } from '../formats/sha256.js';
 
 export const SOURCE_INTAKE_SCHEMA = 'doppler.source-intake/v1';
 export const SOURCE_INTAKE_CONVERSION_SKELETON_SCHEMA =

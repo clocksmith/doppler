@@ -4,8 +4,8 @@ import {
   INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID,
   PROGRAM_LOAD_POLICY_SCHEMA_ID,
 } from '../config/initial-execution-identity.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const EXECUTION_CANDIDATE_FORGE_SCHEMA_ID = 'doppler.execution-candidate-forge/v1';
 

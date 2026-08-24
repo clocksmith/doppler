@@ -1,4 +1,4 @@
-import { isPlainObject } from '../../utils/plain-object.js';
+import { isPlainObject } from '../../formats/plain-object.js';
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';

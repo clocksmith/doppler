@@ -1,1 +1,1 @@
-export declare function stableSortObject<T>(value: T): T;
+export { stableSortObject } from '../formats/stable-sort-object.js';

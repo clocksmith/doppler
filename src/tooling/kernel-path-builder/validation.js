@@ -22,7 +22,7 @@ import {
   aggregateTopDecodeTimers,
   buildKernelPathBuilderRuntimeOverlay,
 } from './runtime-overlay.js';
-import { isPlainObject } from '../../utils/plain-object.js';
+import { isPlainObject } from '../../formats/plain-object.js';
 
 export function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';

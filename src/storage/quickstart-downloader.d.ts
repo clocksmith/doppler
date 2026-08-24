@@ -13,7 +13,7 @@
 
 import type { DownloadProgress } from './downloader.js';
 import type { PreflightResult, ModelRequirements } from './preflight.js';
-import type { HfResolveConfig } from '../utils/hf-resolve-url.js';
+import type { HfResolveConfig } from '../storage/hf-resolve-url.js';
 
 /**
  * Remote model configuration

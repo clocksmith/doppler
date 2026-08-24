@@ -1,8 +1,9 @@
 
 import { hashModelIR, validateModelIR } from './model-ir.js';
+import { validatePackReleaseContract } from './pack-release-contract.js';
 import { hashTargetPlan, validateTargetPlan } from './target-plan.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const PACK_V2_SCHEMA_ID = 'doppler.pack/v2';
 export const PACK_V2_SCHEMA_VERSION = 2;
@@ -69,6 +70,7 @@ export function getPackV2SemanticPayload(pack) {
     wgslModules: pack.wgslModules,
     artifacts: pack.artifacts,
     program: pack.program,
+    release: pack.release,
   };
 }
 
@@ -199,6 +201,15 @@ export function validatePackV2(pack, options = {}) {
   const modules = validateModules(pack, artifacts, errors);
   validateProgram(pack, artifacts, errors);
 
+  const releaseValidation = validatePackReleaseContract(pack.release, {
+    targetIds: Array.isArray(pack.targetPlans)
+      ? pack.targetPlans.map((plan) => plan?.targetId).filter(Boolean)
+      : [],
+  });
+  if (!releaseValidation.ok) {
+    errors.push(...releaseValidation.errors);
+  }
+
   if (!Array.isArray(pack.targetPlans) || pack.targetPlans.length === 0) {
     errors.push('targetPlans must be a non-empty array.');
   } else {
@@ -276,6 +287,7 @@ export function buildPackV2(params) {
     wgslModules: params.wgslModules,
     artifacts: params.artifacts,
     program: params.program,
+    release: params.release,
     signature: null,
   };
   const semanticRoot = hashPackV2(draft);

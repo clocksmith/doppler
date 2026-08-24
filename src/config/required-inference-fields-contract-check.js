@@ -1,5 +1,5 @@
 import { validateRequiredInferenceFields } from './manifest-inference-validation.js';
-import { cloneJsonValue as cloneJson } from '../utils/clone-json.js';
+import { cloneJsonValue as cloneJson } from '../formats/clone-json.js';
 
 function setPath(root, path, value) {
   let current = root;

@@ -17,6 +17,7 @@
     "apiConvergence",
     "recovery",
     "commercialOffer",
+    "referenceIntegrations",
     "promotionSequence",
     "compatibilityGraph",
     "dataCustody",
@@ -28,15 +29,28 @@
       "type": "string",
       "const": "../../src/config/schema/model-release-platform.schema.json"
     },
-    "schemaVersion": { "type": "integer", "const": 1 },
+    "schemaVersion": { "type": "integer", "const": 2 },
     "contractVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
     "id": { "type": "string", "const": "doppler-model-release-platform" },
     "positioning": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["category", "promise", "buyer", "unitOfValue"],
+      "required": [
+        "category",
+        "entryProduct",
+        "recurringProduct",
+        "initialIcp",
+        "northStar",
+        "promise",
+        "buyer",
+        "unitOfValue"
+      ],
       "properties": {
-        "category": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "const": "AI-native model release foundry for JavaScript and WebGPU" },
+        "entryProduct": { "type": "string", "const": "Doppler Production Release" },
+        "recurringProduct": { "type": "string", "const": "Doppler Release Operations" },
+        "initialIcp": { "type": "string", "const": "TypeScript/Electron desktop products on Windows and macOS" },
+        "northStar": { "type": "string", "const": "Production model releases whose eligibility decision is delegated to Doppler and relied upon by the customer’s activation system." },
         "promise": { "type": "string", "minLength": 1 },
         "buyer": { "type": "string", "minLength": 1 },
         "unitOfValue": { "type": "string", "const": "supported-model-release" }
@@ -94,7 +108,7 @@
     },
     "apiConvergence": {
       "type": "array",
-      "minItems": 5,
+      "minItems": 6,
       "items": { "$ref": "#/$defs/apiSurface" }
     },
     "recovery": {
@@ -108,44 +122,74 @@
       "required": [
         "id",
         "name",
+        "recurringProduct",
         "promise",
         "applicationClasses",
         "intake",
         "deliverables",
         "paidSurfaces",
         "promotionGate",
+        "activationAuthority",
+        "selfPromotionAllowed",
         "currentAssessment",
         "blockerCode"
       ],
       "properties": {
-        "id": { "type": "string", "const": "model-release-qualification" },
-        "name": { "type": "string", "const": "Model Release Qualification" },
+        "id": { "type": "string", "const": "doppler-production-release" },
+        "name": { "type": "string", "const": "Doppler Production Release" },
+        "recurringProduct": { "type": "string", "const": "Doppler Release Operations" },
         "promise": { "type": "string", "minLength": 1 },
         "applicationClasses": {
           "type": "array",
-          "minItems": 3,
-          "maxItems": 3,
+          "minItems": 1,
+          "maxItems": 1,
           "uniqueItems": true,
-          "items": { "type": "string", "enum": ["generation", "embedding", "reranking"] }
+          "items": { "type": "string", "const": "electron-reranking" }
         },
         "intake": { "$ref": "#/$defs/stringList" },
         "deliverables": { "$ref": "#/$defs/stringList" },
         "paidSurfaces": { "$ref": "#/$defs/stringList" },
         "promotionGate": { "type": "string", "minLength": 1 },
+        "activationAuthority": { "type": "string", "const": "customer-controlled" },
+        "selfPromotionAllowed": { "type": "boolean", "const": false },
         "currentAssessment": { "type": "string", "const": "unestablished" },
-        "blockerCode": { "type": "string", "const": "paid-model-release-qualification-missing" }
+        "blockerCode": { "type": "string", "const": "paid-doppler-production-release-missing" }
+      }
+    },
+    "referenceIntegrations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "externalAdoptionEvidence", "commercialDemandEvidence", "integrations"],
+      "properties": {
+        "classification": { "type": "string", "const": "Internally controlled reference integrations proving application-integration mechanics." },
+        "externalAdoptionEvidence": { "type": "boolean", "const": false },
+        "commercialDemandEvidence": { "type": "boolean", "const": false },
+        "integrations": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "workload"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "workload": { "type": "string", "enum": ["generation", "embedding", "reranking"] }
+            }
+          }
+        }
       }
     },
     "promotionSequence": {
       "type": "array",
-      "minItems": 7,
-      "maxItems": 7,
+      "minItems": 10,
+      "maxItems": 10,
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": ["order", "id", "gate"],
         "properties": {
-          "order": { "type": "integer", "minimum": 1, "maximum": 7 },
+          "order": { "type": "integer", "minimum": 1, "maximum": 10 },
           "id": { "$ref": "#/$defs/id" },
           "gate": { "type": "string", "minLength": 1 }
         }

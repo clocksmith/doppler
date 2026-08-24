@@ -1,9 +1,9 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 
-import { sha256Hex } from '../../utils/sha256.js';
+import { sha256Hex } from '../../formats/sha256.js';
 import { serializeTrainingWorkloadLock } from './workloads.js';
-import { stableSortObject } from '../../utils/stable-sort-object.js';
+import { stableSortObject } from '../../formats/stable-sort-object.js';
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value));

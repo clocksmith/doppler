@@ -12,7 +12,7 @@ import {
   parseLiteRTTaskFromSource,
 } from '../formats/litert/types.js';
 import { resolveDirectSourcePackageProfile } from './source-package-profiles.js';
-import { cloneJsonValue } from '../utils/clone-json.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
 import { computePackedByteSize, createLiteRTFloatTensor, inferLiteRTRowwiseLayout, isGemma4GlobalLayer, normalizeGemma4LiteRTTensors, normalizeText, resolveLiteRTScaleContract } from './litert/package.js';
 export { inferLiteRTRowwiseLayout, resolveGemma4AttentionHeadDim } from './litert/package.js';
 

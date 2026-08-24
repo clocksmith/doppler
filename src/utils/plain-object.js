@@ -1,3 +1,1 @@
-export function isPlainObject(value) {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
+export { isPlainObject } from '../formats/plain-object.js';

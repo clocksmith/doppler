@@ -1,4 +1,4 @@
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import {
   TOOLING_COMMAND_SET,

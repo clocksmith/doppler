@@ -1,4 +1,1 @@
-export declare function toArrayBuffer(
-  value: ArrayBuffer | Uint8Array,
-  label: string
-): ArrayBuffer;
+export { toArrayBuffer } from '../formats/array-buffer.js';

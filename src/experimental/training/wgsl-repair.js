@@ -1,4 +1,4 @@
-import { sha256Hex } from '../../utils/sha256.js';
+import { sha256Hex } from '../../formats/sha256.js';
 
 export const WGSL_REPAIR_TASK_CONTRACT = 'replacement_only_wgsl_span_v1';
 

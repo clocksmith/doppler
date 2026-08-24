@@ -2,6 +2,7 @@ import type { DopplerPackV2 } from '../../config/pack-v2.js';
 import type { TargetPlan } from '../../config/target-plan.js';
 import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import type { DopplerModelHandle } from './model-session.js';
+import type { PackRerankRequest } from './pack-rerank.js';
 
 export interface PackProgramAdapter {
   executionGraphHash: string;
@@ -10,6 +11,7 @@ export interface PackProgramAdapter {
   decodeTokens(tokenIds: number[]): string;
   getTokenContract(): Record<string, unknown>;
   reset(): void;
+  rerank(request: Omit<PackRerankRequest, 'application'>): ReturnType<DopplerModelHandle['rerankWithEvidence']>;
   executePhase(phase: string, request: Record<string, unknown>): Promise<unknown>;
   releaseStepResult(result: Record<string, unknown> | null): void;
   close(): Promise<void>;

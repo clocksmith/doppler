@@ -1,6 +1,6 @@
-import { isPlainObject } from '../../utils/plain-object.js';
-import { sha256Hex } from '../../utils/sha256.js';
-import { stableSortObject } from '../../utils/stable-sort-object.js';
+import { isPlainObject } from '../../formats/plain-object.js';
+import { sha256Hex } from '../../formats/sha256.js';
+import { stableSortObject } from '../../formats/stable-sort-object.js';
 
 export const TRAINER_ARTIFACT_BRIDGE_SCHEMA_ID = 'doppler.trainer-artifact-bridge/v1';
 export const TRAINER_ARTIFACT_IMPORT_PLAN_SCHEMA_ID = 'doppler.trainer-artifact-import-plan/v1';

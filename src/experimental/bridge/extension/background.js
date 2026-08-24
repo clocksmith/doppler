@@ -1,6 +1,6 @@
 
 
-import { log } from '../../debug/index.js';
+import { log } from '../../../debug/index.js';
 
 // ============================================================================
 // Constants

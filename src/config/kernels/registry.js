@@ -1,4 +1,4 @@
-import { loadJson } from '../../utils/load-json.js';
+import { loadJson } from '../../formats/load-json.js';
 
 let cachedRegistry = null;
 

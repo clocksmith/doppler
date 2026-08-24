@@ -15,7 +15,7 @@ import {
   getActiveKernelPathSource,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 
 let runtimeModulesPromise = null;
 

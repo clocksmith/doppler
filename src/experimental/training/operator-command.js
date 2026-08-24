@@ -25,7 +25,7 @@ import {
   writeDistillQualityGateReport,
   writeDistillStageManifest,
 } from './distillation/artifacts.js';
-import { sha256Hex } from '../../utils/sha256.js';
+import { sha256Hex } from '../../formats/sha256.js';
 
 async function listJsonFiles(rootDir) {
   const results = [];

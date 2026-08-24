@@ -1,4 +1,4 @@
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 
 const SCORE_POLICIES = new Set(['logit_difference', 'true_logit']);
 

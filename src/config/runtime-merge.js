@@ -1,4 +1,4 @@
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 import { log } from '../debug/index.js';
 
 // Runtime merge helper used by command runners and harness config resolution.

@@ -3,7 +3,7 @@
 import { gpuDevice } from './config.js';
 import { log } from './log.js';
 import { computeArrayStats } from './stats.js';
-import { sha256BytesHex } from '../utils/sha256.js';
+import { sha256BytesHex } from '../formats/sha256.js';
 
 // ============================================================================
 // Internal Helpers

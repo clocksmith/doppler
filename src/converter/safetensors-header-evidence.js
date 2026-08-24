@@ -1,4 +1,4 @@
-import { sha256BytesHex } from '../utils/sha256.js';
+import { sha256BytesHex } from '../formats/sha256.js';
 
 export const SAFETENSORS_HEADER_PIN_SCHEMA_ID = 'doppler.safetensors-header-pin/v1';
 export const SAFETENSORS_HEADER_EVIDENCE_SCHEMA_ID = 'doppler.safetensors-header-evidence/v1';

@@ -1,7 +1,7 @@
 import { selectByRules } from './rule-matcher.js';
 import { buildInferenceExecutionRulesContractArtifact } from './execution-rules-contract-check.js';
 import { buildLayerPatternContractArtifact } from './layer-pattern-contract-check.js';
-import { cloneJsonValue as cloneRuleValue } from '../utils/clone-json.js';
+import { cloneJsonValue as cloneRuleValue } from '../formats/clone-json.js';
 
 // Canonical policy remains in the individual rule files. This generated mirror
 // collapses browser startup to one JSON module; CI proves it matches its sources.

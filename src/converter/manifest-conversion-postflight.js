@@ -1,7 +1,7 @@
 import { validateConversionReport } from '../config/schema/conversion-report.schema.js';
 import { createConverterConfig } from '../config/schema/converter.schema.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 import { sanitizeModelId } from './core.js';
 
 export const MANIFEST_CONVERSION_POSTFLIGHT_SCHEMA_ID = 'doppler.manifest-conversion-postflight/v1';

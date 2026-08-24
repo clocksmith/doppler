@@ -14,7 +14,7 @@ import { parseGGUFHeader } from '../formats/gguf/types.js';
 import { parseTFLiteFromSource } from '../formats/tflite/types.js';
 import { log } from '../debug/index.js';
 import { formatBytes } from '../storage/quota.js';
-import { toArrayBuffer } from '../utils/array-buffer.js';
+import { toArrayBuffer } from '../formats/array-buffer.js';
 import {
   createSourceStorageContext,
 } from './source-runtime-bundle.js';

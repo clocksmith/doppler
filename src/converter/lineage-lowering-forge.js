@@ -1,8 +1,8 @@
 import { validateModelIR } from '../config/model-ir.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../config/kernels/kernel-ref-digests.js';
 import { sanitizeModelId } from './core.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const LINEAGE_LOWERING_FORGE_SCHEMA_ID = 'doppler.lineage-lowering-forge/v1';
 

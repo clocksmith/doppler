@@ -1,0 +1,120 @@
+{
+  "schema": "doppler.production-release/v1",
+  "schemaVersion": 1,
+  "releaseId": "electron-document-search-qwen-3-reranker-0-6b-q4k-ehf16-af32-release-5813378023806fee",
+  "createdAtUtc": "2026-08-23T00:00:00.000Z",
+  "evidenceClass": "reference-fixture",
+  "candidate": {
+    "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "sourceRevision": "clocksmith/rdrr@f86fe245b9bbc275cd69af46b1d45d47ea685a55",
+    "sourceRevisionDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "packPath": "tests/fixtures/production-release/candidate.pack.json",
+    "packSemanticRoot": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "application": {
+    "applicationId": "electron-document-search",
+    "platform": "electron",
+    "revision": "reference-fixture-v1",
+    "revisionDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "rendererEntry": "examples/electron-document-search/renderer.js",
+    "mainEntry": "examples/electron-document-search/main.js"
+  },
+  "acceptance": {
+    "workload": {
+      "id": "document-search-reranking",
+      "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    "oracle": {
+      "id": "document-search-relevance-v1",
+      "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    "tests": [
+      {
+        "id": "electron-document-search-acceptance",
+        "command": ["node", "tests/production-release/electron-document-search-acceptance.test.js"],
+        "workdir": ".",
+        "timeoutMs": 120000,
+        "evidenceSchema": "doppler.application-gate-receipt/v1"
+      }
+    ],
+    "thresholds": {
+      "quality": { "metric": "ndcg-at-ten", "minimum": 0.95 },
+      "coldLatencyMs": { "maximum": 4000 },
+      "warmLatencyMs": { "maximum": 2000 },
+      "peakMemoryBytes": { "maximum": 2147483648 },
+      "failureRate": { "maximum": 0 }
+    },
+    "incumbentControl": {
+      "providerId": "onnx-runtime",
+      "artifactRevision": "onnx-community/Qwen3-Reranker-0.6B-ONNX:q4",
+      "executionDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    }
+  },
+  "supportedDevices": {
+    "policyId": "electron-document-search-fleet-v1",
+    "policyDigest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+    "receiptMode": "customer-operated-agent",
+    "targets": [
+      {
+        "id": "windows-x64-webgpu",
+        "os": "windows",
+        "osVersionRange": ">=10.0.22631",
+        "architectures": ["x64"],
+        "electronVersionRange": ">=37 <38",
+        "gpuVendors": ["amd", "intel", "nvidia"],
+        "driverPolicy": "exact-receipt-required"
+      },
+      {
+        "id": "macos-arm64-webgpu",
+        "os": "macos",
+        "osVersionRange": ">=14 <16",
+        "architectures": ["arm64"],
+        "electronVersionRange": ">=37 <38",
+        "gpuVendors": ["apple"],
+        "driverPolicy": "exact-receipt-required"
+      }
+    ]
+  },
+  "previousRelease": {
+    "releaseId": "electron-document-search-working-v0",
+    "packSemanticRoot": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+  },
+  "rollout": {
+    "rulesDigest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+    "activationAuthority": "customer",
+    "selfPromotionAllowed": false,
+    "stages": [
+      {
+        "id": "customer-canary",
+        "eligibleFleetPercent": 5,
+        "requiredObservationDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "id": "customer-general-availability",
+        "eligibleFleetPercent": 100,
+        "requiredObservationDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ]
+  },
+  "rollback": {
+    "releaseId": "electron-document-search-working-v0",
+    "packSemanticRoot": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+    "authority": "customer"
+  },
+  "revocation": {
+    "authorityId": "doppler-production-revocation-authority",
+    "policyDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "offlineExpirySeconds": 86400,
+    "failClosedAfterExpiry": true
+  },
+  "dataCustody": {
+    "policyDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "promptRetention": "none",
+    "outputRetention": "none",
+    "telemetryExport": "none"
+  },
+  "claimBoundary": {
+    "externalCustomer": false,
+    "commercialClaimAllowed": false
+  }
+}

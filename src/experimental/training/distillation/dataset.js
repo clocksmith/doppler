@@ -2,8 +2,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 
 import { parseJsonl } from '../datasets/jsonl.js';
-import { sha256Hex } from '../../../utils/sha256.js';
-import { stableSortObject } from '../../../utils/stable-sort-object.js';
+import { sha256Hex } from '../../../formats/sha256.js';
+import { stableSortObject } from '../../../formats/stable-sort-object.js';
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value));

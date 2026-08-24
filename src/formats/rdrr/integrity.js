@@ -1,4 +1,4 @@
-import { computeNamespacedCanonicalSha256, hashBytesSha256 } from '../../utils/canonical-hash.js';
+import { computeNamespacedCanonicalSha256, hashBytesSha256 } from '../../formats/canonical-hash.js';
 import { buildMerkleTreeFromLeafHashes, DEFAULT_MERKLE_BLOCK_SIZE } from './merkle.js';
 
 function asPositiveInteger(value, label) {

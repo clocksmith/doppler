@@ -4,7 +4,7 @@ import { createDopplerRuntimeService } from './runtime/index.js';
 import { classifyProviderFailure } from './failure-taxonomy.js';
 import { buildProviderReceiptV1 } from './receipt.js';
 import { createFaultInjector } from './fault-injection.js';
-import { isNodeRuntime } from '../utils/runtime-env.js';
+import { isNodeRuntime } from '../storage/runtime-env.js';
 
 // Re-export handle adapter so consumers can reach both via
 // `doppler-gpu/provider` without a second subpath.

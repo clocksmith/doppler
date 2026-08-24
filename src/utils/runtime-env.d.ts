@@ -1,1 +1,1 @@
-export function isNodeRuntime(): boolean;
+export { isNodeRuntime } from '../storage/runtime-env.js';

@@ -1,5 +1,5 @@
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const INITIAL_EXECUTION_IDENTITY_SCHEMA_ID = 'doppler.initial-execution-identity/v1';
 export const INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID = 'doppler.initial-execution-identity/v2';

@@ -1,5 +1,5 @@
-import { sha256Hex } from '../../utils/sha256.js';
-import { stableSortObject } from '../../utils/stable-sort-object.js';
+import { sha256Hex } from '../../formats/sha256.js';
+import { stableSortObject } from '../../formats/stable-sort-object.js';
 
 function isNodeRuntime() {
   return typeof process !== 'undefined' && !!process.versions?.node;
