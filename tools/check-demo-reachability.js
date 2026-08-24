@@ -8,6 +8,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ROOTS = ['demo/demo.js', 'demo/sw.js'];
 const ALLOWED_BARE = new Set([
   'doppler-gpu',
+  'doppler-gpu/compat',
   'doppler-gpu/tooling/runtime',
   'doppler-gpu/tooling/evidence',
 ]);

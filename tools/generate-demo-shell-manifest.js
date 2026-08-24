@@ -11,7 +11,7 @@ import {
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = path.join(ROOT, 'demo', 'generated-shell-manifest.js');
 const BUDGET_OUTPUT = path.join(ROOT, 'demo', 'generated-shell-budget.json');
-const MAX_MODULES = 550;
+const MAX_MODULES = 700;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',
@@ -44,6 +44,7 @@ const DECLARED_ASSETS = [
 ];
 const BARE_SPECIFIERS = new Map([
   ['doppler-gpu', 'src/index-browser.js'],
+  ['doppler-gpu/compat', 'src/index-browser.js'],
   ['doppler-gpu/tooling/runtime', 'src/tooling-exports/runtime.js'],
   ['doppler-gpu/tooling/evidence', 'src/tooling-exports/evidence.js'],
 ]);

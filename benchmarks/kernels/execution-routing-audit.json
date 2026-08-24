@@ -1,6 +1,6 @@
 {
   "schema": "doppler.execution-routing-audit-index/v1",
-  "registryDigest": "sha256:319ebee93069bbddd676b09d030357db05ca3fbe7965ed0c92a3923fc5a0e86d",
+  "registryDigest": "sha256:a738645dc29766e3f9013f1f586e8cf8194d176360c4313a73e7d64a3bd0acee",
   "manifestCount": 27,
   "integrityFailures": [
     {
@@ -146,6 +146,16 @@
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
       "kernelId": "silu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
+      "kernelId": "gated_delta_fused_decode",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
+      "kernelId": "gated_delta_recurrent",
       "status": "digest-mismatch"
     }
   ],
@@ -6976,21 +6986,21 @@
           "kernelId": "gated_delta_fused_decode",
           "key": "gated_delta_fused_decode.wgsl#main",
           "declaredDigest": "sha256:b9aec655be0dfc674ba7ffc22dcb41bfccd655f9f8c0844b5eab4349494bb6b3",
-          "expectedDigest": "sha256:b9aec655be0dfc674ba7ffc22dcb41bfccd655f9f8c0844b5eab4349494bb6b3",
+          "expectedDigest": "sha256:14e8d1a68e97d71c1b025e24fd3490fd75211e30a8758e54e158f0bd1886fc1a",
           "registeredVariants": [
             "gated_delta_fused_decode/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gated_delta_recurrent",
           "key": "gated_delta_recurrent.wgsl#main",
           "declaredDigest": "sha256:8a6a6392caa11b5f14500b543268df7b87ee3d56deaa72827f9b39692ccb835d",
-          "expectedDigest": "sha256:8a6a6392caa11b5f14500b543268df7b87ee3d56deaa72827f9b39692ccb835d",
+          "expectedDigest": "sha256:ece62cc88bd8eb6ad47a5472946ebbf53fc797a4665da47899a962e6e2bbc4a8",
           "registeredVariants": [
             "gated_delta_recurrent/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -7288,7 +7298,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:90adad7808b229b481cc987cea60eb8c16ef23a594b4e032975a124a529e017f"
+      "digest": "sha256:32dd229466f20427f0a7e3394213fd5fe9ff2f1305dae671c79a77b53105d11b"
     },
     {
       "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
@@ -8335,5 +8345,5 @@
       "digest": "sha256:d38922582e78bc811cde48d4adcd84b88fcea19c1865a90e2473e79a71db20ad"
     }
   ],
-  "digest": "sha256:301b1c16c1a7239dfcc23d28b82eb1258e33631d1e98c444a57f8826d545dacd"
+  "digest": "sha256:d5c40badf40a062f58c18c3c2c3142c1c81ca9e6b8f41e2710a8f29b5a0e4e59"
 }

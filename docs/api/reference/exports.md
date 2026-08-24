@@ -119,6 +119,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `NodeCommandRunResult`
   - `normalizeNodeBrowserCommand`
   - `normalizeNodeCommand`
+  - `ProductionReleaseCommandRequest`
   - `PROGRAM_BUNDLE_PARITY_SCHEMA_ID`
   - `ProgramBundleCheckResult`
   - `ProgramBundleExportOptions`
@@ -128,6 +129,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `refreshManifestIntegrity`
   - `runBrowserCommandInNode`
   - `runNodeCommand`
+  - `runProductionRelease`
   - `SOURCE_INTAKE_CONTRACT_TEST_SCHEMA`
   - `SOURCE_INTAKE_CONVERSION_SKELETON_SCHEMA`
   - `SOURCE_INTAKE_SCHEMA`
@@ -288,6 +290,16 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `readOPFSFile`
   - `verifyExplicitModelUrlMatch`
   - `writeOPFSFile`
+
+## `doppler-gpu/electron`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/client/electron/index.d.ts](../../../src/client/electron/index.d.ts)
+- Implementation: [src/client/electron/index.js](../../../src/client/electron/index.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `*`
 
 ## `doppler-gpu/models/qwen3`
 

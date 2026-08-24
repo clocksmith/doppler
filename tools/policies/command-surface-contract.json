@@ -20,6 +20,14 @@
       "reason": "Manifest integrity refresh mutates local artifact metadata."
     },
     {
+      "id": "release",
+      "surfaces": [
+        "node"
+      ],
+      "cliUsageRequired": true,
+      "reason": "Production release qualification reads local evidence and signing keys; browser surfaces fail closed without changing eligibility semantics."
+    },
+    {
       "id": "debug",
       "surfaces": [
         "browser",
