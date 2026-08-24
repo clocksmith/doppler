@@ -1,4 +1,4 @@
-import { dr } from 'doppler-gpu';
+import { dr } from 'doppler-gpu/compat';
 import { state } from './ui/state.js';
 import { syncSendButton } from './input.js';
 import { clearOutput } from './output.js';

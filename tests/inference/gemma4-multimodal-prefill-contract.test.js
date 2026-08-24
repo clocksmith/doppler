@@ -38,8 +38,11 @@ import { preprocessGemma4Image } from '../../src/inference/pipelines/vision/gemm
   assert.equal(preprocessed.outputLength, 260);
 }
 
-const textSource = readFileSync(new URL('../../src/inference/pipelines/text.js', import.meta.url), 'utf8');
-const generatorSource = readFileSync(new URL('../../src/inference/pipelines/text/generator.js', import.meta.url), 'utf8');
+const textSource = readFileSync(new URL('../../src/inference/pipelines/text/execution.js', import.meta.url), 'utf8');
+const generatorSource = [
+  '../../src/inference/pipelines/text/generator.js',
+  '../../src/inference/pipelines/text/generator/prefill-runtime.js',
+].map((relativePath) => readFileSync(new URL(relativePath, import.meta.url), 'utf8')).join('\n');
 const visionSource = readFileSync(new URL('../../src/inference/pipelines/vision/gemma4.js', import.meta.url), 'utf8');
 const attentionSource = readFileSync(new URL('../../src/gpu/kernels/attention_streaming.wgsl', import.meta.url), 'utf8');
 

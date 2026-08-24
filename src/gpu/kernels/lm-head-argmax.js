@@ -11,9 +11,9 @@ import {
 } from '../weight-buffer.js';
 import {
   createPipeline,
-  createUniformBufferWithView,
   getOrCreateBindGroupLayout,
-} from './utils.js';
+} from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
 import { recordDispatch } from './dispatch.js';
 
 const WORKGROUP_SIZE = 256;

@@ -205,6 +205,10 @@ declare function writeUniforms(view: DataView, uniforms: KernelUniforms): void;
 
 **No JSDoc in JS files.** Descriptions, parameter docs, and examples belong in `.d.ts` files.
 
+Run `npm run source:style:check` to verify the governed `src/` and `demo/`
+JavaScript trees. Use `npm run source:style:sync` only after sibling declaration
+coverage is complete.
+
 **Inline comments are rare.** Code should be self-explanatory. If you need a comment, first consider renaming or refactoring.
 
 #### When to Comment

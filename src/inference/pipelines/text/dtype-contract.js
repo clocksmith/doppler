@@ -12,18 +12,6 @@ function normalizeDtype(value, label) {
   return normalized;
 }
 
-/**
- * Resolve activation dtype from all available sources.
- *
- * Checks the execution plan, the runtime config compute section, and (optionally)
- * the model config. Returns the first non-nullish value along with diagnostics
- * showing every source that was consulted.
- *
- * @param {object|null} executionPlanState - Compiled execution plan state (may be null before compilation).
- * @param {object|null} runtimeConfig - Full runtime config object.
- * @param {object|null} modelConfig - Parsed model config (optional, for manifest-declared dtype).
- * @returns {{ activationDtype: string|null, source: string, allSources: Record<string, string|null> }}
- */
 export function resolveActivationDtype(executionPlanState, runtimeConfig, modelConfig) {
   const fromExecutionPlan = executionPlanState?.primaryPlan?.activationDtype ?? null;
   const fromRuntimeConfig = runtimeConfig?.inference?.compute?.activationDtype ?? null;
@@ -47,22 +35,6 @@ export function resolveActivationDtype(executionPlanState, runtimeConfig, modelC
   return { activationDtype: null, source: 'none', allSources };
 }
 
-/**
- * Assert dtype consistency across all resolution paths.
- *
- * Compares the activationDtype declared in:
- *   1. The compiled execution plan (generator path)
- *   2. runtimeConfig.inference.compute.activationDtype (logits fallback path)
- *   3. The layer context activationDtype (derived from execution plan at build time)
- *
- * If any two sources disagree, a warning is logged with all three values.
- * This function never throws — it is a diagnostic-only assertion.
- *
- * @param {object|null} executionPlanState - Compiled execution plan state.
- * @param {object|null} runtimeConfig - Full runtime config object.
- * @param {object|null} layerContext - Layer context object (or null if not yet built).
- * @returns {{ consistent: boolean, values: Record<string, string|null> }}
- */
 export function assertDtypeConsistency(executionPlanState, runtimeConfig, layerContext) {
   const fromExecutionPlan = executionPlanState?.primaryPlan?.activationDtype ?? null;
   const fromRuntimeConfig = runtimeConfig?.inference?.compute?.activationDtype ?? null;

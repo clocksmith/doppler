@@ -1,0 +1,15 @@
+export declare const CONFIG_ENVELOPE_KNOWN_KEYS: any;
+export declare const DEFAULT_CLI_POLICY: any;
+export declare const NODE_WEBGPU_INCOMPLETE_MESSAGE: any;
+export declare const buildRuntimeOverridesFromObject: any;
+export declare const createCliToolingErrorEnvelope: any;
+export declare const isNodeWebGPUFallbackCandidate: any;
+export declare const isTrainingCommandFlow: any;
+export declare const mergeRunConfig: any;
+export declare const parseRuntimeConfigUrl: any;
+export declare const parseSurface: any;
+export declare const resolveConfigEnvelope: any;
+export declare const resolveErrorSurface: any;
+export declare const resolveSurfaceForCommand: any;
+export declare const runManifestSweep: any;
+export declare const runWithAutoSurface: any;

@@ -1,4 +1,5 @@
 import { loadJson } from '../../utils/load-json.js';
+import { validateAttentionLimits } from './feature-check.js';
 
 const registry = await loadJson('../../config/kernels/registry.json', import.meta.url, 'Failed to load registry');
 import { resolveKernelConfig } from '../../config/schema/kernel-registry.schema.js';
@@ -58,4 +59,23 @@ export function setKernelValidator(
   if (config) {
     config.validate = validator;
   }
+}
+
+const validatedAttentionVariants = [
+  'prefill',
+  'prefill_small',
+  'decode_small',
+  'prefill_streaming',
+  'prefill_f16',
+  'prefill_small_f16',
+  'decode_small_f16',
+  'prefill_streaming_f16',
+  'prefill_f16kv',
+  'prefill_small_f16kv',
+  'decode_small_f16kv',
+  'prefill_streaming_f16kv',
+];
+
+for (const variant of validatedAttentionVariants) {
+  setKernelValidator('attention', variant, validateAttentionLimits);
 }

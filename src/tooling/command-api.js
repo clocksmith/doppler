@@ -9,7 +9,7 @@ import {
 import {
   asOptionalString,
   assertCommand,
-} from './command-api-helpers.js';
+} from './command-request-normalization.js';
 import {
   normalizeConvert,
   normalizeRefreshIntegrity,

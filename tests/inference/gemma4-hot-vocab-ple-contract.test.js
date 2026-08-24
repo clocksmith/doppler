@@ -3,10 +3,10 @@ import { readFileSync } from 'node:fs';
 
 import { resolvePleHotVocabularyCapacity } from '../../src/inference/pipelines/text/per-layer-inputs.js';
 
-const source = readFileSync(
-  new URL('../../src/inference/pipelines/text/per-layer-inputs.js', import.meta.url),
-  'utf8'
-);
+const source = [
+  '../../src/inference/pipelines/text/per-layer-inputs.js',
+  '../../src/inference/pipelines/text/per-layer/materialize.js',
+].map((relativePath) => readFileSync(new URL(relativePath, import.meta.url), 'utf8')).join('\n');
 
 assert.match(
   source,

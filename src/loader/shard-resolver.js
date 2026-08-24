@@ -45,20 +45,6 @@ function normalizeShardIndex(info, fallback = undefined) {
   return typeof shardIndex === 'number' ? shardIndex : fallback;
 }
 
-/**
- * Builds the tensor name-to-location map from the manifest.
- *
- * Tensor map resolution order (first successful source wins):
- *   1. External tensors.json via OPFS store — tried when the model was
- *      previously downloaded and no custom loader overrides storage.
- *   2. External tensors.json via HTTP — tried when `options.tensorsJsonUrl`
- *      is set (HTTP-based testing / direct serve).
- *   3. Inline manifest.tensors (legacy) — used when `manifest.tensorsFile`
- *      is absent and tensor entries are embedded in the manifest JSON.
- *
- * On failure, the resolution trace is included in the warning/error so
- * callers can see which sources were attempted and why each was skipped.
- */
 export async function buildTensorLocations(manifest, options = {}) {
   const locations = new Map();
   const trace = [];

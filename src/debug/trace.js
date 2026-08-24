@@ -1,10 +1,3 @@
-/**
- * Trace subsystem — records per-category trace entries into the shared logHistory.
- *
- * Trace entries share the global logHistory buffer and are subject to the same
- * max-size limit (oldest-first eviction). History is global; there is no
- * automatic per-run isolation.
- */
 import {
   enabledTraceCategories,
   traceLayerFilter,

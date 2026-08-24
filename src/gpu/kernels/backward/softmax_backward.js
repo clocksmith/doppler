@@ -1,6 +1,6 @@
 import { dtypeBytes } from '../../tensor.js';
 import { WORKGROUP_SIZES } from '../constants.js';
-import { createBackwardKernel } from './utils.js';
+import { createBackwardKernel } from './executor.js';
 
 const { run, record } = createBackwardKernel('softmax_backward', {
   uniformSize: 16,

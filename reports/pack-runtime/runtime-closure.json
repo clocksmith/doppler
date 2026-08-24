@@ -2,7 +2,7 @@
   "schema": "doppler.pack-runtime-closure/v1",
   "entrypoint": "src/pack-runtime.js",
   "fileCount": 15,
-  "sourceBytes": 91312,
+  "sourceBytes": 93994,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -17,38 +17,38 @@
   "files": [
     {
       "path": "src/client/runtime/command-executor.js",
-      "sizeBytes": 5269,
-      "hash": "sha256:2a91f04289ce1682996cb2f88731dd6977bf0f700dbc35cb200ac57855fa5401"
+      "sizeBytes": 5102,
+      "hash": "sha256:5c518b362ea7cdf49577be618f9fb3d8d17c7ce636d42b82dc0fd822e06c644f"
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 6214,
-      "hash": "sha256:22d8abdd3ba477eedd153a21458c1b332731b133e60d4435c08fd7153289d843"
+      "sizeBytes": 6264,
+      "hash": "sha256:a8e8c9125c52e1e3e593502ada8bd4cf14888215b9c0c25757a4b07fff6e3e48"
     },
     {
       "path": "src/client/runtime/fetch-pack-artifact-store.js",
-      "sizeBytes": 1184,
-      "hash": "sha256:c0fd7fcabfdd170b5e653e3ed36dd87bbf2b69a412ad1e230a7b3dc7f23d79af"
+      "sizeBytes": 1130,
+      "hash": "sha256:f95991a5ee21cd4b7c0ce3c2ea5554a5bff6547ed632d1a9ba93aa56284fb571"
     },
     {
       "path": "src/client/runtime/resource-binder.js",
-      "sizeBytes": 4465,
-      "hash": "sha256:4a0955d1655014529e77c44e6b4e9f9a5fe0db930cc975a85982c3dc59072747"
+      "sizeBytes": 4236,
+      "hash": "sha256:4c2e34e9678cba3db5bb62edad1174adc5111517b7122341ea9567704d4c4a32"
     },
     {
       "path": "src/client/runtime/session-controller.js",
-      "sizeBytes": 8008,
-      "hash": "sha256:e6929aedeaa946e812eb1d2fef25569a947c52797ef0b710f669a85b8090476f"
+      "sizeBytes": 7781,
+      "hash": "sha256:79ea4007e817e1f6d971a0b0605b0c4a5897d0135b468d3736409bb3687a393f"
     },
     {
       "path": "src/client/runtime/target-selector.js",
-      "sizeBytes": 1900,
-      "hash": "sha256:574be1b2c12caf32ec7ddbbc1c380b35b687e29955a4c44030c3430d36f97fd6"
+      "sizeBytes": 1294,
+      "hash": "sha256:0c2807f403f8cdb7644254d7ea16fc7b6a2a72db9aa60710536736de5a821cd1"
     },
     {
       "path": "src/config/initial-execution-identity.js",
-      "sizeBytes": 7947,
-      "hash": "sha256:d3a5e0e6cd21a1c5497f285349c3080f3292aaba52910f24db91c2ab37cee84a"
+      "sizeBytes": 14507,
+      "hash": "sha256:bd472e41f052a68d255f9b00151f9ec29ca738e71d4f20d5924154678272cb26"
     },
     {
       "path": "src/config/model-ir-v2.js",
@@ -57,18 +57,18 @@
     },
     {
       "path": "src/config/model-ir.js",
-      "sizeBytes": 7233,
-      "hash": "sha256:c6f77cef2fad9935fecc21908c0d687f645dd2cf2652bee5c6608e34f34aca73"
+      "sizeBytes": 6640,
+      "hash": "sha256:ebcd6539f19e1f6cf34da1765bd0bf3ac5f35b27b17a2dae356110582ac60e58"
     },
     {
       "path": "src/config/pack-v2.js",
-      "sizeBytes": 18636,
-      "hash": "sha256:d7cee5fc12c1c9c6a0cdbd86935e1e70c384c348ad47cd8ffe445a0df31554d3"
+      "sizeBytes": 16984,
+      "hash": "sha256:303f0508807760c769df61ceae33b4a3b2d1e7361e055c9acee8f9b80d231a0b"
     },
     {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 13157,
-      "hash": "sha256:650d1066d39138547333f2d336f7313ca14eeb202055d55dc519a271ff0309c8"
+      "sizeBytes": 12757,
+      "hash": "sha256:e6739a636654194348cb81fa5b64da96cd6789b6d92d965ade84f302b048b707"
     },
     {
       "path": "src/pack-runtime.js",

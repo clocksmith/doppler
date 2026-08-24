@@ -2,7 +2,7 @@
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
-import { unifiedKernelWrapper } from './utils.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
 
 function resolveDimensions(softmax, options) {

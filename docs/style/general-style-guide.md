@@ -14,6 +14,7 @@ Rules that cause bugs when violated. Each has a fuller section below with ration
 - **No Runtime Defaults in Code** — runtime code reads resolved config values directly. No literal fallbacks for tunables in JS. Missing policy raises a typed configuration error. See [No Runtime Defaults in Code](#no-runtime-defaults-in-code).
 - **Nullable Required Fields** — `null` = explicitly disabled (valid); `undefined` = not specified (validation error, fail fast).
 - **Runtime Reads the Manifest, Never Infers** — converter embeds all model-specific inference params in `manifest.json`. Runtime never detects model family in pipeline code. See [Runtime Reads the Manifest, Never Infers](#runtime-reads-the-manifest-never-infers).
+- **Storage Dtype Is Not Materialization Dtype** — manifests retain the exact stored tensor encoding. The selected, transformed execution path plus kernel-registry metadata determines whether the loader retains that encoding or materializes another dtype. See [Storage Dtype and Materialization Dtype](#storage-dtype-and-materialization-dtype).
 - **Kernel Selection** — fully explicit in the manifest execution graph. Each step pins exact WGSL file, entry point, and content digest. `defaultKernelPath` does not exist in v1 manifests. See [Kernel Selection](#kernel-selection).
 - **Performance Invariants (F32 Policy)** — F32 is a correctness fallback, not a performance default. When `shader-f16` is available, prefer `f16` for activations/KV cache/intermediates. Any `f32` path must be explicitly configured and logged once per session.
 - **Capability Transform Classification** — every execution-v1 capability transform is a typed policy row with `kind`, `dtypeEffect`, and evidence. Hardware compatibility, explicit lanes, platform workarounds, session compatibility, and no-op rules are different categories. See [Capability Transform Classification](#capability-transform-classification).
@@ -404,6 +405,30 @@ Affected flags include `rmsNormWeightOffset`, `scaleEmbeddings`, and any flag th
 // Norm weights mean ~1.0 → Standard (weight) → rmsNormWeightOffset: false
 ```
 
+### Storage Dtype and Materialization Dtype
+
+Tensor storage identity and GPU materialization identity are separate contracts.
+
+- The manifest and tensor descriptors preserve the exact stored encoding. BF16
+  checkpoint bytes remain `BF16`; they are never declared as `F16` merely
+  because an older runtime materialized them that way.
+- The resolved execution path after capability transforms determines what the
+  loader must provide. Resolve its pinned shader and entry point through
+  `src/config/kernels/registry.json`; do not maintain filename allowlists in
+  loader or pipeline code.
+- Only the selected path may request retained packed storage. An unselected
+  kernel elsewhere in the manifest execution closure cannot change how weights
+  are loaded.
+- If the selected kernel consumes another dtype, materialization is an explicit
+  BF16-to-F16 or BF16-to-F32 step and the resulting weight descriptor records
+  that materialized dtype.
+- Capability transforms that replace a selected kernel must also change the
+  loader requirement derived from that path. Packed storage must never reach a
+  kernel registered for a different weight dtype.
+
+Regression coverage must include the direct retained-storage lane and a
+transformed or alternate lane that requires materialization.
+
 ### KV Cache Dtype Policy
 
 - Default KV cache dtype to `f16` when supported.
@@ -709,7 +734,9 @@ but may not grow. Once it reaches the limit, its policy entry must be removed.
 
 The canonical ownership and restricted-dependency policy lives in
 `tools/policies/source-architecture-policy.json`; prose must not maintain a
-second changing owner inventory.
+second changing owner inventory. Its `genericModuleReviews` ledger classifies
+every inherited generic filename as a narrow semantic owner, a pure
+compatibility facade, or bounded legacy debt with named extraction targets.
 
 ## Facade Purity
 
@@ -725,19 +752,35 @@ selection, resource state machines, or independent execution semantics. A
 facade retained for compatibility must have a declared consumer and remain
 behaviorally exercised.
 
-## Source Architecture Gate
+## Source Style and Architecture Gates
 
 Run:
 
 ```bash
+npm run source:style:check
 npm run source:architecture:check
 ```
+
+The style gate rejects JSDoc in governed JavaScript modules so types and API
+descriptions remain in sibling declaration files. `npm run source:style:sync`
+removes inherited implementation JSDoc after declaration coverage is complete.
 
 The gate rejects unknown source owners, new restricted dependency edges,
 implementation declarations in declared facades, new over-limit files, growth
 of governed legacy files, stale dependency exceptions, and stale oversize
-entries. Every temporary dependency exception names the neutral extraction
-target that removes it.
+entries. It also rejects unreviewed or stale generic-module ownership entries.
+Every temporary dependency exception names the neutral extraction target that
+removes it.
+
+### Published Package Closure Gate
+
+`src/.npmignore` is generated by `npm run package:closure:sync`; do not edit it
+by hand. `npm run public:boundaries:check` verifies that every packed JavaScript,
+declaration, and resource file is reachable from a public package entry point
+and rejects repository-only files. Package count and size ceilings are
+ratcheting guardrails. Raise them only after auditing the generated closure and
+confirming that the delta is an intentional public-runtime dependency, then set
+the smallest practical new ceiling rather than bypassing closure validation.
 
 ---
 

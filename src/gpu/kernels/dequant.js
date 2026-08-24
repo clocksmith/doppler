@@ -6,7 +6,12 @@ import { createTensor } from '../tensor.js';
 import { GPU_LIMITS, TILE_SIZES, WORKGROUP_SIZES, DEQUANT_DISPATCH } from './constants.js';
 import { Q6K_BLOCK_BYTES } from '../../loader/quantization-constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { getPipelineFast, createUniformBufferWithView, getOrCreateBindGroupLayout, getKernelConfig } from './utils.js';
+import {
+  getPipelineFast,
+  getOrCreateBindGroupLayout,
+} from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
+import { getKernelConfig } from './kernel-configs.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';

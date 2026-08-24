@@ -1,0 +1,11 @@
+export declare const COMPRESSED_TENSORS_W4A16_PACKED_VALUES_PER_ELEMENT: any;
+export declare const COMPRESSED_TENSORS_W4A16_SUFFIXES: any;
+export declare const assertCompressedTensorsW4A16Group: any;
+export declare const collectCompressedTensorsW4A16: any;
+export declare const inferCompressedTensorsW4A16LogicalShape: any;
+export declare const normalizeCompressedTensorsW4A16: any;
+export declare const normalizePositiveIntegerShape: any;
+export declare const normalizeTensorName: any;
+export declare const resolveCompressedTensorBaseName: any;
+export declare const shouldNormalizeCompressedTensorsW4A16: any;
+export declare const sortTensorsForConversion: any;

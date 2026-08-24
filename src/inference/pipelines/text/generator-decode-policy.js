@@ -2,7 +2,7 @@
 import { log } from '../../../debug/index.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import { resolveActiveExecutionPlan } from './execution-plan.js';
-import { resolvePerLayerInputsSession } from './generator-helpers.js';
+import { resolvePerLayerInputsSession } from './generator/session-context.js';
 import {
   ensurePleGpuHotVocabularyRuntime,
   ensurePleGpuSplitTablesRuntime,

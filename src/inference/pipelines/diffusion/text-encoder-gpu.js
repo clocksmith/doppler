@@ -29,17 +29,19 @@ import {
 } from '../../../gpu/kernels/index.js';
 import { createSD3WeightResolver } from './sd3-weights.js';
 import { f32ToF16Array } from '../../kv-cache/types.js';
+import { sumDiffusionProfileTimings } from './profile-timing.js';
 import {
-  resolveDiffusionActivationDtype,
-  createDiffusionBufferReleaser,
   createDiffusionBufferDestroyer,
+  createDiffusionBufferReleaser,
   createDiffusionIndexBuffer,
+} from './runtime-resources.js';
+import {
   expectDiffusionWeight,
+  inferDiffusionMatmulDtypeFromBuffer,
   normalizeDiffusionLocationDtype,
   normalizeDiffusionMatmulLocationDtype,
-  inferDiffusionMatmulDtypeFromBuffer,
-  sumDiffusionProfileTimings,
-} from './helpers.js';
+  resolveDiffusionActivationDtype,
+} from './weight-contract.js';
 
 const QUICK_GELU_ALPHA = 1.702;
 const DEFAULT_TIMESTEP_EMBED_DIM = 256;

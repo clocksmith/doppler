@@ -2,7 +2,8 @@ import { getDevice } from '../../device.js';
 import { acquireBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../tensor.js';
 import { WORKGROUP_SIZES } from '../constants.js';
-import { createPipeline, createUniformBufferWithView } from '../utils.js';
+import { createPipeline } from '../pipeline-cache.js';
+import { createUniformBufferWithView } from '../uniform-utils.js';
 
 function resolveOptions(gradOutput, options) {
   const numTokens = options.numTokens ?? gradOutput.shape?.[0] ?? null;

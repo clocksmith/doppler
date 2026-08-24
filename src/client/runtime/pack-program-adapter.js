@@ -26,10 +26,6 @@ function toPipelineOptions(options, signal) {
   };
 }
 
-/**
- * Adapts the already verified Doppler GPU text program to the Pack runtime's
- * model-independent phase port. The Pack controller owns iteration/sampling.
- */
 export function createPackProgramAdapter(modelHandle, pack, targetPlan) {
   if (!modelHandle?.advanced) throw new Error('Pack program adapter requires a loaded Doppler model handle.');
   if (modelHandle.manifest?.modelId !== pack.modelId) throw new Error('Loaded program modelId does not match the Pack.');

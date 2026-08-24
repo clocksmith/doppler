@@ -101,14 +101,6 @@ const QUADRATURE_POINTS = 2000;
 const MAX_LLOYD_ITERATIONS = 200;
 const LLOYD_CONVERGENCE_EPS = 1e-12;
 
-/**
- * Compute the Max-Lloyd optimal scalar quantizer for the sphere marginal
- * distribution at a given dimension and bit-width.
- *
- * @param {number} d - Dimension (headDim).
- * @param {number} bitWidth - Bits per coordinate (1, 2, 3, or 4).
- * @returns {{ centroids: Float32Array, boundaries: Float32Array }}
- */
 function computeMaxLloydCodebook(d, bitWidth) {
   if (bitWidth < 1 || bitWidth > 4) {
     throw new Error(`TurboQuant bit-width must be 1-4; got ${bitWidth}.`);
@@ -170,13 +162,6 @@ function matrixKey(d, seed) {
   return `${d}:${seed}`;
 }
 
-/**
- * Get or compute the Max-Lloyd codebook for a given dimension and bit-width.
- *
- * @param {number} d - Dimension (headDim).
- * @param {number} bitWidth - Bits per coordinate.
- * @returns {{ centroids: Float32Array, boundaries: Float32Array }}
- */
 function getCodebook(d, bitWidth) {
   const key = codebookKey(d, bitWidth);
   let cb = codebookCache.get(key);
@@ -214,13 +199,6 @@ function getQJLMatrix(d, seed) {
 // Generates a deterministic d×d orthogonal matrix via QR decomposition
 // of a random Gaussian matrix using Householder reflections.
 
-/**
- * Generate a deterministic d×d orthogonal rotation matrix.
- *
- * @param {number} d - Dimension (headDim).
- * @param {number} seed - PRNG seed for reproducibility.
- * @returns {Float32Array} - Flattened d×d orthogonal matrix (row-major).
- */
 function generateRotationMatrix(d, seed) {
   const rng = createPRNG(seed);
 
@@ -309,14 +287,6 @@ function generateRotationMatrix(d, seed) {
 // The QJL (Quantized Johnson-Lindenstrauss) transform uses a random sign
 // matrix for 1-bit residual quantization.
 
-/**
- * Generate a deterministic d×d random sign matrix for QJL projection.
- * Each entry is +1 or -1 with equal probability, scaled by 1/sqrt(d).
- *
- * @param {number} d - Dimension (headDim).
- * @param {number} seed - PRNG seed (should differ from rotation seed).
- * @returns {Float32Array} - Flattened d×d sign matrix (row-major).
- */
 function generateQJLMatrix(d, seed) {
   const rng = createPRNG(seed);
   const P = new Float32Array(d * d);
@@ -329,15 +299,6 @@ function generateQJLMatrix(d, seed) {
 
 // -- Outlier fraction for non-integer bit-widths ------------------------------
 
-/**
- * Compute the fraction of channels that should use higher precision
- * for a given effective bit-width.
- *
- * @param {number} effectiveBits - Target effective bits (e.g., 2.5, 3.5).
- * @param {number} bitsHigh - Bits for outlier channels.
- * @param {number} bitsLow - Bits for non-outlier channels.
- * @returns {number} - Fraction of channels using bitsHigh (0 to 1).
- */
 function computeOutlierFraction(effectiveBits, bitsHigh, bitsLow) {
   if (bitsHigh <= bitsLow) {
     throw new Error(`bitsHigh (${bitsHigh}) must be > bitsLow (${bitsLow}).`);
@@ -354,14 +315,6 @@ function computeOutlierFraction(effectiveBits, bitsHigh, bitsLow) {
 
 // -- GPU buffer upload helpers ------------------------------------------------
 
-/**
- * Upload rotation matrix to a GPU buffer.
- *
- * @param {GPUDevice} device - WebGPU device.
- * @param {Float32Array} matrix - Flattened d×d rotation matrix.
- * @param {string} label - Buffer label.
- * @returns {GPUBuffer}
- */
 function uploadRotationMatrix(device, matrix, label) {
   const buf = device.createBuffer({
     label,
@@ -372,14 +325,6 @@ function uploadRotationMatrix(device, matrix, label) {
   return buf;
 }
 
-/**
- * Upload codebook (centroids + boundaries) to GPU buffers.
- *
- * @param {GPUDevice} device - WebGPU device.
- * @param {{ centroids: Float32Array, boundaries: Float32Array }} codebook
- * @param {string} prefix - Buffer label prefix.
- * @returns {{ centroidsBuffer: GPUBuffer, boundariesBuffer: GPUBuffer }}
- */
 function uploadCodebook(device, codebook, prefix) {
   const centroidsBuffer = device.createBuffer({
     label: `${prefix}_centroids`,
@@ -513,14 +458,6 @@ export function retainTurboQuantSharedBuffers(device, options = {}) {
 
 // -- TurboQuant packing helpers -----------------------------------------------
 
-/**
- * Compute packed stride for a given headDim and bit-width.
- * packedStride = ceil(headDim / packFactor) where packFactor = floor(32 / bitWidth).
- *
- * @param {number} headDim
- * @param {number} bitWidth
- * @returns {number}
- */
 export function computePackedStride(headDim, bitWidth) {
   const packFactor = Math.floor(32 / bitWidth);
   return Math.ceil(headDim / packFactor);
@@ -528,8 +465,6 @@ export function computePackedStride(headDim, bitWidth) {
 
 // -- Default seeds ------------------------------------------------------------
 
-/** Default seed for rotation matrix Π. */
 const ROTATION_SEED = 0x54515545; // "TQUE"
 
-/** Default seed for QJL projection matrix P (must differ from rotation seed). */
 const QJL_SEED = 0x514A4C50; // "QJLP"

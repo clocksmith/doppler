@@ -173,10 +173,6 @@ export class QuantizedKVCache {
     return this.numLayers * this.maxSeqLen * bytesPerToken;
   }
 
-  /**
-   * Set shared TurboQuant buffers (rotation matrix, codebook, QJL).
-   * Must be called before first updateFromGPU.
-   */
   setSharedBuffers(buffers) {
     this.rotationMatrixBuffer = buffers.rotationMatrixBuffer;
     this.codebookCentroidsBuffer = buffers.codebookCentroidsBuffer;

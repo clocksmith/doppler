@@ -2,7 +2,7 @@ import {
   loadRuntimeConfigFromRef,
   loadRuntimeConfigFromUrl,
   loadRuntimeProfile,
-} from '../inference/browser-harness-runtime-helpers.js';
+} from '../inference/browser-harness/runtime-config.js';
 import {
   getRuntimeConfig,
   setRuntimeConfig,
@@ -21,7 +21,7 @@ import {
   applyRuntimeInputs,
   buildSuiteOptions,
   runWithRuntimeIsolation,
-} from './command-runner-shared.js';
+} from './command-runtime-execution.js';
 import {
   getActiveKernelPath,
   getActiveKernelPathPolicy,

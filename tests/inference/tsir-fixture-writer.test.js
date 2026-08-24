@@ -3,17 +3,24 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { maybeWriteFixtureSnapshot } from '../../src/inference/pipelines/text/tsir-fixture-writer.js';
+import {
+  advanceDecodeStepCount,
+  createTsirFixtureState,
+  maybeWriteFixtureSnapshot,
+} from '../../src/inference/pipelines/text/tsir-fixture-writer.js';
 
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-tsir-fixture-'));
 
 try {
-  const fixture = {
+  const fixture = createTsirFixtureState({
     dir: root,
     layerFilter: [0],
     prefillOnly: false,
     generationStep: 2,
-  };
+  });
+  const state = { decodeStepCount: 0, operatorDiagnostics: { tsirFixture: fixture } };
+  assert.equal(advanceDecodeStepCount(state), 1);
+  assert.equal(fixture.currentGenerationStep, 1);
   const options = {
     tsirFixture: fixture,
     layerIdx: 0,

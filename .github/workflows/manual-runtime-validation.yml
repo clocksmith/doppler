@@ -12,6 +12,7 @@ on:
           - browser-kernels
           - opfs-text
           - opfs-embedding
+          - demo-contract
           - demo-hardware
 
 permissions:
@@ -114,3 +115,7 @@ jobs:
       - name: Run demo hardware and offline PWA smoke
         if: inputs.lane == 'demo-hardware'
         run: npm run test:demo:hardware
+
+      - name: Run demo UI and PWA contract
+        if: inputs.lane == 'demo-contract'
+        run: npm run test:demo:contract

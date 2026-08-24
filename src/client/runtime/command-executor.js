@@ -1,4 +1,3 @@
-/** TargetPlan command execution with no graph or model-family mutation. */
 
 function resolveGpuDevice(devicePort) {
   const device = typeof devicePort?.getDevice === 'function' ? devicePort.getDevice() : devicePort?.gpuDevice ?? devicePort;
@@ -19,7 +18,6 @@ function normalizeWorkgroups(value) {
   return result;
 }
 
-/** @param {object} devicePort @param {object} resourceBinder @param {object} [program] */
 export function createCommandExecutor(devicePort, resourceBinder, program = null) {
   const device = resolveGpuDevice(devicePort);
   const pipelineTasks = new Map();

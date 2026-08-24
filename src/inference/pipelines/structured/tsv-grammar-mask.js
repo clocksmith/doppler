@@ -50,11 +50,6 @@ function countRunes(piece, char) {
   return count;
 }
 
-/**
- * Per-piece flags used by the mask. Tracks tab/newline placement so the
- * state machine can decide when a line is complete and whether a token
- * is allowed to advance the schema.
- */
 function classifyPiece(piece) {
   const tabs = countRunes(piece, "\t");
   const newlines = countRunes(piece, "\n");
@@ -67,16 +62,6 @@ function classifyPiece(piece) {
   };
 }
 
-/**
- * Create a logit mask function that enforces a soft TSV grammar.
- *
- * @param {{
- *   tokenizer?: { decode(ids: number[], skipSpecial?: boolean, skipBos?: boolean): string } | null,
- *   fieldsPerLine?: number,
- *   cacheBudget?: number,
- * }} [opts]
- * @returns {(logits: Float32Array, context: { generatedIds: number[], tokenizer?: unknown, vocabSize?: number }) => void}
- */
 export function createTsvGrammarMask(opts = {}) {
   const fieldsPerLine = Math.max(2, Math.floor(Number(opts.fieldsPerLine) || 4));
   const tabsPerLineMax = fieldsPerLine - 1;
@@ -117,16 +102,6 @@ export function createTsvGrammarMask(opts = {}) {
     lastGeneratedLen = generatedIds.length;
   }
 
-  /**
-   * Walk a candidate piece's chars and check whether any intermediate
-   * state would violate the per-line tab budget. Returns true iff the
-   * piece is structurally valid given the current `tabsOnCurrentLine`.
-   *
-   * Intra-piece state evolution matters because BPE tokens occasionally
-   * span line boundaries (e.g., a piece `"\t\n"` ends one line AND
-   * starts the next with tabsOnCurrentLine=0). A naive check that just
-   * sums the piece's tabs/newlines would misjudge such tokens.
-   */
   function pieceFitsBudget(piece, startingTabs, tabsMax) {
     let tabs = startingTabs;
     let sawNewlineWithoutCompleteLine = false;

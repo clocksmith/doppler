@@ -1,6 +1,6 @@
 import type { CommandRecorder } from '../../command-recorder.js';
 import type { Tensor } from '../../tensor.js';
-import type { BackwardKernelOptions } from './utils.js';
+import type { BackwardKernelOptions } from './executor.js';
 
 export declare function runGeluBackward(
   input: Tensor,

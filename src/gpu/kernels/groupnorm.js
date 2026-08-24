@@ -1,6 +1,6 @@
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
-import { unifiedKernelWrapper } from './utils.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
 import { getBuffer } from '../weight-buffer.js';
 import { WORKGROUP_SIZES } from './constants.js';

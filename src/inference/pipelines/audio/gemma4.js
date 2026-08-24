@@ -1,14 +1,3 @@
-/**
- * Gemma 4 Conformer Audio Encoder
- *
- * Architecture:
- *   mel spectrogram -> 2-stage conv subsampling -> linear projection
- *   -> 12 conformer layers (half-FFN + self-attn + depthwise conv1d + half-FFN + norm)
- *   -> output projection -> audio embedding projection
- *
- * All linears use clipped ranges (input_min/max/output_min/max).
- * Self-attention uses relative position encoding with per_dim_scale and logit capping.
- */
 
 import { log } from '../../../debug/index.js';
 import { getDevice } from '../../../gpu/device.js';
@@ -552,17 +541,6 @@ async function runConformerLayer(hiddenTensor, layerWeights, audioConfig, seqLen
 // Main Encoder Entry Point
 // ---------------------------------------------------------------------------
 
-/**
- * Encode audio through the Gemma 4 conformer audio tower.
- *
- * @param {object} params
- * @param {Float32Array} params.melFeatures  Log-mel spectrogram [numFrames * nMels]
- * @param {number}       params.numFrames    Number of mel frames
- * @param {number}       params.nMels        Number of mel bands
- * @param {object}       params.audioConfig  Resolved audio encoder config
- * @param {object}       params.weights      Audio encoder weight buffers
- * @returns {Promise<{ features: GPUBuffer, numTokens: number }>}
- */
 export async function encodeGemma4Audio(params) {
   const { melFeatures, numFrames, nMels, rawAudio, audioConfig, weights } = params;
 

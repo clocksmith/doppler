@@ -14,7 +14,6 @@ async function hashBytes(bytes) {
   return Array.from(digest, (value) => value.toString(16).padStart(2, '0')).join('');
 }
 
-/** Browser/HTTP Pack artifact verification store. */
 export function createFetchPackArtifactStore(packUrl) {
   const baseUrl = new URL('.', packUrl).href;
   return {

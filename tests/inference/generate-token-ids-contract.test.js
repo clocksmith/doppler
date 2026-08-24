@@ -21,8 +21,12 @@ import { readFileSync } from 'node:fs';
 //   - Cleanup is in finally blocks
 // =============================================================================
 
-const generatorSource = readFileSync(
+const generatorFacadeSource = readFileSync(
   new URL('../../src/inference/pipelines/text/generator.js', import.meta.url),
+  'utf8'
+);
+const generatorSource = readFileSync(
+  new URL('../../src/inference/pipelines/text/generator/decode-runtime.js', import.meta.url),
   'utf8'
 );
 
@@ -53,9 +57,9 @@ function extractMethodBody(source, marker) {
   throw new Error(`Could not find balanced body for "${marker}"`);
 }
 
-const generateTokenIdsBody = extractMethodBody(generatorSource, 'async generateTokenIds(prompt');
-const runDecodeLoopBody = extractMethodBody(generatorSource, 'async *_runDecodeLoop(generatedIds');
-const generateTokensInternalBody = extractMethodBody(generatorSource, 'async *_generateTokensInternal(prompt');
+const generateTokenIdsBody = extractMethodBody(generatorSource, 'export async function generateTokenIds(prompt');
+const runDecodeLoopBody = extractMethodBody(generatorSource, 'export async function* _runDecodeLoop(generatedIds');
+const generateTokensInternalBody = extractMethodBody(generatorSource, 'export async function* _generateTokensInternal(prompt');
 
 // Sanity: bodies should be substantial
 assert.ok(generateTokenIdsBody.length > 500, `generateTokenIds body too short (${generateTokenIdsBody.length})`);
@@ -273,8 +277,8 @@ assert.ok(
 
 // === 12. generate() and generateTokens() delegate to _generateTokensInternal ===
 
-const generateBody = extractMethodBody(generatorSource, 'async *generate(prompt');
-const generateTokensBody = extractMethodBody(generatorSource, 'async *generateTokens(prompt');
+const generateBody = extractMethodBody(generatorFacadeSource, 'async *generate(prompt');
+const generateTokensBody = extractMethodBody(generatorFacadeSource, 'async *generateTokens(prompt');
 
 assert.ok(
   generateBody.includes('_generateTokensInternal'),

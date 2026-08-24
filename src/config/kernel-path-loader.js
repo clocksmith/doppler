@@ -1,6 +1,6 @@
 import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
-import { KERNEL_CONFIGS } from '../gpu/kernels/utils.js';
-import { mergeKernelPathPolicy } from './merge-helpers.js';
+import { KERNEL_CONFIGS } from '../gpu/kernels/kernel-configs.js';
+import { mergeKernelPathPolicy } from './merge/kernel-path-policy.js';
 
 const PATH_LOOKUP_CACHE = new WeakMap();
 const STEP_BY_OP_CACHE = new WeakMap();
@@ -75,11 +75,6 @@ export function getKernelPathKVDtype(path) {
   return null;
 }
 
-/**
- * Resolve a kernel path reference to a full schema object.
- * After the registry removal (Phase 3), only object refs are supported.
- * String-based registry lookups are no longer available.
- */
 export function resolveKernelPath(ref) {
   if (typeof ref === 'string') {
     throw new Error(
@@ -585,33 +580,29 @@ export function isKernelPathFusedQ4K(path = undefined) {
 }
 
 export function kernelPathRequiresF32MatmulWeights(path = undefined) {
-  const lookupPath = path === undefined ? activeKernelPath : path;
-  if (!lookupPath) return false;
-  const kernelSteps = getKernelPathKernelSteps(lookupPath);
-  return kernelSteps.some((step) => normalizeKernelFile(step.kernel) === 'matmul_f32.wgsl');
+  return kernelPathRequiresWeightDtype(path, 'f32', 'matmul');
 }
 
-export function kernelPathRequiresBF16Weights(path = undefined) {
+export function kernelPathRequiresWeightDtype(path = undefined, weightDtype, operation = undefined) {
   const lookupPath = path === undefined ? activeKernelPath : path;
   if (!lookupPath) return false;
   const kernelSteps = getKernelPathKernelSteps(lookupPath);
   return kernelSteps.some((step) => {
-    const kernel = normalizeKernelFile(step.kernel);
-    return kernel === 'gather_bf16.wgsl'
-      || kernel === 'matmul_bf16w_f32a.wgsl'
-      || kernel === 'matmul_gemv_subgroup_bf16w.wgsl';
+    const normalizedKernel = normalizeKernelFile(step.kernel);
+    const normalizedEntry = step.entry ?? DEFAULT_ENTRY;
+    const operationConfigs = operation
+      ? [KERNEL_CONFIGS[operation]]
+      : Object.values(KERNEL_CONFIGS);
+    return operationConfigs.some((variants) => Object.values(variants ?? {}).some((config) =>
+      config.shaderFile === normalizedKernel
+      && config.entryPoint === normalizedEntry
+      && config.weightDtype === weightDtype
+    ));
   });
 }
 
-export function executionKernelClosureRequiresBF16Weights(execution) {
-  const kernels = execution?.kernels;
-  if (!kernels || typeof kernels !== 'object' || Array.isArray(kernels)) return false;
-  return Object.values(kernels).some((entry) => {
-    const kernel = normalizeKernelFile(entry?.kernel);
-    return kernel === 'gather_bf16.wgsl'
-      || kernel === 'matmul_bf16w_f32a.wgsl'
-      || kernel === 'matmul_gemv_subgroup_bf16w.wgsl';
-  });
+export function kernelPathRequiresBF16Weights(path = undefined) {
+  return kernelPathRequiresWeightDtype(path, 'bf16');
 }
 
 export function isActiveKernelPathFusedQ4K() {

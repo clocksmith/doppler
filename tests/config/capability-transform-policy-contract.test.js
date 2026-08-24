@@ -58,7 +58,7 @@ const runtimeF32KvRule = policy.capabilityTransforms.find((rule) => {
 });
 assert.ok(runtimeF32KvRule, 'kvDtype=f32 runtime-session compatibility rule exists');
 assert.equal(runtimeF32KvRule.dtypeEffect, 'full-f32');
-assert.deepEqual(runtimeF32KvRule.transforms, ['widenToF32Activations']);
+assert.deepEqual(runtimeF32KvRule.transforms, ['widenToF32CorrectnessFallback']);
 
 const noF16HardwareRule = policy.capabilityTransforms.find((rule) => {
   return rule.kind === 'hardware-compatibility'

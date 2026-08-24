@@ -1,4 +1,4 @@
-import type { BackwardKernelOptions } from './utils.js';
+import type { BackwardKernelOptions } from './executor.js';
 
 export interface BiasAddBackwardOptions extends BackwardKernelOptions {
   numTokens: number;

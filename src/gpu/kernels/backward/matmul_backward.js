@@ -1,4 +1,4 @@
-import { runMatmulTransposeA, recordMatmulTransposeA, runMatmulBackwardDx, recordMatmulBackwardDx } from './utils.js';
+import { runMatmulTransposeA, recordMatmulTransposeA, runMatmulBackwardDx, recordMatmulBackwardDx } from './matmul.js';
 
 export async function runMatmulBackward(input, weight, gradOutput, options = {}) {
   const {

@@ -5,7 +5,7 @@ function normalizeSpecialTokenLabel(value) {
   return value.trim().toLowerCase();
 }
 
-function isBosLikeLabel(value) {
+export function isBosLikeLabel(value) {
   const normalized = normalizeSpecialTokenLabel(value);
   return normalized === '<bos>'
     || normalized === '<s>'
@@ -16,7 +16,7 @@ function isBosLikeLabel(value) {
     || normalized.includes('beginoftext');
 }
 
-function isEosLikeLabel(value) {
+export function isEosLikeLabel(value) {
   const normalized = normalizeSpecialTokenLabel(value);
   return normalized === '<eos>'
     || normalized === '</s>'

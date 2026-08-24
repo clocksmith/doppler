@@ -11,22 +11,22 @@
     "benchmarks/vendors/results/rerank_compare_*.json"
   ],
   "summary": {
-    "catalogModelCount": 28,
-    "scoreboardRowCount": 39,
-    "runtimeVerifiedModelCount": 25,
+    "catalogModelCount": 31,
+    "scoreboardRowCount": 42,
+    "runtimeVerifiedModelCount": 26,
     "hfPublishedModelCount": 19,
-    "failedModelCount": 1,
+    "failedModelCount": 3,
     "verificationNeededModelCount": 2,
     "platformVerifiedModelCount": {
       "browser": 9,
-      "node": 25,
+      "node": 28,
       "bun": 0
     },
     "generationCompareRowCount": 15,
     "generationCompareGapRowCount": 3,
     "embeddingCompareRowCount": 2,
     "rerankCompareRowCount": 1,
-    "supportGapRowCount": 18,
+    "supportGapRowCount": 21,
     "dopplerDecodeLeaderRowCount": 13,
     "transformersjsDecodeLeaderRowCount": 2,
     "dopplerEmbeddingLatencyLeaderRowCount": 1,
@@ -35,7 +35,7 @@
     "transformersjsRerankLatencyLeaderRowCount": 0,
     "claimReadyRowCount": 3,
     "localComparableRowCount": 0,
-    "evidenceIncompleteRowCount": 33
+    "evidenceIncompleteRowCount": 36
   },
   "rows": [
     {
@@ -1656,6 +1656,114 @@
       "nextCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto"
     },
     {
+      "rowId": "muse-glimmer-30b-text-bf16-af32:support",
+      "modelId": "muse-glimmer-30b-text-bf16-af32",
+      "label": "Muse Glimmer 30B (BF16/F32a)",
+      "family": "muse-glimmer",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, bf16 weights, bf16 embeddings, bf16 LM head, f32 compute",
+        "sizeBytes": 55709561856,
+        "sizeLabel": "51.9 GiB",
+        "hf": {
+          "published": false,
+          "repoId": null,
+          "revision": null,
+          "path": null
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "fail",
+      "metrics": null,
+      "claimStatus": "failed",
+      "claimReason": "Fix failed runtime verification for muse-glimmer-30b-text-bf16-af32; keep it unpromoted until a passing receipt exists.",
+      "evidence": {
+        "runtimeReport": null,
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "runtime-verify",
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "runtime-verify",
+      "nextCommand": "node tools/run-registry-verify.js muse-glimmer-30b-text-bf16-af32 --surface auto"
+    },
+    {
+      "rowId": "muse-glimmer-30b-text-f16-af32:support",
+      "modelId": "muse-glimmer-30b-text-f16-af32",
+      "label": "Muse Glimmer 30B (F16/F32a)",
+      "family": "muse-glimmer",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute",
+        "sizeBytes": 55709561856,
+        "sizeLabel": "51.9 GiB",
+        "hf": {
+          "published": false,
+          "repoId": null,
+          "revision": null,
+          "path": null
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "fail",
+      "metrics": null,
+      "claimStatus": "failed",
+      "claimReason": "Fix failed runtime verification for muse-glimmer-30b-text-bf16-af32; keep it unpromoted until a passing receipt exists.",
+      "evidence": {
+        "runtimeReport": null,
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "runtime-verify",
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "runtime-verify",
+      "nextCommand": "node tools/run-registry-verify.js muse-glimmer-30b-text-f16-af32 --surface auto"
+    },
+    {
       "rowId": "nucleotide-transformer-v2-50m-f32-af32:support",
       "modelId": "nucleotide-transformer-v2-50m-f32-af32",
       "label": "Nucleotide Transformer v2 50M DNA Encoder (F32)",
@@ -2375,6 +2483,59 @@
       "missing": [],
       "nextGate": null,
       "nextCommand": null
+    },
+    {
+      "rowId": "qwen3-8-27b-text-f16-af32:support",
+      "modelId": "qwen3-8-27b-text-f16-af32",
+      "label": "Qwen 3.8 27B (F16/F32a)",
+      "family": "qwen3",
+      "modes": [
+        "text"
+      ],
+      "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+      "workloadMode": "text",
+      "surface": null,
+      "workloadId": null,
+      "decodeProfile": null,
+      "artifact": {
+        "format": "rdrr",
+        "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "sizeBytes": 53791996928,
+        "sizeLabel": "50.1 GiB",
+        "hf": {
+          "published": false,
+          "repoId": null,
+          "revision": null,
+          "path": null
+        }
+      },
+      "platforms": {
+        "browser": "missing",
+        "node": "verified",
+        "bun": "missing"
+      },
+      "competitor": {
+        "engine": "transformersjs",
+        "modelId": null,
+        "format": null,
+        "dtype": null
+      },
+      "correctness": "pass",
+      "metrics": null,
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Publish or refresh the Hugging Face manifest/weights for qwen3-8-27b-text-f16-af32.",
+      "evidence": {
+        "runtimeReport": "reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json",
+        "compareResult": null,
+        "summarySvg": null,
+        "localClaimLaneId": null
+      },
+      "missing": [
+        "hf-publish",
+        "compare-profile"
+      ],
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id qwen3-8-27b-text-f16-af32 --dry-run --bootstrap"
     },
     {
       "rowId": "translategemma-4b-1b-enes-q4k-ehf16-af32:support",

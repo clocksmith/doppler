@@ -5,7 +5,8 @@ import { createTensor } from '../../../gpu/tensor.js';
 import { runMatmul, runSiLU, runGeLU } from '../../../gpu/kernel-selector.js';
 import { createExpertExecutionPlan, combineExpertOutputs } from '../../moe-router.js';
 import { log } from '../../../debug/index.js';
-import { ensureExpertLoaded, gatherTokens } from './moe-helpers.js';
+import { ensureExpertLoaded } from './moe/expert-loading.js';
+import { gatherTokens } from './moe/cpu-routing.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { runGptOssExpertCPU } from './moe-cpu-gptoss.js';
 

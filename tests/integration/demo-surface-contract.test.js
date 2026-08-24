@@ -11,7 +11,7 @@ assert.doesNotMatch(html, /translate-compare-shell/);
 assert.doesNotMatch(html, /id="xray-toggle-all"[^>]*checked/);
 assert.doesNotMatch(html, /id="set-word-quality"[^>]*checked/);
 assert.match(demo, /from '\.\/core\.js'/);
-assert.match(models, /from 'doppler-gpu'/);
+assert.match(models, /from 'doppler-gpu\/compat'/);
 assert.match(core, /model\.inspect\.generate/);
 assert.match(core, /demo\/always-on/);
 assert.match(core, /demo\/guided-quality/);

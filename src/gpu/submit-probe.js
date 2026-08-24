@@ -1,13 +1,3 @@
-/**
- * GPU submit latency probe.
- *
- * Dispatches a trivial compute shader, submits, waits for the GPU fence
- * (onSubmittedWorkDone) plus a staging-buffer readback (mapAsync), and
- * returns the wall-clock roundtrip in milliseconds.
- *
- * The result is used at session init to decide whether the batched-GPU
- * decode path is viable or whether single-token decode should be preferred.
- */
 
 const PROBE_SHADER = `
 @group(0) @binding(0) var<storage, read_write> out: array<u32>;
@@ -17,13 +7,6 @@ fn main() {
 }
 `;
 
-/**
- * Run a single submit+readback roundtrip and return the elapsed time in ms.
- * Returns `null` if the probe cannot run (e.g. device lost, buffer failure).
- *
- * @param {GPUDevice} device
- * @returns {Promise<number | null>}
- */
 export async function probeSubmitLatency(device) {
   if (!device) return null;
 

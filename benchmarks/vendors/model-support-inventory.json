@@ -108,21 +108,21 @@
     }
   },
   "summary": {
-    "catalogModelCount": 28,
-    "sourceCheckpointCount": 21,
-    "conversionOnlyConfigCount": 8,
+    "catalogModelCount": 31,
+    "sourceCheckpointCount": 23,
+    "conversionOnlyConfigCount": 9,
     "hfPublishedModelCount": 19,
-    "verifiedModelCount": 25,
+    "verifiedModelCount": 26,
     "benchmarkSelectedSourceCount": 1,
-    "benchmarkPendingSourceCount": 20,
+    "benchmarkPendingSourceCount": 22,
     "tierCounts": {
       "small": 13,
       "medium": 4,
-      "large": 4,
+      "large": 6,
       "unknown": 0
     },
     "typeClusterCounts": {
-      "text-generators": 14,
+      "text-generators": 17,
       "multimodal-generators": 3,
       "diffusion-language-models": 1,
       "translation-specialists": 2,
@@ -3545,6 +3545,317 @@
       "nextAction": "Publish or refresh the Hugging Face manifest/weights for gemma-4-31b-it-text-q4k-ehf16-af16.",
       "nextGate": "hf-publish",
       "nextCommand": "node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af16 --dry-run --bootstrap"
+    },
+    {
+      "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+      "family": "qwen3",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
+      "tier": "large",
+      "minSizeBytes": 53791996928,
+      "minSizeLabel": "50.1 GiB",
+      "status": "benchmark-comparison-needed",
+      "preferredArchitecture": {
+        "status": "pending-benchmark-comparison",
+        "modelId": "qwen3-8-27b-text-f16-af32",
+        "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
+        "evidence": {
+          "runtimeReport": "reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json",
+          "compareResult": null,
+          "summarySvg": null
+        }
+      },
+      "variants": [
+        {
+          "modelId": "qwen3-8-27b-text-f16-af32",
+          "label": "Qwen 3.8 27B (F16/F32a)",
+          "family": "qwen3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
+          "modes": [
+            "text"
+          ],
+          "sizeBytes": 53791996928,
+          "sizeLabel": "50.1 GiB",
+          "tier": "large",
+          "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+          "weightPackId": "qwen3-8-27b-text-f16-af32-wp-990c3ddb1675",
+          "manifestVariantId": "qwen3-8-27b-text-f16-af32-mv-4f6c6b282ab6",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "manifest-owned",
+          "conversionConfig": "src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "f16",
+            "embeddings": "f16",
+            "lmHead": "f16",
+            "computePrecision": "f32",
+            "q4kLayout": "row",
+            "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
+          },
+          "lifecycle": {
+            "runtime": "active",
+            "conversion": "ready",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-08-23",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": null,
+            "revision": null,
+            "path": null
+          },
+          "quickstart": false,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": "reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json",
+            "runtimeReportExists": true,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js qwen3-8-27b-text-f16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen3-8-27b-text-f16-af32 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen3-8-27b-text-f16-af32 --dry-run --bootstrap"
+          },
+          "missing": [
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "hf-publish"
+        }
+      ],
+      "nextAction": "Publish or refresh the Hugging Face manifest/weights for qwen3-8-27b-text-f16-af32.",
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id qwen3-8-27b-text-f16-af32 --dry-run --bootstrap"
+    },
+    {
+      "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+      "family": "muse-glimmer",
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
+      "tier": "large",
+      "minSizeBytes": 55709561856,
+      "minSizeLabel": "51.9 GiB",
+      "status": "verification-failed",
+      "preferredArchitecture": {
+        "status": "verification-failed",
+        "modelId": null,
+        "architecture": null,
+        "evidence": {
+          "runtimeReport": null,
+          "compareResult": null,
+          "summarySvg": null
+        }
+      },
+      "variants": [
+        {
+          "modelId": "muse-glimmer-30b-text-bf16-af32",
+          "label": "Muse Glimmer 30B (BF16/F32a)",
+          "family": "muse-glimmer",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
+          "modes": [
+            "text"
+          ],
+          "sizeBytes": 55709561856,
+          "sizeLabel": "51.9 GiB",
+          "tier": "large",
+          "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+          "weightPackId": "muse-glimmer-30b-text-bf16-af32-wp-dcc50556375d",
+          "manifestVariantId": "muse-glimmer-30b-text-bf16-af32-mv-080be51060ba",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "unpromoted",
+          "conversionConfig": "src/config/conversion/muse-glimmer/muse-glimmer-30b-text-bf16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "bf16",
+            "embeddings": "bf16",
+            "lmHead": "bf16",
+            "computePrecision": "f32",
+            "q4kLayout": null,
+            "label": "RDRR, bf16 weights, bf16 embeddings, bf16 LM head, f32 compute"
+          },
+          "lifecycle": {
+            "runtime": "experimental",
+            "conversion": "ready",
+            "tested": "failed",
+            "result": "fail",
+            "lastVerifiedAt": "2026-08-23",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": null,
+            "revision": null,
+            "path": null
+          },
+          "quickstart": false,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": null,
+            "runtimeReportExists": false,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js muse-glimmer-30b-text-bf16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id muse-glimmer-30b-text-bf16-af32 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/run-registry-verify.js muse-glimmer-30b-text-bf16-af32 --surface auto"
+          },
+          "missing": [
+            "runtime-verify",
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "runtime-verify"
+        },
+        {
+          "modelId": "muse-glimmer-30b-text-f16-af32",
+          "label": "Muse Glimmer 30B (F16/F32a)",
+          "family": "muse-glimmer",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
+          "modes": [
+            "text"
+          ],
+          "sizeBytes": 55709561856,
+          "sizeLabel": "51.9 GiB",
+          "tier": "large",
+          "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+          "weightPackId": "muse-glimmer-30b-text-f16-af32-wp-da829391e53b",
+          "manifestVariantId": "muse-glimmer-30b-text-f16-af32-mv-4b07f1d027c2",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "unpromoted",
+          "conversionConfig": "src/config/conversion/muse-glimmer/muse-glimmer-30b-text-f16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "f16",
+            "embeddings": "f16",
+            "lmHead": "f16",
+            "computePrecision": "f32",
+            "q4kLayout": null,
+            "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute"
+          },
+          "lifecycle": {
+            "runtime": "experimental",
+            "conversion": "ready",
+            "tested": "failed",
+            "result": "fail",
+            "lastVerifiedAt": "2026-08-23",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": null,
+            "revision": null,
+            "path": null
+          },
+          "quickstart": false,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": null,
+            "runtimeReportExists": false,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js muse-glimmer-30b-text-f16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id muse-glimmer-30b-text-f16-af32 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/run-registry-verify.js muse-glimmer-30b-text-f16-af32 --surface auto"
+          },
+          "missing": [
+            "runtime-verify",
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "runtime-verify"
+        }
+      ],
+      "nextAction": "Fix failed runtime verification for muse-glimmer-30b-text-bf16-af32; keep it unpromoted until a passing receipt exists.",
+      "nextGate": "runtime-verify",
+      "nextCommand": "node tools/run-registry-verify.js muse-glimmer-30b-text-bf16-af32 --surface auto"
     }
   ],
   "conversionOnly": [
@@ -3690,6 +4001,24 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish qwen-3-5-9b-q4k-ehaf16 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "qwen3.8-27b-text-q4k-ehaf16",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
+      "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "q4k",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen3.8-27b-text-q4k-ehaf16 before claiming runtime support.",
       "nextCommand": null
     }
   ]

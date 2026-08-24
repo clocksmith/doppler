@@ -106,14 +106,6 @@ function normalizeDreamLoraAdapter(adapter) {
   };
 }
 
-/**
- * Adapts a raw Doppler pipeline into the model handle shape that
- * createDopplerProvider() expects, without triggering a load.
- *
- * @param {Object} pipeline - A loaded Doppler pipeline (has generate, manifest, etc.)
- * @param {{ modelId?: string, manifest?: Object, deviceInfo?: Object }} [resolved]
- * @returns {{ loaded: boolean, modelId: string, manifest: Object|null, deviceInfo: Object|null, generateText(prompt: unknown, opts?: Object): Promise<string>, unload(): Promise<void> }}
- */
 export function wrapPipelineAsHandle(pipeline, resolved = {}) {
   if (!pipeline || typeof pipeline.generate !== 'function') {
     throw new Error('wrapPipelineAsHandle requires a loaded pipeline with a generate() method.');

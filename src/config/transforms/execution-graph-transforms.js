@@ -1,4 +1,10 @@
-// =============================================================================
+
+import { F16_TO_F32_ACTIVATION_MAP, F32_TO_F16_ACTIVATION_MAP, KERNEL_FILE_PRECISION_PATCHES, cloneGraph, deriveF16AttentionKernelEntry, deriveKernelEntry, deriveKernelEntryWithPrecision, deriveKernelKey, deriveLinearDecodeF16KernelEntry, deriveLmHeadDecodeF16KernelEntry, deriveQ4DecodeF16KernelEntry, deriveQ4PrefillF16AccumKernelEntry, deriveQ4PrefillF16KernelEntry, deriveQ4WideTilePrefillF16KernelEntry, findPhaseStep, narrowToF16Activations, replacePhaseStepKernelKey, useQwen36F16Activations, useQwenDecodeF16Matmuls, useQwenF16PrimaryMatmuls } from './execution-graph/dtype.js';
+import { LAYER_PROJECTION_OPS, useGemma4Int4PleAf16Activations, useGemma4Int4PleSelectiveF16Decode, useGemma4TextF16ActivationsForLane } from './execution-graph/fusion.js';
+import { deriveMappedKernelEntry, deriveQ4DecodeF32ActivationKernelEntry, deriveQ4PrefillF32ActivationKernelEntry, findKernelKeyByFileAndEntry, hasKernelFile, remapDenseQ4KPrefillToQ4Native, remapStepKeys, removeSubgroups, widenProjectionWeightsToF32, widenToF32Activations } from './execution-graph/validation.js';
+export { remapDenseQ4KPrefillToQ4Native, removeSubgroups, widenProjectionWeightsToF32, widenToF32Activations } from './execution-graph/validation.js';
+export { useGemma4Int4PleAf16Activations, useGemma4Int4PleSelectiveF16Decode } from './execution-graph/fusion.js';
+export { narrowToF16Activations, useQwen36F16Activations, useQwenDecodeF16Matmuls, useQwenF16PrimaryMatmuls } from './execution-graph/dtype.js';// =============================================================================
 // Execution Graph Transforms
 // =============================================================================
 //
@@ -16,38 +22,11 @@
 /*
  * Deep-clone an execution graph.
  */
-function cloneGraph(graph) {
-  return structuredClone(graph);
-}
 
 /*
  * Shader files that require subgroups even though "subgroup" is not in the filename.
  * Online attention kernels use subgroup reductions internally.
  */
-const SUBGROUP_REQUIRING_FILES = new Set([
-  'attention_decode_online_f16kv.wgsl',
-  'attention_decode_online_f16.wgsl',
-]);
-
-const KERNEL_FILE_PRECISION_PATCHES = new Map([
-  ['matmul_gemv_subgroup_f16a.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
-  ['matmul_f16.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
-  ['matmul_f16_tiled.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
-  ['silu_f16.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
-  ['fused_matmul_q4_multicol_f16.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
-  ['fused_matmul_q4_multicol_f16a.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
-  ['fused_matmul_q4_batched_f16acc_f16a.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
-  ['fused_matmul_q4.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
-  ['fused_matmul_q4_batched.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
-  ['fused_matmul_q4_batched_multicol_shared.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
-  ['fused_matmul_q4_widetile_f16a.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
-  ['matmul_gemv_subgroup.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
-  ['matmul_f16w_f32a.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
-  ['matmul_f16w_f32a_tiled.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
-  ['matmul_f32.wgsl', { inputDtype: 'f32', outputDtype: 'f32' }],
-  ['gather_f16_f16_out.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
-  ['gather_f16_vec4_f16_out.wgsl', { inputDtype: 'f16', outputDtype: 'f16' }],
-]);
 
 export function getKernelFilePrecisionPatch(kernel) {
   return KERNEL_FILE_PRECISION_PATCHES.get(kernel) ?? null;
@@ -56,114 +35,26 @@ export function getKernelFilePrecisionPatch(kernel) {
 /*
  * Check whether a kernel entry requires subgroup support.
  */
-function isSubgroupKernel(kernelEntry) {
-  if (typeof kernelEntry.kernel !== 'string') return false;
-  return kernelEntry.kernel.includes('subgroup') || SUBGROUP_REQUIRING_FILES.has(kernelEntry.kernel);
-}
-
-function requiresNoSubgroupFallback(kernelEntry) {
-  if (typeof kernelEntry?.kernel !== 'string') return false;
-  return isSubgroupKernel(kernelEntry) || kernelEntry.kernel.startsWith('fused_matmul_q4');
-}
 
 /*
  * Find all kernel keys in the graph whose `kernel` file matches the given filename.
  */
-function findKernelKeysByFile(graph, filename) {
-  const keys = [];
-  for (const [key, entry] of Object.entries(graph.kernels)) {
-    if (entry.kernel === filename) {
-      keys.push(key);
-    }
-  }
-  return keys;
-}
 
 /*
  * Check whether any kernel in the graph uses the given shader file.
  */
-function hasKernelFile(graph, filename) {
-  return findKernelKeysByFile(graph, filename).length > 0;
-}
 
 /*
  * Create a new kernel entry with the digest cleared (shader changed).
  */
-function deriveKernelEntry(base, newFile, newEntry, constants) {
-  const derived = { ...base, kernel: newFile, entry: newEntry, digest: null };
-  if (constants === null) {
-    delete derived.constants;
-  } else if (constants !== undefined) {
-    derived.constants = { ...constants };
-  }
-  const precision = deriveKernelPrecision(base, newFile);
-  if (precision) {
-    derived.precision = precision;
-  } else {
-    delete derived.precision;
-  }
-  return derived;
-}
-
-function deriveMappedKernelEntry(base, newFile) {
-  const newEntry = newFile === 'matmul_f32.wgsl' ? 'main' : base.entry;
-  return deriveKernelEntry(base, newFile, newEntry);
-}
-
-function deriveKernelPrecision(base, newFile) {
-  const precision = base.precision ? { ...base.precision } : {};
-  const precisionPatch = KERNEL_FILE_PRECISION_PATCHES.get(newFile);
-  if (precisionPatch) {
-    Object.assign(precision, precisionPatch);
-  }
-  if (!String(newFile).startsWith('attention')) {
-    return Object.keys(precision).length > 0 ? precision : null;
-  }
-  if (newFile.includes('_f16kv')) {
-    precision.activationDtype = 'f32';
-    precision.kvDtype = 'f16';
-    return precision;
-  }
-  if (newFile.includes('_f16')) {
-    precision.activationDtype = 'f16';
-    precision.kvDtype = 'f16';
-    return precision;
-  }
-  precision.activationDtype = 'f32';
-  precision.kvDtype = 'f32';
-  return precision;
-}
 
 /*
  * Derive a non-colliding kernel key name.
  */
-function deriveKernelKey(kernels, baseKey, suffix) {
-  const candidate = `${baseKey}${suffix}`;
-  if (!kernels[candidate]) {
-    return candidate;
-  }
-  let counter = 2;
-  while (kernels[`${candidate}_${counter}`]) {
-    counter++;
-  }
-  return `${candidate}_${counter}`;
-}
 
 /*
  * Replace kernel key references in step tuples.
  */
-function remapStepKeys(steps, keyMap) {
-  return steps.map((step) => {
-    const kernelKey = step[1];
-    const replacement = keyMap.get(kernelKey);
-    if (replacement !== undefined) {
-      const newStep = [...step];
-      newStep[1] = replacement;
-      return newStep;
-    }
-    return step;
-  });
-}
 
 /*
  * Check whether a step tuple's kernel key resolves to the given shader file.
@@ -178,30 +69,10 @@ function stepUsesFile(graph, step, filename) {
  * Find the first kernel key used by matching ops in a phase whose shader file
  * satisfies the provided predicate.
  */
-function findPhaseKernelKey(graph, steps, ops, predicate) {
-  for (const step of steps || []) {
-    if (!ops.has(step[0])) {
-      continue;
-    }
-    const entry = graph.kernels[step[1]];
-    if (entry && predicate(entry)) {
-      return step[1];
-    }
-  }
-  return null;
-}
 
 /*
  * Find an existing kernel key by shader file and entry point.
  */
-function findKernelKeyByFileAndEntry(graph, filename, entryPoint) {
-  for (const [key, entry] of Object.entries(graph.kernels)) {
-    if (entry.kernel === filename && entry.entry === entryPoint) {
-      return key;
-    }
-  }
-  return null;
-}
 
 function normalizeLayerType(layerType) {
   return typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';
@@ -251,306 +122,6 @@ function buildGroupedLayerEntries(baseStep, targetLayers, replacementKernelKey) 
   return groupedEntries;
 }
 
-function replacePhaseStepKernelKey(steps, op, replacementKernelKey) {
-  if (!Array.isArray(steps) || steps.length === 0 || !replacementKernelKey) {
-    return { steps, changed: false };
-  }
-  let changed = false;
-  const nextSteps = steps.map((step) => {
-    if (!Array.isArray(step) || step[0] !== op) {
-      return step;
-    }
-    if (step[1] === replacementKernelKey) {
-      return step;
-    }
-    const replacement = [...step];
-    replacement[1] = replacementKernelKey;
-    changed = true;
-    return replacement;
-  });
-  return { steps: nextSteps, changed };
-}
-
-function findPhaseStep(steps, op) {
-  if (!Array.isArray(steps) || !op) {
-    return null;
-  }
-  for (const entry of steps) {
-    if (Array.isArray(entry)) {
-      if (entry[0] === op) {
-        return entry;
-      }
-      continue;
-    }
-    if (!entry || typeof entry !== 'object' || !Array.isArray(entry.steps)) {
-      continue;
-    }
-    const nested = findPhaseStep(entry.steps, op);
-    if (nested) {
-      return nested;
-    }
-  }
-  return null;
-}
-
-function deriveKernelEntryWithPrecision(base, precision) {
-  return {
-    ...base,
-    precision: {
-      ...(base.precision ?? {}),
-      ...precision,
-    },
-  };
-}
-
-const ATTENTION_F16KV_TO_F16_MAP = new Map([
-  ['attention_decode_online_f16kv.wgsl', 'attention_decode_online_f16.wgsl'],
-  ['attention_decode_chunked_f16kv.wgsl', 'attention_decode_chunked_f16.wgsl'],
-  ['attention_small_f16kv.wgsl', 'attention_small_f16.wgsl'],
-  ['attention_streaming_f16kv.wgsl', 'attention_streaming_f16.wgsl'],
-  ['attention_head512_f16kv.wgsl', 'attention_head512_f16.wgsl'],
-]);
-
-function deriveF16AttentionKernelEntry(base) {
-  if (typeof base?.kernel !== 'string') {
-    return null;
-  }
-  const replacement = ATTENTION_F16KV_TO_F16_MAP.get(base.kernel);
-  if (!replacement) {
-    return null;
-  }
-  return deriveKernelEntryWithPrecision(
-    deriveKernelEntry(base, replacement, base.entry),
-    { activationDtype: 'f16', kvDtype: 'f16' }
-  );
-}
-
-function deriveLinearDecodeF16KernelEntry(base) {
-  const precision = {
-    inputDtype: 'f16',
-    outputDtype: 'f16',
-  };
-  if (base.kernel === 'fused_matmul_q4.wgsl' && base.entry === 'main_multicol') {
-    return {
-      ...deriveKernelEntry(base, 'fused_matmul_q4_multicol_f16a.wgsl', 'main_multicol_f16a'),
-      precision: {
-        ...(base.precision ?? {}),
-        ...precision,
-      },
-    };
-  }
-  if (
-    (base.kernel === 'fused_matmul_q4_multicol_f16.wgsl' && base.entry === 'main_multicol_f16')
-    || (base.kernel === 'fused_matmul_q4_multicol_f16a.wgsl' && base.entry === 'main_multicol_f16a')
-  ) {
-    return deriveKernelEntryWithPrecision(base, precision);
-  }
-  return null;
-}
-
-function deriveLmHeadDecodeF16KernelEntry(base) {
-  const precision = {
-    inputDtype: 'f16',
-    outputDtype: 'f16',
-  };
-  if (base.kernel === 'matmul_gemv_subgroup.wgsl' && base.entry === 'main_multicol') {
-    return {
-      ...deriveKernelEntry(base, 'matmul_gemv_subgroup_f16a.wgsl', 'main_multicol'),
-      precision: {
-        ...(base.precision ?? {}),
-        ...precision,
-      },
-    };
-  }
-  if (base.kernel === 'matmul_gemv_subgroup_f16a.wgsl' && base.entry === 'main_multicol') {
-    return deriveKernelEntryWithPrecision(base, precision);
-  }
-  return null;
-}
-
-function deriveDenseDecodeF16KernelEntry(base) {
-  if (typeof base?.kernel !== 'string') {
-    return null;
-  }
-  const precision = {
-    inputDtype: 'f16',
-    outputDtype: 'f16',
-  };
-  if (base.kernel === 'matmul_gemv_subgroup.wgsl') {
-    return {
-      ...deriveKernelEntry(base, 'matmul_gemv_subgroup_f16a.wgsl', base.entry ?? 'main'),
-      precision: {
-        ...(base.precision ?? {}),
-        ...precision,
-      },
-    };
-  }
-  if (base.kernel === 'matmul_gemv_subgroup_f16a.wgsl') {
-    return deriveKernelEntryWithPrecision(base, precision);
-  }
-  return null;
-}
-
-function deriveQ4DecodeF16KernelEntry(base) {
-  if (typeof base?.kernel !== 'string') {
-    return null;
-  }
-  const precision = {
-    inputDtype: 'f16',
-    outputDtype: 'f16',
-  };
-  if (base.kernel === 'fused_matmul_q4.wgsl') {
-    return {
-      ...deriveKernelEntry(base, 'fused_matmul_q4_multicol_f16a.wgsl', 'main_multicol_f16a', null),
-      precision: {
-        ...(base.precision ?? {}),
-        ...precision,
-      },
-    };
-  }
-  if (
-    base.kernel === 'fused_matmul_q4_multicol_f16.wgsl'
-    || base.kernel === 'fused_matmul_q4_multicol_f16a.wgsl'
-  ) {
-    return deriveKernelEntryWithPrecision(base, precision);
-  }
-  return null;
-}
-
-function deriveQ4PrefillF16KernelEntry(base) {
-  if (typeof base?.kernel !== 'string') {
-    return null;
-  }
-  const precision = {
-    inputDtype: 'f16',
-    outputDtype: 'f16',
-  };
-  if (base.kernel === 'fused_matmul_q4_widetile_f16a.wgsl') {
-    return deriveKernelEntryWithPrecision(base, precision);
-  }
-  if (base.kernel.startsWith('fused_matmul_q4_batched')) {
-    return {
-      ...deriveKernelEntry(base, 'fused_matmul_q4_batched_f16a.wgsl', 'main_batched_f16a', null),
-      precision: {
-        ...(base.precision ?? {}),
-        ...precision,
-      },
-    };
-  }
-  return null;
-}
-
-function deriveQ4WideTilePrefillF16KernelEntry(base) {
-  if (typeof base?.kernel !== 'string') {
-    return null;
-  }
-  const precision = {
-    inputDtype: 'f16',
-    outputDtype: 'f16',
-  };
-  if (base.kernel === 'fused_matmul_q4_widetile.wgsl') {
-    return {
-      ...deriveKernelEntry(base, 'fused_matmul_q4_widetile_f16a.wgsl', 'main', null),
-      precision: {
-        ...(base.precision ?? {}),
-        ...precision,
-      },
-    };
-  }
-  if (base.kernel === 'fused_matmul_q4_widetile_f16a.wgsl') {
-    return deriveKernelEntryWithPrecision(base, precision);
-  }
-  return null;
-}
-
-function deriveQ4PrefillF16AccumKernelEntry(base) {
-  if (typeof base?.kernel !== 'string') {
-    return null;
-  }
-  const precision = {
-    inputDtype: 'f16',
-    outputDtype: 'f16',
-  };
-  if (
-    base.kernel === 'fused_matmul_q4_widetile.wgsl'
-    || base.kernel === 'fused_matmul_q4_widetile_f16a.wgsl'
-    || base.kernel.startsWith('fused_matmul_q4_batched')
-  ) {
-    return {
-      ...deriveKernelEntry(base, 'fused_matmul_q4_batched_f16acc_f16a.wgsl', 'main_batched_f16acc_f16a', null),
-      precision: {
-        ...(base.precision ?? {}),
-        ...precision,
-      },
-    };
-  }
-  return null;
-}
-
-function deriveQ4DecodeF32ActivationKernelEntry(base) {
-  if (typeof base?.kernel !== 'string') {
-    return null;
-  }
-  const precision = {
-    inputDtype: 'f32',
-    outputDtype: 'f32',
-  };
-  if (
-    base.kernel === 'fused_matmul_q4_multicol_f16.wgsl'
-    || base.kernel === 'fused_matmul_q4_multicol_f16a.wgsl'
-  ) {
-    return deriveKernelEntryWithPrecision(
-      deriveKernelEntry(base, 'fused_matmul_q4.wgsl', 'main_multicol', null),
-      precision
-    );
-  }
-  if (base.kernel === 'fused_matmul_q4_f16a.wgsl') {
-    return deriveKernelEntryWithPrecision(
-      deriveKernelEntry(base, 'fused_matmul_q4.wgsl', 'main', null),
-      precision
-    );
-  }
-  return null;
-}
-
-function deriveQ4PrefillF32ActivationKernelEntry(base, options = {}) {
-  if (typeof base?.kernel !== 'string') {
-    return null;
-  }
-  const replacement = options.fullF32 === true
-    ? {
-      kernel: 'fused_matmul_q4_batched_multicol_shared.wgsl',
-      entry: 'main',
-    }
-    : {
-      kernel: 'fused_matmul_q4_widetile.wgsl',
-      entry: 'main',
-    };
-  if (base.kernel === 'fused_matmul_q4_widetile.wgsl' && options.fullF32 === true) {
-    return deriveKernelEntryWithPrecision(
-      deriveKernelEntry(base, replacement.kernel, replacement.entry, null),
-      { inputDtype: 'f32', outputDtype: 'f32' }
-    );
-  }
-  if (
-    base.kernel !== 'fused_matmul_q4_batched_f16.wgsl'
-    && base.kernel !== 'fused_matmul_q4_batched_f16a.wgsl'
-    && base.kernel !== 'fused_matmul_q4_widetile_f16a.wgsl'
-  ) {
-    return null;
-  }
-  if (base.kernel === 'fused_matmul_q4_widetile_f16a.wgsl') {
-    return deriveKernelEntryWithPrecision(
-      deriveKernelEntry(base, replacement.kernel, replacement.entry, null),
-      { inputDtype: 'f32', outputDtype: 'f32' }
-    );
-  }
-  return deriveKernelEntryWithPrecision(
-    deriveKernelEntry(base, 'fused_matmul_q4_batched.wgsl', 'main_batched', null),
-    { inputDtype: 'f32', outputDtype: 'f32' }
-  );
-}
-
 function replacePhaseStepEntries(steps, op, replacementEntries) {
   if (!Array.isArray(steps) || steps.length === 0 || !Array.isArray(replacementEntries) || replacementEntries.length === 0) {
     return { steps, changed: false };
@@ -580,86 +151,6 @@ function replacePhaseStepEntries(steps, op, replacementEntries) {
  * Returns null if the graph has no subgroup kernels.
  *
  */
-export function removeSubgroups(graph, ctx) {
-  const hasAnyFallbackKernel = Object.values(graph.kernels).some(requiresNoSubgroupFallback);
-  if (!hasAnyFallbackKernel) {
-    return null;
-  }
-
-  const result = cloneGraph(graph);
-  const keyMap = new Map();
-  const isF16Activation = ctx.activationDtype === 'f16';
-
-  // Build replacement kernel entries for each subgroup or fused-Q4K kernel
-  // reference found in decode, prefill, and postLayer steps.
-  const decodeKeys = new Set((result.decode || []).map((s) => s[1]));
-  const prefillKeys = new Set((result.prefill || []).map((s) => s[1]));
-  const postLayerKeys = new Set((result.postLayer || []).map((s) => s[1]));
-  const relevantKeys = new Set([...decodeKeys, ...prefillKeys, ...postLayerKeys]);
-
-  for (const key of relevantKeys) {
-    const entry = result.kernels[key];
-    if (!entry || !requiresNoSubgroupFallback(entry)) {
-      continue;
-    }
-
-    const isPostLayer = postLayerKeys.has(key) && !decodeKeys.has(key);
-    const isMulticol = entry.entry === 'main_multicol';
-    const isLmHead = isPostLayer || isMulticol;
-
-    let newFile;
-    let newEntry = 'main';
-    let newConstants = undefined;
-
-    if (entry.kernel === 'matmul_gemv_subgroup.wgsl') {
-      if (isLmHead) {
-        // lm_head: multicol → plain matmul, remove MULTICOL constants
-        newFile = 'matmul_f16w_f32a.wgsl';
-        newConstants = null;
-      } else {
-        // decode projections: vec4 → tiled matmul
-        newFile = 'matmul_f16w_f32a_tiled.wgsl';
-      }
-    } else if (entry.kernel === 'matmul_gemv_subgroup_f16a.wgsl') {
-      if (isLmHead) {
-        newFile = isF16Activation ? 'matmul_f16.wgsl' : 'matmul_f16w_f32a.wgsl';
-        newConstants = null;
-      } else {
-        newFile = isF16Activation ? 'matmul_f16.wgsl' : 'matmul_f16w_f32a_tiled.wgsl';
-      }
-    } else if (entry.kernel === 'attention_decode_online_f16kv.wgsl') {
-      // f16kv online uses f32 Q; if activations are f16, fall back to all-f16 chunked
-      newFile = isF16Activation
-        ? 'attention_decode_chunked_f16.wgsl'
-        : 'attention_decode_chunked_f16kv.wgsl';
-      newEntry = entry.entry;
-    } else if (entry.kernel === 'attention_decode_online_f16.wgsl') {
-      newFile = 'attention_decode_chunked_f16.wgsl';
-      newEntry = entry.entry;
-    } else if (entry.kernel.startsWith('fused_matmul_q4')) {
-      newFile = isF16Activation ? 'matmul_f16_tiled.wgsl' : 'matmul_f16w_f32a_tiled.wgsl';
-      newConstants = null;
-    } else {
-      // Unknown subgroup kernel — skip
-      continue;
-    }
-
-    const newKey = deriveKernelKey(result.kernels, key, '_nosg');
-    result.kernels[newKey] = deriveKernelEntry(entry, newFile, newEntry, newConstants);
-    keyMap.set(key, newKey);
-  }
-
-  if (keyMap.size === 0) {
-    return null;
-  }
-
-  // Remap decode, prefill, and postLayer steps; leave preLayer untouched
-  result.decode = remapStepKeys(result.decode || [], keyMap);
-  result.prefill = remapStepKeys(result.prefill || [], keyMap);
-  result.postLayer = remapStepKeys(result.postLayer || [], keyMap);
-
-  return result;
-}
 
 // =============================================================================
 // Transform: widenToF32Activations
@@ -670,25 +161,6 @@ export function removeSubgroups(graph, ctx) {
  * that still use f16 for weights and KV cache. Requires shader-f16 for weight
  * and KV buffer reads.
  */
-const F16_TO_F32_ACTIVATION_MAP = new Map([
-  ['rmsnorm_f16.wgsl', 'rmsnorm.wgsl'],
-  ['rope_f16.wgsl', 'rope.wgsl'],
-  ['residual_f16.wgsl', 'residual.wgsl'],
-  ['gelu_f16.wgsl', 'gelu.wgsl'],
-  ['silu_f16.wgsl', 'silu.wgsl'],
-  ['sample_f16.wgsl', 'sample.wgsl'],
-  ['gather_f16.wgsl', 'gather.wgsl'],
-  ['gather_f16_f16_out.wgsl', 'gather.wgsl'],
-  ['gather_f16_vec4_f16_out.wgsl', 'gather.wgsl'],
-  ['matmul_gemv_subgroup_f16a.wgsl', 'matmul_gemv_subgroup.wgsl'],
-  ['matmul_f16.wgsl', 'matmul_f16w_f32a.wgsl'],
-  ['matmul_f16_tiled.wgsl', 'matmul_f16w_f32a_tiled.wgsl'],
-  ['attention_decode_online_f16.wgsl', 'attention_decode_online_f16kv.wgsl'],
-  ['attention_decode_chunked_f16.wgsl', 'attention_decode_chunked_f16kv.wgsl'],
-  ['attention_small_f16.wgsl', 'attention_small_f16kv.wgsl'],
-  ['attention_streaming_f16.wgsl', 'attention_streaming_f16kv.wgsl'],
-  ['attention_head512_f16.wgsl', 'attention_head512_f16kv.wgsl'],
-]);
 
 export function resolveF16ToF32ActivationKernel(kernel) {
   return F16_TO_F32_ACTIVATION_MAP.get(kernel) ?? null;
@@ -702,24 +174,12 @@ export function resolveF16ToF32ActivationKernel(kernel) {
  * runtime session explicitly requests f16 activations for an execution-v1
  * graph that was authored with conservative f32 activation defaults.
  */
-const F32_TO_F16_ACTIVATION_MAP = new Map(
-  Array.from(F16_TO_F32_ACTIVATION_MAP.entries(), ([from, to]) => [to, from])
-);
+
 F32_TO_F16_ACTIVATION_MAP.set('gather.wgsl', 'gather_f16.wgsl');
 F32_TO_F16_ACTIVATION_MAP.set('attention_head256_f16kv.wgsl', 'attention_small_f16.wgsl');
 // head512 pure-f16 prefill is model-scoped below; keep generic Gemma 4 E2B
 // f16 requests fail-closed until that path has its own evidence.
 F32_TO_F16_ACTIVATION_MAP.delete('attention_head512_f16kv.wgsl');
-
-function hasExplicitF32ActivationContract(entry) {
-  const precision = entry?.precision;
-  if (!precision || typeof precision !== 'object') {
-    return false;
-  }
-  return precision.activationDtype === 'f32'
-    || precision.inputDtype === 'f32'
-    || precision.outputDtype === 'f32';
-}
 
 /*
  * Correctness fallback: preserve f16 weights where possible, but widen both
@@ -754,37 +214,6 @@ const F16_TO_F32_CORRECTNESS_FALLBACK_MAP = new Map([
  * pure-f32 equivalent. Used when the GPU cannot compile any f16 WGSL at all.
  * Covers f16-activation, f16-weight (f16w), and f16-KV (f16kv) kernels.
  */
-const FULL_F32_SHADER_MAP = new Map([
-  // f16-activation utility kernels → f32
-  ['rmsnorm_f16.wgsl', 'rmsnorm.wgsl'],
-  ['rope_f16.wgsl', 'rope.wgsl'],
-  ['residual_f16.wgsl', 'residual.wgsl'],
-  ['gelu_f16.wgsl', 'gelu.wgsl'],
-  ['silu_f16.wgsl', 'silu.wgsl'],
-  ['sample_f16.wgsl', 'sample.wgsl'],
-  ['gather_f16.wgsl', 'gather.wgsl'],
-  ['gather_f16_f16_out.wgsl', 'gather.wgsl'],
-  ['gather_f16_vec4_f16_out.wgsl', 'gather.wgsl'],
-  // f16-activation matmul → f32
-  ['matmul_gemv_subgroup_f16a.wgsl', 'matmul_f32.wgsl'],
-  ['matmul_f16.wgsl', 'matmul_f32.wgsl'],
-  ['matmul_f16_tiled.wgsl', 'matmul_f32.wgsl'],
-  // f16-weight + f32-activation matmul → f32
-  ['matmul_gemv_subgroup.wgsl', 'matmul_f32.wgsl'],
-  ['matmul_f16w_f32a.wgsl', 'matmul_f32.wgsl'],
-  ['matmul_f16w_f32a_tiled.wgsl', 'matmul_f32.wgsl'],
-  // f16-activation attention → f32
-  ['attention_decode_online_f16.wgsl', 'attention_streaming.wgsl'],
-  ['attention_decode_chunked_f16.wgsl', 'attention_streaming.wgsl'],
-  ['attention_small_f16.wgsl', 'attention_small.wgsl'],
-  ['attention_streaming_f16.wgsl', 'attention_streaming.wgsl'],
-  // f16kv attention (f32 Q, f16 KV) → f32
-  ['attention_decode_online_f16kv.wgsl', 'attention_streaming.wgsl'],
-  ['attention_decode_chunked_f16kv.wgsl', 'attention_streaming.wgsl'],
-  ['attention_small_f16kv.wgsl', 'attention_small.wgsl'],
-  ['attention_streaming_f16kv.wgsl', 'attention_streaming.wgsl'],
-  ['attention_head256_f16kv.wgsl', 'attention_small.wgsl'],
-]);
 
 /*
  * Widen all f16-activation shaders to f32-activation equivalents.
@@ -796,47 +225,6 @@ const FULL_F32_SHADER_MAP = new Map([
  * to reflect the widened dtype.
  *
  */
-export function widenToF32Activations(graph, ctx) {
-  // Bail out if fused f16 FFN is present — no direct f32 equivalent
-  if (hasKernelFile(graph, 'fused_ffn_f16.wgsl')) {
-    return null;
-  }
-
-  // When the GPU cannot compile any f16 WGSL (hasF16=false), use the full f32
-  // map that also covers f16-weight and f16-KV kernels. A session-level f32 KV
-  // request still runs on shader-f16 hardware and must preserve f16 weights;
-  // capability policy routes that case through widenToF32CorrectnessFallback.
-  const shaderMap = ctx.capabilities?.hasF16 === false
-    ? FULL_F32_SHADER_MAP
-    : F16_TO_F32_ACTIVATION_MAP;
-  const fullF32 = ctx.capabilities?.hasF16 === false;
-
-  const hasTargetShader = Object.values(graph.kernels).some(
-    (entry) => shaderMap.has(entry.kernel)
-      || deriveQ4DecodeF32ActivationKernelEntry(entry)
-      || deriveQ4PrefillF32ActivationKernelEntry(entry, { fullF32 })
-  );
-  if (!hasTargetShader) {
-    return null;
-  }
-
-  const result = cloneGraph(graph);
-
-  for (const [key, entry] of Object.entries(result.kernels)) {
-    const q4FallbackEntry = deriveQ4DecodeF32ActivationKernelEntry(entry)
-      ?? deriveQ4PrefillF32ActivationKernelEntry(entry, { fullF32 });
-    if (q4FallbackEntry) {
-      result.kernels[key] = q4FallbackEntry;
-      continue;
-    }
-    const replacement = shaderMap.get(entry.kernel);
-    if (replacement !== undefined) {
-      result.kernels[key] = deriveMappedKernelEntry(entry, replacement);
-    }
-  }
-
-  return result;
-}
 
 /*
  * Widen an f16 execution graph onto the stable f32 correctness lane used for
@@ -879,30 +267,6 @@ export function widenToF32CorrectnessFallback(graph, ctx) {
  * GPU.
  *
  */
-export function narrowToF16Activations(graph, ctx) {
-  if (ctx.activationDtype !== 'f16' || ctx.capabilities?.hasF16 !== true) {
-    return null;
-  }
-
-  const hasTargetShader = Object.values(graph.kernels).some(
-    (entry) => !hasExplicitF32ActivationContract(entry) && F32_TO_F16_ACTIVATION_MAP.has(entry.kernel)
-  );
-  if (!hasTargetShader) {
-    return null;
-  }
-
-  const result = cloneGraph(graph);
-  for (const [key, entry] of Object.entries(result.kernels)) {
-    if (hasExplicitF32ActivationContract(entry)) {
-      continue;
-    }
-    const replacement = F32_TO_F16_ACTIVATION_MAP.get(entry.kernel);
-    if (replacement !== undefined) {
-      result.kernels[key] = deriveKernelEntry(entry, replacement, entry.entry);
-    }
-  }
-  return result;
-}
 
 // =============================================================================
 // Transform: swapPrefillAttention
@@ -1022,30 +386,10 @@ export function useHead256PrefillAttention(graph, ctx) {
 // Transform: widenProjectionWeightsToF32
 // =============================================================================
 
-const PROJECTION_MATMUL_FILES = new Set([
-  'matmul_gemv_subgroup.wgsl',
-  'matmul_gemv_subgroup_f16a.wgsl',
-  'matmul_f16w_f32a_tiled.wgsl',
-  'matmul_f16w_f32a.wgsl',
-  'matmul_f16.wgsl',
-  'matmul_f16_tiled.wgsl',
-]);
-
 /*
  * Known layer projection ops. Only these are widened; lm_head and embed are
  * excluded.
  */
-const LAYER_PROJECTION_OPS = new Set([
-  'q_proj', 'k_proj', 'v_proj', 'o_proj',
-  'gate_proj', 'up_proj', 'down_proj',
-]);
-
-const DENSE_Q4_PREFILL_FILES = new Set([
-  'matmul_f16w_f32a.wgsl',
-  'matmul_f16w_f32a_tiled.wgsl',
-  'matmul_f16.wgsl',
-  'matmul_f16_tiled.wgsl',
-]);
 
 function resolveDensePrefillProjectionKernel(ctx) {
   return ctx.activationDtype === 'f16'
@@ -1062,51 +406,6 @@ function resolveDensePrefillProjectionKernel(ctx) {
  * Returns null if no applicable projection kernels are found.
  *
  */
-export function widenProjectionWeightsToF32(graph, ctx) {
-  // Collect kernel keys used by layer projection steps across all phases
-  const projectionKernelKeys = new Set();
-  const allPhases = ['preLayer', 'decode', 'prefill', 'postLayer'];
-
-  for (const phase of allPhases) {
-    const steps = graph[phase];
-    if (!Array.isArray(steps)) {
-      continue;
-    }
-    for (const step of steps) {
-      const op = step[0];
-      const kernelKey = step[1];
-      if (LAYER_PROJECTION_OPS.has(op) && kernelKey) {
-        projectionKernelKeys.add(kernelKey);
-      }
-    }
-  }
-
-  if (projectionKernelKeys.size === 0) {
-    return null;
-  }
-
-  // Check whether any of those keys reference a swappable matmul
-  const keysToSwap = new Set();
-  for (const key of projectionKernelKeys) {
-    const entry = graph.kernels[key];
-    if (entry && PROJECTION_MATMUL_FILES.has(entry.kernel)) {
-      keysToSwap.add(key);
-    }
-  }
-
-  if (keysToSwap.size === 0) {
-    return null;
-  }
-
-  const result = cloneGraph(graph);
-
-  for (const key of keysToSwap) {
-    const entry = result.kernels[key];
-    result.kernels[key] = deriveKernelEntry(entry, 'matmul_f32.wgsl', 'main');
-  }
-
-  return result;
-}
 
 // =============================================================================
 // Transform: remapDenseQ4KPrefillToQ4Native
@@ -1124,68 +423,6 @@ export function widenProjectionWeightsToF32(graph, ctx) {
  * decode shape.
  *
  */
-export function remapDenseQ4KPrefillToQ4Native(graph, ctx) {
-  const densePrefillProjectionSteps = (graph.prefill || []).filter((step) => {
-    if (!LAYER_PROJECTION_OPS.has(step[0])) {
-      return false;
-    }
-    const entry = graph.kernels[step[1]];
-    return entry != null && DENSE_Q4_PREFILL_FILES.has(entry.kernel);
-  });
-  if (densePrefillProjectionSteps.length === 0) {
-    return null;
-  }
-
-  const result = cloneGraph(graph);
-  const existingSharedKey = findKernelKeyByFileAndEntry(
-    result,
-    'fused_matmul_q4_batched_multicol_shared.wgsl',
-    'main'
-  );
-  let sharedKey = existingSharedKey;
-  if (!sharedKey) {
-    const q4DecodeKey = findPhaseKernelKey(
-      graph,
-      graph.decode || [],
-      LAYER_PROJECTION_OPS,
-      (entry) => entry.kernel === 'fused_matmul_q4.wgsl'
-    );
-    if (!q4DecodeKey) {
-      return null;
-    }
-    const q4DecodeEntry = result.kernels[q4DecodeKey];
-    sharedKey = deriveKernelKey(result.kernels, q4DecodeKey, '_prefill_shared');
-    result.kernels[sharedKey] = deriveKernelEntry(
-      q4DecodeEntry,
-      'fused_matmul_q4_batched_multicol_shared.wgsl',
-      'main',
-      null
-    );
-  }
-
-  let changed = false;
-  result.prefill = (result.prefill || []).map((step) => {
-    const op = step[0];
-    if (!LAYER_PROJECTION_OPS.has(op)) {
-      return step;
-    }
-    const entry = result.kernels[step[1]];
-    if (!entry || !DENSE_Q4_PREFILL_FILES.has(entry.kernel)) {
-      return step;
-    }
-
-    const replacementKey = sharedKey;
-    if (replacementKey === step[1]) {
-      return step;
-    }
-    changed = true;
-    const next = [...step];
-    next[1] = replacementKey;
-    return next;
-  });
-
-  return changed ? result : null;
-}
 
 // =============================================================================
 // Transform: remapQ4KPrefillToDense
@@ -1596,66 +833,6 @@ export function remapQ4KDecodeFFNToGemv(graph, ctx) {
  * numerically aligned with the manifest-owned activation dtype.
  *
  */
-export function useQwenDecodeF16Matmuls(graph, ctx) {
-  const result = cloneGraph(graph);
-  let changed = false;
-
-  for (const op of ['gate_proj', 'up_proj']) {
-    const stepIndex = (result.decode || []).findIndex((entry) => Array.isArray(entry) && entry[0] === op);
-    if (stepIndex === -1) {
-      continue;
-    }
-    const step = result.decode[stepIndex];
-    const kernelKey = step[1];
-    const kernelEntry = result.kernels[kernelKey];
-    if (!kernelEntry) {
-      continue;
-    }
-    const derivedEntry = deriveLinearDecodeF16KernelEntry(kernelEntry);
-    if (!derivedEntry) {
-      continue;
-    }
-    const derivedKey = deriveKernelKey(result.kernels, kernelKey, '_decode_f16out');
-    result.kernels[derivedKey] = derivedEntry;
-    const replacement = [...step];
-    replacement[1] = derivedKey;
-    result.decode = [
-      ...result.decode.slice(0, stepIndex),
-      replacement,
-      ...result.decode.slice(stepIndex + 1),
-    ];
-    changed = true;
-  }
-
-  const postLayerResult = replacePhaseStepKernelKey(
-    result.postLayer ?? [],
-    'lm_head',
-    (() => {
-      const lmHeadStep = (result.postLayer || []).find((entry) => Array.isArray(entry) && entry[0] === 'lm_head');
-      if (!lmHeadStep) {
-        return null;
-      }
-      const lmHeadKernelKey = lmHeadStep[1];
-      const lmHeadKernel = result.kernels[lmHeadKernelKey];
-      if (!lmHeadKernel) {
-        return null;
-      }
-      const derivedEntry = deriveLmHeadDecodeF16KernelEntry(lmHeadKernel);
-      if (!derivedEntry) {
-        return null;
-      }
-      const derivedKey = deriveKernelKey(result.kernels, lmHeadKernelKey, '_decode_f16out');
-      result.kernels[derivedKey] = derivedEntry;
-      return derivedKey;
-    })()
-  );
-  if (postLayerResult.changed) {
-    result.postLayer = postLayerResult.steps;
-    changed = true;
-  }
-
-  return changed ? result : null;
-}
 
 // =============================================================================
 // Transform: useQwenF16PrimaryMatmuls
@@ -1674,98 +851,6 @@ export function useQwenDecodeF16Matmuls(graph, ctx) {
  * post-attention RMSNorm).
  *
  */
-export function useQwenF16PrimaryMatmuls(graph, ctx) {
-  const layerTypes = Array.isArray(ctx.layerTypes) ? ctx.layerTypes : null;
-  if (!layerTypes || layerTypes.length === 0) {
-    return null;
-  }
-
-  const result = cloneGraph(graph);
-  let changed = false;
-
-  for (const [phaseName, op] of [['decode', 'attention'], ['prefill', 'attention']]) {
-    const phaseSteps = result[phaseName] || [];
-    const step = phaseSteps.find((entry) => Array.isArray(entry) && entry[0] === op);
-    const kernelKey = step?.[1];
-    const kernelEntry = kernelKey ? result.kernels[kernelKey] : null;
-    const derivedEntry = deriveF16AttentionKernelEntry(kernelEntry);
-    if (!step || !kernelKey || !derivedEntry) {
-      continue;
-    }
-    const derivedKey = deriveKernelKey(result.kernels, kernelKey, '_primary_f16');
-    result.kernels[derivedKey] = derivedEntry;
-    const phaseResult = replacePhaseStepKernelKey(phaseSteps, op, derivedKey);
-    if (phaseResult.changed) {
-      result[phaseName] = phaseResult.steps;
-      changed = true;
-    }
-  }
-
-  const decodeProjectionStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
-  const decodeProjectionKernel = decodeProjectionStep ? result.kernels[decodeProjectionStep[1]] : null;
-  const decodeProjectionEntry = deriveQ4DecodeF16KernelEntry(decodeProjectionKernel);
-  if (decodeProjectionStep && decodeProjectionEntry) {
-    const decodeProjectionKey = deriveKernelKey(result.kernels, decodeProjectionStep[1], '_primary_f16');
-    result.kernels[decodeProjectionKey] = decodeProjectionEntry;
-    for (const op of ['q_proj', 'k_proj', 'v_proj', 'gate_proj', 'up_proj']) {
-      const phaseResult = replacePhaseStepKernelKey(result.decode, op, decodeProjectionKey);
-      if (phaseResult.changed) {
-        result.decode = phaseResult.steps;
-        changed = true;
-      }
-    }
-  }
-
-  const prefillProjectionStep = (result.prefill || []).find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
-  const prefillProjectionKernel = prefillProjectionStep ? result.kernels[prefillProjectionStep[1]] : null;
-  const prefillProjectionEntry = deriveQ4PrefillF16KernelEntry(prefillProjectionKernel);
-  if (prefillProjectionStep && prefillProjectionEntry) {
-    const prefillProjectionKey = deriveKernelKey(result.kernels, prefillProjectionStep[1], '_primary_f16');
-    result.kernels[prefillProjectionKey] = prefillProjectionEntry;
-    for (const op of ['q_proj', 'k_proj', 'v_proj']) {
-      const phaseResult = replacePhaseStepKernelKey(result.prefill, op, prefillProjectionKey);
-      if (phaseResult.changed) {
-        result.prefill = phaseResult.steps;
-        changed = true;
-      }
-    }
-  }
-
-  for (const [phaseName, op] of [['decode', 'o_proj'], ['prefill', 'o_proj']]) {
-    const phaseSteps = result[phaseName] || [];
-    const step = phaseSteps.find((entry) => Array.isArray(entry) && entry[0] === op);
-    const kernelKey = step?.[1];
-    const kernelEntry = kernelKey ? result.kernels[kernelKey] : null;
-    if (!step || !kernelKey || !kernelEntry) {
-      continue;
-    }
-    const boundaryKey = deriveKernelKey(result.kernels, kernelKey, '_primary_f32_boundary');
-    result.kernels[boundaryKey] = deriveKernelEntryWithPrecision(kernelEntry, {
-      inputDtype: 'f32',
-      outputDtype: 'f32',
-    });
-    const phaseResult = replacePhaseStepKernelKey(phaseSteps, op, boundaryKey);
-    if (phaseResult.changed) {
-      result[phaseName] = phaseResult.steps;
-      changed = true;
-    }
-  }
-
-  const lmHeadStep = (result.postLayer || []).find((entry) => Array.isArray(entry) && entry[0] === 'lm_head');
-  const lmHeadKernel = lmHeadStep ? result.kernels[lmHeadStep[1]] : null;
-  const lmHeadEntry = deriveLmHeadDecodeF16KernelEntry(lmHeadKernel);
-  if (lmHeadStep && lmHeadEntry) {
-    const lmHeadKey = deriveKernelKey(result.kernels, lmHeadStep[1], '_primary_f16');
-    result.kernels[lmHeadKey] = lmHeadEntry;
-    const phaseResult = replacePhaseStepKernelKey(result.postLayer, 'lm_head', lmHeadKey);
-    if (phaseResult.changed) {
-      result.postLayer = phaseResult.steps;
-      changed = true;
-    }
-  }
-
-  return changed ? result : null;
-}
 
 // =============================================================================
 // Transform: useQwen36F16Activations
@@ -1775,93 +860,6 @@ export function useQwenF16PrimaryMatmuls(graph, ctx) {
  * Promote the Qwen 3.6 27B Q4K graph onto its additive all-f16 sibling lane.
  *
  */
-export function useQwen36F16Activations(graph, ctx) {
-  const narrowed = narrowToF16Activations(graph, ctx);
-  const result = narrowed ?? cloneGraph(graph);
-  let changed = narrowed != null;
-
-  const replaceKernelEntry = (key, entry) => {
-    if (!key || !entry) {
-      return;
-    }
-    result.kernels[key] = entry;
-    changed = true;
-  };
-  const replaceOps = (phaseName, ops, kernelKey) => {
-    for (const op of ops) {
-      const phaseResult = replacePhaseStepKernelKey(result[phaseName], op, kernelKey);
-      if (phaseResult.changed) {
-        result[phaseName] = phaseResult.steps;
-        changed = true;
-      }
-    }
-  };
-
-  const embedStep = findPhaseStep(result.preLayer, 'embed');
-  const embedKey = embedStep?.[1] ?? null;
-  const embedEntry = embedKey ? result.kernels[embedKey] : null;
-  if (embedEntry?.kernel === 'gather_f16.wgsl') {
-    replaceKernelEntry(
-      embedKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(embedEntry, 'gather_f16_vec4_f16_out.wgsl', 'gather_vec4_f16_out'),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  const decodeProjectionStep = findPhaseStep(result.decode, 'q_proj');
-  const decodeProjectionKey = decodeProjectionStep?.[1] ?? null;
-  const decodeProjectionEntry = deriveQ4DecodeF16KernelEntry(result.kernels[decodeProjectionKey]);
-  if (decodeProjectionEntry) {
-    const f16Key = deriveKernelKey(result.kernels, decodeProjectionKey, '_qwen36_f16');
-    result.kernels[f16Key] = decodeProjectionEntry;
-    replaceOps('decode', ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'], f16Key);
-  }
-
-  const prefillProjectionStep = findPhaseStep(result.prefill, 'q_proj');
-  const prefillProjectionKey = prefillProjectionStep?.[1] ?? null;
-  const prefillProjectionEntry =
-    deriveQ4WideTilePrefillF16KernelEntry(result.kernels[prefillProjectionKey])
-    ?? deriveQ4PrefillF16AccumKernelEntry(result.kernels[prefillProjectionKey])
-    ?? deriveQ4PrefillF16KernelEntry(result.kernels[prefillProjectionKey]);
-  if (prefillProjectionEntry) {
-    const f16Key = deriveKernelKey(result.kernels, prefillProjectionKey, '_qwen36_f16');
-    result.kernels[f16Key] = prefillProjectionEntry;
-    replaceOps('prefill', ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj'], f16Key);
-  }
-
-  const lmHeadStep = findPhaseStep(result.postLayer, 'lm_head');
-  const lmHeadKey = lmHeadStep?.[1] ?? null;
-  replaceKernelEntry(
-    lmHeadKey,
-    deriveQ4DecodeF16KernelEntry(result.kernels[lmHeadKey])
-  );
-
-  const lmHeadPrefillStep = findPhaseStep(result.postLayer, 'lm_head_prefill');
-  const lmHeadPrefillKey = lmHeadPrefillStep?.[1] ?? null;
-  const lmHeadPrefillEntry = lmHeadPrefillKey ? result.kernels[lmHeadPrefillKey] : null;
-  const lmHeadPrefillF16Entry =
-    deriveQ4WideTilePrefillF16KernelEntry(lmHeadPrefillEntry)
-    ?? deriveQ4PrefillF16AccumKernelEntry(lmHeadPrefillEntry)
-    ?? deriveQ4PrefillF16KernelEntry(lmHeadPrefillEntry);
-  if (lmHeadPrefillF16Entry) {
-    replaceKernelEntry(lmHeadPrefillKey, lmHeadPrefillF16Entry);
-  } else if (
-    lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a.wgsl'
-    || lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a_tiled.wgsl'
-  ) {
-    replaceKernelEntry(
-      lmHeadPrefillKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(lmHeadPrefillEntry, 'matmul_f16_tiled.wgsl', 'main'),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  return changed ? result : null;
-}
 
 // =============================================================================
 // Transform: useGemma4Int4PleSelectiveF16Decode
@@ -1874,316 +872,10 @@ export function useQwen36F16Activations(graph, ctx) {
  * head512 prefill kernels.
  *
  */
-export function useGemma4Int4PleSelectiveF16Decode(graph, ctx) {
-  const result = cloneGraph(graph);
-  let changed = false;
-
-  const decodeProjectionStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'q_proj');
-  const decodeProjectionKernel = decodeProjectionStep ? result.kernels[decodeProjectionStep[1]] : null;
-  const decodeProjectionEntry = deriveDenseDecodeF16KernelEntry(decodeProjectionKernel);
-  if (decodeProjectionStep && decodeProjectionEntry) {
-    const decodeProjectionKey = deriveKernelKey(result.kernels, decodeProjectionStep[1], '_gemma4_f16');
-    result.kernels[decodeProjectionKey] = decodeProjectionEntry;
-    for (const op of ['q_proj', 'k_proj', 'v_proj']) {
-      const phaseResult = replacePhaseStepKernelKey(result.decode, op, decodeProjectionKey);
-      if (phaseResult.changed) {
-        result.decode = phaseResult.steps;
-        changed = true;
-      }
-    }
-  }
-
-  for (const op of ['rope_q', 'rope_k']) {
-    const step = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === op);
-    const kernelKey = step?.[1];
-    const kernelEntry = kernelKey ? result.kernels[kernelKey] : null;
-    const replacement = kernelEntry ? F32_TO_F16_ACTIVATION_MAP.get(kernelEntry.kernel) : null;
-    if (!step || !kernelKey || !replacement) {
-      continue;
-    }
-    const ropeKey = deriveKernelKey(result.kernels, kernelKey, '_gemma4_f16');
-    result.kernels[ropeKey] = deriveKernelEntryWithPrecision(
-      deriveKernelEntry(kernelEntry, replacement, kernelEntry.entry),
-      { inputDtype: 'f16', outputDtype: 'f16' }
-    );
-    const phaseResult = replacePhaseStepKernelKey(result.decode, op, ropeKey);
-    if (phaseResult.changed) {
-      result.decode = phaseResult.steps;
-      changed = true;
-    }
-  }
-
-  const attentionStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'attention');
-  const attentionKernel = attentionStep ? result.kernels[attentionStep[1]] : null;
-  const attentionEntry = deriveF16AttentionKernelEntry(attentionKernel);
-  if (attentionStep && attentionEntry) {
-    const attentionKey = deriveKernelKey(result.kernels, attentionStep[1], '_gemma4_f16');
-    result.kernels[attentionKey] = attentionEntry;
-    const phaseResult = replacePhaseStepKernelKey(result.decode, 'attention', attentionKey);
-    if (phaseResult.changed) {
-      result.decode = phaseResult.steps;
-      changed = true;
-    }
-  }
-
-  const oProjStep = (result.decode || []).find((entry) => Array.isArray(entry) && entry[0] === 'o_proj');
-  const oProjKernel = oProjStep ? result.kernels[oProjStep[1]] : null;
-  if (oProjStep && oProjKernel) {
-    const oProjKey = deriveKernelKey(result.kernels, oProjStep[1], '_gemma4_f32_boundary');
-    result.kernels[oProjKey] = deriveKernelEntryWithPrecision(oProjKernel, {
-      inputDtype: 'f32',
-      outputDtype: 'f32',
-    });
-    const phaseResult = replacePhaseStepKernelKey(result.decode, 'o_proj', oProjKey);
-    if (phaseResult.changed) {
-      result.decode = phaseResult.steps;
-      changed = true;
-    }
-  }
-
-  return changed ? result : null;
-}
 
 // =============================================================================
 // Transform: useGemma4TextF16Activations
 // =============================================================================
-
-const GEMMA4_12B_PREFILL_F32_PROJECTION_OPS = new Set([
-  'q_proj',
-  'k_proj',
-  'v_proj',
-  'gate_proj',
-  'up_proj',
-]);
-
-function remapGemma412BPrefillProjectionEntries(entries, f16Key, f32Key) {
-  if (!Array.isArray(entries) || !f16Key || !f32Key) {
-    return { entries, changed: false };
-  }
-
-  let changed = false;
-  const remapStep = (step) => {
-    if (!Array.isArray(step) || !LAYER_PROJECTION_OPS.has(step[0])) {
-      return step;
-    }
-    const targetKey = GEMMA4_12B_PREFILL_F32_PROJECTION_OPS.has(step[0])
-      ? f32Key
-      : f16Key;
-    if (step[1] === targetKey) {
-      return step;
-    }
-    const replacement = [...step];
-    replacement[1] = targetKey;
-    changed = true;
-    return replacement;
-  };
-
-  const nextEntries = entries.map((entry) => {
-    if (Array.isArray(entry)) {
-      return remapStep(entry);
-    }
-    if (!entry || typeof entry !== 'object' || !Array.isArray(entry.steps)) {
-      return entry;
-    }
-    return {
-      ...entry,
-      steps: entry.steps.map((step) => remapStep(step)),
-    };
-  });
-
-  return { entries: nextEntries, changed };
-}
-
-function remapGemma412BStableBoundaryEntries(result, sourceGraph) {
-  let changed = false;
-
-  const replaceStepWithSourceEntry = (phaseName, op, precision) => {
-    const phase = result[phaseName];
-    const sourcePhase = sourceGraph[phaseName];
-    const step = findPhaseStep(phase, op);
-    const sourceStep = findPhaseStep(sourcePhase, op);
-    const sourceKey = sourceStep?.[1] ?? step?.[1] ?? null;
-    const sourceEntry = sourceKey ? sourceGraph.kernels[sourceKey] : null;
-    if (!step || !sourceKey || !sourceEntry) {
-      return;
-    }
-    const stableKey = deriveKernelKey(result.kernels, sourceKey, '_gemma4_12b_stable');
-    result.kernels[stableKey] = precision
-      ? deriveKernelEntryWithPrecision(sourceEntry, precision)
-      : { ...sourceEntry };
-    const phaseResult = replacePhaseStepKernelKey(phase, op, stableKey);
-    if (phaseResult.changed) {
-      result[phaseName] = phaseResult.steps;
-      changed = true;
-    }
-  };
-
-  for (const op of ['q_proj', 'k_proj', 'v_proj', 'rope_q', 'rope_k']) {
-    replaceStepWithSourceEntry('decode', op, { inputDtype: 'f32', outputDtype: 'f32' });
-  }
-  replaceStepWithSourceEntry('decode', 'attention', {
-    activationDtype: 'f32',
-    kvDtype: 'f16',
-    outputDtype: 'f32',
-  });
-  for (const op of ['final_norm', 'lm_head', 'lm_head_prefill', 'sample']) {
-    replaceStepWithSourceEntry('postLayer', op, null);
-  }
-
-  return changed;
-}
-
-function useGemma4TextF16ActivationsForLane(graph, ctx, options) {
-  const narrowed = narrowToF16Activations(graph, ctx);
-  const result = narrowed ?? cloneGraph(graph);
-  let changed = narrowed != null;
-
-  const replaceKernelEntry = (key, entry) => {
-    if (!key || !entry) {
-      return;
-    }
-    result.kernels[key] = entry;
-    changed = true;
-  };
-  const stableTextBoundary = options?.stableTextBoundary === true;
-
-  const derivePrefillAttentionEntry = (entry) => {
-    if (
-      stableTextBoundary
-      && typeof entry?.kernel === 'string'
-      && entry.kernel === 'attention_small_f16.wgsl'
-    ) {
-      return deriveKernelEntryWithPrecision(
-        deriveKernelEntry(entry, 'attention_head256_f16kv.wgsl', 'main'),
-        { activationDtype: 'f32', kvDtype: 'f16', outputDtype: 'f32' }
-      );
-    }
-    if (
-      stableTextBoundary
-      && typeof entry?.kernel === 'string'
-      && entry.kernel.endsWith('_f16kv.wgsl')
-    ) {
-      return deriveKernelEntryWithPrecision(
-        entry,
-        { activationDtype: 'f32', kvDtype: 'f16', outputDtype: 'f32' }
-      );
-    }
-    return deriveF16AttentionKernelEntry(entry);
-  };
-
-  const embedStep = findPhaseStep(result.preLayer, 'embed');
-  const embedKey = embedStep?.[1] ?? null;
-  const embedEntry = embedKey ? result.kernels[embedKey] : null;
-  if (embedEntry?.kernel === 'gather_f16.wgsl') {
-    replaceKernelEntry(
-      embedKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(embedEntry, 'gather_f16_vec4_f16_out.wgsl', 'gather_vec4_f16_out'),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  const decodeProjectionStep = findPhaseStep(result.decode, 'q_proj');
-  const decodeProjectionKey = decodeProjectionStep?.[1] ?? null;
-  replaceKernelEntry(
-    decodeProjectionKey,
-    deriveQ4DecodeF16KernelEntry(result.kernels[decodeProjectionKey])
-  );
-
-  const prefillProjectionStep = findPhaseStep(result.prefill, 'q_proj');
-  const prefillProjectionKey = prefillProjectionStep?.[1] ?? null;
-  const sourcePrefillProjectionEntry = result.kernels[prefillProjectionKey];
-  const prefillProjectionF16Entry = stableTextBoundary
-    ? (
-        deriveQ4WideTilePrefillF16KernelEntry(sourcePrefillProjectionEntry)
-        ?? deriveQ4PrefillF16AccumKernelEntry(sourcePrefillProjectionEntry)
-        ?? deriveQ4PrefillF16KernelEntry(sourcePrefillProjectionEntry)
-      )
-    : (
-        deriveQ4PrefillF16AccumKernelEntry(sourcePrefillProjectionEntry)
-        ?? deriveQ4WideTilePrefillF16KernelEntry(sourcePrefillProjectionEntry)
-        ?? deriveQ4PrefillF16KernelEntry(sourcePrefillProjectionEntry)
-      );
-  if (stableTextBoundary && prefillProjectionKey && prefillProjectionF16Entry) {
-    const prefillProjectionF16Key = deriveKernelKey(result.kernels, prefillProjectionKey, '_gemma4_f16');
-    result.kernels[prefillProjectionF16Key] = prefillProjectionF16Entry;
-    changed = true;
-    const remapped = remapGemma412BPrefillProjectionEntries(
-      result.prefill,
-      prefillProjectionF16Key,
-      prefillProjectionKey
-    );
-    result.prefill = remapped.entries;
-    changed = changed || remapped.changed;
-  } else {
-    replaceKernelEntry(
-      prefillProjectionKey,
-      prefillProjectionF16Entry
-    );
-  }
-
-  const replacePrefillAttentionEntries = (entries) => {
-    for (const entry of entries || []) {
-      if (Array.isArray(entry)) {
-        if (entry[0] !== 'attention') {
-          continue;
-        }
-        replaceKernelEntry(
-          entry[1],
-          derivePrefillAttentionEntry(result.kernels[entry[1]])
-        );
-        continue;
-      }
-      if (entry && typeof entry === 'object' && Array.isArray(entry.steps)) {
-        replacePrefillAttentionEntries(entry.steps);
-      }
-    }
-  };
-  replacePrefillAttentionEntries(result.prefill);
-
-  const finalNormStep = findPhaseStep(result.postLayer, 'final_norm');
-  const finalNormKey = finalNormStep?.[1] ?? null;
-  const finalNormEntry = finalNormKey ? result.kernels[finalNormKey] : null;
-  if (finalNormEntry?.kernel === 'rmsnorm.wgsl') {
-    replaceKernelEntry(
-      finalNormKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(finalNormEntry, 'rmsnorm_f16.wgsl', finalNormEntry.entry),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  const lmHeadStep = findPhaseStep(result.postLayer, 'lm_head');
-  const lmHeadKey = lmHeadStep?.[1] ?? null;
-  replaceKernelEntry(
-    lmHeadKey,
-    deriveLmHeadDecodeF16KernelEntry(result.kernels[lmHeadKey])
-  );
-
-  const lmHeadPrefillStep = findPhaseStep(result.postLayer, 'lm_head_prefill');
-  const lmHeadPrefillKey = lmHeadPrefillStep?.[1] ?? null;
-  const lmHeadPrefillEntry = lmHeadPrefillKey ? result.kernels[lmHeadPrefillKey] : null;
-  if (
-    lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a.wgsl'
-    || lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a_tiled.wgsl'
-  ) {
-    replaceKernelEntry(
-      lmHeadPrefillKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(lmHeadPrefillEntry, 'matmul_f16_tiled.wgsl', 'main'),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  if (stableTextBoundary) {
-    changed = remapGemma412BStableBoundaryEntries(result, graph) || changed;
-  }
-
-  return changed ? result : null;
-}
 
 export function useGemma4TextF16Activations(graph, ctx) {
   return useGemma4TextF16ActivationsForLane(graph, ctx, { stableTextBoundary: false });
@@ -2211,105 +903,6 @@ export function useGemma431BTextF16Activations(graph, ctx) {
  * fused-q4k+f16 kernel pool produces NaN at L0.ffn_down on metal-3.
  *
  */
-export function useGemma4Int4PleAf16Activations(graph, ctx) {
-  const narrowed = narrowToF16Activations(graph, ctx);
-  const result = narrowed ?? cloneGraph(graph);
-  let changed = narrowed != null;
-
-  const replaceKernelEntry = (key, entry) => {
-    if (!key || !entry) {
-      return;
-    }
-    result.kernels[key] = entry;
-    changed = true;
-  };
-
-  const embedStep = findPhaseStep(result.preLayer, 'embed');
-  const embedKey = embedStep?.[1] ?? null;
-  const embedEntry = embedKey ? result.kernels[embedKey] : null;
-  if (embedEntry?.kernel === 'gather_f16.wgsl') {
-    replaceKernelEntry(
-      embedKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(embedEntry, 'gather_f16_vec4_f16_out.wgsl', 'gather_vec4_f16_out'),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  const decodeProjectionStep = findPhaseStep(result.decode, 'q_proj');
-  const decodeProjectionKey = decodeProjectionStep?.[1] ?? null;
-  replaceKernelEntry(
-    decodeProjectionKey,
-    deriveQ4DecodeF16KernelEntry(result.kernels[decodeProjectionKey])
-  );
-
-  const prefillProjectionStep = findPhaseStep(result.prefill, 'q_proj');
-  const prefillProjectionKey = prefillProjectionStep?.[1] ?? null;
-  replaceKernelEntry(
-    prefillProjectionKey,
-    deriveQ4WideTilePrefillF16KernelEntry(result.kernels[prefillProjectionKey])
-      ?? deriveQ4PrefillF16AccumKernelEntry(result.kernels[prefillProjectionKey])
-      ?? deriveQ4PrefillF16KernelEntry(result.kernels[prefillProjectionKey])
-  );
-
-  const replacePrefillAttentionEntries = (entries) => {
-    for (const entry of entries || []) {
-      if (Array.isArray(entry)) {
-        if (entry[0] !== 'attention') {
-          continue;
-        }
-        replaceKernelEntry(
-          entry[1],
-          deriveF16AttentionKernelEntry(result.kernels[entry[1]])
-        );
-        continue;
-      }
-      if (entry && typeof entry === 'object' && Array.isArray(entry.steps)) {
-        replacePrefillAttentionEntries(entry.steps);
-      }
-    }
-  };
-  replacePrefillAttentionEntries(result.prefill);
-
-  const finalNormStep = findPhaseStep(result.postLayer, 'final_norm');
-  const finalNormKey = finalNormStep?.[1] ?? null;
-  const finalNormEntry = finalNormKey ? result.kernels[finalNormKey] : null;
-  if (finalNormEntry?.kernel === 'rmsnorm.wgsl') {
-    replaceKernelEntry(
-      finalNormKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(finalNormEntry, 'rmsnorm_f16.wgsl', finalNormEntry.entry),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  const lmHeadStep = findPhaseStep(result.postLayer, 'lm_head');
-  const lmHeadKey = lmHeadStep?.[1] ?? null;
-  replaceKernelEntry(
-    lmHeadKey,
-    deriveLmHeadDecodeF16KernelEntry(result.kernels[lmHeadKey])
-  );
-
-  const lmHeadPrefillStep = findPhaseStep(result.postLayer, 'lm_head_prefill');
-  const lmHeadPrefillKey = lmHeadPrefillStep?.[1] ?? null;
-  const lmHeadPrefillEntry = lmHeadPrefillKey ? result.kernels[lmHeadPrefillKey] : null;
-  if (
-    lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a.wgsl'
-    || lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a_tiled.wgsl'
-  ) {
-    replaceKernelEntry(
-      lmHeadPrefillKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(lmHeadPrefillEntry, 'matmul_f16_tiled.wgsl', 'main'),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  return changed ? result : null;
-}
 
 // =============================================================================
 // Composition

@@ -3,8 +3,9 @@
 // the sibling .d.ts (and vice-versa, modulo type-only exports). Catches the
 // "runtime exports a symbol that types don't advertise" drift class.
 //
-// Scope: every src/**/*.js that has a sibling .d.ts and no `export * from`
-// (wildcard re-exports can't be parity-checked by regex).
+// Scope: every src/**/*.js and demo/**/*.js. Every JavaScript module must have
+// a sibling .d.ts; paired modules without `export * from` are also checked for
+// named value-export parity (wildcard re-exports can't be checked by regex).
 //
 // Known-debt quarantine lives in tools/policies/exports-parity-allowlist.json.
 // Entries must carry an owner and either an expiry date or a tracking issue.
@@ -19,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const ALLOWLIST_PATH = path.join(ROOT, 'tools/policies/exports-parity-allowlist.json');
+const GOVERNED_ROOTS = ['src', 'demo'];
 
 function walk(dir, acc = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -136,12 +138,16 @@ for (const entry of allowlist.entries) {
   allowlistByKey.set(entryKey(entry.path, entry.kind, entry.symbol), entry);
 }
 
-const jsFiles = walk(path.join(ROOT, 'src'));
+const jsFiles = GOVERNED_ROOTS.flatMap((root) => walk(path.join(ROOT, root)));
 const drift = [];
+const missingDeclarations = [];
 
 for (const jsFile of jsFiles) {
   const dtsFile = jsFile.replace(/\.js$/, '.d.ts');
-  if (!fs.existsSync(dtsFile)) continue;
+  if (!fs.existsSync(dtsFile)) {
+    missingDeclarations.push(path.relative(ROOT, jsFile));
+    continue;
+  }
   const jsSrc = fs.readFileSync(jsFile, 'utf8');
   const dtsSrc = fs.readFileSync(dtsFile, 'utf8');
   if (hasWildcardExport(jsSrc) || hasWildcardExport(dtsSrc)) continue;
@@ -184,13 +190,14 @@ for (const entry of allowlist.entries) {
 }
 
 const hasFailure =
+  missingDeclarations.length > 0 ||
   drift.length > 0 ||
   allowlist.errors.length > 0 ||
   expired.length > 0 ||
   unused.length > 0;
 
 if (!hasFailure) {
-  console.log('[exports-parity:check] all .js/.d.ts pairs agree on named exports');
+  console.log(`[exports-parity:check] ${jsFiles.length} JavaScript modules have declarations; paired named exports agree`);
   if (allowlist.entries.length > 0) {
     console.log(`[exports-parity:check] ${allowlist.entries.length} allowlist entr${allowlist.entries.length === 1 ? 'y' : 'ies'} active`);
   }
@@ -200,6 +207,11 @@ if (!hasFailure) {
 if (allowlist.errors.length > 0) {
   console.error('[exports-parity:check] allowlist schema errors:');
   for (const msg of allowlist.errors) console.error(`  ${msg}`);
+}
+
+if (missingDeclarations.length > 0) {
+  console.error(`[exports-parity:check] ${missingDeclarations.length} JavaScript module(s) lack required sibling declarations:`);
+  for (const file of missingDeclarations) console.error(`  ${file}`);
 }
 
 if (drift.length > 0) {

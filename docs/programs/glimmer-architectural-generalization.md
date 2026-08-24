@@ -1,6 +1,6 @@
 # Glimmer Architectural Generalization Campaign
 
-Status: `source-truth-only`
+Status: `lowered-parity-investigation`
 
 Owner: Doppler Model Release Foundry
 
@@ -30,41 +30,35 @@ It pins `meta-models/Muse-Glimmer-30B` revision
 - vision encoder;
 - vision projector.
 
-The receipt is architecture evidence only. `text.generate` and `vision.encode`
-are both `unlowered`. It does not establish token parity, application support,
-physical performance, browser support, Bun support, Doe execution, or a signed
-release Pack.
-
-The preceding Qwen3.8 lineage campaign has now passed its physical signed-Pack
-gate, so Glimmer lowering may begin. This changes campaign sequencing only; it
-does not upgrade Glimmer's current `source-truth-only` status.
+The source receipt remains architecture evidence and records both
+`text.generate` and `vision.encode` as `unlowered`. The later lowerability and
+semantic-lowering receipts are separate artifacts: they now admit and bind a
+Pack-scoped `text.generate` execution candidate while preserving the source
+topology. `vision.encode` remains unlowered.
 
 The deterministic
 [`text.generate` lowerability audit](../../reports/model-ir-v2/glimmer-30b.lowerability-audit.json)
-tests the source ModelIR against the established hybrid full/recurrent text
-vocabulary without inspecting the model name. It currently fails closed because
-no admitted lowering implements local attention, and the existing full-attention
-lowering does not bind scaleless Q/K RMSNorm and query scaling, sigmoid gate
-placement, centered RMSNorm postnorm, or the source model's no-RoPE full blocks.
-The component and output-head audit also rejects the weightless embedding norm
-and pre-softcap logit multiplier/order. KV state is already representable. These
-are the exact generic contracts to add before an execution candidate can exist.
+tests the source ModelIR against the generic heterogeneous-text vocabulary
+without inspecting the model name. It now reports `lowerable=true`: local and
+full attention resolve to admitted v2 lowerings and no required state kind is
+unimplemented.
 
-The generic execution engine now has independently tested mechanisms for the
-pinned text contracts: explicit post-Q/K-normalization query scaling, per-layer
-NoPE, a separately stored sigmoid attention gate, independent centered postnorm
-epsilon and offset, weightless embedding RMSNorm, and post-head/pre-softcap
-logit scaling. The embedding normalization has exact numeric evidence on
-physical AMD WebGPU. These mechanisms contain no Glimmer-named Runtime branch.
-They do not change the audit result: Forge has not yet bound the ModelIR facts
-to a runtime manifest and TargetPlan, so no execution candidate may be promoted.
+The semantic lowering receipt binds those generic mechanisms into an explicit
+conversion/session/execution contract for `muse-glimmer-30b-text-f16-af32` and
+retains seven rejected candidates beside the accepted lowering candidate. The
+generic execution engine has physical AMD/RADV evidence for that candidate and
+for a BF16-storage sibling, but none is promotable: all retained reports fail
+source-token parity. The strongest retained BF16 report matches source tokens
+through generation index 6 and diverges at index 7. Boundary-comparison receipts
+are diagnostic only and explicitly record `promotionEligible=false`.
 
-The operational meanings are no longer inferred from config names. The source
+The operational meanings are not inferred from config names. The source
 receipt pins the Hugging Face Transformers implementation and source hashes,
 records exact symbol and line spans, and admits zero unresolved text operational
 facts. In particular, `output_multiplier` is represented on the final logits
-path, not as an attention multiplier. This upgrades semantic source truth only;
-it does not make either entry point lowerable or executable.
+path, not as an attention multiplier. This supports a lowered execution
+candidate; it does not establish source parity, qualification, or product
+support.
 
 DFlash is absent from the current ModelIR and requires a separate pinned source,
 revision, license, tensor, and reference-behavior intake. The current receipt has
@@ -78,7 +72,7 @@ The product identity is `muse-glimmer-30b`. The intended capability profiles are
 
 | Profile | Capability | Current status |
 | --- | --- | --- |
-| `text-core` | Text generation with the fixed local/local/local/global schedule | Unlowered |
+| `text-core` | Text generation with the fixed local/local/local/global schedule | Lowered candidate; source parity failing |
 | `text-dflash` | Text generation with an independently admitted speculative drafter | DFlash not represented |
 | `multimodal` | Text plus perception encoder and projector | Vision entry point unlowered |
 

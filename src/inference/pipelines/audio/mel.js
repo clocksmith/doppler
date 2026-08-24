@@ -1,11 +1,3 @@
-/**
- * Mel spectrogram extraction for audio encoder preprocessing.
- *
- * Converts raw PCM audio (Float32Array, mono, 16kHz) into a log-mel spectrogram
- * suitable for Gemma 4's conformer audio tower.
- *
- * All operations are CPU-only (no GPU dependency).
- */
 
 const DEFAULT_SAMPLE_RATE = 16000;
 const DEFAULT_N_FFT = 512;
@@ -13,11 +5,6 @@ const DEFAULT_HOP_LENGTH = 160;
 const DEFAULT_N_MELS = 80;
 const DEFAULT_WINDOW_LENGTH = 400;
 
-/**
- * Hann window of given length.
- * @param {number} length
- * @returns {Float32Array}
- */
 function hannWindow(length) {
   const window = new Float32Array(length);
   for (let i = 0; i < length; i++) {
@@ -26,12 +13,6 @@ function hannWindow(length) {
   return window;
 }
 
-/**
- * Compute power spectrum via real FFT (Cooley-Tukey radix-2).
- * @param {Float32Array} frame  Windowed audio frame of length nFft
- * @param {number} nFft
- * @returns {Float32Array}  Power spectrum of length nFft/2 + 1
- */
 function powerSpectrum(frame, nFft) {
   const real = new Float32Array(nFft);
   const imag = new Float32Array(nFft);
@@ -75,13 +56,6 @@ function powerSpectrum(frame, nFft) {
   return power;
 }
 
-/**
- * Build mel filter bank matrix.
- * @param {number} nMels     Number of mel bands
- * @param {number} nFft      FFT size
- * @param {number} sampleRate
- * @returns {Float32Array}  [nMels * (nFft/2 + 1)] row-major filter bank
- */
 function melFilterBank(nMels, nFft, sampleRate) {
   const numBins = nFft / 2 + 1;
   const hzToMel = (hz) => 2595 * Math.log10(1 + hz / 700);
@@ -116,18 +90,6 @@ function melFilterBank(nMels, nFft, sampleRate) {
   return filters;
 }
 
-/**
- * Extract log-mel spectrogram from raw audio PCM.
- *
- * @param {Float32Array} audio   Mono audio samples (16kHz expected)
- * @param {object}       [opts]
- * @param {number}       [opts.sampleRate=16000]
- * @param {number}       [opts.nFft=512]
- * @param {number}       [opts.hopLength=160]
- * @param {number}       [opts.nMels=80]
- * @param {number}       [opts.windowLength=400]
- * @returns {{ features: Float32Array, numFrames: number, nMels: number }}
- */
 export function extractLogMelSpectrogram(audio, opts = {}) {
   const sampleRate = opts.sampleRate ?? DEFAULT_SAMPLE_RATE;
   const nFft = opts.nFft ?? DEFAULT_N_FFT;

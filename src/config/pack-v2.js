@@ -1,8 +1,3 @@
-/**
- * Browser-safe Doppler Pack v2 contract, semantic identity, and sealing.
- *
- * @module config/pack-v2
- */
 
 import { hashModelIR, validateModelIR } from './model-ir.js';
 import { hashTargetPlan, validateTargetPlan } from './target-plan.js';
@@ -63,13 +58,6 @@ function requireCrypto() {
   return globalThis.crypto.subtle;
 }
 
-/**
- * Returns the exact immutable payload covered by semanticRoot and signature.
- * Envelope fields are deliberately excluded to avoid circular signing.
- *
- * @param {object} pack
- * @returns {object}
- */
 export function getPackV2SemanticPayload(pack) {
   return {
     schema: pack.schema,
@@ -84,17 +72,14 @@ export function getPackV2SemanticPayload(pack) {
   };
 }
 
-/** @param {object} pack @returns {`sha256:${string}`} */
 export function hashPackV2(pack) {
   return `sha256:${sha256Hex(canonicalJson(getPackV2SemanticPayload(pack)))}`;
 }
 
-/** @param {object} pack @returns {`sha256:${string}`} */
 export function hashPackV2Envelope(pack) {
   return `sha256:${sha256Hex(canonicalJson(pack))}`;
 }
 
-/** @param {JsonWebKey} publicKeyJwk @returns {`sha256:${string}`} */
 export function hashPackV2PublicKey(publicKeyJwk) {
   if (!isObject(publicKeyJwk)) throw new Error('Pack public key must be a JWK object.');
   return `sha256:${sha256Hex(canonicalJson(publicKeyJwk))}`;
@@ -196,13 +181,6 @@ function validateProgram(pack, artifacts, errors) {
   }
 }
 
-/**
- * Performs structural and all cross-reference validation.
- *
- * @param {unknown} pack
- * @param {{ requireSignature?: boolean }} [options]
- * @returns {{ ok: boolean, errors: string[] }}
- */
 export function validatePackV2(pack, options = {}) {
   const errors = [];
   if (!isObject(pack)) return { ok: false, errors: ['Doppler Pack v2 must be a non-null object.'] };
@@ -278,19 +256,12 @@ export function validatePackV2(pack, options = {}) {
   return { ok: errors.length === 0, errors };
 }
 
-/** @param {object} value @returns {object} */
 export function freezePackV2(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
   for (const nested of Object.values(value)) freezePackV2(nested);
   return Object.freeze(value);
 }
 
-/**
- * Builds a deterministic unsigned envelope. Signing is a separate operation.
- *
- * @param {object} params
- * @returns {object}
- */
 export function buildPackV2(params) {
   if (!isObject(params)) throw new Error('buildPackV2 requires an object.');
   const draft = {
@@ -318,11 +289,6 @@ export function buildPackV2(params) {
   return pack;
 }
 
-/**
- * @param {object} pack
- * @param {{ authority: string, privateKeyJwk: JsonWebKey, publicKeyJwk: JsonWebKey }} signer
- * @returns {Promise<object>}
- */
 export async function signPackV2(pack, signer) {
   const validation = validatePackV2(pack, { requireSignature: false });
   if (!validation.ok) throw new Error(`Cannot sign invalid Doppler Pack v2: ${validation.errors.join('; ')}`);
@@ -357,11 +323,6 @@ function resolveTrustedPublicKey(trustedSigners, authority) {
   return null;
 }
 
-/**
- * @param {object} pack
- * @param {Map<string, JsonWebKey>|Record<string, JsonWebKey>} trustedSigners
- * @returns {Promise<true>}
- */
 export async function verifyPackV2Signature(pack, trustedSigners) {
   const validation = validatePackV2(pack);
   if (!validation.ok) throw new Error(`Invalid Doppler Pack v2: ${validation.errors.join('; ')}`);
@@ -383,13 +344,6 @@ export async function verifyPackV2Signature(pack, trustedSigners) {
   return true;
 }
 
-/**
- * Hashes and size-checks every artifact before a target may be selected.
- *
- * @param {object} pack
- * @param {{ hashArtifact: (artifact: object) => Promise<{ hash: string, sizeBytes: number }> }} artifactStore
- * @returns {Promise<Array<object>>}
- */
 export async function verifyPackV2Artifacts(pack, artifactStore) {
   if (typeof artifactStore?.hashArtifact !== 'function') {
     throw new Error('Doppler Pack artifact verification requires artifactStore.hashArtifact().');
@@ -408,11 +362,6 @@ export async function verifyPackV2Artifacts(pack, artifactStore) {
   return receipts;
 }
 
-/**
- * @param {object} pack
- * @param {{ trustedSigners: Map<string, JsonWebKey>|Record<string, JsonWebKey>, artifactStore: object }} options
- * @returns {Promise<{ pack: object, artifactReceipts: Array<object> }>}
- */
 export async function verifyPackV2(pack, options) {
   const validation = validatePackV2(pack);
   if (!validation.ok) throw new Error(`Invalid Doppler Pack v2: ${validation.errors.join('; ')}`);

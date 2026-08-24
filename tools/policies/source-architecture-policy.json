@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "sourceRoot": "src",
   "lineLimit": 999,
   "topLevelOwners": {
@@ -106,62 +106,143 @@
     { "from": "rules/execution-rules-contract-check.js", "toOwner": "gpu", "extractTo": "rules/rule-matcher.js", "reason": "Move generic rule matching to the rules subsystem." },
     { "from": "rules/layer-pattern-contract-check.js", "toOwner": "gpu", "extractTo": "rules/rule-matcher.js", "reason": "Move generic rule matching to the rules subsystem." },
     { "from": "rules/rule-registry.js", "toOwner": "gpu", "extractTo": "rules/rule-matcher.js", "reason": "Move generic rule matching to the rules subsystem." },
-    { "from": "storage/downloader.js", "toOwner": "experimental", "extractTo": "storage/distribution-transport.js", "reason": "Invert optional distribution integration behind a storage-owned transport contract." },
     { "from": "storage/quickstart-downloader.js", "toOwner": "client", "extractTo": "config/quickstart-registry.json", "reason": "Move quickstart catalog data out of the client implementation layer." }
   ],
+  "genericModuleReviews": {
+    "config/merge-helpers.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "config/merge/{value-selection,kernel-path-policy,execution-patches}.js"
+    },
+    "config/schema/shared-runtime.schema.js": {
+      "classification": "semantic-owner",
+      "semanticOwner": "shared runtime schema defaults"
+    },
+    "converter/tokenizer-utils.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "converter/tokenizer-special-tokens.js"
+    },
+    "gpu/kernels/backward/utils.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "gpu/kernels/backward/{executor,matmul}.js"
+    },
+    "gpu/kernels/uniform-utils.js": {
+      "classification": "semantic-owner",
+      "semanticOwner": "GPU uniform serialization and buffer construction"
+    },
+    "gpu/kernels/utils.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "gpu/kernels/{kernel-execution,bind-group-validation,kernel-cache-lifecycle}.js"
+    },
+    "gpu/readback-utils.js": {
+      "classification": "semantic-owner",
+      "semanticOwner": "mapped GPU readback lifecycle"
+    },
+    "inference/browser-harness-contract-helpers.js": {
+      "classification": "semantic-owner",
+      "semanticOwner": "browser harness contract metric projection"
+    },
+    "inference/browser-harness-model-helpers.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/browser-harness/{model-resolution,model-initialization}.js"
+    },
+    "inference/browser-harness-report-helpers.js": {
+      "classification": "semantic-owner",
+      "semanticOwner": "browser harness training artifact reporting"
+    },
+    "inference/browser-harness-runtime-helpers.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/browser-harness/{runtime-config,runtime-isolation,runtime-report}.js"
+    },
+    "inference/browser-harness-suite-helpers.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/browser-harness/{suite-summary,diffusion-performance,timing-diagnostics,decode-diagnostics}.js"
+    },
+    "inference/browser-harness-text-helpers.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/browser-harness/{text-input,text-evidence,text-execution}.js"
+    },
+    "inference/pipelines/diffusion/helpers.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/pipelines/diffusion/{runtime-resources,weight-contract,profile-timing}.js"
+    },
+    "inference/pipelines/text/debug-utils.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/pipelines/text/debug-utils/index.js"
+    },
+    "inference/pipelines/text/debug-utils/utils.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/pipelines/text/debug-utils/{readback-decoding,health-metrics,profiles}.js"
+    },
+    "inference/pipelines/text/generator-helpers.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/pipelines/text/generator/{session-context,attention-lifecycle,logits-config}.js"
+    },
+    "inference/pipelines/text/generator-prefill-helpers.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/pipelines/text/generator/{prompt-input,prefix-embedding,prefill-policy}.js"
+    },
+    "inference/pipelines/text/logits/utils.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/pipelines/text/logits/{scale-policy,readback,cpu-output}.js"
+    },
+    "inference/pipelines/text/moe-helpers.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "inference/pipelines/text/moe/{expert-loading,cpu-routing}.js"
+    },
+    "loader/dtype-utils.js": {
+      "classification": "semantic-owner",
+      "semanticOwner": "loader dtype conversion and buffer layout"
+    },
+    "tooling-experimental-exports.shared.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "shared experimental tooling export surface"
+    },
+    "tooling-exports.shared.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "shared stable tooling export surface"
+    },
+    "tooling/command-api-helpers.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "tooling/command-request-normalization.js"
+    },
+    "tooling/command-runner-shared.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "tooling/command-runtime-execution.js"
+    },
+    "tooling/hf-registry-utils.js": {
+      "classification": "compatibility-facade",
+      "semanticOwner": "tooling/hf-registry/{catalog-io,registry-urls,publish-shaping,network-probes}.js"
+    }
+  },
   "facades": [
     "index.js",
     "index-browser.js",
+    "config/merge-helpers.js",
+    "converter/tokenizer-utils.js",
+    "gpu/kernels/backward/utils.js",
+    "gpu/kernels/utils.js",
+    "inference/browser-harness-model-helpers.js",
+    "inference/browser-harness-runtime-helpers.js",
+    "inference/browser-harness-suite-helpers.js",
+    "inference/browser-harness-text-helpers.js",
+    "inference/pipelines/diffusion/helpers.js",
+    "inference/pipelines/text/debug-utils.js",
+    "inference/pipelines/text/debug-utils/utils.js",
+    "inference/pipelines/text/generator-helpers.js",
+    "inference/pipelines/text/generator-prefill-helpers.js",
+    "inference/pipelines/text/logits/utils.js",
+    "inference/pipelines/text/moe-helpers.js",
     "tooling-exports.js",
     "tooling-exports.browser.js",
     "tooling-exports.shared.js",
     "tooling-experimental-exports.js",
     "tooling-experimental-exports.browser.js",
     "tooling-experimental-exports.shared.js",
+    "tooling/command-api-helpers.js",
+    "tooling/command-runner-shared.js",
+    "tooling/hf-registry-utils.js",
+    "tooling/node-browser-command-runner.js",
     "training-browser.js"
   ],
-  "legacyOversize": {
-    "cli/doppler-cli.js": { "maxLines": 2033, "extractTo": ["cli/commands/", "cli/output/", "cli/surface-selection.js"] },
-    "config/transforms/execution-graph-transforms.js": { "maxLines": 2393, "extractTo": ["config/transforms/execution-graph/validation.js", "config/transforms/execution-graph/dtype.js", "config/transforms/execution-graph/fusion.js"] },
-    "converter/core.js": { "maxLines": 2849, "extractTo": ["converter/tokenizer-contract.js", "converter/tensor-transform.js", "converter/artifact-identity.js", "converter/manifest-builder.js"] },
-    "experimental/distribution/shard-delivery.js": { "maxLines": 2342, "extractTo": ["experimental/distribution/shard-delivery/transport.js", "experimental/distribution/shard-delivery/retry.js", "experimental/distribution/shard-delivery/receipt.js"] },
-    "experimental/training/distillation/student-fixture.js": { "maxLines": 1461, "extractTo": ["experimental/training/distillation/student-fixture/model.js", "experimental/training/distillation/student-fixture/execution.js"] },
-    "experimental/training/lora-pipeline.js": { "maxLines": 2648, "extractTo": ["experimental/training/lora/plan.js", "experimental/training/lora/execution.js", "experimental/training/lora/checkpoint.js"] },
-    "experimental/training/runner.js": { "maxLines": 1241, "extractTo": ["experimental/training/runner/lifecycle.js", "experimental/training/runner/evaluation.js"] },
-    "experimental/training/suite.js": { "maxLines": 2196, "extractTo": ["experimental/training/suite/plan.js", "experimental/training/suite/execution.js", "experimental/training/suite/report.js"] },
-    "gpu/kernels/attention.js": { "maxLines": 2283, "extractTo": ["gpu/kernels/attention/plan.js", "gpu/kernels/attention/uniforms.js", "gpu/kernels/attention/executors.js", "gpu/kernels/attention/variants/"] },
-    "inference/browser-harness-text-helpers.js": { "maxLines": 2248, "extractTo": ["inference/browser-harness/text-input.js", "inference/browser-harness/text-evidence.js", "inference/browser-harness/text-execution.js"] },
-    "inference/browser-harness.js": { "maxLines": 2367, "extractTo": ["inference/browser-harness/request.js", "inference/browser-harness/execution.js", "inference/browser-harness/report.js"] },
-    "inference/kv-cache/base.js": { "maxLines": 1269, "extractTo": ["inference/kv-cache/layout.js", "inference/kv-cache/lifecycle.js", "inference/kv-cache/update.js"] },
-    "inference/pipelines/diffusion/sd3-transformer.js": { "maxLines": 1194, "extractTo": ["inference/pipelines/diffusion/sd3/plan.js", "inference/pipelines/diffusion/sd3/execution.js"] },
-    "inference/pipelines/diffusion/vae.js": { "maxLines": 1375, "extractTo": ["inference/pipelines/diffusion/vae/plan.js", "inference/pipelines/diffusion/vae/execution.js"] },
-    "inference/pipelines/text.js": { "maxLines": 2206, "extractTo": ["inference/pipelines/text/public-api.js", "inference/pipelines/text/lifecycle.js", "inference/pipelines/text/execution.js"] },
-    "inference/pipelines/text/attention/interpreter.js": { "maxLines": 1334, "extractTo": ["inference/pipelines/text/attention/interpreter/immediate.js", "inference/pipelines/text/attention/interpreter/recorded.js"] },
-    "inference/pipelines/text/attention/projections.js": { "maxLines": 1332, "extractTo": ["inference/pipelines/text/attention/projection-plan.js", "inference/pipelines/text/attention/projection-executor.js"] },
-    "inference/pipelines/text/config.js": { "maxLines": 2044, "extractTo": ["config/inference/normalization.js", "config/inference/validation.js", "config/inference/resolved-session.js"] },
-    "inference/pipelines/text/execution-v1.js": { "maxLines": 1089, "extractTo": ["inference/pipelines/text/execution-v1/plan.js", "inference/pipelines/text/execution-v1/validation.js"] },
-    "inference/pipelines/text/ffn/dense.js": { "maxLines": 1907, "extractTo": ["inference/pipelines/text/ffn/dense-plan.js", "inference/pipelines/text/ffn/dense-executor.js"] },
-    "inference/pipelines/text/generator-steps.js": { "maxLines": 1863, "extractTo": ["inference/pipelines/text/generator/decode.js", "inference/pipelines/text/generator/prefill.js", "inference/pipelines/text/generator/sampling.js"] },
-    "inference/pipelines/text/generator.js": { "maxLines": 3987, "extractTo": ["inference/pipelines/text/generator/text.js", "inference/pipelines/text/generator/diffusion.js", "inference/pipelines/text/generator/training.js", "inference/pipelines/text/generator/recovery.js"] },
-    "inference/pipelines/text/init.js": { "maxLines": 1161, "extractTo": ["inference/pipelines/text/init/model.js", "inference/pipelines/text/init/cache.js"] },
-    "inference/pipelines/text/layer.js": { "maxLines": 1282, "extractTo": ["inference/pipelines/text/layer-plan.js", "inference/pipelines/text/layer-executor.js"] },
-    "inference/pipelines/text/linear-attention.js": { "maxLines": 1253, "extractTo": ["inference/pipelines/text/linear-attention/plan.js", "inference/pipelines/text/linear-attention/execution.js"] },
-    "inference/pipelines/text/logits/gpu.js": { "maxLines": 1189, "extractTo": ["inference/pipelines/text/logits/plan.js", "inference/pipelines/text/logits/gpu-executor.js"] },
-    "inference/pipelines/text/moe-gpu.js": { "maxLines": 1142, "extractTo": ["inference/pipelines/text/moe/plan.js", "inference/pipelines/text/moe/gpu-executor.js"] },
-    "inference/pipelines/text/per-layer-inputs.js": { "maxLines": 1958, "extractTo": ["inference/pipelines/text/per-layer/plan.js", "inference/pipelines/text/per-layer/materialize.js", "inference/pipelines/text/per-layer/lifecycle.js"] },
-    "inference/tokenizers/bundled.js": { "maxLines": 1327, "extractTo": ["inference/tokenizers/bundled/registry.js", "inference/tokenizers/bundled/decoders.js"] },
-    "loader/doppler-loader.js": { "maxLines": 1586, "extractTo": ["loader/model-plan.js", "loader/model-executor.js", "loader/model-receipt.js"] },
-    "loader/tensors/source-transform.js": { "maxLines": 1059, "extractTo": ["loader/tensors/source-transform/plan.js", "loader/tensors/source-transform/executor.js"] },
-    "loader/tensors/tensor-loader.js": { "maxLines": 1270, "extractTo": ["loader/tensors/load-plan.js", "loader/tensors/load-executor.js"] },
-    "storage/downloader.js": { "maxLines": 1127, "extractTo": ["storage/download/transport.js", "storage/download/integrity.js", "storage/download/retry.js"] },
-    "storage/shard-manager.js": { "maxLines": 1051, "extractTo": ["storage/shards/index.js", "storage/shards/lifecycle.js"] },
-    "tooling/kernel-path-builder/index.js": { "maxLines": 1361, "extractTo": ["tooling/kernel-path-builder/validation.js", "tooling/kernel-path-builder/materialize.js"] },
-    "tooling/litert-package-runtime.js": { "maxLines": 1839, "extractTo": ["tooling/litert/package.js", "tooling/litert/runtime.js", "tooling/litert/receipt.js"] },
-    "tooling/node-browser-command-runner.js": { "maxLines": 1119, "extractTo": ["tooling/node-browser/transport.js", "tooling/node-browser/execution.js"] },
-    "tooling/node-converter.js": { "maxLines": 1661, "extractTo": ["tooling/node-converter/input.js", "tooling/node-converter/execution.js", "tooling/node-converter/output.js"] },
-    "tooling/node-source-runtime.js": { "maxLines": 1048, "extractTo": ["tooling/source-runtime/node-loader.js", "tooling/source-runtime/node-executor.js"] },
-    "tooling/program-bundle.js": { "maxLines": 1105, "extractTo": ["tooling/program-bundle/validation.js", "tooling/program-bundle/materialize.js"] },
-    "tooling/runtime-optimization.js": { "maxLines": 1391, "extractTo": ["tooling/runtime-optimization/candidates.js", "tooling/runtime-optimization/evaluation.js", "tooling/runtime-optimization/receipt.js"] },
-    "tooling/source-runtime-bundle.js": { "maxLines": 1083, "extractTo": ["tooling/source-runtime/bundle-plan.js", "tooling/source-runtime/bundle-materialize.js"] }
-  }
+  "legacyOversize": {}
 }

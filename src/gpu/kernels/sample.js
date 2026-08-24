@@ -3,7 +3,11 @@
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, readBufferSlice, releaseBuffer } from '../../memory/buffer-pool.js';
 import { WORKGROUP_SIZES } from './constants.js';
-import { createPipeline, createUniformBufferWithView, getOrCreateBindGroupLayout } from './utils.js';
+import {
+  createPipeline,
+  getOrCreateBindGroupLayout,
+} from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
 import { allowReadback } from '../perf-guards.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';

@@ -3,7 +3,7 @@ import { padToQ4KBlock } from '../../config/schema/index.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
 import { getKernelCapabilities } from '../device.js';
-import { unifiedKernelWrapper } from './utils.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
 import {
   assertRMSNormWeightBuffer,
   planRMSNormDispatch,

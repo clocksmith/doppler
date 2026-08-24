@@ -1,40 +1,4 @@
-export declare function buildSuiteSummary(
-  suiteName: string,
-  results: Array<Record<string, unknown>>,
-  startTimeMs: number
-): {
-  suite: string;
-  passed: number;
-  failed: number;
-  skipped: number;
-  duration: number;
-  results: Array<Record<string, unknown>>;
-};
-export declare function normalizeCacheMode(value: unknown): 'cold' | 'warm';
-export declare function normalizeLoadMode(value: unknown, hasModelUrl: boolean, modelUrl?: string | null): 'opfs' | 'http' | 'memory' | 'file';
-export declare function normalizeWorkloadType(value: unknown): string | null;
-export declare function safeStatsValue(value: unknown): number;
-export declare function buildDiffusionPerformanceArtifact(options: Record<string, unknown>): Record<string, unknown>;
-export declare function assertDiffusionPerformanceArtifact(metrics: Record<string, unknown>, contextLabel?: string): void;
-export declare function toTimingNumber(value: unknown, fallback?: number | null): number | null;
-export declare function safeToFixed(value: unknown, fallback?: number | null, digits?: number): number | null;
-export declare function sampleTimingNumber(
-  stats: Record<string, unknown> | null | undefined,
-  key: string,
-  fallback?: number | null
-): number | null;
-export declare function buildCanonicalTiming(overrides?: Record<string, unknown>): Record<string, unknown>;
-export declare function buildLoadTimingDiagnostics(
-  modelLoadMs: unknown,
-  loadTiming?: Record<string, unknown> | null,
-  pipelineLoadTiming?: Record<string, unknown> | null
-): Record<string, unknown> | null;
-export declare function buildTimingDiagnostics(timing?: Record<string, unknown>, options?: Record<string, unknown>): Record<string, unknown>;
-export declare function buildDecodeBottleneckDiagnostics(
-  metrics?: Record<string, unknown>,
-  timing?: Record<string, unknown>
-): Record<string, unknown> | null;
-
-export declare function buildFirstLoadComposition(
-  fields?: Record<string, unknown>
-): Record<string, number | null>;
+export * from './browser-harness/suite-summary.js';
+export * from './browser-harness/diffusion-performance.js';
+export * from './browser-harness/timing-diagnostics.js';
+export * from './browser-harness/decode-diagnostics.js';

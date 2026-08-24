@@ -5,7 +5,8 @@ import { acquireBuffer, getBufferRequestedSize, releaseBuffer } from '../../memo
 import { createTensor } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { getPipelineFast, createUniformBufferWithView } from './utils.js';
+import { getPipelineFast } from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import { trace } from '../../debug/index.js';

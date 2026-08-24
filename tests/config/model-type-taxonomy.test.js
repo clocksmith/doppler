@@ -18,7 +18,7 @@ const clusters = buildModelTypeClusters(catalog.models);
 assert.deepEqual(
   Object.fromEntries(clusters.map((cluster) => [cluster.id, cluster.models.length])),
   {
-    'text-generators': 14,
+    'text-generators': 17,
     'multimodal-generators': 3,
     'diffusion-language-models': 1,
     'translation-specialists': 2,

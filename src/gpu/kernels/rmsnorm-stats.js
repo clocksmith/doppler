@@ -1,10 +1,8 @@
 import { getDevice, getDeviceEpoch, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
-import {
-  createUniformBufferWithView,
-  getPipelineBindGroupLayout,
-} from './utils.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
+import { getPipelineBindGroupLayout } from './pipeline-cache.js';
 import { recordDispatch } from './dispatch.js';
 import { planRMSNormDispatch } from './rmsnorm.js';
 

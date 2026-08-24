@@ -8,20 +8,6 @@ const rules = await loadJson(
   'Failed to load capability transform rules'
 );
 
-/**
- * Given device capabilities and the current execution graph context,
- * determine which transforms need to be applied.
- *
- * @param {Object} capabilities - { hasSubgroups, hasF16, hasSubgroupsF16, maxWorkgroupSize, maxBufferSize }
- * `hasSubgroupsF16` is a derived convenience bit (`hasSubgroups && hasF16`), not a separate WebGPU feature.
- * @param {Object} platform - { id, vendor, architecture }
- * @param {Object} graphContext - execution-v1 graph/dtype summary
- *   { activationDtype, mathDtype?, accumDtype?, kvDtype, modelId?, layerTypes?,
- *     hasDensePrefillProjectionKernel?,
- *     hasQ4DecodeProjectionKernel?, hasQ4PrefillProjectionKernel?,
- *     hasAvailableQ4PrefillProjectionKernel? }
- * @returns {{ transforms: Function[], names: string[], reason: string, kind: string, dtypeEffect: string, evidence: string[] }}
- */
 export function resolveCapabilityTransforms(capabilities, platform, graphContext) {
   const normalizedGraphContext = graphContext ?? {};
   const matchContext = {
@@ -75,17 +61,6 @@ export function resolveCapabilityTransforms(capabilities, platform, graphContext
   );
 }
 
-/**
- * Returns the safest alternate-plan widening transform for an f16 primary plan.
- *
- * Large-head models such as Gemma 4 E2B use decode attention geometry that the
- * generic full-f32 decode kernel cannot execute. On shader-f16 hardware, keep
- * KV on the f16 lane and widen activations only so the fallback plan stays
- * executable for headDim > 64.
- *
- * @param {Object} graphContext - { activationDtype, kvDtype, headDim?, modelId?, layerTypes? }
- * @returns {{ transform: Function, name: string, fallbackKvDtype: 'f16' | 'f32' } | null}
- */
 export function resolveFinitenessFallbackTransform(graphContext) {
   if (graphContext.activationDtype === 'f16') {
     if (Number.isFinite(graphContext.headDim) && graphContext.headDim > 64) {

@@ -1,7 +1,10 @@
 
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { createPipeline, createUniformBufferWithView, getKernelConfig, hasRequiredFeatures } from './utils.js';
+import { createPipeline } from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
+import { getKernelConfig } from './kernel-configs.js';
+import { hasRequiredFeatures } from './feature-check.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 
 

@@ -10,7 +10,13 @@ const policyPath = path.join(repoRoot, 'tools/policies/source-architecture-polic
 const importPattern = /\b(?:import|export)\s+(?:[^'\"]*?\sfrom\s*)?['\"]([^'\"]+)['\"]/g;
 const dynamicImportPattern = /\bimport\s*\(\s*['\"]([^'\"]+)['\"]\s*\)/g;
 const facadeImplementationPattern = /^\s*(?:export\s+)?(?:async\s+)?(?:function|class|const|let|var)\b/m;
+const genericModulePattern = /(?:^|\/)(?:utils|helpers)\.js$|-(?:utils|helpers|shared)\.js$|\.shared\.js$|(?:^|\/)shared-runtime\.schema\.js$/;
 const governedExtensions = new Set(['.js', '.d.ts', '.wgsl']);
+const genericModuleClassifications = new Set([
+  'semantic-owner',
+  'compatibility-facade',
+  'legacy-debt',
+]);
 
 function toPosix(value) {
   return value.split(path.sep).join('/');
@@ -133,6 +139,8 @@ async function main() {
 
   const legacyOversize = new Map(Object.entries(policy.legacyOversize));
   const observedLegacy = new Set();
+  const genericModuleReviews = new Map(Object.entries(policy.genericModuleReviews ?? {}));
+  const observedGenericModules = new Set();
   const files = await walk(sourceRoot);
   await validateConstitutionalDomains(policy, sourceRoot, files, errors);
   for (const filePath of files) {
@@ -159,6 +167,7 @@ async function main() {
     }
 
     if (path.extname(relative) !== '.js') continue;
+    if (genericModulePattern.test(relative)) observedGenericModules.add(relative);
     const fromOwner = relative.split('/')[0];
     const allowedOwners = policy.restrictedDependencies[fromOwner];
     if (!allowedOwners) continue;
@@ -183,6 +192,34 @@ async function main() {
   for (const [key, entry] of exceptions) {
     if (!entry.used) errors.push(`dependency exception is stale: ${key}`);
   }
+  const facadePaths = new Set(policy.facades);
+  for (const relative of [...observedGenericModules].sort()) {
+    const review = genericModuleReviews.get(relative);
+    if (!review) {
+      errors.push(`${relative}: generic module lacks a semantic ownership review`);
+      continue;
+    }
+    if (!genericModuleClassifications.has(review.classification)) {
+      errors.push(`${relative}: generic module has invalid classification "${String(review.classification)}"`);
+    }
+    if (typeof review.semanticOwner !== 'string' || !review.semanticOwner.trim()) {
+      errors.push(`${relative}: generic module review lacks semanticOwner`);
+    }
+    if (review.classification === 'compatibility-facade' && !facadePaths.has(relative)) {
+      errors.push(`${relative}: compatibility facade is missing from policy.facades`);
+    }
+    if (
+      review.classification === 'legacy-debt'
+      && (!Array.isArray(review.extractTo) || review.extractTo.length === 0)
+    ) {
+      errors.push(`${relative}: generic legacy debt lacks extraction boundaries`);
+    }
+  }
+  for (const relative of genericModuleReviews.keys()) {
+    if (!observedGenericModules.has(relative)) {
+      errors.push(`genericModuleReviews entry is stale or missing: ${relative}`);
+    }
+  }
   for (const relative of policy.facades) {
     const facadePath = path.join(sourceRoot, relative);
     const source = await fs.readFile(facadePath, 'utf8').catch(() => null);
@@ -201,7 +238,19 @@ async function main() {
     process.exitCode = 1;
     return;
   }
-  console.log(`source architecture check passed: ${actualOwners.length} owners, ${files.length} files, ${legacyOversize.size} governed oversize files`);
+  const genericCounts = { semanticOwner: 0, compatibilityFacade: 0, legacyDebt: 0 };
+  for (const relative of observedGenericModules) {
+    const classification = genericModuleReviews.get(relative)?.classification;
+    if (classification === 'semantic-owner') genericCounts.semanticOwner += 1;
+    if (classification === 'compatibility-facade') genericCounts.compatibilityFacade += 1;
+    if (classification === 'legacy-debt') genericCounts.legacyDebt += 1;
+  }
+  console.log(
+    `source architecture check passed: ${actualOwners.length} owners, ${files.length} files, `
+    + `${legacyOversize.size} governed oversize files, ${observedGenericModules.size} reviewed generic modules `
+    + `(${genericCounts.semanticOwner} semantic owners, ${genericCounts.compatibilityFacade} facades, `
+    + `${genericCounts.legacyDebt} legacy debt)`
+  );
 }
 
 await main();

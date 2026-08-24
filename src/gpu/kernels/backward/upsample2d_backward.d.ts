@@ -1,4 +1,4 @@
-import type { BackwardKernelOptions } from './utils.js';
+import type { BackwardKernelOptions } from './executor.js';
 
 export interface Upsample2DBackwardOptions extends BackwardKernelOptions {
   channels: number;

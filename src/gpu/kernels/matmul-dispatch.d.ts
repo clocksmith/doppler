@@ -1,5 +1,5 @@
 import type { CommandRecorder } from '../command-recorder.js';
-import type { KernelConfig } from './utils.js';
+import type { KernelConfig } from './kernel-configs.js';
 
 export declare class MatmulKernel {
   constructor(device: GPUDevice);

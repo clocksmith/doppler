@@ -1,4 +1,4 @@
-import type { KernelConfig } from './utils.js';
+import type { KernelConfig } from './kernel-configs.js';
 import type { TensorDtype } from '../tensor.js';
 import type { WeightBuffer } from '../weight-buffer.js';
 import type { KernelPathSchema } from '../../config/schema/index.js';

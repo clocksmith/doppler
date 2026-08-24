@@ -262,15 +262,6 @@ export function buildInlineKernelPath(
   return path;
 }
 
-/**
- * Build a layer pipeline from execution-v1 resolved steps.
- *
- * @param {readonly Record<string, unknown>[]} steps - Resolved execution steps.
- * @param {{ strict?: boolean }} [options] - When strict is true, throws on
- *   incompatible ops instead of returning a degraded result.
- * @returns {{ steps: Record<string, unknown>[]; overrides: unknown[]; hasIncompatibleOps: boolean }
- *   | { incompatibleOps: string[]; hasIncompatibleOps: true } | null}
- */
 export function buildLayerPipelineFromExecution(steps, options = {}) {
   const { strict = false, logIncompatibleOps = true } = options;
   const ffnDtypeFallback = options.ffnDtypeFallback == null
@@ -346,29 +337,6 @@ export function buildLayerPipelineFromExecution(steps, options = {}) {
   };
 }
 
-/**
- * Build a runtime config patch from manifest/runtime session.
- *
- * Field consumption status after merge into runtimeConfig.inference:
- *
- * CONSUMED (read by layers/logits/generator via runtimeConfig.inference.compute):
- *   - patch.compute.activationDtype  -- read by execution plan compilation,
- *     logits fallback (getRuntimeConfig().inference.compute.activationDtype),
- *     and layer context builder.
- *
- * CONSUMED (read by KV cache, batching, and execution-plan subsystems):
- *   - patch.session.kvcache.*
- *   - patch.batching.*
- *
- * DEAD / NOT CONSUMED at runtime (merged into runtimeConfig but never read back):
- *   - patch.session.compute.defaults.mathDtype
- *   - patch.session.compute.defaults.accumDtype
- *   - patch.session.compute.defaults.outputDtype
- *
- * The dead fields are retained for manifest round-trip fidelity and potential
- * future consumption. They should NOT be removed (non-breaking), but new code
- * should not rely on reading them from runtimeConfig.inference.session.
- */
 export function buildSessionRuntimePatch(session, options = {}) {
   const includeDecodeLoop = options.includeDecodeLoop !== false;
   const patch = {};

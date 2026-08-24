@@ -1,6 +1,7 @@
 import { createTensor } from '../../tensor.js';
 import { acquireBuffer } from '../../../memory/buffer-pool.js';
-import { createPipeline, createUniformBufferWithView } from '../utils.js';
+import { createPipeline } from '../pipeline-cache.js';
+import { createUniformBufferWithView } from '../uniform-utils.js';
 import { dispatch, recordDispatch } from '../dispatch.js';
 import { WORKGROUP_SIZES } from '../constants.js';
 import { getDevice } from '../../device.js';

@@ -1,11 +1,3 @@
-/**
- * Doppler Forge's ten ahead-of-time compiler stages.
- *
- * Every semantic value in these stages comes from a manifest, a closed Program
- * Bundle, or qualification evidence. Unknown source facts are compile errors.
- *
- * @module converter/forge-stages
- */
 
 import path from 'node:path';
 import { createModelIR, hashModelIR, validateModelIR } from '../config/model-ir.js';
@@ -215,7 +207,6 @@ function stripForgeOnlyArtifactFields(artifact) {
   return packArtifact;
 }
 
-/** Stage 1: Inspect pinned source objects and identities. */
 export async function stageInspect(input) {
   requireObject(input, 'inspect input');
   const manifest = requireObject(input.manifest, 'manifest');
@@ -253,7 +244,6 @@ export async function stageInspect(input) {
   };
 }
 
-/** Stage 2: Normalize source identities and Pack-relative artifact locations. */
 export function stageNormalize(inspected) {
   const input = requireObject(inspected, 'inspect output');
   const bundle = input.programBundle;
@@ -316,7 +306,6 @@ export function stageNormalize(inspected) {
   };
 }
 
-/** Stage 3: Analyze source facts into hardware-independent ModelIR. */
 export function stageAnalyze(normalized) {
   const source = requireObject(normalized, 'normalized source');
   const manifest = source.manifest;
@@ -529,7 +518,6 @@ function resolveModelIRSpecialization(modelIR, manifest) {
   };
 }
 
-/** Stage 4: Lower the closed Program Bundle into phase commands. */
 export function stageLower(analyzed) {
   const validation = validateModelIR(analyzed?.modelIR);
   if (!validation.ok) throw new Error(`Forge lower requires valid ModelIR: ${validation.errors.join('; ')}`);
@@ -587,7 +575,6 @@ function buildQualificationRecords(lowered) {
   return records;
 }
 
-/** Stage 5: Specialize exactly the execution plan present in source evidence. */
 export function stageSpecialize(lowered) {
   const modelIR = lowered.modelIR;
   const normalized = lowered.normalized;
@@ -711,7 +698,6 @@ export function stageSpecialize(lowered) {
   };
 }
 
-/** Stage 6: Record the selected prequalified search result without runtime search. */
 export function stageSearch(specialized) {
   return {
     ...specialized, stage: 'search', ok: true,
@@ -747,7 +733,6 @@ function assertTargetPlanMatchesInitialExecutionIdentity(plan) {
   }
 }
 
-/** Stage 7: Verify graph, ModelIR, plan, and kernel closure bindings. */
 export function stageVerify(searched) {
   const modelValidation = validateModelIR(searched.modelIR);
   if (!modelValidation.ok) throw new Error(`Forge verify rejected ModelIR: ${modelValidation.errors.join('; ')}`);
@@ -764,7 +749,6 @@ export function stageVerify(searched) {
   return { ...searched, stage: 'verify', ok: true, verificationReceipt: { modelIRHash: searched.modelIRHash, targetPlanHashes: searched.targetPlanHashes } };
 }
 
-/** Stage 8: Require passed, packaged execution evidence for every plan. */
 export function stageQualify(verified) {
   for (const plan of verified.targetPlans) {
     if (!plan.qualification.every((record) => record.status === 'passed')) {
@@ -774,7 +758,6 @@ export function stageQualify(verified) {
   return { ...verified, stage: 'qualify', ok: true, qualificationReceipt: { targetIds: verified.targetPlans.map((plan) => plan.targetId) } };
 }
 
-/** Stage 9: Package the deterministic unsigned envelope. */
 export function stagePackage(qualified) {
   const normalized = qualified.normalized;
   const artifacts = normalized.artifacts.map(stripForgeOnlyArtifactFields);
@@ -804,13 +787,11 @@ export function stagePackage(qualified) {
   return { ...qualified, stage: 'package', ok: true, pack };
 }
 
-/** Stage 10: Ed25519-sign the immutable semantic root. */
 export async function stageSign(packaged, signer) {
   const pack = await signPackV2(packaged.pack, signer);
   return { ...packaged, stage: 'sign', ok: true, pack, semanticRoot: pack.semanticRoot };
 }
 
-/** Runs the complete Forge pipeline in its fixed constitutional order. */
 export async function runForgePipeline(input, signer) {
   const inspected = await stageInspect(input);
   const normalized = stageNormalize(inspected.data);

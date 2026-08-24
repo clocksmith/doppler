@@ -1,6 +1,7 @@
 
 
-import { prewarmKernels, clearKernelCaches } from './kernels/utils.js';
+import { prewarmKernels } from './kernels/kernel-prewarm.js';
+import { clearKernelCaches } from './kernels/kernel-cache-lifecycle.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
 

@@ -2,11 +2,11 @@ import { getDevice, getDeviceEpoch } from '../device.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
+import { createUniformBufferFromData } from './uniform-utils.js';
 import {
-  createUniformBufferFromData,
   getOrCreateBindGroupLayout,
   getOrCreatePipelineLayout,
-} from './utils.js';
+} from './pipeline-cache.js';
 import { recordDispatch } from './dispatch.js';
 
 const CONV_WORKGROUP_SIZE = WORKGROUP_SIZES.DEFAULT;

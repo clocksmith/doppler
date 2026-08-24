@@ -4,7 +4,10 @@ import { readFileSync } from 'node:fs';
 const planSource = readFileSync(new URL('../../src/inference/pipelines/text/attention/plan.js', import.meta.url), 'utf8');
 const immediateSource = readFileSync(new URL('../../src/inference/pipelines/text/attention/executor-immediate.js', import.meta.url), 'utf8');
 const recordedSource = readFileSync(new URL('../../src/inference/pipelines/text/attention/executor-recorded.js', import.meta.url), 'utf8');
-const interpreterSource = readFileSync(new URL('../../src/inference/pipelines/text/attention/interpreter.js', import.meta.url), 'utf8');
+const interpreterSource = [
+  '../../src/inference/pipelines/text/attention/interpreter.js',
+  '../../src/inference/pipelines/text/attention/interpreter/recorded.js',
+].map((relativePath) => readFileSync(new URL(relativePath, import.meta.url), 'utf8')).join('\n');
 
 assert.match(
   planSource,

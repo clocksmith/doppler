@@ -16,9 +16,9 @@ import {
   applyRuntimeInputs,
   buildSuiteOptions,
   runWithRuntimeIsolation,
-} from './command-runner-shared.js';
+} from './command-runtime-execution.js';
 import { refreshManifestIntegrity } from './rdrr-integrity-refresh.js';
-import { loadRuntimeConfigFromRef } from '../inference/browser-harness-runtime-helpers.js';
+import { loadRuntimeConfigFromRef } from '../inference/browser-harness/runtime-config.js';
 import { isPlainObject } from '../utils/plain-object.js';
 import {
   getActiveKernelPath,

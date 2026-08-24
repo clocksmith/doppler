@@ -16,7 +16,7 @@ assert.match(html, /Local WebGPU inference, inspected in your browser\./);
 assert.match(html, /src="\/demo\/demo\.js"/);
 assert.match(html, /id="model-select"/);
 assert.match(html, /id="model-select-action"/);
-assert.match(modelsSource, /from 'doppler-gpu'/);
+assert.match(modelsSource, /from 'doppler-gpu\/compat'/);
 
 assert.equal((html.match(/id="xray-toggle-all"/g) ?? []).length, 1);
 assert.match(html, /<span class="chat-toggle-label">X-Ray<\/span>\s*<input id="xray-toggle-all" type="checkbox">/);

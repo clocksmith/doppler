@@ -12,11 +12,6 @@ import {
 // History Functions
 // ============================================================================
 
-/**
- * Enforce the max history size by evicting oldest entries first.
- * This is a safety net in case entries were pushed from multiple
- * concurrent paths between limit checks in storeLog/storeTrace.
- */
 function enforceHistoryLimit() {
   const maxHistory = getLogHistoryLimit();
   while (logHistory.length > maxHistory) {
@@ -44,11 +39,9 @@ export function getLogHistory(filter = {}) {
   return history;
 }
 
-
 export function clearLogHistory() {
   logHistory.length = 0;
 }
-
 
 export function printLogSummary(count = 20) {
   const recent = logHistory.slice(-count);
@@ -59,7 +52,6 @@ export function printLogSummary(count = 20) {
   }
   console.log('===================');
 }
-
 
 export function getDebugSnapshot() {
   return {

@@ -3,7 +3,7 @@ import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
-import { unifiedKernelWrapper } from './utils.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
 import { WORKGROUP_SIZES } from './constants.js';
 
 async function _depthwiseConv1d(target, input, weight, options = {}) {

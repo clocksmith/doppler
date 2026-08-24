@@ -3,7 +3,7 @@ import { QK_K } from '../../config/schema/index.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { VEC4_ELEMENTS_PER_WG } from './constants.js';
-import { unifiedKernelWrapper } from './utils.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
 
 const ROUTE_TILE_M = 4;
 const ROUTE_THREADS_PER_COL = 64;

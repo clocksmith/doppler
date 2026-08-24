@@ -1,55 +1,33 @@
-export declare const DEFAULT_HF_REGISTRY_PATH: string;
-export declare const DEFAULT_HF_REGISTRY_URL: string;
-export declare const DEFAULT_EXTERNAL_MODELS_ROOT: string;
-
-export declare function normalizeText(value: unknown): string;
-export declare function isPlainObject(value: unknown): boolean;
-export declare function ensureCatalogPayload(payload: unknown, label?: string): {
-  models: unknown[];
-  [key: string]: unknown;
-};
-export declare function loadJsonFile(
-  filePath: string,
-  label?: string
-): Promise<{
-  models: unknown[];
-  [key: string]: unknown;
-}>;
-export declare function writeJsonFile(filePath: string, payload: unknown): Promise<void>;
-export declare function buildHfResolveUrl(repoId: unknown, revision: unknown, repoPath: unknown): string;
-export declare function getEntryHfSpec(entry: unknown): {
-  repoId: string;
-  revision: string;
-  path: string;
-  complete: boolean;
-};
-export declare function buildEntryRemoteBaseUrl(entry: unknown): string | null;
-export declare function resolveDemoRegistryEntryBaseUrl(entry: unknown, catalogSourceUrl: unknown): string | null;
-export declare function shouldDemoSurfaceRemoteRegistryEntry(entry: unknown, catalogSourceUrl: unknown): boolean;
-export declare function buildManifestUrl(baseUrl: unknown): string;
-export declare function buildShardUrl(baseUrl: unknown, shard: unknown): string;
-export declare function collectDuplicateModelIds(models: unknown[]): string[];
-export declare function findCatalogEntry(
-  payload: { models?: unknown[] } | null | undefined,
-  modelId: unknown
-): unknown | null;
-export declare function isHostedRegistryApprovedEntry(entry: unknown): boolean;
-export declare function buildPublishedRegistryEntry(localEntry: unknown, revision: unknown): Record<string, unknown>;
-export declare function buildHostedRegistryPayload(
-  payload: unknown,
-  revisionOverrides?: Map<string, string>
-): Record<string, unknown>;
-export declare function extractCommitShaFromUrl(value: unknown): string | null;
-export declare function validateLocalHfEntryShape(entry: unknown): string[];
-export declare function probeUrl(
-  url: string,
-  options?: Record<string, unknown>
-): Promise<Record<string, unknown>>;
-export declare function fetchJson(
-  url: string,
-  options?: Record<string, unknown>
-): Promise<Record<string, unknown>>;
-export declare function fetchRepoHeadSha(
-  repoId: string,
-  options?: Record<string, unknown>
-): Promise<string | null>;
+export {
+  DEFAULT_EXTERNAL_MODELS_ROOT,
+  normalizeText,
+  isPlainObject,
+  ensureCatalogPayload,
+  loadJsonFile,
+  writeJsonFile,
+  collectDuplicateModelIds,
+  findCatalogEntry,
+} from './hf-registry/catalog-io.js';
+export {
+  DEFAULT_HF_REGISTRY_PATH,
+  DEFAULT_HF_REGISTRY_URL,
+  buildHfResolveUrl,
+  getEntryHfSpec,
+  buildEntryRemoteBaseUrl,
+  resolveDemoRegistryEntryBaseUrl,
+  shouldDemoSurfaceRemoteRegistryEntry,
+  buildManifestUrl,
+  buildShardUrl,
+  extractCommitShaFromUrl,
+} from './hf-registry/registry-urls.js';
+export {
+  isHostedRegistryApprovedEntry,
+  buildPublishedRegistryEntry,
+  buildHostedRegistryPayload,
+  validateLocalHfEntryShape,
+} from './hf-registry/publish-shaping.js';
+export {
+  probeUrl,
+  fetchJson,
+  fetchRepoHeadSha,
+} from './hf-registry/network-probes.js';

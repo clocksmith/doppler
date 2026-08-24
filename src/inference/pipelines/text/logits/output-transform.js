@@ -1,7 +1,7 @@
 import { runScale, recordScale } from '../../../../gpu/kernel-selector.js';
 import { releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { runProbes } from '../probes.js';
-import { resolveLogitOutputScale } from './utils.js';
+import { resolveLogitOutputScale } from './scale-policy.js';
 
 export async function finalizeLogitOutputTensor(tensor, config, options) {
   const { recorder = null, numTokens, vocabSize, operatorDiagnostics = null } = options;

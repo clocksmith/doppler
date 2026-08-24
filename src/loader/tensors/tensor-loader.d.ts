@@ -137,11 +137,9 @@ export declare function loadQ6K(
   name: string
 ): Promise<TensorLoadResult>;
 
-/**
- * Load BF16 tensor to GPU.
- */
+/** Load BF16 tensor to GPU. */
 export declare function loadBF16(
-  shardData: Uint8Array,
+  shardData: Uint8Array | GPUBuffer,
   location: TensorLocation,
   name: string,
   config: TensorLoadConfig
