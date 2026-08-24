@@ -92,6 +92,14 @@ identities signed into the Pack, and the result is a receipt bound to the Pack,
 selected TargetPlan, lifecycle, and revocation policy. Repository tests use a
 mock program and therefore establish contract behavior, not WebGPU fleet
 qualification.
+
+Application-gate evidence must identify the Pack semantic root, selected
+TargetPlan, resolved execution digest, provider, and exact device target in
+addition to the application revision, workload, oracle, evaluator, quality,
+latency, memory, startup, recovery, and failed samples. The qualification agent
+passes the Pack, target, and device paths through explicit environment fields
+and rejects a receipt that reports a different execution. A generic application
+smoke receipt cannot be wrapped into fleet evidence.
 Dynamic model loading remains an explicit intake/conversion compatibility
 surface; it cannot bypass production qualification. Generic OpenAI, generation,
 browser expansion, and unrelated embedding surfaces are not on the immediate
@@ -102,13 +110,26 @@ in its renderer. A hosted GitHub runner may orchestrate customer-operated
 Windows and macOS qualification agents, but cannot stand in for the supported
 fleet.
 
+Each `supportedDevices.targets` entry is one qualification tuple. It declares
+one OS, one architecture, one GPU vendor, an exact GPU-device allowlist, an
+exact driver-version allowlist, an Electron version range, and one qualification
+surface. The device receipt also carries the observed `shader-f16`, subgroup,
+and maximum-buffer capabilities used to select an already-qualified TargetPlan.
+A signed receipt must match every declared dimension; a receipt for one tuple
+never covers a second tuple by sharing a vendor. Target IDs and rollout stages
+are unique, rollout percentages advance monotonically to 100%, and the rollback
+target must be the pinned previous release.
+
 The public command forms are `doppler release` and
 `npx --package doppler-gpu doppler release`; the npm package is named
 `doppler-gpu`. The command has explicit `qualify` and `decide` phases. It emits
 signed fleet receipts or an eligible/blocked decision plus immutable evidence,
-and always reports `activationPerformed: false`. The reusable workflow only
-downloads customer-operated fleet receipts, evaluates them, preserves all
-candidate and failure evidence, and fails its check when eligibility is blocked.
+including a retained copy of the exact candidate Pack envelope, and always
+reports `activationPerformed: false`. The reusable workflow preserves every
+downloaded artifact but passes only schema-identified Electron fleet receipts
+to the decision command; application receipts, device inputs, and failure JSON
+cannot be mistaken for fleet qualification. It fails its check when eligibility
+is blocked.
 
 ## Provider and custody boundaries
 

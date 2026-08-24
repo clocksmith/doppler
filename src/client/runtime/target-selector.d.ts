@@ -1,17 +1,6 @@
-import type { TargetPlan } from '../../config/target-plan.js';
+import type { TargetPlan, TargetPlanDeviceProfile } from '../../config/target-plan.js';
 
-export interface DeviceProfile {
-  surface: string;
-  hasF16?: boolean;
-  hasSubgroups?: boolean;
-  maxBufferSize?: number;
-  adapter?: {
-    vendor?: string | null;
-    architecture?: string | null;
-    device?: string | null;
-    description?: string | null;
-  };
-}
+export type DeviceProfile = TargetPlanDeviceProfile;
 
 export declare function selectTargetPlan(
   targetPlans: TargetPlan[],

@@ -7,6 +7,18 @@ export interface ElectronPackReference {
   path: string;
 }
 
+export interface ElectronRevocationSnapshot extends Record<string, unknown> {
+  schema: 'doppler.electron-revocation-snapshot/v1';
+  authorityId: string;
+  policyDigest: `sha256:${string}`;
+  sequence: number;
+  issuedAtUtc: string;
+  expiresAtUtc: string;
+  revokedSemanticRoots: Array<`sha256:${string}`>;
+  digest: `sha256:${string}`;
+  signature: Record<string, unknown>;
+}
+
 export interface ElectronReleaseStateStore {
   load(): Promise<unknown | null>;
   compareAndSwap(expectedSequence: number, nextState: ElectronReleaseState): Promise<boolean>;
@@ -28,7 +40,7 @@ export interface ElectronReleaseStateCoordinator {
   activateCandidate(decision: Record<string, unknown>, customerAuthorizationDigest: `sha256:${string}`): Promise<ElectronReleaseState>;
   rejectCandidate(failureBundleDigest: `sha256:${string}`): Promise<ElectronReleaseState>;
   rollback(customerAuthorizationDigest: `sha256:${string}`): Promise<ElectronReleaseState>;
-  applyRevocationSnapshot(snapshot: Record<string, unknown>): Promise<ElectronReleaseState>;
+  applyRevocationSnapshot(snapshot: ElectronRevocationSnapshot): Promise<ElectronReleaseState>;
   resolveCurrent(): Promise<ElectronPackReference>;
 }
 
@@ -36,5 +48,6 @@ export declare function validateElectronReleaseState(value: unknown): ElectronRe
 export declare function createElectronReleaseStateCoordinator(options: {
   stateStore: ElectronReleaseStateStore;
   verifyReleaseDecision(decision: Record<string, unknown>): Promise<boolean> | boolean;
+  verifyRevocationSnapshot(snapshot: ElectronRevocationSnapshot): Promise<boolean> | boolean;
   now?: () => string;
 }): ElectronReleaseStateCoordinator;

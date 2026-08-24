@@ -80,7 +80,17 @@ jobs:
             for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
               const value = path.join(directory, entry.name);
               if (entry.isDirectory()) visit(value);
-              else if (entry.name.endsWith('.json')) paths.push(value);
+              else if (entry.name.endsWith('.json')) {
+                let candidate;
+                try {
+                  candidate = JSON.parse(fs.readFileSync(value, 'utf8'));
+                } catch {
+                  continue;
+                }
+                if (candidate?.schema === 'doppler.electron-fleet-receipt/v1') {
+                  paths.push(value);
+                }
+              }
             }
           };
           visit(root);

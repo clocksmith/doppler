@@ -91,8 +91,13 @@ Its main-process coordinator uses an application-supplied atomic
 verified revocation-snapshot state. Candidate installation never activates a
 Pack. Activation requires a cryptographically verified eligible decision plus
 an explicit customer authorization digest; rollback also requires an explicit
-customer authorization digest. Renderer execution fails closed when the signed
-revocation snapshot is missing, expired, or denies the current Pack. This is a
+customer authorization digest. A revocation snapshot carries its policy digest,
+issuance and expiry instants, monotonic sequence, revoked Pack semantic roots,
+content digest, and signature. The coordinator calls an application-owned
+cryptographic verifier before committing it; a caller-authored boolean is not
+verification. Renderer execution fails closed when the signed snapshot is
+missing, expired, exceeds the activated release's offline-expiry window, binds
+a different authority or policy, or denies the current Pack. This is a
 repository contract and reference implementation, not evidence that a customer
 has deployed an atomic store or exercised production rollback.
 

@@ -39,7 +39,33 @@ function clone(value) {
   const broken = clone(fixture);
   broken.supportedDevices.targets = broken.supportedDevices.targets.filter((target) => target.os !== 'macos');
   const validation = validateProductionRelease(broken);
-  assert.ok(validation.errors.includes('supportedDevices.targets must include Windows and macOS targets.'));
+  assert.ok(validation.errors.includes('supportedDevices.targets must include macos.'));
+}
+
+{
+  const broken = clone(fixture);
+  broken.supportedDevices.targets[0].gpuDevices = ['reference-amd-device', 'undeclared-second-device'];
+  const validation = validateProductionRelease(broken);
+  assert.ok(validation.errors.includes(
+    'supportedDevices.targets[0].gpuDevices must contain exactly one value per qualification tuple.'
+  ));
+}
+
+{
+  const broken = clone(fixture);
+  broken.rollback.packSemanticRoot = `sha256:${'0'.repeat(64)}`;
+  const validation = validateProductionRelease(broken);
+  assert.ok(validation.errors.includes('rollback must bind the pinned previousRelease.'));
+}
+
+{
+  const broken = clone(fixture);
+  broken.rollout.stages[1].eligibleFleetPercent = 4;
+  const validation = validateProductionRelease(broken);
+  assert.ok(validation.errors.includes(
+    'rollout.stages[1].eligibleFleetPercent must increase monotonically.'
+  ));
+  assert.ok(validation.errors.includes('rollout.stages must end at 100 percent eligibility.'));
 }
 
 {

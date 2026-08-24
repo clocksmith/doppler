@@ -59,9 +59,19 @@ function requireStringArray(value, allowed, label, errors) {
     errors.push(`${label} must be a non-empty array.`);
     return;
   }
+  const seen = new Set();
   for (const [index, entry] of value.entries()) {
     if (typeof entry !== 'string' || !entry.trim()) errors.push(`${label}[${index}] must be a non-empty string.`);
     else if (allowed && !allowed.has(entry)) errors.push(`${label}[${index}] is unsupported.`);
+    else if (seen.has(entry)) errors.push(`${label} must not contain duplicate values.`);
+    else seen.add(entry);
+  }
+}
+
+function requireExactTupleValue(value, allowed, label, errors) {
+  requireStringArray(value, allowed, label, errors);
+  if (Array.isArray(value) && value.length !== 1) {
+    errors.push(`${label} must contain exactly one value per qualification tuple.`);
   }
 }
 
@@ -109,11 +119,14 @@ function validateAcceptance(acceptance, errors) {
   if (!Array.isArray(acceptance.tests) || acceptance.tests.length === 0) {
     errors.push('acceptance.tests must be a non-empty array.');
   } else {
+    const testIds = new Set();
     for (const [index, test] of acceptance.tests.entries()) {
       const label = `acceptance.tests[${index}]`;
       if (!requireObject(test, label, errors)) continue;
       requireExactKeys(test, new Set(['id', 'command', 'workdir', 'timeoutMs', 'evidenceSchema']), label, errors);
       requireId(test.id, `${label}.id`, errors);
+      if (testIds.has(test.id)) errors.push(`acceptance.tests contains duplicate id "${test.id}".`);
+      else testIds.add(test.id);
       requireStringArray(test.command, null, `${label}.command`, errors);
       requireRepoPath(test.workdir, `${label}.workdir`, errors);
       if (!Number.isSafeInteger(test.timeoutMs) || test.timeoutMs < 1) errors.push(`${label}.timeoutMs must be a positive integer.`);
@@ -155,17 +168,27 @@ function validateSupportedDevices(supportedDevices, errors) {
     return;
   }
   const operatingSystems = new Set();
+  const targetIds = new Set();
   for (const [index, target] of supportedDevices.targets.entries()) {
     const label = `supportedDevices.targets[${index}]`;
     if (!requireObject(target, label, errors)) continue;
-    requireExactKeys(target, new Set(['id', 'os', 'osVersionRange', 'architectures', 'electronVersionRange', 'gpuVendors', 'driverPolicy']), label, errors);
+    requireExactKeys(target, new Set([
+      'id', 'os', 'osVersionRange', 'architectures', 'electronVersionRange',
+      'gpuVendors', 'gpuDevices', 'driverVersions', 'qualificationSurface',
+      'driverPolicy',
+    ]), label, errors);
     requireId(target.id, `${label}.id`, errors);
+    if (targetIds.has(target.id)) errors.push(`supportedDevices.targets contains duplicate id "${target.id}".`);
+    else targetIds.add(target.id);
     if (!OPERATING_SYSTEMS.has(target.os)) errors.push(`${label}.os is unsupported.`);
     else operatingSystems.add(target.os);
     requireString(target.osVersionRange, `${label}.osVersionRange`, errors);
-    requireStringArray(target.architectures, ARCHITECTURES, `${label}.architectures`, errors);
+    requireExactTupleValue(target.architectures, ARCHITECTURES, `${label}.architectures`, errors);
     requireString(target.electronVersionRange, `${label}.electronVersionRange`, errors);
-    requireStringArray(target.gpuVendors, GPU_VENDORS, `${label}.gpuVendors`, errors);
+    requireExactTupleValue(target.gpuVendors, GPU_VENDORS, `${label}.gpuVendors`, errors);
+    requireExactTupleValue(target.gpuDevices, null, `${label}.gpuDevices`, errors);
+    requireExactTupleValue(target.driverVersions, null, `${label}.driverVersions`, errors);
+    requireId(target.qualificationSurface, `${label}.qualificationSurface`, errors);
     if (target.driverPolicy !== 'exact-receipt-required') errors.push(`${label}.driverPolicy must require exact receipts.`);
   }
   for (const os of OPERATING_SYSTEMS) {
@@ -193,16 +216,25 @@ function validateRollout(rollout, errors) {
     errors.push('rollout.stages must be a non-empty array.');
     return;
   }
+  const stageIds = new Set();
+  let previousPercent = 0;
   for (const [index, stage] of rollout.stages.entries()) {
     const label = `rollout.stages[${index}]`;
     if (!requireObject(stage, label, errors)) continue;
     requireExactKeys(stage, new Set(['id', 'eligibleFleetPercent', 'requiredObservationDigest']), label, errors);
     requireId(stage.id, `${label}.id`, errors);
+    if (stageIds.has(stage.id)) errors.push(`rollout.stages contains duplicate id "${stage.id}".`);
+    else stageIds.add(stage.id);
     if (typeof stage.eligibleFleetPercent !== 'number' || stage.eligibleFleetPercent <= 0 || stage.eligibleFleetPercent > 100) {
       errors.push(`${label}.eligibleFleetPercent must be in (0, 100].`);
+    } else if (stage.eligibleFleetPercent <= previousPercent) {
+      errors.push(`${label}.eligibleFleetPercent must increase monotonically.`);
+    } else {
+      previousPercent = stage.eligibleFleetPercent;
     }
     requireDigest(stage.requiredObservationDigest, `${label}.requiredObservationDigest`, errors);
   }
+  if (previousPercent !== 100) errors.push('rollout.stages must end at 100 percent eligibility.');
 }
 
 function validateRevocation(revocation, errors) {
@@ -261,6 +293,11 @@ export function validateProductionRelease(release) {
   validateReleaseTarget(release.previousRelease, 'previousRelease', false, errors);
   validateRollout(release.rollout, errors);
   validateReleaseTarget(release.rollback, 'rollback', true, errors);
+  if (isObject(release.previousRelease) && isObject(release.rollback)
+    && (release.previousRelease.releaseId !== release.rollback.releaseId
+      || release.previousRelease.packSemanticRoot !== release.rollback.packSemanticRoot)) {
+    errors.push('rollback must bind the pinned previousRelease.');
+  }
   validateRevocation(release.revocation, errors);
   const custody = release.dataCustody;
   if (requireObject(custody, 'dataCustody', errors)) {

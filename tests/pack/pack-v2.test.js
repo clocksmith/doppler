@@ -46,6 +46,30 @@ const changedReleaseSource = structuredClone(fixture.pack);
 changedReleaseSource.release.source.revision = 'changed-revision';
 assert.equal(validatePackV2(changedReleaseSource).ok, false, 'semantic root must bind source revision');
 
+const unsignedTopLevelExtension = structuredClone(fixture.pack);
+unsignedTopLevelExtension.runtimeFallback = 'invented';
+assert.ok(validatePackV2(unsignedTopLevelExtension).errors.includes(
+  'pack.runtimeFallback is not allowed.'
+));
+
+const unsignedArtifactExtension = structuredClone(fixture.pack);
+unsignedArtifactExtension.artifacts[0].mutableSource = true;
+assert.ok(validatePackV2(unsignedArtifactExtension).errors.includes(
+  'artifacts[0].mutableSource is not allowed.'
+));
+
+const unsignedSignatureExtension = structuredClone(fixture.pack);
+unsignedSignatureExtension.signature.mutableSignerState = true;
+assert.ok(validatePackV2(unsignedSignatureExtension).errors.includes(
+  'signature.mutableSignerState is not allowed.'
+));
+
+const malformedSignature = structuredClone(fixture.pack);
+malformedSignature.signature.signatureHex = '00';
+assert.ok(validatePackV2(malformedSignature).errors.includes(
+  'signature.signatureHex must be a 64-byte hexadecimal Ed25519 signature.'
+));
+
 const missingLicenseDigest = structuredClone(fixture.pack);
 missingLicenseDigest.release.source.license.textDigest = null;
 assert.ok(validatePackV2(missingLicenseDigest).errors.includes(

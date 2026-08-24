@@ -64,8 +64,25 @@ export interface TargetPlanV2 extends Omit<TargetPlanV1, 'schema' | 'schemaVersi
 
 export type TargetPlan = TargetPlanV1 | TargetPlanV2;
 
+export interface TargetPlanDeviceProfile {
+  surface: string;
+  hasF16?: boolean;
+  hasSubgroups?: boolean;
+  maxBufferSize?: number;
+  adapter?: {
+    vendor?: string | null;
+    architecture?: string | null;
+    device?: string | null;
+    description?: string | null;
+  };
+}
+
 export declare function validateTargetPlan(plan: unknown): { ok: boolean; errors: string[] };
 export declare function hashTargetPlan(plan: unknown): `sha256:${string}`;
 export declare function matchesDeviceCapability(targetPlan: TargetPlan, deviceProfile: Record<string, unknown>): boolean;
+export declare function selectQualifiedTargetPlan(
+  targetPlans: TargetPlan[],
+  deviceProfile: TargetPlanDeviceProfile
+): TargetPlan;
 export declare function createTargetPlan(params: Omit<TargetPlanV1, 'schema' | 'schemaVersion'>): TargetPlanV1;
 export declare function createTargetPlanV2(params: Omit<TargetPlanV2, 'schema' | 'schemaVersion'>): TargetPlanV2;

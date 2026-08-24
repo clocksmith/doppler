@@ -6,8 +6,8 @@ For the npm-facing quickstart path, use `npx doppler-gpu`. That bin is a thin
 first-run surface for local generation. The `doppler` CLI below is the
 contract-driven tooling surface for `verify`, `debug`, `bench`, `convert`, and
 operator workflows. It also exposes the Node-only `release` command for signed,
-non-promoting Electron release eligibility. Other Node-only maintenance and investigation
-paths such as `program-bundle` and `diagnose`.
+non-promoting Electron release eligibility. Other Node-only maintenance and
+investigation paths include `program-bundle` and `diagnose`.
 It also exposes `profiles`, a read-only discovery command for checked-in
 runtime profile IDs.
 
@@ -155,7 +155,7 @@ run the explicit qualification phase:
 ```bash
 doppler release --action qualify \
   --manifest doppler-release.json \
-  --target windows-x64-webgpu \
+  --target windows-x64-nvidia-webgpu \
   --device-identity evidence/windows-device.json \
   --out .doppler-release/windows \
   --pack-trusted-signers trust/pack-signers.json \
@@ -164,12 +164,14 @@ doppler release --action qualify \
   --signing-authority customer-windows-agent
 ```
 
-`decide` verifies the Pack and every exact-device fleet receipt, then writes
-`release-decision.json`, `known-exclusions.json`, `rollback-target.json`, and
+`decide` verifies the Pack and every exact-device fleet receipt, then writes a
+retained `candidate.pack.json`, `release-decision.json`,
+`known-exclusions.json`, `rollback-target.json`, and
 `revocation-configuration.json`. A blocked decision also writes and retains
-`failure-bundle.json`. Neither phase deploys, activates, rolls back, mutates the
-customer repository, or invents a fleet receipt. The customer activation system
-must separately verify and act on an eligible decision.
+`failure-bundle.json`. A failed qualification or blocked decision still prints
+its JSON result and exits nonzero. Neither phase deploys, activates, rolls back,
+mutates the customer repository, or invents a fleet receipt. The customer
+activation system must separately verify and act on an eligible decision.
 
 ## Program Bundle Export
 

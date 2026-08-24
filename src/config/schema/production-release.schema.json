@@ -214,14 +214,17 @@
     "deviceTarget": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "os", "osVersionRange", "architectures", "electronVersionRange", "gpuVendors", "driverPolicy"],
+      "required": ["id", "os", "osVersionRange", "architectures", "electronVersionRange", "gpuVendors", "gpuDevices", "driverVersions", "qualificationSurface", "driverPolicy"],
       "properties": {
         "id": { "$ref": "#/$defs/id" },
         "os": { "enum": ["windows", "macos"] },
         "osVersionRange": { "$ref": "#/$defs/nonEmpty" },
-        "architectures": { "type": "array", "minItems": 1, "items": { "enum": ["x64", "arm64"] } },
+        "architectures": { "type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": { "enum": ["x64", "arm64"] } },
         "electronVersionRange": { "$ref": "#/$defs/nonEmpty" },
-        "gpuVendors": { "type": "array", "minItems": 1, "items": { "enum": ["amd", "apple", "intel", "nvidia"] } },
+        "gpuVendors": { "type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": { "enum": ["amd", "apple", "intel", "nvidia"] } },
+        "gpuDevices": { "type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/nonEmpty" } },
+        "driverVersions": { "type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/nonEmpty" } },
+        "qualificationSurface": { "$ref": "#/$defs/id" },
         "driverPolicy": { "const": "exact-receipt-required" }
       }
     },

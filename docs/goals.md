@@ -167,6 +167,15 @@ becomes mainline only when the Electron release or an explicit customer support
 commitment requires it. Candidate and rejected lanes remain visible and
 non-claimable.
 
+Goal 1 therefore contains only the canonical product contract, the frozen
+Electron reference release, Pack-first Electron reranking, the release
+toolchain, internal reference-integration mechanics, customer-operated fleet
+qualification, production revocation plus customer rollback, the first paid
+release and upgrade, and the two subsequent unrelated design partners. Generic
+browser, Node, OpenAI-compatible, generation, embedding, and Bun surfaces remain
+governed by their support and compatibility contracts; they are not Goal 1 rows
+and cannot outrank the external Electron release merely because code exists.
+
 Every blocker is also an executable action record. It names a unique priority,
 an accountable owner, a status command, exact exit criteria, and the authority
 that must terminalize it:

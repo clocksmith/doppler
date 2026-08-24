@@ -41,6 +41,22 @@ function requireDigest(value, label, errors) {
   if (!SHA256_PATTERN.test(value || '')) errors.push(`${label} must be a SHA-256 digest.`);
 }
 
+function requireExactKeys(value, allowed, label, errors) {
+  if (!isObject(value)) return;
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) errors.push(`${label}.${key} is not allowed.`);
+  }
+}
+
+function requireInstant(value, label, errors) {
+  requireString(value, label, errors);
+  if (typeof value !== 'string') return;
+  const time = new Date(value).getTime();
+  if (!Number.isFinite(time) || new Date(time).toISOString() !== value) {
+    errors.push(`${label} must be an ISO instant.`);
+  }
+}
+
 function bytesToHex(bytes) {
   return Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('');
 }
@@ -99,6 +115,12 @@ function validateArtifacts(pack, errors) {
       errors.push(`artifacts[${index}] must be an object.`);
       continue;
     }
+    requireExactKeys(
+      artifact,
+      new Set(['artifactId', 'role', 'path', 'hash', 'sizeBytes']),
+      `artifacts[${index}]`,
+      errors
+    );
     requireString(artifact.artifactId, `artifacts[${index}].artifactId`, errors);
     requireString(artifact.path, `artifacts[${index}].path`, errors);
     requireDigest(artifact.hash, `artifacts[${index}].hash`, errors);
@@ -125,6 +147,12 @@ function validateModules(pack, artifacts, errors) {
       errors.push(`wgslModules[${index}] must be an object.`);
       continue;
     }
+    requireExactKeys(
+      module,
+      new Set(['id', 'file', 'entry', 'digest', 'sourceHash', 'sourceArtifactId', 'metadata']),
+      `wgslModules[${index}]`,
+      errors
+    );
     requireString(module.id, `wgslModules[${index}].id`, errors);
     requireString(module.file, `wgslModules[${index}].file`, errors);
     requireString(module.entry, `wgslModules[${index}].entry`, errors);
@@ -149,6 +177,11 @@ function validateProgram(pack, artifacts, errors) {
     errors.push('program must be an object.');
     return;
   }
+  requireExactKeys(program, new Set([
+    'schema', 'programBundleHash', 'programBundleArtifactId', 'executionGraphHash',
+    'manifestArtifactId', 'modelIREvidenceArtifactId', 'tokenizerArtifactIds',
+    'weightArtifactIds', 'execution', 'referenceTranscript',
+  ]), 'program', errors);
   if (program.schema !== PACK_V2_PROGRAM_SCHEMA_ID) {
     errors.push(`program.schema must be "${PACK_V2_PROGRAM_SCHEMA_ID}".`);
   }
@@ -186,11 +219,15 @@ function validateProgram(pack, artifacts, errors) {
 export function validatePackV2(pack, options = {}) {
   const errors = [];
   if (!isObject(pack)) return { ok: false, errors: ['Doppler Pack v2 must be a non-null object.'] };
+  requireExactKeys(pack, new Set([
+    'schema', 'schemaVersion', 'packId', 'modelId', 'createdAtUtc', 'semanticRoot',
+    'modelIR', 'targetPlans', 'wgslModules', 'artifacts', 'program', 'release', 'signature',
+  ]), 'pack', errors);
   if (pack.schema !== PACK_V2_SCHEMA_ID) errors.push(`schema must be "${PACK_V2_SCHEMA_ID}".`);
   if (pack.schemaVersion !== PACK_V2_SCHEMA_VERSION) errors.push(`schemaVersion must be ${PACK_V2_SCHEMA_VERSION}.`);
   requireString(pack.packId, 'packId', errors);
   requireString(pack.modelId, 'modelId', errors);
-  requireString(pack.createdAtUtc, 'createdAtUtc', errors);
+  requireInstant(pack.createdAtUtc, 'createdAtUtc', errors);
   requireDigest(pack.semanticRoot, 'semanticRoot', errors);
 
   const modelValidation = validateModelIR(pack.modelIR);
@@ -209,6 +246,9 @@ export function validatePackV2(pack, options = {}) {
   if (!releaseValidation.ok) {
     errors.push(...releaseValidation.errors);
   }
+  requireExactKeys(pack.signature, new Set([
+    'authority', 'algorithm', 'publicKeyDigest', 'signatureHex', 'signedDigest',
+  ]), 'signature', errors);
 
   if (!Array.isArray(pack.targetPlans) || pack.targetPlans.length === 0) {
     errors.push('targetPlans must be a non-empty array.');
@@ -261,7 +301,9 @@ export function validatePackV2(pack, options = {}) {
     }
     requireDigest(pack.signature.publicKeyDigest, 'signature.publicKeyDigest', errors);
     requireDigest(pack.signature.signedDigest, 'signature.signedDigest', errors);
-    if (!/^[0-9a-f]+$/.test(pack.signature.signatureHex || '')) errors.push('signature.signatureHex must be hexadecimal.');
+    if (!/^[0-9a-f]{128}$/.test(pack.signature.signatureHex || '')) {
+      errors.push('signature.signatureHex must be a 64-byte hexadecimal Ed25519 signature.');
+    }
     if (pack.signature.signedDigest !== pack.semanticRoot) errors.push('signature.signedDigest must equal semanticRoot.');
   }
   return { ok: errors.length === 0, errors };

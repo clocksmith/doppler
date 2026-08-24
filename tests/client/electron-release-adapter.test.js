@@ -8,6 +8,8 @@ import { createElectronRendererRuntime } from '../../src/client/electron/rendere
 import {
   RELEASE_DECISION_SCHEMA,
   signProductionReleaseEvidence,
+  validateReleaseDecision,
+  verifyProductionReleaseEvidenceSignature,
 } from '../../src/config/production-release-evidence.js';
 
 const privateKeyJwk = {
@@ -69,13 +71,29 @@ async function decision(pack, marker) {
 const coordinator = createElectronReleaseStateCoordinator({
   stateStore,
   verifyReleaseDecision: async () => true,
+  verifyRevocationSnapshot: (snapshot) => verifyProductionReleaseEvidenceSignature(
+    snapshot,
+    { 'fixture-authority': publicKeyJwk }
+  ),
   now: () => now,
 });
 const packA = { packId: 'pack-a', semanticRoot: sha('a'), path: 'packs/a.json' };
 const decisionA = await decision(packA, 'a');
+assert.equal(validateReleaseDecision(decisionA).ok, true);
+const malformedDecision = structuredClone(decisionA);
+malformedDecision.eligibility = 'blocked';
+malformedDecision.reasons = [{
+  code: 'invented-rejection',
+  scope: 'fixture',
+  detail: 'Malformed rejection code for validator coverage.',
+  evidenceDigests: [],
+}];
+assert.ok(validateReleaseDecision(malformedDecision).errors.includes(
+  'release decision.reasons[0].code is unsupported.'
+));
 await coordinator.installCandidate(packA, decisionA.digest);
 await coordinator.activateCandidate(decisionA, sha('5'));
-await coordinator.applyRevocationSnapshot({
+await assert.rejects(coordinator.applyRevocationSnapshot({
   schema: ELECTRON_REVOCATION_SNAPSHOT_SCHEMA,
   authorityId: 'fixture-authority',
   sequence: 1,
@@ -83,12 +101,33 @@ await coordinator.applyRevocationSnapshot({
   revokedSemanticRoots: [],
   digest: sha('6'),
   signatureVerified: true,
+}), /signatureVerified is not supported/u);
+const revocationSnapshot = await signProductionReleaseEvidence({
+  schema: ELECTRON_REVOCATION_SNAPSHOT_SCHEMA,
+  authorityId: 'fixture-authority',
+  policyDigest: sha('4'),
+  sequence: 1,
+  issuedAtUtc: '2026-08-24T00:00:00.000Z',
+  expiresAtUtc: '2026-08-25T00:00:00.000Z',
+  revokedSemanticRoots: [],
+  digest: '',
+  signature: null,
+}, {
+  authority: 'fixture-authority',
+  privateKeyJwk,
+  publicKeyJwk,
 });
+await coordinator.applyRevocationSnapshot(revocationSnapshot);
+assert.equal((await coordinator.applyRevocationSnapshot(revocationSnapshot)).sequence, 3);
 assert.deepEqual(await coordinator.resolveCurrent(), packA);
 
 const restarted = createElectronReleaseStateCoordinator({
   stateStore,
   verifyReleaseDecision: async () => true,
+  verifyRevocationSnapshot: (snapshot) => verifyProductionReleaseEvidenceSignature(
+    snapshot,
+    { 'fixture-authority': publicKeyJwk }
+  ),
   now: () => now,
 });
 assert.deepEqual(await restarted.resolveCurrent(), packA);

@@ -22,15 +22,27 @@ import {
   hashPackV2Envelope,
   verifyPackV2Signature,
 } from '../config/pack-v2.js';
+import { selectQualifiedTargetPlan } from '../config/target-plan.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 import { forgeModelPack } from './model-pack-forge.js';
 import { loadPackSigningKey, loadPackV2 } from './pack-v2.js';
 
 const execFileAsync = promisify(execFile);
 const DEVICE_IDENTITY_SCHEMA = 'doppler.electron-device-identity/v1';
+const VERSION_PATTERN = /^[0-9]+(?:\.[0-9]+)*$/u;
 
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function assertExactKeys(value, allowed, label) {
+  if (!isObject(value)) throw new Error(`${label} must be an object.`);
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) throw new Error(`${label}.${key} is not supported.`);
+  }
+  for (const key of allowed) {
+    if (!Object.hasOwn(value, key)) throw new Error(`${label}.${key} is required.`);
+  }
 }
 
 async function readJson(filePath, label) {
@@ -53,6 +65,17 @@ async function writeJsonAtomic(filePath, value) {
   await fs.writeFile(temporary, `${JSON.stringify(stableSortObject(value), null, 2)}\n`, 'utf8');
   await fs.rename(temporary, resolved);
   return resolved;
+}
+
+async function copyFileAtomic(sourcePath, destinationPath) {
+  const source = path.resolve(sourcePath);
+  const destination = path.resolve(destinationPath);
+  if (source === destination) return destination;
+  await fs.mkdir(path.dirname(destination), { recursive: true });
+  const temporary = `${destination}.tmp`;
+  await fs.copyFile(source, temporary);
+  await fs.rename(temporary, destination);
+  return destination;
 }
 
 function resolveWithinRoot(root, relativePath, label) {
@@ -88,6 +111,9 @@ async function loadTrustedSigners(filePath, label) {
 }
 
 function compareVersions(left, right) {
+  if (!VERSION_PATTERN.test(String(left)) || !VERSION_PATTERN.test(String(right))) {
+    throw new Error('Version values must contain dot-separated decimal integers.');
+  }
   const a = String(left).split('.').map((entry) => Number.parseInt(entry, 10));
   const b = String(right).split('.').map((entry) => Number.parseInt(entry, 10));
   const count = Math.max(a.length, b.length);
@@ -115,13 +141,35 @@ function satisfiesVersionRange(version, range) {
 
 function validateDeviceIdentity(identity, target) {
   const errors = [];
+  try {
+    assertExactKeys(identity, new Set([
+      'schema', 'targetId', 'os', 'osVersion', 'architecture', 'electronVersion',
+      'gpuVendor', 'gpuDevice', 'driverVersion', 'surface', 'hasF16',
+      'hasSubgroups', 'maxBufferSize', 'observedAtUtc',
+    ]), 'Electron device identity');
+  } catch (error) {
+    errors.push(error.message);
+  }
   if (identity.schema !== DEVICE_IDENTITY_SCHEMA) errors.push(`schema must be ${DEVICE_IDENTITY_SCHEMA}`);
   if (identity.targetId !== target.id) errors.push(`targetId must be ${target.id}`);
   if (identity.os !== target.os) errors.push(`os must be ${target.os}`);
   if (!target.architectures.includes(identity.architecture)) errors.push('architecture is outside the target policy');
   if (!target.gpuVendors.includes(identity.gpuVendor)) errors.push('gpuVendor is outside the target policy');
-  for (const field of ['osVersion', 'electronVersion', 'gpuDevice', 'driverVersion', 'observedAtUtc']) {
+  if (!target.gpuDevices.includes(identity.gpuDevice)) errors.push('gpuDevice is outside the target policy');
+  if (!target.driverVersions.includes(identity.driverVersion)) errors.push('driverVersion is outside the target policy');
+  if (identity.surface !== target.qualificationSurface) {
+    errors.push(`surface must be ${target.qualificationSurface}`);
+  }
+  for (const field of [
+    'osVersion', 'electronVersion', 'gpuDevice', 'driverVersion', 'surface', 'observedAtUtc',
+  ]) {
     if (typeof identity[field] !== 'string' || !identity[field].trim()) errors.push(`${field} is required`);
+  }
+  for (const field of ['hasF16', 'hasSubgroups']) {
+    if (typeof identity[field] !== 'boolean') errors.push(`${field} must be boolean`);
+  }
+  if (!Number.isSafeInteger(identity.maxBufferSize) || identity.maxBufferSize < 1) {
+    errors.push('maxBufferSize must be a positive safe integer');
   }
   if (typeof identity.osVersion === 'string'
     && !satisfiesVersionRange(identity.osVersion, target.osVersionRange)) {
@@ -139,7 +187,7 @@ function validateDeviceIdentity(identity, target) {
   return identity;
 }
 
-function bindApplicationGateReceipt(receipt, release) {
+function bindApplicationGateReceipt(receipt, release, pack, target, selectedTargetPlan) {
   const errors = [];
   if (receipt.releaseId !== release.releaseId) errors.push('releaseId mismatch');
   if (receipt.applicationRevisionDigest !== release.application.revisionDigest) {
@@ -149,6 +197,14 @@ function bindApplicationGateReceipt(receipt, release) {
     || receipt.workload?.digest !== release.acceptance.workload.digest) errors.push('workload identity mismatch');
   if (receipt.oracle?.id !== release.acceptance.oracle.id
     || receipt.oracle?.digest !== release.acceptance.oracle.digest) errors.push('oracle identity mismatch');
+  if (receipt.packSemanticRoot !== pack.semanticRoot) errors.push('Pack semantic root mismatch');
+  if (!pack.targetPlans.some((plan) => plan.targetId === selectedTargetPlan.targetId)) {
+    errors.push('selected TargetPlan is not carried by the Pack');
+  }
+  if (receipt.targetPlanId !== selectedTargetPlan.targetId) {
+    errors.push('application gate TargetPlan does not match device selection');
+  }
+  if (receipt.deviceTargetId !== target.id) errors.push('device target mismatch');
   const threshold = release.acceptance.thresholds;
   const observed = receipt.observations;
   if (observed.quality < threshold.quality.minimum) errors.push('quality threshold failed');
@@ -162,7 +218,13 @@ function bindApplicationGateReceipt(receipt, release) {
   return errors;
 }
 
-async function executeApplicationGates(release, manifestPath, repoRoot, outputDirectory) {
+async function executeApplicationGates(
+  release,
+  manifestPath,
+  repoRoot,
+  outputDirectory,
+  executionContext
+) {
   const receipts = [];
   const failures = [];
   for (const test of release.acceptance.tests) {
@@ -176,6 +238,10 @@ async function executeApplicationGates(release, manifestPath, repoRoot, outputDi
         env: {
           ...process.env,
           DOPPLER_PRODUCTION_RELEASE_PATH: manifestPath,
+          DOPPLER_CANDIDATE_PACK_PATH: executionContext.packPath,
+          DOPPLER_DEVICE_TARGET_ID: executionContext.target.id,
+          DOPPLER_DEVICE_IDENTITY_PATH: executionContext.deviceIdentityPath,
+          DOPPLER_TARGET_PLAN_ID: executionContext.selectedTargetPlan.targetId,
         },
       });
       const receipt = JSON.parse(result.stdout.trim());
@@ -184,7 +250,13 @@ async function executeApplicationGates(release, manifestPath, repoRoot, outputDi
       if (receipt.schema !== test.evidenceSchema || receipt.schema !== APPLICATION_GATE_RECEIPT_SCHEMA) {
         throw new Error(`acceptance test emitted unexpected evidence schema "${receipt.schema}"`);
       }
-      const bindingErrors = bindApplicationGateReceipt(receipt, release);
+      const bindingErrors = bindApplicationGateReceipt(
+        receipt,
+        release,
+        executionContext.pack,
+        executionContext.target,
+        executionContext.selectedTargetPlan
+      );
       receipts.push(receipt);
       if (bindingErrors.length > 0) failures.push({ testId: test.id, errors: bindingErrors });
       await writeJsonAtomic(path.join(outputDirectory, 'application-gates', `${test.id}.json`), receipt);
@@ -198,6 +270,15 @@ async function executeApplicationGates(release, manifestPath, repoRoot, outputDi
       };
       failures.push(failure);
       await writeJsonAtomic(path.join(outputDirectory, 'application-gates', `${test.id}.failure.json`), failure);
+    }
+  }
+  for (const field of ['targetPlanId', 'resolvedExecutionId', 'providerId']) {
+    const values = new Set(receipts.map((receipt) => receipt[field]));
+    if (values.size > 1) {
+      failures.push({
+        testId: 'application-execution-identity',
+        errors: [`Application gates reported inconsistent ${field} values.`],
+      });
     }
   }
   return { receipts, failures };
@@ -265,11 +346,35 @@ async function qualifyTarget(release, manifestPath, request, repoRoot, outputDir
     (await readJson(request.deviceIdentityPath, 'Electron device identity')).value,
     target
   );
-  const { pack } = await loadBoundPack(release, request, repoRoot);
-  const gates = await executeApplicationGates(release, manifestPath, repoRoot, outputDirectory);
-  const applicationGateDigest = gates.receipts.length > 0
-    ? hashProductionReleaseEvidence({ receipts: gates.receipts })
-    : hashProductionReleaseEvidence({ failures: gates.failures });
+  const { pack, packPath } = await loadBoundPack(release, request, repoRoot);
+  const candidatePackPath = await copyFileAtomic(
+    packPath,
+    path.join(outputDirectory, 'candidate.pack.json')
+  );
+  const selectedTargetPlan = selectQualifiedTargetPlan(pack.targetPlans, {
+    surface: device.surface,
+    hasF16: device.hasF16,
+    hasSubgroups: device.hasSubgroups,
+    maxBufferSize: device.maxBufferSize,
+    adapter: { vendor: device.gpuVendor },
+  });
+  const gates = await executeApplicationGates(
+    release,
+    manifestPath,
+    repoRoot,
+    outputDirectory,
+    {
+      pack,
+      packPath,
+      target,
+      selectedTargetPlan,
+      deviceIdentityPath: path.resolve(request.deviceIdentityPath),
+    }
+  );
+  const applicationGateDigest = hashProductionReleaseEvidence({
+    receipts: gates.receipts,
+    failures: gates.failures,
+  });
   const unsignedReceipt = {
     schema: ELECTRON_FLEET_RECEIPT_SCHEMA,
     receiptId: `${release.releaseId}-${target.id}`.replace(/-release-[0-9a-f]{16}-/u, '-'),
@@ -279,6 +384,9 @@ async function qualifyTarget(release, manifestPath, request, repoRoot, outputDir
     applicationRevisionDigest: release.application.revisionDigest,
     workload: release.acceptance.workload,
     oracle: release.acceptance.oracle,
+    targetPlanId: selectedTargetPlan.targetId,
+    resolvedExecutionId: gates.receipts[0]?.resolvedExecutionId ?? null,
+    providerId: gates.receipts[0]?.providerId ?? null,
     device: {
       os: device.os,
       osVersion: device.osVersion,
@@ -287,6 +395,10 @@ async function qualifyTarget(release, manifestPath, request, repoRoot, outputDir
       gpuVendor: device.gpuVendor,
       gpuDevice: device.gpuDevice,
       driverVersion: device.driverVersion,
+      surface: device.surface,
+      hasF16: device.hasF16,
+      hasSubgroups: device.hasSubgroups,
+      maxBufferSize: device.maxBufferSize,
     },
     applicationGateDigest,
     status: gates.failures.length === 0 ? 'passed' : 'failed',
@@ -309,6 +421,7 @@ async function qualifyTarget(release, manifestPath, request, repoRoot, outputDir
     status: receipt.status,
     receiptPath,
     receiptDigest: receipt.digest,
+    candidatePackPath,
     failureCount: gates.failures.length,
     activationPerformed: false,
   };
@@ -322,7 +435,7 @@ async function loadFleetReceipt(filePath, trustedSigners) {
   return receipt;
 }
 
-function validateFleetBinding(receipt, release, target) {
+function validateFleetBinding(receipt, release, target, pack) {
   const errors = [];
   if (receipt.releaseId !== release.releaseId) errors.push('releaseId mismatch');
   if (receipt.targetId !== target.id) errors.push('targetId mismatch');
@@ -334,9 +447,26 @@ function validateFleetBinding(receipt, release, target) {
     || receipt.workload.digest !== release.acceptance.workload.digest) errors.push('workload mismatch');
   if (receipt.oracle.id !== release.acceptance.oracle.id
     || receipt.oracle.digest !== release.acceptance.oracle.digest) errors.push('oracle mismatch');
+  try {
+    const selectedTargetPlan = selectQualifiedTargetPlan(pack?.targetPlans, {
+      surface: receipt.device.surface,
+      hasF16: receipt.device.hasF16,
+      hasSubgroups: receipt.device.hasSubgroups,
+      maxBufferSize: receipt.device.maxBufferSize,
+      adapter: { vendor: receipt.device.gpuVendor },
+    });
+    if (selectedTargetPlan.targetId !== receipt.targetPlanId) {
+      errors.push('TargetPlan does not match the signed device capability selection');
+    }
+  } catch (error) {
+    errors.push(error.message);
+  }
   if (receipt.device.os !== target.os) errors.push('operating system mismatch');
   if (!target.architectures.includes(receipt.device.architecture)) errors.push('architecture mismatch');
   if (!target.gpuVendors.includes(receipt.device.gpuVendor)) errors.push('GPU vendor mismatch');
+  if (!target.gpuDevices.includes(receipt.device.gpuDevice)) errors.push('GPU device mismatch');
+  if (!target.driverVersions.includes(receipt.device.driverVersion)) errors.push('driver version mismatch');
+  if (receipt.device.surface !== target.qualificationSurface) errors.push('qualification surface mismatch');
   if (!satisfiesVersionRange(receipt.device.osVersion, target.osVersionRange)) errors.push('OS version mismatch');
   if (!satisfiesVersionRange(receipt.device.electronVersion, target.electronVersionRange)) {
     errors.push('Electron version mismatch');
@@ -349,10 +479,23 @@ async function decideRelease(release, request, repoRoot, outputDirectory) {
   const reasons = [];
   let pack = null;
   let packPath = resolveWithinRoot(repoRoot, release.candidate.packPath, 'candidate.packPath');
+  let candidatePackPath = null;
   try {
     ({ pack, packPath } = await loadBoundPack(release, request, repoRoot));
+    candidatePackPath = await copyFileAtomic(
+      packPath,
+      path.join(outputDirectory, 'candidate.pack.json')
+    );
   } catch (error) {
     reasons.push({ code: 'artifact-invalid', scope: 'candidate-pack', detail: error.message, evidenceDigests: [] });
+    try {
+      candidatePackPath = await copyFileAtomic(
+        packPath,
+        path.join(outputDirectory, 'candidate.pack.json')
+      );
+    } catch {
+      candidatePackPath = null;
+    }
   }
   const trustedFleetSigners = await loadTrustedSigners(
     request.fleetTrustedSignersPath,
@@ -373,6 +516,17 @@ async function decideRelease(release, request, repoRoot, outputDirectory) {
       });
     }
   }
+  const declaredTargetIds = new Set(release.supportedDevices.targets.map((target) => target.id));
+  for (const receipt of loadedReceipts) {
+    if (!declaredTargetIds.has(receipt.targetId)) {
+      reasons.push({
+        code: 'unsupported-device',
+        scope: receipt.targetId,
+        detail: `Fleet receipt target ${receipt.targetId} is not declared by the production release.`,
+        evidenceDigests: [receipt.digest],
+      });
+    }
+  }
   for (const target of release.supportedDevices.targets) {
     const matches = loadedReceipts.filter((receipt) => receipt.targetId === target.id);
     if (matches.length !== 1) {
@@ -384,7 +538,7 @@ async function decideRelease(release, request, repoRoot, outputDirectory) {
       });
       continue;
     }
-    const bindingErrors = validateFleetBinding(matches[0], release, target);
+    const bindingErrors = validateFleetBinding(matches[0], release, target, pack);
     if (bindingErrors.length > 0) {
       reasons.push({
         code: 'application-gate-failed',
@@ -446,6 +600,7 @@ async function decideRelease(release, request, repoRoot, outputDirectory) {
       schema: RELEASE_FAILURE_BUNDLE_SCHEMA,
       releaseId: release.releaseId,
       candidatePack: decision.pack,
+      candidatePackEvidencePath: candidatePackPath,
       previousRelease: release.previousRelease,
       rollback: release.rollback,
       reasons,
@@ -460,6 +615,7 @@ async function decideRelease(release, request, repoRoot, outputDirectory) {
     eligibility,
     decisionPath,
     decisionDigest: decision.digest,
+    candidatePackPath,
     exclusionsPath,
     rollbackPath,
     revocationPath,
