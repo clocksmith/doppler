@@ -6,42 +6,11 @@ import {
   getOrCreateBindGroupLayout,
   getOrCreatePipelineLayout,
 } from './pipeline-cache.js';
+import { getShaderModule } from './shader-cache.js';
 
 let pipeline = null;
 let pipelineEpoch = -1;
 const U32_BYTES = Uint32Array.BYTES_PER_ELEMENT;
-
-const SHADER = /* wgsl */ `
-override WORKGROUP_SIZE: u32 = 1u;
-
-struct HotStopUniforms {
-    eosTokenId: u32,
-    maxTokens: u32,
-    currentPos: u32,
-    tokenIndex: u32,
-    hotTokenSentinel: u32,
-    _pad0: u32,
-    _pad1: u32,
-    _pad2: u32,
-}
-
-@group(0) @binding(0) var<uniform> uniforms: HotStopUniforms;
-@group(0) @binding(1) var<storage, read> sampledToken: array<u32>;
-@group(0) @binding(2) var<storage, read_write> shouldStop: array<u32>;
-@group(0) @binding(3) var<storage, read> hotTokenIndexMap: array<u32>;
-@group(0) @binding(4) var<storage, read_write> nextInputToken: array<u32>;
-
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main() {
-    let token = sampledToken[uniforms.tokenIndex];
-    let hotIndex = hotTokenIndexMap[token];
-    let hotMiss = hotIndex == uniforms.hotTokenSentinel;
-    let isEOS = token == uniforms.eosTokenId;
-    let reachedMax = uniforms.currentPos >= uniforms.maxTokens;
-    shouldStop[uniforms.tokenIndex] = select(0u, 1u, hotMiss || isEOS || reachedMax);
-    nextInputToken[uniforms.tokenIndex] = hotIndex;
-}
-`;
 
 function getBindGroupLayout(device) {
   return getOrCreateBindGroupLayout(
@@ -57,13 +26,13 @@ function getBindGroupLayout(device) {
   );
 }
 
-function getPipeline() {
+async function getPipeline() {
   const epoch = getDeviceEpoch();
   if (pipeline && pipelineEpoch === epoch) {
     return pipeline;
   }
   const device = getDevice();
-  const shaderModule = device.createShaderModule({ code: SHADER });
+  const shaderModule = await getShaderModule(device, 'check_hot_vocab_stop.wgsl', 'check_hot_vocab_stop');
   const bindGroupLayout = getBindGroupLayout(device);
   pipeline = device.createComputePipeline({
     layout: getOrCreatePipelineLayout('check_hot_vocab_stop_pipeline_layout', [bindGroupLayout], device),
@@ -77,9 +46,9 @@ function getPipeline() {
   return pipeline;
 }
 
-export function recordCheckHotVocabStop(recorder, params) {
+export async function recordCheckHotVocabStop(recorder, params) {
   const device = getDevice();
-  const hotStopPipeline = getPipeline();
+  const hotStopPipeline = await getPipeline();
   const tokenIndex = params.tokenIndex ?? 0;
   const uniformData = new Uint32Array([
     params.eosTokenId,

@@ -65,7 +65,7 @@ console.log(score);
 
 - energy export surface: [src/experimental/energy/index.js](../../src/experimental/energy/index.js)
 - energy types: [src/experimental/energy/index.d.ts](../../src/experimental/energy/index.d.ts)
-- energy pipeline: [src/inference/pipelines/energy/pipeline.js](../../src/inference/pipelines/energy/pipeline.js)
+- energy pipeline: [src/experimental/energy/pipeline.js](../../src/experimental/energy/pipeline.js)
 
 ## Related Surfaces
 

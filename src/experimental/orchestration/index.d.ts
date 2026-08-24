@@ -16,6 +16,6 @@ export * from '../../inference/multi-model-network.js';
 export * from '../../inference/multi-pipeline-pool.js';
 export * from '../../gpu/kernels/logit-merge.js';
 export * from '../../inference/pipelines/structured/json-head-pipeline.js';
-export * from '../../inference/pipelines/energy-head/row-head-pipeline.js';
+export * from './energy-row-head-pipeline.js';
 export { buildConservativeMultimodalGenerationOptions } from '../../inference/pipelines/text.js';
 export * from '../adapters/index.js';

@@ -584,7 +584,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
     ? context.finitenessGuardEnabled
     : shouldRunFinitenessGuard(context.activationDtype, computeConfig);
   if (context.finitenessBuffer && context.activationDtype === 'f16' && shouldCheckFiniteness) {
-    recordCheckFiniteness(
+    await recordCheckFiniteness(
       recorder,
       output,
       size,

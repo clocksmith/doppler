@@ -15,4 +15,4 @@ export interface CheckHotVocabStopParams {
 export declare function recordCheckHotVocabStop(
   recorder: CommandRecorder,
   params: CheckHotVocabStopParams
-): GPUBuffer;
+): Promise<GPUBuffer>;

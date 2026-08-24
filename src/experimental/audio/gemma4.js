@@ -1,17 +1,17 @@
 
-import { log } from '../../../debug/index.js';
-import { getDevice } from '../../../gpu/device.js';
-import { createTensor } from '../../../gpu/tensor.js';
+import { log } from '../../debug/index.js';
+import { getDevice } from '../../gpu/device.js';
+import { createTensor } from '../../gpu/tensor.js';
 import {
   runMatmul,
   runRMSNorm,
   runResidualAdd,
   runSiLU,
-} from '../../../gpu/kernel-selector.js';
-import { runConv2D } from '../../../gpu/kernels/conv2d.js';
-import { runDepthwiseConv1D } from '../../../gpu/kernels/depthwise_conv1d.js';
-import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../memory/buffer-pool.js';
-import { runClippableLinear } from '../shared/clipped-linear.js';
+} from '../../gpu/kernel-selector.js';
+import { runConv2D } from '../../gpu/kernels/conv2d.js';
+import { runDepthwiseConv1D } from '../../gpu/kernels/depthwise_conv1d.js';
+import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../memory/buffer-pool.js';
+import { runClippableLinear } from '../../inference/pipelines/shared/clipped-linear.js';
 
 function reshapeTensor(tensor, shape, label) {
   return createTensor(tensor.buffer, tensor.dtype, shape, label ?? tensor.label);

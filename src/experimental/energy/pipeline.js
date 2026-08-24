@@ -1,6 +1,6 @@
-import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
-import { createTensor, tensorBytes } from '../../../gpu/tensor.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
+import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
+import { createTensor, tensorBytes } from '../../gpu/tensor.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import {
   runEnergyEval,
   runEnergyUpdate,
@@ -9,16 +9,16 @@ import {
   runEnergyQuintelGrad,
   runClamp,
   runAdam,
-} from '../../../gpu/kernels/index.js';
-import { WORKGROUP_SIZES } from '../../../gpu/kernels/constants.js';
-import { computeArrayStats } from '../../../debug/stats.js';
-import { log, trace } from '../../../debug/index.js';
-import { DEFAULT_ENERGY_CONFIG } from '../../../config/schema/energy.schema.js';
-import { f32ToF16Array, f16ToF32Array } from '../../kv-cache/types.js';
-import { registerPipeline } from '../registry.js';
-import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
-import { createInitializedPipeline } from '../factory.js';
-import { createRng, sampleNormal } from '../rng.js';
+} from '../../gpu/kernels/index.js';
+import { WORKGROUP_SIZES } from '../../gpu/kernels/constants.js';
+import { computeArrayStats } from '../../debug/stats.js';
+import { log, trace } from '../../debug/index.js';
+import { DEFAULT_ENERGY_CONFIG } from '../../config/schema/energy.schema.js';
+import { f32ToF16Array, f16ToF32Array } from '../../inference/kv-cache/types.js';
+import { registerPipeline } from '../../inference/pipelines/registry.js';
+import { applyPipelineContexts, restorePipelineContexts } from '../../inference/pipelines/context.js';
+import { createInitializedPipeline } from '../../inference/pipelines/factory.js';
+import { createRng, sampleNormal } from '../../inference/pipelines/rng.js';
 import { buildQuintelKernelFlags, mergeQuintelConfig, runQuintelEnergyLoop } from './quintel.js';
 
 

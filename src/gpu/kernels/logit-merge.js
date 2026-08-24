@@ -3,123 +3,12 @@
 import { getDevice, getDeviceEpoch } from '../device.js';
 import { log } from '../../debug/index.js';
 import { WORKGROUP_SIZES } from './constants.js';
+import { getShaderModule } from './shader-cache.js';
 
 
 
 
 
-
-
-// WGSL shader for weighted logit merging
-const WEIGHTED_MERGE_SHADER = /* wgsl */ `
-override WORKGROUP_SIZE: u32 = 256u;
-
-@group(0) @binding(0) var<storage, read> logits_a: array<f32>;
-@group(0) @binding(1) var<storage, read> logits_b: array<f32>;
-@group(0) @binding(2) var<storage, read_write> merged: array<f32>;
-@group(0) @binding(3) var<uniform> params: MergeParams;
-
-struct MergeParams {
-  vocab_size: u32,
-  weight_a: f32,
-  weight_b: f32,
-  temperature: f32,
-}
-
-@compute @workgroup_size(WORKGROUP_SIZE)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let idx = gid.x;
-  if (idx >= params.vocab_size) {
-    return;
-  }
-
-  // Weighted average of logits
-  let a = logits_a[idx];
-  let b = logits_b[idx];
-  var result = params.weight_a * a + params.weight_b * b;
-
-  // Apply temperature scaling
-  if (params.temperature != 1.0) {
-    result = result / params.temperature;
-  }
-
-  merged[idx] = result;
-}
-`;
-
-// WGSL shader for max logit merging
-const MAX_MERGE_SHADER = /* wgsl */ `
-override WORKGROUP_SIZE: u32 = 256u;
-
-@group(0) @binding(0) var<storage, read> logits_a: array<f32>;
-@group(0) @binding(1) var<storage, read> logits_b: array<f32>;
-@group(0) @binding(2) var<storage, read_write> merged: array<f32>;
-@group(0) @binding(3) var<uniform> params: MergeParams;
-
-struct MergeParams {
-  vocab_size: u32,
-  weight_a: f32,
-  weight_b: f32,
-  temperature: f32,
-}
-
-@compute @workgroup_size(WORKGROUP_SIZE)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let idx = gid.x;
-  if (idx >= params.vocab_size) {
-    return;
-  }
-
-  // Max of logits
-  var result = max(logits_a[idx], logits_b[idx]);
-
-  // Apply temperature scaling
-  if (params.temperature != 1.0) {
-    result = result / params.temperature;
-  }
-
-  merged[idx] = result;
-}
-`;
-
-// WGSL shader for geometric mean merging (in log space)
-const GEOMETRIC_MERGE_SHADER = /* wgsl */ `
-override WORKGROUP_SIZE: u32 = 256u;
-
-@group(0) @binding(0) var<storage, read> logits_a: array<f32>;
-@group(0) @binding(1) var<storage, read> logits_b: array<f32>;
-@group(0) @binding(2) var<storage, read_write> merged: array<f32>;
-@group(0) @binding(3) var<uniform> params: MergeParams;
-
-struct MergeParams {
-  vocab_size: u32,
-  weight_a: f32,
-  weight_b: f32,
-  temperature: f32,
-}
-
-@compute @workgroup_size(WORKGROUP_SIZE)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let idx = gid.x;
-  if (idx >= params.vocab_size) {
-    return;
-  }
-
-  // Geometric mean in log space: weight_a * log(a) + weight_b * log(b)
-  // Since logits are already in log space, this is just weighted sum
-  // but with weights that must sum to 1 for proper geometric mean
-  let a = logits_a[idx];
-  let b = logits_b[idx];
-  var result = params.weight_a * a + params.weight_b * b;
-
-  // Apply temperature scaling
-  if (params.temperature != 1.0) {
-    result = result / params.temperature;
-  }
-
-  merged[idx] = result;
-}
-`;
 
 
 export class LogitMergeKernel {
@@ -168,17 +57,14 @@ export class LogitMergeKernel {
     });
 
     // Create pipelines for each strategy
-    const strategies = [
-      { name: 'weighted', shader: WEIGHTED_MERGE_SHADER },
-      { name: 'max', shader: MAX_MERGE_SHADER },
-      { name: 'geometric', shader: GEOMETRIC_MERGE_SHADER },
-    ];
+    const strategies = ['weighted', 'max', 'geometric'];
 
-    for (const { name, shader } of strategies) {
-      const module = this.#device.createShaderModule({
-        label: `logit-merge-${name}`,
-        code: shader,
-      });
+    for (const name of strategies) {
+      const module = await getShaderModule(
+        this.#device,
+        `logit_merge_${name}.wgsl`,
+        `logit-merge-${name}`
+      );
 
       const pipeline = await this.#device.createComputePipelineAsync({
         label: `logit-merge-${name}-pipeline`,

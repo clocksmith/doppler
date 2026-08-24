@@ -4,9 +4,9 @@
  * @module inference/pipelines/diffusion/text-encoder-gpu
  */
 
-import type { CommandRecorder } from '../../../gpu/command-recorder.js';
-import type { Tensor } from '../../../gpu/tensor.js';
-import type { DiffusionModelConfig, DiffusionRuntimeConfig } from './types.js';
+import type { CommandRecorder } from '../../gpu/command-recorder.js';
+import type { Tensor } from '../../gpu/tensor.js';
+import type { DiffusionModelConfig, DiffusionRuntimeConfig } from '../../inference/pipelines/diffusion/types.js';
 
 export interface DiffusionTextEncoderWeightsEntry {
   weights: Map<string, any>;

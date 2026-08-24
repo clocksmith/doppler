@@ -9,36 +9,12 @@ import {
   getOrCreatePipelineLayout,
 } from './pipeline-cache.js';
 import { allowReadback } from '../perf-guards.js';
+import { getShaderModule } from './shader-cache.js';
 
 
 let checkStopPipeline = null;
 let checkStopPipelineEpoch = -1;
 const U32_BYTES = Uint32Array.BYTES_PER_ELEMENT;
-
-const SHADER = /* wgsl */ `
-override WORKGROUP_SIZE: u32 = 1u;
-
-struct StopUniforms {
-    eosTokenId: u32,
-    maxTokens: u32,
-    currentPos: u32,
-    tokenIndex: u32,
-}
-
-@group(0) @binding(0) var<uniform> uniforms: StopUniforms;
-@group(0) @binding(1) var<storage, read> sampledToken: array<u32>;
-@group(0) @binding(2) var<storage, read_write> shouldStop: array<u32>;
-
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main() {
-    let token = sampledToken[uniforms.tokenIndex];
-    let isEOS = (token == uniforms.eosTokenId);
-    let reachedMax = (uniforms.currentPos >= uniforms.maxTokens);
-
-    shouldStop[uniforms.tokenIndex] = select(0u, 1u, isEOS || reachedMax);
-}
-`;
-
 
 function getCheckStopBindGroupLayout(device) {
   return getOrCreateBindGroupLayout(
@@ -53,11 +29,11 @@ function getCheckStopBindGroupLayout(device) {
 }
 
 
-function getCheckStopPipeline() {
+async function getCheckStopPipeline() {
   const epoch = getDeviceEpoch();
   if (checkStopPipeline && checkStopPipelineEpoch === epoch) return checkStopPipeline;
   const device = getDevice();
-  const shaderModule = device.createShaderModule({ code: SHADER });
+  const shaderModule = await getShaderModule(device, 'check_stop.wgsl', 'check_stop');
   const bindGroupLayout = getCheckStopBindGroupLayout(device);
 
   checkStopPipeline = device.createComputePipeline({
@@ -74,12 +50,12 @@ function getCheckStopPipeline() {
 }
 
 
-export function recordCheckStop(
+export async function recordCheckStop(
   recorder,
   params
 ) {
   const device = getDevice();
-  const pipeline = getCheckStopPipeline();
+  const pipeline = await getCheckStopPipeline();
   const tokenIndex = params.tokenIndex ?? 0;
 
   // Create uniform buffer
@@ -120,7 +96,7 @@ export async function checkStop(params) {
   }
 
   const device = getDevice();
-  const pipeline = getCheckStopPipeline();
+  const pipeline = await getCheckStopPipeline();
 
   const tokenIndex = params.tokenIndex ?? 0;
   const uniformData = new Uint32Array([

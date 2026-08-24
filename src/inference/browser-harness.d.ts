@@ -6,8 +6,8 @@
 
 import type { InitializeResult, RuntimeOverrides, InferenceHarnessOptions } from './test-harness.js';
 import type { InferencePipeline } from './pipelines/text.js';
-import type { DiffusionPipeline } from './pipelines/diffusion/pipeline.js';
-import type { EnergyPipeline } from './pipelines/energy/pipeline.js';
+import type { DiffusionPipeline } from '../experimental/diffusion/pipeline.js';
+import type { EnergyPipeline } from '../experimental/energy/pipeline.js';
 import type { SavedReportInfo, SaveReportOptions } from '../storage/reports.js';
 import type { DebugSnapshot } from '../debug/history.js';
 import type { CommandContext } from '../tooling/command-context.js';

@@ -19,8 +19,12 @@ import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBu
 import { kernelTrace, traceStep } from '../kernel-trace.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { runProbes } from '../probes.js';
-import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
-import { resolveCpuWeightDims, computeChunkedLogitsGPU, computeSplitLogitsGPU } from './gpu.js';
+import { f16BufferToF32 } from './cpu.js';
+import {
+  resolveCpuWeightDims,
+  computeChunkedLogitsTensorGPU,
+  computeSplitLogitsTensorGPU,
+} from './gpu.js';
 import { finalizeLogits } from './cpu-output.js';
 import { readBufferWithCleanup } from './readback.js';
 import { resolveLogitInputScale, resolveLogitOutputScale } from './scale-policy.js';
@@ -30,6 +34,7 @@ import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 import { shouldForceStableF32Logits, createStableF32LogitsKernelPath } from './precision-policy.js';
+import { runFinalizeLogitsTensor } from '../../../../gpu/kernels/logit-finalize.js';
 
 function resolvePrecisionFieldDtype(precision, fallback, field) {
   const requested = precision?.[field] ?? fallback;
@@ -73,45 +78,6 @@ function normalizeSelectedLogitTokenIds(value, vocabSize) {
     throw new Error('[Logits] selectedTokenIds must not be empty.');
   }
   return tokenIds;
-}
-
-function applyLmHeadBias(logits, bias, rowCount, rowSize, selectedTokenIds = null) {
-  if (bias == null) {
-    return logits;
-  }
-  if (!(bias instanceof Float32Array)) {
-    throw new Error('[Logits] LM head bias must be a Float32Array.');
-  }
-  if (selectedTokenIds !== null) {
-    if (logits.length !== selectedTokenIds.length) {
-      throw new Error('[Logits] Selected-logit bias application length mismatch.');
-    }
-    for (let index = 0; index < selectedTokenIds.length; index += 1) {
-      const tokenId = selectedTokenIds[index];
-      if (tokenId >= bias.length) {
-        throw new Error(`[Logits] LM head bias is missing token ${tokenId}.`);
-      }
-      logits[index] += bias[tokenId];
-    }
-    return logits;
-  }
-  if (bias.length < rowSize) {
-    throw new Error(
-      `[Logits] LM head bias length mismatch: expected at least ${rowSize}, got ${bias.length}.`
-    );
-  }
-  if (logits.length !== rowCount * rowSize) {
-    throw new Error(
-      `[Logits] LM head bias matrix mismatch: expected ${rowCount * rowSize} logits, got ${logits.length}.`
-    );
-  }
-  for (let row = 0; row < rowCount; row += 1) {
-    const offset = row * rowSize;
-    for (let column = 0; column < rowSize; column += 1) {
-      logits[offset + column] += bias[column];
-    }
-  }
-  return logits;
 }
 
 async function coerceTensorDtype(tensor, targetDtype, options = {}) {
@@ -220,8 +186,7 @@ export async function computeLogits(
   }
 
   if (!finalNorm || !lmHead) {
-    log.warn('Pipeline', 'Final norm or LM head not loaded, returning zeros');
-    return new Float32Array(vocabSize);
+    throw new Error('[Logits] Final norm and LM head weights are required.');
   }
 
   const requestedVocabSize = useTiedEmbeddings && embeddingVocabSize
@@ -276,43 +241,7 @@ export async function computeLogits(
     throw new Error('[Logits] selectedTokenIds requires a single GPU-resident LM head weight buffer.');
   }
   if (!device || !useGPU) {
-    
-    let cpuHiddenStates;
-    if (inputIsGPU) {
-      const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
-      const data = await readBuffer(hiddenStates, numTokens * hiddenSize * bytesPerElement);
-      const decodeDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: activationDtype });
-      cpuHiddenStates = decodeDtype === 'f16'
-        ? f16BufferToF32(data)
-        : new Float32Array(data);
-    } else {
-      cpuHiddenStates =  (hiddenStates);
-    }
-    const normed = rmsNormCPU(
-      cpuHiddenStates,
-      (finalNorm),
-      rmsNormEps,
-      config.rmsNormWeightOffset
-    );
-    const logitInputScale = resolveLogitInputScale(config);
-    if (logitInputScale !== 1) {
-      for (let i = 0; i < normed.length; i += 1) {
-        normed[i] *= logitInputScale;
-      }
-    }
-    const rawLogits = isCpuWeightBuffer(lmHead)
-      ? matmulCPU(
-        normed,
-        lmHead.data,
-        numTokens,
-        matmulVocabSize,
-        hiddenSize,
-        cpuWeightLayout,
-        cpuWeightLayout === 'column' ? cpuWeightVocabSize : null
-      )
-      : matmulCPU(normed, (lmHead), numTokens, matmulVocabSize, hiddenSize);
-    applyLmHeadBias(rawLogits, lmHeadBias, numTokens, matmulVocabSize);
-    return finalizeLogits(rawLogits, numTokens, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
+    throw new Error('[Logits] WebGPU execution is required; CPU logits fallback is not a production path.');
   }
 
   // GPU path
@@ -503,8 +432,8 @@ export async function computeLogits(
     if (weightVocabSize == null) {
       throw new Error('LM head weight is missing vocabSize metadata.');
     }
-    const rawLogits = isCpuWeightBuffer(lmHead)
-      ? await computeChunkedLogitsGPU(
+    const rawLogitsTensor = isCpuWeightBuffer(lmHead)
+      ? await computeChunkedLogitsTensorGPU(
         matmulInputTensor,
         lmHead,
         matmulRows,
@@ -517,7 +446,7 @@ export async function computeLogits(
         stableKernelPath,
         config.executionPolicies ?? null
       )
-      : await computeSplitLogitsGPU(
+      : await computeSplitLogitsTensorGPU(
         matmulInputTensor,
         lmHead,
         matmulRows,
@@ -535,8 +464,21 @@ export async function computeLogits(
     if (matmulInputOwned) releaseBuffer(matmulInputTensor.buffer);
     if (normWeightBufferOwned) releaseBuffer(normWeightBuffer);
 
-    applyLmHeadBias(rawLogits, lmHeadBias, matmulRows, matmulVocabSize);
-    return finalizeLogits(rawLogits, matmulRows, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics);
+    const finalizedTensor = await runFinalizeLogitsTensor(rawLogitsTensor, {
+      rowCount: matmulRows,
+      sourceColumns: matmulVocabSize,
+      targetColumns: vocabSize,
+      bias: lmHeadBias,
+      outputScale: resolveLogitOutputScale(config),
+      softcap: config.finalLogitSoftcapping == null ? 0 : Number(config.finalLogitSoftcapping),
+    });
+    releaseBuffer(rawLogitsTensor.buffer);
+    const data = await readBufferWithCleanup(
+      finalizedTensor.buffer,
+      matmulRows * vocabSize * Float32Array.BYTES_PER_ELEMENT,
+      () => releaseBuffer(finalizedTensor.buffer)
+    );
+    return new Float32Array(data);
   }
 
   // 3. Project to vocab via LM head
@@ -589,6 +531,9 @@ export async function computeLogits(
     if (lastPositionOnly !== true) {
       throw new Error('[Logits] selectedTokenIds requires lastPositionOnly=true.');
     }
+    if (lmHeadBias != null) {
+      throw new Error('[Logits] selectedTokenIds with LM-head bias requires the full GPU logits path.');
+    }
     const selected = await runLmHeadSelectLogitsF16(matmulInputTensor, lmHeadBuffer, {
       device,
       hiddenSize,
@@ -608,7 +553,6 @@ export async function computeLogits(
       if (lmHeadBufferOwned) releaseBuffer(lmHeadGPU);
     });
     const selectedLogits = new Float32Array(selectedData);
-    applyLmHeadBias(selectedLogits, lmHeadBias, 1, selectedTokenIds.length, selectedTokenIds);
     await runProbes('logits_final', selectedLogits, {
       numTokens: 1,
       hiddenSize: selectedTokenIds.length,
@@ -640,28 +584,33 @@ export async function computeLogits(
     await traceStep('matmul', 'lm_head', -1, logitsTensor.buffer, [matmulRows, matmulVocabSize]);
   }
 
-  // 4. Read back logits
-  const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsTensor.dtype });
-  const logitsReadSize = matmulRows * matmulVocabSize * logitsBytes;
-  const logitsData = await readBufferWithCleanup(logitsTensor.buffer, logitsReadSize, () => {
+  const finalizedTensor = await runFinalizeLogitsTensor(logitsTensor, {
+    rowCount: matmulRows,
+    sourceColumns: matmulVocabSize,
+    targetColumns: vocabSize,
+    bias: lmHeadBias,
+    outputScale: resolveLogitOutputScale(config),
+    softcap: config.finalLogitSoftcapping == null ? 0 : Number(config.finalLogitSoftcapping),
+  });
+  releaseBuffer(logitsTensor.buffer);
+
+  const logitsData = await readBufferWithCleanup(
+    finalizedTensor.buffer,
+    matmulRows * vocabSize * Float32Array.BYTES_PER_ELEMENT,
+    () => {
     if (inputBufferOwned) releaseBuffer(inputBuffer);
     releaseBuffer(finalNormTensor.buffer);
     if (matmulInputOwned) releaseBuffer(matmulInputTensor.buffer);
-    releaseBuffer(logitsTensor.buffer);
+    releaseBuffer(finalizedTensor.buffer);
     if (normWeightBufferOwned) releaseBuffer(normWeightBuffer);
     if (lmHeadBufferOwned) releaseBuffer(lmHeadGPU);
-  });
+    }
+  );
 
-  const rawLogits = logitsTensor.dtype === 'f16'
-    ? f16BufferToF32(logitsData)
-    : new Float32Array(logitsData);
-  applyLmHeadBias(rawLogits, lmHeadBias, matmulRows, matmulVocabSize);
+  const rawLogits = new Float32Array(logitsData);
   if (isTraceEnabled('logits')) {
     trace.logits('LM_HEAD_RAW_LOGITS_HEALTH', getLogitsHealth(rawLogits));
   }
-  const finalized = await finalizeLogits(
-    rawLogits, matmulRows, matmulVocabSize, vocabSize, config, debugProbes, operatorDiagnostics
-  );
-  if (!selectedTokenIds) return finalized;
-  return Float32Array.from(selectedTokenIds, (tokenId) => finalized[tokenId]);
+  if (!selectedTokenIds) return rawLogits;
+  return Float32Array.from(selectedTokenIds, (tokenId) => rawLogits[tokenId]);
 }

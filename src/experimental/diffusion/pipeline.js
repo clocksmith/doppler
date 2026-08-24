@@ -1,11 +1,11 @@
-import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
-import { log, trace } from '../../../debug/index.js';
-import { registerPipeline } from '../registry.js';
-import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
-import { createInitializedPipeline } from '../factory.js';
-import { createRng, sampleNormal } from '../rng.js';
-import { initializeDiffusion } from './init.js';
-import { loadDiffusionTokenizers, encodePrompt } from './text-encoder.js';
+import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
+import { log, trace } from '../../debug/index.js';
+import { registerPipeline } from '../../inference/pipelines/registry.js';
+import { applyPipelineContexts, restorePipelineContexts } from '../../inference/pipelines/context.js';
+import { createInitializedPipeline } from '../../inference/pipelines/factory.js';
+import { createRng, sampleNormal } from '../../inference/pipelines/rng.js';
+import { initializeDiffusion } from '../../inference/pipelines/diffusion/init.js';
+import { loadDiffusionTokenizers, encodePrompt } from '../../inference/pipelines/diffusion/text-encoder.js';
 import {
   runTextEncodersForPrompt,
   buildTimeTextEmbedding,
@@ -16,15 +16,15 @@ import {
 } from './text-encoder-gpu.js';
 import { buildScheduler, stepScmScheduler } from './scheduler.js';
 import { decodeLatents } from './vae.js';
-import { createDiffusionWeightLoader } from './weights.js';
-import { runSD3Transformer } from './sd3-transformer.js';
-import { createSD3WeightResolver } from './sd3-weights.js';
-import { createTensor, dtypeBytes } from '../../../gpu/tensor.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
-import { CommandRecorder } from '../../../gpu/command-recorder.js';
-import { castF32ToF16 } from '../../../gpu/kernels/cast.js';
-import { runResidualAdd, runScale, recordResidualAdd, recordScale } from '../../../gpu/kernels/index.js';
-import { f16ToF32 } from '../../../loader/dtype-utils.js';
+import { createDiffusionWeightLoader } from '../../inference/pipelines/diffusion/weights.js';
+import { runSD3Transformer } from '../../inference/pipelines/diffusion/sd3-transformer.js';
+import { createSD3WeightResolver } from '../../inference/pipelines/diffusion/sd3-weights.js';
+import { createTensor, dtypeBytes } from '../../gpu/tensor.js';
+import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
+import { CommandRecorder } from '../../gpu/command-recorder.js';
+import { castF32ToF16 } from '../../gpu/kernels/cast.js';
+import { runResidualAdd, runScale, recordResidualAdd, recordScale } from '../../gpu/kernels/index.js';
+import { f16ToF32 } from '../../loader/dtype-utils.js';
 
 const SUPPORTED_DIFFUSION_BACKEND_PIPELINES = new Set(['gpu']);
 const DEFAULT_TIME_EMBED_DIM = 256;

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { initializeDiffusion } from '../../src/inference/pipelines/diffusion/init.js';
-import { buildScheduler, stepScmScheduler } from '../../src/inference/pipelines/diffusion/scheduler.js';
-import { assertClipHiddenActivationSupported } from '../../src/inference/pipelines/diffusion/text-encoder-gpu.js';
+import { buildScheduler, stepScmScheduler } from '../../src/experimental/diffusion/scheduler.js';
+import { assertClipHiddenActivationSupported } from '../../src/experimental/diffusion/text-encoder-gpu.js';
 
 function createManifest({ includeTransformer = true } = {}) {
   const components = {

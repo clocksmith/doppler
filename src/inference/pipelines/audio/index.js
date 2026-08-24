@@ -1,6 +1,6 @@
 
 import { log } from '../../../debug/index.js';
-import { encodeGemma4Audio } from './gemma4.js';
+import { encodeGemma4Audio } from '../../../experimental/audio/gemma4.js';
 
 export async function encodeAudio(params) {
   const { audioConfig } = params;

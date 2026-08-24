@@ -23,7 +23,7 @@ export interface CheckStopParams {
 export declare function recordCheckStop(
   recorder: CommandRecorder,
   params: CheckStopParams
-): GPUBuffer;
+): Promise<GPUBuffer>;
 
 /**
  * Standalone check stop (submits immediately, for testing).

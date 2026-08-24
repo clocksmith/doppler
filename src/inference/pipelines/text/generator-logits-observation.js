@@ -1,8 +1,7 @@
-import { readBuffer } from '../../../memory/buffer-pool.js';
-import { selectRuleValue } from '../../../rules/rule-registry.js';
-import { decodeReadback } from './debug-utils/index.js';
+import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
+import { createTensor } from '../../../gpu/tensor.js';
+import { runFinalizeLogitsTensor } from '../../../gpu/kernels/logit-finalize.js';
 import { applyRepetitionPenalty } from './sampling.js';
-import { extractLastPositionLogits, finalizeLogits } from './logits/index.js';
 
 export function emitObservedLogits(onLogits, logits, tokenId, currentIds) {
   if (typeof onLogits !== 'function') return false;
@@ -24,19 +23,23 @@ export async function captureObservedFusedDecodeLogits(
 ) {
   if (typeof opts.onLogits !== 'function') return false;
   const config = state.modelConfig;
-  const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
-  const logitsData = await readBuffer(logitsBuffer, vocabSize * logitsBytes);
-  const rawLogits = decodeReadback(logitsData, logitsDtype);
-  const finalizedLogits = await finalizeLogits(
-    rawLogits,
-    1,
-    vocabSize,
-    config.vocabSize,
-    config,
-    state.runtimeConfig.shared.debug.probes,
-    state.operatorDiagnostics
+  const finalized = await runFinalizeLogitsTensor(
+    createTensor(logitsBuffer, logitsDtype, [1, vocabSize], 'observed_decode_logits'),
+    {
+      rowCount: 1,
+      sourceColumns: vocabSize,
+      targetColumns: config.vocabSize,
+      bias: null,
+      outputScale: 1,
+      softcap: config.finalLogitSoftcapping == null ? 0 : Number(config.finalLogitSoftcapping),
+    }
   );
-  const observedLogits = extractLastPositionLogits(finalizedLogits, 1, config.vocabSize);
+  const logitsData = await readBuffer(
+    finalized.buffer,
+    config.vocabSize * Float32Array.BYTES_PER_ELEMENT
+  );
+  releaseBuffer(finalized.buffer);
+  const observedLogits = new Float32Array(logitsData);
   applyRepetitionPenalty(observedLogits, currentIds, opts.repetitionPenalty);
   return emitObservedLogits(opts.onLogits, observedLogits, tokenId, currentIds);
 }

@@ -297,7 +297,7 @@ const CODE_RULES = Object.freeze([
     pattern: /modelId\.includes\s*\(/g,
   },
   {
-    file: 'src/inference/pipelines/diffusion/text-encoder-gpu.js',
+    file: 'src/experimental/diffusion/text-encoder-gpu.js',
     label: 'CLIP hidden activation runtime fallback',
     pattern: /DEFAULT_CLIP_HIDDEN_ACT|hidden_act\s*\?\?\s*['"]gelu['"]/g,
   },

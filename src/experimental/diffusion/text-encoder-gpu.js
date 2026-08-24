@@ -1,8 +1,8 @@
-import { getDevice } from '../../../gpu/device.js';
-import { createTensor } from '../../../gpu/tensor.js';
-import { getBuffer } from '../../../gpu/weight-buffer.js';
-import { acquireBuffer, readBuffer } from '../../../memory/buffer-pool.js';
-import { CommandRecorder } from '../../../gpu/command-recorder.js';
+import { getDevice } from '../../gpu/device.js';
+import { createTensor } from '../../gpu/tensor.js';
+import { getBuffer } from '../../gpu/weight-buffer.js';
+import { acquireBuffer, readBuffer } from '../../memory/buffer-pool.js';
+import { CommandRecorder } from '../../gpu/command-recorder.js';
 import {
   runGather,
   runLayerNorm,
@@ -26,22 +26,22 @@ import {
   recordScale,
   recordResidualAdd,
   recordBiasAdd,
-} from '../../../gpu/kernels/index.js';
-import { createSD3WeightResolver } from './sd3-weights.js';
-import { f32ToF16Array } from '../../kv-cache/types.js';
-import { sumDiffusionProfileTimings } from './profile-timing.js';
+} from '../../gpu/kernels/index.js';
+import { createSD3WeightResolver } from '../../inference/pipelines/diffusion/sd3-weights.js';
+import { f32ToF16Array } from '../../inference/kv-cache/types.js';
+import { sumDiffusionProfileTimings } from '../../inference/pipelines/diffusion/profile-timing.js';
 import {
   createDiffusionBufferDestroyer,
   createDiffusionBufferReleaser,
   createDiffusionIndexBuffer,
-} from './runtime-resources.js';
+} from '../../inference/pipelines/diffusion/runtime-resources.js';
 import {
   expectDiffusionWeight,
   inferDiffusionMatmulDtypeFromBuffer,
   normalizeDiffusionLocationDtype,
   normalizeDiffusionMatmulLocationDtype,
   resolveDiffusionActivationDtype,
-} from './weight-contract.js';
+} from '../../inference/pipelines/diffusion/weight-contract.js';
 
 const QUICK_GELU_ALPHA = 1.702;
 const DEFAULT_TIMESTEP_EMBED_DIM = 256;

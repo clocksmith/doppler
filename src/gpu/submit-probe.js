@@ -1,12 +1,4 @@
 
-const PROBE_SHADER = `
-@group(0) @binding(0) var<storage, read_write> out: array<u32>;
-@compute @workgroup_size(1)
-fn main() {
-  out[0] = 1u;
-}
-`;
-
 export async function probeSubmitLatency(device) {
   if (!device) return null;
 
@@ -24,7 +16,8 @@ export async function probeSubmitLatency(device) {
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
 
-    const module = device.createShaderModule({ code: PROBE_SHADER });
+    const { getShaderModule } = await import('./kernels/shader-cache.js');
+    const module = await getShaderModule(device, 'submit_probe.wgsl', 'submit_probe');
     const pipeline = device.createComputePipeline({
       layout: 'auto',
       compute: { module, entryPoint: 'main' },

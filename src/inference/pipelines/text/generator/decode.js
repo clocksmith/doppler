@@ -20,7 +20,7 @@ import { isStopToken } from '../init.js';
 import { embed } from '../embed.js';
 import { resolvePerLayerInputsSession } from './session-context.js';
 import { processLayer } from '../layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from '../logits/index.js';
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, extractLastPositionLogits } from '../logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../../gpu/weight-buffer.js';
 import { decodeReadback } from '../debug-utils/index.js';
 import { captureObservedFusedDecodeLogits, emitObservedLogits } from '../generator-logits-observation.js';
@@ -785,7 +785,8 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       helpers.getLogitsWeights(),
       helpers.getLogitsConfig(),
       state.debugFlags,
-      state.operatorDiagnostics
+      state.operatorDiagnostics,
+      { applySoftcap: true }
     );
     if (logitsResult) {
       const { logitsBuffer, vocabSize, logitsDtype } = logitsResult;
@@ -797,16 +798,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       releaseBuffer(logitsBuffer);
 
       const rawLogits = decodeReadback(logitsData, logitsDtype);
-      const finalizedLogits = await finalizeLogits(
-        rawLogits,
-        numTokens,
-        vocabSize,
-        config.vocabSize,
-        config,
-        state.runtimeConfig.shared.debug.probes,
-        state.operatorDiagnostics
-      );
-      const sampledLogits = extractLastPositionLogits(finalizedLogits, numTokens, config.vocabSize);
+      const sampledLogits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
 
       applyRepetitionPenalty(sampledLogits, currentIds, opts.repetitionPenalty);
       const nextToken = sample(sampledLogits, {
@@ -910,7 +902,8 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
       helpers.getLogitsWeights(),
       helpers.getLogitsConfig(),
       state.debugFlags,
-      state.operatorDiagnostics
+      state.operatorDiagnostics,
+      { applySoftcap: true }
     );
 
     if (logitsResult) {
@@ -921,16 +914,7 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
       const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
       const logitsData = await readBuffer(logitsBuffer, numTokens * rawVocabSize * logitsBytes);
       const rawLogits = decodeReadback(logitsData, logitsDtype);
-      const finalized = await finalizeLogits(
-        rawLogits,
-        numTokens,
-        rawVocabSize,
-        config.vocabSize,
-        config,
-        state.runtimeConfig.shared.debug.probes,
-        state.operatorDiagnostics
-      );
-      logits = extractLastPositionLogits(finalized, numTokens, config.vocabSize);
+      logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
     }
   }
 

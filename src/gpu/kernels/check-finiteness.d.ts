@@ -12,4 +12,4 @@ export declare function recordCheckFiniteness(
   layerIdx?: number,
   step?: number,
   absThreshold?: number
-): void;
+): Promise<void>;
