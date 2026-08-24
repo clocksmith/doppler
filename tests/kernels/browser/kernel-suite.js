@@ -741,6 +741,9 @@ export async function runKernelSuite(harness) {
       const expected = h.references.dequantQ4_KRef(quantized, numBlocks);
       const actual = await h.runDequantQ4K(null, quantized, numBlocks);
       const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.dequant);
+      if (!result.passed) {
+        console.error('[KernelTests] dequant_q4k_f32 mismatch', JSON.stringify(result));
+      }
       return result.passed;
     },
   ]);
@@ -1365,7 +1368,11 @@ export async function runKernelSuite(harness) {
       const input = h.generateTestData(12 * 2 * 16, 12307);
       const expected = h.references.visionRope2DRef(input, geometry);
       const actual = await h.runVisionRope2D(null, input, geometry);
-      return h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rope).passed;
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.vision_rope_2d);
+      if (!result.passed) {
+        console.error('[KernelTests] vision_rope_2d mismatch', JSON.stringify(result));
+      }
+      return result.passed;
     },
   ]);
 

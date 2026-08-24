@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 
 import {
+  createStaticFileServer,
   finalizeBrowserRelayResponse,
   resolveLocalFileModelUrlForBrowserRelay,
   runBrowserCommandEvaluationWithTimeout,
@@ -79,6 +80,17 @@ const KERNELS_REQUEST = {
     1000
   );
   assert.deepEqual(result, { ok: true });
+}
+
+{
+  const server = await createStaticFileServer();
+  try {
+    const response = await fetch(`${server.baseUrl}/src/tooling/command-runner.html`);
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), /Doppler Command Runner/);
+  } finally {
+    await server.close();
+  }
 }
 
 {

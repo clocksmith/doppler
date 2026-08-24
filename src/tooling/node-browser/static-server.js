@@ -107,7 +107,7 @@ async function resolveFileForRequest(rootDir, mounts, requestPath) {
 }
 
 export async function createStaticFileServer(options = {}) {
-  const rootDir = path.resolve(options.rootDir || fileURLToPath(new URL('../..', import.meta.url)));
+  const rootDir = path.resolve(options.rootDir || fileURLToPath(new URL('../../..', import.meta.url)));
   const staticMounts = normalizeStaticMounts(options.staticMounts || []);
   const host = String(options.host || DEFAULT_HOST);
   const port = Number.isFinite(options.port) ? Math.max(0, Math.floor(options.port)) : 0;

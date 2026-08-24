@@ -1,4 +1,5 @@
 export function toSummary(result: any): string;
+export function isFailedVerificationResult(request: any, result: any): boolean;
 export function formatNumber(value: any, digits?: number): string;
 export function formatMs(value: any): string;
 export function compactTimestamp(): string;

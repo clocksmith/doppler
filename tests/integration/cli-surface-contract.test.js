@@ -14,6 +14,11 @@ const {
   resolveNodeModelUrl,
   withJsonStdoutIsolation,
 } = await import('../../src/cli/doppler-cli.js');
+const { isFailedVerificationResult } = await import('../../src/cli/cli-output.js');
+
+assert.equal(isFailedVerificationResult({ command: 'verify' }, { failed: 1 }), true);
+assert.equal(isFailedVerificationResult({ command: 'verify' }, { failed: 0 }), false);
+assert.equal(isFailedVerificationResult({ command: 'bench' }, { failed: 1 }), false);
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(HERE, '..', '..');
