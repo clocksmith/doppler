@@ -1,7 +1,7 @@
 {
   "$schema": "../../src/config/schema/model-release-platform.schema.json",
-  "schemaVersion": 2,
-  "contractVersion": "2.0.0",
+  "schemaVersion": 3,
+  "contractVersion": "2.1.0",
   "id": "doppler-model-release-platform",
   "positioning": {
     "category": "AI-native model release foundry for JavaScript and WebGPU",
@@ -82,11 +82,11 @@
     { "id": "openai-server", "mode": "migration-required", "evidencePaths": ["src/cli/doppler-serve.js", "docs/cli.md"], "blockerCode": "pack-first-surface-migration-incomplete" },
     { "id": "generation", "mode": "migration-required", "evidencePaths": ["src/inference/pipelines/text.js", "docs/api/generation.md"], "blockerCode": "pack-first-surface-migration-incomplete" },
     { "id": "embedding", "mode": "migration-required", "evidencePaths": ["src/client/runtime/model-session.js", "docs/product-integration-qualification.md"], "blockerCode": "pack-first-surface-migration-incomplete" },
-    { "id": "electron-reranking", "mode": "pack-authoritative", "evidencePaths": ["src/client/runtime/composition-root.js", "src/client/runtime/pack-rerank.js", "src/client/runtime/pack-program-adapter.js", "tests/runtime/pack-rerank.test.js"], "blockerCode": null }
+    { "id": "electron-reranking", "mode": "pack-authoritative", "evidencePaths": ["src/client/runtime/composition-root.js", "src/client/runtime/pack-rerank.js", "src/client/runtime/pack-program-adapter.js", "src/client/electron/renderer-runtime.js", "tests/runtime/pack-rerank.test.js", "tests/client/electron-release-adapter.test.js"], "blockerCode": null }
   ],
   "recovery": [
     { "id": "content-hash-shard-resume", "implementationState": "implemented", "evidencePaths": ["src/storage/shard-manager.js", "src/loader/shard-resolver.js"], "blockerCode": null },
-    { "id": "failed-upgrade-preserves-previous-pack", "implementationState": "implemented", "evidencePaths": ["docs/revocation.md", "src/config/pack-release-contract.js", "src/config/pack-v2.js", "tests/pack/pack-v2.test.js"], "blockerCode": null },
+    { "id": "failed-upgrade-preserves-previous-pack", "implementationState": "implemented", "evidencePaths": ["docs/revocation.md", "src/config/pack-release-contract.js", "src/config/pack-v2.js", "src/client/electron/release-state.js", "tests/pack/pack-v2.test.js", "tests/client/electron-release-adapter.test.js"], "blockerCode": null },
     { "id": "portable-state-snapshot-identity", "implementationState": "implemented", "evidencePaths": ["docs/architecture.md", "src/config/pack-release-contract.js", "src/client/runtime/model-session.js", "tests/pack/pack-v2.test.js"], "blockerCode": null }
   ],
   "commercialOffer": {
@@ -139,16 +139,16 @@
     ]
   },
   "promotionSequence": [
-    { "order": 1, "id": "canonical-product-contract", "gate": "The validated contract and goal matrix name Doppler Production Release, Doppler Release Operations, the Electron ICP, and the customer-controlled activation boundary." },
-    { "order": 2, "id": "electron-reference-release", "gate": "production-release/v1 freezes one Electron document-search reranker upgrade as non-commercial acceptance evidence." },
-    { "order": 3, "id": "pack-release-closure", "gate": "All seven Pack release requirements are immutable, validated, typed, hash-bound, and rejection-tested." },
-    { "order": 4, "id": "pack-first-electron-reranking", "gate": "The reference reranking workload executes only through Pack validation, qualified TargetPlan selection, execution, and evidence." },
-    { "order": 5, "id": "doppler-release-command", "gate": "doppler release consumes one production-release/v1 manifest and emits the complete non-promoting release bundle." },
-    { "order": 6, "id": "electron-fleet-qualification", "gate": "A typed Electron adapter and customer-operated Windows and macOS qualification agents retain exact device receipts." },
-    { "order": 7, "id": "github-release-action", "gate": "A reusable GitHub Action orchestrates external fleet receipts and emits a signed recommendation without deployment or self-promotion authority." },
-    { "order": 8, "id": "revocation-and-customer-rollback", "gate": "Revocation authority is production-qualified and customer-controlled rollback is exercised against atomic durable release state." },
-    { "order": 9, "id": "paid-external-release-and-upgrade", "gate": "One paid external customer relies on Doppler eligibility for a production release and the subsequent upgrade." },
-    { "order": 10, "id": "three-unrelated-design-partners", "gate": "Two additional unrelated customers repeat the production release path." }
+    { "order": 1, "id": "canonical-product-contract", "gate": "The validated contract and goal matrix name Doppler Production Release, Doppler Release Operations, the Electron ICP, and the customer-controlled activation boundary.", "completionState": "implemented", "evidencePaths": ["docs/goals.md", "docs/model-release-platform.md", "tools/policies/model-release-platform.json"], "blockerCode": null },
+    { "order": 2, "id": "electron-reference-release", "gate": "production-release/v1 freezes one Electron document-search reranker upgrade as non-commercial acceptance evidence.", "completionState": "implemented", "evidencePaths": ["src/config/production-release.js", "src/config/schema/production-release.schema.json", "tests/fixtures/production-release/electron-document-search-reranker.json", "tests/config/production-release.test.js"], "blockerCode": null },
+    { "order": 3, "id": "pack-release-closure", "gate": "All seven Pack release requirements are immutable, validated, typed, hash-bound, and rejection-tested.", "completionState": "implemented", "evidencePaths": ["src/config/pack-release-contract.js", "src/config/pack-v2.js", "tests/pack/pack-v2.test.js"], "blockerCode": null },
+    { "order": 4, "id": "pack-first-electron-reranking", "gate": "The reference reranking workload executes only through Pack validation, qualified TargetPlan selection, execution, and evidence.", "completionState": "implemented", "evidencePaths": ["src/client/runtime/pack-rerank.js", "tests/runtime/pack-rerank.test.js"], "blockerCode": null },
+    { "order": 5, "id": "doppler-release-command", "gate": "doppler release consumes one production-release/v1 manifest and emits the complete non-promoting release bundle.", "completionState": "implemented", "evidencePaths": ["src/tooling/production-release.js", "src/tooling/command-api.js", "src/cli/doppler-cli.js", "tests/tooling/production-release.test.js"], "blockerCode": null },
+    { "order": 6, "id": "electron-fleet-qualification", "gate": "The typed Electron adapter and qualification agent are implemented; customer-operated Windows and macOS agents must still retain exact production device receipts.", "completionState": "external-evidence-required", "evidencePaths": ["src/client/electron/index.js", "examples/electron-document-search/main.js", "examples/electron-document-search/renderer.js", "tests/client/electron-release-adapter.test.js"], "blockerCode": "paid-doppler-production-release-missing" },
+    { "order": 7, "id": "github-release-action", "gate": "A reusable GitHub Action orchestrates external fleet receipts and emits a signed recommendation without deployment or self-promotion authority.", "completionState": "implemented", "evidencePaths": [".github/actions/doppler-release/action.yml", ".github/workflows/doppler-release.yml", "tests/config/github-release-action.test.js"], "blockerCode": null },
+    { "order": 8, "id": "revocation-and-customer-rollback", "gate": "Revocation authority is production-qualified and customer-controlled rollback is exercised against atomic durable release state.", "completionState": "external-evidence-required", "evidencePaths": ["docs/revocation.md", "src/config/revocation-updates.js", "src/client/electron/release-state.js", "tests/client/electron-release-adapter.test.js"], "blockerCode": "signed-live-revocation-authority-missing" },
+    { "order": 9, "id": "paid-external-release-and-upgrade", "gate": "One paid external customer relies on Doppler eligibility for a production release and the subsequent upgrade.", "completionState": "external-evidence-required", "evidencePaths": ["docs/goals.md", "docs/model-release-platform.md"], "blockerCode": "paid-doppler-production-release-missing" },
+    { "order": 10, "id": "three-unrelated-design-partners", "gate": "Two additional unrelated customers repeat the production release path.", "completionState": "external-evidence-required", "evidencePaths": ["docs/goals.md", "docs/model-release-platform.md"], "blockerCode": "paid-doppler-production-release-missing" }
   ],
   "compatibilityGraph": [
     "model-source",

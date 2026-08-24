@@ -29,7 +29,7 @@
       "type": "string",
       "const": "../../src/config/schema/model-release-platform.schema.json"
     },
-    "schemaVersion": { "type": "integer", "const": 2 },
+    "schemaVersion": { "type": "integer", "const": 3 },
     "contractVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
     "id": { "type": "string", "const": "doppler-model-release-platform" },
     "positioning": {
@@ -187,11 +187,22 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["order", "id", "gate"],
+        "required": ["order", "id", "gate", "completionState", "evidencePaths", "blockerCode"],
         "properties": {
           "order": { "type": "integer", "minimum": 1, "maximum": 10 },
           "id": { "$ref": "#/$defs/id" },
-          "gate": { "type": "string", "minLength": 1 }
+          "gate": { "type": "string", "minLength": 1 },
+          "completionState": {
+            "type": "string",
+            "enum": ["implemented", "external-evidence-required"]
+          },
+          "evidencePaths": { "$ref": "#/$defs/pathList" },
+          "blockerCode": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/$defs/id" }
+            ]
+          }
         }
       }
     },

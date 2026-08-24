@@ -1,3 +1,6 @@
+export declare const PACK_RELEASE_SCHEMA_ID: 'doppler.pack-release/v1';
+export declare const PACK_STATE_SNAPSHOT_SCHEMA_ID: 'doppler.pack-state-snapshot/v1';
+
 export interface PackReleaseIdentity {
   id: string;
   digest: `sha256:${string}`;

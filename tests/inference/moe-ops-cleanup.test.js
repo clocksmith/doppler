@@ -177,7 +177,7 @@ try {
         null,
         0
       ),
-      /createBindGroup failed at 1/
+      /production MoE execution requires the WebGPU gather, expert, and scatter path/
     );
 
     assertPoolIsClean();

@@ -13,12 +13,16 @@ This applies to browser clients and the Node CLI equally.
 - **Explicit exits**: each command has a measurable completion condition.
 - **Deterministic intent mapping**: command -> intent cluster is fixed.
 - **Parity by default**: no browser-only or CLI-only command semantics.
+- **Explicit control-plane exception**: a command that requires local files,
+  signing keys, or durable operator state is Node-only and must fail closed on
+  browser surfaces without changing its semantics.
 
 ## Deterministic Command Mapping
 
 - The only supported mapping is:
   - `convert` → convert intent
   - `refresh-integrity` → maintenance intent
+  - `release` → production-release eligibility (no harness intent)
   - `debug` → investigate intent
   - `diagnose` → investigate intent
   - `bench` → calibrate intent
@@ -35,6 +39,7 @@ This applies to browser clients and the Node CLI equally.
 
 - `convert`
 - `refresh-integrity`
+- `release`
 - `debug`
 - `diagnose`
 - `bench`
@@ -68,7 +73,7 @@ Rules:
 - `diagnose` is valid for `inference` and `embedding`; CLI execution is Node-only.
 - `bench` is valid for `inference`, `embedding`, `training`, `diffusion`, and `energy`.
 - `verify` is valid for `kernels`, `inference`, `embedding`, `rerank`, `training`, `diffusion`, and `energy`.
-- `convert`, `refresh-integrity`, `lora`, and `distill` do not use workload-locked harness execution.
+- `convert`, `refresh-integrity`, `release`, `lora`, and `distill` do not use workload-locked harness execution.
 - `workloadType` is reserved for submodes inside a workload family when a family needs it, such as training stage selection or diffusion lane selection.
 - `request.inferenceInput` is reserved for request-owned inference payloads such as prompt overrides and multimodal image inputs.
 - `request.inferenceInput` is workload data, not runtime tuning; sampling, kernel, and cache policy still belong in runtime config.
@@ -114,6 +119,19 @@ Rules:
 - **Exit**: materialized artifact + hashes
 - **Command**: `convert`
 - **Command**: `refresh-integrity`
+
+### Production release eligibility
+
+- **Intent**: none; the signed production-release manifest and evidence are authoritative.
+- **Exit**: an exact-device fleet receipt or a signed `eligible|blocked` decision bundle.
+- **Command**: `release`
+- **Phases**: `qualify|decide`; the CLI supplies `decide` for the unqualified
+  `doppler release` form, while command API callers must declare the phase.
+- Runtime config, runtime profiles, implicit fallback, deployment, activation,
+  and self-promotion are forbidden.
+- `qualify` requires exact target and device identity on a customer-operated
+  agent. `decide` requires trusted fleet signers and verifies one receipt per
+  declared target.
 
 ### Training Operator Lifecycle
 
@@ -194,7 +212,8 @@ Commands are rejected when:
 - Direct runner APIs (`runNodeCommand(...)`, `runBrowserCommand(...)`) throw normalized `ToolingCommandError` values on failure; they do not return error envelopes.
 - New command capability is valid only when:
   1. Added to `src/tooling/command-api.js`
-  2. Implemented in both browser and Node runners
+  2. Implemented on every declared surface, or explicitly rejected on an
+     inapplicable surface when it is a local-file/signing control-plane command
   3. Documented in this guide and harness guide
 
 ### CLI Surface Selection
@@ -207,13 +226,15 @@ Commands are rejected when:
 - Browser relay executes `runBrowserCommand()` in a browser via `src/tooling/command-runner.html`
   (default headless, configured via `run.browser` fields in CLI `--config`).
 - Browser relay can attach to an existing server with `run.browser.baseUrl`.
-- `convert` and `refresh-integrity` are Node-only in CLI (`--surface browser` is rejected).
+- `convert`, `refresh-integrity`, and `release` are Node-only in CLI (`--surface browser` is rejected).
 - `diagnose` is Node-only in CLI (`--surface browser` is rejected) and must not auto-downgrade to browser relay.
 - `lora` and `distill` are currently Node-only and must fail closed on browser surfaces until equivalent runtime semantics exist there.
 - `profiles` is CLI-local read-only discovery and does not accept `--surface` or `--config`.
 - `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.
 - `convert` execution tuning belongs in `request.convertPayload.execution` and must not change command semantics.
 - `refresh-integrity` rebuilds manifest integrity metadata from local artifact bytes and must not consume runtime config inputs.
+- `release` consumes only production-release, trust, signing, Pack, application,
+  and fleet-evidence inputs; it must not consume runtime config or activate a release.
 
 ---
 

@@ -30,6 +30,9 @@ pipeline.prefillWithEmbedding = async (_sequence, options) => {
       6, 8,
       0, 0,
     ]),
+    tokenMask: Uint8Array.from([0, 1, 1, 0]),
+    includedTokenCount: 2,
+    pooledSequenceEmbedding: Float32Array.from([4, 6]),
     logits: new Float32Array(4 * 7),
     phase: { totalMs: 1 },
   };

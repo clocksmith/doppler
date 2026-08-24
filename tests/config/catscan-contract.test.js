@@ -53,7 +53,7 @@ ${FREEDOM}
 
 const repositoryReport = await buildCatscanReport({ repoRoot: process.cwd() });
 assert.equal(repositoryReport.ok, true, repositoryReport.errors.join('\n'));
-assert.equal(repositoryReport.records.length, 28);
+assert.equal(repositoryReport.records.length, 29);
 
 const fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-catscan-'));
 try {

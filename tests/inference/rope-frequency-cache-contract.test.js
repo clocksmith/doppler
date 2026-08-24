@@ -69,6 +69,31 @@ function createFakeDevice() {
     createBindGroup() {
       return {};
     },
+    createShaderModule() {
+      return {};
+    },
+    async createComputePipelineAsync() {
+      return {
+        getBindGroupLayout() {
+          return {};
+        },
+      };
+    },
+    createCommandEncoder() {
+      return {
+        beginComputePass() {
+          return {
+            setPipeline() {},
+            setBindGroup() {},
+            dispatchWorkgroups() {},
+            end() {},
+          };
+        },
+        finish() {
+          return {};
+        },
+      };
+    },
   };
 }
 
@@ -104,12 +129,10 @@ const ropeConfig = {
 
 {
   resetRuntimeState();
-  const first = await initRoPEFrequencies(ropeConfig, false);
-  const second = await initRoPEFrequencies(ropeConfig, false);
-  assert.equal(second.cos, first.cos);
-  assert.equal(second.sin, first.sin);
-  assert.equal(second.localCos, first.localCos);
-  assert.equal(second.localSin, first.localSin);
+  await assert.rejects(
+    () => initRoPEFrequencies(ropeConfig, false),
+    /requires the declared WebGPU execution path/
+  );
 }
 
 {

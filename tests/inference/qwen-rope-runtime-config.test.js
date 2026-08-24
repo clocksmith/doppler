@@ -2,9 +2,14 @@ import assert from 'node:assert/strict';
 
 import { initRoPEFrequencies } from '../../src/inference/pipelines/text/init.js';
 import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text/config.js';
+import { destroyDevice } from '../../src/gpu/device.js';
+import { destroyBufferPool, readBuffer } from '../../src/memory/buffer-pool.js';
+import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
-{
+const gpuProbe = await probeNodeGPU({ installFileFetchShim: true });
+
+if (gpuProbe.ready) {
   const freqs = await initRoPEFrequencies({
     headDim: 256,
     rotaryDim: 64,
@@ -22,10 +27,10 @@ import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
     ropeLocalScalingType: null,
     ropeScaling: null,
     ropeLocalScaling: null,
-  }, false);
+  }, true);
 
-  assert.equal(freqs.cos.length, 8 * 32);
-  assert.equal(freqs.sin.length, 8 * 32);
+  assert.equal(freqs.cos.size, 8 * 32 * Float32Array.BYTES_PER_ELEMENT);
+  assert.equal(freqs.sin.size, 8 * 32 * Float32Array.BYTES_PER_ELEMENT);
 }
 
 {
@@ -53,7 +58,7 @@ import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 }
 
 // Standard RoPE (no MRoPE): full rotary dim (headDim=256)
-{
+if (gpuProbe.ready) {
   const freqs = await initRoPEFrequencies({
     headDim: 256,
     rotaryDim: undefined,
@@ -71,14 +76,14 @@ import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
     ropeLocalScalingType: null,
     ropeScaling: null,
     ropeLocalScaling: null,
-  }, false);
+  }, true);
 
   // Full headDim=256 → halfDim=128 → cos/sin length = 8 * 128
-  assert.equal(freqs.cos.length, 8 * 128);
-  assert.equal(freqs.sin.length, 8 * 128);
+  assert.equal(freqs.cos.size, 8 * 128 * Float32Array.BYTES_PER_ELEMENT);
+  assert.equal(freqs.sin.size, 8 * 128 * Float32Array.BYTES_PER_ELEMENT);
 }
 
-{
+if (gpuProbe.ready) {
   const freqs = await initRoPEFrequencies({
     headDim: 8,
     rotaryDim: undefined,
@@ -101,12 +106,12 @@ import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
       original_max_position_embeddings: 1,
     },
     ropeLocalScaling: null,
-  }, false);
+  }, true);
 
-  assert.ok(freqs.localCos instanceof Float32Array);
-  assert.ok(freqs.localSin instanceof Float32Array);
-  assert.ok(Math.abs(freqs.localCos[4] - Math.cos(1)) < 1e-6);
-  assert.ok(Math.abs(freqs.localSin[4] - Math.sin(1)) < 1e-6);
+  const localCos = new Float32Array(await readBuffer(freqs.localCos, 4 * 4 * 4));
+  const localSin = new Float32Array(await readBuffer(freqs.localSin, 4 * 4 * 4));
+  assert.ok(Math.abs(localCos[4] - Math.cos(1)) < 1e-6);
+  assert.ok(Math.abs(localSin[4] - Math.sin(1)) < 1e-6);
 }
 
 {
@@ -324,4 +329,11 @@ import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
   assert.equal(parsed.mropeInterleaved, false);
 }
 
-console.log('qwen-rope-runtime-config.test: ok');
+destroyBufferPool();
+destroyDevice();
+
+console.log(
+  gpuProbe.ready
+    ? 'qwen-rope-runtime-config.test: ok'
+    : `qwen-rope-runtime-config.test: ok (GPU assertions skipped: ${gpuProbe.reason})`
+);

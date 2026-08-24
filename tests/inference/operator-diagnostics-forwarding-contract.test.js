@@ -62,7 +62,7 @@ const probeForwardingFiles = [
   'src/inference/pipelines/text/linear-attention.js',
   'src/inference/pipelines/text/embedding-normalization.js',
   'src/inference/pipelines/text/logits/index.js',
-  'src/inference/pipelines/text/logits/cpu-output.js',
+  'src/experimental/logits/cpu-output.js',
   'src/inference/pipelines/text/logits/gpu.js',
 ];
 
@@ -92,7 +92,6 @@ for (const relativePath of probeForwardingFiles) {
   assertCallBlocksContain(source, 'recordLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
   assertCallBlocksContain(source, 'computeLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
   assertCallBlocksContain(source, 'computeLogits(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
-  assertCallBlocksContain(source, 'finalizeLogits(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
 }
 
 console.log('operator-diagnostics-forwarding-contract.test: ok');

@@ -101,7 +101,14 @@ function assertAllowedFlags(parsed, allowedFlags, commandLabel) {
 export function validateCommandFlags(parsed) {
   const command = parsed?.command;
   if (!command || !TOOLING_COMMANDS.includes(command)) return;
-  const allowedFlags = new Set(COMMON_CLI_FLAGS);
+  const allowedFlags = new Set(command === 'release'
+    ? [
+      'config', 'manifest', 'action', 'out', 'repo-root', 'forge-config', 'target',
+      'device-identity', 'fleet-receipts', 'pack-trusted-signers', 'fleet-trusted-signers',
+      'signing-private-key', 'signing-public-key', 'signing-authority',
+      'surface', 'pretty', 'json', 'help', 'h',
+    ]
+    : COMMON_CLI_FLAGS);
   for (const key of Object.keys(parsed.flags || {})) {
     if (allowedFlags.has(key)) continue;
     const suggestion = findClosestFlag(key, allowedFlags);

@@ -22,6 +22,13 @@ recovery, commercial boundary, and ordered promotion gates. A passing check
 means the contract describes its gaps honestly; it does not establish external
 adoption or production authority.
 
+The repository implementation is closed for the canonical product contract,
+reference release manifest, Pack release contract, Pack-first Electron
+reranking, `doppler release`, the non-promoting GitHub Action, and the typed
+Electron adapter. The policy separately reports gates that still require
+customer-operated device receipts, a production revocation authority, and paid
+external release evidence. Repository fixtures never satisfy those gates.
+
 ## Entry and recurring products
 
 For one Doppler Production Release, a customer supplies:
@@ -94,6 +101,14 @@ Chromium/WebGPU correctness remains required because Electron executes WebGPU
 in its renderer. A hosted GitHub runner may orchestrate customer-operated
 Windows and macOS qualification agents, but cannot stand in for the supported
 fleet.
+
+The public command forms are `doppler release` and
+`npx --package doppler-gpu doppler release`; the npm package is named
+`doppler-gpu`. The command has explicit `qualify` and `decide` phases. It emits
+signed fleet receipts or an eligible/blocked decision plus immutable evidence,
+and always reports `activationPerformed: false`. The reusable workflow only
+downloads customer-operated fleet receipts, evaluates them, preserves all
+candidate and failure evidence, and fails its check when eligibility is blocked.
 
 ## Provider and custody boundaries
 

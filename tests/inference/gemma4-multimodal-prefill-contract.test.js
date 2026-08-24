@@ -72,7 +72,7 @@ assert.match(
 
 assert.match(
   visionSource,
-  /activatedTensor = await runGeLU\(\s*gateTensor,\s*\{\s*size:\s*numTokens \* intermediateSize,\s*gate:\s*upTensor,\s*\}\s*\);/,
+  /runGeLU\(upTensor,\s*\{\s*size:\s*numTokens \* intermediateSize,\s*gate:\s*gateTensor,\s*\}\)/,
   'Gemma 4 vision MLP must compute GeLU(gate_proj(x)) * up_proj(x) to match the upstream Gemma 4 implementation'
 );
 

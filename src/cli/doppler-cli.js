@@ -58,6 +58,8 @@ function usage() {
     'Usage:',
     '  doppler convert --config <path|url|json> [--surface auto|node]',
     '  doppler refresh-integrity --config <path|url|json> [--surface auto|node]',
+    '  doppler release --manifest <path> --out <dir> --pack-trusted-signers <path> --fleet-trusted-signers <path> --signing-private-key <path> --signing-public-key <path> --signing-authority <id> [--fleet-receipts <path,path>] [--forge-config <path>]',
+    '  doppler release --action qualify --manifest <path> --target <id> --device-identity <path> --out <dir> --pack-trusted-signers <path> --signing-private-key <path> --signing-public-key <path> --signing-authority <id>',
     '  doppler debug --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '  doppler bench --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node|browser]',
     '  doppler verify --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node|browser]',
@@ -341,8 +343,31 @@ export async function buildRequest(parsed, policy = DEFAULT_CLI_POLICY) {
     throw new Error(`Unsupported command "${command || ''}"`);
   }
 
-  const configValue = resolveCommandConfigFlag(parsed);
-  const configPayload = await readJsonObjectInput(configValue, '--config');
+  const configValue = asStringOrNull(parsed.flags.config);
+  const releaseFlags = command === 'release' && configValue === null
+    ? {
+      action: asStringOrNull(parsed.flags.action) ?? 'decide',
+      manifestPath: asStringOrNull(parsed.flags.manifest),
+      outputDirectory: asStringOrNull(parsed.flags.out),
+      repoRoot: asStringOrNull(parsed.flags['repo-root']),
+      forgeConfigPath: asStringOrNull(parsed.flags['forge-config']),
+      targetId: asStringOrNull(parsed.flags.target),
+      deviceIdentityPath: asStringOrNull(parsed.flags['device-identity']),
+      fleetReceiptPaths: (asStringOrNull(parsed.flags['fleet-receipts']) ?? '')
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter(Boolean),
+      packTrustedSignersPath: asStringOrNull(parsed.flags['pack-trusted-signers']),
+      fleetTrustedSignersPath: asStringOrNull(parsed.flags['fleet-trusted-signers']),
+      signingPrivateKeyPath: asStringOrNull(parsed.flags['signing-private-key']),
+      signingPublicKeyPath: asStringOrNull(parsed.flags['signing-public-key']),
+      signingAuthority: asStringOrNull(parsed.flags['signing-authority']),
+    }
+    : null;
+  const configPayload = releaseFlags ?? await readJsonObjectInput(
+    resolveCommandConfigFlag(parsed),
+    '--config'
+  );
   const envelope = resolveConfigEnvelope(configPayload);
   const runtimeOverride = resolveRuntimeConfigFlags(parsed);
 

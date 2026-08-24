@@ -98,8 +98,13 @@ export function createUniformBufferFromData(
     size: byteLength,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
-  device.queue.writeBuffer(buffer, 0, arrayBuffer);
-  return buffer;
+  try {
+    device.queue.writeBuffer(buffer, 0, arrayBuffer);
+    return buffer;
+  } catch (error) {
+    buffer.destroy();
+    throw error;
+  }
 }
 
 

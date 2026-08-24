@@ -97,6 +97,13 @@ function createMockDevice() {
     createShaderModule() {
       return {};
     },
+    async createComputePipelineAsync() {
+      return {
+        getBindGroupLayout() {
+          return {};
+        },
+      };
+    },
     createBuffer(descriptor) {
       return createMockGPUBuffer(descriptor);
     },
@@ -105,6 +112,14 @@ function createMockDevice() {
       return {
         copyBufferToBuffer(src, srcOffset, dst, dstOffset, size) {
           ops.push({ src, srcOffset, dst, dstOffset, size });
+        },
+        beginComputePass() {
+          return {
+            setPipeline() {},
+            setBindGroup() {},
+            dispatchWorkgroups() {},
+            end() {},
+          };
         },
         finish() {
           return { ops };

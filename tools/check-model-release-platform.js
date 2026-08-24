@@ -200,6 +200,17 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
     'promotionSequence order',
     errors
   );
+  const promotionIndex = indexById(policy?.promotionSequence, 'promotionSequence', errors);
+  for (const row of promotionIndex.values()) {
+    pathRows.push([`promotionSequence.${row.id}.evidencePaths`, row.evidencePaths]);
+    if (row.completionState === 'implemented' && row.blockerCode !== null) {
+      errors.push(`promotionSequence.${row.id}: implemented gates must have blockerCode null`);
+    }
+    if (row.completionState === 'external-evidence-required'
+      && !blockerCodes.has(row.blockerCode)) {
+      errors.push(`promotionSequence.${row.id}: external gates require a defined blockerCode`);
+    }
+  }
 
   const goals = new Map((matrix?.goals || []).map((goal) => [goal.id, goal]));
   for (const [goalId, rowId] of EXPECTED.goalRows) {
@@ -220,6 +231,12 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
       .filter((row) => row.mode === 'migration-required')
       .map((row) => row.id),
     commercialAssessment: policy?.commercialOffer?.currentAssessment || null,
+    implementedPromotionGates: Array.from(promotionIndex.values())
+      .filter((row) => row.completionState === 'implemented')
+      .map((row) => row.id),
+    externalPromotionGates: Array.from(promotionIndex.values())
+      .filter((row) => row.completionState === 'external-evidence-required')
+      .map((row) => row.id),
   };
 }
 

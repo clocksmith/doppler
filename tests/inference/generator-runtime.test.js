@@ -16,10 +16,12 @@ const {
   resolveStepOptions,
   resolvePrefillEmbeddingOptions,
   resolveAdvanceEmbeddingMode,
-  extractEmbeddingFromHidden,
   resolveFloatDtypeFromByteSize,
   resolveFloatDtypeFromBufferMetadata,
 } = await import('../../src/inference/pipelines/text/generator-runtime.js');
+const { extractEmbeddingFromHidden } = await import(
+  '../../src/experimental/embeddings/cpu-extraction.js'
+);
 
 // === assertTokenIdsInRange ===
 

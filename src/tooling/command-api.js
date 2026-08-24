@@ -13,6 +13,7 @@ import {
 import {
   normalizeConvert,
   normalizeRefreshIntegrity,
+  normalizeRelease,
   normalizeTrainingOperatorCommand,
   normalizeSuiteCommand,
 } from './command-api-family-normalizers.js';
@@ -33,6 +34,9 @@ export function normalizeToolingCommandRequest(input) {
   }
   if (command === 'refresh-integrity') {
     return normalizeRefreshIntegrity(input);
+  }
+  if (command === 'release') {
+    return normalizeRelease(input);
   }
   if (command === 'lora' || command === 'distill') {
     return normalizeTrainingOperatorCommand(input, command);
@@ -55,6 +59,7 @@ export function ensureCommandSupportedOnSurface(commandRequest, surface) {
       || request.command === 'diagnose'
       || request.command === 'convert'
       || request.command === 'refresh-integrity'
+      || request.command === 'release'
     )
   ) {
     throw new Error(`tooling command: ${request.command} is currently Node-only and must fail closed on browser.`);

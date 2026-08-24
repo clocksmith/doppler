@@ -74,6 +74,16 @@ function createFakeDevice({ writeBufferThrowAt = null } = {}) {
     createBindGroup() {
       return {};
     },
+    createShaderModule() {
+      return {};
+    },
+    async createComputePipelineAsync() {
+      return {
+        getBindGroupLayout() {
+          return {};
+        },
+      };
+    },
   };
 }
 

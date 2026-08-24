@@ -1,0 +1,124 @@
+name: Doppler Release Eligibility
+
+on:
+  workflow_call:
+    inputs:
+      doppler-version:
+        description: Exact doppler-gpu version.
+        required: true
+        type: string
+      manifest:
+        description: Doppler Production Release v1 manifest path.
+        required: true
+        type: string
+      pack-trusted-signers:
+        description: Trusted Pack signer map path.
+        required: true
+        type: string
+      fleet-trusted-signers:
+        description: Trusted customer-operated fleet signer map path.
+        required: true
+        type: string
+      receipt-artifact-pattern:
+        description: Artifact pattern containing exact-device fleet receipts.
+        required: true
+        type: string
+      signing-authority:
+        description: Doppler eligibility signing authority ID.
+        required: true
+        type: string
+      forge-config:
+        description: Optional Forge config path for candidate Pack construction.
+        required: false
+        type: string
+    secrets:
+      release-signing-private-jwk:
+        required: true
+      release-signing-public-jwk:
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: write
+
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout candidate application revision
+        uses: actions/checkout@v7
+
+      - name: Download customer-operated fleet receipts
+        uses: actions/download-artifact@v7
+        with:
+          pattern: ${{ inputs.receipt-artifact-pattern }}
+          path: .doppler-release/receipts
+          merge-multiple: true
+
+      - name: Materialize release signing keys
+        shell: bash
+        env:
+          RELEASE_PRIVATE_JWK: ${{ secrets.release-signing-private-jwk }}
+          RELEASE_PUBLIC_JWK: ${{ secrets.release-signing-public-jwk }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/doppler-release-keys"
+          printf '%s' "$RELEASE_PRIVATE_JWK" > "$RUNNER_TEMP/doppler-release-keys/private.jwk.json"
+          printf '%s' "$RELEASE_PUBLIC_JWK" > "$RUNNER_TEMP/doppler-release-keys/public.jwk.json"
+
+      - name: Enumerate exact receipt paths
+        id: receipts
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const root = path.resolve('.doppler-release/receipts');
+          const paths = [];
+          const visit = (directory) => {
+            for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+              const value = path.join(directory, entry.name);
+              if (entry.isDirectory()) visit(value);
+              else if (entry.name.endsWith('.json')) paths.push(value);
+            }
+          };
+          visit(root);
+          paths.sort();
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `paths=${paths.join(',')}\n`);
+          NODE
+
+      - name: Emit signed eligibility decision
+        id: release
+        uses: ./.github/actions/doppler-release
+        with:
+          doppler-version: ${{ inputs.doppler-version }}
+          action: decide
+          manifest: ${{ inputs.manifest }}
+          output: .doppler-release/evidence
+          pack-trusted-signers: ${{ inputs.pack-trusted-signers }}
+          fleet-trusted-signers: ${{ inputs.fleet-trusted-signers }}
+          fleet-receipts: ${{ steps.receipts.outputs.paths }}
+          forge-config: ${{ inputs.forge-config }}
+          signing-private-key: ${{ runner.temp }}/doppler-release-keys/private.jwk.json
+          signing-public-key: ${{ runner.temp }}/doppler-release-keys/public.jwk.json
+          signing-authority: ${{ inputs.signing-authority }}
+
+      - name: Preserve candidate, receipts, and decision evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: doppler-release-evidence-${{ github.run_id }}
+          path: .doppler-release
+          if-no-files-found: error
+
+      - name: Enforce eligibility without activation
+        if: always()
+        shell: bash
+        env:
+          ELIGIBILITY: ${{ steps.release.outputs.eligibility }}
+        run: |
+          if [[ "$ELIGIBILITY" != "eligible" ]]; then
+            echo "Doppler blocked release eligibility; preserved evidence contains the reasons." >&2
+            exit 1
+          fi

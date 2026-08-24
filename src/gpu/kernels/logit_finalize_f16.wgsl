@@ -28,7 +28,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let row = index / u.target_columns;
     let column = index % u.target_columns;
     if (column >= u.source_columns) {
-        output[index] = bitcast<f32>(0xff800000u);
+        output[index] = -3.402823e38;
         return;
     }
     var value = f32(input[row * u.source_columns + column]);

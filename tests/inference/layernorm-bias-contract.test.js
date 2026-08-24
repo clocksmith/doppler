@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { extractTokenEmbeddingsFromHidden } from '../../src/inference/pipelines/text/generator-runtime.js';
+import { extractTokenEmbeddingsFromHidden } from '../../src/experimental/embeddings/cpu-extraction.js';
 
 const hidden = new Float32Array([1, 3, 2, 6]);
 const weights = new Float32Array([1, 1]);

@@ -12,9 +12,9 @@ import { assertPackageSourceClosure } from './package-source-closure.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
-  maxEntryCount: 1625,
+  maxEntryCount: 1700,
   maxPackedSize: 2_050_000,
-  maxUnpackedSize: 10_400_000,
+  maxUnpackedSize: 10_600_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

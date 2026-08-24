@@ -404,9 +404,9 @@ async function runVisionMlp(hiddenTensor, layerWeights, visionConfig, numTokens,
       layerWeights.upProjClip,
       'gemma4_vision_up_proj'
     ), 'MLP up projection');
-    const activatedTensor = registerTensor(scope, await runGeLU(gateTensor, {
+    const activatedTensor = registerTensor(scope, await runGeLU(upTensor, {
       size: numTokens * intermediateSize,
-      gate: upTensor,
+      gate: gateTensor,
     }), 'MLP activation');
     scope.release(gateTensor.buffer);
     scope.release(upTensor.buffer);

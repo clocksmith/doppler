@@ -193,7 +193,7 @@ export async function createSignedPackFixture(options = {}) {
       execution: { steps: [{ id: 'prefill-step' }, { id: 'decode-step' }] },
       referenceTranscript: { tokens: { ids: [4, 5, 6, 7] } },
     },
-    release: createPackReleaseFixture({ targetIds: [targetPlan.targetId] }),
+    release: options.release ?? createPackReleaseFixture({ targetIds: [targetPlan.targetId] }),
   });
   const pack = await signPackV2(unsignedPack, {
     authority: TEST_PACK_AUTHORITY,
