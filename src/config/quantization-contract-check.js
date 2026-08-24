@@ -9,11 +9,6 @@ import {
   padToQ4KBlock,
   q4kBlockCount,
 } from './schema/quantization.schema.js';
-import {
-  TILE_SIZES,
-  QUANTIZATION,
-} from '../gpu/kernels/constants.js';
-import * as loaderQuantization from '../loader/quantization-constants.js';
 
 const EXPECTED_CONSTANTS = Object.freeze({
   QK_K: 256,
@@ -41,18 +36,14 @@ export function buildQuantizationContractArtifact() {
   }
   checks.push({ id: 'quantization.constants.schema', ok: literalConstantsOk });
 
-  const crossModuleOk =
-    loaderQuantization.QK_K === QK_K
-    && loaderQuantization.Q4K_BLOCK_BYTES === Q4K_BLOCK_BYTES
-    && loaderQuantization.Q6K_BLOCK_BYTES === Q6K_BLOCK_BYTES
-    && loaderQuantization.Q8_0_BLOCK_BYTES === Q8_0_BLOCK_BYTES
-    && loaderQuantization.Q8_0_BLOCK_SIZE === Q8_0_BLOCK_SIZE
-    && TILE_SIZES.Q4K_SUPER_BLOCK_SIZE === QK_K
-    && QUANTIZATION.Q4K_BLOCK_BYTES === Q4K_BLOCK_BYTES;
-  if (!crossModuleOk) {
-    errors.push('[QuantizationContract] loader/GPU quantization constants drifted from schema constants.');
+  const blockRelationshipsOk =
+    Q4K_BLOCK_BYTES === 2 + 2 + K_SCALE_SIZE + (QK_K / 2)
+    && Q6K_BLOCK_BYTES === (QK_K / 2) + (QK_K / 4) + (QK_K / 16) + 2
+    && Q8_0_BLOCK_BYTES === 2 + Q8_0_BLOCK_SIZE;
+  if (!blockRelationshipsOk) {
+    errors.push('[QuantizationContract] block byte sizes do not match their declared format components.');
   }
-  checks.push({ id: 'quantization.constants.crossModule', ok: crossModuleOk });
+  checks.push({ id: 'quantization.constants.blockRelationships', ok: blockRelationshipsOk });
 
   let padPropertiesOk = true;
   let q4kCoverageOk = true;

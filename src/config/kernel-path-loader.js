@@ -1,5 +1,5 @@
 import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
-import { KERNEL_CONFIGS } from '../gpu/kernels/kernel-configs.js';
+import { KERNEL_CONFIGS } from './kernel-registry-contract.js';
 import { mergeKernelPathPolicy } from './merge/kernel-path-policy.js';
 
 const PATH_LOOKUP_CACHE = new WeakMap();

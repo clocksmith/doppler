@@ -308,7 +308,11 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "transpose.wgsl#main": "8caf8664dfc579b4e92edce50783263c535764006290cc7902108f26586113a2",
   "upsample2d_f16.wgsl#main": "bcfe1f29aa1d0548c239c071f6b72bc9c0bcb62d491abafc768039906d6a97c9",
   "upsample2d.wgsl#main": "6de9172ad3d6940dd3c94470a105755a33760e66a84d6e9e96ec4d6a07dc4a25",
+  "vision_average_pool.wgsl#main": "ff1bbf1fd54b4f2f92f9896ba52728abbc7ac8508693a88f6665e1a3abd818dc",
   "vision_patch_embed_f16w.wgsl#main": "159e0e59fa439701f726a6396f276c2c4e94a51a1bd890851fa1fdb3a0e1dec7",
   "vision_patch_embed.wgsl#main": "8fe8b259498a6e2869e7cdcbb9b0e04d503aed7b5e009985ced722403dde80e1",
+  "vision_position_embedding_f16.wgsl#main": "3e26814dbfa60708fa1a29cbe9e3c68e2c990d65c1d5d7123b9b183fca97f0d6",
+  "vision_position_embedding.wgsl#main": "84d16c5fa44cfebac838bd566ebed4403de33e280a422102a6a096f2e9473477",
+  "vision_rope_2d.wgsl#main": "99d6ca6ccca22842795d83f0813f0cdc8e68785a630a43517e040dcb081e5876",
   "vision_spatial_merge.wgsl#main": "f00df551c817fa6b05d16aa643cabe73dace2b419fb4befd385452c4a17b0b1f",
 });

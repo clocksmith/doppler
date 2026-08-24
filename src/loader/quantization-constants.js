@@ -1,6 +1,5 @@
 
 
-// Re-export quantization constants from schema (single source of truth)
 export {
   QK_K,
   QK4_K_BLOCK_SIZE,
@@ -11,4 +10,4 @@ export {
   Q8_0_BLOCK_SIZE,
   padToQ4KBlock,
   q4kBlockCount,
-} from '../config/schema/index.js';
+} from '../formats/quantization-constants.js';

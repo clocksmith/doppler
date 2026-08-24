@@ -313,7 +313,7 @@
           "packageExport": null,
           "smokeCommand": "npm run artifact:contract:check",
           "evidencePaths": [
-            "src/client/doppler-registry.json",
+            "src/config/quickstart-registry.json",
             "models/catalog.json",
             "docs/registry-workflow.md",
             "docs/model-support-matrix.md",

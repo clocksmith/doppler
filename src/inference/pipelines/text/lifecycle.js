@@ -637,19 +637,12 @@ export async function _loadVisionWeights() {
       const visionWeights = {
         textHiddenSize: this.modelConfig.hiddenSize,
         patchInputProj: await loadRequiredTensor('model.vision_tower.patch_embedder.input_proj.weight'),
-        patchPositionEmbeddingTable: await loadRequiredTensor('model.vision_tower.patch_embedder.position_embedding_table', false),
+        patchPositionEmbeddingTable: await loadRequiredTensor('model.vision_tower.patch_embedder.position_embedding_table'),
         projector: isEncoderFree
           ? await loader.loadTensor('model.embed_vision.embedding_projection.weight', true, true)
           : await loadRequiredTensor('model.embed_vision.embedding_projection.weight'),
         layers: [],
       };
-
-      if (!(visionWeights.patchPositionEmbeddingTable instanceof Float32Array)) {
-        throw new Error(
-          'Gemma 4 vision position_embedding_table must decode to Float32Array on CPU. ' +
-          'Re-convert the artifact if this tensor was quantized incorrectly.'
-        );
-      }
 
       for (let i = 0; i < depth; i++) {
         const prefix = `model.vision_tower.encoder.layers.${i}`;

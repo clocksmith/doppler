@@ -13,7 +13,7 @@ import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { castF16ToF32, recordCastF16ToF32 } from './cast.js';
 import { getKernelPathMatmulVariant } from '../../config/kernel-path-loader.js';
-import { assertImplicitDtypeTransitionAllowed } from '../../inference/pipelines/text/dtype-contract.js';
+import { assertImplicitDtypeTransitionAllowed } from '../../config/dtype-transition-contract.js';
 import {
   resolveMatmulPhase,
   resolveMatmulConstants,

@@ -14,7 +14,7 @@ const DEFAULT_PATHS = Object.freeze({
   registry: 'src/config/revocation-registry.json',
   catalog: 'models/catalog.json',
   adapterCatalog: 'models/adapters/catalog.json',
-  quickstart: 'src/client/doppler-registry.json',
+  quickstart: 'src/config/quickstart-registry.json',
   claimMatrix: 'benchmarks/vendors/local-inference-claim-matrix.json',
   releaseMatrix: 'benchmarks/vendors/release-matrix.json',
   productIntegrations: 'tools/policies/product-integration-qualification.json',

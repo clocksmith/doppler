@@ -17,16 +17,7 @@ export interface DtypeConsistencyResult {
   };
 }
 
-export interface ImplicitDtypeTransitionOptions {
-  executionPolicies?: {
-    dtypeTransition?: 'require_cast_step' | null;
-  } | null;
-  fromDtype?: 'f16' | 'f32' | null;
-  toDtype?: 'f16' | 'f32' | null;
-  op?: string | null;
-  detail?: string | null;
-  transitionDeclaredBy?: 'step_precision' | 'explicit_cast_step' | null;
-}
+export type { ImplicitDtypeTransitionOptions } from '../../../config/dtype-transition-contract.js';
 
 /**
  * Resolve activation dtype from all available sources.
@@ -48,6 +39,4 @@ export declare function assertDtypeConsistency(
   layerContext: Record<string, unknown> | null
 ): DtypeConsistencyResult;
 
-export declare function assertImplicitDtypeTransitionAllowed(
-  options?: ImplicitDtypeTransitionOptions
-): void;
+export { assertImplicitDtypeTransitionAllowed } from '../../../config/dtype-transition-contract.js';

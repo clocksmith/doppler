@@ -1,4 +1,4 @@
-import { validateRequiredInferenceFields } from '../inference/pipelines/text/config.js';
+import { validateRequiredInferenceFields } from './manifest-inference-validation.js';
 import { cloneJsonValue as cloneJson } from '../utils/clone-json.js';
 
 function setPath(root, path, value) {

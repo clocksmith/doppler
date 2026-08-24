@@ -7,7 +7,7 @@ import {
 } from './preflight.js';
 import { formatBytes } from './quota.js';
 import { getCdnBasePath } from './download-types.js';
-import quickstartRegistry from '../client/doppler-registry.json' with { type: 'json' };
+import quickstartRegistry from '../config/quickstart-registry.json' with { type: 'json' };
 import { buildHfResolveBaseUrl, DEFAULT_HF_CDN_BASE_URL } from '../utils/hf-resolve-url.js';
 
 // ============================================================================

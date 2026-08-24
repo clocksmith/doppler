@@ -352,6 +352,9 @@ export {
 
 export { runVisionPatchEmbed } from './vision-patch-embed.js';
 export { runVisionSpatialMerge } from './vision-spatial-merge.js';
+export { runVisionRope2D } from './vision-rope-2d.js';
+export { runVisionAveragePool } from './vision-average-pool.js';
+export { runVisionPositionEmbedding } from './vision-position-embedding.js';
 
 // Split Q and Gate (de-interleave attentionOutputGate q_proj output)
 export {

@@ -32,7 +32,10 @@ assert.equal(artifact.stats.sampledSizes, 520);
 // Verify specific check IDs are present
 const checkIds = artifact.checks.map((c) => c.id);
 assert.ok(checkIds.includes('quantization.constants.schema'), 'missing schema check');
-assert.ok(checkIds.includes('quantization.constants.crossModule'), 'missing crossModule check');
+assert.ok(
+  checkIds.includes('quantization.constants.blockRelationships'),
+  'missing blockRelationships check'
+);
 assert.ok(checkIds.includes('quantization.padToQ4KBlock.properties'), 'missing padToQ4KBlock check');
 assert.ok(checkIds.includes('quantization.q4kBlockCount.coverage'), 'missing q4kBlockCount check');
 

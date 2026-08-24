@@ -63,7 +63,7 @@ function assertCommandOutputMatches(result, pattern) {
   const compareConfigPath = path.join(repoRoot, 'benchmarks', 'vendors', 'compare-engines.config.json');
   const benchmarkPolicyPath = path.join(repoRoot, 'benchmarks', 'vendors', 'benchmark-policy.json');
   const catalogPath = path.join(repoRoot, 'models', 'catalog.json');
-  const quickstartRegistryPath = path.join(repoRoot, 'src', 'client', 'doppler-registry.json');
+  const quickstartRegistryPath = path.join(repoRoot, 'src', 'config', 'quickstart-registry.json');
   const compareConfig = JSON.parse(await fs.readFile(compareConfigPath, 'utf8'));
   const benchmarkPolicy = JSON.parse(await fs.readFile(benchmarkPolicyPath, 'utf8'));
   const catalog = JSON.parse(await fs.readFile(catalogPath, 'utf8'));
@@ -1289,7 +1289,7 @@ function assertCommandOutputMatches(result, pattern) {
       assert.equal(profile.modelBaseDir, null);
       assert.ok(
         quickstartIds.has(profile.dopplerModelId),
-        `${profile.dopplerModelId}: quickstart compare profiles must exist in src/client/doppler-registry.json`
+        `${profile.dopplerModelId}: quickstart compare profiles must exist in src/config/quickstart-registry.json`
       );
       continue;
     }

@@ -71,7 +71,7 @@ function normalizeEntry(entry) {
 async function loadRegistry() {
   if (!registryPromise) {
     registryPromise = loadJson(
-      './doppler-registry.json',
+      '../config/quickstart-registry.json',
       import.meta.url,
       'Failed to load Doppler quickstart registry'
     ).then((raw) => {

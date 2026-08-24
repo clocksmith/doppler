@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "source": "doppler",
   "catalogPath": "models/catalog.json",
-  "quickstartRegistryPath": "src/client/doppler-registry.json",
+  "quickstartRegistryPath": "src/config/quickstart-registry.json",
   "registrySelection": {
     "quickstart": true,
     "artifactFormat": "rdrr",

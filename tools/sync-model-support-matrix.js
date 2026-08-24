@@ -21,7 +21,7 @@ const README_MODEL_TYPES_END = '<!-- model-type-clusters:end -->';
 const CONVERSION_CONFIG_DIR = path.join(REPO_ROOT, 'src/config/conversion');
 const CATALOG_PATH = path.join(REPO_ROOT, 'models/catalog.json');
 const GEMMA4_TARGETS_PATH = path.join(REPO_ROOT, 'models/gemma4-targets.json');
-const QUICKSTART_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'client', 'doppler-registry.json');
+const QUICKSTART_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'config', 'quickstart-registry.json');
 const RUNTIME_BLOCKED_MODEL_TYPES = new Set(['mamba', 'rwkv']);
 const GEMMA4_TARGET_STATUS = new Set(['partially_verified', 'gap']);
 const GEMMA4_SURFACE_STATUS = new Set(['verified', 'unverified', 'unsupported']);
@@ -695,7 +695,7 @@ export function validateGemma4TargetMatrixInputs(payload, catalogModels, quickst
         }
         const quickstartModel = quickstartById.get(servedLaneId);
         if (!quickstartModel) {
-          errors.push(`${targetId}: served lane ${servedLaneId} is missing from src/client/doppler-registry.json`);
+          errors.push(`${targetId}: served lane ${servedLaneId} is missing from src/config/quickstart-registry.json`);
           continue;
         }
         const modes = Array.isArray(quickstartModel?.modes) ? quickstartModel.modes : [];

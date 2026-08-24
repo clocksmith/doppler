@@ -52,6 +52,9 @@ const {
   runSplitQKV = null,
   runVisionPatchEmbed = null,
   runVisionSpatialMerge = null,
+  runVisionAveragePool = null,
+  runVisionPositionEmbedding = null,
+  runVisionRope2D = null,
   runConv2D = null,
   runGroupNorm = null,
   runLayerNorm = null,
@@ -1838,6 +1841,56 @@ const testHarness = {
     const result = new Float32Array(await readBufferData(resultTensor.buffer, resultElements * 4));
     inputBuffer.destroy();
     bufferPool?.releaseBuffer(resultTensor.buffer);
+    return result;
+  },
+
+  async runVisionAveragePool(dev, input, geometry) {
+    if (!runVisionAveragePool) {
+      return references.visionAveragePoolRef(input, geometry);
+    }
+    const inputBuffer = makeBuffer(input);
+    const inputTensor = createTensor(
+      inputBuffer,
+      'f32',
+      [geometry.gridHeight * geometry.gridWidth, geometry.hiddenSize],
+      'vision_average_pool_input'
+    );
+    const resultTensor = await runVisionAveragePool(inputTensor, geometry);
+    const resultElements = resultTensor.shape.reduce((product, value) => product * value, 1);
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, resultElements * 4));
+    inputBuffer.destroy();
+    bufferPool?.releaseBuffer(resultTensor.buffer);
+    return result;
+  },
+
+  async runVisionPositionEmbedding(dev, table, geometry) {
+    if (!runVisionPositionEmbedding) {
+      return references.visionPositionEmbeddingRef(table, geometry);
+    }
+    const tableBuffer = makeBuffer(table);
+    const tableTensor = createTensor(tableBuffer, 'f32', [table.length], 'vision_position_embedding_table');
+    const resultTensor = await runVisionPositionEmbedding(tableTensor, geometry);
+    const resultElements = resultTensor.shape.reduce((product, value) => product * value, 1);
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, resultElements * 4));
+    tableBuffer.destroy();
+    bufferPool?.releaseBuffer(resultTensor.buffer);
+    return result;
+  },
+
+  async runVisionRope2D(dev, input, geometry) {
+    if (!runVisionRope2D) {
+      return references.visionRope2DRef(input, geometry);
+    }
+    const inputBuffer = makeBuffer(input);
+    const inputTensor = createTensor(
+      inputBuffer,
+      'f32',
+      [geometry.numTokens, geometry.numHeads, geometry.headDim],
+      'vision_rope_2d_input'
+    );
+    const resultTensor = await runVisionRope2D(inputTensor, geometry);
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, input.length * 4));
+    inputBuffer.destroy();
     return result;
   },
 

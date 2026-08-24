@@ -1,4 +1,4 @@
-import { selectByRules } from '../gpu/kernels/rule-matcher.js';
+import { selectByRules } from './rule-matcher.js';
 import { buildInferenceExecutionRulesContractArtifact } from './execution-rules-contract-check.js';
 import { buildLayerPatternContractArtifact } from './layer-pattern-contract-check.js';
 import { cloneJsonValue as cloneRuleValue } from '../utils/clone-json.js';
@@ -47,6 +47,9 @@ const {
   'kernels/upsample2d.rules.json': upsample2dRules,
   'kernels/vision-patch-embed.rules.json': visionPatchEmbedRules,
   'kernels/vision-spatial-merge.rules.json': visionSpatialMergeRules,
+  'kernels/vision-rope-2d.rules.json': visionRope2dRules,
+  'kernels/vision-average-pool.rules.json': visionAveragePoolRules,
+  'kernels/vision-position-embedding.rules.json': visionPositionEmbeddingRules,
   'inference/config.rules.json': configRules,
   'inference/execution.rules.json': inferenceExecutionRules,
   'inference/attention.rules.json': inferenceAttentionRules,
@@ -141,6 +144,9 @@ const RULE_SETS = {
     upsample2d: upsample2dRules,
     visionPatchEmbed: visionPatchEmbedRules,
     visionSpatialMerge: visionSpatialMergeRules,
+    visionRope2d: visionRope2dRules,
+    visionAveragePool: visionAveragePoolRules,
+    visionPositionEmbedding: visionPositionEmbeddingRules,
   },
   inference: {
     config: configRules,

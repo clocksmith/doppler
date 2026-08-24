@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'release-claim-policy.json');
 const DEFAULT_CATALOG_PATH = path.join(REPO_ROOT, 'models', 'catalog.json');
-const DEFAULT_QUICKSTART_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'client', 'doppler-registry.json');
+const DEFAULT_QUICKSTART_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'config', 'quickstart-registry.json');
 const DEFAULT_SUBSYSTEMS_PATH = path.join(REPO_ROOT, 'src', 'config', 'support-tiers', 'subsystems.json');
 const CLAIM_MODES = new Set(['text', 'embedding', 'rerank', 'translate']);
 const CLAIM_SURFACES = new Set(['browser', 'node', 'bun', 'serve', 'electron']);

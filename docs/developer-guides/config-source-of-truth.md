@@ -107,7 +107,7 @@ Artifact bytes have a separate source of truth:
 
 Generated model mirrors:
 
-- `src/client/doppler-registry.json` is a quickstart mirror generated from
+- `src/config/quickstart-registry.json` is a quickstart mirror generated from
   `models/catalog.json`.
 - `docs/model-support-matrix.md` and `docs/model-support-inventory.md` are
   generated status views.

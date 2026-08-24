@@ -447,6 +447,21 @@ export {
   type VisionSpatialMergeGeometry,
 } from './vision-spatial-merge.js';
 
+export {
+  runVisionRope2D,
+  type VisionRope2DGeometry,
+} from './vision-rope-2d.js';
+
+export {
+  runVisionAveragePool,
+  type VisionAveragePoolGeometry,
+} from './vision-average-pool.js';
+
+export {
+  runVisionPositionEmbedding,
+  type VisionPositionEmbeddingGeometry,
+} from './vision-position-embedding.js';
+
 // Split Q and Gate (de-interleave attentionOutputGate q_proj output)
 export {
   runSplitQG,

@@ -4,7 +4,7 @@ import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { GPU_LIMITS, TILE_SIZES, WORKGROUP_SIZES, DEQUANT_DISPATCH } from './constants.js';
-import { Q6K_BLOCK_BYTES } from '../../loader/quantization-constants.js';
+import { Q6K_BLOCK_BYTES } from '../../formats/quantization-constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import {
   getPipelineFast,
