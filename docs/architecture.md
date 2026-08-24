@@ -2,7 +2,17 @@
 
 ## Architecture Overview
 
-**Doppler** (Deterministic On-device Processing for Prefill, Learning, and Execution Runtime) is a standalone WebGPU-native ML runtime repo centered on forward inference and prefill in browser and Node environments.
+**Doppler** (Deterministic On-device Processing for Prefill, Learning, and
+Execution Runtime) is an AI-native Model Release Foundry for JavaScript and
+WebGPU. It converts pinned source truth into signed immutable Packs containing
+ModelIR-derived, qualified TargetPlans, then executes those plans through an
+evidence-backed browser and Node runtime.
+
+The product unit is a supported model release: source lineage, immutable Pack,
+qualified target plans, application and hardware acceptance, and explicit
+promotion, requalification, rollback, and revocation state. The Runtime is not
+a second compiler. It validates, selects, binds, executes, and observes without
+changing Pack semantics.
 
 The repo also contains experimental and internal-only subsystem surfaces for
 training, distribution, hotswap, diffusion, energy, bridge integration, and
@@ -16,7 +26,9 @@ The mainline product/technical goals are defined in [goals.md](goals.md):
 
 1. make local WebGPU inference a real product surface,
 2. own the model artifact and runtime contract,
-3. make correctness and performance evidence-backed.
+3. make correctness, performance, and support evidence-backed,
+4. reduce release-to-JavaScript through source-truth Forge automation without
+   moving creative decisions into Runtime.
 
 Architecture changes should map to one of those goals or stay clearly marked as
 experimental/internal in the subsystem support matrix.
@@ -154,6 +166,9 @@ Behavior-changing choices must be fully represented before dispatch:
 - No implicit runtime detection from model names at execution time.
 - No hidden policy branching in WGSL.
 - No implicit defaults for capability fallback; unresolved decisions fail fast.
+- No tensor mathematics or tensor-layout transforms in JavaScript.
+- No inferred semantic geometry; dimensions required for execution are declared
+  by ModelIR/TargetPlan or resolved manifest/session contracts.
 
 ### Doppler vs Transformers.js (v4): Execution Boundary View
 

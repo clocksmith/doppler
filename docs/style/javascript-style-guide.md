@@ -44,6 +44,8 @@ These stable invariant IDs are normative:
 | `INV-PARITY-005` | Browser, Node, immediate, recorded, benchmark, and replay adapters consume the same normalized semantic request or plan. Executors may differ only in transport, submission, retention, completion tasks, and evidence capture. | plan parity tests + `npm run source:architecture:check` |
 | `INV-RESOURCE-006` | Every concrete resource has tagged ownership: `borrowed`, `scopeOwned`, `submitOwned`, `transferred`, or `retained`. Ownership changes use explicit scope operations. | resource-scope failure and alias tests |
 | `INV-RECEIPT-007` | Structural refactors preserve canonical behavior receipts containing command, session, plan, operation order, dtype transitions, resource events, and first failure boundary. | refactor-receipt tests |
+| `INV-COMPUTE-008` | JavaScript never performs tensor arithmetic or tensor-layout transforms; declared WGSL programs own those operations. | `npm run source:style:check` + kernel reference tests |
+| `INV-GEOMETRY-009` | Runtime-required tensor and spatial geometry is explicit in ModelIR, TargetPlan, manifest, or resolved session data and is never inferred from counts or identity heuristics. | `npm run source:style:check` + manifest/pipeline contract tests |
 
 The contract layering is:
 
@@ -67,6 +69,19 @@ consumers and refactors; tests protect behavior.
 - JSON owns policy and selection state (`manifest`, runtime profiles/config, rule maps).
 - JS owns orchestration: validation, pipeline setup, resource lifecycle, dispatch, and readback.
 - WGSL owns only math and memory transforms.
+
+JavaScript may compute scalar dispatch sizes, byte offsets, validation bounds,
+and host-side sampling explicitly assigned to the control plane. It may not read
+a tensor back to implement attention, normalization, activation, projection,
+rearrangement, or another tensor operation before uploading the result again.
+Those operations require a registered WGSL program and a deterministic reference
+test.
+
+Geometry is policy-bearing model semantics. Grid height, grid width, patch
+ordering, merge factors, head geometry, and layout strides must be explicit in
+the resolved contract. A pipeline must fail before allocation or dispatch when
+required geometry is absent or inconsistent; `Math.sqrt(elementCount)` and
+shape reconstruction from tensor names are prohibited.
 
 For deterministic behavior:
 

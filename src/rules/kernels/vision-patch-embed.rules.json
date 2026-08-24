@@ -1,0 +1,6 @@
+{
+  "variant": [
+    { "match": { "weightDtype": "f16" }, "value": "f16w" },
+    { "match": { "weightDtype": "f32" }, "value": "f32w" }
+  ]
+}
