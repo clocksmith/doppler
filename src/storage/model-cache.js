@@ -12,7 +12,7 @@ import { downloadModel, estimateTimeRemaining, formatSpeed } from './downloader.
 import { isOPFSAvailable, formatBytes } from './quota.js';
 import { parseManifest, getManifestUrl } from '../formats/rdrr/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
-import { cloneJsonValue } from '../utils/clone-json.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
 import { log } from '../debug/index.js';
 import {
   resolveSourceArtifact,

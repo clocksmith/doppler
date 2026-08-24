@@ -1,7 +1,7 @@
-import { sha256Hex } from '../../utils/sha256.js';
+import { sha256Hex } from '../../formats/sha256.js';
 import { DISTILL_TRAINING_SCHEMA_VERSION } from '../../config/schema/distill-training.schema.js';
 import { UL_TRAINING_SCHEMA_VERSION } from '../../config/schema/ul-training.schema.js';
-import { stableSortObject } from '../../utils/stable-sort-object.js';
+import { stableSortObject } from '../../formats/stable-sort-object.js';
 
 const DISTILL_MANIFEST_SCHEMA_VERSION = 1;
 const UL_MANIFEST_SCHEMA_VERSION = 1;

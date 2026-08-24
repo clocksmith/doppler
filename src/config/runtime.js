@@ -1,6 +1,6 @@
 import { createDopplerConfig, setKernelThresholds } from './schema/index.js';
 import { validateRuntimeConfig, validateRuntimeOverrides } from './param-validator.js';
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 
 let runtimeConfig = createDopplerConfig().runtime;
 setKernelThresholds(runtimeConfig.shared.kernelThresholds);

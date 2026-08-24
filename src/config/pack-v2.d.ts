@@ -1,4 +1,5 @@
 import type { ModelIR } from './model-ir.js';
+import type { PackReleaseContract } from './pack-release-contract.js';
 import type { TargetPlan } from './target-plan.js';
 
 export const PACK_V2_SCHEMA_ID: 'doppler.pack/v2';
@@ -45,6 +46,7 @@ export interface DopplerPackV2 {
     tokenizerArtifactIds: string[];
     weightArtifactIds: string[];
   };
+  release: PackReleaseContract;
   signature: null | {
     authority: string;
     algorithm: 'Ed25519';

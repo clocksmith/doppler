@@ -1,6 +1,6 @@
 import { createTrainingConfig } from '../../../config/training-defaults.js';
-import { sha256Hex } from '../../../utils/sha256.js';
-import { stableSortObject } from '../../../utils/stable-sort-object.js';
+import { sha256Hex } from '../../../formats/sha256.js';
+import { stableSortObject } from '../../../formats/stable-sort-object.js';
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value));

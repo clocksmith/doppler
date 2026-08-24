@@ -1,6 +1,7 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "sourceRoot": "src",
+  "softLineLimit": 750,
   "lineLimit": 999,
   "topLevelOwners": {
     "cli": "command-line entrypoints and presentation",
@@ -25,12 +26,95 @@
     "types": "shared declarations owned by no narrower subsystem",
     "utils": "compatibility surfaces for relocated neutral contracts"
   },
-  "restrictedDependencies": {
-    "config": ["config", "debug", "errors", "types", "utils"],
-    "rules": ["config", "debug", "errors", "rules", "types", "utils"],
-    "gpu": ["config", "debug", "errors", "formats", "gpu", "memory", "rules", "types", "utils"],
-    "memory": ["config", "debug", "errors", "gpu", "memory", "types", "utils"],
-    "storage": ["config", "debug", "errors", "formats", "memory", "storage", "tooling", "types", "utils"]
+  "rootFileOwners": {
+    "bootstrap": "client",
+    "index-browser": "client",
+    "index": "client",
+    "pack-runtime": "client",
+    "sw": "storage",
+    "tooling-experimental-exports.browser": "experimental",
+    "tooling-experimental-exports": "experimental",
+    "tooling-experimental-exports.shared": "experimental",
+    "tooling-exports.browser": "tooling",
+    "tooling-exports": "tooling",
+    "tooling-exports.shared": "tooling",
+    "training-browser": "experimental",
+    "training": "experimental",
+    "version": "config"
+  },
+  "allowedDependencies": {
+    "cli": ["cli", "client", "config", "formats", "storage", "tooling"],
+    "client": ["client", "config", "converter", "debug", "errors", "experimental", "formats", "generation", "gpu", "inference", "loader", "memory", "storage", "tooling"],
+    "config": ["config", "debug", "formats"],
+    "converter": ["config", "converter", "debug", "formats", "inference", "rules"],
+    "debug": ["config", "debug", "formats"],
+    "errors": ["errors"],
+    "experimental": ["client", "config", "converter", "debug", "errors", "experimental", "formats", "gpu", "inference", "memory", "storage", "tooling"],
+    "formats": ["config", "debug", "errors", "formats"],
+    "generation": ["generation", "inference"],
+    "gpu": ["config", "debug", "errors", "formats", "gpu", "memory", "rules"],
+    "inference": ["client", "config", "converter", "debug", "errors", "experimental", "formats", "gpu", "inference", "loader", "memory", "rules", "storage", "tooling"],
+    "loader": ["config", "converter", "debug", "experimental", "formats", "gpu", "inference", "loader", "memory", "rules", "storage"],
+    "loaders": ["loader"],
+    "memory": ["config", "debug", "gpu", "memory"],
+    "models": ["models"],
+    "rules": ["config", "formats", "rules"],
+    "storage": ["config", "debug", "formats", "memory", "storage", "tooling"],
+    "tooling": ["config", "converter", "debug", "experimental", "formats", "gpu", "inference", "memory", "rules", "storage", "tooling"],
+    "tooling-exports": ["client", "config", "formats", "gpu", "inference", "storage", "tooling", "tooling-exports"],
+    "types": ["types"],
+    "utils": ["formats", "storage"]
+  },
+  "compatibilityOnlyOwners": ["loaders", "utils"],
+  "experimentalBridges": {
+    "client/runtime/lora.js": {
+      "reason": "Explicit LoRA compatibility surface delegates to the quarantined adapter implementation."
+    },
+    "client/runtime/model-manager.js": {
+      "reason": "Optional native bridge activation is quarantined and loaded only on an explicit bridge request."
+    },
+    "client/wrap-pipeline-handle.js": {
+      "reason": "Dream-compatible LoRA attachment delegates to the quarantined adapter implementation."
+    },
+    "inference/pipelines/text/generator/text.js": {
+      "reason": "Explicit hotswap drift enforcement is an experimental observation bridge."
+    },
+    "inference/test-harness.js": {
+      "reason": "The test harness intentionally exposes quarantined distribution and hotswap diagnostics."
+    },
+    "loader/doppler-loader.js": {
+      "reason": "The legacy loader method delegates explicit LoRA loading to the quarantined adapter implementation."
+    },
+    "loader/multi-model-loader.js": {
+      "reason": "The compatibility multi-model loader delegates explicit LoRA sources to the quarantined adapter implementation."
+    },
+    "tooling/distribution-shard-transport.js": {
+      "reason": "Explicit distribution tooling bridge delegates to the quarantined transport."
+    },
+    "tooling/node-command-execution.js": {
+      "reason": "Explicit lora and distill commands delegate to the quarantined training operator."
+    },
+    "tooling/trainer-artifact-handoff.js": {
+      "reason": "Trainer artifact intake validates explicitly experimental bridge descriptors and adapters."
+    },
+    "tooling/translation-artifact-competition.js": {
+      "reason": "Translation competition evidence consumes an explicitly experimental trainer bridge descriptor."
+    }
+  },
+  "reachability": {
+    "roots": ["bootstrap.js", "sw.js"],
+    "externalRoots": ["benchmarks", "demo", "tests", "tools"],
+    "standaloneModules": {
+      "tooling/kernel-path-builder/index.js": {
+        "reason": "Operator-loaded kernel path builder retained as a standalone advanced tooling entrypoint."
+      },
+      "tooling/node-convert-worker.js": {
+        "reason": "Worker entrypoint is loaded through a URL by node-convert-worker-pool."
+      },
+      "tooling/program-bundle-host.js": {
+        "reason": "Program Bundle metadata names this host module and export for verified materialization."
+      }
+    }
   },
   "constitutionalDomains": {
     "pack": [
@@ -47,6 +131,7 @@
       "client/runtime/command-executor.js",
       "client/runtime/session-controller.js",
       "client/runtime/target-selector.js",
+      "client/runtime/pack-rerank.js",
       "client/runtime/pack-program-adapter.js",
       "client/runtime/fetch-pack-artifact-store.js"
     ]
@@ -200,18 +285,32 @@
   "facades": [
     "index.js",
     "index-browser.js",
+    "config/schema/platform.schema.js",
     "config/execution-contract-check.js",
     "config/transforms/capability-transform-resolver.js",
     "config/merge-helpers.js",
+    "converter/index.js",
+    "converter/parsers/index.js",
     "converter/tokenizer-utils.js",
+    "formats/index.js",
+    "formats/tokenizer/index.js",
     "gpu/kernels/backward/utils.js",
     "gpu/kernels/rule-matcher.js",
+    "gpu/kernels/types.js",
     "gpu/kernels/utils.js",
     "inference/browser-harness-model-helpers.js",
     "inference/browser-harness-runtime-helpers.js",
     "inference/browser-harness-suite-helpers.js",
     "inference/browser-harness-text-helpers.js",
     "inference/pipelines/diffusion/helpers.js",
+    "inference/pipelines/diffusion/index.js",
+    "inference/pipelines/diffusion/types.js",
+    "inference/pipelines/dream/energy-head-pipeline.js",
+    "inference/pipelines/dream/pipeline.js",
+    "inference/pipelines/energy/index.js",
+    "inference/pipelines/energy/types.js",
+    "inference/pipelines/index.js",
+    "inference/pipelines/text/buffer-types.js",
     "inference/pipelines/text/debug-utils.js",
     "inference/pipelines/text/debug-utils/utils.js",
     "inference/pipelines/text/attention/heterogeneous-contract.js",
@@ -219,9 +318,14 @@
     "inference/pipelines/text/generator-helpers.js",
     "inference/pipelines/text/generator-prefill-helpers.js",
     "inference/pipelines/text/logits/utils.js",
+    "inference/pipelines/text/logits/types.js",
     "inference/pipelines/text/moe-helpers.js",
+    "inference/pipelines/text/index.js",
+    "inference/pipelines/text/types.js",
+    "inference/tokenizers/types.js",
     "loader/quantization-constants.js",
     "loaders/index.js",
+    "storage/index.js",
     "tooling-exports.js",
     "tooling-exports.browser.js",
     "tooling-exports.shared.js",
@@ -232,7 +336,429 @@
     "tooling/command-runner-shared.js",
     "tooling/hf-registry-utils.js",
     "tooling/node-browser-command-runner.js",
-    "training-browser.js"
+    "training-browser.js",
+    "types/chrome.js",
+    "types/index.js",
+    "utils/array-buffer.js",
+    "utils/canonical-hash.js",
+    "utils/clone-json.js",
+    "utils/encode-utf8.js",
+    "utils/hf-resolve-url.js",
+    "utils/index.js",
+    "utils/load-json.js",
+    "utils/plain-object.js",
+    "utils/runtime-env.js",
+    "utils/sha256.js",
+    "utils/stable-sort-object.js"
   ],
+  "softLimitReviews": {
+    "cli/commands/bundle.js": {
+      "reviewedLines": 828,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "cli/commands/bundle-components.js"
+      ]
+    },
+    "client/runtime/model-session.js": {
+      "reviewedLines": 873,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "client/runtime/model-session-components.js"
+      ]
+    },
+    "client/runtime/source-runtime.js": {
+      "reviewedLines": 910,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "client/runtime/source-runtime-components.js"
+      ]
+    },
+    "config/schema/index.d.ts": {
+      "reviewedLines": 909,
+      "reason": "Large declaration surface mirrors one runtime contract; the paired component declaration is the named extraction boundary.",
+      "extractTo": [
+        "config/schema/index-components.d.ts"
+      ]
+    },
+    "config/schema/manifest.schema.d.ts": {
+      "reviewedLines": 859,
+      "reason": "Large declaration surface mirrors one runtime contract; the paired component declaration is the named extraction boundary.",
+      "extractTo": [
+        "config/schema/manifest.schema-components.d.ts"
+      ]
+    },
+    "config/transforms/execution-graph-transforms.js": {
+      "reviewedLines": 987,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "config/transforms/execution-graph-transforms-components.js"
+      ]
+    },
+    "converter/core.js": {
+      "reviewedLines": 847,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "converter/core-components.js"
+      ]
+    },
+    "converter/forge-stages.js": {
+      "reviewedLines": 811,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "converter/forge-stages-components.js"
+      ]
+    },
+    "converter/manifest-builder.js": {
+      "reviewedLines": 814,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "converter/manifest-builder-components.js"
+      ]
+    },
+    "experimental/browser/browser-converter.js": {
+      "reviewedLines": 978,
+      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "extractTo": [
+        "experimental/browser/browser-converter-components.js"
+      ]
+    },
+    "experimental/distribution/shard-delivery/transport.js": {
+      "reviewedLines": 831,
+      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "extractTo": [
+        "experimental/distribution/shard-delivery/transport-components.js"
+      ]
+    },
+    "experimental/training/artifacts.js": {
+      "reviewedLines": 883,
+      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "extractTo": [
+        "experimental/training/artifacts-components.js"
+      ]
+    },
+    "experimental/training/distillation/student-fixture.js": {
+      "reviewedLines": 994,
+      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "extractTo": [
+        "experimental/training/distillation/student-fixture-components.js"
+      ]
+    },
+    "experimental/training/runner.js": {
+      "reviewedLines": 978,
+      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "extractTo": [
+        "experimental/training/runner-components.js"
+      ]
+    },
+    "experimental/training/suite/execution.js": {
+      "reviewedLines": 879,
+      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "extractTo": [
+        "experimental/training/suite/execution-components.js"
+      ]
+    },
+    "experimental/training/suite/plan.js": {
+      "reviewedLines": 855,
+      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "extractTo": [
+        "experimental/training/suite/plan-components.js"
+      ]
+    },
+    "experimental/training/wgsl-repair.js": {
+      "reviewedLines": 826,
+      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "extractTo": [
+        "experimental/training/wgsl-repair-components.js"
+      ]
+    },
+    "gpu/device.js": {
+      "reviewedLines": 765,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "gpu/device-components.js"
+      ]
+    },
+    "gpu/kernels/attention/executors.js": {
+      "reviewedLines": 960,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "gpu/kernels/attention/executors-components.js"
+      ]
+    },
+    "gpu/kernels/attention.js": {
+      "reviewedLines": 883,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "gpu/kernels/attention-components.js"
+      ]
+    },
+    "gpu/kernels/codegen/wgsl-variants.js": {
+      "reviewedLines": 885,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "gpu/kernels/codegen/wgsl-variants-components.js"
+      ]
+    },
+    "gpu/kernels/fused_ffn.js": {
+      "reviewedLines": 892,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "gpu/kernels/fused_ffn-components.js"
+      ]
+    },
+    "inference/browser-harness/benchmark-execution.js": {
+      "reviewedLines": 872,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/browser-harness/benchmark-execution-components.js"
+      ]
+    },
+    "inference/browser-harness/text-execution.js": {
+      "reviewedLines": 757,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/browser-harness/text-execution-components.js"
+      ]
+    },
+    "inference/kv-cache/base.js": {
+      "reviewedLines": 957,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/kv-cache/base-components.js"
+      ]
+    },
+    "inference/kv-cache/tiered.js": {
+      "reviewedLines": 756,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/kv-cache/tiered-components.js"
+      ]
+    },
+    "inference/multi-model-network.js": {
+      "reviewedLines": 771,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/multi-model-network-components.js"
+      ]
+    },
+    "inference/pipelines/diffusion/sd3/execution.js": {
+      "reviewedLines": 805,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/diffusion/sd3/execution-components.js"
+      ]
+    },
+    "inference/pipelines/diffusion/text-encoder-gpu.js": {
+      "reviewedLines": 947,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/diffusion/text-encoder-gpu-components.js"
+      ]
+    },
+    "inference/pipelines/diffusion/vae/execution.js": {
+      "reviewedLines": 803,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/diffusion/vae/execution-components.js"
+      ]
+    },
+    "inference/pipelines/text/attention/interpreter.js": {
+      "reviewedLines": 984,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/attention/interpreter-components.js"
+      ]
+    },
+    "inference/pipelines/text/attention/projections.js": {
+      "reviewedLines": 815,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/attention/projections-components.js"
+      ]
+    },
+    "inference/pipelines/text/config.js": {
+      "reviewedLines": 837,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/config-components.js"
+      ]
+    },
+    "inference/pipelines/text/execution-v1.js": {
+      "reviewedLines": 813,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/execution-v1-components.js"
+      ]
+    },
+    "inference/pipelines/text/ffn/dense.js": {
+      "reviewedLines": 943,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/ffn/dense-components.js"
+      ]
+    },
+    "inference/pipelines/text/generator/decode-runtime.js": {
+      "reviewedLines": 991,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/generator/decode-runtime-components.js"
+      ]
+    },
+    "inference/pipelines/text/generator/decode.js": {
+      "reviewedLines": 968,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/generator/decode-components.js"
+      ]
+    },
+    "inference/pipelines/text/generator/prefill-runtime.js": {
+      "reviewedLines": 896,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/generator/prefill-runtime-components.js"
+      ]
+    },
+    "inference/pipelines/text/generator/training.js": {
+      "reviewedLines": 775,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/generator/training-components.js"
+      ]
+    },
+    "inference/pipelines/text/generator-steps.js": {
+      "reviewedLines": 939,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/generator-steps-components.js"
+      ]
+    },
+    "inference/pipelines/text/init.js": {
+      "reviewedLines": 951,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/init-components.js"
+      ]
+    },
+    "inference/pipelines/text/layer.js": {
+      "reviewedLines": 816,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/layer-components.js"
+      ]
+    },
+    "inference/pipelines/text/lifecycle.js": {
+      "reviewedLines": 847,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/lifecycle-components.js"
+      ]
+    },
+    "inference/pipelines/text/model-load.js": {
+      "reviewedLines": 843,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/model-load-components.js"
+      ]
+    },
+    "inference/pipelines/text/per-layer-inputs.js": {
+      "reviewedLines": 925,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/pipelines/text/per-layer-inputs-components.js"
+      ]
+    },
+    "inference/pipelines/text/types.d.ts": {
+      "reviewedLines": 866,
+      "reason": "Large declaration surface mirrors one runtime contract; the paired component declaration is the named extraction boundary.",
+      "extractTo": [
+        "inference/pipelines/text/types-components.d.ts"
+      ]
+    },
+    "inference/tokenizers/bundled.js": {
+      "reviewedLines": 997,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "inference/tokenizers/bundled-components.js"
+      ]
+    },
+    "loader/doppler-loader.js": {
+      "reviewedLines": 775,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "loader/doppler-loader-components.js"
+      ]
+    },
+    "loader/layer-loader.js": {
+      "reviewedLines": 848,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "loader/layer-loader-components.js"
+      ]
+    },
+    "loader/model-executor.js": {
+      "reviewedLines": 819,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "loader/model-executor-components.js"
+      ]
+    },
+    "loader/tensors/source-transform.js": {
+      "reviewedLines": 810,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "loader/tensors/source-transform-components.js"
+      ]
+    },
+    "memory/buffer-pool.js": {
+      "reviewedLines": 852,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "memory/buffer-pool-components.js"
+      ]
+    },
+    "storage/artifact-storage-context.js": {
+      "reviewedLines": 897,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "storage/artifact-storage-context-components.js"
+      ]
+    },
+    "tooling/kernel-path-builder/index.js": {
+      "reviewedLines": 939,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "tooling/kernel-path-builder/index-components.js"
+      ]
+    },
+    "tooling/litert/package.js": {
+      "reviewedLines": 863,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "tooling/litert/package-components.js"
+      ]
+    },
+    "tooling/litert-package-runtime.js": {
+      "reviewedLines": 993,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "tooling/litert-package-runtime-components.js"
+      ]
+    },
+    "tooling/node-converter.js": {
+      "reviewedLines": 948,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "tooling/node-converter-components.js"
+      ]
+    },
+    "tooling/node-source-runtime.js": {
+      "reviewedLines": 788,
+      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "extractTo": [
+        "tooling/node-source-runtime-components.js"
+      ]
+    }
+  }
+,
   "legacyOversize": {}
 }

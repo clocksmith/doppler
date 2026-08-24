@@ -23,8 +23,8 @@ import {
 import { normalizeTensorSourceTransform } from '../formats/rdrr/source-transform-contract.js';
 import { createRuntimeModelContract } from '../inference/runtime-model.js';
 import { computeHash } from '../storage/shard-manager.js';
-import { cloneJsonValue } from '../utils/clone-json.js';
-import { encodeUtf8 } from '../utils/encode-utf8.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
+import { encodeUtf8 } from '../formats/encode-utf8.js';
 import {
   DIRECT_SOURCE_PATH_ARTIFACT_RELATIVE,
   DIRECT_SOURCE_PATH_RUNTIME_LOCAL,

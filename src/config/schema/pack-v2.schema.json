@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": [
     "schema", "schemaVersion", "packId", "modelId", "createdAtUtc", "semanticRoot",
-    "modelIR", "targetPlans", "wgslModules", "artifacts", "program", "signature"
+    "modelIR", "targetPlans", "wgslModules", "artifacts", "program", "release", "signature"
   ],
   "properties": {
     "schema": { "const": "doppler.pack/v2" },
@@ -90,6 +90,7 @@
         "referenceTranscript": { "type": "object" }
       }
     },
+    "release": { "$ref": "#/$defs/release" },
     "signature": {
       "type": "object",
       "additionalProperties": false,
@@ -104,6 +105,150 @@
     }
   },
   "$defs": {
-    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "digest"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "packRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packId", "semanticRoot"],
+      "properties": {
+        "packId": { "type": "string", "minLength": 1 },
+        "semanticRoot": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "source", "application", "exclusions", "lifecycle", "revocation", "stateSnapshot"],
+      "properties": {
+        "schema": { "const": "doppler.pack-release/v1" },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "revision", "revisionDigest", "provenanceDigest", "license"],
+          "properties": {
+            "repository": { "type": "string", "minLength": 1 },
+            "revision": { "type": "string", "minLength": 1 },
+            "revisionDigest": { "$ref": "#/$defs/digest" },
+            "provenanceDigest": { "$ref": "#/$defs/digest" },
+            "license": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["spdxId", "name", "sourceUrl", "textDigest"],
+              "properties": {
+                "spdxId": { "type": "string", "minLength": 1 },
+                "name": { "type": "string", "minLength": 1 },
+                "sourceUrl": { "type": "string", "minLength": 1 },
+                "textDigest": { "$ref": "#/$defs/digest" }
+              }
+            }
+          }
+        },
+        "application": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["applicationId", "applicationRevision", "applicationRevisionDigest", "workload", "oracle"],
+          "properties": {
+            "applicationId": { "$ref": "#/$defs/id" },
+            "applicationRevision": { "type": "string", "minLength": 1 },
+            "applicationRevisionDigest": { "$ref": "#/$defs/digest" },
+            "workload": { "$ref": "#/$defs/identity" },
+            "oracle": { "$ref": "#/$defs/identity" }
+          }
+        },
+        "exclusions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rejectionTypes", "known"],
+          "properties": {
+            "rejectionTypes": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "enum": ["acceptance-failed", "application-gate-failed", "artifact-invalid", "evidence-expired", "migration-required", "revoked", "unsupported-device"] }
+            },
+            "known": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["code", "scope", "reason", "evidenceDigest"],
+                "properties": {
+                  "code": { "enum": ["acceptance-failed", "application-gate-failed", "artifact-invalid", "evidence-expired", "migration-required", "revoked", "unsupported-device"] },
+                  "scope": { "type": "string", "minLength": 1 },
+                  "reason": { "type": "string", "minLength": 1 },
+                  "evidenceDigest": { "$ref": "#/$defs/digest" }
+                }
+              }
+            }
+          }
+        },
+        "lifecycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["releaseVersion", "supersedes", "migration", "failedUpgrade"],
+          "properties": {
+            "releaseVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+            "supersedes": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/packRef" }] },
+            "migration": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "policyDigest", "required"],
+                  "properties": {
+                    "id": { "$ref": "#/$defs/id" },
+                    "policyDigest": { "$ref": "#/$defs/digest" },
+                    "required": { "type": "boolean" }
+                  }
+                }
+              ]
+            },
+            "failedUpgrade": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["preservePrevious", "previousPackId", "previousSemanticRoot"],
+              "properties": {
+                "preservePrevious": { "const": true },
+                "previousPackId": { "type": "string", "minLength": 1 },
+                "previousSemanticRoot": { "$ref": "#/$defs/digest" }
+              }
+            }
+          }
+        },
+        "revocation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["authorityId", "policyDigest", "offlineExpirySeconds", "failClosedAfterExpiry"],
+          "properties": {
+            "authorityId": { "$ref": "#/$defs/id" },
+            "policyDigest": { "$ref": "#/$defs/digest" },
+            "offlineExpirySeconds": { "type": "integer", "minimum": 1 },
+            "failClosedAfterExpiry": { "const": true }
+          }
+        },
+        "stateSnapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema", "format", "identityDigest", "portableAcrossTargetIds"],
+          "properties": {
+            "schema": { "const": "doppler.pack-state-snapshot/v1" },
+            "format": { "type": "string", "minLength": 1 },
+            "identityDigest": { "$ref": "#/$defs/digest" },
+            "portableAcrossTargetIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+          }
+        }
+      }
+    }
   }
 }

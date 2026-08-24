@@ -24,7 +24,7 @@ import {
   registerModel,
   removeRegisteredModel,
 } from '../../storage/registry.js';
-import { isNodeRuntime } from '../../utils/runtime-env.js';
+import { isNodeRuntime } from '../../storage/runtime-env.js';
 import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { getKernelCapabilities, initDevice } from '../../gpu/device.js';

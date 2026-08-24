@@ -1,4 +1,4 @@
-import { hashBytesSha256 } from '../../utils/canonical-hash.js';
+import { hashBytesSha256 } from '../../formats/canonical-hash.js';
 
 export const DEFAULT_MERKLE_BLOCK_SIZE = 1024 * 1024;
 

@@ -12,7 +12,7 @@ import {
   parseLiteRTTaskFromSource,
 } from '../../formats/litert/types.js';
 import { resolveDirectSourcePackageProfile } from '../source-package-profiles.js';
-import { cloneJsonValue } from '../../utils/clone-json.js';
+import { cloneJsonValue } from '../../formats/clone-json.js';
 
 export function normalizeText(value) {
   return String(value || '').trim();

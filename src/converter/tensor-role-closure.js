@@ -1,6 +1,6 @@
 import { validateModelIR } from '../config/model-ir.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const TENSOR_ROLE_CLOSURE_SCHEMA_ID = 'doppler.tensor-role-closure/v1';
 

@@ -3,6 +3,7 @@ import type { TargetPlan } from '../../config/target-plan.js';
 import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import type { DeviceProfile } from './target-selector.js';
 import type { GenerationRunOptions } from './session-controller.js';
+import type { PackRerankReceipt, PackRerankRequest } from './pack-rerank.js';
 
 export const RUNTIME_CORE_VERSION: '2.0.0';
 
@@ -34,6 +35,7 @@ export interface DopplerRuntimeSession {
   };
   generate(options: GenerationRunOptions): AsyncGenerator<number, void, void>;
   generateText(options: GenerationRunOptions): Promise<{ text: string; tokenIds: number[] }>;
+  rerank(request: PackRerankRequest): Promise<PackRerankReceipt>;
   close(): Promise<void>;
 }
 

@@ -1,8 +1,8 @@
 import { CAPTURE_LEVELS, createDefaultCaptureConfig } from '../../debug/capture-policy.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
-import { loadJson } from '../../utils/load-json.js';
-import { isPlainObject } from '../../utils/plain-object.js';
-import { cloneJsonValue } from '../../utils/clone-json.js';
+import { loadJson } from '../../formats/load-json.js';
+import { isPlainObject } from '../../formats/plain-object.js';
+import { cloneJsonValue } from '../../formats/clone-json.js';
 
 export const DEFAULT_IMAGE_TRANSCRIPTION_PROMPT = 'Describe the image in one short sentence.';
 export const DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET = 70;

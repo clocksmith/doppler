@@ -17,8 +17,8 @@ import {
   buildPackV2,
   signPackV2,
 } from '../config/pack-v2.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const FORGE_PIPELINE_VERSION = '2.0.0';
 
@@ -239,7 +239,7 @@ export async function stageInspect(input) {
       qualificationEvidence: Array.isArray(input.qualificationEvidence) ? input.qualificationEvidence : [],
       modelIR: input.modelIR ?? null,
       modelIREvidence: input.modelIREvidence ?? null,
-      initialExecutionIdentity: input.initialExecutionIdentity ?? null,
+      initialExecutionIdentity: input.initialExecutionIdentity ?? null, release: requireObject(input.release, 'Pack release contract'),
     },
   };
 }
@@ -782,7 +782,7 @@ export function stagePackage(qualified) {
       weightArtifactIds: findIds('weight-shard'),
       execution: normalized.programBundle.execution,
       referenceTranscript: normalized.programBundle.referenceTranscript,
-    },
+    }, release: normalized.release,
   });
   return { ...qualified, stage: 'package', ok: true, pack };
 }

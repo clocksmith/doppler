@@ -5,8 +5,8 @@ import {
 import { createStreamingHasher } from './shard-manager.js';
 import { createOpfsStore } from './backends/opfs-store.js';
 import { normalizeModelId } from './normalize-model-id.js';
-import { isNodeRuntime } from '../utils/runtime-env.js';
-import { toArrayBuffer } from '../utils/array-buffer.js';
+import { isNodeRuntime } from '../storage/runtime-env.js';
+import { toArrayBuffer } from '../formats/array-buffer.js';
 
 export const ARTIFACT_FORMAT_RDRR = 'rdrr';
 export const ARTIFACT_FORMAT_DIRECT_SOURCE = 'direct-source';

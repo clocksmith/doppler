@@ -1,4 +1,4 @@
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 
 export const TOOLING_ENVELOPE_SCHEMA_VERSION = 1;
 const TOOLING_ERROR_CODE_FALLBACK = 'tooling_error';

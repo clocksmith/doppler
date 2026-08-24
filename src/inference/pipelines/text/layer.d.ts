@@ -7,6 +7,18 @@
 import type { ParsedModelConfig } from './config.js';
 import type { LayerWeights, LayerContext, SandwichNormInfo } from './types.js';
 
+export {
+  applyLayerScalar,
+  getConvLayerState,
+  isSlidingLayerType,
+  resolveActivationDtype,
+  resolveAttentionFrequencyBaseDim,
+  resolveAttentionHeadDim,
+  resolveAttentionNumKVHeads,
+  resolveAttentionRotaryDim,
+  resolveLayerScalarValue,
+} from './layer-execution-contract.js';
+
 /**
  * Detect sandwich norm architecture (Gemma 3).
  */
@@ -44,46 +56,8 @@ export function processLayerGPU(
   context: LayerContext
 ): Promise<GPUBuffer>;
 
-/** Resolve the activation dtype for a layer (normalizes aliases). */
-export declare function resolveActivationDtype(dtype: string | null | undefined): string;
-
-/** Fetch or lazily create the per-layer convolution state record. */
-export declare function getConvLayerState(
-  convLayerStates: Record<string, unknown>,
-  layerIdx: number
-): Record<string, unknown>;
-
-/** True when `layerType` is a sliding-window attention variant. */
-export declare function isSlidingLayerType(layerType: string | null | undefined): boolean;
-
 /** True when any entry in `layerTypes` indicates a conv-hybrid layer. */
 export declare function hasConvLayers(layerTypes: Array<string> | null | undefined): boolean;
-
-/** Per-layer rotary dimension resolver (handles layerType-driven overrides). */
-export declare function resolveAttentionRotaryDim(
-  config: ParsedModelConfig,
-  layerType: string | null | undefined
-): number;
-
-/** Per-layer RoPE frequency base dimension resolver (also drives rotate-half pair span). */
-export declare function resolveAttentionFrequencyBaseDim(
-  config: ParsedModelConfig,
-  layerType: string | null | undefined
-): number;
-
-/** Per-layer attention head dimension resolver. */
-export declare function resolveAttentionHeadDim(
-  config: ParsedModelConfig,
-  layerType: string | null | undefined
-): number;
-
-/** Per-layer KV head-count resolver, including mixed Gemma 4 global attention. */
-export declare function resolveAttentionNumKVHeads(
-  config: ParsedModelConfig,
-  layerType: string | null | undefined,
-  layerWeights: LayerWeights | null | undefined,
-  headDim: number
-): number;
 
 /** Per-layer KV sharing resolver. */
 export declare function resolveAttentionKVSharing(
@@ -94,18 +68,6 @@ export declare function resolveAttentionKVSharing(
 
 /** True when the model config declares per-layer input blocks. */
 export declare function hasPerLayerInputBlock(config: ParsedModelConfig | null): boolean;
-
-/** Resolve a loaded Gemma 4 layer_scalar value, defaulting absent tensors to 1. */
-export declare function resolveLayerScalarValue(layerScalar: Float32Array | null | undefined): number;
-
-/** Apply a loaded Gemma 4 layer_scalar tensor to the completed layer output. */
-export declare function applyLayerScalar(
-  layerIdx: number,
-  tensor: unknown,
-  size: number,
-  context: LayerContext,
-  layerWeights: LayerWeights | null
-): Promise<unknown>;
 
 /** Apply the per-layer input block transform for `layerIdx`. */
 export declare function applyPerLayerInputBlock(

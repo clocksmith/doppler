@@ -69,6 +69,21 @@ export function createPackProgramAdapter(modelHandle, pack, targetPlan) {
       modelHandle.resetGenerationState();
     },
 
+    async rerank(request) {
+      if (typeof modelHandle.rerankWithEvidence !== 'function') {
+        throw new Error('Loaded Doppler model handle does not implement rerank evidence.');
+      }
+      try {
+        return await modelHandle.rerankWithEvidence(
+          request.query,
+          request.documents,
+          request.options
+        );
+      } finally {
+        assertNoPlanMutation();
+      }
+    },
+
     async executePhase(phase, request) {
       if (!arraysEqual(request.declaredStepIds, declaredByPhase[phase])) {
         throw new Error(`Pack program phase "${phase}" command closure changed after qualification.`);

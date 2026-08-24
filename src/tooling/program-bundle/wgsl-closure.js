@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../config/kernels/kernel-ref-digests.js';
-import { sha256Hex } from '../../utils/sha256.js';
+import { sha256Hex } from '../../formats/sha256.js';
 import {
   createPackageSourceFile,
   hashStableJson,

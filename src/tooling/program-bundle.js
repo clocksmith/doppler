@@ -11,7 +11,7 @@ import {
   PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID,
   validateProgramBundle,
 } from '../config/schema/program-bundle.schema.js';
-import { sha256BytesHex, sha256Hex } from '../utils/sha256.js';
+import { sha256BytesHex, sha256Hex } from '../formats/sha256.js';
 import {
   buildReferenceTranscript,
   createPackageSourceFile,

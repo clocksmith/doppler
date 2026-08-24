@@ -5,6 +5,7 @@ import { createResourceBinder } from './resource-binder.js';
 import { createCommandExecutor } from './command-executor.js';
 import { createSessionController } from './session-controller.js';
 import { selectTargetPlan } from './target-selector.js';
+import { executePackRerank } from './pack-rerank.js';
 
 export const RUNTIME_CORE_VERSION = '2.0.0';
 
@@ -122,6 +123,28 @@ export function createDopplerRuntime(ports) {
           const tokens = [];
           for await (const tokenId of this.generate(generationOptions)) tokens.push(tokenId);
           return { text: program.decodeTokens(tokens), tokenIds: tokens };
+        },
+
+        async rerank(request) {
+          if (closed) throw new Error('Pack runtime session is closed.');
+          try {
+            const receipt = await executePackRerank({
+              pack,
+              targetPlan: selectedPlan,
+              targetPlanDigest,
+              program,
+              request,
+            });
+            emit(observer, {
+              type: 'pack-rerank-complete',
+              packId: pack.packId,
+              targetId: selectedPlan.targetId,
+              receiptDigest: receipt.receiptDigest,
+            });
+            return receipt;
+          } finally {
+            assertPlanUnchanged();
+          }
         },
 
         async close() {

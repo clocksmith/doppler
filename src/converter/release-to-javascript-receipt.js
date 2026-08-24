@@ -1,5 +1,5 @@
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const RELEASE_TO_JAVASCRIPT_RECEIPT_SCHEMA_ID = 'doppler.release-to-javascript-receipt/v2';
 

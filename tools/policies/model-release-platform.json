@@ -1,12 +1,16 @@
 {
   "$schema": "../../src/config/schema/model-release-platform.schema.json",
-  "schemaVersion": 1,
-  "contractVersion": "1.0.0",
+  "schemaVersion": 2,
+  "contractVersion": "2.0.0",
   "id": "doppler-model-release-platform",
   "positioning": {
-    "category": "Release platform for local models in JavaScript",
-    "promise": "Give Doppler a pinned model and target application and receive a supported executable release instead of a recurring conversion and runtime maintenance project.",
-    "buyer": "JavaScript application teams shipping private, offline, or local models across browser, Node, Bun, Electron, and selected edge environments.",
+    "category": "AI-native model release foundry for JavaScript and WebGPU",
+    "entryProduct": "Doppler Production Release",
+    "recurringProduct": "Doppler Release Operations",
+    "initialIcp": "TypeScript/Electron desktop products on Windows and macOS",
+    "northStar": "Production model releases whose eligibility decision is delegated to Doppler and relied upon by the customer’s activation system.",
+    "promise": "Give Doppler a pinned model, Electron application revision, acceptance suite, supported-device policy, previous release, rollout rules, and rollback target; receive a signed eligible-or-blocked production release decision and its immutable evidence bundle.",
+    "buyer": "TypeScript teams shipping Electron desktop products on Windows and macOS.",
     "unitOfValue": "supported-model-release"
   },
   "architecture": {
@@ -43,7 +47,7 @@
     "authorityPaths": ["src/config/pack-v2.js", "src/config/schema/pack-v2.schema.json", "docs/api/root.md"],
     "authoritativeFor": ["distribution", "execution", "qualification", "upgrade", "rollback", "revocation"],
     "requiredReleaseElements": [
-      { "id": "source-revision-license-provenance", "implementationState": "partial", "evidencePaths": ["docs/model-ir-v2-source-truth-forge.md", "src/config/pack-v2.js"], "blockerCode": "pack-release-closure-incomplete" },
+      { "id": "source-revision-license-provenance", "implementationState": "implemented", "evidencePaths": ["docs/model-ir-v2-source-truth-forge.md", "src/config/pack-release-contract.js", "src/config/pack-v2.js", "tests/pack/pack-v2.test.js"], "blockerCode": null },
       { "id": "tokenizer-preprocessing-assets", "implementationState": "implemented", "evidencePaths": ["src/config/pack-v2.js", "src/tooling/program-bundle.js"], "blockerCode": null },
       { "id": "weights-shards-tensor-hashes", "implementationState": "implemented", "evidencePaths": ["src/config/pack-v2.js", "src/storage/shard-manager.js"], "blockerCode": null },
       { "id": "hardware-independent-model-ir", "implementationState": "implemented", "evidencePaths": ["src/config/model-ir-v2.js", "src/config/pack-v2.js"], "blockerCode": null },
@@ -51,11 +55,11 @@
       { "id": "reachable-wgsl-host-closure", "implementationState": "implemented", "evidencePaths": ["src/config/pack-v2.js", "src/tooling/program-bundle.js"], "blockerCode": null },
       { "id": "quantization-cache-fusion-layout", "implementationState": "implemented", "evidencePaths": ["src/config/target-plan.js", "src/config/model-ir-v2.js"], "blockerCode": null },
       { "id": "runtime-device-capabilities", "implementationState": "implemented", "evidencePaths": ["src/config/target-plan.js", "src/client/runtime/target-selector.js"], "blockerCode": null },
-      { "id": "application-workload-oracle-identities", "implementationState": "partial", "evidencePaths": ["tools/policies/product-integration-qualification.json", "src/config/pack-v2.js"], "blockerCode": "pack-release-closure-incomplete" },
-      { "id": "known-exclusions-typed-rejections", "implementationState": "partial", "evidencePaths": ["docs/model-support-matrix.md", "src/config/pack-v2.js"], "blockerCode": "pack-release-closure-incomplete" },
-      { "id": "version-supersession-migration", "implementationState": "partial", "evidencePaths": ["src/config/pack-v2.js", "docs/revocation.md"], "blockerCode": "pack-release-closure-incomplete" },
+      { "id": "application-workload-oracle-identities", "implementationState": "implemented", "evidencePaths": ["tools/policies/product-integration-qualification.json", "src/config/pack-release-contract.js", "src/config/pack-v2.js", "tests/pack/pack-v2.test.js"], "blockerCode": null },
+      { "id": "known-exclusions-typed-rejections", "implementationState": "implemented", "evidencePaths": ["docs/model-support-matrix.md", "src/config/pack-release-contract.js", "src/config/pack-v2.js", "tests/pack/pack-v2.test.js"], "blockerCode": null },
+      { "id": "version-supersession-migration", "implementationState": "implemented", "evidencePaths": ["src/config/pack-release-contract.js", "src/config/pack-v2.js", "docs/revocation.md", "tests/pack/pack-v2.test.js"], "blockerCode": null },
       { "id": "signing-and-verification", "implementationState": "implemented", "evidencePaths": ["src/config/pack-v2.js", "tests/pack/pack-v2.test.js"], "blockerCode": null },
-      { "id": "revocation-policy", "implementationState": "partial", "evidencePaths": ["src/config/revocation-registry.json", "tools/policies/signed-revocation-authority-qualification.json"], "blockerCode": "signed-live-revocation-authority-missing" }
+      { "id": "revocation-policy", "implementationState": "implemented", "evidencePaths": ["src/config/pack-release-contract.js", "src/config/pack-v2.js", "src/config/revocation-registry.json", "tests/pack/pack-v2.test.js"], "blockerCode": null }
     ]
   },
   "providers": {
@@ -77,35 +81,40 @@
     { "id": "dynamic-load", "mode": "compatibility-intake", "evidencePaths": ["src/index.js", "src/loader/doppler-loader.js", "docs/api/compat.md"], "blockerCode": null },
     { "id": "openai-server", "mode": "migration-required", "evidencePaths": ["src/cli/doppler-serve.js", "docs/cli.md"], "blockerCode": "pack-first-surface-migration-incomplete" },
     { "id": "generation", "mode": "migration-required", "evidencePaths": ["src/inference/pipelines/text.js", "docs/api/generation.md"], "blockerCode": "pack-first-surface-migration-incomplete" },
-    { "id": "embedding-reranking", "mode": "migration-required", "evidencePaths": ["src/client/runtime/model-session.js", "docs/product-integration-qualification.md"], "blockerCode": "pack-first-surface-migration-incomplete" }
+    { "id": "embedding", "mode": "migration-required", "evidencePaths": ["src/client/runtime/model-session.js", "docs/product-integration-qualification.md"], "blockerCode": "pack-first-surface-migration-incomplete" },
+    { "id": "electron-reranking", "mode": "pack-authoritative", "evidencePaths": ["src/client/runtime/composition-root.js", "src/client/runtime/pack-rerank.js", "src/client/runtime/pack-program-adapter.js", "tests/runtime/pack-rerank.test.js"], "blockerCode": null }
   ],
   "recovery": [
     { "id": "content-hash-shard-resume", "implementationState": "implemented", "evidencePaths": ["src/storage/shard-manager.js", "src/loader/shard-resolver.js"], "blockerCode": null },
-    { "id": "failed-upgrade-preserves-previous-pack", "implementationState": "partial", "evidencePaths": ["docs/revocation.md", "src/pack-runtime.js"], "blockerCode": "pack-release-closure-incomplete" },
-    { "id": "portable-state-snapshot-identity", "implementationState": "partial", "evidencePaths": ["docs/architecture.md", "src/client/runtime/model-session.js"], "blockerCode": "pack-release-closure-incomplete" }
+    { "id": "failed-upgrade-preserves-previous-pack", "implementationState": "implemented", "evidencePaths": ["docs/revocation.md", "src/config/pack-release-contract.js", "src/config/pack-v2.js", "tests/pack/pack-v2.test.js"], "blockerCode": null },
+    { "id": "portable-state-snapshot-identity", "implementationState": "implemented", "evidencePaths": ["docs/architecture.md", "src/config/pack-release-contract.js", "src/client/runtime/model-session.js", "tests/pack/pack-v2.test.js"], "blockerCode": null }
   ],
   "commercialOffer": {
-    "id": "model-release-qualification",
-    "name": "Model Release Qualification",
-    "promise": "Convert one pinned model for one real application, produce a signed immutable Pack, qualify declared browser and Node targets, and deliver supported upgrade, rollback, requalification, and revocation procedures.",
-    "applicationClasses": ["generation", "embedding", "reranking"],
+    "id": "doppler-production-release",
+    "name": "Doppler Production Release",
+    "recurringProduct": "Doppler Release Operations",
+    "promise": "Qualify one pinned model revision for one pinned Electron application revision and return a signed eligible-or-blocked recommendation, immutable Pack, qualification evidence, exclusions, and customer-controlled rollback target.",
+    "applicationClasses": ["electron-reranking"],
     "intake": [
       "pinned upstream model revision, tokenizer, weights, configuration, and license",
-      "frozen application revision, workload, quality oracle, and support targets",
+      "pinned Electron application revision, acceptance tests, workload identity, and oracle identity",
+      "supported Windows and macOS device policy with exact Electron, GPU, and driver constraints",
       "eligible incumbent controls and declared correctness class",
-      "privacy, artifact distribution, hardware, memory, latency, and recovery constraints"
+      "privacy, artifact distribution, hardware, memory, latency, and recovery constraints",
+      "previous release, rollout rules, and rollback target"
     ],
     "deliverables": [
       "source-derived ModelIR and retained conversion provenance",
       "signed immutable Pack with qualified TargetPlans",
-      "browser and Node qualification receipts for declared tuples",
-      "application correctness, lifecycle, reliability, memory, and performance evidence",
+      "Windows and macOS Electron fleet qualification receipts for declared tuples",
+      "application-owned correctness, lifecycle, reliability, memory, and performance evidence",
+      "signed eligible-or-blocked promotion recommendation that never activates the application",
       "known exclusions and typed rejection reasons",
-      "upgrade, rollback, requalification, and revocation procedure"
+      "failure bundle, previous working Pack, rollback target, and revocation configuration"
     ],
     "paidSurfaces": [
       "private Packs",
-      "qualification campaigns",
+      "Doppler Release Operations",
       "supported hardware matrices",
       "private registries",
       "recurring model upgrades",
@@ -113,18 +122,33 @@
       "performance tuning",
       "long-term release maintenance"
     ],
-    "promotionGate": "An external application accepts a qualified Pack, later accepts another upgrade through the same process, and depends on Doppler's qualification or revocation decision.",
+    "promotionGate": "An external customer’s activation system relies on Doppler’s eligible-or-blocked decision for a production release and its subsequent upgrade while retaining activation and rollback authority.",
+    "activationAuthority": "customer-controlled",
+    "selfPromotionAllowed": false,
     "currentAssessment": "unestablished",
-    "blockerCode": "paid-model-release-qualification-missing"
+    "blockerCode": "paid-doppler-production-release-missing"
+  },
+  "referenceIntegrations": {
+    "classification": "Internally controlled reference integrations proving application-integration mechanics.",
+    "externalAdoptionEvidence": false,
+    "commercialDemandEvidence": false,
+    "integrations": [
+      { "id": "reploid-generation", "workload": "generation" },
+      { "id": "dream-embedding-retrieval", "workload": "embedding" },
+      { "id": "columbo-reranking", "workload": "reranking" }
+    ]
   },
   "promotionSequence": [
-    { "order": 1, "id": "external-pack-first-application", "gate": "One external application becomes Pack-first in browser and Node." },
-    { "order": 2, "id": "remove-pack-path-legacy-delegation", "gate": "That model's Pack path no longer delegates semantic ownership to the legacy runtime." },
-    { "order": 3, "id": "qualify-multiple-target-plans", "gate": "Forge produces and physically qualifies multiple real TargetPlans." },
-    { "order": 4, "id": "second-model-type", "gate": "Embedding or reranking ships without model-family Runtime branches." },
-    { "order": 5, "id": "lifecycle-drill", "gate": "Upgrade, rejection, rollback, requalification, and revocation are demonstrated." },
-    { "order": 6, "id": "external-release-dependence", "gate": "The external application's release depends on Doppler evidence." },
-    { "order": 7, "id": "unrelated-repeat-application", "gate": "A second unrelated external application repeats the release process." }
+    { "order": 1, "id": "canonical-product-contract", "gate": "The validated contract and goal matrix name Doppler Production Release, Doppler Release Operations, the Electron ICP, and the customer-controlled activation boundary." },
+    { "order": 2, "id": "electron-reference-release", "gate": "production-release/v1 freezes one Electron document-search reranker upgrade as non-commercial acceptance evidence." },
+    { "order": 3, "id": "pack-release-closure", "gate": "All seven Pack release requirements are immutable, validated, typed, hash-bound, and rejection-tested." },
+    { "order": 4, "id": "pack-first-electron-reranking", "gate": "The reference reranking workload executes only through Pack validation, qualified TargetPlan selection, execution, and evidence." },
+    { "order": 5, "id": "doppler-release-command", "gate": "doppler release consumes one production-release/v1 manifest and emits the complete non-promoting release bundle." },
+    { "order": 6, "id": "electron-fleet-qualification", "gate": "A typed Electron adapter and customer-operated Windows and macOS qualification agents retain exact device receipts." },
+    { "order": 7, "id": "github-release-action", "gate": "A reusable GitHub Action orchestrates external fleet receipts and emits a signed recommendation without deployment or self-promotion authority." },
+    { "order": 8, "id": "revocation-and-customer-rollback", "gate": "Revocation authority is production-qualified and customer-controlled rollback is exercised against atomic durable release state." },
+    { "order": 9, "id": "paid-external-release-and-upgrade", "gate": "One paid external customer relies on Doppler eligibility for a production release and the subsequent upgrade." },
+    { "order": 10, "id": "three-unrelated-design-partners", "gate": "Two additional unrelated customers repeat the production release path." }
   ],
   "compatibilityGraph": [
     "model-source",
@@ -146,7 +170,7 @@
     "shareableClasses": ["sanitized failure signatures", "minimized synthetic reproductions", "public compatibility evidence", "customer-approved derived patterns"]
   },
   "acquisitionBoundary": {
-    "operatingObjective": "Make external application releases depend on Doppler's Pack, qualification, upgrade, and revocation decisions.",
+    "operatingObjective": "Production model releases whose eligibility decision is delegated to Doppler and relied upon by the customer’s activation system.",
     "candidateBuyerClasses": ["model hubs", "browser vendors", "developer platforms", "OEMs", "silicon vendors", "local-AI application companies"],
     "rule": "Acquisition leverage is a possible consequence of external release dependence, never the substitute for building it."
   },

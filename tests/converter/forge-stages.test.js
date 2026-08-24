@@ -3,7 +3,11 @@ import fs from 'node:fs/promises';
 import { runForgePipeline, stageAnalyze } from '../../src/converter/forge-stages.js';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 import { sha256Hex } from '../../src/utils/sha256.js';
-import { TEST_PACK_AUTHORITY, TEST_PACK_PUBLIC_KEY } from '../helpers/pack-v2-fixture.js';
+import {
+  TEST_PACK_AUTHORITY,
+  TEST_PACK_PUBLIC_KEY,
+  createPackReleaseFixture,
+} from '../helpers/pack-v2-fixture.js';
 
 const privateKeyJwk = {
   ...TEST_PACK_PUBLIC_KEY,
@@ -78,10 +82,12 @@ const programBundle = {
   },
 };
 const programBundleRaw = `${JSON.stringify(programBundle)}\n`;
+const release = createPackReleaseFixture({ targetIds: ['webgpu-f32-f32-portable'] });
 
 const result = await runForgePipeline({
   manifest, manifestRaw, programBundle, programBundleRaw,
   programBundlePath: '/tmp/program-bundle.json', repoRoot: '/tmp', outputPath: '/tmp/model.pack.json',
+  release,
 }, {
   authority: TEST_PACK_AUTHORITY,
   privateKeyJwk,
@@ -171,6 +177,7 @@ const v2Result = await runForgePipeline({
   modelIR: modelIRV2,
   modelIREvidence,
   initialExecutionIdentity,
+  release,
 }, {
   authority: TEST_PACK_AUTHORITY,
   privateKeyJwk,
@@ -220,6 +227,7 @@ await assert.rejects(
     modelIR: modelIRV2,
     modelIREvidence,
     initialExecutionIdentity: wrongKernelIdentity,
+    release,
   }, {
     authority: TEST_PACK_AUTHORITY,
     privateKeyJwk,

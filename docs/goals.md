@@ -5,20 +5,18 @@ work. Generated matrices and receipts remain the source of truth for current
 support and claims; this file states what the repo is optimizing toward and the
 boundaries that must constrain that work.
 
-Doppler exists to make local model execution usable, explicit, and auditable.
-It is an AI-native model release foundry and evidence-backed WebGPU runtime for
-JavaScript applications, built to transform newly released open models into small,
-explicit, verified, zero-daemon JavaScript/WGSL programs faster than generic
-runtimes can responsibly support them. Application developers obtain verified local
-intelligence through a small, capability-driven public surface. Runtime engineers
-establish exactly which artifact, tokenizer, execution graph, provider, kernel,
-precision, cache, and runtime policy produced that result.
+Doppler is an AI-native model release foundry and evidence-backed WebGPU runtime
+for JavaScript applications. The immediate product contract is:
 
-The initial buyer is a JavaScript team shipping private, offline, or local
-inference that cannot continuously maintain model conversion, browser
-compatibility, hardware qualification, and model requalification alone. The
-coherent product is a runtime SDK, qualified artifacts, compatibility evidence,
-signed promotion and revocation state, and maintained integration support.
+- Entry product: **Doppler Production Release**.
+- Recurring product: **Doppler Release Operations**.
+- Initial ICP: **TypeScript/Electron desktop products on Windows and macOS**.
+- North star: **Production model releases whose eligibility decision is
+  delegated to Doppler and relied upon by the customer’s activation system.**
+
+Doppler determines and signs release eligibility. It does not activate or roll
+back the customer application. The customer’s updater, deployment system,
+feature flag, or administrator retains that authority.
 
 Runtime ownership must be proven rather than presumed. Artifact governance,
 evaluation, application APIs, receipts, and requalification can also be built
@@ -30,18 +28,24 @@ standards.
 
 ## Standalone product and commercial offer
 
-Doppler's independent category is the **release platform for local models in
-JavaScript**. Its authoritative unit of value is a supported model release: a
+Doppler's independent category is the **AI-native model release foundry for
+JavaScript and WebGPU**. Its authoritative unit of value is a supported model release: a
 signed immutable Pack, one or more qualified TargetPlans, declared application
 and hardware evidence, known exclusions, and operational upgrade, rollback,
 requalification, and revocation procedures.
 
-The first paid offer is **Model Release Qualification**. A customer provides one
-pinned upstream model and one real application. Doppler returns a source-derived
-Pack and qualifies the declared browser and Node targets. The promotion gate is
-external and repeatable: that application must accept the Pack, later accept an
-upgrade through the same process, and depend on Doppler's qualification or
-revocation decision. An internal Pack proof does not satisfy the gate.
+The first paid offer is **Doppler Production Release**. A customer provides one
+pinned model, one pinned Electron application revision, its acceptance tests,
+supported Windows/macOS device policy, previous release, rollout rules, and
+rollback target. Doppler returns a source-derived Pack, exact fleet evidence,
+typed exclusions, retained failures, and a signed `eligible` or `blocked`
+recommendation. **Doppler Release Operations** repeats that process for upgrades,
+requalification, incidents, revocation, and support-fleet changes.
+
+The promotion gate is external and repeatable: a customer activation system
+must rely on Doppler’s eligibility decision for a production release and its
+subsequent upgrade while retaining activation and rollback authority. An
+internal Pack proof cannot satisfy the gate.
 
 `tools/policies/model-release-platform.json` is the validated projection of
 this product contract. `npm run model-release:check` binds its Forge, ModelIR,
@@ -54,38 +58,30 @@ carried by the Pack and never invents one on the user's device. Doe is an
 optional target, not a dependency. A stronger eligible incumbent remains valid
 when it satisfies the application contract.
 
-## Goal 1: Make local WebGPU inference a real product surface
+## Goal 1: Ship one external Electron production release
 
 Product contract:
 
-- Users can run verified local inference through the hosted browser demo,
-  `npx doppler-gpu`, the root `doppler` API, CLI surfaces, supported JavaScript
-  hosts, and the OpenAI-compatible localhost server.
-- Tier 1 behavior is the verified text-inference path behind those surfaces.
-- Advanced exports may exist, but support tier is defined by
-  `docs/subsystem-support-matrix.md`, not by export shape alone.
-- Bun remains experimental until its own product-support evidence is promoted;
-  its existence must not imply the same support as browser or Node.
-- The portfolio is structured across four deliberate, production-qualified tiers:
-  1. **Ambient Models:** Instantaneous local generation, JSON extraction, and UI
-     support on ordinary consumer laptops and browser tabs (e.g. Gemma 3 270M/1B,
-     Qwen 3.5 0.8B/2B).
-  2. **Workstation Agents:** 20B–35B reasoning, coding, and autonomous tool
-     agents running on high-memory APUs and discrete GPUs (Qwen3.8-27B flagship
-     and Meta Muse Glimmer 30B challenger).
-  3. **Retrieval Specialists:** High-throughput dense embeddings and cross-encoder
-     reranking for local RAG (EmbeddingGemma 300M, Qwen 3 Reranker 0.6B).
-  4. **Biological Sequence Specialists:** In-process zero-egress protein and
-     nucleotide sequence encoders (ESM-2 35M, ESMC 300M, Nucleotide Transformer
-     50M) anchoring scientific research and mutation screening for Reploid.
-- The primary velocity metric is the **Release-to-JavaScript Scoreboard**:
-  median time from upstream open-model publication to a verified, reproducible
-  JavaScript pack with clean parity evidence and passing application gates.
+- The initial release episode is an Electron document-search application
+  upgrading to `qwen-3-reranker-0-6b-q4k-ehf16-af32`.
+- The application revision, model revision, incumbent control, acceptance suite,
+  supported Windows/macOS device tuples, data-custody rules, previous Pack,
+  rollout rules, and rollback target are pinned before qualification.
+- `doppler release` emits the immutable Pack, signed release decision,
+  qualification receipts, typed exclusions, failure bundle, rollback target,
+  and revocation configuration. It never deploys or self-promotes.
+- Electron renderer execution remains subject to Chromium/WebGPU correctness.
+  Fleet qualification is performed by customer-operated Windows and macOS
+  agents; hosted CI only orchestrates their receipts.
+- Bun, new model families, biological workloads, generic browser expansion, and
+  unrelated benchmarks remain outside the gate unless the external release
+  requires them.
 
 Technical contract:
 
-- One coherent JS/WGSL execution contract serves supported browser, Node, CLI,
-  and server surfaces. Experimental hosts remain explicitly classified.
+- One coherent JS/WGSL execution contract serves the Electron renderer, the
+  release CLI, and the Pack Runtime. Other surfaces remain explicit support or
+  compatibility contracts rather than simultaneous product priorities.
 - Command semantics stay aligned where a command is supported on multiple
   surfaces; unsupported commands fail explicitly.
 - JavaScript orchestrates load, prefill, decode, KV cache, streaming, and
@@ -116,18 +112,20 @@ does not imply task quality.
 
 ### Decisive product gate
 
-The first decisive product gate is three distinct maintained application
-integrations spanning generation, embedding retrieval, and reranking. Each
-integration must use a product-supported lane, exercise upgrade or
-requalification, preserve failure and rollback evidence, and have a named owner
-who confirms that the integration remains active. Demos or multiple endpoints
-inside one unmaintained example do not satisfy this gate.
+The first decisive product gate is one paid external Electron application whose
+activation system relies on Doppler’s eligibility decision for a production
+release and its subsequent upgrade. The release must preserve the previous Pack,
+retain a failed or rejected candidate, exercise customer-controlled rollback and
+revocation, and bind exact application, artifact, execution, and supported-device
+identity. Two additional unrelated customers must then repeat the path.
 
-Each integration must report install-to-first-verified-output behavior, exact
-logical/artifact/execution identity, source-model task-quality retention, crash
-and device-loss behavior, OOM and peak-memory evidence, cold and warm response
-distributions, current browser/hardware qualification, and an incumbent-runtime
-control.
+Reploid generation, Dream embedding retrieval, and Columbo reranking are exactly:
+
+> Internally controlled reference integrations proving application-integration
+> mechanics.
+
+Their 3/3 qualification proves the mechanics and neither external adoption nor
+commercial demand.
 
 Static discovery may register a real application as a non-claimable candidate
 when its repository revision, Doppler call path, requested model, and known gaps
@@ -152,19 +150,13 @@ blockers are empty. Partial or experimental rows must name blocker codes, so
 README claims cannot outrun support matrices, release receipts, or package
 surface truth.
 
-Deliberate portfolio scope is complete when the supported models are named and
-everything outside that scope remains visibly experimental, failing, or
-unsupported. It does not require every catalog or roadmap model to become
-product-supported. `tools/policies/product-portfolio-coherence.json` is the
-canonical initial generation, embedding, and reranking tuple. `npm run
-product:portfolio:check` fails when catalog identity, application integration,
-provider conformance, runtime ownership, or Bun qualification drifts from that
-tuple, including conflicting non-null resolved manifest identities. Likewise,
-scoped claim promotion is working when qualified
-receipts are promoted and candidate or rejected lanes remain non-claimable;
-the mere existence of retained candidates is not a strategic blocker. A model
-or benchmark gap becomes mainline only when the declared product portfolio or
-support commitment includes it.
+The immediate matrix is ordered around the Electron production release, not a
+simultaneous generation, embedding, reranking, browser, Node, and Bun portfolio.
+The older three-workload portfolio contract remains reference and compatibility
+evidence while the first release path is built. A model, host, or benchmark gap
+becomes mainline only when the Electron release or an explicit customer support
+commitment requires it. Candidate and rejected lanes remain visible and
+non-claimable.
 
 Every blocker is also an executable action record. It names a unique priority,
 an accountable owner, a status command, exact exit criteria, and the authority
@@ -456,7 +448,9 @@ vulnerable predecessor.
 
 ## Product measures
 
-North-star measures are scoped product outcomes, not raw catalog size:
+The north star is production model releases whose eligibility decision is
+delegated to Doppler and relied upon by the customer’s activation system.
+Supporting measures are scoped product outcomes, not raw catalog size:
 
 - install-to-first-verified-output success;
 - supported workload completion and usable-output rates;
@@ -465,7 +459,7 @@ North-star measures are scoped product outcomes, not raw catalog size:
 - crash, OOM, device-loss, recovery, and peak-memory behavior;
 - held-out task-quality retention against the source model;
 - artifact reproducibility and evidence freshness;
-- active maintained application integrations;
+- paid external Electron releases and subsequent upgrades relying on Doppler;
 - regression detection, revocation, and requalification completeness;
 - accepted improvement per measurement budget, with negative learning retained.
 
@@ -477,8 +471,8 @@ safe candidates were attempted.
 
 | Area | Goal |
 | --- | --- |
-| Browser demo, CLI, server, root API, Node/Bun surfaces | Goal 1 |
-| JS orchestration, WGSL kernels, KV cache, streaming | Goal 1 |
+| Doppler Production Release, release CLI, Electron adapter, fleet action | Goal 1 |
+| Electron renderer, JS orchestration, WGSL kernels, Pack execution | Goal 1 |
 | RDRR, conversion, manifests, catalog, hosted model IDs | Goal 2 |
 | Runtime profiles, schema defaults, rule maps, kernel refs | Goal 2 |
 | Release receipts, model matrix, subsystem tiers | Goal 3 |
@@ -525,10 +519,10 @@ contract validity, and operational authority qualification; it must not
 collapse those distinct trust states.
 `npm run product:readiness:check` keeps that projection in the default gate.
 
-`tools/policies/product-integration-qualification.json` is the source of truth
-for the decisive maintained-application gate. `npm run product:integrations:check`
-validates distinct active applications across generation, embedding retrieval,
-and reranking; current named owners; the five-level support ladder; exact
+`tools/policies/product-integration-qualification.json` remains the source of
+truth for the three internally controlled reference integrations. `npm run
+product:integrations:check` validates Reploid generation, Dream embedding
+retrieval, and Columbo reranking; current named owners; the five-level support ladder; exact
 logical identity plus runtime-observed `sha256:` artifact and execution
 identities; expiry; incumbent controls; and
 the required reliability, memory, quality, upgrade, rollback, and revocation
@@ -585,7 +579,9 @@ deliberately leaves production facts null and `claimAllowed: false`; passing
 the structural check does not qualify the authority.
 `npm run revocations:authority:record` derives a candidate policy from retained
 receipt paths but always preserves candidate lifecycle and disables claims;
-recording evidence is not production activation.
+recording evidence is not production activation. Passing 3/3 is reference
+mechanics evidence and must not be reported as external adoption or commercial
+demand.
 
 `tools/policies/runtime-promotion-monitoring.json` closes the control loop after
 a human promotion. `npm run promotion:monitoring:check` binds each promoted

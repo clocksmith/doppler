@@ -14,7 +14,7 @@ import {
   buildSourceTokenizerJson,
   validateSourceTokenizerPolicy,
 } from '../../converter/source-tokenizer.js';
-import { isPlainObject } from '../../utils/plain-object.js';
+import { isPlainObject } from '../../formats/plain-object.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { log, trace } from '../../debug/index.js';
 import { saveReport } from '../../storage/reports.js';

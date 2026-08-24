@@ -34,8 +34,8 @@ export function usage() {
     'Doppler Forge: deterministic signed Pack v2 compiler',
     '',
     'Usage:',
-    '  node tools/forge-model-pack.js --program-bundle <path> --out <pack.json>',
-    '  node tools/forge-model-pack.js --manifest <path> --reference-report <path> --out <pack.json> [--conversion-config <path>]',
+    '  node tools/forge-model-pack.js --program-bundle <path> --release-manifest <path> --out <pack.json>',
+    '  node tools/forge-model-pack.js --manifest <path> --reference-report <path> --release-manifest <path> --out <pack.json> [--conversion-config <path>]',
     '  node tools/forge-model-pack.js --config <path|json>',
     '',
     'Flags:',
@@ -47,6 +47,7 @@ export function usage() {
     '  --runtime-config <path>       Runtime configuration',
     '  --model-ir-receipt <path>     Validated ModelIR receipt containing modelIR',
     '  --initial-identity <path>     Pre-dispatch observed execution identity or report',
+    '  --release-manifest <path>     Required doppler.pack-release/v1 contract',
     '  --model-dir <path>            Model artifact directory',
     '  --out <path>                  Signed Pack v2 output path',
     '  --signing-private-key <path>  Ed25519 private JWK',
@@ -104,6 +105,7 @@ export async function buildForgeOptions(flags, metaUrl = import.meta.url) {
     runtimeConfigPath: flags['runtime-config'] ?? null,
     modelIRReceiptPath: flags['model-ir-receipt'] ?? null,
     initialExecutionIdentityPath: flags['initial-identity'] ?? null,
+    releaseManifestPath: flags['release-manifest'] ?? null,
     outputPath: flags.out ?? null,
     createdAtUtc: flags['created-at'] ?? null,
     signingPrivateKeyPath: flags['signing-private-key'] ?? null,
@@ -324,6 +326,9 @@ async function materializePackArtifactClosure(pack, sourceBundle, sourceBundlePa
  */
 export async function forgeModelPack(options) {
   if (!options?.outputPath) throw new Error('Doppler Forge requires --out / outputPath.');
+  if (!options?.releaseManifestPath) {
+    throw new Error('Doppler Forge requires --release-manifest / releaseManifestPath.');
+  }
   const repoRoot = path.resolve(options.repoRoot ?? process.cwd());
   const source = await materializeProgramBundle({ ...options, repoRoot });
   await verifySourceArtifactBytes(source.bundle, source.bundlePath, repoRoot);
@@ -331,6 +336,7 @@ export async function forgeModelPack(options) {
     options.manifestPath ?? path.join(repoRoot, source.bundle.sources.manifest.path)
   );
   const manifest = await readJsonFile(manifestPath, 'manifest');
+  const release = (await readJsonFile(options.releaseManifestPath, 'Pack release contract')).json;
   const signer = await resolveSigner(options);
   const qualificationEvidence = await loadQualificationEvidence(
     options.qualificationReportPaths ?? [],
@@ -374,6 +380,7 @@ export async function forgeModelPack(options) {
     modelIR,
     modelIREvidence,
     initialExecutionIdentity,
+    release,
   }, signer);
   await materializePackArtifactClosure(
     pack,

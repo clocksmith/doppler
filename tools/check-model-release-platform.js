@@ -10,15 +10,22 @@ const POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'model-release-pla
 const MATRIX_PATH = path.join(REPO_ROOT, 'src', 'config', 'goal-completion-matrix.json');
 
 const EXPECTED = Object.freeze({
+  positioning: Object.freeze({
+    entryProduct: 'Doppler Production Release',
+    recurringProduct: 'Doppler Release Operations',
+    initialIcp: 'TypeScript/Electron desktop products on Windows and macOS',
+    northStar: 'Production model releases whose eligibility decision is delegated to Doppler and relied upon by the customer’s activation system.',
+  }),
   forgeStages: ['inspect', 'normalize', 'analyze', 'lower', 'specialize', 'search', 'verify', 'qualify', 'package', 'sign'],
   runtimeSteps: ['validate', 'select', 'bind', 'allocate', 'execute', 'observe'],
   providers: ['doppler-webgpu', 'browser-dawn', 'doe-runtime', 'onnx-runtime', 'webnn', 'vendor-native', 'cpu-reference'],
-  apiSurfaces: ['open-pack', 'dynamic-load', 'openai-server', 'generation', 'embedding-reranking'],
-  applicationClasses: ['generation', 'embedding', 'reranking'],
+  apiSurfaces: ['open-pack', 'dynamic-load', 'openai-server', 'generation', 'embedding', 'electron-reranking'],
+  applicationClasses: ['electron-reranking'],
+  referenceIntegrations: ['reploid-generation', 'dream-embedding-retrieval', 'columbo-reranking'],
   recovery: ['content-hash-shard-resume', 'failed-upgrade-preserves-previous-pack', 'portable-state-snapshot-identity'],
   goalRows: [
     ['local-webgpu-product-surface', 'pack-first-runtime-convergence'],
-    ['local-webgpu-product-surface', 'model-release-qualification-offer'],
+    ['local-webgpu-product-surface', 'doppler-production-release-offer'],
     ['model-artifact-runtime-contract', 'complete-pack-release-closure'],
   ],
 });
@@ -104,6 +111,11 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
   if (policy?.positioning?.unitOfValue !== 'supported-model-release') {
     errors.push('positioning.unitOfValue must be supported-model-release');
   }
+  for (const [field, expected] of Object.entries(EXPECTED.positioning)) {
+    if (policy?.positioning?.[field] !== expected) {
+      errors.push(`positioning.${field} must be ${expected}`);
+    }
+  }
   exactArray(policy?.architecture?.forgeStages, EXPECTED.forgeStages, 'architecture.forgeStages', errors);
   exactArray(policy?.architecture?.runtimeSteps, EXPECTED.runtimeSteps, 'architecture.runtimeSteps', errors);
   pathRows.push(['architecture.authorityPaths', policy?.architecture?.authorityPaths]);
@@ -147,6 +159,35 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
   );
   exactArray(Array.from(recoveryIndex.keys()), EXPECTED.recovery, 'recovery ids', errors);
   exactArray(policy?.commercialOffer?.applicationClasses, EXPECTED.applicationClasses, 'commercialOffer.applicationClasses', errors);
+  if (policy?.commercialOffer?.name !== EXPECTED.positioning.entryProduct) {
+    errors.push(`commercialOffer.name must be ${EXPECTED.positioning.entryProduct}`);
+  }
+  if (policy?.commercialOffer?.recurringProduct !== EXPECTED.positioning.recurringProduct) {
+    errors.push(`commercialOffer.recurringProduct must be ${EXPECTED.positioning.recurringProduct}`);
+  }
+  if (policy?.commercialOffer?.activationAuthority !== 'customer-controlled') {
+    errors.push('commercialOffer.activationAuthority must be customer-controlled');
+  }
+  if (policy?.commercialOffer?.selfPromotionAllowed !== false) {
+    errors.push('commercialOffer.selfPromotionAllowed must be false');
+  }
+  const referenceIntegrationIndex = indexById(
+    policy?.referenceIntegrations?.integrations,
+    'referenceIntegrations.integrations',
+    errors
+  );
+  exactArray(
+    Array.from(referenceIntegrationIndex.keys()),
+    EXPECTED.referenceIntegrations,
+    'referenceIntegrations.integrations ids',
+    errors
+  );
+  if (policy?.referenceIntegrations?.externalAdoptionEvidence !== false) {
+    errors.push('referenceIntegrations.externalAdoptionEvidence must be false');
+  }
+  if (policy?.referenceIntegrations?.commercialDemandEvidence !== false) {
+    errors.push('referenceIntegrations.commercialDemandEvidence must be false');
+  }
   if (policy?.commercialOffer?.currentAssessment !== 'unestablished') {
     errors.push('commercialOffer.currentAssessment must remain unestablished until external evidence is promoted');
   }
@@ -155,7 +196,7 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
   }
   exactArray(
     (policy?.promotionSequence || []).map((row) => row.order),
-    [1, 2, 3, 4, 5, 6, 7],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     'promotionSequence order',
     errors
   );

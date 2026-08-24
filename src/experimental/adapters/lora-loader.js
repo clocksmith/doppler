@@ -1,7 +1,7 @@
 import { LORA_MODULE_ALIASES } from '../../inference/pipelines/text/lora.js';
 import { applyAdapterManifestDefaults, validateManifest } from './adapter-manifest.js';
 import { log } from '../../debug/index.js';
-import { computeCanonicalSha256 } from '../../utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
 import {
   assertBundledResolutionNotRevoked,
   authorizeBundledAdapter,

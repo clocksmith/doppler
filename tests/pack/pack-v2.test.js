@@ -42,6 +42,44 @@ const changedWgslDescriptor = structuredClone(fixture.pack);
 changedWgslDescriptor.wgslModules[0].entry = 'changed';
 assert.equal(validatePackV2(changedWgslDescriptor).ok, false, 'semantic root must reject WGSL metadata mutation');
 
+const changedReleaseSource = structuredClone(fixture.pack);
+changedReleaseSource.release.source.revision = 'changed-revision';
+assert.equal(validatePackV2(changedReleaseSource).ok, false, 'semantic root must bind source revision');
+
+const missingLicenseDigest = structuredClone(fixture.pack);
+missingLicenseDigest.release.source.license.textDigest = null;
+assert.ok(validatePackV2(missingLicenseDigest).errors.includes(
+  'release.source.license.textDigest must be a SHA-256 digest.'
+));
+
+const changedWorkloadIdentity = structuredClone(fixture.pack);
+changedWorkloadIdentity.release.application.workload.digest = `sha256:${'0'.repeat(64)}`;
+assert.equal(validatePackV2(changedWorkloadIdentity).ok, false, 'semantic root must bind workload identity');
+
+const untypedExclusion = structuredClone(fixture.pack);
+untypedExclusion.release.exclusions.known[0].code = 'unknown-rejection';
+assert.ok(validatePackV2(untypedExclusion).errors.includes(
+  'release.exclusions.known[0].code is unsupported.'
+));
+
+const discardedPreviousPack = structuredClone(fixture.pack);
+discardedPreviousPack.release.lifecycle.failedUpgrade.preservePrevious = false;
+assert.ok(validatePackV2(discardedPreviousPack).errors.includes(
+  'release.lifecycle.failedUpgrade.preservePrevious must be true.'
+));
+
+const changedRevocationPolicy = structuredClone(fixture.pack);
+changedRevocationPolicy.release.revocation.failClosedAfterExpiry = false;
+assert.ok(validatePackV2(changedRevocationPolicy).errors.includes(
+  'release.revocation.failClosedAfterExpiry must be true.'
+));
+
+const unboundSnapshotTarget = structuredClone(fixture.pack);
+unboundSnapshotTarget.release.stateSnapshot.portableAcrossTargetIds = ['missing-target'];
+assert.ok(validatePackV2(unboundSnapshotTarget).errors.includes(
+  'release.stateSnapshot target "missing-target" is not carried by the Pack.'
+));
+
 const changedBytesStore = {
   ...fixture.artifactStore,
   async hashArtifact(artifact) {

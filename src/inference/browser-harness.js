@@ -83,8 +83,8 @@ import {
   runEnergySuite,
 } from './browser-harness-diffusion-energy-suites.js';
 import { collectTrainingArtifactsFromSuiteResult } from './browser-harness-report-helpers.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 import { assertCommandContextMatchesOptions } from '../tooling/command-context.js';
 import {
   buildTokenCostLedger,

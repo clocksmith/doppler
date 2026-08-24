@@ -1,4 +1,4 @@
-import { computeCanonicalSha256 } from '../utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 
 export const RUNTIME_OPTIMIZATION_RESULTS_INDEX_SCHEMA =
   'doppler.runtime-optimization-results-index/v1';

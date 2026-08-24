@@ -1,1 +1,1 @@
-export function encodeUtf8(value: any): Uint8Array<ArrayBuffer>;
+export { encodeUtf8 } from '../formats/encode-utf8.js';

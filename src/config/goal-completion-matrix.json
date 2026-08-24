@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "doppler",
-  "updatedAtUtc": "2026-08-22T00:00:00.000Z",
+  "updatedAtUtc": "2026-08-23T00:00:00.000Z",
   "goals": [
     {
       "id": "local-webgpu-product-surface",
@@ -15,9 +15,8 @@
       ],
       "blockers": [
         "bun-runtime-tier-experimental",
-        "maintained-application-integrations-missing",
         "pack-first-surface-migration-incomplete",
-        "paid-model-release-qualification-missing"
+        "paid-doppler-production-release-missing"
       ],
       "rows": [
         {
@@ -185,14 +184,14 @@
         },
         {
           "id": "maintained-application-integrations",
-          "label": "Three maintained application integrations",
+          "label": "Internally controlled reference integrations proving application-integration mechanics",
           "tier": "tier1",
-          "status": "partial",
-          "claimAllowed": false,
+          "status": "covered",
+          "claimAllowed": true,
           "supportSubsystemId": null,
           "packageBin": null,
           "packageExport": null,
-          "smokeCommand": null,
+          "smokeCommand": "npm run product:integrations:check",
           "evidencePaths": [
             "docs/goals.md",
             "docs/product-integration-qualification.md",
@@ -211,9 +210,7 @@
             "tests/tooling/product-integration-evidence.test.js",
             "tests/tooling/record-product-integration-evaluation.test.js"
           ],
-          "blockers": [
-            "maintained-application-integrations-missing"
-          ]
+          "blockers": []
         },
         {
           "id": "pack-first-runtime-convergence",
@@ -232,6 +229,7 @@
             "tools/policies/model-release-platform.json",
             "src/config/schema/model-release-platform.schema.json",
             "src/pack-runtime.js",
+            "src/client/runtime/pack-rerank.js",
             "src/cli/doppler-serve.js",
             "src/inference/pipelines/text.js",
             "tools/check-model-release-platform.js",
@@ -242,8 +240,8 @@
           ]
         },
         {
-          "id": "model-release-qualification-offer",
-          "label": "External Model Release Qualification offer",
+          "id": "doppler-production-release-offer",
+          "label": "External Doppler Production Release offer",
           "tier": "tier1",
           "status": "partial",
           "claimAllowed": false,
@@ -261,7 +259,7 @@
             "tools/policies/product-integration-qualification.json"
           ],
           "blockers": [
-            "paid-model-release-qualification-missing"
+            "paid-doppler-production-release-missing"
           ]
         }
       ]
@@ -279,8 +277,7 @@
       ],
       "blockers": [
         "provider-conformance-receipts-missing",
-        "runtime-ownership-decisions-missing",
-        "pack-release-closure-incomplete"
+        "runtime-ownership-decisions-missing"
       ],
       "rows": [
         {
@@ -559,25 +556,25 @@
           "id": "complete-pack-release-closure",
           "label": "Complete supported-release Pack closure",
           "tier": "tier1",
-          "status": "partial",
-          "claimAllowed": false,
+          "status": "covered",
+          "claimAllowed": true,
           "supportSubsystemId": null,
           "packageBin": null,
           "packageExport": null,
-          "smokeCommand": null,
+          "smokeCommand": "npm run pack-v2:check",
           "evidencePaths": [
             "docs/model-release-platform.md",
             "docs/architecture.md",
             "tools/policies/model-release-platform.json",
             "src/config/schema/model-release-platform.schema.json",
             "src/config/pack-v2.js",
+            "src/config/pack-release-contract.js",
             "src/config/schema/pack-v2.schema.json",
             "tools/check-model-release-platform.js",
-            "tests/config/model-release-platform.test.js"
+            "tests/config/model-release-platform.test.js",
+            "tests/pack/pack-v2.test.js"
           ],
-          "blockers": [
-            "pack-release-closure-incomplete"
-          ]
+          "blockers": []
         }
       ]
     },
@@ -928,7 +925,7 @@
   "blockers": [
     {
       "code": "post-promotion-monitoring-receipts-missing",
-      "priority": 5,
+      "priority": 4,
       "owner": "doppler-release",
       "completionClass": "human-promotion",
       "statusCommand": "npm run promotion:monitoring:check",
@@ -950,7 +947,7 @@
     },
     {
       "code": "signed-live-revocation-authority-missing",
-      "priority": 6,
+      "priority": 5,
       "owner": "doppler-security",
       "completionClass": "production-authority",
       "statusCommand": "npm run revocations:authority:check",
@@ -977,32 +974,8 @@
       ]
     },
     {
-      "code": "maintained-application-integrations-missing",
-      "priority": 1,
-      "owner": "doppler-product",
-      "completionClass": "application",
-      "statusCommand": "npm run product:integrations:check",
-      "description": "No maintained generation, embedding-retrieval, or reranking application integrations are currently qualified as product-supported.",
-      "exitCriteria": "Register three distinct active applications spanning generation, embedding retrieval, and reranking with current digest-bound owner confirmations; one shared application revision, harness revision, and environment fingerprint per evaluation; native runtime-observed manifest and execution SHA-256 identity receipts; class-specific passing product evidence; incumbent controls; upgrade/requalification; rollback/revocation; and a digest-bound human product-support promotion receipt.",
-      "evidencePaths": [
-        "docs/goals.md",
-        "docs/product-integration-qualification.md",
-        "docs/status/product-integration-candidate-audit-2026-08-15.json",
-        "tools/policies/product-integration-qualification.json",
-        "src/config/schema/product-integration-owner-confirmation.schema.json",
-        "src/config/schema/product-integration-evidence.schema.json",
-        "src/config/schema/product-integration-promotion-evidence.schema.json",
-        "src/config/schema/product-integration-evaluation-capture.schema.json",
-        "tools/check-product-integration-qualification.js",
-        "tools/record-product-integration-evaluation.js",
-        "tools/lib/product-integration-evidence.js",
-        "tests/tooling/product-integration-evidence.test.js",
-        "tests/tooling/record-product-integration-evaluation.test.js"
-      ]
-    },
-    {
       "code": "bun-runtime-tier-experimental",
-      "priority": 4,
+      "priority": 3,
       "owner": "doppler-runtime",
       "completionClass": "hardware",
       "statusCommand": "npm run bun:qualification:check",
@@ -1030,7 +1003,7 @@
     },
     {
       "code": "provider-conformance-receipts-missing",
-      "priority": 2,
+      "priority": 1,
       "owner": "doppler-runtime",
       "completionClass": "hardware",
       "statusCommand": "npm run provider:conformance:check",
@@ -1052,7 +1025,7 @@
     },
     {
       "code": "runtime-ownership-decisions-missing",
-      "priority": 3,
+      "priority": 2,
       "owner": "doppler-product",
       "completionClass": "hardware",
       "statusCommand": "npm run runtime:ownership:check",
@@ -1076,38 +1049,20 @@
       ]
     },
     {
-      "code": "pack-release-closure-incomplete",
-      "priority": 7,
-      "owner": "doppler-forge",
-      "completionClass": "repository",
-      "statusCommand": "npm run model-release:check",
-      "description": "Pack v2 proves immutable plan execution, but the supported-release unit does not yet close source and license provenance, application workload and oracle identity, typed exclusions, supersession and migration, failed-upgrade preservation, and portable state-snapshot identity under one contract.",
-      "exitCriteria": "Extend the Pack and Runtime contracts so every listed release element is immutable, validated, typed, hash-bound, exercised by negative tests, and represented as implemented in the model-release platform policy without weakening existing Pack identity or qualification gates.",
-      "evidencePaths": [
-        "docs/model-release-platform.md",
-        "docs/architecture.md",
-        "tools/policies/model-release-platform.json",
-        "src/config/schema/model-release-platform.schema.json",
-        "src/config/pack-v2.js",
-        "src/config/schema/pack-v2.schema.json",
-        "tools/check-model-release-platform.js",
-        "tests/config/model-release-platform.test.js"
-      ]
-    },
-    {
       "code": "pack-first-surface-migration-incomplete",
-      "priority": 8,
+      "priority": 6,
       "owner": "doppler-runtime",
       "completionClass": "repository",
       "statusCommand": "npm run model-release:check",
-      "description": "The root openPack surface is authoritative, but the OpenAI-compatible server and lower-level generation, embedding, and reranking paths have not converged on one Pack-authoritative resolution and execution path.",
-      "exitCriteria": "Route the declared production server and application APIs through Pack validation, qualified TargetPlan selection, SessionPlan binding, execution, and evidence while retaining dynamic loading only as an explicit compatibility intake surface and adding parity plus fail-closed regression tests.",
+      "description": "The root openPack surface and the declared Electron reranking workload are Pack-authoritative; the generic OpenAI-compatible server, generation, and embedding compatibility paths remain outside that production route.",
+      "exitCriteria": "Keep the declared Electron production workload on Pack validation, qualified TargetPlan selection, execution, and evidence. Migrate another compatibility surface only when an external production release requires it, with parity and fail-closed regression tests.",
       "evidencePaths": [
         "docs/model-release-platform.md",
         "docs/api/root.md",
         "docs/api/compat.md",
         "tools/policies/model-release-platform.json",
         "src/pack-runtime.js",
+        "src/client/runtime/pack-rerank.js",
         "src/cli/doppler-serve.js",
         "src/inference/pipelines/text.js",
         "tools/check-model-release-platform.js",
@@ -1115,13 +1070,13 @@
       ]
     },
     {
-      "code": "paid-model-release-qualification-missing",
-      "priority": 9,
+      "code": "paid-doppler-production-release-missing",
+      "priority": 7,
       "owner": "doppler-product",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
-      "description": "No external application has accepted a Doppler-qualified Pack, later upgraded through the same process, and depended on Doppler's qualification or revocation decision.",
-      "exitCriteria": "Retain an authorized external application agreement, pinned model and application intake, signed Pack, declared browser and Node qualification, known exclusions, upgrade or requalification, rollback and revocation evidence, and proof that the application's release decision depended on Doppler; then promote the commercial assessment through human review.",
+      "description": "No external customer activation system has relied on a Doppler eligible-or-blocked decision for a production Electron release and its subsequent upgrade.",
+      "exitCriteria": "Retain an authorized paid external agreement, pinned Electron application and model intake, signed Pack, declared Windows and macOS fleet receipts, known exclusions, a retained rejected candidate, customer-controlled activation and rollback evidence, and proof that the subsequent upgrade also relied on Doppler eligibility; then promote the commercial assessment through human review.",
       "evidencePaths": [
         "docs/model-release-platform.md",
         "docs/goals.md",

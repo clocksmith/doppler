@@ -5,7 +5,7 @@ import { BaseTokenizer } from './tokenizers/base.js';
 import { TransformersTokenizer, BundledTokenizer } from './tokenizers/bundled.js';
 import { SentencePieceTokenizer } from './tokenizers/sentencepiece.js';
 import { BPETokenizer } from './tokenizers/bpe.js';
-import { toArrayBuffer } from '../utils/array-buffer.js';
+import { toArrayBuffer } from '../formats/array-buffer.js';
 
 const BUNDLED_TOKENIZER_CACHE = new Map();
 const TOKENIZER_LOAD_PHASES = Object.freeze([

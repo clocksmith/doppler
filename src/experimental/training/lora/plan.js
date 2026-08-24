@@ -29,12 +29,12 @@ import {
 import { watchFinalizedCheckpoints } from '../checkpoint-watch.js';
 import { loadLoRAFromManifest } from '../../adapters/lora-loader.js';
 import { createUploadedTensor } from '../tensor-factory.js';
-import { stableSortObject } from '../../../utils/stable-sort-object.js';
+import { stableSortObject } from '../../../formats/stable-sort-object.js';
 import { LORA_MODULE_ALIASES } from '../../../inference/pipelines/text/lora.js';
 import { loadDistillModelHandle } from '../suite.js';
 import { createDistillStudentRuntimeModelFixture } from '../distillation/student-fixture.js';
 import { f16ToF32Array } from '../../../inference/kv-cache/types.js';
-import { sha256BytesHex, sha256Hex } from '../../../utils/sha256.js';
+import { sha256BytesHex, sha256Hex } from '../../../formats/sha256.js';
 
 export const CAUSAL_LM_TEXT_PAIR_RUNNER_KEYS = Object.freeze([
   'gemma-3-270m-it-f16-af32::text-pairs::text_generation',

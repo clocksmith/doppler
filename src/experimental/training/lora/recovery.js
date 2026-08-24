@@ -29,12 +29,12 @@ import {
 import { watchFinalizedCheckpoints } from '../checkpoint-watch.js';
 import { loadLoRAFromManifest } from '../../adapters/lora-loader.js';
 import { createUploadedTensor } from '../tensor-factory.js';
-import { stableSortObject } from '../../../utils/stable-sort-object.js';
+import { stableSortObject } from '../../../formats/stable-sort-object.js';
 import { LORA_MODULE_ALIASES } from '../../../inference/pipelines/text/lora.js';
 import { loadDistillModelHandle } from '../suite.js';
 import { createDistillStudentRuntimeModelFixture } from '../distillation/student-fixture.js';
 import { f16ToF32Array } from '../../../inference/kv-cache/types.js';
-import { sha256BytesHex, sha256Hex } from '../../../utils/sha256.js';
+import { sha256BytesHex, sha256Hex } from '../../../formats/sha256.js';
 import { LORA_RUNNER_BASE_MODEL_REGISTRY, finiteMetric, getLoraRunnerCompatibility, getPipelineConfig, isCausalLmLoraWorkload, isObjectRecord, normalizeLoraTargetModules, normalizeProviderEvalReport, preflightCausalLmLoraWorkload } from './plan.js';
 import { buildArtifact, createCausalLmDatasetBatches, evaluateCausalLmLoraModel, evaluateToyLoraModel, exportCausalLmLoraModel, exportProviderCausalLmLoraModel, exportToyLoraModel, loadCausalLmTextPairSamples, loadToyLoraDataset, makeTensorFromFloat32, makeTensorFromUint32, releaseTensor, resolveDatasetPathForLoadedWorkload } from './checkpoint.js';
 import { runInternalCausalLmLoraPipeline } from './execution.js';

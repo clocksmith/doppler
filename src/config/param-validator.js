@@ -5,7 +5,7 @@ import {
   TOOLING_DIAGNOSTICS,
 } from './schema/tooling.schema.js';
 import { validateEcosystemConfig } from './schema/ecosystem.schema.js';
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 
 const MODEL_OVERRIDE_ALLOWED_PREFIXES = Object.freeze([
   'vision_config',

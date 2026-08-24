@@ -10,7 +10,7 @@ import {
   buildDecodeRecordTopOpGroups,
   isCoherentOutput,
 } from './text-evidence.js';
-import { sha256Hex } from '../../utils/sha256.js';
+import { sha256Hex } from '../../formats/sha256.js';
 import {
   buildTokenCostLedger,
   isExecutionObservationRequested,

@@ -1,4 +1,4 @@
-import { computeCanonicalSha256 } from '../utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 
 export const SOURCE_BOUNDARY_PACK_SCHEMA = 'doppler.source-boundary-pack/v1';
 export const RUNTIME_BOUNDARY_CAPTURE_SCHEMA = 'doppler.runtime-boundary-capture/v1';

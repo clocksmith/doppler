@@ -1,4 +1,4 @@
-import { computeCanonicalSha256 } from '../utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 
 export const REGISTERED_VARIANT_CALIBRATION_PLAN_SCHEMA =
   'doppler.registered-variant-calibration-plan/v1';

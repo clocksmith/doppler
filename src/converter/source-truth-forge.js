@@ -1,6 +1,6 @@
 import { createModelIRV2, validateModelIRV2 } from '../config/model-ir-v2.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const SOURCE_TRUTH_FORGE_SCHEMA_ID = 'doppler.source-truth-forge/v2';
 export const SOURCE_TRUTH_FORGE_VERSION = '2.0.0';

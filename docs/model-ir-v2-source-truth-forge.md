@@ -141,6 +141,7 @@ node tools/forge-model-pack.js \
   --model-ir-receipt <model-ir-receipt.json> \
   --initial-identity <physical-qualification-report.json> \
   --qualification-report <physical-qualification-report.json> \
+  --release-manifest <pack-release-v1.json> \
   --out <model.pack.json>
 ```
 

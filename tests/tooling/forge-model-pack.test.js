@@ -12,6 +12,7 @@ import {
 } from '../../tools/forge-model-pack.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
+import { createPackReleaseFixture } from '../helpers/pack-v2-fixture.js';
 
 const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-forge-test-'));
 const fixtureRoot = path.join(tmpRoot, 'fixture');
@@ -24,6 +25,7 @@ const gatherDigest = `sha256:${KERNEL_REF_CONTENT_DIGESTS['gather.wgsl#main']}`;
 const manifestPath = path.join(modelDir, 'manifest.json');
 const reportPath = path.join(reportDir, 'report.json');
 const conversionConfigPath = path.join(fixtureRoot, 'conversion.json');
+const releaseManifestPath = path.join(fixtureRoot, 'pack-release.json');
 const promptTokenDigest = `sha256:${'a'.repeat(64)}`;
 const logitsDigest = `sha256:${'b'.repeat(64)}`;
 const kvByteDigest = `sha256:${'c'.repeat(64)}`;
@@ -35,6 +37,9 @@ const shardHash = createHash('sha256').update(shardBytes).digest('hex');
 await fs.writeFile(path.join(modelDir, 'tokenizer.json'), '{"model":"unit"}\n', 'utf8');
 await fs.writeFile(path.join(modelDir, 'shard_00000.bin'), shardBytes);
 await fs.writeFile(conversionConfigPath, '{"modelId":"forge-unit-model"}\n', 'utf8');
+await fs.writeFile(releaseManifestPath, `${JSON.stringify(createPackReleaseFixture({
+  targetIds: ['webgpu-f32-f32-portable'],
+}), null, 2)}\n`, 'utf8');
 await fs.writeFile(manifestPath, `${JSON.stringify({
   version: 1,
   modelId: 'forge-unit-model',
@@ -192,6 +197,7 @@ const parsed = parseArgs([
   '--manifest', manifestPath,
   '--reference-report', reportPath,
   '--conversion-config', conversionConfigPath,
+  '--release-manifest', releaseManifestPath,
   '--out', path.join(tmpRoot, 'output.pack.json'),
   '--json',
 ]);
@@ -203,6 +209,7 @@ assert.match(usage(), /Doppler Forge/);
 const options = await buildForgeOptions(parsed);
 assert.equal(options.manifestPath, manifestPath);
 assert.equal(options.referenceReportPath, reportPath);
+assert.equal(options.releaseManifestPath, releaseManifestPath);
 
 // Test 3: forgeModelPack compilation
 const outputPath = path.join(tmpRoot, 'compiled.pack.json');

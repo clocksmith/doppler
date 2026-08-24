@@ -1,6 +1,6 @@
-import { cloneJsonValue } from '../utils/clone-json.js';
-import { computeCanonicalSha256 } from '../utils/canonical-hash.js';
-import { isPlainObject } from '../utils/plain-object.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
+import { isPlainObject } from '../formats/plain-object.js';
 
 const CHANGE_CLASSES = new Set([
   'scheduling-allocation-cache',

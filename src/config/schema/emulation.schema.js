@@ -1,4 +1,4 @@
-import { loadJson } from '../../utils/load-json.js';
+import { loadJson } from '../../formats/load-json.js';
 import { GB } from './units.schema.js';
 
 const gh200Profile = await loadJson('../platforms/nvidia-gh200.json', import.meta.url, 'Failed to load platform config');

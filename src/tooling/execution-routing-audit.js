@@ -1,4 +1,4 @@
-import { computeCanonicalSha256 } from '../utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 import { digestRegisteredVariantDescriptor } from './registered-variant-calibration.js';
 
 export const EXECUTION_ROUTING_AUDIT_SCHEMA = 'doppler.execution-routing-audit/v1';

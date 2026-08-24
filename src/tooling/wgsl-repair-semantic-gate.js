@@ -1,6 +1,6 @@
-import { isPlainObject } from '../utils/plain-object.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const WGSL_REPAIR_SEMANTIC_READINESS_SCHEMA_ID =
   'doppler.wgsl-repair-semantic-readiness/v1';

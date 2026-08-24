@@ -1,4 +1,4 @@
-import { loadJson } from '../utils/load-json.js';
+import { loadJson } from '../formats/load-json.js';
 
 const TARGET_FIELDS = [
   'logicalModelIds',

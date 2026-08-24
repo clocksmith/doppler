@@ -1,4 +1,4 @@
-import { computeCanonicalSha256 } from '../utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 
 export const TOKEN_COST_LEDGER_SCHEMA = 'doppler.token-cost-ledger/v1';
 

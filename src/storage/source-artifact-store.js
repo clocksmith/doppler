@@ -14,8 +14,8 @@ import {
   loadFileRangeFromStore,
   streamFileFromStore,
 } from './shard-manager.js';
-import { cloneJsonValue } from '../utils/clone-json.js';
-import { encodeUtf8 } from '../utils/encode-utf8.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
+import { encodeUtf8 } from '../formats/encode-utf8.js';
 
 export function normalizeSourceArtifactPath(value) {
   return String(value || '').trim().replace(/\\/g, '/');

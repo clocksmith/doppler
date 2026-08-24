@@ -18,7 +18,7 @@ import {
   resolveStaticRootDir,
   resolveRdrrRoot,
 } from './cli-model-resolution.js';
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 import {
   toSummary,
   formatNumber,

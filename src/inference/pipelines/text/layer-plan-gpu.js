@@ -19,11 +19,7 @@ import {
   resolveAttentionNumKVHeads,
   resolveAttentionRotaryDim,
   resolveAttentionFrequencyBaseDim,
-  resolveAttentionKVSharing,
   getConvLayerState,
-  isMoELayer,
-  hasPerLayerInputBlock,
-  applyPerLayerInputBlock,
   applyLayerScalar,
   resolveLayerScalarValue,
 } from './layer-execution-contract.js';

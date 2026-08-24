@@ -3,8 +3,8 @@ import { formatChatMessages } from '../../inference/pipelines/text/chat-format.j
 import { applyChatTemplate } from '../../inference/pipelines/text/init-chat-templates.js';
 import { resolveSamplingConfig } from '../../inference/pipelines/text/sampling-config.js';
 import { DOPPLER_VERSION } from '../../version.js';
-import { computeCanonicalSha256 } from '../../utils/canonical-hash.js';
-import { isNodeRuntime } from '../../utils/runtime-env.js';
+import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
+import { isNodeRuntime } from '../../storage/runtime-env.js';
 import {
   MODEL_INSPECTION_RECEIPT_SCHEMA,
   aggregateWordPerplexity,

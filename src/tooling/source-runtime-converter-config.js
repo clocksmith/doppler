@@ -5,7 +5,7 @@ import {
   DEFAULT_MANIFEST_INFERENCE,
 } from '../config/schema/index.js';
 import { buildRoPEConfig } from '../converter/rope-config.js';
-import { cloneJsonValue } from '../utils/clone-json.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
 
 const ZERO_DIGEST = 'sha256:' + '0'.repeat(64);
 

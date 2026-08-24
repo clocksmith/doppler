@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 
 const DEFAULT_RUNTIME_CONFIG_ROOT = fileURLToPath(new URL('../config/runtime', import.meta.url));
 const PROFILE_SCHEMA_VERSION = 1;

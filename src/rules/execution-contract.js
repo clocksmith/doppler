@@ -1,6 +1,6 @@
 import { getKernelConfig } from '../config/kernel-registry-contract.js';
 import { selectRuleValue } from './rule-registry.js';
-import { isPlainObject } from '../utils/plain-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
 import { EXECUTION_V1_SCHEMA_ID, expandExecutionV1 } from '../config/schema/index.js';
 import { SUPPORTED_EXECUTION_V1_OPS } from '../config/supported-operations.js';
 

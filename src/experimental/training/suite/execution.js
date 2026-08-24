@@ -15,7 +15,7 @@ import { trainStep } from '../trainer.js';
 import { crossEntropyLoss } from '../loss.js';
 import { clipGradients } from '../clip.js';
 import { exportLoRAAdapter } from '../export.js';
-import { sha256Hex } from '../../../utils/sha256.js';
+import { sha256Hex } from '../../../formats/sha256.js';
 import { computeSampleStats } from '../../../debug/stats.js';
 import { parseJsonl } from '../datasets/jsonl.js';
 import {

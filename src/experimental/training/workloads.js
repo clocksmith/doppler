@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-import { isPlainObject } from '../../utils/plain-object.js';
-import { sha256Hex } from '../../utils/sha256.js';
+import { isPlainObject } from '../../formats/plain-object.js';
+import { sha256Hex } from '../../formats/sha256.js';
 import { VALID_LORA_TARGET_MODULES } from '../../config/schema/adapter.schema.js';
 import {
   DEFAULT_TRAINING_GRADIENT_CONFIG,

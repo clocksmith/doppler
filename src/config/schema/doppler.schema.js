@@ -1,4 +1,4 @@
-import { cloneJsonValue as cloneConfigTree } from '../../utils/clone-json.js';
+import { cloneJsonValue as cloneConfigTree } from '../../formats/clone-json.js';
 import { DEFAULT_LOADING_CONFIG } from './loading.schema.js';
 import { DEFAULT_SHARED_RUNTIME_CONFIG } from './shared-runtime.schema.js';
 import { DEFAULT_EMULATION_CONFIG, createEmulationConfig } from './emulation.schema.js';
@@ -8,7 +8,7 @@ import { DEFAULT_SPECULATIVE_CONFIG } from './speculative.schema.js';
 import { DEFAULT_SELF_SPECULATION_CONFIG } from './speculation-self.schema.js';
 import { mergeRuntimeValues } from '../runtime-merge.js';
 import { validateRuntimeOverrides } from '../param-validator.js';
-import { isPlainObject } from '../../utils/plain-object.js';
+import { isPlainObject } from '../../formats/plain-object.js';
 import {
   chooseDefined,
   mergeShallowObject,

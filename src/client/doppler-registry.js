@@ -1,6 +1,6 @@
 import { getCdnBasePath } from '../storage/download-types.js';
-import { buildHfResolveBaseUrl } from '../utils/hf-resolve-url.js';
-import { loadJson } from '../utils/load-json.js';
+import { buildHfResolveBaseUrl } from '../storage/hf-resolve-url.js';
+import { loadJson } from '../formats/load-json.js';
 import { assertBundledResolutionNotRevoked } from '../config/revocation-policy.js';
 
 let registryPromise = null;

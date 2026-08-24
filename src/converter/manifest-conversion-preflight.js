@@ -1,7 +1,7 @@
 import { expandExecutionV1 } from '../config/schema/index.js';
 import { resolveTensorRole } from '../formats/rdrr/index.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 import { normalizeQuantTag } from './quantization-info.js';
 import { resolveConversionPlan } from './conversion-plan.js';
 import { validateSafetensorsIndexEvidence } from './safetensors-header-evidence.js';

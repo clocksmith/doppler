@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:production-release:v1",
+  "title": "Doppler Production Release v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "releaseId",
+    "createdAtUtc",
+    "evidenceClass",
+    "candidate",
+    "application",
+    "acceptance",
+    "supportedDevices",
+    "previousRelease",
+    "rollout",
+    "rollback",
+    "revocation",
+    "dataCustody",
+    "claimBoundary"
+  ],
+  "properties": {
+    "schema": { "const": "doppler.production-release/v1" },
+    "schemaVersion": { "const": 1 },
+    "releaseId": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-release-[0-9a-f]{16}$" },
+    "createdAtUtc": { "type": "string", "format": "date-time" },
+    "evidenceClass": { "enum": ["reference-fixture", "external-candidate", "external-production"] },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["logicalModelId", "sourceRevision", "sourceRevisionDigest", "packPath", "packSemanticRoot"],
+      "properties": {
+        "logicalModelId": { "$ref": "#/$defs/nonEmpty" },
+        "sourceRevision": { "$ref": "#/$defs/nonEmpty" },
+        "sourceRevisionDigest": { "$ref": "#/$defs/digest" },
+        "packPath": { "$ref": "#/$defs/repoPath" },
+        "packSemanticRoot": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "application": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applicationId", "platform", "revision", "revisionDigest", "rendererEntry", "mainEntry"],
+      "properties": {
+        "applicationId": { "$ref": "#/$defs/id" },
+        "platform": { "const": "electron" },
+        "revision": { "$ref": "#/$defs/nonEmpty" },
+        "revisionDigest": { "$ref": "#/$defs/digest" },
+        "rendererEntry": { "$ref": "#/$defs/repoPath" },
+        "mainEntry": { "$ref": "#/$defs/repoPath" }
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workload", "oracle", "tests", "thresholds", "incumbentControl"],
+      "properties": {
+        "workload": { "$ref": "#/$defs/identity" },
+        "oracle": { "$ref": "#/$defs/identity" },
+        "tests": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/acceptanceTest" }
+        },
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["quality", "coldLatencyMs", "warmLatencyMs", "peakMemoryBytes", "failureRate"],
+          "properties": {
+            "quality": { "$ref": "#/$defs/metricThreshold" },
+            "coldLatencyMs": { "$ref": "#/$defs/maxThreshold" },
+            "warmLatencyMs": { "$ref": "#/$defs/maxThreshold" },
+            "peakMemoryBytes": { "$ref": "#/$defs/maxThreshold" },
+            "failureRate": { "$ref": "#/$defs/maxThreshold" }
+          }
+        },
+        "incumbentControl": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["providerId", "artifactRevision", "executionDigest"],
+          "properties": {
+            "providerId": { "$ref": "#/$defs/id" },
+            "artifactRevision": { "$ref": "#/$defs/nonEmpty" },
+            "executionDigest": { "$ref": "#/$defs/digest" }
+          }
+        }
+      }
+    },
+    "supportedDevices": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policyId", "policyDigest", "targets", "receiptMode"],
+      "properties": {
+        "policyId": { "$ref": "#/$defs/id" },
+        "policyDigest": { "$ref": "#/$defs/digest" },
+        "receiptMode": { "const": "customer-operated-agent" },
+        "targets": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/deviceTarget" }
+        }
+      }
+    },
+    "previousRelease": { "$ref": "#/$defs/releaseTarget" },
+    "rollout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rulesDigest", "activationAuthority", "selfPromotionAllowed", "stages"],
+      "properties": {
+        "rulesDigest": { "$ref": "#/$defs/digest" },
+        "activationAuthority": { "const": "customer" },
+        "selfPromotionAllowed": { "const": false },
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "eligibleFleetPercent", "requiredObservationDigest"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "eligibleFleetPercent": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+              "requiredObservationDigest": { "$ref": "#/$defs/digest" }
+            }
+          }
+        }
+      }
+    },
+    "rollback": {
+      "allOf": [
+        { "$ref": "#/$defs/releaseTarget" },
+        {
+          "type": "object",
+          "properties": { "authority": { "const": "customer" } },
+          "required": ["authority"]
+        }
+      ]
+    },
+    "revocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorityId", "policyDigest", "offlineExpirySeconds", "failClosedAfterExpiry"],
+      "properties": {
+        "authorityId": { "$ref": "#/$defs/id" },
+        "policyDigest": { "$ref": "#/$defs/digest" },
+        "offlineExpirySeconds": { "type": "integer", "minimum": 1 },
+        "failClosedAfterExpiry": { "const": true }
+      }
+    },
+    "dataCustody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policyDigest", "promptRetention", "outputRetention", "telemetryExport"],
+      "properties": {
+        "policyDigest": { "$ref": "#/$defs/digest" },
+        "promptRetention": { "enum": ["none", "customer-controlled"] },
+        "outputRetention": { "enum": ["none", "customer-controlled"] },
+        "telemetryExport": { "enum": ["none", "customer-approved-redacted"] }
+      }
+    },
+    "claimBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["externalCustomer", "commercialClaimAllowed"],
+      "properties": {
+        "externalCustomer": { "type": "boolean" },
+        "commercialClaimAllowed": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmpty": { "type": "string", "minLength": 1 },
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "repoPath": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "digest"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "acceptanceTest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "command", "workdir", "timeoutMs", "evidenceSchema"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "command": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/nonEmpty" } },
+        "workdir": { "$ref": "#/$defs/repoPath" },
+        "timeoutMs": { "type": "integer", "minimum": 1 },
+        "evidenceSchema": { "$ref": "#/$defs/nonEmpty" }
+      }
+    },
+    "metricThreshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric", "minimum"],
+      "properties": {
+        "metric": { "$ref": "#/$defs/id" },
+        "minimum": { "type": "number" }
+      }
+    },
+    "maxThreshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maximum"],
+      "properties": { "maximum": { "type": "number", "minimum": 0 } }
+    },
+    "deviceTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "os", "osVersionRange", "architectures", "electronVersionRange", "gpuVendors", "driverPolicy"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "os": { "enum": ["windows", "macos"] },
+        "osVersionRange": { "$ref": "#/$defs/nonEmpty" },
+        "architectures": { "type": "array", "minItems": 1, "items": { "enum": ["x64", "arm64"] } },
+        "electronVersionRange": { "$ref": "#/$defs/nonEmpty" },
+        "gpuVendors": { "type": "array", "minItems": 1, "items": { "enum": ["amd", "apple", "intel", "nvidia"] } },
+        "driverPolicy": { "const": "exact-receipt-required" }
+      }
+    },
+    "releaseTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["releaseId", "packSemanticRoot"],
+      "properties": {
+        "releaseId": { "$ref": "#/$defs/nonEmpty" },
+        "packSemanticRoot": { "$ref": "#/$defs/digest" },
+        "authority": { "const": "customer" }
+      }
+    }
+  }
+}

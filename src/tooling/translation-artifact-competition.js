@@ -2,9 +2,9 @@ import {
   assertTrainerArtifactCandidateEntry,
   normalizeGammaTrainerArtifactHandoff,
 } from '../experimental/bridge/trainer-artifact-bridge.js';
-import { isPlainObject } from '../utils/plain-object.js';
-import { sha256Hex } from '../utils/sha256.js';
-import { stableSortObject } from '../utils/stable-sort-object.js';
+import { isPlainObject } from '../formats/plain-object.js';
+import { sha256Hex } from '../formats/sha256.js';
+import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const TRANSLATION_ARTIFACT_COMPETITION_SCHEMA_ID =
   'doppler.translation-artifact-competition-readiness/v1';

@@ -1,4 +1,4 @@
-import { loadJson } from '../../utils/load-json.js';
+import { loadJson } from '../../formats/load-json.js';
 import { log } from '../../debug/index.js';
 
 let currentPlatform = null;

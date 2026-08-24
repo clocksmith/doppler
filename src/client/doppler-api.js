@@ -1,6 +1,6 @@
 import { createDefaultNodeLoadProgressLogger } from './runtime/model-source.js';
 import { createDopplerRuntimeService } from './runtime/index.js';
-import { isNodeRuntime } from '../utils/runtime-env.js';
+import { isNodeRuntime } from '../storage/runtime-env.js';
 import { createFetchPackArtifactStore } from './runtime/fetch-pack-artifact-store.js';
 
 async function ensureWebGPUAvailable() {

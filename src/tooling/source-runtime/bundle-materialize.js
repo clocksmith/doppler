@@ -1,6 +1,6 @@
 import { computeHash, createStreamingHasher } from '../../storage/shard-manager.js';
-import { toArrayBuffer } from '../../utils/array-buffer.js';
-import { encodeUtf8 } from '../../utils/encode-utf8.js';
+import { toArrayBuffer } from '../../formats/array-buffer.js';
+import { encodeUtf8 } from '../../formats/encode-utf8.js';
 import {
   getSourceRuntimeMetadata,
   normalizeHashString,

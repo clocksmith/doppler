@@ -37,7 +37,7 @@ import {
   quantizeToQ4KMColumnWise,
   quantizeToInt4PerRowSymmetric,
 } from './quantizer.js';
-import { cloneJsonValue } from '../utils/clone-json.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
 
 export function normalizeStorageQuant(value) {
   if (value == null) return null;

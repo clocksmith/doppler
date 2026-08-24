@@ -4,7 +4,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { getManifestUrl } from '../../formats/rdrr/index.js';
 import { createStreamingHasher } from '../../storage/shard-manager.js';
-import { isNodeRuntime } from '../../utils/runtime-env.js';
+import { isNodeRuntime } from '../../storage/runtime-env.js';
 
 const CACHE_DISABLE_VALUES = new Set(['0', 'false', 'off', 'no']);
 const DEFAULT_CACHE_ROOT = path.join(os.homedir(), '.cache', 'doppler-gpu', 'models');
