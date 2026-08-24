@@ -1,4 +1,4 @@
-import { createBackwardKernel } from './utils.js';
+import { createBackwardKernel } from './executor.js';
 
 const { run, record } = createBackwardKernel('pixel_shuffle_backward', {
   uniformSize: 32,

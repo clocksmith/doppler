@@ -1844,6 +1844,214 @@
       "weightsRefAllowed": true
     },
     {
+      "modelId": "qwen3-8-27b-text-f16-af32",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Qwen 3.8 27B (F16/F32a)",
+      "description": "Qwen 3.8 27B text model with hybrid linear attention. The manifest-owned F16/F32 lane passes deterministic source-token parity and signed Pack execution qualification.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "qwen3.8-27b",
+        "qwen3-8-27b",
+        "Qwen/Qwen3.8-27B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 53791996928,
+      "recommended": false,
+      "sortOrder": 24,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "source-parity-and-pack",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-08-23",
+          "source": "model-ir-v2-release-to-javascript",
+          "notes": "Node/WebGPU generated all 128 pinned greedy tokens with exact source parity, and the signed Pack v2 qualification passed. Evidence: reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json and reports/model-ir-v2/qwen3.8-27b.release-to-javascript-receipt.json. The artifact remains local-only until publication is separately approved.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+      "weightPackId": "qwen3-8-27b-text-f16-af32-wp-990c3ddb1675",
+      "manifestVariantId": "qwen3-8-27b-text-f16-af32-mv-4f6c6b282ab6",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "muse-glimmer-30b-text-f16-af32",
+      "family": "muse-glimmer",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Muse Glimmer 30B (F16/F32a)",
+      "description": "Muse Glimmer 30B text onboarding artifact. Semantic lowering and the execution contract pass, but deterministic generation still diverges from the pinned source transcript, so this lane is not promoted.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "muse-glimmer-30b",
+        "muse-glimmer-30b-f16",
+        "meta-models/Muse-Glimmer-30B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 55709561856,
+      "recommended": false,
+      "sortOrder": 25,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "failed"
+        },
+        "tested": {
+          "suite": "source-parity",
+          "surface": [
+            "node"
+          ],
+          "result": "fail",
+          "lastVerifiedAt": "2026-08-23",
+          "source": "model-ir-v2-qualification",
+          "notes": "The execution contract passes, but the retained F16 candidate diverges from the pinned source transcript at generated token index 7. Evidence: reports/model-ir-v2/glimmer-30b.node-candidate-11-f16kv-qualification.json. Keep this artifact local-only and unpromoted while physical parity is investigated.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+      "weightPackId": "muse-glimmer-30b-text-f16-af32-wp-da829391e53b",
+      "manifestVariantId": "muse-glimmer-30b-text-f16-af32-mv-4b07f1d027c2",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "unpromoted",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "muse-glimmer-30b-text-bf16-af32",
+      "family": "muse-glimmer",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Muse Glimmer 30B (BF16/F32a)",
+      "description": "Muse Glimmer 30B BF16-weight onboarding artifact. The selected BF16 kernel path materializes stored BF16 weights directly, but deterministic generation still diverges from the pinned source transcript, so this lane is not promoted.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "muse-glimmer-30b-bf16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 55709561856,
+      "recommended": false,
+      "sortOrder": 26,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "failed"
+        },
+        "tested": {
+          "suite": "source-parity",
+          "surface": [
+            "node"
+          ],
+          "result": "fail",
+          "lastVerifiedAt": "2026-08-23",
+          "source": "model-ir-v2-qualification",
+          "notes": "The execution contract passes and the BF16 candidate matches the pinned source through generated token index 6, then diverges at index 7. Evidence: reports/model-ir-v2/glimmer-30b.node-candidate-24-bf16w-qualification.json. Keep this artifact local-only and unpromoted while physical parity is investigated.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+      "weightPackId": "muse-glimmer-30b-text-bf16-af32-wp-dcc50556375d",
+      "manifestVariantId": "muse-glimmer-30b-text-bf16-af32-mv-080be51060ba",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "unpromoted",
+      "weightsRefAllowed": false
+    },
+    {
       "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
       "family": "lfm2",
       "classification": {

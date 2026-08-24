@@ -1,10 +1,10 @@
 import {
-  mergeExecutionPatchLists,
-  mergeKernelPathPolicy,
   mergeLayeredShallowObjects,
   mergeShallowObject,
   replaceSubtree,
-} from './merge-helpers.js';
+} from './merge/value-selection.js';
+import { mergeKernelPathPolicy } from './merge/kernel-path-policy.js';
+import { mergeExecutionPatchLists } from './merge/execution-patches.js';
 import { mergeConfig } from './merge.js';
 import { createDopplerConfig } from './schema/index.js';
 import { log } from '../debug/index.js';

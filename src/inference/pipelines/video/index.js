@@ -5,20 +5,6 @@ import { sampleFrames } from './frame-sampler.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { getDevice } from '../../../gpu/device.js';
 
-/**
- * Encode video frames through the vision pipeline.
- *
- * Samples frames uniformly, encodes each through the vision encoder,
- * and concatenates the visual token buffers.
- *
- * @param {object} params
- * @param {Array<{ pixels: Uint8Array|Float32Array, width: number, height: number }>} params.frames
- * @param {object}  params.visionConfig   Vision config from manifest
- * @param {object}  params.weights        Vision encoder weight buffers
- * @param {number}  [params.maxFrames=8]  Maximum frames to sample
- * @param {number}  [params.perFrameSoftTokenBudget]  Soft token budget per frame
- * @returns {Promise<VideoEncodeResult>}
- */
 export async function encodeVideo(params) {
   const { frames, visionConfig, weights, maxFrames = 8, perFrameSoftTokenBudget } = params;
 
@@ -78,10 +64,3 @@ export async function encodeVideo(params) {
     numFrames: sampled.length,
   };
 }
-
-/**
- * @typedef {object} VideoEncodeResult
- * @property {GPUBuffer}  features     Concatenated visual tokens [totalTokens, outputDims]
- * @property {number}     numTokens    Total visual tokens across all frames
- * @property {number}     numFrames    Number of frames actually encoded
- */

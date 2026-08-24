@@ -71,12 +71,6 @@ export declare function resolveAttentionFrequencyBaseDim(
   layerType: string | null | undefined
 ): number;
 
-/** True when the signed model contract disables RoPE for this exact layer. */
-export declare function isRoPEDisabledForLayer(
-  config: ParsedModelConfig,
-  layerIdx: number
-): boolean;
-
 /** Per-layer attention head dimension resolver. */
 export declare function resolveAttentionHeadDim(
   config: ParsedModelConfig,

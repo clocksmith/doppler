@@ -87,6 +87,7 @@
       "layer": null,
       "sourceBoundaryId": "generation.7.model.embedding.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_0/pre_layer_input.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:1110309f2ff32eb7f1374abdd03c1fe1ed817bd2acc74ec0c6caefb1f7c4cb96",
       "candidatePayloadDigest": "sha256:a7b27b7b3bafa76b024abc7ce438dd0f6eddedbedfe64ff7f11973a0ab6b884d",
       "metrics": {
@@ -105,6 +106,7 @@
       "layer": 0,
       "sourceBoundaryId": "generation.7.layer.0.attention.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_0/post_oproj.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:24d2ac0b44d854355bc8f8084ad99a2c347fc6d8d93b671fb0154547c9e5ae90",
       "candidatePayloadDigest": "sha256:e605aaad167f3cacf32e3df4aa1ef82d6f61a2fbec5f01a221ba0fc37e4515e2",
       "metrics": {
@@ -123,6 +125,7 @@
       "layer": 0,
       "sourceBoundaryId": "generation.7.layer.0.pre_ffn_norm",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_0/pre_ffn.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:3b64edc868a298810801287eb32d3579691aa7c5881012ae25111289e302213f",
       "candidatePayloadDigest": "sha256:9ec0925afaa4283c771e6666b3aadd692b452d602f2c6086209ef62c1b28df58",
       "metrics": {
@@ -141,6 +144,7 @@
       "layer": 0,
       "sourceBoundaryId": "generation.7.layer.0.ffn.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_0/ffn_mlp_out.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:1d86540f52277473c1ec780ab2556b5ec76b2b9008796229134e46b3d18d4f36",
       "candidatePayloadDigest": "sha256:89011960aaed227499c7bdd032cb8012c6238b8a572b9de4e130606f3b8ac0c2",
       "metrics": {
@@ -159,6 +163,7 @@
       "layer": 0,
       "sourceBoundaryId": "generation.7.layer.0.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_0/post_ffn.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:0d61160a3c0c35250fdbcc67ad2b39b773a1d7fd24d80e0933820d86ff3ec293",
       "candidatePayloadDigest": "sha256:221773975f28c405c66f380ad5ca16ab1bd6632ce951d1c31353e59fbabcc293",
       "metrics": {
@@ -177,6 +182,7 @@
       "layer": 13,
       "sourceBoundaryId": "generation.7.layer.13.attention.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_13/post_oproj.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:22c319a5ecd45ce7f547b47d794ff389cfb7055140d0cbf1e0d3f4ebdc2813d9",
       "candidatePayloadDigest": "sha256:5c5329242c7ec4b88a37369feb1fdeb2b3ccefe1930a9e1491b887b7255d9c7c",
       "metrics": {
@@ -195,6 +201,7 @@
       "layer": 13,
       "sourceBoundaryId": "generation.7.layer.13.pre_ffn_norm",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_13/pre_ffn.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:39365983691302afba896b4787a85dc03f412abe982fcd3298dd8e2f46babde7",
       "candidatePayloadDigest": "sha256:29e886919a87657e408f46305eabdc86bbba8996ac24a44eb64debdd27254437",
       "metrics": {
@@ -213,6 +220,7 @@
       "layer": 13,
       "sourceBoundaryId": "generation.7.layer.13.ffn.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_13/ffn_mlp_out.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:af79aa346e3716e44dc24af9c0aacf6759a3ea1744c50cfc9da4778070066534",
       "candidatePayloadDigest": "sha256:eca70ac01d1d3908e994f2b881dc469f828ace2685aa84c8d4d3c320866f69d2",
       "metrics": {
@@ -231,6 +239,7 @@
       "layer": 13,
       "sourceBoundaryId": "generation.7.layer.13.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_13/post_ffn.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:e8af1b6ee85d1133df0a0c313da461f64b720588bcfd3b3ce7909803618f0446",
       "candidatePayloadDigest": "sha256:77403eaeb595a1570378e98747b5d9004b5d8f74515a0ca25ea5383cb6243f3f",
       "metrics": {
@@ -249,6 +258,7 @@
       "layer": 26,
       "sourceBoundaryId": "generation.7.layer.26.attention.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_26/post_oproj.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:4658179b1a56c1811ab3c99c4980b1c3d0e68de722eeda2fe6f73fdeadb7d760",
       "candidatePayloadDigest": "sha256:595716b81b6e5c809722a53368a54a61e4e9330cdb7aebae4f596e9fee5a766d",
       "metrics": {
@@ -267,6 +277,7 @@
       "layer": 26,
       "sourceBoundaryId": "generation.7.layer.26.pre_ffn_norm",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_26/pre_ffn.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:b2407123dc548dd32d67c39ac9857b99b312eb5c59a32f8df85460e3ebd173d4",
       "candidatePayloadDigest": "sha256:8a70f411fde9f2f9ee10c92d01d771f0abd04658de880bc140fa681f3e35c91f",
       "metrics": {
@@ -285,6 +296,7 @@
       "layer": 26,
       "sourceBoundaryId": "generation.7.layer.26.ffn.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_26/ffn_mlp_out.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:d08ff0db74673d2fe6188f5f97f27908bd749a0e5e1db6a2a1562ad3b7e57118",
       "candidatePayloadDigest": "sha256:ef996d29ef45fb31c2af158118032425fd983a95b7ff79468c71fd41c0c41a45",
       "metrics": {
@@ -303,6 +315,7 @@
       "layer": 26,
       "sourceBoundaryId": "generation.7.layer.26.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_26/post_ffn.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:95eb4501b75baa75722e47ccc55fe0bd74f4511213df4d85e97b6eed75e4b43f",
       "candidatePayloadDigest": "sha256:a2ba217a4c6a7e3b97f4b130203a9f3f312402887cafcd220432a5d2c32aaf91",
       "metrics": {
@@ -321,6 +334,7 @@
       "layer": 39,
       "sourceBoundaryId": "generation.7.layer.39.attention.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_39/post_oproj.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:d59bda106e675d9d0103f03726cb3c89b6915c7819effb46c1506aa75e95962f",
       "candidatePayloadDigest": "sha256:cf2c27daed5a1fbe1c222a383023e0f02d24a24ac5ff7c152bd889922b9b0bc7",
       "metrics": {
@@ -339,6 +353,7 @@
       "layer": 39,
       "sourceBoundaryId": "generation.7.layer.39.pre_ffn_norm",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_39/pre_ffn.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:132b785880d766b164b1e1a70ab5a936d1885b91416e2dc51d8aab58e380fe04",
       "candidatePayloadDigest": "sha256:da437e359e4e823cfe3b56b78e9ff7f62513a56504103398cc5110113292958b",
       "metrics": {
@@ -357,6 +372,7 @@
       "layer": 39,
       "sourceBoundaryId": "generation.7.layer.39.ffn.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_39/ffn_mlp_out.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:8025fb741cd2355a3781203ee4700be85989cab064a19a21a69d86d5426010cc",
       "candidatePayloadDigest": "sha256:9349c31d537e878f86600bb89af8bd318898d5afe7464d3556dae0b1a72b2fe0",
       "metrics": {
@@ -375,6 +391,7 @@
       "layer": 39,
       "sourceBoundaryId": "generation.7.layer.39.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_39/post_ffn.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:4d6a6beb2b6378eb8ffb0329cbb20b2102031cb97bacbb4a83d8e7bf9afe4b82",
       "candidatePayloadDigest": "sha256:062b5a578842df2fea02a7716661a4da1ad34ba031e387c056484844d3529c52",
       "metrics": {
@@ -393,6 +410,7 @@
       "layer": 51,
       "sourceBoundaryId": "generation.7.layer.51.attention.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_51/post_oproj.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:aa598e15201a9d62eccb58bc9e6f1cc4c40f578301a8328addf84167a9c92f60",
       "candidatePayloadDigest": "sha256:405f0fbf89a524e712498ba6a57b1de4534dadda68da5002ce8955d03b1a074b",
       "metrics": {
@@ -411,6 +429,7 @@
       "layer": 51,
       "sourceBoundaryId": "generation.7.layer.51.pre_ffn_norm",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_51/pre_ffn.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:f8cf1e6cb90d471ae3a22658083338a83c959be2f6ffed9f9616dcd964a84c19",
       "candidatePayloadDigest": "sha256:71b847bb12e3abbc50e341dc72985cfb156404f813c8cd9f7e30b9075e35d71e",
       "metrics": {
@@ -429,6 +448,7 @@
       "layer": 51,
       "sourceBoundaryId": "generation.7.layer.51.ffn.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_51/ffn_mlp_out.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:2adaccc851191b8fa2085e19d2b45cde018884e748ad4d552f28c2583a2fe1cd",
       "candidatePayloadDigest": "sha256:78616c636d1f00a74a0d21fb8c0d688c1d4a36caa9a01cff52c724a9c65f8d79",
       "metrics": {
@@ -447,6 +467,7 @@
       "layer": 51,
       "sourceBoundaryId": "generation.7.layer.51.output",
       "candidateArtifact": "reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7/layer_51/post_ffn.npy",
+      "candidateSelection": "exact",
       "sourcePayloadDigest": "sha256:b3b32da636836a97051991904275e8c513be6ed415d9c5b643ebf8bee557cfb2",
       "candidatePayloadDigest": "sha256:aaffbcd0df5619b71cdf887e330c61a50b33a9595c0799a3f56dbca4ec9d12c2",
       "metrics": {

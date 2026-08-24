@@ -7,26 +7,6 @@ import {
   doLayerNorm, doMatmul, doGelu, doResidualAdd,
 } from './ops.js';
 
-/**
- * Run the Qwen3-VL vision encoder on preprocessed image patches.
- *
- * Architecture:
- *   patch_embed (conv2d 3->hidden, stride=patchSize) -> [numPatches, hiddenSize]
- *   for each ViT block:
- *     x = layerNorm(x)
- *     x = x + selfAttention(x)    (no KV cache — full prefill attention)
- *     x = layerNorm(x)
- *     x = x + FFN(x)              (gelu activation)
- *   spatialMerge(x) -> [numMergedPatches, outHiddenSize]
- *
- * @param {object} params
- * @param {GPUBuffer}  params.patchBuffer    Preprocessed patches [numPatches, hiddenSize] on GPU
- * @param {number}     params.numPatches     Total number of patches
- * @param {object}     params.visionConfig   Vision config from manifest
- * @param {object}     params.weights        Vision encoder weight buffers keyed by tensor name
- * @param {object}     params.pipelineState  Shared pipeline state for buffer tracking
- * @returns {Promise<{ features: GPUBuffer, numTokens: number }>}
- */
 export async function runVisionEncoder(params) {
   const {
     patchBuffer,
@@ -148,10 +128,6 @@ export async function runVisionEncoder(params) {
   return { features: merged, numTokens: mergedTokens };
 }
 
-/**
- * Vision self-attention (full prefill, no KV cache).
- * QKV are fused into one weight matrix [3*hiddenSize, hiddenSize].
- */
 async function visionSelfAttention(params) {
   const {
     input, seqLen, hiddenSize, numHeads, headDim,
@@ -181,13 +157,6 @@ async function visionSelfAttention(params) {
   return output;
 }
 
-/**
- * Compute scaled dot-product attention for vision encoder.
- * No KV cache, no causal mask — full bidirectional attention.
- *
- * Input: fused QKV buffer [seqLen, 3*hiddenSize]
- * Output: attention output [seqLen, hiddenSize]
- */
 async function computeVisionAttention(params) {
   const { qkv, seqLen, numHeads, headDim, hiddenSize } = params;
   const device = getDevice();
@@ -283,9 +252,6 @@ async function computeVisionAttention(params) {
   return outBuffer;
 }
 
-/**
- * Vision FFN: fc1 -> gelu -> fc2.
- */
 async function visionFFN(params) {
   const {
     input, seqLen, hiddenSize, intermediateSize,
@@ -310,15 +276,6 @@ async function visionFFN(params) {
   return fc2Out;
 }
 
-/**
- * Spatial merge projector.
- *
- * Takes [numPatches, hiddenSize] vision features and merges spatialMergeSize x spatialMergeSize
- * adjacent patches into single tokens via concatenation + linear projection.
- *
- * Input:  [numPatches, hiddenSize] where numPatches = gridH * gridW
- * Output: [mergedPatches, outHiddenSize] where mergedPatches = (gridH/m) * (gridW/m), m = spatialMergeSize
- */
 async function spatialMergeProject(params) {
   const {
     input, numPatches, hiddenSize, outHiddenSize, spatialMergeSize, weights,

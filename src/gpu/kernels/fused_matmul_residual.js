@@ -5,7 +5,8 @@ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { getPipelineFast, createUniformBufferWithView } from './utils.js';
+import { getPipelineFast } from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
 import { trace } from '../../debug/index.js';
 import { selectRuleValue } from './rule-registry.js';
 

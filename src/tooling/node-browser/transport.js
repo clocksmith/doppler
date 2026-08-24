@@ -1,0 +1,832 @@
+import { createServer } from 'node:http';
+import { createReadStream } from 'node:fs';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import { fileURLToPath } from 'node:url';
+import { once } from 'node:events';
+import { isToolingSuccessEnvelope } from '../command-envelope.js';
+
+const DEFAULT_HOST = '127.0.0.1';
+const DEFAULT_RUNNER_PATH = '/src/tooling/command-runner.html';
+const DEFAULT_TIMEOUT_MS = 180_000;
+export const DEFAULT_CLEANUP_TIMEOUT_MS = 5_000;
+export const DEFAULT_OPFS_CACHE_DIR = path.join(os.homedir(), '.cache', 'doppler', 'chromium-profile');
+export const DEFAULT_OPFS_CACHE_PORT = 19836;
+const SERVER_HOSTS = Object.freeze(['127.0.0.1', 'localhost', '0.0.0.0']);
+const DEFAULT_CHANNEL_ORDER = Object.freeze({
+  darwin: ['chromium', 'chrome'],
+  linux: ['chromium', 'chrome'],
+  win32: ['chromium', 'chrome'],
+});
+const PERSISTENT_LAUNCH_ERROR_HINTS = Object.freeze([
+  'Target page, context or browser has been closed',
+  'bootstrap_check_in',
+  'Permission denied',
+  'org.chromium.Chromium.MachPortRendezvousServer',
+]);
+
+const MIME_BY_EXTENSION = Object.freeze({
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.map': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.ico': 'image/x-icon',
+  '.wasm': 'application/wasm',
+  '.wgsl': 'text/plain; charset=utf-8',
+  '.bin': 'application/octet-stream',
+  '.txt': 'text/plain; charset=utf-8',
+});
+
+function contentTypeFor(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  return MIME_BY_EXTENSION[ext] || 'application/octet-stream';
+}
+
+function resolveStaticPath(rootDir, requestPath) {
+  let decodedPath = '/';
+  try {
+    decodedPath = decodeURIComponent(requestPath || '/');
+  } catch {
+    return null;
+  }
+  const normalizedPath = decodedPath.replace(/^\/+/, '');
+  const candidate = path.resolve(rootDir, normalizedPath || 'index.html');
+  const normalizedRoot = path.resolve(rootDir);
+  if (candidate !== normalizedRoot && !candidate.startsWith(`${normalizedRoot}${path.sep}`)) {
+    return null;
+  }
+  return candidate;
+}
+
+function normalizeStaticMounts(mounts = []) {
+  if (!Array.isArray(mounts)) {
+    throw new Error('browser command: staticMounts must be an array.');
+  }
+
+  return mounts.map((mount, index) => {
+    if (!mount || typeof mount !== 'object' || Array.isArray(mount)) {
+      throw new Error(`browser command: staticMounts[${index}] must be an object.`);
+    }
+    const urlPrefix = String(mount.urlPrefix || '').trim();
+    const rootDir = String(mount.rootDir || '').trim();
+    if (!urlPrefix.startsWith('/')) {
+      throw new Error(`browser command: staticMounts[${index}].urlPrefix must start with "/".`);
+    }
+    if (!rootDir) {
+      throw new Error(`browser command: staticMounts[${index}].rootDir is required.`);
+    }
+    return {
+      urlPrefix: urlPrefix.replace(/\/+$/u, '') || '/',
+      rootDir: path.resolve(rootDir),
+    };
+  });
+}
+
+function findStaticRootForRequest(rootDir, mounts, requestPath) {
+  const normalizedPath = String(requestPath || '/');
+  let bestMount = null;
+
+  for (const mount of mounts) {
+    const prefix = mount.urlPrefix;
+    if (normalizedPath !== prefix && !normalizedPath.startsWith(`${prefix}/`)) {
+      continue;
+    }
+    if (!bestMount || prefix.length > bestMount.urlPrefix.length) {
+      bestMount = mount;
+    }
+  }
+
+  if (!bestMount) {
+    return {
+      effectiveRootDir: rootDir,
+      effectivePath: normalizedPath,
+    };
+  }
+
+  const relativePath = normalizedPath.slice(bestMount.urlPrefix.length) || '/';
+  return {
+    effectiveRootDir: bestMount.rootDir,
+    effectivePath: relativePath.startsWith('/') ? relativePath : `/${relativePath}`,
+  };
+}
+
+async function resolveFileForRequest(rootDir, mounts, requestPath) {
+  const { effectiveRootDir, effectivePath } = findStaticRootForRequest(rootDir, mounts, requestPath);
+  const resolved = resolveStaticPath(effectiveRootDir, effectivePath);
+  if (!resolved) return null;
+
+  let stats;
+  try {
+    stats = await fs.stat(resolved);
+  } catch {
+    return null;
+  }
+
+  if (stats.isDirectory()) {
+    const indexPath = path.join(resolved, 'index.html');
+    try {
+      const indexStats = await fs.stat(indexPath);
+      if (indexStats.isFile()) {
+        return { filePath: indexPath, size: indexStats.size };
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
+  if (!stats.isFile()) return null;
+  return { filePath: resolved, size: stats.size };
+}
+
+export async function createStaticFileServer(options = {}) {
+  const rootDir = path.resolve(
+    options.rootDir || fileURLToPath(new URL('../..', import.meta.url))
+  );
+  const staticMounts = normalizeStaticMounts(options.staticMounts || []);
+  const host = String(options.host || DEFAULT_HOST);
+  const port = Number.isFinite(options.port) ? Math.max(0, Math.floor(options.port)) : 0;
+
+  const server = createServer(async (req, res) => {
+    const method = req.method || 'GET';
+    if (method !== 'GET' && method !== 'HEAD') {
+      res.statusCode = 405;
+      res.end('Method Not Allowed');
+      return;
+    }
+
+    let pathname = '/';
+    try {
+      const url = new URL(req.url || '/', `http://${req.headers.host || host}`);
+      pathname = url.pathname || '/';
+    } catch {
+      res.statusCode = 400;
+      res.end('Bad Request');
+      return;
+    }
+
+    const resolved = await resolveFileForRequest(rootDir, staticMounts, pathname);
+    if (!resolved) {
+      res.statusCode = 404;
+      res.end('File not found');
+      return;
+    }
+
+    res.statusCode = 200;
+    res.setHeader('Content-Type', contentTypeFor(resolved.filePath));
+    res.setHeader('Content-Length', resolved.size);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    if (method === 'HEAD') {
+      res.end();
+      return;
+    }
+
+    const stream = createReadStream(resolved.filePath, {
+      highWaterMark: resolved.size > 1024 * 1024 ? 1024 * 1024 : undefined,
+    });
+    stream.on('error', () => {
+      if (!res.headersSent) {
+        res.statusCode = 500;
+      }
+      res.end();
+    });
+    stream.pipe(res);
+  });
+
+  const tryListen = (listenHost) => new Promise((resolve, reject) => {
+    const listener = listenHost == null ? server.listen(port) : server.listen(port, listenHost);
+    listener.once('error', (error) => {
+      reject(error);
+    });
+    listener.once('listening', () => {
+      resolve(listener);
+    });
+  });
+
+  const tryHosts = options.host == null ? [...SERVER_HOSTS, null] : [host];
+  let lastError = null;
+  for (const listenHost of tryHosts) {
+    try {
+      await tryListen(listenHost);
+      break;
+    } catch (error) {
+      lastError = error;
+      if (error?.code !== 'EACCES' && error?.code !== 'EADDRINUSE' && error?.code !== 'EPERM') {
+        throw error;
+      }
+      server.close();
+    }
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+
+  const address = server.address();
+  if (!address || typeof address !== 'object') {
+    server.close();
+    throw new Error('browser command: failed to resolve static server address.');
+  }
+
+  const resolvedHost = typeof address.address === 'string' ? address.address : DEFAULT_HOST;
+  const effectiveHost = resolvedHost === '::' || resolvedHost === '0.0.0.0' ? DEFAULT_HOST : resolvedHost;
+
+  const close = async () => {
+    server.close();
+    await once(server, 'close');
+  };
+
+  return {
+    baseUrl: `http://${effectiveHost}:${address.port}`,
+    close,
+  };
+}
+
+export function normalizeHeadless(value) {
+  if (value === undefined || value === null) return true;
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true') return true;
+    if (normalized === 'false') return false;
+  }
+  throw new Error('browser command: headless must be true or false.');
+}
+
+export function normalizeTimeoutMs(value) {
+  if (value === undefined || value === null) return DEFAULT_TIMEOUT_MS;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error('browser command: timeoutMs must be a positive number.');
+  }
+  return Math.floor(parsed);
+}
+
+export function normalizeRunnerPath(value) {
+  const raw = String(value || DEFAULT_RUNNER_PATH).trim();
+  if (!raw.startsWith('/')) {
+    return `/${raw}`;
+  }
+  return raw;
+}
+
+function formatLaunchErrorMessage(error) {
+  if (error == null) return '';
+  if (typeof error.message === 'string' && error.message.trim().length > 0) {
+    return error.message;
+  }
+  return String(error);
+}
+
+export function isRecoverablePersistentLaunchError(error) {
+  const message = formatLaunchErrorMessage(error);
+  return PERSISTENT_LAUNCH_ERROR_HINTS.some((hint) => message.includes(hint));
+}
+
+export function normalizeBaseUrl(value) {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+  const raw = String(value).trim();
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    return url.toString().replace(/\/$/, '');
+  } catch {
+    throw new Error('browser command: baseUrl must be an absolute URL, for example http://127.0.0.1:8080');
+  }
+}
+
+function resolveLocalFileModelPath(modelUrl) {
+  return resolveLocalFileUrlPath(modelUrl, 'request.modelUrl');
+}
+
+function resolveLocalFileUrlPath(urlValue, fieldLabel) {
+  const normalized = asNonEmptyString(urlValue);
+  if (!normalized || !normalized.startsWith('file://')) {
+    return null;
+  }
+  try {
+    return fileURLToPath(normalized);
+  } catch (error) {
+    throw new Error(
+      `browser command: ${fieldLabel} must be a valid file:// URL when provided explicitly; ` +
+      `got ${JSON.stringify(urlValue)} (${error?.message || error}).`
+    );
+  }
+}
+
+async function createLocalFileRelayMount(filePath, fieldLabel, urlPrefixRoot, options = {}) {
+  if (options.baseUrl) {
+    throw new Error(
+      `browser command: explicit local file:// ${fieldLabel} requires the relay-owned static server. ` +
+      'Remove run.browser.baseUrl or use a hosted URL instead.'
+    );
+  }
+
+  let stats;
+  try {
+    stats = await fs.stat(filePath);
+  } catch (error) {
+    throw new Error(
+      `browser command: explicit local ${fieldLabel} "${options.originalUrl}" is not accessible: ${error?.message || error}.`
+    );
+  }
+
+  const expectDirectory = options.kind === 'directory';
+  if (expectDirectory && !stats.isDirectory()) {
+    throw new Error(
+      `browser command: explicit local file:// ${fieldLabel} must point to a directory; got "${options.originalUrl}".`
+    );
+  }
+  if (!expectDirectory && !stats.isFile()) {
+    throw new Error(
+      `browser command: explicit local file:// ${fieldLabel} must point to a file; got "${options.originalUrl}".`
+    );
+  }
+
+  const fileName = path.basename(filePath) || options.fallbackName || 'asset';
+  const mountName = encodeURIComponent(fileName);
+  const mountPrefix = `${urlPrefixRoot}/${mountName}-${process.pid}-${Date.now()}`;
+  if (expectDirectory) {
+    if (options.mountParentDirectory === true) {
+      return {
+        url: `${mountPrefix}/${mountName}`,
+        staticMount: {
+          urlPrefix: mountPrefix,
+          rootDir: path.dirname(filePath),
+        },
+      };
+    }
+    return {
+      url: mountPrefix,
+      staticMount: {
+        urlPrefix: mountPrefix,
+        rootDir: filePath,
+      },
+    };
+  }
+
+  return {
+    url: `${mountPrefix}/${encodeURIComponent(fileName)}`,
+    staticMount: {
+      urlPrefix: mountPrefix,
+      rootDir: path.dirname(filePath),
+    },
+  };
+}
+
+export async function resolveLocalFileModelUrlForBrowserRelay(request, options = {}) {
+  const localModelPath = resolveLocalFileModelPath(request?.modelUrl);
+  const localRuntimeConfigPath = resolveLocalFileUrlPath(request?.runtimeConfigUrl, 'request.runtimeConfigUrl');
+  const localInferenceImagePath = resolveLocalFileUrlPath(
+    request?.inferenceInput?.image?.url,
+    'request.inferenceInput.image.url'
+  );
+  if (options.staticMounts != null && !Array.isArray(options.staticMounts)) {
+    throw new Error('browser command: staticMounts must be an array.');
+  }
+  const staticMounts = Array.isArray(options.staticMounts) ? [...options.staticMounts] : [];
+  if (!localModelPath && !localRuntimeConfigPath && !localInferenceImagePath) {
+    return {
+      relayRequest: request,
+      staticMounts,
+    };
+  }
+  let relayRequest = request;
+  const relayStaticMounts = [...staticMounts];
+
+  if (localModelPath) {
+    const modelRelayMount = await createLocalFileRelayMount(localModelPath, 'modelUrl', '/__doppler_local_model', {
+      ...options,
+      originalUrl: request.modelUrl,
+      kind: 'directory',
+      fallbackName: 'model',
+      mountParentDirectory: true,
+    });
+    relayRequest = {
+      ...relayRequest,
+      modelUrl: modelRelayMount.url,
+    };
+    relayStaticMounts.push(modelRelayMount.staticMount);
+  }
+
+  if (localRuntimeConfigPath) {
+    const runtimeConfigRelayMount = await createLocalFileRelayMount(
+      localRuntimeConfigPath,
+      'runtimeConfigUrl',
+      '/__doppler_local_runtime_config',
+      {
+        ...options,
+        originalUrl: request.runtimeConfigUrl,
+        kind: 'file',
+        fallbackName: 'runtime-config.json',
+      }
+    );
+    relayRequest = {
+      ...relayRequest,
+      runtimeConfigUrl: runtimeConfigRelayMount.url,
+    };
+    relayStaticMounts.push(runtimeConfigRelayMount.staticMount);
+  }
+
+  if (localInferenceImagePath) {
+    const imageRelayMount = await createLocalFileRelayMount(
+      localInferenceImagePath,
+      'inferenceInput.image.url',
+      '/__doppler_local_input_image',
+      {
+        ...options,
+        originalUrl: request.inferenceInput.image.url,
+        kind: 'file',
+        fallbackName: 'input-image',
+      }
+    );
+    relayRequest = {
+      ...relayRequest,
+      inferenceInput: {
+        ...(relayRequest.inferenceInput || {}),
+        image: {
+          ...(relayRequest.inferenceInput?.image || {}),
+          url: imageRelayMount.url,
+        },
+      },
+    };
+    relayStaticMounts.push(imageRelayMount.staticMount);
+  }
+
+  return {
+    relayRequest,
+    staticMounts: relayStaticMounts,
+  };
+}
+
+export function normalizeBrowserArgs(value) {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) {
+    throw new Error('browser command: browserArgs must be an array.');
+  }
+
+  return value.map((arg) => {
+    if (arg === undefined || arg === null) {
+      throw new Error('browser command: browserArgs values must be strings.');
+    }
+    if (typeof arg !== 'string') {
+      throw new Error('browser command: browserArgs values must be strings.');
+    }
+    return arg.trim();
+  }).filter((arg) => arg.length > 0);
+}
+
+const DEFAULT_WEBGPU_BROWSER_ARGS = Object.freeze([
+  '--enable-unsafe-webgpu',
+  '--enable-webgpu-developer-features',
+  '--disable-dawn-features=disallow_unsafe_apis',
+  '--ignore-gpu-blocklist',
+]);
+const CRASH_RECOVERY_BROWSER_ARGS = Object.freeze([
+  '--disable-breakpad',
+  '--disable-gpu-sandbox',
+  '--no-sandbox',
+]);
+
+const PLATFORM_WEBGPU_ARGS = Object.freeze({
+  darwin: Object.freeze(['--use-angle=metal']),
+  linux: Object.freeze([
+    '--use-angle=vulkan',
+    '--enable-features=Vulkan',
+    '--disable-vulkan-surface',
+  ]),
+  win32: Object.freeze([]),
+});
+const BROWSER_LAUNCH_HINT = 'Install Playwright browsers (npx playwright install) or set run.browser.channel / run.browser.executablePath.';
+
+function uniqueArgs(args) {
+  return [...new Set(args)];
+}
+
+function asNonEmptyString(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim();
+  return normalized === '' ? null : normalized;
+}
+
+export function createPersistentContextRequiredError(requestedLoadMode, cause = null) {
+  const baseMessage = requestedLoadMode === 'opfs'
+    ? 'browser command: loadMode=opfs requires persistent browser context; persistent launch failed.'
+    : 'browser command: persistent browser context is required when OPFS cache is enabled; persistent launch failed.';
+  const causeMessage = asNonEmptyString(cause?.message || cause);
+  return new Error(
+    `${baseMessage} Re-run with run.browser.opfsCache=false to use a non-persistent browser session.${causeMessage ? ` (${causeMessage})` : ''}`
+  );
+}
+
+export function finalizeBrowserRelayResponse(response, request) {
+  if (!isToolingSuccessEnvelope(response)) {
+    throw new Error('browser command: runner returned an invalid success envelope.');
+  }
+  return {
+    ...response,
+    request,
+  };
+}
+
+function normalizeWebgpuBackend(value) {
+  const raw = asNonEmptyString(value);
+  if (!raw) return null;
+  const normalized = raw.toLowerCase();
+  if (normalized.includes('metal')) return 'metal';
+  if (normalized.includes('vulkan')) return 'vulkan';
+  if (normalized.includes('d3d12')) return 'd3d12';
+  if (normalized.includes('d3d11')) return 'd3d11';
+  if (normalized.includes('opengl') || normalized === 'gl') return 'opengl';
+  if (normalized.includes('swiftshader')) return 'swiftshader';
+  return normalized;
+}
+
+function readFlagValue(args, flagName) {
+  if (!Array.isArray(args)) return null;
+  for (let i = 0; i < args.length; i += 1) {
+    const token = String(args[i] ?? '');
+    if (token === flagName) {
+      return asNonEmptyString(args[i + 1]);
+    }
+    if (token.startsWith(`${flagName}=`)) {
+      return asNonEmptyString(token.slice(flagName.length + 1));
+    }
+  }
+  return null;
+}
+
+function inferWebgpuBackendFromArgs(args, hostPlatform) {
+  const explicit = normalizeWebgpuBackend(readFlagValue(args, '--use-angle'));
+  if (explicit) return explicit;
+  const normalizedArgs = Array.isArray(args)
+    ? args.map((value) => String(value ?? '').toLowerCase())
+    : [];
+  if (normalizedArgs.some((value) => value.includes('vulkan'))) return 'vulkan';
+  if (normalizedArgs.some((value) => value.includes('metal'))) return 'metal';
+  if (normalizedArgs.some((value) => value.includes('d3d12'))) return 'd3d12';
+  if (normalizedArgs.some((value) => value.includes('d3d11'))) return 'd3d11';
+  if (hostPlatform === 'darwin') return 'metal';
+  if (hostPlatform === 'linux') return 'vulkan';
+  if (hostPlatform === 'win32') return 'd3d12';
+  return null;
+}
+
+function withCrashRecoveryArgs(args = []) {
+  return uniqueArgs([...args, ...CRASH_RECOVERY_BROWSER_ARGS]);
+}
+
+function hasCrashRecoveryArgs(args = []) {
+  const argSet = new Set(args);
+  return CRASH_RECOVERY_BROWSER_ARGS.every((arg) => argSet.has(arg));
+}
+
+export function formatBrowserEvaluationError(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return new Error('browser command runner failed with an unserializable error.');
+  }
+  const message = asNonEmptyString(payload.message) || 'Unknown browser command error';
+  const stack = asNonEmptyString(payload.stack);
+  const causeMessage = asNonEmptyString(payload.cause?.message);
+  const text = [
+    `browser command runner failed: ${message}`,
+    stack,
+    causeMessage ? `Caused by: ${causeMessage}` : null,
+  ].filter(Boolean).join('\n');
+  const error = new Error(text);
+  error.name = asNonEmptyString(payload.name) || 'BrowserCommandError';
+  error.code = asNonEmptyString(payload.code) || null;
+  error.retryable = typeof payload.retryable === 'boolean' ? payload.retryable : null;
+  error.details = {
+    ...(payload.details && typeof payload.details === 'object' ? payload.details : {}),
+    browserErrorName: asNonEmptyString(payload.name),
+    browserStack: stack,
+    browserCause: payload.cause && typeof payload.cause === 'object'
+      ? {
+        name: asNonEmptyString(payload.cause.name),
+        message: asNonEmptyString(payload.cause.message),
+        stack: asNonEmptyString(payload.cause.stack),
+        code: asNonEmptyString(payload.cause.code),
+      }
+      : null,
+  };
+  return error;
+}
+
+export async function runBrowserCommandEvaluationWithTimeout(operation, timeoutMs) {
+  let timeoutId = null;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`browser command: runner did not finish within ${timeoutMs}ms.`));
+    }, timeoutMs);
+  });
+  try {
+    return await Promise.race([
+      operation(),
+      timeoutPromise,
+    ]);
+  } finally {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
+export async function runBrowserCleanupWithTimeout(operation, timeoutMs) {
+  let timeoutId = null;
+  const cleanupPromise = Promise.resolve()
+    .then(operation)
+    .then(() => true, () => true);
+  const timeoutPromise = new Promise((resolve) => {
+    timeoutId = setTimeout(() => resolve(false), timeoutMs);
+    timeoutId.unref?.();
+  });
+  try {
+    return await Promise.race([
+      cleanupPromise,
+      timeoutPromise,
+    ]);
+  } finally {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
+export function terminateBrowserProcess(browser) {
+  const childProcess = typeof browser?.process === 'function'
+    ? browser.process()
+    : null;
+  if (childProcess && typeof childProcess.kill === 'function' && childProcess.killed !== true) {
+    childProcess.kill('SIGKILL');
+  }
+}
+
+export function browserLaunchArgs(extraArgs = []) {
+  const platformArgs = PLATFORM_WEBGPU_ARGS[process.platform] ?? [];
+  return uniqueArgs([...DEFAULT_WEBGPU_BROWSER_ARGS, ...platformArgs, ...extraArgs]);
+}
+
+function resolveDefaultChannels() {
+  return DEFAULT_CHANNEL_ORDER[process.platform] ?? DEFAULT_CHANNEL_ORDER.linux;
+}
+
+export async function launchBrowser(chromium, launchOptions, options = {}) {
+  const explicitChannel = options.explicitChannel ?? false;
+  const explicitExecutablePath = options.explicitExecutablePath ?? false;
+  if (explicitChannel || explicitExecutablePath) {
+    try {
+      return await chromium.launch(launchOptions);
+    } catch (error) {
+      const message = error?.message || String(error);
+      throw new Error(
+        `browser command: failed to launch browser (${message}). ${BROWSER_LAUNCH_HINT}`
+      );
+    }
+  }
+
+  const tryLaunch = async (candidateLaunchOptions) => {
+    const launchCandidateErrors = [];
+    for (const channel of resolveDefaultChannels()) {
+      try {
+        return await chromium.launch({ ...candidateLaunchOptions, channel });
+      } catch (error) {
+        const message = error?.message || String(error);
+        launchCandidateErrors.push(`${channel}: ${message}`);
+      }
+    }
+
+    try {
+      return await chromium.launch(candidateLaunchOptions);
+    } catch (error) {
+      const message = error?.message || String(error);
+      const allErrors = launchCandidateErrors.length > 0
+        ? `${message} | channel errors: ${launchCandidateErrors.join(' | ')}`
+        : message;
+      throw new Error(
+        `browser command: failed to launch browser (${allErrors}). ` +
+        `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
+        BROWSER_LAUNCH_HINT
+      );
+    }
+  };
+
+  const launchErrors = [];
+  const attemptConfigs = hasCrashRecoveryArgs(launchOptions.args || [])
+    ? [launchOptions]
+    : [
+      launchOptions,
+      { ...launchOptions, args: withCrashRecoveryArgs(launchOptions.args || []) },
+    ];
+
+  for (const candidateLaunchOptions of attemptConfigs) {
+    try {
+      return await tryLaunch(candidateLaunchOptions);
+    } catch (error) {
+      const message = error?.message || String(error);
+      launchErrors.push(message);
+
+      if (isRecoverablePersistentLaunchError(error) && attemptConfigs.length === 2) {
+        continue;
+      }
+
+      if (!isRecoverablePersistentLaunchError(error) || launchErrors.length >= 2) {
+        throw error;
+      }
+    }
+  }
+
+  const retryMessage = launchErrors.join(' | ');
+  if (isRecoverablePersistentLaunchError(retryMessage)) {
+    throw new Error(
+      `browser command: failed to launch browser with crash recovery enabled (${retryMessage}). ` +
+      BROWSER_LAUNCH_HINT
+    );
+  }
+
+  throw new Error(
+    `browser command: failed to launch browser (${retryMessage}). ` +
+    `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
+    BROWSER_LAUNCH_HINT
+  );
+}
+
+export async function launchPersistentBrowser(chromium, userDataDir, launchOptions, options = {}) {
+  await fs.mkdir(userDataDir, { recursive: true });
+
+  const explicitChannel = options.explicitChannel ?? false;
+  const explicitExecutablePath = options.explicitExecutablePath ?? false;
+
+  // launchPersistentContext returns a BrowserContext directly (no separate Browser object).
+  const persistentOpts = { ...launchOptions };
+
+  if (explicitChannel || explicitExecutablePath) {
+    try {
+      return await chromium.launchPersistentContext(userDataDir, persistentOpts);
+    } catch (error) {
+      const message = error?.message || String(error);
+      throw new Error(
+        `browser command: failed to launch persistent browser (${message}). ${BROWSER_LAUNCH_HINT}`
+      );
+    }
+  }
+
+  const launchErrors = [];
+  const attemptConfigs = hasCrashRecoveryArgs(persistentOpts.args || [])
+    ? [persistentOpts]
+    : [
+      persistentOpts,
+      { ...persistentOpts, args: withCrashRecoveryArgs(persistentOpts.args || []) },
+    ];
+
+  for (const candidateLaunchOptions of attemptConfigs) {
+    try {
+      for (const channel of resolveDefaultChannels()) {
+        try {
+          return await chromium.launchPersistentContext(userDataDir, { ...candidateLaunchOptions, channel });
+        } catch (error) {
+          const message = error?.message || String(error);
+          launchErrors.push(`${channel}: ${message}`);
+        }
+      }
+      return await chromium.launchPersistentContext(userDataDir, candidateLaunchOptions);
+    } catch (error) {
+      const message = error?.message || String(error);
+      launchErrors.push(message);
+      if (isRecoverablePersistentLaunchError(error) && attemptConfigs.length === 2) {
+        continue;
+      }
+
+      if (!isRecoverablePersistentLaunchError(error) || launchErrors.length >= 2) {
+        throw error;
+      }
+    }
+  }
+
+  const retryMessage = launchErrors.join(' | ');
+  if (isRecoverablePersistentLaunchError(retryMessage)) {
+    throw new Error(
+      `browser command: failed to launch persistent browser with crash recovery enabled (${retryMessage}). ` +
+      `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
+      BROWSER_LAUNCH_HINT
+    );
+  }
+
+  throw new Error(
+    `browser command: failed to launch persistent browser (${retryMessage}). ` +
+    `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
+    BROWSER_LAUNCH_HINT
+  );
+}

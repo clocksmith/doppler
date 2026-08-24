@@ -48,11 +48,13 @@ import {
 import {
   buildLayerContext,
   debugCheckBuffer as debugCheckBufferHelper,
+  resolvePerLayerInputsSession,
+} from './generator/session-context.js';
+import {
   getLogitsConfig,
   getLogitsWeights,
-  resolvePerLayerInputsSession,
-  releaseSharedAttentionState,
-} from './generator-helpers.js';
+} from './generator/logits-config.js';
+import { releaseSharedAttentionState } from './generator/attention-lifecycle.js';
 import {
   assertTokenIdsInRange,
   assertTokenIdInRange,
@@ -70,7 +72,11 @@ import { resolveSamplingConfig } from './sampling-config.js';
 import { decodeReadback, getLogitsHealth } from './debug-utils/index.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { resolveDeferredRoundingWindowTokens } from './finiteness-policy.js';
-import { drainPendingTsirReads } from './tsir-fixture-writer.js';
+import {
+  advanceDecodeStepCount,
+  createTsirFixtureState,
+  drainPendingTsirReads,
+} from './tsir-fixture-writer.js';
 import {
   activateFallbackExecutionPlan,
   hasFallbackExecutionPlan,
@@ -105,15 +111,19 @@ import {
 // Extracted standalone helpers
 import {
   resolvePromptInput,
+} from './generator/prompt-input.js';
+import {
   releasePerLayerInputBuffer,
+  shouldDisablePrefillCommandBatching,
+  resolveEffectivePrefillTokenChunkSize,
+} from './generator/prefill-policy.js';
+import {
   normalizePrefixEmbeddingOverride,
   resolvePrefillEmbeddingInputIds,
   resolvePrefillMultimodalBidirectionalSpan,
   applyPrefixEmbeddingOverride,
   resolvePrefixEmbeddingOverrideTransitionDeclaredBy,
-  shouldDisablePrefillCommandBatching,
-  resolveEffectivePrefillTokenChunkSize,
-} from './generator-prefill-helpers.js';
+} from './generator/prefix-embedding.js';
 import {
   shouldDisableBatchDecodeAfterShortBatch,
   resolveHotVocabularyBatchDecodeAvailability,
@@ -129,360 +139,94 @@ import {
   resolveCurrentKVCacheDtype,
   cloneRuntimeInferenceWithKVDtype,
 } from './generator-decode-policy.js';
-
-const SPECIAL_LIKE_TOKEN_RE = /^(<pad>|<unused\d*>|<eos>|<bos>|<s>|<\/s>|\[PAD\]|\[UNK\]|\[SEP\]|\[CLS\]|<[^>\n]{1,32}>)$/i;
-const FINITENESS_RESET_WORDS = new Uint32Array(4);
-const tokenizerSuppressionCache = new WeakMap();
-const PREFILL_CHUNK_SUBMIT_MODES = new Set(['sync', 'async']);
-
-function mergeRecordOpLabelCounts(target, source) {
-  const merged = target && typeof target === 'object' && !Array.isArray(target)
-    ? target
-    : {};
-  if (!source || typeof source !== 'object' || Array.isArray(source)) {
-    return merged;
-  }
-  for (const [label, rawCount] of Object.entries(source)) {
-    const count = Number(rawCount);
-    if (typeof label !== 'string' || label.length === 0 || !Number.isFinite(count) || count <= 0) {
-      continue;
-    }
-    merged[label] = (Number.isFinite(merged[label]) ? merged[label] : 0) + count;
-  }
-  return merged;
-}
-
-function recordPrefillRecorderStats(state, recorder) {
-  if (!recorder || typeof recorder.getStats !== 'function') {
-    return;
-  }
-  const recordStats = recorder.getStats();
-  state.stats.prefillRecordOps = (state.stats.prefillRecordOps ?? 0) + recordStats.opCount;
-  state.stats.prefillRecordPasses = (state.stats.prefillRecordPasses ?? 0) + recordStats.computePassCount;
-  state.stats.prefillRecordOpLabels = mergeRecordOpLabelCounts(
-    state.stats.prefillRecordOpLabels,
-    recordStats.opLabelCounts
-  );
-}
-
-export function resolvePrefillChunkSubmitMode(runtimeConfig, modelConfig) {
-  const runtimeSubmit = runtimeConfig?.inference?.session?.prefillChunkSubmitMode;
-  const manifestSubmit = modelConfig?.sessionSettings?.prefillChunkSubmitMode;
-  const submit = (runtimeSubmit !== undefined && runtimeSubmit !== null)
-    ? runtimeSubmit
-    : manifestSubmit;
-  if (submit === undefined || submit === null) {
-    throw new Error('[Pipeline] runtime.inference.session.prefillChunkSubmitMode is required.');
-  }
-  if (!PREFILL_CHUNK_SUBMIT_MODES.has(submit)) {
-    throw new Error(
-      `[Pipeline] runtime.inference.session.prefillChunkSubmitMode must be "sync" or "async"; got "${String(submit)}".`
-    );
-  }
-  return submit;
-}
-
-function getTokenizerSuppressionCache(tokenizer) {
-  let cache = tokenizerSuppressionCache.get(tokenizer);
-  if (!cache) {
-    cache = new Map();
-    tokenizerSuppressionCache.set(tokenizer, cache);
-  }
-  return cache;
-}
-
-function decodeSingleTokenForSuppression(tokenizer, tokenId) {
-  if (!tokenizer || typeof tokenizer.decode !== 'function') {
-    return '';
-  }
-  try {
-    return tokenizer.decode([tokenId], false, false);
-  } catch {
-    return '';
-  }
-}
-
-function collectTokenizerSuppressedTokenIds(tokenizer, vocabSize, samplingConfig) {
-  if (!tokenizer || !Number.isInteger(vocabSize) || vocabSize < 1) {
-    return [];
-  }
-  if (samplingConfig.suppressSpecialTokens !== true && samplingConfig.suppressSpecialLikeTokens !== true) {
-    return [];
-  }
-  const cache = getTokenizerSuppressionCache(tokenizer);
-  const cacheKey = [
-    vocabSize,
-    samplingConfig.suppressSpecialTokens === true ? 'special' : 'plain',
-    samplingConfig.suppressSpecialLikeTokens === true ? 'specialLike' : 'literal',
-  ].join(':');
-  const cached = cache.get(cacheKey);
-  if (cached) {
-    return cached;
-  }
-  const tokenIds = [];
-  for (let tokenId = 0; tokenId < vocabSize; tokenId++) {
-    const tokenizerSpecial = samplingConfig.suppressSpecialTokens === true
-      && typeof tokenizer.isSpecialToken === 'function'
-      && tokenizer.isSpecialToken(tokenId);
-    const specialLike = samplingConfig.suppressSpecialLikeTokens === true
-      && SPECIAL_LIKE_TOKEN_RE.test(decodeSingleTokenForSuppression(tokenizer, tokenId).trim());
-    if (tokenizerSpecial || specialLike) {
-      tokenIds.push(tokenId);
-    }
-  }
-  cache.set(cacheKey, tokenIds);
-  return tokenIds;
-}
-
-function resolveSuppressedSamplingTokenIds(state, samplingConfig) {
-  const vocabSize = state.modelConfig?.vocabSize;
-  const suppressed = new Set(samplingConfig.suppressTokenIds);
-  const stopTokenIds = new Set(state.modelConfig?.stopTokenIds ?? []);
-  const eosToken = state.tokenizer?.getSpecialTokens?.()?.eos;
-  if (Number.isInteger(eosToken)) {
-    stopTokenIds.add(eosToken);
-  }
-  for (const tokenId of collectTokenizerSuppressedTokenIds(state.tokenizer, vocabSize, samplingConfig)) {
-    if (!stopTokenIds.has(tokenId)) {
-      suppressed.add(tokenId);
-    }
-  }
-  return [...suppressed];
-}
-
-function normalizeSelectedLogitTokenIds(value, vocabSize, label) {
-  if (value == null) {
-    return null;
-  }
-  if (!Array.isArray(value) && !ArrayBuffer.isView(value)) {
-    throw new Error(`${label} must be an array or typed array.`);
-  }
-  const tokenIds = Array.from(value, (entry, index) => {
-    const tokenId = Number(entry);
-    if (!Number.isInteger(tokenId) || tokenId < 0 || tokenId >= vocabSize) {
-      throw new Error(`${label}[${index}] must be an integer in [0, ${vocabSize}), got "${String(entry)}".`);
-    }
-    return tokenId;
-  });
-  if (tokenIds.length === 0) {
-    throw new Error(`${label} must not be empty.`);
-  }
-  return tokenIds;
-}
-
-async function traceActivationHealth(label, buffer, dtype, elementCount) {
-  if (!isTraceEnabled('logits') || !isGpuBufferInstance(buffer)) {
-    return;
-  }
-  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
-  const data = await readBuffer(buffer, elementCount * bytesPerElement);
-  trace.logits(label, getLogitsHealth(decodeReadback(data, dtype)));
-}
-
-function ownsBorrowedWeightBuffer(weight) {
-  return !isGpuBufferInstance(weight) && !isWeightBuffer(weight);
-}
-
-function borrowLinearWeight(weight, label) {
-  if (!weight) {
-    throw new Error(`DiffusionGemma self-conditioning missing ${label}.`);
-  }
-  if (isSplitWeightBuffer(weight)) {
-    throw new Error(
-      `DiffusionGemma self-conditioning does not support split weight storage for ${label}.`
-    );
-  }
-  return {
-    value: getPipelineWeightBuffer(weight, label),
-    owned: ownsBorrowedWeightBuffer(weight),
-  };
-}
-
-function borrowNormWeight(weight, label) {
-  if (!weight) {
-    throw new Error(`DiffusionGemma self-conditioning missing ${label}.`);
-  }
-  if (isSplitWeightBuffer(weight)) {
-    throw new Error(
-      `DiffusionGemma self-conditioning does not support split norm storage for ${label}.`
-    );
-  }
-  return {
-    value: getPipelineNormWeightBuffer(weight, label),
-    owned: ownsBorrowedWeightBuffer(weight),
-  };
-}
-
-function releaseBorrowedWeight(borrowed) {
-  if (!borrowed?.owned) {
-    return;
-  }
-  const value = borrowed.value;
-  releaseBuffer(isWeightBuffer(value) ? value.buffer : value);
-}
-
-function canUseChunkedSoftEmbeddingLogits(logitsState, embeddingWeight, embeddingTranspose) {
-  return logitsState != null
-    && isWeightBuffer(embeddingWeight)
-    && getWeightDtype(embeddingWeight) === 'f16'
-    && getLayout(embeddingWeight) === 'row'
-    && embeddingTranspose !== true;
-}
-
-function resolveDiffusionGemmaSoftEmbeddingChunkRows(runtimeConfig) {
-  const value = runtimeConfig?.inference?.diffusionGemma?.softEmbeddingLogitsChunkRows;
-  if (value == null) {
-    return undefined;
-  }
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(
-      'runtime.inference.diffusionGemma.softEmbeddingLogitsChunkRows must be a positive integer.'
-    );
-  }
-  return value;
-}
-
-function normalizeCanvasTokenIds(canvas, context) {
-  if (!Array.isArray(canvas) && !ArrayBuffer.isView(canvas)) {
-    throw new Error(`[DiffusionGemma] ${context}.canvas must be an array or typed array of token IDs.`);
-  }
-  return Array.from(canvas, (value, index) => {
-    if (!Number.isFinite(value) || Math.floor(value) !== value || value < 0) {
-      throw new Error(`[DiffusionGemma] ${context}.canvas[${index}] must be a non-negative integer token ID.`);
-    }
-    return value;
-  });
-}
-
-function normalizeSelfConditioningLogits(logits, canvasLength, vocabSize) {
-  if (logits == null) {
-    return null;
-  }
-  const expected = canvasLength * vocabSize;
-  const values = logits instanceof Float32Array
-    ? logits
-    : (Array.isArray(logits) ? Float32Array.from(logits) : null);
-  if (!values) {
-    throw new Error('[DiffusionGemma] selfConditioningLogits must be a Float32Array or number array.');
-  }
-  if (values.length !== expected) {
-    throw new Error(
-      `[DiffusionGemma] selfConditioningLogits length mismatch: expected ${expected}, got ${values.length}.`
-    );
-  }
-  return values;
-}
-
-function normalizeSelfConditioningLogitsState(logits, canvasLength, vocabSize) {
-  if (logits == null || !isGpuBufferInstance(logits.logitsBuffer)) {
-    return null;
-  }
-  const dtype = logits.logitsDtype;
-  if (dtype !== 'f32') {
-    throw new Error(`[DiffusionGemma] GPU selfConditioningLogits require f32 logits, got "${dtype}".`);
-  }
-  if (logits.vocabSize !== vocabSize) {
-    throw new Error(
-      `[DiffusionGemma] GPU selfConditioningLogits vocab mismatch: expected ${vocabSize}, got ${logits.vocabSize}.`
-    );
-  }
-  if (logits.canvasLength !== canvasLength) {
-    throw new Error(
-      `[DiffusionGemma] GPU selfConditioningLogits canvas mismatch: expected ${canvasLength}, got ${logits.canvasLength}.`
-    );
-  }
-  const temperature = logits.temperature ?? 1.0;
-  if (typeof temperature !== 'number' || !Number.isFinite(temperature) || temperature <= 0) {
-    throw new Error('[DiffusionGemma] GPU selfConditioningLogits temperature must be positive.');
-  }
-  return {
-    logitsBuffer: logits.logitsBuffer,
-    logitsDtype: dtype,
-    temperature,
-    releaseOnUse: logits.releaseOnUse !== false,
-  };
-}
-
-function normalizeSelfConditioningSoftEmbeddingState(state, canvasLength, hiddenSize) {
-  if (state?.kind !== 'soft_embedding') {
-    return null;
-  }
-  if (!isGpuBufferInstance(state.buffer)) {
-    throw new Error('[DiffusionGemma] GPU selfConditioning soft embedding requires a GPU buffer.');
-  }
-  const dtype = state.dtype ?? 'f32';
-  if (dtype !== 'f32') {
-    throw new Error(`[DiffusionGemma] GPU selfConditioning soft embedding requires f32 dtype, got "${dtype}".`);
-  }
-  if (state.canvasLength !== canvasLength) {
-    throw new Error(
-      `[DiffusionGemma] GPU selfConditioning soft embedding canvas mismatch: ` +
-      `expected ${canvasLength}, got ${state.canvasLength}.`
-    );
-  }
-  if (state.hiddenSize !== hiddenSize) {
-    throw new Error(
-      `[DiffusionGemma] GPU selfConditioning soft embedding hidden mismatch: ` +
-      `expected ${hiddenSize}, got ${state.hiddenSize}.`
-    );
-  }
-  return {
-    buffer: state.buffer,
-    dtype,
-    releaseOnUse: state.releaseOnUse !== false,
-    scaled: state.scaled === true,
-  };
-}
-
-let intentBundleModulePromise = null;
-
-async function getExperimentalIntentBundleModule() {
-  intentBundleModulePromise ??= import('../../../experimental/hotswap/intent-bundle.js');
-  return intentBundleModulePromise;
-}
-
+import { FINITENESS_RESET_WORDS, borrowLinearWeight, borrowNormWeight, canUseChunkedSoftEmbeddingLogits, getExperimentalIntentBundleModule, normalizeCanvasTokenIds, normalizeSelectedLogitTokenIds, normalizeSelfConditioningLogits, normalizeSelfConditioningLogitsState, normalizeSelfConditioningSoftEmbeddingState, recordPrefillRecorderStats, releaseBorrowedWeight, resolveDiffusionGemmaSoftEmbeddingChunkRows, resolvePrefillChunkSubmitMode, resolveSuppressedSamplingTokenIds, traceActivationHealth } from './generator/text.js';
+import {
+  _createDiffusionGemmaSelfConditioningEmbeddings as _createDiffusionGemmaSelfConditioningEmbeddingsImpl,
+  _createDiffusionGemmaSelfConditioningSoftEmbeddingState as _createDiffusionGemmaSelfConditioningSoftEmbeddingStateImpl,
+  computeDiffusionGemmaCanvasLogits as computeDiffusionGemmaCanvasLogitsImpl,
+  computeDiffusionGemmaCanvasStep as computeDiffusionGemmaCanvasStepImpl,
+} from './generator/diffusion.js';
+import {
+  _replayPrefillDecodeLogits as _replayPrefillDecodeLogitsImpl,
+  _shouldUseFinitenessFallback as _shouldUseFinitenessFallbackImpl,
+  _recreateKVCacheForExecutionPlan as _recreateKVCacheForExecutionPlanImpl,
+  _openFinitenessFallbackWindow as _openFinitenessFallbackWindowImpl,
+  _closeFinitenessFallbackWindow as _closeFinitenessFallbackWindowImpl,
+  _consumeFinitenessFallbackToken as _consumeFinitenessFallbackTokenImpl,
+  _beginFinitenessFallback as _beginFinitenessFallbackImpl,
+  _endFinitenessFallback as _endFinitenessFallbackImpl,
+  _retryWithFinitenessFallback as _retryWithFinitenessFallbackImpl,
+  _retryWithPersistentFinitenessFallback as _retryWithPersistentFinitenessFallbackImpl,
+  _retryDecodeStepWithFinitenessWindow as _retryDecodeStepWithFinitenessWindowImpl,
+} from './generator/recovery.js';
+import {
+  prefillKVOnly as prefillKVOnlyImpl,
+  prefillForLoRATraining as prefillForLoRATrainingImpl,
+  prefillWithEmbedding as prefillWithEmbeddingImpl,
+  prefillWithLogits as prefillWithLogitsImpl,
+  prefillWithTokenLogits as prefillWithTokenLogitsImpl,
+  prefillWithTokenLogitsFromKV as prefillWithTokenLogitsFromKVImpl,
+  generateWithPrefixKV as generateWithPrefixKVImpl,
+} from './generator/training.js';
+import {
+  _generateTokensInternal as _generateTokensInternalImpl,
+  generateTokenIds as generateTokenIdsImpl,
+  _runDecodeLoop as _runDecodeLoopImpl,
+  _decodeStep as _decodeStepImpl,
+  decodeStepLogits as decodeStepLogitsImpl,
+  advanceWithToken as advanceWithTokenImpl,
+  advanceWithTokenAndEmbedding as advanceWithTokenAndEmbeddingImpl,
+  _generateNTokensGPU as _generateNTokensGPUImpl,
+} from './generator/decode-runtime.js';
+import {
+  _commitPrefillHiddenChunk as _commitPrefillHiddenChunkImpl,
+  _prefillInputIdsToLogits as _prefillInputIdsToLogitsImpl,
+  _prefillPromptToLogits as _prefillPromptToLogitsImpl,
+  _prefillToHidden as _prefillToHiddenImpl,
+  _prefill as _prefillImpl,
+} from './generator/prefill-runtime.js';
+export { resolvePrefillChunkSubmitMode } from './generator/text.js';
 
 export class PipelineGenerator {
 
-  #state;
-  #finitenessFallbackWindow;
+  _state;
+  _finitenessFallbackWindow;
 
   _assertTokenIdsInRange(tokenIds, context = 'encode') {
-    assertTokenIdsInRange(this.#state, tokenIds, context);
+    assertTokenIdsInRange(this._state, tokenIds, context);
   }
 
   _assertTokenIdInRange(tokenId, context = 'token') {
-    assertTokenIdInRange(this.#state, tokenId, context);
+    assertTokenIdInRange(this._state, tokenId, context);
   }
 
-
   constructor(state) {
-    this.#state = state;
-    this.#finitenessFallbackWindow = null;
+    this._state = state;
+    this._finitenessFallbackWindow = null;
   }
 
   _resolveDeferredRoundingWindowTokens() {
-    const activePlan = resolveActiveExecutionPlan(this.#state);
+    const activePlan = resolveActiveExecutionPlan(this._state);
     return activePlan?.deferredRoundingWindowTokens
-      ?? resolveDeferredRoundingWindowTokens(this.#state.runtimeConfig?.inference?.compute);
+      ?? resolveDeferredRoundingWindowTokens(this._state.runtimeConfig?.inference?.compute);
   }
 
   _getEffectiveActivationDtype() {
-    return resolveActiveExecutionPlan(this.#state).activationDtype;
+    return resolveActiveExecutionPlan(this._state).activationDtype;
   }
 
   _hasFinitenessFallbackWindow() {
-    return this.#finitenessFallbackWindow !== null;
+    return this._finitenessFallbackWindow !== null;
   }
 
   _resetReplayPrefillRuntimeState() {
-    this.#state.kvCache?.clear?.();
-    this.#state.linearAttentionRuntime = resetLinearAttentionRuntime(this.#state.linearAttentionRuntime);
-    this.#state.currentSeqLen = 0;
+    this._state.kvCache?.clear?.();
+    this._state.linearAttentionRuntime = resetLinearAttentionRuntime(this._state.linearAttentionRuntime);
+    this._state.currentSeqLen = 0;
   }
 
   resetGenerationState() {
-    if (this.#state.isGenerating) {
+    if (this._state.isGenerating) {
       throw new Error('InferencePipeline.resetGenerationState: cannot reset while generation is in progress');
     }
     this._resetReplayPrefillRuntimeState();
@@ -490,120 +234,58 @@ export class PipelineGenerator {
   }
 
   async _replayPrefillDecodeLogits(currentIds, opts) {
-    // Guard: cap replay-prefill sequence length to the config-owned maxSeqLen.
-    // Without KV cache creation, this bound is not enforced elsewhere.
-    const kvConfig = this.#state.runtimeConfig?.inference?.session?.kvcache;
-    const replayMaxSeqLen = kvConfig?.maxSeqLen;
-    if (Number.isFinite(replayMaxSeqLen) && replayMaxSeqLen > 0 && currentIds.length > replayMaxSeqLen) {
-      throw new Error(
-        `[Pipeline] Replay-prefill sequence length ${currentIds.length} exceeds ` +
-        `runtime.inference.session.kvcache.maxSeqLen (${replayMaxSeqLen}). ` +
-        'Increase maxSeqLen in a tier profile or runtime config to allow longer sequences.'
-      );
-    }
-    this.#state.decodeStepCount++;
-    this._resetReplayPrefillRuntimeState();
-    const logits = await this._prefill(currentIds, opts);
-    return {
-      logits,
-      logitsBuffer: null,
-      logitsDtype: null,
-      rawVocabSize: this.#state.modelConfig.vocabSize,
-      vocabSize: this.#state.modelConfig.vocabSize,
-    };
+    return _replayPrefillDecodeLogitsImpl.apply(this, arguments);
   }
 
   _shouldUseFinitenessFallback(error, contextLabel) {
-    if (!shouldRetryWithFinitenessFallback(error)) {
-      return false;
-    }
-    if (!hasFallbackExecutionPlan(this.#state)) {
-      throw createUnhandledFinitenessPolicyError(this.#state, contextLabel, error);
-    }
-    return true;
+    return _shouldUseFinitenessFallbackImpl.apply(this, arguments);
   }
 
   _recreateKVCacheForExecutionPlan(plan, reasonLabel) {
-    const kvDtype = resolveTargetPlanKVDtype(plan, `${reasonLabel}: target plan`);
-    const runtimeInference = cloneRuntimeInferenceWithKVDtype(this.#state, kvDtype);
-    this.#state.kvCache?.destroy?.();
-    this.#state.kvCache = createKVCache(
-      this.#state.modelConfig,
-      this.#state.useGPU,
-      this.#state.debug,
-      runtimeInference
-    );
-    this.#state.linearAttentionRuntime = resetLinearAttentionRuntime(this.#state.linearAttentionRuntime);
-    this.#state.currentSeqLen = 0;
-    return kvDtype;
+    return _recreateKVCacheForExecutionPlanImpl.apply(this, arguments);
   }
 
   _openFinitenessFallbackWindow(opts, reasonLabel, tokenCount, rollbackSeqLen = undefined) {
-    const normalizedCount = Number.isFinite(tokenCount)
-      ? Math.max(1, Math.floor(tokenCount))
-      : 1;
-    if (this.#finitenessFallbackWindow) {
-      this.#finitenessFallbackWindow.remainingTokens = Math.max(
-        this.#finitenessFallbackWindow.remainingTokens,
-        normalizedCount
-      );
-      return;
-    }
-    const original = this._beginFinitenessFallback(opts, reasonLabel, rollbackSeqLen);
-    this.#finitenessFallbackWindow = {
-      original,
-      remainingTokens: normalizedCount,
-    };
+    return _openFinitenessFallbackWindowImpl.apply(this, arguments);
   }
 
   _closeFinitenessFallbackWindow(opts) {
-    if (!this.#finitenessFallbackWindow) {
-      return;
-    }
-    const original = this.#finitenessFallbackWindow.original;
-    this.#finitenessFallbackWindow = null;
-    this._endFinitenessFallback(opts, original);
+    return _closeFinitenessFallbackWindowImpl.apply(this, arguments);
   }
 
   _consumeFinitenessFallbackToken(opts) {
-    if (!this.#finitenessFallbackWindow) {
-      return;
-    }
-    this.#finitenessFallbackWindow.remainingTokens -= 1;
-    if (this.#finitenessFallbackWindow.remainingTokens <= 0) {
-      this._closeFinitenessFallbackWindow(opts);
-    }
+    return _consumeFinitenessFallbackTokenImpl.apply(this, arguments);
   }
 
   _resolveStepOptions(options = {}) {
-    return resolveStepOptions(this.#state, options);
+    return resolveStepOptions(this._state, options);
   }
 
   _resetDecodeRuntimeState() {
-    this.#state.stats.prefillProfileSteps = [];
-    this.#state.stats.decodeMode = null;
-    this.#state.stats.batchGuardReason = null;
-    this.#state.stats.decodeProfileSteps = [];
-    this.#state.stats.ttftMs = 0;
-    this.#state.stats.decodeTimeMs = 0;
-    this.#state.stats.prefillRecordMs = 0;
-    this.#state.stats.prefillRecordOps = 0;
-    this.#state.stats.prefillRecordPasses = 0;
-    this.#state.stats.prefillRecordOpLabels = {};
-    this.#state.stats.prefillSubmitWaitMs = 0;
-    this.#state.stats.decodeRecordMs = 0;
-    this.#state.stats.decodeRecordOps = 0;
-    this.#state.stats.decodeRecordPasses = 0;
-    this.#state.stats.decodeRecordOpLabels = {};
-    this.#state.stats.decodeSubmitWaitMs = 0;
-    this.#state.stats.decodeReadbackWaitMs = 0;
-    this.#state.stats.decodeReadbackMapWaitMs = 0;
-    this.#state.stats.decodeReadbackCleanupMs = 0;
-    this.#state.stats.decodeReadbackCopyMs = 0;
-    this.#state.decodeStepCount = 0;
-    this.#state.disableRecordedLogits = false;
-    this.#state.disableFusedDecode = false;
-    this.#state.batchingStats = {
+    this._state.stats.prefillProfileSteps = [];
+    this._state.stats.decodeMode = null;
+    this._state.stats.batchGuardReason = null;
+    this._state.stats.decodeProfileSteps = [];
+    this._state.stats.ttftMs = 0;
+    this._state.stats.decodeTimeMs = 0;
+    this._state.stats.prefillRecordMs = 0;
+    this._state.stats.prefillRecordOps = 0;
+    this._state.stats.prefillRecordPasses = 0;
+    this._state.stats.prefillRecordOpLabels = {};
+    this._state.stats.prefillSubmitWaitMs = 0;
+    this._state.stats.decodeRecordMs = 0;
+    this._state.stats.decodeRecordOps = 0;
+    this._state.stats.decodeRecordPasses = 0;
+    this._state.stats.decodeRecordOpLabels = {};
+    this._state.stats.decodeSubmitWaitMs = 0;
+    this._state.stats.decodeReadbackWaitMs = 0;
+    this._state.stats.decodeReadbackMapWaitMs = 0;
+    this._state.stats.decodeReadbackCleanupMs = 0;
+    this._state.stats.decodeReadbackCopyMs = 0;
+    this._state.decodeStepCount = 0;
+    this._state.disableRecordedLogits = false;
+    this._state.disableFusedDecode = false;
+    this._state.batchingStats = {
       batchedForwardCalls: 0,
       unbatchedForwardCalls: 0,
       totalBatchedTimeMs: 0,
@@ -616,23 +298,23 @@ export class PipelineGenerator {
       maxBatchTokenCap: null,
       batchClampCount: 0,
     };
-    resetActiveExecutionPlan(this.#state);
-    this.#state.decodeRing?.reset();
+    resetActiveExecutionPlan(this._state);
+    this._state.decodeRing?.reset();
   }
 
   _getDecodeHelpers(debugCheckBuffer) {
     return {
       buildLayerContext: (recorder, isDecodeMode, debugLayers, executionPlan) =>
-        buildLayerContext(this.#state, recorder, isDecodeMode, debugLayers, debugCheckBuffer, executionPlan),
-      getLogitsWeights: () => getLogitsWeights(this.#state),
-      getLogitsConfig: () => getLogitsConfig(this.#state),
+        buildLayerContext(this._state, recorder, isDecodeMode, debugLayers, debugCheckBuffer, executionPlan),
+      getLogitsWeights: () => getLogitsWeights(this._state),
+      getLogitsConfig: () => getLogitsConfig(this._state),
       releaseSharedAttentionState,
       debugCheckBuffer,
     };
   }
 
   async _getFinalNormWeights() {
-    return getFinalNormWeights(this.#state);
+    return getFinalNormWeights(this._state);
   }
 
   _extractEmbeddingFromHidden(hiddenStates, numTokens, hiddenSize, embeddingMode, finalNormWeights, config) {
@@ -643,9 +325,9 @@ export class PipelineGenerator {
       embeddingMode,
       finalNormWeights,
       config,
-      this.#state.embeddingPostprocessor,
+      this._state.embeddingPostprocessor,
       null,
-      this.#state.weights.get('final_norm_bias') ?? null
+      this._state.weights.get('final_norm_bias') ?? null
     );
   }
 
@@ -656,13 +338,13 @@ export class PipelineGenerator {
       hiddenSize,
       finalNormWeights,
       config,
-      this.#state.weights.get('final_norm_bias') ?? null
+      this._state.weights.get('final_norm_bias') ?? null
     );
   }
 
   _resolvePromptTokenIds(prompt, useChatTemplate, contextLabel) {
-    const processedPrompt = resolvePromptInput(this.#state, prompt, useChatTemplate, contextLabel);
-    const inputIds = this.#state.tokenizer.encode(processedPrompt);
+    const processedPrompt = resolvePromptInput(this._state, prompt, useChatTemplate, contextLabel);
+    const inputIds = this._state.tokenizer.encode(processedPrompt);
     this._assertTokenIdsInRange(inputIds, `${contextLabel}.encode`);
     return inputIds;
   }
@@ -686,14 +368,14 @@ export class PipelineGenerator {
       try {
         opts.logitMaskFn(sampledLogits, {
           generatedIds,
-          tokenizer: this.#state.tokenizer ?? null,
-          vocabSize: this.#state.modelConfig?.vocabSize ?? sampledLogits.length,
+          tokenizer: this._state.tokenizer ?? null,
+          vocabSize: this._state.modelConfig?.vocabSize ?? sampledLogits.length,
         });
       } catch (maskError) {
         log.warn("Pipeline", `logitMaskFn threw; continuing without mask: ${maskError}`);
       }
     }
-    const padTokenId = this.#state.tokenizer?.getSpecialTokens?.()?.pad;
+    const padTokenId = this._state.tokenizer?.getSpecialTokens?.()?.pad;
     const tokenId = sample(sampledLogits, {
       temperature: opts.temperature,
       topP: opts.topP,
@@ -712,7 +394,7 @@ export class PipelineGenerator {
   }
 
   _resolvePrefillTokenChunkSize(inputIds) {
-    const chunkSize = resolveEffectivePrefillTokenChunkSize(this.#state);
+    const chunkSize = resolveEffectivePrefillTokenChunkSize(this._state);
     if (chunkSize === undefined) {
       throw new Error('inference.session.prefillTokenChunkSize is required; use null to disable token-chunked prefill.');
     }
@@ -726,105 +408,26 @@ export class PipelineGenerator {
   }
 
   async _commitPrefillHiddenChunk(prefillResult) {
-    const {
-      numTokens,
-      startPos,
-      currentRecorder,
-      recordProfile,
-      currentHiddenBuffer,
-    } = prefillResult;
-
-    try {
-      if (currentRecorder) {
-        recordPrefillRecorderStats(this.#state, currentRecorder);
-        await currentRecorder.submitAndWait();
-        await recordProfile(currentRecorder);
-      } else {
-        const device = getDevice();
-        if (device) {
-          await device.queue.onSubmittedWorkDone();
-        }
-      }
-      this.#state.currentSeqLen = startPos + numTokens;
-    } finally {
-      releaseBuffer(currentHiddenBuffer);
-    }
+    return _commitPrefillHiddenChunkImpl.apply(this, arguments);
   }
 
   async _prefillInputIdsToLogits(inputIds, opts) {
-    const chunkSize = this._resolvePrefillTokenChunkSize(inputIds);
-    if (chunkSize === null) {
-      return this._prefill(inputIds, opts);
-    }
-
-    for (let offset = 0; offset < inputIds.length; offset += chunkSize) {
-      const end = Math.min(offset + chunkSize, inputIds.length);
-      const chunk = inputIds.slice(offset, end);
-      const isFinalChunk = end === inputIds.length;
-      if (isFinalChunk) {
-        return this._prefill(chunk, opts);
-      }
-      const prefillResult = await this._prefillToHidden(chunk, opts);
-      await this._commitPrefillHiddenChunk(prefillResult);
-    }
-
-    return this._prefill(inputIds, opts);
+    return _prefillInputIdsToLogitsImpl.apply(this, arguments);
   }
 
   async _prefillPromptToLogits(prompt, opts, contextLabel) {
-    const prefillStartSeqLen = this.#state.currentSeqLen;
-    const inputStart = performance.now();
-    const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, contextLabel, opts.inputIds);
-    const inputMs = performance.now() - inputStart;
-    if (opts.debug) {
-      log.debug('Pipeline', `${contextLabel}: ${inputIds.length} tokens`);
-    }
-
-    let logits;
-    const prefillStart = performance.now();
-    const runPrefill = () => this._prefillInputIdsToLogits(inputIds, opts);
-    try {
-      logits = await runPrefill();
-    } catch (error) {
-      if (!this._shouldUseFinitenessFallback(error, contextLabel)) {
-        throw error;
-      }
-      log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during ${contextLabel}. Retrying with F32 precision.`);
-      logits = await this._retryWithPersistentFinitenessFallback(
-        opts,
-        contextLabel,
-        opts.maxTokens ?? 1,
-        runPrefill,
-        prefillStartSeqLen
-      );
-    }
-
-    return {
-      inputIds,
-      logits,
-      phase: {
-        inputMs,
-        prefillMs: performance.now() - prefillStart,
-        tokens: inputIds.length,
-        prefillRecordMs: this.#state.stats.prefillRecordMs ?? null,
-        prefillRecordOps: this.#state.stats.prefillRecordOps ?? null,
-        prefillRecordPasses: this.#state.stats.prefillRecordPasses ?? null,
-        prefillRecordOpLabels: this.#state.stats.prefillRecordOpLabels ?? null,
-        prefillSubmitWaitMs: this.#state.stats.prefillSubmitWaitMs ?? null,
-        gpuPrefillMs: this.#state.stats.gpuTimePrefillMs ?? null,
-      },
-    };
+    return _prefillPromptToLogitsImpl.apply(this, arguments);
   }
 
   async _decodeStepToLogits(currentIds, opts) {
-    if (usesReplayPrefillDecode(this.#state)) {
+    if (usesReplayPrefillDecode(this._state)) {
       return this._replayPrefillDecodeLogits(currentIds, opts);
     }
-    const debugCheckBuffer = this.#state.debug
+    const debugCheckBuffer = this._state.debug
       ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
+        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim)
       : undefined;
-    return decodeStepLogits(this.#state, currentIds, opts, this._getDecodeHelpers(debugCheckBuffer));
+    return decodeStepLogits(this._state, currentIds, opts, this._getDecodeHelpers(debugCheckBuffer));
   }
 
   async _decodeNextTokenViaLogits(currentIds, opts) {
@@ -836,7 +439,7 @@ export class PipelineGenerator {
     if (!Array.isArray(stopSequences) || stopSequences.length === 0) {
       return false;
     }
-    const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
+    const fullText = this._state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
     return stopSequences.some((sequence) => fullText.endsWith(sequence));
   }
 
@@ -848,431 +451,32 @@ export class PipelineGenerator {
   }
 
   _recordStopReason(reason, tokenId = null) {
-    this.#state.stats.stopReason = reason;
-    this.#state.stats.stopTokenId = Number.isInteger(tokenId) ? tokenId : null;
+    this._state.stats.stopReason = reason;
+    this._state.stats.stopTokenId = Number.isInteger(tokenId) ? tokenId : null;
   }
 
   async *_generateTokensInternal(prompt, options = {}, mode = 'text') {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating) throw new Error('Generation already in progress');
-
-    validateCallTimeOptions(options);
-
-    this.#state.isGenerating = true;
-    this._resetDecodeRuntimeState();
-    this.#state.stats.gpuTimePrefillMs = undefined;
-    this.#state.stats.gpuTimeDecodeMs = undefined;
-    this.#state.stats.decodeRecordMs = 0;
-    this.#state.stats.decodeRecordOps = 0;
-    this.#state.stats.decodeRecordPasses = 0;
-    this.#state.stats.decodeRecordOpLabels = {};
-    this.#state.stats.decodeSubmitWaitMs = 0;
-    this.#state.stats.decodeReadbackWaitMs = 0;
-    this.#state.stats.decodeReadbackMapWaitMs = 0;
-    this.#state.stats.decodeReadbackCleanupMs = 0;
-    this.#state.stats.decodeReadbackCopyMs = 0;
-    this.#state.stats.prefillRecordMs = 0;
-    this.#state.stats.prefillRecordOps = 0;
-    this.#state.stats.prefillRecordPasses = 0;
-    this.#state.stats.prefillRecordOpLabels = {};
-    this.#state.stats.prefillSubmitWaitMs = 0;
-    this.#state.stats.singleTokenSubmitWaitMs = 0;
-    this.#state.stats.singleTokenReadbackWaitMs = 0;
-    this.#state.stats.singleTokenReadbackMapWaitMs = 0;
-    this.#state.stats.singleTokenReadbackCleanupMs = 0;
-    this.#state.stats.singleTokenReadbackCopyMs = 0;
-    this.#state.stats.singleTokenOrchestrationMs = 0;
-    this.#state.stats.pleHotVocabularyHits = 0;
-    this.#state.stats.pleHotVocabularyMisses = 0;
-    this.#state.stats.plePreparedTokenCacheHits = 0;
-    this.#state.stats.plePreparedTokenCacheMisses = 0;
-    this.#state.stats.plePreparedTokenCacheEntries = 0;
-    this.#state.stats.plePreparedTokenCacheBytes = 0;
-    this.#state.stats.decodeMode = null;
-    this.#state.stats.batchGuardReason = null;
-    this.#state.stats.stopReason = null;
-    this.#state.stats.stopTokenId = null;
-    this.#state.stats.ttftMs = 0;
-    const startTime = performance.now();
-
-    const opts = resolveGenerateOptions(this.#state, options);
-    opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
-    opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
-    // Validate and normalize sampling parameters through single source of truth
-    const samplingConfig = resolveSamplingConfig(options, this.#state.runtimeConfig);
-    opts.temperature = samplingConfig.temperature;
-    opts.topP = samplingConfig.topP;
-    opts.topK = samplingConfig.topK;
-    opts.repetitionPenalty = samplingConfig.repetitionPenalty;
-    opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this.#state, samplingConfig);
-    const diagnosticsEnabled = options?.diagnostics?.enabled === true
-      || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
-    const tsirFixtureCfg = this.#state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
-    if (diagnosticsEnabled || tsirFixtureCfg) {
-      const captureConfig = {
-        ...createDefaultCaptureConfig(),
-        enabled: true,
-        defaultLevel: CAPTURE_LEVELS.SLICE,
-        ...(options?.diagnostics?.captureConfig ?? {}),
-      };
-      validateCaptureConfig(captureConfig);
-      this.#state.operatorDiagnostics = {
-        enabled: diagnosticsEnabled === true,
-        captureConfig,
-        emitter: diagnosticsEnabled ? new OperatorEventEmitter({
-          modelHash: this.#state.manifest?.modelId ?? null,
-          runtimeConfigHash: this.#state.resolvedKernelPath?.id ?? null,
-          executionPlanHash: opts.executionPlan?.id ?? null,
-        }) : null,
-        tsirFixture: tsirFixtureCfg ? {
-          dir: tsirFixtureCfg.dir,
-          layerFilter: Array.isArray(tsirFixtureCfg.layerFilter)
-            ? tsirFixtureCfg.layerFilter
-            : null,
-          prefillOnly: tsirFixtureCfg.prefillOnly,
-          generationStep: tsirFixtureCfg.generationStep ?? null,
-          records: [],
-        } : null,
-      };
-    }
-    const activePlan = opts.executionPlan ?? resolveActiveExecutionPlan(this.#state);
-    this.#state.stats.executionPlan = {
-      primary: summarizeExecutionPlan(this.#state.executionPlanState?.primaryPlan ?? null),
-      fallback: summarizeExecutionPlan(this.#state.executionPlanState?.fallbackPlan ?? null),
-      activePlanIdAtStart: activePlan?.id ?? null,
-      finalActivePlanId: activePlan?.id ?? null,
-      transitions: [],
-    };
-    this.#state.stats.kernelPathId = activePlan?.kernelPathId ?? this.#state.resolvedKernelPath?.id ?? null;
-    this.#state.stats.kernelPathSource = activePlan?.kernelPathSource ?? this.#state.kernelPathSource ?? 'none';
-
-    if (opts.debug) {
-      log.debug('Pipeline', `ChatTemplate: options=${options.useChatTemplate}, final=${opts.useChatTemplate}`);
-    }
-
-    const emitToken = async function* (generator, tokenId, textDecoder) {
-      if (mode === 'token') {
-        yield tokenId;
-        if (options.onToken) options.onToken(tokenId, '');
-        return;
-      }
-      const tokenText = textDecoder(tokenId);
-      yield tokenText;
-      if (options.onToken) options.onToken(tokenId, tokenText);
-    };
-
-    try {
-      const prefillStartSeqLen = this.#state.currentSeqLen;
-      const prefillStart = performance.now();
-      const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generate');
-      let prefillLogits = initialPrefillLogits;
-      this.#state.stats.prefillTimeMs = performance.now() - prefillStart;
-      this._assertTokenIdsInRange(inputIds, 'generate.prefillTokens');
-      const generatedIds = [...inputIds];
-      this.#state.stats.prefillTokens = inputIds.length;
-
-      if (opts.debug) {
-        log.debug('Pipeline', `Input: ${inputIds.length} tokens`);
-      }
-
-      const intentBundleConfig = this.#state.runtimeConfig.shared.intentBundle;
-      const intentBundle = intentBundleConfig?.bundle;
-      const expectedTopK = intentBundle?.payload?.expectedTopK
-        ?? intentBundle?.payload?.expected_top_k;
-      const maxDriftThreshold = intentBundle?.constraints?.maxDriftThreshold
-        ?? intentBundle?.constraints?.max_drift_threshold;
-
-      if (intentBundleConfig?.enabled && Array.isArray(expectedTopK) && expectedTopK.length > 0) {
-        const { enforceLogitDrift } = await getExperimentalIntentBundleModule();
-        const actualTopK = getTopK(
-          prefillLogits,
-          expectedTopK.length,
-          (tokens) => resolveTokenText(this.#state.tokenizer, tokens),
-        ).map((token) => token.token);
-        const driftResult = enforceLogitDrift(expectedTopK, actualTopK, maxDriftThreshold);
-        if (!driftResult.ok) {
-          throw new Error(`Intent bundle drift check failed: ${driftResult.reason}`);
-        }
-      }
-
-      if (opts.debug) {
-        const topAfterPenalty = getTopK(
-          Float32Array.from(prefillLogits),
-          5,
-          (tokens) => resolveTokenText(this.#state.tokenizer, tokens)
-        );
-        log.debug('Pipeline', `After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
-      }
-
-      let firstToken;
-      try {
-        firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
-      } catch (error) {
-        if (!this._shouldUseFinitenessFallback(error, 'prefill-sample')) {
-          throw error;
-        }
-        log.warn('Pipeline', 'FinitenessGuard caught non-finite prefill logits at sampling. Retrying with F32 precision.');
-        prefillLogits = await this._retryWithPersistentFinitenessFallback(
-          opts,
-          'prefill-sample',
-          opts.maxTokens,
-          () => this._prefill(inputIds, opts),
-          prefillStartSeqLen
-        );
-        firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
-      }
-
-      if (opts.debug) {
-        const firstTokenText = resolveTokenText(this.#state.tokenizer, [firstToken], `[${firstToken}]`, (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false));
-        log.debug('Pipeline', `First token sampled: id=${firstToken} text="${firstTokenText}"`);
-      }
-
-      const stopTokenIds = this.#state.modelConfig.stopTokenIds;
-      const eosToken = this.#state.tokenizer.getSpecialTokens?.()?.eos;
-      const stopSequenceStart = inputIds.length;
-      generatedIds.push(firstToken);
-      this.#state.stats.ttftMs = performance.now() - startTime;
-
-      const decodeToken = (tokenId) => resolveTokenText(
-        this.#state.tokenizer,
-        [tokenId],
-        `[${tokenId}]`,
-        (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false),
-        (tokens) => this.#state.tokenizer?.decode?.(tokens, false, false)
-      );
-      const decodeRuntime = {
-        stopTokenIds,
-        eosToken,
-        stopSequenceStart,
-        decodeToken,
-        logBatchPath: opts.debug,
-        emitMode: mode,
-      };
-
-      yield* emitToken(this, firstToken, decodeToken);
-
-      if (this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
-        this._recordStopReason('stop-token-or-sequence', firstToken);
-        this.#state.stats.decodeTimeMs = 0;
-        this.#state.stats.tokensGenerated = 1;
-        this.#state.stats.decodeTokens = 1;
-      } else {
-        yield* this._runDecodeLoop(generatedIds, opts, options, decodeRuntime);
-      }
-      const tokensGenerated = this.#state.stats.decodeTokens ?? 1;
-      this.#state.stats.totalTimeMs = performance.now() - startTime;
-
-      if (opts.debug) {
-        log.debug('Pipeline', `Generated ${tokensGenerated} tokens in ${this.#state.stats.totalTimeMs.toFixed(0)}ms`);
-      }
-
-      const ttft = this.#state.stats.ttftMs ?? this.#state.stats.prefillTimeMs;
-      const decodeTokens = Math.max(0, tokensGenerated - 1);
-      const decodeSpeed = decodeTokens > 0 ? (decodeTokens / this.#state.stats.decodeTimeMs * 1000) : 0;
-      const loadMs = this.#state.stats.modelLoadMs;
-      const loadLabel = Number.isFinite(loadMs) ? `Load: ${loadMs.toFixed(0)}ms | ` : '';
-      if (opts.benchmark) {
-        log.info('Benchmark', `${loadLabel}TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.#state.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.#state.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
-      } else {
-        log.info('Perf', `${loadLabel}TTFT: ${ttft.toFixed(0)}ms | Prefill: ${this.#state.stats.prefillTimeMs.toFixed(0)}ms | Decode: ${this.#state.stats.decodeTimeMs.toFixed(0)}ms (${decodeTokens} tokens @ ${decodeSpeed.toFixed(1)} tok/s)`);
-      }
-      trace.perf('Decode summary', {
-        ttftMs: ttft,
-        prefillMs: this.#state.stats.prefillTimeMs,
-        decodeMs: this.#state.stats.decodeTimeMs,
-        decodeTokens,
-        decodeSpeed,
-        totalMs: this.#state.stats.totalTimeMs,
-      });
-    } finally {
-      this._closeFinitenessFallbackWindow(opts);
-      resetActiveExecutionPlan(this.#state);
-      this.#state.stats.operatorDiagnostics = this.#state.operatorDiagnostics?.emitter
-        ? {
-          enabled: true,
-          timeline: this.#state.operatorDiagnostics.emitter.getTimeline(),
-          recordCount: this.#state.operatorDiagnostics.emitter.length,
-        }
-        : null;
-      this.#state.operatorDiagnostics = null;
-      this.#state.isGenerating = false;
-    }
+    return yield* _generateTokensInternalImpl.apply(this, arguments);
   }
 
   _beginFinitenessFallback(opts, reasonLabel, rollbackSeqLen = undefined) {
-    const originalPlan = resolveActiveExecutionPlan(this.#state);
-    const currentKvDtype = resolveCurrentKVCacheDtype(
-      this.#state,
-      originalPlan,
-      `${reasonLabel}: current plan`
-    );
-    const original = {
-      activePlanId: this.#state.executionPlanState?.activePlanId ?? 'primary',
-      seed: opts.seed,
-      restoreKVCachePlan: null,
-    };
-
-    const fallbackPlan = activateFallbackExecutionPlan(this.#state);
-    if (!fallbackPlan) {
-      throw new Error(
-        '[Pipeline] Explicit alternate-plan finiteness recovery is unavailable for this model/runtime configuration.'
-      );
-    }
-    log.warn(
-      'Pipeline',
-      `FinitenessGuard fallback (${reasonLabel}): ` +
-      `${originalPlan.kernelPathId ?? 'none'} -> ${fallbackPlan.kernelPathId ?? 'none'}`
-    );
-    const fallbackKvDtype = resolveTargetPlanKVDtype(
-      fallbackPlan,
-      `${reasonLabel}: fallback plan`
-    );
-
-    if (Number.isInteger(rollbackSeqLen) && rollbackSeqLen < 0) {
-      setActiveExecutionPlan(this.#state, original.activePlanId);
-      throw new Error(
-        `[Pipeline] ${reasonLabel}: rollbackSeqLen must be a non-negative integer when provided.`
-      );
-    }
-
-    if (fallbackKvDtype !== currentKvDtype) {
-      if (rollbackSeqLen !== 0) {
-        setActiveExecutionPlan(this.#state, original.activePlanId);
-        throw new Error(
-          `[Pipeline] ${reasonLabel}: finiteness fallback requires rebuilding the KV cache ` +
-          `${currentKvDtype} -> ${fallbackKvDtype}, which is only supported from a fresh prefill (rollbackSeqLen=0).`
-        );
-      }
-      try {
-        this._recreateKVCacheForExecutionPlan(fallbackPlan, reasonLabel);
-        original.restoreKVCachePlan = originalPlan;
-      } catch (error) {
-        setActiveExecutionPlan(this.#state, original.activePlanId);
-        try {
-          this._recreateKVCacheForExecutionPlan(originalPlan, `${reasonLabel}: restore primary`);
-        } catch (restoreError) {
-          log.warn(
-            'Pipeline',
-            `Failed to restore primary KV cache after fallback activation error: ${restoreError}`
-          );
-        }
-        throw error;
-      }
-    } else if (Number.isInteger(rollbackSeqLen)) {
-      this.#state.kvCache?.truncate(rollbackSeqLen);
-      this.#state.currentSeqLen = rollbackSeqLen;
-      if (rollbackSeqLen === 0) {
-        this.#state.linearAttentionRuntime = resetLinearAttentionRuntime(this.#state.linearAttentionRuntime);
-      }
-    } else {
-      this.#state.kvCache?.truncate(this.#state.currentSeqLen);
-    }
-
-    this.#state.decodeBuffers?.ensureBuffers({
-      hiddenSize: this.#state.modelConfig.hiddenSize,
-      intermediateSize: this.#state.modelConfig.maxIntermediateSize,
-      activationDtype: fallbackPlan.activationDtype,
-      enablePingPong: true,
-    });
-
-    if (opts.seed == null) {
-      const fallbackSeedBase = (this.#state.decodeStepCount + this.#state.currentSeqLen + 1) >>> 0;
-      opts.seed = (fallbackSeedBase * 2654435761) >>> 0;
-    }
-    opts.executionPlan = rebaseExecutionSessionPlan(this.#state, opts.executionPlan);
-    if (this.#state.stats.executionPlan) {
-      this.#state.stats.executionPlan.finalActivePlanId = fallbackPlan.id;
-      this.#state.stats.executionPlan.transitions.push({
-        kind: 'activate-finiteness-fallback',
-        reason: reasonLabel ?? null,
-        decodeStep: this.#state.decodeStepCount,
-        seqLen: this.#state.currentSeqLen,
-        fromPlanId: originalPlan.id,
-        toPlanId: fallbackPlan.id,
-        fromKernelPathId: originalPlan.kernelPathId ?? null,
-        toKernelPathId: fallbackPlan.kernelPathId ?? null,
-      });
-    }
-    this.#state.stats.kernelPathId = fallbackPlan.kernelPathId ?? null;
-    this.#state.stats.kernelPathSource = fallbackPlan.kernelPathSource ?? 'none';
-
-    return original;
+    return _beginFinitenessFallbackImpl.apply(this, arguments);
   }
 
   _endFinitenessFallback(opts, original) {
-    opts.seed = original.seed;
-    setActiveExecutionPlan(this.#state, original.activePlanId);
-    opts.executionPlan = rebaseExecutionSessionPlan(this.#state, opts.executionPlan);
-    const restoredPlan = resolveActiveExecutionPlan(this.#state);
-    if (original.restoreKVCachePlan) {
-      this._recreateKVCacheForExecutionPlan(restoredPlan, 'restore-primary-plan');
-    }
-    if (this.#state.stats.executionPlan) {
-      this.#state.stats.executionPlan.finalActivePlanId = restoredPlan.id;
-      this.#state.stats.executionPlan.transitions.push({
-        kind: 'restore-primary-plan',
-        reason: null,
-        decodeStep: this.#state.decodeStepCount,
-        seqLen: this.#state.currentSeqLen,
-        fromPlanId: this.#state.executionPlanState?.fallbackPlan?.id ?? null,
-        toPlanId: restoredPlan.id,
-        fromKernelPathId: this.#state.executionPlanState?.fallbackPlan?.kernelPathId ?? null,
-        toKernelPathId: restoredPlan.kernelPathId ?? null,
-      });
-    }
-    this.#state.stats.kernelPathId = restoredPlan.kernelPathId ?? this.#state.resolvedKernelPath?.id ?? null;
-    this.#state.stats.kernelPathSource = restoredPlan.kernelPathSource ?? this.#state.kernelPathSource ?? 'none';
-    const nextActivationDtype = this._getEffectiveActivationDtype();
-    this.#state.decodeBuffers?.ensureBuffers({
-      hiddenSize: this.#state.modelConfig.hiddenSize,
-      intermediateSize: this.#state.modelConfig.maxIntermediateSize,
-      activationDtype: nextActivationDtype,
-      enablePingPong: true,
-    });
+    return _endFinitenessFallbackImpl.apply(this, arguments);
   }
 
   async _retryWithFinitenessFallback(opts, reasonLabel, retryFn, rollbackSeqLen = undefined) {
-    if (this._hasFinitenessFallbackWindow()) {
-      return retryFn();
-    }
-    const original = this._beginFinitenessFallback(opts, reasonLabel, rollbackSeqLen);
-    try {
-      return await retryFn();
-    } finally {
-      this._endFinitenessFallback(opts, original);
-    }
+    return _retryWithFinitenessFallbackImpl.apply(this, arguments);
   }
 
   async _retryWithPersistentFinitenessFallback(opts, reasonLabel, tokenBudget, retryFn, rollbackSeqLen = undefined) {
-    if (this._hasFinitenessFallbackWindow()) {
-      return retryFn();
-    }
-    this._openFinitenessFallbackWindow(opts, reasonLabel, tokenBudget, rollbackSeqLen);
-    try {
-      return await retryFn();
-    } catch (error) {
-      this._closeFinitenessFallbackWindow(opts);
-      throw error;
-    }
+    return _retryWithPersistentFinitenessFallbackImpl.apply(this, arguments);
   }
 
   async _retryDecodeStepWithFinitenessWindow(generatedIds, opts, reasonLabel) {
-    const windowTokens = this._resolveDeferredRoundingWindowTokens();
-    if (windowTokens <= 1) {
-      return this._retryWithFinitenessFallback(
-        opts,
-        reasonLabel,
-        () => this._decodeStep(generatedIds, opts)
-      );
-    }
-
-    this._openFinitenessFallbackWindow(opts, reasonLabel, windowTokens);
-    try {
-      return await this._decodeStep(generatedIds, opts);
-    } catch (error) {
-      this._closeFinitenessFallbackWindow(opts);
-      throw error;
-    }
+    return _retryDecodeStepWithFinitenessWindowImpl.apply(this, arguments);
   }
 
   // ==========================================================================
@@ -1289,591 +493,36 @@ export class PipelineGenerator {
    * Only valid when no decode is in progress.
    */
   resetToSeqLen(seqLen) {
-    if (this.#state.isGenerating) {
+    if (this._state.isGenerating) {
       throw new Error('InferencePipeline.resetToSeqLen: cannot reset while generation is in progress');
     }
     const target = Math.max(0, Math.floor(Number(seqLen) || 0));
     if (!Number.isFinite(target)) {
       throw new Error('InferencePipeline.resetToSeqLen: seqLen must be a finite non-negative integer');
     }
-    if (target > this.#state.currentSeqLen) {
+    if (target > this._state.currentSeqLen) {
       throw new Error(
-        `InferencePipeline.resetToSeqLen: target ${target} exceeds currentSeqLen ${this.#state.currentSeqLen}`
+        `InferencePipeline.resetToSeqLen: target ${target} exceeds currentSeqLen ${this._state.currentSeqLen}`
       );
     }
-    this.#state.kvCache?.truncate?.(target);
-    this.#state.currentSeqLen = target;
+    this._state.kvCache?.truncate?.(target);
+    this._state.currentSeqLen = target;
   }
 
   async _createDiffusionGemmaSelfConditioningEmbeddings(canvasIds, selfConditioningLogits, opts) {
-    const config = this.#state.modelConfig;
-    const canvasLength = canvasIds.length;
-    const hiddenSize = config.hiddenSize;
-    const vocabSize = config.vocabSize;
-    const elementCount = canvasLength * hiddenSize;
-    const softEmbeddingState = normalizeSelfConditioningSoftEmbeddingState(
-      selfConditioningLogits,
-      canvasLength,
-      hiddenSize
-    );
-    const logitsState = softEmbeddingState
-      ? null
-      : normalizeSelfConditioningLogitsState(selfConditioningLogits, canvasLength, vocabSize);
-    const logits = (softEmbeddingState || logitsState)
-      ? null
-      : normalizeSelfConditioningLogits(selfConditioningLogits, canvasLength, vocabSize);
-    const weights = this.#state.weights.get('diffusion_gemma_self_conditioning');
-    if (!weights || typeof weights !== 'object') {
-      throw new Error(
-        'DiffusionGemma self-conditioning weights were not loaded. ' +
-        'Expected model.decoder.self_conditioning tensors in the manifest.'
-      );
-    }
-
-    const embedBufferRaw = this.#state.weights.get('embed');
-    if (!embedBufferRaw) {
-      throw new Error('DiffusionGemma self-conditioning requires loaded embed_tokens weights.');
-    }
-    const borrowed = {
-      preNorm: null,
-      gateProj: null,
-      upProj: null,
-      downProj: null,
-      softEmbedding: null,
-    };
-    let softLogitsTensor = null;
-    let softLogitsOwned = true;
-    let softEmbeddingStateTensor = null;
-    let softEmbeddingStateOwned = false;
-    let softmaxTensor = null;
-    let softEmbeddings = null;
-    let scaledSoftEmbeddings = null;
-    let baseEmbeddings = null;
-    let normedSoft = null;
-    let gate = null;
-    let up = null;
-    let activated = null;
-    let down = null;
-    let combined = null;
-    let output = null;
-
-    const releaseTensorOnce = (() => {
-      const released = new Set();
-      return (tensor) => {
-        const buffer = tensor?.buffer ?? null;
-        if (!buffer || released.has(buffer)) return;
-        released.add(buffer);
-        releaseBuffer(buffer);
-      };
-    })();
-
-    try {
-      borrowed.preNorm = borrowNormWeight(weights.preNorm, 'diffusion_gemma_self_conditioning.pre_norm');
-      borrowed.gateProj = borrowLinearWeight(weights.gateProj, 'diffusion_gemma_self_conditioning.gate_proj');
-      borrowed.upProj = borrowLinearWeight(weights.upProj, 'diffusion_gemma_self_conditioning.up_proj');
-      borrowed.downProj = borrowLinearWeight(weights.downProj, 'diffusion_gemma_self_conditioning.down_proj');
-      if (isSplitWeightBuffer(embedBufferRaw) && this.#state.embeddingTranspose === true) {
-        throw new Error(
-          'DiffusionGemma self-conditioning split embeddings require row-major embedding storage.'
-        );
-      }
-      borrowed.softEmbedding = isSplitWeightBuffer(embedBufferRaw)
-        ? null
-        : borrowLinearWeight(embedBufferRaw, 'diffusion_gemma_self_conditioning.embed_tokens');
-
-      const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
-      const embedDtype = isCpuWeightBuffer(embedBufferRaw)
-        ? embedBufferRaw.dtype
-        : getWeightDtype(embedBufferRaw);
-      const embedMetadata = getWeightMetadata(embedBufferRaw);
-      baseEmbeddings = await embed(canvasIds, embedBuffer, {
-        hiddenSize,
-        vocabSize,
-        scaleEmbeddings: config.scaleEmbeddings,
-        embeddingScale: config.embeddingScale, embeddingNormalization: config.embeddingNormalization,
-        debug: opts.debug,
-        recorder: null,
-        transpose: this.#state.embeddingTranspose,
-        activationDtype: 'f32',
-        embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
-        embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
-        executionPolicies: this.#state.executionV1State?.policies ?? null,
-        operatorDiagnostics: this.#state.operatorDiagnostics,
-      });
-
-      if (softEmbeddingState) {
-        softEmbeddingStateOwned = softEmbeddingState.releaseOnUse;
-        softEmbeddings = createTensor(
-          softEmbeddingState.buffer,
-          softEmbeddingState.dtype,
-          [canvasLength, hiddenSize],
-          'diffusion_gemma_self_conditioning_soft_embedding'
-        );
-        softEmbeddingStateTensor = softEmbeddings;
-        if (!softEmbeddingState.scaled) {
-          scaledSoftEmbeddings = await runScale(softEmbeddings, Math.sqrt(hiddenSize), {
-            count: elementCount,
-          });
-          if (softEmbeddingStateOwned) {
-            releaseTensorOnce(softEmbeddings);
-          }
-          softEmbeddings = scaledSoftEmbeddings;
-          softEmbeddingStateTensor = null;
-          scaledSoftEmbeddings = null;
-        }
-      } else if (logitsState || logits) {
-        const softmaxTemperature = logitsState?.temperature ?? 1.0;
-        if (logitsState) {
-          softLogitsOwned = logitsState.releaseOnUse;
-          softLogitsTensor = createTensor(
-            logitsState.logitsBuffer,
-            logitsState.logitsDtype,
-            [canvasLength, vocabSize],
-            'diffusion_gemma_self_conditioning_logits'
-          );
-        } else {
-          const logitsBuffer = acquireBuffer(logits.byteLength, undefined, 'diffusion_gemma_self_conditioning_logits');
-          uploadData(logitsBuffer, logits);
-          softLogitsTensor = createTensor(logitsBuffer, 'f32', [canvasLength, vocabSize], 'diffusion_gemma_self_conditioning_logits');
-        }
-        if (canUseChunkedSoftEmbeddingLogits(
-          logitsState,
-          borrowed.softEmbedding?.value,
-          this.#state.embeddingTranspose
-        )) {
-          softEmbeddings = await runSoftEmbeddingLogitsF16(
-            softLogitsTensor,
-            borrowed.softEmbedding.value,
-            canvasLength,
-            hiddenSize,
-            vocabSize,
-            {
-              temperature: softmaxTemperature,
-              chunkRows: resolveDiffusionGemmaSoftEmbeddingChunkRows(this.#state.runtimeConfig),
-            }
-          );
-        } else {
-          softmaxTensor = await runSoftmax(softLogitsTensor, -1, {
-            batchSize: canvasLength,
-            size: vocabSize,
-            temperature: softmaxTemperature,
-          });
-          softEmbeddings = isSplitWeightBuffer(embedBufferRaw)
-            ? await runSoftEmbeddingSplitF16(
-              softmaxTensor,
-              embedBufferRaw,
-              canvasLength,
-              hiddenSize,
-              vocabSize
-            )
-            : await runMatmul(
-              softmaxTensor,
-              borrowed.softEmbedding.value,
-              canvasLength,
-              hiddenSize,
-              vocabSize,
-              {
-                transposeB: this.#state.embeddingTranspose === true,
-                role: 'diffusion_gemma_self_conditioning_embed',
-                outputDtype: 'f32',
-                executionPolicies: this.#state.executionV1State?.policies ?? null,
-              }
-            );
-        }
-        scaledSoftEmbeddings = await runScale(softEmbeddings, Math.sqrt(hiddenSize), {
-          count: elementCount,
-        });
-        if (softEmbeddings !== softEmbeddingStateTensor || softEmbeddingStateOwned) {
-          releaseTensorOnce(softEmbeddings);
-        }
-        softEmbeddings = scaledSoftEmbeddings;
-        scaledSoftEmbeddings = null;
-      } else {
-        const zeroBuffer = acquireBuffer(elementCount * Float32Array.BYTES_PER_ELEMENT, undefined, 'diffusion_gemma_self_conditioning_zero');
-        uploadData(zeroBuffer, new Uint8Array(elementCount * Float32Array.BYTES_PER_ELEMENT));
-        softEmbeddings = createTensor(zeroBuffer, 'f32', [canvasLength, hiddenSize], 'diffusion_gemma_self_conditioning_zero');
-      }
-
-      normedSoft = await runRMSNorm(softEmbeddings, borrowed.preNorm.value, config.rmsNormEps, {
-        batchSize: canvasLength,
-        hiddenSize,
-        rmsNormWeightOffset: false,
-      });
-      const intermediateSize = config.intermediateSize;
-      gate = await runMatmul(
-        normedSoft,
-        borrowed.gateProj.value,
-        canvasLength,
-        intermediateSize,
-        hiddenSize,
-        {
-          transposeB: 'auto',
-          role: 'diffusion_gemma_self_conditioning_gate',
-          outputDtype: 'f32',
-          executionPolicies: this.#state.executionV1State?.policies ?? null,
-        }
-      );
-      up = await runMatmul(
-        normedSoft,
-        borrowed.upProj.value,
-        canvasLength,
-        intermediateSize,
-        hiddenSize,
-        {
-          transposeB: 'auto',
-          role: 'diffusion_gemma_self_conditioning_up',
-          outputDtype: 'f32',
-          executionPolicies: this.#state.executionV1State?.policies ?? null,
-        }
-      );
-      activated = await runGeLU(up, {
-        size: canvasLength * intermediateSize,
-        gate,
-      });
-      down = await runMatmul(
-        activated,
-        borrowed.downProj.value,
-        canvasLength,
-        hiddenSize,
-        intermediateSize,
-        {
-          transposeB: 'auto',
-          role: 'diffusion_gemma_self_conditioning_down',
-          outputDtype: 'f32',
-          executionPolicies: this.#state.executionV1State?.policies ?? null,
-        }
-      );
-      combined = await runResidualAdd(baseEmbeddings, down, elementCount, {
-        executionPolicies: this.#state.executionV1State?.policies ?? null,
-      });
-      const postNormWeight = weights.postNorm
-        ? borrowNormWeight(weights.postNorm, 'diffusion_gemma_self_conditioning.post_norm')
-        : {
-          value: getQKNormOnesBuffer(hiddenSize),
-          owned: false,
-        };
-      borrowed.postNorm = postNormWeight;
-      output = await runRMSNorm(combined, postNormWeight.value, config.rmsNormEps, {
-        batchSize: canvasLength,
-        hiddenSize,
-        rmsNormWeightOffset: false,
-      });
-      return output;
-    } catch (error) {
-      releaseTensorOnce(output);
-      throw error;
-    } finally {
-      releaseTensorOnce(combined);
-      releaseTensorOnce(down);
-      releaseTensorOnce(activated);
-      releaseTensorOnce(up);
-      releaseTensorOnce(gate);
-      releaseTensorOnce(normedSoft);
-      if (softEmbeddings !== softEmbeddingStateTensor || softEmbeddingStateOwned) {
-        releaseTensorOnce(softEmbeddings);
-      }
-      releaseTensorOnce(softmaxTensor);
-      if (softLogitsOwned) {
-        releaseTensorOnce(softLogitsTensor);
-      }
-      releaseTensorOnce(baseEmbeddings);
-      releaseBorrowedWeight(borrowed.postNorm);
-      releaseBorrowedWeight(borrowed.downProj);
-      releaseBorrowedWeight(borrowed.upProj);
-      releaseBorrowedWeight(borrowed.gateProj);
-      releaseBorrowedWeight(borrowed.preNorm);
-      releaseBorrowedWeight(borrowed.softEmbedding);
-    }
+    return _createDiffusionGemmaSelfConditioningEmbeddingsImpl.apply(this, arguments);
   }
 
   async _createDiffusionGemmaSelfConditioningSoftEmbeddingState(logitsState, canvasLength, hiddenSize, vocabSize) {
-    const embedBufferRaw = this.#state.weights.get('embed');
-    if (!canUseChunkedSoftEmbeddingLogits(
-      logitsState,
-      embedBufferRaw,
-      this.#state.embeddingTranspose
-    )) {
-      return null;
-    }
-
-    const borrowed = borrowLinearWeight(embedBufferRaw, 'diffusion_gemma_self_conditioning.embed_tokens');
-    let softEmbedding = null;
-    let scaledSoftEmbedding = null;
-    try {
-      const logitsTensor = createTensor(
-        logitsState.logitsBuffer,
-        logitsState.logitsDtype,
-        [canvasLength, vocabSize],
-        'diffusion_gemma_self_conditioning_logits'
-      );
-      softEmbedding = await runSoftEmbeddingLogitsF16(
-        logitsTensor,
-        borrowed.value,
-        canvasLength,
-        hiddenSize,
-        vocabSize,
-        {
-          temperature: logitsState.temperature,
-          chunkRows: resolveDiffusionGemmaSoftEmbeddingChunkRows(this.#state.runtimeConfig),
-        }
-      );
-      scaledSoftEmbedding = await runScale(softEmbedding, Math.sqrt(hiddenSize), {
-        count: canvasLength * hiddenSize,
-      });
-      const returnedBuffer = scaledSoftEmbedding.buffer;
-      return {
-        kind: 'soft_embedding',
-        buffer: returnedBuffer,
-        dtype: scaledSoftEmbedding.dtype,
-        canvasLength,
-        hiddenSize,
-        scaled: true,
-        releaseOnUse: true,
-        release() {
-          releaseBuffer(returnedBuffer);
-        },
-      };
-    } finally {
-      if (softEmbedding?.buffer && softEmbedding.buffer !== scaledSoftEmbedding?.buffer) {
-        releaseBuffer(softEmbedding.buffer);
-      }
-      releaseBorrowedWeight(borrowed);
-    }
+    return _createDiffusionGemmaSelfConditioningSoftEmbeddingStateImpl.apply(this, arguments);
   }
 
   async computeDiffusionGemmaCanvasLogits(args, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating && options.__internalGenerate !== true) {
-      throw new Error('Generation already in progress');
-    }
-    const canvasIds = normalizeCanvasTokenIds(args?.canvas, 'computeDiffusionGemmaCanvasLogits');
-    if (canvasIds.length === 0) {
-      throw new Error('[DiffusionGemma] computeDiffusionGemmaCanvasLogits requires at least one canvas token.');
-    }
-    this._assertTokenIdsInRange(canvasIds, 'computeDiffusionGemmaCanvasLogits.canvas');
-    const seqLenBefore = this.#state.currentSeqLen;
-    const opts = {
-      ...resolvePrefillOptions(this.#state, {
-        ...options,
-        useChatTemplate: false,
-      }),
-      _diffusionGemmaDecoder: true,
-    };
-    let selfConditioned = null;
-    let currentHiddenBuffer = null;
-    try {
-      selfConditioned = await this._createDiffusionGemmaSelfConditioningEmbeddings(
-        canvasIds,
-        args?.selfConditioningLogits ?? null,
-        opts
-      );
-      const prefillResult = await this._prefillToHidden(canvasIds, {
-        ...opts,
-        embeddingOverrides: {
-          offset: 0,
-          prefixLength: canvasIds.length,
-          embeddings: selfConditioned.buffer,
-        },
-      });
-      const {
-        numTokens,
-        currentRecorder,
-        recordProfile,
-        debugCheckBuffer,
-      } = prefillResult;
-      currentHiddenBuffer = prefillResult.currentHiddenBuffer;
-      if (currentRecorder) {
-        recordPrefillRecorderStats(this.#state, currentRecorder);
-        await currentRecorder.submitAndWait();
-        await recordProfile(currentRecorder);
-      } else {
-        const device = getDevice();
-        if (device) {
-          await device.queue.onSubmittedWorkDone();
-        }
-      }
-      const logits = await computeLogits(
-        currentHiddenBuffer,
-        numTokens,
-        getLogitsWeights(this.#state),
-        getLogitsConfig(this.#state),
-        this.#state.useGPU,
-        this.#state.debugFlags,
-        undefined,
-        debugCheckBuffer,
-        this.#state.runtimeConfig.shared.debug.probes,
-        { lastPositionOnly: false },
-        this.#state.operatorDiagnostics
-      );
-      const expected = canvasIds.length * this.#state.modelConfig.vocabSize;
-      if (logits.length !== expected) {
-        throw new Error(
-          `[DiffusionGemma] canvas logits length mismatch: expected ${expected}, got ${logits.length}.`
-        );
-      }
-      return logits;
-    } finally {
-      this.#state.currentSeqLen = seqLenBefore;
-      if (currentHiddenBuffer) {
-        releaseBuffer(currentHiddenBuffer);
-      }
-      if (selfConditioned?.buffer) {
-        releaseBuffer(selfConditioned.buffer);
-      }
-    }
+    return computeDiffusionGemmaCanvasLogitsImpl.apply(this, arguments);
   }
 
   async computeDiffusionGemmaCanvasStep(args, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating && options.__internalGenerate !== true) {
-      throw new Error('Generation already in progress');
-    }
-    const canvasIds = normalizeCanvasTokenIds(args?.canvas, 'computeDiffusionGemmaCanvasStep');
-    if (canvasIds.length === 0) {
-      throw new Error('[DiffusionGemma] computeDiffusionGemmaCanvasStep requires at least one canvas token.');
-    }
-    this._assertTokenIdsInRange(canvasIds, 'computeDiffusionGemmaCanvasStep.canvas');
-    const temperature = args?.temperature;
-    if (typeof temperature !== 'number' || !Number.isFinite(temperature) || temperature <= 0) {
-      throw new Error('[DiffusionGemma] computeDiffusionGemmaCanvasStep requires a positive temperature.');
-    }
-    const seqLenBefore = this.#state.currentSeqLen;
-    const opts = {
-      ...resolvePrefillOptions(this.#state, {
-        ...options,
-        useChatTemplate: false,
-      }),
-      _diffusionGemmaDecoder: true,
-    };
-    let selfConditioned = null;
-    let currentHiddenBuffer = null;
-    let logitsBuffer = null;
-    let statsBuffers = null;
-    try {
-      selfConditioned = await this._createDiffusionGemmaSelfConditioningEmbeddings(
-        canvasIds,
-        args?.selfConditioningLogits ?? null,
-        opts
-      );
-      const prefillResult = await this._prefillToHidden(canvasIds, {
-        ...opts,
-        embeddingOverrides: {
-          offset: 0,
-          prefixLength: canvasIds.length,
-          embeddings: selfConditioned.buffer,
-        },
-      });
-      const {
-        numTokens,
-        currentRecorder,
-        recordProfile,
-        debugCheckBuffer,
-      } = prefillResult;
-      currentHiddenBuffer = prefillResult.currentHiddenBuffer;
-      if (currentRecorder) {
-        recordPrefillRecorderStats(this.#state, currentRecorder);
-        await currentRecorder.submitAndWait();
-        await recordProfile(currentRecorder);
-      } else {
-        const device = getDevice();
-        if (device) {
-          await device.queue.onSubmittedWorkDone();
-        }
-      }
-      if (selfConditioned?.buffer) {
-        releaseBuffer(selfConditioned.buffer);
-        selfConditioned = null;
-      }
-
-      const logitsResult = await computeLogitsGPU(
-        currentHiddenBuffer,
-        numTokens,
-        getLogitsWeights(this.#state),
-        getLogitsConfig(this.#state),
-        this.#state.debugFlags,
-        this.#state.operatorDiagnostics
-      );
-      if (!logitsResult?.logitsBuffer) {
-        throw new Error('[DiffusionGemma] GPU canvas step requires GPU logits.');
-      }
-      logitsBuffer = logitsResult.logitsBuffer;
-      if (currentHiddenBuffer) {
-        releaseBuffer(currentHiddenBuffer);
-        currentHiddenBuffer = null;
-      }
-      if (logitsResult.logitsDtype !== 'f32') {
-        throw new Error(
-          `[DiffusionGemma] GPU canvas stats require f32 logits, got "${logitsResult.logitsDtype}".`
-        );
-      }
-      if (logitsResult.vocabSize !== this.#state.modelConfig.vocabSize) {
-        throw new Error(
-          `[DiffusionGemma] canvas logits vocab mismatch: expected ${this.#state.modelConfig.vocabSize}, ` +
-          `got ${logitsResult.vocabSize}.`
-        );
-      }
-
-      statsBuffers = await runDiffusionGemmaCanvasStats(logitsBuffer, {
-        canvasLength: canvasIds.length,
-        vocabSize: logitsResult.vocabSize,
-        temperature,
-        padTokenId: this.#state.modelConfig.diffusionGemma?.padTokenId ?? null,
-        logitSoftcap: this.#state.modelConfig.finalLogitSoftcapping ?? 0,
-      });
-      const [argmaxData, entropyData] = await Promise.all([
-        readBuffer(statsBuffers.argmaxBuffer, canvasIds.length * Uint32Array.BYTES_PER_ELEMENT),
-        readBuffer(statsBuffers.entropyBuffer, canvasIds.length * Float32Array.BYTES_PER_ELEMENT),
-      ]);
-      const argmaxCanvas = Int32Array.from(new Uint32Array(argmaxData));
-      const entropies = new Float32Array(entropyData);
-      const logitsState = {
-        logitsBuffer,
-        logitsDtype: logitsResult.logitsDtype,
-        vocabSize: logitsResult.vocabSize,
-        canvasLength: canvasIds.length,
-        temperature,
-        releaseOnUse: true,
-      };
-      const selfConditioningState =
-        await this._createDiffusionGemmaSelfConditioningSoftEmbeddingState(
-          logitsState,
-          canvasIds.length,
-          this.#state.modelConfig.hiddenSize,
-          logitsResult.vocabSize
-        );
-      if (selfConditioningState) {
-        releaseBuffer(logitsBuffer);
-        logitsBuffer = null;
-      } else {
-        const returnedLogitsBuffer = logitsBuffer;
-        logitsBuffer = null;
-        logitsState.release = () => {
-          releaseBuffer(returnedLogitsBuffer);
-        };
-      }
-      return {
-        argmaxCanvas,
-        entropies,
-        selfConditioningLogits: selfConditioningState ?? logitsState,
-      };
-    } finally {
-      this.#state.currentSeqLen = seqLenBefore;
-      if (statsBuffers?.argmaxBuffer) {
-        releaseBuffer(statsBuffers.argmaxBuffer);
-      }
-      if (statsBuffers?.entropyBuffer) {
-        releaseBuffer(statsBuffers.entropyBuffer);
-      }
-      if (logitsBuffer) {
-        releaseBuffer(logitsBuffer);
-      }
-      if (currentHiddenBuffer) {
-        releaseBuffer(currentHiddenBuffer);
-      }
-      if (selfConditioned?.buffer) {
-        releaseBuffer(selfConditioned.buffer);
-      }
-    }
+    return computeDiffusionGemmaCanvasStepImpl.apply(this, arguments);
   }
 
   async *generate(prompt, options = {}) {
@@ -1885,877 +534,35 @@ export class PipelineGenerator {
   }
 
   async generateTokenIds(prompt, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating) throw new Error('Generation already in progress');
-
-    validateCallTimeOptions(options);
-
-    this.#state.isGenerating = true;
-    this._resetDecodeRuntimeState();
-    this.#state.stats.gpuTimePrefillMs = undefined;
-    this.#state.stats.gpuTimeDecodeMs = undefined;
-    this.#state.stats.decodeRecordMs = 0;
-    this.#state.stats.decodeRecordOps = 0;
-    this.#state.stats.decodeRecordPasses = 0;
-    this.#state.stats.decodeRecordOpLabels = {};
-    this.#state.stats.decodeSubmitWaitMs = 0;
-    this.#state.stats.decodeReadbackWaitMs = 0;
-    this.#state.stats.decodeReadbackMapWaitMs = 0;
-    this.#state.stats.decodeReadbackCleanupMs = 0;
-    this.#state.stats.decodeReadbackCopyMs = 0;
-    this.#state.stats.prefillRecordMs = 0;
-    this.#state.stats.prefillRecordOps = 0;
-    this.#state.stats.prefillRecordPasses = 0;
-    this.#state.stats.prefillRecordOpLabels = {};
-    this.#state.stats.prefillSubmitWaitMs = 0;
-    this.#state.stats.singleTokenSubmitWaitMs = 0;
-    this.#state.stats.singleTokenReadbackWaitMs = 0;
-    this.#state.stats.singleTokenReadbackMapWaitMs = 0;
-    this.#state.stats.singleTokenReadbackCleanupMs = 0;
-    this.#state.stats.singleTokenReadbackCopyMs = 0;
-    this.#state.stats.singleTokenOrchestrationMs = 0;
-    this.#state.stats.pleHotVocabularyHits = 0;
-    this.#state.stats.pleHotVocabularyMisses = 0;
-    this.#state.stats.plePreparedTokenCacheHits = 0;
-    this.#state.stats.plePreparedTokenCacheMisses = 0;
-    this.#state.stats.plePreparedTokenCacheEntries = 0;
-    this.#state.stats.plePreparedTokenCacheBytes = 0;
-    this.#state.stats.decodeMode = null;
-    this.#state.stats.batchGuardReason = null;
-    this.#state.stats.stopReason = null;
-    this.#state.stats.stopTokenId = null;
-    this.#state.stats.ttftMs = 0;
-    const startTime = performance.now();
-    const opts = resolveGenerateOptions(this.#state, options);
-    opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
-    // Validate and normalize sampling parameters through single source of truth
-    const samplingConfig = resolveSamplingConfig(options, this.#state.runtimeConfig);
-    opts.temperature = samplingConfig.temperature;
-    opts.topP = samplingConfig.topP;
-    opts.topK = samplingConfig.topK;
-    opts.repetitionPenalty = samplingConfig.repetitionPenalty;
-    opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this.#state, samplingConfig);
-    const diagnosticsEnabled = options?.diagnostics?.enabled === true
-      || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
-    const tsirFixtureCfg = this.#state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
-    if (diagnosticsEnabled || tsirFixtureCfg) {
-      const captureConfig = {
-        ...createDefaultCaptureConfig(),
-        enabled: true,
-        defaultLevel: CAPTURE_LEVELS.SLICE,
-        ...(options?.diagnostics?.captureConfig ?? {}),
-      };
-      validateCaptureConfig(captureConfig);
-      this.#state.operatorDiagnostics = {
-        enabled: diagnosticsEnabled === true,
-        captureConfig,
-        emitter: diagnosticsEnabled ? new OperatorEventEmitter({
-          modelHash: this.#state.manifest?.modelId ?? null,
-          runtimeConfigHash: this.#state.resolvedKernelPath?.id ?? null,
-          executionPlanHash: opts.executionPlan?.id ?? null,
-        }) : null,
-        tsirFixture: tsirFixtureCfg ? {
-          dir: tsirFixtureCfg.dir,
-          layerFilter: Array.isArray(tsirFixtureCfg.layerFilter)
-            ? tsirFixtureCfg.layerFilter
-            : null,
-          prefillOnly: tsirFixtureCfg.prefillOnly,
-          generationStep: tsirFixtureCfg.generationStep ?? null,
-          records: [],
-        } : null,
-      };
-    }
-
-    try {
-      const prefillStartSeqLen = this.#state.currentSeqLen;
-      const prefillStart = performance.now();
-      const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generateTokenIds');
-      let prefillLogits = initialPrefillLogits;
-      this.#state.stats.prefillTimeMs = performance.now() - prefillStart;
-      this._assertTokenIdsInRange(inputIds, 'generateTokenIds.prefillTokens');
-      const generatedIds = [...inputIds];
-      this.#state.stats.prefillTokens = inputIds.length;
-
-      let firstToken;
-      try {
-        firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
-      } catch (error) {
-        if (!this._shouldUseFinitenessFallback(error, 'prefill-sample')) {
-          throw error;
-        }
-        prefillLogits = await this._retryWithPersistentFinitenessFallback(
-          opts,
-          'prefill-sample',
-          opts.maxTokens,
-          () => this._prefill(inputIds, opts),
-          prefillStartSeqLen
-        );
-        firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
-      }
-
-      const stopTokenIds = this.#state.modelConfig.stopTokenIds;
-      const eosToken = this.#state.tokenizer.getSpecialTokens?.()?.eos;
-      const stopSequenceStart = inputIds.length;
-      generatedIds.push(firstToken);
-      const tokenIds = [firstToken];
-      this.#state.stats.ttftMs = performance.now() - startTime;
-      markKernelCacheWarmed();
-
-      const decodeRuntime = {
-        stopTokenIds,
-        eosToken,
-        stopSequenceStart,
-        decodeToken: () => '',
-        emitMode: 'token',
-      };
-
-      if (!this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
-        for await (const tokenId of this._runDecodeLoop(generatedIds, opts, options, decodeRuntime)) {
-          tokenIds.push(tokenId);
-        }
-      } else {
-        this._recordStopReason('stop-token-or-sequence', firstToken);
-        this.#state.stats.decodeTimeMs = 0;
-        this.#state.stats.tokensGenerated = 1;
-        this.#state.stats.decodeTokens = 1;
-      }
-
-      this.#state.stats.totalTimeMs = performance.now() - startTime;
-
-      return {
-        tokenIds,
-        stats: this.#state.stats,
-      };
-    } finally {
-      this._closeFinitenessFallbackWindow(opts);
-      if (this.#state.stats.executionPlan) {
-        this.#state.stats.executionPlan.finalActivePlanId = this.#state.executionPlanState?.activePlanId ?? null;
-      }
-      resetActiveExecutionPlan(this.#state);
-      this.#state.stats.operatorDiagnostics = this.#state.operatorDiagnostics?.emitter
-        ? {
-          enabled: true,
-          timeline: this.#state.operatorDiagnostics.emitter.getTimeline(),
-          recordCount: this.#state.operatorDiagnostics.emitter.length,
-        }
-        : null;
-      this.#state.operatorDiagnostics = null;
-      this.#state.isGenerating = false;
-    }
+    return generateTokenIdsImpl.apply(this, arguments);
   }
 
-
   async prefillKVOnly(prompt, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating && options.__internalGenerate !== true) {
-      throw new Error('Generation already in progress');
-    }
-    assertIncrementalDecodeSupport(this.#state, 'prefillKVOnly');
-    this._resetDecodeRuntimeState();
-    this.#state.stats.gpuTimePrefillMs = undefined;
-    this.#state.stats.prefillProfileSteps = [];
-    const opts = resolvePrefillOptions(this.#state, options);
-    const prefillStartSeqLen = this.#state.currentSeqLen;
-    const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, 'prefillKVOnly', opts.inputIds);
-    if (opts.debug) {
-      log.debug('Pipeline', `PrefillKVOnly: ${inputIds.length} tokens`);
-    }
-
-    try {
-      let prefillResult;
-      try {
-        prefillResult = await this._prefillToHidden(inputIds, opts);
-      } catch (error) {
-        if (this._shouldUseFinitenessFallback(error, 'prefillKVOnly')) {
-          log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillKVOnly. Retrying with F32 precision.`);
-          prefillResult = await this._retryWithPersistentFinitenessFallback(
-            opts,
-            'prefillKVOnly',
-            1,
-            () => this._prefillToHidden(inputIds, opts),
-            prefillStartSeqLen
-          );
-        } else {
-          throw error;
-        }
-      }
-
-      const {
-        numTokens,
-        startPos,
-        currentRecorder,
-        recordProfile,
-        currentHiddenBuffer,
-      } = prefillResult;
-
-      // Ensure prefill work completes before returning a usable snapshot.
-      if (currentRecorder) {
-        recordPrefillRecorderStats(this.#state, currentRecorder);
-        await currentRecorder.submitAndWait();
-        await recordProfile(currentRecorder);
-      } else {
-        const device = getDevice();
-        if (device) {
-          await device.queue.onSubmittedWorkDone();
-        }
-      }
-
-      this.#state.currentSeqLen = startPos + numTokens;
-      releaseBuffer(currentHiddenBuffer);
-
-      const snapshot = this.#state.kvCache?.clone();
-      if (!snapshot) {
-        throw new Error('KV cache unavailable after prefill');
-      }
-
-      return {
-        cache: snapshot,
-        seqLen: this.#state.currentSeqLen,
-        tokens: inputIds,
-        linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
-      };
-    } finally {
-      this._closeFinitenessFallbackWindow(opts);
-    }
+    return prefillKVOnlyImpl.apply(this, arguments);
   }
 
   async prefillForLoRATraining(inputIds, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating) throw new Error('Generation already in progress');
-    if (!Array.isArray(inputIds) && !(inputIds instanceof Int32Array) && !(inputIds instanceof Uint32Array)) {
-      throw new Error('prefillForLoRATraining requires token IDs.');
-    }
-    const tokens = Array.from(inputIds, (value) => Number(value));
-    if (tokens.length === 0) throw new Error('prefillForLoRATraining requires at least one token.');
-    this._assertTokenIdsInRange(tokens, 'prefillForLoRATraining.inputIds');
-
-    const config = this.#state.modelConfig;
-    const layerIdx = Number(options.layerIdx);
-    if (!Number.isInteger(layerIdx) || layerIdx !== config.numLayers - 1) {
-      throw new Error(`native_lora_target_not_supported: layerIdx must be the final layer (${config.numLayers - 1}).`);
-    }
-    if (options.module !== 'down_proj') {
-      throw new Error('native_lora_target_not_supported: module must be down_proj.');
-    }
-    if (config.layerTypes?.[layerIdx] !== 'full_attention') {
-      throw new Error('native_lora_target_not_supported: final layer must be full_attention.');
-    }
-    if (config.postFeedforwardNorm === true) {
-      throw new Error('native_lora_target_not_supported: final-layer post-feedforward normalization is not supported.');
-    }
-    if (this.#state.lora) {
-      throw new Error('native_lora_base_capture_requires_inactive_adapter.');
-    }
-
-    this.resetToSeqLen(0);
-    this._resetDecodeRuntimeState();
-    const opts = resolvePrefillOptions(this.#state, {
-      ...options,
-      inputIds: tokens,
-      useChatTemplate: false,
-    });
-    let activationTensor = null;
-    let hiddenTensor = null;
-    let disposed = false;
-    const releaseOwned = () => {
-      if (disposed) return;
-      disposed = true;
-      if (activationTensor?.buffer) releaseBuffer(activationTensor.buffer);
-      if (hiddenTensor?.buffer) releaseBuffer(hiddenTensor.buffer);
-    };
-    const capture = async ({ tensor, numTokens, hiddenSize, recorder }) => {
-      if (activationTensor) {
-        throw new Error('native_lora_training_capture_duplicated.');
-      }
-      const bytesPerElement = tensor.dtype === 'f16' ? 2 : 4;
-      const byteLength = Math.ceil((numTokens * hiddenSize * bytesPerElement) / 4) * 4;
-      const buffer = acquireBuffer(byteLength, undefined, `L${layerIdx}.native_lora_ffn_act`);
-      if (recorder) {
-        recorder.getEncoder().copyBufferToBuffer(tensor.buffer, 0, buffer, 0, byteLength);
-      } else {
-        const device = getDevice();
-        const encoder = device.createCommandEncoder({ label: `L${layerIdx}.native_lora_capture` });
-        encoder.copyBufferToBuffer(tensor.buffer, 0, buffer, 0, byteLength);
-        device.queue.submit([encoder.finish()]);
-      }
-      activationTensor = createTensor(
-        buffer,
-        tensor.dtype,
-        [numTokens, hiddenSize],
-        `L${layerIdx}.native_lora_ffn_act`
-      );
-    };
-
-    try {
-      const prefill = await this._prefillToHidden(tokens, {
-        ...opts,
-        _trainingCapture: { layerIdx, stage: 'ffn_act', capture },
-      });
-      if (prefill.currentRecorder) {
-        recordPrefillRecorderStats(this.#state, prefill.currentRecorder);
-        await prefill.currentRecorder.submitAndWait();
-        await prefill.recordProfile(prefill.currentRecorder);
-      } else {
-        await getDevice().queue.onSubmittedWorkDone();
-      }
-      if (!activationTensor) {
-        releaseBuffer(prefill.currentHiddenBuffer);
-        throw new Error('native_lora_training_activation_not_captured.');
-      }
-      hiddenTensor = createTensor(
-        prefill.currentHiddenBuffer,
-        prefill.activationDtype,
-        [prefill.numTokens, config.hiddenSize],
-        `L${layerIdx}.native_lora_base_hidden`
-      );
-      this.resetToSeqLen(0);
-      return {
-        inputIds: tokens,
-        layerIdx,
-        module: 'down_proj',
-        activation: activationTensor,
-        baseHidden: hiddenTensor,
-        dispose: releaseOwned,
-      };
-    } catch (error) {
-      releaseOwned();
-      this.resetToSeqLen(0);
-      throw error;
-    }
+    return prefillForLoRATrainingImpl.apply(this, arguments);
   }
 
   async prefillWithEmbedding(prompt, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating && options.__internalGenerate !== true) {
-      throw new Error('Generation already in progress');
-    }
-    assertIncrementalDecodeSupport(this.#state, 'prefillWithEmbedding');
-    const totalStart = performance.now();
-    this._resetDecodeRuntimeState();
-    this.#state.stats.gpuTimePrefillMs = undefined;
-    this.#state.stats.prefillProfileSteps = [];
-    const opts = resolvePrefillEmbeddingOptions(this.#state, options);
-    const diagnosticsEnabled = options?.diagnostics?.enabled === true
-      || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
-    const tsirFixtureCfg = this.#state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
-    if (diagnosticsEnabled || tsirFixtureCfg) {
-      const captureConfig = {
-        ...createDefaultCaptureConfig(),
-        enabled: true,
-        defaultLevel: CAPTURE_LEVELS.SLICE,
-        ...(options?.diagnostics?.captureConfig ?? {}),
-      };
-      validateCaptureConfig(captureConfig);
-      this.#state.operatorDiagnostics = {
-        enabled: diagnosticsEnabled === true,
-        captureConfig,
-        emitter: diagnosticsEnabled ? new OperatorEventEmitter({
-          modelHash: this.#state.manifest?.modelId ?? null,
-          runtimeConfigHash: this.#state.resolvedKernelPath?.id ?? null,
-          executionPlanHash: opts.executionPlan?.id ?? null,
-        }) : null,
-        tsirFixture: tsirFixtureCfg ? {
-          dir: tsirFixtureCfg.dir,
-          layerFilter: Array.isArray(tsirFixtureCfg.layerFilter)
-            ? tsirFixtureCfg.layerFilter
-            : null,
-          prefillOnly: tsirFixtureCfg.prefillOnly,
-          generationStep: tsirFixtureCfg.generationStep ?? null,
-          records: [],
-        } : null,
-      };
-    }
-    const prefillStartSeqLen = this.#state.currentSeqLen;
-    const inputStart = performance.now();
-    const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, 'prefillWithEmbedding', opts.inputIds);
-    const inputMs = performance.now() - inputStart;
-    if (opts.debug) {
-      log.debug('Pipeline', `PrefillWithEmbedding: ${inputIds.length} tokens (mode=${opts.embeddingMode})`);
-    }
-
-    try {
-      let prefillResult;
-      const prefillStart = performance.now();
-      try {
-        prefillResult = await this._prefillToHidden(inputIds, {
-          ...opts,
-          _embeddingOnly: options.__skipStateSnapshot === true,
-        });
-      } catch (error) {
-        if (shouldRetryWithFinitenessFallback(error)) {
-          log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during prefillWithEmbedding. Retrying with F32 precision.`);
-          prefillResult = await this._retryWithPersistentFinitenessFallback(
-            opts,
-            'prefillWithEmbedding',
-            1,
-            () => this._prefillToHidden(inputIds, {
-              ...opts,
-              _embeddingOnly: options.__skipStateSnapshot === true,
-            }),
-            prefillStartSeqLen
-          );
-        } else {
-          throw error;
-        }
-      }
-      const prefillMs = performance.now() - prefillStart;
-
-      const {
-        numTokens,
-        config,
-        startPos,
-        activationDtype,
-        activationBytes,
-        currentRecorder,
-        recordProfile,
-        currentHiddenBuffer,
-      } = prefillResult;
-
-      // Ensure prefill work completes before readback.
-      let submitWaitMs = 0;
-      const submitWaitStart = performance.now();
-      if (currentRecorder) {
-        recordPrefillRecorderStats(this.#state, currentRecorder);
-        await currentRecorder.submitAndWait();
-        await recordProfile(currentRecorder);
-      } else {
-        const device = getDevice();
-        if (device) {
-          await device.queue.onSubmittedWorkDone();
-        }
-      }
-      submitWaitMs = performance.now() - submitWaitStart;
-
-      if (!allowReadback('pipeline.prefill.embedding')) {
-        throw new Error('GPU readback disabled; cannot return embedding');
-      }
-
-      let embedding;
-      let tokenEmbeddings = null;
-      let logits = null;
-      let hiddenBytes = 0;
-      let readbackMs = 0;
-      let decodeHiddenMs = 0;
-      let finalNormMs = 0;
-      let extractMs = 0;
-      let logitsMs = 0;
-      try {
-        if (options.__returnSequenceLogits === true) {
-          const logitsStart = performance.now();
-          logits = await computeLogits(
-            currentHiddenBuffer,
-            numTokens,
-            getLogitsWeights(this.#state),
-            getLogitsConfig(this.#state),
-            this.#state.useGPU,
-            this.#state.debugFlags,
-            undefined,
-            undefined,
-            this.#state.runtimeConfig.shared.debug.probes,
-            { lastPositionOnly: false },
-            this.#state.operatorDiagnostics
-          );
-          logitsMs = performance.now() - logitsStart;
-        }
-        const hiddenSize = config.hiddenSize;
-        hiddenBytes = numTokens * hiddenSize * activationBytes;
-        const readbackStart = performance.now();
-        const hiddenData = await readBuffer(currentHiddenBuffer, hiddenBytes);
-        readbackMs = performance.now() - readbackStart;
-        if (hiddenData.byteLength === 0) {
-          throw new Error('GPU readback disabled; cannot return embedding');
-        }
-        const decodeStart = performance.now();
-        const hiddenStates = decodeReadback(hiddenData, activationDtype);
-        decodeHiddenMs = performance.now() - decodeStart;
-        const finalNormStart = performance.now();
-        const finalNormWeights = await this._getFinalNormWeights();
-        finalNormMs = performance.now() - finalNormStart;
-        const extractStart = performance.now();
-        if (options.__returnTokenEmbeddings === true) {
-          tokenEmbeddings = this._extractTokenEmbeddingsFromHidden(
-            hiddenStates,
-            numTokens,
-            hiddenSize,
-            finalNormWeights,
-            config
-          );
-        }
-        embedding = extractEmbeddingFromHidden(
-          hiddenStates,
-          numTokens,
-          hiddenSize,
-          opts.embeddingMode,
-          finalNormWeights,
-          config,
-          this.#state.embeddingPostprocessor,
-          tokenEmbeddings,
-          this.#state.weights.get('final_norm_bias') ?? null
-        );
-        extractMs = performance.now() - extractStart;
-      } finally {
-        releaseBuffer(currentHiddenBuffer);
-      }
-
-      this.#state.currentSeqLen = startPos + numTokens;
-      const phase = {
-        totalMs: performance.now() - totalStart,
-        inputMs,
-        prefillMs,
-        submitWaitMs,
-        readbackMs,
-        decodeHiddenMs,
-        finalNormMs,
-        extractMs,
-        logitsMs,
-        hiddenBytes,
-        tokens: numTokens,
-        activationDtype,
-        prefillRecordMs: this.#state.stats.prefillRecordMs ?? null,
-        prefillRecordOps: this.#state.stats.prefillRecordOps ?? null,
-        prefillRecordPasses: this.#state.stats.prefillRecordPasses ?? null,
-        prefillRecordOpLabels: this.#state.stats.prefillRecordOpLabels ?? null,
-        prefillSubmitWaitMs: this.#state.stats.prefillSubmitWaitMs ?? null,
-        gpuPrefillMs: this.#state.stats.gpuTimePrefillMs ?? null,
-      };
-
-      // Batch embedding skips expensive KV cache clone and linear attention clone
-      // since the caller will reset immediately after extracting the embedding.
-      if (options.__skipStateSnapshot) {
-        return {
-          cache: null,
-          seqLen: this.#state.currentSeqLen,
-          tokens: inputIds,
-          embedding,
-          tokenEmbeddings,
-          logits,
-          embeddingMode: opts.embeddingMode,
-          phase,
-          linearAttention: null,
-        };
-      }
-
-      const snapshot = this.#state.kvCache?.clone();
-      if (!snapshot) {
-        throw new Error('KV cache unavailable after prefill');
-      }
-
-      return {
-        cache: snapshot,
-        seqLen: this.#state.currentSeqLen,
-        tokens: inputIds,
-        embedding,
-        tokenEmbeddings,
-        logits,
-        embeddingMode: opts.embeddingMode,
-        phase,
-        linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
-      };
-    } finally {
-      this._closeFinitenessFallbackWindow(opts);
-      this.#state.stats.operatorDiagnostics = this.#state.operatorDiagnostics?.emitter
-        ? {
-          enabled: true,
-          timeline: this.#state.operatorDiagnostics.emitter.getTimeline(),
-          recordCount: this.#state.operatorDiagnostics.emitter.length,
-        }
-        : null;
-      this.#state.operatorDiagnostics = null;
-    }
+    return prefillWithEmbeddingImpl.apply(this, arguments);
   }
 
   async prefillWithLogits(prompt, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating && options.__internalGenerate !== true) {
-      throw new Error('Generation already in progress');
-    }
-    assertIncrementalDecodeSupport(this.#state, 'prefillWithLogits');
-    const totalStart = performance.now();
-    this._resetDecodeRuntimeState();
-    this.#state.stats.gpuTimePrefillMs = undefined;
-    this.#state.stats.prefillProfileSteps = [];
-    const opts = resolvePrefillOptions(this.#state, options);
-    const diagnosticsEnabled = options?.diagnostics?.enabled === true
-      || this.#state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
-    if (diagnosticsEnabled) {
-      const captureConfig = {
-        ...createDefaultCaptureConfig(),
-        enabled: true,
-        defaultLevel: CAPTURE_LEVELS.SLICE,
-        ...(options?.diagnostics?.captureConfig ?? {}),
-      };
-      validateCaptureConfig(captureConfig);
-      this.#state.operatorDiagnostics = {
-        enabled: true,
-        captureConfig,
-        emitter: new OperatorEventEmitter({
-          modelHash: this.#state.manifest?.modelId ?? null,
-          runtimeConfigHash: this.#state.resolvedKernelPath?.id ?? null,
-          executionPlanHash: opts.executionPlan?.id ?? null,
-        }),
-        tsirFixture: null,
-      };
-    }
-    try {
-      const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithLogits');
-
-      const snapshot = this.#state.kvCache?.clone();
-      if (!snapshot) {
-        throw new Error('KV cache unavailable after prefill');
-      }
-
-      return {
-        cache: snapshot,
-        seqLen: this.#state.currentSeqLen,
-        tokens: inputIds,
-        logits,
-        phase: {
-          ...(prefillPhase ?? {}),
-          totalMs: performance.now() - totalStart,
-        },
-        linearAttention: await cloneLinearAttentionRuntime(this.#state.linearAttentionRuntime),
-      };
-    } finally {
-      this._closeFinitenessFallbackWindow(opts);
-      this.#state.stats.operatorDiagnostics = this.#state.operatorDiagnostics?.emitter
-        ? {
-          enabled: true,
-          timeline: this.#state.operatorDiagnostics.emitter.getTimeline(),
-          recordCount: this.#state.operatorDiagnostics.emitter.length,
-        }
-        : null;
-      this.#state.operatorDiagnostics = null;
-    }
+    return prefillWithLogitsImpl.apply(this, arguments);
   }
 
   async prefillWithTokenLogits(prompt, tokenIds, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating && options.__internalGenerate !== true) {
-      throw new Error('Generation already in progress');
-    }
-    assertIncrementalDecodeSupport(this.#state, 'prefillWithTokenLogits');
-    const totalStart = performance.now();
-    const selectedTokenIds = normalizeSelectedLogitTokenIds(
-      tokenIds,
-      this.#state.modelConfig.vocabSize,
-      'prefillWithTokenLogits.tokenIds'
-    );
-    this._resetDecodeRuntimeState();
-    this.#state.stats.gpuTimePrefillMs = undefined;
-    this.#state.stats.prefillProfileSteps = [];
-    const opts = resolvePrefillOptions(this.#state, options);
-    opts._selectedLogitTokenIds = selectedTokenIds;
-    try {
-      const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithTokenLogits');
-      const logitsByTokenId = {};
-      for (let index = 0; index < selectedTokenIds.length; index += 1) {
-        logitsByTokenId[selectedTokenIds[index]] = logits[index];
-      }
-      return {
-        seqLen: this.#state.currentSeqLen,
-        tokens: inputIds,
-        tokenIds: selectedTokenIds,
-        logits,
-        logitsByTokenId,
-        phase: {
-          ...(prefillPhase ?? {}),
-          totalMs: performance.now() - totalStart,
-          selectedTokenCount: selectedTokenIds.length,
-        },
-      };
-    } finally {
-      this._closeFinitenessFallbackWindow(opts);
-    }
+    return prefillWithTokenLogitsImpl.apply(this, arguments);
   }
 
   async prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating && options.__internalGenerate !== true) {
-      throw new Error('Generation already in progress');
-    }
-    assertIncrementalDecodeSupport(this.#state, 'prefillWithTokenLogitsFromKV');
-    const totalStart = performance.now();
-    if (!prefix || typeof prefix !== 'object' || !prefix.cache) {
-      throw new Error('prefillWithTokenLogitsFromKV.prefix must be a KV cache snapshot.');
-    }
-    if (!Number.isInteger(prefix.seqLen) || prefix.seqLen < 0) {
-      throw new Error('prefillWithTokenLogitsFromKV.prefix.seqLen must be a non-negative integer.');
-    }
-    if (!Array.isArray(prefix.tokens)) {
-      throw new Error('prefillWithTokenLogitsFromKV.prefix.tokens must be an array.');
-    }
-    const selectedTokenIds = normalizeSelectedLogitTokenIds(
-      tokenIds,
-      this.#state.modelConfig.vocabSize,
-      'prefillWithTokenLogitsFromKV.tokenIds'
-    );
-
-    this.#state.kvCache = prefix.cache.clone();
-    if (this.#state.useGPU && this.#state.kvCache) {
-      const device = getDevice();
-      if (device) {
-        this.#state.kvCache.setGPUContext({ device });
-      }
-    }
-    if (
-      hasLinearAttentionLayers(this.#state.modelConfig.layerTypes)
-      && prefix.linearAttention == null
-    ) {
-      throw new Error(
-        'Prefix snapshot is missing linear_attention recurrent state. ' +
-        'Regenerate the prefix snapshot using the current runtime.'
-      );
-    }
-    this.#state.linearAttentionRuntime = restoreLinearAttentionRuntime(
-      this.#state.linearAttentionRuntime,
-      prefix.linearAttention ?? null
-    );
-    this.#state.currentSeqLen = prefix.seqLen;
-    this.#state.stats.gpuTimePrefillMs = undefined;
-    this.#state.stats.prefillProfileSteps = [];
-    this.#state.decodeRing?.reset();
-
-    const opts = resolvePrefillOptions(this.#state, options);
-    opts._selectedLogitTokenIds = selectedTokenIds;
-    try {
-      const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithTokenLogitsFromKV');
-      const logitsByTokenId = {};
-      for (let index = 0; index < selectedTokenIds.length; index += 1) {
-        logitsByTokenId[selectedTokenIds[index]] = logits[index];
-      }
-      return {
-        seqLen: this.#state.currentSeqLen,
-        prefixTokens: prefix.tokens,
-        tokens: inputIds,
-        tokenIds: selectedTokenIds,
-        logits,
-        logitsByTokenId,
-        phase: {
-          ...(prefillPhase ?? {}),
-          totalMs: performance.now() - totalStart,
-          selectedTokenCount: selectedTokenIds.length,
-          prefixTokens: prefix.tokens.length,
-        },
-      };
-    } finally {
-      this._closeFinitenessFallbackWindow(opts);
-    }
+    return prefillWithTokenLogitsFromKVImpl.apply(this, arguments);
   }
 
-
   async *generateWithPrefixKV(prefix, prompt, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating) throw new Error('Generation already in progress');
-    assertIncrementalDecodeSupport(this.#state, 'generateWithPrefixKV');
-
-    validateCallTimeOptions(options);
-
-    // Apply snapshot
-    this.#state.kvCache = prefix.cache.clone();
-    if (this.#state.useGPU && this.#state.kvCache) {
-      const device = getDevice();
-      if (device) {
-        this.#state.kvCache.setGPUContext({ device });
-      }
-    }
-    if (
-      hasLinearAttentionLayers(this.#state.modelConfig.layerTypes)
-      && prefix.linearAttention == null
-    ) {
-      throw new Error(
-        'Prefix snapshot is missing linear_attention recurrent state. ' +
-        'Regenerate the prefix snapshot using the current runtime.'
-      );
-    }
-    this.#state.linearAttentionRuntime = restoreLinearAttentionRuntime(
-      this.#state.linearAttentionRuntime,
-      prefix.linearAttention ?? null
-    );
-    this.#state.currentSeqLen = prefix.seqLen;
-
-    this.#state.isGenerating = true;
-    this.#state.decodeStepCount = 0;
-    resetActiveExecutionPlan(this.#state);
-    this.#state.stats.gpuTimePrefillMs = undefined;
-    this.#state.stats.gpuTimeDecodeMs = undefined;
-    this.#state.stats.prefillProfileSteps = [];
-    this.#state.decodeRing?.reset();
-    this.#state.stats.decodeRecordMs = 0;
-    this.#state.stats.decodeRecordOps = 0;
-    this.#state.stats.decodeRecordPasses = 0;
-    this.#state.stats.decodeRecordOpLabels = {};
-    this.#state.stats.decodeSubmitWaitMs = 0;
-    this.#state.stats.decodeReadbackWaitMs = 0;
-    this.#state.stats.decodeReadbackMapWaitMs = 0;
-    this.#state.stats.decodeReadbackCleanupMs = 0;
-    this.#state.stats.decodeReadbackCopyMs = 0;
-    this.#state.stats.prefillRecordMs = 0;
-    this.#state.stats.prefillRecordOps = 0;
-    this.#state.stats.prefillRecordPasses = 0;
-    this.#state.stats.prefillRecordOpLabels = {};
-    this.#state.stats.prefillSubmitWaitMs = 0;
-    this.#state.stats.ttftMs = 0;
-    const startTime = performance.now();
-
-    const opts = resolveGenerateOptions(this.#state, options);
-
-    try {
-      const processedPrompt = resolvePromptInput(this.#state, prompt, opts.useChatTemplate, 'generateWithPrefixKV');
-
-      const inputIds = this.#state.tokenizer.encode(processedPrompt);
-      this._assertTokenIdsInRange(inputIds, 'generateWithPrefixKV.encode');
-      const generatedIds = [...prefix.tokens, ...inputIds];
-      const promptTokenCount = generatedIds.length;
-      this.#state.stats.prefillTokens = inputIds.length;
-
-      const prefillStart = performance.now();
-      const prefillLogits = await this._prefill(inputIds, opts);
-      this.#state.stats.prefillTimeMs = performance.now() - prefillStart;
-
-      applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty);
-      const padTokenId = this.#state.tokenizer?.getSpecialTokens?.()?.pad;
-      const firstToken = sample(prefillLogits, {
-        temperature: opts.temperature,
-        topP: opts.topP,
-        topK: opts.topK,
-        padTokenId,
-        seed: opts.seed,
-        suppressTokenIds: opts.suppressTokenIds,
-      });
-
-      const decodeRuntime = {
-        stopTokenIds: this.#state.modelConfig.stopTokenIds,
-        eosToken: this.#state.tokenizer.getSpecialTokens?.()?.eos,
-        stopSequenceStart: promptTokenCount,
-        decodeToken: (tokenId) => this.#state.tokenizer.decode([tokenId], true, false),
-        logBatchPath: false,
-      };
-      generatedIds.push(firstToken);
-      this.#state.stats.ttftMs = performance.now() - startTime;
-      const firstText = resolveTokenText(
-        this.#state.tokenizer,
-        [firstToken],
-        `[${firstToken}]`,
-        (tokens) => this.#state.tokenizer?.decode?.(tokens, true, false),
-        (tokens) => this.#state.tokenizer?.decode?.(tokens, false, false)
-      );
-      yield firstText;
-      if (options.onToken) options.onToken(firstToken, firstText);
-
-      if (this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
-        this._recordStopReason('stop-token-or-sequence', firstToken);
-        this.#state.stats.decodeTimeMs = 0;
-        this.#state.stats.tokensGenerated = 1;
-        this.#state.stats.decodeTokens = 1;
-      } else {
-        yield* this._runDecodeLoop(generatedIds, opts, options, decodeRuntime);
-      }
-      this.#state.stats.totalTimeMs = performance.now() - startTime;
-    } finally {
-      this._closeFinitenessFallbackWindow(opts);
-      resetActiveExecutionPlan(this.#state);
-      this.#state.isGenerating = false;
-    }
+    return yield* generateWithPrefixKVImpl.apply(this, arguments);
   }
 
   // ==========================================================================
@@ -2763,1231 +570,34 @@ export class PipelineGenerator {
   // ==========================================================================
 
   async *_runDecodeLoop(generatedIds, opts, options, runtime) {
-    const {
-      stopTokenIds,
-      eosToken,
-      stopSequenceStart,
-      decodeToken,
-      logBatchPath = false,
-      emitMode = 'text',
-    } = runtime;
-
-    let tokensGenerated = 1;
-    markKernelCacheWarmed();
-
-    // Step 4: Lazily initialise PLE buffer cache for decode-path slice reuse.
-    const pleHiddenSize = Number(this.#state.modelConfig.hiddenSizePerLayerInput ?? 0);
-    if (pleHiddenSize > 0 && !this.#state.pleCache) {
-      const activationDtype = resolveActiveExecutionPlan(this.#state).activationDtype;
-      const bpe = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
-      this.#state.pleCache = createPleBufferCache(
-        this.#state.modelConfig.numLayers,
-        pleHiddenSize * bpe,
-      );
-    }
-    if (pleHiddenSize > 0) {
-      await primePleDecodeRuntimeCache(this.#state, generatedIds);
-    }
-
-    const decodeStart = performance.now();
-    const resolvedPerLayerInputsSession = resolvePerLayerInputsSession(
-      this.#state.modelConfig.perLayerInputsSession ?? null,
-      this.#state.runtimeConfig?.inference?.session?.perLayerInputs ?? null
-    );
-    const lmHead = this.#state.weights.get('lm_head');
-    const embedBuffer = this.#state.weights.get('embed');
-    const hasCpuWeights = isCpuWeightBuffer(lmHead)
-      || isCpuWeightBuffer(embedBuffer)
-      || lmHead instanceof Float32Array
-      || embedBuffer instanceof Float32Array;
-    const hasLinearLayers = hasLinearAttentionLayers(this.#state.modelConfig.layerTypes);
-    const replayPrefillDecode = usesReplayPrefillDecode(this.#state);
-    const gpuSamplingAvailable = isGPUSamplingAvailable() && !hasCpuWeights;
-    const hasSuppressedSamplingTokens = Array.isArray(opts.suppressTokenIds) && opts.suppressTokenIds.length > 0;
-    const hasRangeBackedPerLayerInputs = hasRangeBackedPerLayerInputEmbeddings({
-      config: this.#state.modelConfig,
-      weights: this.#state.weights,
-    });
-    const hasGpuSplitPerLayerInputs = hasGpuSplitPerLayerInputEmbeddings({
-      config: this.#state.modelConfig,
-      weights: this.#state.weights,
-      perLayerInputsSession: resolvedPerLayerInputsSession,
-    });
-    const pleHotVocabularyRuntime = getPleHotVocabularyRuntime({ weights: this.#state.weights });
-    const resolveCurrentHotVocabularyBatchDecodeAvailable = () => resolveHotVocabularyBatchDecodeAvailability({
-      hasRangeBackedPerLayerInputs,
-      pleHotVocabularyRuntime,
-      tokenId: generatedIds[generatedIds.length - 1] ?? null,
-    });
-    const initialHotVocabularyBatchDecodeAvailable = resolveCurrentHotVocabularyBatchDecodeAvailable();
-    const executionPlan = opts.executionPlan;
-    let useBatchPath = replayPrefillDecode
-      ? false
-        : shouldUseBatchDecode({
-          batchSize: executionPlan.batchSize,
-          useGPU: this.#state.useGPU,
-          gpuSamplingAvailable,
-          disableMultiTokenDecode: executionPlan.disableMultiTokenDecode || hasSuppressedSamplingTokens,
-          disableCommandBatching: executionPlan.disableCommandBatching,
-          isBdpaPagedLayout: this.#state.kvCache?.layout === 'bdpa_paged',
-          finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
-          hasLinearAttentionLayers: hasLinearLayers,
-          selfSpeculationEnabled: opts.speculation?.mode === 'self' && !initialHotVocabularyBatchDecodeAvailable,
-          hasRangeBackedPerLayerInputs,
-        });
-    if (!useBatchPath) {
-      let reason = null;
-      if (replayPrefillDecode) reason = 'replay_prefill_decode';
-      else if (hasCpuWeights) reason = 'cpu_weights';
-      else if (!this.#state.useGPU) reason = 'no_gpu';
-      else if (!gpuSamplingAvailable) reason = 'no_gpu_sampling';
-      else if (executionPlan.disableCommandBatching) reason = 'command_batching_disabled';
-      else if (hasSuppressedSamplingTokens) reason = 'sampling_suppression_requires_cpu_logits';
-      else if (executionPlan.disableMultiTokenDecode) reason = 'multi_token_decode_disabled';
-      else if (executionPlan.batchSize <= 1) reason = 'batch_size_1';
-      else if (this.#state.kvCache?.layout === 'bdpa_paged') reason = 'bdpa_paged_layout';
-      else if (this._hasFinitenessFallbackWindow()) reason = 'finiteness_fallback_window';
-      else if (hasLinearLayers) reason = 'linear_attention_layers';
-      this.#state.stats.decodeMode = replayPrefillDecode
-        ? 'replay_prefill'
-        : (opts.speculation?.mode === 'self' ? 'self_speculation' : 'single_token');
-      this.#state.stats.batchGuardReason = reason;
-    } else {
-      this.#state.stats.decodeMode = hasRangeBackedPerLayerInputs
-        ? 'batched_gpu_stepwise_ple'
-        : 'batched_gpu';
-      this.#state.stats.batchGuardReason = null;
-    }
-
-    const readbackInterval = executionPlan.readbackInterval;
-    const intervalBatches = readbackInterval == null ? 1 : readbackInterval;
-    const padTokenId = this.#state.tokenizer?.getSpecialTokens?.()?.pad;
-
-    const decodeSingleTokenViaLogits = async () => this._decodeNextTokenViaLogits(generatedIds, opts);
-
-    if (logBatchPath && useBatchPath) {
-      log.debug(
-        'Pipeline',
-        `Using batch decode path with batchSize=${executionPlan.batchSize}, stopCheckMode=${executionPlan.stopCheckMode}, readbackInterval=${readbackInterval}`
-      );
-    }
-
-    while (tokensGenerated < opts.maxTokens) {
-      if (options.signal?.aborted) {
-        this._recordStopReason('aborted');
-        break;
-      }
-      if (this._hasFinitenessFallbackWindow() && useBatchPath) {
-        useBatchPath = false;
-      }
-      const hotVocabularyBatchDecodeAvailable = resolveCurrentHotVocabularyBatchDecodeAvailable();
-
-      if (useBatchPath) {
-        const remaining = opts.maxTokens - tokensGenerated;
-        const maxBatchDecodeTokens = resolveMaxBatchDecodeTokens({
-          hasHotVocabularyBatchDecode: hotVocabularyBatchDecodeAvailable,
-          hasGpuSplitPerLayerInputs,
-          hasLinearAttentionLayers: hasLinearLayers,
-          modelId: this.#state.modelConfig.modelId ?? executionPlan.kernelPathId,
-          activationDtype: executionPlan.activationDtype,
-          currentSeqLen: this.#state.currentSeqLen,
-          maxDecodeTokens: opts.maxTokens,
-          numLayers: this.#state.modelConfig.numLayers,
-          hiddenSize: this.#state.modelConfig.hiddenSize,
-          configuredMaxBatchDecodeTokens: executionPlan.maxBatchDecodeTokens,
-        });
-        const requestedBatchTokens = executionPlan.batchSize * intervalBatches;
-        const boundedBatchTokens = maxBatchDecodeTokens == null
-          ? requestedBatchTokens
-          : Math.min(requestedBatchTokens, maxBatchDecodeTokens);
-        const thisBatchSize = Math.min(boundedBatchTokens, remaining);
-        this.#state.batchingStats.requestedBatchTokens = Math.max(
-          this.#state.batchingStats.requestedBatchTokens ?? 0,
-          requestedBatchTokens
-        );
-        this.#state.batchingStats.effectiveBatchTokens = Math.max(
-          this.#state.batchingStats.effectiveBatchTokens ?? 0,
-          thisBatchSize
-        );
-        if (maxBatchDecodeTokens != null) {
-          this.#state.batchingStats.maxBatchTokenCap = Math.max(
-            this.#state.batchingStats.maxBatchTokenCap ?? 0,
-            maxBatchDecodeTokens
-          );
-        }
-        if (thisBatchSize < requestedBatchTokens) {
-          this.#state.batchingStats.batchClampCount = (this.#state.batchingStats.batchClampCount ?? 0) + 1;
-        }
-        const lastToken = generatedIds[generatedIds.length - 1];
-        const boundedExecutionPlan = thisBatchSize < requestedBatchTokens
-          ? {
-            ...executionPlan,
-            batchSize: Math.min(executionPlan.batchSize, thisBatchSize),
-            readbackInterval: readbackInterval == null
-              ? null
-              : Math.min(intervalBatches, thisBatchSize),
-          }
-          : executionPlan;
-        const batchOpts = boundedExecutionPlan === executionPlan
-          ? opts
-          : { ...opts, executionPlan: boundedExecutionPlan };
-
-        try {
-          const batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, batchOpts);
-          let batchTokens = [];
-          let hitStop = false;
-          let stopTokenId = null;
-          for (const tokenId of batchResult.tokens) {
-            if (isStopToken(tokenId, stopTokenIds, eosToken)) {
-              hitStop = true;
-              stopTokenId = tokenId;
-              break;
-            }
-            generatedIds.push(tokenId);
-            tokensGenerated++;
-            if (emitMode === 'token') {
-              yield tokenId;
-              if (options.onToken) options.onToken(tokenId, '');
-              batchTokens.push({ id: tokenId, text: '' });
-            } else {
-              const tokenText = decodeToken(tokenId);
-              yield tokenText;
-              if (options.onToken) options.onToken(tokenId, tokenText);
-              batchTokens.push({ id: tokenId, text: tokenText });
-            }
-            if (batchTokens.length === executionPlan.batchSize) {
-              if (options.onBatch) options.onBatch(batchTokens);
-              batchTokens = [];
-            }
-          }
-          if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
-          if (opts.stopSequences.length > 0) {
-            const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-            if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
-              this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
-              break;
-            }
-          }
-          if (hitStop) {
-            this._recordStopReason('stop-token', stopTokenId);
-            break;
-          }
-          if (shouldDisableBatchDecodeAfterShortBatch({
-            hitStop,
-            actualCount: batchResult.actualCount,
-            requestedCount: thisBatchSize,
-          })) {
-            useBatchPath = false;
-            continue;
-          }
-        } catch (error) {
-          log.warn('Pipeline', `Batch decode failed, falling back to single-token: ${error}`);
-          useBatchPath = false;
-          let nextToken;
-          try {
-            nextToken = await decodeSingleTokenViaLogits();
-          } catch (singleTokenError) {
-            if (this._shouldUseFinitenessFallback(singleTokenError, `decode-batch-step-${tokensGenerated}`)) {
-              log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at batch step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
-              nextToken = await this._retryDecodeStepWithFinitenessWindow(
-                generatedIds,
-                opts,
-                `decode-batch-step-${tokensGenerated}`
-              );
-            } else {
-              throw singleTokenError;
-            }
-          }
-          generatedIds.push(nextToken);
-          tokensGenerated++;
-          if (emitMode === 'token') {
-            yield nextToken;
-            if (options.onToken) options.onToken(nextToken, '');
-          } else {
-            const tokenText = decodeToken(nextToken);
-            yield tokenText;
-            if (options.onToken) options.onToken(nextToken, tokenText);
-          }
-          this._consumeFinitenessFallbackToken(opts);
-          if (isStopToken(nextToken, stopTokenIds, eosToken)) {
-            this._recordStopReason('stop-token', nextToken);
-            break;
-          }
-        }
-      } else if (opts.speculation?.mode === 'self') {
-        // Self-speculation: decode one base token plus a configurable burst of
-        // speculative tokens per iteration. Same-model speculation always
-        // accepts under greedy because the model is deterministic — both base
-        // and speculative use the same weights and state. The benefit is
-        // amortizing per-iteration overhead for models where batch decode is
-        // disabled (e.g., linear attention).
-        const speculativeBurstTokens = opts.speculation.tokens;
-        if (!Number.isInteger(speculativeBurstTokens) || speculativeBurstTokens < 1) {
-          throw new Error('[Pipeline] resolved self-speculation tokens must be a positive integer.');
-        }
-        const doSpecDecode = hasLinearLayers
-          ? () => this._decodeStep(generatedIds, opts)
-          : decodeSingleTokenViaLogits;
-
-        // Base decode
-        let baseToken;
-        try {
-          baseToken = await doSpecDecode();
-        } catch (error) {
-          if (this._shouldUseFinitenessFallback(error, `spec-base-${tokensGenerated}`)) {
-            log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated} (speculation:base). Retrying.`);
-            baseToken = await this._retryDecodeStepWithFinitenessWindow(generatedIds, opts, `spec-base-${tokensGenerated}`);
-          } else {
-            throw error;
-          }
-        }
-        generatedIds.push(baseToken);
-        tokensGenerated++;
-        if (emitMode === 'token') {
-          yield baseToken;
-          if (options.onToken) options.onToken(baseToken, '');
-        } else {
-          const text = decodeToken(baseToken);
-          yield text;
-          if (options.onToken) options.onToken(baseToken, text);
-        }
-        this._consumeFinitenessFallbackToken(opts);
-
-        if (isStopToken(baseToken, stopTokenIds, eosToken)) {
-          this._recordStopReason('stop-token', baseToken);
-          break;
-        }
-        if (tokensGenerated >= opts.maxTokens) break;
-        if (opts.stopSequences.length > 0) {
-          const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
-            this._recordStopReason('stop-sequence', baseToken);
-            break;
-          }
-        }
-
-        for (let specIndex = 0; specIndex < speculativeBurstTokens; specIndex += 1) {
-          if (tokensGenerated >= opts.maxTokens) {
-            break;
-          }
-          let specToken;
-          try {
-            specToken = await doSpecDecode();
-          } catch (error) {
-            if (this._shouldUseFinitenessFallback(error, `spec-extra-${tokensGenerated}`)) {
-              log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated} (speculation:spec). Retrying.`);
-              specToken = await this._retryDecodeStepWithFinitenessWindow(generatedIds, opts, `spec-extra-${tokensGenerated}`);
-            } else {
-              throw error;
-            }
-          }
-          generatedIds.push(specToken);
-          tokensGenerated++;
-          this.#state.stats.speculationAttempts = (this.#state.stats.speculationAttempts ?? 0) + 1;
-          this.#state.stats.speculationAccepted = (this.#state.stats.speculationAccepted ?? 0) + 1;
-          if (emitMode === 'token') {
-            yield specToken;
-            if (options.onToken) options.onToken(specToken, '');
-          } else {
-            const text = decodeToken(specToken);
-            yield text;
-            if (options.onToken) options.onToken(specToken, text);
-          }
-          this._consumeFinitenessFallbackToken(opts);
-
-          if (opts.debug || opts.benchmark) {
-            const elapsedMs = performance.now() - decodeStart;
-            const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
-            log.debug('Decode', `#${tokensGenerated} speculation:self (${tokPerSec.toFixed(2)} tok/s avg)`);
-          }
-
-          if (isStopToken(specToken, stopTokenIds, eosToken)) {
-            this._recordStopReason('stop-token', specToken);
-            break;
-          }
-          if (opts.stopSequences.length > 0) {
-            const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-            if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
-              this._recordStopReason('stop-sequence', specToken);
-              break;
-            }
-          }
-        }
-        if (isStopToken(generatedIds[generatedIds.length - 1], stopTokenIds, eosToken)) {
-          this._recordStopReason('stop-token', generatedIds[generatedIds.length - 1]);
-          break;
-        }
-        if (opts.stopSequences.length > 0) {
-          const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
-            this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
-            break;
-          }
-        }
-      } else {
-        const tokenStart = performance.now();
-        let nextToken;
-        try {
-          nextToken = hasLinearLayers
-            ? await this._decodeStep(generatedIds, opts)
-            : await decodeSingleTokenViaLogits();
-        } catch (error) {
-          if (this._shouldUseFinitenessFallback(error, `decode-step-${tokensGenerated}`)) {
-            log.warn('Pipeline', `FinitenessGuard caught NaN/Inf at step ${tokensGenerated}. Truncating KV cache and retrying token with F32 precision.`);
-            nextToken = await this._retryDecodeStepWithFinitenessWindow(
-              generatedIds,
-              opts,
-              `decode-step-${tokensGenerated}`
-            );
-          } else {
-            throw error;
-          }
-        }
-        const tokenTime = performance.now() - tokenStart;
-        generatedIds.push(nextToken);
-        tokensGenerated++;
-
-        // Step 5: Fire-and-forget prefetch of next token's PLE row.
-        if (pleHiddenSize > 0) {
-          const pleWeights = this.#state.weights.get('per_layer_inputs');
-          if (pleWeights?.embedTokensPerLayer) {
-            this.#state.plePrefetchPending = prefetchPerLayerRow(
-              nextToken,
-              pleWeights.embedTokensPerLayer,
-              this.#state.modelConfig.numLayers * pleHiddenSize,
-              resolvedPerLayerInputsSession,
-            );
-          }
-        }
-
-        const tokenText = emitMode === 'token' ? '' : decodeToken(nextToken);
-        if (emitMode === 'token') {
-          yield nextToken;
-          if (options.onToken) options.onToken(nextToken, '');
-        } else {
-          yield tokenText;
-          if (options.onToken) options.onToken(nextToken, tokenText);
-        }
-        this._consumeFinitenessFallbackToken(opts);
-
-        if (opts.debug || opts.benchmark) {
-          const elapsedMs = performance.now() - decodeStart;
-          const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
-          log.debug('Decode', `#${tokensGenerated} "${tokenText}" ${tokenTime.toFixed(0)}ms (${tokPerSec.toFixed(2)} tok/s avg)`);
-        }
-
-        if (isStopToken(nextToken, stopTokenIds, eosToken)) {
-          this._recordStopReason('stop-token', nextToken);
-          break;
-        }
-        if (opts.stopSequences.length > 0) {
-          const fullText = this.#state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
-            this._recordStopReason('stop-sequence', nextToken);
-            break;
-          }
-        }
-      }
-    }
-
-    if (!this.#state.stats.stopReason) {
-      this._recordStopReason(tokensGenerated >= opts.maxTokens ? 'max-tokens' : 'completed');
-    }
-    this.#state.stats.decodeTimeMs = performance.now() - decodeStart;
-    this.#state.stats.tokensGenerated = tokensGenerated;
-    this.#state.stats.decodeTokens = tokensGenerated;
-    this.#state.stats.batching = { ...this.#state.batchingStats };
+    return yield* _runDecodeLoopImpl.apply(this, arguments);
   }
 
   async _prefillToHidden(inputIds, opts) {
-    // Internal-only: reuse the main prefill implementation but stop before logits.
-    return this._prefill(inputIds, { ...opts, _returnHidden: true });
+    return _prefillToHiddenImpl.apply(this, arguments);
   }
-
 
   async _prefill(inputIds, opts) {
-    const numTokens = inputIds.length;
-    const config = this.#state.modelConfig;
-    const selectedLogitTokenIds = normalizeSelectedLogitTokenIds(
-      opts?._selectedLogitTokenIds,
-      config.vocabSize,
-      '_prefill.selectedLogitTokenIds'
-    );
-    const startPos = this.#state.currentSeqLen;
-    const tracePrefillEnabled = isTraceEnabled('perf');
-    const prefillTraceStart = tracePrefillEnabled ? performance.now() : 0;
-    const returnHidden = opts?._returnHidden === true;
-    const embeddingInputIds = resolvePrefillEmbeddingInputIds(
-      inputIds,
-      opts?.embeddingInputSpan ?? null,
-      '_prefill'
-    );
-    const multimodalBidirectionalSpan = resolvePrefillMultimodalBidirectionalSpan(
-      inputIds,
-      opts?.multimodalBidirectionalSpan ?? null,
-      '_prefill'
-    );
-    if (embeddingInputIds !== inputIds) {
-      this._assertTokenIdsInRange(embeddingInputIds, '_prefill.embeddingInputIds');
-    }
-    const embeddingOverride = normalizePrefixEmbeddingOverride(
-      opts?.embeddingOverrides ?? null,
-      config.hiddenSize,
-      numTokens,
-      '_prefill'
-    );
-    this.#state.stats.gpuTimePrefillMs = undefined;
-    this.#state.stats.prefillProfileSteps = [];
-
-    if (startPos === 0 && hasLinearAttentionLayers(config.layerTypes)) {
-      this.#state.linearAttentionRuntime = resetLinearAttentionRuntime(this.#state.linearAttentionRuntime);
-    }
-    if (startPos === 0) {
-      for (const [, convState] of this.#state.convLayerStates) {
-        if (convState.convStateGPU && convState.hiddenSize && convState.kernelSize) {
-          uploadData(convState.convStateGPU, new Float32Array(convState.hiddenSize * (convState.kernelSize - 1)));
-        }
-      }
-    }
-
-    const embedBufferRaw = this.#state.weights.get('embed');
-    if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !isSplitWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
-      throw new Error('Embed buffer not found or not a supported buffer type');
-    }
-    const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
-    const embedDtype = isCpuWeightBuffer(embedBufferRaw)
-      ? embedBufferRaw.dtype
-      : getWeightDtype(embedBufferRaw);
-    const embedMetadata = getWeightMetadata(embedBufferRaw);
-    if (opts.debug) {
-      const embedSize = isGpuBufferInstance(embedBuffer) ? embedBuffer.size : 'N/A';
-      log.debug('Pipeline', `Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedSize}, dtype=${embedDtype}`);
-    }
-
-    const device = getDevice();
-    const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
-    const disableCommandBatching = shouldDisablePrefillCommandBatching(
-      this.#state,
-      opts,
-      multimodalBidirectionalSpan
-    );
-    const createRecorder = (label) => {
-      if (!device || disableCommandBatching) return undefined;
-      const recorderOptions = {
-        recordLabels: opts.debug === true || opts.benchmark === true || opts.executionObserver === true,
-        recordDispatches: opts.debug === true || opts.executionObserver === true,
-        aggregateDispatches: opts.executionObserver === true,
-      };
-      return opts.profile
-        ? createProfilingRecorder(label, device, recorderOptions)
-        : createCommandRecorder(label, recorderOptions, device);
-    };
-    const recorder = createRecorder('prefill');
-    const debugCheckBuffer = this.#state.debug
-      ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
-      : undefined;
-    const context = buildLayerContext(
-      this.#state,
-      recorder,
-      false,
-      opts.debugLayers,
-      debugCheckBuffer,
-      opts.executionPlan
-    );
-    context.trainingCapture = opts?._trainingCapture ?? null;
-    context.currentTokenIds = inputIds;
-    context.diffusionGemmaDecoder = opts?._diffusionGemmaDecoder === true;
-    context.skipKVCacheWrites = returnHidden
-      && opts?._embeddingOnly === true
-      && this.#state.runtimeConfig?.inference?.session?.skipEmbeddingKVCacheWrites === true;
-    context.multimodalBidirectionalSpan = multimodalBidirectionalSpan == null
-      ? null
-      : {
-        start: startPos + multimodalBidirectionalSpan.offset,
-        length: multimodalBidirectionalSpan.length,
-      };
-    let gpuTimePrefillMs = 0;
-    let hasGpuTimePrefill = false;
-    const recordProfile = async (rec) => {
-      if (!opts.profile || !rec) return;
-      const timings = rec.isProfilingEnabled()
-        ? await rec.resolveProfileTimings()
-        : null;
-      const total = sumProfileTimings(timings);
-      if (total !== null) {
-        gpuTimePrefillMs += total;
-        hasGpuTimePrefill = true;
-      }
-      if (timings || opts.executionObserver) {
-        recordPrefillProfileStep(this.#state, {
-          label: rec.label,
-          timings,
-          totalMs: total ?? undefined,
-          recorderStats: rec.getStats(),
-        });
-        if (!opts.executionObserver) {
-          log.warn('Profile', `Prefill (${rec.label}):`);
-          log.warn('Profile', CommandRecorder.formatProfileReport(timings));
-        }
-      }
-    };
-
-    const benchmarkSubmits = opts.debug;
-    if (benchmarkSubmits) {
-      setTrackSubmits(true);
-      resetSubmitStats();
-    }
-
-    const preserveBufferAcrossRecorderSubmit = (buffer, activeRecorder, label) => {
-      if (!activeRecorder || !isGpuBufferInstance(buffer)) {
-        return buffer;
-      }
-      const carryBuffer = acquireBuffer(
-        buffer.size,
-        typeof buffer.usage === 'number' ? buffer.usage : undefined,
-        label
-      );
-      activeRecorder.getEncoder().copyBufferToBuffer(buffer, 0, carryBuffer, 0, buffer.size);
-      activeRecorder.trackTemporaryBuffer(buffer);
-      return carryBuffer;
-    };
-
-    const activationDtype = opts.executionPlan?.activationDtype ?? this._getEffectiveActivationDtype();
-    const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
-    if (tracePrefillEnabled) {
-      trace.perf('Prefill phase start', {
-        numTokens,
-        startPos,
-        numLayers: config.numLayers,
-        activationDtype,
-        returnHidden,
-      });
-    }
-    const embedTraceStart = tracePrefillEnabled ? performance.now() : 0;
-    let baseEmbeddings = await embed(embeddingInputIds, embedBuffer, {
-      hiddenSize: config.hiddenSize,
-      vocabSize: config.vocabSize,
-      scaleEmbeddings: config.scaleEmbeddings,
-      embeddingScale: config.embeddingScale, embeddingNormalization: config.embeddingNormalization,
-      debug: opts.debug,
-      recorder,
-      transpose: this.#state.embeddingTranspose,
-      debugProbes: this.#state.runtimeConfig.shared.debug.probes,
-      operatorDiagnostics: this.#state.operatorDiagnostics,
-      activationDtype,
-      embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
-      embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
-      executionPolicies: this.#state.executionV1State?.policies ?? null,
-    });
-    if (tracePrefillEnabled) {
-      trace.perf('Prefill embed complete', {
-        numTokens,
-        elapsedMs: performance.now() - embedTraceStart,
-      });
-    }
-    let hiddenStates = baseEmbeddings;
-    let perLayerInputs = null;
-    const perLayerInputsTraceStart = tracePrefillEnabled ? performance.now() : 0;
-    try {
-      hiddenStates = await applyPrefixEmbeddingOverride(
-        baseEmbeddings,
-        embeddingOverride,
-        config.hiddenSize,
-        '_prefill',
-        {
-          executionPolicies: this.#state.executionV1State?.policies ?? null,
-          transitionDeclaredBy: resolvePrefixEmbeddingOverrideTransitionDeclaredBy(this.#state.executionV1State),
-        }
-      );
-      perLayerInputs = await preparePerLayerInputs(
-        embeddingInputIds,
-        embeddingInputIds === inputIds ? hiddenStates : baseEmbeddings,
-        context,
-        {
-          numTokens,
-          pleCache: this.#state.pleCache ?? null,
-        }
-      );
-      if (tracePrefillEnabled) {
-        trace.perf('Prefill per-layer inputs complete', {
-          numTokens,
-          elapsedMs: performance.now() - perLayerInputsTraceStart,
-          materialized: Array.isArray(perLayerInputs),
-        });
-      }
-    } catch (error) {
-      if (isGpuBufferInstance(hiddenStates?.buffer)) {
-        releaseBuffer(hiddenStates.buffer);
-      }
-      if (hiddenStates === baseEmbeddings) {
-        baseEmbeddings = null;
-      }
-      hiddenStates = null;
-      throw error;
-    } finally {
-      if (hiddenStates !== baseEmbeddings && isGpuBufferInstance(baseEmbeddings?.buffer)) {
-        releaseBuffer(baseEmbeddings.buffer);
-      }
-      baseEmbeddings = null;
-    }
-
-    if (opts.debug && isGpuBufferInstance(hiddenStates)) {
-      if (recorder) {
-        hiddenStates = createTensor(
-          preserveBufferAcrossRecorderSubmit(hiddenStates.buffer, recorder, 'prefill_embed_carry'),
-          hiddenStates.dtype,
-          hiddenStates.shape,
-          hiddenStates.label
-        );
-        recordPrefillRecorderStats(this.#state, recorder);
-        await recorder.submitAndWait();
-        await recordProfile(recorder);
-      }
-      const debugReadbackSize = this.#state.runtimeConfig.shared.debug.pipeline.readbackSampleSize;
-      const sample = await readBuffer(hiddenStates, Math.min(debugReadbackSize, hiddenStates.size));
-      const f32 = decodeReadback(sample, activationDtype);
-      const nanCount = f32.filter(x => !Number.isFinite(x)).length;
-      let maxAbs = 0;
-      for (let i = 0; i < f32.length; i++) {
-        const abs = Math.abs(f32[i]);
-        if (abs > maxAbs) maxAbs = abs;
-      }
-      const first8 = Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ');
-      log.debug('Pipeline', `After embed: buffer.label=${hiddenStates.label}, buffer.size=${hiddenStates.size}, maxAbs=${maxAbs.toFixed(4)}`);
-      log.debug('Pipeline', `After embed first8=[${first8}], nan=${nanCount}/${f32.length}`);
-    }
-
-    if (opts.debug) {
-      log.debug('Pipeline', `LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
-    }
-
-    if (this.#state.finitenessBuffer) {
-      const device = getDevice();
-      if (device) {
-        device.queue.writeBuffer(this.#state.finitenessBuffer, 0, FINITENESS_RESET_WORDS);
-      }
-    }
-
-    let currentRecorder = recorder;
-
-    // Chunked recorder submission: submit every N layers to release tracked intermediate
-    // buffers, preventing unbounded memory growth during large prefills. Critical for
-    // replay_prefill models where each decode step re-runs a prefill-style layer pass.
-    const prefillRecorderChunkLayers = resolvePrefillRecorderChunkLayers({
-      configuredPrefillChunkLayers: this.#state.runtimeConfig?.inference?.session?.prefillChunkLayers,
-      hasGpuSplitPerLayerInputs: context.perLayerInputsSession?.materialization === 'gpu_split_tables',
-      numTokens,
-    });
-
-    let currentHiddenBuffer = hiddenStates.buffer;
-    let prefillRecordMs = 0;
-    let prefillSubmitWaitMs = 0;
-    const layerLoopTraceStart = tracePrefillEnabled ? performance.now() : 0;
-    const traceLayerHealthEnabled = isTraceEnabled('logits');
-    try {
-      for (let l = 0; l < config.numLayers; l++) {
-        // Per-layer hard cancellation: when the caller's AbortSignal aborts,
-        // exit the prefill loop between layer dispatches rather than
-        // continuing to burn GPU on superseded work. Granularity is one
-        // layer (~5-50ms), which is the fastest cancel granularity WebGPU
-        // exposes today.
-        if (opts?.signal?.aborted) {
-          const reason = typeof opts.signal.reason === "string" ? opts.signal.reason : "Doppler: prefill aborted";
-          const err = new Error(reason);
-          err.name = "AbortError";
-          err.code = "ABORT_ERR";
-          throw err;
-        }
-        context.recorder = currentRecorder;
-        context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
-
-        const prevBuffer = currentHiddenBuffer;
-        const layerRecordStart = performance.now();
-        const layerOutput = await processLayer(l, currentHiddenBuffer, numTokens, true, context);
-        prefillRecordMs += performance.now() - layerRecordStart;
-        if (!isGpuBufferInstance(layerOutput)) throw new Error('Expected GPUBuffer from processLayer');
-        currentHiddenBuffer = layerOutput;
-        releasePerLayerInputBuffer(
-          context.perLayerInputBuffer,
-          currentRecorder,
-          context.decodeBuffers,
-          this.#state.pleCache ?? null
-        );
-        if (perLayerInputs) {
-          perLayerInputs[l] = null;
-        }
-        context.perLayerInputBuffer = null;
-
-        const isCheckpoint = useCheckpoints && opts.debugLayers?.includes(l);
-        const isChunkBoundary = !isCheckpoint
-          && !traceLayerHealthEnabled
-          && currentRecorder
-          && l < config.numLayers - 1
-          && (l + 1) % prefillRecorderChunkLayers === 0;
-
-        if (isCheckpoint && currentRecorder) {
-          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-            currentHiddenBuffer,
-            currentRecorder,
-            'prefill_checkpoint_carry'
-          );
-          recordPrefillRecorderStats(this.#state, currentRecorder);
-          await currentRecorder.submitAndWait();
-          await recordProfile(currentRecorder);
-          currentRecorder = undefined;
-        }
-
-        if (traceLayerHealthEnabled && currentRecorder) {
-          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-            currentHiddenBuffer,
-            currentRecorder,
-            'prefill_trace_layer_health_carry'
-          );
-          const traceSubmitStart = performance.now();
-          recordPrefillRecorderStats(this.#state, currentRecorder);
-          await currentRecorder.submitAndWait();
-          await recordProfile(currentRecorder);
-          prefillSubmitWaitMs += performance.now() - traceSubmitStart;
-          await traceActivationHealth(
-            `PREFILL_LAYER_${l}_HEALTH`,
-            currentHiddenBuffer,
-            activationDtype,
-            numTokens * config.hiddenSize
-          );
-          currentRecorder = l < config.numLayers - 1
-            ? createRecorder('prefill-trace')
-            : undefined;
-        }
-
-        const shouldDebug = opts.debug && currentHiddenBuffer && (!recorder || isCheckpoint);
-        if (shouldDebug && !currentRecorder) {
-          const device = getDevice();
-          if (device) {
-            if (allowReadback(`pipeline.prefill.layer-${l}`)) {
-              try {
-                const sampleSize = config.hiddenSize * activationBytes;
-                const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
-                const readback = await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize);
-                const data = decodeReadback(readback, activationDtype);
-                let min = Infinity;
-                let max = -Infinity;
-                let maxAbs = 0;
-                for (const v of data) {
-                  if (!Number.isFinite(v)) continue;
-                  if (v < min) min = v;
-                  if (v > max) max = v;
-                  const av = Math.abs(v);
-                  if (av > maxAbs) maxAbs = av;
-                }
-                const sample = Array.from(data).slice(0, 3).map(x => x.toFixed(3)).join(', ');
-                log.debug('Pipeline', `LAYER_${l}_LAST[pos=${numTokens - 1}]: min=${min.toFixed(3)}, max=${max.toFixed(3)}, maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
-              } catch (e) {
-                log.debug('Pipeline', `LAYER_${l}_LAST: error reading buffer: ${e}`);
-              }
-            }
-          }
-        }
-
-        if (isCheckpoint && useCheckpoints && l < config.numLayers - 1) {
-          currentRecorder = createRecorder('prefill-cont');
-        }
-
-        if (prevBuffer !== currentHiddenBuffer) {
-          if (currentRecorder) {
-            currentRecorder.trackTemporaryBuffer(prevBuffer);
-          } else {
-            releaseBuffer(prevBuffer);
-          }
-        }
-
-        if (isChunkBoundary) {
-          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-            currentHiddenBuffer,
-            currentRecorder,
-            'prefill_chunk_carry'
-          );
-          // Chunk boundary exists only to bound intermediate buffer lifetime.
-          // When the runtime opts into async chunk submit AND profile timings
-          // are not being collected, skip the CPU-GPU wait: queue order is
-          // preserved across submits and deferred cleanup still releases
-          // tracked buffers when GPU work completes. Profile runs keep the
-          // sync path because resolveProfileTimings requires the submitted
-          // work to be done.
-          const chunkSubmitMode = resolvePrefillChunkSubmitMode(
-            this.#state.runtimeConfig,
-            this.#state.modelConfig
-          );
-          const chunkSubmitStart = performance.now();
-          recordPrefillRecorderStats(this.#state, currentRecorder);
-          if (chunkSubmitMode === 'async' && !opts.profile) {
-            currentRecorder.submit({ cleanup: 'deferred' });
-          } else {
-            await currentRecorder.submitAndWait();
-            await recordProfile(currentRecorder);
-          }
-          prefillSubmitWaitMs += performance.now() - chunkSubmitStart;
-          await traceActivationHealth(
-            `PREFILL_LAYER_${l}_HEALTH`,
-            currentHiddenBuffer,
-            activationDtype,
-            numTokens * config.hiddenSize
-          );
-          if (tracePrefillEnabled) {
-            trace.perf('Prefill chunk submitted', {
-              layer: l,
-              elapsedMs: performance.now() - layerLoopTraceStart,
-              prefillRecordMs,
-              prefillSubmitWaitMs,
-            });
-          }
-          currentRecorder = createRecorder('prefill-chunk');
-        }
-      }
-      if (tracePrefillEnabled) {
-        trace.perf('Prefill layer loop recorded', {
-          numTokens,
-          elapsedMs: performance.now() - layerLoopTraceStart,
-          prefillRecordMs,
-          prefillSubmitWaitMs,
-        });
-      }
-    } finally {
-      context.perLayerInputBuffer = null;
-      if (perLayerInputs) {
-        for (const buffer of perLayerInputs) {
-          releasePerLayerInputBuffer(
-            buffer,
-            currentRecorder,
-            context.decodeBuffers,
-            this.#state.pleCache ?? null
-          );
-        }
-      }
-      releaseSharedAttentionState(context.sharedAttentionState, currentRecorder);
-      this.#state.stats.prefillRecordMs = (this.#state.stats.prefillRecordMs ?? 0) + prefillRecordMs;
-      this.#state.stats.prefillSubmitWaitMs = (this.#state.stats.prefillSubmitWaitMs ?? 0) + prefillSubmitWaitMs;
-    }
-
-    {
-      const tsirFixtureCfg = this.#state.operatorDiagnostics?.tsirFixture ?? null;
-      if (tsirFixtureCfg && Array.isArray(tsirFixtureCfg.pendingReads) && tsirFixtureCfg.pendingReads.length > 0) {
-        if (currentRecorder) {
-          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-            currentHiddenBuffer,
-            currentRecorder,
-            'prefill_tsir_drain_carry'
-          );
-          recordPrefillRecorderStats(this.#state, currentRecorder);
-          await currentRecorder.submitAndWait();
-          await recordProfile(currentRecorder);
-          currentRecorder = undefined;
-        }
-        await drainPendingTsirReads(tsirFixtureCfg);
-      }
-    }
-    if (this.#state.finitenessBuffer) {
-      if (currentRecorder) {
-        currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-            currentHiddenBuffer,
-            currentRecorder,
-            'prefill_finiteness_carry'
-          );
-          recordPrefillRecorderStats(this.#state, currentRecorder);
-          await currentRecorder.submitAndWait();
-          await recordProfile(currentRecorder);
-          currentRecorder = undefined;
-      }
-      const isInfiniteData = await readBuffer(this.#state.finitenessBuffer, 16);
-      const u32 = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 4);
-      const finitenessStatus = parseFinitenessStatusWords(u32, 0);
-      if (finitenessStatus.triggered) {
-        if (isGpuBufferInstance(currentHiddenBuffer)) {
-          releaseBuffer(currentHiddenBuffer);
-        }
-        throw new FinitenessError(`F16 bounds exceeded during prefill${finitenessStatus.metadata}`);
-      }
-    }
-
-    if (benchmarkSubmits) {
-      logSubmitStats(`Prefill (${numTokens} tokens, ${config.numLayers} layers)`);
-      setTrackSubmits(false);
-    }
-
-    if (opts.debug) {
-      log.debug('Pipeline', `LAYER_LOOP_DONE, currentHiddenBuffer type=${currentHiddenBuffer?.constructor?.name}`);
-      if (currentHiddenBuffer && allowReadback('pipeline.prefill.final-hidden')) {
-        const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
-        const sampleSize = config.hiddenSize * activationBytes;
-        const data = decodeReadback(
-          await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize),
-          activationDtype
-        );
-        const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
-        const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
-        log.debug('Pipeline', `FINAL_HIDDEN[pos=${numTokens - 1}]: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
-      }
-    }
-
-    if (hasGpuTimePrefill) {
-      this.#state.stats.gpuTimePrefillMs = gpuTimePrefillMs;
-    }
-
-    if (returnHidden) {
-      if (currentRecorder) {
-        currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-          currentHiddenBuffer,
-          currentRecorder,
-          'prefill_return_hidden_carry'
-        );
-      }
-      return {
-        numTokens,
-        config,
-        startPos,
-        activationDtype,
-        activationBytes,
-        currentRecorder,
-        recordProfile,
-        debugCheckBuffer,
-        currentHiddenBuffer,
-      };
-    }
-
-
-    let lastLogits;
-    let logitsVocabSize = config.vocabSize;
-    let usedRecordedLogits = false;
-    const lmHead = this.#state.weights.get('lm_head');
-    const canRecordLogits = !!currentRecorder
-      && selectedLogitTokenIds === null
-      && !!lmHead
-      && !isCpuWeightBuffer(lmHead)
-      && !this.#state.disableRecordedLogits
-      && numTokens === 1;
-    if (currentRecorder && canRecordLogits) {
-      const logitsTraceStart = tracePrefillEnabled ? performance.now() : 0;
-      const recorded = await recordLogitsGPU(
-        currentRecorder,
-        currentHiddenBuffer,
-        numTokens,
-        getLogitsWeights(this.#state),
-        getLogitsConfig(this.#state),
-        this.#state.operatorDiagnostics
-      );
-      logitsVocabSize = recorded.vocabSize;
-      usedRecordedLogits = true;
-
-      recordPrefillRecorderStats(this.#state, currentRecorder);
-      await currentRecorder.submitAndWait();
-      await recordProfile(currentRecorder);
-
-      const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: recorded.logitsDtype });
-      const lastLogitsSize = logitsVocabSize * logitsBytes;
-      const lastLogitsOffset = (numTokens - 1) * lastLogitsSize;
-      const logitsData = await readBufferSlice(recorded.logitsBuffer, lastLogitsOffset, lastLogitsSize);
-      releaseBuffer(recorded.logitsBuffer);
-      lastLogits = decodeReadback(logitsData, recorded.logitsDtype);
-      if (tracePrefillEnabled) {
-        trace.perf('Prefill recorded logits complete', {
-          numTokens,
-          vocabSize: logitsVocabSize,
-          elapsedMs: performance.now() - logitsTraceStart,
-        });
-      }
-
-      const health = getLogitsHealth(lastLogits);
-      if (health.nanCount > 0 || health.infCount > 0 || health.nonZeroCount === 0) {
-        log.warn(
-          'Logits',
-          `Recorded logits invalid (nan=${health.nanCount} inf=${health.infCount} nonZero=${health.nonZeroCount}, maxAbs=${health.maxAbs.toFixed(3)}); recomputing without recorder.`
-        );
-        this.#state.disableRecordedLogits = true;
-        this.#state.disableFusedDecode = true;
-        const fallbackLogits = await computeLogits(
-          currentHiddenBuffer,
-          numTokens,
-          getLogitsWeights(this.#state),
-          getLogitsConfig(this.#state),
-          this.#state.useGPU,
-          this.#state.debugFlags,
-          undefined,
-          debugCheckBuffer,
-          this.#state.runtimeConfig.shared.debug.probes,
-          { lastPositionOnly: true },
-          this.#state.operatorDiagnostics
-        );
-        const fallbackHealth = getLogitsHealth(fallbackLogits);
-        if (fallbackHealth.nanCount > 0 || fallbackHealth.infCount > 0 || fallbackHealth.nonZeroCount === 0) {
-          throw new Error(
-            `[Logits] Fallback logits invalid (nan=${fallbackHealth.nanCount} inf=${fallbackHealth.infCount} nonZero=${fallbackHealth.nonZeroCount}, maxAbs=${fallbackHealth.maxAbs.toFixed(3)}). ` +
-            'This indicates upstream kernel output is NaN/Inf (often prefill attention/matmul).'
-          );
-        }
-        logitsVocabSize = config.vocabSize;
-        usedRecordedLogits = false;
-        lastLogits = fallbackLogits.length === logitsVocabSize
-          ? fallbackLogits
-          : extractLastPositionLogits(fallbackLogits, numTokens, logitsVocabSize);
-      }
-
-      releaseBuffer(currentHiddenBuffer);
-    } else {
-      const logitsTraceStart = tracePrefillEnabled ? performance.now() : 0;
-      if (currentRecorder) {
-        currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-          currentHiddenBuffer,
-          currentRecorder,
-          'prefill_logits_carry'
-        );
-        recordPrefillRecorderStats(this.#state, currentRecorder);
-        await currentRecorder.submitAndWait();
-        await recordProfile(currentRecorder);
-      }
-      const logits = await computeLogits(
-        currentHiddenBuffer,
-        numTokens,
-        getLogitsWeights(this.#state),
-        getLogitsConfig(this.#state),
-        this.#state.useGPU,
-        this.#state.debugFlags,
-        undefined,
-        debugCheckBuffer,
-        this.#state.runtimeConfig.shared.debug.probes,
-        { lastPositionOnly: true, selectedTokenIds: selectedLogitTokenIds },
-        this.#state.operatorDiagnostics
-      );
-
-      if (selectedLogitTokenIds !== null) {
-        lastLogits = logits;
-      } else {
-        lastLogits = logits.length === logitsVocabSize
-          ? logits
-          : extractLastPositionLogits(logits, numTokens, logitsVocabSize);
-      }
-      releaseBuffer(currentHiddenBuffer);
-      if (tracePrefillEnabled) {
-        trace.perf('Prefill logits complete', {
-          numTokens,
-          vocabSize: logitsVocabSize,
-          elapsedMs: performance.now() - logitsTraceStart,
-        });
-      }
-    }
-
-    this.#state.currentSeqLen = startPos + numTokens;
-
-    if (usedRecordedLogits) {
-      if (logitsVocabSize < config.vocabSize) {
-        const padded = new Float32Array(config.vocabSize);
-        padded.set(lastLogits);
-        padded.fill(-Infinity, logitsVocabSize);
-        lastLogits = padded;
-      }
-      if (config.finalLogitSoftcapping != null) {
-        applySoftcapping(lastLogits, config.finalLogitSoftcapping);
-      }
-    }
-
-    if (opts.debug && selectedLogitTokenIds === null) {
-      logitsSanity(lastLogits, 'Prefill', (tokens) => resolveTokenText(this.#state.tokenizer, tokens));
-    }
-    if (isTraceEnabled('logits')) {
-      trace.logits(selectedLogitTokenIds === null ? 'PREFILL_LOGITS_HEALTH' : 'PREFILL_SELECTED_LOGITS_HEALTH', getLogitsHealth(lastLogits));
-    }
-
-    if (opts.debug) {
-      if (this.#state.kvCache?.hasGPUCache?.()) {
-        log.debug('Pipeline', `KV cache active after prefill: seqLen=${this.#state.kvCache.getKeyCache(0)?.constructor.name ?? '?'}`);
-      } else {
-        log.warn('Pipeline', `KV cache NOT active after prefill! hasGPUCache=${this.#state.kvCache?.hasGPUCache?.()}`);
-      }
-    }
-
-    if (tracePrefillEnabled) {
-      trace.perf('Prefill phase complete', {
-        numTokens,
-        totalMs: performance.now() - prefillTraceStart,
-      });
-    }
-
-    return lastLogits;
+    return _prefillImpl.apply(this, arguments);
   }
 
-
   async _decodeStep(currentIds, opts) {
-    if (usesReplayPrefillDecode(this.#state)) {
-      const stepResult = await this._decodeStepToLogits(currentIds, opts);
-      return this._sampleNextTokenFromLogits(stepResult.logits, currentIds, opts);
-    }
-    const debugCheckBuffer = this.#state.debug
-      ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
-      : undefined;
-    return decodeStep(this.#state, currentIds, opts, this._getDecodeHelpers(debugCheckBuffer));
+    return _decodeStepImpl.apply(this, arguments);
   }
 
   async decodeStepLogits(currentIds, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating && options.__internalGenerate !== true) {
-      throw new Error('Generation already in progress');
-    }
-    resetActiveExecutionPlan(this.#state);
-
-    validateCallTimeOptions(options);
-
-    const opts = this._resolveStepOptions(options);
-    return this._decodeStepToLogits(currentIds, opts);
+    return decodeStepLogitsImpl.apply(this, arguments);
   }
 
   async advanceWithToken(tokenId, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating) throw new Error('Generation already in progress');
-    resetActiveExecutionPlan(this.#state);
-    assertIncrementalDecodeSupport(this.#state, 'advanceWithToken');
-
-    validateCallTimeOptions(options);
-
-    const opts = this._resolveStepOptions(options);
-    const debugCheckBuffer = this.#state.debug
-      ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
-      : undefined;
-
-    this._assertTokenIdInRange(tokenId, 'advanceWithToken');
-    await advanceWithToken(this.#state, tokenId, opts, this._getDecodeHelpers(debugCheckBuffer));
+    return advanceWithTokenImpl.apply(this, arguments);
   }
 
   async advanceWithTokenAndEmbedding(tokenId, options = {}) {
-    if (!this.#state.isLoaded) throw new Error('Model not loaded');
-    if (this.#state.isGenerating) throw new Error('Generation already in progress');
-    resetActiveExecutionPlan(this.#state);
-    assertIncrementalDecodeSupport(this.#state, 'advanceWithTokenAndEmbedding');
-
-    validateCallTimeOptions(options);
-
-    const opts = this._resolveStepOptions(options);
-    const embeddingMode = resolveAdvanceEmbeddingMode(this.#state, options);
-    const debugCheckBuffer = this.#state.debug
-      ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
-      : undefined;
-
-    this._assertTokenIdInRange(tokenId, 'advanceWithTokenAndEmbedding');
-    return runAdvanceWithTokenAndEmbedding(
-      this.#state,
-      tokenId,
-      opts,
-      this._getDecodeHelpers(debugCheckBuffer),
-      embeddingMode
-    );
+    return advanceWithTokenAndEmbeddingImpl.apply(this, arguments);
   }
 
   async _generateNTokensGPU(startToken, N, currentIds, opts) {
-    const debugCheckBuffer = this.#state.debug
-      ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this.#state, buffer, label, numTokens, expectedDim)
-      : undefined;
-    return generateNTokensGPU(this.#state, startToken, N, currentIds, opts, this._getDecodeHelpers(debugCheckBuffer));
+    return _generateNTokensGPUImpl.apply(this, arguments);
   }
 }

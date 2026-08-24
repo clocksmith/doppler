@@ -2,7 +2,8 @@ import { getDevice } from '../../device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../tensor.js';
 import { dispatch } from '../dispatch.js';
-import { createPipeline, createUniformBufferWithView } from '../utils.js';
+import { createPipeline } from '../pipeline-cache.js';
+import { createUniformBufferWithView } from '../uniform-utils.js';
 import { releaseUniformBuffer } from '../../uniform-cache.js';
 
 function validate(inputs, options) {

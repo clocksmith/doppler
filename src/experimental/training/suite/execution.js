@@ -1,0 +1,879 @@
+import { initDevice, getKernelCapabilities, getDevice } from '../../../gpu/device.js';
+import { setPlatformsBaseUrl } from '../../../config/platforms/loader.js';
+import { setRegistryUrl } from '../../../config/kernels/registry.js';
+import { createTrainingConfig } from '../../../config/training-defaults.js';
+import {
+  runMatmul,
+  runResidualAdd,
+} from '../../../gpu/kernels/index.js';
+import { createTensor } from '../../../gpu/tensor.js';
+import { acquireBuffer, uploadData, releaseBuffer } from '../../../memory/buffer-pool.js';
+import { OpType } from '../autograd.js';
+import { AdamOptimizer } from '../optimizer.js';
+import { TrainingRunner } from '../runner.js';
+import { trainStep } from '../trainer.js';
+import { crossEntropyLoss } from '../loss.js';
+import { clipGradients } from '../clip.js';
+import { exportLoRAAdapter } from '../export.js';
+import { sha256Hex } from '../../../utils/sha256.js';
+import { computeSampleStats } from '../../../debug/stats.js';
+import { parseJsonl } from '../datasets/jsonl.js';
+import {
+  buildDistillCandidatePrompt,
+  buildDistillPrompt,
+  encodeDistillRow,
+  normalizeDistillDatasetPath,
+  normalizeOptionalString,
+  resolveDistillDataScope,
+  summarizeDirectionCounts,
+} from '../distillation/suite-data.js';
+import { createDistillStudentRuntimeModelFixture } from '../distillation/student-fixture.js';
+import { initializeInference } from '../../../inference/test-harness.js';
+import { createPipeline } from '../../../inference/pipelines/text.js';
+import { parseManifest } from '../../../formats/rdrr/index.js';
+import { openModelStore, loadManifestFromStore } from '../../../storage/shard-manager.js';
+import { DISTILL_ADAPTER_TOP_K, UL_STAGE_SET, buildDistillTrainingOverrides, clampDistillTopK, createDistillRuntimeContext, createToyModelFixture, loadDistillDatasetFromJsonl, normalizeTrainingConfigOverride, normalizeTrainingStage } from './plan.js';
+
+export const LEGACY_BROWSER_TESTS = Object.freeze([
+  'loss-forward',
+  'softmax-backward',
+  'cross-entropy-backward',
+  'rmsnorm-backward',
+  'layernorm-backward',
+  'conv2d-backward',
+  'matmul-backward',
+  'embed-backward',
+  'ebm-state-optimize',
+  'ebm-recorded-bench',
+  'parity-fixture',
+  'training-leak-perf',
+  'autograd-branching',
+]);
+
+export const TRAINING_COMMAND_SCHEMA_VERSION = 1;
+
+export function buildSuiteSummary(suiteName, results, startTimeMs) {
+  let passed = 0;
+  let failed = 0;
+  let skipped = 0;
+  for (const result of results) {
+    if (result.skipped) {
+      skipped++;
+    } else if (result.passed) {
+      passed++;
+    } else {
+      failed++;
+    }
+  }
+  return {
+    suite: suiteName,
+    passed,
+    failed,
+    skipped,
+    duration: Math.max(0, performance.now() - startTimeMs),
+    results,
+  };
+}
+
+export function normalizeTrainingTestNames(names) {
+  if (!Array.isArray(names)) return null;
+  const normalized = names
+    .map((name) => String(name || '').trim())
+    .filter(Boolean);
+  return normalized.length > 0 ? normalized : null;
+}
+
+export function assertTrainingSchemaVersion(value) {
+  if (value === undefined || value === null) {
+    return TRAINING_COMMAND_SCHEMA_VERSION;
+  }
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed !== TRAINING_COMMAND_SCHEMA_VERSION) {
+    throw new Error(`trainingSchemaVersion must be ${TRAINING_COMMAND_SCHEMA_VERSION}.`);
+  }
+  return parsed;
+}
+
+export function isFiniteNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+export function resolveDistillDatasetPath(options = {}, trainingConfig = null) {
+  return normalizeDistillDatasetPath(
+    options.distillDatasetPath ?? trainingConfig?.distill?.datasetPath ?? null
+  );
+}
+
+export function resolveRuntimeUrl(pathname) {
+  if (typeof globalThis.location !== 'undefined' && globalThis.location?.href) {
+    return pathname;
+  }
+  return new URL(pathname, import.meta.url).toString();
+}
+
+export async function ensureTrainingGpuRuntime() {
+  setPlatformsBaseUrl(resolveRuntimeUrl('../../config/platforms/'));
+  setRegistryUrl(resolveRuntimeUrl('../../config/kernels/registry.json'));
+  await initDevice();
+}
+
+export async function runRunnerSmokeTest() {
+  const fixture = createToyModelFixture();
+  try {
+    const runner = new TrainingRunner(fixture.config, {
+      optimizer: new AdamOptimizer(fixture.config),
+      crossEntropyLoss,
+      clipGradients,
+    });
+    const dataset = {
+      async *batches() {
+        for (let i = 0; i < 3; i += 1) {
+          yield fixture.batch;
+        }
+      },
+    };
+
+    const metrics = await runner.run(fixture.model, dataset, {
+      epochs: 1,
+      batchSize: 1,
+      shuffle: false,
+      maxSteps: 3,
+    });
+    if (!Array.isArray(metrics) || metrics.length === 0) {
+      return { passed: false, error: 'Training runner produced no metrics.' };
+    }
+    for (const entry of metrics) {
+      if (!isFiniteNumber(entry.total_loss) || !isFiniteNumber(entry.step_time_ms)) {
+        return { passed: false, error: 'Training runner emitted non-finite metrics.' };
+      }
+    }
+
+    return { passed: true };
+  } finally {
+    fixture.cleanup();
+  }
+}
+
+export async function runTrainStepMetricsTest() {
+  const fixture = createToyModelFixture();
+  try {
+    const result = await trainStep(fixture.model, fixture.batch, fixture.config, {
+      crossEntropyLoss,
+      clipGradients,
+      optimizer: new AdamOptimizer(fixture.config),
+    });
+
+    if (!isFiniteNumber(result.forward_ms) || !isFiniteNumber(result.backward_ms)) {
+      return { passed: false, error: 'trainStep did not report finite phase timings.' };
+    }
+    if (!result.clipMetrics || !isFiniteNumber(result.clipMetrics.gradient_norm_unclipped)) {
+      return { passed: false, error: 'trainStep did not report clipping metrics.' };
+    }
+    if (!result.optimizerMetrics || !isFiniteNumber(result.optimizerMetrics.optimizer_ms)) {
+      return { passed: false, error: 'trainStep did not report optimizer metrics.' };
+    }
+
+    return { passed: true };
+  } finally {
+    fixture.cleanup();
+  }
+}
+
+export function isUlStage(stage) {
+  return UL_STAGE_SET.includes(String(stage || ''));
+}
+
+export function normalizeAdapterActivationConfig(options = {}) {
+  const runtimeConfig = normalizeTrainingConfigOverride(options.trainingConfig);
+  const direct = options.adapterActivation;
+  const nested = runtimeConfig?.adapterActivation;
+  const config = direct && typeof direct === 'object' ? direct : (nested && typeof nested === 'object' ? nested : null);
+  if (!config) {
+    return {
+      enabled: false,
+      autoActivate: false,
+      adapterPayload: null,
+      exportConfig: null,
+    };
+  }
+  const exportConfig = config.export && typeof config.export === 'object'
+    ? config.export
+    : null;
+  const adapterPayload = (() => {
+    if (config.adapterManifest && typeof config.adapterManifest === 'object') {
+      return { adapterManifest: config.adapterManifest };
+    }
+    if (typeof config.adapterManifestJson === 'string' && config.adapterManifestJson.trim()) {
+      return { adapterManifestJson: config.adapterManifestJson };
+    }
+    if (typeof config.adapterManifestUrl === 'string' && config.adapterManifestUrl.trim()) {
+      return { adapterManifestUrl: config.adapterManifestUrl };
+    }
+    if (typeof config.adapterManifestPath === 'string' && config.adapterManifestPath.trim()) {
+      return { adapterManifestPath: config.adapterManifestPath };
+    }
+    if (config.adapter != null) {
+      return { adapter: config.adapter };
+    }
+    return null;
+  })();
+  return {
+    enabled: config.enabled !== false,
+    autoActivate: config.autoActivate === true,
+    adapterPayload,
+    exportConfig,
+  };
+}
+
+export async function tryActivateAdapterPayload(payload) {
+  if (!payload) {
+    return {
+      activated: false,
+      adapterName: null,
+      source: null,
+      reason: 'no_adapter_payload',
+    };
+  }
+  const { activateLoRAFromTrainingOutput } = await import('../../../client/runtime/model-manager.js');
+  try {
+    return await activateLoRAFromTrainingOutput(payload);
+  } catch (error) {
+    return {
+      activated: false,
+      adapterName: null,
+      source: null,
+      reason: String(error?.message || error),
+    };
+  }
+}
+
+export function buildUlTrainingOverrides(options = {}) {
+  const trainingConfig = normalizeTrainingConfigOverride(options.trainingConfig);
+  const explicitStage = normalizeTrainingStage(options.trainingStage || trainingConfig?.ul?.stage);
+  const ulEnabled = isUlStage(explicitStage) || trainingConfig?.ul?.enabled === true;
+  if (!ulEnabled) {
+    return trainingConfig || null;
+  }
+  const stage = isUlStage(explicitStage) ? explicitStage : 'stage1_joint';
+  const ulOverride = {
+    ...(trainingConfig?.ul || {}),
+    enabled: true,
+    stage,
+    stage1Artifact: options.stage1Artifact ?? trainingConfig?.ul?.stage1Artifact ?? null,
+    stage1ArtifactHash: options.stage1ArtifactHash ?? trainingConfig?.ul?.stage1ArtifactHash ?? null,
+    artifactDir: options.ulArtifactDir ?? trainingConfig?.ul?.artifactDir ?? 'reports/training/ul',
+  };
+  if (stage === 'stage2_base') {
+    ulOverride.freeze = {
+      encoder: true,
+      prior: true,
+      decoder: true,
+      base: false,
+      lora: false,
+      ...(trainingConfig?.ul?.freeze || {}),
+    };
+  }
+  return {
+    ...(trainingConfig || {}),
+    ul: ulOverride,
+  };
+}
+
+export async function computeNodeFileHash(filePath) {
+  if (!(typeof process !== 'undefined' && process.versions?.node)) {
+    return null;
+  }
+  const [{ readFile }, { resolve }] = await Promise.all([
+    import('node:fs/promises'),
+    import('node:path'),
+  ]);
+  const absolutePath = resolve(String(filePath));
+  const raw = await readFile(absolutePath, 'utf8');
+  return {
+    absolutePath,
+    hash: sha256Hex(raw),
+  };
+}
+
+export async function runUlStageTest(stage, options = {}) {
+  const ulTraining = buildUlTrainingOverrides({
+    ...options,
+    trainingStage: stage,
+  });
+  const fixture = createToyModelFixture({
+    training: ulTraining || undefined,
+  });
+
+  try {
+    const runner = new TrainingRunner(fixture.config, {
+      optimizer: new AdamOptimizer(fixture.config),
+      crossEntropyLoss,
+      clipGradients,
+    });
+    const dataset = {
+      async *batches() {
+        for (let i = 0; i < 2; i += 1) {
+          yield fixture.batch;
+        }
+      },
+    };
+    const ulArtifactDir = normalizeOptionalString(options.ulArtifactDir)
+      || normalizeOptionalString(fixture.config.training?.ul?.artifactDir)
+      || 'reports/training/ul';
+    const metrics = await runner.run(fixture.model, dataset, {
+      epochs: 1,
+      batchSize: 1,
+      shuffle: false,
+      maxSteps: 2,
+      modelId: options.modelId || 'training',
+      modelUrl: options.modelUrl || null,
+      runtimeProfile: options.runtimeProfile || null,
+      trainingStage: stage,
+      command: options.command || null,
+      surface: options.surface || null,
+      forceResume: options.forceResume === true,
+      forceResumeReason: options.forceResumeReason || null,
+      forceResumeSource: options.forceResumeSource || null,
+      checkpointOperator: options.checkpointOperator || null,
+      checkpointEvery: options.checkpointEvery ?? null,
+      gpuAdapterInfo: getKernelCapabilities(),
+      timestamp: options.timestamp || null,
+      ulArtifactDir,
+    });
+    if (!Array.isArray(metrics) || metrics.length === 0) {
+      return { passed: false, error: `UL ${stage} produced no metrics.` };
+    }
+    const requiredFields = [
+      'loss_prior',
+      'loss_decoder',
+      'loss_recon',
+      'lambda',
+      'latent_bitrate_proxy',
+      'loss_total',
+      'coeff_ce',
+      'coeff_prior',
+      'coeff_decoder',
+      'coeff_recon',
+    ];
+    if (stage === 'stage1_joint') {
+      requiredFields.push(
+        'schedule_step_index',
+        'latent_clean_mean',
+        'latent_clean_std',
+        'latent_noise_mean',
+        'latent_noise_std',
+        'latent_noisy_mean',
+        'latent_noisy_std',
+        'latent_shape',
+        'latent_clean_values',
+        'latent_noise_values',
+        'latent_noisy_values'
+      );
+    }
+    if (stage === 'stage2_base') {
+      requiredFields.push('stage1_latent_count');
+    }
+    for (const field of requiredFields) {
+      if (!(field in metrics[0])) {
+        return { passed: false, error: `UL ${stage} missing metric field "${field}".` };
+      }
+    }
+    const artifact = runner.lastArtifact;
+    if (!artifact || !artifact.manifestPath) {
+      return { passed: false, error: `UL ${stage} did not produce artifacts.` };
+    }
+    return {
+      passed: true,
+      artifact: {
+        ...artifact,
+        resumeAudits: Array.isArray(runner.resumeState?.resumeAudits)
+          ? runner.resumeState.resumeAudits
+          : [],
+      },
+      metrics: {
+        stage,
+        steps: metrics.length,
+        manifestPath: artifact.manifestPath,
+        manifestHash: artifact.manifestHash,
+        manifestContentHash: artifact.manifestContentHash,
+        manifestFileHash: artifact.manifestFileHash ?? null,
+        ulResolvedConfig: {
+          enabled: fixture.config.training?.ul?.enabled === true,
+          stage: fixture.config.training?.ul?.stage ?? null,
+          lambda0: fixture.config.training?.ul?.lambda0 ?? null,
+          seed: fixture.config.training?.ul?.seed ?? null,
+          noiseSchedule: fixture.config.training?.ul?.noiseSchedule ?? null,
+          priorAlignment: fixture.config.training?.ul?.priorAlignment ?? null,
+          decoderSigmoidWeight: fixture.config.training?.ul?.decoderSigmoidWeight ?? null,
+          freeze: fixture.config.training?.ul?.freeze ?? null,
+        },
+        resumeAuditCount: Number.isInteger(runner.resumeState?.resumeAuditCount)
+          ? runner.resumeState.resumeAuditCount
+          : 0,
+      },
+    };
+  } finally {
+    fixture.cleanup();
+  }
+}
+
+export async function runUlStage1Test(options = {}) {
+  return runUlStageTest('stage1_joint', options);
+}
+
+export async function runUlStage2Test(options = {}) {
+  const explicitStage1Artifact = String(options.stage1Artifact || '').trim();
+  let stage1Artifact = explicitStage1Artifact || null;
+  let stage1ArtifactHash = String(options.stage1ArtifactHash || '').trim() || null;
+
+  if (!stage1Artifact) {
+    const stage1 = await runUlStage1Test({
+      ...options,
+      trainingStage: 'stage1_joint',
+    });
+    if (!stage1?.passed || !stage1?.artifact?.manifestPath) {
+      return { passed: false, error: 'UL stage2 preflight failed to generate stage1 artifact.' };
+    }
+    stage1Artifact = stage1.artifact.manifestPath;
+    stage1ArtifactHash = stage1.artifact.manifestHash;
+    const nodeHash = await computeNodeFileHash(stage1Artifact);
+    if (nodeHash?.hash) {
+      stage1ArtifactHash = nodeHash.hash;
+      stage1Artifact = nodeHash.absolutePath;
+    }
+  }
+
+  return runUlStageTest('stage2_base', {
+    ...options,
+    stage1Artifact,
+    stage1ArtifactHash,
+  });
+}
+
+export async function runDistillStageTest(stage, options = {}) {
+  const distillTraining = buildDistillTrainingOverrides({
+    ...options,
+    trainingStage: stage,
+  });
+  const distillOutputDim = clampDistillTopK(distillTraining?.distill?.topK ?? DISTILL_ADAPTER_TOP_K);
+  const resolvedTrainingConfig = createTrainingConfig({
+    training: distillTraining || undefined,
+  }).training;
+  let fixture = null;
+  let distillRuntime = null;
+
+  try {
+    const distillDatasetPath = resolveDistillDatasetPath(options, resolvedTrainingConfig);
+    if (!distillDatasetPath) {
+      throw new Error('Distill stage requires --distill-dataset-path (training.distill.datasetPath).');
+    }
+    const distillDataScope = resolveDistillDataScope(options, resolvedTrainingConfig);
+    const distillDatasetReport = await loadDistillDatasetFromJsonl(distillDatasetPath, distillDataScope);
+    distillRuntime = await createDistillRuntimeContext({
+      ...options,
+      trainingStage: stage,
+    }, resolvedTrainingConfig);
+    fixture = await createDistillStudentRuntimeModelFixture({
+      training: distillTraining || undefined,
+    }, {
+      outputDim: distillOutputDim,
+      distillRuntime,
+    });
+
+    const runner = new TrainingRunner(fixture.config, {
+      optimizer: new AdamOptimizer(fixture.config),
+      crossEntropyLoss,
+      clipGradients,
+    });
+    const distillMaxSteps = Number.isInteger(options.trainingBenchSteps) && options.trainingBenchSteps > 0
+      ? options.trainingBenchSteps
+      : 2;
+    const dataset = distillDatasetReport.createDataset({
+      batchSize: 1,
+      shuffle: false,
+      seed: 1337,
+      distillRuntime,
+    });
+    const distillRunStartMs = performance.now();
+    const distillArtifactDir = normalizeOptionalString(options.distillArtifactDir)
+      || normalizeOptionalString(fixture.config.training?.distill?.artifactDir)
+      || 'reports/training/distill';
+    const metrics = await runner.run(fixture.model, dataset, {
+      epochs: 1,
+      batchSize: 1,
+      shuffle: false,
+      maxSteps: distillMaxSteps,
+      modelId: options.modelId || distillRuntime.studentModelId || 'training',
+      modelUrl: options.modelUrl || distillRuntime.studentModelUrl || null,
+      runtimeProfile: options.runtimeProfile || null,
+      trainingStage: stage,
+      command: options.command || null,
+      surface: options.surface || null,
+      forceResume: options.forceResume === true,
+      forceResumeReason: options.forceResumeReason || null,
+      forceResumeSource: options.forceResumeSource || null,
+      checkpointOperator: options.checkpointOperator || null,
+      checkpointEvery: options.checkpointEvery ?? null,
+      gpuAdapterInfo: getKernelCapabilities(),
+      timestamp: options.timestamp || null,
+      distillArtifactDir,
+      stageAArtifact: options.stageAArtifact || null,
+      stageAArtifactHash: options.stageAArtifactHash || null,
+      teacherModelId: distillRuntime.teacherModelId || null,
+      studentModelId: distillRuntime.studentModelId || null,
+      distillDatasetId: options.distillDatasetId || null,
+      distillDatasetPath: distillDatasetReport.absolutePath,
+      distillLanguagePair: options.distillLanguagePair || null,
+      distillSourceLangs: distillDataScope.sourceLangs || null,
+      distillTargetLangs: distillDataScope.targetLangs || null,
+      distillPairAllowlist: distillDataScope.pairAllowlist || null,
+      strictPairContract: distillDataScope.strictPairContract === true,
+      distillShardIndex: options.distillShardIndex ?? fixture.config.training?.distill?.shardIndex ?? null,
+      distillShardCount: options.distillShardCount ?? fixture.config.training?.distill?.shardCount ?? null,
+      resumeFrom: options.resumeFrom ?? fixture.config.training?.distill?.resumeFrom ?? null,
+    });
+    if (!Array.isArray(metrics) || metrics.length === 0) {
+      return { passed: false, error: `Distill ${stage} produced no metrics.` };
+    }
+    const requiredFields = stage === 'stage_a'
+      ? ['loss_kd', 'distill_stage']
+      : ['loss_triplet', 'distill_stage', 'distill_triplet_margin'];
+    for (const field of requiredFields) {
+      if (!(field in metrics[0])) {
+        return { passed: false, error: `Distill ${stage} missing metric field "${field}".` };
+      }
+    }
+    const artifact = runner.lastArtifact;
+    if (!artifact || !artifact.manifestPath) {
+      return { passed: false, error: `Distill ${stage} did not produce artifacts.` };
+    }
+    const progress = resolveBenchProgressSummary(
+      metrics,
+      resolveDistillShardProgressContext(
+        options,
+        fixture.config.training,
+        distillMaxSteps,
+        distillDatasetReport?.shardCount ?? null
+      ),
+      distillRunStartMs
+    );
+    return {
+      passed: true,
+      artifact: {
+        ...artifact,
+        resumeAudits: Array.isArray(runner.resumeState?.resumeAudits)
+          ? runner.resumeState.resumeAudits
+          : [],
+      },
+      metrics: {
+        stage,
+        steps: metrics.length,
+        progress,
+        manifestPath: artifact.manifestPath,
+        manifestHash: artifact.manifestHash,
+        manifestContentHash: artifact.manifestContentHash,
+        manifestFileHash: artifact.manifestFileHash ?? null,
+        distillResolvedConfig: {
+          enabled: fixture.config.training?.distill?.enabled === true,
+          stage: fixture.config.training?.distill?.stage ?? null,
+          teacherModelId: fixture.config.training?.distill?.teacherModelId ?? null,
+          studentModelId: fixture.config.training?.distill?.studentModelId ?? null,
+          datasetId: fixture.config.training?.distill?.datasetId ?? null,
+          datasetPath: fixture.config.training?.distill?.datasetPath ?? null,
+          languagePair: fixture.config.training?.distill?.languagePair ?? null,
+          sourceLangs: fixture.config.training?.distill?.sourceLangs ?? null,
+          targetLangs: fixture.config.training?.distill?.targetLangs ?? null,
+          pairAllowlist: fixture.config.training?.distill?.pairAllowlist ?? null,
+          strictPairContract: fixture.config.training?.distill?.strictPairContract === true,
+          shardIndex: fixture.config.training?.distill?.shardIndex ?? null,
+          shardCount: fixture.config.training?.distill?.shardCount ?? null,
+          resumeFrom: fixture.config.training?.distill?.resumeFrom ?? null,
+          temperature: fixture.config.training?.distill?.temperature ?? null,
+          alphaKd: fixture.config.training?.distill?.alphaKd ?? null,
+          alphaCe: fixture.config.training?.distill?.alphaCe ?? null,
+          tripletMargin: fixture.config.training?.distill?.tripletMargin ?? null,
+          studentGraphMode: fixture.config.training?.distill?.studentGraphMode ?? null,
+          topK: fixture.config.training?.distill?.topK ?? distillOutputDim,
+          freeze: fixture.config.training?.distill?.freeze ?? null,
+        },
+        distillRuntime: {
+          teacherModelId: distillRuntime.teacherModelId || null,
+          studentModelId: distillRuntime.studentModelId || null,
+          teacherModelUrl: distillRuntime.teacherModelUrl || null,
+          studentModelUrl: distillRuntime.studentModelUrl || null,
+          topK: distillRuntime.topK,
+          studentGraphMode: distillRuntime.studentGraphMode || null,
+          targetTokenMode: distillRuntime.targetTokenMode || null,
+        },
+        distillDataset: {
+          path: distillDatasetReport.absolutePath,
+          rowCount: distillDatasetReport.rowCount,
+          sampleCount: distillDatasetReport.sampleCount,
+          shardCount: distillDatasetReport.shardCount ?? 1,
+          directionCounts: distillDatasetReport.directionCounts,
+          dataScope: distillDatasetReport.dataScope || null,
+        },
+        checkpoint: runner.lastCheckpoint || null,
+        resumeAuditCount: Number.isInteger(runner.resumeState?.resumeAuditCount)
+          ? runner.resumeState.resumeAuditCount
+          : 0,
+      },
+    };
+  } finally {
+    if (distillRuntime && typeof distillRuntime.cleanup === 'function') {
+      await distillRuntime.cleanup();
+    }
+    if (fixture) {
+      fixture.cleanup();
+    }
+  }
+}
+
+export async function runDistillStageATest(options = {}) {
+  return runDistillStageTest('stage_a', options);
+}
+
+export async function runDistillStageBTest(options = {}) {
+  const explicitStageAArtifact = String(options.stageAArtifact || '').trim();
+  let stageAArtifact = explicitStageAArtifact || null;
+  let stageAArtifactHash = String(options.stageAArtifactHash || '').trim() || null;
+
+  if (!stageAArtifact) {
+    const stageA = await runDistillStageATest({
+      ...options,
+      trainingStage: 'stage_a',
+    });
+    if (!stageA?.passed || !stageA?.artifact?.manifestPath) {
+      return { passed: false, error: 'Distill stage_b preflight failed to generate stage_a artifact.' };
+    }
+    stageAArtifact = stageA.artifact.manifestPath;
+    stageAArtifactHash = stageA.artifact.manifestHash;
+    const nodeHash = await computeNodeFileHash(stageAArtifact);
+    if (nodeHash?.hash) {
+      stageAArtifactHash = nodeHash.hash;
+      stageAArtifact = nodeHash.absolutePath;
+    }
+  }
+
+  return runDistillStageTest('stage_b', {
+    ...options,
+    stageAArtifact,
+    stageAArtifactHash,
+  });
+}
+
+export function createLegacySkippedTest(name) {
+  return async () => ({
+    passed: true,
+    skipped: true,
+    error: `Legacy browser-only test "${name}" remains in tests/training/browser/test-page.js.`,
+  });
+}
+
+export const CORE_TESTS = Object.freeze({
+  'runner-smoke': runRunnerSmokeTest,
+  'train-step-metrics': runTrainStepMetricsTest,
+  'ul-stage1': runUlStage1Test,
+  'ul-stage2': runUlStage2Test,
+  'distill-stage-a': runDistillStageATest,
+  'distill-stage-b': runDistillStageBTest,
+});
+
+export const TESTS = Object.freeze({
+  ...CORE_TESTS,
+  ...Object.fromEntries(LEGACY_BROWSER_TESTS.map((name) => [name, createLegacySkippedTest(name)])),
+});
+
+export const trainingHarness = Object.freeze({
+  async getGPU() {
+    await ensureTrainingGpuRuntime();
+    return true;
+  },
+  async runTest(name, options = {}) {
+    const fn = TESTS[name];
+    if (!fn) {
+      return { passed: false, error: `Unknown training test: ${name}` };
+    }
+    return fn(options);
+  },
+  listTests() {
+    return Object.keys(TESTS);
+  },
+});
+
+export async function runTrainingSuite(options = {}) {
+  const trainingSchemaVersion = assertTrainingSchemaVersion(options.trainingSchemaVersion);
+  const adapterActivation = normalizeAdapterActivationConfig(options);
+  const startTime = performance.now();
+  await trainingHarness.getGPU();
+
+  const availableTests = trainingHarness.listTests();
+  const requestedTestsFromOptions = normalizeTrainingTestNames(options.trainingTests);
+  const requestedStage = normalizeTrainingStage(options.trainingStage);
+  const stageDefaultTests = requestedStage === 'stage1_joint'
+    ? ['ul-stage1']
+    : (
+      requestedStage === 'stage2_base'
+        ? ['ul-stage2']
+        : (
+          requestedStage === 'stage_a'
+            ? ['distill-stage-a']
+            : (requestedStage === 'stage_b' ? ['distill-stage-b'] : null)
+        )
+    );
+  const requestedTests = requestedTestsFromOptions || stageDefaultTests;
+  if (requestedTests) {
+    const unknownTests = requestedTests.filter((name) => !availableTests.includes(name));
+    if (unknownTests.length > 0) {
+      throw new Error(`Unknown training test(s): ${unknownTests.join(', ')}`);
+    }
+  }
+  const testsToRun = requestedTests ?? availableTests;
+
+  const results = [];
+  for (const testName of testsToRun) {
+    const testStart = performance.now();
+    try {
+      const outcome = await trainingHarness.runTest(testName, options);
+      const passed = outcome?.passed === true;
+      const skipped = outcome?.skipped === true;
+      const errorMessage = skipped
+        ? (outcome?.error ? String(outcome.error) : undefined)
+        : (passed ? undefined : String(outcome?.error || 'Training test failed'));
+      const entry = {
+        name: testName,
+        passed,
+        skipped,
+        duration: Math.max(0, performance.now() - testStart),
+        ...(errorMessage ? { error: errorMessage } : {}),
+      };
+      if (outcome?.metrics && typeof outcome.metrics === 'object') {
+        entry.metrics = outcome.metrics;
+      }
+      if (outcome?.artifact && typeof outcome.artifact === 'object') {
+        entry.artifact = outcome.artifact;
+      }
+      results.push(entry);
+    } catch (error) {
+      results.push({
+        name: testName,
+        passed: false,
+        duration: Math.max(0, performance.now() - testStart),
+        error: String(error?.message || error),
+      });
+    }
+  }
+
+  const summary = buildSuiteSummary('training', results, startTime);
+  const adapterActivationResult = (
+    adapterActivation.enabled
+    && adapterActivation.autoActivate
+  )
+    ? await tryActivateAdapterPayload(adapterActivation.adapterPayload)
+    : null;
+  return {
+    ...summary,
+    modelId: options.modelId || options.modelUrl || 'training',
+    metrics: {
+      testsRun: results.length,
+      selectedTests: testsToRun,
+      availableTests,
+      trainingStage: requestedStage || null,
+      trainingSchemaVersion,
+      adapterActivation: adapterActivationResult,
+    },
+    deviceInfo: getKernelCapabilities(),
+  };
+}
+
+export function toPositiveIntegerOrNull(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  const floored = Math.floor(parsed);
+  return floored > 0 ? floored : null;
+}
+
+export function resolveDistillShardProgressContext(
+  options = {},
+  trainingOverrides = null,
+  stepsPerShard = null,
+  fallbackShardCount = null
+) {
+  const distillConfig = trainingOverrides?.distill || {};
+  const shardIndexInput = toPositiveIntegerOrNull(
+    options.distillShardIndex ?? distillConfig.shardIndex ?? null
+  );
+  const shardCountInput = toPositiveIntegerOrNull(
+    options.distillShardCount ?? distillConfig.shardCount ?? null
+  );
+  const fallbackShardCountInput = toPositiveIntegerOrNull(fallbackShardCount);
+  if (
+    shardIndexInput !== null
+    && shardCountInput !== null
+    && shardIndexInput > shardCountInput
+  ) {
+    throw new Error('distillShardIndex must be <= distillShardCount.');
+  }
+  const shardCount = shardCountInput ?? fallbackShardCountInput ?? 1;
+  const shardIndex = shardIndexInput ?? 1;
+  const normalizedStepsPerShard = toPositiveIntegerOrNull(stepsPerShard);
+  const totalGlobalSteps = normalizedStepsPerShard
+    ? (normalizedStepsPerShard * shardCount)
+    : null;
+  return {
+    shardIndex: Math.min(Math.max(1, shardIndex), shardCount),
+    shardCount: Math.max(1, shardCount),
+    stepsPerShard: normalizedStepsPerShard,
+    totalGlobalSteps,
+  };
+}
+
+export function resolveBenchProgressSummary(stepEntries, context, startTimeMs) {
+  const entries = Array.isArray(stepEntries) ? stepEntries : [];
+  const lastEntry = entries.length > 0 ? entries[entries.length - 1] : null;
+  const shardIndex = context?.shardIndex ?? 1;
+  const shardCount = context?.shardCount ?? 1;
+  const stepsPerShard = context?.stepsPerShard ?? null;
+  const totalGlobalSteps = context?.totalGlobalSteps ?? null;
+  const fallbackGlobalStep = stepsPerShard
+    ? (((shardIndex - 1) * stepsPerShard) + Math.min(entries.length, stepsPerShard))
+    : null;
+  const completedGlobalSteps = Number.isFinite(lastEntry?.progress_global_step)
+    ? lastEntry.progress_global_step
+    : fallbackGlobalStep;
+  const resolvedTotalGlobalSteps = Number.isFinite(lastEntry?.progress_global_steps)
+    ? lastEntry.progress_global_steps
+    : totalGlobalSteps;
+  const percentComplete = Number.isFinite(lastEntry?.progress_percent_complete)
+    ? lastEntry.progress_percent_complete
+    : (
+      Number.isFinite(completedGlobalSteps)
+      && Number.isFinite(resolvedTotalGlobalSteps)
+      && resolvedTotalGlobalSteps > 0
+      ? Math.min(100, (completedGlobalSteps / resolvedTotalGlobalSteps) * 100)
+      : null
+    );
+  const etaMs = Number.isFinite(lastEntry?.progress_eta_ms)
+    ? Math.max(0, lastEntry.progress_eta_ms)
+    : (
+      Number.isFinite(percentComplete)
+      && percentComplete >= 100
+      ? 0
+      : null
+    );
+  const elapsedMs = Number.isFinite(lastEntry?.progress_elapsed_ms)
+    ? Math.max(0, lastEntry.progress_elapsed_ms)
+    : Math.max(0, performance.now() - startTimeMs);
+  return {
+    shardIndex,
+    shardCount,
+    stepsPerShard,
+    completedGlobalSteps: Number.isFinite(completedGlobalSteps) ? completedGlobalSteps : null,
+    totalGlobalSteps: Number.isFinite(resolvedTotalGlobalSteps) ? resolvedTotalGlobalSteps : null,
+    percentComplete,
+    etaMs,
+    etaIso: Number.isFinite(etaMs) ? new Date(Date.now() + etaMs).toISOString() : null,
+    elapsedMs,
+    updatedAt: new Date().toISOString(),
+  };
+}

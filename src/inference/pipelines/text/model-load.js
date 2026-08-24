@@ -560,26 +560,6 @@ function describeExplicitRuntimeDtypeMismatch(contract, explicitRuntime) {
   return mismatches;
 }
 
-/**
- * Manifest-side lane binding: the manifest variant tag claims a compute lane
- * via quantizationInfo.compute. Once all runtime resolution phases have run,
- * the resolved session must dispatch that same lane. If they disagree, the
- * operator picked the wrong manifest variant or the wrong runtime profile.
- *
- * The compute lane covers activation/math/accum dtypes only. KV cache dtype
- * is an orthogonal axis — Gemma-family layouts pair f32 compute with f16 KV
- * for memory savings, and that combination is supported by design — so kv
- * dtype is intentionally excluded from the comparison.
- *
- * Throws on mismatch. Returns silently when the manifest does not declare
- * a compute lane (legacy / vision-only manifests) or when no resolved values
- * are available to compare against.
- *
- * @param {Object} options
- * @param {Object} options.manifest
- * @param {Object} options.runtimeConfig
- * @returns {void}
- */
 export function assertManifestComputeLaneBinding({ manifest, runtimeConfig }) {
   const declared = normalizeKernelDtype(manifest?.quantizationInfo?.compute);
   if (!declared) return;

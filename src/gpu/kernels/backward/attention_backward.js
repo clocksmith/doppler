@@ -5,7 +5,7 @@ import { castF16ToF32, recordCastF16ToF32 } from '../cast.js';
 import { runMatmul, recordMatmul } from '../matmul.js';
 import { runTranspose, recordTranspose } from '../transpose.js';
 import { runSoftmaxBackward, recordSoftmaxBackward } from './softmax_backward.js';
-import { runBackwardKernel, recordBackwardKernel } from './utils.js';
+import { runBackwardKernel, recordBackwardKernel } from './executor.js';
 
 async function ensureF32(tensor, recorder = null) {
   if (tensor.dtype !== 'f16') {

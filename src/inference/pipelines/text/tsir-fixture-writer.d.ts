@@ -41,6 +41,18 @@ export interface TsirFixtureRecord {
 
 export declare const TSIR_BOUNDARY_STAGES: string[];
 
+export declare function createTsirFixtureState(config: {
+  dir: string;
+  layerFilter?: number[] | null;
+  prefillOnly?: boolean;
+  generationStep?: number | null;
+} | null | undefined): TsirFixture | null;
+
+export declare function advanceDecodeStepCount(state: {
+  decodeStepCount: number;
+  operatorDiagnostics?: { tsirFixture?: TsirFixture | null } | null;
+}): number;
+
 export declare function mapStageToTsirBoundary(stage: string): string | null;
 
 export declare function writeNpyF32(

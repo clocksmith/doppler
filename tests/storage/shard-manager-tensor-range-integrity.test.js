@@ -58,6 +58,21 @@ function createTestManifest(modelId, bytes, root) {
   };
   manifest.inference = {
     ...manifest.inference,
+    output: {
+      ...manifest.inference.output,
+      embeddingScale: null,
+      logitInputScale: 1,
+    },
+    layerPattern: {
+      ...manifest.inference.layerPattern,
+      residualBranchScale: 1,
+    },
+    rope: {
+      ...manifest.inference.rope,
+      longropeShortFactor: null,
+      longropeLongFactor: null,
+      longropeOriginalMaxPos: null,
+    },
     normalization: {
       ...manifest.inference.normalization,
       postAttentionNorm: false,

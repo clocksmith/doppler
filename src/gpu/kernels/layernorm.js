@@ -5,7 +5,7 @@ import { createTensor } from '../tensor.js';
 import { padToQ4KBlock } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.js';
-import { unifiedKernelWrapper } from './utils.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
 
 function inferHiddenSize(input, hiddenSize) {
   if (hiddenSize != null) return hiddenSize;

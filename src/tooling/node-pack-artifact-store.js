@@ -11,7 +11,6 @@ function resolveInsideBase(baseDir, artifactPath) {
   return path.resolve(baseDir, artifactPath);
 }
 
-/** Creates a Node filesystem artifact verifier rooted at the Pack file. */
 export function createNodePackArtifactStore(packPath) {
   const resolvedPackPath = path.resolve(packPath);
   const baseDir = path.dirname(resolvedPackPath);

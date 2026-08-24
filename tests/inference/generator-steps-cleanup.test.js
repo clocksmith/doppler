@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const generatorStepsSource = readFileSync(
-  new URL('../../src/inference/pipelines/text/generator-steps.js', import.meta.url),
-  'utf8'
-);
+const generatorStepsSource = [
+  '../../src/inference/pipelines/text/generator-steps.js',
+  '../../src/inference/pipelines/text/generator/decode.js',
+].map((relativePath) => readFileSync(new URL(relativePath, import.meta.url), 'utf8')).join('\n');
 
 globalThis.GPUMapMode = {
   READ: 0x0001,

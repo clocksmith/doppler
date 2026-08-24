@@ -250,7 +250,7 @@ export interface WeightLoadResult {
   loadTiming: LoaderLoadTiming | null;
 }
 
-export interface ResolvedQ4KConfig {
+export interface ResolvedWeightLoadingConfig {
   useFusedQ4K: boolean;
   q4kLayout: 'row' | 'col' | null;
   keepF32Weights: boolean;
@@ -258,6 +258,8 @@ export interface ResolvedQ4KConfig {
   q4kMaterializationMode: 'dense' | 'fused' | 'mixed';
   q4kFusedRoles: string[];
 }
+
+export type ResolvedQ4KConfig = ResolvedWeightLoadingConfig;
 
 /** Options for loadWeights */
 export interface LoadWeightsOptions {
@@ -283,12 +285,14 @@ export function loadWeights(
   options?: LoadWeightsOptions
 ): Promise<WeightLoadResult>;
 
-export function resolveQ4KConfig(
+export function resolveWeightLoadingConfig(
   manifest: Manifest,
   kernelPath?: KernelPathSchema | null,
   kernelPathSource?: KernelPathSource,
   keepF32Weights?: boolean
-): ResolvedQ4KConfig;
+): ResolvedWeightLoadingConfig;
+
+export const resolveQ4KConfig: typeof resolveWeightLoadingConfig;
 
 /**
  * Apply Gemma chat template to a prompt.

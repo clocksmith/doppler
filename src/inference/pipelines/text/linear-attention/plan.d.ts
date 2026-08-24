@@ -1,0 +1,17 @@
+export declare const applyLinearNormWeightOffset: any;
+export declare const applyProjectionLoRA: any;
+export declare const bytesFromDtype: any;
+export declare const createLayerRuntimeState: any;
+export declare const ensureLayerRuntimeGpuBuffers: any;
+export declare const inferLinearNormModeFromWeight: any;
+export declare const isGpuBuffer: any;
+export declare const isResolvedWeightShared: any;
+export declare const normalizeLinearNormMode: any;
+export declare const projectLinearTensor: any;
+export declare const readWeightAsF32: any;
+export declare const releaseOrTrackBuffer: any;
+export declare const releaseResolvedWeightBuffer: any;
+export declare const resolveLinearNormMode: any;
+export declare const resolveMatmulStepDtype: any;
+export declare const toPositiveInt: any;
+export declare const uploadF32Buffer: any;

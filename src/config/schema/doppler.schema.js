@@ -11,11 +11,11 @@ import { validateRuntimeOverrides } from '../param-validator.js';
 import { isPlainObject } from '../../utils/plain-object.js';
 import {
   chooseDefined,
-  mergeExecutionPatchLists,
-  mergeKernelPathPolicy,
   mergeShallowObject,
   replaceSubtree,
-} from '../merge-helpers.js';
+} from '../merge/value-selection.js';
+import { mergeKernelPathPolicy } from '../merge/kernel-path-policy.js';
+import { mergeExecutionPatchLists } from '../merge/execution-patches.js';
 
 // =============================================================================
 // Runtime Config (all non-model-specific settings)

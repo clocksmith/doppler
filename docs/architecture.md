@@ -289,6 +289,19 @@ policy layer (for example Reploid) with
 Support tier is not implied by directory presence alone. Use the generated
 [Subsystem Support Matrix](subsystem-support-matrix.md) for the public contract.
 
+Source modules follow semantic ownership boundaries rather than accumulating
+unrelated operations in broad implementation files. Governed JavaScript files
+must stay below the 999-line ceiling in the source-architecture policy. Generic
+legacy names are either narrow semantic owners or compatibility facades whose
+implementation lives in explicitly named modules; the architecture check does
+not permit unclassified generic-module debt or oversize exemptions.
+
+This finer module graph is reflected in the npm runtime closure. The package
+boundary gate permits at most 1,625 entries, 2,050,000 packed bytes, and
+10,400,000 unpacked bytes. These remain blocking artifact budgets: new semantic
+owners must be reachable from an exported runtime or type entry, and generated
+`src/.npmignore` state must exactly match that closure.
+
 | Directory | Purpose |
 |-----------|---------|
 | `config/` | Schema, checked-in config assets, runtime config, manifest-first merge |
@@ -811,14 +824,14 @@ GPU-native routing avoids CPU readback of routing decisions.
 │       │                                                          │
 │       ▼                                                          │
 │  ┌─────────────────────┐                                        │
-│  │ Dequantize on GPU   │  (dequant_shared.wgsl)                 │
-│  │ Q4_K → F32/F16      │                                        │
+│  │ Resolve selected    │  (execution path + kernel registry)    │
+│  │ weight contract     │                                        │
 │  └─────────────────────┘                                        │
 │       │                                                          │
 │       ▼                                                          │
 │  ┌─────────────────────┐                                        │
-│  │ Downcast to F16     │  (if hasF16, for matmul weights)       │
-│  │ (optional)          │                                        │
+│  │ Materialize or keep │  Q4_K → F32/F16; BF16 → F32/F16;      │
+│  │ exact packed bytes  │  or retain BF16 for BF16-aware kernels │
 │  └─────────────────────┘                                        │
 │       │                                                          │
 │       ▼                                                          │
@@ -827,6 +840,24 @@ GPU-native routing avoids CPU readback of routing decisions.
 ```
 
 **Multi-shard tensors:** Large tensors span multiple 64MB shards. Loader streams spans directly to GPU to avoid JS heap exhaustion.
+
+### Stored dtype vs selected-kernel dtype
+
+The manifest records artifact truth; the selected execution path records the
+runtime consumption contract. These identities must not be collapsed:
+
+- BF16 tensor bytes remain declared as BF16 in the manifest.
+- After execution-v1 capability transforms resolve, the loader resolves each
+  selected shader and entry point through `src/config/kernels/registry.json`.
+- A selected BF16-aware kernel may consume the packed BF16 buffer directly.
+- A selected F16- or F32-weight kernel requires an explicit materialization and
+  receives a descriptor for the resulting dtype.
+- Kernels that remain in the manifest closure but are not selected cannot
+  influence loader materialization.
+
+This ordering keeps capability adaptation, buffer identity, and dispatch in one
+traceable chain: manifest storage fact → resolved path → registry contract →
+materialized buffer → dispatch.
 
 **Gemma 2/3 norm offset:** RMSNorm uses `(1 + weight) * x` instead of `weight * x`. This is applied **at runtime** via the `rmsNormWeightOffset` flag passed to RMSNorm kernels. It is not applied during weight loading. The manifest `inference.normalization.rmsNormWeightOffset` field controls this behavior.
 

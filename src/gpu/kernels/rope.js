@@ -2,7 +2,7 @@
 import { getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
-import { unifiedKernelWrapper } from './utils.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from './cast.js';

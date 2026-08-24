@@ -1,7 +1,7 @@
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { WORKGROUP_SIZES, VEC4_ELEMENTS_PER_WG } from './constants.js';
-import { unifiedKernelWrapper } from './utils.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
 import { trace } from '../../debug/index.js';
 import { createTensor } from '../tensor.js';
 import { DTYPE_SIZES, padToQ4KBlock } from '../../config/schema/index.js';

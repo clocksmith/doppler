@@ -22,7 +22,7 @@ import {
   createCommandRequestBase,
   resolveCommandRuntimeContract,
   resolveWorkloadForCommand,
-} from './command-api-helpers.js';
+} from './command-request-normalization.js';
 
 function resolveDebugRequestWorkload(raw) {
   const workload = asOptionalString(raw.workload, 'workload')

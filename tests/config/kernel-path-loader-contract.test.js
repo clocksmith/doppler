@@ -20,6 +20,7 @@ import {
   isActiveKernelPathFusedQ4K,
   isKernelPathDequant,
   isKernelPathFusedQ4K,
+  kernelPathRequiresBF16Weights,
   kernelPathRequiresF32MatmulWeights,
   resolveKernelPath,
   resolveWeightRef,
@@ -469,6 +470,14 @@ try {
   assert.equal(isKernelPathDequant(fusedPath), true);
   assert.equal(kernelPathRequiresF32MatmulWeights(gemma3Path), false);
   assert.equal(kernelPathRequiresF32MatmulWeights(gemma3F32WeightPath), true);
+  assert.equal(kernelPathRequiresBF16Weights(gemma3Path), false);
+  assert.equal(kernelPathRequiresBF16Weights({
+    decode: {
+      steps: [
+        { op: 'q_proj', kernel: 'matmul_gemv_subgroup_bf16w.wgsl', entry: 'main_vec4' },
+      ],
+    },
+  }), true);
   assert.equal(isKernelPathDequant({ decode: { steps: [{ kernel: 'attention.wgsl' }] } }), false);
 
   const stats = getKernelPathStats(gemma3Path);

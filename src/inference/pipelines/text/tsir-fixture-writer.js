@@ -77,6 +77,24 @@ const STAGE_TO_TSIR = {
 
 export const TSIR_BOUNDARY_STAGES = Object.keys(STAGE_TO_TSIR);
 
+export function createTsirFixtureState(config) {
+  if (!config) return null;
+  return {
+    dir: config.dir,
+    layerFilter: Array.isArray(config.layerFilter) ? config.layerFilter : null,
+    prefillOnly: config.prefillOnly,
+    generationStep: config.generationStep ?? null,
+    records: [],
+  };
+}
+
+export function advanceDecodeStepCount(state) {
+  state.decodeStepCount++;
+  const fixture = state.operatorDiagnostics?.tsirFixture;
+  if (fixture) fixture.currentGenerationStep = state.decodeStepCount;
+  return state.decodeStepCount;
+}
+
 export function mapStageToTsirBoundary(stage) {
   return STAGE_TO_TSIR[stage] ?? null;
 }

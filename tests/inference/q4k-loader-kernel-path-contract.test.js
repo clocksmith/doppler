@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 
 const { setDevice } = await import('../../src/gpu/device.js');
+const { resolveWeightLoadingConfig } = await import(
+  '../../src/inference/pipelines/text/weight-loading-config.js'
+);
 const { resolveQ4KConfig } = await import('../../src/inference/pipelines/text/init.js');
 const { selectRuleValue } = await import('../../src/rules/rule-registry.js');
 
@@ -156,7 +159,8 @@ const linearMixedPath = {
 setDevice(createFakeDevice(), { platformConfig: null });
 
 try {
-  assert.deepEqual(resolveQ4KConfig(manifest, defaultPath, 'config', false), {
+  assert.equal(resolveQ4KConfig, resolveWeightLoadingConfig);
+  assert.deepEqual(resolveWeightLoadingConfig(manifest, defaultPath, 'config', false), {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: false,
@@ -165,7 +169,7 @@ try {
     q4kFusedRoles: [],
   });
 
-  assert.deepEqual(resolveQ4KConfig(manifest, defaultPath, 'config', true), {
+  assert.deepEqual(resolveWeightLoadingConfig(manifest, defaultPath, 'config', true), {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: true,
@@ -174,7 +178,7 @@ try {
     q4kFusedRoles: [],
   });
 
-  assert.deepEqual(resolveQ4KConfig(manifest, f32WeightPath, 'config', false), {
+  assert.deepEqual(resolveWeightLoadingConfig(manifest, f32WeightPath, 'config', false), {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: true,
@@ -183,7 +187,7 @@ try {
     q4kFusedRoles: [],
   });
 
-  assert.deepEqual(resolveQ4KConfig(manifest, bf16WeightPath, 'execution-v1', false), {
+  assert.deepEqual(resolveWeightLoadingConfig(manifest, bf16WeightPath, 'execution-v1', false), {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: false,
@@ -192,16 +196,16 @@ try {
     q4kFusedRoles: [],
   });
 
-  assert.deepEqual(resolveQ4KConfig(bf16Manifest, null, 'none', false), {
+  assert.deepEqual(resolveWeightLoadingConfig(bf16Manifest, null, 'none', false), {
     useFusedQ4K: false,
     q4kLayout: null,
     keepF32Weights: false,
-    keepBF16Weights: true,
+    keepBF16Weights: false,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: [],
   });
 
-  assert.deepEqual(resolveQ4KConfig(manifest, fusedLmHeadPath, 'execution-v1', false), {
+  assert.deepEqual(resolveWeightLoadingConfig(manifest, fusedLmHeadPath, 'execution-v1', false), {
     useFusedQ4K: false,
     q4kLayout: 'row',
     keepF32Weights: false,
@@ -222,7 +226,7 @@ try {
     'q4k_fused'
   );
 
-  assert.deepEqual(resolveQ4KConfig(manifest, mixedPath, 'execution-v1', false), {
+  assert.deepEqual(resolveWeightLoadingConfig(manifest, mixedPath, 'execution-v1', false), {
     useFusedQ4K: true,
     q4kLayout: 'row',
     keepF32Weights: false,
@@ -231,7 +235,7 @@ try {
     q4kFusedRoles: ['q_proj'],
   });
 
-  assert.deepEqual(resolveQ4KConfig(manifest, linearMixedPath, 'execution-v1', false), {
+  assert.deepEqual(resolveWeightLoadingConfig(manifest, linearMixedPath, 'execution-v1', false), {
     useFusedQ4K: true,
     q4kLayout: 'row',
     keepF32Weights: false,

@@ -34,11 +34,6 @@ export {
   isKernelDebugEnabled,
 } from './tensor.js';
 
-// Utilities
-export {
-  f16ToF32,
-  decodeReadback,
-  getLogitsHealth,
-  getBufferStats,
-  DEBUG_PROFILES,
-} from './utils.js';
+export { getBufferStats, getLogitsHealth } from './health-metrics.js';
+export { DEBUG_PROFILES } from './profiles.js';
+export { decodeReadback, f16ToF32 } from './readback-decoding.js';

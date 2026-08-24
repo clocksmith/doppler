@@ -1,11 +1,3 @@
-/**
- * Doppler ModelIR: hardware-independent facts extracted from a source artifact.
- *
- * ModelIR is intentionally fail-closed. Callers must provide every semantic
- * field; this module never fills an unknown model fact with a plausible value.
- *
- * @module config/model-ir
- */
 
 import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
@@ -42,12 +34,6 @@ function requirePositiveInteger(value, label, errors) {
   }
 }
 
-/**
- * Validates a hardware-independent semantic graph.
- *
- * @param {unknown} ir
- * @returns {{ ok: boolean, errors: string[] }}
- */
 export function validateModelIR(ir) {
   const errors = [];
   if (!isObject(ir)) {
@@ -156,10 +142,6 @@ export function validateModelIR(ir) {
   return { ok: errors.length === 0, errors };
 }
 
-/**
- * @param {unknown} ir
- * @returns {`sha256:${string}`}
- */
 export function hashModelIR(ir) {
   const validation = validateModelIR(ir);
   if (!validation.ok) {
@@ -168,12 +150,6 @@ export function hashModelIR(ir) {
   return `sha256:${sha256Hex(JSON.stringify(stableSortObject(ir)))}`;
 }
 
-/**
- * Creates a ModelIR without supplying semantic defaults.
- *
- * @param {object} params
- * @returns {object}
- */
 export function createModelIR(params) {
   if (!isObject(params)) {
     throw new Error('createModelIR requires an object.');

@@ -3,19 +3,27 @@
 // Utilities
 export {
   KERNEL_CONFIGS,
-  validateAttentionLimits,
-  loadShaderSource,
-  hasRequiredFeatures,
   getKernelConfig,
+} from './kernel-configs.js';
+export {
+  validateAttentionLimits,
+  hasRequiredFeatures,
+} from './feature-check.js';
+export {
+  loadShaderSource,
   compileShader,
+} from './shader-cache.js';
+export {
   getOrCreateBindGroupLayout,
   getOrCreatePipelineLayout,
   createPipeline,
+} from './pipeline-cache.js';
+export {
   clearKernelCaches,
   clearPipelineCache,
   getCacheStats,
-  prewarmKernels,
-} from './utils.js';
+} from './kernel-cache-lifecycle.js';
+export { prewarmKernels } from './kernel-prewarm.js';
 
 // Matrix Multiplication
 export {

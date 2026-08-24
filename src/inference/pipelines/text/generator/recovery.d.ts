@@ -1,0 +1,11 @@
+export declare const _replayPrefillDecodeLogits: any;
+export declare const _shouldUseFinitenessFallback: any;
+export declare const _recreateKVCacheForExecutionPlan: any;
+export declare const _openFinitenessFallbackWindow: any;
+export declare const _closeFinitenessFallbackWindow: any;
+export declare const _consumeFinitenessFallbackToken: any;
+export declare const _beginFinitenessFallback: any;
+export declare const _endFinitenessFallback: any;
+export declare const _retryWithFinitenessFallback: any;
+export declare const _retryWithPersistentFinitenessFallback: any;
+export declare const _retryDecodeStepWithFinitenessWindow: any;

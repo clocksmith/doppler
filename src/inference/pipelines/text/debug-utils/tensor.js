@@ -3,7 +3,7 @@
 import { readBuffer } from '../../../../memory/buffer-pool.js';
 import { log } from '../../../../debug/index.js';
 import { isEnabled } from './config.js';
-import { decodeReadback } from './utils.js';
+import { decodeReadback } from './readback-decoding.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 
 // ============================================================================

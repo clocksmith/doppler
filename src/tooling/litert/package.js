@@ -1,0 +1,863 @@
+import { parseTFLiteFromSource, TFLITE_FILE_IDENTIFIER } from '../../formats/tflite/types.js';
+import {
+  LITERT_TASK_DEFAULT_METADATA_ENTRY,
+  LITERT_TASK_DEFAULT_TFLITE_ENTRY,
+  LITERT_TASK_DEFAULT_TOKENIZER_MODEL_ENTRY,
+  findLiteRTLMSectionByType,
+  findLiteRTLMMetadataSection,
+  findLiteRTLMSentencePieceTokenizerSection,
+  findLiteRTLMTFLiteModelSection,
+  findLiteRTLMTFLiteWeightsSection,
+  parseLiteRTLMFromSource,
+  parseLiteRTTaskFromSource,
+} from '../../formats/litert/types.js';
+import { resolveDirectSourcePackageProfile } from '../source-package-profiles.js';
+import { cloneJsonValue } from '../../utils/clone-json.js';
+
+export function normalizeText(value) {
+  return String(value || '').trim();
+}
+
+export function computePackedByteSize(shape, sourceDtype, tensorName) {
+  if (!Array.isArray(shape) || shape.length !== 2) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${tensorName}" requires an explicit 2D expected shape.`
+    );
+  }
+  const rows = Number(shape[0]);
+  const cols = Number(shape[1]);
+  if (!Number.isInteger(rows) || rows <= 0 || !Number.isInteger(cols) || cols <= 0) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${tensorName}" has invalid expected shape ${JSON.stringify(shape)}.`
+    );
+  }
+  const elementCount = rows * cols;
+  if (sourceDtype === 'INT8' || sourceDtype === 'UINT8') {
+    return elementCount;
+  }
+  if (sourceDtype === 'INT4') {
+    return Math.ceil(elementCount / 2);
+  }
+  if (sourceDtype === 'INT2') {
+    return Math.ceil(elementCount / 4);
+  }
+  throw new Error(
+    `direct-source runtime: unsupported packed source dtype "${sourceDtype}" for "${tensorName}".`
+  );
+}
+
+export function resolveLiteRTScaleContract(sourceDtype, tensorName, options = {}) {
+  const explicitScaleSemantics = normalizeText(options.scaleSemantics).toLowerCase();
+  if (explicitScaleSemantics) {
+    if (explicitScaleSemantics === 'step') {
+      return {
+        scaleSemantics: 'step',
+      };
+    }
+    if (explicitScaleSemantics === 'qmax_abs') {
+      const explicitScaleDivisor = Number(options.scaleDivisor);
+      if (Number.isFinite(explicitScaleDivisor) && explicitScaleDivisor > 0) {
+        return {
+          scaleSemantics: 'qmax_abs',
+          scaleDivisor: explicitScaleDivisor,
+        };
+      }
+      if (sourceDtype === 'INT8' || sourceDtype === 'UINT8') {
+        return {
+          scaleSemantics: 'qmax_abs',
+          scaleDivisor: 128,
+        };
+      }
+      if (sourceDtype === 'INT4') {
+        return {
+          scaleSemantics: 'qmax_abs',
+          scaleDivisor: 8,
+        };
+      }
+      if (sourceDtype === 'INT2') {
+        return {
+          scaleSemantics: 'qmax_abs',
+          scaleDivisor: 2,
+        };
+      }
+      throw new Error(
+        `direct-source runtime: unsupported LiteRT scale contract source dtype "${sourceDtype}" for "${tensorName}".`
+      );
+    }
+    throw new Error(
+      `direct-source runtime: unsupported LiteRT scaleSemantics "${options.scaleSemantics}" for "${tensorName}".`
+    );
+  }
+  if (options.hasSumCompanion === true) {
+    return {
+      scaleSemantics: 'step',
+    };
+  }
+  if (sourceDtype === 'INT8' || sourceDtype === 'UINT8') {
+    return {
+      scaleSemantics: 'qmax_abs',
+      scaleDivisor: 128,
+    };
+  }
+  if (sourceDtype === 'INT4') {
+    return {
+      scaleSemantics: 'qmax_abs',
+      scaleDivisor: 8,
+    };
+  }
+  if (sourceDtype === 'INT2') {
+    return {
+      scaleSemantics: 'qmax_abs',
+      scaleDivisor: 2,
+    };
+  }
+  throw new Error(
+    `direct-source runtime: unsupported LiteRT scale contract source dtype "${sourceDtype}" for "${tensorName}".`
+  );
+}
+
+export function computeBlockedAxisPackedByteSize(storageShape, storageBlockSize, sourceDtype, tensorName) {
+  if (!Array.isArray(storageShape) || storageShape.length !== 2) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${tensorName}" requires an explicit blocked storageShape=[rows, cols].`
+    );
+  }
+  const storageRows = Number(storageShape[0]);
+  const storageCols = Number(storageShape[1]);
+  const blockSize = Number(storageBlockSize);
+  if (
+    !Number.isInteger(storageRows)
+    || storageRows <= 0
+    || !Number.isInteger(storageCols)
+    || storageCols <= 0
+    || !Number.isInteger(blockSize)
+    || blockSize <= 0
+  ) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${tensorName}" has invalid blocked storage shape ` +
+      `${JSON.stringify({ storageShape, storageBlockSize })}.`
+    );
+  }
+  return computePackedByteSize([storageRows, storageCols * blockSize], sourceDtype, tensorName);
+}
+
+export function inferLiteRTBlockedAxisLayout(
+  rawTensor,
+  storageShape,
+  storageBlockSize,
+  tensorName = rawTensor?.name ?? 'unknown',
+  options = {}
+) {
+  const dtypeId = Number(rawTensor?.dtypeId);
+  const candidates = [];
+  if (dtypeId === 17) {
+    candidates.push('INT4');
+  } else if (dtypeId === 9) {
+    candidates.push('INT8', 'INT4', 'INT2');
+  } else if (dtypeId === 3) {
+    candidates.push('UINT8', 'INT4', 'INT2');
+  } else {
+    throw new Error(
+      `direct-source runtime: unsupported LiteRT blocked tensor dtype for "${tensorName}" (dtypeId=${dtypeId}).`
+    );
+  }
+
+  for (const sourceDtype of candidates) {
+    if (rawTensor.size === computeBlockedAxisPackedByteSize(storageShape, storageBlockSize, sourceDtype, tensorName)) {
+      const preferSignedPacked = options.preferSignedPacked === true;
+      return {
+        sourceDtype,
+        storageEncoding: sourceDtype === 'INT8' || sourceDtype === 'UINT8'
+          ? 'signed'
+          : (preferSignedPacked ? 'signed' : 'offset_binary'),
+      };
+    }
+  }
+
+  throw new Error(
+    `direct-source runtime: LiteRT tensor "${tensorName}" size ${rawTensor?.size} does not match any supported ` +
+    `blocked packed layout for storage shape ${JSON.stringify(storageShape)} and blockSize=${storageBlockSize}.`
+  );
+}
+
+export function inferLiteRTRowwiseLayout(
+  rawTensor,
+  expectedShape,
+  tensorName = rawTensor?.name ?? 'unknown',
+  options = {}
+) {
+  const dtypeId = Number(rawTensor?.dtypeId);
+  const candidates = [];
+  if (dtypeId === 17) {
+    candidates.push('INT4');
+  } else if (dtypeId === 9) {
+    candidates.push('INT8', 'INT4', 'INT2');
+  } else if (dtypeId === 3) {
+    candidates.push('UINT8', 'INT4', 'INT2');
+  } else {
+    throw new Error(
+      `direct-source runtime: unsupported LiteRT packed tensor dtype for "${tensorName}" (dtypeId=${dtypeId}).`
+    );
+  }
+
+  for (const sourceDtype of candidates) {
+    if (rawTensor.size === computePackedByteSize(expectedShape, sourceDtype, tensorName)) {
+      const preferSignedPacked = options.preferSignedPacked === true;
+      return {
+        sourceDtype,
+        storageEncoding: sourceDtype === 'INT8' || sourceDtype === 'UINT8'
+          ? 'signed'
+          : (preferSignedPacked ? 'signed' : 'offset_binary'),
+      };
+    }
+  }
+
+  throw new Error(
+    `direct-source runtime: LiteRT tensor "${tensorName}" size ${rawTensor?.size} does not match any supported ` +
+    `packed layout for expected shape ${JSON.stringify(expectedShape)}.`
+  );
+}
+
+export function isGemma4GlobalLayer(runtimeProfile, layerIndex) {
+  const layerPattern = runtimeProfile?.manifestInference?.layerPattern ?? null;
+  if (!layerPattern || layerPattern.type !== 'every_n') {
+    return false;
+  }
+  const period = Number(layerPattern.period);
+  const rawOffset = Number(layerPattern.offset ?? 0);
+  if (!Number.isInteger(period) || period <= 0) {
+    return false;
+  }
+  const offset = ((rawOffset % period) + period) % period;
+  return (((layerIndex - offset) % period) + period) % period === 0;
+}
+
+export function resolveGemma4AttentionHeadDim(runtimeProfile, layerIndex) {
+  const headDim = Number(runtimeProfile?.architecture?.headDim ?? 0);
+  const globalHeadDim = Number(runtimeProfile?.architecture?.globalHeadDim ?? headDim);
+  if (!Number.isInteger(headDim) || headDim <= 0) {
+    throw new Error('direct-source runtime: Gemma 4 LiteRT profile is missing architecture.headDim.');
+  }
+  if (!Number.isInteger(globalHeadDim) || globalHeadDim <= 0) {
+    throw new Error('direct-source runtime: Gemma 4 LiteRT profile is missing architecture.globalHeadDim.');
+  }
+  return isGemma4GlobalLayer(runtimeProfile, layerIndex) ? globalHeadDim : headDim;
+}
+
+export function resolveGemma4IntermediateSize(runtimeProfile, layerIndex) {
+  const arch = runtimeProfile?.architecture ?? {};
+  const numLayers = Number(arch.numLayers ?? 0);
+  const intermediateSize = Number(arch.intermediateSize ?? 0);
+  const numKvSharedLayers = Number(arch.numKvSharedLayers ?? 0);
+  const useDoubleWideMlp = runtimeProfile?.manifestInference?.ffn?.useDoubleWideMlp === true;
+  if (!Number.isInteger(intermediateSize) || intermediateSize <= 0) {
+    throw new Error('direct-source runtime: Gemma 4 LiteRT profile is missing architecture.intermediateSize.');
+  }
+  if (
+    useDoubleWideMlp
+    && Number.isInteger(numLayers)
+    && numLayers > 0
+    && Number.isInteger(numKvSharedLayers)
+    && numKvSharedLayers > 0
+    && layerIndex >= numLayers - numKvSharedLayers
+  ) {
+    return intermediateSize * 2;
+  }
+  return intermediateSize;
+}
+
+export function createLiteRTFloatTensor(rawTensor, sourcePath, canonicalName, role, group = null) {
+  if (!rawTensor || typeof rawTensor !== 'object') {
+    throw new Error(`direct-source runtime: missing LiteRT tensor "${canonicalName}".`);
+  }
+  if (rawTensor.size % 4 !== 0) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${rawTensor.name}" must have a float32 byte size.`
+    );
+  }
+  return {
+    name: canonicalName,
+    shape: [rawTensor.size / 4],
+    dtype: 'F32',
+    offset: rawTensor.offset,
+    size: rawTensor.size,
+    sourcePath,
+    role,
+    ...(group ? { group } : {}),
+  };
+}
+
+export function createLiteRTAxisTensor(
+  rawTensor,
+  scaleTensor,
+  sumTensor,
+  sourcePath,
+  canonicalName,
+  role,
+  group = null,
+  logicalShape = null,
+  storageShape = null,
+  quantAxis = 1,
+  scaleContractOptions = null
+) {
+  if (!rawTensor || typeof rawTensor !== 'object') {
+    throw new Error(`direct-source runtime: missing LiteRT tensor "${canonicalName}".`);
+  }
+  if (!scaleTensor || typeof scaleTensor !== 'object') {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${rawTensor.name}" is missing scale companion ` +
+      `"${rawTensor.name}_quantized_scale".`
+    );
+  }
+  if (!Array.isArray(logicalShape) || logicalShape.length !== 2) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${canonicalName}" requires an explicit 2D logical shape.`
+    );
+  }
+  if (!Array.isArray(storageShape) || storageShape.length !== 2) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${canonicalName}" requires an explicit 2D storage shape.`
+    );
+  }
+  if (quantAxis !== 0 && quantAxis !== 1) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${canonicalName}" has unsupported quantAxis ${quantAxis}.`
+    );
+  }
+  if (scaleTensor.size % 4 !== 0) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${rawTensor.name}" has invalid scale size ${scaleTensor.size}.`
+    );
+  }
+
+  const scaleTensorSourceTransform = scaleTensor.sourceTransform;
+  const scaleCompanionDtype = String(scaleTensor.sourceDtype || '').toUpperCase();
+  const hasUint8ScaleCompanion = scaleCompanionDtype === 'UINT8';
+
+  // When the scale companion is UINT8 without affine_dequant metadata, the
+  // UINT8 container holds packed F32 row-scales (4 bytes per F32 value).
+  // This is the MediaPipe symmetric quantization convention used by LiteRT-LM
+  // .task weight bags (e.g. Gemma 4 E2B per_layer_embeddings): weight bytes
+  // are semantically INT8 (signed, zero_point=0), scale = max(|row|) / 127.
+  // The companion bytes are native F32 — no affine dequant needed.
+  const isPackedF32ScaleCompanion = hasUint8ScaleCompanion
+    && (!scaleTensorSourceTransform || scaleTensorSourceTransform.kind !== 'affine_dequant');
+
+  const scaleCompanionDequant = hasUint8ScaleCompanion && !isPackedF32ScaleCompanion
+    ? {
+      scale: Number(scaleTensorSourceTransform?.scale),
+      zeroPoint: Number(scaleTensorSourceTransform?.zeroPoint),
+    }
+    : null;
+  if (hasUint8ScaleCompanion && !isPackedF32ScaleCompanion) {
+    if (!Number.isFinite(scaleCompanionDequant.scale) || scaleCompanionDequant.scale <= 0) {
+      throw new Error(
+        `direct-source runtime: LiteRT tensor "${rawTensor.name}" has invalid scale companion affine_dequant scale ${scaleTensorSourceTransform.scale}.`
+      );
+    }
+    if (!Number.isSafeInteger(scaleCompanionDequant.zeroPoint)) {
+      throw new Error(
+        `direct-source runtime: LiteRT tensor "${rawTensor.name}" has invalid scale companion affine_dequant zeroPoint ${scaleTensorSourceTransform.zeroPoint}.`
+      );
+    }
+  }
+
+  const logicalRows = Number(logicalShape[0]);
+  const logicalCols = Number(logicalShape[1]);
+  const storageRows = Number(storageShape[0]);
+  const storageCols = Number(storageShape[1]);
+  if (
+    !Number.isInteger(logicalRows)
+    || logicalRows <= 0
+    || !Number.isInteger(logicalCols)
+    || logicalCols <= 0
+    || !Number.isInteger(storageRows)
+    || storageRows <= 0
+    || !Number.isInteger(storageCols)
+    || storageCols <= 0
+  ) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${canonicalName}" has invalid logical/storage shapes ` +
+      `${JSON.stringify({ logicalShape, storageShape })}.`
+    );
+  }
+
+  const layout = inferLiteRTRowwiseLayout(rawTensor, storageShape, canonicalName, {
+    preferSignedPacked: !(sumTensor && typeof sumTensor === 'object'),
+  });
+  const scaleContract = resolveLiteRTScaleContract(layout.sourceDtype, canonicalName, {
+    hasSumCompanion: Boolean(sumTensor && typeof sumTensor === 'object'),
+    ...(scaleContractOptions && typeof scaleContractOptions === 'object'
+      ? scaleContractOptions
+      : {}),
+  });
+  const expectedScaleCount = quantAxis === 0 ? storageCols : storageRows;
+  const scaleCount = scaleTensor.size / 4;
+  if (scaleCount !== expectedScaleCount || scaleCount !== logicalRows) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${rawTensor.name}" scale count ${scaleCount} ` +
+      `does not match logical rows ${logicalRows} and expected storage-axis count ${expectedScaleCount}.`
+    );
+  }
+
+  if (sumTensor && typeof sumTensor === 'object') {
+    if (sumTensor.size % 4 !== 0) {
+      throw new Error(
+        `direct-source runtime: LiteRT tensor "${rawTensor.name}" has invalid sum size ${sumTensor.size}.`
+      );
+    }
+    const sumCount = sumTensor.size / 4;
+    if (sumCount !== logicalRows) {
+      throw new Error(
+        `direct-source runtime: LiteRT tensor "${rawTensor.name}" sum count ${sumCount} ` +
+        `does not match logical rows ${logicalRows}.`
+      );
+    }
+  }
+
+  return {
+    name: canonicalName,
+    shape: [logicalRows, logicalCols],
+    dtype: 'F16',
+    offset: rawTensor.offset,
+    size: rawTensor.size,
+    sourcePath,
+    role,
+    ...(group ? { group } : {}),
+    sourceTransform: {
+      kind: 'litert_axis_dequant',
+      scheme: 'per_axis_affine',
+      sourceDtype: isPackedF32ScaleCompanion && layout.sourceDtype === 'UINT8'
+        ? 'INT8'
+        : layout.sourceDtype,
+      targetDtype: 'F16',
+      storageEncoding: layout.storageEncoding,
+      scaleSemantics: scaleContract.scaleSemantics,
+      scaleDivisor: scaleContract.scaleDivisor,
+      storageShape: [storageRows, storageCols],
+      quantAxis,
+      scaleSourcePath: sourcePath,
+      scaleOffset: scaleTensor.offset,
+      scaleSize: scaleTensor.size,
+      ...(hasUint8ScaleCompanion && !isPackedF32ScaleCompanion
+        ? {
+          scaleCompanionDtype,
+          scaleCompanionDequant,
+        }
+        : {}),
+      ...(sumTensor && typeof sumTensor === 'object'
+        ? {
+          sumSourcePath: sourcePath,
+          sumOffset: sumTensor.offset,
+          sumSize: sumTensor.size,
+        }
+        : {}),
+    },
+  };
+}
+
+export function createLiteRTBlockedAxisTensor(
+  rawTensor,
+  scaleTensor,
+  sumTensor,
+  sourcePath,
+  canonicalName,
+  role,
+  group = null,
+  logicalShape = null,
+  storageShape = null,
+  quantAxis = 0,
+  storageBlockSize = 4,
+  storageLaneOrder = null,
+  scaleContractOptions = null
+) {
+  if (!rawTensor || typeof rawTensor !== 'object') {
+    throw new Error(`direct-source runtime: missing LiteRT tensor "${canonicalName}".`);
+  }
+  if (!scaleTensor || typeof scaleTensor !== 'object') {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${rawTensor.name}" is missing scale companion ` +
+      `"${rawTensor.name}_quantized_scale".`
+    );
+  }
+  if (!Array.isArray(logicalShape) || logicalShape.length !== 2) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${canonicalName}" requires an explicit 2D logical shape.`
+    );
+  }
+  if (!Array.isArray(storageShape) || storageShape.length !== 2) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${canonicalName}" requires an explicit 2D blocked storage shape.`
+    );
+  }
+  if (quantAxis !== 0) {
+    throw new Error(
+      `direct-source runtime: LiteRT blocked tensor "${canonicalName}" only supports quantAxis=0.`
+    );
+  }
+  if (scaleTensor.size % 4 !== 0) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${rawTensor.name}" has invalid blocked scale size ${scaleTensor.size}.`
+    );
+  }
+
+  const logicalRows = Number(logicalShape[0]);
+  const logicalCols = Number(logicalShape[1]);
+  const storageRows = Number(storageShape[0]);
+  const storageCols = Number(storageShape[1]);
+  const blockSize = Number(storageBlockSize);
+  if (
+    !Number.isInteger(logicalRows)
+    || logicalRows <= 0
+    || !Number.isInteger(logicalCols)
+    || logicalCols <= 0
+    || !Number.isInteger(storageRows)
+    || storageRows <= 0
+    || !Number.isInteger(storageCols)
+    || storageCols <= 0
+    || !Number.isInteger(blockSize)
+    || blockSize <= 0
+  ) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${canonicalName}" has invalid logical/blocked storage shapes ` +
+      `${JSON.stringify({ logicalShape, storageShape, storageBlockSize })}.`
+    );
+  }
+  if (storageCols !== logicalRows || storageRows * blockSize !== logicalCols) {
+    throw new Error(
+      `direct-source runtime: LiteRT blocked tensor "${canonicalName}" expects storageShape ` +
+      `[${logicalCols / blockSize}, ${logicalRows}] for logical shape [${logicalRows}, ${logicalCols}] and blockSize=${blockSize}. ` +
+      `Got [${storageRows}, ${storageCols}].`
+    );
+  }
+
+  const resolvedLaneOrder = Array.isArray(storageLaneOrder) && storageLaneOrder.length > 0
+    ? storageLaneOrder.map((value) => Number(value))
+    : Array.from({ length: blockSize }, (_value, index) => index);
+  if (
+    resolvedLaneOrder.length !== blockSize
+    || resolvedLaneOrder.some((value) => !Number.isInteger(value) || value < 0 || value >= blockSize)
+    || new Set(resolvedLaneOrder).size !== blockSize
+  ) {
+    throw new Error(
+      `direct-source runtime: LiteRT blocked tensor "${canonicalName}" has invalid storageLaneOrder ${JSON.stringify(storageLaneOrder)}.`
+    );
+  }
+
+  const layout = inferLiteRTBlockedAxisLayout(rawTensor, storageShape, blockSize, canonicalName, {
+    preferSignedPacked: !(sumTensor && typeof sumTensor === 'object'),
+  });
+  const scaleContract = resolveLiteRTScaleContract(layout.sourceDtype, canonicalName, {
+    hasSumCompanion: Boolean(sumTensor && typeof sumTensor === 'object'),
+    ...(scaleContractOptions && typeof scaleContractOptions === 'object'
+      ? scaleContractOptions
+      : {}),
+  });
+  const scaleCount = scaleTensor.size / 4;
+  if (scaleCount !== logicalRows) {
+    throw new Error(
+      `direct-source runtime: LiteRT tensor "${rawTensor.name}" blocked scale count ${scaleCount} ` +
+      `does not match logical rows ${logicalRows}.`
+    );
+  }
+
+  if (sumTensor && typeof sumTensor === 'object') {
+    if (sumTensor.size % 4 !== 0) {
+      throw new Error(
+        `direct-source runtime: LiteRT tensor "${rawTensor.name}" has invalid blocked sum size ${sumTensor.size}.`
+      );
+    }
+    const sumCount = sumTensor.size / 4;
+    if (sumCount !== logicalRows) {
+      throw new Error(
+        `direct-source runtime: LiteRT tensor "${rawTensor.name}" blocked sum count ${sumCount} ` +
+        `does not match logical rows ${logicalRows}.`
+      );
+    }
+  }
+
+  return {
+    name: canonicalName,
+    shape: [logicalRows, logicalCols],
+    dtype: 'F16',
+    offset: rawTensor.offset,
+    size: rawTensor.size,
+    sourcePath,
+    role,
+    ...(group ? { group } : {}),
+    sourceTransform: {
+      kind: 'litert_axis_blocked_dequant',
+      scheme: 'per_axis_affine',
+      sourceDtype: layout.sourceDtype,
+      targetDtype: 'F16',
+      storageEncoding: layout.storageEncoding,
+      scaleSemantics: scaleContract.scaleSemantics,
+      scaleDivisor: scaleContract.scaleDivisor,
+      storageShape: [storageRows, storageCols],
+      quantAxis,
+      storageBlockSize: blockSize,
+      storageLaneOrder: resolvedLaneOrder,
+      scaleSourcePath: sourcePath,
+      scaleOffset: scaleTensor.offset,
+      scaleSize: scaleTensor.size,
+      ...(sumTensor && typeof sumTensor === 'object'
+        ? {
+          sumSourcePath: sourcePath,
+          sumOffset: sumTensor.offset,
+          sumSize: sumTensor.size,
+        }
+        : {}),
+    },
+  };
+}
+
+export function normalizeGemma4LiteRTTensors(parsedTFLite, sourcePath, runtimeProfile) {
+  const rawByName = new Map();
+  for (const tensor of parsedTFLite.tensors) {
+    rawByName.set(tensor.name, tensor);
+  }
+  const numLayers = Number(runtimeProfile?.architecture?.numLayers ?? 0);
+  if (!Number.isInteger(numLayers) || numLayers <= 0) {
+    throw new Error('direct-source runtime: Gemma 4 LiteRT profile is missing architecture.numLayers.');
+  }
+  const hiddenSize = Number(runtimeProfile?.architecture?.hiddenSize ?? 0);
+  const hiddenSizePerLayerInput = Number(runtimeProfile?.architecture?.hiddenSizePerLayerInput ?? 0);
+  const vocabSize = Number(runtimeProfile?.architecture?.vocabSize ?? 0);
+  const vocabSizePerLayerInput = Number(runtimeProfile?.architecture?.vocabSizePerLayerInput ?? 0);
+  const numAttentionHeads = Number(runtimeProfile?.architecture?.numAttentionHeads ?? 0);
+  const numKeyValueHeads = Number(runtimeProfile?.architecture?.numKeyValueHeads ?? 0);
+
+  const normalized = [];
+  const addFloat = (rawName, canonicalName, role, group = null) => {
+    const rawTensor = rawByName.get(rawName) ?? null;
+    if (!rawTensor) return;
+    normalized.push(createLiteRTFloatTensor(rawTensor, sourcePath, canonicalName, role, group));
+  };
+  const addAxisQuantized = (
+    rawName,
+    canonicalName,
+    role,
+    group = null,
+    logicalShape = null,
+    options = {}
+  ) => {
+    const rawTensor = rawByName.get(rawName) ?? null;
+    if (!rawTensor) return;
+    const scaleTensor = rawByName.get(`${rawName}_quantized_scale`) ?? null;
+    const sumTensor = rawByName.get(`${rawName}.sum_i`) ?? null;
+    const resolvedLogicalShape = Array.isArray(logicalShape) && logicalShape.length === 2
+      ? logicalShape
+      : null;
+    const transposeStorage = options.transposeStorage === true;
+    const resolvedStorageShape = Array.isArray(options.storageShape) && options.storageShape.length === 2
+      ? options.storageShape
+      : (
+        resolvedLogicalShape && transposeStorage
+          ? [resolvedLogicalShape[1], resolvedLogicalShape[0]]
+          : resolvedLogicalShape
+      );
+    const resolvedQuantAxis = options.quantAxis === 0 ? 0 : 1;
+    normalized.push(
+      createLiteRTAxisTensor(
+        rawTensor,
+        scaleTensor,
+        sumTensor,
+        sourcePath,
+        canonicalName,
+        role,
+        group,
+        resolvedLogicalShape,
+        resolvedStorageShape,
+        resolvedQuantAxis,
+        {
+          scaleSemantics: options.scaleSemantics || 'step',
+        }
+      )
+    );
+  };
+
+  normalized.push(
+      createLiteRTBlockedAxisTensor(
+        rawByName.get('transformer.embedder.input_embedding.w') ?? null,
+        rawByName.get('transformer.embedder.input_embedding.w_quantized_scale') ?? null,
+        rawByName.get('transformer.embedder.input_embedding.w.sum_i') ?? null,
+      sourcePath,
+      'model.language_model.embed_tokens.weight',
+      'embedding',
+      'embed',
+      [vocabSize, hiddenSize],
+      [hiddenSize / 4, vocabSize],
+      0,
+      4,
+      [0, 1, 2, 3],
+      {
+        scaleSemantics: 'step',
+      }
+    )
+  );
+  addAxisQuantized(
+    'transformer.embedder.per_layer_model_projection.w',
+    'model.language_model.per_layer_model_projection.weight',
+    'matmul',
+    null,
+    [numLayers * hiddenSizePerLayerInput, hiddenSize],
+    {
+      transposeStorage: true,
+      quantAxis: 0,
+    }
+  );
+  addFloat(
+    'transformer.embedder.per_layer_model_projection.input_activation_static_scale',
+    'model.language_model.per_layer_model_projection.input_activation_static_scale',
+    'other'
+  );
+  addFloat(
+    'transformer.embedder.per_layer_model_projection.output_activation_static_scale',
+    'model.language_model.per_layer_model_projection.output_activation_static_scale',
+    'other'
+  );
+  addFloat(
+    'transformer.embedder.per_layer_projection_norm.scale',
+    'model.language_model.per_layer_projection_norm.weight',
+    'norm'
+  );
+  addFloat(
+    'transformer.final_norm.scale',
+    'model.language_model.norm.weight',
+    'norm',
+    'head'
+  );
+
+  for (let layerIndex = 0; layerIndex < numLayers; layerIndex += 1) {
+    const rawLayerPrefix = `transformer.layer_${layerIndex}`;
+    const canonicalLayerPrefix = `model.language_model.layers.${layerIndex}`;
+    const attentionHeadDim = resolveGemma4AttentionHeadDim(runtimeProfile, layerIndex);
+    const kvHeadDim = attentionHeadDim;
+    const intermediateSize = resolveGemma4IntermediateSize(runtimeProfile, layerIndex);
+
+    addFloat(`${rawLayerPrefix}.skip.scale`, `${canonicalLayerPrefix}.layer_scalar`, 'other');
+    addFloat(`${rawLayerPrefix}.pre_attention_norm.scale`, `${canonicalLayerPrefix}.input_layernorm.weight`, 'norm');
+    addAxisQuantized(
+      `${rawLayerPrefix}.attn.q.w`,
+      `${canonicalLayerPrefix}.self_attn.q_proj.weight`,
+      'matmul',
+      null,
+      [numAttentionHeads * attentionHeadDim, hiddenSize],
+      {
+        transposeStorage: true,
+        quantAxis: 0,
+      }
+    );
+    addFloat(`${rawLayerPrefix}.attn.q_norm.scale`, `${canonicalLayerPrefix}.self_attn.q_norm.weight`, 'norm');
+    addAxisQuantized(
+      `${rawLayerPrefix}.attn.k.w`,
+      `${canonicalLayerPrefix}.self_attn.k_proj.weight`,
+      'matmul',
+      null,
+      [numKeyValueHeads * kvHeadDim, hiddenSize],
+      {
+        transposeStorage: true,
+        quantAxis: 0,
+      }
+    );
+    addAxisQuantized(
+      `${rawLayerPrefix}.attn.v.w`,
+      `${canonicalLayerPrefix}.self_attn.v_proj.weight`,
+      'matmul',
+      null,
+      [numKeyValueHeads * kvHeadDim, hiddenSize],
+      {
+        transposeStorage: true,
+        quantAxis: 0,
+      }
+    );
+    addFloat(`${rawLayerPrefix}.attn.k_norm.scale`, `${canonicalLayerPrefix}.self_attn.k_norm.weight`, 'norm');
+    addAxisQuantized(
+      `${rawLayerPrefix}.attn.attn_vec_einsum.w`,
+      `${canonicalLayerPrefix}.self_attn.o_proj.weight`,
+      'matmul',
+      null,
+      [hiddenSize, numAttentionHeads * attentionHeadDim],
+      {
+        transposeStorage: true,
+        quantAxis: 0,
+      }
+    );
+    addFloat(`${rawLayerPrefix}.post_attention_norm.scale`, `${canonicalLayerPrefix}.post_attention_layernorm.weight`, 'norm');
+    addFloat(`${rawLayerPrefix}.pre_ffw_norm.scale`, `${canonicalLayerPrefix}.pre_feedforward_layernorm.weight`, 'norm');
+    addFloat(`${rawLayerPrefix}.post_ffw_norm.scale`, `${canonicalLayerPrefix}.post_feedforward_layernorm.weight`, 'norm');
+    addFloat(`${rawLayerPrefix}.post_per_layer_input_norm.scale`, `${canonicalLayerPrefix}.post_per_layer_input_norm.weight`, 'norm');
+    addAxisQuantized(
+      `${rawLayerPrefix}.mlp.ff_gate.w`,
+      `${canonicalLayerPrefix}.mlp.gate_proj.weight`,
+      'matmul',
+      null,
+      [intermediateSize, hiddenSize],
+      {
+        transposeStorage: true,
+        quantAxis: 0,
+      }
+    );
+    addAxisQuantized(
+      `${rawLayerPrefix}.mlp.ff1.w`,
+      `${canonicalLayerPrefix}.mlp.up_proj.weight`,
+      'matmul',
+      null,
+      [intermediateSize, hiddenSize],
+      {
+        transposeStorage: true,
+        quantAxis: 0,
+      }
+    );
+    addAxisQuantized(
+      `${rawLayerPrefix}.mlp.linear.w`,
+      `${canonicalLayerPrefix}.mlp.down_proj.weight`,
+      'matmul',
+      null,
+      [hiddenSize, intermediateSize],
+      {
+        transposeStorage: true,
+        quantAxis: 0,
+      }
+    );
+    addAxisQuantized(
+      `${rawLayerPrefix}.per_layer_embedding_gate.w`,
+      `${canonicalLayerPrefix}.per_layer_input_gate.weight`,
+      'matmul',
+      null,
+      [hiddenSizePerLayerInput, hiddenSize],
+      {
+        transposeStorage: true,
+        quantAxis: 0,
+      }
+    );
+    addAxisQuantized(
+      `${rawLayerPrefix}.per_layer_embedding_projection.w`,
+      `${canonicalLayerPrefix}.per_layer_projection.weight`,
+      'matmul',
+      null,
+      [hiddenSize, hiddenSizePerLayerInput],
+      {
+        transposeStorage: true,
+        quantAxis: 0,
+      }
+    );
+    addAxisQuantized(
+      `${rawLayerPrefix}.per_layer_embeddings.w`,
+      `${canonicalLayerPrefix}.embed_tokens_per_layer.weight`,
+      'embedding',
+      'per_layer_input',
+      [vocabSizePerLayerInput, hiddenSizePerLayerInput],
+      {
+        quantAxis: 1,
+        scaleSemantics: 'step',
+      }
+    );
+  }
+
+  if (normalized.length === 0) {
+    throw new Error('direct-source runtime: Gemma 4 LiteRT package did not produce any normalized tensors.');
+  }
+
+  return normalized;
+}

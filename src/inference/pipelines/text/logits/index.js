@@ -7,7 +7,8 @@ export { layerNormCPU, rmsNormCPU, matmulCPU, applySoftcapping, f16ToF32, f16Buf
 export { computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, computeChunkedLogitsGPU, resolveCpuWeightDims, resolveLmHeadChunkRows, extractLmHeadChunk, writeChunkLogits } from './gpu.js';
 
 // Re-export utilities
-export { extractLastPositionLogits, finalizeLogits, readBufferWithCleanup } from './utils.js';
+export { extractLastPositionLogits, finalizeLogits } from './cpu-output.js';
+export { readBufferWithCleanup } from './readback.js';
 
 // Imports for computeLogits orchestrator
 import { getDevice } from '../../../../gpu/device.js';
@@ -20,7 +21,9 @@ import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { runProbes } from '../probes.js';
 import { rmsNormCPU, matmulCPU, f16BufferToF32 } from './cpu.js';
 import { resolveCpuWeightDims, computeChunkedLogitsGPU, computeSplitLogitsGPU } from './gpu.js';
-import { finalizeLogits, readBufferWithCleanup, resolveLogitInputScale, resolveLogitOutputScale } from './utils.js';
+import { finalizeLogits } from './cpu-output.js';
+import { readBufferWithCleanup } from './readback.js';
+import { resolveLogitInputScale, resolveLogitOutputScale } from './scale-policy.js';
 import { getLogitsHealth } from '../debug-utils/index.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../../../config/kernel-path-loader.js';

@@ -6,7 +6,7 @@ import { getDevice } from '../device.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
-import { createUniformBufferWithView } from './utils.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
 import { releaseUniformBuffer } from '../uniform-cache.js';
 import { getBuffer } from '../weight-buffer.js';
 

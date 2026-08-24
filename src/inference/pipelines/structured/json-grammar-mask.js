@@ -67,12 +67,6 @@ function classifyPiece(piece) {
   };
 }
 
-/**
- * Create a logit mask function that enforces a soft JSON-object grammar.
- *
- * @param {{ tokenizer?: { decode(ids: number[], skipSpecial?: boolean, skipBos?: boolean): string } | null, cacheBudget?: number }} [opts]
- * @returns {(logits: Float32Array, context: { generatedIds: number[], tokenizer?: unknown, vocabSize?: number }) => void}
- */
 export function createJsonGrammarMask(opts = {}) {
   const pieceCache = new Map();
   const cacheBudget = Math.max(1024, Math.floor(Number(opts.cacheBudget) || 32768));

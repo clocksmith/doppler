@@ -1,0 +1,11 @@
+export declare const ACTIVATION_FN_MAP: any;
+export declare const applyDenseProjectionBias: any;
+export declare const canUseNativeF16FusedGateUp: any;
+export declare const coerceTensorDtype: any;
+export declare const dispatchActivation: any;
+export declare const dispatchFusedGateUp: any;
+export declare const requireFusedWeightDtype: any;
+export declare const resolveActivationOp: any;
+export declare const resolveMatmulStepDtype: any;
+export declare const runDenseFFNWithFusedPostNormGPU: any;
+export declare const runDenseUngatedFFNGPU: any;

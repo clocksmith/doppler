@@ -1,4 +1,4 @@
-import { chooseDefined, chooseDefinedWithSource } from './merge-helpers.js';
+import { chooseDefined, chooseDefinedWithSource } from './merge/value-selection.js';
 import { log } from '../debug/index.js';
 
 // =============================================================================
@@ -637,16 +637,6 @@ export function summarizeSources(merged) {
   return { manifest, runtime };
 }
 
-/**
- * Dump every tracked config field and its source.
- *
- * Returns a plain object mapping each dot-path field tracked in the merged
- * config's _sources map to the source that won ('manifest' or 'runtime').
- * Useful for debug/diagnostic output.
- *
- * @param {object} mergedConfig - A merged config with _sources Map
- * @returns {Object<string, string>} field-to-source mapping
- */
 export function dumpConfigSources(mergedConfig) {
   const result = {};
   const sources = mergedConfig?._sources;

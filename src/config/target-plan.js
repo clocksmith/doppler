@@ -1,8 +1,3 @@
-/**
- * Doppler TargetPlan: an immutable, qualified implementation of one ModelIR.
- *
- * @module config/target-plan
- */
 
 import { sha256Hex } from '../utils/sha256.js';
 import { stableSortObject } from '../utils/stable-sort-object.js';
@@ -92,10 +87,6 @@ function validateCommand(command, phase, label, errors) {
   errors.push(`${label}.kind must be "program-phase" or "dispatch".`);
 }
 
-/**
- * @param {unknown} plan
- * @returns {{ ok: boolean, errors: string[] }}
- */
 export function validateTargetPlan(plan) {
   const errors = [];
   if (!isObject(plan)) {
@@ -221,7 +212,6 @@ export function validateTargetPlan(plan) {
   return { ok: errors.length === 0, errors };
 }
 
-/** @param {unknown} plan @returns {`sha256:${string}`} */
 export function hashTargetPlan(plan) {
   const validation = validateTargetPlan(plan);
   if (!validation.ok) {
@@ -230,11 +220,6 @@ export function hashTargetPlan(plan) {
   return `sha256:${sha256Hex(JSON.stringify(stableSortObject(plan)))}`;
 }
 
-/**
- * @param {object} targetPlan
- * @param {object} deviceProfile
- * @returns {boolean}
- */
 export function matchesDeviceCapability(targetPlan, deviceProfile) {
   if (!targetPlan?.capabilityPredicate || !deviceProfile) return false;
   const predicate = targetPlan.capabilityPredicate;
@@ -248,7 +233,6 @@ export function matchesDeviceCapability(targetPlan, deviceProfile) {
   return true;
 }
 
-/** @param {object} params @returns {object} */
 export function createTargetPlan(params) {
   if (!isObject(params)) throw new Error('createTargetPlan requires an object.');
   const plan = {

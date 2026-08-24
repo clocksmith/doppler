@@ -1,10 +1,8 @@
 import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
-import {
-  createPipeline,
-  createUniformBufferWithView,
-  createBindGroupWithValidation,
-} from './utils.js';
+import { createPipeline } from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
+import { createBindGroupWithValidation } from './bind-group-validation.js';
 import { dispatchKernel } from './dispatch.js';
 
 const UNIFORM_SIZE = 32;

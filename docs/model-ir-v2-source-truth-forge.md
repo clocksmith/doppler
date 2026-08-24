@@ -201,21 +201,19 @@ population, accepted code, unresolved source-publication time, explicit
 development signer, and evidence bytes. It does not establish browser, Apple,
 production-signing, multimodal, speculative, application, or Doe support.
 
-Glimmer intake under the same directory proves representation construction
-only and must not be described as execution support. Its deterministic
-lowerability audit now compares source semantics with the admitted generic
-vocabulary and fails closed on missing local attention, weightless embedding
-normalization, scaleless Q/K normalization and query scaling, sigmoid gate
-placement, centered post-normalization, no-RoPE full-attention, and final-logit
-contracts. Those are reusable capability gaps, not permission to add a
-Glimmer-named Runtime branch. The receipt now pins reference implementation
-source hashes and source spans, places the pre-softcap multiplier on the output
-head, and has zero unresolved text operational facts. Neither entry point is
-lowered or qualified.
+Glimmer's deterministic lowerability audit now admits `text.generate`: the
+local- and full-attention block classes resolve to generic v2 lowerings, all
+required state kinds are implemented, and the semantic manifest lowering
+receipt binds the source facts, session policy, execution graph, and kernel
+digests without a Glimmer-named Runtime branch. The source ModelIR still records
+the original entry point as `unlowered`; the Pack-bound ModelIR copy and
+lowering receipt are the separate evidence that an execution candidate exists.
 
-Runtime now exposes generic mechanisms for explicit query scaling, per-layer
-NoPE, a distinct attention-gate projection, independent centered postnorm,
-weightless embedding RMSNorm, and exact post-head/pre-softcap scaling. Forge
-still rejects those facts until a deterministic lowering binds them to manifest
-and TargetPlan data, so mechanism availability cannot be mistaken for a
-supported Glimmer execution path.
+Physical Node WebGPU candidate reports now exercise that lowering on AMD/RADV.
+They are investigation evidence, not qualification: no retained candidate
+passes source-token parity. The BF16-storage candidate restores exact source
+tokens through generation index 6 and first diverges at index 7; the committed
+boundary comparisons remain diagnostic and `promotionEligible=false`.
+`vision.encode` remains unlowered, and there is no qualified or signed Glimmer
+Pack, browser evidence, application evidence, multimodal evidence, speculative
+evidence, or Doe evidence.

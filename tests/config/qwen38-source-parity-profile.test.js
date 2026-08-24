@@ -8,7 +8,7 @@ const profileUrl = new URL(
 const profile = JSON.parse(await fs.readFile(profileUrl, 'utf8'));
 
 assert.equal(profile.intent, 'verify');
-assert.equal(profile.model, 'qwen3-8-27b-text-q4k-ehaf16');
+assert.equal(profile.model, 'qwen3-8-27b-text-f16-af32');
 assert.deepEqual(profile.runtime.shared.harness.referenceTranscript, {
   enabled: true,
   captureLogits: true,

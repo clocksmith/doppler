@@ -18,14 +18,14 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 
 ## Summary
 
-- Catalog models: 28
-- Source checkpoints: 21
-- Conversion-only configs: 8
+- Catalog models: 31
+- Source checkpoints: 23
+- Conversion-only configs: 9
 - HF-published catalog models: 19
-- Runtime-verified catalog models: 25
+- Runtime-verified catalog models: 26
 - Benchmark-selected source architectures: 1
-- Sources pending benchmark-selected architecture: 20
-- Model type counts: text-generators=14, multimodal-generators=3, diffusion-language-models=1, translation-specialists=2, language-embedders=2, rerankers=2, protein-encoders=3, nucleotide-encoders=1
+- Sources pending benchmark-selected architecture: 22
+- Model type counts: text-generators=17, multimodal-generators=3, diffusion-language-models=1, translation-specialists=2, language-embedders=2, rerankers=2, protein-encoders=3, nucleotide-encoders=1
 
 ## Rollout Queue
 
@@ -52,6 +52,8 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 | large | Diffusion language models | google/diffusiongemma-26B-A4B-it | 14.6 GiB | runtime-verification-needed | pending verification | none | Run deterministic runtime verification for diffusiongemma-26b-a4b-it-q4k-ehf16-af16. |
 | large | Text generators | Qwen/Qwen3.6-27B | 15.8 GiB | benchmark-comparison-needed | qwen-3-6-27b-q4k-eaf16 candidate; benchmark comparison pending | reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json | Add a compare profile for qwen-3-6-27b-q4k-eaf16. |
 | large | Text generators | google/gemma-4-31B-it | 18.0 GiB | benchmark-comparison-needed | gemma-4-31b-it-text-q4k-ehf16-af16 candidate; benchmark comparison pending | reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af16/2026-06-29T22-09-42.445Z.json | Publish or refresh the Hugging Face manifest/weights for gemma-4-31b-it-text-q4k-ehf16-af16. |
+| large | Text generators | Qwen/Qwen3.8-27B | 50.1 GiB | benchmark-comparison-needed | qwen3-8-27b-text-f16-af32 candidate; benchmark comparison pending | reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json | Publish or refresh the Hugging Face manifest/weights for qwen3-8-27b-text-f16-af32. |
+| large | Text generators | meta-models/Muse-Glimmer-30B | 51.9 GiB | verification-failed | failed verification | none | Fix failed runtime verification for muse-glimmer-30b-text-bf16-af32; keep it unpromoted until a passing receipt exists. |
 
 ## Next Commands
 
@@ -69,6 +71,8 @@ These are policy-generated command recipes, not evidence. A command becomes supp
 | large | Text generators | google/gemma-4-12B-it-qat-w4a16-ct | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-w4a16-ct-ehf16-af16 --dry-run --bootstrap` |
 | large | Diffusion language models | google/diffusiongemma-26B-A4B-it | runtime-verify | `node tools/run-registry-verify.js diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --surface auto` |
 | large | Text generators | google/gemma-4-31B-it | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af16 --dry-run --bootstrap` |
+| large | Text generators | Qwen/Qwen3.8-27B | hf-publish | `node tools/publish-hf-registry-model.js --model-id qwen3-8-27b-text-f16-af32 --dry-run --bootstrap` |
+| large | Text generators | meta-models/Muse-Glimmer-30B | runtime-verify | `node tools/run-registry-verify.js muse-glimmer-30b-text-bf16-af32 --surface auto` |
 
 ## Small Models
 
@@ -112,6 +116,9 @@ These are policy-generated command recipes, not evidence. A command becomes supp
 | qwen-3-6-27b-q4k-ehaf16 | Text generators | qwen3 | 15.8 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-04-28 (browser) | clocksmith/rdrr@b402f6f27837857d51636da5f78c12bcd47e2a03 | missing | missing | compare-profile |
 | gemma-4-31b-it-text-q4k-ehf16-af16 | Text generators | gemma4 | 18.0 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout | 2026-06-29 (node) | missing | missing | missing | hf-publish |
 | gemma-4-31b-it-text-q4k-ehf16-af32 | Text generators | gemma4 | 18.0 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-06-29 (node) | missing | missing | missing | hf-publish |
+| qwen3-8-27b-text-f16-af32 | Text generators | qwen3 | 50.1 GiB | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-08-23 (node) | missing | missing | missing | hf-publish |
+| muse-glimmer-30b-text-bf16-af32 | Text generators | muse-glimmer | 51.9 GiB | RDRR, bf16 weights, bf16 embeddings, bf16 LM head, f32 compute | 2026-08-23 failed | missing | missing | missing | runtime-verify |
+| muse-glimmer-30b-text-f16-af32 | Text generators | muse-glimmer | 51.9 GiB | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | 2026-08-23 failed | missing | missing | missing | runtime-verify |
 
 ## Conversion-Only Configs
 
@@ -127,6 +134,7 @@ These entries have checked-in conversion configs but are not catalog-supported r
 | src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json | janus-pro-1b-text-q4k-ehaf16 | janus | RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout | Catalog, verify, and publish janus-pro-1b-text-q4k-ehaf16 before claiming runtime support. |
 | src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json | qwen-3-5-9b-f16-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | Catalog, verify, and publish qwen-3-5-9b-f16-af32 before claiming runtime support. |
 | src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json | qwen-3-5-9b-q4k-ehaf16 | qwen3 | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | Catalog, verify, and publish qwen-3-5-9b-q4k-ehaf16 before claiming runtime support. |
+| src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json | qwen3.8-27b-text-q4k-ehaf16 | qwen3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | Catalog, verify, and publish qwen3.8-27b-text-q4k-ehaf16 before claiming runtime support. |
 
 ## Source Files
 

@@ -3,7 +3,8 @@ import { acquireBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../tensor.js';
 import { WORKGROUP_SIZES } from '../constants.js';
 import { dispatch, recordDispatch } from '../dispatch.js';
-import { createPipeline, createUniformBufferWithView } from '../utils.js';
+import { createPipeline } from '../pipeline-cache.js';
+import { createUniformBufferWithView } from '../uniform-utils.js';
 import { castF16ToF32, recordCastF16ToF32 } from '../cast.js';
 import { DEFAULT_HIGH_PRECISION_EPS } from '../../../config/schema/index.js';
 

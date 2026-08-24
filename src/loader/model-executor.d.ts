@@ -1,0 +1,12 @@
+export declare const load: any;
+export declare const _loadTensor: any;
+export declare const _getDescriptorShardFiles: any;
+export declare const _loadDescriptorShardFile: any;
+export declare const _assertDescriptorHash: any;
+export declare const _assembleFunctionalDescriptorData: any;
+export declare const _assembleShardData: any;
+export declare const _shouldStreamUploadToGPU: any;
+export declare const _assembleShardDataToGpuBuffer: any;
+export declare const _loadEmbeddings: any;
+export declare const _loadLayer: any;
+export declare const _loadFinalWeights: any;

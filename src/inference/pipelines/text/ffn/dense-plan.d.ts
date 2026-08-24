@@ -1,0 +1,12 @@
+export declare const canFuseSplitPrefillF16GateUpPath: any;
+export declare const constantsEqual: any;
+export declare const hasExplicitMatmulPrecision: any;
+export declare const hasQ4KMaterialization: any;
+export declare const isQ4KMatmulVariant: any;
+export declare const normalizeFusedGateUpPipelineConstants: any;
+export declare const resolveDenseFFNFusedPathDtypes: any;
+export declare const resolveDenseFFNMatmulStepDtype: any;
+export declare const resolveFusedGateUpPipelineConstants: any;
+export declare const resolveFusedGateUpVariant: any;
+export declare const resolveFusedGateUpWeights: any;
+export declare const resolveGateUpPathMode: any;

@@ -9,6 +9,31 @@ function findLine(source, offset) {
   return source.slice(0, offset).split('\n').length;
 }
 
+function findCallEnd(source, start, marker) {
+  let depth = 1;
+  let quote = null;
+  let escaped = false;
+  for (let index = start + marker.length; index < source.length; index += 1) {
+    const char = source[index];
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === quote) quote = null;
+      continue;
+    }
+    if (char === "'" || char === '"' || char === '`') {
+      quote = char;
+      continue;
+    }
+    if (char === '(') depth += 1;
+    else if (char === ')') {
+      depth -= 1;
+      if (depth === 0) return index + 1;
+    }
+  }
+  throw new Error(`Unterminated call at line ${findLine(source, start)}`);
+}
+
 function assertCallBlocksContain(source, marker, needle, label) {
   let offset = 0;
   let found = 0;
@@ -17,9 +42,9 @@ function assertCallBlocksContain(source, marker, needle, label) {
     if (start === -1) break;
     found += 1;
 
-    const window = source.slice(start, start + 600);
+    const call = source.slice(start, findCallEnd(source, start, marker));
     assert.match(
-      window,
+      call,
       new RegExp(needle),
       `${label}: "${marker}" at line ${findLine(source, start)} must include ${needle}`
     );
@@ -35,9 +60,9 @@ const probeForwardingFiles = [
   'src/inference/pipelines/text/ffn/standard.js',
   'src/inference/pipelines/text/ffn/sandwich.js',
   'src/inference/pipelines/text/linear-attention.js',
-  'src/inference/pipelines/text/embed.js',
+  'src/inference/pipelines/text/embedding-normalization.js',
   'src/inference/pipelines/text/logits/index.js',
-  'src/inference/pipelines/text/logits/utils.js',
+  'src/inference/pipelines/text/logits/cpu-output.js',
   'src/inference/pipelines/text/logits/gpu.js',
 ];
 
@@ -47,14 +72,22 @@ for (const relativePath of probeForwardingFiles) {
 }
 
 {
-  const source = readSource('src/inference/pipelines/text/generator.js');
+  const source = [
+    'src/inference/pipelines/text/generator.js',
+    'src/inference/pipelines/text/generator/decode.js',
+    'src/inference/pipelines/text/generator/prefill-runtime.js',
+  ].map(readSource).join('\n');
   assertCallBlocksContain(source, 'embed(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
   assertCallBlocksContain(source, 'recordLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
   assertCallBlocksContain(source, 'computeLogits(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
 }
 
 {
-  const source = readSource('src/inference/pipelines/text/generator-steps.js');
+  const source = [
+    'src/inference/pipelines/text/generator-steps.js',
+    'src/inference/pipelines/text/generator/decode.js',
+    'src/inference/pipelines/text/generator/diffusion.js',
+  ].map(readSource).join('\n');
   assertCallBlocksContain(source, 'embed(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
   assertCallBlocksContain(source, 'recordLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
   assertCallBlocksContain(source, 'computeLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');

@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const generatorSource = readFileSync(
-  new URL('../../src/inference/pipelines/text/generator.js', import.meta.url),
-  'utf8'
-);
+const generatorSource = [
+  '../../src/inference/pipelines/text/generator/recovery.js',
+  '../../src/inference/pipelines/text/generator/decode-runtime.js',
+].map((relativePath) => readFileSync(new URL(relativePath, import.meta.url), 'utf8')).join('\n');
 
 assert.match(
   generatorSource,

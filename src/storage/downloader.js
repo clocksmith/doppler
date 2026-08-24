@@ -8,9 +8,6 @@ import {
 
 import {
   openModelStore,
-  createFileWriter,
-  createStreamingHasher,
-  writeShard,
   shardExists,
   loadShard,
   loadFileFromStore,
@@ -35,16 +32,30 @@ import {
   DB_NAME,
   DB_VERSION,
   STORE_NAME,
-  getDistributionConfig,
   getDefaultConcurrency,
-  getMaxRetries,
-  getInitialRetryDelayMs,
-  getMaxRetryDelayMs,
   getProgressUpdateIntervalMs,
   getRequiredContentEncoding,
 } from './download-types.js';
 
-import { resolveSourceArtifact, normalizeSourceArtifactPath } from './source-artifact-store.js';
+import { resolveSourceArtifact } from './source-artifact-store.js';
+import {
+  buildManifestVersionSet,
+  computeAssetHash,
+  createDefaultSourceStats,
+  fileExistsInStore,
+  getTokenizerModelPath,
+  isTokenizerJsonRequired,
+  normalizeSourceStats,
+  persistDownloadedShardIfNeeded,
+} from './download/integrity.js';
+import { createAbortError, fetchWithRetry } from './download/retry.js';
+import {
+  downloadShard,
+  downloadSourceAsset,
+  joinArtifactUrl,
+} from './download/transport.js';
+
+export { persistDownloadedShardIfNeeded } from './download/integrity.js';
 
 // ============================================================================
 // Module State
@@ -54,87 +65,6 @@ import { resolveSourceArtifact, normalizeSourceArtifactPath } from './source-art
 let db = null;
 
 const activeDownloads = new Map();
-let distributionModulePromise = null;
-
-async function getExperimentalDistributionModule() {
-  distributionModulePromise ??= import('../experimental/distribution/shard-delivery.js');
-  return distributionModulePromise;
-}
-
-function buildManifestVersionSet(manifest) {
-  const sourceArtifact = resolveSourceArtifact(manifest);
-  if (!manifest || typeof manifest !== 'object') return 'manifest:invalid';
-  const shards = Array.isArray(manifest.shards)
-    ? manifest.shards.map((shard, index) => ({
-      index,
-      filename: shard?.filename ?? null,
-      size: shard?.size ?? null,
-      hash: shard?.hash ?? null,
-    }))
-    : [];
-  const payload = {
-    modelId: manifest.modelId ?? null,
-    version: manifest.version ?? null,
-    hashAlgorithm: manifest.hashAlgorithm ?? null,
-    tensorCount: manifest.tensorCount ?? null,
-    totalSize: manifest.totalSize ?? null,
-    shards,
-    sourceRuntime: sourceArtifact?.sourceRuntime ?? null,
-  };
-  return JSON.stringify(payload);
-}
-
-function createDefaultSourceStats() {
-  return {
-    cache: 0,
-    p2p: 0,
-    http: 0,
-    unknown: 0,
-  };
-}
-
-function normalizeSourceStats(value) {
-  const defaults = createDefaultSourceStats();
-  if (!value || typeof value !== 'object') {
-    return defaults;
-  }
-  return {
-    cache: Number.isFinite(value.cache) ? Math.max(0, Number(value.cache)) : defaults.cache,
-    p2p: Number.isFinite(value.p2p) ? Math.max(0, Number(value.p2p)) : defaults.p2p,
-    http: Number.isFinite(value.http) ? Math.max(0, Number(value.http)) : defaults.http,
-    unknown: Number.isFinite(value.unknown) ? Math.max(0, Number(value.unknown)) : defaults.unknown,
-  };
-}
-
-function isTokenizerJsonRequired(tokenizer) {
-  return Boolean(
-    tokenizer
-    && (tokenizer.type === 'bundled' || tokenizer.type === 'huggingface')
-    && typeof tokenizer.file === 'string'
-    && tokenizer.file.length > 0
-  );
-}
-
-function getTokenizerModelPath(tokenizer) {
-  if (!tokenizer || typeof tokenizer !== 'object') {
-    return null;
-  }
-  const explicit = typeof tokenizer.sentencepieceModel === 'string'
-    ? tokenizer.sentencepieceModel
-    : null;
-  if (explicit && explicit.length > 0) {
-    return explicit;
-  }
-  if (tokenizer.type === 'sentencepiece') {
-    return 'tokenizer.model';
-  }
-  return null;
-}
-
-// ============================================================================
-// IndexedDB Operations
-// ============================================================================
-
 
 async function initDB() {
   if (db) return db;
@@ -267,202 +197,6 @@ function isDatabaseClosingError(error) {
   return message.includes('database connection is closing')
     ||  (error)?.name === 'InvalidStateError';
 }
-
-function createAbortError(message = 'Download aborted') {
-  const error = new Error(message);
-  error.name = 'AbortError';
-  return error;
-}
-
-// ============================================================================
-// Fetch Operations
-// ============================================================================
-
-
-async function fetchWithRetry(url, options = {}) {
-  
-  let lastError;
-  const maxRetries = getMaxRetries();
-  let delay = getInitialRetryDelayMs();
-
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      const response = await fetch(url, {
-        ...options,
-        signal: options.signal
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return response;
-    } catch (error) {
-      lastError =  (error);
-
-      // Don't retry if aborted
-      if ( (error).name === 'AbortError') {
-        throw error;
-      }
-
-      // Don't retry on 4xx errors (except 429)
-      if ( (error).message.includes('HTTP 4') && ! (error).message.includes('HTTP 429')) {
-        throw error;
-      }
-
-      if (attempt < maxRetries) {
-        await new Promise(r => setTimeout(r, delay));
-        delay = Math.min(delay * 2, getMaxRetryDelayMs());
-      }
-    }
-  }
-
-  throw  (lastError);
-}
-
-function joinArtifactUrl(baseUrl, relativePath) {
-  const root = String(baseUrl || '').trim();
-  const rel = normalizeSourceArtifactPath(relativePath);
-  if (!root || !rel) {
-    throw new Error('joinArtifactUrl requires baseUrl and relativePath.');
-  }
-  return new URL(rel, root.endsWith('/') ? root : `${root}/`).href;
-}
-
-async function fileExistsInStore(path) {
-  try {
-    await loadFileFromStore(path);
-    return true;
-  } catch (error) {
-    const message = String(error?.message || '');
-    return error?.name === 'NotFoundError' || message.toLowerCase().includes('not found')
-      ? false
-      : Promise.reject(error);
-  }
-}
-
-async function computeAssetHash(payload, algorithm = 'sha256') {
-  const bytes = payload instanceof Uint8Array ? payload : new Uint8Array(payload);
-  const hasher = await createStreamingHasher(String(algorithm || 'sha256').trim().toLowerCase());
-  hasher.update(bytes);
-  const digest = await hasher.finalize();
-  return Array.from(digest)
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-async function downloadSourceAsset(url, asset, options = {}) {
-  const response = await fetchWithRetry(url, { signal: options.signal });
-  const expectedSize = Number.isFinite(asset?.size) ? Math.max(0, Math.floor(Number(asset.size))) : null;
-  const expectedHash = typeof asset?.hash === 'string' && asset.hash.trim() ? asset.hash.trim().toLowerCase() : null;
-  const hashAlgorithm = typeof asset?.hashAlgorithm === 'string' && asset.hashAlgorithm.trim()
-    ? asset.hashAlgorithm.trim().toLowerCase()
-    : 'sha256';
-  const writer = await createFileWriter(asset.path);
-  const hasher = expectedHash ? await createStreamingHasher(hashAlgorithm) : null;
-  let receivedBytes = 0;
-  try {
-    if (response.body && typeof response.body.getReader === 'function') {
-      const reader = response.body.getReader();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
-        if (!(value instanceof Uint8Array) || value.byteLength <= 0) {
-          continue;
-        }
-        await writer.write(value);
-        hasher?.update(value);
-        receivedBytes += value.byteLength;
-        options.onProgress?.(receivedBytes);
-      }
-    } else {
-      const bytes = new Uint8Array(await response.arrayBuffer());
-      await writer.write(bytes);
-      hasher?.update(bytes);
-      receivedBytes += bytes.byteLength;
-      options.onProgress?.(receivedBytes);
-    }
-    await writer.close();
-
-    if (expectedSize != null && receivedBytes !== expectedSize) {
-      throw new Error(
-        `Asset size mismatch for ${asset.path}: expected ${expectedSize}, got ${receivedBytes}`
-      );
-    }
-
-    if (hasher && expectedHash) {
-      const computedHashBytes = await hasher.finalize();
-      const computedHash = Array.from(computedHashBytes)
-        .map((byte) => byte.toString(16).padStart(2, '0'))
-        .join('');
-      if (computedHash !== expectedHash) {
-        throw new Error(
-          `Asset hash mismatch for ${asset.path}: expected ${expectedHash}, got ${computedHash}`
-        );
-      }
-    }
-
-    return {
-      source: 'http',
-      path: asset.path,
-      bytes: receivedBytes,
-    };
-  } catch (error) {
-    try {
-      await writer.abort();
-    } catch {}
-    try {
-      await deleteFileFromStore(asset.path);
-    } catch {}
-    throw error;
-  }
-}
-
-
-async function downloadShard(
-  baseUrl,
-  shardIndex,
-  shardInfo,
-  options = {}
-) {
-  const { downloadShard: downloadShardFromDistribution } = await getExperimentalDistributionModule();
-  return downloadShardFromDistribution(baseUrl, shardIndex, shardInfo, {
-    ...options,
-    distributionConfig: getDistributionConfig(),
-  });
-}
-
-export async function persistDownloadedShardIfNeeded(
-  result,
-  shardIndex,
-  options = {}
-) {
-  const writeShardFn = typeof options.writeShardFn === 'function'
-    ? options.writeShardFn
-    : writeShard;
-
-  if (!result || typeof result !== 'object') {
-    throw new Error(`Shard ${shardIndex}: download result is missing`);
-  }
-  if (result.wrote === true) {
-    return false;
-  }
-  if (result.source === 'cache') {
-    return false;
-  }
-  if (!(result.buffer instanceof ArrayBuffer)) {
-    throw new Error(`Shard ${shardIndex}: source "${result.source}" returned non-persisted data without buffer`);
-  }
-  await writeShardFn(shardIndex, result.buffer, { verify: false });
-  return true;
-}
-
-// ============================================================================
-// Public API
-// ============================================================================
-
 
 export async function downloadModel(
   baseUrl,

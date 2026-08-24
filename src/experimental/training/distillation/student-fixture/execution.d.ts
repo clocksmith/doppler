@@ -1,0 +1,13 @@
+export declare const DISTILL_STUDENT_GRAPH_FULL: any;
+export declare const DISTILL_STUDENT_GRAPH_PROJECTION: any;
+export declare const createRowSliceTensor: any;
+export declare const createTransformerLoraAdapters: any;
+export declare const disposeTransformerLoraAdapters: any;
+export declare const getTensorCols: any;
+export declare const getTensorRows: any;
+export declare const makeTensorFromUint32: any;
+export declare const normalizeDistillStudentGraphMode: any;
+export declare const recordTensorView: any;
+export declare const resolveLayerFfnIntermediateSize: any;
+export declare const resolveTransformerLoraShape: any;
+export declare const tensorElementCount: any;

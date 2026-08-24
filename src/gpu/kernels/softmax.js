@@ -2,8 +2,10 @@
 import { getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
-import { unifiedKernelWrapper } from './utils.js';
-import { createPipeline, createUniformBufferWithView, createBindGroupWithValidation } from './utils.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
+import { createPipeline } from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
+import { createBindGroupWithValidation } from './bind-group-validation.js';
 import { dispatchKernel } from './dispatch.js';
 import { trace } from '../../debug/index.js';
 import { getKernelThresholds } from '../../config/schema/index.js';

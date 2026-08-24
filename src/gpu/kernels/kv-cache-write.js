@@ -3,11 +3,11 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { GPU_LIMITS, WORKGROUP_SIZES } from './constants.js';
 import {
   createPipeline,
-  createUniformBufferWithView,
   getCachedPipeline,
-  getKernelConfig,
-  hasRequiredFeatures,
-} from './utils.js';
+} from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
+import { getKernelConfig } from './kernel-configs.js';
+import { hasRequiredFeatures } from './feature-check.js';
 
 function calculate2DDispatch(workgroups) {
   const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;

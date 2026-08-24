@@ -7,7 +7,7 @@ import { getKernelThresholds, padToQ4KBlock } from '../../config/schema/index.js
 import { selectRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.js';
 import { getBuffer, getWeightDtype, getBufferDtype } from '../weight-buffer.js';
-import { unifiedKernelWrapper } from './utils.js';
+import { unifiedKernelWrapper } from './kernel-execution.js';
 
 // Conservative fallback dtype for norm weight inference when metadata is unavailable.
 const DEFAULT_DTYPE = 'f32';

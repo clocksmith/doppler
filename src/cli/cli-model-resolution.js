@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildHfResolveBaseUrl } from '../utils/hf-resolve-url.js';
-import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../tooling/hf-registry-utils.js';
+import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../tooling/hf-registry/catalog-io.js';
 
 const DEFAULT_EXTERNAL_RDRR_ROOT = path.join(DEFAULT_EXTERNAL_MODELS_ROOT, 'rdrr');
 const PACKAGE_ROOT = fileURLToPath(new URL('../..', import.meta.url));

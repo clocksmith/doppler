@@ -1,7 +1,7 @@
 
 
 import { dispatch, recordDispatch } from './dispatch.js';
-import { getPipelineFast } from './utils.js';
+import { getPipelineFast } from './pipeline-cache.js';
 
 
 export class KernelBase {

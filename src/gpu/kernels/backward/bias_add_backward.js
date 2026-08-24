@@ -1,4 +1,4 @@
-import { createBackwardKernel } from './utils.js';
+import { createBackwardKernel } from './executor.js';
 
 const { run, record } = createBackwardKernel('bias_add_backward', {
   uniformSize: 16,

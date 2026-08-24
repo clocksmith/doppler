@@ -1,22 +1,5 @@
 
 
-/**
- * GPU buffer pool with bucketed allocation, pooling, and deferred destruction.
- *
- * Acquire/Release contract:
- * - acquire(size, usage, label) returns a GPUBuffer from the pool or creates a new one.
- *   The buffer is tracked as "active" until explicitly released.
- * - release(buffer) returns a buffer to the pool for reuse. The buffer must currently
- *   be active (acquired and not yet released). Calling release on a buffer that is not
- *   active logs a warning and is a no-op.
- * - discard(buffer) removes a buffer from active tracking and schedules it for
- *   destruction (it will NOT be returned to the pool).
- * - Callers must ensure every successful acquire is paired with exactly one release
- *   or discard. In error paths where the buffer may be null/undefined, use
- *   safeRelease(buffer) which is a no-op for falsy values.
- * - withBuffer(size, usage, fn) is a convenience that guarantees release in a
- *   try/finally block.
- */
 import { getDevice, getDeviceEpoch, getDeviceLimits } from '../gpu/device.js';
 import { allowReadback, trackAllocation } from '../gpu/perf-guards.js';
 import { log, trace, isTraceEnabled } from '../debug/index.js';
@@ -64,11 +47,9 @@ export const BufferUsage =  ({
     | RESOLVED_GPU_BUFFER_USAGE.COPY_SRC,
 });
 
-
 function alignTo(size, alignment) {
   return Math.ceil(size / alignment) * alignment;
 }
-
 
 function getSizeBucket(
   size,
@@ -116,7 +97,6 @@ function getSizeBucket(
   }
   return bucket;
 }
-
 
 export class BufferPool {
   // Pools organized by usage and size bucket
@@ -784,7 +764,6 @@ let globalPool = null;
 let globalPoolEpoch = -1;
 const persistentBuffers = new WeakSet();
 
-
 export function getBufferPool() {
   const epoch = getDeviceEpoch();
   if (!globalPool || globalPoolEpoch !== epoch) {
@@ -796,7 +775,6 @@ export function getBufferPool() {
   }
   return globalPool;
 }
-
 
 export function destroyBufferPool() {
   if (globalPool) {

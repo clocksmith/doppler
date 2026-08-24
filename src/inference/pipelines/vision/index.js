@@ -8,23 +8,6 @@ import { patchEmbed } from './patch-embed.js';
 import { runVisionEncoder } from './encoder.js';
 import { encodeGemma4Image } from './gemma4.js';
 
-/**
- * Encode an image through the vision pipeline.
- *
- * Routes to architecture-specific preprocessing based on visionConfig.visionArchitecture.
- *
- * Full flow:
- *   raw pixels -> preprocess -> patch embed -> ViT blocks -> spatial merge -> visual tokens
- *
- * @param {object} params
- * @param {Uint8Array|Float32Array} params.pixels   Raw image pixel data (RGBA or RGB)
- * @param {number}                  params.width    Image width
- * @param {number}                  params.height   Image height
- * @param {object}                  params.visionConfig  Vision config from manifest
- * @param {object}                  params.weights  Vision encoder weight buffers
- * @param {number}                  [params.softTokenBudget]  Per-request soft token budget override (Gemma 4 tiers: 70/140/280/560/1120)
- * @returns {Promise<VisionEncodeResult>}
- */
 export async function encodeImage(params) {
   const { pixels, width, height, visionConfig, weights, softTokenBudget } = params;
 
@@ -80,12 +63,3 @@ export async function encodeImage(params) {
     imageHeight: preprocessed.height,
   };
 }
-
-/**
- * @typedef {object} VisionEncodeResult
- * @property {GPUBuffer}  features     Encoded visual tokens [numTokens, outHiddenSize]
- * @property {number}     numTokens    Number of visual tokens after spatial merge
- * @property {number[]}   gridThw      [temporal, height, width] grid dimensions
- * @property {number}     imageWidth   Processed image width
- * @property {number}     imageHeight  Processed image height
- */

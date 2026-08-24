@@ -1,0 +1,13 @@
+export declare const computeBlockedAxisPackedByteSize: any;
+export declare const computePackedByteSize: any;
+export declare const createLiteRTAxisTensor: any;
+export declare const createLiteRTBlockedAxisTensor: any;
+export declare const createLiteRTFloatTensor: any;
+export declare const inferLiteRTBlockedAxisLayout: any;
+export declare const inferLiteRTRowwiseLayout: any;
+export declare const isGemma4GlobalLayer: any;
+export declare const normalizeGemma4LiteRTTensors: any;
+export declare const normalizeText: any;
+export declare const resolveGemma4AttentionHeadDim: any;
+export declare const resolveGemma4IntermediateSize: any;
+export declare const resolveLiteRTScaleContract: any;

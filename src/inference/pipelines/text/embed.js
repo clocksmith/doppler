@@ -4,7 +4,6 @@ import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { runGather, recordGather, runGatherSplit, recordGatherSplit, runScale, recordScale } from '../../../gpu/kernel-selector.js';
 import { log, trace } from '../../../debug/index.js';
-import { runProbes } from './probes.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernels/cast.js';

@@ -4,12 +4,12 @@ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { castF32ToF16, recordCastF32ToF16 } from './cast.js';
+import { createUniformBufferFromData } from './uniform-utils.js';
+import { getShaderModule } from './shader-cache.js';
 import {
-  createUniformBufferFromData,
-  getShaderModule,
   getOrCreateBindGroupLayout,
   getOrCreatePipelineLayout,
-} from './utils.js';
+} from './pipeline-cache.js';
 import { recordDispatch } from './dispatch.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from '../../inference/pipelines/text/dtype-contract.js';

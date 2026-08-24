@@ -1,99 +1,22 @@
-
-
 import { BaseTokenizer } from './base.js';
 import { log } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { inferBundledTokenizerBehaviorFlags } from './behavior-flags.js';
-
-function pickCandidate(...values) {
-  for (const value of values) {
-    if (value != null) return value;
-  }
-  return null;
-}
-
-function resolveTokenId(value, vocab, label) {
-  if (value == null) return null;
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') {
-    const id = vocab.get(value);
-    if (id === undefined) {
-      throw new Error(`[Tokenizer] Special token "${label}" not found in vocab: "${value}"`);
-    }
-    return id;
-  }
-  return null;
-}
-
-function resolveSpecialTokens(specialTokensRaw, fallbackTokens, vocab, options = {}) {
-  const padCandidate = pickCandidate(
-    specialTokensRaw?.pad,
-    specialTokensRaw?.pad_token,
-    specialTokensRaw?.pad_token_id,
-    fallbackTokens?.pad
-  );
-  const bosCandidate = pickCandidate(
-    specialTokensRaw?.bos,
-    specialTokensRaw?.bos_token,
-    specialTokensRaw?.bos_token_id,
-    fallbackTokens?.bos
-  );
-  const eosCandidate = pickCandidate(
-    specialTokensRaw?.eos,
-    specialTokensRaw?.eos_token,
-    specialTokensRaw?.eos_token_id,
-    fallbackTokens?.eos
-  );
-  const unkCandidate = pickCandidate(
-    specialTokensRaw?.unk,
-    specialTokensRaw?.unk_token,
-    specialTokensRaw?.unk_token_id,
-    fallbackTokens?.unk
-  );
-
-  const resolved = {
-    pad: resolveTokenId(padCandidate, vocab, 'pad'),
-    bos: resolveTokenId(bosCandidate, vocab, 'bos'),
-    eos: resolveTokenId(eosCandidate, vocab, 'eos'),
-    unk: resolveTokenId(unkCandidate, vocab, 'unk'),
-  };
-
-  if (resolved.eos == null && options.allowMissingEos !== true) {
-    throw new Error('[Tokenizer] Missing EOS token in tokenizer.json and runtime config.');
-  }
-
-  return resolved;
-}
-
-function resolveByteLevelPretokenizerConfig(preTokenizer) {
-  if (!preTokenizer || typeof preTokenizer !== 'object') {
-    return {
-      useByteLevel: false,
-      addPrefixSpace: null,
-    };
-  }
-
-  if (preTokenizer.type === 'ByteLevel') {
-    return {
-      useByteLevel: true,
-      addPrefixSpace: preTokenizer.add_prefix_space === true,
-    };
-  }
-
-  if (preTokenizer.type === 'Sequence' && Array.isArray(preTokenizer.pretokenizers)) {
-    for (const entry of preTokenizer.pretokenizers) {
-      const resolved = resolveByteLevelPretokenizerConfig(entry);
-      if (resolved.useByteLevel) {
-        return resolved;
-      }
-    }
-  }
-
-  return {
-    useByteLevel: false,
-    addPrefixSpace: null,
-  };
-}
+import {
+  createByteLevelCodec,
+  decodeByteFallbackTokens,
+  decodeByteLevelTokens,
+  encodeByteLevelText,
+  resolveByteLevelPretokenizerConfig,
+} from './bundled/decoders.js';
+import {
+  appendVocabEntry,
+  buildMergeRanks,
+  loadObjectVocab,
+  rankFallbackBpeHotTokenIds,
+  registerAddedTokens,
+  resolveSpecialTokens,
+} from './bundled/registry.js';
 
 function normalizeInlineCaseInsensitiveGroups(pattern) {
   let source = String(pattern || '');
@@ -167,225 +90,9 @@ function resolvesCharacterSplitPretokenizer(preTokenizer) {
     && preTokenizer.pattern?.String === '';
 }
 
-function hexNibble(code) {
-  if (code >= 48 && code <= 57) return code - 48;
-  if (code >= 65 && code <= 70) return code - 55;
-  if (code >= 97 && code <= 102) return code - 87;
-  return -1;
-}
-
-function parseByteTokenValue(token) {
-  if (
-    typeof token !== 'string'
-    || token.length !== 6
-    || token.charCodeAt(0) !== 60
-    || token.charCodeAt(1) !== 48
-    || token.charCodeAt(2) !== 120
-    || token.charCodeAt(5) !== 62
-  ) {
-    return null;
-  }
-  const hi = hexNibble(token.charCodeAt(3));
-  const lo = hexNibble(token.charCodeAt(4));
-  return hi >= 0 && lo >= 0 ? (hi << 4) | lo : null;
-}
-
-function decodeByteFallbackTokens(tokens) {
-  const parts = [];
-  let bytes = [];
-  const flushBytes = () => {
-    if (bytes.length === 0) return;
-    parts.push(new TextDecoder('utf-8', { fatal: false }).decode(Uint8Array.from(bytes)));
-    bytes = [];
-  };
-
-  for (const token of tokens) {
-    const byteValue = parseByteTokenValue(token);
-    if (byteValue !== null) {
-      bytes.push(byteValue);
-      continue;
-    }
-    flushBytes();
-    parts.push(token);
-  }
-  flushBytes();
-  return parts.join('');
-}
-
-function appendVocabEntry(token, id, vocab, reverseVocab, byteTokens) {
-  const numId = typeof id === 'number' ? id : parseInt( (id), 10);
-  vocab.set(token, numId);
-  reverseVocab.set(numId, token);
-  const byteVal = parseByteTokenValue(token);
-  if (byteVal !== null) {
-    byteTokens.set(byteVal, numId);
-  }
-  return numId;
-}
-
-function loadObjectVocab(vocabObject, vocab, reverseVocab, byteTokens) {
-  let maxId = -1;
-  const hasOwn = Object.prototype.hasOwnProperty;
-  for (const token in vocabObject) {
-    if (!hasOwn.call(vocabObject, token)) {
-      continue;
-    }
-    const numId = appendVocabEntry(token, vocabObject[token], vocab, reverseVocab, byteTokens);
-    if (Number.isFinite(numId) && numId > maxId) {
-      maxId = numId;
-    }
-  }
-  return maxId;
-}
-
-function normalizeMergeKey(merge) {
-  if (!Array.isArray(merge)) {
-    return merge;
-  }
-  return merge.length === 2 ? `${merge[0]} ${merge[1]}` : merge.join(' ');
-}
-
-function buildMergeRanks(merges, mergeRanks) {
-  const normalizedMerges = new Array(merges.length);
-  for (let i = 0; i < merges.length; i++) {
-    const mergeKey = normalizeMergeKey(merges[i]);
-    normalizedMerges[i] = mergeKey;
-    mergeRanks.set(mergeKey, i);
-  }
-  return normalizedMerges;
-}
-
-function isSpecialLikeHotTokenCandidate(token) {
-  if (typeof token !== 'string' || token.length === 0) {
-    return true;
-  }
-  if ((token.startsWith('<') && token.endsWith('>')) || (token.startsWith('[') && token.endsWith(']'))) {
-    return true;
-  }
-  return /unused|reserved|multimodal|image|video|audio/i.test(token);
-}
-
-function normalizeBpeHotTokenCandidate(token) {
-  if (typeof token !== 'string') {
-    return '';
-  }
-  return token
-    .replace(/^[▁Ġ]+/, '')
-    .replace(/Ċ/g, '\n');
-}
-
-function scoreBpeHotTokenCandidate(token, id) {
-  if (isSpecialLikeHotTokenCandidate(token)) {
-    return Number.NEGATIVE_INFINITY;
-  }
-  const normalized = normalizeBpeHotTokenCandidate(token);
-  if (normalized.length === 0) {
-    return Number.NEGATIVE_INFINITY;
-  }
-
-  const hasBoundaryMarker = token.startsWith('▁') || token.startsWith('Ġ');
-  const isAscii = /^[\x00-\x7F]+$/.test(normalized);
-  const isLowerAlpha = /^[a-z]+$/.test(normalized);
-  const isTitleAlpha = /^[A-Z][a-z]+$/.test(normalized);
-  const isAlpha = /^[A-Za-z]+$/.test(normalized);
-  const isPunctuation = /^[.,!?;:'"()%-]+$/.test(normalized);
-  const isDigits = /^\d+$/.test(normalized);
-  const length = normalized.length;
-
-  let score = 0;
-  if (hasBoundaryMarker) score += 40;
-  if (isLowerAlpha) score += 32;
-  else if (isTitleAlpha) score += 24;
-  else if (isAlpha) score += 20;
-  if (isPunctuation) score += 20;
-  if (isDigits) score += 8;
-  if (isAscii) score += 12;
-
-  if (length === 1) score += hasBoundaryMarker ? 8 : 2;
-  else if (length <= 4) score += 18 - (length * 2);
-  else if (length <= 8) score += 12 - (length - 4);
-  else if (length <= 12) score += 4 - (length - 8);
-  else score -= Math.min(12, length - 12);
-
-  score -= id / 1e7;
-  return score;
-}
-
-function rankFallbackBpeHotTokenIds(reverseVocab, limit, isSpecialToken) {
-  const ranked = [];
-  for (const [id, token] of reverseVocab.entries()) {
-    if (typeof isSpecialToken === 'function' && isSpecialToken(id)) {
-      continue;
-    }
-    const score = scoreBpeHotTokenCandidate(token, id);
-    if (!Number.isFinite(score)) {
-      continue;
-    }
-    ranked.push({ id, score });
-  }
-  ranked.sort((a, b) => b.score - a.score || a.id - b.id);
-  return ranked.slice(0, limit).map((entry) => entry.id);
-}
-
-function registerAddedTokens(addedTokens, vocab, reverseVocab, patterns, specialTokenIds, derivedSpecialTokens = null) {
-  let maxId = -1;
-  for (const token of addedTokens) {
-    const content = token?.content;
-    const id = typeof token?.id === 'number' ? token.id : parseInt(token?.id, 10);
-    if (!Number.isFinite(id) || !content) continue;
-    if (!vocab.has(content)) {
-      vocab.set(content, id);
-      reverseVocab.set(id, content);
-    }
-    if (id > maxId) maxId = id;
-    if (content.length > 1) {
-      patterns.push({ content, id });
-    }
-    if (token.special) {
-      specialTokenIds.add(id);
-      if (derivedSpecialTokens) {
-        if (
-          derivedSpecialTokens.bos == null
-          && (
-            content === '<bos>'
-            || content === '<s>'
-            || content === '<cls>'
-            || content.includes('bos')
-            || content.includes('begin_of_text')
-            || content.includes('beginoftext')
-          )
-        ) {
-          derivedSpecialTokens.bos = id;
-        } else if (
-          derivedSpecialTokens.eos == null
-          && (
-            content === '<eos>'
-            || content === '</s>'
-            || content.includes('eos')
-            || content.includes('end_of_text')
-            || content.includes('endoftext')
-          )
-        ) {
-          derivedSpecialTokens.eos = id;
-        } else if (derivedSpecialTokens.pad == null && (content === '<pad>' || content.includes('pad'))) {
-          derivedSpecialTokens.pad = id;
-        } else if (derivedSpecialTokens.unk == null && (content === '<unk>' || content.includes('unk'))) {
-          derivedSpecialTokens.unk = id;
-        }
-      }
-    }
-  }
-  return maxId;
-}
-
-
 export class TransformersTokenizer extends BaseTokenizer {
-
   #tokenizer = null;
-
   #modelId;
-
-
   constructor(config = {}) {
     // TransformersTokenizer gets vocabSize from setTokenizer(), so defer validation
     super({
@@ -534,42 +241,6 @@ export class BundledTokenizer extends BaseTokenizer {
     return this.specialTokens.unk;
   }
 
-  #initializeByteDecoder() {
-    // GPT2-style byte <-> unicode reversible mapping used by many BPE tokenizers
-    // (including Qwen-family tokenizers).
-    const base = [];
-    for (let i = 33; i <= 126; i++) base.push(i);
-    for (let i = 161; i <= 172; i++) base.push(i);
-    for (let i = 174; i <= 255; i++) base.push(i);
-
-    const chars = [...base];
-    let extra = 0;
-    for (let b = 0; b <= 255; b++) {
-      if (!base.includes(b)) {
-        base.push(b);
-        chars.push(256 + extra);
-        extra += 1;
-      }
-    }
-
-    this.#byteDecoder = new Map();
-    this.#byteEncoder = new Map();
-    for (let i = 0; i < base.length; i++) {
-      this.#byteDecoder.set(String.fromCodePoint(chars[i]), base[i]);
-      this.#byteEncoder.set(base[i], String.fromCodePoint(chars[i]));
-    }
-  }
-
-  #encodeByteLevelText(text) {
-    const bytes = new TextEncoder().encode(text);
-    let out = '';
-    for (const byte of bytes) {
-      out += this.#byteEncoder?.get(byte) ?? String.fromCharCode(byte);
-    }
-    return out;
-  }
-
-  
   load(tokenizerJson) {
     this.#resetState();
     // Detect format: HuggingFace has model.vocab, bundled has top-level vocab
@@ -726,7 +397,9 @@ export class BundledTokenizer extends BaseTokenizer {
     const normalizerPrepend = hf.normalizer?.prepend_scheme === 'always' || hf.normalizer?.add_prefix_space === true;
     this.#useByteLevelEncoding = byteLevelPretokenizer.useByteLevel;
     if (this.#type === 'bpe' && this.#useByteLevelEncoding) {
-      this.#initializeByteDecoder();
+      const codec = createByteLevelCodec();
+      this.#byteDecoder = codec.decoder;
+      this.#byteEncoder = codec.encoder;
     }
     const runtimeSpacePrefix = runtimeDefaults.addSpacePrefix;
     // Use explicit runtime config if set (non-null), otherwise auto-detect from tokenizer.json
@@ -888,7 +561,9 @@ export class BundledTokenizer extends BaseTokenizer {
     }
     this.#useByteLevelEncoding = byteLevelPretokenizer.useByteLevel;
     if (this.#type === 'bpe' && this.#useByteLevelEncoding) {
-      this.#initializeByteDecoder();
+      const codec = createByteLevelCodec();
+      this.#byteDecoder = codec.decoder;
+      this.#byteEncoder = codec.encoder;
     }
     // NOTE: Default to FALSE - first word shouldn't get space prefix
     // Space prefixes are only for words that follow a space in original text
@@ -1086,7 +761,7 @@ export class BundledTokenizer extends BaseTokenizer {
     const pretokens = this.#splitBpePretokens(normalized);
     for (const pretoken of pretokens) {
       const encoded = this.#useByteLevelEncoding
-        ? this.#encodeByteLevelText(pretoken)
+        ? encodeByteLevelText(pretoken, this.#byteEncoder)
         : pretoken.replace(/ /g, this.#spacePrefixChar);
       if (this.#mergeRanks.size === 0) {
         ids.push(...this.#encodeBPEGreedy(encoded));
@@ -1270,28 +945,7 @@ export class BundledTokenizer extends BaseTokenizer {
 
     let result;
     if (this.#type === 'bpe' && this.#useByteLevelEncoding) {
-      const bytes = [];
-      for (const token of tokens) {
-        const byteValue = parseByteTokenValue(token);
-        if (byteValue !== null) {
-          bytes.push(byteValue);
-          continue;
-        }
-        for (const ch of token) {
-          const mapped = this.#byteDecoder.get(ch);
-          if (mapped != null) {
-            bytes.push(mapped);
-            continue;
-          }
-          const fallbackBytes = new TextEncoder().encode(ch);
-          for (const byte of fallbackBytes) {
-            bytes.push(byte);
-          }
-        }
-      }
-      result = new TextDecoder('utf-8', { fatal: false }).decode(Uint8Array.from(bytes));
-      // SentencePiece-style markers can still appear in some mixed vocabularies.
-      result = result.replace(/▁/g, ' ');
+      result = decodeByteLevelTokens(tokens, this.#byteDecoder);
     } else if (this.#type === 'wordpiece') {
       if (this.#splitEveryCharacter) {
         result = tokens.join('');

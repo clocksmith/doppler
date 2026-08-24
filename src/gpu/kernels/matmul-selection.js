@@ -4,7 +4,8 @@ import { getBuffer, getLayout } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { ALIGNMENT, QUANTIZATION, TILE_SIZES } from './constants.js';
-import { getKernelConfig, hasRequiredFeatures } from './utils.js';
+import { getKernelConfig } from './kernel-configs.js';
+import { hasRequiredFeatures } from './feature-check.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import {
   getKernelPathMatmulConstants,

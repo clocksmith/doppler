@@ -2,7 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { isPlainObject } from '../utils/plain-object.js';
 
-/** Persists a browser-relayed report on the host instead of leaving it only in browser storage. */
 export async function persistBrowserRelayReport(response, outputPath) {
   if (!outputPath) return response;
   if (!isPlainObject(response?.result?.report)) {

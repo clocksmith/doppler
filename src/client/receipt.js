@@ -1,59 +1,3 @@
-/**
- * @typedef {'local' | 'fallback'} InferenceSource
- *
- * @typedef {Object} ReceiptModel
- * @property {string} id
- * @property {string|null} hash
- * @property {string|null} fallbackId
- *
- * @typedef {Object} ReceiptDevice
- * @property {string} vendor
- * @property {string} architecture
- * @property {string} device
- * @property {string} description
- * @property {boolean} hasF16
- * @property {boolean} hasSubgroups
- * @property {number} maxBufferSize
- * @property {number|null} submitProbeMs
- * @property {number} deviceEpoch
- *
- * @typedef {Object} ReceiptFailure
- * @property {string} failureClass
- * @property {string} failureCode
- * @property {string} stage
- * @property {string} surface
- * @property {string|null} device
- * @property {string|null} modelId
- * @property {string|null} runtimeProfile
- * @property {string|null} kernelPathId
- * @property {boolean} isSimulated
- * @property {string} message
- *
- * @typedef {Object} ReceiptFallbackDecision
- * @property {string} reason
- * @property {boolean} eligible
- * @property {boolean} executed
- * @property {string|null} deniedReason
- *
- * @typedef {Object} ProviderReceiptV1
- * @property {'doppler_provider_receipt_v1'} receiptVersion
- * @property {string} receiptId
- * @property {InferenceSource} source
- * @property {string} policyMode
- * @property {string|null} policyId
- * @property {ReceiptModel} model
- * @property {ReceiptDevice|null} device
- * @property {ReceiptFailure|null} failure
- * @property {ReceiptFallbackDecision|null} fallbackDecision
- * @property {number|null} localDurationMs
- * @property {number|null} fallbackDurationMs
- * @property {number} totalDurationMs
- * @property {string} timestamp
- * @property {string|null} diagnoseArtifactRef
- * @property {'resolved'|'unavailable'} resolutionStatus
- * @property {{ schema: 'doppler.resolution-identity/v1', logicalModelId: string, resolvedArtifactVariantId: string, resolvedExecutionId: string }|null} resolution
- * @property {string|null} resolutionUnavailableReason
- */
 
 function safeRandomUUID() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -104,27 +48,6 @@ function normalizeResolutionIdentity(resolution) {
   return normalized;
 }
 
-/**
- * Build a structured v1 provider receipt.
- *
- * @param {Object} params
- * @param {InferenceSource} params.source
- * @param {string} params.policyMode
- * @param {string|null} [params.policyId]
- * @param {{ id?: string, hash?: string|null, fallbackId?: string|null }} [params.model]
- * @param {Object|null} [params.deviceInfo]
- * @param {Object|null} [params.kernelCapabilities]
- * @param {number} [params.deviceEpoch]
- * @param {import('./failure-taxonomy.js').classifyProviderFailure|null} [params.failure]
- * @param {{ reason?: string, eligible?: boolean, executed?: boolean, deniedReason?: string|null }|null} [params.fallbackDecision]
- * @param {number|null} [params.localDurationMs]
- * @param {number|null} [params.fallbackDurationMs]
- * @param {number} params.totalDurationMs
- * @param {string|null} [params.diagnoseArtifactRef]
- * @param {Object|null} [params.resolution]
- * @param {string|null} [params.resolutionUnavailableReason]
- * @returns {ProviderReceiptV1}
- */
 export function buildProviderReceiptV1({
   source,
   policyMode,

@@ -3,10 +3,10 @@ import { readFileSync } from 'node:fs';
 import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 const originalFetch = globalThis.fetch;
-const linearAttentionSource = readFileSync(
-  new URL('../../src/inference/pipelines/text/linear-attention.js', import.meta.url),
-  'utf8'
-);
+const linearAttentionSource = [
+  '../../src/inference/pipelines/text/linear-attention.js',
+  '../../src/inference/pipelines/text/linear-attention/plan.js',
+].map((relativePath) => readFileSync(new URL(relativePath, import.meta.url), 'utf8')).join('\n');
 
 const { StructuredJsonHeadPipeline } = await import('../../src/inference/pipelines/structured/json-head-pipeline.js');
 const { SpeculativeDecoder } = await import('../../src/inference/speculative.js');

@@ -1,4 +1,3 @@
-/** Generic TargetPlan slot -> physical WebGPU resource binding. */
 
 function resolveGpuDevice(devicePort) {
   const device = typeof devicePort?.getDevice === 'function' ? devicePort.getDevice() : devicePort?.gpuDevice ?? devicePort;
@@ -12,7 +11,6 @@ function align(value, alignment) {
   return Math.ceil(value / alignment) * alignment;
 }
 
-/** @param {object} expression @param {Record<string, number>} dimensions */
 export function evaluateMemoryExpression(expression, dimensions) {
   if (expression?.op === 'constant') return expression.bytes;
   if (expression?.op !== 'affine') throw new Error(`Unsupported memory expression op "${expression?.op}".`);
@@ -48,7 +46,6 @@ function resolveUsage(slot) {
   return slot.usage.reduce((mask, name) => mask | usageBit(name), 0);
 }
 
-/** @param {object} devicePort @param {{ bindProgramSlot?: Function }} [program] */
 export function createResourceBinder(devicePort, program = null) {
   const device = resolveGpuDevice(devicePort);
   const boundSlots = new Map();

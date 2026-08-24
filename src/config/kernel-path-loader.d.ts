@@ -98,8 +98,12 @@ export function getKernelPathMatmulConstants(
 /** Return true when the selected graph consumes packed BF16 weights directly. */
 export function kernelPathRequiresBF16Weights(path?: KernelPathSchema | null): boolean;
 
-/** Return true when an execution-v1 kernel closure consumes packed BF16 weights. */
-export function executionKernelClosureRequiresBF16Weights(execution: unknown): boolean;
+/** Return true when the selected graph consumes the registry-declared weight dtype. */
+export function kernelPathRequiresWeightDtype(
+  path: KernelPathSchema | null | undefined,
+  weightDtype: string,
+  operation?: string
+): boolean;
 
 export function getKernelPathMatmulPrecision(
   role: string | undefined,

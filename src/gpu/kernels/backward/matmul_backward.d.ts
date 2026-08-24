@@ -1,6 +1,5 @@
 import type { CommandRecorder } from '../../command-recorder.js';
 import type { Tensor } from '../../tensor.js';
-import type { BackwardKernelOptions } from './utils.js';
 
 export interface MatmulBackwardOptions {
   M: number;

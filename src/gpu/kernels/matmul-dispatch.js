@@ -1,6 +1,11 @@
 import { KernelBase } from './kernel-base.js';
 import { GPU_LIMITS, TILE_SIZES } from './constants.js';
-import { createUniformBufferWithView, getOrCreateBindGroupLayout, getCachedPipeline, createPipeline } from './utils.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
+import {
+  getOrCreateBindGroupLayout,
+  getCachedPipeline,
+  createPipeline,
+} from './pipeline-cache.js';
 
 
 export class MatmulKernel extends KernelBase {

@@ -3,7 +3,11 @@
 import { getDevice, getDeviceEpoch } from '../device.js';
 import { acquireBuffer, readBufferSlice } from '../../memory/buffer-pool.js';
 import { recordDispatch } from './dispatch.js';
-import { createUniformBufferFromData, getOrCreateBindGroupLayout, getOrCreatePipelineLayout } from './utils.js';
+import { createUniformBufferFromData } from './uniform-utils.js';
+import {
+  getOrCreateBindGroupLayout,
+  getOrCreatePipelineLayout,
+} from './pipeline-cache.js';
 import { allowReadback } from '../perf-guards.js';
 
 

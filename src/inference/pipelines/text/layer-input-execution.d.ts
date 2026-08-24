@@ -1,0 +1,11 @@
+export declare const applyPerLayerInputBlock: any;
+export declare const debugLayerTensor: any;
+export declare const hasPerLayerInputBlock: any;
+export declare const isConvLayerType: any;
+export declare const isMoELayer: any;
+export declare const normalizeLayerType: any;
+export declare const processLayerPerLayerInputGate: any;
+export declare const processLayerPerLayerInputProjection: any;
+export declare const resolveAttentionKVSharing: any;
+export declare const shouldUsePostFfnNextInputRMSNormPairFusion: any;
+export declare const shouldUseStandardPostFfnNextInputRMSNormPairFusion: any;

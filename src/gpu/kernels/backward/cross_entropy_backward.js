@@ -1,7 +1,7 @@
 import { dtypeBytes } from '../../tensor.js';
 import { getDevice } from '../../device.js';
 import { WORKGROUP_SIZES } from '../constants.js';
-import { createBackwardKernel } from './utils.js';
+import { createBackwardKernel } from './executor.js';
 
 function resolveMaxWorkgroupsPerDimension(device) {
   const limit = device?.limits?.maxComputeWorkgroupsPerDimension;

@@ -2,22 +2,6 @@
 
 import { log } from '../../../debug/index.js';
 
-/**
- * Preprocess an image for Qwen3-VL vision encoder.
- *
- * Accepts raw pixel data (Uint8Array RGBA or RGB, or Float32Array normalized)
- * and returns a GPU-ready Float32Array of shape [C, H, W] after:
- *   1. Resize to fit min/max pixel constraints
- *   2. Pad to patch-aligned dimensions
- *   3. Normalize with mean/std
- *   4. Extract temporal patches (for video; single frame for images)
- *
- * @param {Uint8Array|Float32Array} pixels   Raw pixel data (RGBA or RGB)
- * @param {number}                  width    Source image width
- * @param {number}                  height   Source image height
- * @param {object}                  config   Vision config from manifest or explicit config
- * @returns {{ data: Float32Array, gridThw: [number, number, number], patchedHeight: number, patchedWidth: number }}
- */
 export function preprocessImage(pixels, width, height, config) {
   const {
     patchSize,
@@ -97,12 +81,6 @@ export function preprocessImage(pixels, width, height, config) {
   };
 }
 
-/**
- * Compute target dimensions that satisfy:
- *   - Total pixels >= minPixels and <= maxPixels
- *   - Both dimensions are multiples of mergedPatch
- *   - Aspect ratio is preserved as closely as possible
- */
 function computeTargetDimensions(width, height, minPixels, maxPixels, mergedPatch) {
   const aspectRatio = width / height;
 
@@ -133,11 +111,6 @@ function computeTargetDimensions(width, height, minPixels, maxPixels, mergedPatc
   return { targetWidth: w, targetHeight: h };
 }
 
-/**
- * Bilinear resize of interleaved RGB(A) pixel data.
- * Input: Uint8Array or Float32Array in [H, W, C] layout (C >= 3, only first 3 used).
- * Output: Float32Array in [H, W, 3] layout with values in [0, 255].
- */
 function resizeBilinear(src, srcW, srcH, dstW, dstH, channels) {
   const srcChannels = src.length / (srcW * srcH);
   const out = new Float32Array(dstH * dstW * channels);

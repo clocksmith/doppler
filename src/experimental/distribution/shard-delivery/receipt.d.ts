@@ -1,0 +1,17 @@
+export declare const applyControlPlaneSessionUpdate: any;
+export declare const assertExpectedHash: any;
+export declare const assertExpectedManifestVersionSet: any;
+export declare const assertExpectedSize: any;
+export declare const assertP2PPayloadRangeStart: any;
+export declare const assertP2PTotalSize: any;
+export declare const createAbortError: any;
+export declare const downloadShardFromP2P: any;
+export declare const enforceP2PControlPlanePolicy: any;
+export declare const getP2PTransportPolicyState: any;
+export declare const isSessionTokenExpiredOrExpiring: any;
+export declare const markP2PTransportFailure: any;
+export declare const markP2PTransportSuccess: any;
+export declare const normalizeManifestVersionSet: any;
+export declare const p2pTransportPolicyState: any;
+export declare const refreshP2PSessionTokenFromControlPlane: any;
+export declare const withTimeout: any;

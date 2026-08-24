@@ -7,10 +7,10 @@ Updated at: 2026-08-15T17:06:16.191Z
 
 ## Summary
 
-- Catalog models: 28
-- Runtime-verified models: 25
+- Catalog models: 31
+- Runtime-verified models: 26
 - HF-published models: 19
-- Failed models: 1
+- Failed models: 3
 - Verification-needed models: 2
 - Generation compare rows: 15
 - Generation compare gap rows: 3
@@ -22,7 +22,7 @@ Updated at: 2026-08-15T17:06:16.191Z
 - Transformers.js embedding latency-leading rows: 1
 - Doppler rerank latency-leading rows: 1
 - Transformers.js rerank latency-leading rows: 0
-- Evidence-incomplete rows: 33
+- Evidence-incomplete rows: 36
 
 ## Claim Status Rules
 
@@ -89,6 +89,8 @@ Updated at: 2026-08-15T17:06:16.191Z
 | gemma-4-e2b-it-q4k-ehf16-af32-int4ple | generation | clocksmith/rdrr@16256bf16dc8f92b8fe5105b07628cef91587f0a<br>models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/gemma-4-E2B-it-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json<br>benchmarks/vendors/results/compare_20260707T170557.json |
 | lfm2-5-1-2b-instruct-q4k-ehf16-af32 | text | missing | browser:missing<br>node:missing<br>bun:missing | transformersjs<br>LiquidAI/LFM2.5-1.2B-Instruct-ONNX<br>onnx | verification-needed<br>manifest-weights | manifest-weights<br>runtime-verify<br>hf-publish<br>claim-lane<br>compare-result<br>summary-svg | none |
 | minicpm4-0-5b-f16-af32 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | failed<br>runtime-verify | runtime-verify<br>hf-publish<br>compare-profile | none |
+| muse-glimmer-30b-text-bf16-af32 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | failed<br>runtime-verify | runtime-verify<br>hf-publish<br>compare-profile | none |
+| muse-glimmer-30b-text-f16-af32 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | failed<br>runtime-verify | runtime-verify<br>hf-publish<br>compare-profile | none |
 | nucleotide-transformer-v2-50m-f32-af32 | embedding | clocksmith/rdrr@a5703ef6971cc883438a393d73f2f54dccf94976<br>models/nucleotide-transformer-v2-50m-f32-af32 | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json |
 | qwen-3-5-0-8b-q4k-ehaf16 | generation | clocksmith/rdrr@80d7716270b6371d541de979eff3370edaf34e13<br>models/qwen-3-5-0-8b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-0.8B-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json<br>benchmarks/vendors/results/compare_20260705T160226.json |
 | qwen-3-5-0-8b-q4k-ehaf16 | generation | clocksmith/rdrr@80d7716270b6371d541de979eff3370edaf34e13<br>models/qwen-3-5-0-8b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-0.8B-ONNX<br>onnx/q4f16 | summary-svg-missing<br>summary-svg | summary-svg | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json<br>benchmarks/vendors/results/compare_20260705T161224.json |
@@ -98,6 +100,7 @@ Updated at: 2026-08-15T17:06:16.191Z
 | qwen-3-6-27b-q4k-eaf16 | text | clocksmith/rdrr@3dee21b3b12d65ac7fef9b24cbf759cacc953a67<br>models/qwen-3-6-27b-q4k-eaf16 | browser:verified<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json |
 | qwen-3-6-27b-q4k-ehaf16 | text | clocksmith/rdrr@b402f6f27837857d51636da5f78c12bcd47e2a03<br>models/qwen-3-6-27b-q4k-ehaf16 | browser:verified<br>node:missing<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json |
 | qwen-3-reranker-0-6b-f16-af32 | rerank | clocksmith/rdrr@cc1fafff8cda609372b608cd92e487f6a2c32bc8<br>models/qwen-3-reranker-0-6b-f16-af32 | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json |
+| qwen3-8-27b-text-f16-af32 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>hf-publish | hf-publish<br>compare-profile | reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json |
 | translategemma-4b-1b-enes-q4k-ehf16-af32 | translate | clocksmith/rdrr@1e2c047357f07dfe45a8effc2fa915acd73999ee<br>models/translategemma-4b-1b-enes-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs | capability-only<br>benchmark-lane-capability-only | benchmark-lane-capability-only | benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json |
 | translategemma-4b-it-q4k-ehf16-af32 | generation | clocksmith/rdrr@6fc46049882e961a57d1690ba1ffde21677d001a<br>models/translategemma-4b-it-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/translategemma-text-4b-it-ONNX<br>onnx/q4f16 | candidate<br>compare-result | chromium-webgpu<br>p064-d064-t0-k1<br>p256-d128-t0-k1<br>p512-d128-t0-k1<br>parity<br>throughput<br>chromium-webgpu:p064-d064-t0-k1<br>chromium-webgpu:p256-d128-t0-k1<br>chromium-webgpu:p512-d128-t0-k1 | reports/release-claims/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json |
 
@@ -120,8 +123,11 @@ These commands are gates, not evidence. A row becomes evidence only after its sa
 | gemma-4-e2b-it-q4k-ehf16-af32 | compare-result | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | gemma-4-e2b-it-q4k-ehf16-af32-int4ple | summary-svg | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | minicpm4-0-5b-f16-af32 | runtime-verify | `node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto` |
+| muse-glimmer-30b-text-bf16-af32 | runtime-verify | `node tools/run-registry-verify.js muse-glimmer-30b-text-bf16-af32 --surface auto` |
+| muse-glimmer-30b-text-f16-af32 | runtime-verify | `node tools/run-registry-verify.js muse-glimmer-30b-text-f16-af32 --surface auto` |
 | qwen-3-5-0-8b-q4k-ehaf16 | summary-svg | `node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 | qwen-3-5-2b-q4k-ehaf16 | summary-svg | `node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
+| qwen3-8-27b-text-f16-af32 | hf-publish | `node tools/publish-hf-registry-model.js --model-id qwen3-8-27b-text-f16-af32 --dry-run --bootstrap` |
 | translategemma-4b-it-q4k-ehf16-af32 | compare-result | `node tools/compare-engines.js --model-id translategemma-4b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 
 ## Source Files

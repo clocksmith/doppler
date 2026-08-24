@@ -1,6 +1,10 @@
 import { getDevice, getDeviceEpoch } from '../device.js';
 import { dispatchKernel } from './dispatch.js';
-import { createUniformBufferWithView, getOrCreateBindGroupLayout, getOrCreatePipelineLayout } from './utils.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
+import {
+  getOrCreateBindGroupLayout,
+  getOrCreatePipelineLayout,
+} from './pipeline-cache.js';
 
 export const DEFAULT_FINITENESS_ABS_THRESHOLD = 65500;
 

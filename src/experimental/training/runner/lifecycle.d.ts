@@ -1,0 +1,11 @@
+export declare const buildProgressSnapshot: any;
+export declare const buildTrainableParamRefs: any;
+export declare const evaluateTelemetryAlerts: any;
+export declare const fromBase64: any;
+export declare const isTensorLike: any;
+export declare const looksLikeTrainingCheckpointRecord: any;
+export declare const normalizeOptionalString: any;
+export declare const resolveModelParamGroups: any;
+export declare const restoreTensorSnapshot: any;
+export declare const restoreTrainingCheckpointState: any;
+export declare const selectTrainableParamGroups: any;

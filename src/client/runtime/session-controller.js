@@ -1,4 +1,3 @@
-/** Real prefill -> sample -> incremental decode session control for Pack v2. */
 
 function requireGenerationOptions(options) {
   const requiredNumbers = ['maxTokens', 'temperature', 'topP', 'topK', 'repetitionPenalty', 'repetitionPenaltyWindow'];
@@ -33,7 +32,6 @@ function seededRandom(seed) {
   return value - Math.floor(value);
 }
 
-/** Pure host sampling over actual model logits. */
 export function samplePackLogits(sourceLogits, contextTokens, options, tokenContract = {}) {
   const logits = Float32Array.from(sourceLogits || []);
   if (logits.length === 0) throw new Error('Pack execution returned empty logits.');
@@ -102,7 +100,6 @@ function shouldStop(tokenId, generatedTokens, options, tokenContract, program) {
   return options.stopSequences.some((sequence) => text.endsWith(sequence));
 }
 
-/** @param {object} commandExecutor @param {object} resourceBinder @param {object} program */
 export function createSessionController(commandExecutor, resourceBinder, program) {
   if (!commandExecutor || !resourceBinder || !program) {
     throw new Error('createSessionController requires commandExecutor, resourceBinder, and program.');

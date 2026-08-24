@@ -2,8 +2,8 @@ import {
   applyRuntimeInputs,
   buildSuiteOptions,
   runWithRuntimeIsolation,
-} from './command-runner-shared.js';
-import { loadRuntimeConfigFromRef } from '../inference/browser-harness-runtime-helpers.js';
+} from './command-runtime-execution.js';
+import { loadRuntimeConfigFromRef } from '../inference/browser-harness/runtime-config.js';
 import { bootstrapNodeWebGPUProvider } from './node-webgpu.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { findFirstDivergence } from '../inference/pipelines/text/operator-events.js';

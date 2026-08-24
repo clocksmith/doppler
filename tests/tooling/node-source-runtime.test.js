@@ -491,7 +491,7 @@ try {
       inputPath: path.join(litertLmFixtureDir, 'gemma-4-12B-it.litertlm'),
       modelId: 'node-source-runtime-test-litertlm-gemma4-12b',
     }),
-    /split-section graph adapter requires TFLiteModel sections "tf_lite_embedder" and "tf_lite_prefill_decode"/
+    /gemma4-12b-litert-direct-source-unverified.*saturated logits/i
   );
 } finally {
   await Promise.allSettled(

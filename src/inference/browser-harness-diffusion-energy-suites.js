@@ -1,17 +1,22 @@
 import { getRuntimeConfig } from '../config/runtime.js';
 import { computeSampleStats } from '../debug/stats.js';
-import { initializeSuiteModel, resolveDeviceInfo } from './browser-harness-model-helpers.js';
+import { initializeSuiteModel } from './browser-harness/model-initialization.js';
+import { resolveDeviceInfo } from './browser-harness/model-resolution.js';
 import { buildSuiteContractMetrics } from './browser-harness-contract-helpers.js';
-import { resolvePrompt } from './browser-harness-text-helpers.js';
+import { resolvePrompt } from './browser-harness/text-input.js';
 import {
   buildSuiteSummary,
   normalizeCacheMode,
   normalizeLoadMode,
   safeStatsValue,
+} from './browser-harness/suite-summary.js';
+import {
   buildDiffusionPerformanceArtifact,
+} from './browser-harness/diffusion-performance.js';
+import {
   buildCanonicalTiming,
   buildTimingDiagnostics,
-} from './browser-harness-suite-helpers.js';
+} from './browser-harness/timing-diagnostics.js';
 
 function isDiffusionGemmaManifest(manifest) {
   return manifest?.modelType === 'diffusion_gemma';

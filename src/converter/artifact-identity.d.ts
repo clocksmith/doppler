@@ -1,0 +1,14 @@
+export declare const buildArtifactIdentity: any;
+export declare const canonicalJson: any;
+export declare const digestSuffix: any;
+export declare const extractArchitecture: any;
+export declare const getNestedTextConfig: any;
+export declare const hashArtifactValue: any;
+export declare const inferArtifactModalitySet: any;
+export declare const isPlainRecord: any;
+export declare const normalizeDigest: any;
+export declare const resolveArtifactSourceFormat: any;
+export declare const resolveMaterializationProfile: any;
+export declare const resolveSourceCheckpointIdentity: any;
+export declare const sanitizeModelId: any;
+export declare const stripUndefined: any;

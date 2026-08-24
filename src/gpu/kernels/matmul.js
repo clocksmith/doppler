@@ -38,7 +38,7 @@ import {
   createMatmulBindGroupLayout,
   getMatmulPipeline,
 } from './matmul-dispatch.js';
-import { getPipelineBindGroupLayout } from './utils.js';
+import { getPipelineBindGroupLayout } from './pipeline-cache.js';
 
 export { isFusedQ4KDisabled, selectMatmulKernel };
 export { createMatmulBindGroupLayout };

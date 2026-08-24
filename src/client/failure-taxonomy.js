@@ -77,33 +77,6 @@ function inferSurface(message, providedSurface) {
   return 'unknown';
 }
 
-/**
- * Classify a provider failure into a normalized FailureRecord for receipts
- * and diagnostics. Single taxonomy; `failureClass` values match the
- * `FailureClass` type exported by provider.d.ts.
- *
- * @param {Error|unknown} error
- * @param {{
- *   stage?: string,
- *   surface?: string,
- *   device?: string|null,
- *   modelId?: string|null,
- *   runtimeProfile?: string|null,
- *   kernelPathId?: string|null,
- * }} [context]
- * @returns {{
- *   failureClass: string,
- *   failureCode: string,
- *   stage: string,
- *   surface: string,
- *   device: string|null,
- *   modelId: string|null,
- *   runtimeProfile: string|null,
- *   kernelPathId: string|null,
- *   isSimulated: boolean,
- *   message: string,
- * }}
- */
 export function classifyProviderFailure(error, context = {}) {
   const message = error instanceof Error ? error.message : String(error);
   const errorCode = error && typeof error === 'object' && typeof error.code === 'string' ? error.code : null;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-19",
+  "updatedAt": "2026-08-23",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -531,6 +531,27 @@
         "kind": "runtime-report",
         "reportPath": "docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
         "metricPath": "result.phase.totalMs",
+        "minValue": 0,
+        "unit": "ms"
+      }
+    },
+    {
+      "modelId": "qwen3-8-27b-text-f16-af32",
+      "mode": "text",
+      "surface": [
+        "node"
+      ],
+      "verificationSource": "model-ir-v2-release-to-javascript",
+      "lastVerifiedAt": "2026-08-23",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "local-node-webgpu-verify",
+        "reportPath": "reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json",
+        "metricPath": "metrics.decodeMs",
         "minValue": 0,
         "unit": "ms"
       }

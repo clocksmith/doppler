@@ -1,0 +1,14 @@
+export declare const DISTILL_ADAPTER_TOP_K: any;
+export declare const TRANSFORMER_LORA_TARGET_MODULES: any;
+export declare const clampDistillTopK: any;
+export declare const createDistillStudentProjectionModelFixture: any;
+export declare const disposePrefillSnapshot: any;
+export declare const ensureTrainableTensor: any;
+export declare const makeTensorFromF16Bits: any;
+export declare const makeTensorFromFloat32: any;
+export declare const normalizeTransformerLoraConfig: any;
+export declare const releaseTensor: any;
+export declare const resolvePhasePrompts: any;
+export declare const resolveTensorDtype: any;
+export declare const toFiniteNumber: any;
+export declare const toFloat32Array: any;

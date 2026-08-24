@@ -1,0 +1,43 @@
+export function resolveRerankScoringConfig(pipeline: any): {
+    format: string;
+    instruction: string;
+    inputTemplate: string;
+    prefix: string;
+    suffix: string;
+    trueToken: string;
+    trueTokenId: number;
+    falseToken: string;
+    falseTokenId: number;
+    score: string;
+    probability: string;
+};
+export function formatRerankPrompt(query: any, document: any, scoringConfig: any): string;
+export function assertRerankLogitsVector(value: any): any[] | ArrayBufferView<ArrayBufferLike>;
+export function buildRerankScoreRecord(query: any, document: any, prompt: any, tokenCount: any, trueLogit: any, falseLogit: any, config: any, scoringPath: any, phase: any): {
+    query: any;
+    document: any;
+    prompt: any;
+    tokenCount: any;
+    score: any;
+    probability: number;
+    trueLogit: any;
+    falseLogit: any;
+    trueTokenId: any;
+    falseTokenId: any;
+    scoringPath: any;
+    phase: any;
+};
+export function scoreRerankDocument(pipeline: any, query: any, document: any, scoringConfig?: null, options?: {}): Promise<{
+    query: any;
+    document: any;
+    prompt: any;
+    tokenCount: any;
+    score: any;
+    probability: number;
+    trueLogit: any;
+    falseLogit: any;
+    trueTokenId: any;
+    falseTokenId: any;
+    scoringPath: any;
+    phase: any;
+}>;

@@ -20,8 +20,15 @@ import { createOpfsStore } from './backends/opfs-store.js';
 import { createIdbStore } from './backends/idb-store.js';
 import { createMemoryStore } from './backends/memory-store.js';
 import { normalizeModelId } from './normalize-model-id.js';
+import {
+  checkFileExistsInBackend,
+  getFileSizeInBackend,
+  isRequestedRangeInsideTensor,
+} from './shards/index.js';
+import { normalizeShardWriterOptions } from './shards/lifecycle.js';
 
 export { getManifest } from '../formats/rdrr/index.js';
+export { checkFileExistsInBackend, getFileSizeInBackend };
 
 let opfsPathConfigOverride = null;
 let blake3Module = null;
@@ -113,14 +120,13 @@ async function initBlake3(requiredAlgorithm = null) {
   // produced by this fallback are NOT compatible with BLAKE3 hashes -- manifests
   // hashed with BLAKE3 cannot be verified with SHA-256 and vice versa.
   log.warn('ShardManager', 'BLAKE3 unavailable; falling back to SHA-256 for hash verification. Hashes will not match BLAKE3-based manifests.');
-  hashAlgorithm = 'sha256';
-  blake3Module = {
+    hashAlgorithm = 'sha256';
+    blake3Module = {
     hash: async (data) => {
       const hashBuffer = await crypto.subtle.digest('SHA-256', data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
       return new Uint8Array(hashBuffer);
     },
     createHasher: () => {
-      /** @type {Uint8Array[]} */
       const chunks = [];
       return {
         update: (data) => {
@@ -277,34 +283,6 @@ async function ensureBackend() {
   }
 }
 
-function resolveTensorPrimarySpans(location) {
-  if (Array.isArray(location?.spans) && location.spans.length > 0) {
-    return location.spans.map((span) => ({
-      shardIndex: span.shardIndex ?? span.shard,
-      offset: span.offset,
-      size: span.size,
-    }));
-  }
-  return [{
-    shardIndex: location?.shardIndex ?? location?.shard,
-    offset: location?.offset,
-    size: location?.size,
-  }];
-}
-
-function isRequestedRangeInsideTensor(location, shardIndex, offset, length) {
-  const start = Math.max(0, Number.isFinite(Number(offset)) ? Math.floor(Number(offset)) : 0);
-  const size = length == null ? null : Math.max(0, Number.isFinite(Number(length)) ? Math.floor(Number(length)) : 0);
-  const end = size == null ? Number.POSITIVE_INFINITY : start + size;
-  const spans = resolveTensorPrimarySpans(location);
-  return spans.some((span) => {
-    const spanShardIndex = span.shardIndex;
-    const spanStart = span.offset;
-    const spanEnd = span.offset + span.size;
-    return spanShardIndex === shardIndex && start >= spanStart && end <= spanEnd;
-  });
-}
-
 async function readBackendFileRange(filename, offset = 0, length = null) {
   const start = Math.max(0, offset);
   const want = length == null ? null : Math.max(0, length);
@@ -427,21 +405,6 @@ export async function writeShard(shardIndex, data, options = { verify: true }) {
     if (error instanceof QuotaExceededError) throw error;
     throw new Error(`Failed to write shard ${shardIndex}: ${error.message}`);
   }
-}
-
-function normalizeShardWriterOptions(options = {}) {
-  const append = options?.append === true;
-  const expectedOffsetRaw = options?.expectedOffset;
-  const expectedOffset = expectedOffsetRaw == null
-    ? null
-    : Number(expectedOffsetRaw);
-  if (
-    expectedOffset != null
-    && (!Number.isInteger(expectedOffset) || expectedOffset < 0)
-  ) {
-    throw new Error('Shard writer expectedOffset must be a non-negative integer');
-  }
-  return { append, expectedOffset };
 }
 
 export async function createShardWriter(shardIndex, options = {}) {
@@ -613,34 +576,6 @@ export async function* streamShardRange(shardIndex, offset = 0, length = null, o
 export async function loadShardSync(shardIndex, offset = 0, length) {
   const ab = await loadShardRange(shardIndex, offset, length ?? null, { verify: false });
   return new Uint8Array(ab);
-}
-
-export async function checkFileExistsInBackend(storageBackend, filename) {
-  return (await getFileSizeInBackend(storageBackend, filename)) !== null;
-}
-
-export async function getFileSizeInBackend(storageBackend, filename) {
-  if (!storageBackend || typeof storageBackend !== 'object') {
-    throw new Error('getFileSizeInBackend requires a storage backend object.');
-  }
-  if (!filename || typeof filename !== 'string') {
-    throw new Error('getFileSizeInBackend requires a filename.');
-  }
-
-  try {
-    if (typeof storageBackend.getFileSize === 'function') {
-      const size = await storageBackend.getFileSize(filename);
-      return Number.isFinite(size) ? Math.max(0, Math.floor(size)) : null;
-    }
-    const buffer = await storageBackend.readFile(filename);
-    return buffer.byteLength;
-  } catch (error) {
-    const message = String(error?.message || '');
-    if (error?.name === 'NotFoundError' || message.toLowerCase().includes('not found')) {
-      return null;
-    }
-    throw error;
-  }
 }
 
 export async function shardExists(shardIndex) {

@@ -2,7 +2,8 @@ import { getDevice } from '../../device.js';
 import { createTensor, dtypeBytes } from '../../tensor.js';
 import { WORKGROUP_SIZES } from '../constants.js';
 import { dispatch, recordDispatch } from '../dispatch.js';
-import { createPipeline, createUniformBufferWithView } from '../utils.js';
+import { createPipeline } from '../pipeline-cache.js';
+import { createUniformBufferWithView } from '../uniform-utils.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 
 const MAX_ADAM_ELEMENTS_PER_DISPATCH = 65535 * WORKGROUP_SIZES.DEFAULT;

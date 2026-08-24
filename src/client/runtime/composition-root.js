@@ -24,7 +24,6 @@ async function loadModuleSources(pack, artifactStore) {
   return modules;
 }
 
-/** Creates the immutable validate -> select -> bind -> execute Pack runtime. */
 export function createDopplerRuntime(ports) {
   if (!ports || typeof ports !== 'object') throw new Error('createDopplerRuntime requires injected ports.');
   if (!ports.device) throw new Error('createDopplerRuntime requires a device port.');
