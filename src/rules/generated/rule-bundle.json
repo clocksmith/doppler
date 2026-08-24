@@ -198,6 +198,10 @@
    "digest": "sha256:6f845793e46ce0b9917719c418e81d84a7e26b319ca4feffd9a482548dcb40f4"
   },
   {
+   "path": "kernels/vision-spatial-merge.rules.json",
+   "digest": "sha256:4ec49dcbfa1e3eb8660ec4424bafb348a7d036df5c60be5c860197e186bd64c2"
+  },
+  {
    "path": "loader/tensor-loader.rules.json",
    "digest": "sha256:61bafd04ae60d45f478976f09df6a910b0ed750877008d2edb3b23659c972ead"
   },
@@ -3826,6 +3830,16 @@
       "weightDtype": "f32"
      },
      "value": "f32w"
+    }
+   ]
+  },
+  "kernels/vision-spatial-merge.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "inputDtype": "f32"
+     },
+     "value": "default"
     }
    ]
   },

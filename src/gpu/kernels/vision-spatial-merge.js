@@ -2,6 +2,7 @@ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
+import { selectRuleValue } from './rule-registry.js';
 
 function requirePositiveInteger(value, label) {
   if (!Number.isInteger(value) || value <= 0) {
@@ -34,13 +35,14 @@ export async function runVisionSpatialMerge(input, geometry) {
   const mergedWidth = gridWidth / mergeSize;
   const concatDim = mergeSize * mergeSize * hiddenSize;
   const outputElements = mergedHeight * mergedWidth * concatDim;
+  const variant = selectRuleValue('visionSpatialMerge', 'variant', { inputDtype: input.dtype });
   const outputBuffer = acquireBuffer(outputElements * Float32Array.BYTES_PER_ELEMENT, undefined, 'vision_spatial_merge_output');
   let succeeded = false;
   try {
     await unifiedKernelWrapper(
       'vision_spatial_merge',
       null,
-      'default',
+      variant,
       [input, outputBuffer],
       {
         grid_height: gridHeight,

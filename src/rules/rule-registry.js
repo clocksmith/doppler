@@ -46,6 +46,7 @@ const {
   'kernels/softmax.rules.json': softmaxRules,
   'kernels/upsample2d.rules.json': upsample2dRules,
   'kernels/vision-patch-embed.rules.json': visionPatchEmbedRules,
+  'kernels/vision-spatial-merge.rules.json': visionSpatialMergeRules,
   'inference/config.rules.json': configRules,
   'inference/execution.rules.json': inferenceExecutionRules,
   'inference/attention.rules.json': inferenceAttentionRules,
@@ -139,6 +140,7 @@ const RULE_SETS = {
     softmax: softmaxRules,
     upsample2d: upsample2dRules,
     visionPatchEmbed: visionPatchEmbedRules,
+    visionSpatialMerge: visionSpatialMergeRules,
   },
   inference: {
     config: configRules,

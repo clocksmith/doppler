@@ -7656,9 +7656,9 @@
      "requires": [],
      "outputDtype": "f32",
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["vision-spatial-merge.rules.json#variant"],
       "wgslOnDisk": true
      }
     }
