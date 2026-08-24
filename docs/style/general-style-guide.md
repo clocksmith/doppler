@@ -25,6 +25,8 @@ Rules that cause bugs when violated. Each has a fuller section below with ration
 - **Semantic Ownership** — shared behavior lives in the narrowest subsystem that owns its meaning. New catch-all utility or helper modules are forbidden. See [Semantic Ownership](#semantic-ownership).
 - **Facade Purity** — public entrypoints and compatibility facades validate, normalize, delegate, and translate errors; they do not own workload algorithms or policy. See [Facade Purity](#facade-purity).
 - **Enforced Source Architecture** — ownership, restricted dependency direction, facade purity, and the source line ceiling are checked by `npm run source:architecture:check`. See [Source Architecture Gate](#source-architecture-gate).
+- **No JavaScript Tensor Math** — tensor arithmetic and tensor-layout transforms execute in declared WGSL programs; JavaScript may validate shapes, bind resources, dispatch, and perform explicitly contracted scalar control work only.
+- **Declared Semantic Geometry** — required tensor and spatial geometry comes from ModelIR, TargetPlan, manifest, or resolved session contracts. Runtime code never reconstructs it from counts, tensor names, model names, or heuristics.
 
 ## Core Principles
 
@@ -66,6 +68,10 @@ Determinism requirement:
 - JS may not introduce behavior not represented in resolved config.
 - WGSL may not contain runtime policy branching for selection behavior.
 - Legacy compatibility is allowed only through explicit JSON rule/registry entries and must be visible in config.
+- JS must not implement tensor arithmetic or tensor-layout transforms as CPU
+  loops, typed-array math, or readback/compute/upload round trips.
+- Required semantic geometry must be present in the resolved contract before
+  allocation or dispatch; deriving it from element counts is forbidden.
 
 ---
 
@@ -732,11 +738,17 @@ but may not grow. Once it reaches the limit, its policy entry must be removed.
 - Policy, resolved plans, resource ownership, execution, and observation must
   remain distinct responsibilities.
 
-The canonical ownership and restricted-dependency policy lives in
+The canonical ownership and dependency policy lives in
 `tools/policies/source-architecture-policy.json`; prose must not maintain a
 second changing owner inventory. Its `genericModuleReviews` ledger classifies
 every inherited generic filename as a narrow semantic owner, a pure
 compatibility facade, or bounded legacy debt with named extraction targets.
+
+Every production module must have exactly one declared subsystem owner. The
+policy graph applies to every owner, not a selected subset, and must fail on
+cycles, forbidden dependency direction, production-to-experimental imports,
+unreachable production modules, stale exceptions, or ambiguous ownership.
+Compatibility modules are owned facades, never a generic legacy subsystem.
 
 ## Facade Purity
 
@@ -762,15 +774,20 @@ npm run source:architecture:check
 ```
 
 The style gate rejects JSDoc in governed JavaScript modules so types and API
-descriptions remain in sibling declaration files. `npm run source:style:sync`
-removes inherited implementation JSDoc after declaration coverage is complete.
+descriptions remain in sibling declaration files. It also enforces mechanically
+detectable execution-plane invariants: no ad hoc tensor readback math, no
+runtime geometry inference, no raw runtime logging outside allowed entrypoints,
+no unowned policy/default construction, and precise sibling declarations.
+`npm run source:style:sync` removes inherited implementation JSDoc after
+declaration coverage is complete.
 
-The gate rejects unknown source owners, new restricted dependency edges,
-implementation declarations in declared facades, new over-limit files, growth
-of governed legacy files, stale dependency exceptions, and stale oversize
-entries. It also rejects unreviewed or stale generic-module ownership entries.
-Every temporary dependency exception names the neutral extraction target that
-removes it.
+The architecture gate rejects unknown or ambiguous source owners, dependency
+cycles, forbidden dependency edges for every production owner,
+production-to-experimental edges, unreachable production modules,
+implementation declarations in declared facades, and unreviewed soft- or
+hard-limit files. It also rejects stale dependency exceptions and stale generic
+module ownership entries. Temporary exceptions are bounded debt and cannot be
+reported as repository-wide conformance.
 
 ### Published Package Closure Gate
 

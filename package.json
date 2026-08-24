@@ -1,7 +1,7 @@
 {
   "name": "doppler-gpu",
   "version": "0.5.1",
-  "description": "Browser-native WebGPU inference engine for local intent and inference loops",
+  "description": "AI-native model release foundry and evidence-backed WebGPU runtime for JavaScript",
   "main": "src/pack-runtime.js",
   "types": "src/pack-runtime.d.ts",
   "type": "module",

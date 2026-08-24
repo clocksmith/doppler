@@ -8,28 +8,30 @@
 [![npm version](https://img.shields.io/npm/v/doppler-gpu.svg?label=version)](https://www.npmjs.com/package/doppler-gpu)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/clocksmith/doppler/blob/main/LICENSE)
 
-Doppler is an evidence-backed JavaScript and WGSL WebGPU runtime for local model
-inference. It loads deliberately supported RDRR artifacts and runs generation,
-embedding, and reranking in browsers and Node. Bun lanes remain experimental.
-Candidate manifests, execution plans, and kernels pass scoped correctness and
-benchmark gates before they can support a product claim.
+Doppler is an AI-native Model Release Foundry and evidence-backed WebGPU runtime
+for JavaScript applications. Forge turns source-truth model checkpoints into
+signed immutable Packs containing ModelIR-derived, qualified TargetPlans. The
+deliberately uncreative Runtime validates a Pack, selects an already-qualified
+plan, binds resources, and executes its declared JavaScript/WGSL program in
+browsers and Node. Bun lanes remain experimental.
 
 ## Mission, goal, and value
 
-Doppler’s mission is to make model execution inspectable at the artifact,
-kernel, and receipt boundary.
+Doppler’s mission is to make supported local-model releases inspectable at the
+source, artifact, plan, kernel, application-acceptance, and receipt boundaries.
 
-The current goal is to make local inference lanes easier to compare and improve.
-An engineer can change a manifest, execution plan, or WGSL kernel; parity checks
-compare the output with a reference; benchmark checks compare the same workload
-with the retained lane; the receipts record why the candidate was retained or
-rejected.
+The current goal is to shorten release-to-JavaScript without weakening source
+fidelity or product evidence. Forge inspects and normalizes source truth, lowers
+it through ModelIR, verifies and qualifies TargetPlans, and packages the retained
+closure. Runtime receipts then prove which immutable Pack and qualified plan an
+application executed, while promotion, requalification, rollback, and revocation
+keep support decisions explicit.
 
 Doppler serves:
 
 - Application builders who need local generation, embeddings, or reranking.
-- Runtime engineers who work on model loading, kernels, scheduling, and GPU
-  execution.
+- Release and runtime engineers who work on source inspection, lowering,
+  qualification, model loading, kernels, scheduling, and GPU execution.
 - Adapter and training engineers working with SafeTensors LoRA artifacts.
 - Evidence reviewers who need the model, workload, parity result, and timing
   receipt behind a comparison.
@@ -144,29 +146,25 @@ defines the gates.
 
 ![Metal and Vulkan browser WebGPU throughput distributions](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-webgpu-evidence.svg)
 
-## Execution and candidate flow
+## Release and execution flow
 
 ```mermaid
 flowchart TB
-  C[Candidate manifest, plan, or WGSL] --> V[Validate contracts]
-  A[RDRR artifact] --> V
-  R[Request and runtime profile] --> V
-  V --> X[Resolve execution graph]
-  X --> L[Load and bind]
-  L --> D[Dispatch WGSL]
-  D --> O[Tokens, embeddings, or scores]
-  O --> P{Parity gate}
-  P -- fail --> N[Reject with finding]
-  P -- pass --> B{Benchmark gate}
-  B -- fail --> N
-  B -- pass --> K[Retain lane and receipt]
+  S[Pinned source checkpoint] --> F[Forge: inspect, normalize, lower]
+  F --> V[Verify and qualify TargetPlans]
+  V --> P[Package and sign immutable Pack]
+  P --> A{Application acceptance}
+  A -- fail --> N[Reject with finding]
+  A -- pass --> K[Promote supported release]
+  K --> R[Runtime: validate, select, bind, execute, observe]
+  R --> Q[Requalify, roll back, or revoke]
 ```
 
-Candidates enter through manifests, execution plans, or WGSL kernels. The
-runtime validates the artifact and request, resolves the execution graph, loads
-the model and buffers, dispatches the selected kernels, and reads back the
-result. A failed parity or benchmark gate rejects the candidate. A passed
-candidate becomes a versioned lane with a receipt.
+Candidates begin as pinned source truth. Forge owns graph-changing work and
+emits an immutable Pack only after verification and qualification. Application
+acceptance authorizes promotion. Runtime never repairs or specializes the Pack;
+it selects a qualified TargetPlan, binds resources, executes declared commands,
+and emits evidence for continuing qualification and recovery decisions.
 
 ## Long-term vision
 

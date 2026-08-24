@@ -437,6 +437,16 @@ export {
   type SplitQKVResult,
 } from './split_qkv.js';
 
+export {
+  runVisionPatchEmbed,
+  type VisionPatchGeometry,
+} from './vision-patch-embed.js';
+
+export {
+  runVisionSpatialMerge,
+  type VisionSpatialMergeGeometry,
+} from './vision-spatial-merge.js';
+
 // Split Q and Gate (de-interleave attentionOutputGate q_proj output)
 export {
   runSplitQG,
