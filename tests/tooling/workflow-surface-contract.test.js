@@ -8,6 +8,7 @@ const workflowFiles = readdirSync(workflowDirectory)
 
 assert.deepEqual(workflowFiles, [
   'check-green.yml',
+  'doppler-release.yml',
   'manual-runtime-validation.yml',
 ]);
 
@@ -17,12 +18,15 @@ assert.match(automaticCi, /^  check-green:$/m);
 assert.match(automaticCi, /pull_request:/);
 assert.match(automaticCi, /push:/);
 assert.match(automaticCi, /npm run ci:check/);
-assert.match(automaticCi, /npm ci --omit=optional/);
+assert.match(automaticCi, /npm ci/);
+assert.match(automaticCi, /playwright install --with-deps chromium/);
+assert.match(automaticCi, /npm run test:gpu:browser/);
+assert.match(automaticCi, /npm run test:demo:contract/);
 assert.match(automaticCi, /actions\/checkout@v7/);
 assert.match(automaticCi, /actions\/setup-node@v6/);
 assert.doesNotMatch(
   automaticCi,
-  /playwright|models\/local|test:gpu|verify:model|DOPPLER_SMOKE|continue-on-error/i
+  /models\/local|verify:model|DOPPLER_SMOKE|continue-on-error/i
 );
 
 const packageJson = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
@@ -57,5 +61,17 @@ for (const lane of [
 ]) {
   assert.match(manualRuntime, new RegExp(`- ${lane}`));
 }
+
+const dopplerRelease = readFileSync(new URL('doppler-release.yml', workflowDirectory), 'utf8');
+assert.match(dopplerRelease, /^name: Doppler Release Eligibility$/m);
+assert.match(dopplerRelease, /workflow_call:/);
+assert.match(dopplerRelease, /^  contents: read$/m);
+assert.match(dopplerRelease, /^  pull-requests: read$/m);
+assert.match(dopplerRelease, /^  checks: write$/m);
+assert.match(dopplerRelease, /\.\/.github\/actions\/doppler-release/);
+assert.match(dopplerRelease, /Download customer-operated fleet receipts/);
+assert.match(dopplerRelease, /Preserve candidate, receipts, and decision evidence/);
+assert.match(dopplerRelease, /Enforce eligibility without activation/);
+assert.doesNotMatch(dopplerRelease, /\bdeploy\b|\bactivate\b|\bpromote\b/i);
 
 console.log('workflow-surface-contract.test: ok');
