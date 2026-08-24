@@ -1375,8 +1375,11 @@
     "subgroup": {
      "wgsl": "dequant_subgroup.wgsl",
      "entryPoint": "main",
-     "workgroup": [32,1,1],
+     "workgroup": [256,1,1],
      "requires": ["subgroups"],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
      "variantMetadata": {
       "dispatchMode": "per_block"
      },

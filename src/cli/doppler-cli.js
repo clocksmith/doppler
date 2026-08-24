@@ -21,6 +21,7 @@ import {
 import { isPlainObject } from '../formats/plain-object.js';
 import {
   toSummary,
+  isFailedVerificationResult,
   formatNumber,
   formatMs,
   saveBenchResult,
@@ -557,6 +558,8 @@ async function main() {
 
       return commandResponse;
     });
+    const verificationFailed = isFailedVerificationResult(request, response?.result);
+    if (verificationFailed) process.exitCode = 1;
 
     if (jsonOutput) {
       const output = response?.result?.report !== undefined
@@ -566,7 +569,7 @@ async function main() {
       return;
     }
 
-    console.log(`[ok] ${toSummary(response.result)}`);
+    console.log(`[${verificationFailed ? 'fail' : 'ok'}] ${toSummary(response.result)}`);
     printConvertContractSummary(response.result);
     printConvertReportSummary(response.result);
     printMetricsSummary(response.result);

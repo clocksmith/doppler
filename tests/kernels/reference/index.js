@@ -24,7 +24,12 @@ export { moeGatherRef, moeComputeAssignmentsRef } from './moe-gather.js';
 
 // Memory operations
 export { gatherRef, batchGatherRef, gatherWithPosRef } from './gather.js';
-export { residualAddRef, residualAddInplaceRef, scaledResidualAddRef } from './residual.js';
+export {
+  outputScaledResidualAddRef,
+  residualAddInplaceRef,
+  residualAddRef,
+  scaledResidualAddRef,
+} from './residual.js';
 export { splitQkvRef, fuseQkvRef } from './split-qkv.js';
 export {
   visionAveragePoolRef,

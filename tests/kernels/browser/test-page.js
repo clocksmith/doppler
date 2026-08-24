@@ -2571,6 +2571,7 @@ const testHarness = {
       eps,
       residual: residualBuf,
       transposeB: true,
+      rmsNormWeightOffset: 0,
     });
 
     const result = new Float32Array(await readBufferData(resultTensor.buffer, N * 4));

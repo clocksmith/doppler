@@ -12,6 +12,7 @@ export const KERNEL_TOLERANCES = {
   rmsnorm: { rtol: 1e-5, atol: 1e-6 },
 
   rope: { rtol: 1e-5, atol: 1e-6 }, // Sin/cos operations
+  vision_rope_2d: { rtol: 3e-4, atol: 2e-5 }, // Cross-backend transcendental precision
 
   silu: { rtol: 1e-5, atol: 1e-6 },
 

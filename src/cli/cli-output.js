@@ -33,6 +33,12 @@ export function toSummary(result) {
   return `${suite} model=${modelId}`;
 }
 
+export function isFailedVerificationResult(request, result) {
+  return request?.command === 'verify'
+    && Number.isInteger(result?.failed)
+    && result.failed > 0;
+}
+
 export function formatNumber(value, digits = 2) {
   return Number.isFinite(value) ? Number(value).toFixed(digits) : 'n/a';
 }
