@@ -25,7 +25,6 @@ import { runLinearAttentionLayer } from './linear-attention.js';
 import { validateAttnConfig } from './attention/attn-config.js';
 import { createPerLayerInputTensor, resolveDensePleProjectionWeight } from './per-layer-inputs.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
-import { processLayerPlanGPU } from './layer-plan-gpu.js';
 import { isRoPEDisabledForLayer } from './attention/heterogeneous-contract.js';
 import { postNormContractMatchesBase } from './normalization-contract.js';
 

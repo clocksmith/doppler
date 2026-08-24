@@ -26,7 +26,13 @@ import {
   applyPerLayerInputBlock,
   applyLayerScalar,
   resolveLayerScalarValue,
-} from './layer.js';
+} from './layer-execution-contract.js';
+import {
+  applyPerLayerInputBlock,
+  hasPerLayerInputBlock,
+  isMoELayer,
+  resolveAttentionKVSharing,
+} from './layer-input-execution.js';
 
 // ============================================================================
 // Configurable Layer Pipeline (JSON-Driven)
