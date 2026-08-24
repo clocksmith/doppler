@@ -1,364 +1,292 @@
-
-
 import { log } from '../../../debug/index.js';
-import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
-import {
-  doLayerNorm, doMatmul, doGelu, doResidualAdd,
-} from './ops.js';
+import { releaseBuffer } from '../../../memory/buffer-pool.js';
+import { computeVisionAttention } from './attention.js';
+import { doGelu, doLayerNorm, doMatmul, doResidualAdd } from './ops.js';
+import { spatialMergeProject } from './spatial-merge.js';
+
+function requirePositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`Vision config ${label} must be a positive integer.`);
+  }
+}
+
+function getLayerWeights(weights, layerIndex) {
+  const owned = weights.layers?.[layerIndex];
+  if (owned) {
+    return owned;
+  }
+  const prefix = `visual.blocks.${layerIndex}`;
+  return {
+    norm1Weight: weights[`${prefix}.norm1.weight`],
+    norm1Bias: weights[`${prefix}.norm1.bias`] ?? null,
+    norm2Weight: weights[`${prefix}.norm2.weight`],
+    norm2Bias: weights[`${prefix}.norm2.bias`] ?? null,
+    qkvWeight: weights[`${prefix}.attn.qkv.weight`],
+    qkvBias: weights[`${prefix}.attn.qkv.bias`] ?? null,
+    projWeight: weights[`${prefix}.attn.proj.weight`],
+    projBias: weights[`${prefix}.attn.proj.bias`] ?? null,
+    fc1Weight: weights[`${prefix}.mlp.fc1.weight`],
+    fc1Bias: weights[`${prefix}.mlp.fc1.bias`] ?? null,
+    fc2Weight: weights[`${prefix}.mlp.fc2.weight`],
+    fc2Bias: weights[`${prefix}.mlp.fc2.bias`] ?? null,
+  };
+}
+
+function requireLayerWeights(layerWeights, layerIndex) {
+  for (const field of [
+    'norm1Weight',
+    'norm2Weight',
+    'qkvWeight',
+    'projWeight',
+    'fc1Weight',
+    'fc2Weight',
+  ]) {
+    if (!layerWeights[field]) {
+      throw new Error(`Vision encoder layer ${layerIndex} is missing ${field}.`);
+    }
+  }
+}
+
+async function visionSelfAttention(params) {
+  const {
+    input,
+    seqLen,
+    hiddenSize,
+    numHeads,
+    headDim,
+    layerWeights,
+  } = params;
+  let qkv = null;
+  let attention = null;
+  try {
+    qkv = await doMatmul(input, layerWeights.qkvWeight, {
+      M: seqLen,
+      K: hiddenSize,
+      N: 3 * hiddenSize,
+      bias: layerWeights.qkvBias,
+    });
+    attention = await computeVisionAttention({
+      qkv,
+      seqLen,
+      numHeads,
+      headDim,
+      hiddenSize,
+    });
+    releaseBuffer(qkv);
+    qkv = null;
+
+    const output = await doMatmul(attention, layerWeights.projWeight, {
+      M: seqLen,
+      K: hiddenSize,
+      N: hiddenSize,
+      bias: layerWeights.projBias,
+    });
+    releaseBuffer(attention);
+    attention = null;
+    return output;
+  } finally {
+    if (attention) releaseBuffer(attention);
+    if (qkv) releaseBuffer(qkv);
+  }
+}
+
+async function visionFfn(params) {
+  const { input, seqLen, hiddenSize, intermediateSize, layerWeights } = params;
+  let first = null;
+  let activated = null;
+  try {
+    first = await doMatmul(input, layerWeights.fc1Weight, {
+      M: seqLen,
+      K: hiddenSize,
+      N: intermediateSize,
+      bias: layerWeights.fc1Bias,
+    });
+    activated = await doGelu(first, { count: seqLen * intermediateSize });
+    releaseBuffer(first);
+    first = null;
+
+    const output = await doMatmul(activated, layerWeights.fc2Weight, {
+      M: seqLen,
+      K: intermediateSize,
+      N: hiddenSize,
+      bias: layerWeights.fc2Bias,
+    });
+    releaseBuffer(activated);
+    activated = null;
+    return output;
+  } finally {
+    if (activated) releaseBuffer(activated);
+    if (first) releaseBuffer(first);
+  }
+}
+
+async function runVisionBlock(input, params) {
+  const {
+    layerIndex,
+    layerWeights,
+    numPatches,
+    hiddenSize,
+    intermediateSize,
+    numHeads,
+    headDim,
+    eps,
+  } = params;
+  let normed = null;
+  let attention = null;
+  let attentionResidual = null;
+  let ffn = null;
+  try {
+    normed = await doLayerNorm(input, layerWeights.norm1Weight, layerWeights.norm1Bias, {
+      seqLen: numPatches,
+      hiddenSize,
+      eps,
+    });
+    attention = await visionSelfAttention({
+      input: normed,
+      seqLen: numPatches,
+      hiddenSize,
+      numHeads,
+      headDim,
+      layerWeights,
+    });
+    releaseBuffer(normed);
+    normed = null;
+
+    attentionResidual = await doResidualAdd(input, attention, {
+      count: numPatches * hiddenSize,
+    });
+    releaseBuffer(attention);
+    attention = null;
+
+    normed = await doLayerNorm(
+      attentionResidual,
+      layerWeights.norm2Weight,
+      layerWeights.norm2Bias,
+      { seqLen: numPatches, hiddenSize, eps }
+    );
+    ffn = await visionFfn({
+      input: normed,
+      seqLen: numPatches,
+      hiddenSize,
+      intermediateSize,
+      layerWeights,
+    });
+    releaseBuffer(normed);
+    normed = null;
+
+    const output = await doResidualAdd(attentionResidual, ffn, {
+      count: numPatches * hiddenSize,
+    });
+    releaseBuffer(attentionResidual);
+    attentionResidual = null;
+    releaseBuffer(ffn);
+    ffn = null;
+    log.debug('Vision', `block ${layerIndex + 1}/${params.depth} done`);
+    return output;
+  } finally {
+    if (ffn) releaseBuffer(ffn);
+    if (attentionResidual) releaseBuffer(attentionResidual);
+    if (attention) releaseBuffer(attention);
+    if (normed) releaseBuffer(normed);
+  }
+}
 
 export async function runVisionEncoder(params) {
   const {
     patchBuffer,
     numPatches,
+    gridHeight,
+    gridWidth,
     visionConfig,
     weights,
-    pipelineState,
   } = params;
-
   const {
     depth,
     hiddenSize,
     intermediateSize,
     numHeads,
+    headDim,
     outHiddenSize,
     spatialMergeSize,
     eps,
   } = visionConfig;
-  if (!Number.isFinite(depth) || depth <= 0 || Math.floor(depth) !== depth) {
-    throw new Error('Vision config depth must be a positive integer.');
-  }
-  if (!Number.isFinite(hiddenSize) || hiddenSize <= 0 || Math.floor(hiddenSize) !== hiddenSize) {
-    throw new Error('Vision config hiddenSize must be a positive integer.');
-  }
-  if (!Number.isFinite(intermediateSize) || intermediateSize <= 0 || Math.floor(intermediateSize) !== intermediateSize) {
-    throw new Error('Vision config intermediateSize must be a positive integer.');
-  }
-  if (!Number.isFinite(numHeads) || numHeads <= 0 || Math.floor(numHeads) !== numHeads) {
-    throw new Error('Vision config numHeads must be a positive integer.');
-  }
-  if (!Number.isFinite(outHiddenSize) || outHiddenSize <= 0 || Math.floor(outHiddenSize) !== outHiddenSize) {
-    throw new Error('Vision config outHiddenSize must be a positive integer.');
-  }
-  if (!Number.isFinite(spatialMergeSize) || spatialMergeSize <= 0 || Math.floor(spatialMergeSize) !== spatialMergeSize) {
-    throw new Error('Vision config spatialMergeSize must be a positive integer.');
+  for (const [label, value] of Object.entries({
+    depth,
+    hiddenSize,
+    intermediateSize,
+    numHeads,
+    headDim,
+    outHiddenSize,
+    spatialMergeSize,
+    numPatches,
+    gridHeight,
+    gridWidth,
+  })) {
+    requirePositiveInteger(value, label);
   }
   if (!Number.isFinite(eps) || eps <= 0) {
     throw new Error('Vision config eps must be a positive number.');
   }
+  if (hiddenSize !== numHeads * headDim) {
+    throw new Error(
+      `Vision config geometry mismatch: hiddenSize=${hiddenSize}, ` +
+      `numHeads=${numHeads}, headDim=${headDim}.`
+    );
+  }
+  if (numPatches !== gridHeight * gridWidth) {
+    throw new Error(
+      `Vision patch geometry mismatch: numPatches=${numPatches}, ` +
+      `gridHeight=${gridHeight}, gridWidth=${gridWidth}.`
+    );
+  }
+  if (gridHeight % spatialMergeSize !== 0 || gridWidth % spatialMergeSize !== 0) {
+    throw new Error(
+      `Vision grid ${gridHeight}x${gridWidth} must be divisible by spatialMergeSize=${spatialMergeSize}.`
+    );
+  }
 
-  const headDim = Math.floor(hiddenSize / numHeads);
-  const device = getDevice();
-
-  log.debug('Vision', `encoder: depth=${depth} hidden=${hiddenSize} heads=${numHeads} patches=${numPatches}`);
-
+  log.debug(
+    'Vision',
+    `encoder: depth=${depth} hidden=${hiddenSize} heads=${numHeads} patches=${numPatches}`
+  );
   let hidden = patchBuffer;
+  try {
+    for (let layerIndex = 0; layerIndex < depth; layerIndex++) {
+      const layerWeights = getLayerWeights(weights, layerIndex);
+      requireLayerWeights(layerWeights, layerIndex);
+      const next = await runVisionBlock(hidden, {
+        layerIndex,
+        depth,
+        layerWeights,
+        numPatches,
+        hiddenSize,
+        intermediateSize,
+        numHeads,
+        headDim,
+        eps,
+      });
+      releaseBuffer(hidden);
+      hidden = next;
+    }
 
-  // Run ViT transformer blocks.
-  for (let i = 0; i < depth; i++) {
-    const prefix = `visual.blocks.${i}`;
-
-    // Pre-attention layer norm.
-    const normed1 = await doLayerNorm(hidden, weights[`${prefix}.norm1.weight`], weights[`${prefix}.norm1.bias`], {
-      seqLen: numPatches, hiddenSize, eps,
-    });
-
-    // Self-attention (full, no KV cache).
-    const attnOut = await visionSelfAttention({
-      input: normed1,
-      seqLen: numPatches,
+    const features = await spatialMergeProject({
+      input: hidden,
+      gridHeight,
+      gridWidth,
       hiddenSize,
-      numHeads,
-      headDim,
-      qkvWeight: weights[`${prefix}.attn.qkv.weight`],
-      qkvBias: weights[`${prefix}.attn.qkv.bias`],
-      projWeight: weights[`${prefix}.attn.proj.weight`],
-      projBias: weights[`${prefix}.attn.proj.bias`],
+      outHiddenSize,
+      spatialMergeSize,
+      weights,
     });
-
-    releaseBuffer(normed1);
-
-    // Residual add.
-    const residual1 = await doResidualAdd(hidden, attnOut, { count: numPatches * hiddenSize });
     releaseBuffer(hidden);
-    releaseBuffer(attnOut);
-
-    // Pre-FFN layer norm.
-    const normed2 = await doLayerNorm(residual1, weights[`${prefix}.norm2.weight`], weights[`${prefix}.norm2.bias`], {
-      seqLen: numPatches, hiddenSize, eps,
-    });
-
-    // FFN: linear -> gelu -> linear.
-    const ffnOut = await visionFFN({
-      input: normed2,
-      seqLen: numPatches,
-      hiddenSize,
-      intermediateSize,
-      fc1Weight: weights[`${prefix}.mlp.fc1.weight`],
-      fc1Bias: weights[`${prefix}.mlp.fc1.bias`],
-      fc2Weight: weights[`${prefix}.mlp.fc2.weight`],
-      fc2Bias: weights[`${prefix}.mlp.fc2.bias`],
-    });
-
-    releaseBuffer(normed2);
-
-    // Residual add.
-    hidden = await doResidualAdd(residual1, ffnOut, { count: numPatches * hiddenSize });
-    releaseBuffer(residual1);
-    releaseBuffer(ffnOut);
-
-    log.debug('Vision', `block ${i}/${depth} done`);
+    hidden = null;
+    const numTokens = (gridHeight / spatialMergeSize) * (gridWidth / spatialMergeSize);
+    log.debug(
+      'Vision',
+      `encoder done: ${numPatches} patches -> ${numTokens} tokens (${outHiddenSize}d)`
+    );
+    return { features, numTokens };
+  } finally {
+    if (hidden) releaseBuffer(hidden);
   }
-
-  // Spatial merge projector: merge 2x2 patches -> outHiddenSize.
-  const mergedTokens = Math.floor(numPatches / (spatialMergeSize * spatialMergeSize));
-  const merged = await spatialMergeProject({
-    input: hidden,
-    numPatches,
-    hiddenSize,
-    outHiddenSize,
-    spatialMergeSize,
-    weights,
-  });
-
-  releaseBuffer(hidden);
-
-  log.debug('Vision', `encoder done: ${numPatches} patches -> ${mergedTokens} tokens (${outHiddenSize}d)`);
-
-  return { features: merged, numTokens: mergedTokens };
-}
-
-async function visionSelfAttention(params) {
-  const {
-    input, seqLen, hiddenSize, numHeads, headDim,
-    qkvWeight, qkvBias, projWeight, projBias,
-  } = params;
-
-  // QKV projection: [seqLen, hiddenSize] @ [hiddenSize, 3*hiddenSize] -> [seqLen, 3*hiddenSize]
-  const qkv = await doMatmul(input, qkvWeight, {
-    M: seqLen, K: hiddenSize, N: 3 * hiddenSize, bias: qkvBias,
-  });
-
-  // Split Q, K, V and compute scaled dot-product attention on GPU.
-  // This uses the existing attention kernel infrastructure in prefill mode.
-  const attnResult = await computeVisionAttention({
-    qkv, seqLen, numHeads, headDim, hiddenSize,
-  });
-
-  releaseBuffer(qkv);
-
-  // Output projection: [seqLen, hiddenSize] @ [hiddenSize, hiddenSize] -> [seqLen, hiddenSize]
-  const output = await doMatmul(attnResult, projWeight, {
-    M: seqLen, K: hiddenSize, N: hiddenSize, bias: projBias,
-  });
-
-  releaseBuffer(attnResult);
-
-  return output;
-}
-
-async function computeVisionAttention(params) {
-  const { qkv, seqLen, numHeads, headDim, hiddenSize } = params;
-  const device = getDevice();
-  const scale = 1.0 / Math.sqrt(headDim);
-
-  // For the initial implementation, read QKV back to CPU, compute attention,
-  // and upload the result. This will be replaced with a GPU kernel.
-  //
-  // TODO(perf): Replace with GPU-native vision attention kernel.
-  // The text decoder attention kernels assume causal masking and KV cache,
-  // which don't apply to the vision encoder's bidirectional full attention.
-  const qkvSize = seqLen * 3 * hiddenSize;
-  const qkvData = new Float32Array(qkvSize);
-  {
-    const staging = device.createBuffer({
-      size: qkvSize * 4,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
-    const encoder = device.createCommandEncoder();
-    encoder.copyBufferToBuffer(qkv, 0, staging, 0, qkvSize * 4);
-    device.queue.submit([encoder.finish()]);
-    await staging.mapAsync(GPUMapMode.READ);
-    qkvData.set(new Float32Array(staging.getMappedRange()));
-    staging.unmap();
-    staging.destroy();
-  }
-
-  // Split into Q, K, V: each [numHeads, seqLen, headDim]
-  const Q = new Float32Array(numHeads * seqLen * headDim);
-  const K = new Float32Array(numHeads * seqLen * headDim);
-  const V = new Float32Array(numHeads * seqLen * headDim);
-
-  for (let s = 0; s < seqLen; s++) {
-    for (let h = 0; h < numHeads; h++) {
-      for (let d = 0; d < headDim; d++) {
-        const srcBase = s * 3 * hiddenSize;
-        const headOffset = h * headDim + d;
-        Q[(h * seqLen + s) * headDim + d] = qkvData[srcBase + headOffset];
-        K[(h * seqLen + s) * headDim + d] = qkvData[srcBase + hiddenSize + headOffset];
-        V[(h * seqLen + s) * headDim + d] = qkvData[srcBase + 2 * hiddenSize + headOffset];
-      }
-    }
-  }
-
-  // Compute attention: softmax(Q @ K^T / sqrt(d)) @ V per head.
-  const output = new Float32Array(seqLen * hiddenSize);
-
-  for (let h = 0; h < numHeads; h++) {
-    // Scores: [seqLen, seqLen]
-    const scores = new Float32Array(seqLen * seqLen);
-    for (let i = 0; i < seqLen; i++) {
-      for (let j = 0; j < seqLen; j++) {
-        let dot = 0;
-        for (let d = 0; d < headDim; d++) {
-          dot += Q[(h * seqLen + i) * headDim + d] * K[(h * seqLen + j) * headDim + d];
-        }
-        scores[i * seqLen + j] = dot * scale;
-      }
-    }
-
-    // Softmax per row.
-    for (let i = 0; i < seqLen; i++) {
-      let maxVal = -Infinity;
-      for (let j = 0; j < seqLen; j++) {
-        if (scores[i * seqLen + j] > maxVal) maxVal = scores[i * seqLen + j];
-      }
-      let sumExp = 0;
-      for (let j = 0; j < seqLen; j++) {
-        scores[i * seqLen + j] = Math.exp(scores[i * seqLen + j] - maxVal);
-        sumExp += scores[i * seqLen + j];
-      }
-      for (let j = 0; j < seqLen; j++) {
-        scores[i * seqLen + j] /= sumExp;
-      }
-    }
-
-    // Weighted sum: [seqLen, headDim]
-    for (let i = 0; i < seqLen; i++) {
-      for (let d = 0; d < headDim; d++) {
-        let val = 0;
-        for (let j = 0; j < seqLen; j++) {
-          val += scores[i * seqLen + j] * V[(h * seqLen + j) * headDim + d];
-        }
-        output[i * hiddenSize + h * headDim + d] = val;
-      }
-    }
-  }
-
-  // Upload result to GPU.
-  const outBuffer = acquireBuffer(seqLen * hiddenSize * 4, 'vision-attn-output');
-  device.queue.writeBuffer(outBuffer, 0, output);
-
-  return outBuffer;
-}
-
-async function visionFFN(params) {
-  const {
-    input, seqLen, hiddenSize, intermediateSize,
-    fc1Weight, fc1Bias, fc2Weight, fc2Bias,
-  } = params;
-
-  // fc1: [seqLen, hiddenSize] -> [seqLen, intermediateSize]
-  const fc1Out = await doMatmul(input, fc1Weight, {
-    M: seqLen, K: hiddenSize, N: intermediateSize, bias: fc1Bias,
-  });
-
-  // GELU activation.
-  const activated = await doGelu(fc1Out, { count: seqLen * intermediateSize });
-  releaseBuffer(fc1Out);
-
-  // fc2: [seqLen, intermediateSize] -> [seqLen, hiddenSize]
-  const fc2Out = await doMatmul(activated, fc2Weight, {
-    M: seqLen, K: intermediateSize, N: hiddenSize, bias: fc2Bias,
-  });
-  releaseBuffer(activated);
-
-  return fc2Out;
-}
-
-async function spatialMergeProject(params) {
-  const {
-    input, numPatches, hiddenSize, outHiddenSize, spatialMergeSize, weights,
-  } = params;
-
-  const device = getDevice();
-  const m = spatialMergeSize;
-  const concatDim = m * m * hiddenSize;
-
-  // Read vision features back for spatial rearrangement.
-  // TODO(perf): GPU kernel for spatial merge gather.
-  const inputSize = numPatches * hiddenSize;
-  const inputData = new Float32Array(inputSize);
-  {
-    const staging = device.createBuffer({
-      size: inputSize * 4,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
-    const encoder = device.createCommandEncoder();
-    encoder.copyBufferToBuffer(input, 0, staging, 0, inputSize * 4);
-    device.queue.submit([encoder.finish()]);
-    await staging.mapAsync(GPUMapMode.READ);
-    inputData.set(new Float32Array(staging.getMappedRange()));
-    staging.unmap();
-    staging.destroy();
-  }
-
-  // Assume patches are laid out as [gridH, gridW, hiddenSize].
-  // We need gridH and gridW — derive from numPatches assuming square-ish grid.
-  // The actual grid dimensions should be passed in; for now infer from sqrt.
-  const gridSide = Math.round(Math.sqrt(numPatches));
-  const gridH = gridSide;
-  const gridW = Math.floor(numPatches / gridH);
-
-  const mergedH = Math.floor(gridH / m);
-  const mergedW = Math.floor(gridW / m);
-  const mergedCount = mergedH * mergedW;
-
-  // Concatenate m x m patches into single vectors of dimension concatDim.
-  const concatenated = new Float32Array(mergedCount * concatDim);
-  for (let mh = 0; mh < mergedH; mh++) {
-    for (let mw = 0; mw < mergedW; mw++) {
-      const outIdx = mh * mergedW + mw;
-      let offset = 0;
-      for (let dh = 0; dh < m; dh++) {
-        for (let dw = 0; dw < m; dw++) {
-          const srcH = mh * m + dh;
-          const srcW = mw * m + dw;
-          const srcIdx = srcH * gridW + srcW;
-          for (let d = 0; d < hiddenSize; d++) {
-            concatenated[outIdx * concatDim + offset] = inputData[srcIdx * hiddenSize + d];
-            offset++;
-          }
-        }
-      }
-    }
-  }
-
-  // Upload concatenated data.
-  const concatBuffer = acquireBuffer(mergedCount * concatDim * 4, 'vision-merge-concat');
-  device.queue.writeBuffer(concatBuffer, 0, concatenated);
-
-  // Linear projection: [mergedCount, concatDim] @ [concatDim, outHiddenSize] -> [mergedCount, outHiddenSize]
-  const projected = await doMatmul(concatBuffer, weights['visual.merger.mlp.0.weight'], {
-    M: mergedCount,
-    K: concatDim,
-    N: outHiddenSize,
-    bias: weights['visual.merger.mlp.0.bias'],
-  });
-
-  releaseBuffer(concatBuffer);
-
-  // GELU + second linear layer.
-  const activated = await doGelu(projected, { count: mergedCount * outHiddenSize });
-  releaseBuffer(projected);
-
-  const output = await doMatmul(activated, weights['visual.merger.mlp.2.weight'], {
-    M: mergedCount,
-    K: outHiddenSize,
-    N: outHiddenSize,
-    bias: weights['visual.merger.mlp.2.bias'],
-  });
-  releaseBuffer(activated);
-
-  return output;
 }

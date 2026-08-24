@@ -45,6 +45,7 @@ const {
   'kernels/split-qg.rules.json': splitQgRules,
   'kernels/softmax.rules.json': softmaxRules,
   'kernels/upsample2d.rules.json': upsample2dRules,
+  'kernels/vision-patch-embed.rules.json': visionPatchEmbedRules,
   'inference/config.rules.json': configRules,
   'inference/execution.rules.json': inferenceExecutionRules,
   'inference/attention.rules.json': inferenceAttentionRules,
@@ -137,6 +138,7 @@ const RULE_SETS = {
     splitQg: splitQgRules,
     softmax: softmaxRules,
     upsample2d: upsample2dRules,
+    visionPatchEmbed: visionPatchEmbedRules,
   },
   inference: {
     config: configRules,

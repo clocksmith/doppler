@@ -43,6 +43,8 @@ export async function encodeImage(params) {
     height: preprocessed.height,
     width: preprocessed.width,
     channels: preprocessed.channels,
+    gridHeight: preprocessed.gridThw[1],
+    gridWidth: preprocessed.gridThw[2],
     visionConfig,
     weights,
   });
@@ -51,6 +53,8 @@ export async function encodeImage(params) {
   const { features, numTokens } = await runVisionEncoder({
     patchBuffer,
     numPatches,
+    gridHeight: preprocessed.gridThw[1],
+    gridWidth: preprocessed.gridThw[2],
     visionConfig,
     weights,
   });

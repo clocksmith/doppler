@@ -26,6 +26,7 @@ export { moeGatherRef, moeComputeAssignmentsRef } from './moe-gather.js';
 export { gatherRef, batchGatherRef, gatherWithPosRef } from './gather.js';
 export { residualAddRef, residualAddInplaceRef, scaledResidualAddRef } from './residual.js';
 export { splitQkvRef, fuseQkvRef } from './split-qkv.js';
+export { visionPatchEmbedRef, visionSpatialMergeRef } from './vision.js';
 
 // Quantization
 export {

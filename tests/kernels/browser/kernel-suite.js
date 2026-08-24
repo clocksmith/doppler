@@ -1289,6 +1289,42 @@ export async function runKernelSuite(harness) {
   ]);
 
   tests.push([
+    'vision_patch_embed',
+    async () => {
+      const geometry = {
+        gridHeight: 2,
+        gridWidth: 3,
+        channels: 3,
+        patchSize: 2,
+        temporalPatchSize: 2,
+        hiddenSize: 5,
+      };
+      const image = h.generateTestData(3 * 4 * 6, 12301);
+      const weight = h.generateTestData(5 * 3 * 2 * 2 * 2, 12302);
+      const bias = h.generateTestData(5, 12303);
+      const expected = h.references.visionPatchEmbedRef(image, weight, bias, geometry);
+      const actual = await h.runVisionPatchEmbed(null, image, weight, bias, geometry);
+      return h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.matmul).passed;
+    },
+  ]);
+
+  tests.push([
+    'vision_spatial_merge',
+    async () => {
+      const geometry = {
+        gridHeight: 4,
+        gridWidth: 6,
+        hiddenSize: 5,
+        mergeSize: 2,
+      };
+      const input = h.generateTestData(4 * 6 * 5, 12304);
+      const expected = h.references.visionSpatialMergeRef(input, geometry);
+      const actual = await h.runVisionSpatialMerge(null, input, geometry);
+      return h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual).passed;
+    },
+  ]);
+
+  tests.push([
     'swiglu',
     async () => {
       const size = 128;

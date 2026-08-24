@@ -194,6 +194,10 @@
    "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
   },
   {
+   "path": "kernels/vision-patch-embed.rules.json",
+   "digest": "sha256:6f845793e46ce0b9917719c418e81d84a7e26b319ca4feffd9a482548dcb40f4"
+  },
+  {
    "path": "loader/tensor-loader.rules.json",
    "digest": "sha256:61bafd04ae60d45f478976f09df6a910b0ed750877008d2edb3b23659c972ead"
   },
@@ -3806,6 +3810,22 @@
     {
      "match": {},
      "value": "default"
+    }
+   ]
+  },
+  "kernels/vision-patch-embed.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "weightDtype": "f16"
+     },
+     "value": "f16w"
+    },
+    {
+     "match": {
+      "weightDtype": "f32"
+     },
+     "value": "f32w"
     }
    ]
   },
