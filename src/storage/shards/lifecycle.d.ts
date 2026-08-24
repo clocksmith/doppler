@@ -11,3 +11,12 @@ export interface NormalizedShardWriterOptions {
 export declare function normalizeShardWriterOptions(
   options?: ShardWriterOptions
 ): NormalizedShardWriterOptions;
+
+export declare function createStorageWriteStream(
+  storageBackend: {
+    createWriteStream(filename: string, options: NormalizedShardWriterOptions): unknown;
+  },
+  filename: string,
+  options?: ShardWriterOptions,
+  onCreate?: (() => void) | null
+): unknown;

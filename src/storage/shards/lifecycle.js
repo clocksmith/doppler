@@ -12,3 +12,11 @@ export function normalizeShardWriterOptions(options = {}) {
   }
   return { append, expectedOffset };
 }
+
+export function createStorageWriteStream(storageBackend, filename, options = {}, onCreate = null) {
+  if (!storageBackend?.createWriteStream) {
+    throw new Error('Storage backend does not support streaming writes');
+  }
+  onCreate?.();
+  return storageBackend.createWriteStream(filename, normalizeShardWriterOptions(options));
+}

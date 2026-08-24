@@ -36,23 +36,22 @@ import { formatRuntimeProfiles, listRuntimeProfiles } from './runtime-profiles.j
 import { persistBrowserRelayReport } from './browser-report-output.js';
 import { isAbsoluteUrl, normalizeModelUrl, parseJsonObjectFlag, performIntake, readJsonObjectFile, readJsonObjectInput, runBoundaryCommand, runBundleCommand, runCommandOnSurface } from './commands/bundle.js';
 import { DEFAULT_CLI_POLICY, createCliToolingErrorEnvelope, parseRuntimeConfigUrl, resolveConfigEnvelope, resolveSurfaceForCommand, runManifestSweep, runWithAutoSurface } from './output/manifest.js';
+import {
+  parseCliArguments,
+  validateBoundaryFlags,
+  validateBundleFlags,
+  validateCommandFlags,
+  validateIntakeFlags,
+  validateOnboardFlags,
+  validateProfilesFlags,
+  validateProgramBundleFlags,
+} from './argument-contract.js';
 export { createCliToolingErrorEnvelope } from './output/manifest.js';
 export { checkCapturePrecondition, finalizeCliCommandResponse, performIntake } from './commands/bundle.js';
 
 export { resolveBrowserModelUrl, resolveNodeModelUrl } from './cli-model-resolution.js';
 
 const CLI_POLICY_PATH = fileURLToPath(new URL('./config/doppler-cli-policy.json', import.meta.url));
-
-const COMMON_CLI_FLAGS = Object.freeze([
-  'config',
-  'surface',
-  'pretty',
-  'json',
-  'help',
-  'h',
-  'runtime-config',
-  'runtime-profile',
-]);
 
 function usage() {
   return [
@@ -103,327 +102,6 @@ function usage() {
     '  doppler verify --config \'{"request":{"workload":"inference","workloadType":"program-bundle","programBundlePath":"examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json"}}\'',
     '  doppler program-bundle --config \'{"manifestPath":"models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json","referenceReportPath":"tests/fixtures/reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-18T13-33-38.973Z.json","outputPath":"examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json"}\'',
   ].join('\n');
-}
-
-function parseArgs(argv) {
-  const out = {
-    command: null,
-    action: null,
-    flags: {},
-  };
-
-  if (!argv.length) return out;
-  out.command = asStringOrNull(argv[0]);
-
-  for (let i = 1; i < argv.length; i += 1) {
-    const token = argv[i];
-    if (token === '-h') {
-      out.flags.h = true;
-      continue;
-    }
-    if (token.startsWith('-') && !token.startsWith('--')) {
-      throw new Error(`Unsupported short flag "${token}". Use long-form flags (for example --help).`);
-    }
-    if (!token.startsWith('--')) {
-      if ((out.command === 'onboard' || out.command === 'boundary') && out.action === null) {
-        out.action = token;
-        continue;
-      }
-      throw new Error('Positional arguments are not supported. Use --config for command payloads.');
-    }
-
-    const key = token.slice(2);
-    if (
-      key === 'json'
-      || key === 'pretty'
-      || key === 'help'
-      || key === 'h'
-      || key === 'skip-convert'
-      || key === 'skip-capture'
-    ) {
-      out.flags[key] = true;
-      continue;
-    }
-
-    const value = argv[i + 1];
-    if (value === undefined) {
-      throw new Error(`Missing value for --${key}`);
-    }
-
-    if (value.startsWith('--')) {
-      throw new Error(`Missing value for --${key}`);
-    }
-
-    out.flags[key] = value;
-    i += 1;
-  }
-
-  return out;
-}
-
-function levenshteinDistance(a, b) {
-  const source = String(a ?? '');
-  const target = String(b ?? '');
-  if (source === target) return 0;
-  if (source.length === 0) return target.length;
-  if (target.length === 0) return source.length;
-
-  const previous = new Array(target.length + 1);
-  const current = new Array(target.length + 1);
-
-  for (let i = 0; i <= target.length; i += 1) {
-    previous[i] = i;
-  }
-
-  for (let i = 1; i <= source.length; i += 1) {
-    current[0] = i;
-    for (let j = 1; j <= target.length; j += 1) {
-      const cost = source[i - 1] === target[j - 1] ? 0 : 1;
-      current[j] = Math.min(
-        previous[j] + 1,
-        current[j - 1] + 1,
-        previous[j - 1] + cost
-      );
-    }
-    for (let j = 0; j <= target.length; j += 1) {
-      previous[j] = current[j];
-    }
-  }
-
-  return previous[target.length];
-}
-
-function findClosestFlag(flag, allowedFlags) {
-  const normalizedFlag = String(flag ?? '').trim();
-  if (!normalizedFlag) return null;
-
-  let candidate = null;
-  let distance = Infinity;
-  for (const allowedFlag of allowedFlags) {
-    const nextDistance = levenshteinDistance(normalizedFlag, allowedFlag);
-    if (nextDistance < distance) {
-      candidate = allowedFlag;
-      distance = nextDistance;
-    }
-  }
-  return distance <= 3 ? candidate : null;
-}
-
-function validateCommandFlags(parsed) {
-  const command = parsed?.command;
-  if (!command || !TOOLING_COMMANDS.includes(command)) {
-    return;
-  }
-
-  const allowedFlags = new Set(COMMON_CLI_FLAGS);
-  const keys = Object.keys(parsed.flags || {});
-  for (const key of keys) {
-    if (allowedFlags.has(key)) {
-      continue;
-    }
-
-    const suggestion = findClosestFlag(key, allowedFlags);
-    if (suggestion) {
-      throw new Error(`Unknown flag --${key} for "${command}". Did you mean --${suggestion}?`);
-    }
-    throw new Error(`Unknown flag --${key} for "${command}".`);
-  }
-}
-
-function validateProgramBundleFlags(parsed) {
-  const allowedFlags = new Set([
-    'config',
-    'manifest',
-    'model-dir',
-    'reference-report',
-    'conversion-config',
-    'runtime-config',
-    'out',
-    'bundle-id',
-    'created-at',
-    'pretty',
-    'json',
-    'help',
-    'h',
-  ]);
-  for (const key of Object.keys(parsed.flags || {})) {
-    if (allowedFlags.has(key)) continue;
-    throw new Error(`Unknown flag --${key} for "program-bundle".`);
-  }
-}
-
-function validateIntakeFlags(parsed) {
-  const allowedFlags = new Set([
-    'convert-config',
-    'manifest',
-    'model-dir',
-    'out',
-    'skip-convert',
-    'pretty',
-    'json',
-    'help',
-    'h',
-  ]);
-  for (const key of Object.keys(parsed.flags || {})) {
-    if (allowedFlags.has(key)) continue;
-    throw new Error(`Unknown flag --${key} for "intake".`);
-  }
-}
-
-function validateOnboardFlags(parsed) {
-  if (parsed.action !== 'inspect') {
-    throw new Error('onboard: expected the action "inspect".');
-  }
-  const allowedFlags = new Set([
-    'source',
-    'out',
-    'family-intake',
-    'pretty',
-    'json',
-    'help',
-    'h',
-  ]);
-  for (const key of Object.keys(parsed.flags || {})) {
-    if (allowedFlags.has(key)) continue;
-    throw new Error(`Unknown flag --${key} for "onboard inspect".`);
-  }
-  if (!asStringOrNull(parsed.flags.source)) {
-    throw new Error('onboard inspect: --source <checkpoint-dir> is required.');
-  }
-  if (!asStringOrNull(parsed.flags.out)) {
-    throw new Error('onboard inspect: --out <dir> is required.');
-  }
-}
-
-function validateBoundaryFlags(parsed) {
-  const captureFlags = new Set([
-    'report',
-    'out',
-    'tolerance-policy',
-    'pretty',
-    'json',
-    'help',
-    'h',
-  ]);
-  const compareFlags = new Set([
-    'source-pack',
-    'runtime-capture',
-    'source-control',
-    'token-evidence',
-    'artifact-precision',
-    'out',
-    'pretty',
-    'json',
-    'help',
-    'h',
-  ]);
-  const tokenEvidenceFlags = new Set([
-    'reference-transcript',
-    'out',
-    'pretty',
-    'json',
-    'help',
-    'h',
-  ]);
-  const sourcePackFlags = new Set([
-    'provider-capture',
-    'out',
-    'pretty',
-    'json',
-    'help',
-    'h',
-  ]);
-  const allowedFlags = parsed.action === 'capture'
-    ? captureFlags
-    : (
-      parsed.action === 'compare'
-        ? compareFlags
-        : (
-          parsed.action === 'token-evidence'
-            ? tokenEvidenceFlags
-            : (parsed.action === 'source-pack' ? sourcePackFlags : null)
-        )
-    );
-  if (!allowedFlags) {
-    throw new Error(
-      'boundary: expected "capture", "source-pack", "token-evidence", or "compare".'
-    );
-  }
-  for (const key of Object.keys(parsed.flags || {})) {
-    if (allowedFlags.has(key)) continue;
-    throw new Error(`Unknown flag --${key} for "boundary ${parsed.action}".`);
-  }
-  if (!asStringOrNull(parsed.flags.out)) {
-    throw new Error(`boundary ${parsed.action}: --out <path> is required.`);
-  }
-  if (parsed.action === 'capture' && !asStringOrNull(parsed.flags.report)) {
-    throw new Error('boundary capture: --report <diagnose-report.json> is required.');
-  }
-  if (
-    parsed.action === 'source-pack'
-    && !asStringOrNull(parsed.flags['provider-capture'])
-  ) {
-    throw new Error(
-      'boundary source-pack: --provider-capture <provider-capture.json> is required.'
-    );
-  }
-  if (
-    parsed.action === 'token-evidence'
-    && !asStringOrNull(parsed.flags['reference-transcript'])
-  ) {
-    throw new Error(
-      'boundary token-evidence: --reference-transcript <reference-transcript.json> is required.'
-    );
-  }
-  if (parsed.action === 'compare') {
-    for (const key of ['source-pack', 'runtime-capture', 'token-evidence']) {
-      if (!asStringOrNull(parsed.flags[key])) {
-        throw new Error(`boundary compare: --${key} <path> is required.`);
-      }
-    }
-  }
-}
-
-function validateBundleFlags(parsed) {
-  const allowedFlags = new Set([
-    'convert-config',
-    'manifest',
-    'model-dir',
-    'model-url',
-    'conversion-config',
-    'prompt',
-    'max-tokens',
-    'surface',
-    'runtime-config',
-    'out',
-    'bundle-id',
-    'created-at',
-    'skip-convert',
-    'skip-capture',
-    'reference-report',
-    'reference-transcript',
-    'pretty',
-    'json',
-    'help',
-    'h',
-  ]);
-  for (const key of Object.keys(parsed.flags || {})) {
-    if (allowedFlags.has(key)) continue;
-    throw new Error(`Unknown flag --${key} for "bundle".`);
-  }
-}
-
-function validateProfilesFlags(parsed) {
-  const allowedFlags = new Set([
-    'pretty',
-    'json',
-    'help',
-    'h',
-  ]);
-  for (const key of Object.keys(parsed.flags || {})) {
-    if (allowedFlags.has(key)) continue;
-    throw new Error(`Unknown flag --${key} for "profiles".`);
-  }
 }
 
 function parseUnifiedRuntimeConfig(value) {
@@ -746,7 +424,7 @@ async function main() {
     }
 
     const cliPolicy = await readJsonObjectFile(CLI_POLICY_PATH, '--cli-policy');
-    const parsed = parseArgs(argv);
+    const parsed = parseCliArguments(argv);
     if (parsed.flags.help === true || parsed.flags.h === true) {
       console.log(usage());
       return;
