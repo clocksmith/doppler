@@ -25,7 +25,7 @@ Rules that cause bugs when violated. Each has a fuller section below with ration
 - **Semantic Ownership** — shared behavior lives in the narrowest subsystem that owns its meaning. New catch-all utility or helper modules are forbidden. See [Semantic Ownership](#semantic-ownership).
 - **Facade Purity** — public entrypoints and compatibility facades validate, normalize, delegate, and translate errors; they do not own workload algorithms or policy. See [Facade Purity](#facade-purity).
 - **Enforced Source Architecture** — ownership, restricted dependency direction, facade purity, and the source line ceiling are checked by `npm run source:architecture:check`. See [Source Architecture Gate](#source-architecture-gate).
-- **No JavaScript Tensor Math** — tensor arithmetic and tensor-layout transforms execute in declared WGSL programs; JavaScript may validate shapes, bind resources, dispatch, and perform explicitly contracted scalar control work only.
+- **No JavaScript Runtime Tensor Math** — model-runtime tensor arithmetic and tensor-layout transforms execute in declared WGSL programs; JavaScript may validate shapes, bind resources, dispatch, and perform explicitly contracted scalar control work only. Forge artifact construction, byte codecs/materialization, host input preprocessing, observation, and test references are separate reviewed boundaries and may never become runtime compute fallbacks.
 - **Declared Semantic Geometry** — required tensor and spatial geometry comes from ModelIR, TargetPlan, manifest, or resolved session contracts. Runtime code never reconstructs it from counts, tensor names, model names, or heuristics.
 
 ## Core Principles
@@ -68,10 +68,28 @@ Determinism requirement:
 - JS may not introduce behavior not represented in resolved config.
 - WGSL may not contain runtime policy branching for selection behavior.
 - Legacy compatibility is allowed only through explicit JSON rule/registry entries and must be visible in config.
-- JS must not implement tensor arithmetic or tensor-layout transforms as CPU
-  loops, typed-array math, or readback/compute/upload round trips.
+- During Pack/Runtime model execution, JS must not implement tensor arithmetic
+  or tensor-layout transforms as CPU loops, typed-array math, or
+  readback/compute/upload round trips.
 - Required semantic geometry must be present in the resolved contract before
   allocation or dispatch; deriving it from element counts is forbidden.
+
+The following JavaScript numeric boundaries are permitted only when their role
+is explicit and inventoried by `npm run source:style:check`:
+
+- Forge/converter artifact construction before a Pack is signed;
+- descriptor-bound artifact decoding and materialization before execution;
+- application-input preprocessing before a runtime tensor is created;
+- scalar sampling and other declared control-plane decisions after readback;
+- observation that never feeds a modified tensor back into execution; and
+- deterministic CPU references in tests or quarantined reference modules; and
+- numerical prototypes under `src/experimental/` while the architecture gate
+  proves that no production owner imports them and support policy keeps them
+  outside Pack Runtime claims.
+
+An allowed boundary may not select runtime policy, infer semantic geometry, or
+serve as a fallback for a declared WGSL operation. A readback/compute/upload
+round trip is always runtime tensor compute and is forbidden.
 
 ---
 
@@ -775,9 +793,12 @@ npm run source:architecture:check
 
 The style gate rejects JSDoc in governed JavaScript modules so types and API
 descriptions remain in sibling declaration files. It also enforces mechanically
-detectable execution-plane invariants: no ad hoc tensor readback math, no
-runtime geometry inference, no raw runtime logging outside allowed entrypoints,
-no unowned policy/default construction, and precise sibling declarations.
+detectable execution-plane invariants: every typed-array numeric candidate is
+classified in the source-compute policy; production runtime tensor compute and
+readback/compute/upload paths are rejected; stale or missing classifications
+fail; runtime geometry inference, raw runtime logging outside allowed
+entrypoints, unowned policy/default construction, and imprecise sibling
+declarations fail.
 `npm run source:style:sync` removes inherited implementation JSDoc after
 declaration coverage is complete.
 
