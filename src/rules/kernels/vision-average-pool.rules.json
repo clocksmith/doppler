@@ -1,0 +1,5 @@
+{
+  "variant": [
+    { "match": { "inputDtype": "f32" }, "value": "default" }
+  ]
+}

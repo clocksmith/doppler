@@ -654,7 +654,7 @@ correctness/performance goal cites the required evidence files.
 
 ## Model artifact contract
 
-`models/catalog.json` is the canonical model contract. `src/client/doppler-registry.json`
+`models/catalog.json` is the canonical model contract. `src/config/quickstart-registry.json`
 is a public quickstart mirror, not an independent source of truth.
 
 `tools/policies/model-artifact-contract.json` defines the registry promotion

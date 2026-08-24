@@ -1325,6 +1325,51 @@ export async function runKernelSuite(harness) {
   ]);
 
   tests.push([
+    'vision_average_pool',
+    async () => {
+      const geometry = { gridHeight: 4, gridWidth: 6, hiddenSize: 8, poolingSize: 2 };
+      const input = h.generateTestData(4 * 6 * 8, 12305);
+      const expected = h.references.visionAveragePoolRef(input, geometry);
+      const actual = await h.runVisionAveragePool(null, input, geometry);
+      return h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual).passed;
+    },
+  ]);
+
+  tests.push([
+    'vision_position_embedding',
+    async () => {
+      const geometry = {
+        gridHeight: 3,
+        gridWidth: 4,
+        positionEmbeddingSize: 6,
+        hiddenSize: 8,
+      };
+      const table = h.generateTestData(2 * 6 * 8, 12306);
+      const expected = h.references.visionPositionEmbeddingRef(table, geometry);
+      const actual = await h.runVisionPositionEmbedding(null, table, geometry);
+      return h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual).passed;
+    },
+  ]);
+
+  tests.push([
+    'vision_rope_2d',
+    async () => {
+      const geometry = {
+        numTokens: 12,
+        numHeads: 2,
+        headDim: 16,
+        gridHeight: 3,
+        gridWidth: 4,
+        ropeTheta: 10000,
+      };
+      const input = h.generateTestData(12 * 2 * 16, 12307);
+      const expected = h.references.visionRope2DRef(input, geometry);
+      const actual = await h.runVisionRope2D(null, input, geometry);
+      return h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rope).passed;
+    },
+  ]);
+
+  tests.push([
     'swiglu',
     async () => {
       const size = 128;

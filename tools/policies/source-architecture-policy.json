@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "sourceRoot": "src",
   "lineLimit": 999,
   "topLevelOwners": {
@@ -15,7 +15,7 @@
     "gpu": "WebGPU device, command, and kernel mechanisms",
     "inference": "model execution plans and inference orchestration",
     "loader": "model and tensor loading",
-    "loaders": "legacy loader compatibility surfaces",
+    "loaders": "public loader compatibility facade",
     "memory": "GPU and host memory ownership",
     "models": "model-facing source contracts",
     "rules": "declarative rule loading, validation, and matching",
@@ -23,12 +23,12 @@
     "tooling": "shared command implementations and repository tooling APIs",
     "tooling-exports": "narrow public tooling export slices",
     "types": "shared declarations owned by no narrower subsystem",
-    "utils": "legacy cross-cutting utilities pending semantic ownership"
+    "utils": "compatibility surfaces for relocated neutral contracts"
   },
   "restrictedDependencies": {
     "config": ["config", "debug", "errors", "types", "utils"],
     "rules": ["config", "debug", "errors", "rules", "types", "utils"],
-    "gpu": ["config", "debug", "errors", "gpu", "memory", "rules", "types", "utils"],
+    "gpu": ["config", "debug", "errors", "formats", "gpu", "memory", "rules", "types", "utils"],
     "memory": ["config", "debug", "errors", "gpu", "memory", "types", "utils"],
     "storage": ["config", "debug", "errors", "formats", "memory", "storage", "tooling", "types", "utils"]
   },
@@ -90,24 +90,7 @@
       ]
     }
   ],
-  "dependencyExceptions": [
-    { "from": "config/execution-contract-check.js", "toOwner": "gpu", "extractTo": "rules/execution-contract.js", "reason": "Move kernel rule evaluation behind the rules-owned execution contract." },
-    { "from": "config/kernel-path-loader.js", "toOwner": "gpu", "extractTo": "config/kernel-registry-contract.js", "reason": "Move kernel registry metadata behind a config-owned contract." },
-    { "from": "config/quantization-contract-check.js", "toOwner": "gpu", "extractTo": "formats/quantization-constants.js", "reason": "Make format constants independent of GPU implementation modules." },
-    { "from": "config/quantization-contract-check.js", "toOwner": "loader", "extractTo": "formats/quantization-constants.js", "reason": "Make format constants independent of loader implementation modules." },
-    { "from": "config/required-inference-fields-contract-check.js", "toOwner": "inference", "extractTo": "config/required-inference-fields.js", "reason": "Move required-field validation to its config owner." },
-    { "from": "config/schema/manifest.schema.js", "toOwner": "inference", "extractTo": "config/schema/inference-contract.schema.js", "reason": "Move manifest inference validation out of pipeline implementation." },
-    { "from": "config/transforms/capability-transform-resolver.js", "toOwner": "gpu", "extractTo": "rules/rule-matcher.js", "reason": "Move generic rule matching out of the GPU kernel directory." },
-    { "from": "gpu/kernels/dequant.js", "toOwner": "loader", "extractTo": "formats/quantization-constants.js", "reason": "Move quantization format constants to the format owner." },
-    { "from": "gpu/kernels/linear-attention-core.js", "toOwner": "inference", "extractTo": "config/dtype-transition-contract.js", "reason": "Move dtype-transition validation to a neutral resolved-contract module." },
-    { "from": "gpu/kernels/matmul.js", "toOwner": "inference", "extractTo": "config/dtype-transition-contract.js", "reason": "Move dtype-transition validation to a neutral resolved-contract module." },
-    { "from": "gpu/kernels/residual.js", "toOwner": "inference", "extractTo": "config/dtype-transition-contract.js", "reason": "Move dtype-transition validation to a neutral resolved-contract module." },
-    { "from": "gpu/kernels/rope.js", "toOwner": "inference", "extractTo": "config/dtype-transition-contract.js", "reason": "Move dtype-transition validation to a neutral resolved-contract module." },
-    { "from": "rules/execution-rules-contract-check.js", "toOwner": "gpu", "extractTo": "rules/rule-matcher.js", "reason": "Move generic rule matching to the rules subsystem." },
-    { "from": "rules/layer-pattern-contract-check.js", "toOwner": "gpu", "extractTo": "rules/rule-matcher.js", "reason": "Move generic rule matching to the rules subsystem." },
-    { "from": "rules/rule-registry.js", "toOwner": "gpu", "extractTo": "rules/rule-matcher.js", "reason": "Move generic rule matching to the rules subsystem." },
-    { "from": "storage/quickstart-downloader.js", "toOwner": "client", "extractTo": "config/quickstart-registry.json", "reason": "Move quickstart catalog data out of the client implementation layer." }
-  ],
+  "dependencyExceptions": [],
   "genericModuleReviews": {
     "config/merge-helpers.js": {
       "classification": "compatibility-facade",
@@ -217,9 +200,12 @@
   "facades": [
     "index.js",
     "index-browser.js",
+    "config/execution-contract-check.js",
+    "config/transforms/capability-transform-resolver.js",
     "config/merge-helpers.js",
     "converter/tokenizer-utils.js",
     "gpu/kernels/backward/utils.js",
+    "gpu/kernels/rule-matcher.js",
     "gpu/kernels/utils.js",
     "inference/browser-harness-model-helpers.js",
     "inference/browser-harness-runtime-helpers.js",
@@ -228,10 +214,14 @@
     "inference/pipelines/diffusion/helpers.js",
     "inference/pipelines/text/debug-utils.js",
     "inference/pipelines/text/debug-utils/utils.js",
+    "inference/pipelines/text/attention/heterogeneous-contract.js",
+    "inference/pipelines/text/config/validation.js",
     "inference/pipelines/text/generator-helpers.js",
     "inference/pipelines/text/generator-prefill-helpers.js",
     "inference/pipelines/text/logits/utils.js",
     "inference/pipelines/text/moe-helpers.js",
+    "loader/quantization-constants.js",
+    "loaders/index.js",
     "tooling-exports.js",
     "tooling-exports.browser.js",
     "tooling-exports.shared.js",

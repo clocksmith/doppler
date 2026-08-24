@@ -1,6 +1,8 @@
 import { log } from '../../../debug/index.js';
-import { getDevice } from '../../../gpu/device.js';
 import { createTensor } from '../../../gpu/tensor.js';
+import { runVisionAveragePool } from '../../../gpu/kernels/vision-average-pool.js';
+import { runVisionPositionEmbedding } from '../../../gpu/kernels/vision-position-embedding.js';
+import { runVisionRope2D } from '../../../gpu/kernels/vision-rope-2d.js';
 import {
   runAttention,
   runGeLU,
@@ -8,7 +10,8 @@ import {
   runResidualAdd,
   runRMSNorm,
 } from '../../../gpu/kernel-selector.js';
-import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, uploadData } from '../../../memory/buffer-pool.js';
+import { createImmediateResourceScope } from '../../resource-scope.js';
 import { getQKNormOnesBuffer } from '../text/attention/types.js';
 import { shouldClamp, runClippableLinear } from '../shared/clipped-linear.js';
 
@@ -18,6 +21,22 @@ function createTensorFromBuffer(buffer, shape, label) {
 
 function reshapeTensor(tensor, shape, label) {
   return createTensor(tensor.buffer, tensor.dtype, shape, label);
+}
+
+function createVisionResourceScope() {
+  return createImmediateResourceScope({ release: releaseBuffer });
+}
+
+function registerTensor(scope, tensor, label) {
+  scope.register(tensor.buffer, label, 'scopeOwned');
+  return tensor;
+}
+
+function requirePositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`[Vision] Gemma 4 requires ${label} to be a positive integer, got ${value}.`);
+  }
+  return value;
 }
 
 function resolveSourceChannels(pixels, width, height) {
@@ -219,182 +238,26 @@ export function preprocessGemma4Image(pixels, width, height, visionConfig, softT
   };
 }
 
-function buildPatchPositionEmbeddings(positionTable, positions, positionEmbeddingSize, hiddenSize) {
-  const numPatches = positions.length / 2;
-  const output = new Float32Array(numPatches * hiddenSize);
-  const tableStride = positionEmbeddingSize * hiddenSize;
-
-  for (let patchIdx = 0; patchIdx < numPatches; patchIdx++) {
-    const x = positions[patchIdx * 2];
-    const y = positions[patchIdx * 2 + 1];
-    if (x < 0 || y < 0 || x >= positionEmbeddingSize || y >= positionEmbeddingSize) {
-      throw new Error(
-        `[Vision] Patch position (${x}, ${y}) exceeds position embedding size ${positionEmbeddingSize}.`
-      );
-    }
-    const dstBase = patchIdx * hiddenSize;
-    const xBase = x * hiddenSize;
-    const yBase = tableStride + y * hiddenSize;
-    for (let d = 0; d < hiddenSize; d++) {
-      output[dstBase + d] = positionTable[xBase + d] + positionTable[yBase + d];
-    }
+async function runVisionAttention(hiddenTensor, layerWeights, visionConfig, geometry, numTokens, hiddenSize) {
+  const numHeads = requirePositiveInteger(Number(visionConfig.numHeads), 'numHeads');
+  const numKVHeads = requirePositiveInteger(Number(visionConfig.numKeyValueHeads), 'numKeyValueHeads');
+  const headDim = requirePositiveInteger(Number(visionConfig.headDim), 'headDim');
+  if (hiddenSize !== numHeads * headDim) {
+    throw new Error(
+      `[Vision] Gemma 4 attention geometry mismatch: hiddenSize=${hiddenSize}, ` +
+      `numHeads=${numHeads}, headDim=${headDim}.`
+    );
+  }
+  if (numHeads % numKVHeads !== 0) {
+    throw new Error(
+      `[Vision] Gemma 4 requires numHeads divisible by numKeyValueHeads, got ${numHeads}/${numKVHeads}.`
+    );
   }
 
-  return output;
-}
-
-async function readTensorF32(tensor, expectedLength, label) {
-  const bytes = await readBuffer(tensor.buffer, expectedLength * Float32Array.BYTES_PER_ELEMENT);
-  const copied = bytes instanceof ArrayBuffer
-    ? bytes.slice(0)
-    : bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-  const result = new Float32Array(copied);
-  if (result.length !== expectedLength) {
-    throw new Error(`[Vision] ${label}: expected ${expectedLength} floats, got ${result.length}.`);
-  }
-  return result;
-}
-
-function buildVisionRopeCache(positions, headDim, ropeTheta) {
-  if (headDim % 4 !== 0) {
-    throw new Error(`[Vision] headDim=${headDim} is incompatible with Gemma4 multidimensional RoPE.`);
-  }
-  const numTokens = positions.length / 2;
-  const spatialDim = headDim / 2;
-  const halfRotary = spatialDim / 2;
-  const invFreq = new Float32Array(halfRotary);
-  for (let i = 0; i < halfRotary; i++) {
-    invFreq[i] = 1.0 / (ropeTheta ** ((2 * i) / spatialDim));
-  }
-
-  const cosX = new Float32Array(numTokens * halfRotary);
-  const sinX = new Float32Array(numTokens * halfRotary);
-  const cosY = new Float32Array(numTokens * halfRotary);
-  const sinY = new Float32Array(numTokens * halfRotary);
-
-  for (let tokenIdx = 0; tokenIdx < numTokens; tokenIdx++) {
-    const x = positions[tokenIdx * 2];
-    const y = positions[tokenIdx * 2 + 1];
-    const base = tokenIdx * halfRotary;
-    for (let i = 0; i < halfRotary; i++) {
-      const angleX = x * invFreq[i];
-      const angleY = y * invFreq[i];
-      cosX[base + i] = Math.cos(angleX);
-      sinX[base + i] = Math.sin(angleX);
-      cosY[base + i] = Math.cos(angleY);
-      sinY[base + i] = Math.sin(angleY);
-    }
-  }
-
-  return {
-    cosX,
-    sinX,
-    cosY,
-    sinY,
-    halfRotary,
-  };
-}
-
-function applyVisionRopeInPlace(data, ropeCache, numTokens, numHeads, headDim) {
-  const tokenStride = numHeads * headDim;
-  const spatialOffset = headDim / 2;
-  const pairCount = ropeCache.halfRotary;
-
-  for (let tokenIdx = 0; tokenIdx < numTokens; tokenIdx++) {
-    const ropeBase = tokenIdx * pairCount;
-    for (let headIdx = 0; headIdx < numHeads; headIdx++) {
-      const base = tokenIdx * tokenStride + headIdx * headDim;
-
-      for (let i = 0; i < pairCount; i++) {
-        const cos = ropeCache.cosX[ropeBase + i];
-        const sin = ropeCache.sinX[ropeBase + i];
-        const a = data[base + i];
-        const b = data[base + pairCount + i];
-        data[base + i] = (a * cos) - (b * sin);
-        data[base + pairCount + i] = (b * cos) + (a * sin);
-      }
-
-      for (let i = 0; i < pairCount; i++) {
-        const cos = ropeCache.cosY[ropeBase + i];
-        const sin = ropeCache.sinY[ropeBase + i];
-        const partBase = base + spatialOffset;
-        const a = data[partBase + i];
-        const b = data[partBase + pairCount + i];
-        data[partBase + i] = (a * cos) - (b * sin);
-        data[partBase + pairCount + i] = (b * cos) + (a * sin);
-      }
-    }
-  }
-}
-
-async function applyVisionRopeToTensorInPlace(tensor, ropeCache, numTokens, numHeads, headDim, label) {
-  const data = await readTensorF32(tensor, numTokens * numHeads * headDim, label);
-  applyVisionRopeInPlace(data, ropeCache, numTokens, numHeads, headDim);
-  uploadData(tensor.buffer, data, 0);
-}
-
-function applyRmsNormNoScaleInPlace(data, numTokens, hiddenSize, eps) {
-  for (let tokenIdx = 0; tokenIdx < numTokens; tokenIdx++) {
-    const base = tokenIdx * hiddenSize;
-    let meanSquare = 0;
-    for (let d = 0; d < hiddenSize; d++) {
-      const value = data[base + d];
-      meanSquare += value * value;
-    }
-    const inv = 1.0 / Math.sqrt(meanSquare / hiddenSize + eps);
-    for (let d = 0; d < hiddenSize; d++) {
-      data[base + d] *= inv;
-    }
-  }
-}
-
-function poolVisionHiddenStates(hiddenStates, gridHeight, gridWidth, hiddenSize, poolingKernelSize) {
-  const pooledHeight = gridHeight / poolingKernelSize;
-  const pooledWidth = gridWidth / poolingKernelSize;
-  const outputLength = pooledHeight * pooledWidth;
-  const output = new Float32Array(outputLength * hiddenSize);
-  const scale = Math.sqrt(hiddenSize);
-  const divisor = poolingKernelSize * poolingKernelSize;
-
-  for (let pooledY = 0; pooledY < pooledHeight; pooledY++) {
-    for (let pooledX = 0; pooledX < pooledWidth; pooledX++) {
-      const outIdx = pooledY * pooledWidth + pooledX;
-      const outBase = outIdx * hiddenSize;
-      for (let ky = 0; ky < poolingKernelSize; ky++) {
-        for (let kx = 0; kx < poolingKernelSize; kx++) {
-          const srcPatch = ((pooledY * poolingKernelSize + ky) * gridWidth) + (pooledX * poolingKernelSize + kx);
-          const srcBase = srcPatch * hiddenSize;
-          for (let d = 0; d < hiddenSize; d++) {
-            output[outBase + d] += hiddenStates[srcBase + d];
-          }
-        }
-      }
-      for (let d = 0; d < hiddenSize; d++) {
-        output[outBase + d] = (output[outBase + d] / divisor) * scale;
-      }
-    }
-  }
-
-  return {
-    output,
-    outputLength,
-  };
-}
-
-async function runVisionAttention(hiddenTensor, layerWeights, visionConfig, ropeCache, numTokens, hiddenSize) {
-  const numHeads = Number(visionConfig.numHeads);
-  const numKVHeads = Number(visionConfig.numKeyValueHeads ?? numHeads);
-  const headDim = Number(visionConfig.headDim);
-
-  let qTensor = null;
-  let kTensor = null;
-  let vTensor = null;
-  let qNormTensor = null;
-  let kNormTensor = null;
-  let vNormTensor = null;
-  let attnTensor = null;
+  const scope = createVisionResourceScope();
+  let succeeded = false;
   try {
-    qTensor = await runClippableLinear(
+    const qTensor = registerTensor(scope, await runClippableLinear(
       hiddenTensor,
       layerWeights.qProj,
       numTokens,
@@ -402,8 +265,8 @@ async function runVisionAttention(hiddenTensor, layerWeights, visionConfig, rope
       hiddenSize,
       layerWeights.qProjClip,
       'gemma4_vision_q_proj'
-    );
-    kTensor = await runClippableLinear(
+    ), 'q projection');
+    const kTensor = registerTensor(scope, await runClippableLinear(
       hiddenTensor,
       layerWeights.kProj,
       numTokens,
@@ -411,8 +274,8 @@ async function runVisionAttention(hiddenTensor, layerWeights, visionConfig, rope
       hiddenSize,
       layerWeights.kProjClip,
       'gemma4_vision_k_proj'
-    );
-    vTensor = await runClippableLinear(
+    ), 'k projection');
+    const vTensor = registerTensor(scope, await runClippableLinear(
       hiddenTensor,
       layerWeights.vProj,
       numTokens,
@@ -420,38 +283,49 @@ async function runVisionAttention(hiddenTensor, layerWeights, visionConfig, rope
       hiddenSize,
       layerWeights.vProjClip,
       'gemma4_vision_v_proj'
-    );
+    ), 'v projection');
 
-    qNormTensor = await runRMSNorm(
+    const qNormTensor = registerTensor(scope, await runRMSNorm(
       reshapeTensor(qTensor, [numTokens * numHeads, headDim], 'gemma4_vision_q_flat'),
       layerWeights.qNorm,
       visionConfig.eps,
       { batchSize: numTokens * numHeads, hiddenSize: headDim }
-    );
-    kNormTensor = await runRMSNorm(
+    ), 'normalized q');
+    const kNormTensor = registerTensor(scope, await runRMSNorm(
       reshapeTensor(kTensor, [numTokens * numKVHeads, headDim], 'gemma4_vision_k_flat'),
       layerWeights.kNorm,
       visionConfig.eps,
       { batchSize: numTokens * numKVHeads, hiddenSize: headDim }
-    );
-    vNormTensor = await runRMSNorm(
+    ), 'normalized k');
+    const vNormTensor = registerTensor(scope, await runRMSNorm(
       reshapeTensor(vTensor, [numTokens * numKVHeads, headDim], 'gemma4_vision_v_flat'),
       getQKNormOnesBuffer(headDim),
       visionConfig.eps,
       { batchSize: numTokens * numKVHeads, hiddenSize: headDim }
-    );
+    ), 'normalized v');
 
-    releaseBuffer(qTensor.buffer);
-    releaseBuffer(kTensor.buffer);
-    releaseBuffer(vTensor.buffer);
-    qTensor = null;
-    kTensor = null;
-    vTensor = null;
+    scope.release(qTensor.buffer);
+    scope.release(kTensor.buffer);
+    scope.release(vTensor.buffer);
 
-    await applyVisionRopeToTensorInPlace(qNormTensor, ropeCache, numTokens, numHeads, headDim, 'gemma4_vision_q_rope');
-    await applyVisionRopeToTensorInPlace(kNormTensor, ropeCache, numTokens, numKVHeads, headDim, 'gemma4_vision_k_rope');
+    await runVisionRope2D(qNormTensor, {
+      numTokens,
+      numHeads,
+      headDim,
+      gridHeight: geometry.gridHeight,
+      gridWidth: geometry.gridWidth,
+      ropeTheta: geometry.ropeTheta,
+    });
+    await runVisionRope2D(kNormTensor, {
+      numTokens,
+      numHeads: numKVHeads,
+      headDim,
+      gridHeight: geometry.gridHeight,
+      gridWidth: geometry.gridWidth,
+      ropeTheta: geometry.ropeTheta,
+    });
 
-    attnTensor = await runAttention(
+    const attnTensor = await runAttention(
       reshapeTensor(qNormTensor, [numTokens, numHeads, headDim], 'gemma4_vision_q'),
       reshapeTensor(kNormTensor, [numTokens, numKVHeads, headDim], 'gemma4_vision_k'),
       reshapeTensor(vNormTensor, [numTokens, numKVHeads, headDim], 'gemma4_vision_v'),
@@ -464,17 +338,32 @@ async function runVisionAttention(hiddenTensor, layerWeights, visionConfig, rope
         numKVHeads,
         scale: 1.0,
         causal: false,
+        bidirectionalSpanStart: 0,
+        bidirectionalSpanLength: 0,
+        startPos: 0,
+        outputBuffer: null,
+        attnSoftcap: 0,
+        slidingWindow: 0,
+        kvLenBuffer: null,
+        indirectBuffer: null,
+        indirectOffset: 0,
+        kvStart: 0,
+        kvLayout: 'contiguous',
+        kvPageTable: null,
+        kvPageSize: 0,
+        kernelPath: null,
+        outputGate: null,
+        useFlashPrefill: false,
+        useOrtFlashPrefill: false,
       }
     );
+    registerTensor(scope, attnTensor, 'attention output');
 
-    releaseBuffer(qNormTensor.buffer);
-    releaseBuffer(kNormTensor.buffer);
-    releaseBuffer(vNormTensor.buffer);
-    qNormTensor = null;
-    kNormTensor = null;
-    vNormTensor = null;
+    scope.release(qNormTensor.buffer);
+    scope.release(kNormTensor.buffer);
+    scope.release(vNormTensor.buffer);
 
-    const output = await runClippableLinear(
+    const output = registerTensor(scope, await runClippableLinear(
       reshapeTensor(attnTensor, [numTokens, hiddenSize], 'gemma4_vision_attn_flat'),
       layerWeights.oProj,
       numTokens,
@@ -482,29 +371,22 @@ async function runVisionAttention(hiddenTensor, layerWeights, visionConfig, rope
       hiddenSize,
       layerWeights.oProjClip,
       'gemma4_vision_o_proj'
-    );
-    releaseBuffer(attnTensor.buffer);
-    attnTensor = null;
+    ), 'attention projection');
+    scope.release(attnTensor.buffer);
+    scope.retain(output.buffer, 'attention projection', 'caller owns attention output');
+    succeeded = true;
     return output;
-  } catch (error) {
-    if (attnTensor) releaseBuffer(attnTensor.buffer);
-    if (vNormTensor) releaseBuffer(vNormTensor.buffer);
-    if (kNormTensor) releaseBuffer(kNormTensor.buffer);
-    if (qNormTensor) releaseBuffer(qNormTensor.buffer);
-    if (vTensor) releaseBuffer(vTensor.buffer);
-    if (kTensor) releaseBuffer(kTensor.buffer);
-    if (qTensor) releaseBuffer(qTensor.buffer);
-    throw error;
+  } finally {
+    scope.close(succeeded ? 'success' : 'failure');
   }
 }
 
 async function runVisionMlp(hiddenTensor, layerWeights, visionConfig, numTokens, hiddenSize) {
-  const intermediateSize = Number(visionConfig.intermediateSize);
-  let gateTensor = null;
-  let upTensor = null;
-  let activatedTensor = null;
+  const intermediateSize = requirePositiveInteger(Number(visionConfig.intermediateSize), 'intermediateSize');
+  const scope = createVisionResourceScope();
+  let succeeded = false;
   try {
-    gateTensor = await runClippableLinear(
+    const gateTensor = registerTensor(scope, await runClippableLinear(
       hiddenTensor,
       layerWeights.gateProj,
       numTokens,
@@ -512,8 +394,8 @@ async function runVisionMlp(hiddenTensor, layerWeights, visionConfig, numTokens,
       hiddenSize,
       layerWeights.gateProjClip,
       'gemma4_vision_gate_proj'
-    );
-    upTensor = await runClippableLinear(
+    ), 'MLP gate projection');
+    const upTensor = registerTensor(scope, await runClippableLinear(
       hiddenTensor,
       layerWeights.upProj,
       numTokens,
@@ -521,17 +403,15 @@ async function runVisionMlp(hiddenTensor, layerWeights, visionConfig, numTokens,
       hiddenSize,
       layerWeights.upProjClip,
       'gemma4_vision_up_proj'
-    );
-    activatedTensor = await runGeLU(gateTensor, {
+    ), 'MLP up projection');
+    const activatedTensor = registerTensor(scope, await runGeLU(gateTensor, {
       size: numTokens * intermediateSize,
       gate: upTensor,
-    });
-    releaseBuffer(gateTensor.buffer);
-    releaseBuffer(upTensor.buffer);
-    gateTensor = null;
-    upTensor = null;
+    }), 'MLP activation');
+    scope.release(gateTensor.buffer);
+    scope.release(upTensor.buffer);
 
-    const output = await runClippableLinear(
+    const output = registerTensor(scope, await runClippableLinear(
       activatedTensor,
       layerWeights.downProj,
       numTokens,
@@ -539,15 +419,13 @@ async function runVisionMlp(hiddenTensor, layerWeights, visionConfig, numTokens,
       intermediateSize,
       layerWeights.downProjClip,
       'gemma4_vision_down_proj'
-    );
-    releaseBuffer(activatedTensor.buffer);
-    activatedTensor = null;
+    ), 'MLP down projection');
+    scope.release(activatedTensor.buffer);
+    scope.retain(output.buffer, 'MLP down projection', 'caller owns MLP output');
+    succeeded = true;
     return output;
-  } catch (error) {
-    if (activatedTensor) releaseBuffer(activatedTensor.buffer);
-    if (upTensor) releaseBuffer(upTensor.buffer);
-    if (gateTensor) releaseBuffer(gateTensor.buffer);
-    throw error;
+  } finally {
+    scope.close(succeeded ? 'success' : 'failure');
   }
 }
 
@@ -565,9 +443,9 @@ export async function encodeGemma4Image(params) {
   if (visionConfig.useClippedLinears !== true) {
     throw new Error('[Vision] Gemma 4 vision runtime requires useClippedLinears=true.');
   }
-  const hiddenSize = Number(visionConfig.hiddenSize);
-  const patchSize = Number(visionConfig.patchSize);
-  const poolingKernelSize = Number(visionConfig.poolingKernelSize);
+  const hiddenSize = requirePositiveInteger(Number(visionConfig.hiddenSize), 'hiddenSize');
+  const patchSize = requirePositiveInteger(Number(visionConfig.patchSize), 'patchSize');
+  const poolingKernelSize = requirePositiveInteger(Number(visionConfig.poolingKernelSize), 'poolingKernelSize');
   const ropeTheta = Number(visionConfig.ropeTheta);
   if (!Number.isFinite(ropeTheta) || ropeTheta <= 0) {
     throw new Error(
@@ -585,139 +463,144 @@ export async function encodeGemma4Image(params) {
     scaledPatches[index] = 2.0 * (preprocessed.patches[index] - 0.5);
   }
 
-  const patchTensor = createTensorFromBuffer(
-    acquireBuffer(scaledPatches.byteLength, undefined, 'gemma4_vision_patches'),
-    [preprocessed.numPatches, 3 * patchSize * patchSize],
-    'gemma4_vision_patches'
-  );
-  uploadData(patchTensor.buffer, scaledPatches, 0);
-
-  const positionEmbeddings = buildPatchPositionEmbeddings(
-    weights.patchPositionEmbeddingTable,
-    preprocessed.positions,
-    Number(visionConfig.positionEmbeddingSize),
-    hiddenSize
-  );
-  const positionTensor = createTensorFromBuffer(
-    acquireBuffer(positionEmbeddings.byteLength, undefined, 'gemma4_vision_position_embeddings'),
-    [preprocessed.numPatches, hiddenSize],
-    'gemma4_vision_position_embeddings'
-  );
-  uploadData(positionTensor.buffer, positionEmbeddings, 0);
-
-  let hiddenTensor = null;
+  const scope = createVisionResourceScope();
+  let succeeded = false;
   try {
-    hiddenTensor = await runMatmul(
+    const patchTensor = registerTensor(scope, createTensorFromBuffer(
+      acquireBuffer(scaledPatches.byteLength, undefined, 'gemma4_vision_patches'),
+      [preprocessed.numPatches, 3 * patchSize * patchSize],
+      'gemma4_vision_patches'
+    ), 'patch tensor');
+    uploadData(patchTensor.buffer, scaledPatches, 0);
+
+    const positionTensor = registerTensor(scope, await runVisionPositionEmbedding(
+      weights.patchPositionEmbeddingTable,
+      {
+        gridHeight: preprocessed.gridHeight,
+        gridWidth: preprocessed.gridWidth,
+        positionEmbeddingSize: Number(visionConfig.positionEmbeddingSize),
+        hiddenSize,
+      }
+    ), 'position embedding');
+
+    let hiddenTensor = registerTensor(scope, await runMatmul(
       patchTensor,
       weights.patchInputProj,
       preprocessed.numPatches,
       hiddenSize,
       3 * patchSize * patchSize,
       { outputDtype: 'f32', transposeB: 'auto' }
+    ), 'patch projection');
+    scope.release(patchTensor.buffer);
+
+    const embedded = registerTensor(
+      scope,
+      await runResidualAdd(hiddenTensor, positionTensor, preprocessed.numPatches * hiddenSize),
+      'positioned patches'
     );
-    releaseBuffer(patchTensor.buffer);
-
-    const embedded = await runResidualAdd(hiddenTensor, positionTensor, preprocessed.numPatches * hiddenSize);
-    releaseBuffer(hiddenTensor.buffer);
-    releaseBuffer(positionTensor.buffer);
+    scope.release(hiddenTensor.buffer);
+    scope.release(positionTensor.buffer);
     hiddenTensor = reshapeTensor(embedded, [preprocessed.numPatches, hiddenSize], 'gemma4_vision_hidden_0');
-
-    const ropeCache = buildVisionRopeCache(preprocessed.positions, Number(visionConfig.headDim), ropeTheta);
 
     for (let layerIdx = 0; layerIdx < weights.layers.length; layerIdx++) {
       const layerWeights = weights.layers[layerIdx];
-      const inputNorm = await runRMSNorm(
+      const inputNorm = registerTensor(scope, await runRMSNorm(
         hiddenTensor,
         layerWeights.inputLayerNorm,
         visionConfig.eps,
         { batchSize: preprocessed.numPatches, hiddenSize }
-      );
+      ), `layer ${layerIdx} input norm`);
 
-      const attnOut = await runVisionAttention(
+      const attnOut = registerTensor(scope, await runVisionAttention(
         inputNorm,
         layerWeights,
         visionConfig,
-        ropeCache,
+        {
+          gridHeight: preprocessed.gridHeight,
+          gridWidth: preprocessed.gridWidth,
+          ropeTheta,
+        },
         preprocessed.numPatches,
         hiddenSize
-      );
-      releaseBuffer(inputNorm.buffer);
+      ), `layer ${layerIdx} attention`);
+      scope.release(inputNorm.buffer);
 
-      const postAttnNorm = await runRMSNorm(
+      const postAttnNorm = registerTensor(scope, await runRMSNorm(
         attnOut,
         layerWeights.postAttentionLayerNorm,
         visionConfig.eps,
         { batchSize: preprocessed.numPatches, hiddenSize }
-      );
-      releaseBuffer(attnOut.buffer);
+      ), `layer ${layerIdx} post-attention norm`);
+      scope.release(attnOut.buffer);
 
-      const attnResidual = await runResidualAdd(
+      const attnResidual = registerTensor(scope, await runResidualAdd(
         hiddenTensor,
         postAttnNorm,
         preprocessed.numPatches * hiddenSize
-      );
-      releaseBuffer(hiddenTensor.buffer);
-      releaseBuffer(postAttnNorm.buffer);
+      ), `layer ${layerIdx} attention residual`);
+      scope.release(hiddenTensor.buffer);
+      scope.release(postAttnNorm.buffer);
       hiddenTensor = reshapeTensor(attnResidual, [preprocessed.numPatches, hiddenSize], `gemma4_vision_hidden_attn_${layerIdx}`);
 
-      const preFfNorm = await runRMSNorm(
+      const preFfNorm = registerTensor(scope, await runRMSNorm(
         hiddenTensor,
         layerWeights.preFeedforwardLayerNorm,
         visionConfig.eps,
         { batchSize: preprocessed.numPatches, hiddenSize }
+      ), `layer ${layerIdx} pre-FFN norm`);
+      const mlpOut = registerTensor(
+        scope,
+        await runVisionMlp(preFfNorm, layerWeights, visionConfig, preprocessed.numPatches, hiddenSize),
+        `layer ${layerIdx} MLP`
       );
-      const mlpOut = await runVisionMlp(preFfNorm, layerWeights, visionConfig, preprocessed.numPatches, hiddenSize);
-      releaseBuffer(preFfNorm.buffer);
+      scope.release(preFfNorm.buffer);
 
-      const postFfNorm = await runRMSNorm(
+      const postFfNorm = registerTensor(scope, await runRMSNorm(
         mlpOut,
         layerWeights.postFeedforwardLayerNorm,
         visionConfig.eps,
         { batchSize: preprocessed.numPatches, hiddenSize }
-      );
-      releaseBuffer(mlpOut.buffer);
+      ), `layer ${layerIdx} post-FFN norm`);
+      scope.release(mlpOut.buffer);
 
-      const ffResidual = await runResidualAdd(
+      const ffResidual = registerTensor(scope, await runResidualAdd(
         hiddenTensor,
         postFfNorm,
         preprocessed.numPatches * hiddenSize
-      );
-      releaseBuffer(hiddenTensor.buffer);
-      releaseBuffer(postFfNorm.buffer);
+      ), `layer ${layerIdx} FFN residual`);
+      scope.release(hiddenTensor.buffer);
+      scope.release(postFfNorm.buffer);
       hiddenTensor = reshapeTensor(ffResidual, [preprocessed.numPatches, hiddenSize], `gemma4_vision_hidden_ff_${layerIdx}`);
     }
 
-    const hiddenCpu = await readTensorF32(hiddenTensor, preprocessed.numPatches * hiddenSize, 'gemma4_vision_hidden_final');
-    releaseBuffer(hiddenTensor.buffer);
-    hiddenTensor = null;
-
-    const pooled = poolVisionHiddenStates(
-      hiddenCpu,
-      preprocessed.gridHeight,
-      preprocessed.gridWidth,
+    const pooled = registerTensor(scope, await runVisionAveragePool(hiddenTensor, {
+      gridHeight: preprocessed.gridHeight,
+      gridWidth: preprocessed.gridWidth,
       hiddenSize,
-      poolingKernelSize
-    );
-    applyRmsNormNoScaleInPlace(pooled.output, pooled.outputLength, hiddenSize, visionConfig.eps);
-
-    const pooledTensor = createTensorFromBuffer(
-      acquireBuffer(pooled.output.byteLength, undefined, 'gemma4_vision_pooled'),
-      [pooled.outputLength, hiddenSize],
-      'gemma4_vision_pooled'
-    );
-    uploadData(pooledTensor.buffer, pooled.output, 0);
+      poolingSize: poolingKernelSize,
+    }), 'pooled vision state');
+    scope.release(hiddenTensor.buffer);
+    hiddenTensor = null;
+    const outputLength = preprocessed.outputLength;
+    const pooledTensor = registerTensor(scope, await runRMSNorm(
+      pooled,
+      getQKNormOnesBuffer(hiddenSize),
+      visionConfig.eps,
+      { batchSize: outputLength, hiddenSize }
+    ), 'normalized pooled vision state');
+    scope.release(pooled.buffer);
 
     let projected = null;
     if (weights.projector) {
-      projected = await runMatmul(
+      projected = registerTensor(scope, await runMatmul(
         pooledTensor,
         weights.projector,
-        pooled.outputLength,
+        outputLength,
         weights.textHiddenSize,
         hiddenSize,
         { outputDtype: 'f32', transposeB: 'auto' }
-      );
-      releaseBuffer(pooledTensor.buffer);
+      ), 'vision projector output');
+      scope.release(pooledTensor.buffer);
     } else {
       if (hiddenSize !== weights.textHiddenSize) {
         throw new Error(
@@ -728,15 +611,16 @@ export async function encodeGemma4Image(params) {
       projected = pooledTensor;
     }
 
+    scope.retain(projected.buffer, 'vision output', 'caller owns encoded vision features');
+    succeeded = true;
     return {
       features: projected.buffer,
-      numTokens: pooled.outputLength,
+      numTokens: outputLength,
       gridThw: [1, preprocessed.gridHeight, preprocessed.gridWidth],
       imageWidth: preprocessed.gridWidth * patchSize,
       imageHeight: preprocessed.gridHeight * patchSize,
     };
-  } catch (error) {
-    if (hiddenTensor) releaseBuffer(hiddenTensor.buffer);
-    throw error;
+  } finally {
+    scope.close(succeeded ? 'success' : 'failure');
   }
 }

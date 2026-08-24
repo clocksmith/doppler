@@ -1,4 +1,4 @@
-import { selectByRules } from '../gpu/kernels/rule-matcher.js';
+import { selectByRules } from './rule-matcher.js';
 import { computeGlobalLayers } from '../config/schema/inference.schema.js';
 
 function isPlainObject(value) {

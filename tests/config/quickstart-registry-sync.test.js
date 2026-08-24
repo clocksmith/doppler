@@ -5,7 +5,7 @@ const catalog = JSON.parse(
   await fs.readFile(new URL('../../models/catalog.json', import.meta.url), 'utf8')
 );
 const quickstartRegistry = JSON.parse(
-  await fs.readFile(new URL('../../src/client/doppler-registry.json', import.meta.url), 'utf8')
+  await fs.readFile(new URL('../../src/config/quickstart-registry.json', import.meta.url), 'utf8')
 );
 const revocationRegistry = JSON.parse(
   await fs.readFile(new URL('../../src/config/revocation-registry.json', import.meta.url), 'utf8')
@@ -15,7 +15,7 @@ const { buildQuickstartRegistryPayload } = await import('../../tools/sync-quicks
 assert.deepEqual(
   quickstartRegistry,
   buildQuickstartRegistryPayload(catalog, revocationRegistry),
-  'src/client/doppler-registry.json must be generated from models/catalog.json'
+  'src/config/quickstart-registry.json must be generated from models/catalog.json'
 );
 
 {

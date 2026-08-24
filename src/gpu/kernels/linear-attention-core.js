@@ -12,7 +12,7 @@ import {
 } from './pipeline-cache.js';
 import { recordDispatch } from './dispatch.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
-import { assertImplicitDtypeTransitionAllowed } from '../../inference/pipelines/text/dtype-contract.js';
+import { assertImplicitDtypeTransitionAllowed } from '../../config/dtype-transition-contract.js';
 
 const CONV_WORKGROUP_SIZE = WORKGROUP_SIZES.DEFAULT;
 const HEAD_WORKGROUP_SIZE = 128;

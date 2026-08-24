@@ -15,7 +15,7 @@ import {
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');
-const DEFAULT_OUTPUT_FILE = path.join(REPO_ROOT, 'src', 'client', 'doppler-registry.json');
+const DEFAULT_OUTPUT_FILE = path.join(REPO_ROOT, 'src', 'config', 'quickstart-registry.json');
 const DEFAULT_REVOCATION_FILE = path.join(REPO_ROOT, 'src', 'config', 'revocation-registry.json');
 
 function normalizeText(value) {

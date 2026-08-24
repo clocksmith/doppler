@@ -7479,6 +7479,256 @@
     }
    }
   },
+  "vision_average_pool": {
+   "description": "Spatial average pooling and model-declared output scaling for vision features",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "grid_height",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "grid_width",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "pooling_size",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "pooled_height",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "pooled_width",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "output_elements",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 28
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "vision_average_pool.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["vision-average-pool.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "vision_rope_2d": {
+   "description": "In-place two-dimensional rotary position embedding for vision attention",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_heads",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "head_dim",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "grid_height",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "grid_width",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "rope_theta",
+      "type": "f32",
+      "offset": 20
+     },
+     {
+      "name": "total_pairs",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 28
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "vision_rope_2d.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["vision-rope-2d.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "vision_position_embedding": {
+   "description": "Two-axis learned vision position embedding from explicit grid geometry",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "table",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "grid_height",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "grid_width",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "position_embedding_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "output_elements",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "vision_position_embedding.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "reachability": {
+      "status": "selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["vision-position-embedding.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "f16": {
+     "wgsl": "vision_position_embedding_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "weightDtype": "f16",
+     "reachability": {
+      "status": "selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["vision-position-embedding.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "vision_patch_embed": {
    "description": "Qwen vision patch projection from explicit spatial geometry",
    "baseBindings": [

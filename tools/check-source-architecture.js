@@ -141,6 +141,7 @@ async function main() {
   const observedLegacy = new Set();
   const genericModuleReviews = new Map(Object.entries(policy.genericModuleReviews ?? {}));
   const observedGenericModules = new Set();
+  const facadePaths = new Set(policy.facades ?? []);
   const files = await walk(sourceRoot);
   await validateConstitutionalDomains(policy, sourceRoot, files, errors);
   for (const filePath of files) {
@@ -168,6 +169,7 @@ async function main() {
 
     if (path.extname(relative) !== '.js') continue;
     if (genericModulePattern.test(relative)) observedGenericModules.add(relative);
+    if (facadePaths.has(relative)) continue;
     const fromOwner = relative.split('/')[0];
     const allowedOwners = policy.restrictedDependencies[fromOwner];
     if (!allowedOwners) continue;
@@ -192,7 +194,6 @@ async function main() {
   for (const [key, entry] of exceptions) {
     if (!entry.used) errors.push(`dependency exception is stale: ${key}`);
   }
-  const facadePaths = new Set(policy.facades);
   for (const relative of [...observedGenericModules].sort()) {
     const review = genericModuleReviews.get(relative);
     if (!review) {

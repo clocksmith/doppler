@@ -1,0 +1,6 @@
+{
+  "variant": [
+    { "match": { "tableDtype": "f16" }, "value": "f16" },
+    { "match": { "tableDtype": "f32" }, "value": "f32" }
+  ]
+}

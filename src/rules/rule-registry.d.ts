@@ -1,4 +1,4 @@
-import type { Rule } from '../gpu/kernels/rule-matcher.js';
+import type { Rule } from './rule-matcher.js';
 
 type RuleSet = Array<Rule<unknown>>;
 

@@ -1,4 +1,4 @@
-import { selectByRules } from '../gpu/kernels/rule-matcher.js';
+import { selectByRules } from './rule-matcher.js';
 
 function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);

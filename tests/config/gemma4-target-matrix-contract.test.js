@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 
 const matrix = JSON.parse(readFileSync('models/gemma4-targets.json', 'utf8'));
 const catalog = JSON.parse(readFileSync('models/catalog.json', 'utf8'));
-const quickstartRegistry = JSON.parse(readFileSync('src/client/doppler-registry.json', 'utf8'));
+const quickstartRegistry = JSON.parse(readFileSync('src/config/quickstart-registry.json', 'utf8'));
 
 const REQUIRED_TARGET_IDS = [
   'gemma-4-e2b',

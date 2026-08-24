@@ -96,8 +96,8 @@ const TJS_HARNESS_PATH = path.join(
 const QUICKSTART_REGISTRY_PATH = path.join(
   DOPPLER_ROOT,
   'src',
-  'client',
-  'doppler-registry.json',
+  'config',
+  'quickstart-registry.json',
 );
 const TRANSFORMERSJS_RUNNER_HTML_PATH = path.join(
   DOPPLER_ROOT,

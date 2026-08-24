@@ -2,7 +2,7 @@ import { MB } from './units.schema.js';
 import {
   assertSupportedManifestInference,
   validateRequiredInferenceFields,
-} from '../../inference/pipelines/text/config.js';
+} from '../manifest-inference-validation.js';
 
 // =============================================================================
 // Hash & Versioning

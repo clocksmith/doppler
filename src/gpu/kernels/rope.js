@@ -7,7 +7,7 @@ import { getKernelThresholds } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from './cast.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
-import { assertImplicitDtypeTransitionAllowed } from '../../inference/pipelines/text/dtype-contract.js';
+import { assertImplicitDtypeTransitionAllowed } from '../../config/dtype-transition-contract.js';
 
 const getRopeDefaults = () => getKernelThresholds().rope;
 

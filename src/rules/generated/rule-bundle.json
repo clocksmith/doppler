@@ -194,8 +194,20 @@
    "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
   },
   {
+   "path": "kernels/vision-average-pool.rules.json",
+   "digest": "sha256:4ec49dcbfa1e3eb8660ec4424bafb348a7d036df5c60be5c860197e186bd64c2"
+  },
+  {
    "path": "kernels/vision-patch-embed.rules.json",
    "digest": "sha256:6f845793e46ce0b9917719c418e81d84a7e26b319ca4feffd9a482548dcb40f4"
+  },
+  {
+   "path": "kernels/vision-position-embedding.rules.json",
+   "digest": "sha256:7e48caf1cdef316b14b2e63f6adad31c385b985455eb66aa3c7f5805f7bb75f2"
+  },
+  {
+   "path": "kernels/vision-rope-2d.rules.json",
+   "digest": "sha256:4ec49dcbfa1e3eb8660ec4424bafb348a7d036df5c60be5c860197e186bd64c2"
   },
   {
    "path": "kernels/vision-spatial-merge.rules.json",
@@ -3817,6 +3829,16 @@
     }
    ]
   },
+  "kernels/vision-average-pool.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "inputDtype": "f32"
+     },
+     "value": "default"
+    }
+   ]
+  },
   "kernels/vision-patch-embed.rules.json": {
    "variant": [
     {
@@ -3830,6 +3852,32 @@
       "weightDtype": "f32"
      },
      "value": "f32w"
+    }
+   ]
+  },
+  "kernels/vision-position-embedding.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "tableDtype": "f16"
+     },
+     "value": "f16"
+    },
+    {
+     "match": {
+      "tableDtype": "f32"
+     },
+     "value": "f32"
+    }
+   ]
+  },
+  "kernels/vision-rope-2d.rules.json": {
+   "variant": [
+    {
+     "match": {
+      "inputDtype": "f32"
+     },
+     "value": "default"
     }
    ]
   },

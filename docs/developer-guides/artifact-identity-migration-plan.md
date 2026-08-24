@@ -494,7 +494,7 @@ Completed code/config migration:
   `weightPackId`, `manifestVariantId`, `artifactCompleteness`,
   `runtimePromotionState`, and `weightsRefAllowed`.
 - Quickstart registry generation requires complete hosted artifact identity and
-  mirrors those fields into `src/client/doppler-registry.json`.
+  mirrors those fields into `src/config/quickstart-registry.json`.
 - Demo model cards require `quickstart=true`, `artifactCompleteness="complete"`,
   `runtimePromotionState="manifest-owned"`, and `weightsRefAllowed=false`
   before attempting local/HF source resolution.
