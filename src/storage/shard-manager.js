@@ -4,8 +4,6 @@ import {
   getShardInfo,
   getShardCount,
   generateShardFilename,
-  parseTensorMap,
-  buildTensorBlockMerkleRoot,
 } from '../formats/rdrr/index.js';
 import {
   isOPFSAvailable,
@@ -13,36 +11,43 @@ import {
   QuotaExceededError,
   checkSpaceAvailable,
 } from './quota.js';
-import { log } from '../debug/index.js';
-import { createHasher as createBlake3Hasher, hash as blake3Hash } from './blake3.js';
 import { getRuntimeConfig } from '../config/runtime.js';
-import { createOpfsStore } from './backends/opfs-store.js';
-import { createIdbStore } from './backends/idb-store.js';
-import { createMemoryStore } from './backends/memory-store.js';
 import { normalizeModelId } from './normalize-model-id.js';
+import { selectStorageBackend } from './backend-selection.js';
 import {
   checkFileExistsInBackend,
   getFileSizeInBackend,
-  isRequestedRangeInsideTensor,
 } from './shards/index.js';
-import { normalizeShardWriterOptions } from './shards/lifecycle.js';
+import { createStorageWriteStream } from './shards/lifecycle.js';
+import {
+  computeHash,
+  createTensorIntegrityController,
+  requireManifestHashAlgorithm,
+} from './shards/integrity.js';
 
 export { getManifest } from '../formats/rdrr/index.js';
 export { checkFileExistsInBackend, getFileSizeInBackend };
+export {
+  computeBlake3,
+  computeHash,
+  computeSHA256,
+  createStreamingHasher,
+  getHashAlgorithm,
+  hexToBytes,
+} from './shards/integrity.js';
 
 let opfsPathConfigOverride = null;
-let blake3Module = null;
-let hashAlgorithm = null;
-
 let backend = null;
 let backendType = null;
 let currentModelId = null;
-let cachedTensorMap = null;
-const verifiedTensorRootCache = new Map();
+
+const tensorIntegrity = createTensorIntegrityController({
+  readBackendFileRange,
+  loadTensorsFromStore,
+});
 
 function resetTensorIntegrityCache() {
-  cachedTensorMap = null;
-  verifiedTensorRootCache.clear();
+  tensorIntegrity.reset();
 }
 
 export function setOpfsPathConfig(config) {
@@ -51,185 +56,6 @@ export function setOpfsPathConfig(config) {
 
 export function getOpfsPathConfig() {
   return opfsPathConfigOverride ?? getRuntimeConfig().loading.opfsPath;
-}
-
-function getBackendConfig() {
-  return getRuntimeConfig().loading.storage.backend;
-}
-
-function buildBackend(type, config) {
-  if (type === 'opfs') {
-    return createOpfsStore({
-      opfsRootDir: getOpfsPathConfig().opfsRootDir,
-      useSyncAccessHandle: config.opfs.useSyncAccessHandle,
-      maxConcurrentHandles: config.opfs.maxConcurrentHandles,
-    });
-  }
-  if (type === 'indexeddb') {
-    return createIdbStore(config.indexeddb);
-  }
-  return createMemoryStore(config.memory);
-}
-
-function resolveBackendType(config) {
-  if (config.backend === 'opfs') {
-    if (!isOPFSAvailable()) {
-      throw new Error('OPFS requested but not available');
-    }
-    return 'opfs';
-  }
-  if (config.backend === 'indexeddb') {
-    if (!isIndexedDBAvailable()) {
-      throw new Error('IndexedDB requested but not available');
-    }
-    return 'indexeddb';
-  }
-  if (config.backend === 'memory') {
-    return 'memory';
-  }
-  // Auto-detect: no explicit backend requested, falling back through available options.
-  if (isOPFSAvailable()) return 'opfs';
-  if (isIndexedDBAvailable()) return 'indexeddb';
-  log.warn('ShardManager', 'No persistent storage available (OPFS/IndexedDB); falling back to in-memory storage. Model data will not persist across reloads.');
-  return 'memory';
-}
-
-async function initBlake3(requiredAlgorithm = null) {
-  if (blake3Module && hashAlgorithm) return;
-
-  try {
-    blake3Module = {
-      hash: blake3Hash,
-      createHasher: createBlake3Hasher,
-    };
-    hashAlgorithm = 'blake3';
-    return;
-  } catch (e) {
-    log.warn('ShardManager', `BLAKE3 module not available: ${e.message}`);
-  }
-
-  if (requiredAlgorithm === 'blake3') {
-    throw new Error(
-      'BLAKE3 required by manifest but not available. ' +
-      'Install the JS blake3 module or re-convert model with SHA-256.'
-    );
-  }
-
-  // Falling back to SHA-256. Note: SHA-256 produces 32-byte (256-bit) hashes
-  // just like BLAKE3, but is significantly slower for large payloads. Hash values
-  // produced by this fallback are NOT compatible with BLAKE3 hashes -- manifests
-  // hashed with BLAKE3 cannot be verified with SHA-256 and vice versa.
-  log.warn('ShardManager', 'BLAKE3 unavailable; falling back to SHA-256 for hash verification. Hashes will not match BLAKE3-based manifests.');
-    hashAlgorithm = 'sha256';
-    blake3Module = {
-    hash: async (data) => {
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
-      return new Uint8Array(hashBuffer);
-    },
-    createHasher: () => {
-      const chunks = [];
-      return {
-        update: (data) => {
-          if (!(data instanceof Uint8Array) && !(data instanceof ArrayBuffer)) {
-            throw new Error('SHA-256 fallback hasher: update() requires Uint8Array or ArrayBuffer');
-          }
-          chunks.push(new Uint8Array(data));
-        },
-        finalize: async () => {
-          const totalLength = chunks.reduce((acc, c) => acc + c.length, 0);
-          const combined = new Uint8Array(totalLength);
-          let offset = 0;
-          for (const chunk of chunks) {
-            combined.set(chunk, offset);
-            offset += chunk.length;
-          }
-          const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
-          return new Uint8Array(hashBuffer);
-        }
-      };
-    }
-  };
-}
-
-export function getHashAlgorithm() {
-  return hashAlgorithm;
-}
-
-function bytesToHex(bytes) {
-  return Array.from(bytes)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-export function hexToBytes(hex) {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
-  }
-  return bytes;
-}
-
-export async function computeBlake3(data) {
-  await initBlake3('blake3');
-
-  const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
-  const hash = await blake3Module.hash(bytes);
-  return bytesToHex(hash);
-}
-
-export async function computeSHA256(data) {
-  const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
-  const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-  return bytesToHex(new Uint8Array(hashBuffer));
-}
-
-export async function computeHash(data, algorithm) {
-  if (!algorithm) {
-    throw new Error('computeHash requires an explicit hash algorithm.');
-  }
-  if (algorithm === 'sha256') {
-    return computeSHA256(data);
-  }
-  return computeBlake3(data);
-}
-
-export async function createStreamingHasher(algorithm) {
-  if (!algorithm) {
-    throw new Error('createStreamingHasher requires an explicit hash algorithm.');
-  }
-  if (algorithm === 'sha256') {
-    const chunks = [];
-    return {
-      update: (data) => {
-        chunks.push(new Uint8Array(data));
-      },
-      finalize: async () => {
-        const totalLength = chunks.reduce((acc, c) => acc + c.length, 0);
-        const combined = new Uint8Array(totalLength);
-        let offset = 0;
-        for (const chunk of chunks) {
-          combined.set(chunk, offset);
-          offset += chunk.length;
-        }
-        const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
-        return new Uint8Array(hashBuffer);
-      }
-    };
-  }
-  await initBlake3('blake3');
-  return blake3Module.createHasher();
-}
-
-function requireManifestHashAlgorithm(manifest, context) {
-  const algorithm = manifest?.hashAlgorithm;
-  if (!algorithm) {
-    throw new Error(
-      `Manifest missing hashAlgorithm for ${context}. ` +
-      'Re-convert the model to include a manifest hash algorithm.'
-    );
-  }
-  return algorithm;
 }
 
 export function getStorageCapabilities() {
@@ -251,9 +77,12 @@ export function getStorageBackendType() {
 
 export async function initStorage() {
   if (backend) return;
-  const backendConfig = getBackendConfig();
-  backendType = resolveBackendType(backendConfig);
-  backend = buildBackend(backendType, backendConfig);
+  const selected = selectStorageBackend(
+    getRuntimeConfig().loading.storage.backend,
+    getOpfsPathConfig()
+  );
+  backendType = selected.type;
+  backend = selected.backend;
   await backend.init();
 }
 
@@ -293,76 +122,6 @@ async function readBackendFileRange(filename, offset = 0, length = null) {
   const view = new Uint8Array(buffer);
   const end = want == null ? view.length : Math.min(view.length, start + want);
   return view.slice(start, end).buffer;
-}
-
-async function loadTensorMapForIntegrity(manifest) {
-  if (cachedTensorMap) {
-    return cachedTensorMap;
-  }
-  if (manifest?.tensors && typeof manifest.tensors === 'object' && !Array.isArray(manifest.tensors)) {
-    cachedTensorMap = manifest.tensors;
-    return cachedTensorMap;
-  }
-  const tensorsJson = await loadTensorsFromStore();
-  if (!tensorsJson) {
-    throw new Error('Tensor integrity verification requires inline tensors or tensors.json to be present.');
-  }
-  cachedTensorMap = parseTensorMap(tensorsJson);
-  return cachedTensorMap;
-}
-
-async function verifyTensorRoot(manifest, tensorId) {
-  const roots = manifest?.integrityExtensions?.blockMerkle?.roots;
-  if (!roots || typeof roots !== 'object' || Array.isArray(roots)) {
-    throw new Error('Manifest is missing integrityExtensions.blockMerkle for tensor integrity verification.');
-  }
-  const normalizedTensorId = typeof tensorId === 'string' ? tensorId.trim() : '';
-  if (!normalizedTensorId) {
-    throw new Error('Tensor integrity verification requires a non-empty tensorId.');
-  }
-  const expectedRoot = roots[normalizedTensorId];
-  if (typeof expectedRoot !== 'string' || !expectedRoot.trim()) {
-    throw new Error(`Manifest is missing a block Merkle root for tensor "${normalizedTensorId}".`);
-  }
-
-  const tensorMap = await loadTensorMapForIntegrity(manifest);
-  const location = tensorMap?.[normalizedTensorId];
-  if (!location || typeof location !== 'object') {
-    throw new Error(`Tensor "${normalizedTensorId}" is missing from the tensor map.`);
-  }
-
-  const cacheKey = `${normalizedTensorId}:${expectedRoot}`;
-  if (verifiedTensorRootCache.get(cacheKey) === true) {
-    return { tensorId: normalizedTensorId, location, expectedRoot };
-  }
-
-  const blockSize = manifest?.integrityExtensions?.blockMerkle?.blockSize;
-  const built = await buildTensorBlockMerkleRoot(normalizedTensorId, location, {
-    blockSize,
-    async readShardRange(innerShardIndex, innerOffset, innerLength) {
-      const shardInfo = getShardInfo(innerShardIndex);
-      if (!shardInfo) {
-        throw new Error(`Invalid shard index during tensor integrity verification: ${innerShardIndex}`);
-      }
-      return readBackendFileRange(shardInfo.filename, innerOffset, innerLength);
-    },
-  });
-  if (built.root !== expectedRoot) {
-    throw new Error(
-      `Tensor integrity mismatch for "${normalizedTensorId}": expected ${expectedRoot}, got ${built.root}.`
-    );
-  }
-  verifiedTensorRootCache.set(cacheKey, true);
-  return { tensorId: normalizedTensorId, location, expectedRoot };
-}
-
-async function verifyTensorRangeIntegrity(manifest, shardIndex, offset, length, tensorId) {
-  const verified = await verifyTensorRoot(manifest, tensorId);
-  if (!isRequestedRangeInsideTensor(verified.location, shardIndex, offset, length)) {
-    throw new Error(
-      `Requested shard range ${shardIndex}:${offset}+${length ?? 'all'} is outside tensor "${verified.tensorId}".`
-    );
-  }
 }
 
 export async function writeShard(shardIndex, data, options = { verify: true }) {
@@ -414,12 +173,7 @@ export async function createShardWriter(shardIndex, options = {}) {
   if (!shardInfo) {
     throw new Error(`Invalid shard index: ${shardIndex}`);
   }
-  if (!backend.createWriteStream) {
-    throw new Error('Storage backend does not support streaming writes');
-  }
-  resetTensorIntegrityCache();
-  const writerOptions = normalizeShardWriterOptions(options);
-  return backend.createWriteStream(shardInfo.filename, writerOptions);
+  return createStorageWriteStream(backend, shardInfo.filename, options, resetTensorIntegrityCache);
 }
 
 export async function createConversionShardWriter(shardIndex) {
@@ -428,12 +182,12 @@ export async function createConversionShardWriter(shardIndex) {
   if (!Number.isInteger(shardIndex) || shardIndex < 0) {
     throw new Error(`Invalid shard index: ${shardIndex}`);
   }
-  if (!backend.createWriteStream) {
-    throw new Error('Storage backend does not support streaming writes');
-  }
-  resetTensorIntegrityCache();
-  const filename = generateShardFilename(shardIndex);
-  return backend.createWriteStream(filename);
+  return createStorageWriteStream(
+    backend,
+    generateShardFilename(shardIndex),
+    {},
+    resetTensorIntegrityCache
+  );
 }
 
 export async function createFileWriter(filename, options = {}) {
@@ -442,12 +196,7 @@ export async function createFileWriter(filename, options = {}) {
   if (!filename || typeof filename !== 'string') {
     throw new Error('createFileWriter requires a filename');
   }
-  if (!backend.createWriteStream) {
-    throw new Error('Storage backend does not support streaming writes');
-  }
-  resetTensorIntegrityCache();
-  const writerOptions = normalizeShardWriterOptions(options);
-  return backend.createWriteStream(filename, writerOptions);
+  return createStorageWriteStream(backend, filename, options, resetTensorIntegrityCache);
 }
 
 export async function loadShard(shardIndex, options = { verify: false }) {
@@ -501,7 +250,7 @@ export async function loadShardRange(shardIndex, offset = 0, length = null, opti
     if (!manifest) {
       throw new Error('No manifest loaded');
     }
-    await verifyTensorRangeIntegrity(manifest, shardIndex, offset, length, options.tensorId);
+    await tensorIntegrity.verifyTensorRange(manifest, shardIndex, offset, length, options.tensorId);
   } else if (options?.verify) {
     // Generic range reads cannot be verified without hashing the full shard.
     const full = await loadShard(shardIndex, { verify: true });
@@ -542,7 +291,7 @@ export async function* streamShardRange(shardIndex, offset = 0, length = null, o
     if (!manifest) {
       throw new Error('No manifest loaded');
     }
-    await verifyTensorRangeIntegrity(manifest, shardIndex, start, want, options.tensorId);
+    await tensorIntegrity.verifyTensorRange(manifest, shardIndex, start, want, options.tensorId);
   } else if (options?.verify) {
     const full = await loadShard(shardIndex, { verify: true });
     const view = new Uint8Array(full);
@@ -594,20 +343,7 @@ export async function getShardStoredSize(shardIndex) {
     throw new Error(`Invalid shard index: ${shardIndex}`);
   }
 
-  try {
-    if (typeof backend.getFileSize === 'function') {
-      const size = await backend.getFileSize(shardInfo.filename);
-      return Number.isFinite(size) ? Math.max(0, Math.floor(size)) : 0;
-    }
-    const buffer = await backend.readFile(shardInfo.filename);
-    return buffer.byteLength;
-  } catch (error) {
-    const message = String(error?.message || '');
-    if (error?.name === 'NotFoundError' || message.toLowerCase().includes('not found')) {
-      return 0;
-    }
-    throw new Error(`Failed to read shard ${shardIndex} size: ${message}`);
-  }
+  return (await getFileSizeInBackend(backend, shardInfo.filename)) ?? 0;
 }
 
 export async function verifyIntegrity(options = {}) {
@@ -659,7 +395,7 @@ export async function verifyIntegrity(options = {}) {
     }
     for (const tensorId of Object.keys(roots).sort()) {
       try {
-        await verifyTensorRoot(manifest, tensorId);
+        await tensorIntegrity.verifyTensorRoot(manifest, tensorId);
       } catch (_error) {
         corruptTensors.push(tensorId);
       }
