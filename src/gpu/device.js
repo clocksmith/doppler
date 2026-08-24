@@ -5,41 +5,10 @@ import { probeSubmitLatency } from './submit-probe.js';
 import { log } from '../debug/index.js';
 import { createDopplerError, ERROR_CODES } from '../errors/doppler-error.js';
 import { GB } from '../config/schema/index.js';
+import { getSharedDeviceState } from './device-state.js';
 
 // Re-export submit tracker for convenience
 export { setTrackSubmits };
-
-const SHARED_DEVICE_STATE_KEY = '__dopplerGpuDeviceState';
-
-function getSharedDeviceState() {
-  const existing = globalThis[SHARED_DEVICE_STATE_KEY];
-  if (existing && typeof existing === 'object') {
-    if (!(existing.bufferOwners instanceof WeakMap)) {
-      existing.bufferOwners = new WeakMap();
-    }
-    if (!('deviceInitPromise' in existing)) {
-      existing.deviceInitPromise = null;
-    }
-    return existing;
-  }
-  const created = {
-    gpuDevice: null,
-    kernelCapabilities: null,
-    resolvedPlatformConfig: null,
-    lastDeviceLossInfo: null,
-    platformInitialized: false,
-    deviceEpoch: 0,
-    bufferOwners: new WeakMap(),
-    deviceInitPromise: null,
-  };
-  Object.defineProperty(globalThis, SHARED_DEVICE_STATE_KEY, {
-    value: created,
-    writable: false,
-    enumerable: false,
-    configurable: false,
-  });
-  return created;
-}
 
 const sharedDeviceState = getSharedDeviceState();
 

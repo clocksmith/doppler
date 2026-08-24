@@ -218,7 +218,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   requireGpuBuffer(bTensor?.buffer, 'bTensor');
   requireGpuBuffer(layerState?.convWeightGPU, 'convWeightGPU');
   requireGpuBuffer(layerState?.dtBiasGPU, 'dtBiasGPU');
-  requireGpuBuffer(layerState?.aNegExpGPU, 'aNegExpGPU');
+  requireGpuBuffer(layerState?.aLogGPU, 'aLogGPU');
   requireGpuBuffer(layerState?.normWeightGPU, 'normWeightGPU');
   requireGpuBuffer(layerState?.convStateGPU, 'convStateGPU');
   requireGpuBuffer(layerState?.recurrentStateGPU, 'recurrentStateGPU');
@@ -295,7 +295,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
             { binding: 4, resource: { buffer: layerState.convWeightGPU } },
             { binding: 5, resource: { buffer: layerState.convStateGPU } },
             { binding: 6, resource: { buffer: layerState.dtBiasGPU } },
-            { binding: 7, resource: { buffer: layerState.aNegExpGPU } },
+            { binding: 7, resource: { buffer: layerState.aLogGPU } },
             { binding: 8, resource: { buffer: layerState.normWeightGPU } },
             { binding: 9, resource: { buffer: layerState.recurrentStateGPU } },
             { binding: 10, resource: { buffer: outputBuffer } },
@@ -353,7 +353,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
           { binding: 4, resource: { buffer: layerState.convWeightGPU } },
           { binding: 5, resource: { buffer: layerState.convStateGPU } },
           { binding: 6, resource: { buffer: layerState.dtBiasGPU } },
-          { binding: 7, resource: { buffer: layerState.aNegExpGPU } },
+          { binding: 7, resource: { buffer: layerState.aLogGPU } },
           { binding: 8, resource: { buffer: layerState.normWeightGPU } },
           { binding: 9, resource: { buffer: layerState.recurrentStateGPU } },
           { binding: 10, resource: { buffer: outputBuffer } },
@@ -453,7 +453,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
           { binding: 3, resource: { buffer: aTensor.buffer } },
           { binding: 4, resource: { buffer: bTensor.buffer } },
           { binding: 5, resource: { buffer: layerState.dtBiasGPU } },
-          { binding: 6, resource: { buffer: layerState.aNegExpGPU } },
+          { binding: 6, resource: { buffer: layerState.aLogGPU } },
           { binding: 7, resource: { buffer: layerState.normWeightGPU } },
           { binding: 8, resource: { buffer: layerState.recurrentStateGPU } },
           { binding: 9, resource: { buffer: outputBuffer } },
@@ -553,7 +553,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         { binding: 3, resource: { buffer: aTensor.buffer } },
         { binding: 4, resource: { buffer: bTensor.buffer } },
         { binding: 5, resource: { buffer: layerState.dtBiasGPU } },
-        { binding: 6, resource: { buffer: layerState.aNegExpGPU } },
+        { binding: 6, resource: { buffer: layerState.aLogGPU } },
         { binding: 7, resource: { buffer: layerState.normWeightGPU } },
         { binding: 8, resource: { buffer: layerState.recurrentStateGPU } },
         { binding: 9, resource: { buffer: outputBuffer } },

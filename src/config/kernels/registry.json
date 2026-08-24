@@ -11620,7 +11620,7 @@
     },
     {
      "index": 6,
-     "name": "a_neg_exp",
+     "name": "a_log",
      "type": "read-only-storage"
     },
     {
@@ -11793,7 +11793,7 @@
     },
     {
      "index": 7,
-     "name": "a_neg_exp",
+     "name": "a_log",
      "type": "read-only-storage"
     },
     {
@@ -12960,23 +12960,198 @@
     }
    }
   },
-  "logit_finalize": {
-   "description": "Device-side LM-head bias, padding, scaling, and softcapping.",
+  "embedding_pool": {
+   "description": "Device-side mean or last-row embedding pooling.",
    "baseBindings": [
-    { "index": 0, "name": "uniforms", "type": "uniform" },
-    { "index": 1, "name": "input", "type": "read-only-storage" },
-    { "index": 2, "name": "bias", "type": "read-only-storage" },
-    { "index": 3, "name": "output", "type": "storage" }
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "mask",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "type": "storage"
+    }
    ],
    "baseUniforms": {
     "size": 32,
     "fields": [
-     { "name": "row_count", "type": "u32", "offset": 0 },
-     { "name": "source_columns", "type": "u32", "offset": 4 },
-     { "name": "target_columns", "type": "u32", "offset": 8 },
-     { "name": "has_bias", "type": "u32", "offset": 12 },
-     { "name": "output_scale", "type": "f32", "offset": 16 },
-     { "name": "softcap", "type": "f32", "offset": 20 }
+     {
+      "name": "row_count",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "mode",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "has_mask",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "included_count",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "last_index",
+      "type": "u32",
+      "offset": 20
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "embedding_pool_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "f16": {
+     "wgsl": "embedding_pool_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "l2_normalize": {
+   "description": "Device-side row-wise L2 normalization.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "row_count",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 4
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "l2_normalize.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "logit_finalize": {
+   "description": "Device-side LM-head bias, padding, scaling, and softcapping.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "bias",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "row_count",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "source_columns",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "target_columns",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "has_bias",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "output_scale",
+      "type": "f32",
+      "offset": 16
+     },
+     {
+      "name": "softcap",
+      "type": "f32",
+      "offset": 20
+     }
     ]
    },
    "variants": {
@@ -12985,31 +13160,69 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
-     "reachability": { "status": "unused", "inlineConfigs": [], "ruleChains": [], "wgslOnDisk": true }
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     },
     "f16": {
      "wgsl": "logit_finalize_f16.wgsl",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
-     "reachability": { "status": "unused", "inlineConfigs": [], "ruleChains": [], "wgslOnDisk": true }
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     }
    }
   },
   "logit_scatter": {
    "description": "Device-side assembly of LM-head row chunks into one logits tensor.",
    "baseBindings": [
-    { "index": 0, "name": "uniforms", "type": "uniform" },
-    { "index": 1, "name": "input", "type": "read-only-storage" },
-    { "index": 2, "name": "output", "type": "storage" }
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    }
    ],
    "baseUniforms": {
     "size": 16,
     "fields": [
-     { "name": "row_count", "type": "u32", "offset": 0 },
-     { "name": "chunk_columns", "type": "u32", "offset": 4 },
-     { "name": "target_columns", "type": "u32", "offset": 8 },
-     { "name": "column_offset", "type": "u32", "offset": 12 }
+     {
+      "name": "row_count",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "chunk_columns",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "target_columns",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "column_offset",
+      "type": "u32",
+      "offset": 12
+     }
     ]
    },
    "variants": {
@@ -13018,14 +13231,118 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
-     "reachability": { "status": "unused", "inlineConfigs": [], "ruleChains": [], "wgslOnDisk": true }
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     },
     "f16": {
      "wgsl": "logit_scatter_f16.wgsl",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
-     "reachability": { "status": "unused", "inlineConfigs": [], "ruleChains": [], "wgslOnDisk": true }
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "rope_precompute": {
+   "description": "Device-side declared RoPE frequency-table construction.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "longrope_factors",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "cos_values",
+     "type": "storage"
+    },
+    {
+     "index": 3,
+     "name": "sin_values",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 48,
+    "fields": [
+     {
+      "name": "max_seq_len",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "rotary_dim",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "frequency_base_dim",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "scaling_type",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "theta",
+      "type": "f32",
+      "offset": 16
+     },
+     {
+      "name": "rope_scale",
+      "type": "f32",
+      "offset": 20
+     },
+     {
+      "name": "yarn_factor",
+      "type": "f32",
+      "offset": 24
+     },
+     {
+      "name": "yarn_beta_fast",
+      "type": "f32",
+      "offset": 28
+     },
+     {
+      "name": "yarn_beta_slow",
+      "type": "f32",
+      "offset": 32
+     },
+     {
+      "name": "original_max_position",
+      "type": "f32",
+      "offset": 36
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "rope_precompute.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     }
    }
   },

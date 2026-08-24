@@ -24,7 +24,7 @@ import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-po
 import { CommandRecorder } from '../../gpu/command-recorder.js';
 import { castF32ToF16 } from '../../gpu/kernels/cast.js';
 import { runResidualAdd, runScale, recordResidualAdd, recordScale } from '../../gpu/kernels/index.js';
-import { f16ToF32 } from '../../loader/dtype-utils.js';
+import { f16ToF32Bits as f16ToF32 } from '../../inference/kv-cache/types.js';
 
 const SUPPORTED_DIFFUSION_BACKEND_PIPELINES = new Set(['gpu']);
 const DEFAULT_TIME_EMBED_DIM = 256;

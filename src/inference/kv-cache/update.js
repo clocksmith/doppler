@@ -1,13 +1,7 @@
 import { getDevice } from '../../gpu/device.js';
 import { recordKVCacheWriteF32ToF16 } from '../../gpu/kernel-selector.js';
-import { allowReadback } from '../../gpu/perf-guards.js';
-import { log } from '../../debug/index.js';
-import { readBuffer } from '../../memory/buffer-pool.js';
 import {
   isContiguousLayer,
-  isPagedLayer,
-  f32ToF16Array,
-  f16ToF32Array,
 } from './types.js';
 
 export function update(layerIdx, keys, values, startPos = this.currentSeqLen) {
@@ -272,10 +266,9 @@ export function _updateContiguous(layer, keys, values, startPos, numNewTokens) {
     if (layer.keysGPU && device) {
       const byteOffset = offset * this.bytesPerElem;
       if (this.kvDtype === 'f16') {
-        const keysF16 = f32ToF16Array( (keys));
-        const valuesF16 = f32ToF16Array( (values));
-        device.queue.writeBuffer(layer.keysGPU, byteOffset, keysF16);
-        device.queue.writeBuffer(layer.valuesGPU, byteOffset, valuesF16);
+        throw new Error(
+          'KVCache f16 GPU updates require GPU f16 inputs or recordUpdateF32ToF16FromGPU().'
+        );
       } else {
         device.queue.writeBuffer(layer.keysGPU, byteOffset,  (keys));
         device.queue.writeBuffer(layer.valuesGPU, byteOffset,  (values));
@@ -288,10 +281,9 @@ export function _updatePaged(layerIdx, layer, keys, values, startPos, numNewToke
     if (layer.keysGPU && layer.valuesGPU && device) {
       const byteOffset = startPos * this.kvSize * this.bytesPerElem;
       if (this.kvDtype === 'f16') {
-        const keysF16 = f32ToF16Array( (keys));
-        const valuesF16 = f32ToF16Array( (values));
-        device.queue.writeBuffer(layer.keysGPU, byteOffset, keysF16);
-        device.queue.writeBuffer(layer.valuesGPU, byteOffset, valuesF16);
+        throw new Error(
+          'Paged KVCache f16 GPU updates require a declared GPU-native write path.'
+        );
       } else {
         device.queue.writeBuffer(layer.keysGPU, byteOffset,  (keys));
         device.queue.writeBuffer(layer.valuesGPU, byteOffset,  (values));

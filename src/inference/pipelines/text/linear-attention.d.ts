@@ -28,13 +28,13 @@ export interface LinearLayerRuntimeState {
   rmsNormEps: number;
   convWeight: Float32Array;
   dtBias: Float32Array;
-  aNegExp: Float32Array;
+  aLog: Float32Array;
   normWeight: Float32Array;
   convState: Float32Array;
   recurrentState: Float32Array;
   convWeightGPU?: GPUBuffer | null;
   dtBiasGPU?: GPUBuffer | null;
-  aNegExpGPU?: GPUBuffer | null;
+  aLogGPU?: GPUBuffer | null;
   normWeightGPU?: GPUBuffer | null;
   convStateGPU?: GPUBuffer | null;
   recurrentStateGPU?: GPUBuffer | null;

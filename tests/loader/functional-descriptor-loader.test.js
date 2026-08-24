@@ -35,6 +35,9 @@ const { destroyBufferPool, getBufferPool, releaseBuffer } = await import('../../
 const { DEFAULT_LOADING_CONFIG } = await import('../../src/config/schema/loading.schema.js');
 const { DopplerLoader } = await import('../../src/loader/doppler-loader.js');
 const { loadTensorToGPU, loadTensorToCPU } = await import('../../src/loader/tensors/tensor-loader.js');
+const { loadFunctionalDescriptor } = await import(
+  '../../src/experimental/loader/functional-descriptor-loader.js'
+);
 
 function createFakeDevice() {
   return {
@@ -59,6 +62,9 @@ function createFakeDevice() {
     },
     createBuffer(descriptor) {
       return new FakeBuffer(descriptor);
+    },
+    createBindGroup(descriptor) {
+      return descriptor;
     },
   };
 }
@@ -169,7 +175,7 @@ Object.defineProperty(shardData, 'descriptorShards', {
   ]),
 });
 
-const result = await loadTensorToGPU(
+const result = await loadFunctionalDescriptor(
   shardData,
   {
     dtype: 'FUNCTIONAL_DESCRIPTOR',
@@ -205,6 +211,28 @@ assert.throws(
 
 releaseBuffer(result.allocatedBuffers[0]);
 resetRuntimeState(null);
+
+await assert.rejects(
+  () => loadTensorToGPU(
+    shardData,
+    {
+      dtype: 'FUNCTIONAL_DESCRIPTOR',
+      role: 'matmul',
+      shape: [1, 2],
+      size: 0,
+      descriptorManifest,
+    },
+    'model.layers.0.mlp.down_proj.weight',
+    {
+      useFusedQ4K: false,
+      keepF32Weights: true,
+      allowF32UpcastNonMatmul: false,
+      q4kLayout: 'row',
+      gpuCapabilities: { hasF16: false, hasSubgroups: false },
+    }
+  ),
+  /experimental.*production Pack/
+);
 
 {
   const device = createFakeDevice();
@@ -272,18 +300,11 @@ resetRuntimeState(null);
   ]);
   loader.setAuxiliaryFileLoader(async (path) => auxiliaryFiles.get(path) ?? null);
 
-  const weight = await loader.loadTensor('model.layers.0.mlp.down_proj.weight', true, false);
-  assert.equal(weight.dtype, 'f32');
-  assert.equal(weight.metadata.storageType, 'functional_descriptor');
-  assert.equal(weight.metadata.descriptorHash, loaderDescriptorManifest.descriptor_hash);
-  assert.equal(weight.metadata.descriptorBytes, descriptorBytes);
-  assert.equal(weight.metadata.denseF16Bytes, denseF16Bytes);
-  assert.equal(weight.metadata.proofStatus, 'passed');
-  assert.deepEqual(
-    Array.from(new Float32Array(weight.buffer.bytes.buffer, 0, 2)),
-    [9, 10]
+  await assert.rejects(
+    () => loader.loadTensor('model.layers.0.mlp.down_proj.weight', true, false),
+    /experimental.*production Pack/
   );
-  assert.equal(loader.gpuBuffers.size, 1);
+  assert.equal(loader.gpuBuffers.size, 0);
 
   await loader.unload();
   resetRuntimeState(null);

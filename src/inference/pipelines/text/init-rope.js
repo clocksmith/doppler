@@ -1,14 +1,15 @@
 import { getDevice } from '../../../gpu/device.js';
-import { acquireBuffer, isBufferActive, releaseBuffer } from '../../../memory/buffer-pool.js';
+import { isBufferActive } from '../../../memory/buffer-pool.js';
 import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 import { log } from '../../../debug/index.js';
+import { runRoPEPrecompute } from '../../../gpu/kernels/rope-precompute.js';
 
 // ============================================================================
 // RoPE Initialization
 // ============================================================================
 
 
-function computeRoPEFreqsForTheta(
+async function computeRoPEFreqsForTheta(
   theta,
   rotaryDim,
   frequencyBaseDim,
@@ -17,120 +18,15 @@ function computeRoPEFreqsForTheta(
   ropeScalingType,
   ropeScaling
 ) {
-  const halfDim = rotaryDim / 2;
-
-  // Compute base frequencies: theta_i = 1 / (base^(2i/d))
-  const freqs = new Float32Array(halfDim);
-  for (let i = 0; i < halfDim; i++) {
-    freqs[i] = 1.0 / Math.pow(theta, (2 * i) / frequencyBaseDim);
-  }
-
-  // Compute per-dimension scaling factors
-  const scales = new Float32Array(halfDim);
-  const isYarn = ropeScalingType === 'yarn';
-  const isLongRoPE = ropeScalingType === 'longrope';
-  let magnitudeScale = 1;
-  if (isYarn) {
-    // YARN scaling - validate ALL required params (fail fast on incomplete manifest)
-    if (ropeScaling?.factor == null ||
-        ropeScaling?.beta_fast == null || ropeScaling?.beta_slow == null ||
-        ropeScaling?.original_max_position_embeddings == null) {
-      throw new Error(
-        `RoPE scaling type is 'yarn' but YARN params missing. ` +
-        `Manifest must provide factor, beta_fast, beta_slow, and original_max_position_embeddings. ` +
-        `Got: factor=${ropeScaling?.factor}, beta_fast=${ropeScaling?.beta_fast}, beta_slow=${ropeScaling?.beta_slow}, ` +
-        `original_max_position_embeddings=${ropeScaling?.original_max_position_embeddings}`
-      );
-    }
-    // Extract validated YARN params (no hidden defaults - all guaranteed non-null)
-    const yarnFactor = ropeScaling.factor;
-    const yarnBetaFast = ropeScaling.beta_fast;
-    const yarnBetaSlow = ropeScaling.beta_slow;
-    const originalMaxPos = ropeScaling.original_max_position_embeddings;
-
-    // YARN: wavelength-based interpolation
-    for (let i = 0; i < halfDim; i++) {
-      const wavelength = (2 * Math.PI) / freqs[i];
-      const lowThresh = originalMaxPos / yarnBetaSlow;
-      const highThresh = originalMaxPos / yarnBetaFast;
-
-      if (wavelength < highThresh) {
-        scales[i] = 1.0;
-      } else if (wavelength > lowThresh) {
-        scales[i] = yarnFactor;
-      } else {
-        const t = (wavelength - highThresh) / (lowThresh - highThresh);
-        scales[i] = 1.0 + (yarnFactor - 1.0) * t;
-      }
-    }
-  } else if (isLongRoPE) {
-    if (
-      !Array.isArray(ropeScaling?.short_factor)
-      || !Array.isArray(ropeScaling?.long_factor)
-      || ropeScaling?.original_max_position_embeddings == null
-    ) {
-      throw new Error(
-        `RoPE scaling type is 'longrope' but LongRoPE params are missing. ` +
-        `Manifest must provide short_factor, long_factor, and original_max_position_embeddings. ` +
-        `Got: short_factor=${Array.isArray(ropeScaling?.short_factor) ? ropeScaling.short_factor.length : ropeScaling?.short_factor}, ` +
-        `long_factor=${Array.isArray(ropeScaling?.long_factor) ? ropeScaling.long_factor.length : ropeScaling?.long_factor}, ` +
-        `original_max_position_embeddings=${ropeScaling?.original_max_position_embeddings}`
-      );
-    }
-    if (ropeScaling.short_factor.length !== halfDim || ropeScaling.long_factor.length !== halfDim) {
-      throw new Error(
-        `LongRoPE factor length mismatch: expected ${halfDim}, ` +
-        `got short_factor=${ropeScaling.short_factor.length}, long_factor=${ropeScaling.long_factor.length}.`
-      );
-    }
-    const originalMaxPos = Number(ropeScaling.original_max_position_embeddings);
-    if (!Number.isFinite(originalMaxPos) || originalMaxPos <= 0) {
-      throw new Error(`LongRoPE original_max_position_embeddings must be positive; got "${String(originalMaxPos)}".`);
-    }
-    const selectedFactors = maxSeqLen > originalMaxPos
-      ? ropeScaling.long_factor
-      : ropeScaling.short_factor;
-    for (let i = 0; i < halfDim; i++) {
-      const factor = Number(selectedFactors[i]);
-      if (!Number.isFinite(factor) || factor <= 0) {
-        throw new Error(`LongRoPE factor[${i}] must be a positive finite number; got "${String(selectedFactors[i])}".`);
-      }
-      scales[i] = factor;
-    }
-    magnitudeScale = Math.sqrt(1 + Math.log(maxSeqLen / originalMaxPos) / Math.log(originalMaxPos));
-    if (!Number.isFinite(magnitudeScale) || magnitudeScale <= 0) {
-      throw new Error(
-        `LongRoPE magnitude scale is invalid for maxSeqLen=${maxSeqLen}, ` +
-        `original_max_position_embeddings=${originalMaxPos}.`
-      );
-    }
-  } else {
-    // Linear scaling: uniform across all dimensions
-    if (ropeScalingType != null && ropeScalingType !== 'linear') {
-      throw new Error(
-        `Unsupported RoPE scaling type "${ropeScalingType}". ` +
-        'Supported types: null, "linear", "yarn", "longrope".'
-      );
-    }
-    for (let i = 0; i < halfDim; i++) {
-      scales[i] = ropeScale;
-    }
-  }
-
-  // Compute cos/sin for each position
-  const cosValues = new Float32Array(maxSeqLen * halfDim);
-  const sinValues = new Float32Array(maxSeqLen * halfDim);
-
-  for (let pos = 0; pos < maxSeqLen; pos++) {
-    for (let i = 0; i < halfDim; i++) {
-      const scaledPos = pos / scales[i];
-      const angle = scaledPos * freqs[i];
-      cosValues[pos * halfDim + i] = Math.cos(angle) * magnitudeScale;
-      sinValues[pos * halfDim + i] = Math.sin(angle) * magnitudeScale;
-    }
-  }
-
-  return { cos: cosValues, sin: sinValues };
+  return runRoPEPrecompute({
+    theta,
+    rotaryDim,
+    frequencyBaseDim,
+    maxSeqLen,
+    ropeScale,
+    scalingType: ropeScalingType,
+    scaling: ropeScaling,
+  });
 }
 
 function isSameRoPEScalingConfig(
@@ -157,8 +53,6 @@ function isSameRoPEScalingConfig(
 }
 
 const GPU_ROPE_BUFFER_CACHE = new WeakMap();
-const CPU_ROPE_BUFFER_CACHE = new Map();
-
 function isLiveCachedRopeBuffer(buffer) {
   return buffer == null || isBufferActive(buffer);
 }
@@ -309,8 +203,25 @@ export async function initRoPEFrequencies(config, useGPU) {
   const isYarn = ropeScalingType === 'yarn';
   const isLocalYarn = resolvedLocalScalingType === 'yarn';
 
+  const device = getDevice();
+  if (!useGPU || !device) {
+    throw new Error('RoPE frequency initialization requires the declared WebGPU execution path.');
+  }
+  let perDeviceCache = GPU_ROPE_BUFFER_CACHE.get(device);
+  if (!perDeviceCache) {
+    perDeviceCache = new Map();
+    GPU_ROPE_BUFFER_CACHE.set(device, perDeviceCache);
+  }
+  const cachedBuffers = perDeviceCache.get(cacheKey);
+  if (cachedBuffers) {
+    if (hasLiveCachedGpuRopeBuffers(cachedBuffers)) {
+      return cachedBuffers;
+    }
+    perDeviceCache.delete(cacheKey);
+  }
+
   // Compute global (full_attention) frequencies
-  const globalFreqs = computeRoPEFreqsForTheta(
+  const globalFreqs = await computeRoPEFreqsForTheta(
     ropeTheta,
     resolvedRotaryDim,
     resolvedFrequencyBaseDim,
@@ -335,7 +246,7 @@ export async function initRoPEFrequencies(config, useGPU) {
     resolvedLocalScaling
   );
   if (hasDistinctLocalTheta || hasDistinctLocalScaling || hasDistinctLocalDim) {
-    localFreqs = computeRoPEFreqsForTheta(
+    localFreqs = await computeRoPEFreqsForTheta(
       resolvedLocalTheta,
       resolvedLocalRotaryDim,
       resolvedLocalFrequencyBaseDim,
@@ -366,73 +277,9 @@ export async function initRoPEFrequencies(config, useGPU) {
     );
   }
 
-  // Upload to GPU if available
-  const device = getDevice();
-  if (device && useGPU) {
-    let perDeviceCache = GPU_ROPE_BUFFER_CACHE.get(device);
-    if (!perDeviceCache) {
-      perDeviceCache = new Map();
-      GPU_ROPE_BUFFER_CACHE.set(device, perDeviceCache);
-    }
-    const cachedBuffers = perDeviceCache.get(cacheKey);
-    if (cachedBuffers) {
-      if (hasLiveCachedGpuRopeBuffers(cachedBuffers)) {
-        return cachedBuffers;
-      }
-      perDeviceCache.delete(cacheKey);
-    }
-    let cosBuffer = null;
-    let sinBuffer = null;
-    let localCosBuffer = null;
-    let localSinBuffer = null;
-    try {
-      cosBuffer = acquireBuffer(globalFreqs.cos.byteLength, undefined, 'rope_cos');
-      sinBuffer = acquireBuffer(globalFreqs.sin.byteLength, undefined, 'rope_sin');
-      device.queue.writeBuffer(cosBuffer, 0, globalFreqs.cos.buffer, globalFreqs.cos.byteOffset, globalFreqs.cos.byteLength);
-      device.queue.writeBuffer(sinBuffer, 0, globalFreqs.sin.buffer, globalFreqs.sin.byteOffset, globalFreqs.sin.byteLength);
-
-      if (localFreqs) {
-        localCosBuffer = acquireBuffer(localFreqs.cos.byteLength, undefined, 'rope_local_cos');
-        localSinBuffer = acquireBuffer(localFreqs.sin.byteLength, undefined, 'rope_local_sin');
-        device.queue.writeBuffer(localCosBuffer, 0, localFreqs.cos.buffer, localFreqs.cos.byteOffset, localFreqs.cos.byteLength);
-        device.queue.writeBuffer(localSinBuffer, 0, localFreqs.sin.buffer, localFreqs.sin.byteOffset, localFreqs.sin.byteLength);
-      }
-    } catch (error) {
-      for (const buffer of [cosBuffer, sinBuffer, localCosBuffer, localSinBuffer]) {
-        if (buffer) {
-          releaseBuffer(buffer);
-        }
-      }
-      throw error;
-    }
-
-    log.debug(
-      'Pipeline',
-      `RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
-      `theta=${ropeTheta}${hasDistinctLocalTheta ? `, localTheta=${resolvedLocalTheta}` : ''}, ` +
-      `${hasDistinctLocalDim ? `localRotaryDim=${resolvedLocalRotaryDim}, ` : ''}` +
-      `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}, ` +
-      `interleaved=${mropeInterleaved === true}`
-    );
-
-    const buffers = {
-      cos: cosBuffer,
-      sin: sinBuffer,
-      localCos: localCosBuffer,
-      localSin: localSinBuffer,
-    };
-    perDeviceCache.set(cacheKey, buffers);
-    return buffers;
-  }
-
-  const cachedCpuBuffers = CPU_ROPE_BUFFER_CACHE.get(cacheKey);
-  if (cachedCpuBuffers) {
-    return cachedCpuBuffers;
-  }
-
   log.debug(
     'Pipeline',
-    `RoPE frequencies initialized (CPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
+    `RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
     `theta=${ropeTheta}${hasDistinctLocalTheta ? `, localTheta=${resolvedLocalTheta}` : ''}, ` +
     `${hasDistinctLocalDim ? `localRotaryDim=${resolvedLocalRotaryDim}, ` : ''}` +
     `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}, ` +
@@ -442,10 +289,10 @@ export async function initRoPEFrequencies(config, useGPU) {
   const buffers = {
     cos: globalFreqs.cos,
     sin: globalFreqs.sin,
-    localCos: localFreqs?.cos,
-    localSin: localFreqs?.sin,
+    localCos: localFreqs?.cos ?? null,
+    localSin: localFreqs?.sin ?? null,
   };
-  CPU_ROPE_BUFFER_CACHE.set(cacheKey, buffers);
+  perDeviceCache.set(cacheKey, buffers);
   return buffers;
 }
 

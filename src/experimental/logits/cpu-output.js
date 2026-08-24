@@ -13,6 +13,21 @@ export function extractLastPositionLogits(logits, numTokens, vocabSize) {
   return lastPosLogits;
 }
 
+export function writeChunkLogits(
+  target,
+  chunk,
+  numTokens,
+  vocabSize,
+  rowOffset,
+  rowCount
+) {
+  for (let token = 0; token < numTokens; token += 1) {
+    const sourceOffset = token * rowCount;
+    const targetOffset = token * vocabSize + rowOffset;
+    target.set(chunk.subarray(sourceOffset, sourceOffset + rowCount), targetOffset);
+  }
+}
+
 export async function finalizeLogits(
   rawLogits,
   numTokens,

@@ -317,8 +317,8 @@ export function ensureLayerRuntimeGpuBuffers(layerState) {
   if (!isGpuBuffer(layerState.dtBiasGPU)) {
     layerState.dtBiasGPU = uploadF32Buffer(layerState.dtBias, `L${layerState.layerIdx}.linear_dt_bias`);
   }
-  if (!isGpuBuffer(layerState.aNegExpGPU)) {
-    layerState.aNegExpGPU = uploadF32Buffer(layerState.aNegExp, `L${layerState.layerIdx}.linear_a_neg_exp`);
+  if (!isGpuBuffer(layerState.aLogGPU)) {
+    layerState.aLogGPU = uploadF32Buffer(layerState.aLog, `L${layerState.layerIdx}.linear_a_log`);
   }
   if (!isGpuBuffer(layerState.normWeightGPU)) {
     layerState.normWeightGPU = uploadF32Buffer(layerState.normWeight, `L${layerState.layerIdx}.linear_norm_weight`);
@@ -391,11 +391,6 @@ export async function createLayerRuntimeState(
   );
   const runtimeNorm = applyLinearNormWeightOffset(norm, config.rmsNormWeightOffset === true);
 
-  const aNegExp = new Float32Array(aLog.length);
-  for (let i = 0; i < aLog.length; i++) {
-    aNegExp[i] = -Math.exp(aLog[i]);
-  }
-
   const convState = new Float32Array(projectionLayout.convDim * convKernelSize);
   const recurrentState = new Float32Array(
     projectionLayout.numVHeads * projectionLayout.headKDim * projectionLayout.headVDim
@@ -425,13 +420,13 @@ export async function createLayerRuntimeState(
     rmsNormEps,
     convWeight,
     dtBias,
-    aNegExp,
+    aLog,
     normWeight: runtimeNorm,
     convState,
     recurrentState,
     convWeightGPU: null,
     dtBiasGPU: null,
-    aNegExpGPU: null,
+    aLogGPU: null,
     normWeightGPU: null,
     convStateGPU: null,
     recurrentStateGPU: null,

@@ -550,24 +550,9 @@
       "reason": "The symbol decodes descriptor-bound embedding source bytes into their declared materialization dtype before GPU dispatch."
     },
     {
-      "id": "src/inference/pipelines/text/embed.js#embed",
-      "category": "runtime-tensor-compute",
-      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
-    },
-    {
-      "id": "src/inference/pipelines/text/embedding-pooling.js#poolSequenceTokenEmbeddings",
-      "category": "runtime-tensor-compute",
-      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
-    },
-    {
-      "id": "src/inference/pipelines/text/execution.js#embedImage",
-      "category": "runtime-tensor-compute",
-      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
-    },
-    {
-      "id": "src/inference/pipelines/text/execution.js#embedAudio",
-      "category": "runtime-tensor-compute",
-      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+      "id": "src/experimental/embeddings/sequence-pooling.js#poolSequenceTokenEmbeddings",
+      "category": "quarantined-experimental",
+      "reason": "The CPU sequence-pooling reference is isolated under src/experimental and excluded from Pack Runtime execution."
     },
     {
       "id": "src/inference/pipelines/text/generator/decode.js#runDecodeLayers",
@@ -595,24 +580,19 @@
       "reason": "The method maps selected read-back scalar logits by token ID for the caller and does not redispatch a modified tensor."
     },
     {
-      "id": "src/inference/pipelines/text/generator-runtime.js#extractTokenEmbeddingsFromHidden",
-      "category": "runtime-tensor-compute",
-      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+      "id": "src/experimental/embeddings/cpu-extraction.js#extractTokenEmbeddingsFromHidden",
+      "category": "quarantined-experimental",
+      "reason": "The CPU embedding reference is isolated under src/experimental and excluded from Pack Runtime execution."
     },
     {
-      "id": "src/inference/pipelines/text/generator-runtime.js#extractEmbeddingFromHidden",
-      "category": "runtime-tensor-compute",
-      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
+      "id": "src/experimental/embeddings/cpu-extraction.js#extractEmbeddingFromHidden",
+      "category": "quarantined-experimental",
+      "reason": "The CPU embedding reference is isolated under src/experimental and excluded from Pack Runtime execution."
     },
     {
       "id": "src/inference/pipelines/text/generator-steps.js#generateNTokensGPU",
       "category": "scalar-control",
       "reason": "The method coordinates declared GPU decode batches, stop checks, and token histories; model tensor math remains in registered kernels."
-    },
-    {
-      "id": "src/inference/pipelines/text/init-rope.js#computeRoPEFreqsForTheta",
-      "category": "runtime-tensor-compute",
-      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
     },
     {
       "id": "src/inference/pipelines/text/init.js#loadWeights",
@@ -628,16 +608,6 @@
       "id": "src/inference/pipelines/text/linear-attention/plan.js#readWeightAsF32",
       "category": "artifact-codec-materialization",
       "reason": "Decodes descriptor-bound immutable weight bytes, including f16 and Q4_K encodings, into their declared materialized representation before GPU ownership."
-    },
-    {
-      "id": "src/inference/pipelines/text/linear-attention/plan.js#createLayerRuntimeState",
-      "category": "runtime-tensor-compute",
-      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
-    },
-    {
-      "id": "src/inference/pipelines/text/logits/cpu-output.js#extractLastPositionLogits",
-      "category": "scalar-control",
-      "reason": "The symbol selects the final read-back logit row consumed by host-side sampling and never uploads the copied values."
     },
     {
       "id": "src/experimental/logits/cpu-output.js#finalizeLogits",
@@ -663,16 +633,6 @@
       "id": "src/experimental/logits/cpu.js#applySoftcapping",
       "category": "quarantined-experimental",
       "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
-    },
-    {
-      "id": "src/inference/pipelines/text/logits/index.js#applyLmHeadBias",
-      "category": "runtime-tensor-compute",
-      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
-    },
-    {
-      "id": "src/inference/pipelines/text/logits/index.js#computeLogits",
-      "category": "runtime-tensor-compute",
-      "reason": "This source symbol performs or is suspected of performing model-runtime typed-array numeric work and must be refactored to WGSL or proven to be a narrower allowed boundary."
     },
     {
       "id": "src/inference/pipelines/text/logits/plan.js#readTypedLmHeadChunk",
@@ -795,14 +755,14 @@
       "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
     },
     {
-      "id": "src/loader/tensors/functional-descriptor-loader.js#cropMatrix",
-      "category": "artifact-codec-materialization",
-      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+      "id": "src/experimental/loader/functional-descriptor-loader.js#cropMatrix",
+      "category": "quarantined-experimental",
+      "reason": "Functional-descriptor weight reconstruction is isolated under src/experimental and rejected by the production Pack loader."
     },
     {
-      "id": "src/loader/tensors/functional-descriptor-loader.js#loadFunctionalDescriptor",
-      "category": "artifact-codec-materialization",
-      "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
+      "id": "src/experimental/loader/functional-descriptor-loader.js#loadFunctionalDescriptor",
+      "category": "quarantined-experimental",
+      "reason": "Functional-descriptor weight reconstruction is isolated under src/experimental and rejected by the production Pack loader."
     },
     {
       "id": "src/loader/tensors/source-transform.js#materializeTensorSourceTransform",
@@ -983,6 +943,101 @@
       "id": "src/loader/tensors/tensor-loader.js#convertBF16ToF32CPU",
       "category": "artifact-codec-materialization",
       "reason": "The loader performs descriptor-bound dtype materialization before the runtime execution plan begins."
+    },
+    {
+      "id": "src/experimental/loader/functional-descriptor-loader.js#buildPRNG",
+      "category": "quarantined-experimental",
+      "reason": "Functional-descriptor weight reconstruction is isolated under src/experimental and rejected by the production Pack loader."
+    },
+    {
+      "id": "src/experimental/logits/cpu-output.js#extractLastPositionLogits",
+      "category": "quarantined-experimental",
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+    },
+    {
+      "id": "src/experimental/logits/cpu-output.js#writeChunkLogits",
+      "category": "quarantined-experimental",
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+    },
+    {
+      "id": "src/experimental/logits/cpu.js#f16BufferToF32",
+      "category": "quarantined-experimental",
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+    },
+    {
+      "id": "src/experimental/training/attention-backward.js#computeAttentionSoftmaxData",
+      "category": "quarantined-experimental",
+      "reason": "This numerical training reference is isolated under src/experimental and excluded from Pack Runtime execution."
+    },
+    {
+      "id": "src/experimental/training/loss-scaling.js#DynamicLossScaler.unscaleGradients",
+      "category": "quarantined-experimental",
+      "reason": "This numerical training reference is isolated under src/experimental and excluded from Pack Runtime execution."
+    },
+    {
+      "id": "src/experimental/training/trainer.js#filterGradientsForParams",
+      "category": "quarantined-experimental",
+      "reason": "This numerical training reference is isolated under src/experimental and excluded from Pack Runtime execution."
+    },
+    {
+      "id": "src/inference/kv-cache/base.js#KVCache._initializeContiguousStorage",
+      "category": "gpu-orchestration",
+      "reason": "This method allocates declared cache resources per layer without performing tensor arithmetic."
+    },
+    {
+      "id": "src/inference/kv-cache/base.js#KVCache._initializePagedStorage",
+      "category": "gpu-orchestration",
+      "reason": "This method allocates cache resources and constructs the declared identity page table without performing tensor arithmetic."
+    },
+    {
+      "id": "src/inference/kv-cache/base.js#KVCache.clone",
+      "category": "gpu-orchestration",
+      "reason": "This method copies declared cache state for an explicit clone and performs no tensor arithmetic."
+    },
+    {
+      "id": "src/inference/kv-cache/base.js#KVCache._migrateToGPU",
+      "category": "gpu-orchestration",
+      "reason": "This compatibility method copies f32 cache state into GPU storage and rejects dtype conversion; it performs no tensor arithmetic."
+    },
+    {
+      "id": "src/inference/kv-cache/base.js#KVCache.syncToCPU",
+      "category": "gpu-orchestration",
+      "reason": "This explicit state snapshot copies cache bytes; f16 conversion is dispatched through the registered GPU cast kernel."
+    },
+    {
+      "id": "src/inference/kv-cache/types.js#f32ToF16Array",
+      "category": "artifact-codec-materialization",
+      "reason": "This compatibility codec is used by tests, experimental owners, and declared host-input materialization; canonical runtime tensor paths do not call it."
+    },
+    {
+      "id": "src/inference/kv-cache/types.js#f16ToF32Array",
+      "category": "artifact-codec-materialization",
+      "reason": "This compatibility codec is used by tests and experimental owners; canonical runtime tensor paths do not call it."
+    },
+    {
+      "id": "src/inference/pipelines/text/embedding-extraction.js#buildSequencePoolControl",
+      "category": "non-tensor-data",
+      "reason": "This method builds a declared token-identity mask and scalar counts; embedding tensor pooling remains in WGSL."
+    },
+    {
+      "id": "src/inference/pipelines/text/linear-attention.js#cloneLinearAttentionRuntime",
+      "category": "gpu-orchestration",
+      "reason": "This method copies explicitly requested recurrent-state snapshot bytes without performing tensor arithmetic."
+    },
+    {
+      "id": "src/inference/pipelines/text/linear-attention.js#restoreLinearAttentionRuntime",
+      "category": "gpu-orchestration",
+      "reason": "This method restores explicitly supplied recurrent-state snapshot bytes without performing tensor arithmetic."
+    },
+    {
+      "id": "src/loader/model-executor.js#_assembleFunctionalDescriptorData",
+      "category": "artifact-codec-materialization",
+      "reason": "The loader assembles and hash-verifies declared descriptor shard bytes before the production loader rejects runtime reconstruction."
+    },
+    {
+      "id": "src/storage/artifact-storage-context.js#readRange",
+      "category": "non-tensor-data",
+      "reason": "This storage method assembles immutable artifact byte ranges and does not interpret or transform model tensor values."
     }
   ]
 }

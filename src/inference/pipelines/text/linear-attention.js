@@ -28,7 +28,7 @@ import { getLoRAModule } from './lora.js';
 import { applyProjectionLoRA, createLayerRuntimeState, ensureLayerRuntimeGpuBuffers, inferLinearNormModeFromWeight, isGpuBuffer, normalizeLinearNormMode, projectLinearTensor, releaseOrTrackBuffer, releaseResolvedWeightBuffer, resolveMatmulStepDtype, toPositiveInt } from './linear-attention/plan.js';
 export { applyLinearNormWeightOffset } from './linear-attention/plan.js';
 
-const LINEAR_RUNTIME_SCHEMA_VERSION = 1;
+const LINEAR_RUNTIME_SCHEMA_VERSION = 2;
 const QK_L2NORM_EPS = 1e-6;
 
 function cloneLayerRuntimeState(layerState) {
@@ -52,7 +52,7 @@ function cloneLayerRuntimeState(layerState) {
     rmsNormEps: layerState.rmsNormEps,
     convWeight: layerState.convWeight.slice(),
     dtBias: layerState.dtBias.slice(),
-    aNegExp: layerState.aNegExp.slice(),
+    aLog: layerState.aLog.slice(),
     normWeight: layerState.normWeight.slice(),
     convState: layerState.convState.slice(),
     recurrentState: layerState.recurrentState.slice(),
@@ -162,9 +162,9 @@ function releaseLayerRuntimeGpuBuffers(layerState) {
     releaseBuffer(layerState.dtBiasGPU);
     layerState.dtBiasGPU = null;
   }
-  if (isGpuBuffer(layerState.aNegExpGPU)) {
-    releaseBuffer(layerState.aNegExpGPU);
-    layerState.aNegExpGPU = null;
+  if (isGpuBuffer(layerState.aLogGPU)) {
+    releaseBuffer(layerState.aLogGPU);
+    layerState.aLogGPU = null;
   }
   if (isGpuBuffer(layerState.normWeightGPU)) {
     releaseBuffer(layerState.normWeightGPU);

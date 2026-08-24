@@ -1,5 +1,4 @@
 import { readBuffer } from '../../../memory/buffer-pool.js';
-import { layerNormCPU, matmulCPU, rmsNormCPU } from './logits/index.js';
 import { isGpuBufferInstance, isWeightBuffer, isCpuWeightBuffer, getBufferDtype } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
@@ -462,50 +461,9 @@ export function extractTokenEmbeddingsFromHidden(
   config,
   finalNormBias = null
 ) {
-  const expectedLength = numTokens * hiddenSize;
-  if (hiddenStates.length !== expectedLength) {
-    throw new Error(
-      `[Pipeline] Hidden state length mismatch for embedding extraction: expected=${expectedLength}, got=${hiddenStates.length}`
-    );
-  }
-
-  const tokenEmbeddings = new Float32Array(expectedLength);
-  let effectiveLayerNormBias = null;
-  if (config.normalizationType === 'layernorm') {
-    if (config.finalNormBiasTensor !== null && !(finalNormBias instanceof Float32Array)) {
-      throw new Error(
-        `[Pipeline] LayerNorm declares bias tensor "${config.finalNormBiasTensor}" but it was not loaded.`
-      );
-    }
-    effectiveLayerNormBias = finalNormBias instanceof Float32Array
-      ? finalNormBias
-      : new Float32Array(hiddenSize);
-    if (effectiveLayerNormBias.length !== hiddenSize) {
-      throw new Error(
-        `[Pipeline] LayerNorm final bias length must be ${hiddenSize}; got ${effectiveLayerNormBias.length}.`
-      );
-    }
-  }
-  for (let tokenIndex = 0; tokenIndex < numTokens; tokenIndex += 1) {
-    const offset = tokenIndex * hiddenSize;
-    const tokenHidden = hiddenStates.subarray(offset, offset + hiddenSize);
-    if (config.normalizationType === 'layernorm') {
-      tokenEmbeddings.set(layerNormCPU(
-        tokenHidden,
-        finalNormWeights,
-        effectiveLayerNormBias,
-        config.rmsNormEps
-      ), offset);
-    } else {
-      tokenEmbeddings.set(rmsNormCPU(
-        tokenHidden,
-        finalNormWeights,
-        config.rmsNormEps,
-        config.rmsNormWeightOffset
-      ), offset);
-    }
-  }
-  return tokenEmbeddings;
+  throw new Error(
+    'CPU embedding extraction is a quarantined reference; use extractEmbeddingFromHiddenGPU.'
+  );
 }
 
 export function extractEmbeddingFromHidden(
@@ -519,95 +477,7 @@ export function extractEmbeddingFromHidden(
   normalizedTokenEmbeddings = null,
   finalNormBias = null
 ) {
-  const tokenEmbeddings = normalizedTokenEmbeddings ?? extractTokenEmbeddingsFromHidden(
-    hiddenStates,
-    numTokens,
-    hiddenSize,
-    finalNormWeights,
-    config,
-    finalNormBias
+  throw new Error(
+    'CPU embedding extraction is a quarantined reference; use extractEmbeddingFromHiddenGPU.'
   );
-
-  const postprocessorConfig = config?.embeddingPostprocessor ?? null;
-  const resolvedEmbeddingMode = postprocessorConfig?.poolingMode ?? embeddingMode;
-  if (postprocessorConfig && embeddingMode !== resolvedEmbeddingMode) {
-    throw new Error(
-      `[Pipeline] embeddingMode "${embeddingMode}" conflicts with manifest output.embeddingPostprocessor.poolingMode="${resolvedEmbeddingMode}".`
-    );
-  }
-
-  let pooled;
-  if (resolvedEmbeddingMode === 'last') {
-    const offset = (numTokens - 1) * hiddenSize;
-    pooled = tokenEmbeddings.slice(offset, offset + hiddenSize);
-  } else if (resolvedEmbeddingMode === 'mean') {
-    pooled = new Float32Array(hiddenSize);
-    for (let t = 0; t < numTokens; t++) {
-      const offset = t * hiddenSize;
-      for (let i = 0; i < hiddenSize; i++) {
-        pooled[i] += tokenEmbeddings[offset + i];
-      }
-    }
-    const invTokens = numTokens > 0 ? (1 / numTokens) : 1;
-    for (let i = 0; i < hiddenSize; i++) {
-      pooled[i] *= invTokens;
-    }
-  } else {
-    throw new Error(`prefillWithEmbedding: unsupported embeddingMode "${resolvedEmbeddingMode}" (expected "last" or "mean")`);
-  }
-
-  if (!postprocessorConfig) {
-    return pooled;
-  }
-  if (!embeddingPostprocessor) {
-    throw new Error('[Pipeline] Embedding postprocessor weights are missing for this manifest.');
-  }
-
-  let current = pooled;
-  for (let i = 0; i < embeddingPostprocessor.projections.length; i++) {
-    const projection = embeddingPostprocessor.projections[i];
-    if (current.length !== projection.inputSize) {
-      throw new Error(
-        `[Pipeline] Embedding postprocessor projection ${i} expected inputSize=${projection.inputSize}, got ${current.length}.`
-      );
-    }
-    if (!(projection.weight instanceof Float32Array) || projection.weight.length !== (projection.outputSize * projection.inputSize)) {
-      throw new Error(
-        `[Pipeline] Embedding postprocessor projection ${i} has invalid weight shape for ${projection.outputSize}x${projection.inputSize}.`
-      );
-    }
-    if (projection.activation !== 'identity') {
-      throw new Error(
-        `[Pipeline] Unsupported embedding postprocessor activation "${projection.activation}" at projection ${i}.`
-      );
-    }
-    const projected = matmulCPU(current, projection.weight, 1, projection.outputSize, projection.inputSize, 'row');
-    if (projection.bias) {
-      if (!(projection.bias instanceof Float32Array) || projection.bias.length !== projection.outputSize) {
-        throw new Error(
-          `[Pipeline] Embedding postprocessor projection ${i} bias length mismatch: expected=${projection.outputSize}.`
-        );
-      }
-      for (let j = 0; j < projected.length; j++) {
-        projected[j] += projection.bias[j];
-      }
-    }
-    current = projected;
-  }
-
-  if (embeddingPostprocessor.normalize === 'l2') {
-    let sumSq = 0;
-    for (let i = 0; i < current.length; i++) {
-      sumSq += current[i] * current[i];
-    }
-    const norm = Math.sqrt(sumSq);
-    if (norm > 0) {
-      const invNorm = 1 / norm;
-      for (let i = 0; i < current.length; i++) {
-        current[i] *= invNorm;
-      }
-    }
-  }
-
-  return current;
 }
