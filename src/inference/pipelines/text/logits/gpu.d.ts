@@ -82,6 +82,20 @@ export function computeChunkedLogitsGPU(
   executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
 ): Promise<Float32Array>;
 
+export function computeChunkedLogitsTensorGPU(
+  normedTensor: Tensor,
+  lmHead: CpuWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  weightVocabSize: number,
+  debugProbes: ProbeConfigSchema[] | null | undefined,
+  operatorDiagnostics: unknown,
+  largeWeightConfig: LargeWeightConfigSchema,
+  kernelPath?: KernelPathSchema | null,
+  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+): Promise<Tensor>;
+
 /**
  * Compute logits using GPU-resident split LM-head sections.
  */
@@ -97,6 +111,19 @@ export function computeSplitLogitsGPU(
   kernelPath?: KernelPathSchema | null,
   executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
 ): Promise<Float32Array>;
+
+export function computeSplitLogitsTensorGPU(
+  normedTensor: Tensor,
+  lmHead: SplitWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  weightVocabSize: number,
+  debugProbes: ProbeConfigSchema[] | null | undefined,
+  operatorDiagnostics: unknown,
+  kernelPath?: KernelPathSchema | null,
+  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+): Promise<Tensor>;
 
 /**
  * Compute logits and return GPU buffer directly (deferred readback).

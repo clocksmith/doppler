@@ -240,6 +240,31 @@
           ]
         },
         {
+          "id": "production-release-toolchain",
+          "label": "Doppler Production Release toolchain",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": "doppler",
+          "packageExport": "./electron",
+          "smokeCommand": "npm run production-release:check",
+          "evidencePaths": [
+            "docs/model-release-platform.md",
+            "docs/cli.md",
+            "src/config/production-release.js",
+            "src/config/production-release-evidence.js",
+            "src/tooling/production-release.js",
+            "src/client/electron/index.js",
+            "examples/electron-document-search/main.js",
+            ".github/actions/doppler-release/action.yml",
+            ".github/workflows/doppler-release.yml",
+            "tests/tooling/production-release.test.js",
+            "tests/client/electron-release-adapter.test.js"
+          ],
+          "blockers": []
+        },
+        {
           "id": "doppler-production-release-offer",
           "label": "External Doppler Production Release offer",
           "tier": "tier1",
@@ -256,6 +281,11 @@
             "src/config/schema/model-release-platform.schema.json",
             "tools/check-model-release-platform.js",
             "tests/config/model-release-platform.test.js",
+            "src/config/production-release.js",
+            "src/tooling/production-release.js",
+            "src/client/electron/index.js",
+            ".github/workflows/doppler-release.yml",
+            "tests/tooling/production-release.test.js",
             "tools/policies/product-integration-qualification.json"
           ],
           "blockers": [

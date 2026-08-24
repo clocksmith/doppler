@@ -119,6 +119,15 @@ retain a failed or rejected candidate, exercise customer-controlled rollback and
 revocation, and bind exact application, artifact, execution, and supported-device
 identity. Two additional unrelated customers must then repeat the path.
 
+The repository-side release toolchain is implemented: production-release/v1,
+the seven-element Pack binding, Pack-first reranking, `doppler release`, the
+Electron state/renderer adapter, and the reusable non-promoting GitHub check all
+have executable contract tests. That implementation does not close the decisive
+gate. Exact customer-operated Windows/macOS receipts, a promoted production
+revocation authority, customer activation/rollback evidence, the subsequent
+upgrade, and three unrelated paid customers remain external evidence classes
+and may not be synthesized from repository fixtures.
+
 Reploid generation, Dream embedding retrieval, and Columbo reranking are exactly:
 
 > Internally controlled reference integrations proving application-integration

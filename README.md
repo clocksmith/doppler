@@ -50,6 +50,13 @@ The live browser demo is at [d4da.com/doppler](https://d4da.com/doppler).
 The first documentation path is [getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md),
 followed by the [Pack Runtime API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
+For the release-foundry path, the installed command is `doppler release`; from
+npm use `npx --package doppler-gpu doppler release`. It consumes a pinned
+`production-release/v1` manifest and signed exact-device receipts, then emits an
+`eligible` or `blocked` decision and retained evidence. It never activates or
+deploys the customer application. See the [release platform contract](docs/model-release-platform.md)
+and [CLI reference](docs/cli.md).
+
 ### Pack Runtime API
 
 ```js

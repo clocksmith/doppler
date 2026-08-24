@@ -46,6 +46,10 @@ Use these code/doc locations to validate architecture claims in this file:
 - Execution-plane contract and fail-fast policy:
   - `docs/style/general-style-guide.md`
   - `docs/style/command-interface-design-guide.md`
+- Production release control plane:
+  - `docs/model-release-platform.md`
+  - `src/tooling/production-release.js`
+  - `src/client/electron/release-state.js`
 - Runtime config + kernel-path precedence:
   - `docs/config.md`
   - `src/inference/pipelines/text/model-load.js`
@@ -136,6 +140,30 @@ The Runtime core contains zero model-family conditionals and operates strictly o
 * **`SessionController`:** Controls KV cache lifecycle, step sequencing, and abort signals.
 * **`ArtifactResolver`:** Streams and verifies weight shards and tokenizers via injected `ArtifactStore`.
 * **`Observer`:** Collects metrics, traces, and verification receipts.
+
+### Production release control plane
+
+`production-release/v1` sits above Forge and Runtime. It binds one pinned model
+revision, Electron application revision, application-owned workload/oracle,
+supported Windows/macOS device policy, previous release, rollout rules,
+rollback target, revocation policy, and data-custody policy.
+
+The Node-only `doppler release` command has two explicit phases:
+
+1. `qualify` verifies the immutable Pack and exact device identity, executes the
+   application-owned gates, and signs one fleet receipt on a customer-operated
+   agent.
+2. `decide` optionally invokes Forge, verifies the Pack and all declared fleet
+   receipts, and signs an `eligible` or `blocked` decision with exclusions,
+   rollback, revocation, and retained failure evidence.
+
+The command and reusable GitHub workflow are evidence producers, not deployment
+systems. They cannot activate a Pack. The Electron main-process adapter owns
+atomic current/previous/candidate state and requires a verified eligible
+decision plus explicit customer authorization before activation. The renderer
+opens only the current Pack after fail-closed revocation freshness checks and
+owns WebGPU execution. Hosted CI may aggregate receipts but cannot impersonate
+the supported Windows/macOS fleet.
 
 ### Key Principles
 

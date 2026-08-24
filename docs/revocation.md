@@ -85,6 +85,17 @@ state returned by that store; they cannot detect wholesale rollback or deletion
 of an untrusted store. Applications must also configure finite response-byte,
 request-timeout, clock-skew, envelope-lifetime, and refresh-interval limits.
 
+The Electron release adapter adds a separate application update-state boundary.
+Its main-process coordinator uses an application-supplied atomic
+`compareAndSwap()` store for current, previous, candidate, retained failure, and
+verified revocation-snapshot state. Candidate installation never activates a
+Pack. Activation requires a cryptographically verified eligible decision plus
+an explicit customer authorization digest; rollback also requires an explicit
+customer authorization digest. Renderer execution fails closed when the signed
+revocation snapshot is missing, expired, or denies the current Pack. This is a
+repository contract and reference implementation, not evidence that a customer
+has deployed an atomic store or exercised production rollback.
+
 Installing a new live policy increments the process policy revision. Already
 loaded model identity is checked again at every transformer layer boundary, and
 an active adapter is re-authorized against the new revision before layer work.

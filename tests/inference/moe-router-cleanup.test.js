@@ -231,10 +231,10 @@ function resetDevice(device = null) {
     new Float32Array([10, 0.5, 2])
   );
 
-  const selection = router.selectExpertsForToken(new Float32Array([0, 2, 1]));
-  assert.deepEqual(selection.indices, [1, 2]);
-  assert.ok(Math.abs(selection.weights[0] - (0.5 * (Math.exp(2) / (Math.exp(2) + Math.exp(1))))) < 1e-6);
-  assert.ok(Math.abs(selection.weights[1] - (2 * (Math.exp(1) / (Math.exp(2) + Math.exp(1))))) < 1e-6);
+  assert.throws(
+    () => router.selectExpertsForToken(new Float32Array([0, 2, 1])),
+    /top-k routing requires the WebGPU path/
+  );
 }
 
 {

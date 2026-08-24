@@ -43,6 +43,7 @@ const REQUIRED_GOAL_ROWS = new Map([
       'openai-compatible-server',
       'maintained-application-integrations',
       'pack-first-runtime-convergence',
+      'production-release-toolchain',
       'doppler-production-release-offer',
     ],
   ],

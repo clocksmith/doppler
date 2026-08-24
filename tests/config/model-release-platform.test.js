@@ -30,12 +30,36 @@ function clone(value) {
     'pack-authoritative'
   );
   assert.deepEqual(report.partialRequirements, []);
+  assert.deepEqual(report.implementedPromotionGates, [
+    'canonical-product-contract',
+    'electron-reference-release',
+    'pack-release-closure',
+    'pack-first-electron-reranking',
+    'doppler-release-command',
+    'github-release-action',
+  ]);
+  assert.deepEqual(report.externalPromotionGates, [
+    'electron-fleet-qualification',
+    'revocation-and-customer-rollback',
+    'paid-external-release-and-upgrade',
+    'three-unrelated-design-partners',
+  ]);
   assert.ok(policy.pack.requiredReleaseElements.find(
     (row) => row.id === 'version-supersession-migration'
   )?.implementationState === 'implemented');
   assert.ok(policy.recovery.find(
     (row) => row.id === 'portable-state-snapshot-identity'
   )?.implementationState === 'implemented');
+}
+
+{
+  const broken = clone(policy);
+  const releaseCommand = broken.promotionSequence.find((row) => row.id === 'doppler-release-command');
+  releaseCommand.blockerCode = 'paid-doppler-production-release-missing';
+  const report = await validateModelReleasePlatform(broken, matrix);
+  assert.ok(report.errors.includes(
+    'promotionSequence.doppler-release-command: implemented gates must have blockerCode null'
+  ));
 }
 
 {

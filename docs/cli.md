@@ -5,7 +5,8 @@ The canonical CLI entrypoint is `src/cli/doppler-cli.js`.
 For the npm-facing quickstart path, use `npx doppler-gpu`. That bin is a thin
 first-run surface for local generation. The `doppler` CLI below is the
 contract-driven tooling surface for `verify`, `debug`, `bench`, `convert`, and
-operator workflows. It also exposes Node-only maintenance and investigation
+operator workflows. It also exposes the Node-only `release` command for signed,
+non-promoting Electron release eligibility. Other Node-only maintenance and investigation
 paths such as `program-bundle` and `diagnose`.
 It also exposes `profiles`, a read-only discovery command for checked-in
 runtime profile IDs.
@@ -30,6 +31,7 @@ node src/cli/doppler-cli.js <command> --config <request> [flags]
 | `verify` | `verify` | Requires `request.workload` (except legacy `kernels` shape). |
 | `diagnose` | `investigate` | Node-only operator-diff investigation command. |
 | `convert` | `convert` | Node-only command. |
+| `release` | production eligibility | Node-only; emits signed `eligible` or `blocked` evidence and never activates. |
 | `profiles` | discovery | Lists checked-in runtime profile IDs; no workload is executed. |
 | `lora` | operator lifecycle | Node-only command. |
 | `distill` | operator lifecycle | Node-only command. |
@@ -116,17 +118,58 @@ inside `--config`; use one runtime input path per command.
 - `--surface node` forces Node execution.
 - `--surface browser` forces headless Chromium relay.
 
-`convert`, `diagnose`, `lora`, and `distill` reject `--surface browser`.
+`convert`, `release`, `diagnose`, `lora`, and `distill` reject `--surface browser`.
 `convert`, `lora`, and `distill` reject runtime-input fields in the Node operator surface.
 
 Command-level surface support:
 
 - `bench`, `debug`, `verify`: `auto|node|browser`
 - `convert`: `auto|node` (`browser` is rejected)
+- `release`: `auto|node` (`browser` is rejected)
 - `lora`, `distill`: `auto|node` (`browser` is rejected)
 - `diagnose`: `auto|node` (`browser` is rejected)
 - `program-bundle`: no `--surface`; reads declared files and writes a JSON artifact
 - `profiles`: no `--surface`; reads checked-in runtime config metadata only
+
+## Doppler Production Release
+
+The installable public binary is `doppler` from the `doppler-gpu` package. Use
+either an installed binary or the explicit npm package form:
+
+```bash
+doppler release --manifest doppler-release.json \
+  --out .doppler-release/evidence \
+  --pack-trusted-signers trust/pack-signers.json \
+  --fleet-trusted-signers trust/fleet-signers.json \
+  --fleet-receipts evidence/windows.json,evidence/macos.json \
+  --signing-private-key "$RELEASE_PRIVATE_JWK_PATH" \
+  --signing-public-key "$RELEASE_PUBLIC_JWK_PATH" \
+  --signing-authority doppler-release-authority
+
+npx --package doppler-gpu doppler release --config release-command.json
+```
+
+The default CLI phase is `decide`. Customer-operated Windows and macOS agents
+run the explicit qualification phase:
+
+```bash
+doppler release --action qualify \
+  --manifest doppler-release.json \
+  --target windows-x64-webgpu \
+  --device-identity evidence/windows-device.json \
+  --out .doppler-release/windows \
+  --pack-trusted-signers trust/pack-signers.json \
+  --signing-private-key "$FLEET_PRIVATE_JWK_PATH" \
+  --signing-public-key "$FLEET_PUBLIC_JWK_PATH" \
+  --signing-authority customer-windows-agent
+```
+
+`decide` verifies the Pack and every exact-device fleet receipt, then writes
+`release-decision.json`, `known-exclusions.json`, `rollback-target.json`, and
+`revocation-configuration.json`. A blocked decision also writes and retains
+`failure-bundle.json`. Neither phase deploys, activates, rolls back, mutates the
+customer repository, or invents a fleet receipt. The customer activation system
+must separately verify and act on an eligible decision.
 
 ## Program Bundle Export
 

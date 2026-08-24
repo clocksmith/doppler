@@ -16,6 +16,7 @@ import {
   runWithRuntimeIsolation,
 } from './command-runtime-execution.js';
 import { refreshManifestIntegrity } from './rdrr-integrity-refresh.js';
+import { runProductionRelease } from './production-release.js';
 import { loadRuntimeConfigFromRef } from '../inference/browser-harness/runtime-config.js';
 import { isPlainObject } from '../formats/plain-object.js';
 import {
@@ -147,6 +148,19 @@ export async function runNodeCommandExecution(commandRequest, options = {}) {
         dryRun: request.dryRun === true,
         skipShardCheck: request.skipShardCheck === true,
       });
+      return createToolingSuccessEnvelope({
+        surface: 'node',
+        request,
+        result,
+      });
+    }
+
+    if (request.command === 'release') {
+      assertNoUnsupportedRuntimeInputs(
+        request,
+        'release eligibility is bound to the production-release manifest and signed evidence'
+      );
+      const result = await runProductionRelease(request);
       return createToolingSuccessEnvelope({
         surface: 'node',
         request,

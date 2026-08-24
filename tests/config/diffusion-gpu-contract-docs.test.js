@@ -33,8 +33,8 @@ function readLocal(pathValue) {
     'docs/style/command-interface-design-guide.md',
     'docs/style/harness-style-guide.md',
     'src/config/schema/diffusion.schema.d.ts',
-    'src/inference/pipelines/diffusion/init.js',
-    'src/inference/pipelines/diffusion/pipeline.js',
+    'src/experimental/diffusion/index.js',
+    'src/experimental/diffusion/pipeline.js',
     'tests/integration/diffusion-runtime-contract.test.js',
   ];
   for (const pathValue of staleReferencePaths) {

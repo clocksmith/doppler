@@ -79,7 +79,7 @@ export function parseSurface(value, command, policy = DEFAULT_CLI_POLICY) {
   if (!allowedSurfaces.includes(normalized)) {
     throw new Error('--surface must be one of auto, node, browser');
   }
-  if ((command === 'convert' || command === 'refresh-integrity') && normalized === 'browser') {
+  if ((command === 'convert' || command === 'refresh-integrity' || command === 'release') && normalized === 'browser') {
     throw new Error(`${command} is not supported on browser relay. Use --surface node or --surface auto.`);
   }
   if ((command === 'diagnose' || command === 'lora' || command === 'distill') && normalized === 'browser') {
@@ -243,6 +243,7 @@ export async function runWithAutoSurface(request, runConfig, jsonOutput, policy 
   if (
     request.command === 'convert'
     || request.command === 'refresh-integrity'
+    || request.command === 'release'
     || request.command === 'diagnose'
   ) {
     return runCommandOnSurface(request, 'node', runConfig, jsonOutput);

@@ -408,6 +408,62 @@ export function normalizeRefreshIntegrity(raw) {
   };
 }
 
+export function normalizeRelease(raw) {
+  assertForbiddenStringField(raw, 'runtimeProfile', 'release');
+  assertForbiddenStringField(raw, 'runtimeConfigUrl', 'release');
+  assertForbiddenObjectField(raw, 'runtimeConfig', 'release');
+  assertForbiddenConfigChainField(raw, 'release');
+  const action = asOptionalAction(raw.action, 'action', ['qualify', 'decide']);
+  const manifestPath = asOptionalString(raw.manifestPath, 'manifestPath');
+  const outputDirectory = asOptionalString(raw.outputDirectory, 'outputDirectory');
+  const packTrustedSignersPath = asOptionalString(
+    raw.packTrustedSignersPath,
+    'packTrustedSignersPath'
+  );
+  const signingPrivateKeyPath = asOptionalString(
+    raw.signingPrivateKeyPath,
+    'signingPrivateKeyPath'
+  );
+  const signingPublicKeyPath = asOptionalString(raw.signingPublicKeyPath, 'signingPublicKeyPath');
+  const signingAuthority = asOptionalString(raw.signingAuthority, 'signingAuthority');
+  if (!action || !manifestPath || !outputDirectory || !packTrustedSignersPath
+    || !signingPrivateKeyPath || !signingPublicKeyPath || !signingAuthority) {
+    throw new Error(
+      'tooling command: release requires action, manifestPath, outputDirectory, ' +
+      'packTrustedSignersPath, signingPrivateKeyPath, signingPublicKeyPath, and signingAuthority.'
+    );
+  }
+  const targetId = asOptionalString(raw.targetId, 'targetId');
+  const deviceIdentityPath = asOptionalString(raw.deviceIdentityPath, 'deviceIdentityPath');
+  const fleetTrustedSignersPath = asOptionalString(
+    raw.fleetTrustedSignersPath,
+    'fleetTrustedSignersPath'
+  );
+  const fleetReceiptPaths = asOptionalStringArray(raw.fleetReceiptPaths, 'fleetReceiptPaths');
+  if (action === 'qualify' && (!targetId || !deviceIdentityPath)) {
+    throw new Error('tooling command: release qualify requires targetId and deviceIdentityPath.');
+  }
+  if (action === 'decide' && !fleetTrustedSignersPath) {
+    throw new Error('tooling command: release decide requires fleetTrustedSignersPath.');
+  }
+  return {
+    ...createCommandRequestBase(raw, 'release'),
+    action,
+    manifestPath,
+    outputDirectory,
+    repoRoot: asOptionalString(raw.repoRoot, 'repoRoot'),
+    forgeConfigPath: asOptionalString(raw.forgeConfigPath, 'forgeConfigPath'),
+    targetId,
+    deviceIdentityPath,
+    fleetReceiptPaths: fleetReceiptPaths ?? [],
+    packTrustedSignersPath,
+    fleetTrustedSignersPath,
+    signingPrivateKeyPath,
+    signingPublicKeyPath,
+    signingAuthority,
+  };
+}
+
 export function normalizeTrainingOperatorCommand(raw, command) {
   assertForbiddenConfigChainField(raw, command);
   const allowedActions = command === 'distill' ? DISTILL_ACTION_SET : LORA_ACTION_SET;

@@ -39,6 +39,7 @@
     "src/CATSCAN.md",
     "src/cli/CATSCAN.md",
     "src/client/CATSCAN.md",
+    "src/client/electron/CATSCAN.md",
     "src/config/CATSCAN.md",
     "src/converter/CATSCAN.md",
     "src/debug/CATSCAN.md",

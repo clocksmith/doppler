@@ -64,8 +64,9 @@ async function finalizeLogitsTensor(target, input, options) {
     undefined,
     'logit_finalize_output'
   );
-  const bias = resolveBiasBuffer(device, options.bias ?? null, sourceColumns);
+  let bias = null;
   try {
+    bias = resolveBiasBuffer(device, options.bias ?? null, sourceColumns);
     await unifiedKernelWrapper(
       'logit_finalize',
       target,
@@ -86,7 +87,7 @@ async function finalizeLogitsTensor(target, input, options) {
     releaseBuffer(output);
     throw error;
   } finally {
-    if (bias.owned) {
+    if (bias?.owned) {
       if (target) target.trackTemporaryBuffer(bias.buffer);
       else releaseBuffer(bias.buffer);
     }

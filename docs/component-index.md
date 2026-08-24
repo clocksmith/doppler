@@ -3,7 +3,7 @@
 Generated from the repository's `CATSCAN.md` files.
 Run `npm run catscan:sync` after adding, removing, or changing a component charter.
 
-Components: 28
+Components: 29
 
 | Component | Target | Charter | Parent |
 | --- | --- | --- | --- |
@@ -31,6 +31,7 @@ Components: 28
 | `doppler.runtime-source.rules` | Resolve explicit data-only rule maps deterministically and fail when no permitted selection exists. | [src/rules/CATSCAN.md](../src/rules/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.storage` | Persist, retrieve, verify, and transport artifact bytes through explicit storage contexts and integrity contracts. | [src/storage/CATSCAN.md](../src/storage/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.tooling` | Give browser, Node, and CLI adapters one normalized command contract and one evidence-aware execution vocabulary. | [src/tooling/CATSCAN.md](../src/tooling/CATSCAN.md) | `doppler.runtime-source` |
+| `doppler.runtime-source.client.electron` | Bind an Electron renderer to an eligible immutable Pack while keeping durable update state and customer activation authority in the main process. | [src/client/electron/CATSCAN.md](../src/client/electron/CATSCAN.md) | `doppler.runtime-source.client` |
 | `doppler.runtime-source.formats.rdrr` | Define and validate Doppler's canonical manifest-first runtime artifact contract. | [src/formats/rdrr/CATSCAN.md](../src/formats/rdrr/CATSCAN.md) | `doppler.runtime-source.formats` |
 | `doppler.runtime-source.gpu.kernels` | Implement registered deterministic tensor operations whose numeric behavior and dispatch identity can be verified. | [src/gpu/kernels/CATSCAN.md](../src/gpu/kernels/CATSCAN.md) | `doppler.runtime-source.gpu` |
 | `doppler.runtime-source.inference.pipelines` | Bind declared model types to pipeline implementations without changing normalized command or session semantics. | [src/inference/pipelines/CATSCAN.md](../src/inference/pipelines/CATSCAN.md) | `doppler.runtime-source.inference` |

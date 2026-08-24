@@ -1,0 +1,122 @@
+name: Doppler Production Release
+description: Qualify an exact Electron target or emit a signed non-promoting release eligibility decision.
+
+inputs:
+  doppler-version:
+    description: Exact doppler-gpu package version used for the decision.
+    required: true
+  action:
+    description: Release phase, either qualify or decide.
+    required: true
+  manifest:
+    description: Doppler Production Release v1 manifest path.
+    required: true
+  output:
+    description: Evidence output directory.
+    required: true
+  pack-trusted-signers:
+    description: Trusted Pack signer map path.
+    required: true
+  fleet-trusted-signers:
+    description: Trusted fleet receipt signer map path for decide.
+    required: false
+  fleet-receipts:
+    description: Comma-separated exact fleet receipt paths for decide.
+    required: false
+  target:
+    description: Declared device target ID for qualify.
+    required: false
+  device-identity:
+    description: Exact Electron device identity path for qualify.
+    required: false
+  forge-config:
+    description: Optional Forge config path for candidate Pack construction.
+    required: false
+  signing-private-key:
+    description: Release evidence Ed25519 private JWK path.
+    required: true
+  signing-public-key:
+    description: Release evidence Ed25519 public JWK path.
+    required: true
+  signing-authority:
+    description: Release evidence signing authority ID.
+    required: true
+
+outputs:
+  result-path:
+    description: Machine-readable Doppler command envelope.
+    value: ${{ steps.release.outputs.result-path }}
+  eligibility:
+    description: Eligible, blocked, or qualification-only.
+    value: ${{ steps.inspect.outputs.eligibility }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate pinned Doppler version
+      shell: bash
+      env:
+        DOPPLER_VERSION: ${{ inputs.doppler-version }}
+      run: |
+        if [[ ! "$DOPPLER_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]]; then
+          echo "doppler-version must be an exact package version" >&2
+          exit 1
+        fi
+
+    - name: Run Doppler release phase
+      id: release
+      shell: bash
+      env:
+        DOPPLER_VERSION: ${{ inputs.doppler-version }}
+        RELEASE_ACTION: ${{ inputs.action }}
+        RELEASE_MANIFEST: ${{ inputs.manifest }}
+        RELEASE_OUTPUT: ${{ inputs.output }}
+        PACK_TRUST: ${{ inputs.pack-trusted-signers }}
+        FLEET_TRUST: ${{ inputs.fleet-trusted-signers }}
+        FLEET_RECEIPTS: ${{ inputs.fleet-receipts }}
+        TARGET_ID: ${{ inputs.target }}
+        DEVICE_IDENTITY: ${{ inputs.device-identity }}
+        FORGE_CONFIG: ${{ inputs.forge-config }}
+        SIGNING_PRIVATE_KEY: ${{ inputs.signing-private-key }}
+        SIGNING_PUBLIC_KEY: ${{ inputs.signing-public-key }}
+        SIGNING_AUTHORITY: ${{ inputs.signing-authority }}
+      run: |
+        args=(
+          release
+          --action "$RELEASE_ACTION"
+          --manifest "$RELEASE_MANIFEST"
+          --out "$RELEASE_OUTPUT"
+          --pack-trusted-signers "$PACK_TRUST"
+          --signing-private-key "$SIGNING_PRIVATE_KEY"
+          --signing-public-key "$SIGNING_PUBLIC_KEY"
+          --signing-authority "$SIGNING_AUTHORITY"
+          --surface node
+          --json
+        )
+        if [[ -n "$FLEET_TRUST" ]]; then args+=(--fleet-trusted-signers "$FLEET_TRUST"); fi
+        if [[ -n "$FLEET_RECEIPTS" ]]; then args+=(--fleet-receipts "$FLEET_RECEIPTS"); fi
+        if [[ -n "$TARGET_ID" ]]; then args+=(--target "$TARGET_ID"); fi
+        if [[ -n "$DEVICE_IDENTITY" ]]; then args+=(--device-identity "$DEVICE_IDENTITY"); fi
+        if [[ -n "$FORGE_CONFIG" ]]; then args+=(--forge-config "$FORGE_CONFIG"); fi
+        mkdir -p "$RELEASE_OUTPUT"
+        result_path="$RELEASE_OUTPUT/command-result.json"
+        npx --yes --package "doppler-gpu@$DOPPLER_VERSION" doppler "${args[@]}" > "$result_path"
+        echo "result-path=$result_path" >> "$GITHUB_OUTPUT"
+
+    - name: Inspect non-promoting result
+      id: inspect
+      shell: bash
+      env:
+        RESULT_PATH: ${{ steps.release.outputs.result-path }}
+      run: |
+        node --input-type=module <<'NODE'
+        import fs from 'node:fs';
+
+        const result = JSON.parse(fs.readFileSync(process.env.RESULT_PATH, 'utf8'));
+        const payload = result.result ?? result;
+        if (payload.activationPerformed !== false) {
+          throw new Error('Doppler release action must never activate or promote a release.');
+        }
+        const eligibility = payload.eligibility ?? 'qualification-only';
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `eligibility=${eligibility}\n`);
+        NODE

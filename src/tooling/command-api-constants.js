@@ -1,4 +1,4 @@
-export const TOOLING_COMMAND_SET = ['convert', 'refresh-integrity', 'debug', 'bench', 'verify', 'lora', 'distill', 'diagnose'];
+export const TOOLING_COMMAND_SET = ['convert', 'refresh-integrity', 'release', 'debug', 'bench', 'verify', 'lora', 'distill', 'diagnose'];
 export const TOOLING_SURFACE_SET = ['browser', 'node'];
 export const TOOLING_WORKLOAD_SET = ['kernels', 'inference', 'embedding', 'rerank', 'training', 'diffusion', 'energy'];
 export const TOOLING_INTENT_SET = ['verify', 'investigate', 'calibrate'];

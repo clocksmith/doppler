@@ -1,6 +1,6 @@
 import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
 
-export type ToolingCommand = 'convert' | 'refresh-integrity' | 'debug' | 'bench' | 'verify' | 'lora' | 'distill' | 'diagnose';
+export type ToolingCommand = 'convert' | 'refresh-integrity' | 'release' | 'debug' | 'bench' | 'verify' | 'lora' | 'distill' | 'diagnose';
 export type ToolingSurface = 'browser' | 'node';
 export type ToolingWorkload = 'kernels' | 'inference' | 'embedding' | 'rerank' | 'training' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
@@ -75,7 +75,7 @@ export interface ToolingNormalizedInferenceInput {
 
 export interface ToolingCommandRequestInput {
   command: ToolingCommand;
-  action?: ToolingDistillAction | ToolingLoraAction;
+  action?: ToolingDistillAction | ToolingLoraAction | 'qualify' | 'decide';
   workload?: ToolingWorkload;
   inferenceInput?: ToolingInferenceInput | null;
   modelId?: string;
@@ -145,13 +145,24 @@ export interface ToolingCommandRequestInput {
   programBundlePath?: string | null;
   parityProviders?: string[] | null;
   programBundleParityMode?: 'contract' | 'execute' | null;
+  outputDirectory?: string;
+  repoRoot?: string;
+  forgeConfigPath?: string;
+  targetId?: string;
+  deviceIdentityPath?: string;
+  fleetReceiptPaths?: string[];
+  packTrustedSignersPath?: string;
+  fleetTrustedSignersPath?: string;
+  signingPrivateKeyPath?: string;
+  signingPublicKeyPath?: string;
+  signingAuthority?: string;
 }
 
 export interface ToolingCommandRequest {
   command: ToolingCommand;
   workload: ToolingWorkload | null;
   intent: ToolingIntent;
-  action: ToolingDistillAction | ToolingLoraAction | null;
+  action: ToolingDistillAction | ToolingLoraAction | 'qualify' | 'decide' | null;
   inferenceInput: ToolingNormalizedInferenceInput | null;
   modelId: string | null;
   trainingTests: string[] | null;
@@ -220,6 +231,17 @@ export interface ToolingCommandRequest {
   programBundlePath: string | null;
   parityProviders: string[] | null;
   programBundleParityMode: 'contract' | 'execute' | null;
+  outputDirectory?: string | null;
+  repoRoot?: string | null;
+  forgeConfigPath?: string | null;
+  targetId?: string | null;
+  deviceIdentityPath?: string | null;
+  fleetReceiptPaths?: string[];
+  packTrustedSignersPath?: string | null;
+  fleetTrustedSignersPath?: string | null;
+  signingPrivateKeyPath?: string | null;
+  signingPublicKeyPath?: string | null;
+  signingAuthority?: string | null;
 }
 
 export declare const TOOLING_COMMANDS: readonly ToolingCommand[];
