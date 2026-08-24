@@ -11,7 +11,6 @@ const EVIDENCE_CLASSES = new Set(['reference-fixture', 'external-candidate', 'ex
 const OPERATING_SYSTEMS = new Set(['windows', 'macos']);
 const ARCHITECTURES = new Set(['x64', 'arm64']);
 const GPU_VENDORS = new Set(['amd', 'apple', 'intel', 'nvidia']);
-const ENVIRONMENT_VARIABLE_PATTERN = /^[A-Z][A-Z0-9_]*$/;
 
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -68,56 +67,12 @@ function requireStringArray(value, allowed, label, errors) {
 
 function validateCandidate(candidate, errors) {
   if (!requireObject(candidate, 'candidate', errors)) return;
-  requireExactKeys(candidate, new Set(['logicalModelId', 'sourceRevision', 'sourceRevisionDigest', 'packPath', 'packSemanticRoot', 'forge']), 'candidate', errors);
+  requireExactKeys(candidate, new Set(['logicalModelId', 'sourceRevision', 'sourceRevisionDigest', 'packPath', 'packSemanticRoot']), 'candidate', errors);
   requireString(candidate.logicalModelId, 'candidate.logicalModelId', errors);
   requireString(candidate.sourceRevision, 'candidate.sourceRevision', errors);
   requireDigest(candidate.sourceRevisionDigest, 'candidate.sourceRevisionDigest', errors);
   requireRepoPath(candidate.packPath, 'candidate.packPath', errors);
   requireDigest(candidate.packSemanticRoot, 'candidate.packSemanticRoot', errors);
-  if (candidate.forge !== null) {
-    const forge = candidate.forge;
-    if (requireObject(forge, 'candidate.forge', errors)) {
-      requireExactKeys(forge, new Set([
-        'programBundlePath', 'manifestPath', 'packReleasePath', 'qualificationReportPaths',
-        'modelIRReceiptPath', 'initialExecutionIdentityPath', 'signingAuthorityId',
-        'signingPublicKeyJwk', 'signingPrivateKeyEnvironmentVariable',
-      ]), 'candidate.forge', errors);
-      for (const field of ['programBundlePath', 'manifestPath', 'packReleasePath']) {
-        requireRepoPath(forge[field], `candidate.forge.${field}`, errors);
-      }
-      if (!Array.isArray(forge.qualificationReportPaths)) {
-        errors.push('candidate.forge.qualificationReportPaths must be an array.');
-      } else {
-        forge.qualificationReportPaths.forEach((value, index) => (
-          requireRepoPath(value, `candidate.forge.qualificationReportPaths[${index}]`, errors)
-        ));
-      }
-      for (const field of ['modelIRReceiptPath', 'initialExecutionIdentityPath']) {
-        if (forge[field] !== null) requireRepoPath(forge[field], `candidate.forge.${field}`, errors);
-      }
-      requireId(forge.signingAuthorityId, 'candidate.forge.signingAuthorityId', errors);
-      validatePublicKeyJwk(forge.signingPublicKeyJwk, 'candidate.forge.signingPublicKeyJwk', errors);
-      validateSigningEnvironmentVariable(
-        forge.signingPrivateKeyEnvironmentVariable,
-        'candidate.forge.signingPrivateKeyEnvironmentVariable',
-        errors
-      );
-    }
-  }
-}
-
-function validatePublicKeyJwk(value, label, errors) {
-  if (!requireObject(value, label, errors)) return;
-  requireExactKeys(value, new Set(['crv', 'kty', 'x']), label, errors);
-  if (value.kty !== 'OKP' || value.crv !== 'Ed25519' || typeof value.x !== 'string' || !value.x) {
-    errors.push(`${label} must be an Ed25519 public JWK.`);
-  }
-}
-
-function validateSigningEnvironmentVariable(value, label, errors) {
-  if (!ENVIRONMENT_VARIABLE_PATTERN.test(value || '')) {
-    errors.push(`${label} must be an uppercase environment variable name.`);
-  }
 }
 
 function validateApplication(application, errors) {
@@ -203,7 +158,7 @@ function validateSupportedDevices(supportedDevices, errors) {
   for (const [index, target] of supportedDevices.targets.entries()) {
     const label = `supportedDevices.targets[${index}]`;
     if (!requireObject(target, label, errors)) continue;
-    requireExactKeys(target, new Set(['id', 'os', 'osVersionRange', 'architectures', 'electronVersionRange', 'gpuVendors', 'driverPolicy', 'qualificationAuthority']), label, errors);
+    requireExactKeys(target, new Set(['id', 'os', 'osVersionRange', 'architectures', 'electronVersionRange', 'gpuVendors', 'driverPolicy']), label, errors);
     requireId(target.id, `${label}.id`, errors);
     if (!OPERATING_SYSTEMS.has(target.os)) errors.push(`${label}.os is unsupported.`);
     else operatingSystems.add(target.os);
@@ -212,58 +167,9 @@ function validateSupportedDevices(supportedDevices, errors) {
     requireString(target.electronVersionRange, `${label}.electronVersionRange`, errors);
     requireStringArray(target.gpuVendors, GPU_VENDORS, `${label}.gpuVendors`, errors);
     if (target.driverPolicy !== 'exact-receipt-required') errors.push(`${label}.driverPolicy must require exact receipts.`);
-    const authority = target.qualificationAuthority;
-    if (requireObject(authority, `${label}.qualificationAuthority`, errors)) {
-      requireExactKeys(authority, new Set(['authorityId', 'publicKeyJwk']), `${label}.qualificationAuthority`, errors);
-      requireId(authority.authorityId, `${label}.qualificationAuthority.authorityId`, errors);
-      validatePublicKeyJwk(authority.publicKeyJwk, `${label}.qualificationAuthority.publicKeyJwk`, errors);
-    }
   }
   for (const os of OPERATING_SYSTEMS) {
     if (!operatingSystems.has(os)) errors.push(`supportedDevices.targets must include ${os}.`);
-  }
-}
-
-function validateOperation(operation, supportedDevices, errors) {
-  if (!requireObject(operation, 'operation', errors)) return;
-  requireExactKeys(operation, new Set([
-    'outputDirectory', 'fleetReceiptPaths', 'packTrust', 'decisionSigning',
-  ]), 'operation', errors);
-  requireRepoPath(operation.outputDirectory, 'operation.outputDirectory', errors);
-  if (!Array.isArray(operation.fleetReceiptPaths)) {
-    errors.push('operation.fleetReceiptPaths must be an array.');
-  } else {
-    const targetIds = new Set((supportedDevices?.targets || []).map((target) => target.id));
-    const seen = new Set();
-    for (const [index, entry] of operation.fleetReceiptPaths.entries()) {
-      const label = `operation.fleetReceiptPaths[${index}]`;
-      if (!requireObject(entry, label, errors)) continue;
-      requireExactKeys(entry, new Set(['targetId', 'path']), label, errors);
-      requireId(entry.targetId, `${label}.targetId`, errors);
-      requireRepoPath(entry.path, `${label}.path`, errors);
-      if (!targetIds.has(entry.targetId)) errors.push(`${label}.targetId is not declared by supportedDevices.`);
-      if (seen.has(entry.targetId)) errors.push(`operation.fleetReceiptPaths contains duplicate targetId "${entry.targetId}".`);
-      seen.add(entry.targetId);
-    }
-  }
-  const packTrust = operation.packTrust;
-  if (requireObject(packTrust, 'operation.packTrust', errors)) {
-    requireExactKeys(packTrust, new Set(['authorityId', 'publicKeyJwk']), 'operation.packTrust', errors);
-    requireId(packTrust.authorityId, 'operation.packTrust.authorityId', errors);
-    validatePublicKeyJwk(packTrust.publicKeyJwk, 'operation.packTrust.publicKeyJwk', errors);
-  }
-  const signing = operation.decisionSigning;
-  if (requireObject(signing, 'operation.decisionSigning', errors)) {
-    requireExactKeys(signing, new Set([
-      'authorityId', 'publicKeyJwk', 'privateKeyEnvironmentVariable',
-    ]), 'operation.decisionSigning', errors);
-    requireId(signing.authorityId, 'operation.decisionSigning.authorityId', errors);
-    validatePublicKeyJwk(signing.publicKeyJwk, 'operation.decisionSigning.publicKeyJwk', errors);
-    validateSigningEnvironmentVariable(
-      signing.privateKeyEnvironmentVariable,
-      'operation.decisionSigning.privateKeyEnvironmentVariable',
-      errors
-    );
   }
 }
 
@@ -340,7 +246,7 @@ export function validateProductionRelease(release) {
   requireExactKeys(release, new Set([
     'schema', 'schemaVersion', 'releaseId', 'createdAtUtc', 'evidenceClass', 'candidate', 'application',
     'acceptance', 'supportedDevices', 'previousRelease', 'rollout', 'rollback', 'revocation', 'dataCustody',
-    'claimBoundary', 'operation',
+    'claimBoundary',
   ]), 'release', errors);
   if (release.schema !== PRODUCTION_RELEASE_SCHEMA_ID) errors.push(`schema must be "${PRODUCTION_RELEASE_SCHEMA_ID}".`);
   if (release.schemaVersion !== PRODUCTION_RELEASE_SCHEMA_VERSION) errors.push(`schemaVersion must be ${PRODUCTION_RELEASE_SCHEMA_VERSION}.`);
@@ -365,7 +271,6 @@ export function validateProductionRelease(release) {
     if (!new Set(['none', 'customer-approved-redacted']).has(custody.telemetryExport)) errors.push('dataCustody.telemetryExport is unsupported.');
   }
   validateClaimBoundary(release, errors);
-  validateOperation(release.operation, release.supportedDevices, errors);
   const semanticDigest = hashProductionRelease(release);
   const expectedReleaseId = `${release.application?.applicationId || 'invalid'}-${release.candidate?.logicalModelId || 'invalid'}-release-${semanticDigest.slice(7, 23)}`;
   if (release.releaseId !== expectedReleaseId) errors.push(`releaseId must be derived from the semantic payload (${expectedReleaseId}).`);
