@@ -7479,6 +7479,191 @@
     }
    }
   },
+  "vision_patch_embed": {
+   "description": "Qwen vision patch projection from explicit spatial geometry",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "image",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "bias",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "grid_height",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "grid_width",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "channels",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "patch_size",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "temporal_patch_size",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "has_bias",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "output_elements",
+      "type": "u32",
+      "offset": 28
+     }
+    ]
+   },
+   "variants": {
+    "f32w": {
+     "wgsl": "vision_patch_embed.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "reachability": {
+      "status": "selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["vision-patch-embed.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "f16w": {
+     "wgsl": "vision_patch_embed_f16w.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "weightDtype": "f16",
+     "reachability": {
+      "status": "selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["vision-patch-embed.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "vision_spatial_merge": {
+   "description": "Spatial patch gather using explicit grid geometry",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "grid_height",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "grid_width",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "merge_size",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "merged_height",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "merged_width",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "output_elements",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 28
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "vision_spatial_merge.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "split_qkv": {
    "description": "Split fused QKV output into separate Q, K, V buffers",
    "baseBindings": [

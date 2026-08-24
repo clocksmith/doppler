@@ -1,142 +1,69 @@
-
-
 import { log } from '../../../debug/index.js';
-import { getDevice } from '../../../gpu/device.js';
-import { acquireBuffer } from '../../../memory/buffer-pool.js';
+import { runVisionPatchEmbed } from '../../../gpu/kernels/vision-patch-embed.js';
+
+function requirePositiveInteger(value, label) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`Vision patch embedding requires ${label} to be a positive integer.`);
+  }
+}
 
 export async function patchEmbed(params) {
   const {
-    imageData, height, width, channels,
-    visionConfig, weights,
+    imageData,
+    height,
+    width,
+    channels,
+    gridHeight,
+    gridWidth,
+    visionConfig,
+    weights,
   } = params;
-
-  const {
+  const { patchSize, hiddenSize, temporalPatchSize } = visionConfig;
+  for (const [label, value] of Object.entries({
+    height,
+    width,
+    channels,
+    gridHeight,
+    gridWidth,
     patchSize,
     hiddenSize,
     temporalPatchSize,
-  } = visionConfig;
-  if (!Number.isFinite(patchSize) || patchSize <= 0 || Math.floor(patchSize) !== patchSize) {
-    throw new Error('Vision config patchSize must be a positive integer.');
+  })) {
+    requirePositiveInteger(value, label);
   }
-  if (!Number.isFinite(hiddenSize) || hiddenSize <= 0 || Math.floor(hiddenSize) !== hiddenSize) {
-    throw new Error('Vision config hiddenSize must be a positive integer.');
-  }
-  if (!Number.isFinite(temporalPatchSize) || temporalPatchSize <= 0 || Math.floor(temporalPatchSize) !== temporalPatchSize) {
-    throw new Error('Vision config temporalPatchSize must be a positive integer.');
-  }
-
-  const gridH = Math.floor(height / patchSize);
-  const gridW = Math.floor(width / patchSize);
-  const numPatches = gridH * gridW;
-
-  log.debug('Vision', `patchEmbed: ${height}x${width} -> ${gridH}x${gridW} = ${numPatches} patches (${hiddenSize}d)`);
-
-  // Read conv weight from GPU to CPU for the embedding computation.
-  // Weight shape: [hiddenSize, channels * temporalPatchSize * patchSize * patchSize]
-  // For single image: effectively [hiddenSize, channels * patchSize * patchSize]
-  //
-  // Qwen3-VL patch_embed is actually:
-  //   proj = Conv3d(3, embed_dim, kernel_size=(tpp, pp, pp), stride=(tpp, pp, pp))
-  // For T=1 frame, temporal dim collapses: input is [1, C, 1, H, W]
-  // Output: [1, embed_dim, 1, H/pp, W/pp] -> reshape to [numPatches, embed_dim]
-
-  const device = getDevice();
-  const patchArea = channels * patchSize * patchSize;
-
-  // Extract patches from image: each patch is [C, patchSize, patchSize] flattened.
-  const patches = new Float32Array(numPatches * patchArea);
-  for (let ph = 0; ph < gridH; ph++) {
-    for (let pw = 0; pw < gridW; pw++) {
-      const patchIdx = ph * gridW + pw;
-      for (let c = 0; c < channels; c++) {
-        for (let py = 0; py < patchSize; py++) {
-          for (let px = 0; px < patchSize; px++) {
-            const imgY = ph * patchSize + py;
-            const imgX = pw * patchSize + px;
-            const srcIdx = c * height * width + imgY * width + imgX;
-            const dstIdx = patchIdx * patchArea + c * patchSize * patchSize + py * patchSize + px;
-            patches[dstIdx] = imageData[srcIdx];
-          }
-        }
-      }
-    }
-  }
-
-  // Read the projection weight from GPU.
-  // The weight tensor name is visual.patch_embed.proj.weight with shape [hiddenSize, C, tpp, pp, pp].
-  // For temporal_patch_size=2 and a single frame, we need to handle the temporal dimension.
-  // In practice for a single image, we sum over the temporal kernel dimension.
-  const weightBuffer = weights.patchProjWeight ?? weights['visual.patch_embed.proj.weight'];
-  const biasBuffer = weights.patchProjBias ?? weights['visual.patch_embed.proj.bias'] ?? null;
-  if (!weightBuffer) {
+  if (height !== gridHeight * patchSize || width !== gridWidth * patchSize) {
     throw new Error(
-      'Vision patch embedding weight buffer is missing. ' +
+      `Vision patch geometry mismatch: image=${width}x${height}, ` +
+      `grid=${gridWidth}x${gridHeight}, patchSize=${patchSize}.`
+    );
+  }
+
+  const patchProjWeight = weights.patchProjWeight ?? weights['visual.patch_embed.proj.weight'];
+  const patchProjBias = weights.patchProjBias ?? weights['visual.patch_embed.proj.bias'] ?? null;
+  if (!patchProjWeight) {
+    throw new Error(
+      'Vision patch embedding weight is missing. ' +
       'Expected weights.patchProjWeight or weights["visual.patch_embed.proj.weight"].'
     );
   }
 
-  // Full conv weight size: hiddenSize * channels * temporalPatchSize * patchSize * patchSize
-  const fullWeightSize = hiddenSize * channels * temporalPatchSize * patchSize * patchSize;
-  const weightData = new Float32Array(fullWeightSize);
-  {
-    const staging = device.createBuffer({
-      size: fullWeightSize * 4,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
-    const encoder = device.createCommandEncoder();
-    encoder.copyBufferToBuffer(weightBuffer, 0, staging, 0, fullWeightSize * 4);
-    device.queue.submit([encoder.finish()]);
-    await staging.mapAsync(GPUMapMode.READ);
-    weightData.set(new Float32Array(staging.getMappedRange()));
-    staging.unmap();
-    staging.destroy();
-  }
-
-  // For single frame: average over temporal kernel dimension to get [hiddenSize, C*pp*pp].
-  const spatialWeight = new Float32Array(hiddenSize * patchArea);
-  const spatialPatchArea = channels * patchSize * patchSize;
-  for (let h = 0; h < hiddenSize; h++) {
-    for (let s = 0; s < spatialPatchArea; s++) {
-      let sum = 0;
-      for (let t = 0; t < temporalPatchSize; t++) {
-        sum += weightData[h * temporalPatchSize * spatialPatchArea + t * spatialPatchArea + s];
-      }
-      spatialWeight[h * spatialPatchArea + s] = sum;
+  const embedded = await runVisionPatchEmbed(
+    imageData,
+    patchProjWeight,
+    patchProjBias,
+    {
+      gridHeight,
+      gridWidth,
+      channels,
+      patchSize,
+      temporalPatchSize,
+      hiddenSize,
     }
-  }
-
-  // Read bias if present.
-  let biasData = null;
-  if (biasBuffer) {
-    biasData = new Float32Array(hiddenSize);
-    const staging = device.createBuffer({
-      size: hiddenSize * 4,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
-    const encoder = device.createCommandEncoder();
-    encoder.copyBufferToBuffer(biasBuffer, 0, staging, 0, hiddenSize * 4);
-    device.queue.submit([encoder.finish()]);
-    await staging.mapAsync(GPUMapMode.READ);
-    biasData.set(new Float32Array(staging.getMappedRange()));
-    staging.unmap();
-    staging.destroy();
-  }
-
-  // Compute patch embeddings: patches [numPatches, patchArea] @ spatialWeight^T [patchArea, hiddenSize]
-  const embeddings = new Float32Array(numPatches * hiddenSize);
-  for (let p = 0; p < numPatches; p++) {
-    for (let h = 0; h < hiddenSize; h++) {
-      let val = biasData ? biasData[h] : 0;
-      for (let k = 0; k < patchArea; k++) {
-        val += patches[p * patchArea + k] * spatialWeight[h * patchArea + k];
-      }
-      embeddings[p * hiddenSize + h] = val;
-    }
-  }
-
-  // Upload to GPU.
-  const patchBuffer = acquireBuffer(numPatches * hiddenSize * 4, 'vision-patch-embed');
-  device.queue.writeBuffer(patchBuffer, 0, embeddings);
-
-  return { patchBuffer, numPatches };
+  );
+  const numPatches = gridHeight * gridWidth;
+  log.debug(
+    'Vision',
+    `patchEmbed: ${height}x${width} -> ${gridHeight}x${gridWidth} = ${numPatches} patches (${hiddenSize}d)`
+  );
+  return { patchBuffer: embedded.buffer, numPatches };
 }

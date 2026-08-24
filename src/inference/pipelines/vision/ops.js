@@ -1,7 +1,6 @@
 
 
-import { getDevice } from '../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
+import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { runLayerNorm } from '../../../gpu/kernels/layernorm.js';
 import { runMatmul } from '../../../gpu/kernels/matmul.js';
@@ -34,9 +33,14 @@ export async function doMatmul(a, b, opts) {
     return projected.buffer;
   }
 
-  const biasTensor = createTensor(bias, 'f32', [N], 'vision_matmul_bias');
-  const biased = await runBiasAdd(projected, biasTensor, M, N);
-  return biased.buffer;
+  try {
+    const biased = await runBiasAdd(projected, bias, M, N);
+    releaseBuffer(projected.buffer);
+    return biased.buffer;
+  } catch (error) {
+    releaseBuffer(projected.buffer);
+    throw error;
+  }
 }
 
 export async function doGelu(input, opts) {

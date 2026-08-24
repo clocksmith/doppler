@@ -50,6 +50,8 @@ const {
   castF16ToF32 = null,
   runGeLU = null,
   runSplitQKV = null,
+  runVisionPatchEmbed = null,
+  runVisionSpatialMerge = null,
   runConv2D = null,
   runGroupNorm = null,
   runLayerNorm = null,
@@ -1800,6 +1802,43 @@ const testHarness = {
     vTensor.buffer.destroy();
 
     return { Q, K, V };
+  },
+
+  async runVisionPatchEmbed(dev, image, weight, bias, geometry) {
+    if (!runVisionPatchEmbed) {
+      return references.visionPatchEmbedRef(image, weight, bias, geometry);
+    }
+    const weightBuffer = makeBuffer(weight);
+    const biasBuffer = bias ? makeBuffer(bias) : null;
+    const weightTensor = createTensor(weightBuffer, 'f32', [weight.length], 'vision_patch_embed_weight');
+    const biasTensor = biasBuffer
+      ? createTensor(biasBuffer, 'f32', [bias.length], 'vision_patch_embed_bias')
+      : null;
+    const resultTensor = await runVisionPatchEmbed(image, weightTensor, biasTensor, geometry);
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, resultTensor.shape[0] * resultTensor.shape[1] * 4));
+    weightBuffer.destroy();
+    if (biasBuffer) biasBuffer.destroy();
+    bufferPool?.releaseBuffer(resultTensor.buffer);
+    return result;
+  },
+
+  async runVisionSpatialMerge(dev, input, geometry) {
+    if (!runVisionSpatialMerge) {
+      return references.visionSpatialMergeRef(input, geometry);
+    }
+    const inputBuffer = makeBuffer(input);
+    const inputTensor = createTensor(
+      inputBuffer,
+      'f32',
+      [geometry.gridHeight * geometry.gridWidth, geometry.hiddenSize],
+      'vision_spatial_merge_input'
+    );
+    const resultTensor = await runVisionSpatialMerge(inputTensor, geometry);
+    const resultElements = resultTensor.shape.reduce((product, value) => product * value, 1);
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, resultElements * 4));
+    inputBuffer.destroy();
+    bufferPool?.releaseBuffer(resultTensor.buffer);
+    return result;
   },
 
   
