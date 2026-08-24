@@ -57,10 +57,26 @@ const matrix = await readJson(MATRIX_PATH);
     'correctness-performance-claims',
   ]);
   assert.equal(report.actions.length, matrix.blockers.length);
-  assert.deepEqual(report.actions.map((action) => action.priority), [1, 2, 3, 4, 5, 6, 7]);
-  assert.equal(report.actions[0].code, 'provider-conformance-receipts-missing');
-  assert.equal(report.actions[0].completionClass, 'hardware');
-  assert.equal(report.actions[0].statusCommand, 'npm run provider:conformance:check');
+  assert.deepEqual(report.actions.map((action) => action.priority), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.equal(report.actions[0].code, 'paid-doppler-production-release-missing');
+  assert.equal(report.actions[0].completionClass, 'application');
+  assert.equal(report.actions[0].statusCommand, 'npm run model-release:check');
+  assert.equal(report.goals[0].label, 'Ship one external Electron production release');
+  assert.deepEqual(
+    matrix.goals[0].rows.map((row) => row.id),
+    [
+      'canonical-production-release-contract',
+      'electron-reference-release',
+      'pack-first-electron-reranking',
+      'production-release-toolchain',
+      'maintained-application-integrations',
+      'electron-fleet-qualification',
+      'revocation-and-customer-rollback',
+      'doppler-production-release-offer',
+      'three-unrelated-design-partners',
+    ]
+  );
+  assert.equal(matrix.blockers.some((blocker) => blocker.code === 'bun-runtime-tier-experimental'), false);
 }
 
 {
@@ -112,10 +128,10 @@ const matrix = await readJson(MATRIX_PATH);
 {
   const broken = clone(matrix);
   const goal = broken.goals.find((entry) => entry.id === 'local-webgpu-product-surface');
-  goal.rows = goal.rows.filter((row) => row.id !== 'bun-runtime');
+  goal.rows = goal.rows.filter((row) => row.id !== 'electron-reference-release');
   const errors = await validateFixture(broken);
   assert.ok(
-    errors.includes('local-webgpu-product-surface: missing required row bun-runtime'),
+    errors.includes('local-webgpu-product-surface: missing required row electron-reference-release'),
     errors.join('\n')
   );
 }
@@ -166,34 +182,34 @@ const matrix = await readJson(MATRIX_PATH);
 
 {
   const broken = clone(matrix);
-  rowById(broken, 'local-webgpu-product-surface', 'bun-runtime').blockers = ['unknown-blocker'];
+  rowById(broken, 'local-webgpu-product-surface', 'electron-fleet-qualification').blockers = ['unknown-blocker'];
   const errors = await validateFixture(broken);
   assert.ok(
-    errors.includes('bun-runtime: undefined blocker code unknown-blocker'),
+    errors.includes('electron-fleet-qualification: undefined blocker code unknown-blocker'),
     errors.join('\n')
   );
 }
 
 {
   const broken = clone(matrix);
-  rowById(broken, 'local-webgpu-product-surface', 'bun-runtime').claimAllowed = true;
+  rowById(broken, 'local-webgpu-product-surface', 'electron-fleet-qualification').claimAllowed = true;
   const errors = await validateFixture(broken);
   assert.ok(
-    errors.includes('bun-runtime: claimAllowed rows must use status covered or complete'),
+    errors.includes('electron-fleet-qualification: claimAllowed rows must use status covered or complete'),
     errors.join('\n')
   );
   assert.ok(
-    errors.includes('bun-runtime: claimAllowed rows must not list blockers'),
+    errors.includes('electron-fleet-qualification: claimAllowed rows must not list blockers'),
     errors.join('\n')
   );
 }
 
 {
   const broken = clone(matrix);
-  rowById(broken, 'local-webgpu-product-surface', 'npx-doppler-gpu').packageBin = 'missing-bin';
+  rowById(broken, 'local-webgpu-product-surface', 'production-release-toolchain').packageBin = 'missing-bin';
   const errors = await validateFixture(broken);
   assert.ok(
-    errors.includes('npx-doppler-gpu: packageBin missing-bin is not declared in package.json'),
+    errors.includes('production-release-toolchain: packageBin missing-bin is not declared in package.json'),
     errors.join('\n')
   );
 }

@@ -25,7 +25,7 @@ const NULLABLE_ROW_FIELDS = ['supportSubsystemId', 'packageBin', 'packageExport'
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const REQUIRED_GOAL_LABELS = new Map([
-  ['local-webgpu-product-surface', 'Make local WebGPU inference a real product surface'],
+  ['local-webgpu-product-surface', 'Ship one external Electron production release'],
   ['model-artifact-runtime-contract', 'Own the model artifact and runtime contract'],
   ['correctness-performance-claims', 'Make correctness and performance evidence-backed'],
 ]);
@@ -34,17 +34,15 @@ const REQUIRED_GOAL_ROWS = new Map([
   [
     'local-webgpu-product-surface',
     [
-      'hosted-browser-demo',
-      'npx-doppler-gpu',
-      'root-api',
-      'cli',
-      'node-runtime',
-      'bun-runtime',
-      'openai-compatible-server',
-      'maintained-application-integrations',
-      'pack-first-runtime-convergence',
+      'canonical-production-release-contract',
+      'electron-reference-release',
+      'pack-first-electron-reranking',
       'production-release-toolchain',
+      'maintained-application-integrations',
+      'electron-fleet-qualification',
+      'revocation-and-customer-rollback',
       'doppler-production-release-offer',
+      'three-unrelated-design-partners',
     ],
   ],
   [
@@ -64,6 +62,7 @@ const REQUIRED_GOAL_ROWS = new Map([
       'model-support-matrix',
       'deliberate-model-portfolio',
       'complete-pack-release-closure',
+      'pack-first-compatibility-migration',
     ],
   ],
   [

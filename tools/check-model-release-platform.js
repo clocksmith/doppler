@@ -24,9 +24,16 @@ const EXPECTED = Object.freeze({
   referenceIntegrations: ['reploid-generation', 'dream-embedding-retrieval', 'columbo-reranking'],
   recovery: ['content-hash-shard-resume', 'failed-upgrade-preserves-previous-pack', 'portable-state-snapshot-identity'],
   goalRows: [
-    ['local-webgpu-product-surface', 'pack-first-runtime-convergence'],
+    ['local-webgpu-product-surface', 'canonical-production-release-contract'],
+    ['local-webgpu-product-surface', 'electron-reference-release'],
+    ['local-webgpu-product-surface', 'pack-first-electron-reranking'],
+    ['local-webgpu-product-surface', 'production-release-toolchain'],
+    ['local-webgpu-product-surface', 'electron-fleet-qualification'],
+    ['local-webgpu-product-surface', 'revocation-and-customer-rollback'],
     ['local-webgpu-product-surface', 'doppler-production-release-offer'],
+    ['local-webgpu-product-surface', 'three-unrelated-design-partners'],
     ['model-artifact-runtime-contract', 'complete-pack-release-closure'],
+    ['model-artifact-runtime-contract', 'pack-first-compatibility-migration'],
   ],
 });
 

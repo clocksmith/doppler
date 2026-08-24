@@ -1,243 +1,87 @@
 {
   "schemaVersion": 1,
   "source": "doppler",
-  "updatedAtUtc": "2026-08-23T00:00:00.000Z",
+  "updatedAtUtc": "2026-08-24T00:00:00.000Z",
   "goals": [
     {
       "id": "local-webgpu-product-surface",
-      "label": "Make local WebGPU inference a real product surface",
+      "label": "Ship one external Electron production release",
       "status": "partial",
       "claimAllowed": false,
       "evidencePaths": [
-        "README.md",
         "docs/goals.md",
-        "docs/subsystem-support-matrix.md"
+        "docs/model-release-platform.md",
+        "tools/policies/model-release-platform.json"
       ],
       "blockers": [
-        "bun-runtime-tier-experimental",
-        "pack-first-surface-migration-incomplete",
-        "paid-doppler-production-release-missing"
+        "customer-electron-fleet-receipts-missing",
+        "customer-rollback-drill-missing",
+        "paid-doppler-production-release-missing",
+        "signed-live-revocation-authority-missing",
+        "three-unrelated-design-partners-missing"
       ],
       "rows": [
         {
-          "id": "hosted-browser-demo",
-          "label": "Hosted browser demo",
-          "tier": "tier1",
-          "status": "covered",
-          "claimAllowed": true,
-          "supportSubsystemId": "demo.browser-workspace",
-          "packageBin": null,
-          "packageExport": null,
-          "smokeCommand": null,
-          "smokeCommands": [
-            {
-              "kind": "contract",
-              "command": "npm run test:demo:contract",
-              "receiptSchema": "doppler.demo-contract-receipt/v1"
-            },
-            {
-              "kind": "hardware",
-              "command": "npm run test:demo:hardware",
-              "receiptSchema": "doppler.demo-hardware-receipt/v1"
-            }
-          ],
-          "evidencePaths": [
-            "README.md",
-            "demo/index.html",
-            "demo/README.md",
-            "demo/generated-shell-budget.json",
-            "src/config/schema/demo-contract-receipt.schema.json",
-            "src/config/schema/demo-hardware-receipt.schema.json",
-            "tools/demo-contract-smoke.js",
-            "tools/demo-hardware-smoke.js",
-            "src/config/support-tiers/subsystems.json",
-            "tools/policies/subsystem-support-contract.json",
-            "tools/check-subsystem-support-contract.js"
-          ],
-          "blockers": []
-        },
-        {
-          "id": "npx-doppler-gpu",
-          "label": "npx doppler-gpu quickstart",
-          "tier": "tier1",
-          "status": "covered",
-          "claimAllowed": true,
-          "supportSubsystemId": "cli.quickstart",
-          "packageBin": "doppler-gpu",
-          "packageExport": null,
-          "smokeCommand": "npm run quickstart:check",
-          "evidencePaths": [
-            "README.md",
-            "package.json",
-            "src/cli/doppler-quickstart.js",
-            "src/config/support-tiers/subsystems.json"
-          ],
-          "blockers": []
-        },
-        {
-          "id": "root-api",
-          "label": "Root Doppler API",
-          "tier": "tier1",
-          "status": "covered",
-          "claimAllowed": true,
-          "supportSubsystemId": "api.root-facade",
-          "packageBin": null,
-          "packageExport": ".",
-          "smokeCommand": "npm run exports:parity:check",
-          "evidencePaths": [
-            "README.md",
-            "docs/api/root.md",
-            "package.json",
-            "src/index.js",
-            "src/config/support-tiers/subsystems.json"
-          ],
-          "blockers": []
-        },
-        {
-          "id": "cli",
-          "label": "Public CLI",
+          "id": "canonical-production-release-contract",
+          "label": "Canonical Doppler Production Release contract",
           "tier": "tier1",
           "status": "covered",
           "claimAllowed": true,
           "supportSubsystemId": null,
-          "packageBin": "doppler",
-          "packageExport": null,
-          "smokeCommand": "npm run public:boundaries:check",
-          "evidencePaths": [
-            "docs/cli.md",
-            "package.json",
-            "src/cli/doppler-cli.js",
-            "src/tooling/command-api.js"
-          ],
-          "blockers": []
-        },
-        {
-          "id": "node-runtime",
-          "label": "Node WebGPU runtime",
-          "tier": "tier1",
-          "status": "covered",
-          "claimAllowed": true,
-          "supportSubsystemId": "runtime.text-inference",
           "packageBin": null,
           "packageExport": null,
-          "smokeCommand": "npm run release-claims:check",
-          "evidencePaths": [
-            "README.md",
-            "docs/architecture.md",
-            "docs/subsystem-support-matrix.md",
-            "src/inference/pipelines/text.js",
-            "src/config/support-tiers/subsystems.json"
-          ],
-          "blockers": []
-        },
-        {
-          "id": "bun-runtime",
-          "label": "Bun WebGPU runtime",
-          "tier": "experimental",
-          "status": "experimental",
-          "claimAllowed": false,
-          "supportSubsystemId": "runtime.bun-webgpu",
-          "packageBin": null,
-          "packageExport": null,
-          "smokeCommand": null,
+          "smokeCommand": "npm run model-release:check",
           "evidencePaths": [
             "docs/goals.md",
-            "docs/bun-product-qualification.md",
-            "docs/release-matrix.md",
-            "benchmarks/vendors/registry.json",
-            "benchmarks/vendors/release-matrix.json",
-            "docs/subsystem-support-matrix.md",
-            "docs/status/bun-product-support-candidate-audit-2026-08-15.json",
-            "tools/policies/bun-product-qualification.json",
-            "src/config/schema/bun-product-qualification.schema.json",
-            "src/config/schema/bun-product-qualification-evidence.schema.json",
-            "src/config/schema/bun-product-promotion-evidence.schema.json",
-            "src/config/schema/bun-product-qualification-capture.schema.json",
-            "tools/check-bun-product-qualification.js",
-            "tools/record-bun-product-qualification.js",
-            "tools/lib/bun-product-qualification-evidence.js",
-            "tests/config/bun-product-qualification.test.js",
-            "tests/tooling/record-bun-product-qualification.test.js"
-          ],
-          "blockers": [
-            "bun-runtime-tier-experimental"
-          ]
-        },
-        {
-          "id": "openai-compatible-server",
-          "label": "OpenAI-compatible localhost server",
-          "tier": "tier1",
-          "status": "covered",
-          "claimAllowed": true,
-          "supportSubsystemId": "cli.openai-compatible-server",
-          "packageBin": "doppler-serve",
-          "packageExport": null,
-          "smokeCommand": "npm run public:boundaries:check",
-          "evidencePaths": [
-            "README.md",
-            "docs/cli.md",
-            "package.json",
-            "src/cli/doppler-serve.js",
-            "src/config/support-tiers/subsystems.json"
-          ],
-          "blockers": []
-        },
-        {
-          "id": "maintained-application-integrations",
-          "label": "Internally controlled reference integrations proving application-integration mechanics",
-          "tier": "tier1",
-          "status": "covered",
-          "claimAllowed": true,
-          "supportSubsystemId": null,
-          "packageBin": null,
-          "packageExport": null,
-          "smokeCommand": "npm run product:integrations:check",
-          "evidencePaths": [
-            "docs/goals.md",
-            "docs/product-integration-qualification.md",
-            "docs/status/product-integration-candidate-audit-2026-08-15.json",
-            "tools/policies/product-integration-qualification.json",
-            "src/config/schema/product-integration-qualification.schema.json",
-            "src/config/schema/product-integration-owner-confirmation.schema.json",
-            "src/config/schema/product-integration-evidence.schema.json",
-            "src/config/schema/product-integration-promotion-evidence.schema.json",
-            "src/config/schema/product-integration-evaluation-capture.schema.json",
-            "tools/check-product-integration-qualification.js",
-            "tools/record-product-integration-evaluation.js",
-            "tools/lib/product-integration-evidence.js",
-            "tools/lib/canonical-json.js",
-            "tests/config/product-integration-qualification.test.js",
-            "tests/tooling/product-integration-evidence.test.js",
-            "tests/tooling/record-product-integration-evaluation.test.js"
-          ],
-          "blockers": []
-        },
-        {
-          "id": "pack-first-runtime-convergence",
-          "label": "Pack-first public runtime convergence",
-          "tier": "tier1",
-          "status": "partial",
-          "claimAllowed": false,
-          "supportSubsystemId": null,
-          "packageBin": null,
-          "packageExport": null,
-          "smokeCommand": null,
-          "evidencePaths": [
             "docs/model-release-platform.md",
-            "docs/api/root.md",
-            "docs/api/compat.md",
             "tools/policies/model-release-platform.json",
             "src/config/schema/model-release-platform.schema.json",
-            "src/pack-runtime.js",
-            "src/client/runtime/pack-rerank.js",
-            "src/cli/doppler-serve.js",
-            "src/inference/pipelines/text.js",
             "tools/check-model-release-platform.js",
             "tests/config/model-release-platform.test.js"
           ],
-          "blockers": [
-            "pack-first-surface-migration-incomplete"
-          ]
+          "blockers": []
+        },
+        {
+          "id": "electron-reference-release",
+          "label": "Frozen Electron document-search reranker release",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run production-release:check",
+          "evidencePaths": [
+            "docs/model-release-platform.md",
+            "src/config/production-release.js",
+            "src/config/schema/production-release.schema.json",
+            "tests/fixtures/production-release/electron-document-search-reranker.json",
+            "tests/config/production-release.test.js",
+            "tests/production-release/electron-document-search-acceptance.test.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "pack-first-electron-reranking",
+          "label": "Pack-authoritative Electron reranking",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run production-release:check",
+          "evidencePaths": [
+            "docs/model-release-platform.md",
+            "docs/api/root.md",
+            "src/pack-runtime.js",
+            "src/client/runtime/pack-rerank.js",
+            "src/client/runtime/pack-program-adapter.js",
+            "src/client/electron/renderer-runtime.js",
+            "tests/runtime/pack-rerank.test.js",
+            "tests/client/electron-release-adapter.test.js"
+          ],
+          "blockers": []
         },
         {
           "id": "production-release-toolchain",
@@ -263,6 +107,72 @@
             "tests/client/electron-release-adapter.test.js"
           ],
           "blockers": []
+        },
+        {
+          "id": "maintained-application-integrations",
+          "label": "Internally controlled reference integrations proving application-integration mechanics",
+          "tier": "tier1",
+          "status": "covered",
+          "claimAllowed": true,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": "npm run product:integrations:check",
+          "evidencePaths": [
+            "docs/goals.md",
+            "docs/product-integration-qualification.md",
+            "tools/policies/product-integration-qualification.json",
+            "tools/check-product-integration-qualification.js",
+            "tests/config/product-integration-qualification.test.js"
+          ],
+          "blockers": []
+        },
+        {
+          "id": "electron-fleet-qualification",
+          "label": "Customer-operated Windows and macOS fleet qualification",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/model-release-platform.md",
+            "src/config/production-release.js",
+            "src/config/production-release-evidence.js",
+            "src/tooling/production-release.js",
+            ".github/actions/doppler-release/action.yml",
+            ".github/workflows/doppler-release.yml",
+            "tests/tooling/production-release.test.js"
+          ],
+          "blockers": [
+            "customer-electron-fleet-receipts-missing"
+          ]
+        },
+        {
+          "id": "revocation-and-customer-rollback",
+          "label": "Production revocation authority and customer rollback drill",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/revocation.md",
+            "src/config/revocation-updates.js",
+            "src/client/electron/release-state.js",
+            "tools/policies/signed-revocation-authority-qualification.json",
+            "tools/check-signed-revocation-authority-qualification.js",
+            "tests/config/signed-revocation-updates.test.js",
+            "tests/client/electron-release-adapter.test.js"
+          ],
+          "blockers": [
+            "customer-rollback-drill-missing",
+            "signed-live-revocation-authority-missing"
+          ]
         },
         {
           "id": "doppler-production-release-offer",
@@ -291,6 +201,27 @@
           "blockers": [
             "paid-doppler-production-release-missing"
           ]
+        },
+        {
+          "id": "three-unrelated-design-partners",
+          "label": "Three unrelated external design partners",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/goals.md",
+            "docs/model-release-platform.md",
+            "tools/policies/model-release-platform.json",
+            "tools/check-model-release-platform.js",
+            "tests/config/model-release-platform.test.js"
+          ],
+          "blockers": [
+            "three-unrelated-design-partners-missing"
+          ]
         }
       ]
     },
@@ -306,6 +237,7 @@
         "docs/rdrr-format.md"
       ],
       "blockers": [
+        "pack-first-surface-migration-incomplete",
         "provider-conformance-receipts-missing",
         "runtime-ownership-decisions-missing"
       ],
@@ -605,6 +537,31 @@
             "tests/pack/pack-v2.test.js"
           ],
           "blockers": []
+        },
+        {
+          "id": "pack-first-compatibility-migration",
+          "label": "Deferred Pack-first compatibility-surface migration",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/model-release-platform.md",
+            "docs/api/compat.md",
+            "tools/policies/model-release-platform.json",
+            "src/pack-runtime.js",
+            "src/cli/doppler-serve.js",
+            "src/inference/pipelines/text.js",
+            "src/client/runtime/model-session.js",
+            "tools/check-model-release-platform.js",
+            "tests/config/model-release-platform.test.js"
+          ],
+          "blockers": [
+            "pack-first-surface-migration-incomplete"
+          ]
         }
       ]
     },
@@ -955,7 +912,7 @@
   "blockers": [
     {
       "code": "post-promotion-monitoring-receipts-missing",
-      "priority": 4,
+      "priority": 8,
       "owner": "doppler-release",
       "completionClass": "human-promotion",
       "statusCommand": "npm run promotion:monitoring:check",
@@ -977,7 +934,7 @@
     },
     {
       "code": "signed-live-revocation-authority-missing",
-      "priority": 5,
+      "priority": 3,
       "owner": "doppler-security",
       "completionClass": "production-authority",
       "statusCommand": "npm run revocations:authority:check",
@@ -1004,41 +961,13 @@
       ]
     },
     {
-      "code": "bun-runtime-tier-experimental",
-      "priority": 3,
-      "owner": "doppler-runtime",
-      "completionClass": "hardware",
-      "statusCommand": "npm run bun:qualification:check",
-      "description": "Bun has an experimental generation harness and three old same-artifact comparisons, but no Bun-native three-workload product qualification.",
-      "exitCriteria": "Qualify generation, embedding, and reranking through Bun-native root API and CLI surfaces with canonical-digest semantic receipts for exact Bun/WebGPU and runtime identities, load-execute-unload, correctness and held-out quality, reliability, memory, cold/warm distributions, incumbent eligibility, requalification, rollback, and revocation; add digest-bound human promotion receipts; then promote runtime.bun-webgpu and the canonical doppler-bun vendor registry entry together and regenerate its release-matrix projection.",
-      "evidencePaths": [
-        "docs/bun-product-qualification.md",
-        "docs/status/bun-product-support-candidate-audit-2026-08-15.json",
-        "tools/policies/bun-product-qualification.json",
-        "src/config/schema/bun-product-qualification.schema.json",
-        "src/config/schema/bun-product-qualification-evidence.schema.json",
-        "src/config/schema/bun-product-promotion-evidence.schema.json",
-        "src/config/schema/bun-product-qualification-capture.schema.json",
-        "tools/check-bun-product-qualification.js",
-        "tools/record-bun-product-qualification.js",
-        "tools/lib/bun-product-qualification-evidence.js",
-        "tests/config/bun-product-qualification.test.js",
-        "tests/tooling/record-bun-product-qualification.test.js",
-        "src/config/support-tiers/subsystems.json",
-        "docs/subsystem-support-matrix.md",
-        "docs/release-matrix.md",
-        "benchmarks/vendors/registry.json",
-        "benchmarks/vendors/release-matrix.json"
-      ]
-    },
-    {
       "code": "provider-conformance-receipts-missing",
-      "priority": 1,
+      "priority": 6,
       "owner": "doppler-runtime",
       "completionClass": "hardware",
       "statusCommand": "npm run provider:conformance:check",
-      "description": "No exact-tuple generation, embedding, or reranking suite is qualified across both browser WebGPU and the selected Node WebGPU provider.",
-      "exitCriteria": "Retain current browser and Node provider receipts plus canonical-digest semantic receipts for generation, embedding, and reranking that bind the same model contract, tokenizer, execution graph, runtime policy, named manifest variant, runtime-observed manifest and execution SHA-256 identities, operations, repeated lifecycle, environment, and predeclared correctness class; add digest-bound human provider and paired-suite promotion receipts; keep Doe and other providers as explicit named lanes.",
+      "description": "The general three-workload provider portfolio is not qualified. It remains outside the immediate Electron release gate unless that customer's exact workload selects one of these provider lanes.",
+      "exitCriteria": "When an external support commitment requires the broader portfolio, retain current browser and Node provider receipts plus canonical-digest semantic receipts for the exact selected workloads, then promote only the evidenced provider and paired suites. Do not broaden the first Electron release to generation or embedding merely to close this blocker.",
       "evidencePaths": [
         "docs/provider-conformance.md",
         "tools/policies/provider-conformance.json",
@@ -1055,12 +984,12 @@
     },
     {
       "code": "runtime-ownership-decisions-missing",
-      "priority": 2,
+      "priority": 7,
       "owner": "doppler-product",
       "completionClass": "hardware",
       "statusCommand": "npm run runtime:ownership:check",
-      "description": "No claimable generation, embedding, or reranking decision establishes whether Doppler, an incumbent, or both should own execution.",
-      "exitCriteria": "Retain current source, incumbent, and Doppler evidence for generation, embedding, and reranking: source and incumbent executions must use canonical receipt SHA-256 identities, while Doppler must bind its named manifest variant and runtime-observed manifest and execution SHA-256 identities; predeclare material-advantage thresholds; bind every decision dimension and hypothesis to canonical-digest semantic receipts under one harness revision and environment fingerprint; derive the recorded outcome from observations; then publish an unexpired incumbent, doppler, or dual disposition through digest-bound human promotion.",
+      "description": "The general generation, embedding, and reranking portfolio has no claimable runtime-ownership decisions. The first Electron release compares only its declared reranking workload and incumbent control.",
+      "exitCriteria": "For each externally required workload, retain source, incumbent, and Doppler evidence with canonical receipt identities, predeclared material-advantage thresholds, one harness revision and environment fingerprint, then publish only the evidenced incumbent, Doppler, or dual disposition through digest-bound human promotion.",
       "evidencePaths": [
         "docs/runtime-ownership.md",
         "benchmarks/vendors/runtime-ownership-decisions.json",
@@ -1080,7 +1009,7 @@
     },
     {
       "code": "pack-first-surface-migration-incomplete",
-      "priority": 6,
+      "priority": 9,
       "owner": "doppler-runtime",
       "completionClass": "repository",
       "statusCommand": "npm run model-release:check",
@@ -1101,7 +1030,7 @@
     },
     {
       "code": "paid-doppler-production-release-missing",
-      "priority": 7,
+      "priority": 1,
       "owner": "doppler-product",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
@@ -1113,6 +1042,56 @@
         "tools/policies/model-release-platform.json",
         "src/config/schema/model-release-platform.schema.json",
         "tools/policies/product-integration-qualification.json",
+        "tools/check-model-release-platform.js",
+        "tests/config/model-release-platform.test.js"
+      ]
+    },
+    {
+      "code": "customer-electron-fleet-receipts-missing",
+      "priority": 2,
+      "owner": "doppler-release",
+      "completionClass": "hardware",
+      "statusCommand": "npm run model-release:check",
+      "description": "The qualification agent and receipt contract are implemented, but no customer-operated Windows and macOS agents have retained exact production device receipts for the pinned Electron release.",
+      "exitCriteria": "Retain signed receipts from every declared Windows and macOS target that bind the exact application revision, Pack semantic root, workload, oracle, Electron version, GPU, driver, acceptance observations, and customer-operated signer authority.",
+      "evidencePaths": [
+        "docs/model-release-platform.md",
+        "src/config/production-release.js",
+        "src/config/production-release-evidence.js",
+        "src/tooling/production-release.js",
+        ".github/actions/doppler-release/action.yml",
+        ".github/workflows/doppler-release.yml",
+        "tests/tooling/production-release.test.js"
+      ]
+    },
+    {
+      "code": "customer-rollback-drill-missing",
+      "priority": 4,
+      "owner": "doppler-release",
+      "completionClass": "application",
+      "statusCommand": "npm run model-release:check",
+      "description": "The atomic Electron release-state coordinator is implemented, but no external customer has exercised rejection, activation, revocation failure, and customer-authorized rollback against its durable application state.",
+      "exitCriteria": "Retain an external application receipt proving candidate rejection preserves the active Pack, activation requires the customer authorization, expired or matching revocation fails closed, and customer-authorized rollback restores the previous working Pack after restart.",
+      "evidencePaths": [
+        "docs/revocation.md",
+        "src/client/electron/release-state.js",
+        "src/client/electron/ipc-contract.js",
+        "tests/client/electron-release-adapter.test.js",
+        "tools/policies/model-release-platform.json"
+      ]
+    },
+    {
+      "code": "three-unrelated-design-partners-missing",
+      "priority": 5,
+      "owner": "doppler-product",
+      "completionClass": "application",
+      "statusCommand": "npm run model-release:check",
+      "description": "The first external release has not been repeated by two additional unrelated Electron customers.",
+      "exitCriteria": "After the first paid release and subsequent upgrade are retained, complete the same delegated-eligibility path with two unrelated customers, each with its own application, model revision, supported fleet, rejection or failure evidence, rollback target, and customer-controlled activation authority.",
+      "evidencePaths": [
+        "docs/goals.md",
+        "docs/model-release-platform.md",
+        "tools/policies/model-release-platform.json",
         "tools/check-model-release-platform.js",
         "tests/config/model-release-platform.test.js"
       ]

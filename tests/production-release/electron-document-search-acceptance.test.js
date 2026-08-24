@@ -16,6 +16,12 @@ const receipt = {
   applicationRevisionDigest: release.application.revisionDigest,
   workload: release.acceptance.workload,
   oracle: release.acceptance.oracle,
+  packSemanticRoot: release.candidate.packSemanticRoot,
+  targetPlanId: process.env.DOPPLER_TARGET_PLAN_ID ?? 'webgpu-f32-portable',
+  resolvedExecutionId: `sha256:${'f'.repeat(64)}`,
+  providerId: 'doppler-webgpu',
+  deviceTargetId: process.env.DOPPLER_DEVICE_TARGET_ID
+    ?? release.supportedDevices.targets[0].id,
   evaluator: {
     id: 'electron-document-search-reference-evaluator',
     revisionDigest: `sha256:${'e'.repeat(64)}`,

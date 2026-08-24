@@ -2,7 +2,7 @@
   "schema": "doppler.pack-runtime-closure/v1",
   "entrypoint": "src/pack-runtime.js",
   "fileCount": 18,
-  "sourceBytes": 111563,
+  "sourceBytes": 113167,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -47,8 +47,8 @@
     },
     {
       "path": "src/client/runtime/target-selector.js",
-      "sizeBytes": 1294,
-      "hash": "sha256:0c2807f403f8cdb7644254d7ea16fc7b6a2a72db9aa60710536736de5a821cd1"
+      "sizeBytes": 94,
+      "hash": "sha256:7f9f1d5fca337d3bf4e355b76f59b7060a01ecea67d48a5c0c5b33f8352b118b"
     },
     {
       "path": "src/config/initial-execution-identity.js",
@@ -72,13 +72,13 @@
     },
     {
       "path": "src/config/pack-v2.js",
-      "sizeBytes": 17408,
-      "hash": "sha256:f0a4d6248e6493b8e0c620c1f47a8d1980b9cd3c22cc735a8d0d12bec41b284c"
+      "sizeBytes": 18989,
+      "hash": "sha256:25079df9c8faeb1f41ec1929f31749890e780a75a3e33a9831232d1d06a6cc30"
     },
     {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 12761,
-      "hash": "sha256:0f6d0f97e2db5843b6f7e680f8538aa7239733dbe475bb47c3c5499c9e855865"
+      "sizeBytes": 13984,
+      "hash": "sha256:d6ca4c149d3eec0f1a08d3d89cc718de539a7a451f0fe8721cfb7c627ded11c8"
     },
     {
       "path": "src/formats/canonical-hash.js",

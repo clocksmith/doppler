@@ -44,6 +44,14 @@ function clone(value) {
     'paid-external-release-and-upgrade',
     'three-unrelated-design-partners',
   ]);
+  assert.equal(
+    policy.promotionSequence.find((row) => row.id === 'electron-fleet-qualification')?.blockerCode,
+    'customer-electron-fleet-receipts-missing'
+  );
+  assert.equal(
+    policy.promotionSequence.find((row) => row.id === 'three-unrelated-design-partners')?.blockerCode,
+    'three-unrelated-design-partners-missing'
+  );
   assert.ok(policy.pack.requiredReleaseElements.find(
     (row) => row.id === 'version-supersession-migration'
   )?.implementationState === 'implemented');

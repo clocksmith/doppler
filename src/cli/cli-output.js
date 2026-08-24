@@ -34,9 +34,13 @@ export function toSummary(result) {
 }
 
 export function isFailedVerificationResult(request, result) {
-  return request?.command === 'verify'
-    && Number.isInteger(result?.failed)
-    && result.failed > 0;
+  if (request?.command === 'verify') {
+    return Number.isInteger(result?.failed) && result.failed > 0;
+  }
+  if (request?.command !== 'release') return false;
+  if (result?.action === 'qualify') return result.status !== 'passed';
+  if (result?.action === 'decide') return result.eligibility !== 'eligible';
+  return true;
 }
 
 export function formatNumber(value, digits = 2) {

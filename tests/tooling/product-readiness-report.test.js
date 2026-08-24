@@ -6,12 +6,12 @@ const report = await buildProductReadinessReport();
 const revocations = report.contracts.revocations;
 
 assert.equal(report.ok, true);
-assert.equal(report.actions.length, 7);
-assert.equal(report.actions[0].code, 'provider-conformance-receipts-missing');
-assert.equal(report.actions[0].owner, 'doppler-runtime');
-assert.equal(report.actions[0].completionClass, 'hardware');
-assert.equal(report.actions.at(-1).code, 'paid-doppler-production-release-missing');
-assert.equal(report.actions.at(-1).completionClass, 'application');
+assert.equal(report.actions.length, 9);
+assert.equal(report.actions[0].code, 'paid-doppler-production-release-missing');
+assert.equal(report.actions[0].owner, 'doppler-product');
+assert.equal(report.actions[0].completionClass, 'application');
+assert.equal(report.actions.at(-1).code, 'pack-first-surface-migration-incomplete');
+assert.equal(report.actions.at(-1).completionClass, 'repository');
 assert.equal(
   report.actions.find((action) => action.code === 'signed-live-revocation-authority-missing')?.completionClass,
   'production-authority'

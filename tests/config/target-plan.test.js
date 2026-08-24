@@ -4,6 +4,7 @@ import {
   createTargetPlanV2,
   hashTargetPlan,
   matchesDeviceCapability,
+  selectQualifiedTargetPlan,
   validateTargetPlan,
 } from '../../src/config/target-plan.js';
 import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';
@@ -32,6 +33,12 @@ assert.equal(matchesDeviceCapability(plan, { hasF16: true, hasSubgroups: true, m
 assert.equal(matchesDeviceCapability(plan, { hasF16: false, hasSubgroups: true, maxBufferSize: 128 }), false);
 assert.equal(matchesDeviceCapability(plan, { hasF16: true, hasSubgroups: false, maxBufferSize: 128 }), false);
 assert.equal(matchesDeviceCapability(plan, { hasF16: true, hasSubgroups: true, maxBufferSize: 16 }), false);
+assert.equal(selectQualifiedTargetPlan([plan], {
+  surface: 'test', hasF16: true, hasSubgroups: true, maxBufferSize: 128,
+}), plan);
+assert.throws(() => selectQualifiedTargetPlan([plan], {
+  surface: 'other', hasF16: true, hasSubgroups: true, maxBufferSize: 128,
+}), /surface qualification/u);
 assert.throws(() => createTargetPlan({ ...plan, qualification: [] }), /qualification/);
 
 const initialExecutionIdentity = createInitialExecutionIdentity({

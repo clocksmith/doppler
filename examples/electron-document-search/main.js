@@ -8,6 +8,7 @@ export function registerDocumentSearchReleaseMain(options) {
   const coordinator = createElectronReleaseStateCoordinator({
     stateStore: options.stateStore,
     verifyReleaseDecision: options.verifyReleaseDecision,
+    verifyRevocationSnapshot: options.verifyRevocationSnapshot,
     now: options.now,
   });
   options.ipcMain.handle(

@@ -6,6 +6,7 @@ import path from 'node:path';
 import {
   APPLICATION_GATE_RECEIPT_SCHEMA,
   hashProductionReleaseEvidence,
+  signProductionReleaseEvidence,
   verifyProductionReleaseEvidenceSignature,
 } from '../../src/config/production-release-evidence.js';
 import { hashProductionRelease } from '../../src/config/production-release.js';
@@ -78,12 +79,16 @@ const release = {
       {
         id: 'windows-x64-webgpu', os: 'windows', osVersionRange: '>=10.0.22631',
         architectures: ['x64'], electronVersionRange: '>=37 <38',
-        gpuVendors: ['nvidia'], driverPolicy: 'exact-receipt-required',
+        gpuVendors: ['nvidia'], gpuDevices: ['nvidia-fixture-device'],
+        driverVersions: ['fixture-driver-1'], qualificationSurface: 'test-webgpu',
+        driverPolicy: 'exact-receipt-required',
       },
       {
         id: 'macos-arm64-webgpu', os: 'macos', osVersionRange: '>=14 <16',
         architectures: ['arm64'], electronVersionRange: '>=37 <38',
-        gpuVendors: ['apple'], driverPolicy: 'exact-receipt-required',
+        gpuVendors: ['apple'], gpuDevices: ['apple-fixture-device'],
+        driverVersions: ['fixture-driver-1'], qualificationSurface: 'test-webgpu',
+        driverPolicy: 'exact-receipt-required',
       },
     ],
   },
@@ -115,6 +120,11 @@ const applicationReceipt = {
   applicationRevisionDigest: release.application.revisionDigest,
   workload: release.acceptance.workload,
   oracle: release.acceptance.oracle,
+  packSemanticRoot: pack.semanticRoot,
+  targetPlanId: pack.targetPlans[0].targetId,
+  resolvedExecutionId: sha('f'),
+  providerId: 'doppler-webgpu',
+  deviceTargetId: release.supportedDevices.targets[0].id,
   evaluator: { id: 'fixture-evaluator', revisionDigest: sha('e') },
   status: 'passed',
   observations: {
@@ -131,7 +141,6 @@ const applicationReceipt = {
   digest: '',
 };
 applicationReceipt.digest = hashProductionReleaseEvidence(applicationReceipt);
-await fs.writeFile(path.join(tmpRoot, 'acceptance.js'), `process.stdout.write(${JSON.stringify(`${JSON.stringify(applicationReceipt)}\n`)});\n`, 'utf8');
 
 const privatePath = path.join(tmpRoot, 'release.private.json');
 const publicPath = path.join(tmpRoot, 'release.public.json');
@@ -153,6 +162,13 @@ const common = {
 };
 const receiptPaths = [];
 for (const target of release.supportedDevices.targets) {
+  applicationReceipt.deviceTargetId = target.id;
+  applicationReceipt.digest = hashProductionReleaseEvidence(applicationReceipt);
+  await fs.writeFile(
+    path.join(tmpRoot, 'acceptance.js'),
+    `process.stdout.write(${JSON.stringify(`${JSON.stringify(applicationReceipt)}\n`)});\n`,
+    'utf8'
+  );
   const devicePath = path.join(tmpRoot, `${target.id}.device.json`);
   await fs.writeFile(devicePath, JSON.stringify({
     schema: 'doppler.electron-device-identity/v1',
@@ -162,8 +178,12 @@ for (const target of release.supportedDevices.targets) {
     architecture: target.architectures[0],
     electronVersion: '37.1',
     gpuVendor: target.gpuVendors[0],
-    gpuDevice: `${target.gpuVendors[0]}-fixture-device`,
-    driverVersion: 'fixture-driver-1',
+    gpuDevice: target.gpuDevices[0],
+    driverVersion: target.driverVersions[0],
+    surface: target.qualificationSurface,
+    hasF16: false,
+    hasSubgroups: false,
+    maxBufferSize: 4,
     observedAtUtc: release.createdAtUtc,
   }), 'utf8');
   const result = await runProductionRelease({
@@ -175,8 +195,35 @@ for (const target of release.supportedDevices.targets) {
   });
   assert.equal(result.status, 'passed');
   assert.equal(result.activationPerformed, false);
+  assert.equal(JSON.parse(await fs.readFile(result.candidatePackPath, 'utf8')).semanticRoot, pack.semanticRoot);
   receiptPaths.push(result.receiptPath);
 }
+
+const rejectedDeviceTarget = release.supportedDevices.targets[0];
+const rejectedDevicePath = path.join(tmpRoot, 'rejected-driver.device.json');
+await fs.writeFile(rejectedDevicePath, JSON.stringify({
+  schema: 'doppler.electron-device-identity/v1',
+  targetId: rejectedDeviceTarget.id,
+  os: rejectedDeviceTarget.os,
+  osVersion: '10.0.22631',
+  architecture: rejectedDeviceTarget.architectures[0],
+  electronVersion: '37.1',
+  gpuVendor: rejectedDeviceTarget.gpuVendors[0],
+  gpuDevice: rejectedDeviceTarget.gpuDevices[0],
+  driverVersion: 'undeclared-driver',
+  surface: rejectedDeviceTarget.qualificationSurface,
+  hasF16: false,
+  hasSubgroups: false,
+  maxBufferSize: 4,
+  observedAtUtc: release.createdAtUtc,
+}), 'utf8');
+await assert.rejects(runProductionRelease({
+  ...common,
+  action: 'qualify',
+  outputDirectory: path.join(tmpRoot, 'rejected-driver'),
+  targetId: rejectedDeviceTarget.id,
+  deviceIdentityPath: rejectedDevicePath,
+}), /driverVersion is outside the target policy/u);
 
 const decisionOutput = path.join(tmpRoot, 'decision');
 const decided = await runProductionRelease({
@@ -188,6 +235,7 @@ const decided = await runProductionRelease({
 });
 assert.equal(decided.eligibility, 'eligible');
 assert.equal(decided.activationPerformed, false);
+assert.equal(JSON.parse(await fs.readFile(decided.candidatePackPath, 'utf8')).semanticRoot, pack.semanticRoot);
 const decision = JSON.parse(await fs.readFile(decided.decisionPath, 'utf8'));
 assert.equal(decision.selfPromotionAllowed, false);
 assert.equal(decision.activationAuthority, 'customer');
@@ -207,5 +255,35 @@ assert.ok(blocked.failureBundlePath);
 const failureBundle = JSON.parse(await fs.readFile(blocked.failureBundlePath, 'utf8'));
 assert.equal(failureBundle.retained, true);
 assert.equal(failureBundle.previousRelease.packSemanticRoot, release.previousRelease.packSemanticRoot);
+
+const extraReceiptValue = JSON.parse(await fs.readFile(receiptPaths[0], 'utf8'));
+const extraReceipt = await signProductionReleaseEvidence({
+  ...extraReceiptValue,
+  receiptId: 'undeclared-target-receipt',
+  targetId: 'undeclared-target',
+  digest: '',
+  signature: null,
+}, {
+  authority: 'fixture-fleet-authority',
+  privateKeyJwk: signingPrivate,
+  publicKeyJwk: signingPublic,
+});
+const extraReceiptPath = path.join(tmpRoot, 'undeclared-target.receipt.json');
+await fs.writeFile(extraReceiptPath, JSON.stringify(extraReceipt), 'utf8');
+const blockedExtraReceipt = await runProductionRelease({
+  ...common,
+  action: 'decide',
+  outputDirectory: path.join(tmpRoot, 'blocked-extra-receipt'),
+  fleetReceiptPaths: [...receiptPaths, extraReceiptPath],
+  fleetTrustedSignersPath: fleetTrustPath,
+});
+assert.equal(blockedExtraReceipt.eligibility, 'blocked');
+const blockedExtraDecision = JSON.parse(await fs.readFile(
+  blockedExtraReceipt.decisionPath,
+  'utf8'
+));
+assert.ok(blockedExtraDecision.reasons.some((reason) => (
+  reason.code === 'unsupported-device' && reason.scope === 'undeclared-target'
+)));
 
 console.log('production-release.test: ok');

@@ -49,6 +49,9 @@ outputs:
   eligibility:
     description: Eligible, blocked, or qualification-only.
     value: ${{ steps.inspect.outputs.eligibility }}
+  status:
+    description: Passed, failed, or decision-only.
+    value: ${{ steps.inspect.outputs.status }}
 
 runs:
   using: composite
@@ -100,7 +103,14 @@ runs:
         if [[ -n "$FORGE_CONFIG" ]]; then args+=(--forge-config "$FORGE_CONFIG"); fi
         mkdir -p "$RELEASE_OUTPUT"
         result_path="$RELEASE_OUTPUT/command-result.json"
+        set +e
         npx --yes --package "doppler-gpu@$DOPPLER_VERSION" doppler "${args[@]}" > "$result_path"
+        command_status=$?
+        set -e
+        if [[ ! -s "$result_path" ]]; then
+          echo "Doppler release produced no command result (exit $command_status)." >&2
+          exit "$command_status"
+        fi
         echo "result-path=$result_path" >> "$GITHUB_OUTPUT"
 
     - name: Inspect non-promoting result
@@ -118,5 +128,23 @@ runs:
           throw new Error('Doppler release action must never activate or promote a release.');
         }
         const eligibility = payload.eligibility ?? 'qualification-only';
+        const status = payload.status ?? 'decision-only';
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `eligibility=${eligibility}\n`);
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `status=${status}\n`);
         NODE
+
+    - name: Enforce qualification or eligibility result
+      shell: bash
+      env:
+        RELEASE_ACTION: ${{ inputs.action }}
+        ELIGIBILITY: ${{ steps.inspect.outputs.eligibility }}
+        STATUS: ${{ steps.inspect.outputs.status }}
+      run: |
+        if [[ "$RELEASE_ACTION" == "qualify" && "$STATUS" != "passed" ]]; then
+          echo "Doppler qualification failed; the result and failure evidence are retained." >&2
+          exit 1
+        fi
+        if [[ "$RELEASE_ACTION" == "decide" && "$ELIGIBILITY" != "eligible" ]]; then
+          echo "Doppler blocked release eligibility; the signed decision is retained." >&2
+          exit 1
+        fi

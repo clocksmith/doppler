@@ -1,4 +1,7 @@
-import { validateReleaseDecision } from '../../config/production-release-evidence.js';
+import {
+  hashProductionReleaseEvidence,
+  validateReleaseDecision,
+} from '../../config/production-release-evidence.js';
 
 export const ELECTRON_RELEASE_STATE_SCHEMA = 'doppler.electron-release-state/v1';
 export const ELECTRON_REVOCATION_SNAPSHOT_SCHEMA = 'doppler.electron-revocation-snapshot/v1';
@@ -19,6 +22,17 @@ function exact(value, fields, label) {
     if (!allowed.has(field)) throw new Error(`${label}.${field} is not supported.`);
   }
   for (const field of fields) {
+    if (!Object.hasOwn(value, field)) throw new Error(`${label}.${field} is required.`);
+  }
+}
+
+function exactWithOptional(value, required, optional, label) {
+  object(value, label);
+  const allowed = new Set([...required, ...optional]);
+  for (const field of Object.keys(value)) {
+    if (!allowed.has(field)) throw new Error(`${label}.${field} is not supported.`);
+  }
+  for (const field of required) {
     if (!Object.hasOwn(value, field)) throw new Error(`${label}.${field} is required.`);
   }
 }
@@ -51,11 +65,32 @@ function packRef(value, label) {
   };
 }
 
-function releaseSlot(value, label) {
-  if (value === null) return null;
+function revocationPolicy(value, label) {
   exact(
     value,
+    ['authorityId', 'policyDigest', 'offlineExpirySeconds', 'failClosedAfterExpiry'],
+    label
+  );
+  if (!Number.isSafeInteger(value.offlineExpirySeconds) || value.offlineExpirySeconds < 1) {
+    throw new Error(`${label}.offlineExpirySeconds must be a positive integer.`);
+  }
+  if (value.failClosedAfterExpiry !== true) {
+    throw new Error(`${label}.failClosedAfterExpiry must be true.`);
+  }
+  return {
+    authorityId: text(value.authorityId, `${label}.authorityId`),
+    policyDigest: digest(value.policyDigest, `${label}.policyDigest`),
+    offlineExpirySeconds: value.offlineExpirySeconds,
+    failClosedAfterExpiry: true,
+  };
+}
+
+function releaseSlot(value, label) {
+  if (value === null) return null;
+  exactWithOptional(
+    value,
     ['pack', 'decisionDigest', 'changedAtUtc', 'customerAuthorizationDigest'],
+    ['revocationPolicy'],
     label
   );
   return {
@@ -65,6 +100,9 @@ function releaseSlot(value, label) {
     customerAuthorizationDigest: value.customerAuthorizationDigest === null
       ? null
       : digest(value.customerAuthorizationDigest, `${label}.customerAuthorizationDigest`),
+    revocationPolicy: value.revocationPolicy === undefined
+      ? null
+      : revocationPolicy(value.revocationPolicy, `${label}.revocationPolicy`),
   };
 }
 
@@ -81,14 +119,19 @@ function candidateSlot(value) {
 function revocationSnapshot(value) {
   if (value === null) return null;
   exact(value, [
-    'schema', 'authorityId', 'sequence', 'expiresAtUtc', 'revokedSemanticRoots',
-    'digest', 'signatureVerified',
+    'schema', 'authorityId', 'policyDigest', 'sequence', 'issuedAtUtc',
+    'expiresAtUtc', 'revokedSemanticRoots', 'digest', 'signature',
   ], 'electron release state.revocation');
   if (value.schema !== ELECTRON_REVOCATION_SNAPSHOT_SCHEMA) {
     throw new Error(`electron release state.revocation.schema must be ${ELECTRON_REVOCATION_SNAPSHOT_SCHEMA}.`);
   }
   if (!Number.isSafeInteger(value.sequence) || value.sequence < 1) {
     throw new Error('electron release state.revocation.sequence must be a positive integer.');
+  }
+  const issuedAtUtc = instant(value.issuedAtUtc, 'electron release state.revocation.issuedAtUtc');
+  const expiresAtUtc = instant(value.expiresAtUtc, 'electron release state.revocation.expiresAtUtc');
+  if (new Date(expiresAtUtc).getTime() <= new Date(issuedAtUtc).getTime()) {
+    throw new Error('electron release state.revocation expiry must follow issuance.');
   }
   if (!Array.isArray(value.revokedSemanticRoots)) {
     throw new Error('electron release state.revocation.revokedSemanticRoots must be an array.');
@@ -99,17 +142,43 @@ function revocationSnapshot(value) {
   if (new Set(revokedSemanticRoots).size !== revokedSemanticRoots.length) {
     throw new Error('electron release state.revocation.revokedSemanticRoots must be unique.');
   }
-  if (value.signatureVerified !== true) {
-    throw new Error('electron release state.revocation.signatureVerified must be true.');
+  exact(
+    value.signature,
+    ['authority', 'algorithm', 'publicKeyDigest', 'signedDigest', 'signatureHex'],
+    'electron release state.revocation.signature'
+  );
+  if (value.signature.algorithm !== 'Ed25519') {
+    throw new Error('electron release state.revocation.signature.algorithm must be Ed25519.');
+  }
+  const signatureAuthority = text(
+    value.signature.authority,
+    'electron release state.revocation.signature.authority'
+  );
+  if (signatureAuthority !== value.authorityId) {
+    throw new Error('electron release state.revocation signature authority must match authorityId.');
+  }
+  if (!/^[0-9a-f]{128}$/u.test(value.signature.signatureHex || '')) {
+    throw new Error('electron release state.revocation.signature.signatureHex must be a 64-byte hexadecimal signature.');
+  }
+  const normalizedDigest = digest(value.digest, 'electron release state.revocation.digest');
+  if (value.signature.signedDigest !== normalizedDigest) {
+    throw new Error('electron release state.revocation.signature.signedDigest must equal digest.');
+  }
+  digest(value.signature.publicKeyDigest, 'electron release state.revocation.signature.publicKeyDigest');
+  const expectedDigest = hashProductionReleaseEvidence(value);
+  if (normalizedDigest !== expectedDigest) {
+    throw new Error('electron release state.revocation.digest does not match its semantic payload.');
   }
   return {
     schema: ELECTRON_REVOCATION_SNAPSHOT_SCHEMA,
     authorityId: text(value.authorityId, 'electron release state.revocation.authorityId'),
+    policyDigest: digest(value.policyDigest, 'electron release state.revocation.policyDigest'),
     sequence: value.sequence,
-    expiresAtUtc: instant(value.expiresAtUtc, 'electron release state.revocation.expiresAtUtc'),
+    issuedAtUtc,
+    expiresAtUtc,
     revokedSemanticRoots,
-    digest: digest(value.digest, 'electron release state.revocation.digest'),
-    signatureVerified: true,
+    digest: normalizedDigest,
+    signature: structuredClone(value.signature),
   };
 }
 
@@ -167,6 +236,9 @@ export function createElectronReleaseStateCoordinator(options) {
   if (typeof options.verifyReleaseDecision !== 'function') {
     throw new Error('electron release coordinator requires verifyReleaseDecision().');
   }
+  if (typeof options.verifyRevocationSnapshot !== 'function') {
+    throw new Error('electron release coordinator requires verifyRevocationSnapshot().');
+  }
   const now = options.now ?? (() => new Date().toISOString());
   if (typeof now !== 'function') throw new Error('electron release coordinator now must be a function.');
 
@@ -207,6 +279,7 @@ export function createElectronReleaseStateCoordinator(options) {
     }
     const current = await load();
     if (!current.candidate || current.candidate.pack.semanticRoot !== decision.pack.semanticRoot
+      || current.candidate.pack.packId !== decision.pack.packId
       || current.candidate.decisionDigest !== decision.digest) {
       throw new Error('Electron activation decision does not bind the installed candidate.');
     }
@@ -221,6 +294,10 @@ export function createElectronReleaseStateCoordinator(options) {
         customerAuthorizationDigest: digest(
           customerAuthorizationDigest,
           'customerAuthorizationDigest'
+        ),
+        revocationPolicy: revocationPolicy(
+          decision.revocation,
+          'release decision.revocation'
         ),
       },
       candidate: null,
@@ -268,9 +345,31 @@ export function createElectronReleaseStateCoordinator(options) {
 
   async function applyRevocationSnapshot(snapshot) {
     const normalized = revocationSnapshot(snapshot);
+    if (await options.verifyRevocationSnapshot(normalized) !== true) {
+      throw new Error('Electron revocation update requires a verified snapshot signature.');
+    }
     const current = await load();
+    if (current.revocation && normalized.sequence === current.revocation.sequence
+      && normalized.digest === current.revocation.digest) {
+      return current;
+    }
     if (current.revocation && normalized.sequence <= current.revocation.sequence) {
       throw new Error('Electron revocation snapshot must advance monotonically.');
+    }
+    const activePolicy = current.current?.revocationPolicy;
+    if (activePolicy) {
+      if (normalized.authorityId !== activePolicy.authorityId
+        || normalized.policyDigest !== activePolicy.policyDigest) {
+        throw new Error('Electron revocation snapshot does not bind the active release policy.');
+      }
+      const lifetimeMs = new Date(normalized.expiresAtUtc).getTime()
+        - new Date(normalized.issuedAtUtc).getTime();
+      if (lifetimeMs > activePolicy.offlineExpirySeconds * 1000) {
+        throw new Error('Electron revocation snapshot exceeds the active release offline-expiry policy.');
+      }
+    }
+    if (new Date(normalized.expiresAtUtc).getTime() <= new Date(now()).getTime()) {
+      throw new Error('Electron revocation snapshot is already expired.');
     }
     return commit(current, { ...current, revocation: normalized });
   }
@@ -279,6 +378,18 @@ export function createElectronReleaseStateCoordinator(options) {
     const current = await load();
     if (!current.current) throw new Error('Electron release state has no active Pack.');
     if (!current.revocation) throw new Error('Electron release state has no verified revocation snapshot.');
+    if (!current.current.revocationPolicy) {
+      throw new Error('Electron release state current Pack lacks a bound revocation policy.');
+    }
+    if (current.revocation.authorityId !== current.current.revocationPolicy.authorityId
+      || current.revocation.policyDigest !== current.current.revocationPolicy.policyDigest) {
+      throw new Error('Electron release revocation state does not bind the current release policy.');
+    }
+    const lifetimeMs = new Date(current.revocation.expiresAtUtc).getTime()
+      - new Date(current.revocation.issuedAtUtc).getTime();
+    if (lifetimeMs > current.current.revocationPolicy.offlineExpirySeconds * 1000) {
+      throw new Error('Electron release revocation state exceeds the current offline-expiry policy.');
+    }
     if (new Date(current.revocation.expiresAtUtc).getTime() <= new Date(now()).getTime()) {
       throw new Error('Electron release revocation state is expired; execution fails closed.');
     }

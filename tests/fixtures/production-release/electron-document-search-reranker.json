@@ -1,7 +1,7 @@
 {
   "schema": "doppler.production-release/v1",
   "schemaVersion": 1,
-  "releaseId": "electron-document-search-qwen-3-reranker-0-6b-q4k-ehf16-af32-release-5813378023806fee",
+  "releaseId": "electron-document-search-qwen-3-reranker-0-6b-q4k-ehf16-af32-release-ab12ccdae6ac3367",
   "createdAtUtc": "2026-08-23T00:00:00.000Z",
   "evidenceClass": "reference-fixture",
   "candidate": {
@@ -56,12 +56,39 @@
     "receiptMode": "customer-operated-agent",
     "targets": [
       {
-        "id": "windows-x64-webgpu",
+        "id": "windows-x64-amd-webgpu",
         "os": "windows",
         "osVersionRange": ">=10.0.22631",
         "architectures": ["x64"],
         "electronVersionRange": ">=37 <38",
-        "gpuVendors": ["amd", "intel", "nvidia"],
+        "gpuVendors": ["amd"],
+        "gpuDevices": ["reference-amd-device"],
+        "driverVersions": ["reference-amd-driver"],
+        "qualificationSurface": "electron-webgpu",
+        "driverPolicy": "exact-receipt-required"
+      },
+      {
+        "id": "windows-x64-intel-webgpu",
+        "os": "windows",
+        "osVersionRange": ">=10.0.22631",
+        "architectures": ["x64"],
+        "electronVersionRange": ">=37 <38",
+        "gpuVendors": ["intel"],
+        "gpuDevices": ["reference-intel-device"],
+        "driverVersions": ["reference-intel-driver"],
+        "qualificationSurface": "electron-webgpu",
+        "driverPolicy": "exact-receipt-required"
+      },
+      {
+        "id": "windows-x64-nvidia-webgpu",
+        "os": "windows",
+        "osVersionRange": ">=10.0.22631",
+        "architectures": ["x64"],
+        "electronVersionRange": ">=37 <38",
+        "gpuVendors": ["nvidia"],
+        "gpuDevices": ["reference-nvidia-device"],
+        "driverVersions": ["reference-nvidia-driver"],
+        "qualificationSurface": "electron-webgpu",
         "driverPolicy": "exact-receipt-required"
       },
       {
@@ -71,6 +98,9 @@
         "architectures": ["arm64"],
         "electronVersionRange": ">=37 <38",
         "gpuVendors": ["apple"],
+        "gpuDevices": ["reference-apple-device"],
+        "driverVersions": ["reference-apple-driver"],
+        "qualificationSurface": "electron-webgpu",
         "driverPolicy": "exact-receipt-required"
       }
     ]
