@@ -1,4 +1,4 @@
-import { f16ToF32 } from '../../loader/dtype-utils.js';
+import { f16ToF32Bits as f16ToF32 } from '../../inference/kv-cache/types.js';
 
 export { f16ToF32 };
 

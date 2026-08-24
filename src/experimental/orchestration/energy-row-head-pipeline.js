@@ -7,7 +7,6 @@ import { f16ToF32Array, f32ToF16Array } from '../../inference/kv-cache/types.js'
 import { registerPipeline } from '../../inference/pipelines/registry.js';
 import { applyPipelineContexts, restorePipelineContexts } from '../../inference/pipelines/context.js';
 import { createInitializedPipeline } from '../../inference/pipelines/factory.js';
-import { selectRuleValue } from '../../rules/rule-registry.js';
 
 const ENERGY_ROW_HEAD_MODEL_TYPES = Object.freeze([
   'energy_row_head',
@@ -340,9 +339,10 @@ export class EnergyRowHeadPipeline {
       caps = getKernelCapabilities();
     } catch {}
     const requestedDtype = String(request?.dtype || DEFAULT_INFER_CONFIG.dtype).toLowerCase();
-    const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32', {
-      useF16: requestedDtype === 'f16' && caps.hasF16,
-    });
+    if (requestedDtype !== 'f16' && requestedDtype !== 'f32') {
+      throw new Error(`EnergyRowHeadPipeline.scoreRows: unsupported dtype "${requestedDtype}".`);
+    }
+    const dtype = requestedDtype === 'f16' && caps.hasF16 ? 'f16' : 'f32';
 
     const startTime = performance.now();
     const outputRows = [];

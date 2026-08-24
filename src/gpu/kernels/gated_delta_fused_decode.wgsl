@@ -26,7 +26,7 @@ struct LinearAttentionParams {
 @group(0) @binding(4) var<storage, read> conv_weight: array<f32>;
 @group(0) @binding(5) var<storage, read_write> conv_state: array<f32>;
 @group(0) @binding(6) var<storage, read> dt_bias: array<f32>;
-@group(0) @binding(7) var<storage, read> a_neg_exp: array<f32>;
+@group(0) @binding(7) var<storage, read> a_log: array<f32>;
 @group(0) @binding(8) var<storage, read> norm_weight: array<f32>;
 @group(0) @binding(9) var<storage, read_write> recurrent_state: array<f32>;
 @group(0) @binding(10) var<storage, read_write> output: array<f32>;
@@ -125,7 +125,7 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
   let ab_row_base = head;
   let b_index = params.b_proj_offset_elements + ab_row_base;
   let beta = 1.0 / (1.0 + exp(-f32(ab_proj[b_index])));
-  let g = a_neg_exp[head] * softplus(f32(ab_proj[ab_row_base]) + dt_bias[head]);
+  let g = -exp(a_log[head]) * softplus(f32(ab_proj[ab_row_base]) + dt_bias[head]);
   let g_exp = exp(g);
 
   if (is_v_active) {
@@ -171,4 +171,3 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     output[out_row_base + lane] = (out_value * inv_rms) * norm_weight[norm_index] * gate;
   }
 }
-

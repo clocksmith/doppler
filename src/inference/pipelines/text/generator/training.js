@@ -23,10 +23,8 @@ import {
   resolvePrefillOptions,
   resolvePrefillEmbeddingOptions,
   resolveAdvanceEmbeddingMode,
-  getFinalNormWeights,
-  extractEmbeddingFromHidden,
-  extractTokenEmbeddingsFromHidden,
 } from '../generator-runtime.js';
+import { extractEmbeddingFromHiddenGPU } from '../embedding-extraction.js';
 import { decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
 import {
   advanceDecodeStepCount,
@@ -349,6 +347,7 @@ export async function prefillWithEmbedding(prompt, options = {}) {
 
       let embedding;
       let tokenEmbeddings = null;
+      let sequencePoolResult = null;
       let logits = null;
       let hiddenBytes = 0;
       let readbackMs = 0;
@@ -376,39 +375,28 @@ export async function prefillWithEmbedding(prompt, options = {}) {
         }
         const hiddenSize = config.hiddenSize;
         hiddenBytes = numTokens * hiddenSize * activationBytes;
-        const readbackStart = performance.now();
-        const hiddenData = await readBuffer(currentHiddenBuffer, hiddenBytes);
-        readbackMs = performance.now() - readbackStart;
-        if (hiddenData.byteLength === 0) {
-          throw new Error('GPU readback disabled; cannot return embedding');
-        }
-        const decodeStart = performance.now();
-        const hiddenStates = decodeReadback(hiddenData, activationDtype);
-        decodeHiddenMs = performance.now() - decodeStart;
-        const finalNormStart = performance.now();
-        const finalNormWeights = await this._getFinalNormWeights();
-        finalNormMs = performance.now() - finalNormStart;
         const extractStart = performance.now();
-        if (options.__returnTokenEmbeddings === true) {
-          tokenEmbeddings = this._extractTokenEmbeddingsFromHidden(
-            hiddenStates,
-            numTokens,
-            hiddenSize,
-            finalNormWeights,
-            config
-          );
-        }
-        embedding = extractEmbeddingFromHidden(
-          hiddenStates,
+        const extracted = await extractEmbeddingFromHiddenGPU({
+          hiddenBuffer: currentHiddenBuffer,
+          activationDtype,
           numTokens,
           hiddenSize,
-          opts.embeddingMode,
-          finalNormWeights,
+          embeddingMode: opts.embeddingMode,
+          finalNorm: this._state.weights.get('final_norm'),
+          finalNormBias: this._state.weights.get('final_norm_bias') ?? null,
           config,
-          this._state.embeddingPostprocessor,
-          tokenEmbeddings,
-          this._state.weights.get('final_norm_bias') ?? null
-        );
+          embeddingPostprocessor: this._state.embeddingPostprocessor,
+          returnTokenEmbeddings: options.__returnTokenEmbeddings === true,
+          sequencePooling: options.__sequencePooling ?? null,
+          tokenIds: inputIds,
+        });
+        embedding = extracted.embedding;
+        tokenEmbeddings = extracted.tokenEmbeddings;
+        sequencePoolResult = {
+          pooledEmbedding: extracted.pooledSequenceEmbedding,
+          tokenMask: extracted.tokenMask,
+          includedTokenCount: extracted.includedTokenCount,
+        };
         extractMs = performance.now() - extractStart;
       } finally {
         releaseBuffer(currentHiddenBuffer);
@@ -445,6 +433,9 @@ export async function prefillWithEmbedding(prompt, options = {}) {
           tokens: inputIds,
           embedding,
           tokenEmbeddings,
+          pooledSequenceEmbedding: sequencePoolResult?.pooledEmbedding ?? null,
+          tokenMask: sequencePoolResult?.tokenMask ?? null,
+          includedTokenCount: sequencePoolResult?.includedTokenCount ?? 0,
           logits,
           embeddingMode: opts.embeddingMode,
           phase,
@@ -463,6 +454,9 @@ export async function prefillWithEmbedding(prompt, options = {}) {
         tokens: inputIds,
         embedding,
         tokenEmbeddings,
+        pooledSequenceEmbedding: sequencePoolResult?.pooledEmbedding ?? null,
+        tokenMask: sequencePoolResult?.tokenMask ?? null,
+        includedTokenCount: sequencePoolResult?.includedTokenCount ?? 0,
         logits,
         embeddingMode: opts.embeddingMode,
         phase,

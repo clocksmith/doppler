@@ -19,7 +19,7 @@ import { runPixelShuffle, recordPixelShuffle } from '../../gpu/kernels/pixel_shu
 import { runRepeatChannels, recordRepeatChannels } from '../../gpu/kernels/repeat_channels.js';
 import { runReLU, recordReLU } from '../../gpu/kernels/relu.js';
 import { castF32ToF16, recordCastF32ToF16 } from '../../gpu/kernels/cast.js';
-import { f16ToF32 } from '../../loader/dtype-utils.js';
+import { f16ToF32Bits as f16ToF32 } from '../../inference/kv-cache/types.js';
 import { log } from '../../debug/index.js';
 import { applyConv2D, createBiasTensor, decodeLatentsAutoencoderDC, getLinearShape, getWeight, getWeightOptional, reshapeTensor } from '../../inference/pipelines/diffusion/vae/execution.js';
 

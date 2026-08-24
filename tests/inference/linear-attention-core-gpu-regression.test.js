@@ -79,7 +79,7 @@ function buildReferenceOutput({ qkv, z, a, b, layerState, numTokens, qkL2NormEps
       const qNormScale = headScale / Math.sqrt(qNormSq + qkL2NormEps);
       const kNormScale = 1 / Math.sqrt(kNormSq + qkL2NormEps);
       const beta = 1 / (1 + Math.exp(-b[abRowBase]));
-      const g = layerState.aNegExp[head] * softplus(a[abRowBase] + layerState.dtBias[head]);
+      const g = -Math.exp(layerState.aLog[head]) * softplus(a[abRowBase] + layerState.dtBias[head]);
       const gExp = Math.exp(g);
 
       for (let i = 0; i < layerState.headKDim * layerState.headVDim; i += 1) {
@@ -181,7 +181,7 @@ const layerState = {
   rmsNormEps: 1e-6,
   convWeight: new Float32Array([1, 1, 1, 1, 1, 1, 1, 1]),
   dtBias: new Float32Array([0.2, -0.1]),
-  aNegExp: new Float32Array([-0.6, -0.4]),
+  aLog: new Float32Array([Math.log(0.6), Math.log(0.4)]),
   normWeight: new Float32Array([1.1, 0.9]),
   convState: new Float32Array(8),
   recurrentState: new Float32Array(8),
@@ -205,7 +205,7 @@ async function runCase(inputDtype) {
     ...layerState,
     convWeightGPU: createGpuBuffer(layerState.convWeight, `linear_conv_weight_${inputDtype}`),
     dtBiasGPU: createGpuBuffer(layerState.dtBias, `linear_dt_bias_${inputDtype}`),
-    aNegExpGPU: createGpuBuffer(layerState.aNegExp, `linear_a_neg_exp_${inputDtype}`),
+    aLogGPU: createGpuBuffer(layerState.aLog, `linear_a_log_${inputDtype}`),
     normWeightGPU: createGpuBuffer(layerState.normWeight, `linear_norm_weight_${inputDtype}`),
     convStateGPU: createGpuBuffer(layerState.convState, `linear_conv_state_${inputDtype}`),
     recurrentStateGPU: createGpuBuffer(layerState.recurrentState, `linear_recurrent_state_${inputDtype}`),
@@ -244,7 +244,7 @@ async function runCase(inputDtype) {
       bBuffer,
       gpuLayerState.convWeightGPU,
       gpuLayerState.dtBiasGPU,
-      gpuLayerState.aNegExpGPU,
+      gpuLayerState.aLogGPU,
       gpuLayerState.normWeightGPU,
       gpuLayerState.convStateGPU,
       gpuLayerState.recurrentStateGPU,
@@ -283,7 +283,7 @@ const fusedDecodeLayerState = {
   rmsNormEps: 1e-6,
   convWeight: new Float32Array(12).fill(1),
   dtBias: new Float32Array([0.2, -0.1]),
-  aNegExp: new Float32Array([-0.6, -0.4]),
+  aLog: new Float32Array([Math.log(0.6), Math.log(0.4)]),
   normWeight: new Float32Array([1.1, 0.9]),
   convState: new Float32Array(12),
   recurrentState: new Float32Array(8),
@@ -307,7 +307,7 @@ async function runFusedDecodeCase(inputDtype) {
     ...fusedDecodeLayerState,
     convWeightGPU: createGpuBuffer(fusedDecodeLayerState.convWeight, `linear_fused_conv_weight_${inputDtype}`),
     dtBiasGPU: createGpuBuffer(fusedDecodeLayerState.dtBias, `linear_fused_dt_bias_${inputDtype}`),
-    aNegExpGPU: createGpuBuffer(fusedDecodeLayerState.aNegExp, `linear_fused_a_neg_exp_${inputDtype}`),
+    aLogGPU: createGpuBuffer(fusedDecodeLayerState.aLog, `linear_fused_a_log_${inputDtype}`),
     normWeightGPU: createGpuBuffer(fusedDecodeLayerState.normWeight, `linear_fused_norm_weight_${inputDtype}`),
     convStateGPU: createGpuBuffer(fusedDecodeLayerState.convState, `linear_fused_conv_state_${inputDtype}`),
     recurrentStateGPU: createGpuBuffer(fusedDecodeLayerState.recurrentState, `linear_fused_recurrent_state_${inputDtype}`),
@@ -358,7 +358,7 @@ async function runFusedDecodeCase(inputDtype) {
       abBuffer,
       gpuLayerState.convWeightGPU,
       gpuLayerState.dtBiasGPU,
-      gpuLayerState.aNegExpGPU,
+      gpuLayerState.aLogGPU,
       gpuLayerState.normWeightGPU,
       gpuLayerState.convStateGPU,
       gpuLayerState.recurrentStateGPU,
@@ -390,7 +390,7 @@ async function runFusedDecodePackedQkvzCase(inputDtype) {
     ...fusedDecodeLayerState,
     convWeightGPU: createGpuBuffer(fusedDecodeLayerState.convWeight, `linear_fused_qkvz_conv_weight_${inputDtype}`),
     dtBiasGPU: createGpuBuffer(fusedDecodeLayerState.dtBias, `linear_fused_qkvz_dt_bias_${inputDtype}`),
-    aNegExpGPU: createGpuBuffer(fusedDecodeLayerState.aNegExp, `linear_fused_qkvz_a_neg_exp_${inputDtype}`),
+    aLogGPU: createGpuBuffer(fusedDecodeLayerState.aLog, `linear_fused_qkvz_a_log_${inputDtype}`),
     normWeightGPU: createGpuBuffer(fusedDecodeLayerState.normWeight, `linear_fused_qkvz_norm_weight_${inputDtype}`),
     convStateGPU: createGpuBuffer(fusedDecodeLayerState.convState, `linear_fused_qkvz_conv_state_${inputDtype}`),
     recurrentStateGPU: createGpuBuffer(fusedDecodeLayerState.recurrentState, `linear_fused_qkvz_recurrent_state_${inputDtype}`),
@@ -451,7 +451,7 @@ async function runFusedDecodePackedQkvzCase(inputDtype) {
       abBuffer,
       gpuLayerState.convWeightGPU,
       gpuLayerState.dtBiasGPU,
-      gpuLayerState.aNegExpGPU,
+      gpuLayerState.aLogGPU,
       gpuLayerState.normWeightGPU,
       gpuLayerState.convStateGPU,
       gpuLayerState.recurrentStateGPU,

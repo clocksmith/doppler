@@ -27,7 +27,7 @@ struct LinearAttentionParams {
 @group(0) @binding(3) var<storage, read> a_proj: array<f16>;
 @group(0) @binding(4) var<storage, read> b_proj: array<f16>;
 @group(0) @binding(5) var<storage, read> dt_bias: array<f32>;
-@group(0) @binding(6) var<storage, read> a_neg_exp: array<f32>;
+@group(0) @binding(6) var<storage, read> a_log: array<f32>;
 @group(0) @binding(7) var<storage, read> norm_weight: array<f32>;
 @group(0) @binding(8) var<storage, read_write> recurrent_state: array<f32>;
 @group(0) @binding(9) var<storage, read_write> output: array<f32>;
@@ -111,7 +111,7 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     let k_norm_scale = inverseSqrt(shared_sq[0] + params.qk_l2norm_eps);
     let b_index = select(ab_row_base, params.b_proj_offset_elements + ab_row_base, (params.packed_flags & 1u) != 0u);
     let beta = 1.0 / (1.0 + exp(-f32(b_proj[b_index])));
-    let g = a_neg_exp[head] * softplus(f32(a_proj[ab_row_base]) + dt_bias[head]);
+    let g = -exp(a_log[head]) * softplus(f32(a_proj[ab_row_base]) + dt_bias[head]);
     let g_exp = exp(g);
 
     if (is_active) {
@@ -165,4 +165,3 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     }
   }
 }
-

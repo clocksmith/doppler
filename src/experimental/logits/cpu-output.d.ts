@@ -7,6 +7,15 @@ export declare function extractLastPositionLogits(
   vocabSize: number
 ): Float32Array;
 
+export declare function writeChunkLogits(
+  target: Float32Array,
+  chunk: Float32Array,
+  numTokens: number,
+  vocabSize: number,
+  rowOffset: number,
+  rowCount: number
+): void;
+
 export declare function finalizeLogits(
   rawLogits: Float32Array,
   numTokens: number,

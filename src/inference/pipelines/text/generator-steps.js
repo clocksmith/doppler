@@ -24,7 +24,7 @@ import { computeLogits, computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArg
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { captureObservedFusedDecodeLogits, emitObservedLogits } from './generator-logits-observation.js';
-import { getFinalNormWeights, extractEmbeddingFromHidden } from './generator-runtime.js';
+import { extractEmbeddingFromHiddenGPU } from './embedding-extraction.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { hasLinearAttentionLayers } from './linear-attention.js';
 import { hasConvLayers } from './layer.js';
@@ -276,51 +276,23 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
     throw new Error('GPU readback disabled; cannot return embedding');
   }
 
-  const device = getDevice();
-  if (!device) {
-    throw new Error('GPU device not available');
-  }
-
   const config = state.modelConfig;
   const activationDtype = getEffectiveActivationDtype(state, opts);
-  const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
 
   let embedding;
   try {
-    const sampleSize = config.hiddenSize * activationBytes;
-    const staging = device.createBuffer({
-      size: sampleSize,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
-
-    let decodedHidden;
-    let stagingMapped = false;
-    try {
-      const enc = device.createCommandEncoder({ label: 'advance_with_embedding_copy' });
-      enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
-      device.queue.submit([enc.finish()]);
-
-      await staging.mapAsync(GPUMapMode.READ);
-      stagingMapped = true;
-      decodedHidden = decodeReadback(staging.getMappedRange().slice(0), activationDtype);
-    } finally {
-      if (stagingMapped) {
-        staging.unmap();
-      }
-      staging.destroy();
-    }
-    const finalNormWeights = await getFinalNormWeights(state);
-    embedding = extractEmbeddingFromHidden(
-      decodedHidden,
-      1,
-      config.hiddenSize,
+    const extracted = await extractEmbeddingFromHiddenGPU({
+      hiddenBuffer: hiddenStates,
+      activationDtype,
+      numTokens: 1,
+      hiddenSize: config.hiddenSize,
       embeddingMode,
-      finalNormWeights,
+      finalNorm: state.weights.get('final_norm'),
+      finalNormBias: state.weights.get('final_norm_bias') ?? null,
       config,
-      state.embeddingPostprocessor,
-      null,
-      state.weights.get('final_norm_bias') ?? null
-    );
+      embeddingPostprocessor: state.embeddingPostprocessor,
+    });
+    embedding = extracted.embedding;
   } finally {
     const isPreAllocated = isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer);
     if (!isPreAllocated) {

@@ -1,14 +1,12 @@
 
 import { getDevice } from '../../gpu/device.js';
-import { recordKVCacheWriteF32ToF16 } from '../../gpu/kernel-selector.js';
+import { castF16ToF32 } from '../../gpu/kernels/cast.js';
+import { createTensor } from '../../gpu/tensor.js';
 import { allowReadback } from '../../gpu/perf-guards.js';
 import { log } from '../../debug/index.js';
-import { readBuffer } from '../../memory/buffer-pool.js';
+import { readBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import {
   isContiguousLayer,
-  isPagedLayer,
-  f32ToF16Array,
-  f16ToF32Array,
 } from './types.js';
 import {
   update as updateImpl,
@@ -733,6 +731,11 @@ export class KVCache {
 
   
   _migrateToGPU(device) {
+    if (this.kvDtype === 'f16') {
+      throw new Error(
+        'KVCache cannot migrate CPU f32 state into an f16 GPU cache; initialize the declared GPU cache before execution.'
+      );
+    }
     const snapshots = this.layers.map((layer) => this._snapshotLayerGpuState(layer));
 
     try {
@@ -782,15 +785,8 @@ export class KVCache {
               const valuePage = layer.valuePages?.[p];
               if (!keyPage || !valuePage) continue;
               const byteOffset = p * pageBytes;
-              if (this.kvDtype === 'f16') {
-                const keysF16 = f32ToF16Array(keyPage);
-                const valuesF16 = f32ToF16Array(valuePage);
-                device.queue.writeBuffer(keysGPU, byteOffset, keysF16);
-                device.queue.writeBuffer(valuesGPU, byteOffset, valuesF16);
-              } else {
-                device.queue.writeBuffer(keysGPU, byteOffset, keyPage);
-                device.queue.writeBuffer(valuesGPU, byteOffset, valuePage);
-              }
+              device.queue.writeBuffer(keysGPU, byteOffset, keyPage);
+              device.queue.writeBuffer(valuesGPU, byteOffset, valuePage);
             }
           }
 
@@ -837,27 +833,20 @@ export class KVCache {
         const usedElems = layer.seqLen * this.kvSize;
         const usedSize = usedElems * this.bytesPerElem;
         if (usedSize > 0) {
-          if (this.kvDtype === 'f16') {
-            const keysF16 = f32ToF16Array(layer.keys.subarray(0, usedElems));
-            const valuesF16 = f32ToF16Array(layer.values.subarray(0, usedElems));
-            device.queue.writeBuffer(keysGPU, 0, keysF16);
-            device.queue.writeBuffer(valuesGPU, 0, valuesF16);
-          } else {
-            device.queue.writeBuffer(
-              keysGPU,
-              0,
-              layer.keys.buffer,
-              layer.keys.byteOffset,
-              usedSize
-            );
-            device.queue.writeBuffer(
-              valuesGPU,
-              0,
-              layer.values.buffer,
-              layer.values.byteOffset,
-              usedSize
-            );
-          }
+          device.queue.writeBuffer(
+            keysGPU,
+            0,
+            layer.keys.buffer,
+            layer.keys.byteOffset,
+            usedSize
+          );
+          device.queue.writeBuffer(
+            valuesGPU,
+            0,
+            layer.values.buffer,
+            layer.values.byteOffset,
+            usedSize
+          );
         }
 
         this._destroyGpuBuffer(layer.keysGPU);
@@ -902,19 +891,28 @@ export class KVCache {
         layer.values = new Float32Array(sizePerLayer);
       }
 
-      const [keysBytes, valuesBytes] = await Promise.all([
-        readBuffer(layer.keysGPU, usedSize),
-        readBuffer(layer.valuesGPU, usedSize),
-      ]);
-
       if (this.kvDtype === 'f16') {
-        const keysRaw = new Uint16Array(keysBytes);
-        const valuesRaw = new Uint16Array(valuesBytes);
-        const keysData = f16ToF32Array(keysRaw);
-        const valuesData = f16ToF32Array(valuesRaw);
-        layer.keys.set(keysData);
-        layer.values.set(valuesData);
+        const elementCount = layer.seqLen * this.kvSize;
+        const [keysTensor, valuesTensor] = await Promise.all([
+          castF16ToF32(createTensor(layer.keysGPU, 'f16', [elementCount], 'kv_cache_keys_snapshot')),
+          castF16ToF32(createTensor(layer.valuesGPU, 'f16', [elementCount], 'kv_cache_values_snapshot')),
+        ]);
+        try {
+          const [keysBytes, valuesBytes] = await Promise.all([
+            readBuffer(keysTensor.buffer, elementCount * Float32Array.BYTES_PER_ELEMENT),
+            readBuffer(valuesTensor.buffer, elementCount * Float32Array.BYTES_PER_ELEMENT),
+          ]);
+          layer.keys.set(new Float32Array(keysBytes));
+          layer.values.set(new Float32Array(valuesBytes));
+        } finally {
+          releaseBuffer(keysTensor.buffer);
+          releaseBuffer(valuesTensor.buffer);
+        }
       } else {
+        const [keysBytes, valuesBytes] = await Promise.all([
+          readBuffer(layer.keysGPU, usedSize),
+          readBuffer(layer.valuesGPU, usedSize),
+        ]);
         const keysData = new Float32Array(keysBytes);
         const valuesData = new Float32Array(valuesBytes);
         layer.keys.set(keysData);

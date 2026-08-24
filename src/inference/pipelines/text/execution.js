@@ -50,7 +50,6 @@ import { createObservationContext } from '../../observation-context.js';
 import { createResolvedRuntimeSession } from './resolved-runtime-session.js';
 import { assertBundledAdapterAuthorized } from '../../../config/revocation-policy.js';
 import { assertNotAborted } from './abort-contract.js';
-import { poolSequenceTokenEmbeddings } from './embedding-pooling.js';
 import {
   buildConservativeMultimodalGenerationOptions,
   expandImagePlaceholderTokenIds,
@@ -58,6 +57,8 @@ import {
   resolveSingleSpecialTokenId,
 } from './modality-token-contract.js';
 import { initConvLayerState } from './ops.js';
+import { createTensor } from '../../../gpu/tensor.js';
+import { runEmbeddingPool } from '../../../gpu/kernels/embedding-pool.js';
 import { destroyPleBufferCache, destroyPleRuntimeCache } from './per-layer-inputs.js';
 import {
   initialize as initializeImpl,
@@ -70,6 +71,22 @@ import {
   _loadAudioWeights as _loadAudioWeightsImpl,
   _ensureAudioWeightsLoaded as _ensureAudioWeightsLoadedImpl,
 } from './lifecycle.js';
+
+async function readMeanPooledEmbedding(featuresBuffer, numTokens, hiddenSize, label) {
+  const pooled = await runEmbeddingPool(
+    createTensor(featuresBuffer, 'f32', [numTokens, hiddenSize], label),
+    { rowCount: numTokens, hiddenSize, mode: 'mean' }
+  );
+  try {
+    const bytes = await readBuffer(
+      pooled.buffer,
+      hiddenSize * Float32Array.BYTES_PER_ELEMENT
+    );
+    return new Float32Array(bytes);
+  } finally {
+    releaseBuffer(pooled.buffer);
+  }
+}
 
 export async function transcribeImage({ imageBytes, width, height, prompt, maxTokens, softTokenBudget, signal }) {
     assertNotAborted(signal);
@@ -485,24 +502,17 @@ export async function encodeSequence(sequence, options = {}) {
         __skipStateSnapshot: true,
         __returnTokenEmbeddings: needsTokenEmbeddings,
         __returnSequenceLogits: includeLogits,
+        __sequencePooling: contract.pooledEmbedding,
       });
       assertNotAborted(options?.signal);
       const hiddenSize = this.modelConfig.hiddenSize;
-      const pooledResult = contract.pooledEmbedding
-        ? poolSequenceTokenEmbeddings(
-          result.tokenEmbeddings,
-          result.tokens,
-          hiddenSize,
-          contract.pooledEmbedding
-        )
-        : null;
       return {
         alphabet: contract.alphabet,
         tokens: result.tokens,
-        tokenMask: pooledResult?.tokenMask ?? new Uint8Array(result.tokens.length),
-        includedTokenCount: pooledResult?.includedTokenCount ?? 0,
+        tokenMask: result.tokenMask ?? new Uint8Array(result.tokens.length),
+        includedTokenCount: result.includedTokenCount ?? 0,
         tokenEmbeddings: includeTokenEmbeddings ? result.tokenEmbeddings : null,
-        pooledEmbedding: pooledResult?.pooled ?? null,
+        pooledEmbedding: result.pooledSequenceEmbedding ?? null,
         logits: includeLogits ? result.logits : null,
         embeddingDim: hiddenSize,
         vocabSize: this.modelConfig.vocabSize,
@@ -546,20 +556,12 @@ export async function embedImage({ pixels, width, height, softTokenBudget, signa
       throw new Error(`[Pipeline] embedImage: encoder produced ${numTokens} soft tokens; expected >= 1.`);
     }
     try {
-      const bytes = await readBuffer(
+      const pooled = await readMeanPooledEmbedding(
         encodeResult.features,
-        numTokens * hiddenSize * Float32Array.BYTES_PER_ELEMENT
+        numTokens,
+        hiddenSize,
+        'image_embedding_features'
       );
-      const features = new Float32Array(bytes);
-      const pooled = new Float32Array(hiddenSize);
-      for (let t = 0; t < numTokens; t++) {
-        const base = t * hiddenSize;
-        for (let d = 0; d < hiddenSize; d++) {
-          pooled[d] += features[base + d];
-        }
-      }
-      const inv = 1 / numTokens;
-      for (let d = 0; d < hiddenSize; d++) pooled[d] *= inv;
       return {
         embedding: pooled,
         embeddingDim: hiddenSize,
@@ -616,20 +618,12 @@ export async function embedAudio({ audio, signal } = {}) {
       throw new Error(`[Pipeline] embedAudio: encoder produced ${numTokens} tokens; expected >= 1.`);
     }
     try {
-      const bytes = await readBuffer(
+      const pooled = await readMeanPooledEmbedding(
         encodeResult.features,
-        numTokens * hiddenSize * Float32Array.BYTES_PER_ELEMENT
+        numTokens,
+        hiddenSize,
+        'audio_embedding_features'
       );
-      const features = new Float32Array(bytes);
-      const pooled = new Float32Array(hiddenSize);
-      for (let t = 0; t < numTokens; t++) {
-        const base = t * hiddenSize;
-        for (let d = 0; d < hiddenSize; d++) {
-          pooled[d] += features[base + d];
-        }
-      }
-      const inv = 1 / numTokens;
-      for (let d = 0; d < hiddenSize; d++) pooled[d] *= inv;
       return {
         embedding: pooled,
         embeddingDim: hiddenSize,

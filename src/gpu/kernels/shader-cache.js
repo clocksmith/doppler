@@ -1,7 +1,7 @@
 
 
 import { log } from '../../debug/index.js';
-import { getDeviceEpoch } from '../device.js';
+import { getSharedDeviceEpoch } from '../device-state.js';
 
 // ============================================================================
 // Caches
@@ -46,7 +46,7 @@ function getDeviceId(device) {
 }
 
 function ensureModuleCacheEpoch() {
-  const epoch = getDeviceEpoch();
+  const epoch = getSharedDeviceEpoch();
   if (epoch !== moduleCacheEpoch) {
     shaderModuleCache.clear();
     moduleCacheEpoch = epoch;
@@ -229,7 +229,7 @@ export async function getShaderModule(
 export function clearShaderCaches() {
   shaderSourceCache.clear();
   shaderModuleCache.clear();
-  moduleCacheEpoch = getDeviceEpoch();
+  moduleCacheEpoch = getSharedDeviceEpoch();
 }
 
 

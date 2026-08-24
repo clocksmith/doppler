@@ -1,5 +1,7 @@
 import { f16ToF32 } from '../../../../loader/dtype-utils.js';
 
+export { writeChunkLogits } from './cpu-output.js';
+
 const bf16ScratchU32 = new Uint32Array(1);
 const bf16ScratchF32 = new Float32Array(bf16ScratchU32.buffer);
 const SPLIT_UPLOAD_CHUNK_BYTES = 64 * 1024 * 1024;
@@ -172,21 +174,6 @@ export async function extractLmHeadChunk(
 }
 
 
-export function writeChunkLogits(
-  target,
-  chunk,
-  numTokens,
-  vocabSize,
-  rowOffset,
-  rowCount
-) {
-  for (let t = 0; t < numTokens; t++) {
-    const srcOffset = t * rowCount;
-    const dstOffset = t * vocabSize + rowOffset;
-    target.set(chunk.subarray(srcOffset, srcOffset + rowCount), dstOffset);
-  }
-}
-
 export function shouldMaterializeSplitLmHeadGPU(lmHead, largeWeightConfig) {
   const overrides = largeWeightConfig?.gpuResidentOverrides;
   if (!Array.isArray(overrides) || overrides.length === 0) {
@@ -195,4 +182,3 @@ export function shouldMaterializeSplitLmHeadGPU(lmHead, largeWeightConfig) {
   const label = lmHead?.label;
   return typeof label === 'string' && overrides.includes(label);
 }
-

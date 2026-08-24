@@ -79,6 +79,9 @@
     "inference/pipelines/text/generator/text.js": {
       "reason": "Explicit hotswap drift enforcement is an experimental observation bridge."
     },
+    "inference/pipelines/audio/index.js": {
+      "reason": "The audio entrypoint is an explicit compatibility bridge to the quarantined Gemma4 audio prototype."
+    },
     "inference/test-harness.js": {
       "reason": "The test harness intentionally exposes quarantined distribution and hotswap diagnostics."
     },
@@ -253,10 +256,6 @@
       "classification": "compatibility-facade",
       "semanticOwner": "inference/pipelines/text/logits/{scale-policy,readback,cpu-output}.js"
     },
-    "inference/pipelines/text/moe-helpers.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "inference/pipelines/text/moe/{expert-loading,cpu-routing}.js"
-    },
     "loader/dtype-utils.js": {
       "classification": "semantic-owner",
       "semanticOwner": "loader dtype conversion and buffer layout"
@@ -314,6 +313,7 @@
     "inference/pipelines/index.js",
     "inference/pipelines/text/buffer-types.js",
     "inference/pipelines/text/bdpa-steamroller.js",
+    "inference/pipelines/text/embedding-pooling.js",
     "inference/pipelines/text/debug-utils.js",
     "inference/pipelines/text/debug-utils/utils.js",
     "inference/pipelines/text/attention/heterogeneous-contract.js",
@@ -324,7 +324,6 @@
     "inference/pipelines/text/logits/types.js",
     "inference/pipelines/text/logits/cpu.js",
     "inference/pipelines/text/logits/cpu-output.js",
-    "inference/pipelines/text/moe-helpers.js",
     "inference/pipelines/text/index.js",
     "inference/pipelines/text/types.js",
     "inference/tokenizers/types.js",
@@ -476,13 +475,6 @@
         "experimental/training/wgsl-repair-components.js"
       ]
     },
-    "gpu/device.js": {
-      "reviewedLines": 765,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "gpu/device-components.js"
-      ]
-    },
     "gpu/kernels/attention/executors.js": {
       "reviewedLines": 960,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
@@ -502,13 +494,6 @@
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "gpu/kernels/codegen/wgsl-variants-components.js"
-      ]
-    },
-    "gpu/kernels/fused_ffn.js": {
-      "reviewedLines": 892,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "gpu/kernels/fused_ffn-components.js"
       ]
     },
     "inference/browser-harness/benchmark-execution.js": {
@@ -537,13 +522,6 @@
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "inference/kv-cache/tiered-components.js"
-      ]
-    },
-    "inference/multi-model-network.js": {
-      "reviewedLines": 771,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/multi-model-network-components.js"
       ]
     },
     "inference/pipelines/diffusion/sd3/execution.js": {

@@ -17,7 +17,7 @@ export interface LinearAttentionCoreLayerState {
   rmsNormEps: number;
   convWeightGPU: GPUBuffer;
   dtBiasGPU: GPUBuffer;
-  aNegExpGPU: GPUBuffer;
+  aLogGPU: GPUBuffer;
   normWeightGPU: GPUBuffer;
   convStateGPU: GPUBuffer;
   recurrentStateGPU: GPUBuffer;
