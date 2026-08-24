@@ -1284,6 +1284,56 @@
       "ruleChains": [],
       "wgslOnDisk": true
      }
+    },
+    "q4k_normed": {
+     "wgsl": "fused_normed_ffn_q4k.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "bindingsOverride": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "prenorm_input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "norm_weight",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "inv_rms",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 4,
+       "name": "gate_weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 5,
+       "name": "up_weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 6,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "description": "Fused prenorm plus Q4K gate/up projection and activation.",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     }
    }
   },
@@ -12556,6 +12606,457 @@
       "maxKVLen": 2048
      },
      "description": "BDPA decode kernel - f16 Q/basis + packed int8 deltas",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "check_finiteness": {
+   "description": "Device-side non-finite tensor detection.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "status",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "f16": {
+     "wgsl": "check_finiteness.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "check_hot_vocab_stop": {
+   "description": "Device-side hot-vocabulary stop and next-token state update.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "sampled_token",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "should_stop",
+     "type": "storage"
+    },
+    {
+     "index": 3,
+     "name": "hot_token_index_map",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "next_input_token",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "default": {
+     "wgsl": "check_hot_vocab_stop.wgsl",
+     "entryPoint": "main",
+     "workgroup": [1,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "check_stop": {
+   "description": "Device-side sampled-token stop detection.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "sampled_token",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "should_stop",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "default": {
+     "wgsl": "check_stop.wgsl",
+     "entryPoint": "main",
+     "workgroup": [1,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "gated_short_conv": {
+   "description": "Stateful gated short convolution.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "conv_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "conv_state",
+     "type": "storage"
+    },
+    {
+     "index": 4,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "f32": {
+     "wgsl": "gated_short_conv.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "logit_merge": {
+   "description": "Device-side ensemble logit merge policies.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "logits_a",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 1,
+     "name": "logits_b",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "merged",
+     "type": "storage"
+    },
+    {
+     "index": 3,
+     "name": "uniforms",
+     "type": "uniform"
+    }
+   ],
+   "variants": {
+    "weighted": {
+     "wgsl": "logit_merge_weighted.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "max": {
+     "wgsl": "logit_merge_max.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "geometric": {
+     "wgsl": "logit_merge_geometric.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "moe_router_bias_add": {
+   "description": "Device-side MoE router bias application.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "logits",
+     "type": "storage"
+    },
+    {
+     "index": 2,
+     "name": "bias",
+     "type": "read-only-storage"
+    }
+   ],
+   "variants": {
+    "f16_f16": {
+     "wgsl": "moe_router_bias_add_f16_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "f16_f32": {
+     "wgsl": "moe_router_bias_add_f16_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "f32_f16": {
+     "wgsl": "moe_router_bias_add_f32_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "f32_f32": {
+     "wgsl": "moe_router_bias_add_f32_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "rmsnorm_stats": {
+   "description": "RMSNorm residual sum and inverse-RMS statistics.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "residual",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "prenorm_sum",
+     "type": "storage"
+    },
+    {
+     "index": 4,
+     "name": "inv_rms",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "workgroup": {
+     "wgsl": "rmsnorm_stats.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "subgroups": {
+     "wgsl": "rmsnorm_stats_subgroups.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "logit_finalize": {
+   "description": "Device-side LM-head bias, padding, scaling, and softcapping.",
+   "baseBindings": [
+    { "index": 0, "name": "uniforms", "type": "uniform" },
+    { "index": 1, "name": "input", "type": "read-only-storage" },
+    { "index": 2, "name": "bias", "type": "read-only-storage" },
+    { "index": 3, "name": "output", "type": "storage" }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     { "name": "row_count", "type": "u32", "offset": 0 },
+     { "name": "source_columns", "type": "u32", "offset": 4 },
+     { "name": "target_columns", "type": "u32", "offset": 8 },
+     { "name": "has_bias", "type": "u32", "offset": 12 },
+     { "name": "output_scale", "type": "f32", "offset": 16 },
+     { "name": "softcap", "type": "f32", "offset": 20 }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "logit_finalize_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": { "status": "unused", "inlineConfigs": [], "ruleChains": [], "wgslOnDisk": true }
+    },
+    "f16": {
+     "wgsl": "logit_finalize_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "reachability": { "status": "unused", "inlineConfigs": [], "ruleChains": [], "wgslOnDisk": true }
+    }
+   }
+  },
+  "logit_scatter": {
+   "description": "Device-side assembly of LM-head row chunks into one logits tensor.",
+   "baseBindings": [
+    { "index": 0, "name": "uniforms", "type": "uniform" },
+    { "index": 1, "name": "input", "type": "read-only-storage" },
+    { "index": 2, "name": "output", "type": "storage" }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     { "name": "row_count", "type": "u32", "offset": 0 },
+     { "name": "chunk_columns", "type": "u32", "offset": 4 },
+     { "name": "target_columns", "type": "u32", "offset": 8 },
+     { "name": "column_offset", "type": "u32", "offset": 12 }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "logit_scatter_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": { "status": "unused", "inlineConfigs": [], "ruleChains": [], "wgslOnDisk": true }
+    },
+    "f16": {
+     "wgsl": "logit_scatter_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "reachability": { "status": "unused", "inlineConfigs": [], "ruleChains": [], "wgslOnDisk": true }
+    }
+   }
+  },
+  "runtime_probe": {
+   "description": "Minimal device feature and submission probes.",
+   "baseBindings": [],
+   "variants": {
+    "shader_f16": {
+     "wgsl": "probe_shader_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [1,1,1],
+     "requires": ["shader-f16"],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "submit": {
+     "wgsl": "submit_probe.wgsl",
+     "entryPoint": "main",
+     "workgroup": [1,1,1],
+     "requires": [],
+     "bindingsOverride": [
+      {
+       "index": 0,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
      "reachability": {
       "status": "unused",
       "inlineConfigs": [],

@@ -1,4 +1,4 @@
-export { DiffusionPipeline, createDiffusionPipeline } from '../../inference/pipelines/diffusion/pipeline.js';
+export { DiffusionPipeline, createDiffusionPipeline } from './pipeline.js';
 export { DiffusionGemmaPipeline } from '../../inference/pipelines/diffusion-gemma/pipeline.js';
 export type {
   DiffusionGemmaGenerateOptions,

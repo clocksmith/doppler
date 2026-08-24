@@ -83,7 +83,7 @@ console.log(metrics);
 
 - diffusion export surface: [src/experimental/diffusion/index.js](../../src/experimental/diffusion/index.js)
 - diffusion types: [src/experimental/diffusion/index.d.ts](../../src/experimental/diffusion/index.d.ts)
-- diffusion pipeline: [src/inference/pipelines/diffusion/pipeline.js](../../src/inference/pipelines/diffusion/pipeline.js)
+- diffusion pipeline: [src/experimental/diffusion/pipeline.js](../../src/experimental/diffusion/pipeline.js)
 
 ## Related Surfaces
 

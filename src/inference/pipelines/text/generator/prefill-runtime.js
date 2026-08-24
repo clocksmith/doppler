@@ -8,7 +8,7 @@ import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from '../sampling.js';
 import { embed } from '../embed.js';
 import { processLayer } from '../layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from '../logits/index.js';
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits } from '../logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata, getLayout } from '../../../../gpu/weight-buffer.js';
 import {
   decodeStep,
@@ -738,7 +738,6 @@ export async function _prefill(inputIds, opts) {
 
     let lastLogits;
     let logitsVocabSize = config.vocabSize;
-    let usedRecordedLogits = false;
     const lmHead = this._state.weights.get('lm_head');
     const canRecordLogits = !!currentRecorder
       && selectedLogitTokenIds === null
@@ -754,10 +753,10 @@ export async function _prefill(inputIds, opts) {
         numTokens,
         getLogitsWeights(this._state),
         getLogitsConfig(this._state),
-        this._state.operatorDiagnostics
+        this._state.operatorDiagnostics,
+        { applySoftcap: true }
       );
       logitsVocabSize = recorded.vocabSize;
-      usedRecordedLogits = true;
 
       recordPrefillRecorderStats(this._state, currentRecorder);
       await currentRecorder.submitAndWait();
@@ -806,7 +805,6 @@ export async function _prefill(inputIds, opts) {
           );
         }
         logitsVocabSize = config.vocabSize;
-        usedRecordedLogits = false;
         lastLogits = fallbackLogits.length === logitsVocabSize
           ? fallbackLogits
           : extractLastPositionLogits(fallbackLogits, numTokens, logitsVocabSize);
@@ -857,18 +855,6 @@ export async function _prefill(inputIds, opts) {
     }
 
     this._state.currentSeqLen = startPos + numTokens;
-
-    if (usedRecordedLogits) {
-      if (logitsVocabSize < config.vocabSize) {
-        const padded = new Float32Array(config.vocabSize);
-        padded.set(lastLogits);
-        padded.fill(-Infinity, logitsVocabSize);
-        lastLogits = padded;
-      }
-      if (config.finalLogitSoftcapping != null) {
-        applySoftcapping(lastLogits, config.finalLogitSoftcapping);
-      }
-    }
 
     if (opts.debug && selectedLogitTokenIds === null) {
       logitsSanity(lastLogits, 'Prefill', (tokens) => resolveTokenText(this._state.tokenizer, tokens));

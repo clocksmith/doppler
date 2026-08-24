@@ -8,65 +8,9 @@ import {
   getOrCreatePipelineLayout,
 } from './pipeline-cache.js';
 import { recordDispatch } from './dispatch.js';
+import { getShaderModule } from './shader-cache.js';
 
 const CONV_WORKGROUP_SIZE = WORKGROUP_SIZES.DEFAULT;
-
-const SHADER = /* wgsl */ `
-override WORKGROUP_SIZE: u32 = 256u;
-
-struct Params {
-  num_tokens: u32,
-  hidden_size: u32,
-  kernel_size: u32,
-  _pad: u32,
-}
-
-@group(0) @binding(0) var<uniform> params: Params;
-@group(0) @binding(1) var<storage, read> input: array<f32>;
-@group(0) @binding(2) var<storage, read> conv_weight: array<f32>;
-@group(0) @binding(3) var<storage, read_write> conv_state: array<f32>;
-@group(0) @binding(4) var<storage, read_write> output: array<f32>;
-
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let channel = gid.x;
-  if (channel >= params.hidden_size) {
-    return;
-  }
-
-  let hidden_size = params.hidden_size;
-  let kernel_size = params.kernel_size;
-  let state_width = kernel_size - 1u;
-  let row_stride = 3u * hidden_size;
-  let state_base = channel * state_width;
-  let weight_base = channel * kernel_size;
-
-  for (var t: u32 = 0u; t < params.num_tokens; t = t + 1u) {
-    let row_offset = t * row_stride;
-
-    let b_val = input[row_offset + channel];
-    let c_val = input[row_offset + hidden_size + channel];
-    let x_val = input[row_offset + 2u * hidden_size + channel];
-
-    let bx = b_val * x_val;
-
-    var conv_sum: f32 = 0.0;
-    for (var k: u32 = 0u; k < state_width; k = k + 1u) {
-      conv_sum = conv_sum + conv_state[state_base + k] * conv_weight[weight_base + k];
-    }
-    conv_sum = conv_sum + bx * conv_weight[weight_base + state_width];
-
-    for (var k: u32 = 0u; k + 1u < state_width; k = k + 1u) {
-      conv_state[state_base + k] = conv_state[state_base + k + 1u];
-    }
-    if (state_width > 0u) {
-      conv_state[state_base + state_width - 1u] = bx;
-    }
-
-    output[t * hidden_size + channel] = c_val * conv_sum;
-  }
-}
-`;
 
 // ======================================================================
 // UNIFORM BUFFER
@@ -99,7 +43,7 @@ let cachedEpoch = -1;
 let pipeline = null;
 let bindGroupLayout = null;
 
-function createPipeline(device) {
+async function createPipeline(device) {
   bindGroupLayout = getOrCreateBindGroupLayout(
     'gated_short_conv_layout',
     [
@@ -112,10 +56,7 @@ function createPipeline(device) {
     device
   );
 
-  const module = device.createShaderModule({
-    label: 'gated_short_conv',
-    code: SHADER,
-  });
+  const module = await getShaderModule(device, 'gated_short_conv.wgsl', 'gated_short_conv');
 
   pipeline = device.createComputePipeline({
     label: 'gated_short_conv_pipeline',
@@ -130,10 +71,10 @@ function createPipeline(device) {
   });
 }
 
-function ensurePipeline(device) {
+async function ensurePipeline(device) {
   const epoch = getDeviceEpoch();
   if (epoch !== cachedEpoch || !pipeline) {
-    createPipeline(device);
+    await createPipeline(device);
     cachedEpoch = epoch;
   }
 }
@@ -182,7 +123,7 @@ export async function runGatedShortConvGPU(inputTensor, layerState, options = {}
     throw new Error('runGatedShortConvGPU requires kernelSize >= 2.');
   }
 
-  ensurePipeline(device);
+  await ensurePipeline(device);
 
   const outputSize = numTokens * hiddenSize * Float32Array.BYTES_PER_ELEMENT;
   const outputBuffer = acquireBuffer(outputSize, undefined, `L${options.layerIdx ?? 0}.gated_short_conv_out`);

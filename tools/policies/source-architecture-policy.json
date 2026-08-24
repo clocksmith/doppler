@@ -297,20 +297,23 @@
     "gpu/kernels/backward/utils.js",
     "gpu/kernels/rule-matcher.js",
     "gpu/kernels/types.js",
+    "gpu/kernels/turboquant-codebook.js",
     "gpu/kernels/utils.js",
     "inference/browser-harness-model-helpers.js",
     "inference/browser-harness-runtime-helpers.js",
     "inference/browser-harness-suite-helpers.js",
     "inference/browser-harness-text-helpers.js",
+    "inference/kv-cache/basis-decomposed-paged.js",
     "inference/pipelines/diffusion/helpers.js",
     "inference/pipelines/diffusion/index.js",
     "inference/pipelines/diffusion/types.js",
     "inference/pipelines/dream/energy-head-pipeline.js",
     "inference/pipelines/dream/pipeline.js",
     "inference/pipelines/energy/index.js",
-    "inference/pipelines/energy/types.js",
+    "inference/pipelines/energy-head/row-head-pipeline.js",
     "inference/pipelines/index.js",
     "inference/pipelines/text/buffer-types.js",
+    "inference/pipelines/text/bdpa-steamroller.js",
     "inference/pipelines/text/debug-utils.js",
     "inference/pipelines/text/debug-utils/utils.js",
     "inference/pipelines/text/attention/heterogeneous-contract.js",
@@ -319,6 +322,8 @@
     "inference/pipelines/text/generator-prefill-helpers.js",
     "inference/pipelines/text/logits/utils.js",
     "inference/pipelines/text/logits/types.js",
+    "inference/pipelines/text/logits/cpu.js",
+    "inference/pipelines/text/logits/cpu-output.js",
     "inference/pipelines/text/moe-helpers.js",
     "inference/pipelines/text/index.js",
     "inference/pipelines/text/types.js",
@@ -548,11 +553,11 @@
         "inference/pipelines/diffusion/sd3/execution-components.js"
       ]
     },
-    "inference/pipelines/diffusion/text-encoder-gpu.js": {
+    "experimental/diffusion/text-encoder-gpu.js": {
       "reviewedLines": 947,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
-        "inference/pipelines/diffusion/text-encoder-gpu-components.js"
+        "experimental/diffusion/text-encoder-gpu-components.js"
       ]
     },
     "inference/pipelines/diffusion/vae/execution.js": {

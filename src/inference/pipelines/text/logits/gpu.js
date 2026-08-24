@@ -17,10 +17,10 @@ import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { runProbes } from '../probes.js';
 import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
-import { f16BufferToF32 } from './cpu.js';
 import { readBufferWithCleanup } from './readback.js';
 import { resolveLogitInputScale } from './scale-policy.js';
 import { finalizeLogitOutputTensor } from './output-transform.js';
+import { runLogitScatter } from '../../../../gpu/kernels/logit-scatter.js';
 import { shouldForceStableF32Logits, createStableF32LogitsKernelPath } from './precision-policy.js';
 import {
   extractLmHeadChunk,
@@ -28,7 +28,6 @@ import {
   normalizeRangeBytes,
   resolveCpuWeightDims,
   shouldMaterializeSplitLmHeadGPU,
-  writeChunkLogits,
 } from './plan.js';
 import {
   coerceTensorDtype,
@@ -224,7 +223,7 @@ async function materializeSplitLmHeadGPU(lmHead, hiddenSize, weightVocabSize, la
 }
 
 
-export async function computeChunkedLogitsGPU(
+export async function computeChunkedLogitsTensorGPU(
   normedTensor,
   lmHead,
   numTokens,
@@ -247,7 +246,7 @@ export async function computeChunkedLogitsGPU(
 
   const splitLmHead = await materializeSplitLmHeadGPU(lmHead, hiddenSize, weightVocabSize, largeWeightConfig);
   if (splitLmHead) {
-    return computeSplitLogitsGPU(
+    return computeSplitLogitsTensorGPU(
       normedTensor,
       splitLmHead,
       numTokens,
@@ -273,7 +272,11 @@ export async function computeChunkedLogitsGPU(
     hasF16: caps.hasF16,
   });
   const preferF16 = weightDtype === 'f16';
-  const logits = new Float32Array(numTokens * vocabSize);
+  const logitsBuffer = acquireBuffer(
+    numTokens * vocabSize * Float32Array.BYTES_PER_ELEMENT,
+    undefined,
+    'lm_head_chunked_logits'
+  );
 
   if (isTraceEnabled('logits')) {
     trace.logits(`LM_HEAD_CHUNKED: vocab=${vocabSize}, chunkRows=${chunkRows}, layout=${lmHead.layout}, f16=${preferF16}`);
@@ -287,8 +290,9 @@ export async function computeChunkedLogitsGPU(
     })
     : normedTensor;
 
-  for (let rowOffset = 0; rowOffset < vocabSize; rowOffset += chunkRows) {
-    const rowCount = Math.min(chunkRows, vocabSize - rowOffset);
+  try {
+    for (let rowOffset = 0; rowOffset < vocabSize; rowOffset += chunkRows) {
+      const rowCount = Math.min(chunkRows, vocabSize - rowOffset);
     const chunkShape = lmHead.layout === 'column'
       ? [hiddenSize, rowCount]
       : [rowCount, hiddenSize];
@@ -350,30 +354,32 @@ export async function computeChunkedLogitsGPU(
       });
     }
 
-    const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsTensor.dtype });
-    const chunkLogitsData = await readBufferWithCleanup(
-      logitsTensor.buffer,
-      numTokens * rowCount * logitsBytes,
-      () => {
+      try {
+        await runLogitScatter(logitsTensor, logitsBuffer, {
+          rowCount: numTokens,
+          chunkColumns: rowCount,
+          targetColumns: vocabSize,
+          columnOffset: rowOffset,
+        });
+      } finally {
         releaseBuffer(logitsTensor.buffer);
         releaseBuffer(weightBuffer.buffer);
       }
-    );
-    const chunkLogits = logitsTensor.dtype === 'f16'
-      ? f16BufferToF32(chunkLogitsData)
-      : new Float32Array(chunkLogitsData);
-    writeChunkLogits(logits, chunkLogits, numTokens, vocabSize, rowOffset, rowCount);
-  }
+    }
 
-  if (matmulInput !== normedTensor) {
-    releaseBuffer(matmulInput.buffer);
+    return createTensor(logitsBuffer, 'f32', [numTokens, vocabSize], 'lm_head_chunked_logits');
+  } catch (error) {
+    releaseBuffer(logitsBuffer);
+    throw error;
+  } finally {
+    if (matmulInput !== normedTensor) {
+      releaseBuffer(matmulInput.buffer);
+    }
   }
-
-  return logits;
 }
 
 
-export async function computeSplitLogitsGPU(
+export async function computeSplitLogitsTensorGPU(
   normedTensor,
   lmHead,
   numTokens,
@@ -397,7 +403,11 @@ export async function computeSplitLogitsGPU(
   const lmHeadRole = resolveLmHeadMatmulRole(phase);
   const lmHeadInputDtype = resolveMatmulStepDtype(lmHeadRole, phase, kernelPath, normedTensor.dtype, 'inputDtype');
   const lmHeadOutputDtype = resolveMatmulStepDtype(lmHeadRole, phase, kernelPath, normedTensor.dtype, 'outputDtype');
-  const logits = new Float32Array(numTokens * vocabSize);
+  const logitsBuffer = acquireBuffer(
+    numTokens * vocabSize * Float32Array.BYTES_PER_ELEMENT,
+    undefined,
+    'lm_head_split_logits'
+  );
   let matmulInput = normedTensor;
   let matmulInputOwned = false;
 
@@ -448,26 +458,47 @@ export async function computeSplitLogitsGPU(
         });
       }
 
-      const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsTensor.dtype });
-      const chunkLogitsData = await readBufferWithCleanup(
-        logitsTensor.buffer,
-        numTokens * rowCount * logitsBytes,
-        () => {
-          releaseBuffer(logitsTensor.buffer);
-        }
-      );
-      const chunkLogits = logitsTensor.dtype === 'f16'
-        ? f16BufferToF32(chunkLogitsData)
-        : new Float32Array(chunkLogitsData);
-      writeChunkLogits(logits, chunkLogits, numTokens, vocabSize, section.rowStart, rowCount);
+      try {
+        await runLogitScatter(logitsTensor, logitsBuffer, {
+          rowCount: numTokens,
+          chunkColumns: rowCount,
+          targetColumns: vocabSize,
+          columnOffset: section.rowStart,
+        });
+      } finally {
+        releaseBuffer(logitsTensor.buffer);
+      }
     }
+    return createTensor(logitsBuffer, 'f32', [numTokens, vocabSize], 'lm_head_split_logits');
+  } catch (error) {
+    releaseBuffer(logitsBuffer);
+    throw error;
   } finally {
     if (matmulInputOwned) {
       releaseBuffer(matmulInput.buffer);
     }
   }
 
-  return logits;
+}
+
+export async function computeChunkedLogitsGPU(...args) {
+  const tensor = await computeChunkedLogitsTensorGPU(...args);
+  const data = await readBufferWithCleanup(
+    tensor.buffer,
+    tensor.shape[0] * tensor.shape[1] * Float32Array.BYTES_PER_ELEMENT,
+    () => releaseBuffer(tensor.buffer)
+  );
+  return new Float32Array(data);
+}
+
+export async function computeSplitLogitsGPU(...args) {
+  const tensor = await computeSplitLogitsTensorGPU(...args);
+  const data = await readBufferWithCleanup(
+    tensor.buffer,
+    tensor.shape[0] * tensor.shape[1] * Float32Array.BYTES_PER_ELEMENT,
+    () => releaseBuffer(tensor.buffer)
+  );
+  return new Float32Array(data);
 }
 
 
@@ -478,6 +509,7 @@ export async function computeLogitsGPU(
   config,
   debugFlags,
   operatorDiagnostics = null,
+  options = null,
 ) {
   const {
     hiddenSize,
@@ -487,7 +519,7 @@ export async function computeLogitsGPU(
     embeddingVocabSize,
     activationDtype,
   } = config;
-  const { finalNorm, lmHead } = weights;
+  const { finalNorm, lmHead, lmHeadBias = null } = weights;
   const device = getDevice();
 
   if (!device) {
@@ -660,7 +692,12 @@ export async function computeLogitsGPU(
       executionPolicies: config.executionPolicies ?? null,
     });
     logitsTensor = await finalizeLogitOutputTensor(logitsTensor, config, {
-      numTokens, vocabSize: matmulVocabSize, operatorDiagnostics,
+      numTokens,
+      vocabSize: matmulVocabSize,
+      targetVocabSize: vocabSize,
+      bias: lmHeadBias,
+      applySoftcap: options?.applySoftcap === true,
+      operatorDiagnostics,
     });
 
     // Cleanup intermediate buffers (but keep logitsBuffer)
@@ -675,7 +712,7 @@ export async function computeLogitsGPU(
     if (normWeightBufferOwned) { releaseBuffer(normWeightBuffer); normWeightBufferOwned = false; }
     if (lmHeadBufferOwned) { releaseBuffer(isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer); lmHeadBufferOwned = false; }
 
-    return { logitsBuffer: logitsTensor.buffer, vocabSize: matmulVocabSize, logitsDtype: logitsTensor.dtype };
+    return { logitsBuffer: logitsTensor.buffer, vocabSize, logitsDtype: logitsTensor.dtype };
   } finally {
     if (inputBufferOwned && inputBuffer) releaseBuffer(inputBuffer);
     if (normInputOwned && normInputTensor) releaseBuffer(normInputTensor.buffer);

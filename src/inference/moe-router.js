@@ -2,11 +2,10 @@
 
 import { getDevice } from '../gpu/device.js';
 import { getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
-import { runMatmul, runSoftmax } from '../gpu/kernel-selector.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../memory/buffer-pool.js';
+import { runMatmul } from '../gpu/kernel-selector.js';
 import { createTensor } from '../gpu/tensor.js';
-import { f16ToF32Array } from './kv-cache/types.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { getShaderModule } from '../gpu/kernels/shader-cache.js';
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
@@ -174,34 +173,11 @@ export class MoERouter {
 
   
   computeRouterLogitsCPU(hiddenStates, numTokens) {
-    if (!this.gateWeight) {
-      throw new Error('Router gate weights not loaded');
-    }
-
-    if (isGpuBufferInstance(this.gateWeight) || isWeightBuffer(this.gateWeight)) {
-      throw new Error('Gate weights are on GPU, use computeRouterLogitsGPU instead');
-    }
-
-    const logits = new Float32Array(numTokens * this.numExperts);
-
-    // Matrix multiply: hidden_states @ gate_weight
-    // SafeTensors stores linear weights as [out, in] = [numExperts, hiddenSize].
-    for (let t = 0; t < numTokens; t++) {
-      for (let e = 0; e < this.numExperts; e++) {
-        let sum = 0;
-        for (let h = 0; h < this.hiddenSize; h++) {
-          sum += hiddenStates[t * this.hiddenSize + h] *
-                 this.gateWeight[e * this.hiddenSize + h];
-        }
-        // Add bias if present (GPT-OSS style)
-        if (this.gateBias && this.gateBias instanceof Float32Array) {
-          sum += this.gateBias[e];
-        }
-        logits[t * this.numExperts + e] = sum;
-      }
-    }
-
-    return logits;
+    void hiddenStates;
+    void numTokens;
+    throw new Error(
+      'MoERouter.computeRouterLogitsCPU is unavailable: runtime routing mathematics requires the WebGPU path.'
+    );
   }
 
   
@@ -310,47 +286,16 @@ export class MoERouter {
     throw new Error('MoERouter cannot infer gate bias dtype.');
   }
 
-  _getBiasAddPipeline(logitsDtype, biasDtype, device) {
+  async _getBiasAddPipeline(logitsDtype, biasDtype, device) {
     const key = `${logitsDtype}_${biasDtype}`;
     const cached = this._biasAddPipelines.get(key);
     if (cached) return cached;
 
-    const codeConfig = selectRuleValue('inference', 'moe', 'biasAddCode', {
+    const { shaderFile } = selectRuleValue('inference', 'moe', 'biasAddCode', {
       logitsDtype,
       biasDtype,
     });
-    const {
-      logitsType,
-      biasType,
-      logitsRead,
-      biasRead,
-      logitsWrite,
-      enableF16,
-    } = codeConfig;
-
-    const code = `
-        ${enableF16}
-        struct Uniforms {
-          numTokens: u32,
-          numExperts: u32,
-          _pad0: u32,
-          _pad1: u32,
-        }
-        @group(0) @binding(0) var<uniform> uniforms: Uniforms;
-        @group(0) @binding(1) var<storage, read_write> logits: array<${logitsType}>;
-        @group(0) @binding(2) var<storage, read> bias: array<${biasType}>;
-
-        @compute @workgroup_size(256)
-        fn main(@builtin(global_invocation_id) gid: vec3u) {
-          let idx = gid.x;
-          let total = uniforms.numTokens * uniforms.numExperts;
-          if (idx >= total) { return; }
-          let e = idx % uniforms.numExperts;
-          let value = ${logitsRead} + ${biasRead};
-          ${logitsWrite}
-        }
-      `;
-    const module = device.createShaderModule({ code });
+    const module = await getShaderModule(device, shaderFile, `moe_router_bias_add_${key}`);
     const pipeline = device.createComputePipeline({
       label: `moe_router_bias_add_${key}`,
       layout: 'auto',
@@ -361,7 +306,7 @@ export class MoERouter {
   }
 
   async _addBiasInPlace(logits, bias, numTokens, device, logitsDtype, biasDtype) {
-    const pipeline = this._getBiasAddPipeline(logitsDtype, biasDtype, device);
+    const pipeline = await this._getBiasAddPipeline(logitsDtype, biasDtype, device);
 
     const uniformData = new ArrayBuffer(16);
     const uniformView = new DataView(uniformData);
@@ -400,136 +345,34 @@ export class MoERouter {
 
   
   async routeGPU(hiddenStates, numTokens, options = {}) {
-    // Compute router logits on GPU
-    const logitsBuffer = await this.computeRouterLogitsGPU(hiddenStates, numTokens, null, options);
-    try {
-      const logitsData = await readBuffer(logitsBuffer);
-      const logits = this.lastLogitsDtype === 'f16'
-        ? f16ToF32Array(new Uint16Array(logitsData))
-        : new Float32Array(logitsData);
-
-      const selections = [];
-      this.activeExperts.clear();
-
-      for (let t = 0; t < numTokens; t++) {
-        const tokenLogits = logits.subarray(
-          t * this.numExperts,
-          (t + 1) * this.numExperts
-        );
-
-        const selection = this.selectExpertsForToken(tokenLogits);
-        selections.push(selection);
-
-        for (const idx of selection.indices) {
-          this.activeExperts.add(idx);
-          this.loadBalanceStats.expertCounts[idx]++;
-        }
-        this.loadBalanceStats.totalTokens++;
-      }
-
-      return selections;
-    } finally {
-      releaseBuffer(logitsBuffer);
-    }
+    void hiddenStates;
+    void numTokens;
+    void options;
+    throw new Error(
+      'MoERouter.routeGPU cannot read routing tensors back to JavaScript; use the GPU MoE executor.'
+    );
   }
 
   
   softmax(logits, size) {
-    const result = new Float32Array(size);
-
-    // Find max for numerical stability
-    let max = -Infinity;
-    for (let i = 0; i < size; i++) {
-      if (logits[i] > max) max = logits[i];
-    }
-
-    // Compute exp and sum
-    let sum = 0;
-    for (let i = 0; i < size; i++) {
-      result[i] = Math.exp(logits[i] - max);
-      sum += result[i];
-    }
-
-    // Normalize
-    for (let i = 0; i < size; i++) {
-      result[i] /= sum;
-    }
-
-    return result;
+    void logits;
+    void size;
+    throw new Error('MoERouter.softmax is unavailable: runtime softmax requires the WebGPU path.');
   }
 
   
   selectExpertsForToken(logits) {
-    // Apply softmax to get probabilities
-    const probs = this.softmax(logits, this.numExperts);
-
-    // Find top-k experts
-    
-    const indexed = [];
-    for (let i = 0; i < this.numExperts; i++) {
-      indexed.push({ index: i, prob: probs[i] });
-    }
-    indexed.sort((a, b) => b.prob - a.prob);
-
-    const topKExperts = indexed.slice(0, this.topK);
-    const indices = topKExperts.map(e => e.index);
-    const weights = new Float32Array(topKExperts.map(e => e.prob));
-
-    // Renormalize weights if configured
-    if (this.normalizeWeights) {
-      let weightSum = 0;
-      for (let i = 0; i < this.topK; i++) {
-        weightSum += weights[i];
-      }
-      for (let i = 0; i < this.topK; i++) {
-        weights[i] /= weightSum;
-      }
-    }
-    if (this.perExpertScale instanceof Float32Array) {
-      for (let i = 0; i < this.topK; i++) {
-        weights[i] *= this.perExpertScale[indices[i]];
-      }
-    }
-
-    return {
-      indices,
-      weights,
-      routerLogits: new Float32Array(logits)
-    };
+    void logits;
+    throw new Error(
+      'MoERouter.selectExpertsForToken is unavailable: top-k routing requires the WebGPU path.'
+    );
   }
 
   
   route(hiddenStates, numTokens) {
-    // Compute router logits
-    const allLogits = this.computeRouterLogitsCPU(hiddenStates, numTokens);
-
-    
-    const selections = [];
-    this.activeExperts.clear();
-
-    for (let t = 0; t < numTokens; t++) {
-      // Extract logits for this token
-      const tokenLogits = allLogits.subarray(
-        t * this.numExperts,
-        (t + 1) * this.numExperts
-      );
-
-      const selection = this.selectExpertsForToken(tokenLogits);
-      selections.push(selection);
-
-      // Track active experts
-      for (const idx of selection.indices) {
-        this.activeExperts.add(idx);
-      }
-
-      // Update load balance stats
-      for (const idx of selection.indices) {
-        this.loadBalanceStats.expertCounts[idx]++;
-      }
-      this.loadBalanceStats.totalTokens++;
-    }
-
-    return selections;
+    void hiddenStates;
+    void numTokens;
+    throw new Error('MoERouter.route is unavailable: runtime MoE routing requires WebGPU.');
   }
 
   
@@ -542,20 +385,11 @@ export class MoERouter {
     if (this.loadBalanceStats.totalTokens === 0) return 0;
 
     const numTokens = this.loadBalanceStats.totalTokens;
-    const expertProbs = new Float32Array(this.numExperts);
-
-    // Compute fraction of tokens routed to each expert
-    for (let i = 0; i < this.numExperts; i++) {
-      expertProbs[i] = this.loadBalanceStats.expertCounts[i] / numTokens;
-    }
-
-    // Load balance loss: sum of (expert_prob * expert_fraction)
-    // Ideally each expert gets 1/numExperts of tokens
     let loss = 0;
     const idealFraction = 1 / this.numExperts;
     for (let i = 0; i < this.numExperts; i++) {
-      // Squared deviation from ideal
-      const deviation = expertProbs[i] - idealFraction;
+      const expertFraction = this.loadBalanceStats.expertCounts[i] / numTokens;
+      const deviation = expertFraction - idealFraction;
       loss += deviation * deviation;
     }
 
@@ -629,26 +463,11 @@ export function createExpertExecutionPlan(selections, numExperts) {
 
 
 export function combineExpertOutputs(expertOutputs, selections, numTokens, hiddenSize) {
-  const output = new Float32Array(numTokens * hiddenSize);
-
-  for (let t = 0; t < numTokens; t++) {
-    const sel = selections[t];
-
-    for (let k = 0; k < sel.indices.length; k++) {
-      const expertIdx = sel.indices[k];
-      const weight = sel.weights[k];
-      const expertOut = expertOutputs.get(expertIdx);
-
-      if (!expertOut) continue;
-
-      // Weighted sum: output += weight * expert_output
-      for (let h = 0; h < hiddenSize; h++) {
-        output[t * hiddenSize + h] += weight * expertOut[t * hiddenSize + h];
-      }
-    }
-  }
-
-  return output;
+  void expertOutputs;
+  void selections;
+  void numTokens;
+  void hiddenSize;
+  throw new Error('combineExpertOutputs is unavailable: expert aggregation requires WebGPU.');
 }
 
 export default MoERouter;

@@ -109,7 +109,7 @@ async function recordLogitsTailGPU(
     embeddingVocabSize,
     activationDtype = 'f32',
   } = config;
-  const { finalNorm, lmHead } = weights;
+  const { finalNorm, lmHead, lmHeadBias = null } = weights;
   const matmulVocabSize = useTiedEmbeddings && embeddingVocabSize ? embeddingVocabSize : vocabSize;
 
   if (!finalNorm || !lmHead) {
@@ -257,6 +257,8 @@ async function recordLogitsTailGPU(
     lmHeadInputTensor,
     lmHeadBuffer,
     lmHeadBufferOwned,
+    lmHeadBias,
+    targetVocabSize: vocabSize,
   };
 }
 
@@ -297,6 +299,7 @@ export async function recordLogitsGPU(
   weights,
   config,
   operatorDiagnostics = null,
+  options = null,
 ) {
   const tail = await recordLogitsTailGPU(
     recorder,
@@ -315,12 +318,18 @@ export async function recordLogitsGPU(
     executionPolicies: config.executionPolicies ?? null,
   });
   logitsTensor = await finalizeLogitOutputTensor(logitsTensor, config, {
-    recorder, numTokens, vocabSize: tail.matmulVocabSize, operatorDiagnostics,
+    recorder,
+    numTokens,
+    vocabSize: tail.matmulVocabSize,
+    targetVocabSize: tail.targetVocabSize,
+    bias: tail.lmHeadBias,
+    applySoftcap: options?.applySoftcap === true,
+    operatorDiagnostics,
   });
 
   trackRecordedLogitsTail(recorder, tail);
 
-  return { logitsBuffer: logitsTensor.buffer, vocabSize: tail.matmulVocabSize, logitsDtype: logitsTensor.dtype };
+  return { logitsBuffer: logitsTensor.buffer, vocabSize: tail.targetVocabSize, logitsDtype: logitsTensor.dtype };
 }
 
 export async function recordGreedyLmHeadArgmaxGPU(
@@ -343,6 +352,9 @@ export async function recordGreedyLmHeadArgmaxGPU(
     config,
     operatorDiagnostics
   );
+  if (tail.lmHeadBias != null) {
+    throw new Error('[recordGreedyLmHeadArgmaxGPU] LM-head bias requires the full recorded logits path.');
+  }
   const outputBuffer = await recordLmHeadArgmax(recorder, tail.lmHeadInputTensor, tail.lmHeadBuffer, {
     vocabSize: tail.matmulVocabSize,
     hiddenSize: tail.hiddenSize,
@@ -354,4 +366,3 @@ export async function recordGreedyLmHeadArgmaxGPU(
   trackRecordedLogitsTail(recorder, tail);
   return outputBuffer;
 }
-

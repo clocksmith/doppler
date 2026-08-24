@@ -28,7 +28,7 @@ const {
   getPlatformConfig,
   setDevice,
 } = await import('../../src/gpu/device.js');
-const { EnergyPipeline } = await import('../../src/inference/pipelines/energy/pipeline.js');
+const { EnergyPipeline } = await import('../../src/experimental/energy/pipeline.js');
 
 class FakeBuffer {}
 globalThis.GPUBuffer = FakeBuffer;

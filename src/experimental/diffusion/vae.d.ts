@@ -1,5 +1,5 @@
-import type { DiffusionModelConfig, DiffusionRuntimeConfig } from './types.js';
-import type { DiffusionWeightEntry } from './weights.js';
+import type { DiffusionModelConfig, DiffusionRuntimeConfig } from '../../inference/pipelines/diffusion/types.js';
+import type { DiffusionWeightEntry } from '../../inference/pipelines/diffusion/weights.js';
 
 export interface DecodeLatentsOptions {
   width: number;

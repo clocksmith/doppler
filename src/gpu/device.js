@@ -335,11 +335,10 @@ export const FEATURES =  ({
 });
 
 
-function probeShaderF16(device) {
+async function probeShaderF16(device) {
   try {
-    const module = device.createShaderModule({
-      code: 'enable f16;\n@compute @workgroup_size(1) fn _probe() { var x: f16 = 1.0h; }',
-    });
+    const { getShaderModule } = await import('./kernels/shader-cache.js');
+    const module = await getShaderModule(device, 'probe_shader_f16.wgsl', 'probe_shader_f16');
     // createShaderModule is synchronous in Dawn; if it returned without
     // throwing, the WGSL→backend translation succeeded.
     void module;
@@ -566,7 +565,7 @@ async function initializeDevice() {
   // Cache kernel capabilities
   let hasF16 = gpuDevice.features.has(FEATURES.SHADER_F16);
   if (hasF16) {
-    hasF16 = probeShaderF16(gpuDevice);
+    hasF16 = await probeShaderF16(gpuDevice);
   }
   const hasSubgroups = gpuDevice.features.has(FEATURES.SUBGROUPS);
 
@@ -654,10 +653,7 @@ export function setDevice(device, options = {}) {
     description: '',
   };
 
-  let setDeviceHasF16 = gpuDevice.features.has(FEATURES.SHADER_F16);
-  if (setDeviceHasF16) {
-    setDeviceHasF16 = probeShaderF16(gpuDevice);
-  }
+  const setDeviceHasF16 = gpuDevice.features.has(FEATURES.SHADER_F16);
   const setDeviceHasSubgroups = gpuDevice.features.has(FEATURES.SUBGROUPS);
 
   const previousSubmitProbeMs = kernelCapabilities?.submitProbeMs ?? null;

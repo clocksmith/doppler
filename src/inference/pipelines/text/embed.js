@@ -3,10 +3,9 @@
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { runGather, recordGather, runGatherSplit, recordGatherSplit, runScale, recordScale } from '../../../gpu/kernel-selector.js';
-import { log, trace } from '../../../debug/index.js';
+import { trace } from '../../../debug/index.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import { castF32ToF16, recordCastF32ToF16 } from '../../../gpu/kernels/cast.js';
 import { isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
@@ -86,15 +85,6 @@ export function resolveEmbeddingScale(config, hiddenSize) {
   return scaleEmbeddings === true ? Math.sqrt(hiddenSize) : 1;
 }
 
-async function readGpuTokenIdsForCpuEmbeddingGather(tokenIds, numTokens, indexOffset) {
-  if (numTokens <= 0) {
-    throw new Error('[Embed] numTokens must be provided when tokenIds is a GPUBuffer.');
-  }
-  const totalTokenCount = indexOffset + numTokens;
-  const readback = await readBuffer(tokenIds, totalTokenCount * Uint32Array.BYTES_PER_ELEMENT);
-  return new Uint32Array(readback).subarray(indexOffset, totalTokenCount);
-}
-
 export async function embed(tokenIds, embedBuffer, config) {
   const {
     hiddenSize,
@@ -112,7 +102,6 @@ export async function embed(tokenIds, embedBuffer, config) {
     probeStage = 'embed_out',
     inputHiddenSize = hiddenSize,
     hiddenOffset = 0,
-    stats = null,
     embeddingStorageEncoding = null,
   } = config;
   const device = getDevice();
@@ -141,20 +130,6 @@ export async function embed(tokenIds, embedBuffer, config) {
   
   const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32', { useF16 });
 
-  let cpuEmbeddings = null;
-  if (isCpuWeightBuffer(embedBuffer)) {
-    const bufDtype = embedBuffer.dtype;
-    if (bufDtype !== 'f32' && bufDtype !== 'f16') {
-      throw new Error(
-        `[Embed] CPU embedding buffer has unsupported dtype '${bufDtype}'; ` +
-        `only 'f32' and 'f16' are supported in the CPU gather path.`
-      );
-    }
-    cpuEmbeddings = embedBuffer.data;
-  } else if (embedBuffer instanceof Float32Array) {
-    cpuEmbeddings = embedBuffer;
-  }
-
   if (debug) {
     trace.embed(
       `tokens=${numTokens}, hidden=${hiddenSize}, vocab=${vocabSize}, scaleEmbeddings=${scaleEmbeddings}, ` +
@@ -168,173 +143,9 @@ export async function embed(tokenIds, embedBuffer, config) {
     }
   }
 
-  if (cpuEmbeddings) {
-    if (tokenBufferInput) {
-      tokenIdArray = await readGpuTokenIdsForCpuEmbeddingGather(tokenIds, numTokens, indexOffset);
-    }
-    if (debug) {
-      trace.embed('Using CPU embedding gather (oversized embedding)');
-    }
-
-    // Bounds check: warn (not throw) for token IDs outside vocab range.
-    // Some tokenizers intentionally produce special OOV token IDs beyond vocabSize.
-    if (tokenIdArray) {
-      for (let t = 0; t < tokenIdArray.length; t++) {
-        const tid = tokenIdArray[t];
-        if (tid < 0 || tid >= vocabSize) {
-          log.warn(
-            'Embed',
-            `Token ID ${tid} at position ${t} is outside vocab range [0, ${vocabSize}). ` +
-            'This may produce incorrect embeddings.'
-          );
-          break;
-        }
-      }
-    }
-
-    const output = new Float32Array(numTokens * hiddenSize);
-
-    // Step 6: Batched prefill rows — per-token pre-decoded PLE data for all layers.
-    // Layout: Float32Array[numTokens × inputHiddenSize], indexed by
-    // [t * inputHiddenSize + hiddenOffset] to select each token's layer slice.
-    if (config.preloadedCpuBatchedRows) {
-      for (let t = 0; t < numTokens; t++) {
-        const srcOffset = t * inputHiddenSize + hiddenOffset;
-        const dstOffset = t * hiddenSize;
-        output.set(config.preloadedCpuBatchedRows.subarray(srcOffset, srcOffset + hiddenSize), dstOffset);
-      }
-    } else
-
-    // Fast path: use pre-loaded and pre-decoded PLE row (coalesced read optimization).
-    // preloadedCpuRow is a Float32Array containing the full PLE row for the token,
-    // indexed by hiddenOffset to select the correct layer's slice.
-    if (config.preloadedCpuRow) {
-      const rowSlice = config.preloadedCpuRow.subarray(hiddenOffset, hiddenOffset + hiddenSize);
-      for (let t = 0; t < numTokens; t++) {
-        output.set(rowSlice, t * hiddenSize);
-      }
-    } else
-
-    // Range-backed path: per-element loadRange calls (original path)
-    {
-    const rangeBackedSource = isRangeBackedCpuEmbeddingSource(cpuEmbeddings)
-      ? cpuEmbeddings
-      : null;
-    if (rangeBackedSource) {
-      const rawSourceDtype = rangeBackedSource.sourceDtype ?? embedBuffer.dtype;
-      if (rawSourceDtype == null) {
-        throw new Error('[Embed] CPU embedding range source requires sourceDtype or embedding buffer dtype metadata.');
-      }
-      const sourceDtype = String(rawSourceDtype).toLowerCase();
-      if (sourceDtype !== 'f16' && sourceDtype !== 'bf16' && sourceDtype !== 'f32') {
-        throw new Error(`[Embed] CPU embedding range source dtype "${sourceDtype}" is unsupported.`);
-      }
-      const bytesPerElement = sourceDtype === 'f16' || sourceDtype === 'bf16' ? 2 : 4;
-      if (!transpose) {
-        for (let t = 0; t < numTokens; t++) {
-          const tokenId = (tokenIdArray)[t];
-          const srcOffset = tokenId * inputHiddenSize + hiddenOffset;
-          const chunk = normalizeRangeBytes(
-            await rangeBackedSource.loadRange(srcOffset * bytesPerElement, hiddenSize * bytesPerElement),
-            'CPU embedding range source'
-          );
-          if (chunk.byteLength !== hiddenSize * bytesPerElement) {
-            throw new Error(
-              `[Embed] CPU embedding range source returned ${chunk.byteLength} bytes, ` +
-              `expected ${hiddenSize * bytesPerElement}.`
-            );
-          }
-          decodeRangeChunkIntoOutput(chunk, sourceDtype, output, t * hiddenSize, hiddenSize);
-        }
-      } else {
-        for (let t = 0; t < numTokens; t++) {
-          const tokenId = (tokenIdArray)[t];
-          const dstOffset = t * hiddenSize;
-          for (let h = 0; h < hiddenSize; h++) {
-            const chunk = normalizeRangeBytes(
-              await rangeBackedSource.loadRange(
-                ((hiddenOffset + h) * vocabSize + tokenId) * bytesPerElement,
-                bytesPerElement
-              ),
-              'CPU embedding range source'
-            );
-            decodeRangeChunkIntoOutput(chunk, sourceDtype, output, dstOffset + h, 1);
-          }
-        }
-      }
-    } else {
-    // Check actual data type: loader's f16_to_f32 CPU path already decodes F16 into Float32Array,
-    // so dtype='f16' does not reliably indicate raw F16 bytes. Only Uint16Array needs per-element decoding.
-      const isF16Cpu = cpuEmbeddings instanceof Uint16Array;
-      if (!transpose) {
-        for (let t = 0; t < numTokens; t++) {
-          const tokenId =  (tokenIdArray)[t];
-          const srcOffset = tokenId * inputHiddenSize + hiddenOffset;
-          if (isF16Cpu) {
-            for (let h = 0; h < hiddenSize; h++) {
-              output[t * hiddenSize + h] = f16ToF32(cpuEmbeddings[srcOffset + h]);
-            }
-          } else {
-            output.set(cpuEmbeddings.subarray(srcOffset, srcOffset + hiddenSize), t * hiddenSize);
-          }
-        }
-      } else {
-        for (let t = 0; t < numTokens; t++) {
-          const tokenId =  (tokenIdArray)[t];
-          const dstOffset = t * hiddenSize;
-          for (let h = 0; h < hiddenSize; h++) {
-            const raw = cpuEmbeddings[(hiddenOffset + h) * vocabSize + tokenId];
-            output[dstOffset + h] = isF16Cpu ? f16ToF32(raw) : raw;
-          }
-        }
-      }
-    }
-    } // end else (non-preloaded path)
-
-    if (resolvedEmbeddingScale !== 1) {
-      for (let i = 0; i < output.length; i++) {
-        output[i] *= resolvedEmbeddingScale;
-      }
-    }
-
-    if (useF16) {
-      const f32Buffer = acquireBuffer(output.byteLength, undefined, 'embed_cpu_f32');
-      device.queue.writeBuffer(f32Buffer, 0, output);
-      const f32Tensor = createTensor(f32Buffer, 'f32', [numTokens, hiddenSize], 'embed_cpu_f32');
-      const outputBytes = numTokens * hiddenSize * 2;
-      const outputBuffer = intermediateOutputBuffer && intermediateOutputBuffer.size >= outputBytes ? intermediateOutputBuffer : null;
-      const f16Tensor = recorder
-        ? await recordCastF32ToF16(recorder, f32Tensor, { outputBuffer })
-        : await castF32ToF16(f32Tensor, { outputBuffer });
-      if (recorder) {
-        recorder.trackTemporaryBuffer(f32Buffer);
-      } else {
-        releaseBuffer(f32Buffer);
-      }
-      return finalizeEmbeddingOutput(f16Tensor, resolvedEmbeddingNormalization, {
-        recorder, numTokens, hiddenSize,
-        outputBuffer: preAllocatedOutput && preAllocatedOutput.size >= outputBytes ? preAllocatedOutput : null,
-        probeStage, debugProbes: config.debugProbes, operatorDiagnostics,
-      });
-    }
-
-    const outputBytes = output.byteLength;
-    const outputBuffer = intermediateOutputBuffer && intermediateOutputBuffer.size >= outputBytes
-      ? intermediateOutputBuffer
-      : acquireBuffer(outputBytes, undefined, 'embed_cpu_f32_out');
-    device.queue.writeBuffer(outputBuffer, 0, output);
-    if (stats) {
-      stats.pleWriteBufferCount = (stats.pleWriteBufferCount ?? 0) + 1;
-      stats.pleWriteBufferBytes = (stats.pleWriteBufferBytes ?? 0) + outputBytes;
-    }
-    return finalizeEmbeddingOutput(
-      createTensor(outputBuffer, dtype, [numTokens, hiddenSize], 'embed_output'),
-      resolvedEmbeddingNormalization,
-      {
-        recorder, numTokens, hiddenSize,
-        outputBuffer: preAllocatedOutput && preAllocatedOutput.size >= outputBytes ? preAllocatedOutput : null,
-        probeStage, debugProbes: config.debugProbes, operatorDiagnostics,
-      }
+  if (isCpuWeightBuffer(embedBuffer) || embedBuffer instanceof Float32Array) {
+    throw new Error(
+      '[Embed] CPU-resident embedding gather is not a production path; materialize a GPU or split embedding weight.'
     );
   }
 

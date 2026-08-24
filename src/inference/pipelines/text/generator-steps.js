@@ -20,7 +20,7 @@ import { isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { resolvePerLayerInputsSession } from './generator/session-context.js';
 import { processLayer } from './layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, extractLastPositionLogits, finalizeLogits, applySoftcapping } from './logits/index.js';
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, extractLastPositionLogits } from './logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { captureObservedFusedDecodeLogits, emitObservedLogits } from './generator-logits-observation.js';
@@ -756,7 +756,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       }
 
       const stopCheck = canUseHotVocabularyBatchDecode
-        ? recordCheckHotVocabStop(recorder, {
+        ? await recordCheckHotVocabStop(recorder, {
           sampledTokenBuffer: tokensBuffer,
           nextInputTokenBuffer: pleInputTokensBuffer,
           hotTokenIndexMapBuffer: pleHotVocabularyRuntime.hotTokenIndexMapBuffer,
@@ -768,7 +768,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
           currentPos,
         })
         : useGpuStopFlags
-        ? recordCheckStop(recorder, {
+        ? await recordCheckStop(recorder, {
           sampledTokenBuffer: tokensBuffer,
           shouldStopBuffer: stopBuffer,
           tokenIndex: outputIndex,

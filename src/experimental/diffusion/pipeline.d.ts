@@ -4,8 +4,8 @@
  * @module inference/pipelines/diffusion/pipeline
  */
 
-import type { DiffusionRequest, DiffusionResult, DiffusionStats, DiffusionRuntimeConfig } from './types.js';
-import type { DiffusionWeightLoader, DiffusionWeightEntry } from './weights.js';
+import type { DiffusionRequest, DiffusionResult, DiffusionStats, DiffusionRuntimeConfig } from '../../inference/pipelines/diffusion/types.js';
+import type { DiffusionWeightLoader, DiffusionWeightEntry } from '../../inference/pipelines/diffusion/weights.js';
 
 export declare class DiffusionPipeline {
   runtimeConfig: { inference?: { diffusion?: DiffusionRuntimeConfig } } | null;
