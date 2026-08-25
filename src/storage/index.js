@@ -108,6 +108,7 @@ export {
   formatSpeed,
   estimateTimeRemaining,
   persistDownloadedShardIfNeeded,
+  inspectModelDownloadResume,
 } from './downloader.js';
 
 export {

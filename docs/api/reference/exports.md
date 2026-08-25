@@ -155,6 +155,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `exportModelToDirectory`
   - `formatBytes`
   - `getQuotaInfo`
+  - `inspectModelDownloadResume`
   - `listFilesInStore`
   - `listModels`
   - `listRegisteredModels`
@@ -165,6 +166,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `loadTensorsFromStore`
   - `loadTokenizerFromStore`
   - `loadTokenizerModelFromStore`
+  - `ModelDownloadResumeInspection`
   - `openModelStore`
   - `registerModel`
   - `removeRegisteredModel`

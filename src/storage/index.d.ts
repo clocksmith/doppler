@@ -136,6 +136,7 @@ export {
   formatSpeed,
   estimateTimeRemaining,
   persistDownloadedShardIfNeeded,
+  inspectModelDownloadResume,
 } from './downloader.js';
 export type {
   DownloadProgress,
@@ -147,6 +148,7 @@ export type {
   DownloadNeededResult,
   ProgressCallback,
 } from './downloader.js';
+export type { ModelDownloadResumeInspection } from './download/resume-inspection.js';
 
 export {
   ensureModelCached,

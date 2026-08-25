@@ -27,3 +27,4 @@ export { listStorageInventory, deleteStorageEntry } from '../storage/inventory.j
 export { formatBytes, getQuotaInfo } from '../storage/quota.js';
 export { exportModelToDirectory } from '../storage/export.js';
 export { ensureModelCached, ensureModelCachedSource } from '../tooling/opfs-cache.js';
+export { inspectModelDownloadResume } from '../storage/download/resume-inspection.js';
