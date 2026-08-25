@@ -30,6 +30,9 @@ import type {
   ProgressCallback,
 } from './download-types.js';
 
+export { inspectModelDownloadResume } from './download/resume-inspection.js';
+export type { ModelDownloadResumeInspection } from './download/resume-inspection.js';
+
 /**
  * Downloads a model with progress reporting and resume support
  */

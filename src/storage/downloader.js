@@ -58,6 +58,7 @@ import {
 } from './download/state.js';
 
 export { persistDownloadedShardIfNeeded } from './download/integrity.js';
+export { inspectModelDownloadResume } from './download/resume-inspection.js';
 
 // ============================================================================
 // Module State
@@ -100,12 +101,6 @@ export async function downloadModel(
 
   // Use override modelId for storage, or fall back to manifest's modelId
   const storageModelId = overrideModelId || manifest.modelId;
-
-  // Check available space
-  const spaceCheck = await checkSpaceAvailable(trackedTotalBytes);
-  if (!spaceCheck.hasSpace) {
-    throw new QuotaExceededError(trackedTotalBytes, spaceCheck.info.available);
-  }
 
   // Open model directory
   await openModelStore(storageModelId);
@@ -195,6 +190,17 @@ export async function downloadModel(
         }
       }
     }
+  }
+
+  let verifiedDownloadedBytes = 0;
+  for (const idx of state.completedShards) {
+    const info = trackedShards[idx];
+    if (info) verifiedDownloadedBytes += Number(info.size || 0);
+  }
+  const requiredDownloadBytes = Math.max(0, trackedTotalBytes - verifiedDownloadedBytes);
+  const spaceCheck = await checkSpaceAvailable(requiredDownloadBytes);
+  if (!spaceCheck.hasSpace) {
+    throw new QuotaExceededError(requiredDownloadBytes, spaceCheck.info.available);
   }
 
   // Create abort controller
