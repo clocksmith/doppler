@@ -77,6 +77,7 @@ config/schema/claim-evidence-contract.schema.json
 config/schema/command-surface-contract.schema.json
 config/schema/demo-contract-receipt.schema.json
 config/schema/demo-hardware-receipt.schema.json
+config/schema/electron-design-partner-prospects.schema.json
 config/schema/goal-completion-matrix.schema.json
 config/schema/host-teacher-output.schema.json
 config/schema/host-teacher-qualification-policy.schema.json

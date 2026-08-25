@@ -64,6 +64,12 @@ customer activation system relies on Doppler’s eligibility decision, followed
 by a subsequent upgrade through the same process. Two additional unrelated
 customers must then repeat the path.
 
+The separate [Electron design partner program](electron-design-partner-program.md)
+orders AnythingLLM, Joplin, Cherry Studio, Chatbox, and AFFiNE as researched
+prospects. The validated register deliberately reports zero qualified customers.
+It cannot satisfy this section's external, paid, fleet, rollback, revocation, or
+repeat-upgrade gates.
+
 ## Pack release closure
 
 The immutable Pack is the supported release unit. Pack v2 now binds and rejects

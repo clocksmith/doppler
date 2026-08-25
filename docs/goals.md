@@ -58,6 +58,35 @@ carried by the Pack and never invents one on the user's device. Doe is an
 optional target, not a dependency. A stronger eligible incumbent remains valid
 when it satisfies the application contract.
 
+## Immediate operating order: one independent customer proof
+
+Development now serves the external release episode rather than adding more
+architecture. Doppler must sell one paid Electron production release and remain
+provider-neutral. The frozen comparison includes the customer's strongest
+incumbent, Doppler Runtime when eligible, and optional DoeRuntime only when the
+customer separately authorizes it. The winning qualified TargetPlan is the one
+that passes the application contract; product branding grants no preference.
+
+Completion requires all of the following as separate retained evidence:
+
+- a paid external production release;
+- customer-operated Windows and macOS fleet receipts;
+- a signed Pack eligibility decision used by the customer's promotion system;
+- preserved rejected candidates and their failure bundles;
+- an authorized revocation and atomic rollback drill; and
+- a subsequent model upgrade delegated to Doppler.
+
+The three remaining Pack-first compatibility migrations stay deferred unless
+the selected customer's workload reaches one. Glimmer, model count, and runtime
+superiority do not outrank this proof. The independent-product test is strict:
+Doppler Production Release must remain purchasable and operable without Doe.
+
+The researched outreach pipeline is governed by
+`tools/policies/electron-design-partner-prospects.json` and documented in
+`docs/electron-design-partner-program.md`. Its five names are prospects only;
+they are not customers, authorized workloads, qualification evidence, or
+commercial proof.
+
 ## Goal 1: Ship one external Electron production release
 
 Product contract:
@@ -149,6 +178,12 @@ environment fingerprint. Product support additionally requires a human
 promotion receipt bound to the canonical digest of the complete evaluation set;
 editing status fields alone cannot promote an integration. See
 `docs/product-integration-qualification.md`.
+
+The prospect registry is even earlier than static integration discovery. It
+records outreach order, proposed pilot inputs, provider neutrality, custody,
+and blockers without a pinned customer revision or Doppler call path. Run
+`npm run product:prospects:report` to inspect it. A prospect moves into an
+authorized release contract only through explicit application-owner authority.
 
 ## Completion matrix
 

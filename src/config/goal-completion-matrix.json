@@ -216,6 +216,10 @@
             "docs/goals.md",
             "docs/model-release-platform.md",
             "tools/policies/model-release-platform.json",
+            "docs/electron-design-partner-program.md",
+            "tools/policies/electron-design-partner-prospects.json",
+            "tools/check-electron-design-partner-prospects.js",
+            "tests/config/electron-design-partner-prospects.test.js",
             "tools/check-model-release-platform.js",
             "tests/config/model-release-platform.test.js"
           ],
