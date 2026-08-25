@@ -23,6 +23,11 @@
       "schemaPath": "src/config/schema/command-surface-contract.schema.json"
     },
     {
+      "id": "electron-design-partner-prospects",
+      "policyPath": "tools/policies/electron-design-partner-prospects.json",
+      "schemaPath": "src/config/schema/electron-design-partner-prospects.schema.json"
+    },
+    {
       "id": "host-teacher-qualification-policy",
       "policyPath": "tools/policies/host-teacher-qualification-policy.json",
       "schemaPath": "src/config/schema/host-teacher-qualification-policy.schema.json"
