@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { buildClaimEvidenceContractReport } from './check-claim-evidence-contract.js';
 import { buildBunProductQualificationReport } from './check-bun-product-qualification.js';
 import { buildCommandSurfaceContractReport } from './check-command-surface-contract.js';
+import { buildElectronDesignPartnerProspectsReport } from './check-electron-design-partner-prospects.js';
 import { buildGoalCompletionReport } from './check-goal-completion.js';
 import { buildModelArtifactContractReport } from './check-model-artifact-contract.js';
 import { buildPolicySchemaRegistryReport } from './check-policy-schema-registry.js';
@@ -41,6 +42,7 @@ function buildSummary(reports) {
     ...collectErrors('goals', reports.goals),
     ...collectErrors('claim evidence', reports.claimEvidence),
     ...collectErrors('command surface', reports.commandSurface),
+    ...collectErrors('Electron prospect pipeline', reports.electronProspects),
     ...collectErrors('model artifact', reports.modelArtifact),
     ...collectErrors('policy schemas', reports.policySchemas),
     ...collectErrors('product portfolio coherence', reports.productPortfolioCoherence),
@@ -57,6 +59,7 @@ function buildSummary(reports) {
     ok: reports.goals.ok
       && reports.claimEvidence.ok
       && reports.commandSurface.ok
+      && reports.electronProspects.ok
       && reports.modelArtifact.ok
       && reports.policySchemas.ok
       && reports.productPortfolioCoherence.ok
@@ -79,6 +82,22 @@ function buildSummary(reports) {
       commandSurface: {
         ok: reports.commandSurface.ok,
         commands: reports.commandSurface.commands.length,
+      },
+      electronProspects: {
+        ok: reports.electronProspects.ok,
+        researched: reports.electronProspects.prospects.length,
+        primary: reports.electronProspects.primaryProspects,
+        qualifiedCustomers: reports.electronProspects.qualifiedCustomers,
+        statusCounts: reports.electronProspects.statusCounts,
+        orderedTargets: reports.electronProspects.prospects.map((prospect) => ({
+          id: prospect.id,
+          applicationName: prospect.applicationName,
+          order: prospect.order,
+          wave: prospect.wave,
+          relationshipStatus: prospect.relationshipStatus,
+          claimAllowed: prospect.claimAllowed,
+        })),
+        claimBoundary: reports.electronProspects.claimBoundary,
       },
       modelArtifact: {
         ok: reports.modelArtifact.ok,
@@ -209,6 +228,7 @@ function formatMarkdown(summary) {
     '',
     `- claim evidence: ${summary.contracts.claimEvidence.ok ? 'ok' : 'invalid'} (${summary.contracts.claimEvidence.claims} release claims)`,
     `- command surface: ${summary.contracts.commandSurface.ok ? 'ok' : 'invalid'} (${summary.contracts.commandSurface.commands} commands)`,
+    `- Electron prospect pipeline: ${summary.contracts.electronProspects.ok ? 'valid' : 'invalid'} (${summary.contracts.electronProspects.researched} researched; ${summary.contracts.electronProspects.primary} primary; ${summary.contracts.electronProspects.qualifiedCustomers} qualified customers represented)`,
     `- model artifact registry: ${summary.contracts.modelArtifact.ok ? 'ok' : 'invalid'} (${summary.contracts.modelArtifact.registryModels}/${summary.contracts.modelArtifact.catalogModels} catalog models exposed)`,
     `- policy schemas: ${summary.contracts.policySchemas.ok ? 'ok' : 'invalid'} (${summary.contracts.policySchemas.policies} policies)`,
     `- product portfolio coherence: ${summary.contracts.productPortfolioCoherence.ok ? 'ok' : 'invalid'} (${summary.contracts.productPortfolioCoherence.workloads.length} workloads across ${summary.contracts.productPortfolioCoherence.requiredGates.length} qualification gates)`,
@@ -238,6 +258,7 @@ export async function buildProductReadinessReport({
     goals: await buildGoalCompletionReport(),
     claimEvidence: await buildClaimEvidenceContractReport(),
     commandSurface: await buildCommandSurfaceContractReport(),
+    electronProspects: await buildElectronDesignPartnerProspectsReport(),
     modelArtifact: await buildModelArtifactContractReport(),
     policySchemas: await buildPolicySchemaRegistryReport(),
     productPortfolioCoherence: await productPortfolioCoherenceBuilder(),

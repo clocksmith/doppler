@@ -17,6 +17,17 @@ assert.equal(
   'production-authority'
 );
 assert.equal(report.contracts.productIntegrations.qualified, 3);
+assert.equal(report.contracts.electronProspects.ok, true);
+assert.equal(report.contracts.electronProspects.researched, 5);
+assert.equal(report.contracts.electronProspects.primary, 3);
+assert.equal(report.contracts.electronProspects.qualifiedCustomers, 0);
+assert.deepEqual(
+  report.contracts.electronProspects.orderedTargets.map((entry) => entry.id),
+  ['anythingllm', 'joplin', 'cherry-studio', 'chatbox', 'affine']
+);
+assert.ok(report.contracts.electronProspects.orderedTargets.every(
+  (entry) => entry.claimAllowed === false
+));
 assert.equal(report.contracts.productPortfolioCoherence.ok, true);
 assert.equal(report.contracts.productPortfolioCoherence.workloads.length, 3);
 assert.equal(report.contracts.productPortfolioCoherence.requiredGates.length, 4);
