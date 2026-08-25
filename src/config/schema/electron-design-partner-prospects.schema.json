@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/electron-design-partner-prospects-v1.schema.json",
+  "title": "Doppler Electron Design Partner Prospects v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "entryProduct",
+    "recurringProduct",
+    "initialIcp",
+    "requiredProspects",
+    "claimBoundary",
+    "prospects"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../src/config/schema/electron-design-partner-prospects.schema.json"
+    },
+    "schemaVersion": { "const": 1 },
+    "source": { "const": "doppler" },
+    "entryProduct": { "const": "Doppler Production Release" },
+    "recurringProduct": { "const": "Doppler Release Operations" },
+    "initialIcp": { "const": "TypeScript/Electron desktop products on Windows and macOS" },
+    "requiredProspects": { "const": 5 },
+    "claimBoundary": { "type": "string", "minLength": 1 },
+    "prospects": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/prospect" }
+    }
+  },
+  "$defs": {
+    "nonEmptyStringArray": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "pilot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective",
+        "requiredCustomerInputs",
+        "applicationAcceptance",
+        "deliverables",
+        "repeatGate"
+      ],
+      "properties": {
+        "objective": { "type": "string", "minLength": 1 },
+        "requiredCustomerInputs": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "applicationAcceptance": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "deliverables": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "repeatGate": { "type": "string", "minLength": 1 }
+      }
+    },
+    "providerPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidateIncumbents",
+        "selectionRule",
+        "doeProof",
+        "doeRuntime",
+        "customerActivationAuthority",
+        "selfPromotionAllowed"
+      ],
+      "properties": {
+        "candidateIncumbents": { "$ref": "#/$defs/nonEmptyStringArray" },
+        "selectionRule": { "const": "strongest-qualified-application-outcome" },
+        "doeProof": { "const": "optional-separately-authorized-provider" },
+        "doeRuntime": { "const": "eligible-only-after-measured-win" },
+        "customerActivationAuthority": { "const": true },
+        "selfPromotionAllowed": { "const": false }
+      }
+    },
+    "custodyPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rawCustomerContent",
+        "customerDerivedEvidence",
+        "sanitizedRuntimeFailure",
+        "reproducibleBackendDefect"
+      ],
+      "properties": {
+        "rawCustomerContent": { "const": "never-cross-product-by-default" },
+        "customerDerivedEvidence": { "const": "explicit-authorization-required" },
+        "sanitizedRuntimeFailure": { "const": "sanitized-only" },
+        "reproducibleBackendDefect": { "const": "reproducible-evidence-only" }
+      }
+    },
+    "prospect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "order",
+        "applicationName",
+        "upstreamRepository",
+        "wave",
+        "relationshipStatus",
+        "claimAllowed",
+        "workloads",
+        "pilot",
+        "providerPolicy",
+        "custodyPolicy",
+        "blockers"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "order": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "applicationName": { "type": "string", "minLength": 1 },
+        "upstreamRepository": { "type": "string", "pattern": "^https://github\\.com/[^/]+/[^/]+$" },
+        "wave": { "enum": ["primary", "backup", "later"] },
+        "relationshipStatus": {
+          "enum": [
+            "research-candidate",
+            "outreach-authorized",
+            "contacted",
+            "discovery",
+            "pilot-authorized",
+            "pilot-active",
+            "closed"
+          ]
+        },
+        "claimAllowed": { "const": false },
+        "workloads": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "generation",
+              "document-intelligence",
+              "embedding-retrieval",
+              "reranking",
+              "provider-compatibility"
+            ]
+          }
+        },
+        "pilot": { "$ref": "#/$defs/pilot" },
+        "providerPolicy": { "$ref": "#/$defs/providerPolicy" },
+        "custodyPolicy": { "$ref": "#/$defs/custodyPolicy" },
+        "blockers": { "$ref": "#/$defs/nonEmptyStringArray" }
+      }
+    }
+  }
+}

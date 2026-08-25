@@ -1,0 +1,309 @@
+{
+  "$schema": "../../src/config/schema/electron-design-partner-prospects.schema.json",
+  "schemaVersion": 1,
+  "source": "doppler",
+  "entryProduct": "Doppler Production Release",
+  "recurringProduct": "Doppler Release Operations",
+  "initialIcp": "TypeScript/Electron desktop products on Windows and macOS",
+  "requiredProspects": 5,
+  "claimBoundary": "This register is a researched outreach pipeline. A listed application is not a customer, design partner, authorized workload, qualified integration, production release, revenue source, or evidence of demand until separately retained customer authority and qualification evidence establish that state.",
+  "prospects": [
+    {
+      "id": "anythingllm",
+      "order": 1,
+      "applicationName": "AnythingLLM",
+      "upstreamRepository": "https://github.com/Mintplex-Labs/anything-llm",
+      "wave": "primary",
+      "relationshipStatus": "research-candidate",
+      "claimAllowed": false,
+      "workloads": ["generation", "document-intelligence", "embedding-retrieval", "provider-compatibility"],
+      "pilot": {
+        "objective": "Qualify one planned local-model release and its subsequent upgrade across the customer-declared AnythingLLM desktop provider and hardware matrix.",
+        "requiredCustomerInputs": [
+          "pinned AnythingLLM application revision",
+          "pinned model and tokenizer identities",
+          "application-owned RAG acceptance suite and oracle",
+          "declared Windows and macOS fleet policy",
+          "current provider configurations and fallback policy",
+          "customer-owned rollout and rollback target"
+        ],
+        "applicationAcceptance": [
+          "document ingestion and retrieval quality",
+          "answer quality and citation behavior",
+          "startup, memory, latency, and failure budgets",
+          "provider and architecture compatibility",
+          "fallback visibility and rollback correctness"
+        ],
+        "deliverables": [
+          "immutable signed Pack and release manifest",
+          "application-level qualification decision",
+          "provider and fleet compatibility evidence",
+          "reproducible failure bundles and typed exclusions",
+          "customer-controlled fallback and rollback policy"
+        ],
+        "repeatGate": "The customer delegates promotion eligibility for the subsequent model upgrade to Doppler under the same acceptance and activation boundary."
+      },
+      "providerPolicy": {
+        "candidateIncumbents": ["Microsoft Foundry Local", "Ollama", "LM Studio", "customer current runtime"],
+        "selectionRule": "strongest-qualified-application-outcome",
+        "doeProof": "optional-separately-authorized-provider",
+        "doeRuntime": "eligible-only-after-measured-win",
+        "customerActivationAuthority": true,
+        "selfPromotionAllowed": false
+      },
+      "custodyPolicy": {
+        "rawCustomerContent": "never-cross-product-by-default",
+        "customerDerivedEvidence": "explicit-authorization-required",
+        "sanitizedRuntimeFailure": "sanitized-only",
+        "reproducibleBackendDefect": "reproducible-evidence-only"
+      },
+      "blockers": [
+        "outreach-not-authorized",
+        "customer-relationship-unestablished",
+        "application-revision-not-pinned",
+        "acceptance-suite-not-authorized",
+        "paid-production-release-unestablished",
+        "customer-fleet-receipts-missing",
+        "subsequent-upgrade-unestablished"
+      ]
+    },
+    {
+      "id": "joplin",
+      "order": 2,
+      "applicationName": "Joplin",
+      "upstreamRepository": "https://github.com/laurent22/joplin",
+      "wave": "primary",
+      "relationshipStatus": "research-candidate",
+      "claimAllowed": false,
+      "workloads": ["document-intelligence", "embedding-retrieval"],
+      "pilot": {
+        "objective": "Turn one planned Joplin semantic-search model release into an externally maintained embedding Pack with index-compatible upgrade and rollback.",
+        "requiredCustomerInputs": [
+          "pinned Joplin desktop revision",
+          "pinned embedding model and tokenizer identities",
+          "application-owned semantic-search relevance suite",
+          "declared Windows, macOS, and packaged-desktop fleet policy",
+          "existing vector-index compatibility requirements",
+          "customer-owned rollout and rollback target"
+        ],
+        "applicationAcceptance": [
+          "small, medium, and large notebook indexing",
+          "semantic-search quality retention",
+          "renderer isolation and memory ceilings",
+          "model download and cache integrity",
+          "existing-index upgrade compatibility",
+          "rollback without an unnecessary index rebuild"
+        ],
+        "deliverables": [
+          "immutable embedding Pack and release manifest",
+          "index migration and compatibility decision",
+          "packaged-desktop fleet evidence",
+          "memory and renderer failure bundles",
+          "customer-controlled rollback policy"
+        ],
+        "repeatGate": "The next embedding-model or index-format upgrade is requalified through Doppler and the customer uses the result for promotion eligibility."
+      },
+      "providerPolicy": {
+        "candidateIncumbents": ["ONNX Runtime", "customer current runtime"],
+        "selectionRule": "strongest-qualified-application-outcome",
+        "doeProof": "optional-separately-authorized-provider",
+        "doeRuntime": "eligible-only-after-measured-win",
+        "customerActivationAuthority": true,
+        "selfPromotionAllowed": false
+      },
+      "custodyPolicy": {
+        "rawCustomerContent": "never-cross-product-by-default",
+        "customerDerivedEvidence": "explicit-authorization-required",
+        "sanitizedRuntimeFailure": "sanitized-only",
+        "reproducibleBackendDefect": "reproducible-evidence-only"
+      },
+      "blockers": [
+        "outreach-not-authorized",
+        "customer-relationship-unestablished",
+        "application-revision-not-pinned",
+        "acceptance-suite-not-authorized",
+        "paid-production-release-unestablished",
+        "customer-fleet-receipts-missing",
+        "subsequent-upgrade-unestablished"
+      ]
+    },
+    {
+      "id": "cherry-studio",
+      "order": 3,
+      "applicationName": "Cherry Studio",
+      "upstreamRepository": "https://github.com/CherryHQ/cherry-studio",
+      "wave": "primary",
+      "relationshipStatus": "research-candidate",
+      "claimAllowed": false,
+      "workloads": ["generation", "document-intelligence", "embedding-retrieval", "provider-compatibility"],
+      "pilot": {
+        "objective": "Qualify one local generation release, one embedding release, and their provider metadata for a customer-declared Cherry Studio desktop matrix.",
+        "requiredCustomerInputs": [
+          "pinned Cherry Studio application revision",
+          "pinned generation and embedding identities",
+          "application-owned chat and knowledge-base acceptance suites",
+          "declared Windows and macOS fleet policy",
+          "current provider capability declarations and fallback policy",
+          "customer-owned rollout and rollback target"
+        ],
+        "applicationAcceptance": [
+          "generation and knowledge-base task quality",
+          "declared model capability accuracy",
+          "provider endpoint and metadata conformance",
+          "startup, memory, latency, and lifecycle budgets",
+          "fallback visibility and replacement behavior"
+        ],
+        "deliverables": [
+          "signed generation and embedding release manifests",
+          "model-provider capability registry",
+          "application and fleet qualification decisions",
+          "known-failure, fallback, replacement, and retirement records",
+          "customer-controlled rollback policy"
+        ],
+        "repeatGate": "A subsequent model or provider upgrade is governed by recurring Doppler Release Operations under the same customer activation boundary."
+      },
+      "providerPolicy": {
+        "candidateIncumbents": ["Ollama", "LM Studio", "customer current runtime"],
+        "selectionRule": "strongest-qualified-application-outcome",
+        "doeProof": "optional-separately-authorized-provider",
+        "doeRuntime": "eligible-only-after-measured-win",
+        "customerActivationAuthority": true,
+        "selfPromotionAllowed": false
+      },
+      "custodyPolicy": {
+        "rawCustomerContent": "never-cross-product-by-default",
+        "customerDerivedEvidence": "explicit-authorization-required",
+        "sanitizedRuntimeFailure": "sanitized-only",
+        "reproducibleBackendDefect": "reproducible-evidence-only"
+      },
+      "blockers": [
+        "outreach-not-authorized",
+        "customer-relationship-unestablished",
+        "application-revision-not-pinned",
+        "acceptance-suite-not-authorized",
+        "paid-production-release-unestablished",
+        "customer-fleet-receipts-missing",
+        "subsequent-upgrade-unestablished"
+      ]
+    },
+    {
+      "id": "chatbox",
+      "order": 4,
+      "applicationName": "Chatbox",
+      "upstreamRepository": "https://github.com/chatboxai/chatbox",
+      "wave": "backup",
+      "relationshipStatus": "research-candidate",
+      "claimAllowed": false,
+      "workloads": ["document-intelligence", "embedding-retrieval", "reranking", "provider-compatibility"],
+      "pilot": {
+        "objective": "Qualify one knowledge-base release with authentic embedding, reranking, and provider declarations in the Chatbox desktop application.",
+        "requiredCustomerInputs": [
+          "pinned Chatbox application revision",
+          "pinned embedding and reranking identities",
+          "application-owned ingestion, retrieval, and reranking suite",
+          "declared Windows and macOS fleet policy",
+          "current provider configurations and fallback policy",
+          "customer-owned rollout and rollback target"
+        ],
+        "applicationAcceptance": [
+          "document ingestion and retrieval quality",
+          "reranker ordering and model-type correctness",
+          "provider endpoint and option conformance",
+          "memory, latency, and lifecycle budgets",
+          "fallback visibility and rollback correctness"
+        ],
+        "deliverables": [
+          "signed knowledge-base release manifest",
+          "embedding and reranking identity bindings",
+          "provider conformance and fleet evidence",
+          "reproducible incompatibility bundles",
+          "customer-controlled rollback policy"
+        ],
+        "repeatGate": "The customer returns for requalification of the next embedding, reranking, or provider release."
+      },
+      "providerPolicy": {
+        "candidateIncumbents": ["Ollama", "customer current runtime"],
+        "selectionRule": "strongest-qualified-application-outcome",
+        "doeProof": "optional-separately-authorized-provider",
+        "doeRuntime": "eligible-only-after-measured-win",
+        "customerActivationAuthority": true,
+        "selfPromotionAllowed": false
+      },
+      "custodyPolicy": {
+        "rawCustomerContent": "never-cross-product-by-default",
+        "customerDerivedEvidence": "explicit-authorization-required",
+        "sanitizedRuntimeFailure": "sanitized-only",
+        "reproducibleBackendDefect": "reproducible-evidence-only"
+      },
+      "blockers": [
+        "outreach-not-authorized",
+        "customer-relationship-unestablished",
+        "application-revision-not-pinned",
+        "acceptance-suite-not-authorized",
+        "paid-production-release-unestablished",
+        "customer-fleet-receipts-missing",
+        "subsequent-upgrade-unestablished"
+      ]
+    },
+    {
+      "id": "affine",
+      "order": 5,
+      "applicationName": "AFFiNE",
+      "upstreamRepository": "https://github.com/toeverything/AFFiNE",
+      "wave": "later",
+      "relationshipStatus": "research-candidate",
+      "claimAllowed": false,
+      "workloads": ["document-intelligence", "embedding-retrieval", "provider-compatibility"],
+      "pilot": {
+        "objective": "Hold AFFiNE as a later document-intelligence prospect until a consequential local-model release and its application acceptance boundary are confirmed by the application owner.",
+        "requiredCustomerInputs": [
+          "owner-confirmed consequential local-model release",
+          "pinned AFFiNE application revision",
+          "pinned model and provider identities",
+          "application-owned document-intelligence acceptance suite",
+          "declared Windows and macOS fleet policy",
+          "customer-owned rollout and rollback target"
+        ],
+        "applicationAcceptance": [
+          "owner-confirmed document-intelligence task quality",
+          "workspace and index compatibility",
+          "memory, latency, packaging, and lifecycle budgets",
+          "provider and hardware compatibility",
+          "fallback visibility and rollback correctness"
+        ],
+        "deliverables": [
+          "signed document-intelligence release manifest",
+          "application and fleet qualification decision",
+          "provider compatibility evidence",
+          "reproducible failure bundles and typed exclusions",
+          "customer-controlled rollback policy"
+        ],
+        "repeatGate": "The owner confirms a subsequent consequential model release and delegates its promotion eligibility to Doppler."
+      },
+      "providerPolicy": {
+        "candidateIncumbents": ["customer current runtime"],
+        "selectionRule": "strongest-qualified-application-outcome",
+        "doeProof": "optional-separately-authorized-provider",
+        "doeRuntime": "eligible-only-after-measured-win",
+        "customerActivationAuthority": true,
+        "selfPromotionAllowed": false
+      },
+      "custodyPolicy": {
+        "rawCustomerContent": "never-cross-product-by-default",
+        "customerDerivedEvidence": "explicit-authorization-required",
+        "sanitizedRuntimeFailure": "sanitized-only",
+        "reproducibleBackendDefect": "reproducible-evidence-only"
+      },
+      "blockers": [
+        "outreach-not-authorized",
+        "consequential-local-model-release-not-confirmed",
+        "customer-relationship-unestablished",
+        "application-revision-not-pinned",
+        "acceptance-suite-not-authorized",
+        "paid-production-release-unestablished",
+        "customer-fleet-receipts-missing",
+        "subsequent-upgrade-unestablished"
+      ]
+    }
+  ]
+}
