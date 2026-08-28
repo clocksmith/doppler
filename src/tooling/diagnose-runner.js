@@ -244,11 +244,12 @@ async function materializeSemanticBundle(summary, providerModule, divergence) {
   }
 }
 
-async function runSingleDiagnostic(modules, request, provider, label) {
+async function runSingleDiagnostic(request, provider, label) {
   const bootstrap = await bootstrapNodeWebGPUProvider(provider, { force: true });
   destroyDevice();
   resetDeviceState();
 
+  const modules = await loadRuntimeModules();
   const runtimeBridge = createRuntimeBridge(modules);
   try {
     const response = await runWithRuntimeIsolation(runtimeBridge, async () => {
@@ -284,7 +285,6 @@ async function runSingleDiagnostic(modules, request, provider, label) {
 }
 
 export async function runDiagnoseCommand(request, _options = {}) {
-  const modules = await loadRuntimeModules();
   const baselineProvider = request.baselineProvider
     || process.env.DOPPLER_DIAGNOSE_BASELINE_PROVIDER
     || 'webgpu';
@@ -292,8 +292,8 @@ export async function runDiagnoseCommand(request, _options = {}) {
     || process.env.DOPPLER_DIAGNOSE_OBSERVED_PROVIDER
     || 'webgpu';
 
-  const baselineRun = await runSingleDiagnostic(modules, request, baselineProvider, 'baseline');
-  const observedRun = await runSingleDiagnostic(modules, request, observedProvider, 'observed');
+  const baselineRun = await runSingleDiagnostic(request, baselineProvider, 'baseline');
+  const observedRun = await runSingleDiagnostic(request, observedProvider, 'observed');
   const baseline = baselineRun.summary;
   const observed = observedRun.summary;
 

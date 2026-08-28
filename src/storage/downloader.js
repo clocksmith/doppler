@@ -57,7 +57,10 @@ import {
   saveDownloadState,
 } from './download/state.js';
 
-export { persistDownloadedShardIfNeeded } from './download/integrity.js';
+export {
+  buildManifestVersionSet,
+  persistDownloadedShardIfNeeded,
+} from './download/integrity.js';
 export { inspectModelDownloadResume } from './download/resume-inspection.js';
 
 // ============================================================================
@@ -87,11 +90,17 @@ export async function downloadModel(
   if (requestPersist) {
     await requestPersistence();
   }
+  if (externalSignal?.aborted) {
+    throw createAbortError();
+  }
 
   // Fetch and parse manifest
   const manifestUrl = getManifestUrl(baseUrl);
-  const manifestResponse = await fetchWithRetry(manifestUrl);
+  const manifestResponse = await fetchWithRetry(manifestUrl, { signal: externalSignal });
   const manifestJson = await manifestResponse.text();
+  if (externalSignal?.aborted) {
+    throw createAbortError();
+  }
   const manifest = parseManifest(manifestJson);
   const directSourceArtifact = resolveSourceArtifact(manifest);
   const trackedShards = directSourceArtifact ? directSourceArtifact.sourceFiles : manifest.shards;
@@ -129,6 +138,7 @@ export async function downloadModel(
     if (savedVersionSet !== manifestVersionSet) {
       log.warn('Downloader', `Manifest version-set changed for ${storageModelId}, resetting cached shards`);
       for (const idx of state.completedShards) {
+        if (externalSignal?.aborted) throw createAbortError();
         if (directSourceArtifact) {
           const sourceEntry = directSourceArtifact.sourceFiles[idx];
           if (sourceEntry) {
@@ -148,6 +158,7 @@ export async function downloadModel(
     state.lastSourcePath = typeof state.lastSourcePath === 'string' ? state.lastSourcePath : null;
     // Check which shards actually exist (in case OPFS was cleared)
     for (const idx of state.completedShards) {
+      if (externalSignal?.aborted) throw createAbortError();
       if (directSourceArtifact) {
         const sourceEntry = directSourceArtifact.sourceFiles[idx];
         if (!sourceEntry || !(await fileExistsInStore(sourceEntry.path))) {
@@ -161,6 +172,7 @@ export async function downloadModel(
     }
     // Verify hashes for completed shards; drop and re-download corrupt shards
     for (const idx of Array.from(state.completedShards)) {
+      if (externalSignal?.aborted) throw createAbortError();
       try {
         if (directSourceArtifact) {
           const sourceEntry = directSourceArtifact.sourceFiles[idx];
@@ -202,6 +214,9 @@ export async function downloadModel(
   if (!spaceCheck.hasSpace) {
     throw new QuotaExceededError(requiredDownloadBytes, spaceCheck.info.available);
   }
+  if (externalSignal?.aborted) {
+    throw createAbortError();
+  }
 
   // Create abort controller
   const abortController = new AbortController();
@@ -210,6 +225,7 @@ export async function downloadModel(
   };
   if (externalSignal && typeof externalSignal.addEventListener === 'function') {
     externalSignal.addEventListener('abort', abortFromExternalSignal, { once: true });
+    if (externalSignal.aborted) abortFromExternalSignal();
   }
   activeDownloads.set(storageModelId, {
     state,
@@ -482,7 +498,9 @@ export async function downloadModel(
         if (isTokenizerJsonRequired(tokenizer)) {
           const tokenizerUrl = `${baseUrl}/${ (tokenizer).file}`;
           log.verbose('Downloader', `Fetching bundled tokenizer from ${tokenizerUrl}`);
-          const tokenizerResponse = await fetchWithRetry(tokenizerUrl);
+          const tokenizerResponse = await fetchWithRetry(tokenizerUrl, {
+            signal: abortController.signal,
+          });
           const tokenizerJson = await tokenizerResponse.text();
           await saveTokenizer(tokenizerJson);
           log.verbose('Downloader', 'Saved bundled tokenizer.json');
@@ -492,7 +510,9 @@ export async function downloadModel(
         if (sentencepieceModel) {
           const modelUrl = `${baseUrl}/${sentencepieceModel}`;
           log.verbose('Downloader', `Fetching sentencepiece model from ${modelUrl}`);
-          const modelResponse = await fetchWithRetry(modelUrl);
+          const modelResponse = await fetchWithRetry(modelUrl, {
+            signal: abortController.signal,
+          });
           const modelBuffer = await modelResponse.arrayBuffer();
           await saveTokenizerModel(modelBuffer);
           log.verbose('Downloader', 'Saved tokenizer.model');
@@ -515,9 +535,15 @@ export async function downloadModel(
     return false;
 
   } catch (error) {
-    state.status = 'error';
-    state.error =  (error).message;
+    const aborted = abortController.signal.aborted || (error).name === 'AbortError';
+    state.status = aborted ? 'paused' : 'error';
+    if (aborted) {
+      delete state.error;
+    } else {
+      state.error =  (error).message;
+    }
     await saveDownloadState(state);
+    if (aborted && (error).name !== 'AbortError') throw createAbortError();
     throw error;
 
   } finally {

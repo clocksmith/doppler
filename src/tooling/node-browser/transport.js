@@ -555,6 +555,32 @@ export async function launchPersistentBrowser(chromium, userDataDir, launchOptio
     }
   }
 
+  const tryLaunch = async (candidateLaunchOptions) => {
+    const launchCandidateErrors = [];
+    for (const channel of resolveDefaultChannels()) {
+      try {
+        return await chromium.launchPersistentContext(userDataDir, { ...candidateLaunchOptions, channel });
+      } catch (error) {
+        const message = error?.message || String(error);
+        launchCandidateErrors.push(`${channel}: ${message}`);
+      }
+    }
+
+    try {
+      return await chromium.launchPersistentContext(userDataDir, candidateLaunchOptions);
+    } catch (error) {
+      const message = error?.message || String(error);
+      const allErrors = launchCandidateErrors.length > 0
+        ? `${message} | channel errors: ${launchCandidateErrors.join(' | ')}`
+        : message;
+      throw new Error(
+        `browser command: failed to launch persistent browser (${allErrors}). ` +
+        `Tried default channels: ${resolveDefaultChannels().join(', ')}. ` +
+        BROWSER_LAUNCH_HINT
+      );
+    }
+  };
+
   const launchErrors = [];
   const attemptConfigs = hasCrashRecoveryArgs(persistentOpts.args || [])
     ? [persistentOpts]
@@ -565,15 +591,7 @@ export async function launchPersistentBrowser(chromium, userDataDir, launchOptio
 
   for (const candidateLaunchOptions of attemptConfigs) {
     try {
-      for (const channel of resolveDefaultChannels()) {
-        try {
-          return await chromium.launchPersistentContext(userDataDir, { ...candidateLaunchOptions, channel });
-        } catch (error) {
-          const message = error?.message || String(error);
-          launchErrors.push(`${channel}: ${message}`);
-        }
-      }
-      return await chromium.launchPersistentContext(userDataDir, candidateLaunchOptions);
+      return await tryLaunch(candidateLaunchOptions);
     } catch (error) {
       const message = error?.message || String(error);
       launchErrors.push(message);

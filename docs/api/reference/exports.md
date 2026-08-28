@@ -147,6 +147,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Implementation: [src/tooling-exports/storage.js](../../../src/tooling-exports/storage.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
+  - `buildManifestVersionSet`
   - `computeHash`
   - `deleteModel`
   - `deleteStorageEntry`

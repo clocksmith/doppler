@@ -11,6 +11,7 @@ import {
   runBrowserCommandEvaluationWithTimeout,
   runBrowserCommandInNode,
 } from '../../src/tooling/node-browser-command-runner.js';
+import { launchPersistentBrowser } from '../../src/tooling/node-browser/transport.js';
 
 const KERNELS_REQUEST = {
   command: 'verify',
@@ -30,6 +31,27 @@ const KERNELS_REQUEST = {
     },
   },
 };
+
+{
+  const userDataDir = await fs.mkdtemp(path.join(tmpdir(), 'doppler-persistent-launch-'));
+  const attempts = [];
+  const chromium = {
+    async launchPersistentContext(_userDataDir, launchOptions) {
+      attempts.push(launchOptions);
+      throw new Error('Executable does not exist');
+    },
+  };
+
+  try {
+    await assert.rejects(
+      () => launchPersistentBrowser(chromium, userDataDir, { args: [] }),
+      /browser command: failed to launch persistent browser.*Executable does not exist.*Install Playwright browsers/s
+    );
+    assert.equal(attempts.length, 3);
+  } finally {
+    await fs.rm(userDataDir, { recursive: true, force: true });
+  }
+}
 
 {
   const response = finalizeBrowserRelayResponse({
@@ -405,7 +427,7 @@ await assert.rejects(
     opfsCache: true,
     timeoutMs: 1500,
   }),
-  /browser command: loadMode=opfs requires persistent browser context; persistent launch failed\.|ERR_UNSAFE_PORT/
+  /browser command: loadMode=opfs requires persistent browser context; persistent launch failed\.|browser command: failed to launch persistent browser|ERR_UNSAFE_PORT/
 );
 
 {
@@ -426,7 +448,7 @@ await assert.rejects(
     (error) => {
       const message = String(error?.message || error);
       failedWithUnsafePort = message.includes('ERR_UNSAFE_PORT');
-      return /browser command: loadMode=opfs requires persistent browser context; persistent launch failed\.|ERR_UNSAFE_PORT/.test(message);
+      return /browser command: loadMode=opfs requires persistent browser context; persistent launch failed\.|browser command: failed to launch persistent browser|ERR_UNSAFE_PORT/.test(message);
     }
   );
 
@@ -461,7 +483,7 @@ await assert.rejects(
     (error) => {
       const message = String(error?.message || error);
       failedWithUnsafePort = message.includes('ERR_UNSAFE_PORT');
-      return /browser command: persistent browser context is required when OPFS cache is enabled; persistent launch failed\.|ERR_UNSAFE_PORT/.test(message);
+      return /browser command: persistent browser context is required when OPFS cache is enabled; persistent launch failed\.|browser command: failed to launch persistent browser|ERR_UNSAFE_PORT/.test(message);
     }
   );
 
@@ -512,7 +534,7 @@ await assert.rejects(
   if (error) {
     assert.match(
       String(error?.message || error),
-      /browser command: failed to start static server|browser command: failed to launch browser|ERR_UNSAFE_PORT|runner did not become ready|runtime\.inference\.kernelPathPolicy must not be null/
+      /browser command: failed to start static server|browser command: failed to launch browser|ERR_UNSAFE_PORT|runner did not become ready|runner did not finish|runtime\.inference\.kernelPathPolicy must not be null/
     );
   } else {
     assert.ok(result && typeof result === 'object');

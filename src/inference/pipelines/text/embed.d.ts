@@ -29,6 +29,8 @@ export interface EmbedConfig {
   probeStage?: string;
   inputHiddenSize?: number;
   hiddenOffset?: number;
+  preloadedCpuRow?: Float32Array | null;
+  preloadedCpuBatchedRows?: Float32Array | null;
 }
 
 export interface ValidationResult {
@@ -44,6 +46,15 @@ export declare function resolveEmbeddingScale(
   config: Pick<EmbedConfig, 'scaleEmbeddings' | 'embeddingScale'>,
   hiddenSize: number
 ): number;
+
+export declare function selectPreloadedCpuEmbeddingValues(options: {
+  preloadedCpuRow?: Float32Array | null;
+  preloadedCpuBatchedRows?: Float32Array | null;
+  numTokens: number;
+  inputHiddenSize: number;
+  hiddenSize: number;
+  hiddenOffset: number;
+}): Float32Array | null;
 
 export function embed(
   tokenIds: number[] | Uint32Array | GPUBuffer,

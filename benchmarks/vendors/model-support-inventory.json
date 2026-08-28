@@ -110,7 +110,7 @@
   "summary": {
     "catalogModelCount": 31,
     "sourceCheckpointCount": 23,
-    "conversionOnlyConfigCount": 9,
+    "conversionOnlyConfigCount": 10,
     "hfPublishedModelCount": 19,
     "verifiedModelCount": 26,
     "benchmarkSelectedSourceCount": 1,
@@ -3929,6 +3929,24 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish gemma-4-moe-q4k-ehf16-af32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "glm-ocr-f16-af32",
+      "family": "glmocr",
+      "conversionConfig": "src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+      "sourceCheckpointId": "zai-org/GLM-OCR@ca5d8b3e287e52589e37c28385d9655ee4372f9d",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "f16",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "computePrecision": "f32",
+        "q4kLayout": null,
+        "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish glm-ocr-f16-af32 before claiming runtime support.",
       "nextCommand": null
     },
     {

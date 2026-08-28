@@ -14,7 +14,7 @@ function createManifest(overrides = {}) {
     architecture: 'transformer',
     inference: {
       layerPattern: 'standard',
-      chatTemplate: { type: 'none', enabled: false },
+      chatTemplate: { type: 'none', enabled: false, thinking: null },
       pipeline: 'text',
       attention: {
         queryPreAttnScalar: 1.0,
@@ -93,6 +93,7 @@ function createManifest(overrides = {}) {
   assert.equal(merged.inference.rope.ropeTheta, 10000);
   assert.equal(merged.inference.output.tieWordEmbeddings, false);
   assert.equal(merged.inference.chatTemplate.type, 'none');
+  assert.equal(merged.inference.chatTemplate.thinking, null);
   assert.ok(merged._sources instanceof Map);
 
   // All sources should be 'manifest' when no runtime overrides
@@ -126,7 +127,7 @@ function createManifest(overrides = {}) {
         normalize: 'l2',
       },
     },
-    chatTemplate: { enabled: true },
+    chatTemplate: { enabled: true, thinking: false },
   });
 
   assert.equal(merged.inference.layerPattern, 'custom');
@@ -143,6 +144,8 @@ function createManifest(overrides = {}) {
   assert.equal(merged.inference.output.tieWordEmbeddings, true);
   assert.equal(merged.inference.output.embeddingPostprocessor?.poolingMode, 'mean');
   assert.equal(merged.inference.chatTemplate.enabled, true);
+  assert.equal(merged.inference.chatTemplate.thinking, false);
+  assert.equal(merged._sources.get('inference.chatTemplate.thinking'), 'runtime');
 
   // Overridden fields should be tracked as 'runtime'
   assert.equal(merged._sources.get('inference.layerPattern'), 'runtime');

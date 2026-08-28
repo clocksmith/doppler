@@ -989,6 +989,15 @@ Streaming download with:
 - Progress callbacks
 - Shard-by-shard integrity verification
 - Resume support (partial downloads)
+- One external cancellation signal spanning manifest, shard, direct-source,
+  tokenizer, and tokenizer-model fetches
+- Cancellation retained as `paused` download state so verified entries remain
+  eligible for later integrity replay and resume
+
+`ensureModelCachedSource()` carries the same signal through queued cache work,
+remote-manifest comparison, import, and OPFS source construction. An aborted
+operation cannot return a runtime storage context or be relabeled as an ordinary
+cache failure.
 
 ### quickstart-downloader.js - Curated Downloads
 

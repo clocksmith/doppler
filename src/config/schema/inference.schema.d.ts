@@ -151,18 +151,19 @@ export type ChatTemplateType =
   | 'gpt-oss'
   | 'chatml'
   | 'qwen'
+  | 'glmocr'
   | 'translategemma'
   | null;
 
 /** Chat template configuration for instruct models */
 export interface ChatTemplateSchema {
-  /** Template type identifier (gemma, gemma4, llama3, gpt-oss, chatml, qwen, translategemma) */
+  /** Template type identifier (gemma, gemma4, llama3, gpt-oss, chatml, qwen, glmocr, translategemma) */
   type?: ChatTemplateType;
 
   /** Whether to apply chat template by default (null = no runtime override, instruct manifests should set true) */
   enabled?: boolean | null;
 
-  /** Enable thinking/reasoning mode (null = disabled, true = enabled). Gemma 4 uses <|think|> control token. */
+  /** Thinking/reasoning control; null leaves the template-specific control unspecified. */
   thinking?: boolean | null;
 
   /** Custom template with {prompt} placeholder (overrides type) */

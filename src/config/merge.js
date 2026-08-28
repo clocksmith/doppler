@@ -449,6 +449,12 @@ function mergeChatTemplate(
       runtime?.enabled,
       sources
     ),
+    thinking: overlay(
+      `${prefix}.thinking`,
+      manifest?.thinking,
+      runtime?.thinking,
+      sources
+    ),
   };
 }
 

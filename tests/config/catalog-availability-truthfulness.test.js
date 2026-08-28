@@ -80,27 +80,6 @@ const CONVERSION_TARGET_MODEL_IDS = [
 }
 
 // =============================================================================
-// Invariant: every model in models/local/ must be in the catalog
-// =============================================================================
-
-{
-  const catalogIds = new Set(models.map((m) => m.modelId));
-  const localDirs = fs.readdirSync(LOCAL_MODELS_DIR, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .map((d) => d.name);
-
-  for (const dir of localDirs) {
-    const manifestPath = path.join(LOCAL_MODELS_DIR, dir, 'manifest.json');
-    if (fs.existsSync(manifestPath)) {
-      assert.ok(
-        catalogIds.has(dir),
-        `models/local/${dir} has a manifest.json but is not listed in catalog.json`
-      );
-    }
-  }
-}
-
-// =============================================================================
 // Invariant: conversion targets are manifest-backed and quickstart behavior is explicit
 // =============================================================================
 

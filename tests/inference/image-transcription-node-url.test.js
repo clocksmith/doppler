@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { runImageTranscription } from '../../src/inference/browser-harness-text-helpers.js';
+import { sha256BytesHex } from '../../src/formats/sha256.js';
 
 const samplePath = path.resolve(process.cwd(), 'examples/samples/sample-pastel-600x400.png');
 const sampleBytes = await readFile(samplePath);
@@ -94,6 +95,11 @@ try {
   assert.equal(observed.prompt, 'Describe the image.');
   assert.equal(observed.maxTokens, 12);
   assert.equal(observed.softTokenBudget, 70);
+  assert.equal(
+    result.promptInput.image.sourceByteHash,
+    `sha256:${sha256BytesHex(new Uint8Array(sampleBytes))}`
+  );
+  assert.match(result.promptInput.image.decodedPixelHash, /^sha256:[a-f0-9]{64}$/u);
 } finally {
   await new Promise((resolve, reject) => {
     server.close((error) => {

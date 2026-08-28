@@ -5,7 +5,13 @@ export interface VisionSpatialMergeGeometry {
   gridWidth: number;
   hiddenSize: number;
   mergeSize: number;
+  channelFirst?: boolean;
+  inputBlockMajor?: boolean;
 }
+
+export declare function planVisionSpatialMergeDispatch(
+  outputElements: number
+): [number, number, 1];
 
 export declare function runVisionSpatialMerge(
   input: Tensor,

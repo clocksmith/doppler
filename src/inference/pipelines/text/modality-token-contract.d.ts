@@ -11,3 +11,8 @@ export declare function buildConservativeMultimodalGenerationOptions<T extends o
   stopCheckMode: 'per-token';
 };
 export declare function resolveMultimodalMaxTokens(runtimeConfig: any, requestedMaxTokens?: number): number;
+export declare function assertMultimodalSequenceCapacity(options?: {
+  inputTokenCount?: number;
+  maxTokens?: number;
+  maxSeqLen?: number;
+}): number;

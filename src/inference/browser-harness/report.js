@@ -213,8 +213,32 @@ export function buildKvCacheTranscriptSeed(kvCache, byteProof = null) {
   };
 }
 
+function buildPromptTranscriptInput(promptPayload) {
+  const image = promptPayload?.image;
+  if (!image || typeof image !== 'object' || typeof promptPayload?.prompt !== 'string') {
+    return promptPayload;
+  }
+  if (typeof image.sourceByteHash !== 'string' || typeof image.decodedPixelHash !== 'string') {
+    throw new Error(
+      'Image reference transcripts require sourceByteHash and decodedPixelHash evidence.'
+    );
+  }
+  return {
+    schema: 'doppler.image-prompt-input/v1',
+    prompt: promptPayload.prompt,
+    image: {
+      width: Number.isFinite(image.width) ? image.width : null,
+      height: Number.isFinite(image.height) ? image.height : null,
+      pixelFormat: typeof image.pixelFormat === 'string' ? image.pixelFormat : null,
+      sourceByteHash: image.sourceByteHash,
+      decodedPixelHash: image.decodedPixelHash,
+    },
+  };
+}
+
 export function buildReferenceTranscriptSeed(run, context = {}) {
   const promptPayload = run.promptInput ?? run.prompt ?? null;
+  const promptInput = buildPromptTranscriptInput(promptPayload);
   const outputText = typeof run.output === 'string' ? run.output : '';
   const tokenIds = Array.isArray(run.tokenIds)
     ? run.tokenIds.map((value) => Number(value)).filter((value) => Number.isInteger(value))
@@ -237,7 +261,8 @@ export function buildReferenceTranscriptSeed(run, context = {}) {
     surface: context.surface ?? 'browser-webgpu', generationConfig: run.generationConfig ?? null,
     prompt: {
       identity: typeof run.prompt === 'string' && run.prompt.trim() ? run.prompt : 'promptInput',
-      hash: hashStableJson(promptPayload),
+      hash: hashStableJson(promptInput),
+      input: promptInput,
       ids: promptTokenIds,
       tokenIdsHash: promptTokenIds ? hashStableJson(promptTokenIds) : null,
       tokenCount: promptTokenIds ? promptTokenIds.length : null,
@@ -295,13 +320,16 @@ export function buildReferenceTranscriptSeed(run, context = {}) {
     source: {
       ...transcript.source,
       hash: hashStableJson({
+        schema: transcript.schema,
+        executionGraphHash: transcript.executionGraphHash,
+        surface: transcript.surface,
         prompt: transcript.prompt,
         output: transcript.output,
         tokens: {
           generatedTokenIdsHash: transcript.tokens.generatedTokenIdsHash,
           generatedTextHash: transcript.tokens.generatedTextHash,
         },
-        generationConfig: transcript.generationConfig, phase: transcript.phase,
+        generationConfig: transcript.generationConfig,
         kvCache: transcript.kvCache,
         logits: transcript.logits,
       }),

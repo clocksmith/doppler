@@ -181,6 +181,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "glmocr/glm-ocr-f16-af32",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
       ],
       "ruleChains": ["matmul.rules.json#matmulKernel"],
@@ -335,6 +336,7 @@
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
        "gemma4/gemma-4-moe-q4k-ehf16-af32",
+       "glmocr/glm-ocr-f16-af32",
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
@@ -434,6 +436,7 @@
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
        "gemma4/gemma-4-moe-q4k-ehf16-af32",
+       "glmocr/glm-ocr-f16-af32",
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
@@ -2036,6 +2039,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
+       "glmocr/glm-ocr-f16-af32",
        "runtime/profiles/qwen-3-reranker-0-6b-metal-stability",
        "runtime/profiles/qwen-3-reranker-0-6b-metal-throughput"
       ],
@@ -2314,6 +2318,7 @@
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
        "gemma4/gemma-4-moe-q4k-ehf16-af32",
+       "glmocr/glm-ocr-f16-af32",
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
@@ -3455,6 +3460,7 @@
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
        "gemma4/gemma-4-moe-q4k-ehf16-af32",
+       "glmocr/glm-ocr-f16-af32",
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
@@ -4594,6 +4600,7 @@
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
        "gemma4/gemma-4-moe-q4k-ehf16-af32",
+       "glmocr/glm-ocr-f16-af32",
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
@@ -4878,6 +4885,7 @@
       "inlineConfigs": [
        "amplify/amplify-120m-f16-af32",
        "esmc/esmc-300m-f32-af32",
+       "glmocr/glm-ocr-f16-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
        "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
@@ -5861,6 +5869,7 @@
        "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-moe-q4k-ehf16-af32",
+       "glmocr/glm-ocr-f16-af32",
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
@@ -6365,6 +6374,7 @@
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
        "gemma4/gemma-4-moe-q4k-ehf16-af32",
+       "glmocr/glm-ocr-f16-af32",
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
@@ -7665,7 +7675,7 @@
       "offset": 24
      },
      {
-      "name": "_pad0",
+      "name": "spatial_merge_size",
       "type": "u32",
       "offset": 28
      }
@@ -7945,7 +7955,7 @@
       "offset": 24
      },
      {
-      "name": "_pad0",
+      "name": "layout_flags",
       "type": "u32",
       "offset": 28
      }
@@ -8818,6 +8828,7 @@
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
        "gemma4/gemma-4-moe-q4k-ehf16-af32",
+       "glmocr/glm-ocr-f16-af32",
        "gpt-oss-20b-f16-xmxfp4",
        "janus/janus-pro-1b-text-q4k-ehaf16",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
@@ -13265,7 +13276,7 @@
     },
     {
      "index": 1,
-     "name": "longrope_factors",
+     "name": "rope_data",
      "type": "read-only-storage"
     },
     {
@@ -13280,7 +13291,7 @@
     }
    ],
    "baseUniforms": {
-    "size": 48,
+    "size": 64,
     "fields": [
      {
       "name": "max_seq_len",
@@ -13331,6 +13342,26 @@
       "name": "original_max_position",
       "type": "f32",
       "offset": 36
+     },
+     {
+      "name": "dispatch_stride",
+      "type": "u32",
+      "offset": 40
+     },
+     {
+      "name": "mrope_section_t",
+      "type": "u32",
+      "offset": 44
+     },
+     {
+      "name": "mrope_section_h",
+      "type": "u32",
+      "offset": 48
+     },
+     {
+      "name": "mrope_section_w",
+      "type": "u32",
+      "offset": 52
      }
     ]
    },

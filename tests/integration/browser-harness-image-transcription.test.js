@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { runBrowserSuite } from '../../src/inference/browser-harness.js';
+import { sha256BytesHex } from '../../src/formats/sha256.js';
+import { hashStableJson } from '../../src/inference/browser-harness/request.js';
 
 function createHarnessOverride(calls) {
   return {
@@ -81,11 +83,25 @@ function createHarnessOverride(calls) {
   assert.equal(calls[0].maxTokens, 8);
   assert.equal(calls[0].softTokenBudget, 70);
   assert.equal(calls[1], 'unload');
+  const pixelHash = `sha256:${sha256BytesHex(new Uint8Array([255, 255, 255, 255]))}`;
+  const expectedPromptInput = {
+    schema: 'doppler.image-prompt-input/v1',
+    prompt: 'Describe the image precisely.',
+    image: {
+      width: 1,
+      height: 1,
+      pixelFormat: 'rgba8',
+      sourceByteHash: pixelHash,
+      decodedPixelHash: pixelHash,
+    },
+  };
+  assert.deepEqual(result.metrics.referenceTranscript.prompt.input, expectedPromptInput);
+  assert.equal(result.metrics.referenceTranscript.prompt.hash, hashStableJson(expectedPromptInput));
 }
 
 {
   const calls = [];
-  await runBrowserSuite({
+  const result = await runBrowserSuite({
     command: 'verify',
     workload: 'inference',
     surface: 'browser',
@@ -97,12 +113,14 @@ function createHarnessOverride(calls) {
       image: {
         width: 1,
         height: 1,
-        pixels: [255, 255, 255, 255],
+        pixelDataBase64: '/////w==',
       },
     },
   });
 
   assert.equal(calls[0].softTokenBudget, 70);
+  const pixelHash = `sha256:${sha256BytesHex(new Uint8Array([255, 255, 255, 255]))}`;
+  assert.equal(result.metrics.referenceTranscript.prompt.input.image.decodedPixelHash, pixelHash);
 }
 
 console.log('browser-harness-image-transcription.test: ok');

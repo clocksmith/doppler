@@ -39,7 +39,14 @@ export function visionPatchEmbedRef(image, weight, bias, geometry) {
 }
 
 export function visionSpatialMergeRef(input, geometry) {
-  const { gridHeight, gridWidth, hiddenSize, mergeSize } = geometry;
+  const {
+    gridHeight,
+    gridWidth,
+    hiddenSize,
+    mergeSize,
+    channelFirst = false,
+    inputBlockMajor = false,
+  } = geometry;
   const mergedHeight = gridHeight / mergeSize;
   const mergedWidth = gridWidth / mergeSize;
   const concatDim = mergeSize * mergeSize * hiddenSize;
@@ -52,9 +59,14 @@ export function visionSpatialMergeRef(input, geometry) {
           const patchInMerge = localY * mergeSize + localX;
           const sourceY = mergedY * mergeSize + localY;
           const sourceX = mergedX * mergeSize + localX;
-          const sourcePatch = sourceY * gridWidth + sourceX;
+          const sourcePatch = inputBlockMajor
+            ? mergedIndex * mergeSize * mergeSize + patchInMerge
+            : sourceY * gridWidth + sourceX;
           for (let hiddenIndex = 0; hiddenIndex < hiddenSize; hiddenIndex++) {
-            const outputIndex = mergedIndex * concatDim + patchInMerge * hiddenSize + hiddenIndex;
+            const concatIndex = channelFirst
+              ? hiddenIndex * mergeSize * mergeSize + patchInMerge
+              : patchInMerge * hiddenSize + hiddenIndex;
+            const outputIndex = mergedIndex * concatDim + concatIndex;
             output[outputIndex] = input[sourcePatch * hiddenSize + hiddenIndex];
           }
         }
@@ -81,22 +93,36 @@ export function visionPositionEmbeddingRef(table, geometry) {
 }
 
 export function visionRope2DRef(input, geometry) {
-  const { numTokens, numHeads, headDim, gridWidth, ropeTheta } = geometry;
+  const {
+    numTokens,
+    numHeads,
+    headDim,
+    gridWidth,
+    ropeTheta,
+    spatialMergeSize = 1,
+  } = geometry;
   const output = new Float32Array(input);
-  const spatialDim = headDim / 2;
-  const pairsPerAxis = spatialDim / 2;
+  const halfHeadDim = headDim / 2;
+  const frequenciesPerAxis = headDim / 4;
   for (let tokenIndex = 0; tokenIndex < numTokens; tokenIndex++) {
-    const positions = [tokenIndex % gridWidth, Math.floor(tokenIndex / gridWidth)];
+    const patchesPerBlock = spatialMergeSize * spatialMergeSize;
+    const blocksPerRow = gridWidth / spatialMergeSize;
+    const blockIndex = Math.floor(tokenIndex / patchesPerBlock);
+    const patchInBlock = tokenIndex % patchesPerBlock;
+    const positions = [
+      Math.floor(blockIndex / blocksPerRow) * spatialMergeSize + Math.floor(patchInBlock / spatialMergeSize),
+      (blockIndex % blocksPerRow) * spatialMergeSize + (patchInBlock % spatialMergeSize),
+    ];
     for (let headIndex = 0; headIndex < numHeads; headIndex++) {
       const headBase = tokenIndex * numHeads * headDim + headIndex * headDim;
       for (let axis = 0; axis < 2; axis++) {
-        const axisBase = headBase + axis * spatialDim;
-        for (let pairIndex = 0; pairIndex < pairsPerAxis; pairIndex++) {
-          const angle = positions[axis] / (ropeTheta ** ((2 * pairIndex) / spatialDim));
+        const axisBase = headBase + axis * frequenciesPerAxis;
+        for (let frequencyIndex = 0; frequencyIndex < frequenciesPerAxis; frequencyIndex++) {
+          const angle = positions[axis] / (ropeTheta ** ((2 * frequencyIndex) / halfHeadDim));
           const cosine = Math.cos(angle);
           const sine = Math.sin(angle);
-          const firstIndex = axisBase + pairIndex;
-          const secondIndex = firstIndex + pairsPerAxis;
+          const firstIndex = axisBase + frequencyIndex;
+          const secondIndex = firstIndex + halfHeadDim;
           const first = output[firstIndex];
           const second = output[secondIndex];
           output[firstIndex] = first * cosine - second * sine;

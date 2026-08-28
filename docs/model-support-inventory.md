@@ -20,7 +20,7 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 
 - Catalog models: 31
 - Source checkpoints: 23
-- Conversion-only configs: 9
+- Conversion-only configs: 10
 - HF-published catalog models: 19
 - Runtime-verified catalog models: 26
 - Benchmark-selected source architectures: 1
@@ -130,6 +130,7 @@ These entries have checked-in conversion configs but are not catalog-supported r
 | src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json | gemma-3-270m-it-q4k-ehf16-af16 | gemma3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout | Catalog, verify, and publish gemma-3-270m-it-q4k-ehf16-af16 before claiming runtime support. |
 | src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json | gemma-4-12b-it-text-q4k-ehf16-hq4k-af16 | gemma4 | RDRR, q4k weights, f16 embeddings, q4k LM head, f16 compute, row Q4K layout | Catalog, verify, and publish gemma-4-12b-it-text-q4k-ehf16-hq4k-af16 before claiming runtime support. |
 | src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json | gemma-4-moe-q4k-ehf16-af32 | gemma4 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | Catalog, verify, and publish gemma-4-moe-q4k-ehf16-af32 before claiming runtime support. |
+| src/config/conversion/glmocr/glm-ocr-f16-af32.json | glm-ocr-f16-af32 | glmocr | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | Catalog, verify, and publish glm-ocr-f16-af32 before claiming runtime support. |
 | src/config/conversion/gpt-oss-20b-f16-xmxfp4.json | gpt-oss-20b-f16-xmxfp4 | root | RDRR, f16 weights, f16 embeddings, f16 LM head, f16 compute | Catalog, verify, and publish gpt-oss-20b-f16-xmxfp4 before claiming runtime support. |
 | src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json | janus-pro-1b-text-q4k-ehaf16 | janus | RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout | Catalog, verify, and publish janus-pro-1b-text-q4k-ehaf16 before claiming runtime support. |
 | src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json | qwen-3-5-9b-f16-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | Catalog, verify, and publish qwen-3-5-9b-f16-af32 before claiming runtime support. |

@@ -10,13 +10,22 @@ function requirePositiveInteger(value, label) {
 }
 
 export async function runVisionRope2D(input, geometry) {
-  const { numTokens, numHeads, headDim, gridHeight, gridWidth, ropeTheta } = geometry;
+  const {
+    numTokens,
+    numHeads,
+    headDim,
+    gridHeight,
+    gridWidth,
+    ropeTheta,
+    spatialMergeSize = 1,
+  } = geometry;
   for (const [label, value] of Object.entries({
     numTokens,
     numHeads,
     headDim,
     gridHeight,
     gridWidth,
+    spatialMergeSize,
   })) {
     requirePositiveInteger(value, label);
   }
@@ -55,7 +64,7 @@ export async function runVisionRope2D(input, geometry) {
       grid_width: gridWidth,
       rope_theta: ropeTheta,
       total_pairs: totalPairs,
-      _pad0: 0,
+      spatial_merge_size: spatialMergeSize,
     },
     Math.ceil(totalPairs / WORKGROUP_SIZES.DEFAULT)
   );

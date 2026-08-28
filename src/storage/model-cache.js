@@ -9,6 +9,7 @@ import {
 } from './shard-manager.js';
 import { createOpfsArtifactStorageContext } from './artifact-storage-context.js';
 import { downloadModel, estimateTimeRemaining, formatSpeed } from './downloader.js';
+import { createAbortError } from './download/retry.js';
 import { isOPFSAvailable, formatBytes } from './quota.js';
 import { parseManifest, getManifestUrl } from '../formats/rdrr/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
@@ -33,6 +34,10 @@ function toErrorMessage(error) {
     return error.message;
   }
   return String(error);
+}
+
+function throwIfAborted(signal) {
+  if (signal?.aborted) throw createAbortError();
 }
 
 function normalizeExpectedManifestHash(value) {
@@ -178,9 +183,9 @@ function buildManifestFingerprint(manifest) {
   });
 }
 
-async function fetchRemoteManifest(modelBaseUrl) {
+async function fetchRemoteManifest(modelBaseUrl, signal = null) {
   const manifestUrl = getManifestUrl(modelBaseUrl);
-  const response = await fetch(manifestUrl, { cache: 'no-store' });
+  const response = await fetch(manifestUrl, { cache: 'no-store', signal });
   if (!response.ok) {
     throw new Error(`manifest fetch failed (${response.status})`);
   }
@@ -208,16 +213,20 @@ async function verifyCachedArtifact(manifest) {
   return verifyIntegrity({ checkHashes: true });
 }
 
-async function resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress) {
+async function resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress, signal = null) {
+  throwIfAborted(signal);
   if (!expectedManifestHash || !isOPFSAvailable() || !await modelExists(modelId)) {
     return null;
   }
   try {
+    throwIfAborted(signal);
     const cachedManifest = await loadCachedManifest(modelId);
     if (!cachedManifest.text || !cachedManifest.manifest) return null;
     if (await sha256Text(cachedManifest.text) !== expectedManifestHash) return null;
+    throwIfAborted(signal);
     const integrity = await verifyCachedArtifact(cachedManifest.manifest);
     if (!integrity.valid) return null;
+    throwIfAborted(signal);
     const totalBytes = manifestTotalBytes(cachedManifest.manifest);
     onProgress?.({
       stage: 'cache-hit',
@@ -239,6 +248,7 @@ async function resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress) 
       totalBytes,
     };
   } catch (error) {
+    if (error?.name === 'AbortError') throw error;
     log.warn(MODULE, `Pinned cache validation failed for "${modelId}": ${toErrorMessage(error)}`);
     return null;
   }
@@ -284,7 +294,9 @@ function buildDownloadStatusLine(progress, speed, remainingBytes) {
   return parts.join(' | ');
 }
 
-async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = null) {
+async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = null, options = {}) {
+  const signal = options?.signal || null;
+  throwIfAborted(signal);
   if (!modelId || !modelBaseUrl) {
     return {
       cached: false,
@@ -310,12 +322,14 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
 
   try {
     const exists = await modelExists(modelId);
+    throwIfAborted(signal);
     if (exists) {
       try {
         const [{ text: remoteManifestText, manifest: remoteManifest }, { text: cachedManifestText, manifest: cachedManifest }] = await Promise.all([
-          fetchRemoteManifest(modelBaseUrl),
+          fetchRemoteManifest(modelBaseUrl, signal),
           loadCachedManifest(modelId),
         ]);
+        throwIfAborted(signal);
 
         if (!cachedManifestText || !cachedManifest) {
           log.warn(MODULE, `Cache miss: "${modelId}" has no readable manifest in OPFS; re-importing`);
@@ -393,6 +407,7 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
           needsFullImport = true;
         }
       } catch (error) {
+        if (error?.name === 'AbortError') throw error;
         const message = toErrorMessage(error);
         log.warn(MODULE, `Cache validation failed (${message}); refusing cached model "${modelId}"`);
         return {
@@ -405,6 +420,7 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
       }
     }
   } catch (error) {
+    if (error?.name === 'AbortError') throw error;
     const message = toErrorMessage(error);
     log.warn(MODULE, `Cache check failed: ${message}`);
     return {
@@ -424,6 +440,7 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
 
   try {
     const success = await downloadModel(modelBaseUrl, (progress) => {
+      if (signal?.aborted) return;
       if (!progress) return;
       const enriched = buildDownloadProgress(progress);
       if (enriched) {
@@ -435,9 +452,10 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
         ? (progress.downloadedBytes / (1024 * 1024)).toFixed(1)
         : '?';
       log.verbose(MODULE, `Shard ${shard}/${total} (${mb} MB)`);
-    });
+    }, { signal });
 
     if (success) {
+      throwIfAborted(signal);
       log.info(MODULE, `Import complete: "${modelId}"`);
       onProgress?.({ stage: 'download-complete', modelId, message: `Download complete: ${modelId}`, percent: 100 });
       return {
@@ -456,6 +474,7 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
       error: 'download-incomplete',
     };
   } catch (error) {
+    if (error?.name === 'AbortError') throw error;
     const message = toErrorMessage(error);
     log.error(MODULE, `Import failed: ${message}`);
     return {
@@ -474,9 +493,22 @@ export function ensureModelCached(modelId, modelBaseUrl, onProgress = null) {
 
 export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null, options = {}) {
   return runCacheOperation(async () => {
+    const signal = options?.signal || null;
+    throwIfAborted(signal);
     const expectedManifestHash = normalizeExpectedManifestHash(options.expectedManifestHash);
-    const pinnedHit = await resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress);
-    const cache = pinnedHit ?? await ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress);
+    const pinnedHit = await resolvePinnedCacheHit(
+      modelId,
+      expectedManifestHash,
+      onProgress,
+      signal,
+    );
+    const cache = pinnedHit ?? await ensureModelCachedUnlocked(
+      modelId,
+      modelBaseUrl,
+      onProgress,
+      { signal },
+    );
+    throwIfAborted(signal);
     if (!cache.cached) {
       throw new Error(`Persistent model cache failed for "${modelId}": ${cache.error || cache.cacheState}`);
     }
@@ -501,6 +533,10 @@ export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null
       verifyHashes: false,
       hashesTrusted: true,
     });
+    if (signal?.aborted) {
+      await storageContext.close?.().catch(() => {});
+      throw createAbortError();
+    }
     return {
       ...cache,
       manifest: cachedManifest.manifest,

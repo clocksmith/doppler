@@ -5,6 +5,7 @@ import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from './attention/heterogeneous-contract.js';
 import { resolvePostNormContract } from './normalization-contract.js';
 import { resolveEmbeddingNormalization } from './embedding-contract.js';
+import { CHAT_FORMATTER_TYPES } from './chat-format.js';
 import {
   PER_LAYER_INPUT_MATERIALIZATION_MODES,
   PER_LAYER_INPUT_ROW_CACHE_MODES,
@@ -19,15 +20,7 @@ export { assertSupportedManifestInference, validateRequiredInferenceFields } fro
 
 const UNSUPPORTED_RUNTIME_MODEL_TYPES = new Set(['mamba', 'rwkv']);
 
-const KNOWN_CHAT_TEMPLATE_TYPES = new Set([
-  'gemma',
-  'gemma4',
-  'llama3',
-  'gpt-oss',
-  'chatml',
-  'qwen',
-  'translategemma',
-]);
+const KNOWN_CHAT_TEMPLATE_TYPES = new Set(CHAT_FORMATTER_TYPES);
 
 function validateChatTemplateType(type, modelId) {
   if (type === null || type === undefined) return true;

@@ -272,9 +272,12 @@ export interface VisionConfig {
     mean: number[];
     std: number[];
   };
+  inChannels?: number;
+  mergerIntermediateSize?: number;
+  downsampleKernelSize?: number;
   deepstackVisualIndexes: number[];
   imageTokenId: number | null;
-  visionArchitecture: 'gemma4' | 'qwen3vl';
+  visionArchitecture: 'gemma4' | 'qwen3vl' | 'glmocr';
   softTokenBudgetTiers?: number[];
 }
 

@@ -1,4 +1,16 @@
 import { testHarness as defaultHarness } from './test-page.js';
+import { createTensor } from '../../../src/gpu/tensor.js';
+import {
+  acquireBuffer,
+  readBufferSlice,
+  releaseBuffer,
+  uploadData,
+} from '../../../src/memory/buffer-pool.js';
+import {
+  applyPrefixEmbeddingOverride,
+  normalizePrefixEmbeddingOverride,
+} from '../../../src/inference/pipelines/text/generator/prefix-embedding.js';
+import { runGather } from '../../../src/gpu/kernels/gather.js';
 import {
   layerNormRef,
   groupNormRef,
@@ -593,6 +605,290 @@ export async function runKernelSuite(harness) {
   ]);
 
   tests.push([
+    'gather_f16_f32_glmocr_prefill_geometry',
+    async () => {
+      await h.getGPU();
+      const vocabSize = 4;
+      const hiddenSize = 1536;
+      const numTokens = 4362;
+      const embedding = new Float32Array(vocabSize * hiddenSize);
+      for (let token = 0; token < vocabSize; token++) {
+        for (let dim = 0; dim < hiddenSize; dim++) {
+          embedding[token * hiddenSize + dim] = (token + 1) * 0.125 + (dim % 8) * 0.03125;
+        }
+      }
+      const indices = new Uint32Array(numTokens);
+      for (let token = 0; token < numTokens; token++) {
+        indices[token] = token % vocabSize;
+      }
+      const embeddingBuffer = acquireBuffer(
+        embedding.length * Uint16Array.BYTES_PER_ELEMENT,
+        undefined,
+        'gather_glmocr_embedding'
+      );
+      const indicesBuffer = acquireBuffer(
+        indices.byteLength,
+        undefined,
+        'gather_glmocr_indices'
+      );
+      uploadData(embeddingBuffer, f32ArrayToF16(embedding));
+      uploadData(indicesBuffer, indices);
+      let outputTensor = null;
+      try {
+        outputTensor = await runGather(
+          indicesBuffer,
+          embeddingBuffer,
+          numTokens,
+          hiddenSize,
+          vocabSize,
+          {
+            transpose: false,
+            embeddingDtype: 'f16',
+            outputDtype: 'f32',
+          }
+        );
+        for (const token of [0, 1, numTokens - 1]) {
+          const actual = new Float32Array(
+            await readBufferSlice(
+              outputTensor.buffer,
+              token * hiddenSize * Float32Array.BYTES_PER_ELEMENT,
+              hiddenSize * Float32Array.BYTES_PER_ELEMENT
+            )
+          );
+          const sourceToken = indices[token];
+          for (let dim = 0; dim < hiddenSize; dim++) {
+            const expected = embedding[sourceToken * hiddenSize + dim];
+            if (actual[dim] !== expected) {
+              return false;
+            }
+          }
+        }
+        return true;
+      } finally {
+        if (outputTensor) {
+          releaseBuffer(outputTensor.buffer);
+        }
+        releaseBuffer(embeddingBuffer);
+        releaseBuffer(indicesBuffer);
+      }
+    },
+  ]);
+
+  tests.push([
+    'prefix_embedding_override_composition',
+    async () => {
+      await h.getGPU();
+      const hiddenSize = 4;
+      const numTokens = 4;
+      const base = new Float32Array([
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        9, 10, 11, 12,
+        13, 14, 15, 16,
+      ]);
+      const replacement = new Float32Array([
+        101, 102, 103, 104,
+        105, 106, 107, 108,
+      ]);
+      const expected = base.slice();
+      expected.set(replacement, hiddenSize);
+      const baseBuffer = h.makeBuffer(base);
+      const replacementBuffer = h.makeBuffer(replacement);
+      let outputTensor = null;
+      try {
+        const override = normalizePrefixEmbeddingOverride(
+          {
+            prefixLength: 2,
+            offset: 1,
+            embeddings: replacementBuffer,
+          },
+          hiddenSize,
+          numTokens,
+          'prefix_embedding_override_composition'
+        );
+        outputTensor = await applyPrefixEmbeddingOverride(
+          createTensor(baseBuffer, 'f32', [numTokens, hiddenSize], 'prefix_embedding_base'),
+          override,
+          hiddenSize,
+          'prefix_embedding_override_composition'
+        );
+        const actual = new Float32Array(
+          await h.readBufferData(outputTensor.buffer, expected.byteLength)
+        );
+        return compareExact(expected, actual);
+      } finally {
+        if (outputTensor) {
+          releaseBuffer(outputTensor.buffer);
+        }
+        baseBuffer.destroy();
+        replacementBuffer.destroy();
+      }
+    },
+  ]);
+
+  tests.push([
+    'prefix_embedding_override_survives_base_pool_reuse',
+    async () => {
+      await h.getGPU();
+      const hiddenSize = 4;
+      const numTokens = 4;
+      const base = new Float32Array([
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        9, 10, 11, 12,
+        13, 14, 15, 16,
+      ]);
+      const replacement = new Float32Array([
+        101, 102, 103, 104,
+        105, 106, 107, 108,
+      ]);
+      const expected = base.slice();
+      expected.set(replacement, hiddenSize);
+      const baseBuffer = acquireBuffer(base.byteLength, undefined, 'prefix_embedding_recycled_base');
+      const replacementBuffer = acquireBuffer(
+        replacement.byteLength,
+        undefined,
+        'prefix_embedding_recycled_replacement'
+      );
+      uploadData(baseBuffer, base);
+      uploadData(replacementBuffer, replacement);
+      let baseOwned = true;
+      let replacementOwned = true;
+      let outputTensor = null;
+      let recycledBuffer = null;
+      try {
+        const override = normalizePrefixEmbeddingOverride(
+          {
+            prefixLength: 2,
+            offset: 1,
+            embeddings: replacementBuffer,
+          },
+          hiddenSize,
+          numTokens,
+          'prefix_embedding_override_survives_base_pool_reuse'
+        );
+        outputTensor = await applyPrefixEmbeddingOverride(
+          createTensor(baseBuffer, 'f32', [numTokens, hiddenSize], 'prefix_embedding_recycled_base'),
+          override,
+          hiddenSize,
+          'prefix_embedding_override_survives_base_pool_reuse'
+        );
+        releaseBuffer(baseBuffer);
+        baseOwned = false;
+        recycledBuffer = acquireBuffer(
+          baseBuffer.size,
+          undefined,
+          'prefix_embedding_recycled_base_consumer'
+        );
+        uploadData(recycledBuffer, new Float32Array(recycledBuffer.size / 4));
+        const actual = new Float32Array(
+          await h.readBufferData(outputTensor.buffer, expected.byteLength)
+        );
+        return recycledBuffer === baseBuffer && compareExact(expected, actual);
+      } finally {
+        if (outputTensor) {
+          releaseBuffer(outputTensor.buffer);
+        }
+        if (recycledBuffer) {
+          releaseBuffer(recycledBuffer);
+        } else if (baseOwned) {
+          releaseBuffer(baseBuffer);
+        }
+        if (replacementOwned) {
+          releaseBuffer(replacementBuffer);
+          replacementOwned = false;
+        }
+      }
+    },
+  ]);
+
+  tests.push([
+    'prefix_embedding_override_glmocr_geometry',
+    async () => {
+      await h.getGPU();
+      const hiddenSize = 1536;
+      const numTokens = 4362;
+      const prefixLength = 4350;
+      const offset = 5;
+      const base = new Float32Array(numTokens * hiddenSize);
+      const replacement = new Float32Array(prefixLength * hiddenSize);
+      const baseRows = new Map([
+        [0, new Float32Array([1, 2, 3, 4, 5, 6, 7, 8])],
+        [4, new Float32Array([11, 12, 13, 14, 15, 16, 17, 18])],
+        [4355, new Float32Array([21, 22, 23, 24, 25, 26, 27, 28])],
+        [4361, new Float32Array([31, 32, 33, 34, 35, 36, 37, 38])],
+      ]);
+      const replacementRows = new Map([
+        [0, new Float32Array([101, 102, 103, 104, 105, 106, 107, 108])],
+        [prefixLength - 1, new Float32Array([111, 112, 113, 114, 115, 116, 117, 118])],
+      ]);
+      for (const [row, values] of baseRows) {
+        base.set(values, row * hiddenSize);
+      }
+      for (const [row, values] of replacementRows) {
+        replacement.set(values, row * hiddenSize);
+      }
+      const baseBuffer = acquireBuffer(base.byteLength, undefined, 'prefix_embedding_glmocr_base');
+      const replacementBuffer = acquireBuffer(
+        replacement.byteLength,
+        undefined,
+        'prefix_embedding_glmocr_replacement'
+      );
+      uploadData(baseBuffer, base);
+      uploadData(replacementBuffer, replacement);
+      let outputTensor = null;
+      try {
+        const override = normalizePrefixEmbeddingOverride(
+          {
+            prefixLength,
+            offset,
+            embeddings: replacementBuffer,
+          },
+          hiddenSize,
+          numTokens,
+          'prefix_embedding_override_glmocr_geometry'
+        );
+        outputTensor = await applyPrefixEmbeddingOverride(
+          createTensor(baseBuffer, 'f32', [numTokens, hiddenSize], 'prefix_embedding_glmocr_base'),
+          override,
+          hiddenSize,
+          'prefix_embedding_override_glmocr_geometry'
+        );
+        const expectedRows = new Map([
+          ...baseRows,
+          [offset, replacementRows.get(0)],
+          [offset + prefixLength - 1, replacementRows.get(prefixLength - 1)],
+        ]);
+        for (const [row, expectedPrefix] of expectedRows) {
+          const byteOffset = row * hiddenSize * Float32Array.BYTES_PER_ELEMENT;
+          const actualRow = new Float32Array(
+            await readBufferSlice(
+              outputTensor.buffer,
+              byteOffset,
+              hiddenSize * Float32Array.BYTES_PER_ELEMENT
+            )
+          );
+          if (!compareExact(expectedPrefix, actualRow.slice(0, expectedPrefix.length))) {
+            return false;
+          }
+          for (let dim = expectedPrefix.length; dim < actualRow.length; dim++) {
+            if (actualRow[dim] !== 0) {
+              return false;
+            }
+          }
+        }
+        return true;
+      } finally {
+        if (outputTensor) {
+          releaseBuffer(outputTensor.buffer);
+        }
+        releaseBuffer(baseBuffer);
+        releaseBuffer(replacementBuffer);
+      }
+    },
+  ]);
+
+  tests.push([
     'residual',
     async () => {
       const x = h.generateTestData(512, 501);
@@ -1023,6 +1319,61 @@ export async function runKernelSuite(harness) {
   ]);
 
   tests.push([
+    'bias_add_f32_data_f16_bias',
+    async () => {
+      const numTokens = 4;
+      const dim = 16;
+      const data = h.generateTestData(numTokens * dim, 1206);
+      const bias = h.generateTestData(dim, 1207);
+      const roundedBias = h.toF16RoundedFloat32(bias);
+      const expected = biasAddRef(data, roundedBias, numTokens, dim);
+      const actual = await h.runBiasAdd(null, data, bias, numTokens, dim, {
+        biasDtype: 'f16',
+        biasWrapper: 'weight',
+      });
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'bias_add_glmocr_geometry',
+    async () => {
+      const numTokens = 1624;
+      const dim = 1024;
+      const data = h.generateTestData(numTokens * dim, 1208);
+      const bias = h.generateTestData(dim, 1209);
+      const roundedBias = h.toF16RoundedFloat32(bias);
+      const expected = biasAddRef(data, roundedBias, numTokens, dim);
+      const actual = await h.runBiasAdd(null, data, bias, numTokens, dim, {
+        biasDtype: 'f16',
+      });
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'matmul_bias_glmocr_projection_geometry',
+    async () => {
+      const M = 1624;
+      const N = 1024;
+      const K = 1176;
+      const data = new Float32Array(M * K);
+      const weight = new Float32Array(N * K);
+      const bias = h.generateTestData(N, 1210);
+      const roundedBias = h.toF16RoundedFloat32(bias);
+      const expected = new Float32Array(M * N);
+      for (let row = 0; row < M; row++) {
+        expected.set(roundedBias, row * N);
+      }
+      const actual = await h.runMatmulBias(null, data, weight, bias, M, N, K);
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
     'scale',
     async () => {
       const input = h.generateTestData(256, 1203);
@@ -1130,6 +1481,39 @@ export async function runKernelSuite(harness) {
       const expected = layerNormRef(input, weight, bias, batchSize, hiddenSize, 1e-5);
       const actual = await h.runLayerNorm(null, input, weight, bias, batchSize, hiddenSize, 1e-5);
       const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rmsnorm);
+      return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'layernorm_f32_data_f16_params',
+    async () => {
+      const batchSize = 3;
+      const hiddenSize = 16;
+      const input = h.generateTestData(batchSize * hiddenSize, 1316);
+      const weight = h.generateTestData(hiddenSize, 1317);
+      const bias = h.generateTestData(hiddenSize, 1318);
+      const roundedWeight = h.toF16RoundedFloat32(weight);
+      const roundedBias = h.toF16RoundedFloat32(bias);
+      const expected = layerNormRef(input, roundedWeight, roundedBias, batchSize, hiddenSize, 1e-5);
+      const actual = await h.runLayerNorm(
+        null,
+        input,
+        weight,
+        bias,
+        batchSize,
+        hiddenSize,
+        1e-5,
+        { paramDtype: 'f16' }
+      );
+      const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rmsnorm);
+      if (!result.passed) {
+        console.error('[KernelTests] layernorm f16 params mismatch', {
+          result,
+          expected: Array.from(expected.slice(0, 8)),
+          actual: Array.from(actual.slice(0, 8)),
+        });
+      }
       return result.passed;
     },
   ]);
@@ -1328,6 +1712,24 @@ export async function runKernelSuite(harness) {
   ]);
 
   tests.push([
+    'vision_spatial_merge_channel_first',
+    async () => {
+      const geometry = {
+        gridHeight: 4,
+        gridWidth: 6,
+        hiddenSize: 5,
+        mergeSize: 2,
+        channelFirst: true,
+        inputBlockMajor: true,
+      };
+      const input = h.generateTestData(4 * 6 * 5, 123041);
+      const expected = h.references.visionSpatialMergeRef(input, geometry);
+      const actual = await h.runVisionSpatialMerge(null, input, geometry);
+      return h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.residual).passed;
+    },
+  ]);
+
+  tests.push([
     'vision_average_pool',
     async () => {
       const geometry = { gridHeight: 4, gridWidth: 6, hiddenSize: 8, poolingSize: 2 };
@@ -1373,6 +1775,25 @@ export async function runKernelSuite(harness) {
         console.error('[KernelTests] vision_rope_2d mismatch', JSON.stringify(result));
       }
       return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'vision_rope_2d_block_major',
+    async () => {
+      const geometry = {
+        numTokens: 24,
+        numHeads: 2,
+        headDim: 16,
+        gridHeight: 4,
+        gridWidth: 6,
+        ropeTheta: 10000,
+        spatialMergeSize: 2,
+      };
+      const input = h.generateTestData(24 * 2 * 16, 123071);
+      const expected = h.references.visionRope2DRef(input, geometry);
+      const actual = await h.runVisionRope2D(null, input, geometry);
+      return h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.vision_rope_2d).passed;
     },
   ]);
 

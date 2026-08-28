@@ -1,7 +1,16 @@
 
 
 
-import { getDevice } from '../device.js';
+import { getDevice, getLastDeviceLossInfo } from '../device.js';
+
+function requireDispatchDevice(device, label) {
+  if (device) return device;
+  const loss = getLastDeviceLossInfo();
+  throw new Error(
+    `${label} dispatch requires an active GPU device; ` +
+    `lastDeviceLoss=${JSON.stringify(loss)}`
+  );
+}
 
 function normalizeWorkgroups(workgroups) {
   if (typeof workgroups === 'number') {
@@ -39,6 +48,7 @@ export function dispatch(
   workgroups,
   label = 'compute'
 ) {
+  requireDispatchDevice(device, label);
   const [x, y, z] = assertWorkgroupLimits(device, workgroups, label);
   const encoder = device.createCommandEncoder({ label: `${label}_encoder` });
   const pass = encoder.beginComputePass({ label: `${label}_pass` });
@@ -98,6 +108,7 @@ export function dispatchIndirect(
   indirectOffset = 0,
   label = 'compute'
 ) {
+  requireDispatchDevice(device, label);
   const encoder = device.createCommandEncoder({ label: `${label}_encoder` });
   const pass = encoder.beginComputePass({ label: `${label}_pass` });
   pass.setPipeline(pipeline);

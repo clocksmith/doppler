@@ -23,7 +23,13 @@ import {
 import { getExpertCache } from './experts/expert-cache.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
-import { isGpuBufferInstance, isWeightBuffer } from '../gpu/weight-buffer.js';
+import { createTensor } from '../gpu/tensor.js';
+import {
+  getBuffer,
+  getWeightDtype,
+  isGpuBufferInstance,
+  isWeightBuffer,
+} from '../gpu/weight-buffer.js';
 
 import { createShardCache } from './shard-cache.js';
 import { validateManifestInference } from '../config/schema/index.js';
@@ -624,6 +630,26 @@ export class DopplerLoader {
 
   async loadTensor(name, toGPU = true, silent = false) {
     return this._loadTensor(name, toGPU, silent);
+  }
+
+  async loadGpuTensor(name, silent = false) {
+    const loaded = await this._loadTensor(name, true, silent);
+    if (!loaded) {
+      return null;
+    }
+    const location = this.tensorLocations.get(name);
+    if (!location || !Array.isArray(location.shape)) {
+      throw new Error(`GPU tensor "${name}" is missing its manifest shape.`);
+    }
+    const buffer = getBuffer(loaded);
+    if (!isGpuBufferInstance(buffer)) {
+      throw new Error(`GPU tensor "${name}" did not resolve to a GPU buffer.`);
+    }
+    const dtype = getWeightDtype(loaded);
+    if (dtype !== 'f16' && dtype !== 'f32') {
+      throw new Error(`GPU tensor "${name}" requires f16 or f32 data, got ${String(dtype)}.`);
+    }
+    return createTensor(buffer, dtype, location.shape, name);
   }
 
   getConfig() {

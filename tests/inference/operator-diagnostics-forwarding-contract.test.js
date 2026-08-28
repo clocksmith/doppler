@@ -77,7 +77,7 @@ for (const relativePath of probeForwardingFiles) {
     'src/inference/pipelines/text/generator/decode.js',
     'src/inference/pipelines/text/generator/prefill-runtime.js',
   ].map(readSource).join('\n');
-  assertCallBlocksContain(source, 'embed(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
+  assertCallBlocksContain(source, 'await embed(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
   assertCallBlocksContain(source, 'recordLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
   assertCallBlocksContain(source, 'computeLogits(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
 }
@@ -88,7 +88,7 @@ for (const relativePath of probeForwardingFiles) {
     'src/inference/pipelines/text/generator/decode.js',
     'src/inference/pipelines/text/generator/diffusion.js',
   ].map(readSource).join('\n');
-  assertCallBlocksContain(source, 'embed(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
+  assertCallBlocksContain(source, 'await embed(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
   assertCallBlocksContain(source, 'recordLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
   assertCallBlocksContain(source, 'computeLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
   assertCallBlocksContain(source, 'computeLogits(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');

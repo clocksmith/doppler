@@ -8,19 +8,38 @@
 const TENSOR_CONFIG_MAPPINGS = [
   {
     configPath: 'inference.normalization.postFeedforwardNorm',
-    tensorPattern: /post_feedforward_layernorm\.weight$/,
+    tensorPattern: /(post_feedforward_layernorm(?:_[12])?|post_mlp_layernorm|post_ffw_norm)\.weight$/,
     description: 'post-feedforward normalization',
     severity: 'error', // This caused complete model failure
   },
   {
     configPath: 'inference.normalization.preFeedforwardNorm',
-    tensorPattern: /pre_feedforward_layernorm\.weight$/,
+    tensorPattern: /pre_feedforward_layernorm(?:_2)?\.weight$/,
+    resolveMatches(tensorNames, tensorPattern) {
+      const directMatches = tensorNames.filter(name => tensorPattern.test(name));
+      const hasDistinctPostAttentionNorm = tensorNames.some(
+        name => /post_self_attn_layernorm\.weight$/.test(name)
+      );
+      if (!hasDistinctPostAttentionNorm) return directMatches;
+      return directMatches.concat(
+        tensorNames.filter(name => /post_attention_layernorm\.weight$/.test(name))
+      );
+    },
     description: 'pre-feedforward normalization',
     severity: 'error',
   },
   {
     configPath: 'inference.normalization.postAttentionNorm',
-    tensorPattern: /post_attention_layernorm\.weight$/,
+    tensorPattern: /(post_self_attn_layernorm|post_attention_layernorm|post_attention_norm|ffn_norm)\.weight$/,
+    resolveMatches(tensorNames) {
+      const distinctMatches = tensorNames.filter(
+        name => /post_self_attn_layernorm\.weight$/.test(name)
+      );
+      if (distinctMatches.length > 0) return distinctMatches;
+      return tensorNames.filter(
+        name => /(post_attention_layernorm|post_attention_norm|ffn_norm)\.weight$/.test(name)
+      );
+    },
     description: 'post-attention normalization',
     severity: 'error',
   },
@@ -74,7 +93,9 @@ export function validateTensorConfigConsistency(manifest) {
 
   for (const mapping of TENSOR_CONFIG_MAPPINGS) {
     const configValue = getNestedValue(manifest, mapping.configPath);
-    const matchingTensors = tensorNames.filter(name => mapping.tensorPattern.test(name));
+    const matchingTensors = typeof mapping.resolveMatches === 'function'
+      ? mapping.resolveMatches(tensorNames, mapping.tensorPattern)
+      : tensorNames.filter(name => mapping.tensorPattern.test(name));
     const hasTensors = matchingTensors.length > 0;
 
     // Check for inconsistency
@@ -123,4 +144,3 @@ export function validateTensorConfigConsistency(manifest) {
     errors,
   };
 }
-

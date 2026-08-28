@@ -584,6 +584,8 @@ inference/pipelines/video/index.d.ts
 inference/pipelines/vision/attention.d.ts
 inference/pipelines/vision/encoder.d.ts
 inference/pipelines/vision/gemma4.d.ts
+inference/pipelines/vision/glmocr-rope.d.ts
+inference/pipelines/vision/glmocr.d.ts
 inference/pipelines/vision/image-preprocess.d.ts
 inference/pipelines/vision/index.d.ts
 inference/pipelines/vision/ops.d.ts
@@ -681,7 +683,6 @@ storage/backends/opfs-store.d.ts
 storage/blake3.d.ts
 storage/distribution-transport.d.ts
 storage/download-types.d.ts
-storage/download/integrity.d.ts
 storage/download/retry.d.ts
 storage/download/state.d.ts
 storage/download/transport.d.ts

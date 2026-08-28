@@ -77,6 +77,7 @@ None right now.
 | --- | --- | --- | --- |
 | diffusiongemma-26b-a4b-it-q4k-ehf16-af16 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
 | lfm2-5-1-2b-instruct-q4k-ehf16-af32 | catalog model | experimental | Cataloged model without a verified or failing inference lifecycle result. |
+| glmocr | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | gpt_oss | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 | janus_text | model family | conversion-ready | conversion configs exist, but there is no cataloged model entry yet |
 
@@ -106,6 +107,7 @@ Generated from `models/gemma4-targets.json`. This section tracks the latest offi
 | diffusiongemma | transformer | active | 1 (src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json) | 1 (diffusiongemma-26b-a4b-it-q4k-ehf16-af16) | no | none | unknown | verification-pending | not verified in catalog lifecycle |
 | esm | transformer | active | 1 (src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json) | 1 (esm2-t12-35m-ur50d-f32-af32) | yes | none | verified (2026-07-19) | verified | - |
 | esmc | transformer | active | 1 (src/config/conversion/esmc/esmc-300m-f32-af32.json) | 1 (esmc-300m-f32-af32) | yes | none | verified (2026-07-19) | verified | - |
+| glmocr | transformer | active | 1 (src/config/conversion/glmocr/glm-ocr-f16-af32.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | gpt_oss | transformer | active | 1 (src/config/conversion/gpt-oss-20b-f16-xmxfp4.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | janus_text | transformer | active | 1 (src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json) | 0 | no | none | unknown | conversion-ready | not in local catalog; not verified in catalog lifecycle |
 | minicpm | transformer | active | 1 (src/config/conversion/minicpm/minicpm4-0-5b-f16-af32.json) | 1 (minicpm4-0-5b-f16-af32) | no | none | failed | verification-failed | - |
@@ -114,8 +116,8 @@ Generated from `models/gemma4-targets.json`. This section tracks the latest offi
 
 ## Summary
 
-- Families tracked: 15
-- Families with conversion configs: 15
+- Families tracked: 16
+- Families with conversion configs: 16
 - Families present in catalog: 13
 - Verified families (active runtime + conversion + catalog + passing verification): 9
 - Cataloged families pending verification: 2

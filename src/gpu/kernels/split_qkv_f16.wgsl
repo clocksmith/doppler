@@ -33,8 +33,11 @@ override WORKGROUP_SIZE: u32 = 256u;
 @group(0) @binding(4) var<storage, read_write> V: array<f16>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let idx = gid.x;
+fn main(
+    @builtin(global_invocation_id) gid: vec3<u32>,
+    @builtin(num_workgroups) num_wg: vec3<u32>
+) {
+    let idx = gid.x + gid.y * num_wg.x * WORKGROUP_SIZE;
     let numTokens = params.numTokens;
     let qSize = params.qSize;
     let kSize = params.kSize;

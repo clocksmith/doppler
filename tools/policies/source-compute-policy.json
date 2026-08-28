@@ -665,6 +665,11 @@
       "reason": "The method binds declared per-layer input weights, token IDs, and GPU dispatch resources without implementing their tensor arithmetic."
     },
     {
+      "id": "src/inference/pipelines/text/embed.js#selectPreloadedCpuEmbeddingValues",
+      "category": "artifact-codec-materialization",
+      "reason": "The symbol copies a declared hidden slice from a hash-verified range-backed artifact row before that row becomes a runtime tensor."
+    },
+    {
       "id": "src/inference/pipelines/text/probes.js#readTokenRow",
       "category": "observation",
       "reason": "This symbol records or decodes bounded diagnostic evidence and cannot feed modified tensor values back into execution."
@@ -713,6 +718,21 @@
       "id": "src/inference/pipelines/vision/image-preprocess.js#preprocessImage",
       "category": "host-input-preprocessing",
       "reason": "Application image pixels are resized or normalized before creation of the manifest-declared runtime input tensor."
+    },
+    {
+      "id": "src/inference/pipelines/vision/glmocr-rope.js#buildGlmOcrRopePositionPlan",
+      "category": "host-input-preprocessing",
+      "reason": "The symbol maps explicit prompt and image-grid geometry into position IDs before the declared GPU MRoPE frequency program executes."
+    },
+    {
+      "id": "src/inference/pipelines/vision/glmocr.js#createUint8ResizeAxis",
+      "category": "host-input-preprocessing",
+      "reason": "The symbol constructs interpolation coefficients from application image dimensions before any manifest-declared runtime input tensor exists."
+    },
+    {
+      "id": "src/inference/pipelines/vision/glmocr.js#preprocessGlmOcrImage",
+      "category": "host-input-preprocessing",
+      "reason": "Application image pixels are resized, normalized, and packed into the manifest-declared patch order before the first runtime tensor exists."
     },
     {
       "id": "src/inference/speculative.js#SpeculativeDecoder.sampleToken",

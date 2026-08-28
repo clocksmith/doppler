@@ -130,7 +130,7 @@ try {
   );
 
   const testDir = path.dirname(fileURLToPath(import.meta.url));
-  const loaderSource = fs.readFileSync(path.join(testDir, '../../src/loader/doppler-loader.js'), 'utf8');
+  const loaderSource = fs.readFileSync(path.join(testDir, '../../src/loader/model-executor.js'), 'utf8');
   assert.match(
     loaderSource,
     /requiresCpuF16ToF32MatmulMaterialization\(location, this\.gpuCapabilities, this\.keepF32Weights\)/,

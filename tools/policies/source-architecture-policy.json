@@ -385,7 +385,7 @@
       ]
     },
     "config/schema/manifest.schema.d.ts": {
-      "reviewedLines": 859,
+      "reviewedLines": 861,
       "reason": "Large declaration surface mirrors one runtime contract; the paired component declaration is the named extraction boundary.",
       "extractTo": [
         "config/schema/manifest.schema-components.d.ts"
@@ -413,7 +413,7 @@
       ]
     },
     "converter/manifest-builder.js": {
-      "reviewedLines": 814,
+      "reviewedLines": 898,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "converter/manifest-builder-components.js"
@@ -573,6 +573,13 @@
         "inference/pipelines/text/execution-v1-components.js"
       ]
     },
+    "inference/pipelines/text/execution.js": {
+      "reviewedLines": 806,
+      "reason": "The module remains the text pipeline workload execution owner; image transcription is the named extraction boundary for further growth.",
+      "extractTo": [
+        "inference/pipelines/text/image-transcription.js"
+      ]
+    },
     "inference/pipelines/text/ffn/dense.js": {
       "reviewedLines": 943,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
@@ -595,7 +602,7 @@
       ]
     },
     "inference/pipelines/text/generator/prefill-runtime.js": {
-      "reviewedLines": 896,
+      "reviewedLines": 912,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "inference/pipelines/text/generator/prefill-runtime-components.js"
@@ -630,7 +637,7 @@
       ]
     },
     "inference/pipelines/text/lifecycle.js": {
-      "reviewedLines": 847,
+      "reviewedLines": 904,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "inference/pipelines/text/lifecycle-components.js"
@@ -657,6 +664,13 @@
         "inference/pipelines/text/types-components.d.ts"
       ]
     },
+    "inference/pipelines/vision/glmocr.js": {
+      "reviewedLines": 816,
+      "reason": "The module owns the GLM-OCR browser vision encoder; host image preprocessing is the named extraction boundary for further growth.",
+      "extractTo": [
+        "inference/pipelines/vision/glmocr-preprocess.js"
+      ]
+    },
     "inference/tokenizers/bundled.js": {
       "reviewedLines": 997,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
@@ -665,14 +679,14 @@
       ]
     },
     "loader/doppler-loader.js": {
-      "reviewedLines": 775,
+      "reviewedLines": 801,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "loader/doppler-loader-components.js"
       ]
     },
     "loader/layer-loader.js": {
-      "reviewedLines": 848,
+      "reviewedLines": 857,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "loader/layer-loader-components.js"

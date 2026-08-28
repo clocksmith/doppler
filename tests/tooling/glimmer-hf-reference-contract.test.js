@@ -68,6 +68,14 @@ assert.equal(transcript.boundaries.length, boundariesPerPhase * policy.boundaryG
 assert.equal(new Set(transcript.boundaries.map((entry) => entry.boundaryId)).size, transcript.boundaries.length);
 assert.equal(transcript.boundaries.filter((entry) => entry.phase === 'prefill').length, boundariesPerPhase);
 assert.equal(transcript.boundaries.filter((entry) => entry.phase === 'decode').length, boundariesPerPhase);
+const boundaryDirectory = await fs.stat(policy.boundaryOutputDir).catch((error) => {
+  if (error?.code === 'ENOENT') return null;
+  throw error;
+});
+if (!boundaryDirectory) {
+  console.log(`glimmer-hf-reference-contract.test: skipped (boundary artifacts unavailable at ${policy.boundaryOutputDir})`);
+  process.exit(0);
+}
 for (const boundary of transcript.boundaries) {
   assert.equal(policy.boundaryGenerationSteps.includes(boundary.generationStep), true);
   assert.equal(boundary.phase, boundary.generationStep === 0 ? 'prefill' : 'decode');
