@@ -91,3 +91,25 @@ export function resolveMultimodalMaxTokens(runtimeConfig, requestedMaxTokens) {
     'runtime.inference.generation.multimodalMaxTokens'
   );
 }
+
+export function assertMultimodalSequenceCapacity({ inputTokenCount, maxTokens, maxSeqLen } = {}) {
+  const resolvedInputTokenCount = requirePositiveInteger(
+    inputTokenCount,
+    'multimodal inputTokenCount'
+  );
+  const resolvedMaxTokens = requirePositiveInteger(maxTokens, 'multimodal maxTokens');
+  const resolvedMaxSeqLen = requirePositiveInteger(
+    maxSeqLen,
+    'active KV cache maxSeqLen'
+  );
+  const requiredCapacity = resolvedInputTokenCount + resolvedMaxTokens;
+  if (requiredCapacity > resolvedMaxSeqLen) {
+    throw new Error(
+      `[Pipeline] transcribeImage: multimodal request requires ${requiredCapacity} sequence slots ` +
+      `(${resolvedInputTokenCount} input + ${resolvedMaxTokens} output), but the active KV cache ` +
+      `maxSeqLen is ${resolvedMaxSeqLen}. Increase runtime.inference.session.kvcache.maxSeqLen ` +
+      'or reduce the image or output token budget.'
+    );
+  }
+  return requiredCapacity;
+}

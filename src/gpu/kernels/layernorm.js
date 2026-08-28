@@ -1,10 +1,10 @@
 
-import { getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { padToQ4KBlock } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
-import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.js';
+import { getBuffer } from '../weight-buffer.js';
+import { resolveNormWeightDtype } from './rmsnorm.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 
 function inferHiddenSize(input, hiddenSize) {
@@ -20,6 +20,24 @@ export function selectLayerNormKernel(options = {}, isF16 = false) {
   return selectRuleValue('layernorm', 'variant', { isF16 });
 }
 
+function normalizeNormWeightDtype(dtype) {
+  if (typeof dtype !== 'string') return null;
+  const normalized = dtype.toLowerCase();
+  return normalized === 'f16' || normalized === 'f32' ? normalized : null;
+}
+
+function resolveLayerNormParamDtype(weight, bias, hiddenSize, explicitDtype) {
+  const weightDtype = normalizeNormWeightDtype(explicitDtype)
+    ?? resolveNormWeightDtype(weight, hiddenSize);
+  const biasDtype = resolveNormWeightDtype(bias, hiddenSize);
+  if (weightDtype !== biasDtype) {
+    throw new Error(
+      `[layernorm] weight/bias dtype mismatch: weight=${weightDtype}, bias=${biasDtype}.`
+    );
+  }
+  return weightDtype;
+}
+
 export async function runLayerNorm(
   input,
   weight,
@@ -31,6 +49,14 @@ export async function runLayerNorm(
   const isF16 = input.dtype === 'f16';
   const variant = selectLayerNormKernel(options, isF16);
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
+  const paramDtype = resolveLayerNormParamDtype(
+    weight,
+    bias,
+    inferredHiddenSize,
+    options.normWeightDtype
+  );
+  const weightBuffer = getBuffer(weight);
+  const biasBuffer = getBuffer(bias);
 
   const bytesPerElement = isF16 ? 2 : 4;
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
@@ -43,9 +69,10 @@ export async function runLayerNorm(
       'layernorm',
       null,
       variant,
-      [input, weight, bias, outputBuf],
+      [input, weightBuffer, biasBuffer, outputBuf],
       { hidden_size: inferredHiddenSize, num_tokens: batchSize, eps },
-      batchSize
+      batchSize,
+      { PARAMS_IS_F16: paramDtype === 'f16' }
     );
 
     return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'layernorm_output');
@@ -69,6 +96,14 @@ export async function recordLayerNorm(
   const isF16 = input.dtype === 'f16';
   const variant = selectLayerNormKernel(options, isF16);
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
+  const paramDtype = resolveLayerNormParamDtype(
+    weight,
+    bias,
+    inferredHiddenSize,
+    options.normWeightDtype
+  );
+  const weightBuffer = getBuffer(weight);
+  const biasBuffer = getBuffer(bias);
 
   const bytesPerElement = isF16 ? 2 : 4;
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
@@ -81,9 +116,10 @@ export async function recordLayerNorm(
       'layernorm',
       recorder,
       variant,
-      [input, weight, bias, outputBuf],
+      [input, weightBuffer, biasBuffer, outputBuf],
       { hidden_size: inferredHiddenSize, num_tokens: batchSize, eps },
-      batchSize
+      batchSize,
+      { PARAMS_IS_F16: paramDtype === 'f16' }
     );
 
     return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'layernorm_output');

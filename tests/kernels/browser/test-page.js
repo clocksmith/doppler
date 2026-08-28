@@ -669,22 +669,27 @@ const testHarness = {
   },
 
   
-  async runBiasAdd(dev, data, bias, numTokens, dim) {
+  async runBiasAdd(dev, data, bias, numTokens, dim, options = {}) {
+    const biasDtype = options.biasDtype ?? 'f32';
+    const biasWrapper = options.biasWrapper ?? 'tensor';
     if (!runBiasAdd) {
       const result = new Float32Array(data);
+      const resolvedBias = biasDtype === 'f16' ? toF16RoundedFloat32(bias) : bias;
       for (let t = 0; t < numTokens; t++) {
         const rowOffset = t * dim;
         for (let d = 0; d < dim; d++) {
-          result[rowOffset + d] += bias[d];
+          result[rowOffset + d] += resolvedBias[d];
         }
       }
       return result;
     }
 
     const dataBuf = makeBuffer(data);
-    const biasBuf = makeBuffer(bias);
+    const biasBuf = makeBuffer(biasDtype === 'f16' ? toF16Array(bias) : bias);
     const dataTensor = createTensor(dataBuf, 'f32', [numTokens, dim], 'bias_add_data');
-    const biasTensor = createTensor(biasBuf, 'f32', [dim], 'bias_add_bias');
+    const biasTensor = biasWrapper === 'weight'
+      ? createWeightBuffer(biasBuf, biasDtype, 'row', [dim], 'bias_add_bias')
+      : createTensor(biasBuf, biasDtype, [dim], 'bias_add_bias');
 
     const resultTensor = await runBiasAdd(dataTensor, biasTensor, numTokens, dim);
     const result = new Float32Array(await readBufferData(resultTensor.buffer, numTokens * dim * 4));
@@ -698,10 +703,52 @@ const testHarness = {
     return result;
   },
 
+  async runMatmulBias(dev, data, weight, bias, M, N, K) {
+    if (!runMatmul || !runBiasAdd) {
+      throw new Error('runMatmul and runBiasAdd kernels are required');
+    }
+
+    const dataBuf = makeBuffer(data);
+    const weightBuf = makeBuffer(toF16Array(weight));
+    const biasBuf = makeBuffer(toF16Array(bias));
+    const dataTensor = createTensor(dataBuf, 'f32', [M, K], 'matmul_bias_data');
+    const weightTensor = createWeightBuffer(
+      weightBuf,
+      'f16',
+      'row',
+      [N, K],
+      'matmul_bias_weight'
+    );
+    const biasTensor = createWeightBuffer(
+      biasBuf,
+      'f16',
+      'row',
+      [N],
+      'matmul_bias_bias'
+    );
+
+    const projected = await runMatmul(dataTensor, weightTensor, M, N, K, {
+      outputDtype: 'f32',
+      transposeB: 'auto',
+      role: 'glmocr_vision_patch_projection',
+    });
+    const resultTensor = await runBiasAdd(projected, biasTensor, M, N);
+    const result = new Float32Array(await readBufferData(resultTensor.buffer, M * N * 4));
+
+    dataBuf.destroy();
+    weightBuf.destroy();
+    biasBuf.destroy();
+    resultTensor.buffer.destroy();
+    return result;
+  },
+
   
-  async runLayerNorm(dev, input, weight, bias, batchSize, hiddenSize, eps = 1e-5) {
+  async runLayerNorm(dev, input, weight, bias, batchSize, hiddenSize, eps = 1e-5, options = {}) {
+    const paramDtype = options.paramDtype ?? 'f32';
     if (!runLayerNorm) {
       const output = new Float32Array(batchSize * hiddenSize);
+      const resolvedWeight = paramDtype === 'f16' ? toF16RoundedFloat32(weight) : weight;
+      const resolvedBias = paramDtype === 'f16' ? toF16RoundedFloat32(bias) : bias;
       for (let b = 0; b < batchSize; b++) {
         const base = b * hiddenSize;
         let mean = 0;
@@ -717,18 +764,32 @@ const testHarness = {
         const invStd = 1 / Math.sqrt(varSum / hiddenSize + eps);
         for (let i = 0; i < hiddenSize; i++) {
           const norm = (input[base + i] - mean) * invStd;
-          output[base + i] = norm * weight[i] + bias[i];
+          output[base + i] = norm * resolvedWeight[i] + resolvedBias[i];
         }
       }
       return output;
     }
 
     const inputBuf = makeBuffer(input);
-    const weightBuf = makeBuffer(weight);
-    const biasBuf = makeBuffer(bias);
+    const weightBuf = makeBuffer(paramDtype === 'f16' ? toF16Array(weight) : weight);
+    const biasBuf = makeBuffer(paramDtype === 'f16' ? toF16Array(bias) : bias);
     const inputTensor = createTensor(inputBuf, 'f32', [batchSize, hiddenSize], 'layernorm_input');
+    const weightTensor = createWeightBuffer(
+      weightBuf,
+      paramDtype,
+      'row',
+      [hiddenSize],
+      'layernorm_weight'
+    );
+    const biasTensor = createWeightBuffer(
+      biasBuf,
+      paramDtype,
+      'row',
+      [hiddenSize],
+      'layernorm_bias'
+    );
 
-    const resultTensor = await runLayerNorm(inputTensor, weightBuf, biasBuf, eps, {
+    const resultTensor = await runLayerNorm(inputTensor, weightTensor, biasTensor, eps, {
       batchSize,
       hiddenSize,
     });

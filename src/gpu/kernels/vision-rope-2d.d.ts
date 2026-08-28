@@ -7,6 +7,7 @@ export interface VisionRope2DGeometry {
   gridHeight: number;
   gridWidth: number;
   ropeTheta: number;
+  spatialMergeSize?: number;
 }
 
 export declare function runVisionRope2D(

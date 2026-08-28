@@ -29,6 +29,8 @@ export interface SplitQKVResult {
   V: Tensor;
 }
 
+export declare function planSplitQKVDispatch(totalElements: number): [number, number, 1];
+
 /**
  * Split fused QKV output into separate Q, K, V tensors.
  *

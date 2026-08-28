@@ -7,6 +7,16 @@ async function readJson(file) {
 }
 
 const policy = await readJson('src/config/forge/conversion-preflight/glimmer-30b-text.json');
+const moduleSource = await fs.readFile('src/converter/manifest-conversion-preflight.js', 'utf8');
+assert.doesNotMatch(moduleSource, /glimmer|qwen/i, 'generic conversion preflight must not contain model-family names');
+
+try {
+  await fs.access(policy.weightIndex);
+} catch {
+  console.log(`manifest-conversion-preflight.test: skipped (source weight index unavailable at ${policy.weightIndex})`);
+  process.exit(0);
+}
+
 const [
   rawConfig,
   conversionConfig,
@@ -83,8 +93,5 @@ assert.throws(
   /complete source acquisition evidence/,
   'incomplete local acquisition must block conversion preflight'
 );
-
-const moduleSource = await fs.readFile('src/converter/manifest-conversion-preflight.js', 'utf8');
-assert.doesNotMatch(moduleSource, /glimmer|qwen/i, 'generic conversion preflight must not contain model-family names');
 
 console.log('✔ manifest-conversion-preflight.test.js passed');

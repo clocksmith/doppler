@@ -7,6 +7,8 @@ import { resolveSourceArtifact } from '../source-artifact-store.js';
 import { buildManifestVersionSet, computeAssetHash } from './integrity.js';
 import { loadDownloadState } from './state.js';
 
+export { buildManifestVersionSet };
+
 export const MODEL_DOWNLOAD_RESUME_INSPECTION_SCHEMA = 'doppler.model-download-resume-inspection.v1';
 
 function requireNonNegativeSafeInteger(value, label) {

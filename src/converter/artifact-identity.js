@@ -133,7 +133,10 @@ export function extractArchitecture(config, ggufConfig) {
       fromConfig('max_position_embeddings', 'n_positions', 'max_seq_len', 'max_length'),
       'max_position_embeddings'
     );
-    const ropeTheta = fromConfig('rope_theta') ?? undefined;
+    const ropeParameters = fromConfigValue('rope_parameters');
+    const ropeTheta = fromConfig('rope_theta')
+      ?? firstNumber(ropeParameters?.rope_theta)
+      ?? undefined;
     const linearNumKeyHeads = fromConfig('linear_num_key_heads');
     const linearNumValueHeads = fromConfig('linear_num_value_heads');
     const linearKeyHeadDim = fromConfig('linear_key_head_dim');

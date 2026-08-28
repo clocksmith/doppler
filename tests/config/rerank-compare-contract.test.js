@@ -149,6 +149,7 @@ assert.equal(head128Reachability.status, 'pinned');
 assert.deepEqual(
   head128Reachability.inlineConfigs,
   [
+    'glmocr/glm-ocr-f16-af32',
     'runtime/profiles/qwen-3-reranker-0-6b-metal-stability',
     'runtime/profiles/qwen-3-reranker-0-6b-metal-throughput',
   ]

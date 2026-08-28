@@ -16,7 +16,26 @@ import { maybeWriteFixtureSnapshot } from './tsir-fixture-writer.js';
 
 
 const STAGE_DEFAULT_CATEGORY = {
+  image_features_out: 'embed',
+  glmocr_vision_patch_input: 'embed',
+  glmocr_vision_patch_bias: 'embed',
+  glmocr_vision_patch_projection: 'embed',
+  glmocr_vision_attention_residual: 'embed',
+  glmocr_vision_layer_out: 'embed',
+  glmocr_vision_postnorm: 'embed',
+  glmocr_vision_spatial_merge: 'embed',
+  glmocr_vision_downsample: 'embed',
+  glmocr_vision_merger_projection: 'embed',
+  glmocr_vision_merger_normalized: 'embed',
+  glmocr_vision_merger_gelu: 'embed',
+  glmocr_vision_merger_gate: 'embed',
+  glmocr_vision_merger_up: 'embed',
+  glmocr_vision_merger_activated: 'embed',
+  glmocr_vision_merger_output: 'embed',
+  embed_weight_row: 'embed',
   embed_out: 'embed',
+  prefill_base_embedding_out: 'embed',
+  prefill_embedding_override_out: 'embed',
   per_layer_embed_out: 'embed',
   // Attention stages (per-layer)
   attn_input: 'attn',

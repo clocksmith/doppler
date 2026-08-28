@@ -34,6 +34,25 @@ import { resolveBundledTokenizerVocabSize } from '../../src/converter/core.js';
 }
 
 {
+  const tokenizerJson = {
+    model: {
+      vocab: {
+        '<pad>': 0,
+        '<eos>': 1,
+      },
+    },
+    added_tokens: [
+      { content: '<image>', id: 5 },
+    ],
+  };
+  assert.equal(
+    resolveBundledTokenizerVocabSize(tokenizerJson),
+    6,
+    'new manifests must preserve the addressable range of added token IDs'
+  );
+}
+
+{
   assert.equal(resolveBundledTokenizerVocabSize(null), 0);
   assert.equal(resolveBundledTokenizerVocabSize({ model: {} }), 0);
 }

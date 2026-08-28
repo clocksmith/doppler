@@ -17,6 +17,7 @@ class FakeBuffer {
   constructor({ size, usage = 0 }) {
     this.size = size;
     this.usage = usage;
+    this.bytes = new Uint8Array(size);
   }
 
   destroy() {}
@@ -30,7 +31,9 @@ const {
   decodeRangeChunkIntoOutput,
   embed,
   resolveEmbeddingScale,
+  selectPreloadedCpuEmbeddingValues,
 } = await import('../../src/inference/pipelines/text/embed.js');
+const { releaseBuffer } = await import('../../src/memory/buffer-pool.js');
 
 const fakeDevice = {
   lost: new Promise(() => {}),
@@ -43,6 +46,23 @@ const fakeDevice = {
     maxComputeWorkgroupSizeX: 256,
     maxComputeWorkgroupSizeY: 1,
     maxComputeWorkgroupSizeZ: 1,
+  },
+  queue: {
+    submit() {},
+    writeBuffer(buffer, bufferOffset, data, dataOffset = 0, size = undefined) {
+      const source = ArrayBuffer.isView(data)
+        ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+        : new Uint8Array(data);
+      const start = Number(dataOffset) || 0;
+      const length = size == null ? source.byteLength - start : Number(size);
+      buffer.bytes.set(source.subarray(start, start + length), bufferOffset);
+    },
+    onSubmittedWorkDone() {
+      return Promise.resolve();
+    },
+  },
+  createBuffer(descriptor) {
+    return new FakeBuffer(descriptor);
   },
   createBindGroup() {
     return {};
@@ -70,7 +90,13 @@ assert.equal(resolveEmbeddingScale({ scaleEmbeddings: true, embeddingScale: null
 assert.equal(resolveEmbeddingScale({ scaleEmbeddings: false, embeddingScale: 3 }, hiddenSize), 3);
 
 const cpuWeight = createCpuWeightBuffer(
-  new Uint16Array(f16Bytes.buffer),
+  {
+    kind: 'tensor_range_source',
+    sourceDtype: 'f16',
+    async loadRange() {
+      return f16Bytes;
+    },
+  },
   'f16',
   'row',
   [1, hiddenSize],
@@ -85,8 +111,50 @@ await assert.rejects(
     activationDtype: 'f32',
     embeddingDtype: 'f16',
   }),
-  /CPU-resident embedding gather is not a production path/
+  /CPU-resident embedding gather requires a verified preloaded row/
 );
+
+assert.deepEqual(
+  Array.from(selectPreloadedCpuEmbeddingValues({
+    preloadedCpuRow: new Float32Array([1, 2, 3, 4]),
+    numTokens: 1,
+    inputHiddenSize: 4,
+    hiddenSize: 2,
+    hiddenOffset: 1,
+  })),
+  [2, 3]
+);
+assert.deepEqual(
+  Array.from(selectPreloadedCpuEmbeddingValues({
+    preloadedCpuBatchedRows: new Float32Array([
+      1, 2, 3, 4,
+      5, 6, 7, 8,
+    ]),
+    numTokens: 2,
+    inputHiddenSize: 4,
+    hiddenSize: 2,
+    hiddenOffset: 1,
+  })),
+  [2, 3, 6, 7]
+);
+
+const preloadedTensor = await embed([0], cpuWeight, {
+  hiddenSize: 2,
+  vocabSize: 1,
+  scaleEmbeddings: false,
+  embeddingScale: null,
+  activationDtype: 'f32',
+  embeddingDtype: 'f16',
+  inputHiddenSize: 4,
+  hiddenOffset: 1,
+  preloadedCpuRow: new Float32Array([1, 2, 3, 4]),
+});
+assert.equal(preloadedTensor.dtype, 'f32');
+assert.deepEqual(
+  Array.from(new Float32Array(preloadedTensor.buffer.bytes.buffer, 0, 2)),
+  [2, 3]
+);
+releaseBuffer(preloadedTensor.buffer);
 
 await assert.rejects(
   () => embed([0], cpuWeight, {

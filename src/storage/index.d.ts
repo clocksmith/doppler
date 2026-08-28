@@ -136,6 +136,7 @@ export {
   formatSpeed,
   estimateTimeRemaining,
   persistDownloadedShardIfNeeded,
+  buildManifestVersionSet,
   inspectModelDownloadResume,
 } from './downloader.js';
 export type {

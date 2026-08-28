@@ -462,9 +462,11 @@ export interface ManifestLayerPatternSchema {
  */
 export interface ManifestChatTemplateSchema {
   /** Chat template type (null = no chat template) */
-  type: 'gemma' | 'gemma4' | 'llama3' | 'gpt-oss' | 'chatml' | 'qwen' | 'translategemma' | null;
+  type: 'gemma' | 'gemma4' | 'llama3' | 'gpt-oss' | 'chatml' | 'qwen' | 'glmocr' | 'translategemma' | null;
   /** Whether chat template is enabled */
   enabled: boolean;
+  /** Thinking control passed to templates that declare it; null leaves it unspecified. */
+  thinking?: boolean | null;
 }
 
 export interface ManifestUnsupportedSchema {

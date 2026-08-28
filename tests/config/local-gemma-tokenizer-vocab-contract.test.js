@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveBundledTokenizerVocabSize } from '../../src/converter/core.js';
 
 const RDRR_DIRS = [
   'models/local',
@@ -34,14 +35,16 @@ let verified = 0;
 for (const modelDir of cases) {
   const manifest = JSON.parse(fs.readFileSync(path.join(modelDir, 'manifest.json'), 'utf8'));
   const tokenizer = JSON.parse(fs.readFileSync(path.join(modelDir, 'tokenizer.json'), 'utf8'));
-  const actualVocabSize = Array.isArray(tokenizer?.model?.vocab)
-    ? tokenizer.model.vocab.length
-    : Object.keys(tokenizer?.model?.vocab || {}).length;
+  const vocab = tokenizer?.model?.vocab;
+  const baseVocabSize = Array.isArray(vocab)
+    ? vocab.length
+    : Object.keys(vocab || {}).length;
+  const addressableVocabSize = resolveBundledTokenizerVocabSize(tokenizer);
+  const declaredVocabSize = manifest?.tokenizer?.vocabSize;
 
-  assert.equal(
-    manifest?.tokenizer?.vocabSize,
-    actualVocabSize,
-    `${modelDir} manifest.tokenizer.vocabSize must match tokenizer.json vocab size`
+  assert.ok(
+    declaredVocabSize === baseVocabSize || declaredVocabSize === addressableVocabSize,
+    `${modelDir} manifest.tokenizer.vocabSize must declare the legacy base count or the added-token addressable range`
   );
   verified++;
 }

@@ -3,6 +3,7 @@ import { selectRuleValue } from '../../rules/rule-registry.js';
 import { loadJson } from '../../formats/load-json.js';
 import { isPlainObject } from '../../formats/plain-object.js';
 import { cloneJsonValue } from '../../formats/clone-json.js';
+import { sha256BytesHex } from '../../formats/sha256.js';
 
 export const DEFAULT_IMAGE_TRANSCRIPTION_PROMPT = 'Describe the image in one short sentence.';
 export const DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET = 70;
@@ -494,6 +495,7 @@ async function decodeImageUrlToPixelsOnNode(url) {
     imageBytes: new Uint8Array(decoded.data),
     width: decoded.info.width,
     height: decoded.info.height,
+    sourceByteHash: `sha256:${sha256BytesHex(sourceBytes)}`,
   };
 }
 
@@ -513,6 +515,7 @@ async function decodeImageUrlToPixels(url) {
   }
 
   const imageBlob = await response.blob();
+  const sourceBytes = new Uint8Array(await imageBlob.arrayBuffer());
   const imageBitmap = await createImageBitmap(imageBlob);
   try {
     const canvas = createCanvasForImageDecode(imageBitmap.width, imageBitmap.height);
@@ -532,6 +535,7 @@ async function decodeImageUrlToPixels(url) {
       imageBytes: new Uint8Array(imageData.data),
       width: imageBitmap.width,
       height: imageBitmap.height,
+      sourceByteHash: `sha256:${sha256BytesHex(sourceBytes)}`,
     };
   } finally {
     imageBitmap.close?.();
@@ -545,6 +549,7 @@ export async function resolveInferenceImagePayload(imageInput) {
 
   if (typeof imageInput.url === 'string' && imageInput.url.trim()) {
     const decoded = await decodeImageUrlToPixels(imageInput.url.trim());
+    const decodedPixelHash = `sha256:${sha256BytesHex(decoded.imageBytes)}`;
     return {
       imageBytes: decoded.imageBytes,
       width: decoded.width,
@@ -554,6 +559,9 @@ export async function resolveInferenceImagePayload(imageInput) {
         width: decoded.width,
         height: decoded.height,
         url: imageInput.url.trim(),
+        pixelFormat: 'rgba8',
+        sourceByteHash: decoded.sourceByteHash,
+        decodedPixelHash,
       },
     };
   }
@@ -575,6 +583,7 @@ export async function resolveInferenceImagePayload(imageInput) {
       height,
       'inferenceInput.image.pixelDataBase64'
     );
+    const decodedPixelHash = `sha256:${sha256BytesHex(decodedBytes)}`;
     return {
       imageBytes: decodedBytes,
       width,
@@ -583,23 +592,31 @@ export async function resolveInferenceImagePayload(imageInput) {
         source: 'pixelDataBase64',
         width,
         height,
+        pixelFormat: 'rgba8',
+        sourceByteHash: decodedPixelHash,
+        decodedPixelHash,
       },
     };
   }
 
+  const imageBytes = normalizeRawImageBytes(
+    imageInput.pixels,
+    width,
+    height,
+    'inferenceInput.image.pixels'
+  );
+  const decodedPixelHash = `sha256:${sha256BytesHex(imageBytes)}`;
   return {
-    imageBytes: normalizeRawImageBytes(
-      imageInput.pixels,
-      width,
-      height,
-      'inferenceInput.image.pixels'
-    ),
+    imageBytes,
     width,
     height,
     descriptor: {
       source: 'pixels',
       width,
       height,
+      pixelFormat: 'rgba8',
+      sourceByteHash: decodedPixelHash,
+      decodedPixelHash,
     },
   };
 }

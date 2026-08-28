@@ -1,6 +1,6 @@
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
-import { WORKGROUP_SIZES } from './constants.js';
+import { GPU_LIMITS, WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
 
@@ -10,8 +10,28 @@ function requirePositiveInteger(value, label) {
   }
 }
 
+export function planVisionSpatialMergeDispatch(outputElements) {
+  requirePositiveInteger(outputElements, 'outputElements');
+  const workgroups = Math.ceil(outputElements / WORKGROUP_SIZES.DEFAULT);
+  const x = Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS);
+  const y = Math.ceil(workgroups / x);
+  if (y > GPU_LIMITS.MAX_WORKGROUPS) {
+    throw new Error(
+      `Vision spatial merge requires ${workgroups} workgroups, exceeding the two-axis WebGPU capacity.`
+    );
+  }
+  return [x, y, 1];
+}
+
 export async function runVisionSpatialMerge(input, geometry) {
-  const { gridHeight, gridWidth, hiddenSize, mergeSize } = geometry;
+  const {
+    gridHeight,
+    gridWidth,
+    hiddenSize,
+    mergeSize,
+    channelFirst = false,
+    inputBlockMajor = false,
+  } = geometry;
   for (const [label, value] of Object.entries({ gridHeight, gridWidth, hiddenSize, mergeSize })) {
     requirePositiveInteger(value, label);
   }
@@ -52,9 +72,9 @@ export async function runVisionSpatialMerge(input, geometry) {
         merged_height: mergedHeight,
         merged_width: mergedWidth,
         output_elements: outputElements,
-        _pad0: 0,
+        layout_flags: (channelFirst ? 1 : 0) | (inputBlockMajor ? 2 : 0),
       },
-      Math.ceil(outputElements / WORKGROUP_SIZES.DEFAULT)
+      planVisionSpatialMergeDispatch(outputElements)
     );
     succeeded = true;
     return createTensor(

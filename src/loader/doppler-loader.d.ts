@@ -15,6 +15,7 @@ import type { HeapManager } from '../memory/heap-manager.js';
 import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type { RuntimeModelContract } from '../inference/runtime-model.js';
 import type { WeightBuffer, WeightLayout, CpuWeightBuffer } from '../gpu/weight-buffer.js';
+import type { Tensor } from '../gpu/tensor.js';
 import type { ExpertCache, CacheStats } from './experts/expert-cache.js';
 import type { ExpertWeights } from './weights.js';
 import type { LoRAAdapter } from '../inference/pipelines/text/lora.js';
@@ -142,6 +143,8 @@ export declare class DopplerLoader {
   loadExpert(layerIdx: number, expertIdx: number): Promise<ExpertWeights>;
 
   getLayerWeights(layerIdx: number): LayerWeights | null;
+
+  loadGpuTensor(name: string, silent?: boolean): Promise<Tensor | null>;
 
   getConfig(): ModelConfig;
 

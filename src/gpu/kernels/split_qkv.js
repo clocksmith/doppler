@@ -1,9 +1,24 @@
 
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
-import { WORKGROUP_SIZES } from './constants.js';
+import { GPU_LIMITS, WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
+
+export function planSplitQKVDispatch(totalElements) {
+  if (!Number.isSafeInteger(totalElements) || totalElements <= 0) {
+    throw new Error(`split_qkv requires a positive safe integer element count, got ${totalElements}.`);
+  }
+  const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
+  const x = Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS);
+  const y = Math.ceil(workgroups / x);
+  if (y > GPU_LIMITS.MAX_WORKGROUPS) {
+    throw new Error(
+      `split_qkv requires ${workgroups} workgroups, exceeding the two-axis WebGPU capacity.`
+    );
+  }
+  return [x, y, 1];
+}
 
 async function _splitQKV(target, qkvTensor, options) {
   const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
@@ -26,7 +41,7 @@ async function _splitQKV(target, qkvTensor, options) {
       'split_qkv', target, pipelineVariant,
       [qkvTensor, qBuffer, kBuffer, vBuffer],
       { num_tokens: numTokens, q_size: qSize, k_size: kSize, v_size: vSize },
-      Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT)
+      planSplitQKVDispatch(totalElements)
     );
 
     const Q = qTensor || createTensor(qBuffer, outputDtype, [numTokens, qSize], 'Q');

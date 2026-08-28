@@ -22,6 +22,12 @@ export function encodeImage(params: {
     visionConfig: object;
     weights: object;
     softTokenBudget?: number | undefined;
+    probeTensor?: ((stage: string, buffer: GPUBuffer | Float32Array, options: {
+        layerIdx?: number;
+        numTokens: number;
+        hiddenSize: number;
+        dtype: 'f32';
+    }) => Promise<void>) | undefined;
 }): Promise<VisionEncodeResult>;
 export type VisionEncodeResult = {
     /**

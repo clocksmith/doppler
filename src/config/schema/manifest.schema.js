@@ -165,6 +165,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
   chatTemplate: {
     type: null,  // No chat template (null = disabled)
     enabled: false,
+    thinking: null,  // Leave template thinking control unspecified
   },
   diffusionGemma: null,
   rerank: null,

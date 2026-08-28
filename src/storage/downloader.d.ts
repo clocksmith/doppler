@@ -31,6 +31,7 @@ import type {
 } from './download-types.js';
 
 export { inspectModelDownloadResume } from './download/resume-inspection.js';
+export { buildManifestVersionSet } from './download/integrity.js';
 export type { ModelDownloadResumeInspection } from './download/resume-inspection.js';
 
 /**

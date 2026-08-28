@@ -301,6 +301,45 @@ function formatQwen(messages, options) {
   });
 }
 
+function renderGlmOcrContent(content) {
+  if (!Array.isArray(content)) {
+    return String(content ?? '');
+  }
+  return content.map((part) => {
+    if (typeof part === 'string') return part;
+    if (!part || typeof part !== 'object') return String(part ?? '');
+    if (part.type === 'image') {
+      return '<|begin_of_image|><|image|><|end_of_image|>';
+    }
+    if (part.type === 'text') return String(part.text ?? '');
+    throw new Error(`GLM-OCR formatter does not support content type "${String(part.type)}".`);
+  }).join('');
+}
+
+function formatGlmOcr(messages, options) {
+  const parts = ['[gMASK]<sop>'];
+  const disableThinking = options?.thinking === false;
+  for (const [index, message] of messages.entries()) {
+    const role = normalizeChatRole(message?.role);
+    assertSupportedChatRole(role, 'GLM-OCR', index);
+    if (role === 'system') {
+      parts.push(`<|system|>\n${renderGlmOcrContent(message?.content)}`);
+    } else if (role === 'user') {
+      const content = renderGlmOcrContent(message?.content);
+      const thinkingControl = disableThinking && !content.endsWith('/nothink')
+        ? '/nothink'
+        : '';
+      parts.push(`<|user|>\n${content}${thinkingControl}`);
+    } else {
+      parts.push(`<|assistant|>\n${renderGlmOcrContent(message?.content)}`);
+    }
+  }
+  parts.push(disableThinking
+    ? '<|assistant|>\n<think></think>\n'
+    : '<|assistant|>\n');
+  return parts.join('');
+}
+
 function formatTranslateGemmaUserPrompt(content) {
   if (!Array.isArray(content) || content.length !== 1) {
     throw new Error(
@@ -424,8 +463,11 @@ const CHAT_FORMATTERS = {
   'gpt-oss': formatChannelBased,
   'chatml': formatChatML,
   'qwen': formatQwen,
+  'glmocr': formatGlmOcr,
   'translategemma': formatTranslateGemma,
 };
+
+export const CHAT_FORMATTER_TYPES = Object.freeze(Object.keys(CHAT_FORMATTERS));
 
 export function formatChatMessages(messages, templateType, options) {
   if (!Array.isArray(messages)) {

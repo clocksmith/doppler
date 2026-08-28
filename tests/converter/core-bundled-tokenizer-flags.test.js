@@ -174,4 +174,46 @@ const beginOfTextManifest = createManifest(
 
 assert.equal(beginOfTextManifest.tokenizer?.addBosToken, true);
 
+const addedSpecialTokenModel = {
+  ...model,
+  generationConfig: {
+    pad_token_id: 6,
+    eos_token_id: [6, 7],
+  },
+  tokenizerConfig: {
+    pad_token: '<|endoftext|>',
+    eos_token: '<|endoftext|>',
+  },
+  tokenizerJson: {
+    model: {
+      vocab: {
+        a: 0,
+        b: 2,
+      },
+    },
+    added_tokens: [
+      { id: 6, content: '<|endoftext|>', special: true },
+      { id: 7, content: '<|user|>', special: true },
+    ],
+  },
+};
+
+const addedSpecialTokenManifest = createManifest(
+  'bundled-tokenizer-added-special-token-test',
+  addedSpecialTokenModel,
+  [],
+  {},
+  {
+    source: 'unit-test',
+    modelType: 'transformer',
+    quantization: 'F16',
+    hashAlgorithm: 'blake3',
+    inference: { ...DEFAULT_MANIFEST_INFERENCE },
+  }
+);
+
+assert.equal(addedSpecialTokenManifest.tokenizer?.vocabSize, 8);
+assert.equal(addedSpecialTokenManifest.tokenizer?.padTokenId, 6);
+assert.equal(addedSpecialTokenManifest.tokenizer?.eosTokenId, 6);
+
 console.log('core-bundled-tokenizer-flags.test: ok');

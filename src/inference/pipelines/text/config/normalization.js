@@ -397,10 +397,10 @@ export function resolveVisionConfig(rawConfig, manifest) {
     return number;
   };
   const visionArchitecture = String(resolveRequiredVisionField(['vision_architecture'], 'vision_architecture')).trim();
-  if (visionArchitecture !== 'gemma4' && visionArchitecture !== 'qwen3vl') {
+  if (visionArchitecture !== 'gemma4' && visionArchitecture !== 'qwen3vl' && visionArchitecture !== 'glmocr') {
     throw new Error(
       `Manifest "${modelId}" has unsupported vision_config.vision_architecture="${visionArchitecture}". ` +
-      'Supported: "gemma4", "qwen3vl".'
+      'Supported: "gemma4", "qwen3vl", "glmocr".'
     );
   }
 
@@ -475,6 +475,91 @@ export function resolveVisionConfig(rawConfig, manifest) {
       softTokenBudgetTiers: Array.isArray(vc.soft_token_budget_tiers)
         ? vc.soft_token_budget_tiers.map(Number).filter((n) => Number.isFinite(n) && n > 0)
         : [70, 140, 280, 560, 1120],
+    };
+  }
+
+  if (visionArchitecture === 'glmocr') {
+    const hiddenSize = resolveRequiredPositiveInteger(['hidden_size'], 'hidden_size');
+    const numHeads = resolveRequiredPositiveInteger(['num_heads', 'num_attention_heads'], 'num_heads');
+    if (hiddenSize % numHeads !== 0) {
+      throw new Error(
+        `Manifest "${modelId}" has incompatible GLM-OCR vision geometry: ` +
+        `hidden_size=${hiddenSize} is not divisible by num_heads=${numHeads}.`
+      );
+    }
+    const hiddenActivation = String(
+      resolveRequiredVisionField(['hidden_activation', 'hidden_act'], 'hidden_activation')
+    ).trim();
+    if (hiddenActivation !== 'silu') {
+      throw new Error(
+        `Manifest "${modelId}" has unsupported GLM-OCR vision hidden_activation="${hiddenActivation}". ` +
+        'The current architecture contract requires "silu".'
+      );
+    }
+    const spatialMergeSize = resolveRequiredPositiveInteger(
+      ['spatial_merge_size', 'merge_size'],
+      'spatial_merge_size'
+    );
+    const normalization = vc.normalization;
+    if (!normalization || typeof normalization !== 'object') {
+      throw new Error(
+        `Manifest "${modelId}" is missing vision_config.normalization. ` +
+        'Re-convert the GLM-OCR model with its pinned image-processor values.'
+      );
+    }
+    if (!Array.isArray(normalization.mean) || normalization.mean.length !== 3) {
+      throw new Error(
+        `Manifest "${modelId}" requires vision_config.normalization.mean to contain exactly 3 values.`
+      );
+    }
+    if (!Array.isArray(normalization.std) || normalization.std.length !== 3) {
+      throw new Error(
+        `Manifest "${modelId}" requires vision_config.normalization.std to contain exactly 3 values.`
+      );
+    }
+    return {
+      depth: resolveRequiredPositiveInteger(['depth', 'num_hidden_layers'], 'depth'),
+      hiddenSize,
+      intermediateSize: resolveRequiredPositiveInteger(['intermediate_size'], 'intermediate_size'),
+      numHeads,
+      numKeyValueHeads: numHeads,
+      headDim: hiddenSize / numHeads,
+      outHiddenSize: resolveRequiredPositiveInteger(['out_hidden_size'], 'out_hidden_size'),
+      patchSize: resolveRequiredPositiveInteger(['patch_size'], 'patch_size'),
+      poolingKernelSize: spatialMergeSize,
+      spatialMergeSize,
+      temporalPatchSize: resolveRequiredPositiveInteger(['temporal_patch_size'], 'temporal_patch_size'),
+      positionEmbeddingSize: null,
+      defaultOutputLength: resolveRequiredPositiveInteger(['default_output_length'], 'default_output_length'),
+      ropeTheta: resolveRequiredPositiveNumber(
+        resolveRequiredVisionField(['rope_theta'], 'rope_theta'),
+        'vision_config.rope_theta'
+      ),
+      eps: resolveRequiredPositiveNumber(
+        resolveRequiredVisionField(['eps', 'rms_norm_eps'], 'rms_norm_eps'),
+        'vision_config.rms_norm_eps'
+      ),
+      hiddenActivation,
+      standardize: false,
+      useClippedLinears: false,
+      minPixels: resolveRequiredPositiveInteger(['min_pixels'], 'min_pixels'),
+      maxPixels: resolveRequiredPositiveInteger(['max_pixels'], 'max_pixels'),
+      normalization,
+      inChannels: resolveRequiredPositiveInteger(['in_channels'], 'in_channels'),
+      mergerIntermediateSize: resolveRequiredPositiveInteger(
+        ['merger_intermediate_size'],
+        'merger_intermediate_size'
+      ),
+      downsampleKernelSize: resolveRequiredPositiveInteger(
+        ['downsample_kernel_size'],
+        'downsample_kernel_size'
+      ),
+      deepstackVisualIndexes: [],
+      imageTokenId: rawConfig?.image_token_id ?? manifest?.image_token_id ?? null,
+      visionArchitecture,
+      softTokenBudgetTiers: Array.isArray(vc.soft_token_budget_tiers)
+        ? vc.soft_token_budget_tiers.map(Number).filter((n) => Number.isFinite(n) && n > 0)
+        : [384, 768, 1536, 3072, 6144],
     };
   }
 

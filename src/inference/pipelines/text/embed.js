@@ -11,6 +11,8 @@ import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { resolveEmbeddingNormalization } from './embedding-contract.js';
 import { finalizeEmbeddingOutput } from './embedding-normalization.js';
+import { f32ToF16Array } from '../../kv-cache/types.js';
+import { runProbes } from './probes.js';
 
 const bf16ScratchU32 = new Uint32Array(1);
 const bf16ScratchF32 = new Float32Array(bf16ScratchU32.buffer);
@@ -85,6 +87,95 @@ export function resolveEmbeddingScale(config, hiddenSize) {
   return scaleEmbeddings === true ? Math.sqrt(hiddenSize) : 1;
 }
 
+export function selectPreloadedCpuEmbeddingValues({
+  preloadedCpuRow = null,
+  preloadedCpuBatchedRows = null,
+  numTokens,
+  inputHiddenSize,
+  hiddenSize,
+  hiddenOffset,
+}) {
+  if (preloadedCpuRow == null && preloadedCpuBatchedRows == null) {
+    return null;
+  }
+  if (preloadedCpuRow != null && preloadedCpuBatchedRows != null) {
+    throw new Error('[Embed] preloadedCpuRow and preloadedCpuBatchedRows are mutually exclusive.');
+  }
+  if (!Number.isInteger(numTokens) || numTokens <= 0) {
+    throw new Error('[Embed] preloaded CPU embeddings require a positive integer numTokens.');
+  }
+  if (!Number.isInteger(inputHiddenSize) || inputHiddenSize <= 0) {
+    throw new Error('[Embed] preloaded CPU embeddings require a positive integer inputHiddenSize.');
+  }
+  if (!Number.isInteger(hiddenSize) || hiddenSize <= 0) {
+    throw new Error('[Embed] preloaded CPU embeddings require a positive integer hiddenSize.');
+  }
+  if (!Number.isInteger(hiddenOffset) || hiddenOffset < 0 || hiddenOffset + hiddenSize > inputHiddenSize) {
+    throw new Error(
+      `[Embed] preloaded CPU embedding slice [${hiddenOffset}, ${hiddenOffset + hiddenSize}) ` +
+      `exceeds inputHiddenSize=${inputHiddenSize}.`
+    );
+  }
+
+  if (preloadedCpuRow != null) {
+    if (!(preloadedCpuRow instanceof Float32Array)) {
+      throw new Error('[Embed] preloadedCpuRow must be a Float32Array.');
+    }
+    if (numTokens !== 1) {
+      throw new Error('[Embed] preloadedCpuRow requires numTokens=1.');
+    }
+    if (preloadedCpuRow.length !== inputHiddenSize) {
+      throw new Error(
+        `[Embed] preloadedCpuRow length=${preloadedCpuRow.length}, expected inputHiddenSize=${inputHiddenSize}.`
+      );
+    }
+    return preloadedCpuRow.slice(hiddenOffset, hiddenOffset + hiddenSize);
+  }
+
+  if (!(preloadedCpuBatchedRows instanceof Float32Array)) {
+    throw new Error('[Embed] preloadedCpuBatchedRows must be a Float32Array.');
+  }
+  const expectedLength = numTokens * inputHiddenSize;
+  if (preloadedCpuBatchedRows.length !== expectedLength) {
+    throw new Error(
+      `[Embed] preloadedCpuBatchedRows length=${preloadedCpuBatchedRows.length}, ` +
+      `expected numTokens*inputHiddenSize=${expectedLength}.`
+    );
+  }
+  const selected = new Float32Array(numTokens * hiddenSize);
+  for (let tokenIndex = 0; tokenIndex < numTokens; tokenIndex++) {
+    const sourceStart = tokenIndex * inputHiddenSize + hiddenOffset;
+    const targetStart = tokenIndex * hiddenSize;
+    selected.set(
+      preloadedCpuBatchedRows.subarray(sourceStart, sourceStart + hiddenSize),
+      targetStart
+    );
+  }
+  return selected;
+}
+
+function uploadPreloadedCpuEmbedding(device, values, dtype, shape, outputBuffer = null) {
+  const payload = dtype === 'f16' ? f32ToF16Array(values) : values;
+  const requiredBytes = payload.byteLength;
+  if (outputBuffer && outputBuffer.size < requiredBytes) {
+    throw new Error(
+      `[Embed] preallocated output has ${outputBuffer.size} bytes; ` +
+      `preloaded CPU embedding requires ${requiredBytes}.`
+    );
+  }
+  const ownsBuffer = outputBuffer == null;
+  const buffer = outputBuffer ?? acquireBuffer(requiredBytes, undefined, 'embed_preloaded_cpu');
+  try {
+    device.queue.writeBuffer(buffer, 0, payload);
+    return createTensor(buffer, dtype, shape, 'embed_preloaded_cpu');
+  } catch (error) {
+    if (ownsBuffer) {
+      releaseBuffer(buffer);
+    }
+    throw error;
+  }
+}
+
 export async function embed(tokenIds, embedBuffer, config) {
   const {
     hiddenSize,
@@ -103,6 +194,8 @@ export async function embed(tokenIds, embedBuffer, config) {
     inputHiddenSize = hiddenSize,
     hiddenOffset = 0,
     embeddingStorageEncoding = null,
+    preloadedCpuRow = null,
+    preloadedCpuBatchedRows = null,
   } = config;
   const device = getDevice();
   const resolvedEmbeddingScale = resolveEmbeddingScale({ scaleEmbeddings, embeddingScale }, hiddenSize);
@@ -143,20 +236,28 @@ export async function embed(tokenIds, embedBuffer, config) {
     }
   }
 
-  if (isCpuWeightBuffer(embedBuffer) || embedBuffer instanceof Float32Array) {
-    throw new Error(
-      '[Embed] CPU-resident embedding gather is not a production path; materialize a GPU or split embedding weight.'
-    );
-  }
-
   if (tokenBufferInput && numTokens <= 0) {
     throw new Error('[Embed] numTokens must be provided when tokenIds is a GPUBuffer.');
   }
-  const tokenIdBuffer = tokenBufferInput
-    ? tokenIds
-    : acquireBuffer(Math.max(numTokens * 4, 256), undefined, 'embed_tokens');
-  if (!tokenBufferInput) {
-    device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array( (tokenIdArray)));
+
+  const preloadedCpuValues = selectPreloadedCpuEmbeddingValues({
+    preloadedCpuRow,
+    preloadedCpuBatchedRows,
+    numTokens,
+    inputHiddenSize,
+    hiddenSize,
+    hiddenOffset,
+  });
+
+  if (isGpuBufferInstance(embedBuffer) && transpose === false) {
+    await runProbes('embed_weight_row', embedBuffer, {
+      numTokens: vocabSize,
+      hiddenSize: inputHiddenSize,
+      probes: config.debugProbes,
+      recorder,
+      operatorDiagnostics,
+      dtype: embeddingDtype,
+    });
   }
 
   // Use pre-allocated output buffer if provided, otherwise acquire from pool
@@ -172,20 +273,59 @@ export async function embed(tokenIds, embedBuffer, config) {
     inputHiddenSize,
     hiddenOffset,
   };
-  if (!isGpuBufferInstance(embedBuffer) && !isSplitWeightBuffer(embedBuffer)) {
-    throw new Error('[Embed] GPU embeddings required for gather path.');
-  }
-  const gatherOutput = isSplitWeightBuffer(embedBuffer)
-    ? (
-      recorder
-        ? await recordGatherSplit(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
-        : await runGatherSplit(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
-    )
-    : (
-      recorder
-        ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
-        : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+  let gatherOutput;
+  if (preloadedCpuValues) {
+    if (!isCpuWeightBuffer(embedBuffer) || !isRangeBackedCpuEmbeddingSource(embedBuffer.data)) {
+      throw new Error('[Embed] preloaded CPU rows require a range-backed CpuWeightBuffer source.');
+    }
+    if (tokenBufferInput) {
+      throw new Error('[Embed] preloaded CPU rows require CPU token IDs.');
+    }
+    gatherOutput = uploadPreloadedCpuEmbedding(
+      device,
+      preloadedCpuValues,
+      dtype,
+      [numTokens, hiddenSize],
+      intermediateOutputBuffer
     );
+  } else {
+    if (isCpuWeightBuffer(embedBuffer) || embedBuffer instanceof Float32Array) {
+      throw new Error(
+        '[Embed] CPU-resident embedding gather requires a verified preloaded row; ' +
+        'materialize a GPU or split embedding weight.'
+      );
+    }
+    if (!isGpuBufferInstance(embedBuffer) && !isSplitWeightBuffer(embedBuffer)) {
+      throw new Error('[Embed] GPU embeddings required for gather path.');
+    }
+    const tokenIdBuffer = tokenBufferInput
+      ? tokenIds
+      : acquireBuffer(Math.max(numTokens * 4, 256), undefined, 'embed_tokens');
+    if (!tokenBufferInput) {
+      device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array( (tokenIdArray)));
+    }
+    try {
+      gatherOutput = isSplitWeightBuffer(embedBuffer)
+        ? (
+          recorder
+            ? await recordGatherSplit(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+            : await runGatherSplit(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+        )
+        : (
+          recorder
+            ? await recordGather(recorder, tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+            : await runGather(tokenIdBuffer, embedBuffer, numTokens, hiddenSize, vocabSize, gatherOptions)
+        );
+    } finally {
+      if (!tokenBufferInput) {
+        if (recorder) {
+          recorder.trackTemporaryBuffer(tokenIdBuffer);
+        } else {
+          releaseBuffer(tokenIdBuffer);
+        }
+      }
+    }
+  }
 
   // Debug: Verify first token embedding
   if (debug && !recorder && tokenIdArray && tokenIdArray.length > 0) {
@@ -209,14 +349,6 @@ export async function embed(tokenIds, embedBuffer, config) {
 
     trace.embed(`FIRST_TOKEN[${firstTokenId}]: maxAbs=${maxAbs.toFixed(4)}, mean=${mean.toFixed(4)}, std=${std.toFixed(4)}, first8=[${Array.from(data).slice(0, 8).map(x => x.toFixed(4)).join(', ')}]`);
   }
-  if (!tokenBufferInput) {
-    if (recorder) {
-      recorder.trackTemporaryBuffer(tokenIdBuffer);
-    } else {
-      releaseBuffer(tokenIdBuffer);
-    }
-  }
-
   if (resolvedEmbeddingScale === 1) {
     return finalizeEmbeddingOutput(gatherOutput, resolvedEmbeddingNormalization, {
       recorder, numTokens, hiddenSize, outputBuffer: preAllocatedOutput,

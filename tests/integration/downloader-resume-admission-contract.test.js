@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
 
+import {
+  buildManifestVersionSet as buildPackageManifestVersionSet,
+  inspectModelDownloadResume as inspectPackageModelDownloadResume,
+} from 'doppler-gpu/tooling/storage';
+
 import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 import { parseManifest } from '../../src/formats/rdrr/index.js';
 import { resetRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.js';
@@ -16,6 +21,7 @@ import {
 } from '../../src/storage/downloader.js';
 import { buildManifestVersionSet } from '../../src/storage/download/integrity.js';
 import { saveDownloadState } from '../../src/storage/download/state.js';
+import { buildManifestVersionSet as buildToolingManifestVersionSet } from '../../src/tooling/opfs-cache.js';
 import { createExecutionContractSession } from '../helpers/execution-v1-fixtures.js';
 
 function createFakeIndexedDb() {
@@ -202,6 +208,10 @@ try {
 
   await seedCompletedShard(manifest.modelId, manifest, shardA);
   const inspection = await inspectModelDownloadResume(manifest.modelId, manifest);
+  assert.equal(inspectPackageModelDownloadResume, inspectModelDownloadResume);
+  assert.equal(buildPackageManifestVersionSet(manifest), buildManifestVersionSet(manifest));
+  assert.equal(buildToolingManifestVersionSet(manifest), buildManifestVersionSet(manifest));
+  assert.equal(inspection.manifestVersionSet, buildToolingManifestVersionSet(manifest));
   assert.equal(inspection.schemaVersion, 'doppler.model-download-resume-inspection.v1');
   assert.equal(inspection.manifestMatched, true);
   assert.equal(inspection.totalBytes, 8);

@@ -33,11 +33,14 @@ export type ChatTemplateType =
   | 'gpt-oss'
   | 'chatml'
   | 'qwen'
+  | 'glmocr'
   | 'translategemma'
   | null;
 
 export interface ChatFormatOptions {
   thinking?: boolean;
 }
+
+export declare const CHAT_FORMATTER_TYPES: readonly Exclude<ChatTemplateType, null>[];
 
 export declare function formatChatMessages(messages: ChatMessage[], templateType?: ChatTemplateType, options?: ChatFormatOptions): string;

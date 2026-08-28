@@ -606,6 +606,16 @@ export async function _loadVisionWeights() {
       }
       return tensor;
     };
+    const loadRequiredGpuTensor = async (name) => {
+      if (typeof loader.loadGpuTensor !== 'function') {
+        throw new Error('Vision weight loading requires loader.loadGpuTensor().');
+      }
+      const tensor = await loader.loadGpuTensor(name, true);
+      if (!tensor) {
+        throw new Error(`Vision tensor "${name}" is missing from the converted artifact.`);
+      }
+      return tensor;
+    };
     const loadScalar = async (name) => {
       const tensor = await loadRequiredTensor(name, false);
       if (tensor instanceof Float32Array) {
@@ -632,12 +642,59 @@ export async function _loadVisionWeights() {
       outputMax: await loadScalar(`${prefix}.output_max`),
     });
 
+    if (vc.visionArchitecture === 'glmocr') {
+      const root = 'model.visual';
+      const visionWeights = {
+        textHiddenSize: this.modelConfig.hiddenSize,
+        patchProjWeight: await loadRequiredGpuTensor(`${root}.patch_embed.proj.weight`),
+        patchProjBias: await loadRequiredGpuTensor(`${root}.patch_embed.proj.bias`),
+        postLayerNorm: await loadRequiredGpuTensor(`${root}.post_layernorm.weight`),
+        downsampleWeight: await loadRequiredGpuTensor(`${root}.downsample.weight`),
+        downsampleBias: await loadRequiredGpuTensor(`${root}.downsample.bias`),
+        merger: {
+          projWeight: await loadRequiredGpuTensor(`${root}.merger.proj.weight`),
+          postProjectionNormWeight: await loadRequiredGpuTensor(`${root}.merger.post_projection_norm.weight`),
+          postProjectionNormBias: await loadRequiredGpuTensor(`${root}.merger.post_projection_norm.bias`),
+          gateProjWeight: await loadRequiredGpuTensor(`${root}.merger.gate_proj.weight`),
+          upProjWeight: await loadRequiredGpuTensor(`${root}.merger.up_proj.weight`),
+          downProjWeight: await loadRequiredGpuTensor(`${root}.merger.down_proj.weight`),
+        },
+        layers: [],
+      };
+
+      for (let i = 0; i < depth; i++) {
+        const prefix = `${root}.blocks.${i}`;
+        visionWeights.layers.push({
+          norm1Weight: await loadRequiredGpuTensor(`${prefix}.norm1.weight`),
+          norm2Weight: await loadRequiredGpuTensor(`${prefix}.norm2.weight`),
+          qNormWeight: await loadRequiredGpuTensor(`${prefix}.attn.q_norm.weight`),
+          kNormWeight: await loadRequiredGpuTensor(`${prefix}.attn.k_norm.weight`),
+          qkvWeight: await loadRequiredGpuTensor(`${prefix}.attn.qkv.weight`),
+          qkvBias: await loadRequiredGpuTensor(`${prefix}.attn.qkv.bias`),
+          projWeight: await loadRequiredGpuTensor(`${prefix}.attn.proj.weight`),
+          projBias: await loadRequiredGpuTensor(`${prefix}.attn.proj.bias`),
+          gateProjWeight: await loadRequiredGpuTensor(`${prefix}.mlp.gate_proj.weight`),
+          gateProjBias: await loadRequiredGpuTensor(`${prefix}.mlp.gate_proj.bias`),
+          upProjWeight: await loadRequiredGpuTensor(`${prefix}.mlp.up_proj.weight`),
+          upProjBias: await loadRequiredGpuTensor(`${prefix}.mlp.up_proj.bias`),
+          downProjWeight: await loadRequiredGpuTensor(`${prefix}.mlp.down_proj.weight`),
+          downProjBias: await loadRequiredGpuTensor(`${prefix}.mlp.down_proj.bias`),
+        });
+      }
+
+      this.visionWeights = visionWeights;
+      log.info('Pipeline', `Vision weights loaded (${depth} GLM-OCR encoder layers)`);
+      return;
+    }
+
     if (vc.visionArchitecture === 'gemma4') {
       const isEncoderFree = (depth === 0);
       const visionWeights = {
         textHiddenSize: this.modelConfig.hiddenSize,
         patchInputProj: await loadRequiredTensor('model.vision_tower.patch_embedder.input_proj.weight'),
-        patchPositionEmbeddingTable: await loadRequiredTensor('model.vision_tower.patch_embedder.position_embedding_table'),
+        patchPositionEmbeddingTable: await loadRequiredGpuTensor(
+          'model.vision_tower.patch_embedder.position_embedding_table'
+        ),
         projector: isEncoderFree
           ? await loader.loadTensor('model.embed_vision.embedding_projection.weight', true, true)
           : await loadRequiredTensor('model.embed_vision.embedding_projection.weight'),

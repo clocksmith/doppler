@@ -33,6 +33,7 @@ export interface CachedModelSourceResult extends EnsureModelCachedResult {
 
 export interface EnsureModelCachedSourceOptions {
   expectedManifestHash?: string | { hex?: string; hash?: string; digest?: string };
+  signal?: AbortSignal;
 }
 
 export declare function ensureModelCached(

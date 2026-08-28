@@ -1,3 +1,4 @@
+export declare const createImageTranscriptionResourceScope: any;
 export declare const transcribeImage: any;
 export declare const transcribeVideo: any;
 export declare const transcribeAudio: any;

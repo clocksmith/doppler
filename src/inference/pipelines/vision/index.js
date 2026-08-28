@@ -7,6 +7,7 @@ import { preprocessImage } from './image-preprocess.js';
 import { patchEmbed } from './patch-embed.js';
 import { runVisionEncoder } from './encoder.js';
 import { encodeGemma4Image } from './gemma4.js';
+import { encodeGlmOcrImage } from './glmocr.js';
 
 export async function encodeImage(params) {
   const { pixels, width, height, visionConfig, weights, softTokenBudget } = params;
@@ -27,13 +28,15 @@ export async function encodeImage(params) {
   switch (arch) {
     case 'gemma4':
       return encodeGemma4Image(params);
+    case 'glmocr':
+      return encodeGlmOcrImage(params);
     case 'qwen3vl':
       preprocessed = preprocessImage(pixels, width, height, visionConfig);
       break;
     default:
       throw new Error(
         `Unsupported vision architecture "${arch}". ` +
-        'Supported: gemma4, qwen3vl. Check vision_config.vision_architecture.'
+        'Supported: gemma4, qwen3vl, glmocr. Check vision_config.vision_architecture.'
       );
   }
 

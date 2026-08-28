@@ -439,16 +439,81 @@ export function buildSentencepieceTokenizer(tokenizerConfig, rawConfig, architec
 
 export function resolveBundledTokenizerVocabSize(tokenizerJson) {
   const vocab = tokenizerJson?.model?.vocab;
+  let maxTokenId = -1;
   if (Array.isArray(vocab)) {
-    return vocab.length;
+    maxTokenId = vocab.length - 1;
   }
   if (vocab && typeof vocab === 'object') {
-    return Object.keys(vocab).length;
+    maxTokenId = Object.keys(vocab).length - 1;
   }
-  return 0;
+  for (const token of tokenizerJson?.added_tokens ?? []) {
+    if (Number.isInteger(token?.id) && token.id >= 0) {
+      maxTokenId = Math.max(maxTokenId, token.id);
+    }
+  }
+  return maxTokenId + 1;
 }
 
-export function buildBundledTokenizer(tokenizerJson, tokenizerConfig, rawConfig) {
+function normalizeTokenizerTokenText(value) {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object' && typeof value.content === 'string') {
+    return value.content;
+  }
+  return null;
+}
+
+function resolveBundledTokenizerTokenTextId(tokenizerJson, value) {
+  const tokenText = normalizeTokenizerTokenText(value);
+  if (tokenText == null) return null;
+  const vocabId = tokenizerJson?.model?.vocab?.[tokenText];
+  if (Number.isInteger(vocabId) && vocabId >= 0) return vocabId;
+  const addedToken = tokenizerJson?.added_tokens?.find(
+    (entry) => normalizeTokenizerTokenText(entry) === tokenText
+  );
+  return Number.isInteger(addedToken?.id) && addedToken.id >= 0 ? addedToken.id : null;
+}
+
+function resolveBundledTokenizerSpecialId({
+  tokenizerJson,
+  tokenizerConfig,
+  rawConfig,
+  generationConfig,
+  name,
+}) {
+  const tokenIdKey = `${name}_token_id`;
+  const camelTokenIdKey = `${name}TokenId`;
+  const directCandidates = [
+    resolveTokenizerField(generationConfig, tokenIdKey, camelTokenIdKey),
+    resolveTokenizerField(tokenizerConfig, tokenIdKey, camelTokenIdKey),
+    resolveTokenizerField(tokenizerJson, tokenIdKey, camelTokenIdKey),
+    resolveConfigTokenId(rawConfig, tokenIdKey),
+  ];
+  for (const candidate of directCandidates) {
+    const id = Array.isArray(candidate) ? candidate[0] : candidate;
+    if (Number.isInteger(id) && id >= 0) return id;
+  }
+
+  const tokenTextKey = `${name}_token`;
+  const camelTokenTextKey = `${name}Token`;
+  const textCandidates = [
+    resolveTokenizerField(generationConfig, tokenTextKey, camelTokenTextKey),
+    resolveTokenizerField(tokenizerConfig, tokenTextKey, camelTokenTextKey),
+    resolveTokenizerField(tokenizerJson, tokenTextKey, camelTokenTextKey),
+    resolveTokenizerField(tokenizerJson?.special_tokens_map, tokenTextKey, name),
+  ];
+  for (const candidate of textCandidates) {
+    const id = resolveBundledTokenizerTokenTextId(tokenizerJson, candidate);
+    if (id != null) return id;
+  }
+  return null;
+}
+
+export function buildBundledTokenizer(
+  tokenizerJson,
+  tokenizerConfig,
+  rawConfig,
+  generationConfig = null
+) {
   const vocabSize = resolveBundledTokenizerVocabSize(tokenizerJson);
   if (!vocabSize) {
     throw new Error('Tokenizer vocab is missing or empty');
@@ -470,6 +535,22 @@ export function buildBundledTokenizer(tokenizerJson, tokenizerConfig, rawConfig)
     ?? resolveConfigBoolean(rawConfig, 'add_eos_token', 'addEosToken')
   );
   const inferredFlags = inferBundledTokenizerBehaviorFlags(tokenizerJson);
+
+  for (const [name, manifestKey] of [
+    ['pad', 'padTokenId'],
+    ['bos', 'bosTokenId'],
+    ['eos', 'eosTokenId'],
+    ['unk', 'unkTokenId'],
+  ]) {
+    const id = resolveBundledTokenizerSpecialId({
+      tokenizerJson,
+      tokenizerConfig,
+      rawConfig,
+      generationConfig,
+      name,
+    });
+    if (id != null) tokenizer[manifestKey] = id;
+  }
 
   if (addBosToken != null) tokenizer.addBosToken = addBosToken;
   else if (inferredFlags.addBosToken != null) tokenizer.addBosToken = inferredFlags.addBosToken;
@@ -794,7 +875,8 @@ export function createManifest(
     manifest.tokenizer = buildBundledTokenizer(
       model.tokenizerJson,
       model.tokenizerConfig ?? null,
-      rawConfig
+      rawConfig,
+      generationConfig
     );
     manifest.metadata.hasTokenizer = true;
   } else {
