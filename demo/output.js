@@ -29,6 +29,25 @@ function createChatMessage(message) {
   return article;
 }
 
+function createEmptyState() {
+  const empty = document.createElement('div');
+  empty.id = 'chat-empty';
+  empty.className = 'chat-empty';
+
+  const mark = document.createElement('span');
+  mark.className = 'chat-empty-mark';
+  mark.setAttribute('aria-hidden', 'true');
+  mark.textContent = 'D';
+
+  const heading = document.createElement('strong');
+  heading.textContent = state.model ? 'Start a conversation.' : 'Load a model to begin.';
+
+  const detail = document.createElement('span');
+  detail.textContent = 'A sample prompt is ready below, or write your own.';
+  empty.append(mark, heading, detail);
+  return empty;
+}
+
 function resetLiveAssistant() {
   const liveMessage = $('live-assistant-message');
   const output = $('output-text');
@@ -44,11 +63,7 @@ export function renderChatMessages(messages) {
   thread.innerHTML = '';
   const visibleMessages = Array.isArray(messages) ? messages : [];
   if (visibleMessages.length === 0) {
-    const empty = document.createElement('p');
-    empty.id = 'chat-empty';
-    empty.className = 'chat-empty';
-    empty.textContent = 'Start a conversation.';
-    thread.appendChild(empty);
+    thread.appendChild(createEmptyState());
     return;
   }
   for (const message of visibleMessages) {

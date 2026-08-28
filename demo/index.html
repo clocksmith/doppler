@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="Doppler is a browser-native desktop-style workspace for local AI inference, tracing, and kernel x-ray workflows.">
+  <meta name="description" content="Run a verified local model with WebGPU and inspect the evidence behind every generation.">
   <title>Doppler</title>
   <link rel="icon" type="image/svg+xml" href="/demo/favicon.svg">
   <link rel="apple-touch-icon" href="/demo/assets/pwa/icon-192.png">
@@ -166,13 +166,20 @@
     <header class="app-header">
       <div class="app-brand">
         <div class="app-brand-line">
-          <h1 class="type-h2">Doppler</h1>
+          <span class="app-brand-mark" aria-hidden="true">D</span>
+          <span class="app-brand-name">Doppler</span>
           <nav class="app-links" aria-label="Doppler project links">
             <a href="https://github.com/clocksmith/doppler">GitHub</a>
             <a href="https://www.npmjs.com/package/doppler-gpu">npm</a>
           </nav>
         </div>
-        <p>Local WebGPU inference, inspected in your browser.</p>
+        <h1>Local AI you can inspect.</h1>
+        <p>Load a verified model, run it with WebGPU, and keep the evidence with the result.</p>
+        <div class="app-proof-line" aria-label="Demo guarantees">
+          <span>Runs in this browser</span>
+          <span>Verified local cache</span>
+          <span>Exportable run evidence</span>
+        </div>
       </div>
       <div class="app-header-end">
         <button id="install-btn" class="btn btn-ghost" hidden>Install</button>
@@ -183,12 +190,14 @@
       </div>
     </header>
 
+    <main class="demo-flow">
     <!-- Model picker -->
-    <section id="model-picker" class="model-picker" aria-labelledby="model-picker-label">
+    <section id="model-picker" class="model-picker flow-card" aria-labelledby="model-picker-label">
       <div class="model-picker-heading">
         <div>
-          <label id="model-picker-label" class="type-label" for="model-select">Model</label>
-          <p id="model-picker-help" class="model-picker-help">Runs locally in this browser. The first use downloads the selected model.</p>
+          <div class="flow-kicker"><span>01</span> Setup</div>
+          <label id="model-picker-label" class="flow-title" for="model-select">Choose a model</label>
+          <p id="model-picker-help" class="model-picker-help">The first load downloads and verifies the model. Later visits reuse the browser cache.</p>
         </div>
         <span id="model-select-status" class="model-select-status" aria-live="polite">Loading catalog...</span>
       </div>
@@ -207,17 +216,23 @@
         <span id="model-select-progress-label" class="model-card-progress-percent">0%</span>
       </div>
       <details id="model-browser" class="model-browser">
-        <summary><span>Compare available models</span><span id="model-browser-count" class="model-browser-count"></span></summary>
+        <summary><span>See all supported models</span><span id="model-browser-count" class="model-browser-count"></span></summary>
         <div id="model-cards" class="model-cards"></div>
       </details>
     </section>
 
-    <section class="chat-workspace" aria-labelledby="chat-heading">
-      <h2 id="chat-heading" class="type-label chat-heading">Chat</h2>
+    <section class="chat-workspace flow-card" aria-labelledby="chat-heading">
+      <div class="chat-heading-row">
+        <div>
+          <div class="flow-kicker"><span>02</span> Run</div>
+          <h2 id="chat-heading" class="flow-title chat-heading">Ask the model</h2>
+        </div>
+        <p>Prompts and generated output stay on this device.</p>
+      </div>
       <div class="chat-toolbar">
         <details id="chat-controls" class="chat-controls">
           <summary>
-            <span>Controls</span>
+            <span>Run options</span>
             <span class="chat-controls-summary-state">X-Ray off · Word quality off</span>
           </summary>
           <div class="chat-toolbar-main">
@@ -317,7 +332,11 @@
         <div id="output-prefill-bar" class="output-prefill-bar" style="width: 0%"></div>
         <div class="chat-surface">
           <div id="chat-thread" class="chat-thread" aria-live="polite">
-            <p id="chat-empty" class="chat-empty">Start a conversation.</p>
+            <div id="chat-empty" class="chat-empty">
+              <span class="chat-empty-mark" aria-hidden="true">D</span>
+              <strong>Load a model to begin.</strong>
+              <span>A sample prompt is ready below, or write your own.</span>
+            </div>
           </div>
           <article id="live-assistant-message" class="chat-message chat-message--assistant" hidden>
             <div class="chat-role">Doppler</div>
@@ -334,27 +353,41 @@
           <textarea id="prompt-input" placeholder="Message Doppler..." rows="3"></textarea>
         </div>
         <div class="input-actions">
-          <button id="shuffle-btn" class="btn btn-ghost" type="button" title="Use another example prompt">&#x21BB; Shuffle</button>
-          <button id="image-drop" class="btn btn-ghost attach-image-btn" type="button" aria-pressed="false" title="Attach an image, or drop an image on this button">Attach image</button>
+          <button id="shuffle-btn" class="btn btn-ghost" type="button" title="Use another example prompt">&#x21BB; Example</button>
+          <button id="image-drop" class="btn btn-ghost attach-image-btn" type="button" aria-pressed="false" title="Attach an image, or drop an image on this button">Image</button>
           <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Load a model to send"><span aria-hidden="true">&#x25B8;</span> Send</button>
           <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
         </div>
       </section>
     </section>
+    </main>
 
-    <details id="xray-shell" class="xray-shell" hidden>
+    <details id="inspection-workspace" class="inspection-workspace">
+      <summary>
+        <span>
+          <span class="flow-kicker"><span>03</span> Evidence</span>
+          <strong>Inspect this run</strong>
+        </span>
+        <span class="inspection-workspace-summary">Identity · timing · precision</span>
+      </summary>
+      <div class="inspection-workspace-body">
+      <details id="xray-shell" class="xray-shell" hidden>
       <summary>
         <span>Inference X-Ray</span>
         <span id="xray-summary-state" class="xray-summary-state">Enabled · 5 evidence panels</span>
       </summary>
       <div id="xray-container" hidden></div>
-    </details>
+      </details>
 
     <!-- Report -->
     <div class="report-bar">
+      <div class="report-intro">
+        <strong>Run receipt</strong>
+        <span>Export the result and its execution evidence, or inspect a previous run.</span>
+      </div>
       <div class="report-actions">
-        <button id="export-btn" class="btn btn-ghost" disabled>Export JSON</button>
-        <button id="import-btn" class="btn btn-ghost" type="button">Import JSON</button>
+        <button id="export-btn" class="btn btn-ghost" disabled>Export receipt</button>
+        <button id="import-btn" class="btn btn-ghost" type="button">Open receipt</button>
         <input id="import-file" type="file" accept="application/json,.json" hidden>
         <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Expand checked-in precision evidence.">Precision replay</button>
         <span id="precision-replay-status" class="precision-replay-status">Loading evidence...</span>
@@ -409,6 +442,13 @@
         </div>
       </div>
     </section>
+      </div>
+    </details>
+
+    <footer class="app-footer">
+      <span>Doppler runs supported models through public browser APIs.</span>
+      <span>Unsupported paths fail closed.</span>
+    </footer>
 
   </div>
 

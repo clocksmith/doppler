@@ -95,7 +95,7 @@ export function clearImage() {
   imageData = null;
   const zone = $('image-drop');
   if (zone) {
-    zone.textContent = 'Attach image';
+    zone.textContent = 'Image';
     zone.classList.remove('has-image');
     zone.setAttribute('aria-pressed', 'false');
     zone.title = 'Attach an image, or drop an image on this button';
