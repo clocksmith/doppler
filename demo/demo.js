@@ -21,6 +21,10 @@ function refreshRuntimeNotice() {
   if (xraySummary) {
     xraySummary.textContent = xrayEnabled ? 'Enabled · 5 evidence panels' : 'Disabled';
   }
+  if (xrayEnabled) {
+    const inspectionWorkspace = $('inspection-workspace');
+    if (inspectionWorkspace) inspectionWorkspace.open = true;
+  }
 
   const el = $('runtime-notice');
   if (!el) return;

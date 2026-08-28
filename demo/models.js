@@ -55,16 +55,14 @@ function syncSelectedControls() {
     action.disabled = !entry || status === 'loading';
     action.textContent = status === 'loaded'
       ? 'Loaded'
-      : (status === 'stored' ? 'Load saved model' : 'Download and load');
+      : (status === 'stored' ? 'Use saved model' : 'Load locally');
   }
   if (remove) {
     remove.hidden = status !== 'stored' && status !== 'loaded';
     remove.disabled = state.generating || status === 'loading';
   }
   if (detail) {
-    detail.textContent = entry
-      ? `${entry.modelId} · ${status === 'stored' ? 'verified in browser storage' : status}`
-      : '';
+    detail.textContent = entry ? buildModelCardDetail(entry, status) : '';
   }
 }
 
@@ -239,6 +237,8 @@ export function renderModelCards() {
   const count = $('model-browser-count');
   if (count) count.textContent = `${catalog.length} models`;
   const status = $('model-select-status');
-  if (status) status.textContent = catalog.length ? 'Ready' : 'No supported models';
+  if (status) status.textContent = catalog.length
+    ? `${catalog.length} supported`
+    : 'No supported models';
   syncSelectedControls();
 }

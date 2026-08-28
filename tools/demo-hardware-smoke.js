@@ -4,7 +4,7 @@ import http from 'node:http';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import {
   DEMO_HARDWARE_RECEIPT_SCHEMA,
@@ -99,6 +99,25 @@ function executionClass(adapter) {
     : 'hardware-webgpu';
 }
 
+export function resolveBrowserArgs(hostPlatform = process.platform) {
+  const common = ['--enable-unsafe-webgpu'];
+  if (hostPlatform === 'darwin') {
+    return [...common, '--use-angle=metal'];
+  }
+  if (hostPlatform === 'linux') {
+    return [
+      ...common,
+      '--enable-features=Vulkan',
+      '--use-angle=vulkan',
+      '--disable-vulkan-surface',
+    ];
+  }
+  if (hostPlatform === 'win32') {
+    return common;
+  }
+  throw new Error(`Unsupported demo hardware smoke host platform "${hostPlatform}".`);
+}
+
 async function configureDeterministicGeneration(page, prompt) {
   await page.evaluate(() => {
     const values = {
@@ -173,12 +192,7 @@ async function main() {
   const profileDir = options.profileDir ?? temporaryProfile;
   const context = await chromium.launchPersistentContext(profileDir, {
     headless: options.headless,
-    args: [
-      '--enable-unsafe-webgpu',
-      '--enable-features=Vulkan',
-      '--use-angle=vulkan',
-      '--disable-vulkan-surface',
-    ],
+    args: resolveBrowserArgs(),
   });
   let onlineEvidence = null;
   let offlineEvidence = null;
@@ -284,4 +298,8 @@ async function main() {
   console.log(JSON.stringify(receipt, null, 2));
 }
 
-await main();
+const isEntrypoint = process.argv[1]
+  && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
+if (isEntrypoint) {
+  await main();
+}

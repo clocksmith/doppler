@@ -12,7 +12,9 @@ const wordQualityStyles = readFileSync(
   'utf8'
 );
 
-assert.match(html, /Local WebGPU inference, inspected in your browser\./);
+assert.match(html, /Local AI you can inspect\./);
+assert.match(html, /Runs in this browser/);
+assert.match(html, /id="inspection-workspace"/);
 assert.match(html, /src="\/demo\/demo\.js"/);
 assert.match(html, /id="model-select"/);
 assert.match(html, /id="model-select-action"/);
@@ -32,13 +34,15 @@ assert.match(settingsSource, /doppler\.demo\.word-quality-enabled/);
 
 assert.match(html, /id="set-max-tokens"[^>]*value="1024"/);
 assert.match(settingsSource, /DEMO_DEFAULT_MAX_TOKENS = 1024/);
-assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Shuffle<\/button>/);
-assert.match(html, /id="image-drop"[^>]*>Attach image<\/button>/);
+assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Example<\/button>/);
+assert.match(html, /id="image-drop"[^>]*>Image<\/button>/);
 assert.match(html, /id="run-btn"[^>]*>[\s\S]*Send<\/button>/);
 assert.match(inputSource, /state\.model/);
 
 assert.ok(html.indexOf('id="export-btn"') < html.indexOf('id="import-btn"'));
 assert.ok(html.indexOf('id="import-btn"') < html.indexOf('id="precision-replay-toggle"'));
+assert.match(html, /Export receipt/);
+assert.match(html, /Open receipt/);
 assert.match(reportSource, /observationPolicy/);
 assert.match(reportSource, /comparisonFingerprint/);
 assert.doesNotMatch(reportSource, /lastReferenceTranscript|setTranscriptExportEnabled/);
