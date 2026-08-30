@@ -70,7 +70,6 @@ import {
   _ensureAudioWeightsLoaded as _ensureAudioWeightsLoadedImpl,
 } from './text/lifecycle.js';
 import {
-  transcribeImage as transcribeImageImpl,
   transcribeVideo as transcribeVideoImpl,
   transcribeAudio as transcribeAudioImpl,
   embed as embedImpl,
@@ -79,6 +78,7 @@ import {
   embedImage as embedImageImpl,
   embedAudio as embedAudioImpl,
 } from './text/execution.js';
+import { transcribeImage as transcribeImageImpl } from './text/image-transcription.js';
 
 // ============================================================================
 // Main Inference Pipeline Class

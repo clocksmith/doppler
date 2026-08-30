@@ -27,7 +27,7 @@ struct Uniforms {
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let half_dim = u.rotary_dim / 2u;
-    let index = gid.y * max(u.dispatch_stride, 1u) + gid.x;
+    let index = gid.y * u.dispatch_stride + gid.x;
     let count = u.max_seq_len * half_dim;
     if (index >= count) {
         return;

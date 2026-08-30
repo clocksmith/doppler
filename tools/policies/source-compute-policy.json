@@ -55,6 +55,16 @@
   ],
   "reviews": [
     {
+      "id": "src/gpu/weight-buffer.js#normalizeWeightMetadata",
+      "category": "gpu-orchestration",
+      "reason": "The symbol copies declared weight metadata fields into an immutable descriptor without reading or modifying tensor elements."
+    },
+    {
+      "id": "src/gpu/weight-buffer.js#createWeightBuffer",
+      "category": "gpu-orchestration",
+      "reason": "The symbol registers caller-declared materialization metadata and GPU buffer identities; it performs no tensor arithmetic."
+    },
+    {
       "id": "src/client/runtime/session-controller.js#applyRepetitionPenalty",
       "category": "scalar-control",
       "reason": "Pack sampling is an explicitly contracted scalar control-plane operation performed after declared logit readback."
@@ -725,12 +735,12 @@
       "reason": "The symbol maps explicit prompt and image-grid geometry into position IDs before the declared GPU MRoPE frequency program executes."
     },
     {
-      "id": "src/inference/pipelines/vision/glmocr.js#createUint8ResizeAxis",
+      "id": "src/inference/pipelines/vision/glmocr-preprocess.js#createUint8ResizeAxis",
       "category": "host-input-preprocessing",
       "reason": "The symbol constructs interpolation coefficients from application image dimensions before any manifest-declared runtime input tensor exists."
     },
     {
-      "id": "src/inference/pipelines/vision/glmocr.js#preprocessGlmOcrImage",
+      "id": "src/inference/pipelines/vision/glmocr-preprocess.js#preprocessGlmOcrImage",
       "category": "host-input-preprocessing",
       "reason": "Application image pixels are resized, normalized, and packed into the manifest-declared patch order before the first runtime tensor exists."
     },

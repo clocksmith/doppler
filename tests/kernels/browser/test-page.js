@@ -792,6 +792,7 @@ const testHarness = {
     const resultTensor = await runLayerNorm(inputTensor, weightTensor, biasTensor, eps, {
       batchSize,
       hiddenSize,
+      normWeightDtype: paramDtype,
     });
     const result = await readTensorToFloat32(resultTensor, batchSize * hiddenSize);
 

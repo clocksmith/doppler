@@ -249,6 +249,13 @@ export function getWeightDtype(weight) {
   return getBufferDtype(weight);
 }
 
+export function requireWeightDtype(weight, label) {
+  const dtype = getWeightDtype(weight);
+  if (dtype === 'f16' || dtype === 'f32') return dtype;
+  if (weight instanceof Float32Array) return 'f32';
+  throw new Error(`[WeightBuffer] ${label} requires explicit f16 or f32 dtype metadata.`);
+}
+
 export function getWeightMetadata(weight) {
   if (isWeightBuffer(weight) || isCpuWeightBuffer(weight) || isSplitWeightBuffer(weight)) {
     return weight.metadata ?? null;

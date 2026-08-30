@@ -105,6 +105,9 @@ Product contract:
 - Bun, new model families, biological workloads, generic browser expansion, and
   unrelated benchmarks remain outside the gate unless the external release
   requires them.
+- `npm run model-family:intake:check` enforces that boundary against the base
+  revision while this goal is incomplete; a new conversion family must bind a
+  customer-authorized external release contract.
 
 Technical contract:
 

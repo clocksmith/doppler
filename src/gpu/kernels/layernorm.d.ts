@@ -9,8 +9,8 @@ import type { OutputBufferOptions } from './types.js';
 export interface LayerNormOptions extends OutputBufferOptions {
   batchSize?: number;
   hiddenSize?: number | null;
-  /** Explicit dtype for weight/bias buffers when auto-inference is unavailable. */
-  normWeightDtype?: string;
+  /** Manifest/materialization-owned dtype for both weight and bias buffers. */
+  normWeightDtype: 'f16' | 'f32';
 }
 
 export declare function selectLayerNormKernel(options?: LayerNormOptions, isF16?: boolean): string;
@@ -20,7 +20,7 @@ export declare function runLayerNorm(
   weight: GPUBuffer,
   bias: GPUBuffer,
   eps: number,
-  options?: LayerNormOptions
+  options: LayerNormOptions
 ): Promise<Tensor>;
 
 export declare function recordLayerNorm(
@@ -29,5 +29,5 @@ export declare function recordLayerNorm(
   weight: GPUBuffer,
   bias: GPUBuffer,
   eps: number,
-  options?: LayerNormOptions
+  options: LayerNormOptions
 ): Promise<Tensor>;

@@ -1,5 +1,5 @@
 import { releaseBuffer } from '../../../../memory/buffer-pool.js';
-import { isGpuBufferInstance, isWeightBuffer, getLayout, getWeightDtype } from '../../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer, getLayout, getWeightDtype, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
 import {
   runMatmul,
   recordMatmul,
@@ -203,7 +203,12 @@ export async function applyAttentionQKNorm({
           qNormBuf,
           getQKNormZerosBuffer(qNormSize),
           rmsNormEps,
-          { batchSize: qNormBatchSize, hiddenSize: qNormSize, label: 'q_norm' }
+          {
+            batchSize: qNormBatchSize,
+            hiddenSize: qNormSize,
+            label: 'q_norm',
+            normWeightDtype: requireWeightDtype(qNormBuf, 'attention q_norm weight'),
+          }
         )
         : await runRmsNormForMode(nextQ, qNormBuf, rmsNormEps, {
           batchSize: qNormBatchSize,
@@ -225,7 +230,12 @@ export async function applyAttentionQKNorm({
           kNormBuf,
           getQKNormZerosBuffer(kNormSize),
           rmsNormEps,
-          { batchSize: kNormBatchSize, hiddenSize: kNormSize, label: 'k_norm' }
+          {
+            batchSize: kNormBatchSize,
+            hiddenSize: kNormSize,
+            label: 'k_norm',
+            normWeightDtype: requireWeightDtype(kNormBuf, 'attention k_norm weight'),
+          }
         )
         : await runRmsNormForMode(nextK, kNormBuf, rmsNormEps, {
           batchSize: kNormBatchSize,

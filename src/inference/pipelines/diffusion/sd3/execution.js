@@ -749,7 +749,7 @@ export async function executeSD3Transformer(
   );
   const normOut = await buildModulation(timeText, normOutWeight, normOutBiasTensor, hiddenSize, normOutSegments, runtime, matmul, normOutWeightName, ops);
 
-  const xNorm = await ops.layerNorm(x, onesBuf, zerosBuf, layerNormEps, { batchSize: tokenCount, hiddenSize });
+  const xNorm = await ops.layerNorm(x, onesBuf, zerosBuf, layerNormEps, { batchSize: tokenCount, hiddenSize, normWeightDtype: 'f32' });
   const xMod = await ops.modulate(xNorm, normOut.tensor, {
     numTokens: tokenCount,
     hiddenSize,

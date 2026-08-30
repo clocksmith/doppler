@@ -15,7 +15,7 @@ import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { runLayerNorm, runMatmul, runRMSNorm, runScale, castF16ToF32, castF32ToF16, runLmHeadSelectLogitsF16 } from '../../../../gpu/kernel-selector.js';
 import { createTensor } from '../../../../gpu/tensor.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from '../kernel-trace.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { runProbes } from '../probes.js';
@@ -344,7 +344,11 @@ export async function computeLogits(
       normWeightBuffer,
       finalNormBiasBuffer,
       rmsNormEps,
-      { batchSize: numTokens, hiddenSize }
+      {
+        batchSize: numTokens,
+        hiddenSize,
+        normWeightDtype: requireWeightDtype(finalNorm, 'logits final LayerNorm weight'),
+      }
     );
   } else {
     normedTensor = await runRMSNorm(normInputTensor, normWeightBuffer, rmsNormEps, {

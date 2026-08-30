@@ -100,8 +100,11 @@ runtime report, compare result, and SVG summary receipts.
 Artifact bytes have a separate source of truth:
 
 - external volume: complete local RDRR artifacts and shards
-- `models/local/**`: developer-local manifest/tokenizer cache, not a release or
-  CI source
+- `models/local/**`: developer-local artifact cache. Git may retain manifest,
+  origin, and tokenizer metadata snapshots as non-authoritative test fixtures;
+  ignored shards and the directory listing are never release, catalog, or
+  support authority. CI may exercise a tracked metadata snapshot but must not
+  require developer-local or ignored artifact bytes.
 - Hugging Face `clocksmith/rdrr`: published subset generated from approved
   catalog entries
 

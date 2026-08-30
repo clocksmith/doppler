@@ -741,6 +741,16 @@ Existing over-limit files are governed in
 `tools/policies/source-architecture-policy.json`. Each entry records its
 current maximum and named extraction boundaries. An inherited file may shrink
 but may not grow. Once it reaches the limit, its policy entry must be removed.
+The architecture check compares this ledger with `DOPPLER_POLICY_BASE_REF`
+(`HEAD` for an uncommitted local change). Adding a soft-limit review or raising
+`reviewedLines` fails unless the changed review records a `debtAuthorization`
+SHA-256 digest that exactly matches the externally supplied
+`DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION`. Lowering or removing debt never
+requires authorization. Other policy relaxations—including global limit
+increases, new legacy ceilings, cross-owner dependency additions, exceptions,
+facades, experimental bridges, standalone reachability exemptions, and weaker
+constitutional graphs—require a fresh top-level `debtAuthorization` matching
+the same externally administered CI variable.
 
 ## Semantic Ownership
 
@@ -789,6 +799,7 @@ Run:
 ```bash
 npm run source:style:check
 npm run source:architecture:check
+npm run source:architecture:check -- --base <git-revision>
 ```
 
 The style gate rejects JSDoc in governed JavaScript modules so types and API

@@ -189,6 +189,7 @@ converter/tensor-role-closure.d.ts
 converter/tensor-role-closure.js
 converter/tensor-transform.d.ts
 converter/tokenizer-contract.d.ts
+converter/tokenizer-manifest.d.ts
 converter/tokenizer-special-tokens.d.ts
 converter/tokenizer-utils.d.ts
 converter/tokenizer-utils.js
@@ -526,6 +527,7 @@ inference/pipelines/text/generator/decode-runtime.d.ts
 inference/pipelines/text/generator/decode.d.ts
 inference/pipelines/text/generator/diffusion.d.ts
 inference/pipelines/text/generator/logits-config.d.ts
+inference/pipelines/text/generator/prefill-observation.d.ts
 inference/pipelines/text/generator/prefill-policy.d.ts
 inference/pipelines/text/generator/prefill-runtime.d.ts
 inference/pipelines/text/generator/prefix-embedding.d.ts
@@ -534,6 +536,7 @@ inference/pipelines/text/generator/recovery.d.ts
 inference/pipelines/text/generator/session-context.d.ts
 inference/pipelines/text/generator/text.d.ts
 inference/pipelines/text/generator/training.d.ts
+inference/pipelines/text/image-transcription.d.ts
 inference/pipelines/text/index.d.ts
 inference/pipelines/text/index.js
 inference/pipelines/text/init-chat-templates.d.ts
@@ -584,6 +587,7 @@ inference/pipelines/video/index.d.ts
 inference/pipelines/vision/attention.d.ts
 inference/pipelines/vision/encoder.d.ts
 inference/pipelines/vision/gemma4.d.ts
+inference/pipelines/vision/glmocr-preprocess.d.ts
 inference/pipelines/vision/glmocr-rope.d.ts
 inference/pipelines/vision/glmocr.d.ts
 inference/pipelines/vision/image-preprocess.d.ts
@@ -591,6 +595,7 @@ inference/pipelines/vision/index.d.ts
 inference/pipelines/vision/ops.d.ts
 inference/pipelines/vision/patch-embed.d.ts
 inference/pipelines/vision/spatial-merge.d.ts
+inference/pipelines/vision/weight-loading.d.ts
 inference/rerank.d.ts
 inference/tokenizers/base.d.ts
 inference/tokenizers/behavior-flags.d.ts
@@ -601,6 +606,9 @@ inference/tokenizers/bundled/registry.d.ts
 inference/tokenizers/sentencepiece.d.ts
 inference/tokenizers/types.js
 loader/embedding-limit-preflight.d.ts
+loader/gpu-tensor-materialization.d.ts
+loader/layer-tensor-aliases.d.ts
+loader/layer-weight-shape.d.ts
 loader/load-timing.d.ts
 loader/model-executor.d.ts
 loader/model-load-validation.d.ts

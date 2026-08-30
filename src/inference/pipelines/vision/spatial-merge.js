@@ -32,6 +32,8 @@ export async function spatialMergeProject(params) {
     gridWidth,
     hiddenSize,
     mergeSize: spatialMergeSize,
+    channelFirst: false,
+    inputBlockMajor: false,
   });
 
   let projected = null;
