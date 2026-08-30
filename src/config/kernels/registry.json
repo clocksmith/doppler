@@ -7675,7 +7675,7 @@
       "offset": 24
      },
      {
-      "name": "spatial_merge_size",
+      "name": "_pad0",
       "type": "u32",
       "offset": 28
      }
@@ -7955,7 +7955,7 @@
       "offset": 24
      },
      {
-      "name": "layout_flags",
+      "name": "_pad0",
       "type": "u32",
       "offset": 28
      }

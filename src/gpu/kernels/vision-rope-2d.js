@@ -17,7 +17,7 @@ export async function runVisionRope2D(input, geometry) {
     gridHeight,
     gridWidth,
     ropeTheta,
-    spatialMergeSize = 1,
+    spatialMergeSize,
   } = geometry;
   for (const [label, value] of Object.entries({
     numTokens,
@@ -64,9 +64,10 @@ export async function runVisionRope2D(input, geometry) {
       grid_width: gridWidth,
       rope_theta: ropeTheta,
       total_pairs: totalPairs,
-      spatial_merge_size: spatialMergeSize,
+      _pad0: 0,
     },
-    Math.ceil(totalPairs / WORKGROUP_SIZES.DEFAULT)
+    Math.ceil(totalPairs / WORKGROUP_SIZES.DEFAULT),
+    { SPATIAL_MERGE_SIZE: spatialMergeSize }
   );
   return createTensor(input.buffer, input.dtype, [...input.shape], 'vision_rope_2d_output');
 }

@@ -1,5 +1,3 @@
-
-
 import { getMemoryCapabilities } from '../memory/capability.js';
 import { detectUnifiedMemory } from '../memory/unified-detect.js';
 import { getHeapManager } from '../memory/heap-manager.js';
@@ -23,19 +21,11 @@ import {
 import { getExpertCache } from './experts/expert-cache.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
-import { createTensor } from '../gpu/tensor.js';
-import {
-  getBuffer,
-  getWeightDtype,
-  isGpuBufferInstance,
-  isWeightBuffer,
-} from '../gpu/weight-buffer.js';
-
+import { isGpuBufferInstance, isWeightBuffer } from '../gpu/weight-buffer.js';
 import { createShardCache } from './shard-cache.js';
 import { validateManifestInference } from '../config/schema/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
-
-// Import helper modules for refactored logic
+import { loadGpuTensor as loadGpuTensorImpl } from './gpu-tensor-materialization.js';
 import { buildTensorLocations } from './shard-resolver.js';
 import {
   needsNormWeightOffset,
@@ -633,23 +623,7 @@ export class DopplerLoader {
   }
 
   async loadGpuTensor(name, silent = false) {
-    const loaded = await this._loadTensor(name, true, silent);
-    if (!loaded) {
-      return null;
-    }
-    const location = this.tensorLocations.get(name);
-    if (!location || !Array.isArray(location.shape)) {
-      throw new Error(`GPU tensor "${name}" is missing its manifest shape.`);
-    }
-    const buffer = getBuffer(loaded);
-    if (!isGpuBufferInstance(buffer)) {
-      throw new Error(`GPU tensor "${name}" did not resolve to a GPU buffer.`);
-    }
-    const dtype = getWeightDtype(loaded);
-    if (dtype !== 'f16' && dtype !== 'f32') {
-      throw new Error(`GPU tensor "${name}" requires f16 or f32 data, got ${String(dtype)}.`);
-    }
-    return createTensor(buffer, dtype, location.shape, name);
+    return loadGpuTensorImpl(this, name, silent);
   }
 
   getConfig() {

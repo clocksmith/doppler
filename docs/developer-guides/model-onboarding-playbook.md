@@ -9,6 +9,18 @@ This guide is the end-to-end planning document for model onboarding work. Use it
 before you touch conversion configs, runtime code, benchmark lanes, or catalog
 metadata.
 
+While `local-webgpu-product-surface` remains incomplete, a new directory under
+`src/config/conversion/` requires customer authority before implementation.
+Record it at `tools/policies/model-family-authorizations/<family>.json` with
+schema `doppler.model-family-authorization/v1`, the exact family, customer and
+application IDs, a repository-relative external-candidate or
+external-production release contract, and the customer authorization digest.
+`npm run model-family:intake:check` compares the change with the CI base
+revision and requires that digest to match the externally administered
+`DOPPLER_MODEL_FAMILY_AUTHORIZATION` CI variable. It rejects unaffiliated
+model-family work. Existing research families are not retroactively presented
+as customer-authorized.
+
 ## When To Use This Guide
 
 - You are adding a brand-new model or model family.

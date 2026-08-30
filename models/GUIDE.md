@@ -30,13 +30,17 @@ runtime path that cannot be traced to config-as-code.
 Path: `models/local/<model-id>/`
 
 This is a developer-local cache for manifests and tokenizer sidecars. It is not
-a release or CI source of truth. Git tracks everything except shards:
+a release or CI source of truth. Git retains the following metadata as
+non-authoritative fixtures while ignoring shard bytes:
 
 - `manifest.json` — full RDRR manifest (inference config, execution graph, architecture, tensor layout)
 - `origin.json` — conversion provenance (source repo, revision, format, timestamp)
 - `tokenizer.json` / `tokenizer.model` — tokenizer assets
 
 Shards (`shard_*.bin`) may also be present on disk (copied from the external volume or HF). They are gitignored.
+Tests may exercise the retained metadata fixtures, but workflows must not
+require ignored bytes or derive catalog, release, or support claims from this
+directory.
 
 ### External volume (complete copies)
 

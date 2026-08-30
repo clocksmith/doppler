@@ -1,6 +1,7 @@
 // vision_rope_2d.wgsl
 
 override WORKGROUP_SIZE: u32 = 256u;
+override SPATIAL_MERGE_SIZE: u32 = 1u;
 
 struct Uniforms {
     num_tokens: u32,
@@ -10,7 +11,7 @@ struct Uniforms {
     grid_width: u32,
     rope_theta: f32,
     total_pairs: u32,
-    spatial_merge_size: u32,
+    _pad0: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -31,7 +32,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let first_half_dim = head_pair % pairs_per_head;
     let is_width_axis = first_half_dim >= frequencies_per_axis;
     let frequency_idx = first_half_dim % frequencies_per_axis;
-    let merge_size = max(u.spatial_merge_size, 1u);
+    let merge_size = SPATIAL_MERGE_SIZE;
     let patches_per_block = merge_size * merge_size;
     let blocks_per_row = u.grid_width / merge_size;
     let block_idx = token_idx / patches_per_block;

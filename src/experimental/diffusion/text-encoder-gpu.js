@@ -1,6 +1,6 @@
 import { getDevice } from '../../gpu/device.js';
 import { createTensor } from '../../gpu/tensor.js';
-import { getBuffer } from '../../gpu/weight-buffer.js';
+import { getBuffer, requireWeightDtype } from '../../gpu/weight-buffer.js';
 import { acquireBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { CommandRecorder } from '../../gpu/command-recorder.js';
 import {
@@ -305,8 +305,8 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     );
 
     const norm1 = await ops.layerNorm(hidden, getBuffer(ln1Weight), getBuffer(ln1Bias), config.layer_norm_eps, {
-      batchSize: maxLength,
-      hiddenSize,
+      batchSize: maxLength, hiddenSize,
+      normWeightDtype: requireWeightDtype(ln1Weight, 'CLIP layer_norm1 weight'),
     });
 
     const qKey = `${prefix}.text_model.encoder.layers.${layerIdx}.self_attn.q_proj.weight`;
@@ -380,8 +380,8 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     hidden = createTensor(attnResidual.buffer, attnResidual.dtype, [maxLength, hiddenSize], 'clip_attn_out');
 
     const norm2 = await ops.layerNorm(hidden, getBuffer(ln2Weight), getBuffer(ln2Bias), config.layer_norm_eps, {
-      batchSize: maxLength,
-      hiddenSize,
+      batchSize: maxLength, hiddenSize,
+      normWeightDtype: requireWeightDtype(ln2Weight, 'CLIP layer_norm2 weight'),
     });
 
     const fc1Key = `${prefix}.text_model.encoder.layers.${layerIdx}.mlp.fc1.weight`;
@@ -440,8 +440,8 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     `${prefix}.text_model.final_layer_norm.bias`
   );
   const final = await ops.layerNorm(hidden, getBuffer(finalLnWeight), getBuffer(finalLnBias), config.layer_norm_eps, {
-    batchSize: maxLength,
-    hiddenSize,
+    batchSize: maxLength, hiddenSize,
+    normWeightDtype: requireWeightDtype(finalLnWeight, 'CLIP final LayerNorm weight'),
   });
   release(hidden.buffer);
 

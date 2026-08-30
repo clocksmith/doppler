@@ -1,4 +1,4 @@
-import { isGpuBufferInstance, isWeightBuffer, getWeightDtype } from '../../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer, getWeightDtype, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { getKernelCapabilities } from '../../../../gpu/device.js';
 import { acquireBuffer } from '../../../../memory/buffer-pool.js';
 import {
@@ -251,7 +251,7 @@ export async function interpretAttentionWithRecorder(
         normWeightBuf,
         normBiasTensor.buffer,
         rmsNormEps,
-        { batchSize: numTokens, hiddenSize, label: 'input_norm' }
+        { batchSize: numTokens, hiddenSize, label: 'input_norm', normWeightDtype: requireWeightDtype(normWeightBuf, `L${layerIdx}.input_norm`) }
       );
     } else {
       normed = await recordRMSNorm(recorder, attentionInput, normWeightBuf, rmsNormEps, {

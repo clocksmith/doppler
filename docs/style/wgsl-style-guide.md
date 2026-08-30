@@ -88,7 +88,17 @@ override TILE_SIZE: u32 = 16u;
 override SCALE_EMBEDDINGS: bool = false;
 override RMS_NORM_OFFSET: bool = true;   // Gemma (1+weight) formula
 override USE_CAUSAL_MASK: bool = true;
+
+// Model layout - from resolved manifest config
+override SPATIAL_MERGE_SIZE: u32 = 1u;
+override CHANNEL_FIRST: bool = false;
+override INPUT_BLOCK_MAJOR: bool = false;
 ```
+
+Model layout and storage choices are specialization constants even when a
+wrapper currently has one caller. JavaScript must pass the resolved value
+explicitly; shader defaults are compile-time declarations, not fallback
+authority. Missing geometry or layout fields fail before pipeline creation.
 
 ### Uniforms (use struct)
 

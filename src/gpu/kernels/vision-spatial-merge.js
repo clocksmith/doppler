@@ -10,6 +10,12 @@ function requirePositiveInteger(value, label) {
   }
 }
 
+function requireBoolean(value, label) {
+  if (typeof value !== 'boolean') {
+    throw new Error(`Vision spatial merge requires ${label} to be boolean.`);
+  }
+}
+
 export function planVisionSpatialMergeDispatch(outputElements) {
   requirePositiveInteger(outputElements, 'outputElements');
   const workgroups = Math.ceil(outputElements / WORKGROUP_SIZES.DEFAULT);
@@ -29,12 +35,14 @@ export async function runVisionSpatialMerge(input, geometry) {
     gridWidth,
     hiddenSize,
     mergeSize,
-    channelFirst = false,
-    inputBlockMajor = false,
+    channelFirst,
+    inputBlockMajor,
   } = geometry;
   for (const [label, value] of Object.entries({ gridHeight, gridWidth, hiddenSize, mergeSize })) {
     requirePositiveInteger(value, label);
   }
+  requireBoolean(channelFirst, 'channelFirst');
+  requireBoolean(inputBlockMajor, 'inputBlockMajor');
   if (!input?.buffer || input.dtype !== 'f32') {
     throw new Error('Vision spatial merge requires an f32 input tensor.');
   }
@@ -72,9 +80,10 @@ export async function runVisionSpatialMerge(input, geometry) {
         merged_height: mergedHeight,
         merged_width: mergedWidth,
         output_elements: outputElements,
-        layout_flags: (channelFirst ? 1 : 0) | (inputBlockMajor ? 2 : 0),
+        _pad0: 0,
       },
-      planVisionSpatialMergeDispatch(outputElements)
+      planVisionSpatialMergeDispatch(outputElements),
+      { CHANNEL_FIRST: channelFirst, INPUT_BLOCK_MAJOR: inputBlockMajor }
     );
     succeeded = true;
     return createTensor(

@@ -1,5 +1,7 @@
-export declare const createImageTranscriptionResourceScope: any;
-export declare const transcribeImage: any;
+export {
+  createImageTranscriptionResourceScope,
+  transcribeImage,
+} from './image-transcription.js';
 export declare const transcribeVideo: any;
 export declare const transcribeAudio: any;
 export declare const embed: any;

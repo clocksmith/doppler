@@ -4,6 +4,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { readJsonAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
+import { validateArchitecturePolicyDelta } from './lib/source-architecture-debt.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const policyPath = path.join(repoRoot, 'tools/policies/source-architecture-policy.json');
@@ -313,8 +315,18 @@ async function validateConstitutionalDomains(policy, sourceRoot, files, errors) 
 
 async function main() {
   const policy = JSON.parse(await fs.readFile(policyPath, 'utf8'));
+  const baseRef = resolvePolicyBaseRef(process.argv.slice(2));
+  const baselinePolicy = readJsonAtGitRef(
+    repoRoot,
+    baseRef,
+    'tools/policies/source-architecture-policy.json'
+  );
   const sourceRoot = path.join(repoRoot, policy.sourceRoot);
-  const errors = [];
+  const errors = validateArchitecturePolicyDelta(
+    policy,
+    baselinePolicy,
+    process.env.DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION ?? null
+  );
   const actualOwners = (await fs.readdir(sourceRoot, { withFileTypes: true }))
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)

@@ -252,6 +252,19 @@ function assertCreatedBufferDestroyed(device, label) {
 }
 
 {
+  resetRuntimeState(createFakeDevice());
+  const input = createExternalTensor([1, 2, 3, 4], [1, 4], 'layernorm_explicit_dtype_input');
+  const weight = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
+  const bias = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
+  await assert.rejects(
+    () => runLayerNorm(input, weight, bias, 1e-5, { batchSize: 1, hiddenSize: 4 }),
+    /normWeightDtype must explicitly declare f16 or f32/
+  );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
   resetRuntimeState(createFakeDevice({ createBindGroupThrowAt: 1 }));
   const input = createExternalTensor([1], [1, 1], 'ffn_input');
   const gate = createWeightLike(4);
@@ -564,7 +577,11 @@ function assertCreatedBufferDestroyed(device, label) {
   const weight = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
   const bias = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
   await assert.rejects(
-    () => runLayerNorm(input, weight, bias, 1e-5, { batchSize: 1, hiddenSize: 4 }),
+    () => runLayerNorm(input, weight, bias, 1e-5, {
+      batchSize: 1,
+      hiddenSize: 4,
+      normWeightDtype: 'f32',
+    }),
     /createBindGroup failed at 1/
   );
   assertPoolIsClean();

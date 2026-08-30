@@ -241,7 +241,11 @@ async function buildModulation(timeText, weight, bias, hiddenSize, segments, run
 
 async function applyAdaLayerNorm(input, weight, bias, eps, mod, offsets, runtime, ops, release, options = {}) {
   const { numTokens, hiddenSize } = options;
-  const normed = await ops.layerNorm(input, weight, bias, eps, { batchSize: numTokens, hiddenSize });
+  const normed = await ops.layerNorm(input, weight, bias, eps, {
+    batchSize: numTokens,
+    hiddenSize,
+    normWeightDtype: 'f32',
+  });
   const modulated = await ops.modulate(normed, mod.tensor, {
     numTokens,
     hiddenSize,

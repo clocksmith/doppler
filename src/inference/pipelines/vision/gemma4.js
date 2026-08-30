@@ -315,6 +315,7 @@ async function runVisionAttention(hiddenTensor, layerWeights, visionConfig, geom
       gridHeight: geometry.gridHeight,
       gridWidth: geometry.gridWidth,
       ropeTheta: geometry.ropeTheta,
+      spatialMergeSize: 1,
     });
     await runVisionRope2D(kNormTensor, {
       numTokens,
@@ -323,6 +324,7 @@ async function runVisionAttention(hiddenTensor, layerWeights, visionConfig, geom
       gridHeight: geometry.gridHeight,
       gridWidth: geometry.gridWidth,
       ropeTheta: geometry.ropeTheta,
+      spatialMergeSize: 1,
     });
 
     const attnTensor = await runAttention(

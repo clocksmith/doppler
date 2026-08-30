@@ -273,7 +273,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "rope_f16.wgsl#rope_ntk_scaled": "e17582795dbcec6f77dc7236e3db8eb370f41bb4cad7783346eefbca0e0d3ce5",
   "rope_f16.wgsl#rope_qk": "b350140017a188cefa8b8758cd5fcf48ece0419aeb0c3659f1b19c9f60d41c20",
   "rope_f16.wgsl#rope_yarn": "0e79bec00411e02beeaa5ca27e7be688f049f7231adcc52161fbe8aecb097cd6",
-  "rope_precompute.wgsl#main": "62c9e60874bef75526bb4201fb1d060f636ba3d8372740f0b972389047e4b758",
+  "rope_precompute.wgsl#main": "0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8",
   "rope_qk_f16.wgsl#main": "b8cfcafdca09004ca2c3f47f6aca17360862373455cc060896c9b7a54e2e3833",
   "rope_qk.wgsl#main": "379186c35451a1bf08f3d157db52e48f4865c92caee230656fd55b7fa500351c",
   "rope.wgsl#main": "b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
@@ -337,6 +337,6 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "vision_patch_embed.wgsl#main": "8fe8b259498a6e2869e7cdcbb9b0e04d503aed7b5e009985ced722403dde80e1",
   "vision_position_embedding_f16.wgsl#main": "3e26814dbfa60708fa1a29cbe9e3c68e2c990d65c1d5d7123b9b183fca97f0d6",
   "vision_position_embedding.wgsl#main": "84d16c5fa44cfebac838bd566ebed4403de33e280a422102a6a096f2e9473477",
-  "vision_rope_2d.wgsl#main": "7e3c1151e27b4d38bc4a15bffe4e80b854ff87d8a66a1911a392574b795555dc",
-  "vision_spatial_merge.wgsl#main": "65a7e0607e278ac5f62b042399e618973ab5ad7cfd40130a677bb53f8692cb88",
+  "vision_rope_2d.wgsl#main": "6b8db01f3909dee5de8fe87357f79059bf417314e0b1d8e5a333a56bbc1358dc",
+  "vision_spatial_merge.wgsl#main": "46151a6c8aa5c8afcc0375aba966319c8ea88de65ebd85e8bc203b71df52e772",
 });

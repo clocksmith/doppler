@@ -1,6 +1,6 @@
 import { getDevice } from '../../../gpu/device.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import { createWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { createWeightBuffer, requireWeightDtype } from '../../../gpu/weight-buffer.js';
 import { acquireBuffer, readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { runLayerNorm, runMatmul, runRMSNorm } from '../../../gpu/kernel-selector.js';
 import { runBiasAdd } from '../../../gpu/kernels/residual.js';
@@ -165,6 +165,7 @@ export async function extractEmbeddingFromHiddenGPU(options) {
       normalized = await runLayerNorm(hidden, normWeight.buffer, normBiasBuffer, config.rmsNormEps, {
         batchSize: numTokens,
         hiddenSize,
+        normWeightDtype: requireWeightDtype(finalNorm, 'embedding final LayerNorm weight'),
       });
     } else {
       normalized = await runRMSNorm(hidden, normWeight.buffer, config.rmsNormEps, {

@@ -2,6 +2,7 @@
 
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../../gpu/tensor.js';
+import { requireWeightDtype } from '../../../gpu/weight-buffer.js';
 import { runLayerNorm } from '../../../gpu/kernels/layernorm.js';
 import { runMatmul } from '../../../gpu/kernels/matmul.js';
 import { runGeLU } from '../../../gpu/kernels/gelu.js';
@@ -18,6 +19,7 @@ export async function doLayerNorm(input, weight, bias, opts) {
     {
       batchSize: seqLen,
       hiddenSize,
+      normWeightDtype: requireWeightDtype(weight, 'vision LayerNorm weight'),
     }
   );
   return outputTensor.buffer;

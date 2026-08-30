@@ -17,9 +17,15 @@ jobs:
   check-green:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      DOPPLER_POLICY_BASE_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+      DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ${{ vars.DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION }}
+      DOPPLER_MODEL_FAMILY_AUTHORIZATION: ${{ vars.DOPPLER_MODEL_FAMILY_AUTHORIZATION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v6

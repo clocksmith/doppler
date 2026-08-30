@@ -197,6 +197,7 @@ export function getLayout(weight: GPUBuffer | WeightBuffer | TensorLike | SplitW
  * Get dtype from WeightBuffer, tagged raw GPUBuffer, or TensorLike.
  */
 export function getWeightDtype(weight: GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer): WeightDtype | TensorLike['dtype'] | null;
+export function requireWeightDtype(weight: unknown, label: string): 'f16' | 'f32';
 
 /**
  * Get optional quantized-weight metadata from a weight wrapper.

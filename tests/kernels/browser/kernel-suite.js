@@ -1703,6 +1703,8 @@ export async function runKernelSuite(harness) {
         gridWidth: 6,
         hiddenSize: 5,
         mergeSize: 2,
+        channelFirst: false,
+        inputBlockMajor: false,
       };
       const input = h.generateTestData(4 * 6 * 5, 12304);
       const expected = h.references.visionSpatialMergeRef(input, geometry);
@@ -1766,6 +1768,7 @@ export async function runKernelSuite(harness) {
         gridHeight: 3,
         gridWidth: 4,
         ropeTheta: 10000,
+        spatialMergeSize: 1,
       };
       const input = h.generateTestData(12 * 2 * 16, 12307);
       const expected = h.references.visionRope2DRef(input, geometry);

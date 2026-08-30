@@ -16,7 +16,7 @@ import { runDenseFFNGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
 import { acquireBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { runScale, recordScale } from '../../../../gpu/kernel-selector.js';
-import { isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { shouldDebugLayerOutput, decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
 import { trace, isTraceEnabled } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
@@ -132,6 +132,7 @@ export async function processFFNStandard(
             hiddenSize,
             label: `L${layerIdx}.post_attn_norm`,
             layerIdx,
+            normWeightDtype: requireWeightDtype(normWeightBuf, `L${layerIdx}.post_attn_norm`),
           },
           recorder
         );

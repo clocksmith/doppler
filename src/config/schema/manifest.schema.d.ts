@@ -465,10 +465,8 @@ export interface ManifestChatTemplateSchema {
   type: 'gemma' | 'gemma4' | 'llama3' | 'gpt-oss' | 'chatml' | 'qwen' | 'glmocr' | 'translategemma' | null;
   /** Whether chat template is enabled */
   enabled: boolean;
-  /** Thinking control passed to templates that declare it; null leaves it unspecified. */
-  thinking?: boolean | null;
+  /** Thinking control passed to templates that declare it; null leaves it unspecified. */ thinking?: boolean | null;
 }
-
 export interface ManifestUnsupportedSchema {
   code?: string | null;
   message?: string | null;

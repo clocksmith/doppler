@@ -1,6 +1,8 @@
 // vision_spatial_merge.wgsl
 
 override WORKGROUP_SIZE: u32 = 256u;
+override CHANNEL_FIRST: bool = false;
+override INPUT_BLOCK_MAJOR: bool = false;
 
 struct Uniforms {
     grid_height: u32,
@@ -10,7 +12,7 @@ struct Uniforms {
     merged_height: u32,
     merged_width: u32,
     output_elements: u32,
-    layout_flags: u32,
+    _pad0: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -30,10 +32,8 @@ fn main(
     let concat_dim = u.merge_size * u.merge_size * u.hidden_size;
     let merged_idx = output_idx / concat_dim;
     let concat_idx = output_idx % concat_dim;
-    let channel_first = (u.layout_flags & 1u) != 0u;
-    let input_block_major = (u.layout_flags & 2u) != 0u;
-    let hidden_idx = select(concat_idx % u.hidden_size, concat_idx / (u.merge_size * u.merge_size), channel_first);
-    let patch_in_merge = select(concat_idx / u.hidden_size, concat_idx % (u.merge_size * u.merge_size), channel_first);
+    let hidden_idx = select(concat_idx % u.hidden_size, concat_idx / (u.merge_size * u.merge_size), CHANNEL_FIRST);
+    let patch_in_merge = select(concat_idx / u.hidden_size, concat_idx % (u.merge_size * u.merge_size), CHANNEL_FIRST);
     let local_y = patch_in_merge / u.merge_size;
     let local_x = patch_in_merge % u.merge_size;
     let merged_y = merged_idx / u.merged_width;
@@ -42,7 +42,7 @@ fn main(
     let source_x = merged_x * u.merge_size + local_x;
     let raster_source_idx = (source_y * u.grid_width + source_x) * u.hidden_size + hidden_idx;
     let block_source_idx = (merged_idx * u.merge_size * u.merge_size + patch_in_merge) * u.hidden_size + hidden_idx;
-    let source_idx = select(raster_source_idx, block_source_idx, input_block_major);
+    let source_idx = select(raster_source_idx, block_source_idx, INPUT_BLOCK_MAJOR);
 
     output[output_idx] = input[source_idx];
 }

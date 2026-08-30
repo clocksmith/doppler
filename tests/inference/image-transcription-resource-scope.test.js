@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import {
   createImageTranscriptionResourceScope,
-} from '../../src/inference/pipelines/text/execution.js';
+} from '../../src/inference/pipelines/text/image-transcription.js';
 
 const originalCos = { label: 'original-cos' };
 const originalSin = { label: 'original-sin' };

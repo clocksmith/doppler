@@ -5,8 +5,8 @@ export interface VisionSpatialMergeGeometry {
   gridWidth: number;
   hiddenSize: number;
   mergeSize: number;
-  channelFirst?: boolean;
-  inputBlockMajor?: boolean;
+  channelFirst: boolean;
+  inputBlockMajor: boolean;
 }
 
 export declare function planVisionSpatialMergeDispatch(

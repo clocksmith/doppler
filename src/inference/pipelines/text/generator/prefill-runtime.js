@@ -7,7 +7,6 @@ import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from '../sampling.js';
 import { embed } from '../embed.js';
-import { runProbes } from '../probes.js';
 import { processLayer } from '../layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits } from '../logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata, getLayout } from '../../../../gpu/weight-buffer.js';
@@ -68,6 +67,7 @@ import {
   shouldDisablePrefillCommandBatching,
   resolveEffectivePrefillTokenChunkSize,
 } from './prefill-policy.js';
+import { probePrefillEmbedding, tracePrefillEmbeddingIds } from './prefill-observation.js';
 import {
   normalizePrefixEmbeddingOverride,
   resolvePrefillEmbeddingInputIds,
@@ -219,19 +219,7 @@ export async function _prefill(inputIds, opts) {
       numTokens,
       '_prefill'
     );
-    if (isTraceEnabled('embed')) {
-      const overrideOffset = embeddingOverride?.offset ?? null;
-      const overrideEnd = embeddingOverride
-        ? embeddingOverride.offset + embeddingOverride.prefixLength - 1
-        : null;
-      trace.embed(
-        `Prefill embedding IDs: tokens=${numTokens}, first=${embeddingInputIds[0] ?? 'missing'}, ` +
-        `last=${embeddingInputIds[numTokens - 1] ?? 'missing'}, overrideOffset=${overrideOffset ?? 'none'}, ` +
-        `overrideEnd=${overrideEnd ?? 'none'}, ` +
-        `offsetId=${overrideOffset == null ? 'none' : embeddingInputIds[overrideOffset]}, ` +
-        `afterOverrideId=${overrideEnd == null ? 'none' : embeddingInputIds[overrideEnd + 1] ?? 'missing'}`
-      );
-    }
+    tracePrefillEmbeddingIds(embeddingInputIds, numTokens, embeddingOverride);
     this._state.stats.gpuTimePrefillMs = undefined;
     this._state.stats.prefillProfileSteps = [];
 
@@ -382,13 +370,11 @@ export async function _prefill(inputIds, opts) {
         elapsedMs: performance.now() - embedTraceStart,
       });
     }
-    await runProbes('prefill_base_embedding_out', baseEmbeddings.buffer, {
+    await probePrefillEmbedding('prefill_base_embedding_out', baseEmbeddings, {
       numTokens,
       hiddenSize: config.hiddenSize,
-      probes: this._state.runtimeConfig.shared.debug.probes,
+      state: this._state,
       recorder,
-      operatorDiagnostics: this._state.operatorDiagnostics,
-      dtype: baseEmbeddings.dtype,
     });
     let hiddenStates = baseEmbeddings;
     let perLayerInputs = null;
@@ -404,13 +390,11 @@ export async function _prefill(inputIds, opts) {
           transitionDeclaredBy: resolvePrefixEmbeddingOverrideTransitionDeclaredBy(this._state.executionV1State),
         }
       );
-      await runProbes('prefill_embedding_override_out', hiddenStates.buffer, {
+      await probePrefillEmbedding('prefill_embedding_override_out', hiddenStates, {
         numTokens,
         hiddenSize: config.hiddenSize,
-        probes: this._state.runtimeConfig.shared.debug.probes,
+        state: this._state,
         recorder,
-        operatorDiagnostics: this._state.operatorDiagnostics,
-        dtype: hiddenStates.dtype,
       });
       perLayerInputs = await preparePerLayerInputs(
         embeddingInputIds,

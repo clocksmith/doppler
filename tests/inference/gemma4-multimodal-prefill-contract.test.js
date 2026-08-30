@@ -38,7 +38,7 @@ import { preprocessGemma4Image } from '../../src/inference/pipelines/vision/gemm
   assert.equal(preprocessed.outputLength, 260);
 }
 
-const textSource = readFileSync(new URL('../../src/inference/pipelines/text/execution.js', import.meta.url), 'utf8');
+const textSource = readFileSync(new URL('../../src/inference/pipelines/text/image-transcription.js', import.meta.url), 'utf8');
 const generatorSource = [
   '../../src/inference/pipelines/text/generator.js',
   '../../src/inference/pipelines/text/generator/prefill-runtime.js',

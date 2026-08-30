@@ -132,6 +132,31 @@ const CODE_RULES = Object.freeze([
     pattern: /outputDtype\s*===\s*undefined\s*\?\s*['"]f32['"]/g,
   },
   {
+    file: 'src/gpu/kernels/vision-rope-2d.js',
+    label: 'Vision RoPE spatial merge runtime fallback',
+    pattern: /spatialMergeSize\s*=\s*1/g,
+  },
+  {
+    file: 'src/gpu/kernels/vision-spatial-merge.js',
+    label: 'Vision spatial merge layout runtime fallback',
+    pattern: /(?:channelFirst|inputBlockMajor)\s*=\s*false/g,
+  },
+  {
+    file: 'src/gpu/kernels/layernorm.js',
+    label: 'LayerNorm parameter dtype inference',
+    pattern: /resolveNormWeightDtype/g,
+  },
+  {
+    file: 'src/gpu/kernels/vision_rope_2d.wgsl',
+    label: 'Vision RoPE shader geometry fallback',
+    pattern: /max\(u\.spatial_merge_size,\s*1u\)/g,
+  },
+  {
+    file: 'src/gpu/kernels/rope_precompute.wgsl',
+    label: 'RoPE precompute dispatch stride fallback',
+    pattern: /max\(u\.dispatch_stride,\s*1u\)/g,
+  },
+  {
     file: 'src/inference/pipelines/text/weights.js',
     label: 'Text weight buffer dtype runtime fallback',
     pattern: /weight\.dtype\s*\?\?\s*['"]f32['"]/g,
