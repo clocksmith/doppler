@@ -30,7 +30,7 @@
   "correctnessCampaigns": [
     {
       "id": "lfm2-5-1-2b-correctness",
-      "modelId": "lfm2.5-1.2b",
+      "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
       "control": "official-upstream-f16",
       "requiredGates": [
         "first-divergent-layer",

@@ -60,6 +60,7 @@ assert.deepEqual(matrix.correctnessCampaigns.map((entry) => entry.id), [
   'qwen3-8-27b-q4k-correctness',
 ]);
 assert.equal(matrix.correctnessCampaigns[0].control, 'official-upstream-f16');
+assert.equal(matrix.correctnessCampaigns[0].modelId, 'lfm2-5-1-2b-instruct-q4k-ehf16-af32');
 assert.deepEqual(matrix.correctnessCampaigns[1].excludedEntryPoints, ['vision', 'mtp']);
 
 const localProbe = probeLocalHost();
