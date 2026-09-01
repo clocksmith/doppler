@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-15T17:06:16.191Z",
+  "generatedAt": "2026-09-01T13:17:23.081Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.5.1",
-    "commitSha": "338c54e79e5d43bd7f296f698215a244e18d6bb8",
+    "commitSha": "857e267c837a4d5cce16db3840a8791faa94c66e",
     "dirty": true
   },
   "sources": {
     "registry": {
       "path": "benchmarks/vendors/registry.json",
-      "sha256": "ea72106cee697f394129c8dbf06cdedd7bc17457975d866c38dcf635577e9915",
-      "bytes": 3607,
+      "sha256": "e3da8fd8fbf022ace8c091954398ea85181cf079f41baa71b61d5ef29bc70eca",
+      "bytes": 3878,
       "updated": "2026-07-07"
     },
     "workloads": {
@@ -22,8 +22,8 @@
     },
     "capabilities": {
       "path": "benchmarks/vendors/capabilities.json",
-      "sha256": "1635c255d3494cd8ed0ddbaddf01826598f2baf215977ba47b89f8da47da7ece",
-      "bytes": 23164,
+      "sha256": "8fe51a7671ca11f28e838898b098b4a869edc50df2e87a662c215d41f7613d6b",
+      "bytes": 24532,
       "updated": "2026-07-07"
     },
     "compareConfig": {
@@ -52,8 +52,8 @@
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "6a84e5b5ee8e7633d6182fbfcaedc46e122e675c78c5748e283ef6e2336b419f",
-      "bytes": 50604,
+      "sha256": "0da562b557f09f9e9ae3da0b7ea8fb146c1118ca3b2bbd9829c0fd9b3221cf8a",
+      "bytes": 55586,
       "updated": "2026-07-19"
     },
     "harness:doppler": {
@@ -152,6 +152,12 @@
       "bytes": 1240,
       "updated": null
     },
+    "harness:onnxruntime-webgpu-direct": {
+      "path": "benchmarks/vendors/harnesses/onnxruntime-webgpu-direct.json",
+      "sha256": "f0c758bdbae4dafba74329d741efbe5dd98dd7f7d78a24435304a6dcaa0a16ef",
+      "bytes": 1138,
+      "updated": null
+    },
     "harness:wllama": {
       "path": "benchmarks/vendors/harnesses/wllama.json",
       "sha256": "7b579214a6414136df29f1e5ddab50353841c6e6c8b5e3c68d45bbb2546548db",
@@ -160,10 +166,10 @@
     }
   },
   "summary": {
-    "targetCount": 17,
-    "modelCoverageCount": 25,
+    "targetCount": 18,
+    "modelCoverageCount": 26,
     "compareProfileCount": 13,
-    "catalogModelCount": 28,
+    "catalogModelCount": 31,
     "workloadCount": 5,
     "committedChartCount": 14,
     "hasLatestCompareResult": true
@@ -1091,6 +1097,65 @@
       ]
     },
     {
+      "id": "onnxruntime-webgpu-direct",
+      "name": "ONNX Runtime WebGPU Direct",
+      "status": "experimental",
+      "category": "webgpu-onnx-runtime",
+      "website": "https://onnxruntime.ai/docs/execution-providers/WebGPU-ExecutionProvider.html",
+      "platformSupport": {
+        "browserWebgpu": "unknown",
+        "nodeWebgpu": "unsupported",
+        "headlessBrowserHarness": "unknown",
+        "cacheModeControl": "unknown"
+      },
+      "bench": {
+        "enabledFeatures": 1,
+        "totalFeatures": 21,
+        "features": {
+          "browser_webgpu": "unknown",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unknown",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unknown",
+          "decodeTokensPerSec": "unknown",
+          "prefillTokensPerSec": "unknown",
+          "promptTokensPerSecToFirstToken": "unsupported",
+          "firstTokenMs": "unknown",
+          "modelLoadMs": "unknown",
+          "decodeMsPerTokenP50": "unknown",
+          "decodeMsPerTokenP95": "unknown",
+          "decodeMsPerTokenP99": "unknown",
+          "js_heap_memory_metrics": "unknown",
+          "gpu_memory_metrics": "unknown",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unknown",
+          "decodeMs": "unknown",
+          "totalRunMs": "unknown"
+        }
+      },
+      "profile": {
+        "enabledFeatures": 0,
+        "totalFeatures": 8,
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unknown",
+          "top_ops_summary": "unknown",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unknown",
+          "cache_events": "unknown",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/runners/onnxruntime-webgpu-bench.js",
+        "benchmarks/runners/onnxruntime-webgpu-runner.html",
+        "benchmarks/vendors/harnesses/onnxruntime-webgpu-direct.json"
+      ]
+    },
+    {
       "id": "wllama",
       "name": "Wllama",
       "status": "active",
@@ -1533,6 +1598,23 @@
       ],
       "catalogBaseUrl": null,
       "catalogSizeBytes": 938321920
+    },
+    {
+      "dopplerModelId": "qwen3-8-27b-text-f16-af32",
+      "dopplerModelBaseDir": null,
+      "dopplerSource": null,
+      "defaultTjsModelId": null,
+      "defaultDopplerSurface": "auto",
+      "compareLane": null,
+      "compareLaneReason": null,
+      "inCatalog": true,
+      "catalogLabel": "Qwen 3.8 27B (F16/F32a)",
+      "catalogModes": [
+        "run",
+        "translate"
+      ],
+      "catalogBaseUrl": null,
+      "catalogSizeBytes": 53791996928
     },
     {
       "dopplerModelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",

@@ -13,6 +13,16 @@ async function assertPlatformMatch(adapterInfo, expectedId, message) {
 try {
   await assertPlatformMatch({
     vendor: 'amd',
+    architecture: 'gfx1151',
+    device: 'AMD Radeon 8060S Graphics (Strix Halo)',
+    description: 'RADV Vulkan',
+  },
+    'amd-strix-halo-gfx1151',
+    'Strix Halo gfx1151 adapters must resolve to the UMA-aware profile.'
+  );
+
+  await assertPlatformMatch({
+    vendor: 'amd',
     architecture: 'rdna-3',
     device: 'radeon-8060s-graphics-radv-strix-halo-',
     description: 'radv: Mesa 26.0.3-1ubuntu1',

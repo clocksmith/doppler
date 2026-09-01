@@ -47,6 +47,14 @@ assert.equal(report.summary.platformTargets, 8);
 assert.equal(report.summary.tierCounts['tier-0'], 3);
 assert.equal(report.summary.tierCounts['tier-1'], 3);
 assert.equal(report.summary.tierCounts['tier-2'], 2);
+assert.deepEqual(matrix.qualificationOrder, [
+  'electron-reranker-release',
+  'strix-halo-challenger-lane',
+  'bounded-correctness-campaigns',
+  'unattended-evidence-production',
+]);
+assert.deepEqual(matrix.evidenceContract.latencyStatistics, ['raw', 'p50', 'p95', 'p99']);
+assert.equal(matrix.evidenceContract.failureFixtures, true);
 
 const localProbe = probeLocalHost();
 assert.equal(localProbe.host.platform, process.platform);
@@ -111,6 +119,21 @@ assert.equal(embeddingHarness.metrics.includes('modelLoadMs'), true, 'embedding 
 assert.equal(embeddingHarness.metrics.includes('readbackMs'), true, 'embedding timing must include readback');
 assert.equal(rerankHarness.metrics.includes('modelLoadMs'), true, 'rerank timing must include model load');
 assert.equal(rerankHarness.metrics.includes('readbackMs'), true, 'rerank timing must include readback');
+assert.deepEqual(rerankHarness.sharedContract.documentCounts, [10, 50, 100]);
+assert.deepEqual(rerankHarness.sharedContract.cacheModes, ['cold', 'warm']);
+for (const phase of [
+  'artifact-validation',
+  'hashing',
+  'model-load',
+  'allocation',
+  'upload',
+  'compilation',
+  'prewarm',
+  'scoring',
+  'readback',
+]) {
+  assert.equal(rerankHarness.sharedContract.timingPhases.includes(phase), true, `rerank timing phase missing: ${phase}`);
+}
 
 const byModelId = new Map(report.rows.map((row) => [row.modelId, row]));
 const byCompetitorId = new Map(matrix.competitors.map((entry) => [entry.id, entry]));

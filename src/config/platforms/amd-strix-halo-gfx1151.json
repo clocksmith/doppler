@@ -1,0 +1,17 @@
+{
+  "$schema": "./platform.schema.json",
+  "id": "amd-strix-halo-gfx1151",
+  "name": "AMD Strix Halo gfx1151",
+  "detection": {
+    "vendor": "amd",
+    "architecture": "gfx1151",
+    "device": ["radeon 8060s", "strix halo"]
+  },
+  "memoryHints": {
+    "preferUnifiedMemory": true,
+    "bufferAlignment": 256,
+    "optimalShardSize": 134217728,
+    "maxBufferPoolSize": 17179869184
+  },
+  "notes": "AMD Ryzen AI Max+ 395 / Radeon 8060S Strix Halo. UMA preference is explicit; adapter limits and feature bits remain runtime evidence."
+}

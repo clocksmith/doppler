@@ -881,6 +881,60 @@
       ]
     },
     {
+      "id": "onnxruntime-webgpu-direct",
+      "name": "ONNX Runtime WebGPU Direct",
+      "bench": {
+        "features": {
+          "browser_webgpu": "unknown",
+          "node_webgpu": "unsupported",
+          "bun_webgpu": "unsupported",
+          "deno_webgpu": "unsupported",
+          "headless_browser_harness": "unknown",
+          "standardized_workloads": "supported",
+          "cache_mode_control": "unknown",
+          "decodeTokensPerSec": "unknown",
+          "prefillTokensPerSec": "unknown",
+          "promptTokensPerSecToFirstToken": "unsupported",
+          "firstTokenMs": "unknown",
+          "modelLoadMs": "unknown",
+          "decodeMsPerTokenP50": "unknown",
+          "decodeMsPerTokenP95": "unknown",
+          "decodeMsPerTokenP99": "unknown",
+          "js_heap_memory_metrics": "unknown",
+          "gpu_memory_metrics": "unknown",
+          "firstResponseMs": "unsupported",
+          "prefillMs": "unknown",
+          "decodeMs": "unknown",
+          "totalRunMs": "unknown"
+        }
+      },
+      "profile": {
+        "features": {
+          "kernel_level_gpu_timing": "unsupported",
+          "operator_level_timing": "unknown",
+          "top_ops_summary": "unknown",
+          "per_decode_step_breakdown": "unsupported",
+          "kernel_selection_trace": "unsupported",
+          "phase_memory_breakdown": "unknown",
+          "cache_events": "unknown",
+          "replayable_trace_artifact": "unsupported"
+        }
+      },
+      "format": {
+        "features": {
+          "rdrr_runtime": "unsupported",
+          "onnx_runtime": "supported",
+          "safetensors_runtime": "unsupported",
+          "format_matrix_compare": "unsupported"
+        }
+      },
+      "evidence": [
+        "benchmarks/runners/onnxruntime-webgpu-bench.js",
+        "benchmarks/runners/onnxruntime-webgpu-runner.html",
+        "benchmarks/vendors/harnesses/onnxruntime-webgpu-direct.json"
+      ]
+    },
+    {
       "id": "wllama",
       "name": "Wllama",
       "bench": {
