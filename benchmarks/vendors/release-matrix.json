@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-01T13:17:23.081Z",
+  "generatedAt": "2026-09-01T13:17:41.132Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.5.1",
-    "commitSha": "857e267c837a4d5cce16db3840a8791faa94c66e",
-    "dirty": true
+    "commitSha": "8ecf91ab25c99ea13a440b292426ff6e333a2abd",
+    "dirty": false
   },
   "sources": {
     "registry": {
