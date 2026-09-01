@@ -6,6 +6,7 @@ export interface BrowserSuiteMetricsSchema {
   layerPatternContractArtifact: Record<string, unknown> | null;
   requiredInferenceFieldsArtifact: Record<string, unknown> | null;
   referenceTranscript: Record<string, unknown> | null;
+  modelCheckpoints: Record<string, unknown> | null;
   [key: string]: unknown;
 }
 

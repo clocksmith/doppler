@@ -54,6 +54,20 @@ export {
   applyRuntimeProfile,
 } from './inference/browser-harness-runtime-helpers.js';
 
+export {
+  MODEL_CHECKPOINT_EVIDENCE_SCHEMA,
+  MODEL_CHECKPOINT_STAGES,
+  buildModelCheckpointEvidence,
+  flattenModelCheckpointDigests,
+} from './inference/model-checkpoint-evidence.js';
+export type {
+  ModelCheckpointStage,
+  ModelCheckpointRecord,
+  ModelCheckpointDigest,
+  ModelCheckpointStep,
+  ModelCheckpointEvidence,
+} from './inference/model-checkpoint-evidence.js';
+
 // Shared command contract (browser + CLI parity)
 export {
   TOOLING_COMMANDS,

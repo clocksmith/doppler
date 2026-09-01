@@ -66,6 +66,12 @@ const probeForwardingFiles = [
   'src/inference/pipelines/text/logits/gpu.js',
 ];
 
+const attentionInterpreter = readSource(
+  'src/inference/pipelines/text/attention/interpreter.js'
+);
+assert.match(attentionInterpreter, /runProbes\('q_rope'/u);
+assert.match(attentionInterpreter, /runProbes\('k_rope'/u);
+
 for (const relativePath of probeForwardingFiles) {
   const source = readSource(relativePath);
   assertCallBlocksContain(source, 'runProbes(', 'operatorDiagnostics', relativePath);

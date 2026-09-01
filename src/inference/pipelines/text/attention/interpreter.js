@@ -68,6 +68,7 @@ import {
 } from './plan.js';
 import { createRecordedResourceScope } from '../../../resource-scope.js';
 import { captureAttentionRefactorReceipt } from './receipt.js';
+import { observeAttentionRoPE } from './rope-observation.js';
 import { applyAttentionQueryScale } from './query-transform.js';
 import { resolveQueryScale } from './heterogeneous-contract.js';
 import { enqueueRecordedTensorHealth, shouldTraceRecordedHealth } from './recorded-health.js';
@@ -548,7 +549,6 @@ export async function interpretAttentionWithRecorder(
     resourceScope.release(normed.buffer);
   }
   if (attentionInputTemp) resourceScope.release(attentionInput.buffer);
-  // 3. RoPE (modifies tensor in-place)
   if (!ropeApplied && !disableRoPE && state.ropeFreqsCos && state.ropeFreqsSin) {
     const ropeOptions = {
       headDim,
@@ -577,6 +577,7 @@ export async function interpretAttentionWithRecorder(
       }
     }
   }
+  await observeAttentionRoPE({ state, recorder, ropeApplied, disableRoPE, qTensor, kTensor, layerIdx, numTokens, numHeads, numKVHeads, headDim });
   if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
     enqueueRecordedTensorHealth(
       recorder,
@@ -593,7 +594,6 @@ export async function interpretAttentionWithRecorder(
       numTokens * numKVHeads * headDim
     );
   }
-
   if (storeSharedKV && state.sharedAttentionState) {
     state.sharedAttentionState.set(layerIdx, {
       kTensor,

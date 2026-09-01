@@ -56,6 +56,12 @@ export {
   captureKvCacheByteProof,
   digestLogitsForTranscript,
 } from './inference/browser-harness-text-helpers.js';
+export {
+  MODEL_CHECKPOINT_EVIDENCE_SCHEMA,
+  MODEL_CHECKPOINT_STAGES,
+  buildModelCheckpointEvidence,
+  flattenModelCheckpointDigests,
+} from './inference/model-checkpoint-evidence.js';
 
 // Shared command contract (browser + CLI parity)
 export {
