@@ -1,6 +1,26 @@
 {
   "schemaVersion": 1,
   "updated": "2026-07-06",
+  "workloads": [
+    {
+      "id": "rerank-q1-d010-short",
+      "documentCount": 10,
+      "description": "Short Electron retrieval query with ten candidate documents",
+      "allowedCacheModes": ["cold", "warm"]
+    },
+    {
+      "id": "rerank-q1-d050-mixed",
+      "documentCount": 50,
+      "description": "Mixed-length Electron retrieval query with fifty candidate documents",
+      "allowedCacheModes": ["cold", "warm"]
+    },
+    {
+      "id": "rerank-q1-d100-long",
+      "documentCount": 100,
+      "description": "Long Electron retrieval query with one hundred candidate documents",
+      "allowedCacheModes": ["cold", "warm"]
+    }
+  ],
   "defaults": {
     "query": "What API exposes GPU hardware for browser compute workloads?",
     "documents": [

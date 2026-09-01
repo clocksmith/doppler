@@ -34,6 +34,7 @@ function usage() {
     '  --query <text>              Shared rerank query',
     '  --document <text>           Shared rerank document, repeatable',
     '  --document-count <n>        Expand default documents to n deterministic docs',
+    '  --workload <id>            Shared rerank workload (d010, d050, or d100)',
     '  --warmup <n>                Warmup runs per engine (default from rerank compare config)',
     '  --runs <n>                  Timed runs per engine (default from rerank compare config)',
     '  --doppler-source <source>   local|quickstart-registry',
@@ -446,13 +447,22 @@ async function runOne({ flags, configBundle, catalogBundle, timestamp }) {
   const catalogEntry = catalogEntryById(catalog, modelId);
   if (!catalogEntry) throw new Error(`No model catalog entry for "${modelId}"`);
   const defaults = config.defaults ?? {};
+  const workloadId = optionalString(flags.workload);
+  const workload = workloadId
+    ? (Array.isArray(config.workloads) ? config.workloads.find((entry) => entry?.id === workloadId) : null)
+    : null;
+  if (workloadId && !workload) throw new Error(`Unknown rerank workload "${workloadId}"`);
   const query = optionalString(flags.query) ?? optionalString(profile.query) ?? optionalString(defaults.query);
   if (!query) throw new Error(`${modelId}: rerank compare requires a query`);
   const baseDocuments = normalizeStringList(
     flags.document ?? profile.documents ?? defaults.documents,
     `${modelId}: rerank documents`
   );
-  const documentCount = parsePositiveInteger(flags['document-count'], null, '--document-count');
+  const documentCount = parsePositiveInteger(
+    flags['document-count'],
+    workload?.documentCount ?? null,
+    '--document-count'
+  );
   const documents = expandDocuments(baseDocuments, documentCount);
   const expectedTopDocumentIndex = Number.isInteger(profile.expectedTopDocumentIndex)
     ? profile.expectedTopDocumentIndex
@@ -577,6 +587,7 @@ async function runOne({ flags, configBundle, catalogBundle, timestamp }) {
       hfBatchSize,
     },
     workload: {
+      id: workload?.id ?? null,
       query,
       documents,
       documentCount: documents.length,
