@@ -85,6 +85,14 @@ assert.ok(Array.isArray(config.modelProfiles) && config.modelProfiles.length > 0
 assert.equal(typeof config.defaults?.query, 'string');
 assert.ok(Array.isArray(config.defaults?.documents) && config.defaults.documents.length >= 2);
 assert.equal(config.defaults?.expectedTopDocumentIndex, 0);
+assert.deepEqual(
+  config.workloads.map((entry) => [entry.id, entry.documentCount, entry.allowedCacheModes]),
+  [
+    ['rerank-q1-d010-short', 10, ['cold', 'warm']],
+    ['rerank-q1-d050-mixed', 50, ['cold', 'warm']],
+    ['rerank-q1-d100-long', 100, ['cold', 'warm']],
+  ]
+);
 
 for (const profile of config.modelProfiles) {
   const modelId = profile?.dopplerModelId;
