@@ -49,6 +49,7 @@ import {
 import { buildSuiteContractMetrics } from '../browser-harness-contract-helpers.js';
 import { createUnsupportedWorkloadError, hashStableJson, resolveDecodeCadence, resolveDispatchSuite, resolveExecutionGraphHash, resolveHarnessContext, resolveHarnessMode, resolveWorkload } from './request.js';
 import { attachExecutionCostLedger, buildReferenceTranscriptSeed, resolvePipelineLoadTimings, serializeSequenceProbeRows, summarizePrefillRecordOps, summarizeTimingPhaseSamples } from './report.js';
+import { buildModelCheckpointEvidence } from '../model-checkpoint-evidence.js';
 
 export function allFinite(values) {
   if (!ArrayBuffer.isView(values)) {
@@ -172,6 +173,18 @@ export async function runInferenceSuite(options = {}) {
           ),
       },
     ];
+    const referenceTranscript = buildReferenceTranscriptSeed(run, {
+      executionGraphHash: resolveExecutionGraphHash(harness.manifest),
+      kvCache: run.phase.kvCache ?? null,
+      surface: options.surface === 'node' ? 'node-webgpu' : 'browser-webgpu',
+    });
+    const operatorDiagnostics = run.phase.operatorDiagnostics ?? null;
+    const modelCheckpoints = buildModelCheckpointEvidence({
+      operatorDiagnostics,
+      kvCacheByteProof: run.kvCacheByteProof ?? null,
+      expectedStepCount: run.tokenIds.length,
+      minimumDecodeSteps: null,
+    });
     metrics = {
       query: run.query,
       documentCount: run.documentCount,
@@ -413,11 +426,9 @@ export async function runInferenceSuite(options = {}) {
       generationDiagnostics: run.tokenDiagnostics, generationConfig: run.generationConfig,
       initialExecutionIdentity: run.initialExecutionIdentity,
       kvCache: run.phase.kvCache ?? null,
-      referenceTranscript: buildReferenceTranscriptSeed(run, {
-        executionGraphHash: resolveExecutionGraphHash(harness.manifest),
-        kvCache: run.phase.kvCache ?? null, surface: options.surface === 'node' ? 'node-webgpu' : 'browser-webgpu',
-      }),
-      operatorDiagnostics: run.phase.operatorDiagnostics ?? null,
+      referenceTranscript,
+      operatorDiagnostics,
+      modelCheckpoints,
     };
   }
 

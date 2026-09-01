@@ -25,6 +25,7 @@ export const DEFAULT_BROWSER_SUITE_METRICS = Object.freeze({
   layerPatternContractArtifact: null,
   requiredInferenceFieldsArtifact: null,
   referenceTranscript: null,
+  modelCheckpoints: null,
 });
 
 export function validateBrowserSuiteMetrics(metrics) {
@@ -42,5 +43,6 @@ export function validateBrowserSuiteMetrics(metrics) {
   assertNullablePlainObject(metrics.layerPatternContractArtifact, 'layerPatternContractArtifact');
   assertNullablePlainObject(metrics.requiredInferenceFieldsArtifact, 'requiredInferenceFieldsArtifact');
   assertNullablePlainObject(metrics.referenceTranscript, 'referenceTranscript');
+  assertNullablePlainObject(metrics.modelCheckpoints, 'modelCheckpoints');
   return metrics;
 }
