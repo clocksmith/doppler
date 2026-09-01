@@ -27,6 +27,34 @@
     "failureFixtures": true,
     "decision": "retain-or-reject"
   },
+  "correctnessCampaigns": [
+    {
+      "id": "lfm2-5-1-2b-correctness",
+      "modelId": "lfm2.5-1.2b",
+      "control": "official-upstream-f16",
+      "requiredGates": [
+        "first-divergent-layer",
+        "recurrent-state-transition",
+        "logit-parity",
+        "q4-generation-quality"
+      ],
+      "promotionRule": "retain only after upstream F16 control passes and the Q4 candidate reproduces the declared output oracle",
+      "excludedEntryPoints": ["retrieval-promotion-until-correctness"]
+    },
+    {
+      "id": "qwen3-8-27b-q4k-correctness",
+      "modelId": "qwen3-8-27b-text",
+      "control": "existing-f16-source-parity",
+      "requiredGates": [
+        "tensor-parity",
+        "logit-parity",
+        "quality-parity",
+        "performance-distribution"
+      ],
+      "promotionRule": "retain Q4K only when source-token identity and all declared correctness gates pass",
+      "excludedEntryPoints": ["vision", "mtp"]
+    }
+  ],
   "selectionPolicy": {
     "hostClass": "multi-platform-local-gpu",
     "probeHostClass": "linux-amd-vulkan-rocm-local",

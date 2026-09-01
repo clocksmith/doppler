@@ -55,6 +55,12 @@ assert.deepEqual(matrix.qualificationOrder, [
 ]);
 assert.deepEqual(matrix.evidenceContract.latencyStatistics, ['raw', 'p50', 'p95', 'p99']);
 assert.equal(matrix.evidenceContract.failureFixtures, true);
+assert.deepEqual(matrix.correctnessCampaigns.map((entry) => entry.id), [
+  'lfm2-5-1-2b-correctness',
+  'qwen3-8-27b-q4k-correctness',
+]);
+assert.equal(matrix.correctnessCampaigns[0].control, 'official-upstream-f16');
+assert.deepEqual(matrix.correctnessCampaigns[1].excludedEntryPoints, ['vision', 'mtp']);
 
 const localProbe = probeLocalHost();
 assert.equal(localProbe.host.platform, process.platform);

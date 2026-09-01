@@ -80,6 +80,30 @@
       },
       "additionalProperties": false
     },
+    "correctnessCampaigns": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["id", "modelId", "control", "requiredGates", "promotionRule", "excludedEntryPoints"],
+        "properties": {
+          "id": { "$ref": "#/$defs/kebabId" },
+          "modelId": { "type": "string", "minLength": 1 },
+          "control": { "type": "string", "minLength": 1 },
+          "requiredGates": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "promotionRule": { "type": "string", "minLength": 1 },
+          "excludedEntryPoints": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
     "selectionPolicy": {
       "type": "object",
       "required": [
