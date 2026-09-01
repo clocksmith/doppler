@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "onnxruntime-webgpu-direct",
+  "name": "ONNX Runtime WebGPU Direct Harness",
+  "backend": {
+    "runtime": "node",
+    "webgpuModule": "onnxruntime-web",
+    "env": {
+      "executionProvider": "webgpu",
+      "fallbackPolicy": "disabled"
+    },
+    "notes": "Direct ORT session lane. It must run through an explicit WebGPU provider and report provider/session identity; no WASM or CPU fallback is permitted."
+  },
+  "execution": {
+    "mode": "external-command",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "node benchmarks/runners/onnxruntime-webgpu-bench.js --model /path/to/model.onnx --inputs /path/to/inputs.json --workload rerank-q1-d050-mixed --browser-executable /usr/bin/google-chrome --json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "modelLoadMs": ["timing.modelLoadMs"],
+      "computeMs": ["timing.computeMs"],
+      "readbackMs": ["timing.readbackMs"],
+      "totalMs": ["timing.totalMs"],
+      "p50": ["statistics.p50"],
+      "p95": ["statistics.p95"],
+      "p99": ["statistics.p99"]
+    },
+    "metadataPaths": {
+      "model": ["model.id", "model.path"],
+      "executionProvider": ["runtime.executionProvider"],
+      "hardware": ["hardware.adapter"]
+    },
+    "requiredMetrics": [
+      "modelLoadMs",
+      "computeMs",
+      "readbackMs",
+      "totalMs",
+      "p50",
+      "p95",
+      "p99"
+    ]
+  }
+}

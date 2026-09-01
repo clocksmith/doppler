@@ -4,6 +4,23 @@
 multi-platform plan for fair local-GPU comparisons beyond the existing
 Transformers.js anchor lanes.
 
+The matrix's qualification order is explicit:
+
+1. Electron Qwen 3 Reranker release evidence at 10, 50, and 100 documents,
+   with cold and warm runs and stage timing from artifact validation through
+   readback.
+2. Reusable Strix Halo challenger infrastructure, including the
+   `amd-strix-halo-gfx1151` UMA-aware platform profile, direct ONNX Runtime
+   WebGPU, and deterministic llama.cpp generation with GGUF disclosure.
+3. Bounded LFM2.5 and Qwen3.8 correctness campaigns. F16 upstream controls and
+   first-divergence fixtures precede quantized promotion; Qwen3.8 vision and MTP
+   remain excluded.
+4. Unattended evidence production. Every run binds source, artifact, runtime,
+   hardware, engine revision, correctness, raw latency percentiles, failure
+   fixtures, and a retain/reject decision.
+
+This order keeps model research subordinate to the Electron release boundary.
+
 The matrix keeps three things separate:
 
 - Model target: the Doppler artifact and public model goal.
@@ -72,6 +89,10 @@ generation and Qwen 3 Reranker HF smoke runs. The ROCm 6.4 interpreter sees the
 GPU but its Transformers build does not recognize `qwen3_5`. HF Transformers
 ROCm is therefore a runtime-smoke blocker until a working interpreter stack is
 pinned.
+
+The checked-in `amd-strix-halo-gfx1151` profile is an identity and UMA policy
+surface, not a performance claim. Adapter limits, feature bits, driver, and
+thermal state remain required receipt fields for every Strix Halo run.
 
 ## Claim Gates
 

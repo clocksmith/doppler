@@ -2,8 +2,31 @@
   "$schema": "schema/local-gpu-challenger-matrix.schema.json",
   "schemaVersion": 1,
   "matrixId": "local-gpu-challenger-matrix",
-  "updated": "2026-07-10",
+  "updated": "2026-09-01",
   "purpose": "Canonical plan for fair local-GPU challenger benchmarks beyond the Transformers.js anchor lanes across platform targets.",
+  "qualificationOrder": [
+    "electron-reranker-release",
+    "strix-halo-challenger-lane",
+    "bounded-correctness-campaigns",
+    "unattended-evidence-production"
+  ],
+  "evidenceContract": {
+    "identities": [
+      "sourceCheckpoint",
+      "artifactManifest",
+      "runtimeProfile",
+      "hardwareAdapter",
+      "engineRevision"
+    ],
+    "correctness": [
+      "exact-or-semantic-output",
+      "fallback-absence",
+      "failure-fixture"
+    ],
+    "latencyStatistics": ["raw", "p50", "p95", "p99"],
+    "failureFixtures": true,
+    "decision": "retain-or-reject"
+  },
   "selectionPolicy": {
     "hostClass": "multi-platform-local-gpu",
     "probeHostClass": "linux-amd-vulkan-rocm-local",
@@ -473,6 +496,18 @@
           "rerank-q1-d050-mixed",
           "rerank-q1-d100-long"
         ],
+        "documentCounts": [10, 50, 100],
+        "timingPhases": [
+          "artifact-validation",
+          "hashing",
+          "model-load",
+          "allocation",
+          "upload",
+          "compilation",
+          "prewarm",
+          "scoring",
+          "readback"
+        ],
         "sampling": null,
         "cacheModes": [
           "cold",
@@ -513,7 +548,14 @@
         "documentsPerSec",
         "queryMs",
         "scoreMs",
+        "artifactValidationMs",
+        "hashingMs",
         "modelLoadMs",
+        "allocationMs",
+        "uploadMs",
+        "compilationMs",
+        "prewarmMs",
+        "scoringMs",
         "readbackMs",
         "p50",
         "p95",

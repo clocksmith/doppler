@@ -139,6 +139,14 @@
       "status": "experimental"
     },
     {
+      "id": "onnxruntime-webgpu-direct",
+      "name": "ONNX Runtime WebGPU Direct",
+      "category": "webgpu-onnx-runtime",
+      "website": "https://onnxruntime.ai/docs/execution-providers/WebGPU-ExecutionProvider.html",
+      "harness": "harnesses/onnxruntime-webgpu-direct.json",
+      "status": "experimental"
+    },
+    {
       "id": "wllama",
       "name": "Wllama",
       "category": "wasm-cpu-runtime",

@@ -13,6 +13,7 @@ const PLATFORM_FILES = [
   'apple-m3',
   'apple-m2',
   'apple-m1',
+  'amd-strix-halo-gfx1151',
   'nvidia-rtx40',
   'nvidia-rtx30',
   'amd-rdna3',

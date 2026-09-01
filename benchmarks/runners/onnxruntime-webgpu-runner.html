@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ONNX Runtime WebGPU Direct Benchmark</title>
+<script type="module">
+import * as ort from '/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs';
+
+const query = new URLSearchParams(location.search);
+const warmupRuns = Number(query.get('warmup'));
+const timedRuns = Number(query.get('runs'));
+globalThis.__ortBenchReady = false;
+
+function tensorFromInput(input) {
+  const type = String(input.type || 'float32');
+  const Ctor = { float32: Float32Array, int64: BigInt64Array, int32: Int32Array, bool: Uint8Array }[type];
+  if (!Ctor) throw new Error(`unsupported ORT input type: ${type}`);
+  const data = type === 'int64' ? input.data.map(BigInt) : input.data;
+  return new ort.Tensor(type, new Ctor(data), input.dims);
+}
+
+try {
+  ort.env.wasm.proxy = false;
+  ort.env.wasm.numThreads = 1;
+  const inputResponse = await fetch('/inputs.json', { cache: 'no-store' });
+  const inputSpec = await inputResponse.json();
+  const modelLoadStart = performance.now();
+  const session = await ort.InferenceSession.create('/model.onnx', {
+    executionProviders: ['webgpu'],
+    graphOptimizationLevel: 'all',
+    enableProfiling: true,
+  });
+  const modelLoadMs = performance.now() - modelLoadStart;
+  globalThis.__ortBenchReady = true;
+  globalThis.__runOrtBench = async () => {
+    const feeds = Object.fromEntries(Object.entries(inputSpec).map(([name, value]) => [name, tensorFromInput(value)]));
+    const outputs = [];
+    const samples = [];
+    for (let index = 0; index < warmupRuns; index += 1) await session.run(feeds);
+    for (let index = 0; index < timedRuns; index += 1) {
+      const start = performance.now();
+      const result = await session.run(feeds);
+      const end = performance.now();
+      samples.push(end - start);
+      outputs.push(Object.fromEntries(Object.entries(result).map(([name, tensor]) => [name, Array.from(tensor.data, Number)])));
+    }
+    const first = JSON.stringify(outputs[0]);
+    return {
+      runtime: { name: 'onnxruntime-web', executionProvider: 'webgpu', fallbackPolicy: 'disabled', warmupRuns, timedRuns },
+      hardware: { adapter: navigator.gpu ? 'webgpu' : null, userAgent: navigator.userAgent },
+      correctness: { outputPresent: outputs.length > 0, repeatStable: outputs.every((value) => JSON.stringify(value) === first), outputCount: outputs.length },
+      timing: { samples, semantics: { samples: 'session.run wall time including ORT WebGPU dispatch and output materialization', computeMs: null, readbackMs: null }, modelLoadMs, computeMs: null, readbackMs: null, totalMs: modelLoadMs + samples.reduce((sum, value) => sum + value, 0) },
+    };
+  };
+} catch (error) {
+  globalThis.__ortBenchError = error?.message || String(error);
+}
+</script>

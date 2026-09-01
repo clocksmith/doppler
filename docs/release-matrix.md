@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-08-15T17:06:16.191Z
-Release: channel=main-snapshot, version=0.5.1, commit=338c54e79e5d43bd7f296f698215a244e18d6bb8, dirty=yes
+Generated: 2026-09-01T13:17:23.081Z
+Release: channel=main-snapshot, version=0.5.1, commit=857e267c837a4d5cce16db3840a8791faa94c66e, dirty=yes
 
 ## Engine Matrix
 
@@ -23,6 +23,7 @@ Release: channel=main-snapshot, version=0.5.1, commit=338c54e79e5d43bd7f296f6982
 | Burn (`burn`) | experimental | no | no | no | no | 4/21 | 0/8 |
 | MediaPipe LLM Inference (`mediapipe-llm`) | active | yes | no | no | no | 5/21 | 0/8 |
 | llama.cpp Vulkan GGUF (`llamacpp-vulkan-gguf`) | experimental | no | no | no | no | 9/21 | 0/8 |
+| ONNX Runtime WebGPU Direct (`onnxruntime-webgpu-direct`) | experimental | unknown | no | unknown | unknown | 1/21 | 0/8 |
 | Wllama (`wllama`) | active | no | no | no | no | 4/21 | 0/8 |
 
 ## Model Coverage
@@ -52,6 +53,7 @@ Release: channel=main-snapshot, version=0.5.1, commit=338c54e79e5d43bd7f296f6982
 | `qwen-3-embedding-0-6b-q4k-ehf16-af32` | yes | embedding |  | auto |  |  |  |
 | `qwen-3-reranker-0-6b-f16-af32` | yes | run, translate |  | auto |  |  |  |
 | `qwen-3-reranker-0-6b-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
+| `qwen3-8-27b-text-f16-af32` | yes | run, translate |  | auto |  |  |  |
 | `translategemma-4b-1b-enes-q4k-ehf16-af32` | yes | run, translate |  | auto | local | capability_only | No canonical Transformers.js mapping is configured for this bilingual TranslateGemma artifact. |
 | `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` | auto | local | performance_comparable |  |
 
