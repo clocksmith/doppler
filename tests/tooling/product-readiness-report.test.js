@@ -6,6 +6,10 @@ const report = await buildProductReadinessReport();
 const revocations = report.contracts.revocations;
 
 assert.equal(report.ok, true);
+assert.equal(report.readiness.contractValid, true);
+assert.equal(report.readiness.productReady, false);
+assert.equal(report.readiness.externalProductionProven, false);
+assert.ok(report.readiness.blockers.includes('customer-electron-fleet-receipts-missing'));
 assert.equal(report.actions.length, 9);
 assert.equal(report.actions[0].code, 'paid-doppler-production-release-missing');
 assert.equal(report.actions[0].owner, 'doppler-product');

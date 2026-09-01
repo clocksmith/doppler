@@ -55,8 +55,7 @@ function buildSummary(reports) {
     ...collectErrors('promotion monitoring', reports.promotionMonitoring),
     ...collectErrors('subsystem support', reports.subsystemSupport),
   ];
-  return {
-    ok: reports.goals.ok
+  const contractValid = reports.goals.ok
       && reports.claimEvidence.ok
       && reports.commandSurface.ok
       && reports.electronProspects.ok
@@ -70,7 +69,21 @@ function buildSummary(reports) {
       && reports.revocations.ok
       && reports.signedRevocationAuthority.ok
       && reports.promotionMonitoring.ok
-      && reports.subsystemSupport.ok,
+      && reports.subsystemSupport.ok;
+  const externalGoal = reports.goals.goals.find((goal) => goal.id === 'local-webgpu-product-surface');
+  const localGoal = reports.goals.goals.find((goal) => goal.id === 'correctness-performance-claims');
+  return {
+    // `ok` describes report-contract validity only. It must never be read as
+    // product readiness: external authority is intentionally a separate gate.
+    ok: contractValid,
+    readiness: {
+      contractValid,
+      internalMechanicsProven: reports.productIntegrations.ok && reports.providerConformance.ok,
+      localHardwareProven: Boolean(localGoal && localGoal.claimableRows > 0),
+      externalProductionProven: Boolean(externalGoal && externalGoal.claimAllowed === true),
+      productReady: Boolean(externalGoal && externalGoal.claimAllowed === true),
+      blockers: externalGoal?.blockers || [],
+    },
     errors,
     goals: reports.goals.goals,
     actions: reports.goals.actions,
