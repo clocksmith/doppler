@@ -647,12 +647,10 @@ export class BufferPool {
     }
 
     const alignedSize = Math.ceil(size / 4) * 4;
-    // Create staging buffer
     const staging = this.createStagingBuffer(alignedSize);
     let mapped = false;
 
     try {
-      // Copy to staging
       const encoder = device.createCommandEncoder({ label: 'readback_encoder' });
       encoder.copyBufferToBuffer(buffer, offset, staging, 0, alignedSize);
       device.queue.submit([encoder.finish()]);
@@ -667,11 +665,14 @@ export class BufferPool {
       }
       throw error;
     } finally {
-      if (mapped) {
-        staging.unmap();
-        if (this.#activeBuffers.has(staging)) {
-          this.#releaseTrackedBuffer(staging, true);
+      if (mapped && this.#activeBuffers.has(staging)) {
+        try {
+          staging.unmap();
+        } catch (error) {
+          this.#releaseTrackedBuffer(staging, false);
+          throw error;
         }
+        this.#releaseTrackedBuffer(staging, true);
       }
     }
   }
@@ -849,4 +850,3 @@ export const readBufferSlice = (buffer, offset, size) =>
 
 export const forceBufferPoolReclaim = (targetRatio) =>
   getBufferPool().forceReclaim(targetRatio);
-

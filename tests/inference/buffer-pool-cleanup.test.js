@@ -27,10 +27,12 @@ function createSchemaConfig() {
 }
 
 class FakeBuffer {
-  constructor({ size, usage, mapReject = false }) {
+  constructor({ size, usage, mapReject = false, mapPromise = null, unmapReject = false }) {
     this.size = size;
     this.usage = usage;
     this.mapReject = mapReject;
+    this.mapPromise = mapPromise;
+    this.unmapReject = unmapReject;
     this.destroyed = false;
     this.unmapped = false;
   }
@@ -39,6 +41,7 @@ class FakeBuffer {
     if (this.mapReject) {
       throw new Error('map failed');
     }
+    await this.mapPromise;
   }
 
   getMappedRange(_offset = 0, size = this.size) {
@@ -46,6 +49,12 @@ class FakeBuffer {
   }
 
   unmap() {
+    if (this.unmapReject) {
+      throw new Error('unmap failed');
+    }
+    if (this.destroyed) {
+      throw new Error('unmap called after destroy');
+    }
     this.unmapped = true;
   }
 
@@ -58,6 +67,8 @@ function createFakeDevice(options = {}) {
   const createdBuffers = [];
   const rejectSubmitted = options.rejectSubmitted === true;
   const rejectMapRead = options.rejectMapRead === true;
+  const mapPromise = options.mapPromise ?? null;
+  const rejectUnmap = options.rejectUnmap === true;
 
   const queue = {
     submit() {},
@@ -91,7 +102,8 @@ function createFakeDevice(options = {}) {
     },
     createBuffer({ size, usage }) {
       const mapReject = rejectMapRead && (usage & GPUBufferUsage.MAP_READ) !== 0;
-      const buffer = new FakeBuffer({ size, usage, mapReject });
+      const unmapReject = rejectUnmap && (usage & GPUBufferUsage.MAP_READ) !== 0;
+      const buffer = new FakeBuffer({ size, usage, mapReject, mapPromise, unmapReject });
       createdBuffers.push(buffer);
       return buffer;
     },
@@ -136,6 +148,53 @@ async function flushMicrotasks() {
   await assert.rejects(
     () => pool.readBufferSlice(source, 0, 32),
     /map failed/
+  );
+  await flushMicrotasks();
+
+  const staging = device.createdBuffers[0];
+  assert.ok(staging);
+  assert.equal(staging.destroyed, true);
+  assert.equal(pool.getStats().activeBuffers, 0);
+  assert.equal(pool.getStats().currentBytesAllocated, 0);
+}
+
+{
+  let resolveMap;
+  const mapPromise = new Promise((resolve) => {
+    resolveMap = resolve;
+  });
+  const device = createFakeDevice({ mapPromise });
+  setDevice(device, { platformConfig: null });
+
+  const pool = new BufferPool(false, createSchemaConfig());
+  const source = { size: 64, usage: BufferUsage.STORAGE };
+  const readPromise = pool.readBufferSlice(source, 0, 32);
+  await flushMicrotasks();
+
+  const staging = device.createdBuffers[0];
+  assert.ok(staging);
+  pool.destroy();
+  await flushMicrotasks();
+  assert.equal(staging.destroyed, true);
+
+  resolveMap();
+  const result = await readPromise;
+  assert.equal(result.byteLength, 32);
+  assert.equal(staging.unmapped, false);
+  assert.equal(pool.getStats().activeBuffers, 0);
+  assert.equal(pool.getStats().currentBytesAllocated, 0);
+}
+
+{
+  const device = createFakeDevice({ rejectUnmap: true });
+  setDevice(device, { platformConfig: null });
+
+  const pool = new BufferPool(false, createSchemaConfig());
+  const source = { size: 64, usage: BufferUsage.STORAGE };
+
+  await assert.rejects(
+    () => pool.readBufferSlice(source, 0, 32),
+    /unmap failed/
   );
   await flushMicrotasks();
 
