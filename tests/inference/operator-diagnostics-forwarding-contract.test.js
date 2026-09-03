@@ -60,17 +60,18 @@ const probeForwardingFiles = [
   'src/inference/pipelines/text/ffn/standard.js',
   'src/inference/pipelines/text/ffn/sandwich.js',
   'src/inference/pipelines/text/linear-attention.js',
+  'src/inference/pipelines/text/attention/rope-observation.js',
   'src/inference/pipelines/text/embedding-normalization.js',
   'src/inference/pipelines/text/logits/index.js',
   'src/experimental/logits/cpu-output.js',
   'src/inference/pipelines/text/logits/gpu.js',
 ];
 
-const attentionInterpreter = readSource(
-  'src/inference/pipelines/text/attention/interpreter.js'
+const ropeObservation = readSource(
+  'src/inference/pipelines/text/attention/rope-observation.js'
 );
-assert.match(attentionInterpreter, /runProbes\('q_rope'/u);
-assert.match(attentionInterpreter, /runProbes\('k_rope'/u);
+assert.match(ropeObservation, /runProbes\('q_rope'/u);
+assert.match(ropeObservation, /runProbes\('k_rope'/u);
 
 for (const relativePath of probeForwardingFiles) {
   const source = readSource(relativePath);

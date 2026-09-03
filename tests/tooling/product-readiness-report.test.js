@@ -1,15 +1,52 @@
 import assert from 'node:assert/strict';
 
-import { buildProductReadinessReport } from '../../tools/render-product-readiness-report.js';
+import {
+  buildProductReadinessReport,
+  buildProductReadinessState,
+  formatProductReadinessMarkdown,
+} from '../../tools/render-product-readiness-report.js';
 
 const report = await buildProductReadinessReport();
 const revocations = report.contracts.revocations;
 
 assert.equal(report.ok, true);
 assert.equal(report.readiness.contractValid, true);
+assert.equal(report.readiness.internalMechanicsProven, false);
 assert.equal(report.readiness.productReady, false);
 assert.equal(report.readiness.externalProductionProven, false);
 assert.ok(report.readiness.blockers.includes('customer-electron-fleet-receipts-missing'));
+assert.equal(report.contracts.productIntegrations.gateSatisfied, true);
+assert.equal(report.contracts.providerConformance.ok, true);
+assert.equal(report.contracts.providerConformance.gateSatisfied, false);
+
+const markdown = formatProductReadinessMarkdown(report);
+assert.match(markdown, /^## Readiness$/mu);
+assert.match(markdown, /^- contract valid: yes$/mu);
+assert.match(markdown, /^- internal mechanics proven: no$/mu);
+assert.match(markdown, /^- external production proven: no$/mu);
+assert.match(markdown, /^- product ready: no$/mu);
+assert.match(markdown, /^  - `customer-electron-fleet-receipts-missing`$/mu);
+assert.doesNotMatch(markdown, /^- status: ok$/mu);
+
+const invalidContractReadiness = buildProductReadinessState({
+  goals: {
+    goals: [
+      {
+        id: 'local-webgpu-product-surface',
+        claimAllowed: true,
+        blockers: [],
+      },
+      {
+        id: 'correctness-performance-claims',
+        claimableRows: 1,
+      },
+    ],
+  },
+  productIntegrations: { gateSatisfied: true },
+  providerConformance: { gateSatisfied: true },
+}, false);
+assert.equal(invalidContractReadiness.externalProductionProven, true);
+assert.equal(invalidContractReadiness.productReady, false);
 assert.equal(report.actions.length, 9);
 assert.equal(report.actions[0].code, 'paid-doppler-production-release-missing');
 assert.equal(report.actions[0].owner, 'doppler-product');

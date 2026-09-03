@@ -474,6 +474,7 @@ inference/pipelines/text/attention/receipt.d.ts
 inference/pipelines/text/attention/record.d.ts
 inference/pipelines/text/attention/recorded-health.d.ts
 inference/pipelines/text/attention/rmsnorm-fusion-gate.d.ts
+inference/pipelines/text/attention/rope-observation.d.ts
 inference/pipelines/text/attention/run.d.ts
 inference/pipelines/text/attention/types.d.ts
 inference/pipelines/text/bdpa-steamroller.d.ts
