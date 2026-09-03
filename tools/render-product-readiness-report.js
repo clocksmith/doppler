@@ -37,6 +37,21 @@ function collectErrors(name, report) {
   return (Array.isArray(report.errors) ? report.errors : []).map((error) => `${name}: ${error}`);
 }
 
+export function buildProductReadinessState(reports, contractValid) {
+  const externalGoal = reports.goals.goals.find((goal) => goal.id === 'local-webgpu-product-surface');
+  const localGoal = reports.goals.goals.find((goal) => goal.id === 'correctness-performance-claims');
+  const externalProductionProven = externalGoal?.claimAllowed === true;
+  return {
+    contractValid,
+    internalMechanicsProven: reports.productIntegrations.gateSatisfied === true
+      && reports.providerConformance.gateSatisfied === true,
+    localHardwareProven: Boolean(localGoal && localGoal.claimableRows > 0),
+    externalProductionProven,
+    productReady: contractValid && externalProductionProven,
+    blockers: externalGoal?.blockers || [],
+  };
+}
+
 function buildSummary(reports) {
   const errors = [
     ...collectErrors('goals', reports.goals),
@@ -70,20 +85,11 @@ function buildSummary(reports) {
       && reports.signedRevocationAuthority.ok
       && reports.promotionMonitoring.ok
       && reports.subsystemSupport.ok;
-  const externalGoal = reports.goals.goals.find((goal) => goal.id === 'local-webgpu-product-surface');
-  const localGoal = reports.goals.goals.find((goal) => goal.id === 'correctness-performance-claims');
   return {
     // `ok` describes report-contract validity only. It must never be read as
     // product readiness: external authority is intentionally a separate gate.
     ok: contractValid,
-    readiness: {
-      contractValid,
-      internalMechanicsProven: reports.productIntegrations.ok && reports.providerConformance.ok,
-      localHardwareProven: Boolean(localGoal && localGoal.claimableRows > 0),
-      externalProductionProven: Boolean(externalGoal && externalGoal.claimAllowed === true),
-      productReady: Boolean(externalGoal && externalGoal.claimAllowed === true),
-      blockers: externalGoal?.blockers || [],
-    },
+    readiness: buildProductReadinessState(reports, contractValid),
     errors,
     goals: reports.goals.goals,
     actions: reports.goals.actions,
@@ -216,11 +222,23 @@ function buildSummary(reports) {
   };
 }
 
-function formatMarkdown(summary) {
+export function formatProductReadinessMarkdown(summary) {
   const lines = [
     '# Doppler Product Readiness Report',
     '',
-    `- status: ${summary.ok ? 'ok' : 'invalid'}`,
+    '## Readiness',
+    '',
+    `- contract valid: ${summary.readiness.contractValid ? 'yes' : 'no'}`,
+    `- internal mechanics proven: ${summary.readiness.internalMechanicsProven ? 'yes' : 'no'}`,
+    `- local hardware proven: ${summary.readiness.localHardwareProven ? 'yes' : 'no'}`,
+    `- external production proven: ${summary.readiness.externalProductionProven ? 'yes' : 'no'}`,
+    `- product ready: ${summary.readiness.productReady ? 'yes' : 'no'}`,
+    '- blockers:',
+    ...(
+      summary.readiness.blockers.length > 0
+        ? summary.readiness.blockers.map((blocker) => `  - \`${blocker}\``)
+        : ['  - none']
+    ),
     '',
     '## Goals',
     '',
@@ -293,7 +311,7 @@ export async function main(argv = process.argv.slice(2)) {
   if (args.json) {
     console.log(JSON.stringify(summary, null, 2));
   } else {
-    console.log(formatMarkdown(summary));
+    console.log(formatProductReadinessMarkdown(summary));
   }
   if (!summary.ok) {
     process.exitCode = 1;

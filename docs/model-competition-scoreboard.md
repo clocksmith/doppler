@@ -3,7 +3,7 @@
 Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.
 This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.
 
-Updated at: 2026-08-15T17:06:16.191Z
+Updated at: 2026-09-01T13:17:41.132Z
 
 ## Summary
 

@@ -173,18 +173,6 @@ export async function runInferenceSuite(options = {}) {
           ),
       },
     ];
-    const referenceTranscript = buildReferenceTranscriptSeed(run, {
-      executionGraphHash: resolveExecutionGraphHash(harness.manifest),
-      kvCache: run.phase.kvCache ?? null,
-      surface: options.surface === 'node' ? 'node-webgpu' : 'browser-webgpu',
-    });
-    const operatorDiagnostics = run.phase.operatorDiagnostics ?? null;
-    const modelCheckpoints = buildModelCheckpointEvidence({
-      operatorDiagnostics,
-      kvCacheByteProof: run.kvCacheByteProof ?? null,
-      expectedStepCount: run.tokenIds.length,
-      minimumDecodeSteps: null,
-    });
     metrics = {
       query: run.query,
       documentCount: run.documentCount,
@@ -385,6 +373,18 @@ export async function runInferenceSuite(options = {}) {
       options.inferenceInput ?? null
     );
     const coherent = isCoherentOutput(run.tokens, run.output);
+    const referenceTranscript = buildReferenceTranscriptSeed(run, {
+      executionGraphHash: resolveExecutionGraphHash(harness.manifest),
+      kvCache: run.phase.kvCache ?? null,
+      surface: options.surface === 'node' ? 'node-webgpu' : 'browser-webgpu',
+    });
+    const operatorDiagnostics = run.phase.operatorDiagnostics ?? null;
+    const modelCheckpoints = buildModelCheckpointEvidence({
+      operatorDiagnostics,
+      kvCacheByteProof: run.kvCacheByteProof ?? null,
+      expectedStepCount: run.tokenIds.length,
+      minimumDecodeSteps: null,
+    });
     results = [
       {
         name: 'generation',
