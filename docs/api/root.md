@@ -10,6 +10,11 @@ model family, choose kernels, or supply a development signing key.
 
 `doppler-gpu/runtime` is an exact alias of the same entrypoint.
 
+Pack v2 remains readable. The new `doppler-gpu/pack` facade supplies v3 migration,
+identity, and signed release-event APIs. See [Pack identity migration](../pack-identity-migration.md)
+for explicit trust/checkpoint policy, artifact-source ownership, and sequence
+execution receipts. New source APIs do not imply a published or qualified release.
+
 ## Import path
 
 ```js

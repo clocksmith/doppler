@@ -148,6 +148,32 @@ await assert.rejects(mismatchedRuntime.openPack(fixture.pack), /dtypeLane/);
 assert.equal(buffersCreated, 0, 'identity mismatch must fail before resource binding or first dispatch');
 assert.equal(mismatchProgramClosed, true, 'identity mismatch must close the loaded program');
 
+for (const [field, replacement] of [
+  ['dtypeLane', { ...fields.dtypeLane, activation: 'f16' }],
+  ['fusionSet', [{ id: 'undeclared-fusion' }]],
+  ['memoryPolicy', { ...fields.memoryPolicy, largeWeights: { residency: 'cpu' } }],
+  ['executionGraphHash', digest('f')],
+]) {
+  let observedIdentity = expectedIdentityV2;
+  const changing = createDopplerRuntime({
+    device, artifactStore: fixture.artifactStore,
+    trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+    async programFactory() {
+      return {
+        ...baseProgram,
+        getInitialExecutionIdentity() { return observedIdentity; },
+        async encodeSequence() {
+          observedIdentity = createInitialExecutionIdentityV2({ ...fields, [field]: replacement, programLoadPolicy: expectedIdentityV2.programLoadPolicy });
+          return { pooledEmbedding: [1] };
+        },
+      };
+    },
+  });
+  const changingSession = await changing.openPack(fixture.pack);
+  await assert.rejects(changingSession.encodeSequence('MKT'), new RegExp(field));
+  await changingSession.close();
+}
+
 const resolvedRuntimeSession = {
   schema: 'doppler.resolved-runtime-session/v1',
   id: digest('9'),

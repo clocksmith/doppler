@@ -61,6 +61,7 @@ export declare function hashPackV2(pack: DopplerPackV2): `sha256:${string}`;
 export declare function hashPackV2Envelope(pack: DopplerPackV2): `sha256:${string}`;
 export declare function hashPackV2PublicKey(publicKeyJwk: JsonWebKey): `sha256:${string}`;
 export declare function validatePackV2(pack: unknown, options?: { requireSignature?: boolean }): { ok: boolean; errors: string[] };
+export declare function validatePackExecutable(pack: unknown): { ok: boolean; errors: string[] };
 export declare function buildPackV2(params: Omit<DopplerPackV2, 'schema' | 'schemaVersion' | 'packId' | 'semanticRoot' | 'signature'>): DopplerPackV2;
 export declare function signPackV2(pack: DopplerPackV2, signer: { authority: string; privateKeyJwk: JsonWebKey; publicKeyJwk: JsonWebKey }): Promise<DopplerPackV2>;
 export declare function verifyPackV2Signature(pack: DopplerPackV2, trustedSigners: Map<string, JsonWebKey> | Record<string, JsonWebKey>): Promise<true>;

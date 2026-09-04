@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:pack-release-event-schema:v1",
+  "title": "Doppler signed release event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "pack", "sequence", "previousEventDigest", "issuedAtUtc", "expiresAtUtc", "action", "release", "migratedFrom", "nextSigner", "digest", "signature"],
+  "properties": {
+    "schema": { "const": "doppler.pack-release-event/v1" },
+    "pack": { "$ref": "#/$defs/pack" },
+    "sequence": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "previousEventDigest": { "oneOf": [{ "type": "null" }, { "$ref": "urn:doppler:pack-schema:v2#/$defs/digest" }] },
+    "issuedAtUtc": { "type": "string", "format": "date-time" },
+    "expiresAtUtc": { "type": "string", "format": "date-time" },
+    "action": { "enum": ["eligible", "blocked", "promoted", "quarantined", "revoked", "superseded", "rollback-authorized"] },
+    "release": { "$ref": "urn:doppler:pack-schema:v2#/$defs/release" },
+    "migratedFrom": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/pack" }] },
+    "nextSigner": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "object", "additionalProperties": false, "required": ["kty", "crv", "x"], "properties": { "kty": { "const": "OKP" }, "crv": { "const": "Ed25519" }, "x": { "type": "string", "minLength": 1 } } }
+      ]
+    },
+    "digest": { "$ref": "urn:doppler:pack-schema:v2#/$defs/digest" },
+    "signature": { "$ref": "urn:doppler:pack-schema:v2#/properties/signature" }
+  },
+  "$defs": {
+    "pack": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "semanticRoot", "envelopeDigest"],
+      "properties": {
+        "schema": { "enum": ["doppler.pack/v2", "doppler.pack/v3"] },
+        "semanticRoot": { "$ref": "urn:doppler:pack-schema:v2#/$defs/digest" },
+        "envelopeDigest": { "$ref": "urn:doppler:pack-schema:v2#/$defs/digest" }
+      }
+    }
+  }
+}

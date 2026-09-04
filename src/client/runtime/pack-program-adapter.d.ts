@@ -1,4 +1,4 @@
-import type { DopplerPackV2 } from '../../config/pack-v2.js';
+import type { DopplerPack } from '../../config/pack.js';
 import type { TargetPlan } from '../../config/target-plan.js';
 import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import type { DopplerModelHandle } from './model-session.js';
@@ -12,6 +12,7 @@ export interface PackProgramAdapter {
   getTokenContract(): Record<string, unknown>;
   reset(): void;
   rerank(request: Omit<PackRerankRequest, 'application'>): ReturnType<DopplerModelHandle['rerankWithEvidence']>;
+  encodeSequence(sequence: string, options?: Record<string, unknown>): ReturnType<DopplerModelHandle['encodeSequence']>;
   executePhase(phase: string, request: Record<string, unknown>): Promise<unknown>;
   releaseStepResult(result: Record<string, unknown> | null): void;
   close(): Promise<void>;
@@ -19,6 +20,6 @@ export interface PackProgramAdapter {
 
 export declare function createPackProgramAdapter(
   modelHandle: DopplerModelHandle,
-  pack: DopplerPackV2,
+  pack: DopplerPack,
   targetPlan: TargetPlan
 ): PackProgramAdapter;

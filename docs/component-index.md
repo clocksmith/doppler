@@ -7,7 +7,7 @@ Components: 29
 
 | Component | Target | Charter | Parent |
 | --- | --- | --- | --- |
-| `doppler` | Deliver inspectable, evidence-backed local model execution for JavaScript applications. | [CATSCAN.md](../CATSCAN.md) | none |
+| `doppler` | Earn voluntary executable-model adoption by an unrelated JavaScript application through measured application improvement and a lower-effort second release. | [CATSCAN.md](../CATSCAN.md) | none |
 | `doppler.benchmarks` | Produce reproducible measurements whose workload, identity, timing scope, and claim status are explicit. | [benchmarks/CATSCAN.md](../benchmarks/CATSCAN.md) | `doppler` |
 | `doppler.demo` | Give users one dependable browser surface for verified local model execution and inspectable evidence. | [demo/CATSCAN.md](../demo/CATSCAN.md) | `doppler` |
 | `doppler.docs` | Preserve navigable human contracts without competing with machine-readable status or implementation evidence. | [docs/CATSCAN.md](../docs/CATSCAN.md) | `doppler` |

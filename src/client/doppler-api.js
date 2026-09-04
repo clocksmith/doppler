@@ -36,21 +36,21 @@ async function resolvePackInput(packSource, options = {}) {
   if (parsedUrl && parsedUrl.protocol !== 'file:') {
     const response = await fetch(parsedUrl.href);
     if (!response.ok) throw new Error(`Doppler Pack fetch failed (${response.status}) for ${parsedUrl.href}.`);
-    return { pack: await response.json(), artifactStore: createFetchPackArtifactStore(parsedUrl.href) };
+    return { pack: await response.json(), artifactStore: options.artifactStore ?? createFetchPackArtifactStore(parsedUrl.href) };
   }
   if (!isNodeRuntime()) throw new Error('Browser doppler.openPack() requires an HTTP(S) Pack URL.');
-  const [{ fileURLToPath }, pathModule, { loadPackV2 }, { createNodePackArtifactStore }] = await Promise.all([
+  const [{ fileURLToPath }, pathModule, { loadPack }, { createNodePackArtifactStore }] = await Promise.all([
     import('node:url'),
     import('node:path'),
-    import('../tooling/pack-v2.js'),
+    import('../tooling/pack.js'),
     import('../tooling/node-pack-artifact-store.js'),
   ]);
   const packPath = parsedUrl?.protocol === 'file:'
     ? fileURLToPath(parsedUrl)
     : pathModule.resolve(packSource);
   return {
-    pack: await loadPackV2(packPath),
-    artifactStore: createNodePackArtifactStore(packPath),
+    pack: await loadPack(packPath),
+    artifactStore: options.artifactStore ?? createNodePackArtifactStore(packPath),
   };
 }
 

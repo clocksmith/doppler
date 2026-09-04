@@ -30,6 +30,7 @@ import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { getKernelCapabilities, initDevice } from '../../gpu/device.js';
 import { createDopplerRuntime } from './composition-root.js';
 import { createPackProgramAdapter } from './pack-program-adapter.js';
+import { createPackArtifactSource } from './pack-artifact-source.js';
 import { resolveProgramLoadRuntimeConfig } from '../../config/initial-execution-identity.js';
 import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
 import {
@@ -383,14 +384,14 @@ export function createDopplerRuntimeService({
       cache: options.verificationCache ?? null,
       observer: options.observer ?? null,
       async programFactory({ pack, targetPlan, artifactStore }) {
-        const manifestArtifact = pack.artifacts.find(
-          (artifact) => artifact.artifactId === pack.program.manifestArtifactId
-        );
-        const manifestUrl = artifactStore.resolveArtifactUrl?.(manifestArtifact);
-        if (!manifestUrl) throw new Error('Pack artifact store cannot resolve the manifest URL.');
-        const modelBaseUrl = new URL('.', manifestUrl).href;
-        const modelHandle = await load({ url: modelBaseUrl }, resolvePackProgramLoadOptions(targetPlan));
-        return createPackProgramAdapter(modelHandle, pack, targetPlan);
+        const source = await createPackArtifactSource(pack, artifactStore);
+        const modelHandle = await load(source, { ...resolvePackProgramLoadOptions(targetPlan), isolatedLoader: true });
+        try {
+          return createPackProgramAdapter(modelHandle, pack, targetPlan);
+        } catch (error) {
+          await modelHandle.unload();
+          throw error;
+        }
       },
     });
     return packRuntime.openPack(resolvedPack.pack, options);

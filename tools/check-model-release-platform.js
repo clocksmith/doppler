@@ -14,7 +14,7 @@ const EXPECTED = Object.freeze({
     entryProduct: 'Doppler Production Release',
     recurringProduct: 'Doppler Release Operations',
     initialIcp: 'TypeScript/Electron desktop products on Windows and macOS',
-    northStar: 'Production model releases whose eligibility decision is delegated to Doppler and relied upon by the customer’s activation system.',
+    northStar: 'Unrelated applications voluntarily ship Doppler executable models for a measured application improvement, retain them, and ship a second revision with less release effort.',
   }),
   forgeStages: ['inspect', 'normalize', 'analyze', 'lower', 'specialize', 'search', 'verify', 'qualify', 'package', 'sign'],
   runtimeSteps: ['validate', 'select', 'bind', 'allocate', 'execute', 'observe'],
@@ -113,6 +113,15 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
   const errors = [];
   const pathRows = [];
   const blockerCodes = new Set((matrix?.blockers || []).map((row) => row.code));
+  exactArray(policy?.adoptionGate?.requiredEvidence, [
+    'unrelated-maintainer-acceptance', 'application-owned-outcome-improvement',
+    'parity-qualified-incumbent-comparison', 'customer-operated-devices',
+    'rejected-candidate-and-recovery', 'retained-use', 'second-revision-less-release-effort',
+  ], 'adoptionGate.requiredEvidence', errors);
+  if (policy?.adoptionGate?.primary !== true || policy?.adoptionGate?.p2pRequired !== false
+    || policy?.adoptionGate?.currentAssessment !== 'unestablished') {
+    errors.push('Adoption is primary, unestablished, and independent of P2P.');
+  }
 
   if (policy?.id !== 'doppler-model-release-platform') errors.push('policy.id must be doppler-model-release-platform');
   if (policy?.positioning?.unitOfValue !== 'supported-model-release') {

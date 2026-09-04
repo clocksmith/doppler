@@ -25,7 +25,7 @@ const NULLABLE_ROW_FIELDS = ['supportSubsystemId', 'packageBin', 'packageExport'
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const REQUIRED_GOAL_LABELS = new Map([
-  ['local-webgpu-product-surface', 'Ship one external Electron production release'],
+  ['local-webgpu-product-surface', 'Earn external executable-model adoption and a lower-effort second release'],
   ['model-artifact-runtime-contract', 'Own the model artifact and runtime contract'],
   ['correctness-performance-claims', 'Make correctness and performance evidence-backed'],
 ]);
@@ -34,6 +34,7 @@ const REQUIRED_GOAL_ROWS = new Map([
   [
     'local-webgpu-product-surface',
     [
+      'external-executable-model-adoption',
       'canonical-production-release-contract',
       'electron-reference-release',
       'pack-first-electron-reranking',

@@ -13,6 +13,17 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+for (const field of policy.adoptionGate.requiredEvidence) {
+  const incomplete = clone(policy);
+  incomplete.adoptionGate.requiredEvidence = incomplete.adoptionGate.requiredEvidence.filter((item) => item !== field);
+  assert.equal((await validateModelReleasePlatform(incomplete, matrix)).ok, false, field);
+}
+{
+  const peerDependent = clone(policy);
+  peerDependent.adoptionGate.p2pRequired = true;
+  assert.equal((await validateModelReleasePlatform(peerDependent, matrix)).ok, false);
+}
+
 {
   const report = await buildModelReleasePlatformReport();
   assert.equal(report.ok, true, report.errors.join('\n'));
