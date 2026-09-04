@@ -2,7 +2,7 @@
   "schema": "doppler.pack-runtime-closure/v1",
   "entrypoint": "src/pack-runtime.js",
   "fileCount": 24,
-  "sourceBytes": 137130,
+  "sourceBytes": 137610,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -102,8 +102,8 @@
     },
     {
       "path": "src/config/pack.js",
-      "sizeBytes": 1857,
-      "hash": "sha256:87a2a3e5fc981a62bfdb6da1e20800e85f31dd5f870cc78fd97f7d0a5be793f5"
+      "sizeBytes": 2337,
+      "hash": "sha256:0d674a9c690c211fc215fc88cf6732bd8b756c7f4d53a964f8d4221eb68e79bf"
     },
     {
       "path": "src/config/target-plan.js",

@@ -1,4 +1,4 @@
-import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
+import { computeCanonicalSha256, hashBytesSha256 } from '../formats/canonical-hash.js';
 import { freezePackV2, hashPackV2Envelope, validatePackV2, verifyPackV2Signature, verifyPackV2Artifacts } from './pack-v2.js';
 import { validatePackV3, verifyPackV3Signature } from './pack-v3.js';
 import { verifyPackReleaseEvents } from './pack-release-events.js';
@@ -32,6 +32,13 @@ export async function verifyPack(pack, options) {
       pack: snapshot, trustedSigners: options.releaseTrustedSigners, policy: options.releasePolicy,
     })
     : null;
-  const artifactReceipts = await verifyPackV2Artifacts(snapshot, options.artifactStore);
+  if (typeof options.artifactStore?.readArtifact !== 'function') throw new Error('Pack verification requires artifactStore.readArtifact().');
+  const artifactReceipts = await verifyPackV2Artifacts(snapshot, {
+    async hashArtifact(artifact) {
+      const payload = await options.artifactStore.readArtifact(artifact);
+      if (!(payload instanceof Uint8Array) && !(payload instanceof ArrayBuffer)) throw new Error('Pack artifact source must return bytes.');
+      return { hash: hashBytesSha256(payload), sizeBytes: payload.byteLength };
+    },
+  });
   return freezePackV2({ pack: snapshot, identity: getPackIdentity(snapshot), artifactReceipts, lifecycle });
 }

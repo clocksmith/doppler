@@ -26,183 +26,87 @@
     "adoptionGate"
   ],
   "properties": {
-    "$schema": {
-      "type": "string",
-      "const": "../../src/config/schema/model-release-platform.schema.json"
-    },
-    "schemaVersion": {
-      "type": "integer",
-      "const": 4
-    },
-    "contractVersion": {
-      "type": "string",
-      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
-    },
-    "id": {
-      "type": "string",
-      "const": "doppler-model-release-platform"
-    },
+    "$schema": { "type": "string", "const": "../../src/config/schema/model-release-platform.schema.json" },
+    "schemaVersion": { "type": "integer", "const": 4 },
+    "contractVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "id": { "type": "string", "const": "doppler-model-release-platform" },
     "positioning": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "category",
-        "entryProduct",
-        "recurringProduct",
-        "initialIcp",
-        "northStar",
-        "promise",
-        "buyer",
-        "unitOfValue"
-      ],
+      "required": ["category", "entryProduct", "recurringProduct", "initialIcp", "northStar", "promise", "buyer", "unitOfValue"],
       "properties": {
-        "category": {
-          "type": "string",
-          "const": "AI-native model release foundry for JavaScript and WebGPU"
-        },
-        "entryProduct": {
-          "type": "string",
-          "const": "Doppler Production Release"
-        },
-        "recurringProduct": {
-          "type": "string",
-          "const": "Doppler Release Operations"
-        },
-        "initialIcp": {
-          "type": "string",
-          "const": "TypeScript/Electron desktop products on Windows and macOS"
-        },
+        "category": { "type": "string", "const": "AI-native model release foundry for JavaScript and WebGPU" },
+        "entryProduct": { "type": "string", "const": "Doppler Production Release" },
+        "recurringProduct": { "type": "string", "const": "Doppler Release Operations" },
+        "initialIcp": { "type": "string", "const": "TypeScript/Electron desktop products on Windows and macOS" },
         "northStar": {
           "type": "string",
           "const": "Unrelated applications voluntarily ship Doppler executable models for a measured application improvement, retain them, and ship a second revision with less release effort."
         },
-        "promise": {
-          "type": "string",
-          "minLength": 1
-        },
-        "buyer": {
-          "type": "string",
-          "minLength": 1
-        },
-        "unitOfValue": {
-          "type": "string",
-          "const": "supported-model-release"
-        }
+        "promise": { "type": "string", "minLength": 1 },
+        "buyer": { "type": "string", "minLength": 1 },
+        "unitOfValue": { "type": "string", "const": "supported-model-release" }
       }
     },
     "architecture": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "authorityPaths",
-        "invariant",
-        "forgeStages",
-        "runtimeSteps",
-        "runtimeForbidden"
-      ],
+      "required": ["authorityPaths", "invariant", "forgeStages", "runtimeSteps", "runtimeForbidden"],
       "properties": {
-        "authorityPaths": {
-          "$ref": "#/$defs/pathList"
-        },
-        "invariant": {
-          "type": "string",
-          "minLength": 1
-        },
-        "forgeStages": {
-          "$ref": "#/$defs/idList"
-        },
-        "runtimeSteps": {
-          "$ref": "#/$defs/idList"
-        },
-        "runtimeForbidden": {
-          "$ref": "#/$defs/stringList"
-        }
+        "authorityPaths": { "$ref": "#/$defs/pathList" },
+        "invariant": { "type": "string", "minLength": 1 },
+        "forgeStages": { "$ref": "#/$defs/idList" },
+        "runtimeSteps": { "$ref": "#/$defs/idList" },
+        "runtimeForbidden": { "$ref": "#/$defs/stringList" }
       }
     },
     "modelIR": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "authorityPaths",
-        "requirements"
-      ],
+      "required": ["authorityPaths", "requirements"],
       "properties": {
-        "authorityPaths": {
-          "$ref": "#/$defs/pathList"
-        },
-        "requirements": {
-          "$ref": "#/$defs/idList"
-        }
+        "authorityPaths": { "$ref": "#/$defs/pathList" },
+        "requirements": { "$ref": "#/$defs/idList" }
       }
     },
     "pack": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "authorityPaths",
-        "authoritativeFor",
-        "requiredReleaseElements"
-      ],
+      "required": ["authorityPaths", "authoritativeFor", "requiredReleaseElements"],
       "properties": {
-        "authorityPaths": {
-          "$ref": "#/$defs/pathList"
-        },
-        "authoritativeFor": {
-          "$ref": "#/$defs/idList"
-        },
+        "authorityPaths": { "$ref": "#/$defs/pathList" },
+        "authoritativeFor": { "$ref": "#/$defs/idList" },
         "requiredReleaseElements": {
           "type": "array",
           "minItems": 12,
-          "items": {
-            "$ref": "#/$defs/trackedRequirement"
-          }
+          "items": { "$ref": "#/$defs/trackedRequirement" }
         }
       }
     },
     "providers": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "selectionLaw",
-        "runtimeMayInventPlan",
-        "doeRequired",
-        "targets"
-      ],
+      "required": ["selectionLaw", "runtimeMayInventPlan", "doeRequired", "targets"],
       "properties": {
-        "selectionLaw": {
-          "type": "string",
-          "const": "qualified-only"
-        },
-        "runtimeMayInventPlan": {
-          "type": "boolean",
-          "const": false
-        },
-        "doeRequired": {
-          "type": "boolean",
-          "const": false
-        },
+        "selectionLaw": { "type": "string", "const": "qualified-only" },
+        "runtimeMayInventPlan": { "type": "boolean", "const": false },
+        "doeRequired": { "type": "boolean", "const": false },
         "targets": {
           "type": "array",
           "minItems": 6,
-          "items": {
-            "$ref": "#/$defs/provider"
-          }
+          "items": { "$ref": "#/$defs/provider" }
         }
       }
     },
     "apiConvergence": {
       "type": "array",
       "minItems": 6,
-      "items": {
-        "$ref": "#/$defs/apiSurface"
-      }
+      "items": { "$ref": "#/$defs/apiSurface" }
     },
     "recovery": {
       "type": "array",
       "minItems": 3,
-      "items": {
-        "$ref": "#/$defs/trackedRequirement"
-      }
+      "items": { "$ref": "#/$defs/trackedRequirement" }
     },
     "commercialOffer": {
       "type": "object",
@@ -223,85 +127,35 @@
         "blockerCode"
       ],
       "properties": {
-        "id": {
-          "type": "string",
-          "const": "doppler-production-release"
-        },
-        "name": {
-          "type": "string",
-          "const": "Doppler Production Release"
-        },
-        "recurringProduct": {
-          "type": "string",
-          "const": "Doppler Release Operations"
-        },
-        "promise": {
-          "type": "string",
-          "minLength": 1
-        },
+        "id": { "type": "string", "const": "doppler-production-release" },
+        "name": { "type": "string", "const": "Doppler Production Release" },
+        "recurringProduct": { "type": "string", "const": "Doppler Release Operations" },
+        "promise": { "type": "string", "minLength": 1 },
         "applicationClasses": {
           "type": "array",
           "minItems": 1,
           "maxItems": 1,
           "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "const": "electron-reranking"
-          }
+          "items": { "type": "string", "const": "electron-reranking" }
         },
-        "intake": {
-          "$ref": "#/$defs/stringList"
-        },
-        "deliverables": {
-          "$ref": "#/$defs/stringList"
-        },
-        "paidSurfaces": {
-          "$ref": "#/$defs/stringList"
-        },
-        "promotionGate": {
-          "type": "string",
-          "minLength": 1
-        },
-        "activationAuthority": {
-          "type": "string",
-          "const": "customer-controlled"
-        },
-        "selfPromotionAllowed": {
-          "type": "boolean",
-          "const": false
-        },
-        "currentAssessment": {
-          "type": "string",
-          "const": "unestablished"
-        },
-        "blockerCode": {
-          "type": "string",
-          "const": "paid-doppler-production-release-missing"
-        }
+        "intake": { "$ref": "#/$defs/stringList" },
+        "deliverables": { "$ref": "#/$defs/stringList" },
+        "paidSurfaces": { "$ref": "#/$defs/stringList" },
+        "promotionGate": { "type": "string", "minLength": 1 },
+        "activationAuthority": { "type": "string", "const": "customer-controlled" },
+        "selfPromotionAllowed": { "type": "boolean", "const": false },
+        "currentAssessment": { "type": "string", "const": "unestablished" },
+        "blockerCode": { "type": "string", "const": "paid-doppler-production-release-missing" }
       }
     },
     "referenceIntegrations": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "classification",
-        "externalAdoptionEvidence",
-        "commercialDemandEvidence",
-        "integrations"
-      ],
+      "required": ["classification", "externalAdoptionEvidence", "commercialDemandEvidence", "integrations"],
       "properties": {
-        "classification": {
-          "type": "string",
-          "const": "Internally controlled reference integrations proving application-integration mechanics."
-        },
-        "externalAdoptionEvidence": {
-          "type": "boolean",
-          "const": false
-        },
-        "commercialDemandEvidence": {
-          "type": "boolean",
-          "const": false
-        },
+        "classification": { "type": "string", "const": "Internally controlled reference integrations proving application-integration mechanics." },
+        "externalAdoptionEvidence": { "type": "boolean", "const": false },
+        "commercialDemandEvidence": { "type": "boolean", "const": false },
         "integrations": {
           "type": "array",
           "minItems": 3,
@@ -309,22 +163,10 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "id",
-              "workload"
-            ],
+            "required": ["id", "workload"],
             "properties": {
-              "id": {
-                "$ref": "#/$defs/id"
-              },
-              "workload": {
-                "type": "string",
-                "enum": [
-                  "generation",
-                  "embedding",
-                  "reranking"
-                ]
-              }
+              "id": { "$ref": "#/$defs/id" },
+              "workload": { "type": "string", "enum": ["generation","embedding","reranking"] }
             }
           }
         }
@@ -337,127 +179,59 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "order",
-          "id",
-          "gate",
-          "completionState",
-          "evidencePaths",
-          "blockerCode"
-        ],
+        "required": ["order", "id", "gate", "completionState", "evidencePaths", "blockerCode"],
         "properties": {
-          "order": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 10
-          },
-          "id": {
-            "$ref": "#/$defs/id"
-          },
-          "gate": {
-            "type": "string",
-            "minLength": 1
-          },
-          "completionState": {
-            "type": "string",
-            "enum": [
-              "implemented",
-              "external-evidence-required"
-            ]
-          },
-          "evidencePaths": {
-            "$ref": "#/$defs/pathList"
-          },
+          "order": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "id": { "$ref": "#/$defs/id" },
+          "gate": { "type": "string", "minLength": 1 },
+          "completionState": { "type": "string", "enum": ["implemented","external-evidence-required"] },
+          "evidencePaths": { "$ref": "#/$defs/pathList" },
           "blockerCode": {
             "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/$defs/id"
-              }
+              { "type": "null" },
+              { "$ref": "#/$defs/id" }
             ]
           }
         }
       }
     },
-    "compatibilityGraph": {
-      "$ref": "#/$defs/idList"
-    },
+    "compatibilityGraph": { "$ref": "#/$defs/idList" },
     "dataCustody": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "defaultRule",
-        "shareableClasses"
-      ],
+      "required": ["defaultRule", "shareableClasses"],
       "properties": {
-        "defaultRule": {
-          "type": "string",
-          "minLength": 1
-        },
-        "shareableClasses": {
-          "$ref": "#/$defs/stringList"
-        }
+        "defaultRule": { "type": "string", "minLength": 1 },
+        "shareableClasses": { "$ref": "#/$defs/stringList" }
       }
     },
     "acquisitionBoundary": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "operatingObjective",
-        "candidateBuyerClasses",
-        "rule"
-      ],
+      "required": ["operatingObjective", "candidateBuyerClasses", "rule"],
       "properties": {
-        "operatingObjective": {
-          "type": "string",
-          "minLength": 1
-        },
-        "candidateBuyerClasses": {
-          "$ref": "#/$defs/stringList"
-        },
-        "rule": {
-          "type": "string",
-          "minLength": 1
-        }
+        "operatingObjective": { "type": "string", "minLength": 1 },
+        "candidateBuyerClasses": { "$ref": "#/$defs/stringList" },
+        "rule": { "type": "string", "minLength": 1 }
       }
     },
     "claimBoundary": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "goalStateAuthority",
-        "forbiddenInferences"
-      ],
+      "required": ["goalStateAuthority", "forbiddenInferences"],
       "properties": {
-        "goalStateAuthority": {
-          "$ref": "#/$defs/path"
-        },
-        "forbiddenInferences": {
-          "$ref": "#/$defs/stringList"
-        }
+        "goalStateAuthority": { "$ref": "#/$defs/path" },
+        "forbiddenInferences": { "$ref": "#/$defs/stringList" }
       }
     },
     "adoptionGate": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "primary",
-        "requiredEvidence",
-        "p2pRequired",
-        "currentAssessment"
-      ],
+      "required": ["primary", "requiredEvidence", "p2pRequired", "currentAssessment"],
       "properties": {
-        "primary": {
-          "const": true
-        },
-        "p2pRequired": {
-          "const": false
-        },
-        "currentAssessment": {
-          "const": "unestablished"
-        },
+        "primary": { "const": true },
+        "p2pRequired": { "const": false },
+        "currentAssessment": { "const": "unestablished" },
         "requiredEvidence": {
           "const": [
             "unrelated-maintainer-acceptance",
@@ -473,70 +247,38 @@
     }
   },
   "$defs": {
-    "id": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9-]*$"
-    },
-    "path": {
-      "type": "string",
-      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
-    },
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
     "stringList": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
+      "items": { "type": "string", "minLength": 1 }
     },
     "idList": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/id"
-      }
+      "items": { "$ref": "#/$defs/id" }
     },
     "pathList": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/path"
-      }
+      "items": { "$ref": "#/$defs/path" }
     },
     "trackedRequirement": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "implementationState",
-        "evidencePaths",
-        "blockerCode"
-      ],
+      "required": ["id", "implementationState", "evidencePaths", "blockerCode"],
       "properties": {
-        "id": {
-          "$ref": "#/$defs/id"
-        },
-        "implementationState": {
-          "type": "string",
-          "enum": [
-            "implemented",
-            "partial"
-          ]
-        },
-        "evidencePaths": {
-          "$ref": "#/$defs/pathList"
-        },
+        "id": { "$ref": "#/$defs/id" },
+        "implementationState": { "type": "string", "enum": ["implemented","partial"] },
+        "evidencePaths": { "$ref": "#/$defs/pathList" },
         "blockerCode": {
           "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/$defs/id"
-            }
+            { "type": "null" },
+            { "$ref": "#/$defs/id" }
           ]
         }
       }
@@ -544,61 +286,25 @@
     "provider": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "role",
-        "qualificationAuthority"
-      ],
+      "required": ["id", "role", "qualificationAuthority"],
       "properties": {
-        "id": {
-          "$ref": "#/$defs/id"
-        },
-        "role": {
-          "type": "string",
-          "enum": [
-            "owned",
-            "incumbent",
-            "optional",
-            "reference"
-          ]
-        },
-        "qualificationAuthority": {
-          "$ref": "#/$defs/path"
-        }
+        "id": { "$ref": "#/$defs/id" },
+        "role": { "type": "string", "enum": ["owned","incumbent","optional","reference"] },
+        "qualificationAuthority": { "$ref": "#/$defs/path" }
       }
     },
     "apiSurface": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "mode",
-        "evidencePaths",
-        "blockerCode"
-      ],
+      "required": ["id", "mode", "evidencePaths", "blockerCode"],
       "properties": {
-        "id": {
-          "$ref": "#/$defs/id"
-        },
-        "mode": {
-          "type": "string",
-          "enum": [
-            "pack-authoritative",
-            "compatibility-intake",
-            "migration-required"
-          ]
-        },
-        "evidencePaths": {
-          "$ref": "#/$defs/pathList"
-        },
+        "id": { "$ref": "#/$defs/id" },
+        "mode": { "type": "string", "enum": ["pack-authoritative","compatibility-intake","migration-required"] },
+        "evidencePaths": { "$ref": "#/$defs/pathList" },
         "blockerCode": {
           "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/$defs/id"
-            }
+            { "type": "null" },
+            { "$ref": "#/$defs/id" }
           ]
         }
       }
