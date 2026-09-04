@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
-import { buildPackV3, signPackV3, migratePackV2, getPackIdentity, validatePack, signPackReleaseEvent, verifyPackReleaseEvents } from '../../src/pack.js';
+import { buildPackV3, signPackV3, migratePackV2, getPackIdentity, validatePack, verifyPack, signPackReleaseEvent, verifyPackReleaseEvents } from '../../src/pack.js';
 import { createSignedPackFixture, TEST_PACK_AUTHORITY, TEST_PACK_PUBLIC_KEY } from '../helpers/pack-v2-fixture.js';
 import { createDopplerRuntime } from '../../src/pack-runtime.js';
 
@@ -92,4 +92,8 @@ const corruptRuntime = createDopplerRuntime({
   programFactory: async () => { throw new Error('must not execute corrupt bytes'); },
 });
 await assert.rejects(corruptRuntime.openPack(pack, options), /hash or size mismatch/);
+await assert.rejects(verifyPack(pack, {
+  ...options, trustedSigners,
+  artifactStore: { hashArtifact: fixture.artifactStore.hashArtifact, readArtifact: async (artifact) => new Uint8Array(artifact.sizeBytes) },
+}), /hash mismatch/);
 console.log('✔ pack-v3.test.js passed');
