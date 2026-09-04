@@ -1,243 +1,65 @@
 ---
 name: doppler-bench
-description: Run Doppler and vendor benchmark workflows, capture reproducible JSON artifacts, and compare bench/profile coverage using the vendor registry. (project)
+description: Capture a reproducible Doppler or approved vendor benchmark receipt when a model, workload, runtime lane, and comparison question are explicitly identified.
 ---
 
-# DOPPLER Bench Skill
+# Doppler Benchmark Capture
 
-Use this skill for repeatable performance measurement, compare-engine evidence, and vendor-registry coverage. Use `doppler-perf` when the goal is diagnosis or tuning rather than publication-grade benchmark evidence.
+## Prerequisites
 
-## Mandatory Style Guides
+- Run from the Doppler repository root.
+- Record model/artifact identity, workload, runtime surface, cache mode, profile,
+  warmup/run counts, sampling policy, hardware, and the comparison question.
+- Read `docs/agents/benchmark-protocol.md` and
+  `docs/style/benchmark-style-guide.md` for publication-grade evidence.
 
-Read these before non-trivial edits or benchmark-methodology changes:
-- `docs/style/general-style-guide.md`
-- `docs/style/javascript-style-guide.md`
-- `docs/style/config-style-guide.md`
-- `docs/style/command-interface-design-guide.md`
-- `docs/style/harness-style-guide.md`
-- `docs/style/benchmark-style-guide.md`
+## Procedure
 
-## Developer Guide Routing
-
-When benchmark work becomes extension work, also open:
-- `docs/developer-guides/README.md`
-
-Common routes:
-- tuning or adding execution identities: `docs/developer-guides/06-kernel-path-config.md`
-- kernel-level perf changes: `docs/developer-guides/11-wgsl-kernel.md`
-- attention-path throughput work: `docs/developer-guides/13-attention-variant.md`
-- cache/layout throughput work: `docs/developer-guides/15-kvcache-layout.md`
-- command-surface or harness-contract additions: `docs/developer-guides/12-command-surface.md`
-
-## Execution Plane Contract
-
-- JSON governs benchmark policy and engine selection (`runtimeConfig`, runtime profiles, rule assets).
-- JS wraps execution: contract validation, harness/runtime assembly, config isolation, and dispatch orchestration.
-- WGSL remains deterministic compute; it must not own benchmark semantics or fallback logic.
-- Any benchmark fairness axis (`sampling`, `seed`, budget, run policy) must come from shared contract JSON and be identical across engines.
-- Any unrepresented behavior choice must fail fast instead of falling back.
-
-## Cross-Engine Compare (Canonical)
+For a Doppler-only receipt:
 
 ```bash
-# Fair compute comparison (default parity decode cadence)
-node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
-
-# Doppler throughput-tuned decode cadence
-node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile throughput --save --json
-
-# Warm-start only (includes model load)
-node tools/compare-engines.js --mode warm --warmup 1 --runs 3 --decode-profile parity --save --json
-```
-
-Notes:
-- `--decode-profile parity` and `--decode-profile throughput` are policy-managed lane names, not fixed shorthand for one batch/readback tuple.
-- Resolve the actual Doppler cadence from the compare artifact's runtime mirror and resolved execution cadence. Model/platform profiles may set fields such as `batchSize`, `readbackInterval`, `maxBatchDecodeTokens`, ring buffers, or platform overrides.
-- A throughput lane is publishable only when the compare artifact's throughput-cadence gate is true. If the gate is false, keep it as tuning evidence.
-- Prefill is normalized as `prompt_tokens / ttft_ms` in compare output.
-
-## Challenger Matrix And Claim Rules
-
-Use `benchmarks/vendors/local-gpu-challenger-matrix.json` as the source of truth for local-GPU challenger scope. Read the matrix before interpreting non-TJS rows:
-- `platformTargets` defines allowed lanes such as `linux-amd-vulkan-rocm` and `apple-metal`. A listed platform is only an allowed evidence lane, not a win.
-- `competitors` distinguishes the Transformers.js WebGPU anchor from native challengers such as `llamacpp-vulkan-gguf`, `hf-transformers-rocm`, and `litert-gpu`.
-- `fairnessGates` defines the minimum receipt fields: artifact identity, format disclosure, runtime surface, hardware identity, fallback status, cache mode, timing scope, correctness, work accounting, sample statistics, and claim grade.
-
-Claim interpretation:
-- TJS rows are the anchor lanes for current public comparisons when the compare artifact is paired, locally comparable, and passes the relevant claim gate.
-- Native llama.cpp Vulkan rows are diagnostic until the runner measures text/token parity or another approved correctness gate for the same prompt, sampling, and token budget. Faster phase throughput alone is not a Doppler-vs-llama.cpp release claim.
-- Metal rows must be read by platform target. Do not merge Apple Metal evidence with AMD Vulkan/ROCm evidence in one claim.
-- ROCm PyTorch and LiteRT GPU rows need runner receipts with fallback status. A framework reporting a GPU backend is not enough if CPU, dtype, or execution-provider fallback is possible.
-- Format differences must be disclosed. RDRR, ONNX, GGUF, SafeTensors, and LiteRT lanes can be locally comparable only when the matrix fairness gates and correctness policy say so.
-
-## Mac Tier 1 Evidence
-
-Use this path when the goal is Apple Metal evidence for Tier 1 models. Do not infer Mac coverage from Linux AMD/Vulkan receipts.
-
-Preflight:
-
-```bash
-df -h . "$HOME" /tmp
-node tools/local-gpu-challengers.js --probe-local --json > benchmarks/vendors/results/local-gpu-probe-mac-$(date -u +%Y%m%dT%H%M%SZ).json
-```
-
-Stage the Tier 1 TJS anchor if a local cache root is used:
-
-```bash
-node tools/stage-tjs-model.js --model-id onnx-community/Qwen3.5-0.8B-ONNX --preset full --dtype q4f16
-```
-
-Generation anchor:
-
-```bash
-node tools/compare-engines.js \
-  --model-id qwen-3-5-0-8b-q4k-ehaf16 \
-  --workload p512-d128-t0-k1 \
-  --mode compute \
-  --warmup 1 \
-  --runs 15 \
-  --decode-profile throughput \
-  --doppler-surface browser \
-  --tjs-local-model-path "$HOME/.cache/doppler/tjs-models" \
-  --save \
-  --json \
-  --timeout-ms 1800000
-```
-
-Retrieval anchors:
-
-```bash
-node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --warmup 1 --runs 15 --doppler-source quickstart-registry --doppler-surface browser --cache-mode warm --load-mode http --save --json
-node tools/compare-rerankers.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32 --warmup 1 --runs 15 --doppler-source quickstart-registry --doppler-surface browser --cache-mode warm --load-mode http --save --json
-```
-
-Acceptance checks:
-- The saved local probe should include `localProbe.host.platform === "darwin"` and `localProbe.host.inferredPlatformTargetId === "apple-metal"`.
-- Generation receipt must show `environment.host.platform === "darwin"`, Metal/WebGPU backend evidence, `dopplerSurface === "browser"`, `fairness.claimGrade === true`, `fairness.correctnessOk === true`, and exact output match for Qwen.
-- Promote a throughput claim only when `sections.compute.throughputCadenceGate.ok === true`.
-- Embedding and reranker receipts are separate Tier 1 lanes. Report latency/throughput, semantic accuracy, and model-load winners independently; do not turn a reranker correctness win into a speed win.
-- If the browser report path fails with OPFS/report-storage/temp-space errors, classify it as infrastructure failure and rerun after clearing space; do not treat it as model correctness evidence.
-
-After saving receipts:
-
-```bash
-node tools/vendor-bench.js matrix --include-local-results
-npm run support:inventory:sync
-npm run support:competition:sync
-npm run bench:vendors:validate
-npm run claims:evidence:check
-npm run support:inventory:check
-npm run support:competition:check
-npm run check:green
-node tools/vendor-bench.js matrix --include-local-results --check
-```
-
-## Doppler Benchmark (Primary)
-
-```bash
-# Discover checked-in runtime profiles before selecting a calibration profile
 npm run cli -- profiles --json
-
-# Warm-cache benchmark (recommended baseline)
 npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' --runtime-profile profiles/throughput --json
-
-# Cold-cache benchmark (cache disabled per run)
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"cold"},"run":{"surface":"browser","bench":{"save":true}}}' --runtime-profile profiles/throughput --json
-
-# Compare against last saved run
-npm run bench -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true,"compare":"last"}}}' --runtime-profile profiles/throughput --json
 ```
 
-Notes:
-- `bench` defaults to `--surface auto`; set `run.surface="browser"` when you explicitly want the browser relay.
-- Saved artifacts default to `benchmarks/vendors/results/`; `result.reportInfo.path` is the authoritative saved location.
-- `bench` is calibrate-only. Do not put `runtime.shared.tooling.intent="investigate"` in bench examples.
-
-## Decode Cadence Bench Cases
-
-Use direct runtime config for explicit decode-cadence evidence:
+For a paired engine comparison:
 
 ```bash
-# Smaller cadence / lower latency
-npm run bench -- \
-  --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' \
-  --runtime-config '{"inference":{"generation":{"maxTokens":128},"sampling":{"temperature":0,"topK":1,"topP":1,"repetitionPenalty":1,"greedyThreshold":0},"session":{"decodeLoop":{"batchSize":4,"stopCheckMode":"batch","readbackInterval":4,"ringTokens":1,"ringStop":1,"ringStaging":1,"disableCommandBatching":false}}}}' \
-  --json
-
-# Larger cadence / higher throughput candidate
-npm run bench -- \
-  --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},"run":{"surface":"browser","bench":{"save":true}}}' \
-  --runtime-config '{"inference":{"generation":{"maxTokens":128},"sampling":{"temperature":0,"topK":1,"topP":1,"repetitionPenalty":1,"greedyThreshold":0},"session":{"decodeLoop":{"batchSize":8,"stopCheckMode":"batch","readbackInterval":8,"ringTokens":1,"ringStop":1,"ringStaging":1,"disableCommandBatching":false}}}}' \
-  --json
+node tools/compare-engines.js --mode compute --warmup 1 --runs 3 --decode-profile parity --save --json
 ```
 
-If the numbers are bad or unstable, hand off to `doppler-perf` for diagnosis before publishing claims.
+For vendor coverage or challenger work, use the target declared in
+`benchmarks/vendors/registry.json` and the fairness requirements in
+`benchmarks/vendors/local-gpu-challenger-matrix.json`. Preserve identical sampling,
+seed, workload, budget, cache policy, and timing scope across compared rows.
 
-## Vendor Benchmark (Transformers.js)
+Save raw JSON before generating matrices or summaries. Treat load, TTFT, prefill,
+decode, correctness, and resource telemetry as separate measurements.
 
-```bash
-# Raw Transformers.js benchmark with ORT op profiling summary
-node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --cache-mode warm --profile-ops on --profile-top 20 --json
+## Validation
 
-# Normalize result into vendor registry output
-node tools/vendor-bench.js run --target transformersjs --workload g3-p064-d064-t0-k1 -- node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --cache-mode warm --profile-ops on --profile-top 20 --json
+The saved receipt must identify the exact artifacts, runtime surfaces, hardware,
+fallback state, work counts, samples, correctness result, and output path. A paired
+claim is valid only when its receipt's applicable fairness and claim gates pass.
 
-# Add host RAM/CPU and optional ROCm GPU telemetry to a vendor receipt
-node tools/vendor-bench.js run --target transformersjs --resource-telemetry on --workload g3-p064-d064-t0-k1 -- node benchmarks/runners/transformersjs-bench.js --workload g3-p064-d064-t0-k1 --cache-mode warm --json
-```
+## Stop Conditions
 
-Resource telemetry is optional evidence. It records compact process-tree RSS/CPU,
-system RAM, and optional `rocm-smi` GPU summaries by default; use
-`--resource-telemetry-samples` only when the raw time series is needed.
+Stop comparison when identities, work, sampling, cache state, correctness policy, or
+timing scope differ. Stop before remote, paid, or hardware-intensive runs without the
+required authorization. Do not turn diagnostic or cross-platform rows into claims.
 
-## Coverage Tracking (Bench vs Profile)
+## Outputs
 
-```bash
-# Validate registry + harness + capability matrix
-node tools/vendor-bench.js validate
+- Raw benchmark JSON receipt.
+- Optional generated matrix or scoped summary derived from that receipt.
 
-# Show capability coverage for all targets
-node tools/vendor-bench.js capabilities
+## Side Effects
 
-# Show exact Doppler -> Transformers.js feature gaps
-node tools/vendor-bench.js gap --base doppler --target transformersjs
-```
-
-## Key Metrics
-
-- `decode_tokens_per_sec`
-- `prefill_tokens_per_sec_ttft` (preferred normalized prefill metric)
-- `prefill_tokens_per_sec` (legacy alias)
-- `ttft_ms`
-- `decode_ms_per_token_p50/p95`
-- `model_load_ms`
-- `ort_profiled_total_ms` (Transformers.js harness)
-- `resourceTelemetry.process.rssBytes.max`
-- `efficiencyMetrics.*.decodeTokensPerSecPerPeakRssGiB` (compare artifacts with telemetry)
-- `result.reportInfo.path` (artifact anchor)
-
-## Canonical Files
-
-- `src/cli/doppler-cli.js`
-- `benchmarks/runners/transformersjs-bench.js`
-- `benchmarks/runners/transformersjs-runner.html`
-- `benchmarks/vendors/registry.json`
-- `benchmarks/vendors/capabilities.json`
-- `benchmarks/vendors/compare-engines.config.json`
-- `benchmarks/vendors/local-gpu-challenger-matrix.json`
-- `benchmarks/vendors/model-competition-scoreboard.json`
-- `benchmarks/vendors/results/`
-- `tools/local-gpu-challengers.js`
-- `src/config/runtime/profiles/throughput.json`
-- `docs/developer-guides/README.md`
-
-## Protocol References
-
-- `docs/agents/benchmark-protocol.md` — vendor benchmark registry and update checklist
-- `docs/agents/hardware-notes.md` — GPU memory assumptions
+Runs model workloads and writes benchmark artifacts. Registry, support-matrix, claim,
+documentation, publication, and deployment changes require a separate request.
 
 ## Related Skills
 
-- `doppler-perf` for decode/prefill diagnosis and tuning after a benchmark exposes a problem
-- `doppler-debug` for correctness regressions discovered during bench runs
-- `doppler-convert` when conversion format or quantization differences affect perf
+- `doppler-perf` for diagnosing a measured bottleneck.
+- `doppler-debug` for correctness failures.
+- `doppler-convert` for artifact-format failures.

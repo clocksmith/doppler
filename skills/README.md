@@ -3,6 +3,7 @@
 `skills/` is the canonical skill registry for this repository.
 
 Required aliases:
+- `.agents/skills -> ../skills`
 - `.claude/skills -> ../skills`
 - `.gemini/skills -> ../skills`
 - `.codex/skills -> ../skills`

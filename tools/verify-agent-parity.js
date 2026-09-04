@@ -16,6 +16,7 @@ export const REQUIRED_INSTRUCTION_ALIASES = Object.freeze([
 ]);
 
 export const REQUIRED_SKILL_ALIASES = Object.freeze([
+  { path: '.agents/skills', target: '../skills' },
   { path: '.claude/skills', target: '../skills' },
   { path: '.gemini/skills', target: '../skills' },
   { path: '.codex/skills', target: '../skills' },

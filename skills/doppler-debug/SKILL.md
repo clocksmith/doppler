@@ -1,12 +1,26 @@
 ---
 name: doppler-debug
-description: Diagnose inference regressions with Doppler's shared browser/Node command contract, runtime profiles, and report artifacts. (project)
+description: Diagnose a reproducible Doppler inference regression using its browser/Node command contract, runtime profiles, and receipts; repair it only when requested.
 ---
 
 # DOPPLER Debug Skill
 
+Diagnosis is read-only. Patch the identified owner only when the user's request includes implementation.
+
 Use this skill when generation fails, outputs drift, or Node/browser parity breaks.
 Use this skill with `doppler-bench` when investigating performance regressions.
+
+## Prerequisites
+
+Supply the failing command, expected output, immutable model/artifact identity,
+resolved runtime profile, cache state, execution surface, and a comparable baseline.
+
+## Procedure
+
+1. Reproduce the exact command and capture its structured receipt.
+2. Follow the required ladder below from command parity through model-byte evidence.
+3. Report the first mismatch; only if repair is requested, patch its owner and rerun
+   the same command plus the focused regression under identical controls.
 
 ## Mandatory Style Guides
 
@@ -212,3 +226,24 @@ npm run debug -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},
 
 - `doppler-bench` for perf regression quantification
 - `doppler-convert` when conversion integrity is suspected
+
+## Validation
+
+The original command passes with the same model, artifact, runtime profile, cache
+state, and surface, and a focused regression proves the repaired boundary.
+
+## Stop Conditions
+
+Stop before changing kernels when the receipt identifies orchestration, artifact,
+or configuration as the wall. Stop if model bytes, resolved profile, or baseline
+command cannot be identified.
+
+## Outputs
+
+A receipt-bound diagnosis naming the first mismatched layer and, for an authorized
+repair, the focused regression and identical-control rerun result.
+
+## Side Effects
+
+Diagnosis reads artifacts and may run local/browser probes. Authorized repair may edit
+Doppler and create test or trace artifacts; model conversion and benchmarks stay separate.
