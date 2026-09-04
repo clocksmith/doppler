@@ -1,11 +1,21 @@
 ---
 name: doppler-convert
-description: Convert GGUF or SafeTensors assets into Doppler RDRR manifests/shards using the current Node command surface, then verify load + inference. (project)
+description: Convert identified GGUF or SafeTensors assets into Doppler RDRR manifests and shards, then verify load and inference for the specified model.
 ---
 
 # DOPPLER Convert Skill
 
-Use this skill to add or re-convert models for Doppler runtime.
+## Prerequisites
+
+Supply the source model path and format, immutable source identity, intended Doppler
+model ID, conversion configuration, output root, and the inference probe to validate.
+
+## Procedure
+
+1. Read the required conversion contracts and select the matching documented command.
+2. Dry-run or inspect the resolved plan, then convert into the identified output root.
+3. Validate manifest and shard integrity, load the exact generated model, and run the
+   supplied inference probe before any copy or promotion.
 
 ## Mandatory Style Guides
 
@@ -175,3 +185,24 @@ When conversion quality is in question, follow the triage protocol in `docs/agen
 
 - `doppler-debug` for runtime correctness after conversion
 - `doppler-bench` for perf regressions between variants
+
+## Validation
+
+The generated manifest and shards pass load validation and complete the documented
+inference probe with the expected model identity and output contract.
+
+## Stop Conditions
+
+Stop before copying or promoting artifacts when source identity, conversion
+configuration, shard integrity, or inference verification is missing. Never infer
+parity from conversion success alone.
+
+## Outputs
+
+An RDRR manifest and shards bound to the source/config identities, plus load and
+inference evidence for the specified model.
+
+## Side Effects
+
+Writes conversion artifacts to the supplied output root and may load them locally.
+Copying, registry changes, promotion, and benchmark claims require separate requests.

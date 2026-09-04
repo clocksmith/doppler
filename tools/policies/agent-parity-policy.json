@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-02-23",
+  "updated": "2026-09-04",
   "instructionCanonicalPath": "AGENTS.md",
   "instructionAliases": [
     {
@@ -13,6 +13,10 @@
     }
   ],
   "skillAliases": [
+    {
+      "path": ".agents/skills",
+      "target": "../skills"
+    },
     {
       "path": ".claude/skills",
       "target": "../skills"

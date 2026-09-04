@@ -316,6 +316,7 @@ Do not add throwaway log statements. Use existing trace categories, config-drive
 - `CLAUDE.md` must be a symlink to `AGENTS.md`.
 - `GEMINI.md` must be a symlink to `AGENTS.md`.
 - `skills/` is the canonical skill registry directory.
+- `.agents/skills` must be a symlink to `../skills`.
 - `.claude/skills` must be a symlink to `../skills`.
 - `.gemini/skills` must be a symlink to `../skills`.
 - `.codex/skills` must be a symlink to `../skills`.

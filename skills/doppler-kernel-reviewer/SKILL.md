@@ -1,77 +1,51 @@
 ---
 name: doppler-kernel-reviewer
-description: Review kernels against DOPPLER style guide and propose style guide updates.
+description: Review a named Doppler kernel and wrapper against the existing style guides when a concrete kernel path or diff is supplied.
 ---
 
-# Kernel Reviewer
+# Doppler Kernel Review
 
-This skill helps you review DOPPLER kernels (WGSL, JS wrappers, .d.ts) against the official style guides. It also supports proposing changes to the style guides themselves.
+## Prerequisites
 
-## Mandatory Style Guides
+- Identify the kernel JS wrapper, declaration, WGSL sources, and review diff.
+- Read `docs/style/general-style-guide.md`,
+  `docs/style/javascript-style-guide.md`, and `docs/style/wgsl-style-guide.md`.
+- Read `docs/style/config-style-guide.md` when selection or path metadata changes.
 
-Read these before non-trivial kernel review or kernel-wrapper edits:
-- `docs/style/general-style-guide.md`
-- `docs/style/javascript-style-guide.md`
-- `docs/style/wgsl-style-guide.md`
+## Procedure
 
-Also read `docs/style/config-style-guide.md` when the review touches rule selection, dtype policy, or kernel-path metadata.
+1. Trace config/rules to the execution-v1 dispatch identity and wrapper/WGSL files.
+2. Run the mechanical checks:
 
-## Developer Guide Routing
+   ```bash
+   node skills/doppler-kernel-reviewer/scripts/lint-kernel.js <kernel.js>
+   node skills/doppler-kernel-reviewer/scripts/lint-kernel.js <kernel.wgsl>
+   node --check <kernel.js>
+   ```
 
-When the review turns into implementation guidance, also open:
-- `docs/developer-guides/README.md`
+3. Apply `skills/doppler-kernel-reviewer/rules/checklist.md`.
+4. Verify JSON owns selection, JS owns orchestration, and WGSL owns deterministic
+   arithmetic/memory transforms.
+5. Report findings by severity with exact file and line references.
 
-Common routes:
-- activation-specific implementation work: `docs/developer-guides/10-activation-implementation.md`
-- new kernel or kernel-variant work: `docs/developer-guides/11-wgsl-kernel.md`
-- attention-kernel changes: `docs/developer-guides/13-attention-variant.md`
-- cache/layout changes that require kernel compatibility work: `docs/developer-guides/15-kvcache-layout.md`
+## Validation
 
-## Plane Contract (Review Invariant)
+The lint and syntax commands pass or every failure is reported, every checklist item
+has an evidence reference, and performance findings cite a comparable benchmark or
+profiling receipt rather than inference from shader text.
 
-See also: `docs/style/general-style-guide.md#invariants-quick-reference` (execution plane contract).
+## Stop Conditions
 
-- JSON rules + config assets own kernel selection and feature toggles.
-- Execution-v1 manifests own explicit dispatch identities; reviewers should reject implicit legacy fallback assumptions.
-- JS wrappers own orchestration (validation, binding/pipeline setup, dispatch lifecycle).
-- WGSL owns deterministic arithmetic and memory transforms only.
-- A review must flag any ad-hoc, implicit behavior branching in JS or WGSL that bypasses rule assets/config resolution.
-- Kernel speed claims are invalid when cadence, readback, submit, or dispatch receipts show orchestration is the wall. Review the benchmark/debug receipt before attributing a win or loss to WGSL math.
+Stop if the kernel or governing execution identity is not named. Do not change style
+guides, kernels, manifests, or runtime policy during a review unless the user separately
+requests implementation.
 
-## Workflows
+## Outputs
 
-### 1. Review Kernel
+A review report containing findings, evidence, unresolved questions, and the exact
+commands run.
 
-**Goal**: Verify that a specific kernel complies with `docs/style/*.md`.
+## Side Effects
 
-**Steps**:
-1. Read kernel files:
-   - `src/gpu/kernels/<name>.js`
-   - `src/gpu/kernels/<name>.d.ts`
-   - WGSL sources referenced by the JS wrapper (typically under `src/gpu/kernels/`)
-2. Run mechanical checks:
-   - `node skills/doppler-kernel-reviewer/scripts/lint-kernel.js src/gpu/kernels/<name>.js`
-   - `node skills/doppler-kernel-reviewer/scripts/lint-kernel.js src/gpu/kernels/<name>.wgsl`
-3. Run syntax check for wrapper JS:
-   - `node --check src/gpu/kernels/<name>.js`
-4. Perform manual checklist review:
-   - `skills/doppler-kernel-reviewer/rules/checklist.md`
-   - `docs/style/general-style-guide.md`
-   - `docs/style/javascript-style-guide.md`
-   - `docs/style/wgsl-style-guide.md`
-5. Report findings ordered by severity with concrete file references.
-
-### 2. Update Style Guide
-
-**Goal**: Propose a change to the style guides to improve clarity or support new patterns.
-
-**Steps**:
-1. Read the relevant guide (for WGSL: `docs/style/wgsl-style-guide.md`).
-2. Propose a concrete diff in the style guide file.
-3. Justify the change based on runtime correctness, portability, or maintainability.
-4. If the guide changes, update checklist/lint heuristics in this skill to stay aligned.
-
-## Resources
-- `rules/checklist.md`: Condensed style rules.
-- `scripts/lint-kernel.js`: Automated regex checks.
-- `docs/developer-guides/README.md`: extension playbook routing.
+Read-only unless the user separately authorizes fixes. Style-guide authorship is not
+part of this skill.
