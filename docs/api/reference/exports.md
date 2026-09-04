@@ -34,6 +34,38 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `openPack`
   - `RUNTIME_CORE_VERSION`
 
+## `doppler-gpu/pack`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/pack.d.ts](../../../src/pack.d.ts)
+- Implementation: [src/pack.js](../../../src/pack.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `buildPackV2`
+  - `buildPackV3`
+  - `DopplerPack`
+  - `DopplerPackV3`
+  - `getPackIdentity`
+  - `hashPackReleaseEvent`
+  - `hashPackV2`
+  - `hashPackV3`
+  - `migratePackV2`
+  - `PackIdentity`
+  - `PackReleaseEvent`
+  - `PackReleasePolicy`
+  - `PackSigner`
+  - `ReleaseCheckpoint`
+  - `signPackReleaseEvent`
+  - `signPackV2`
+  - `signPackV3`
+  - `validatePack`
+  - `validatePackReleaseEvent`
+  - `validatePackV2`
+  - `validatePackV3`
+  - `verifyPack`
+  - `verifyPackReleaseEvents`
+
 ## `doppler-gpu/compat`
 
 - Audience: legacy application authors

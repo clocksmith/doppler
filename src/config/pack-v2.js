@@ -216,19 +216,10 @@ function validateProgram(pack, artifacts, errors) {
   }
 }
 
-export function validatePackV2(pack, options = {}) {
+export function validatePackExecutable(pack) {
   const errors = [];
-  if (!isObject(pack)) return { ok: false, errors: ['Doppler Pack v2 must be a non-null object.'] };
-  requireExactKeys(pack, new Set([
-    'schema', 'schemaVersion', 'packId', 'modelId', 'createdAtUtc', 'semanticRoot',
-    'modelIR', 'targetPlans', 'wgslModules', 'artifacts', 'program', 'release', 'signature',
-  ]), 'pack', errors);
-  if (pack.schema !== PACK_V2_SCHEMA_ID) errors.push(`schema must be "${PACK_V2_SCHEMA_ID}".`);
-  if (pack.schemaVersion !== PACK_V2_SCHEMA_VERSION) errors.push(`schemaVersion must be ${PACK_V2_SCHEMA_VERSION}.`);
-  requireString(pack.packId, 'packId', errors);
+  if (!isObject(pack)) return { ok: false, errors: ['Pack executable must be an object.'] };
   requireString(pack.modelId, 'modelId', errors);
-  requireInstant(pack.createdAtUtc, 'createdAtUtc', errors);
-  requireDigest(pack.semanticRoot, 'semanticRoot', errors);
 
   const modelValidation = validateModelIR(pack.modelIR);
   if (!modelValidation.ok) errors.push(...modelValidation.errors.map((error) => `modelIR: ${error}`));
@@ -237,18 +228,6 @@ export function validatePackV2(pack, options = {}) {
   const artifacts = validateArtifacts(pack, errors);
   const modules = validateModules(pack, artifacts, errors);
   validateProgram(pack, artifacts, errors);
-
-  const releaseValidation = validatePackReleaseContract(pack.release, {
-    targetIds: Array.isArray(pack.targetPlans)
-      ? pack.targetPlans.map((plan) => plan?.targetId).filter(Boolean)
-      : [],
-  });
-  if (!releaseValidation.ok) {
-    errors.push(...releaseValidation.errors);
-  }
-  requireExactKeys(pack.signature, new Set([
-    'authority', 'algorithm', 'publicKeyDigest', 'signatureHex', 'signedDigest',
-  ]), 'signature', errors);
 
   if (!Array.isArray(pack.targetPlans) || pack.targetPlans.length === 0) {
     errors.push('targetPlans must be a non-empty array.');
@@ -282,6 +261,30 @@ export function validatePackV2(pack, options = {}) {
     }
   }
 
+  return { ok: errors.length === 0, errors };
+}
+
+export function validatePackV2(pack, options = {}) {
+  const errors = [];
+  if (!isObject(pack)) return { ok: false, errors: ['Doppler Pack v2 must be a non-null object.'] };
+  requireExactKeys(pack, new Set([
+    'schema', 'schemaVersion', 'packId', 'modelId', 'createdAtUtc', 'semanticRoot',
+    'modelIR', 'targetPlans', 'wgslModules', 'artifacts', 'program', 'release', 'signature',
+  ]), 'pack', errors);
+  if (pack.schema !== PACK_V2_SCHEMA_ID) errors.push(`schema must be "${PACK_V2_SCHEMA_ID}".`);
+  if (pack.schemaVersion !== PACK_V2_SCHEMA_VERSION) errors.push(`schemaVersion must be ${PACK_V2_SCHEMA_VERSION}.`);
+  requireString(pack.packId, 'packId', errors);
+  requireInstant(pack.createdAtUtc, 'createdAtUtc', errors);
+  requireDigest(pack.semanticRoot, 'semanticRoot', errors);
+  errors.push(...validatePackExecutable(pack).errors);
+  errors.push(...validatePackReleaseContract(pack.release, {
+    targetIds: Array.isArray(pack.targetPlans)
+      ? pack.targetPlans.map((plan) => plan?.targetId).filter(Boolean)
+      : [],
+  }).errors);
+  requireExactKeys(pack.signature, new Set([
+    'authority', 'algorithm', 'publicKeyDigest', 'signatureHex', 'signedDigest',
+  ]), 'signature', errors);
   const computedRoot = hashPackV2(pack);
   if (SHA256_PATTERN.test(pack.semanticRoot || '') && pack.semanticRoot !== computedRoot) {
     errors.push(`semanticRoot mismatch: expected ${computedRoot}, received ${pack.semanticRoot}.`);

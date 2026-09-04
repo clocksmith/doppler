@@ -57,14 +57,15 @@ const matrix = await readJson(MATRIX_PATH);
     'correctness-performance-claims',
   ]);
   assert.equal(report.actions.length, matrix.blockers.length);
-  assert.deepEqual(report.actions.map((action) => action.priority), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  assert.equal(report.actions[0].code, 'paid-doppler-production-release-missing');
+  assert.deepEqual(report.actions.map((action) => action.priority), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  assert.equal(report.actions[0].code, 'external-executable-model-adoption-missing');
   assert.equal(report.actions[0].completionClass, 'application');
   assert.equal(report.actions[0].statusCommand, 'npm run model-release:check');
-  assert.equal(report.goals[0].label, 'Ship one external Electron production release');
+  assert.equal(report.goals[0].label, 'Earn external executable-model adoption and a lower-effort second release');
   assert.deepEqual(
     matrix.goals[0].rows.map((row) => row.id),
     [
+      'external-executable-model-adoption',
       'canonical-production-release-contract',
       'electron-reference-release',
       'pack-first-electron-reranking',

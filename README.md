@@ -20,12 +20,16 @@ browsers and Node. Bun lanes remain experimental.
 Doppler’s mission is to make supported local-model releases inspectable at the
 source, artifact, plan, kernel, application-acceptance, and receipt boundaries.
 
-The current goal is to shorten release-to-JavaScript without weakening source
-fidelity or product evidence. Forge inspects and normalizes source truth, lowers
+The primary goal is an unrelated application voluntarily shipping a Doppler
+executable model for a measured application improvement, retaining it, and
+shipping a second revision with less release effort. Release governance supports
+that goal. P2P is optional; neither peer delivery nor internal benchmarks prove adoption. Forge inspects and normalizes source truth, lowers
 it through ModelIR, verifies and qualifies TargetPlans, and packages the retained
 closure. Runtime receipts then prove which immutable Pack and qualified plan an
 application executed, while promotion, requalification, rollback, and revocation
-keep support decisions explicit.
+keep support decisions explicit. Pack v2 remains readable; the new
+[Pack v3 migration](docs/pack-identity-migration.md) separates executable identity
+from signed release events without rewriting historical Packs.
 
 Doppler serves:
 

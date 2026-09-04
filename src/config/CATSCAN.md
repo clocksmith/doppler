@@ -27,6 +27,8 @@ Resolve all runtime-visible policy from validated, traceable, single-source conf
 - Required values are never recreated as hidden runtime defaults.
 - Nullable disabled state remains distinct from missing state.
 - Runtime overlays cannot silently rewrite conversion-owned facts.
+- Pack v3 executable identity excludes release events; Pack v2 history remains readable.
+- Signed release history must satisfy explicit trust, time, and persisted-checkpoint policy.
 
 ## Acceptance
 

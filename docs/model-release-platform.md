@@ -6,13 +6,19 @@ initial product contract is deliberately narrow:
 - Entry product: **Doppler Production Release**.
 - Recurring product: **Doppler Release Operations**.
 - Initial ICP: **TypeScript/Electron desktop products on Windows and macOS**.
-- North star: **Production model releases whose eligibility decision is
-  delegated to Doppler and relied upon by the customer’s activation system.**
+- Primary win: an unrelated application voluntarily ships a Doppler executable
+  model for a measured application improvement, retains it, and ships a second
+  revision with less release effort. P2P is optional and never substitutes for adoption.
+- Release eligibility, rollback, revocation, and paid operations support that
+  executable-model adoption; they are not an alternative primary win condition.
 
 Doppler signs an `eligible` or `blocked` recommendation. The customer’s updater,
 deployment system, feature flag, or administrator retains authority to activate
 and roll back the release. Doppler tooling and its GitHub Action must never
 self-promote or deploy the customer application.
+
+Schema version 4 adds the primary adoption gate without changing historical
+commercial or fleet evidence. Payment and eligibility remain separately tracked.
 
 The validated contract is
 `tools/policies/model-release-platform.json`. `npm run model-release:check`
@@ -59,7 +65,9 @@ Reploid generation, Dream embedding retrieval, and Columbo reranking are:
 > mechanics.
 
 Their 3/3 qualification establishes neither external adoption nor commercial
-demand. Commercial proof requires one paid external Electron release whose
+demand. Primary adoption requires a measured application improvement, voluntary
+maintainer acceptance, retained use, and a second revision with less release
+effort. The separate commercial proof requires one paid external Electron release whose
 customer activation system relies on Doppler’s eligibility decision, followed
 by a subsequent upgrade through the same process. Two additional unrelated
 customers must then repeat the path.
@@ -83,9 +91,12 @@ drift across all seven release elements:
 6. Failed-upgrade preservation.
 7. Portable state-snapshot identity.
 
-Complete immutable release binding is the enclosing requirement, not an eighth
-element. This closes the repository Pack representation; it does not qualify a
-production revocation authority or supply external customer evidence.
+Pack v2 remains readable and historical bytes are not rewritten. The compatible
+v3 path separates executable identity from signed, chained release events; see
+[Pack identity migration](pack-identity-migration.md). Event verification adds
+explicit time, checkpoint persistence, anti-rollback, revocation, and key rotation.
+This is contract implementation, not production authority qualification or
+external customer evidence.
 
 ## Pack-first production path
 
@@ -149,5 +160,5 @@ grants a narrower use. Shared learning is limited to sanitized failure
 signatures, minimized synthetic reproductions, public evidence, and
 customer-approved derived patterns.
 
-External release dependence is the operating objective. Acquisition interest
+Executable-model adoption and lower-effort repeat releases are the operating objective. Acquisition interest
 is a possible consequence, not a substitute for completing the release path.

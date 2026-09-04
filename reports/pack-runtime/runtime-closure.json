@@ -1,8 +1,8 @@
 {
   "schema": "doppler.pack-runtime-closure/v1",
   "entrypoint": "src/pack-runtime.js",
-  "fileCount": 18,
-  "sourceBytes": 113167,
+  "fileCount": 24,
+  "sourceBytes": 137130,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -22,8 +22,8 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 6980,
-      "hash": "sha256:61ba61e2ef3fbf79b12815f666350295e2f10ce2d3a800e8de9c952f728bf950"
+      "sizeBytes": 11748,
+      "hash": "sha256:9f7093a517a5c96226d161391091b5dd0ea8e0b1bfbacfac9f93eb8cedd8a4fc"
     },
     {
       "path": "src/client/runtime/fetch-pack-artifact-store.js",
@@ -51,6 +51,11 @@
       "hash": "sha256:7f9f1d5fca337d3bf4e355b76f59b7060a01ecea67d48a5c0c5b33f8352b118b"
     },
     {
+      "path": "src/client/runtime/verified-pack-artifact-store.js",
+      "sizeBytes": 2147,
+      "hash": "sha256:449b9fda99ffae095cc0960c9b2b3ccf98274230878f43df19981e3c04ab9971"
+    },
+    {
       "path": "src/config/initial-execution-identity.js",
       "sizeBytes": 14511,
       "hash": "sha256:766e0b5ad44b53cc9756806fdb22f50fde9eb914d7c54ca4cf0a329fbee24a5a"
@@ -71,9 +76,34 @@
       "hash": "sha256:40e1181d92ff5c5af9059fdc1dd9cfb4e704773af91ace7ed2ac2f3e17d72ca9"
     },
     {
+      "path": "src/config/pack-release-events.js",
+      "sizeBytes": 7809,
+      "hash": "sha256:6d3adca07228370a9f125f63c33c68c59e371f2e4197322af3a718ac4fb893d1"
+    },
+    {
+      "path": "src/config/pack-sequence-receipt.js",
+      "sizeBytes": 814,
+      "hash": "sha256:7009ff8f822c42b1f43c61e2a8b14933dc5dcf736e3847f248fcf0f7586ae1e9"
+    },
+    {
+      "path": "src/config/pack-signature.js",
+      "sizeBytes": 2787,
+      "hash": "sha256:8f45d78e620444533bdb50268fc18dc9133f4e1f67ff0bea91148d487b8fcf30"
+    },
+    {
       "path": "src/config/pack-v2.js",
-      "sizeBytes": 18989,
-      "hash": "sha256:25079df9c8faeb1f41ec1929f31749890e780a75a3e33a9831232d1d06a6cc30"
+      "sizeBytes": 19169,
+      "hash": "sha256:24bf659e18e236161ba451be60017d24691c2b15f3ced300ded1b65e64e970a1"
+    },
+    {
+      "path": "src/config/pack-v3.js",
+      "sizeBytes": 3601,
+      "hash": "sha256:6c01d5206ef99d6a5592a2e56343b259ed67c2dc5f11d6b39e6460564337b487"
+    },
+    {
+      "path": "src/config/pack.js",
+      "sizeBytes": 1857,
+      "hash": "sha256:87a2a3e5fc981a62bfdb6da1e20800e85f31dd5f870cc78fd97f7d0a5be793f5"
     },
     {
       "path": "src/config/target-plan.js",

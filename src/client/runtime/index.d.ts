@@ -1,8 +1,8 @@
 import type { ChatMessage } from '../../inference/pipelines/text/chat-format.js';
 import type { GenerateOptions } from '../../generation/index.js';
 import type { LogitsStepResult, PrefillResult } from '../../inference/pipelines/text/types.d.ts';
-import type { DopplerPackV2 } from '../../config/pack-v2.js';
-import type { DopplerRuntimeSession } from './composition-root.js';
+import type { DopplerPack } from '../../config/pack.js';
+import type { DopplerRuntimeSession, PackSessionOptions } from './composition-root.js';
 import type { TargetPlan } from '../../config/target-plan.js';
 import type {
   DopplerLoadOptions,
@@ -35,7 +35,7 @@ export interface DopplerNamespace {
   (prompt: string, options: DopplerCallOptions): AsyncGenerator<string, void, void>;
   load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
   open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
-  openPack(pack: string | DopplerPackV2, options?: DopplerPackOpenOptions): Promise<DopplerRuntimeSession>;
+  openPack(pack: string | DopplerPack, options?: DopplerPackOpenOptions): Promise<DopplerRuntimeSession>;
   generate(
     model: DopplerModelSource,
     input: DopplerPromptInput,
@@ -52,7 +52,7 @@ export interface DopplerNamespace {
   removePersistentModel(model: DopplerModelSource): Promise<boolean>;
 }
 
-export interface DopplerPackOpenOptions {
+export interface DopplerPackOpenOptions extends PackSessionOptions {
   artifactStore?: object;
   /** Explicit Pack signing authorities. No development or package key is trusted by default. */
   trustedSigners?: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
@@ -69,7 +69,7 @@ export interface DopplerRuntimeService {
   doppler: DopplerNamespace;
   load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
   open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
-  openPack(pack: string | DopplerPackV2, options?: DopplerPackOpenOptions): Promise<DopplerRuntimeSession>;
+  openPack(pack: string | DopplerPack, options?: DopplerPackOpenOptions): Promise<DopplerRuntimeSession>;
   generate(
     model: DopplerModelSource,
     input: DopplerPromptInput,
@@ -86,7 +86,7 @@ export interface DopplerRuntimeService {
 export declare function createDopplerRuntimeService(options: {
   ensureWebGPUAvailable: () => Promise<void>;
   defaultLoadProgressLogger?: ((event: DopplerLoadProgress) => void) | null;
-  resolvePackInput?: ((source: unknown, options?: DopplerPackOpenOptions) => Promise<{ pack: DopplerPackV2; artifactStore: object }>) | null;
+  resolvePackInput?: ((source: unknown, options?: DopplerPackOpenOptions) => Promise<{ pack: DopplerPack; artifactStore: object }>) | null;
 }): DopplerRuntimeService;
 
 export declare function resolvePackProgramLoadOptions(targetPlan: TargetPlan): {

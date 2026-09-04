@@ -24,9 +24,11 @@ client/failure-taxonomy.d.ts
 client/fault-injection.d.ts
 client/receipt.d.ts
 client/runtime/node-quickstart-cache.d.ts
+client/runtime/pack-artifact-source.d.ts
 client/runtime/pack-program-adapter.d.ts
 client/runtime/source-runtime.d.ts
 client/runtime/storage.d.ts
+client/runtime/verified-pack-artifact-store.d.ts
 config/dtype-transition-contract.d.ts
 config/evidence/token-cost-classifier-policy.json
 config/evidence/workflow-ownership-policy.json
@@ -57,6 +59,7 @@ config/merge-helpers.js
 config/merge/execution-patches.d.ts
 config/merge/kernel-path-policy.d.ts
 config/merge/value-selection.d.ts
+config/pack-sequence-receipt.d.ts
 config/pack-v0-trusted-signers.d.ts
 config/pack-v0-trusted-signers.js
 config/param-categories.d.ts
@@ -91,7 +94,9 @@ config/schema/observation-policy-registry.schema.json
 config/schema/optimization-candidate.schema.json
 config/schema/optimization-contract.schema.json
 config/schema/optimization-receipt.schema.json
+config/schema/pack-release-event.schema.json
 config/schema/pack-v2.schema.json
+config/schema/pack-v3.schema.json
 config/schema/platform.schema.js
 config/schema/policy-schema-registry.json
 config/schema/product-integration-evaluation-capture.schema.json
@@ -767,6 +772,7 @@ tooling/node-file-fetch.d.ts
 tooling/node-pack-artifact-store.d.ts
 tooling/node-source-runtime.d.ts
 tooling/node-webgpu.d.ts
+tooling/pack.d.ts
 tooling/program-bundle-host.d.ts
 tooling/program-bundle-host.js
 tooling/program-bundle/materialize.d.ts

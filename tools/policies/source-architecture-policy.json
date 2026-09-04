@@ -31,6 +31,7 @@
     "index-browser": "client",
     "index": "client",
     "pack-runtime": "client",
+    "pack": "config",
     "sw": "storage",
     "tooling-experimental-exports.browser": "experimental",
     "tooling-experimental-exports": "experimental",

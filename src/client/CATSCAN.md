@@ -27,6 +27,8 @@ Make qualified local model workloads easy to invoke while preserving exact resol
 - Logical requests resolve to visible artifact and execution identities.
 - Exact pins and policy-authorized alternatives are honored.
 - Public facade behavior remains aligned across declared hosts.
+- Pack execution consumes verified artifact bytes, never an unverified refetch.
+- Pack-bound operations report selected-plan and artifact-closure evidence.
 
 ## Acceptance
 

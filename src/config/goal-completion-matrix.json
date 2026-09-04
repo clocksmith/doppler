@@ -5,7 +5,7 @@
   "goals": [
     {
       "id": "local-webgpu-product-surface",
-      "label": "Ship one external Electron production release",
+      "label": "Earn external executable-model adoption and a lower-effort second release",
       "status": "partial",
       "claimAllowed": false,
       "evidencePaths": [
@@ -14,6 +14,7 @@
         "tools/policies/model-release-platform.json"
       ],
       "blockers": [
+        "external-executable-model-adoption-missing",
         "customer-electron-fleet-receipts-missing",
         "customer-rollback-drill-missing",
         "paid-doppler-production-release-missing",
@@ -21,6 +22,24 @@
         "three-unrelated-design-partners-missing"
       ],
       "rows": [
+        {
+          "id": "external-executable-model-adoption",
+          "label": "Primary application adoption and lower-effort repeat release",
+          "tier": "tier1",
+          "status": "partial",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/goals.md",
+            "tools/policies/model-release-platform.json"
+          ],
+          "blockers": [
+            "external-executable-model-adoption-missing"
+          ]
+        },
         {
           "id": "canonical-production-release-contract",
           "label": "Canonical Doppler Production Release contract",
@@ -915,8 +934,21 @@
   ],
   "blockers": [
     {
+      "code": "external-executable-model-adoption-missing",
+      "priority": 1,
+      "owner": "doppler-product",
+      "completionClass": "application",
+      "statusCommand": "npm run model-release:check",
+      "description": "External executable-model adoption and measured lower-effort repeat release remain unproved.",
+      "exitCriteria": "Retain unrelated maintainer acceptance, frozen application-owned outcome improvement with parity-qualified incumbent comparison, customer-operated devices, a rejected candidate and recovery, continued use, and a second model revision with measured lower release effort. Neither payment nor peer delivery satisfies this gate.",
+      "evidencePaths": [
+        "docs/goals.md",
+        "tools/policies/model-release-platform.json"
+      ]
+    },
+    {
       "code": "post-promotion-monitoring-receipts-missing",
-      "priority": 8,
+      "priority": 9,
       "owner": "doppler-release",
       "completionClass": "human-promotion",
       "statusCommand": "npm run promotion:monitoring:check",
@@ -938,7 +970,7 @@
     },
     {
       "code": "signed-live-revocation-authority-missing",
-      "priority": 3,
+      "priority": 4,
       "owner": "doppler-security",
       "completionClass": "production-authority",
       "statusCommand": "npm run revocations:authority:check",
@@ -966,7 +998,7 @@
     },
     {
       "code": "provider-conformance-receipts-missing",
-      "priority": 6,
+      "priority": 7,
       "owner": "doppler-runtime",
       "completionClass": "hardware",
       "statusCommand": "npm run provider:conformance:check",
@@ -988,7 +1020,7 @@
     },
     {
       "code": "runtime-ownership-decisions-missing",
-      "priority": 7,
+      "priority": 8,
       "owner": "doppler-product",
       "completionClass": "hardware",
       "statusCommand": "npm run runtime:ownership:check",
@@ -1013,7 +1045,7 @@
     },
     {
       "code": "pack-first-surface-migration-incomplete",
-      "priority": 9,
+      "priority": 10,
       "owner": "doppler-runtime",
       "completionClass": "repository",
       "statusCommand": "npm run model-release:check",
@@ -1034,7 +1066,7 @@
     },
     {
       "code": "paid-doppler-production-release-missing",
-      "priority": 1,
+      "priority": 2,
       "owner": "doppler-product",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
@@ -1052,7 +1084,7 @@
     },
     {
       "code": "customer-electron-fleet-receipts-missing",
-      "priority": 2,
+      "priority": 3,
       "owner": "doppler-release",
       "completionClass": "hardware",
       "statusCommand": "npm run model-release:check",
@@ -1070,7 +1102,7 @@
     },
     {
       "code": "customer-rollback-drill-missing",
-      "priority": 4,
+      "priority": 5,
       "owner": "doppler-release",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
@@ -1086,7 +1118,7 @@
     },
     {
       "code": "three-unrelated-design-partners-missing",
-      "priority": 5,
+      "priority": 6,
       "owner": "doppler-product",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",

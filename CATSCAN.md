@@ -6,7 +6,7 @@ Parent: none
 
 ## Target
 
-Deliver inspectable, evidence-backed local model execution for JavaScript applications.
+Earn voluntary executable-model adoption by an unrelated JavaScript application through measured application improvement and a lower-effort second release.
 
 ## Authority
 
@@ -27,6 +27,7 @@ Deliver inspectable, evidence-backed local model execution for JavaScript applic
 - Supported behavior is stronger than available code and must remain explicitly scoped.
 - Artifact, tokenizer, graph, kernel, provider, and runtime-policy identity remain inspectable.
 - Unsupported or unresolved execution choices fail closed.
+- Release governance supports adoption; peer delivery remains optional.
 
 ## Acceptance
 

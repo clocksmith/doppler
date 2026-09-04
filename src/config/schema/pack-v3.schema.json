@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:pack-schema:v3",
+  "title": "Doppler immutable executable Pack v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schemaVersion", "packId", "modelId", "semanticRoot", "modelIR", "targetPlans", "wgslModules", "artifacts", "program", "signature"],
+  "properties": {
+    "schema": { "const": "doppler.pack/v3" },
+    "schemaVersion": { "const": 3 },
+    "packId": { "type": "string", "minLength": 1 },
+    "modelId": { "$ref": "urn:doppler:pack-schema:v2#/properties/modelId" },
+    "semanticRoot": { "$ref": "urn:doppler:pack-schema:v2#/$defs/digest" },
+    "modelIR": { "$ref": "urn:doppler:pack-schema:v2#/properties/modelIR" },
+    "targetPlans": { "$ref": "urn:doppler:pack-schema:v2#/properties/targetPlans" },
+    "wgslModules": { "$ref": "urn:doppler:pack-schema:v2#/properties/wgslModules" },
+    "artifacts": { "$ref": "urn:doppler:pack-schema:v2#/properties/artifacts" },
+    "program": { "$ref": "urn:doppler:pack-schema:v2#/properties/program" },
+    "signature": { "$ref": "urn:doppler:pack-schema:v2#/properties/signature" }
+  }
+}

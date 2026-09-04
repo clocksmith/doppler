@@ -11,8 +11,11 @@ for JavaScript applications. The immediate product contract is:
 - Entry product: **Doppler Production Release**.
 - Recurring product: **Doppler Release Operations**.
 - Initial ICP: **TypeScript/Electron desktop products on Windows and macOS**.
-- North star: **Production model releases whose eligibility decision is
-  delegated to Doppler and relied upon by the customer’s activation system.**
+- Primary win: an unrelated application voluntarily ships a Doppler executable
+  model for a measured application improvement, retains it, and ships a second
+  revision with less release effort. P2P is optional and never substitutes for adoption.
+- Release eligibility, rollback, revocation, and paid operations support that
+  executable-model adoption; they are not an alternative primary win condition.
 
 Doppler determines and signs release eligibility. It does not activate or roll
 back the customer application. The customer’s updater, deployment system,
@@ -42,10 +45,13 @@ typed exclusions, retained failures, and a signed `eligible` or `blocked`
 recommendation. **Doppler Release Operations** repeats that process for upgrades,
 requalification, incidents, revocation, and support-fleet changes.
 
-The promotion gate is external and repeatable: a customer activation system
-must rely on Doppler’s eligibility decision for a production release and its
-subsequent upgrade while retaining activation and rollback authority. An
-internal Pack proof cannot satisfy the gate.
+The primary promotion gate is external and repeatable: an unrelated maintainer
+accepts the unchanged application integration because its predeclared outcome
+improves against the strongest practical incumbent. Customer-operated devices,
+output parity, retained losses, one rejected candidate, recovery, continued use,
+and a subsequent model revision with measured lower release effort are required.
+Eligibility remains supporting release evidence. An internal Pack, benchmark,
+paid eligibility decision, or peer transfer alone cannot satisfy adoption.
 
 `tools/policies/model-release-platform.json` is the validated projection of
 this product contract. `npm run model-release:check` binds its Forge, ModelIR,
@@ -60,26 +66,32 @@ when it satisfies the application contract.
 
 ## Immediate operating order: one independent customer proof
 
-Development now serves the external release episode rather than adding more
-architecture. Doppler must sell one paid Electron production release and remain
-provider-neutral. The frozen comparison includes the customer's strongest
+Development serves one maintained external Electron document-search application
+using Qwen reranking. It must adopt the complete source-to-execution path for a
+measured application outcome and repeat with less release effort. Doppler stays
+provider-neutral; paid release operations support, but do not replace, adoption. The frozen comparison includes the customer's strongest
 incumbent, Doppler Runtime when eligible, and optional DoeRuntime only when the
 customer separately authorizes it. The winning qualified TargetPlan is the one
 that passes the application contract; product branding grants no preference.
 
 Completion requires all of the following as separate retained evidence:
 
-- a paid external production release;
+- voluntary external maintainer acceptance and application-owned outcome improvement;
+- frozen incumbent/output parity and raw application measurements;
+- retained use and a second revision with measured lower release effort;
 - customer-operated Windows and macOS fleet receipts;
 - a signed Pack eligibility decision used by the customer's promotion system;
 - preserved rejected candidates and their failure bundles;
 - an authorized revocation and atomic rollback drill; and
 - a subsequent model upgrade delegated to Doppler.
 
-The three remaining Pack-first compatibility migrations stay deferred unless
+The three remaining generic Pack-first compatibility migrations stay deferred unless
 the selected customer's workload reaches one. Glimmer, model count, and runtime
 superiority do not outrank this proof. The independent-product test is strict:
-Doppler Production Release must remain purchasable and operable without Doe.
+Doppler's executable-model path must remain operable and independently chosen
+without Doe, Reploid, or peer delivery. The transport-neutral artifact-source
+contract accepts verified cache, HTTP, offline, or authorized peer bytes;
+Poolday owns discovery and assignment, not Doppler.
 
 The researched outreach pipeline is governed by
 `tools/policies/electron-design-partner-prospects.json` and documented in
@@ -87,7 +99,7 @@ The researched outreach pipeline is governed by
 they are not customers, authorized workloads, qualification evidence, or
 commercial proof.
 
-## Goal 1: Ship one external Electron production release
+## Goal 1: Earn executable-model adoption in one external Electron application
 
 Product contract:
 
@@ -144,12 +156,14 @@ does not imply task quality.
 
 ### Decisive product gate
 
-The first decisive product gate is one paid external Electron application whose
-activation system relies on Doppler’s eligibility decision for a production
-release and its subsequent upgrade. The release must preserve the previous Pack,
+The first decisive product gate is one externally maintained Electron application
+that voluntarily chooses a Doppler executable model because a predeclared
+application outcome improves, retains it, and ships the second revision with
+less release effort. The release must preserve the previous Pack,
 retain a failed or rejected candidate, exercise customer-controlled rollback and
 revocation, and bind exact application, artifact, execution, and supported-device
-identity. Two additional unrelated customers must then repeat the path.
+identity. Two additional unrelated customers are later commercial expansion,
+not substitutes for the first application's adoption evidence.
 
 The repository-side release toolchain is implemented: production-release/v1,
 the seven-element Pack binding, Pack-first reranking, `doppler release`, the
@@ -157,7 +171,7 @@ Electron state/renderer adapter, and the reusable non-promoting GitHub check all
 have executable contract tests. That implementation does not close the decisive
 gate. Exact customer-operated Windows/macOS receipts, a promoted production
 revocation authority, customer activation/rollback evidence, the subsequent
-upgrade, and three unrelated paid customers remain external evidence classes
+upgrade, adoption, and later unrelated paid customers remain external evidence classes
 and may not be synthesized from repository fixtures.
 
 Reploid generation, Dream embedding retrieval, and Columbo reranking are exactly:

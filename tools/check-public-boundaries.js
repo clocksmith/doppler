@@ -12,9 +12,11 @@ import { assertPackageSourceClosure } from './package-source-closure.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
-  maxEntryCount: 1700,
-  maxPackedSize: 2_050_000,
-  maxUnpackedSize: 10_600_000,
+  // Pack v3, signed release events, and the public Pack facade add checked closure.
+  // Measured package: 1710 entries, 2.052 MB packed, 10.616 MB unpacked.
+  maxEntryCount: 1720,
+  maxPackedSize: 2_060_000,
+  maxUnpackedSize: 10_650_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -58,7 +60,7 @@ const FILE_RULES = [
     file: 'src/pack-runtime.d.ts',
     allowed: new Set([
       './version.js',
-      './config/pack-v2.js',
+      './config/pack.js',
       './client/runtime/composition-root.js',
       './client/runtime/fetch-pack-artifact-store.js',
     ]),

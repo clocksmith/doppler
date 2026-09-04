@@ -84,6 +84,15 @@ export function createPackProgramAdapter(modelHandle, pack, targetPlan) {
       }
     },
 
+    async encodeSequence(sequence, options) {
+      if (modelHandle.supportsSequence !== true || typeof modelHandle.encodeSequence !== 'function') {
+        throw new Error('Loaded Doppler Pack does not declare sequence execution.');
+      }
+      try {
+        return await modelHandle.encodeSequence(sequence, options);
+      } finally { assertNoPlanMutation(); }
+    },
+
     async executePhase(phase, request) {
       if (!arraysEqual(request.declaredStepIds, declaredByPhase[phase])) {
         throw new Error(`Pack program phase "${phase}" command closure changed after qualification.`);
