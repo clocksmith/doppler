@@ -6,6 +6,7 @@ import { runMatmul } from '../gpu/kernel-selector.js';
 import { createTensor } from '../gpu/tensor.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { getShaderModule } from '../gpu/kernels/shader-cache.js';
+import { getShaderScopeCacheKey } from '../gpu/kernels/shader-source-scope.js';
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
@@ -287,7 +288,7 @@ export class MoERouter {
   }
 
   async _getBiasAddPipeline(logitsDtype, biasDtype, device) {
-    const key = `${logitsDtype}_${biasDtype}`;
+    const key = `${getShaderScopeCacheKey()}:${logitsDtype}_${biasDtype}`;
     const cached = this._biasAddPipelines.get(key);
     if (cached) return cached;
 

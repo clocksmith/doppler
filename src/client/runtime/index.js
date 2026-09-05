@@ -28,6 +28,7 @@ import { isNodeRuntime } from '../../storage/runtime-env.js';
 import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { getKernelCapabilities, initDevice } from '../../gpu/device.js';
+import { runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
 import { createDopplerRuntime } from './composition-root.js';
 import { createPackProgramAdapter } from './pack-program-adapter.js';
 import { createPackArtifactSource } from './pack-artifact-source.js';
@@ -247,7 +248,7 @@ export function createDopplerRuntimeService({
         },
       }
       : await resolveManifestArtifactSource(resolved, manifestPayload);
-    await initDevice();
+    await runWithShaderSourceScope(null, () => initDevice());
     const embeddingLimitError = resolveManifestGpuResidentEmbeddingLimitError(
       resolvedArtifactSource.manifest,
       {
@@ -361,7 +362,7 @@ export function createDopplerRuntimeService({
     if (!resolvedPack?.pack || !resolvedPack?.artifactStore) {
       throw new Error('Pack source resolver must return pack and artifactStore.');
     }
-    const gpuDevice = await initDevice();
+    const gpuDevice = await runWithShaderSourceScope(null, () => initDevice());
     const capabilities = getKernelCapabilities();
     const device = {
       getDevice() {

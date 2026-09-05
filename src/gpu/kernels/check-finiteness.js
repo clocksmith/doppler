@@ -1,4 +1,5 @@
-import { getDevice, getDeviceEpoch } from '../device.js';
+import { getDevice } from '../device.js';
+import { getShaderScopeCacheKey } from './shader-source-scope.js';
 import { dispatchKernel } from './dispatch.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
 import {
@@ -39,7 +40,7 @@ function getCheckFinitenessBindGroupLayout(device) {
 }
 
 async function getCheckFinitenessPipeline() {
-    const epoch = getDeviceEpoch();
+    const epoch = getShaderScopeCacheKey();
     if (checkFinitenessPipeline && checkFinitenessPipelineEpoch === epoch) return checkFinitenessPipeline;
     const device = getDevice();
     const shaderModule = await getShaderModule(device, 'check_finiteness.wgsl', 'check_finiteness');

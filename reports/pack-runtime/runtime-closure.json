@@ -1,8 +1,8 @@
 {
   "schema": "doppler.pack-runtime-closure/v1",
   "entrypoint": "src/pack-runtime.js",
-  "fileCount": 24,
-  "sourceBytes": 138529,
+  "fileCount": 28,
+  "sourceBytes": 152407,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -22,13 +22,23 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 11748,
-      "hash": "sha256:9f7093a517a5c96226d161391091b5dd0ea8e0b1bfbacfac9f93eb8cedd8a4fc"
+      "sizeBytes": 12623,
+      "hash": "sha256:0e177fca2a5e3683e1f72b72c9aca7650259d854ebebcd174a1a54f462330176"
     },
     {
       "path": "src/client/runtime/fetch-pack-artifact-store.js",
       "sizeBytes": 1130,
       "hash": "sha256:f95991a5ee21cd4b7c0ce3c2ea5554a5bff6547ed632d1a9ba93aa56284fb571"
+    },
+    {
+      "path": "src/client/runtime/pack-operation-adapters.js",
+      "sizeBytes": 4010,
+      "hash": "sha256:7bc33d30cbdfd0e08ddb1d7535124a7f8df3e6cceb34d26cc735fdf65868d37a"
+    },
+    {
+      "path": "src/client/runtime/pack-operation-executor.js",
+      "sizeBytes": 4515,
+      "hash": "sha256:badc7c1076e49cec35b85dfb359a3f349807ad431253194fb277c7a6d4a8cc49"
     },
     {
       "path": "src/client/runtime/pack-rerank.js",
@@ -42,8 +52,8 @@
     },
     {
       "path": "src/client/runtime/session-controller.js",
-      "sizeBytes": 7781,
-      "hash": "sha256:79ea4007e817e1f6d971a0b0605b0c4a5897d0135b468d3736409bb3687a393f"
+      "sizeBytes": 7788,
+      "hash": "sha256:4c2884f6bbe0742e490292c8ce736f6e8ba91364ee410d09440ee2843b8873a3"
     },
     {
       "path": "src/client/runtime/target-selector.js",
@@ -69,6 +79,16 @@
       "path": "src/config/model-ir.js",
       "sizeBytes": 6644,
       "hash": "sha256:f970113567f8dd296b28fc76d4711a7bc21d2c51185e1ed630d9e52ce6b23219"
+    },
+    {
+      "path": "src/config/pack-operation.js",
+      "sizeBytes": 3747,
+      "hash": "sha256:96a84ec353ebc8f2eb7208182de3ae5f92eef45c39bb9921128fda7ee2f8dd39"
+    },
+    {
+      "path": "src/config/pack-operations.json",
+      "sizeBytes": 724,
+      "hash": "sha256:f3be0cb503afa4ba8ceb63e093d3db9e2fece023d9edeeb840b0f45c4bb6a170"
     },
     {
       "path": "src/config/pack-release-contract.js",

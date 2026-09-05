@@ -1,6 +1,7 @@
 
 
-import { getDevice, getDeviceEpoch } from '../device.js';
+import { getDevice } from '../device.js';
+import { getShaderScopeCacheKey } from './shader-source-scope.js';
 import { acquireBuffer, readBufferSlice } from '../../memory/buffer-pool.js';
 import { recordDispatch } from './dispatch.js';
 import { createUniformBufferFromData } from './uniform-utils.js';
@@ -30,7 +31,7 @@ function getCheckStopBindGroupLayout(device) {
 
 
 async function getCheckStopPipeline() {
-  const epoch = getDeviceEpoch();
+  const epoch = getShaderScopeCacheKey();
   if (checkStopPipeline && checkStopPipelineEpoch === epoch) return checkStopPipeline;
   const device = getDevice();
   const shaderModule = await getShaderModule(device, 'check_stop.wgsl', 'check_stop');

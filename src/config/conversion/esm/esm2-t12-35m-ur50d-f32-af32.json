@@ -369,12 +369,52 @@
   },
   "execution": {
     "inlineKernelPath": true,
+    "mechanismKernels": [
+      "rope_precompute", "gather_vec4", "scale", "scale_inplace", "bias_add",
+      "split_qkv", "rope_qk", "attention_general", "residual_vec4", "embedding_pool"
+    ],
     "policies": {
       "unsupportedPrecision": "error",
       "dtypeTransition": "require_cast_step",
       "unresolvedKernel": "error"
     },
     "kernels": {
+      "rope_precompute": {
+        "kernel": "rope_precompute.wgsl", "entry": "main",
+        "digest": "sha256:0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8"
+      },
+      "gather_vec4": {
+        "kernel": "gather_vec4.wgsl", "entry": "gather_vec4",
+        "digest": "sha256:e8d90b826350a9feb96476fc4a5e568aebfc29948cf07a2d7db0dee4a4216b6a"
+      },
+      "scale": {
+        "kernel": "scale.wgsl", "entry": "main",
+        "digest": "sha256:8070894b1488c76bdf6685b99243e0fadd79a2511b52b22b91ba1ead9990831c"
+      },
+      "scale_inplace": {
+        "kernel": "scale.wgsl", "entry": "main_inplace",
+        "digest": "sha256:c1dcc2a3c04fe3836457724ccc45dbbee9423ad3710febcf91107f3a23c46cb2"
+      },
+      "split_qkv": {
+        "kernel": "split_qkv.wgsl", "entry": "main",
+        "digest": "sha256:57d1e55354e019598c7c39b98b9a48c99269a59506cca3a376fd690b96e15d54"
+      },
+      "rope_qk": {
+        "kernel": "rope_qk.wgsl", "entry": "main",
+        "digest": "sha256:379186c35451a1bf08f3d157db52e48f4865c92caee230656fd55b7fa500351c"
+      },
+      "attention_general": {
+        "kernel": "attention.wgsl", "entry": "main",
+        "digest": "sha256:9e066a9a201a8b10707995a4b64322c68641873afb017e8f96d5249edc6caf55"
+      },
+      "residual_vec4": {
+        "kernel": "residual_vec4.wgsl", "entry": "add_vec4",
+        "digest": "sha256:99e8217beb9ebc661ae8da6dde06196c0746e884421fe803b1a8bcea22e753b1"
+      },
+      "embedding_pool": {
+        "kernel": "embedding_pool_f32.wgsl", "entry": "main",
+        "digest": "sha256:0e5769590d038ee8b9ebea1600114de9b5044d7f26cd323d54ab14f0536e9c10"
+      },
       "embed": {
         "kernel": "gather.wgsl",
         "entry": "main",

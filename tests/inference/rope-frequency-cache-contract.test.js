@@ -30,6 +30,7 @@ globalThis.GPUBuffer = FakeBuffer;
 const { setDevice } = await import('../../src/gpu/device.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
 const { initRoPEFrequencies } = await import('../../src/inference/pipelines/text/init.js');
+const { createShaderSourceScope, runWithShaderSourceScope } = await import('../../src/gpu/kernels/shader-source-scope.js');
 
 function createFakeDevice() {
   const createdBuffers = [];
@@ -148,6 +149,15 @@ const ropeConfig = {
   assert.equal(second.localSin, first.localSin);
   assert.equal(device.createdBuffers.length, createdBuffersAfterFirst);
   assert.equal(device.writeBufferCount, writeBufferCountAfterFirst);
+  // Warm frequency buffers must not conceal a missing declared Pack kernel.
+  await assert.rejects(
+    () => runWithShaderSourceScope(createShaderSourceScope(new Map()),
+      () => initRoPEFrequencies(ropeConfig, true)),
+    /rope_precompute.wgsl is outside the verified Pack source closure/
+  );
+  const restored = await initRoPEFrequencies(ropeConfig, true);
+  assert.equal(restored.cos, first.cos);
+  assert.equal(restored.sin, first.sin);
   resetRuntimeState();
 }
 

@@ -13,6 +13,7 @@ export interface PackProgramAdapter {
   reset(): void;
   rerank(request: Omit<PackRerankRequest, 'application'>): ReturnType<DopplerModelHandle['rerankWithEvidence']>;
   encodeSequence(sequence: string, options?: Record<string, unknown>): ReturnType<DopplerModelHandle['encodeSequence']>;
+  embed(text: string, options?: Record<string, unknown>): ReturnType<DopplerModelHandle['embed']>;
   executePhase(phase: string, request: Record<string, unknown>): Promise<unknown>;
   releaseStepResult(result: Record<string, unknown> | null): void;
   close(): Promise<void>;

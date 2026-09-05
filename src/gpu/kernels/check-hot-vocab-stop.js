@@ -1,4 +1,5 @@
-import { getDevice, getDeviceEpoch } from '../device.js';
+import { getDevice } from '../device.js';
+import { getShaderScopeCacheKey } from './shader-source-scope.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { recordDispatch } from './dispatch.js';
 import { createUniformBufferFromData } from './uniform-utils.js';
@@ -27,7 +28,7 @@ function getBindGroupLayout(device) {
 }
 
 async function getPipeline() {
-  const epoch = getDeviceEpoch();
+  const epoch = getShaderScopeCacheKey();
   if (pipeline && pipelineEpoch === epoch) {
     return pipeline;
   }

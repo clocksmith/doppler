@@ -288,8 +288,12 @@ const sourceText = await fs.readFile(
   new URL('../../src/client/runtime/index.js', import.meta.url),
   'utf8'
 );
+const revocationCheck = sourceText.indexOf('await assertBundledResolutionNotRevoked(revocationIdentity)');
+const deviceInitialization = sourceText.indexOf('await runWithShaderSourceScope(null, () => initDevice())');
+assert.ok(revocationCheck >= 0 && deviceInitialization >= 0,
+  'the root runtime must retain both revocation enforcement and scoped device initialization');
 assert.ok(
-  sourceText.indexOf('assertBundledResolutionNotRevoked({') < sourceText.indexOf('await initDevice()'),
+  revocationCheck < deviceInitialization,
   'the root runtime must enforce bundled revocation before device initialization'
 );
 

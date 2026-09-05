@@ -2,6 +2,7 @@
 
 import { log } from '../../debug/index.js';
 import { getSharedDeviceEpoch } from '../device-state.js';
+import { getScopedShaderSource } from './shader-source-scope.js';
 
 // ============================================================================
 // Caches
@@ -113,6 +114,8 @@ export function hasPreseededShaderSource(filename) {
 }
 
 export async function loadShaderSource(filename) {
+  const scoped = getScopedShaderSource(filename);
+  if (scoped) return scoped.source;
   if (shaderSourceCache.has(filename)) {
     const cached = shaderSourceCache.get(filename);
     touchCacheEntry(shaderSourceCache, filename, cached);
@@ -198,7 +201,8 @@ export async function getShaderModule(
   label
 ) {
   ensureModuleCacheEpoch();
-  const cacheKey = `${getDeviceId(device)}:${shaderFile}`;
+  const scoped = getScopedShaderSource(shaderFile);
+  const cacheKey = `${getDeviceId(device)}:${shaderFile}:${scoped?.digest ?? 'runtime'}`;
   const cached = shaderModuleCache.get(cacheKey);
   if (cached) {
     touchCacheEntry(shaderModuleCache, cacheKey, cached);

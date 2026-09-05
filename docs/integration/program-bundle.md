@@ -166,6 +166,19 @@ This is a tree-shaking/capture contract, not a general JS compiler target.
 
 ## WGSL Closure
 
+The public Pack loader binds verified WGSL bytes to its pipeline. Shader and
+compute-pipeline cache keys include source identity; a warm runtime cache or
+consumer preseed cannot supply a module outside that Pack's closure. Public
+pipeline invocations lease their shader context through completion or iterator
+cleanup. Calls using different source sets are serialized within the runtime
+realm; direct low-level kernel calls are not a concurrent execution API.
+
+Conversion-owned `execution.mechanismKernels` declares required initialization,
+pooling, and optimized dispatch helpers alongside graph steps. Missing helpers
+fail closed rather than refetching the runtime's model shaders. Device-bootstrap
+probes belong to the installed runtime and must be available separately before
+model execution; they do not authorize model-kernel fallback.
+
 The exporter reads the manifest execution graph, expands execution-v1, collects
 reachable kernel refs, and emits only the reachable WGSL modules. Each module
 must have:

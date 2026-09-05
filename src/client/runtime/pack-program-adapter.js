@@ -93,6 +93,12 @@ export function createPackProgramAdapter(modelHandle, pack, targetPlan) {
       } finally { assertNoPlanMutation(); }
     },
 
+    async embed(text, options) {
+      if (typeof modelHandle.embed !== 'function') throw new Error('Loaded Doppler Pack does not expose text embeddings.');
+      try { return await modelHandle.embed(text, options); }
+      finally { assertNoPlanMutation(); }
+    },
+
     async executePhase(phase, request) {
       if (!arraysEqual(request.declaredStepIds, declaredByPhase[phase])) {
         throw new Error(`Pack program phase "${phase}" command closure changed after qualification.`);

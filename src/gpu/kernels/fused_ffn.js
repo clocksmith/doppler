@@ -1,6 +1,7 @@
 
 
-import { getDevice, getDeviceEpoch, getKernelCapabilities } from '../device.js';
+import { getDevice, getKernelCapabilities } from '../device.js';
+import { getShaderScopeCacheKey } from './shader-source-scope.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
@@ -159,7 +160,7 @@ function pipelineConstantsKey(constants) {
 }
 
 async function getFusedNormedFFNPipeline(device, constants = null) {
-  const epoch = getDeviceEpoch();
+  const epoch = getShaderScopeCacheKey();
   if (fusedNormedFFNEpoch !== epoch) {
     fusedNormedFFNEpoch = epoch;
     fusedNormedFFNPipelines = new Map();

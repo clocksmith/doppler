@@ -19,6 +19,7 @@ globalThis.GPUShaderStage = {
 
 const { LogitMergeKernel } = await import('../../src/gpu/kernels/logit-merge.js');
 const { setDevice } = await import('../../src/gpu/device.js');
+const { createShaderSourceScope, runWithShaderSourceScope } = await import('../../src/gpu/kernels/shader-source-scope.js');
 
 class FakeBuffer {
   constructor({ size, usage, label }) {
@@ -48,8 +49,10 @@ function createDeferred() {
 
 function createFakeDevice(workDoneDeferred) {
   const createdBuffers = [];
+  const compiledSources = [];
   return {
     createdBuffers,
+    compiledSources,
     features: new Set(),
     limits: {
       maxStorageBufferBindingSize: 1 << 20,
@@ -77,6 +80,7 @@ function createFakeDevice(workDoneDeferred) {
       return descriptor;
     },
     createShaderModule(descriptor) {
+      compiledSources.push(descriptor.code);
       return descriptor;
     },
     async createComputePipelineAsync(descriptor) {
@@ -155,6 +159,41 @@ async function flushMicrotasks() {
   await flushMicrotasks();
 
   assert.equal(device.createdBuffers[1].destroyed, true);
+}
+
+{
+  const deferred = createDeferred();
+  const device = createFakeDevice(deferred);
+  setDevice(device, { platformConfig: null });
+  const kernel = new LogitMergeKernel();
+  await kernel.init();
+  assert.equal(device.compiledSources.length, 3);
+  await assert.rejects(
+    () => runWithShaderSourceScope(createShaderSourceScope(new Map()), () => kernel.init()),
+    /logit_merge_weighted.wgsl is outside the verified Pack source closure/
+  );
+  const sources = new Map(['weighted', 'max', 'geometric'].map((strategy) =>
+    [`logit_merge_${strategy}.wgsl`, `// scoped fixture ${strategy}`]));
+  const scope = createShaderSourceScope(sources);
+  await runWithShaderSourceScope(scope, async () => {
+    await kernel.init();
+    await kernel.init();
+    assert.equal(device.compiledSources.length, 6);
+    assert.deepEqual(device.compiledSources.slice(3), [...sources.values()]);
+  });
+  // A failed replacement must not leave the previous scope marked initialized
+  // after clearing its pipelines. Exercise actual use, not just init's return.
+  await assert.rejects(
+    () => runWithShaderSourceScope(createShaderSourceScope(new Map()), () => kernel.init()),
+    /outside the verified Pack source closure/
+  );
+  const a = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
+  const b = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
+  const output = await runWithShaderSourceScope(scope, () =>
+    kernel.merge(a, b, 4, { strategy: 'weighted', weights: [0.5, 0.5], temperature: 1 }));
+  output.destroy();
+  deferred.resolve();
+  await flushMicrotasks();
 }
 
 setDevice(null);

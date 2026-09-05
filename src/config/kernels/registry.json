@@ -1731,8 +1731,8 @@
       "tier": "tiled_large"
      },
      "reachability": {
-      "status": "model-selectable",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
       "ruleChains": ["attention.rules.json#phase"],
       "wgslOnDisk": true
      }
@@ -4815,8 +4815,8 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "selectable",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
       "ruleChains": ["rope-qk.rules.json#variant"],
       "wgslOnDisk": true
      }
@@ -4827,7 +4827,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "selectable",
+      "status": "model-selectable",
       "inlineConfigs": [],
       "ruleChains": ["rope-qk.rules.json#variant"],
       "wgslOnDisk": true
@@ -5050,8 +5050,8 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "selectable",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
       "ruleChains": ["scale.rules.json#variant"],
       "wgslOnDisk": true
      }
@@ -5062,7 +5062,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "selectable",
+      "status": "model-selectable",
       "inlineConfigs": [],
       "ruleChains": ["scale.rules.json#variant"],
       "wgslOnDisk": true
@@ -5074,8 +5074,8 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "selectable",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
       "ruleChains": ["scale.rules.json#variant"],
       "wgslOnDisk": true
      }
@@ -5086,7 +5086,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "selectable",
+      "status": "model-selectable",
       "inlineConfigs": [],
       "ruleChains": ["scale.rules.json#variant"],
       "wgslOnDisk": true
@@ -5848,8 +5848,8 @@
      "requires": [],
      "outputDtype": "f32",
      "reachability": {
-      "status": "model-selectable",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
       "ruleChains": ["gather.rules.json#variant"],
       "wgslOnDisk": true
      }
@@ -6404,8 +6404,8 @@
      "workgroup": [64,1,1],
      "requires": [],
      "reachability": {
-      "status": "model-selectable",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
       "ruleChains": ["residual.rules.json#residualVariant"],
       "wgslOnDisk": true
      }
@@ -8038,8 +8038,8 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "selectable",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
       "ruleChains": ["split-qkv.rules.json#variant"],
       "wgslOnDisk": true
      }
@@ -8050,7 +8050,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "selectable",
+      "status": "model-selectable",
       "inlineConfigs": [],
       "ruleChains": ["split-qkv.rules.json#variant"],
       "wgslOnDisk": true
@@ -13040,8 +13040,8 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -13372,8 +13372,8 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
