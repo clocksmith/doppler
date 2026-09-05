@@ -14,6 +14,7 @@ import { runForgePipeline } from '../converter/forge-stages.js';
 import { hashTargetPlan } from '../config/target-plan.js';
 import { loadPackSigningKey, writePackV2 } from './pack-v2.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
+import { buildReferenceTranscript } from './program-bundle/materialize.js';
 
 export const FORGE_VERSION = '2.0.0';
 
@@ -139,6 +140,27 @@ function hashCanonical(value) {
 }
 
 async function loadQualificationEvidence(reportPaths, bundle) {
+  if (bundle.referenceTranscript?.operation === 'encodeSequence') {
+    const evidence = [];
+    for (const reportPath of reportPaths || []) {
+      const result = await buildReferenceTranscript(reportPath, process.cwd(), bundle.execution.graphHash);
+      const reference = bundle.referenceTranscript;
+      const transcript = result.transcript;
+      if (transcript.operation !== 'encodeSequence' || transcript.modelId !== bundle.modelId
+        || transcript.manifestHash !== reference.manifestHash
+        || hashCanonical(transcript.reference) !== hashCanonical(reference.reference)
+        || hashCanonical(transcript.options) !== hashCanonical(reference.options)) {
+        throw new Error('Forge sequence qualification must use the same model, reference, and request.');
+      }
+      const observed = await hashFile(reportPath);
+      evidence.push({
+        surface: transcript.surface, status: 'passed', operation: 'encodeSequence', encodedSequences: 1,
+        evidenceHash: observed.hash, sizeBytes: observed.sizeBytes, sourcePath: path.resolve(reportPath),
+        transcriptHash: hashCanonical(transcript),
+      });
+    }
+    return evidence;
+  }
   const referenceTokens = bundle.referenceTranscript?.tokens?.ids;
   if (!Array.isArray(referenceTokens) || referenceTokens.length === 0) {
     throw new Error('Forge qualification requires Program Bundle reference token IDs.');
@@ -223,7 +245,7 @@ async function materializeProgramBundle(options) {
   let createdAtUtc = options.createdAtUtc;
   if (!createdAtUtc && options.referenceReportPath) {
     const reference = await readJsonFile(options.referenceReportPath, 'reference report');
-    createdAtUtc = reference.json.timestamp ?? reference.json.createdAtUtc ?? null;
+    createdAtUtc = reference.json.timestamp ?? reference.json.createdAtUtc ?? reference.json.generatedAt ?? null;
   }
   if (!createdAtUtc) {
     throw new Error('Forge requires a stable --created-at or a timestamp in the reference report.');
@@ -357,6 +379,7 @@ export async function forgeModelPack(options) {
     )).json;
     initialExecutionIdentity = identitySource.initialExecutionIdentity
       ?? identitySource.metrics?.initialExecutionIdentity
+      ?? identitySource.runtime?.initialExecutionIdentity
       ?? identitySource;
   }
   const { pack, stages } = await runForgePipeline({

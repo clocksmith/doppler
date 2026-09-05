@@ -4,6 +4,7 @@ import { PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID } from '../../config/sche
 import { sha256Hex } from '../../formats/sha256.js';
 import { stableSortObject } from '../../formats/stable-sort-object.js';
 import { normalizeDigest, requirePlainObject } from './validation.js';
+import { buildSequenceReferenceTranscript } from './sequence-reference.js';
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value)) ?? 'null';
@@ -182,6 +183,9 @@ export async function buildReferenceTranscript(referenceReportPath, repoRoot, ex
   });
   const { json: report } = await readJsonFile(resolvedReportPath, 'reference report');
   requirePlainObject(report, 'reference report');
+  if (report.schema === 'doppler.sequenceModelQualification.v1') {
+    return buildSequenceReferenceTranscript(report, reportArtifact, executionGraphHash);
+  }
   const metrics = report.metrics || {};
   if (!metrics || typeof metrics !== 'object' || Array.isArray(metrics)) {
     throw new Error('program bundle export: reference report must include metrics for transcript identity.');

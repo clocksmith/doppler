@@ -12,6 +12,7 @@ import {
   validateProgramBundle,
 } from '../config/schema/program-bundle.schema.js';
 import { sha256BytesHex, sha256Hex } from '../formats/sha256.js';
+import { computeHash } from '../storage/shard-manager.js';
 import {
   buildReferenceTranscript,
   createPackageSourceFile,
@@ -22,7 +23,6 @@ import {
   toRepoRelativePath,
 } from './program-bundle/materialize.js';
 import {
-  assertSha256ShardHashAlgorithm,
   normalizeDigest,
   requirePlainObject,
   requireString,
@@ -41,14 +41,30 @@ const DEFAULT_HOST_ENTRYPOINTS = Object.freeze([
   }),
 ]);
 
-function shardArtifact(shard, modelDir, repoRoot, hashAlgorithm) {
+async function shardArtifact(shard, modelDir, repoRoot, hashAlgorithm) {
   const filename = requireString(shard?.filename ?? shard?.path, 'shard filename');
-  assertSha256ShardHashAlgorithm(hashAlgorithm, filename);
   const shardPath = path.resolve(modelDir, filename);
+  if (hashAlgorithm === 'sha256') {
+    return {
+      role: 'weight-shard',
+      path: toRepoRelativePath(shardPath, repoRoot),
+      hash: normalizeDigest(shard.hash ?? shard.sha256, `shard ${filename} hash`),
+      sizeBytes: Number.isFinite(shard.size) ? Number(shard.size) : null,
+    };
+  }
+  if (hashAlgorithm !== 'sha256' && hashAlgorithm !== 'blake3') {
+    throw new Error(`program bundle export: weight shard ${filename} requires an explicit supported hashAlgorithm.`);
+  }
+  const bytes = await fs.readFile(shardPath);
+  const expected = requireString(shard.hash, `shard ${filename} hash`).replace(`${hashAlgorithm}:`, '');
+  const observed = await computeHash(bytes, hashAlgorithm);
+  if (observed !== expected || bytes.byteLength !== shard.size) {
+    throw new Error(`program bundle export: source shard ${filename} hash/size mismatch.`);
+  }
   return {
     role: 'weight-shard',
     path: toRepoRelativePath(shardPath, repoRoot),
-    hash: normalizeDigest(shard.hash ?? shard.sha256, `shard ${filename} hash`),
+    hash: `sha256:${sha256BytesHex(bytes)}`,
     sizeBytes: Number.isFinite(shard.size) ? Number(shard.size) : null,
   };
 }
@@ -276,7 +292,7 @@ async function collectArtifacts(options, manifest, manifestArtifact, referenceRe
 
   if (Array.isArray(storageManifest.shards)) {
     for (const shard of storageManifest.shards) {
-      artifacts.push(shardArtifact(
+      artifacts.push(await shardArtifact(
         shard,
         storageModelDir,
         options.repoRoot,
@@ -351,7 +367,12 @@ async function buildProgramBundle(options = {}) {
   const expandedStepHash = hashStableJson(expandedSteps);
   const closure = await buildWgslClosure(execution, expandedSteps, resolvedOptions);
   const executionMetadata = buildExecutionStepMetadata(execution, expandedSteps, closure.modules);
-  const hostResult = await buildHostContract(resolvedOptions.host, resolvedOptions.repoRoot);
+  const hostResult = await buildHostContract(resolvedOptions.host ?? (
+    manifest.inference?.supportsSequence === true ? { entrypoints: [{
+      id: 'sequence-encoding', module: 'src/tooling/program-bundle-host.js',
+      export: 'createSequenceProgram', role: 'model-orchestration',
+    }] } : undefined
+  ), resolvedOptions.repoRoot);
   const host = hostResult.contract;
   const packageFiles = [...closure.packageFiles, ...hostResult.packageFiles]
     .sort((left, right) => left.path.localeCompare(right.path));
@@ -366,6 +387,14 @@ async function buildProgramBundle(options = {}) {
     resolvedOptions.repoRoot,
     executionGraphHash
   );
+  if (reference.transcript.operation === 'encodeSequence') {
+    if (manifest.inference?.supportsSequence !== true
+      || reference.transcript.modelId !== modelId
+      || reference.transcript.manifestHash !== manifestArtifact.hash
+      || reference.transcript.reference.source.checkpointId !== manifest.artifactIdentity?.sourceCheckpointId) {
+      throw new Error('program bundle export: sequence qualification does not bind this exact manifest.');
+    }
+  }
   const artifacts = await collectArtifacts(
     resolvedOptions,
     manifest,

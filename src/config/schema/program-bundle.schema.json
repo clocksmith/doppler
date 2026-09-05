@@ -69,10 +69,77 @@
       }
     },
     "referenceTranscript": {
-      "$ref": "#/$defs/referenceTranscript"
+      "oneOf": [
+        {
+          "$ref": "#/$defs/referenceTranscript"
+        },
+        {
+          "$ref": "#/$defs/sequenceReferenceTranscript"
+        }
+      ]
     }
   },
   "$defs": {
+    "sequenceReferenceTranscript": {
+      "type": "object",
+      "required": [
+        "schema",
+        "operation",
+        "modelId",
+        "surface",
+        "executionGraphHash",
+        "manifestHash",
+        "source",
+        "reference",
+        "options",
+        "output",
+        "checks"
+      ],
+      "properties": {
+        "schema": {
+          "const": "doppler.sequence-reference-transcript/v1"
+        },
+        "operation": {
+          "const": "encodeSequence"
+        },
+        "modelId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "surface": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executionGraphHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "manifestHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "source": {
+          "type": "object"
+        },
+        "reference": {
+          "type": "object"
+        },
+        "options": {
+          "type": "object"
+        },
+        "output": {
+          "type": "object"
+        },
+        "checks": {
+          "type": "array",
+          "minItems": 8,
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"

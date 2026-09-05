@@ -19,6 +19,7 @@ import {
 } from '../config/pack-v2.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
+import { assertSequenceReferenceTranscript } from '../config/sequence-reference.js';
 
 export const FORGE_PIPELINE_VERSION = '2.0.0';
 
@@ -55,6 +56,7 @@ function artifactId(role, artifactPath, hash) {
 }
 
 function resolveLayerType(layerIndex, layerPattern) {
+  if (layerPattern.type === 'uniform') return 'global-attention';
   if (layerPattern.type === 'every_n') {
     const period = requirePositiveInteger(layerPattern.period, 'manifest.inference.layerPattern.period');
     if (!Number.isInteger(layerPattern.offset) || layerPattern.offset < 0 || layerPattern.offset >= period) {
@@ -174,7 +176,9 @@ function normalizeQualificationEvidence(evidence) {
   const evidenceHash = requireString(evidence.evidenceHash, 'qualificationEvidence.evidenceHash');
   const sourcePath = path.resolve(requireString(evidence.sourcePath, 'qualificationEvidence.sourcePath'));
   const sizeBytes = requirePositiveInteger(evidence.sizeBytes, 'qualificationEvidence.sizeBytes');
-  const generatedTokens = requirePositiveInteger(evidence.generatedTokens, 'qualificationEvidence.generatedTokens');
+  const counts = evidence.operation === 'encodeSequence'
+    ? { operation: 'encodeSequence', encodedSequences: requirePositiveInteger(evidence.encodedSequences, 'qualificationEvidence.encodedSequences') }
+    : { generatedTokens: requirePositiveInteger(evidence.generatedTokens, 'qualificationEvidence.generatedTokens') };
   const transcriptHash = requireString(evidence.transcriptHash, 'qualificationEvidence.transcriptHash');
   if (evidence.status !== 'passed') throw new Error('Forge only packages passed qualification evidence.');
   const packPath = toPosix(path.join(
@@ -196,7 +200,7 @@ function normalizeQualificationEvidence(evidence) {
     evidenceArtifactId: artifact.artifactId,
     evidenceHash,
     transcriptHash,
-    generatedTokens,
+    ...counts,
     artifact,
   };
 }
@@ -401,21 +405,28 @@ export function stageAnalyze(normalized) {
       qkNorm: attention.queryKeyNorm === true,
     },
     normalization: {
-      type: normalization.rmsNormWeightOffset === true ? 'gemma-rmsnorm' : 'rmsnorm',
+      type: normalization.type === 'layernorm'
+        ? 'layernorm'
+        : normalization.rmsNormWeightOffset === true ? 'gemma-rmsnorm' : 'rmsnorm',
       eps: normalization.rmsNormEps,
     },
     rope: {
       dimension: requirePositiveInteger(architecture.headDim, 'manifest.architecture.headDim'),
       baseFreq: requirePositiveInteger(inference.rope?.ropeTheta, 'manifest.inference.rope.ropeTheta'),
-      localBaseFreq: requirePositiveInteger(inference.rope?.ropeLocalTheta, 'manifest.inference.rope.ropeLocalTheta'),
+      localBaseFreq: inference.rope?.ropeLocalTheta === null
+        ? null
+        : requirePositiveInteger(inference.rope?.ropeLocalTheta, 'manifest.inference.rope.ropeLocalTheta'),
     },
     ffn: {
       type: ffn.gatedActivation === true ? `gated-${requireString(ffn.activation, 'manifest.inference.ffn.activation')}` : requireString(ffn.activation, 'manifest.inference.ffn.activation'),
       intermediateSize: requirePositiveInteger(architecture.intermediateSize, 'manifest.architecture.intermediateSize'),
     },
     outputTopology: {
-      headType: 'causal-lm',
+      headType: inference.supportsSequence === true ? 'sequence-encoder' : 'causal-lm',
       tieWeights: output.tieWordEmbeddings === true,
+      ...(inference.supportsSequence === true
+        ? { sequence: structuredClone(requireObject(inference.sequence, 'manifest.inference.sequence')) }
+        : {}),
     },
     phases: ['prefill', 'decode'],
     session,
@@ -548,6 +559,31 @@ function buildQualificationRecords(lowered) {
   const referenceArtifact = normalized.artifacts.find((artifact) => artifact.role === 'reference-report');
   if (!referenceArtifact) throw new Error('Forge requires a packaged reference-report artifact.');
   const transcript = normalized.programBundle.referenceTranscript;
+  if (transcript?.operation === 'encodeSequence') {
+    assertSequenceReferenceTranscript(transcript);
+    if (lowered.modelIR.outputTopology?.headType !== 'sequence-encoder'
+      || transcript.manifestHash !== normalized.manifestHash
+      || transcript.modelId !== lowered.modelIR.modelId
+      || transcript.executionGraphHash !== normalized.programBundle.execution.graphHash) {
+      throw new Error('Forge sequence qualification does not match its encoder ModelIR and exact program.');
+    }
+    const surfaces = normalized.programBundle.captureProfile?.surfaces;
+    if (!Array.isArray(surfaces) || surfaces.length !== 1 || surfaces[0] !== transcript.surface) {
+      throw new Error('Forge sequence capture surface must match the actual qualification report.');
+    }
+    return [{
+      surface: transcript.surface,
+      status: 'passed',
+      operation: 'encodeSequence',
+      encodedSequences: 1,
+      evidenceArtifactId: referenceArtifact.artifactId,
+      evidenceHash: referenceArtifact.hash,
+      transcriptHash: hashStable(transcript),
+    }, ...normalized.qualificationEvidence.map(({ artifact, ...record }) => record)];
+  }
+  if (lowered.modelIR.outputTopology?.headType === 'sequence-encoder') {
+    throw new Error('Forge requires sequence qualification for an encoder; generation evidence is insufficient.');
+  }
   const tokens = transcript?.tokens?.ids;
   if (!Array.isArray(tokens) || tokens.length === 0) throw new Error('Forge requires reference transcript token IDs.');
   const generationConfig = transcript?.generationConfig;

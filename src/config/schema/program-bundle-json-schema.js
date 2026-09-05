@@ -64,9 +64,31 @@ export const PROGRAM_BUNDLE_JSON_SCHEMA = Object.freeze({
       minItems: 1,
       items: { $ref: '#/$defs/artifact' },
     },
-    referenceTranscript: { $ref: '#/$defs/referenceTranscript' },
+    referenceTranscript: { oneOf: [
+      { $ref: '#/$defs/referenceTranscript' },
+      { $ref: '#/$defs/sequenceReferenceTranscript' },
+    ] },
   },
   $defs: {
+    sequenceReferenceTranscript: {
+      type: 'object',
+      required: ['schema', 'operation', 'modelId', 'surface', 'executionGraphHash',
+        'manifestHash', 'source', 'reference', 'options', 'output', 'checks'],
+      properties: {
+        schema: { const: 'doppler.sequence-reference-transcript/v1' },
+        operation: { const: 'encodeSequence' },
+        modelId: { type: 'string', minLength: 1 },
+        surface: { type: 'string', minLength: 1 },
+        executionGraphHash: digest,
+        manifestHash: digest,
+        source: { type: 'object' },
+        reference: { type: 'object' },
+        options: { type: 'object' },
+        output: { type: 'object' },
+        checks: { type: 'array', minItems: 8, items: { type: 'object' } },
+      },
+      additionalProperties: false,
+    },
     digest,
     bundlePath,
     artifact: {

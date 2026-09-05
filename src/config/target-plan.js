@@ -194,7 +194,14 @@ export function validateTargetPlan(plan) {
       requireString(record.evidenceArtifactId, `qualification[${index}].evidenceArtifactId`, errors);
       requireDigest(record.evidenceHash, `qualification[${index}].evidenceHash`, errors);
       if (record.transcriptHash !== undefined) requireDigest(record.transcriptHash, `qualification[${index}].transcriptHash`, errors);
-      if (!Number.isInteger(record.generatedTokens) || record.generatedTokens < 1) {
+      if (record.operation === 'encodeSequence') {
+        if (!Number.isInteger(record.encodedSequences) || record.encodedSequences < 1
+          || record.generatedTokens !== undefined || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
+          errors.push(`qualification[${index}] requires encodedSequences and transcriptHash without generatedTokens.`);
+        }
+      } else if (record.operation !== undefined && record.operation !== 'generate') {
+        errors.push(`qualification[${index}].operation is unsupported.`);
+      } else if (!Number.isInteger(record.generatedTokens) || record.generatedTokens < 1) {
         errors.push(`qualification[${index}].generatedTokens must be a positive integer.`);
       }
     }

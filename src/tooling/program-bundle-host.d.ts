@@ -10,3 +10,9 @@ export declare function createTextGenerationProgram(
   bundle: Record<string, unknown>,
   options?: Record<string, unknown>,
 ): unknown;
+
+export function createSequenceProgram(
+  hostBridge: { createSequenceProgram(bundle: Record<string, unknown>, options: Record<string, unknown>): unknown },
+  bundle: Record<string, unknown>,
+  options?: Record<string, unknown>,
+): unknown;

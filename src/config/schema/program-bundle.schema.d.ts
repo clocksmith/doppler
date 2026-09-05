@@ -1,3 +1,4 @@
+import type { SequenceReferenceTranscript } from '../sequence-reference.js';
 export declare const PROGRAM_BUNDLE_SCHEMA_VERSION: 1;
 export declare const PROGRAM_BUNDLE_SCHEMA_ID: 'doppler.program-bundle/v1';
 export declare const PROGRAM_BUNDLE_HOST_SCHEMA_ID: 'doppler.host-js/v1';
@@ -41,7 +42,8 @@ export interface ProgramBundleWgslModule {
   };
 }
 
-export interface ProgramBundleReferenceTranscript {
+export type ProgramBundleReferenceTranscript = SequenceReferenceTranscript | ProgramBundleGenerationTranscript;
+export interface ProgramBundleGenerationTranscript {
   schema: typeof PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID;
   source: {
     kind: string;
