@@ -567,7 +567,7 @@ async function validateGoal(goal, context) {
   const goalId = validateIdentifier(goal?.id, 'goal.id', errors);
   if (!goalId) return;
   const expectedScope = goalId === 'open-execution-network' ? 'technical-network'
-    : goalId === 'local-webgpu-product-surface' ? 'standalone-commercial' : 'supporting';
+    : goalId === 'local-webgpu-product-surface' ? 'standalone' : 'supporting';
   if (goal.acceptanceScope !== expectedScope) errors.push(`${goalId}: acceptanceScope must be ${expectedScope}`);
   validateRequiredString(goal?.label, `${goalId}: label`, errors);
   const expectedGoalLabel = REQUIRED_GOAL_LABELS.get(goalId);

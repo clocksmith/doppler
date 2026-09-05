@@ -20,7 +20,7 @@ for (const field of policy.adoptionGate.requiredEvidence) {
 }
 {
   const peerDependent = clone(policy);
-  peerDependent.adoptionGate.p2pRequired = false;
+  peerDependent.adoptionGate.p2pRequired = true;
   assert.equal((await validateModelReleasePlatform(peerDependent, matrix)).ok, false);
 }
 
@@ -30,7 +30,11 @@ for (const field of policy.adoptionGate.requiredEvidence) {
   assert.equal(report.commercialAssessment, 'unestablished');
   assert.equal(policy.positioning.entryProduct, 'Doppler Production Release');
   assert.equal(policy.positioning.recurringProduct, 'Doppler Release Operations');
-  assert.equal(policy.positioning.initialIcp, 'Independent JavaScript/browser execution-network participants');
+  assert.equal(policy.positioning.initialIcp, 'Independent JavaScript and Electron application maintainers');
+  assert.equal(policy.standaloneAdoptionGate.primary, true);
+  assert.equal(policy.adoptionGate.goalId, 'local-webgpu-product-surface');
+  assert.equal(policy.adoptionGate.paymentRequired, false);
+  assert.equal(policy.adoptionGate.p2pRequired, false);
   assert.equal(report.promotionSequenceScope, 'standalone-commercial');
   assert.equal(report.networkAcceptance.paymentRequired, false);
   assert.equal(policy.commercialOffer.activationAuthority, 'customer-controlled');

@@ -41,7 +41,10 @@ function collectErrors(name, report) {
 export function buildProductReadinessState(reports, contractValid) {
   const networkGoal = reports.goals.goals.find((goal) => goal.id === 'open-execution-network');
   const externalGoal = reports.goals.goals.find((goal) => goal.id === 'local-webgpu-product-surface');
-  const localExecution = networkGoal?.rowStates?.find((row) => row.id === 'esm2-public-pack-execution');
+  const adoption = externalGoal?.rowStates?.find((row) => row.id === 'external-executable-model-adoption');
+  const standaloneProven = externalGoal?.acceptanceScope === 'standalone'
+    && adoption?.claimAllowed === true && ['covered', 'complete'].includes(adoption.status)
+    && adoption.blockers?.length === 0;
   const externalProductionProven = externalGoal?.claimAllowed === true;
   const networkProven = networkGoal?.claimAllowed === true && networkGoal?.status === 'complete'
     && networkGoal?.acceptanceScope === 'technical-network' && networkGoal?.blockers?.length === 0;
@@ -49,13 +52,16 @@ export function buildProductReadinessState(reports, contractValid) {
     contractValid,
     internalMechanicsProven: reports.productIntegrations.gateSatisfied === true
       && reports.providerConformance.gateSatisfied === true,
-    localHardwareProven: localExecution?.claimAllowed === true
-      && ['covered', 'complete'].includes(localExecution.status) && localExecution.blockers?.length === 0,
+    // The adoption contract includes physical application evidence. An unrelated
+    // network component or synthetic integration cannot establish it.
+    localHardwareProven: standaloneProven,
     externalProductionProven,
-    technicalAcceptance: 'open-execution-network',
+    technicalAcceptance: 'standalone-executable-model-adoption',
+    standaloneProven,
     networkProven,
-    productReady: contractValid && networkProven,
-    blockers: networkGoal?.blockers || ['open-execution-network-evidence-missing'],
+    productReady: contractValid && standaloneProven,
+    blockers: adoption?.blockers || ['external-executable-model-adoption-missing'],
+    networkBlockers: networkGoal?.blockers || ['open-execution-network-evidence-missing'],
     standaloneBlockers: externalGoal?.blockers || [],
   };
 }
@@ -102,8 +108,8 @@ function buildSummary(reports) {
     readiness: buildProductReadinessState(reports, contractValid),
     errors,
     goals: reports.goals.goals,
-    actions: reports.goals.actions.filter((action) => action.goals.includes('open-execution-network')),
-    supportingActions: reports.goals.actions.filter((action) => !action.goals.includes('open-execution-network')),
+    actions: reports.goals.actions.filter((action) => buildProductReadinessState(reports, contractValid).blockers.includes(action.code)),
+    supportingActions: reports.goals.actions.filter((action) => !buildProductReadinessState(reports, contractValid).blockers.includes(action.code)),
     contracts: {
       modelReleasePlatform: reports.modelReleasePlatform,
       claimEvidence: {

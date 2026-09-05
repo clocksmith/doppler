@@ -1,15 +1,15 @@
 {
   "$schema": "../../src/config/schema/model-release-platform.schema.json",
-  "schemaVersion": 5,
-  "contractVersion": "4.0.0",
+  "schemaVersion": 6,
+  "contractVersion": "5.0.0",
   "id": "doppler-model-release-platform",
   "positioning": {
     "category": "AI-native model release foundry for JavaScript and WebGPU",
     "entryProduct": "Doppler Production Release",
     "recurringProduct": "Doppler Release Operations",
-    "initialIcp": "Independent JavaScript/browser execution-network participants",
-    "northStar": "A reproducible open execution network delivers useful verified results and improves later assignments through admitted evidence; free adoption counts.",
-    "promise": "Acquire, verify, execute locally, optionally redistribute authorized artifacts, and explicitly delegate complete jobs through Doppler and Poolday.",
+    "initialIcp": "Independent JavaScript and Electron application maintainers",
+    "northStar": "Independent applications retain useful executable models and ship subsequent revisions with less effort; free adoption counts.",
+    "promise": "Compile, package, verify, and execute exact model programs through JavaScript and standard WebGPU without requiring another repository.",
     "buyer": "Revenue and acquisition are commercial hypotheses, not technical acceptance conditions.",
     "unitOfValue": "supported-model-release"
   },
@@ -564,7 +564,7 @@
     ]
   },
   "acquisitionBoundary": {
-    "operatingObjective": "A reproducible open execution network delivers useful verified results and improves later assignments through admitted evidence; free adoption counts.",
+    "operatingObjective": "Independent applications retain useful executable models and ship subsequent revisions with less effort; free adoption counts.",
     "candidateBuyerClasses": [
       "model hubs",
       "browser vendors",
@@ -573,7 +573,7 @@
       "silicon vendors",
       "local-AI application companies"
     ],
-    "rule": "Revenue and acquisition remain commercial hypotheses outside open-network technical acceptance.",
+    "rule": "Revenue and acquisition remain commercial hypotheses outside standalone and network technical acceptance.",
     "requiredForTechnicalAcceptance": false
   },
   "claimBoundary": {
@@ -590,13 +590,17 @@
   "adoptionGate": {
     "primary": true,
     "requiredEvidence": [
-      "voluntary-independent-repeat-use",
-      "useful-oracle-valid-results",
-      "independent-machines-and-operator-provenance"
+      "unrelated-maintainer-acceptance",
+      "application-owned-outcome-improvement",
+      "parity-qualified-incumbent-comparison",
+      "customer-operated-devices",
+      "rejected-candidate-and-recovery",
+      "retained-use",
+      "second-revision-less-release-effort"
     ],
-    "p2pRequired": true,
+    "p2pRequired": false,
     "paymentRequired": false,
-    "goalId": "open-execution-network"
+    "goalId": "local-webgpu-product-surface"
   },
   "networkAcceptance": {
     "goalId": "open-execution-network",
@@ -635,7 +639,7 @@
   },
   "promotionSequenceScope": "standalone-commercial",
   "standaloneAdoptionGate": {
-    "primary": false,
+    "primary": true,
     "requiredEvidence": [
       "unrelated-maintainer-acceptance",
       "application-owned-outcome-improvement",

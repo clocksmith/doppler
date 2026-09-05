@@ -9,6 +9,9 @@ import type {
   PackSessionOptions,
 } from './client/runtime/composition-root.js';
 
+export type { DopplerRuntime, DopplerRuntimeSession, RuntimePorts } from './client/runtime/composition-root.js';
+export type { PackRerankApplicationBinding, PackRerankRequest, PackRerankReceipt } from './client/runtime/pack-rerank.js';
+
 export declare function openPack(
   packOrId: string | DopplerPack,
   options: Omit<RuntimePorts, 'packSource' | 'cache'> & {

@@ -3,5 +3,6 @@ export declare function validateElectronReleaseIpcRequest(
   value: unknown
 ): Record<string, unknown> & { action: string };
 export declare function createElectronReleaseIpcHandler(
-  coordinator: Record<string, (...args: unknown[]) => unknown>
+  coordinator: ElectronReleaseStateCoordinator
 ): (event: unknown, request: unknown) => Promise<unknown>;
+import type { ElectronReleaseStateCoordinator } from './release-state.js';

@@ -136,7 +136,7 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
   if (policy?.promotionSequenceScope !== 'standalone-commercial'
     || policy?.commercialOffer?.requiredForTechnicalAcceptance !== false
     || policy?.acquisitionBoundary?.requiredForTechnicalAcceptance !== false) {
-    errors.push('Standalone promotion, revenue, and acquisition must remain outside network technical acceptance.');
+    errors.push('Commercial promotion, revenue, and acquisition must remain outside standalone and network technical acceptance.');
   }
 
   if (policy?.id !== 'doppler-model-release-platform') errors.push('policy.id must be doppler-model-release-platform');
@@ -270,6 +270,7 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
       .filter((row) => row.completionState === 'external-evidence-required')
       .map((row) => row.id),
     promotionSequenceScope: policy?.promotionSequenceScope,
+    adoptionGate: policy?.adoptionGate,
     networkAcceptance: policy?.networkAcceptance,
   };
 }

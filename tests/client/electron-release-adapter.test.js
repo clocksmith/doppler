@@ -150,6 +150,7 @@ assert.equal((await restarted.resolveCurrent()).semanticRoot, packA.semanticRoot
 
 const controller = new AbortController();
 controller.abort();
+const request = { application: {}, query: 'query', documents: ['document'] };
 let opened = false;
 const cancelledRuntime = createElectronRendererRuntime({
   releaseState: restarted,
@@ -159,7 +160,7 @@ const cancelledRuntime = createElectronRendererRuntime({
   },
 });
 await assert.rejects(
-  cancelledRuntime.rerank('query', ['document'], { signal: controller.signal }),
+  cancelledRuntime.rerank(request, { signal: controller.signal }),
   (error) => error.code === 'DOPPLER_ELECTRON_CANCELLED'
 );
 assert.equal(opened, false);
@@ -168,6 +169,7 @@ let closed = false;
 const deviceLossRuntime = createElectronRendererRuntime({
   releaseState: restarted,
   openPack: async () => ({
+    ...packA,
     async rerank() {
       const error = new Error('adapter removed');
       error.code = 'GPU_DEVICE_LOST';
@@ -179,7 +181,7 @@ const deviceLossRuntime = createElectronRendererRuntime({
   }),
 });
 await assert.rejects(
-  deviceLossRuntime.rerank('query', ['document']),
+  deviceLossRuntime.rerank(request),
   (error) => error.code === 'DOPPLER_ELECTRON_DEVICE_LOST'
 );
 assert.equal(closed, true);

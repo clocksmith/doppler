@@ -63,6 +63,7 @@ const FILE_RULES = [
       './config/pack.js',
       './client/runtime/composition-root.js',
       './client/runtime/fetch-pack-artifact-store.js',
+      './client/runtime/pack-rerank.js',
     ]),
     forbidden: [
       'export * from',

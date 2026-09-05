@@ -64,7 +64,7 @@ const matrix = await readJson(MATRIX_PATH);
   assert.equal(report.actions[0].statusCommand, 'npm run model-release:check');
   assert.equal(report.goals[0].label, 'Reproduce an open ESM-2 execution network');
   assert.equal(report.goals[0].acceptanceScope, 'technical-network');
-  assert.equal(report.goals[1].acceptanceScope, 'standalone-commercial');
+  assert.equal(report.goals[1].acceptanceScope, 'standalone');
   assert.deepEqual(
     matrix.goals[1].rows.map((row) => row.id),
     [

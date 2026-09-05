@@ -1,11 +1,11 @@
 # Doppler Production Release platform
 
 Doppler is an AI-native model release foundry for JavaScript and WebGPU. The
-immediate technical contract is an open ESM-2 execution network with Poolday,
-defined in [goals](goals.md) and the policy's `networkAcceptance`. Independent
-machines, origin-independent recovery, oracle-valid useful results, admitted
-history benefit against frozen schedulers, and voluntary repeat use are required.
-Free adoption counts. This document also preserves the separate standalone offer:
+primary technical contract is standalone executable-model adoption, defined in
+[goals](goals.md) and the policy's `adoptionGate`. Free retained use counts;
+Doe, Poolday, Reploid, and payment are not prerequisites. The optional network
+experiment retains its own `networkAcceptance` and cannot inherit adoption proof.
+The separate commercial offer remains:
 
 - Entry product: **Doppler Production Release**.
 - Recurring product: **Doppler Release Operations**.
@@ -21,7 +21,7 @@ deployment system, feature flag, or administrator retains authority to activate
 and roll back the release. Doppler tooling and its GitHub Action must never
 self-promote or deploy the customer application.
 
-Schema version 5 separates network acceptance from retained standalone
+Schema version 6 makes standalone adoption primary while separating network,
 commercial and fleet evidence. `promotionSequence` is explicitly scoped to
 `standalone-commercial`; payment and acquisition do not determine technical completion.
 
@@ -105,6 +105,15 @@ external customer evidence.
 
 ## Pack-first production path
 
+The [Electron integration example](../examples/electron-document-search/README.md)
+composes explicit runtime ports through public package exports. Renderer
+reranking accepts the same application-bound request object as Pack Runtime;
+release inspection and fail-closed `resolve-current` IPC are separate actions.
+The default production-release checks exercise the renderer together with the
+real signed-Pack contract and a two-release fixture episode. The installed
+tarball smoke repeats the consumer path without repository-private imports.
+These are contract tests with synthetic execution, not physical fleet receipts.
+
 The implemented standalone production path is Electron reranking. It must validate the Pack,
 select a qualified TargetPlan for the exact device tuple, bind a SessionPlan,
 execute the application workload, and retain application and fleet evidence.
@@ -125,7 +134,7 @@ smoke receipt cannot be wrapped into fleet evidence.
 Dynamic model loading remains an explicit intake/conversion compatibility
 surface; it cannot bypass production qualification. Generic OpenAI, generation,
 browser expansion, and unrelated embedding surfaces retain their own support
-boundaries. ESM-2 network qualification is the immediate technical path and is
+boundaries. ESM-2 network qualification is an optional experimental path and is
 not conditional on an external Electron release.
 
 Chromium/WebGPU correctness remains required because Electron executes WebGPU

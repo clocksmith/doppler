@@ -1,5 +1,7 @@
-import type { ElectronReleaseStateCoordinator, ElectronRendererRuntime } from '../../src/client/electron/index.js';
+import type { ElectronReleaseStateCoordinator, ElectronRendererRuntime } from 'doppler-gpu/electron';
+import type { RuntimePorts } from 'doppler-gpu';
 
 export declare function createDocumentSearchRenderer(
-  releaseState: Pick<ElectronReleaseStateCoordinator, 'resolveCurrent'>
+  releaseState: Pick<ElectronReleaseStateCoordinator, 'resolveCurrent'>,
+  runtimePorts: RuntimePorts
 ): ElectronRendererRuntime;
