@@ -2,7 +2,7 @@
   "schema": "doppler.pack-runtime-closure/v1",
   "entrypoint": "src/pack-runtime.js",
   "fileCount": 24,
-  "sourceBytes": 137610,
+  "sourceBytes": 138529,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -72,8 +72,8 @@
     },
     {
       "path": "src/config/pack-release-contract.js",
-      "sizeBytes": 10255,
-      "hash": "sha256:40e1181d92ff5c5af9059fdc1dd9cfb4e704773af91ace7ed2ac2f3e17d72ca9"
+      "sizeBytes": 10634,
+      "hash": "sha256:774d5fd93be9b19c4b96c00bbece219df252018265746fa18f0dc41f813449c5"
     },
     {
       "path": "src/config/pack-release-events.js",
@@ -107,8 +107,8 @@
     },
     {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 13984,
-      "hash": "sha256:d6ca4c149d3eec0f1a08d3d89cc718de539a7a451f0fe8721cfb7c627ded11c8"
+      "sizeBytes": 14524,
+      "hash": "sha256:d43ca45faa179485cecd32c27bb07ef363d8255fa73be93c17a316690d8da394"
     },
     {
       "path": "src/formats/canonical-hash.js",

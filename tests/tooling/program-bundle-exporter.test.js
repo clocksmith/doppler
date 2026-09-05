@@ -8,6 +8,8 @@ import {
   writeProgramBundle,
 } from '../../src/tooling/program-bundle.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
+import { computeHash } from '../../src/storage/shard-manager.js';
+import { sha256BytesHex } from '../../src/formats/sha256.js';
 
 const repoRoot = process.cwd();
 const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-program-bundle-'));
@@ -190,18 +192,47 @@ assert.equal(bundle.referenceTranscript.kvCache.byteDigests[0].keyDigest, kvKeyD
 const blake3ManifestPath = path.join(modelDir, 'manifest-blake3.json');
 const blake3Manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
 blake3Manifest.hashAlgorithm = 'blake3';
+const shardPath = path.join(modelDir, 'shard_00000.bin');
+const shardBytes = Uint8Array.from({ length: 16 }, (_, index) => index);
+await fs.writeFile(shardPath, shardBytes);
+blake3Manifest.shards[0].hash = await computeHash(shardBytes, 'blake3');
 await fs.writeFile(blake3ManifestPath, `${JSON.stringify(blake3Manifest, null, 2)}\n`, 'utf8');
-await assert.rejects(
-  () => exportProgramBundle({
-    repoRoot,
-    manifestPath: blake3ManifestPath,
-    modelDir,
-    referenceReportPath: reportPath,
-    conversionConfigPath,
-    createdAtUtc: '2026-04-22T00:00:00.000Z',
-  }),
-  /requires manifest hashAlgorithm "sha256"; got "blake3"/,
+const exportBlake3 = () => exportProgramBundle({
+  repoRoot,
+  manifestPath: blake3ManifestPath,
+  modelDir,
+  referenceReportPath: reportPath,
+  conversionConfigPath,
+  createdAtUtc: '2026-04-22T00:00:00.000Z',
+});
+const blake3Bundle = await exportBlake3();
+const convertedShard = blake3Bundle.artifacts.find((artifact) => artifact.role === 'weight-shard');
+assert.equal(convertedShard.hash, `sha256:${sha256BytesHex(shardBytes)}`);
+assert.equal(convertedShard.sizeBytes, shardBytes.byteLength);
+assert.notEqual(convertedShard.hash, `sha256:${blake3Manifest.shards[0].hash}`,
+  'Export must verify source bytes and compute SHA-256, not relabel a BLAKE3 digest');
+
+const corruptShard = shardBytes.slice();
+corruptShard[0] ^= 1;
+await fs.writeFile(shardPath, corruptShard);
+await assert.rejects(exportBlake3, /source shard shard_00000.bin hash\/size mismatch/);
+await fs.writeFile(shardPath, shardBytes.subarray(1));
+await assert.rejects(exportBlake3, /source shard shard_00000.bin hash\/size mismatch/);
+await fs.writeFile(shardPath, shardBytes);
+
+blake3Manifest.shards[0].size += 1;
+await fs.writeFile(blake3ManifestPath, JSON.stringify(blake3Manifest), 'utf8');
+await assert.rejects(exportBlake3, /source shard shard_00000.bin hash\/size mismatch/);
+blake3Manifest.shards[0].size = shardBytes.byteLength;
+blake3Manifest.shards[0].hash = `blake3:${blake3Manifest.shards[0].hash}`;
+await fs.writeFile(blake3ManifestPath, JSON.stringify(blake3Manifest), 'utf8');
+assert.equal(
+  (await exportBlake3()).artifacts.find((artifact) => artifact.role === 'weight-shard').hash,
+  convertedShard.hash,
 );
+blake3Manifest.hashAlgorithm = 'unsupported';
+await fs.writeFile(blake3ManifestPath, JSON.stringify(blake3Manifest), 'utf8');
+await assert.rejects(exportBlake3, /requires an explicit supported hashAlgorithm/);
 
 const writtenBundlePath = path.join(fixtureRoot, 'closed', 'program-bundle.json');
 const written = await writeProgramBundle({

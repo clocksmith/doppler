@@ -42,8 +42,8 @@ export interface PackReleaseContract {
     migration: null | { id: string; policyDigest: `sha256:${string}`; required: boolean };
     failedUpgrade: {
       preservePrevious: true;
-      previousPackId: string;
-      previousSemanticRoot: `sha256:${string}`;
+      previousPackId: string | null;
+      previousSemanticRoot: `sha256:${string}` | null;
     };
   };
   revocation: {

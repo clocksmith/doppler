@@ -53,9 +53,24 @@ export function validateSequenceReferenceTranscript(transcript) {
     'pooledEmbedding.parity', 'tokenEmbeddings.parity']) {
     if (byId.get(id)?.passed !== true) errors.push(`Sequence transcript requires passed ${id}.`);
   }
+  const identity = byId.get('model.identity');
+  const checkpoint = value.reference?.source?.checkpointId;
+  if (identity?.actualModelId !== value.modelId || identity?.expectedModelId !== value.modelId
+    || identity?.actualCheckpointId !== checkpoint || identity?.expectedCheckpointId !== checkpoint) {
+    errors.push('Sequence transcript model identity check must match its model and reference checkpoint.');
+  }
+  const contract = byId.get('sequence.contract');
+  const alphabet = value.reference?.input?.alphabet;
+  if (contract?.actualAlphabet !== alphabet || contract?.expectedAlphabet !== alphabet) {
+    errors.push('Sequence transcript alphabet check must match its reference input.');
+  }
+  if (byId.get('logits.not-requested')?.actual !== null) {
+    errors.push('Sequence transcript logits check must record absent logits.');
+  }
   const tokenCheck = byId.get('tokenizer.ids');
   if (tokenCheck?.expectedCount !== tokens?.length || tokenCheck?.actualCount !== tokens?.length
-    || tokenCheck?.mismatchCount !== 0) errors.push('Sequence transcript tokenizer check does not prove exact parity.');
+    || tokenCheck?.mismatchCount !== 0 || !Array.isArray(tokenCheck?.mismatches)
+    || tokenCheck.mismatches.length !== 0) errors.push('Sequence transcript tokenizer check does not prove exact parity.');
   const geometry = {
     pooledEmbedding: value.output?.embeddingDim,
     tokenEmbeddings: value.output?.embeddingDim * value.output?.tokenCount,
@@ -69,7 +84,8 @@ export function validateSequenceReferenceTranscript(transcript) {
     if (!Number.isFinite(tolerance) || tolerance < 0 || parity?.tolerance !== tolerance
       || !Number.isInteger(parity?.sampleCount) || parity.sampleCount < 1
       || !Number.isFinite(parity?.maxAbsoluteError) || parity.maxAbsoluteError < 0
-      || parity.maxAbsoluteError > tolerance || parity?.failures?.length !== 0) {
+      || parity.maxAbsoluteError > tolerance || !Array.isArray(parity?.failures)
+      || parity.failures.length !== 0) {
       errors.push(`${name} parity must satisfy its explicit reference tolerance.`);
     }
   }
