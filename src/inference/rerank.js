@@ -159,7 +159,7 @@ export async function scoreRerankDocument(
   const logits = assertRerankLogitsVector(result?.logits);
   const trueLogit = Number(logits[selected ? 0 : config.trueTokenId]);
   const falseLogit = Number(logits[selected ? 1 : config.falseTokenId]);
-  return buildRerankScoreRecord(
+  const scored = buildRerankScoreRecord(
     query,
     document,
     prompt,
@@ -175,4 +175,5 @@ export async function scoreRerankDocument(
       promptChars: prompt.length,
     }
   );
+  return { ...scored, tokenIds: result?.tokens ? Array.from(result.tokens) : null };
 }

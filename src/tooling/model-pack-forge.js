@@ -140,6 +140,24 @@ function hashCanonical(value) {
 }
 
 async function loadQualificationEvidence(reportPaths, bundle) {
+  if (bundle.referenceTranscript?.operation === 'rerank') {
+    const evidence = [];
+    for (const reportPath of reportPaths || []) {
+      const result = await buildReferenceTranscript(reportPath, process.cwd(), bundle.execution.graphHash);
+      const transcript = result.transcript;
+      if (transcript.operation !== 'rerank' || transcript.modelId !== bundle.modelId
+        || transcript.manifestHash !== bundle.referenceTranscript.manifestHash
+        || transcript.referenceDigest !== bundle.referenceTranscript.referenceDigest) {
+        throw new Error('Forge rerank qualification must use the same model, source reference, and request.');
+      }
+      const observed = await hashFile(reportPath);
+      evidence.push({ surface: transcript.surface, status: 'passed', operation: 'rerank',
+        rerankedDocuments: transcript.reference.input.documents.length,
+        evidenceHash: observed.hash, sizeBytes: observed.sizeBytes, sourcePath: path.resolve(reportPath),
+        transcriptHash: hashCanonical(transcript) });
+    }
+    return evidence;
+  }
   if (bundle.referenceTranscript?.operation === 'encodeSequence') {
     const evidence = [];
     for (const reportPath of reportPaths || []) {

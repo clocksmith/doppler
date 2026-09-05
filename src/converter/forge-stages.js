@@ -176,7 +176,9 @@ function normalizeQualificationEvidence(evidence) {
   const evidenceHash = requireString(evidence.evidenceHash, 'qualificationEvidence.evidenceHash');
   const sourcePath = path.resolve(requireString(evidence.sourcePath, 'qualificationEvidence.sourcePath'));
   const sizeBytes = requirePositiveInteger(evidence.sizeBytes, 'qualificationEvidence.sizeBytes');
-  const counts = evidence.operation === 'encodeSequence'
+  const counts = evidence.operation === 'rerank'
+    ? { operation: 'rerank', rerankedDocuments: requirePositiveInteger(evidence.rerankedDocuments, 'qualificationEvidence.rerankedDocuments') }
+    : evidence.operation === 'encodeSequence'
     ? { operation: 'encodeSequence', encodedSequences: requirePositiveInteger(evidence.encodedSequences, 'qualificationEvidence.encodedSequences') }
     : { generatedTokens: requirePositiveInteger(evidence.generatedTokens, 'qualificationEvidence.generatedTokens') };
   const transcriptHash = requireString(evidence.transcriptHash, 'qualificationEvidence.transcriptHash');
@@ -424,6 +426,9 @@ export function stageAnalyze(normalized) {
     outputTopology: {
       headType: inference.supportsSequence === true ? 'sequence-encoder' : 'causal-lm',
       tieWeights: output.tieWordEmbeddings === true,
+      ...(inference.supportsRerank === true
+        ? { rerank: structuredClone(requireObject(inference.rerank, 'manifest.inference.rerank')) }
+        : {}),
       ...(inference.supportsSequence === true
         ? { sequence: structuredClone(requireObject(inference.sequence, 'manifest.inference.sequence')) }
         : {}),

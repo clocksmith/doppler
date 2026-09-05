@@ -20,7 +20,7 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 
 - Catalog models: 31
 - Source checkpoints: 23
-- Conversion-only configs: 10
+- Conversion-only configs: 11
 - HF-published catalog models: 19
 - Runtime-verified catalog models: 26
 - Benchmark-selected source architectures: 1
@@ -135,6 +135,7 @@ These entries have checked-in conversion configs but are not catalog-supported r
 | src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json | janus-pro-1b-text-q4k-ehaf16 | janus | RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout | Catalog, verify, and publish janus-pro-1b-text-q4k-ehaf16 before claiming runtime support. |
 | src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json | qwen-3-5-9b-f16-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | Catalog, verify, and publish qwen-3-5-9b-f16-af32 before claiming runtime support. |
 | src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json | qwen-3-5-9b-q4k-ehaf16 | qwen3 | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | Catalog, verify, and publish qwen-3-5-9b-q4k-ehaf16 before claiming runtime support. |
+| src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json | qwen-3-reranker-0-6b-f16-true-logit-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | Catalog, verify, and publish qwen-3-reranker-0-6b-f16-true-logit-af32 before claiming runtime support. |
 | src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json | qwen3.8-27b-text-q4k-ehaf16 | qwen3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | Catalog, verify, and publish qwen3.8-27b-text-q4k-ehaf16 before claiming runtime support. |
 
 ## Source Files

@@ -18,11 +18,12 @@ cli/output/manifest.d.ts
 cli/runtime-profiles.d.ts
 cli/serve/receipt.d.ts
 client/doppler-api.browser.d.ts
-client/doppler-api.browser.js
 client/doppler-registry.d.ts
 client/failure-taxonomy.d.ts
 client/fault-injection.d.ts
+client/pack-host.browser.d.ts
 client/receipt.d.ts
+client/runtime/model-rerank.d.ts
 client/runtime/node-quickstart-cache.d.ts
 client/runtime/pack-artifact-source.d.ts
 client/runtime/pack-program-adapter.d.ts
@@ -777,6 +778,7 @@ tooling/pack.d.ts
 tooling/program-bundle-host.d.ts
 tooling/program-bundle-host.js
 tooling/program-bundle/materialize.d.ts
+tooling/program-bundle/rerank-reference.d.ts
 tooling/program-bundle/sequence-reference.d.ts
 tooling/program-bundle/validation.d.ts
 tooling/program-bundle/wgsl-closure.d.ts

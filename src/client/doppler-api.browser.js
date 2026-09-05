@@ -19,7 +19,7 @@ async function resolvePackInput(packSource, options = {}) {
   const packUrl = new URL(packSource, globalThis.location?.href).href;
   const response = await fetch(packUrl);
   if (!response.ok) throw new Error(`Doppler Pack fetch failed (${response.status}) for ${packUrl}.`);
-  return { pack: await response.json(), artifactStore: createFetchPackArtifactStore(packUrl) };
+  return { pack: await response.json(), artifactStore: options.artifactStore ?? createFetchPackArtifactStore(packUrl) };
 }
 
 const runtime = createDopplerRuntimeService({

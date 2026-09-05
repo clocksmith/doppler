@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.rerank-source-capture/v1",
+  "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+  "repository": "Qwen/Qwen3-Reranker-0.6B",
+  "revision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+  "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
+  "sourceDirectory": "reports/electron-adoption/qwen-source-e61197ed",
+  "input": {
+    "query": "What API exposes GPU hardware for browser compute workloads?",
+    "documents": [
+      "WebGPU provides low-level access to graphics processors for compute workloads.",
+      "WebSocket provides full-duplex communication over TCP.",
+      "A cafe serves coffee and pastries."
+    ]
+  },
+  "tolerances": { "logitMaxAbs": 1, "scoreMaxAbs": 1, "probabilityMaxAbs": 0.05, "ranking": "exact" },
+  "referenceDevice": "cpu",
+  "referenceDtype": "float32",
+  "threads": 8,
+  "claimBoundary": "Frozen bounded source comparison for quantized Qwen reranking. Not held-out task quality, broad model equivalence, performance superiority, or external adoption."
+}

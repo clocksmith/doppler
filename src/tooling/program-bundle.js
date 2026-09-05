@@ -13,6 +13,7 @@ import {
 } from '../config/schema/program-bundle.schema.js';
 import { sha256BytesHex, sha256Hex } from '../formats/sha256.js';
 import { computeHash } from '../storage/shard-manager.js';
+import { assertRerankSourceIdentity } from '../config/rerank-reference.js';
 import {
   buildReferenceTranscript,
   createPackageSourceFile,
@@ -371,6 +372,9 @@ async function buildProgramBundle(options = {}) {
     manifest.inference?.supportsSequence === true ? { entrypoints: [{
       id: 'sequence-encoding', module: 'src/tooling/program-bundle-host.js',
       export: 'createSequenceProgram', role: 'model-orchestration',
+    }] } : manifest.inference?.supportsRerank === true ? { entrypoints: [{
+      id: 'reranking', module: 'src/tooling/program-bundle-host.js',
+      export: 'createRerankProgram', role: 'model-orchestration',
     }] } : undefined
   ), resolvedOptions.repoRoot);
   const host = hostResult.contract;
@@ -393,6 +397,16 @@ async function buildProgramBundle(options = {}) {
       || reference.transcript.manifestHash !== manifestArtifact.hash
       || reference.transcript.reference.source.checkpointId !== manifest.artifactIdentity?.sourceCheckpointId) {
       throw new Error('program bundle export: sequence qualification does not bind this exact manifest.');
+    }
+  }
+  if (reference.transcript.operation === 'rerank') {
+    assertRerankSourceIdentity(manifest.artifactIdentity, reference.transcript.reference);
+    if (manifest.inference?.supportsRerank !== true
+      || reference.transcript.modelId !== modelId
+      || reference.transcript.manifestHash !== manifestArtifact.hash
+      || reference.transcript.reference.source.checkpointId !== manifest.artifactIdentity?.sourceCheckpointId
+      || hashStableJson(reference.transcript.reference.scoringConfig) !== hashStableJson(manifest.inference.rerank)) {
+      throw new Error('program bundle export: rerank qualification does not bind this exact manifest and scoring contract.');
     }
   }
   const artifacts = await collectArtifacts(

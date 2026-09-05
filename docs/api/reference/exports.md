@@ -46,6 +46,18 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
 
+## `doppler-gpu/host`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/client/pack-host.d.ts](../../../src/client/pack-host.d.ts)
+- Implementation: [src/client/pack-host.js](../../../src/client/pack-host.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `DopplerPackOpenOptions`
+  - `DopplerRuntimeSession`
+  - `openPack`
+
 ## `doppler-gpu/pack`
 
 - Audience: unspecified

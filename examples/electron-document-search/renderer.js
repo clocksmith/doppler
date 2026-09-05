@@ -1,5 +1,13 @@
 import { createDopplerRuntime } from 'doppler-gpu';
 import { createElectronRendererRuntime } from 'doppler-gpu/electron';
+import { openPack } from 'doppler-gpu/host';
+
+export function createDocumentSearchHostRenderer(releaseState, trustOptions) {
+  return createElectronRendererRuntime({
+    releaseState,
+    openPack: (packPath, options) => openPack(packPath, { ...trustOptions, ...options }),
+  });
+}
 
 export function createDocumentSearchRenderer(releaseState, runtimePorts) {
   const runtime = createDopplerRuntime(runtimePorts);
