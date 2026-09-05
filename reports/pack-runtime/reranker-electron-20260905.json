@@ -1,0 +1,448 @@
+{
+  "schema": "doppler.reranker-engineering-checkpoint/v1",
+  "component": "doppler.runtime-source.client",
+  "intent": "preserved",
+  "sourceCommit": "2b2646a6093e4c95fc40f9427ab04876a84fceb2",
+  "evidenceClass": "internal-physical-Electron-evaluation",
+  "externalAdoption": false,
+  "paidUse": false,
+  "networkProof": false,
+  "productionPromotion": false,
+  "model": {
+    "modelId": "qwen-3-reranker-0-6b-f16-true-logit-af32",
+    "source": "Qwen/Qwen3-Reranker-0.6B",
+    "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+    "originalRequestedModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "originalRequestedModelQualified": false,
+    "originalSourceRevisionKnown": false
+  },
+  "runtime": {
+    "surface": "browser-webgpu",
+    "host": "electron",
+    "electronVersion": "43.4.0",
+    "executionGraphHash": "sha256:f89e82d084636bb75f09cb17ee61f1048ffa1467765c5d7bc33c0d6be3c9f08a",
+    "sourceRevision": "2b2646a6093e4c95fc40f9427ab04876a84fceb2",
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "0x1586",
+      "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+    }
+  },
+  "package": {
+    "filename": "doppler-gpu-0.5.1.tgz",
+    "integrity": "sha512-qgoGPeBjNN5/+AwCr1Fr8+vyIXXR1AH7wA/IjROI37GH3KrHpqIqltuWcIpB1owevfawNJDqop4bV5gYijRLVA==",
+    "sizeBytes": 2056304,
+    "sha256": "c4521fb3a1f9e9eff8a785e6bb95a652a86bbb683ab9d6f98cea1bb81934060f",
+    "source": {
+      "commit": "2b2646a6093e4c95fc40f9427ab04876a84fceb2",
+      "status": "",
+      "runnerSha256": "e68bbc34c40a847af1b8f0891ffac49a37d44deb960b6368f23e99bdf2b6474a"
+    },
+    "cleanInstalledTestPassed": true,
+    "publicExportsTested": 27
+  },
+  "pack": {
+    "schema": "doppler.pack/v2",
+    "packId": "qwen-3-reranker-0-6b-f16-true-logit-af32-pack-v2-a016a03ebb331ef1",
+    "semanticRoot": "sha256:a016a03ebb331ef1aba8c8c782c9be3de855623ef636d44ac80269adba5b1ec0",
+    "envelopeDigest": "sha256:8b5478e6c5b37ac029dc2c9bb204bdd7004cc5b8fefa02e24dcbd9bd9e975245",
+    "artifactClosureDigest": "sha256:32cf1f712ed02a16566dde5cb822bbec06a7f9874c73610def5bead3cbce9845",
+    "modelIRVersion": 1,
+    "manifestDerived": true,
+    "targetPlanDigest": "sha256:371abf1629629f40b5184279511a783d8d4e2d6ed74b79da9df16808bccb46c8",
+    "signingAuthority": "local-reranker-evaluator-candidate3-20260905",
+    "artifactCount": 35,
+    "wgslModuleCount": 11
+  },
+  "physical": {
+    "passed": true,
+    "referenceChecks": [
+      {
+        "id": "document.0.tokens",
+        "passed": true
+      },
+      {
+        "id": "document.0.trueLogit",
+        "passed": true,
+        "expected": 20.728845596313477,
+        "actual": 20.73070526123047,
+        "absoluteError": 0.0018596649169921875,
+        "tolerance": 1
+      },
+      {
+        "id": "document.0.falseLogit",
+        "passed": true,
+        "expected": 13.806695938110352,
+        "actual": 13.80415153503418,
+        "absoluteError": 0.002544403076171875,
+        "tolerance": 1
+      },
+      {
+        "id": "document.0.score",
+        "passed": true,
+        "expected": 20.728845596313477,
+        "actual": 20.73070526123047,
+        "absoluteError": 0.0018596649169921875,
+        "tolerance": 1
+      },
+      {
+        "id": "document.0.probability",
+        "passed": true,
+        "expected": 0.9999999990055641,
+        "actual": 0.9999999990074118,
+        "absoluteError": 1.8476331575811855e-12,
+        "tolerance": 0.05
+      },
+      {
+        "id": "document.1.tokens",
+        "passed": true
+      },
+      {
+        "id": "document.1.trueLogit",
+        "passed": true,
+        "expected": 4.002742290496826,
+        "actual": 4.000808238983154,
+        "absoluteError": 0.001934051513671875,
+        "tolerance": 1
+      },
+      {
+        "id": "document.1.falseLogit",
+        "passed": true,
+        "expected": 12.97671127319336,
+        "actual": 12.975663185119629,
+        "absoluteError": 0.0010480880737304688,
+        "tolerance": 1
+      },
+      {
+        "id": "document.1.score",
+        "passed": true,
+        "expected": 4.002742290496826,
+        "actual": 4.000808238983154,
+        "absoluteError": 0.001934051513671875,
+        "tolerance": 1
+      },
+      {
+        "id": "document.1.probability",
+        "passed": true,
+        "expected": 0.982062162339427,
+        "actual": 0.9820280601654515,
+        "absoluteError": 0.00003410217397548099,
+        "tolerance": 0.05
+      },
+      {
+        "id": "document.2.tokens",
+        "passed": true
+      },
+      {
+        "id": "document.2.trueLogit",
+        "passed": true,
+        "expected": 3.1006674766540527,
+        "actual": 3.095886468887329,
+        "absoluteError": 0.004781007766723633,
+        "tolerance": 1
+      },
+      {
+        "id": "document.2.falseLogit",
+        "passed": true,
+        "expected": 13.337125778198242,
+        "actual": 13.330705642700195,
+        "absoluteError": 0.006420135498046875,
+        "tolerance": 1
+      },
+      {
+        "id": "document.2.score",
+        "passed": true,
+        "expected": 3.1006674766540527,
+        "actual": 3.095886468887329,
+        "absoluteError": 0.004781007766723633,
+        "tolerance": 1
+      },
+      {
+        "id": "document.2.probability",
+        "passed": true,
+        "expected": 0.9569202694214454,
+        "actual": 0.9567227466712974,
+        "absoluteError": 0.0001975227501479493,
+        "tolerance": 0.05
+      },
+      {
+        "id": "ranking.exact",
+        "passed": true,
+        "expected": [
+          0,
+          1,
+          2
+        ],
+        "actual": [
+          0,
+          1,
+          2
+        ]
+      }
+    ],
+    "adapterClosedSession": true,
+    "originalModelRequests": 0,
+    "scope": "One query and three public documents; actual Electron renderer adapter and installed host; no independent application operator",
+    "recoveryScope": "Fresh-process execution after earlier fault runs, using the final evaluation Pack; not in-session device restoration or resumable downloads"
+  },
+  "adverse": {
+    "q4kFailedChecks": [
+      {
+        "id": "document.0.falseLogit",
+        "passed": false,
+        "expected": 13.806695938110352,
+        "actual": 15.212793350219727,
+        "absoluteError": 1.406097412109375,
+        "tolerance": 1
+      },
+      {
+        "id": "document.1.trueLogit",
+        "passed": false,
+        "expected": 4.002742290496826,
+        "actual": 2.7536046504974365,
+        "absoluteError": 1.2491376399993896,
+        "tolerance": 1
+      },
+      {
+        "id": "document.1.score",
+        "passed": false,
+        "expected": 4.002742290496826,
+        "actual": 2.7536046504974365,
+        "absoluteError": 1.2491376399993896,
+        "tolerance": 1
+      },
+      {
+        "id": "ranking.exact",
+        "passed": false,
+        "expected": [
+          0,
+          1,
+          2
+        ],
+        "actual": [
+          0,
+          2,
+          1
+        ]
+      }
+    ],
+    "q4kInterpretation": "Candidate rejected against pinned source. Original Q4K source repository/revision missing, so quantization is not established as the sole cause.",
+    "staleKernelBuild": "Earlier evaluation build rejected stale SiLU digest. Only the new conversion candidate pin was corrected; historical artifacts were not rewritten.",
+    "scoringControl": "Existing F16 recipe used logit_difference and was rejected for scoring-contract mismatch; a distinct true_logit candidate was built and qualified.",
+    "deviceLoss": "Generic pre-fix GPU error retained. Fixed runtime rejects lost devices with DOPPLER_GPU_DEVICE_LOST; Electron preserves DOPPLER_ELECTRON_DEVICE_LOST and closes."
+  },
+  "custody": {
+    "archive": {
+      "path": "reports/electron-adoption/20260905-reranker-handoff.tar",
+      "sizeBytes": 2406625280,
+      "sha256": "8965bd56ea16b52b797d60cbbb0fe49e948e7c058bbe8239246fb8f1d5604635",
+      "availability": "local-only-not-published",
+      "tarComparePassed": true
+    },
+    "manifest": {
+      "path": "reports/electron-adoption/20260905-reranker-handoff-manifest.json",
+      "sha256": "79127f49df9be5e254ef3c172789bca3b6540efa5b1a66420ccb9265391d4cfa",
+      "artifactCount": 80
+    },
+    "exclusions": [
+      "Private signing keys",
+      "Browser user-data profiles",
+      "Electron and reference-engine installations",
+      "Original Q4K weights; original Q4K provenance is incomplete"
+    ]
+  },
+  "evidence": [
+    {
+      "path": "reports/electron-adoption/qwen-model-qualification-01/qualification.json",
+      "sizeBytes": 293652,
+      "sha256": "db85ff7dd3b7d42035081e824474dbdfe874cde044186663ebb6caab4a37a8d2",
+      "availability": "retained-local-and-handoff-archive",
+      "passed": false,
+      "sourceStatus": "not-recorded",
+      "signedPackExecution": false,
+      "faultInjected": false,
+      "fault": null,
+      "error": "Loaded manifest differs.",
+      "rendererFailure": null
+    },
+    {
+      "path": "reports/electron-adoption/qwen-model-qualification-02/qualification.json",
+      "sizeBytes": 321035,
+      "sha256": "8daf516cb715165fad6de950e01fcac46fc893f1d7a014850af518de1449f04e",
+      "availability": "retained-local-and-handoff-archive",
+      "passed": false,
+      "sourceStatus": "not-recorded",
+      "signedPackExecution": false,
+      "faultInjected": false,
+      "fault": null,
+      "error": null,
+      "rendererFailure": null
+    },
+    {
+      "path": "reports/electron-adoption/qwen-f16-qualification-01/qualification.json",
+      "sizeBytes": 297505,
+      "sha256": "c16e291bb985eacb7ebd5d72a1a815359f673e1ffd88dcd01bc0c3482432ff0d",
+      "availability": "retained-local-and-handoff-archive",
+      "passed": false,
+      "sourceStatus": "not-recorded",
+      "signedPackExecution": false,
+      "faultInjected": false,
+      "fault": null,
+      "error": "Invalid rerank reference: observed scoring contract differs.",
+      "rendererFailure": null
+    },
+    {
+      "path": "reports/electron-adoption/qwen-f16-pinned-qualification-02/qualification.json",
+      "sizeBytes": 323721,
+      "sha256": "0a95fd3bd82e207c804bed040cf233f8b9d097af6d5ce898d50703976424a561",
+      "availability": "retained-local-and-handoff-archive",
+      "passed": true,
+      "sourceStatus": " M benchmarks/vendors/model-support-inventory.json\n M docs/api/reference/exports.md\n M docs/model-support-inventory.md\n M docs/model-support-matrix.md\n M examples/electron-document-search/README.md\n M examples/electron-document-search/renderer.d.ts\n M examples/electron-document-search/renderer.js\n M package.json\n M reports/pack-runtime/runtime-closure.json\n M src/.npmignore\n M src/client/CATSCAN.md\n M src/client/doppler-api.browser.js\n M src/client/electron/renderer-runtime.js\n M src/client/runtime/composition-root.js\n M src/client/runtime/model-session.d.ts\n M src/client/runtime/model-session.js\n M src/client/runtime/pack-rerank.d.ts\n M src/client/runtime/resource-binder.d.ts\n M src/client/runtime/resource-binder.js\n M src/config/model-ir.d.ts\n M src/config/schema/program-bundle-json-schema.js\n M src/config/schema/program-bundle.schema.d.ts\n M src/config/schema/program-bundle.schema.js\n M src/config/schema/program-bundle.schema.json\n M src/config/target-plan.d.ts\n M src/config/target-plan.js\n M src/converter/forge-qualification.js\n M src/converter/forge-stages.js\n M src/errors/doppler-error.d.ts\n M src/inference/rerank.d.ts\n M src/inference/rerank.js\n M src/tooling/model-pack-forge.js\n M src/tooling/program-bundle-host.d.ts\n M src/tooling/program-bundle-host.js\n M src/tooling/program-bundle.js\n M src/tooling/program-bundle/materialize.js\n M tests/helpers/electron-pack-contract.js\n M tests/runtime/plan-bind-execute.test.js\n M tools/check-packed-package.js\n M tools/check-public-boundaries.js\n?? docs/integration/reranker-evaluation.md\n?? src/client/pack-host.browser.d.ts\n?? src/client/pack-host.browser.js\n?? src/client/pack-host.d.ts\n?? src/client/pack-host.js\n?? src/client/runtime/model-rerank.d.ts\n?? src/client/runtime/model-rerank.js\n?? src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json\n?? src/config/rerank-reference.d.ts\n?? src/config/rerank-reference.js\n?? src/tooling/program-bundle/rerank-reference.d.ts\n?? src/tooling/program-bundle/rerank-reference.js\n?? tests/client/pack-host.test.js\n?? tests/config/rerank-reference.test.js\n?? tests/helpers/rerank-reference-fixture.js\n?? tests/tooling/rerank-program-bundle.test.js\n?? tests/tooling/reranker-evaluation-preflight.test.js\n?? tools/build-reranker-evaluation-pack.js\n?? tools/capture-reranker-source-reference.py\n?? tools/policies/qwen-reranker-source-reference.json\n?? tools/qualify-reranker-electron.js\n",
+      "signedPackExecution": false,
+      "faultInjected": false,
+      "fault": null,
+      "error": null,
+      "rendererFailure": null
+    },
+    {
+      "path": "reports/electron-adoption/qwen-pack-qualification-01/qualification.json",
+      "sizeBytes": 355117,
+      "sha256": "da388b3935e52d6c26aa7fb4c1e25c5132fee1b880aa8f2afce029ee52ccac88",
+      "availability": "retained-local-and-handoff-archive",
+      "passed": true,
+      "sourceStatus": " M docs/api/reference/exports.md\n M examples/electron-document-search/README.md\n M examples/electron-document-search/renderer.d.ts\n M examples/electron-document-search/renderer.js\n M package.json\n M reports/pack-runtime/runtime-closure.json\n M src/.npmignore\n M src/client/CATSCAN.md\n M src/client/doppler-api.browser.js\n M src/client/runtime/model-session.d.ts\n M src/client/runtime/model-session.js\n M src/config/model-ir.d.ts\n M src/config/schema/program-bundle-json-schema.js\n M src/config/schema/program-bundle.schema.d.ts\n M src/config/schema/program-bundle.schema.js\n M src/config/schema/program-bundle.schema.json\n M src/config/target-plan.d.ts\n M src/config/target-plan.js\n M src/converter/forge-qualification.js\n M src/converter/forge-stages.js\n M src/inference/rerank.d.ts\n M src/inference/rerank.js\n M src/tooling/model-pack-forge.js\n M src/tooling/program-bundle-host.d.ts\n M src/tooling/program-bundle-host.js\n M src/tooling/program-bundle.js\n M src/tooling/program-bundle/materialize.js\n M tools/check-packed-package.js\n M tools/check-public-boundaries.js\n?? docs/integration/reranker-evaluation.md\n?? src/client/pack-host.browser.d.ts\n?? src/client/pack-host.browser.js\n?? src/client/pack-host.d.ts\n?? src/client/pack-host.js\n?? src/client/runtime/model-rerank.d.ts\n?? src/client/runtime/model-rerank.js\n?? src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json\n?? src/config/rerank-reference.d.ts\n?? src/config/rerank-reference.js\n?? src/tooling/program-bundle/rerank-reference.d.ts\n?? src/tooling/program-bundle/rerank-reference.js\n?? tests/client/pack-host.test.js\n?? tests/config/rerank-reference.test.js\n?? tests/helpers/rerank-reference-fixture.js\n?? tests/tooling/rerank-program-bundle.test.js\n?? tools/build-reranker-evaluation-pack.js\n?? tools/capture-reranker-source-reference.py\n?? tools/policies/qwen-reranker-source-reference.json\n?? tools/qualify-reranker-electron.js\n",
+      "signedPackExecution": true,
+      "faultInjected": false,
+      "fault": null,
+      "error": null,
+      "rendererFailure": null
+    },
+    {
+      "path": "reports/electron-adoption/qwen-pack-corrupt-01/qualification.json",
+      "sizeBytes": 56016,
+      "sha256": "a8f956a9186bc5f1dd3771ee89bfb79896fb5fb962269b963fdb731821ccadb0",
+      "availability": "retained-local-and-handoff-archive",
+      "passed": false,
+      "sourceStatus": " M benchmarks/vendors/model-support-inventory.json\n M docs/api/reference/exports.md\n M docs/model-support-inventory.md\n M examples/electron-document-search/README.md\n M examples/electron-document-search/renderer.d.ts\n M examples/electron-document-search/renderer.js\n M package.json\n M reports/pack-runtime/runtime-closure.json\n M src/.npmignore\n M src/client/CATSCAN.md\n M src/client/doppler-api.browser.js\n M src/client/runtime/model-session.d.ts\n M src/client/runtime/model-session.js\n M src/config/model-ir.d.ts\n M src/config/schema/program-bundle-json-schema.js\n M src/config/schema/program-bundle.schema.d.ts\n M src/config/schema/program-bundle.schema.js\n M src/config/schema/program-bundle.schema.json\n M src/config/target-plan.d.ts\n M src/config/target-plan.js\n M src/converter/forge-qualification.js\n M src/converter/forge-stages.js\n M src/inference/rerank.d.ts\n M src/inference/rerank.js\n M src/tooling/model-pack-forge.js\n M src/tooling/program-bundle-host.d.ts\n M src/tooling/program-bundle-host.js\n M src/tooling/program-bundle.js\n M src/tooling/program-bundle/materialize.js\n M tools/check-packed-package.js\n M tools/check-public-boundaries.js\n?? docs/integration/reranker-evaluation.md\n?? src/client/pack-host.browser.d.ts\n?? src/client/pack-host.browser.js\n?? src/client/pack-host.d.ts\n?? src/client/pack-host.js\n?? src/client/runtime/model-rerank.d.ts\n?? src/client/runtime/model-rerank.js\n?? src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json\n?? src/config/rerank-reference.d.ts\n?? src/config/rerank-reference.js\n?? src/tooling/program-bundle/rerank-reference.d.ts\n?? src/tooling/program-bundle/rerank-reference.js\n?? tests/client/pack-host.test.js\n?? tests/config/rerank-reference.test.js\n?? tests/helpers/rerank-reference-fixture.js\n?? tests/tooling/rerank-program-bundle.test.js\n?? tools/build-reranker-evaluation-pack.js\n?? tools/capture-reranker-source-reference.py\n?? tools/policies/qwen-reranker-source-reference.json\n?? tools/qualify-reranker-electron.js\n",
+      "signedPackExecution": false,
+      "faultInjected": true,
+      "fault": {
+        "kind": "artifact-corruption",
+        "artifactId": "weight-shard:shard_00000.bin:e43dc1fe4741"
+      },
+      "error": "page.evaluate: Error: Pack artifact hash or size mismatch for \"artifacts/model/shard_00000.bin\".\n    at http://127.0.0.1:39855/src/client/runtime/verified-pack-artifact-store.js:20:17",
+      "rendererFailure": null
+    },
+    {
+      "path": "reports/electron-adoption/qwen-pack-interrupted-01/qualification.json",
+      "sizeBytes": 57717,
+      "sha256": "f98393bc5261291b0ab16e4520b92e3733ff8843185bd2741148928af5626abc",
+      "availability": "retained-local-and-handoff-archive",
+      "passed": false,
+      "sourceStatus": " M benchmarks/vendors/model-support-inventory.json\n M docs/api/reference/exports.md\n M docs/model-support-inventory.md\n M examples/electron-document-search/README.md\n M examples/electron-document-search/renderer.d.ts\n M examples/electron-document-search/renderer.js\n M package.json\n M reports/pack-runtime/runtime-closure.json\n M src/.npmignore\n M src/client/CATSCAN.md\n M src/client/doppler-api.browser.js\n M src/client/runtime/model-session.d.ts\n M src/client/runtime/model-session.js\n M src/config/model-ir.d.ts\n M src/config/schema/program-bundle-json-schema.js\n M src/config/schema/program-bundle.schema.d.ts\n M src/config/schema/program-bundle.schema.js\n M src/config/schema/program-bundle.schema.json\n M src/config/target-plan.d.ts\n M src/config/target-plan.js\n M src/converter/forge-qualification.js\n M src/converter/forge-stages.js\n M src/inference/rerank.d.ts\n M src/inference/rerank.js\n M src/tooling/model-pack-forge.js\n M src/tooling/program-bundle-host.d.ts\n M src/tooling/program-bundle-host.js\n M src/tooling/program-bundle.js\n M src/tooling/program-bundle/materialize.js\n M tools/check-packed-package.js\n M tools/check-public-boundaries.js\n?? docs/integration/reranker-evaluation.md\n?? src/client/pack-host.browser.d.ts\n?? src/client/pack-host.browser.js\n?? src/client/pack-host.d.ts\n?? src/client/pack-host.js\n?? src/client/runtime/model-rerank.d.ts\n?? src/client/runtime/model-rerank.js\n?? src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json\n?? src/config/rerank-reference.d.ts\n?? src/config/rerank-reference.js\n?? src/tooling/program-bundle/rerank-reference.d.ts\n?? src/tooling/program-bundle/rerank-reference.js\n?? tests/client/pack-host.test.js\n?? tests/config/rerank-reference.test.js\n?? tests/helpers/rerank-reference-fixture.js\n?? tests/tooling/rerank-program-bundle.test.js\n?? tests/tooling/reranker-evaluation-preflight.test.js\n?? tools/build-reranker-evaluation-pack.js\n?? tools/capture-reranker-source-reference.py\n?? tools/policies/qwen-reranker-source-reference.json\n?? tools/qualify-reranker-electron.js\n",
+      "signedPackExecution": false,
+      "faultInjected": true,
+      "fault": {
+        "kind": "artifact-interruption",
+        "artifactId": "weight-shard:shard_00000.bin:e43dc1fe4741"
+      },
+      "error": "page.evaluate: TypeError: Failed to fetch\n    at fetchBytes (http://127.0.0.1:34933/src/client/runtime/fetch-pack-artifact-store.js:6:26)\n    at Object.readArtifact (http://127.0.0.1:34933/src/client/runtime/fetch-pack-artifact-store.js:25:14)\n    at http://127.0.0.1:34933/src/client/runtime/verified-pack-artifact-store.js:15:38\n    at Object.readArtifact (http://127.0.0.1:34933/src/client/runtime/verified-pack-artifact-store.js:23:9)\n    at Object.hashArtifact (http://127.0.0.1:34933/src/config/pack.js:38:51)\n    at verifyPackV2Artifacts (http://127.0.0.1:34933/src/config/pack-v2.js:410:42)\n    at async verifyPack (http://127.0.0.1:34933/src/config/pack.js:36:28)\n    at async Object.openPack (http://127.0.0.1:34933/src/client/runtime/composition-root.js:55:24)\n    at async Object.openPack (eval at evaluate (:311:30), <anonymous>:16:25)\n    at async openCurrent (http://127.0.0.1:34933/src/client/electron/renderer-runtime.js:49:17)",
+      "rendererFailure": null
+    },
+    {
+      "path": "reports/electron-adoption/qwen-pack-device-loss-01/qualification.json",
+      "sizeBytes": 64406,
+      "sha256": "55b4132ad4369fc13f0ae5623e9b524c569658b4e8cdc3ad5dfca2acf817b24f",
+      "availability": "retained-local-and-handoff-archive",
+      "passed": false,
+      "sourceStatus": " M benchmarks/vendors/model-support-inventory.json\n M docs/api/reference/exports.md\n M docs/model-support-inventory.md\n M docs/model-support-matrix.md\n M examples/electron-document-search/README.md\n M examples/electron-document-search/renderer.d.ts\n M examples/electron-document-search/renderer.js\n M package.json\n M reports/pack-runtime/runtime-closure.json\n M src/.npmignore\n M src/client/CATSCAN.md\n M src/client/doppler-api.browser.js\n M src/client/runtime/model-session.d.ts\n M src/client/runtime/model-session.js\n M src/config/model-ir.d.ts\n M src/config/schema/program-bundle-json-schema.js\n M src/config/schema/program-bundle.schema.d.ts\n M src/config/schema/program-bundle.schema.js\n M src/config/schema/program-bundle.schema.json\n M src/config/target-plan.d.ts\n M src/config/target-plan.js\n M src/converter/forge-qualification.js\n M src/converter/forge-stages.js\n M src/inference/rerank.d.ts\n M src/inference/rerank.js\n M src/tooling/model-pack-forge.js\n M src/tooling/program-bundle-host.d.ts\n M src/tooling/program-bundle-host.js\n M src/tooling/program-bundle.js\n M src/tooling/program-bundle/materialize.js\n M tools/check-packed-package.js\n M tools/check-public-boundaries.js\n?? docs/integration/reranker-evaluation.md\n?? src/client/pack-host.browser.d.ts\n?? src/client/pack-host.browser.js\n?? src/client/pack-host.d.ts\n?? src/client/pack-host.js\n?? src/client/runtime/model-rerank.d.ts\n?? src/client/runtime/model-rerank.js\n?? src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json\n?? src/config/rerank-reference.d.ts\n?? src/config/rerank-reference.js\n?? src/tooling/program-bundle/rerank-reference.d.ts\n?? src/tooling/program-bundle/rerank-reference.js\n?? tests/client/pack-host.test.js\n?? tests/config/rerank-reference.test.js\n?? tests/helpers/rerank-reference-fixture.js\n?? tests/tooling/rerank-program-bundle.test.js\n?? tests/tooling/reranker-evaluation-preflight.test.js\n?? tools/build-reranker-evaluation-pack.js\n?? tools/capture-reranker-source-reference.py\n?? tools/policies/qwen-reranker-source-reference.json\n?? tools/qualify-reranker-electron.js\n",
+      "signedPackExecution": false,
+      "faultInjected": true,
+      "fault": {
+        "kind": "device-loss"
+      },
+      "error": "page.evaluate: Error: GPU device not available\n    at embed (http://127.0.0.1:46193/src/inference/pipelines/text/embed.js:211:22)\n    at PipelineGenerator._prefill (http://127.0.0.1:46193/src/inference/pipelines/text/generator/prefill-runtime.js:352:32)\n    at PipelineGenerator._prefill (http://127.0.0.1:46193/src/inference/pipelines/text/generator.js:581:25)\n    at PipelineGenerator._prefillInputIdsToLogits (http://127.0.0.1:46193/src/inference/pipelines/text/generator/prefill-runtime.js:124:19)\n    at PipelineGenerator._prefillInputIdsToLogits (http://127.0.0.1:46193/src/inference/pipelines/text/generator.js:415:41)\n    at runPrefill (http://127.0.0.1:46193/src/inference/pipelines/text/generator/prefill-runtime.js:152:35)\n    at PipelineGenerator._prefillPromptToLogits (http://127.0.0.1:46193/src/inference/pipelines/text/generator/prefill-runtime.js:154:22)\n    at PipelineGenerator._prefillPromptToLogits (http://127.0.0.1:46193/src/inference/pipelines/text/generator.js:419:39)\n    at PipelineGenerator.prefillWithTokenLogits (http://127.0.0.1:46193/src/inference/pipelines/text/generator/training.js:560:68)\n    at PipelineGenerator.prefillWithTokenLogits (http://127.0.0.1:46193/src/inference/pipelines/text/generator.js:557:39)",
+      "rendererFailure": null
+    },
+    {
+      "path": "reports/electron-adoption/qwen-pack-device-loss-02/qualification.json",
+      "sizeBytes": 64376,
+      "sha256": "c208a70c4bd9f46d0c541e5561428c643d9a77f4f4e71f8eec5df22ac701569c",
+      "availability": "retained-local-and-handoff-archive",
+      "passed": false,
+      "sourceStatus": " M benchmarks/vendors/model-support-inventory.json\n M docs/api/reference/exports.md\n M docs/model-support-inventory.md\n M docs/model-support-matrix.md\n M examples/electron-document-search/README.md\n M examples/electron-document-search/renderer.d.ts\n M examples/electron-document-search/renderer.js\n M package.json\n M reports/pack-runtime/runtime-closure.json\n M src/.npmignore\n M src/client/CATSCAN.md\n M src/client/doppler-api.browser.js\n M src/client/electron/renderer-runtime.js\n M src/client/runtime/composition-root.js\n M src/client/runtime/model-session.d.ts\n M src/client/runtime/model-session.js\n M src/client/runtime/pack-rerank.d.ts\n M src/client/runtime/resource-binder.d.ts\n M src/client/runtime/resource-binder.js\n M src/config/model-ir.d.ts\n M src/config/schema/program-bundle-json-schema.js\n M src/config/schema/program-bundle.schema.d.ts\n M src/config/schema/program-bundle.schema.js\n M src/config/schema/program-bundle.schema.json\n M src/config/target-plan.d.ts\n M src/config/target-plan.js\n M src/converter/forge-qualification.js\n M src/converter/forge-stages.js\n M src/errors/doppler-error.d.ts\n M src/inference/rerank.d.ts\n M src/inference/rerank.js\n M src/tooling/model-pack-forge.js\n M src/tooling/program-bundle-host.d.ts\n M src/tooling/program-bundle-host.js\n M src/tooling/program-bundle.js\n M src/tooling/program-bundle/materialize.js\n M tests/helpers/electron-pack-contract.js\n M tests/runtime/plan-bind-execute.test.js\n M tools/check-packed-package.js\n M tools/check-public-boundaries.js\n?? docs/integration/reranker-evaluation.md\n?? src/client/pack-host.browser.d.ts\n?? src/client/pack-host.browser.js\n?? src/client/pack-host.d.ts\n?? src/client/pack-host.js\n?? src/client/runtime/model-rerank.d.ts\n?? src/client/runtime/model-rerank.js\n?? src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json\n?? src/config/rerank-reference.d.ts\n?? src/config/rerank-reference.js\n?? src/tooling/program-bundle/rerank-reference.d.ts\n?? src/tooling/program-bundle/rerank-reference.js\n?? tests/client/pack-host.test.js\n?? tests/config/rerank-reference.test.js\n?? tests/helpers/rerank-reference-fixture.js\n?? tests/tooling/rerank-program-bundle.test.js\n?? tests/tooling/reranker-evaluation-preflight.test.js\n?? tools/build-reranker-evaluation-pack.js\n?? tools/capture-reranker-source-reference.py\n?? tools/policies/qwen-reranker-source-reference.json\n?? tools/qualify-reranker-electron.js\n",
+      "signedPackExecution": false,
+      "faultInjected": true,
+      "fault": {
+        "kind": "device-loss"
+      },
+      "error": "page.evaluate: DopplerElectronDeviceLostError: Electron renderer WebGPU device was lost: [DOPPLER_GPU_DEVICE_LOST] Pack session GPU device lost (destroyed): Device was destroyed.. Close this session and explicitly reopen on a new device.\n    at deviceLossError (http://127.0.0.1:46217/src/client/electron/renderer-runtime.js:15:17)\n    at translateError (http://127.0.0.1:46217/src/client/electron/renderer-runtime.js:32:12)\n    at Object.rerank (http://127.0.0.1:46217/src/client/electron/renderer-runtime.js:84:13)\n    at async eval (eval at evaluate (:311:30), <anonymous>:30:21)\n    at async <anonymous>:337:30",
+      "rendererFailure": {
+        "name": "DopplerElectronDeviceLostError",
+        "code": "DOPPLER_ELECTRON_DEVICE_LOST",
+        "message": "Electron renderer WebGPU device was lost: [DOPPLER_GPU_DEVICE_LOST] Pack session GPU device lost (destroyed): Device was destroyed.. Close this session and explicitly reopen on a new device.",
+        "causeCode": "DOPPLER_GPU_DEVICE_LOST",
+        "sessionClosed": true
+      }
+    },
+    {
+      "path": "reports/electron-adoption/qwen-pack-recovery-final/qualification.json",
+      "sizeBytes": 351238,
+      "sha256": "68db303465797e2c8f64a3c634d8ed0ed7c281efaba7cc1fd435a599e61ee120",
+      "availability": "retained-local-and-handoff-archive",
+      "passed": true,
+      "sourceStatus": "",
+      "signedPackExecution": true,
+      "faultInjected": false,
+      "fault": null,
+      "error": null,
+      "rendererFailure": null
+    }
+  ],
+  "notEstablished": [
+    "Source-fact ModelIR v2 reranker or general semantic compilation",
+    "Qualified original Q4K reranker",
+    "Held-out application search quality or incumbent advantage",
+    "Memory, installation-effort, or cold/warm performance superiority",
+    "Physical rollback, revocation, or a second externally retained model release",
+    "Windows, macOS, Bun, or independent-machine coverage",
+    "Production Electron IPC authority or publisher-independent offline freshness policy",
+    "Poolday operation generalization, peer reconstruction, remote jobs, or learned routing",
+    "External adoption, paid use, recurring revenue, or acquisition interest"
+  ],
+  "acceptance": {
+    "checkGreen": {
+      "command": "npm run check:green",
+      "exitCode": 0,
+      "sourceCommit": "2b2646a6093e4c95fc40f9427ab04876a84fceb2",
+      "cleanCheckout": true,
+      "log": {
+        "path": "reports/electron-adoption/check-green-clean-2b2646a6.log",
+        "sha256": "21b7f3590a7701a13c0938a66c933ae05c9aedbe2abd628ca3a9d98b6cb5fa7f",
+        "availability": "retained-local-not-in-earlier-handoff-archive"
+      },
+      "defaultUnitSuiteFiles": 520,
+      "packSuiteFiles": 35,
+      "declaredSkipsPreserved": true
+    },
+    "focusedRegressions": {
+      "command": "node tools/run-node-tests.js tests/client/pack-host.test.js tests/config/rerank-reference.test.js tests/runtime/plan-bind-execute.test.js tests/tooling/rerank-program-bundle.test.js tests/tooling/reranker-evaluation-preflight.test.js",
+      "exitCode": 0,
+      "files": 5,
+      "scope": "Synthetic contract and failure-path checks, not physical inference"
+    },
+    "physicalQualification": {
+      "command": "node tools/qualify-reranker-electron.js reports/electron-adoption/qwen-pack-recovery-final-config.json",
+      "exitCode": 0,
+      "requiredEnvironment": "Existing physical desktop display and the pinned Electron/Playwright installation; see policy and report"
+    },
+    "additionalUnclosedInventory": "A separate conversion-kernel digest inventory found historical stale pins. Only the new candidate recipe was repaired; check:green success does not certify every historical conversion recipe."
+  },
+  "boundaryEffects": [
+    "Integrated host composition is an optional public export; explicit trust and application update authority are preserved.",
+    "Rerank reference qualification now binds source identity, tokens, logits, scoring, and observed execution identity.",
+    "Lost physical devices reject session work explicitly; reopening remains an application action.",
+    "No Doe, Poolday, Reploid, model catalog, or published model artifact was changed by this checkpoint."
+  ]
+}
