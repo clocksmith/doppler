@@ -8,37 +8,26 @@
 [![npm version](https://img.shields.io/npm/v/doppler-gpu.svg?label=version)](https://www.npmjs.com/package/doppler-gpu)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/clocksmith/doppler/blob/main/LICENSE)
 
-Doppler is an AI-native Model Release Foundry and evidence-backed WebGPU runtime
-for JavaScript applications. Forge turns source-truth model checkpoints into
-signed immutable Packs containing ModelIR-derived, qualified TargetPlans. The
-deliberately uncreative Runtime validates a Pack, selects an already-qualified
-plan, binds resources, and executes its declared JavaScript/WGSL program in
-browsers and Node. Bun lanes remain experimental.
+Doppler is a model compiler, release foundry, and WebGPU runtime for JavaScript.
+Forge turns supported model sources into signed immutable Packs with
+ModelIR-derived, qualified TargetPlans. Runtime verifies, selects, binds, and
+executes the declared JavaScript/WGSL program. Browser and Node paths are
+qualified separately; Bun remains experimental.
 
 ## Mission, goal, and value
 
-Doppler’s mission is to make supported local-model releases inspectable at the
-source, artifact, plan, kernel, application-acceptance, and receipt boundaries.
+Make useful AI capabilities installable, inspectable, and maintainable as
+application dependencies. Success means an independent application voluntarily
+retains Doppler for a measured improvement and ships a second revision with less
+release effort. Free adoption counts; benchmarks alone do not prove it.
 
-The primary goal is an unrelated application voluntarily shipping a Doppler
-executable model for a measured application improvement, retaining it, and
-shipping a second revision with less release effort. Release governance supports
-that goal. P2P is optional; neither peer delivery nor internal benchmarks prove adoption. Forge inspects and normalizes source truth, lowers
-it through ModelIR, verifies and qualifies TargetPlans, and packages the retained
-closure. Runtime receipts then prove which immutable Pack and qualified plan an
-application executed, while promotion, requalification, rollback, and revocation
-keep support decisions explicit. Pack v2 remains readable; the new
-[Pack v3 migration](docs/pack-identity-migration.md) separates executable identity
-from signed release events without rewriting historical Packs.
+Applications control trust and updates. Pack v2 remains readable;
+[Pack v3](docs/pack-identity-migration.md) separates executable identity from
+release events. Doe, Poolday, and Reploid are optional, not prerequisites.
 
-Doppler serves:
-
-- Application builders who need local generation, embeddings, or reranking.
-- Release and runtime engineers who work on source inspection, lowering,
-  qualification, model loading, kernels, scheduling, and GPU execution.
-- Adapter and training engineers working with SafeTensors LoRA artifacts.
-- Evidence reviewers who need the model, workload, parity result, and timing
-  receipt behind a comparison.
+Build local generation, embeddings, or reranking, or contribute improvements to
+source interpretation, kernels, loading, and release reliability. See the
+[goals](docs/goals.md) and [contribution guide](docs/contributing.md).
 
 ## How to use Doppler
 
@@ -64,26 +53,39 @@ and [CLI reference](docs/cli.md).
 ### Pack Runtime API
 
 ```js
-import { createFetchPackArtifactStore, openPack } from 'doppler-gpu';
+import { openPack } from 'doppler-gpu/host';
+import { reviewedRelease } from './reviewed-release.js';
 
-const packUrl = new URL('./model.pack.json', import.meta.url).href;
-const artifactStore = createFetchPackArtifactStore(packUrl);
-const pack = await (await fetch(packUrl)).json();
-const session = await openPack(pack, {
-  device,
-  artifactStore,
-  trustedSigners: new Map([[signerId, signerPublicKey]]),
-  programFactory,
+const session = await openPack(reviewedRelease.packUrl, {
+  trustedSigners: reviewedRelease.trustedSigners,
+  acceptedTargetPlanDigests: reviewedRelease.acceptedTargetPlanDigests,
 });
-const result = await session.generateText(generationOptions);
-console.log(result.text, session.selectedTargetPlanDigest);
-await session.close();
+try {
+  const result = await session.rerank({
+    application: reviewedRelease.application,
+    query: 'Which API provides browser GPU compute?',
+    documents: ['WebGPU exposes GPU compute.', 'WebSocket transports messages.'],
+    options: {},
+  });
+  console.log(result, session.selectedTargetPlanDigest);
+} finally {
+  await session.close();
+}
 ```
 
-The application supplies its device adapter, trusted signer set, and generic
-program factory. Pack validation selects one qualified TargetPlan; TargetPlan
-v2 additionally binds the loaded program's observed initial execution identity
-before resource allocation or prefill dispatch.
+`reviewedRelease` is application-owned configuration, not metadata trusted merely
+because it was downloaded. It identifies a reranker Pack, accepted plans, trusted
+publishers, and the application/workload/oracle contract. The host entry composes
+the existing device, artifact-store, and program ports; trust and upgrades remain
+explicit. See the [Electron integration](examples/electron-document-search/README.md)
+and [retained evaluation](docs/integration/reranker-evaluation.md).
+
+Advanced applications can still inject every port through `doppler-gpu` or
+`doppler-gpu/runtime`. Both routes verify the same Pack and initial execution
+identity. The host facade does not add model operations or broaden qualification.
+
+Discover repository commands with `npm run` or `npm pkg get scripts` (JSON).
+Use `doppler --help` for the installed CLI.
 
 The former manifest-loading facade remains available only as an explicit
 compatibility import:

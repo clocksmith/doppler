@@ -11,6 +11,7 @@ assert.deepEqual(REQUIRED_INSTRUCTION_ALIASES, [
   { path: 'GEMINI.md', target: 'AGENTS.md' },
 ]);
 assert.deepEqual(REQUIRED_SKILL_ALIASES, [
+  { path: '.agents/skills', target: '../skills' },
   { path: '.claude/skills', target: '../skills' },
   { path: '.gemini/skills', target: '../skills' },
   { path: '.codex/skills', target: '../skills' },

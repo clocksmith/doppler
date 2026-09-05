@@ -138,6 +138,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -344,6 +345,7 @@
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-5-9b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32"
       ],
@@ -448,6 +450,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -2218,6 +2221,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -2263,6 +2267,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -2333,6 +2338,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -3475,6 +3481,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -4616,6 +4623,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -4898,6 +4906,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -5883,6 +5892,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -6390,6 +6400,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -8842,6 +8853,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"

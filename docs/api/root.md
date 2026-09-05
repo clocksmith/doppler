@@ -2,6 +2,14 @@
 
 ## Purpose
 
+Start with `doppler-gpu/host` when using Doppler's existing browser or Node host
+composition. It accepts a Pack URL/path, explicit trusted signers and accepted
+TargetPlan digests, and supplies the existing device, artifact-store, and program
+ports. For Pack objects, supply an artifact store. It does not choose trust or
+accept upgrades. See the [application example](../../README.md#pack-runtime-api)
+and [Electron renderer](../../examples/electron-document-search/README.md).
+An exported host path is not proof that every model works on that host.
+
 `doppler-gpu` is the Pack-native production entrypoint. It validates a signed
 Doppler Pack, verifies every artifact and reachable WGSL module, selects one
 already-qualified TargetPlan for the observed device, binds resources, and
@@ -27,9 +35,9 @@ import {
 } from 'doppler-gpu';
 ```
 
-## Required authority
+## Explicit-port authority
 
-The application must inject all four execution ports:
+When using `doppler-gpu` or `doppler-gpu/runtime`, the application injects:
 
 - `device`: the concrete WebGPU resource and capability adapter.
 - `artifactStore`: reads and hashes Pack artifacts.

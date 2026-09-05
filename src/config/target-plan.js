@@ -194,7 +194,13 @@ export function validateTargetPlan(plan) {
       requireString(record.evidenceArtifactId, `qualification[${index}].evidenceArtifactId`, errors);
       requireDigest(record.evidenceHash, `qualification[${index}].evidenceHash`, errors);
       if (record.transcriptHash !== undefined) requireDigest(record.transcriptHash, `qualification[${index}].transcriptHash`, errors);
-      if (record.operation === 'encodeSequence') {
+      if (record.operation === 'rerank') {
+        if (!Number.isInteger(record.rerankedDocuments) || record.rerankedDocuments < 1
+          || record.generatedTokens !== undefined || record.encodedSequences !== undefined
+          || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
+          errors.push(`qualification[${index}] requires rerankedDocuments and transcriptHash without other operation counts.`);
+        }
+      } else if (record.operation === 'encodeSequence') {
         if (!Number.isInteger(record.encodedSequences) || record.encodedSequences < 1
           || record.generatedTokens !== undefined || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
           errors.push(`qualification[${index}] requires encodedSequences and transcriptHash without generatedTokens.`);

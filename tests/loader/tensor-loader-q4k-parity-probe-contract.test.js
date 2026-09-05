@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const source = readFileSync(
-  new URL('../../src/loader/tensors/tensor-loader.js', import.meta.url),
+  new URL('../../src/loader/tensors/load-executor.js', import.meta.url),
   'utf8'
 );
 

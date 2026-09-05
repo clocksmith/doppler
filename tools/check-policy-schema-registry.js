@@ -5,16 +5,14 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { isPlainObject } from '../src/formats/plain-object.js';
+
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'config', 'schema', 'policy-schema-registry.json');
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function isRepoRelativeJsonPath(value) {

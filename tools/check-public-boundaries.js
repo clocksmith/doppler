@@ -12,11 +12,12 @@ import { assertPackageSourceClosure } from './package-source-closure.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
-  // The four-operation Pack API adds its catalog, adapters, executor, and types.
-  // Measured package: 1723 entries, 2,062,406 packed bytes, 10,659,818 unpacked.
-  maxEntryCount: 1723,
-  maxPackedSize: 2_065_000,
-  maxUnpackedSize: 10_665_000,
+  // Merged Pack operation adapters, integrated host, rerank qualification, and
+  // shader scope guards: 1732 entries, 2,066,713 packed bytes, 10,688,567 unpacked.
+  // The converter entrypoint remains the only packaged repository tool.
+  maxEntryCount: 1732,
+  maxPackedSize: 2_070_000,
+  maxUnpackedSize: 10_690_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

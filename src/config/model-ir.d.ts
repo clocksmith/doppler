@@ -40,7 +40,7 @@ export interface ModelIR {
   normalization: { type: string; eps: number };
   rope: Record<string, unknown> | null;
   ffn: { type: string; intermediateSize: number };
-  outputTopology: { headType: string; tieWeights: boolean; sequence?: Record<string, unknown> };
+  outputTopology: { headType: string; tieWeights: boolean; sequence?: Record<string, unknown>; rerank?: Record<string, unknown> };
   phases: string[];
 }
 

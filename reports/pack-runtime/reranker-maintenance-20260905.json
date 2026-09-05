@@ -1,0 +1,248 @@
+{
+  "schema": "doppler.reranker-engineering-checkpoint/v1",
+  "component": "doppler",
+  "intent": "preserved",
+  "sourceCommit": "ade5622bd409f30011bfcaee724ee6ca21aedb80",
+  "evidenceClass": "repository-checks-and-internal-physical-Electron-evaluation",
+  "externalAdoption": false,
+  "paidUse": false,
+  "networkProof": false,
+  "productionPromotion": false,
+  "previousCheckpoint": {
+    "path": "reports/pack-runtime/reranker-electron-20260905.json",
+    "sizeBytes": 32722,
+    "sha256": "4b037a43a2d0bcb0f1015e302c08b32f6cb945e36a97b2bbba8d5c0e7be7c32e"
+  },
+  "implementation": {
+    "testDiscovery": "One policy-backed collector shared by execution and coverage; all non-kernel test directories included; explicit files and pending-test behavior preserved.",
+    "checkExecution": "Package scripts remain the command source. Only consecutive isolated test batches reuse success within one invocation. Non-test commands invalidate it; stateful shell chains retain npm execution.",
+    "validation": "Shared object predicate and exact-key validation preserve existing error and serialization behavior. Historical hash implementations remain distinct and golden-tested.",
+    "regressions": "Repaired stale source-owner assertions, synthetic manifest fixtures, isolated training artifacts, and historical file-presence reconstruction.",
+    "generatedMetadata": "Synchronized registry reachability and dependent routing digests only; no kernel changes or cleared integrity failures.",
+    "navigation": "Standalone compiler/runtime and integrated host are the front door; advanced public interfaces remain available."
+  },
+  "validation": {
+    "command": "npm run ci:check",
+    "exitCode": 0,
+    "cleanWorktree": true,
+    "unitTestFilesPassed": 745,
+    "consecutiveDuplicateTestExecutionsAvoided": 35,
+    "newlyCoveredGroupTestFilesPassed": 225,
+    "scope": "Node-driven suites include hardware-conditional checks; not a blanket physical or pure-CPU qualification. Package and live inference have separate receipts."
+  },
+  "model": {
+    "modelId": "qwen-3-reranker-0-6b-f16-true-logit-af32",
+    "source": "Qwen/Qwen3-Reranker-0.6B",
+    "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+    "originalRequestedModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "originalRequestedModelQualified": false,
+    "originalSourceRevisionKnown": false
+  },
+  "runtime": {
+    "surface": "browser-webgpu",
+    "host": "electron",
+    "electronVersion": "43.4.0",
+    "executionGraphHash": "sha256:f89e82d084636bb75f09cb17ee61f1048ffa1467765c5d7bc33c0d6be3c9f08a",
+    "sourceRevision": "ade5622bd409f30011bfcaee724ee6ca21aedb80",
+    "adapterInfo": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "0x1586",
+      "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+    }
+  },
+  "package": {
+    "filename": "doppler-gpu-0.5.1.tgz",
+    "integrity": "sha512-KifbibDKMPlSbpbcOr4s4M6+d6bUZ5pCsrQG1GnPEMRvzPnFbpLpTezbjB4jze+AknYqS7srQVH35xf3rqKhZg==",
+    "sizeBytes": 2056318,
+    "sha256": "873f4dedbb8e98ea9a092e086d34d478e01923c9296ea3e8b9d0bba51e77de10",
+    "source": {
+      "commit": "ade5622bd409f30011bfcaee724ee6ca21aedb80",
+      "status": "",
+      "runnerSha256": "e68bbc34c40a847af1b8f0891ffac49a37d44deb960b6368f23e99bdf2b6474a"
+    },
+    "cleanInstalledTestPassed": true,
+    "publicExportsTested": 27
+  },
+  "pack": {
+    "schema": "doppler.pack/v2",
+    "packId": "qwen-3-reranker-0-6b-f16-true-logit-af32-pack-v2-a016a03ebb331ef1",
+    "semanticRoot": "sha256:a016a03ebb331ef1aba8c8c782c9be3de855623ef636d44ac80269adba5b1ec0",
+    "envelopeDigest": "sha256:8b5478e6c5b37ac029dc2c9bb204bdd7004cc5b8fefa02e24dcbd9bd9e975245",
+    "artifactClosureDigest": "sha256:32cf1f712ed02a16566dde5cb822bbec06a7f9874c73610def5bead3cbce9845",
+    "modelIRVersion": 1,
+    "manifestDerived": true,
+    "targetPlanDigest": "sha256:371abf1629629f40b5184279511a783d8d4e2d6ed74b79da9df16808bccb46c8",
+    "signingAuthority": "local-reranker-evaluator-candidate3-20260905",
+    "artifactCount": 35,
+    "wgslModuleCount": 11
+  },
+  "physical": {
+    "passed": true,
+    "generatedAt": "2026-09-05T19:15:58.763Z",
+    "referenceCheckCount": 16,
+    "referenceChecksPassed": 16,
+    "ranking": {
+      "id": "ranking.exact",
+      "passed": true,
+      "expected": [
+        0,
+        1,
+        2
+      ],
+      "actual": [
+        0,
+        1,
+        2
+      ]
+    },
+    "initialExecutionIdentityDigest": "sha256:c2cc60e5ad9271f1cf870e6f1645f44c55fb7b319f09ea51eab42c3b6f5bd5da",
+    "adapterClosedSession": true,
+    "originalModelRequests": 0,
+    "externalOriginRequests": 0,
+    "loadMs": 68253.5,
+    "executionMs": 1939.5,
+    "scope": "One internally operated physical AMD/Electron rerun of the retained F16 Pack against one query and three public documents. Runtime installed outside the checkout; probe dependencies provided by the checkout.",
+    "timingScope": "One observed Pack open and rerank call; not a cold/warm benchmark distribution, incumbent comparison, or performance-superiority claim."
+  },
+  "adverse": {
+    "newlyCoveredBaseline": "13 of 223 previously omitted test files failed before repair; raw baseline and intermediate failures retained.",
+    "packageBudget": "An intermediate expanded check exceeded the existing unpacked budget by 56 bytes. Redundant README prose was removed; budget unchanged.",
+    "generatedMetadata": "Intermediate CI rejected stale kernel reachability, then stale routing digests. Regenerated views preserve executable content and all 32 existing routing integrity failures.",
+    "originalQ4K": "Remains source-comparison rejected with incomplete original source provenance; this distinct F16 Pack does not qualify the original requested candidate."
+  },
+  "custody": {
+    "archive": {
+      "path": "reports/electron-adoption/20260905-audit-reranker-supplement.tar",
+      "sizeBytes": 3143680,
+      "sha256": "c6fb90b687e9ff7449ef15b0edb6d448011a3ab60ee04c573085d8dbff4f4e43",
+      "availability": "local-only-not-published",
+      "tarComparePassed": true
+    },
+    "requiredModelArchive": {
+      "path": "reports/electron-adoption/20260905-reranker-handoff.tar",
+      "sizeBytes": 2406625280,
+      "sha256": "8965bd56ea16b52b797d60cbbb0fe49e948e7c058bbe8239246fb8f1d5604635",
+      "availability": "local-only-not-published",
+      "tarComparePassed": true
+    },
+    "scope": "This supplement retains the new runtime package, installation outputs, raw qualification, config, and check logs. Model, tokenizer, kernels, license, source reference, and prior fault evidence remain in the preceding hash-bound handoff archive.",
+    "exclusions": [
+      "Private signing keys",
+      "Browser user-data profiles",
+      "Installed node_modules and npm caches",
+      "Electron and source-reference engine installations"
+    ],
+    "reproduction": "Verify both archives and the indexed files; install this supplement package instead of the preceding package. Rebase local config paths to the extracted model archive and new package consumer; keep application, signer, plan, and acceptance pins unchanged. Use a new output directory."
+  },
+  "evidence": [
+    {
+      "path": "reports/electron-adoption/20260905-audit-rerank-package-clean/doppler-gpu-0.5.1.tgz",
+      "sizeBytes": 2056318,
+      "sha256": "873f4dedbb8e98ea9a092e086d34d478e01923c9296ea3e8b9d0bba51e77de10",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-audit-rerank-package-clean/receipt.json",
+      "sizeBytes": 590,
+      "sha256": "9e67557c3caf179d8a552b4c16e8e7fc2ed936dafec67019ca8f99971c8defc7",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-audit-rerank-package-clean/source-state.json",
+      "sizeBytes": 160,
+      "sha256": "df22fcd780738fcb74091d6552e6c1a8f42fb8c588da55bd6a4725ecb2fcdce8",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-audit-rerank-package-clean/commands.json",
+      "sizeBytes": 236880,
+      "sha256": "2074d72efa2f270dc6445a60bf4966e6e66685e807e01c41de9d8d93add8caaa",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-audit-rerank-package-clean/npm-pack.json",
+      "sizeBytes": 204770,
+      "sha256": "29366c6c391f184f12b4e13064dd58aa843c1e8aef9b145bbcf81e4535f789a7",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-audit-installed-pack-01-config.json",
+      "sizeBytes": 1906,
+      "sha256": "3ffc17c2e4f8066cd0da280ebf9bc61243f575f36da5351def4d9d5f34678bcd",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-audit-installed-pack-01/qualification.json",
+      "sizeBytes": 351359,
+      "sha256": "222b3a02842874c358518d554d5fad509ce48e39035fecea21a40aa48db04ab7",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/audit-newly-covered-baseline.log",
+      "sizeBytes": 53466,
+      "sha256": "8519a80517e6e894cc0921f313cf9d21ea4a8e012fa781492f2f18fe34dae30a",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/audit-repair-focused-01.log",
+      "sizeBytes": 4537,
+      "sha256": "98411cf2e7cdfde5f49a41ab1068abe6ee272180e9bf1505136271d428cb47a0",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/audit-repair-focused-02.log",
+      "sizeBytes": 1188,
+      "sha256": "d65daf4ba52b03d5214c7e5a44c5aed4131c408c15cdaad84fabd1b85c2c4a3b",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/audit-newly-covered-final-01.log",
+      "sizeBytes": 36554,
+      "sha256": "04b3f6649d3bba20b54055ef056014e0e80b39117b197e12b9a323c87f74c172",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/audit-check-green-01.log",
+      "sizeBytes": 8857,
+      "sha256": "e25b5b825c6ba039de192b8e12e66126068a3fce0e252da568717ab56ef8b7c8",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/audit-ci-final.log",
+      "sizeBytes": 2616,
+      "sha256": "44ce1553e8114fdee1271929b4e2ac3cc12140933382563ade9a7dc9713b9781",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/audit-check-green-final.log",
+      "sizeBytes": 10119,
+      "sha256": "25934cf089cdec04ed3d30c773da263767086186524c04dfe4088c021b3f26dd",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/audit-ci-clean.log",
+      "sizeBytes": 156609,
+      "sha256": "27c1dd8f196f018ce7358b0f6fcd8a8d3b7757e257217067788dccbbe60b8e4c",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/audit-package-clean.log",
+      "sizeBytes": 516,
+      "sha256": "930d2ef2f5955d1fe90762e4fa7229d9a9c351f299b9035ee58de86b0af95dd0",
+      "availability": "retained-local-and-supplement-archive"
+    },
+    {
+      "path": "reports/electron-adoption/audit-physical-electron.log",
+      "sizeBytes": 66,
+      "sha256": "73aa481bb0fbf2b453490d8d5f135522963dd559f82b6f63df4885de6aeedc12",
+      "availability": "retained-local-and-supplement-archive"
+    }
+  ],
+  "boundaryEffects": "Development check selection and documentation only; no application authority, Pack identity, runtime semantics, or support promotion changed.",
+  "stillRequired": [
+    "Qualify the originally requested Q4K candidate with attributable source lineage; preserve its current rejection.",
+    "Application-owned held-out quality, cold/warm resource and incumbent comparisons, and production lifecycle acceptance.",
+    "Voluntary independent installation and retention through a subsequent model release; internal execution cannot supply that decision."
+  ]
+}
