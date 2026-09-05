@@ -1,45 +1,24 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, statSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { relative, resolve } from 'node:path';
+import { resolveTestFiles } from './lib/node-test-suites.js';
+import { runNodeTestScripts } from './lib/node-test-command-chain.js';
 
 const ROOT_DIR = process.cwd();
 
-const suites = {
-  unit: [
-    'tests/client',
-    'tests/config',
-    'tests/converter',
-    'tests/demo',
-    'tests/integration',
-    'tests/inference',
-  ],
-  gpu: [
-    'tests/kernels',
-  ],
-  all: [
-    'tests/client',
-    'tests/config',
-    'tests/converter',
-    'tests/demo',
-    'tests/integration',
-    'tests/inference',
-    'tests/kernels',
-  ],
-};
-
-function parseArgs() {
-  const args = process.argv.slice(2);
+function parseArgs(args) {
   const directories = [];
   let suite = 'all';
-  let forceExit = false;
   let includePending = false;
+  let list = false;
 
   for (let i = 0; i < args.length; i += 1) {
+    if (args[i] === '--list') {
+      list = true;
+      continue;
+    }
     if (args[i] === '--force-exit') {
-      forceExit = true;
       continue;
     }
 
@@ -69,49 +48,7 @@ function parseArgs() {
     directories.push(args[i]);
   }
 
-  return { suite, directories, forceExit, includePending };
-}
-
-function isPendingTestFile(name) {
-  return name.endsWith('.pending.test.js');
-}
-
-function collectTestFiles(dir, files, { includePending }) {
-  const entries = readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    if (entry.name.startsWith('.')) continue;
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      collectTestFiles(fullPath, files, { includePending });
-      continue;
-    }
-    if (!entry.isFile() || !entry.name.endsWith('.test.js')) continue;
-    if (isPendingTestFile(entry.name) && !includePending) continue;
-    files.push(fullPath);
-  }
-}
-
-function collectFilesFromRoot(pathValue, files, { includePending }) {
-  if (!existsSync(pathValue)) {
-    throw new Error(`Test path not found: ${pathValue}`);
-  }
-  const stats = statSync(pathValue);
-  if (stats.isFile()) {
-    const normalized = String(pathValue);
-    if (!normalized.endsWith('.test.js')) {
-      throw new Error(`Test file must end with .test.js: ${pathValue}`);
-    }
-    // Explicitly-named files run regardless of pending status: the caller
-    // asked for this exact file, so honor that.
-    files.push(pathValue);
-    return;
-  }
-  collectTestFiles(pathValue, files, { includePending });
-}
-
-function listRootsFromSuite(suiteName, explicitDirs) {
-  if (explicitDirs.length > 0) return explicitDirs;
-  return suites[suiteName].map((dir) => resolve(ROOT_DIR, dir));
+  return { suite, directories, includePending, list };
 }
 
 const TEST_FILE_RUNNER = resolve(ROOT_DIR, 'tools/run-node-test-file.js');
@@ -130,17 +67,16 @@ function runTestFile(file) {
   );
 }
 
-async function main() {
-  const { suite, directories, forceExit, includePending } = parseArgs();
-  if (!Object.hasOwn(suites, suite)) {
-    throw new Error(`Unknown --suite "${suite}". Valid suites: ${Object.keys(suites).join(', ')}`);
+function runTests(args, seen = new Set()) {
+  const { suite, directories, includePending, list } = parseArgs(args);
+  const discovered = resolveTestFiles(suite, directories, { includePending });
+  if (list) {
+    console.log(JSON.stringify(discovered.map((file) => relative(ROOT_DIR, file)), null, 2));
+    return;
   }
-  const selectedRoots = listRootsFromSuite(suite, directories.map((dir) => resolve(ROOT_DIR, dir)));
-  const testFiles = [];
-
-  for (const root of selectedRoots) {
-    collectFilesFromRoot(root, testFiles, { includePending });
-  }
+  const testFiles = discovered.filter((file) => !seen.has(file));
+  const omitted = discovered.length - testFiles.length;
+  if (omitted) console.log(`[node-tests] already passed in this check invocation: ${omitted} files`);
 
   if (testFiles.length === 0) {
     console.log('[node-tests] no matching tests found');
@@ -162,6 +98,7 @@ async function main() {
       process.stderr.write(result.stderr);
     }
     if (result.status === 0) {
+      seen.add(file);
       console.log(`[node-tests] ok: ${rel}`);
     } else {
       failures.push({
@@ -176,14 +113,21 @@ async function main() {
   }
 
   if (failures.length > 0) {
-    console.error(`[node-tests] failed ${failures.length}/${testFiles.length}`);
-    process.exit(1);
+    throw new Error(`[node-tests] failed ${failures.length}/${testFiles.length}`);
   }
 
   console.log(`[node-tests] ok: ${testFiles.length} files`);
-  if (forceExit) {
-    process.exit(0);
-  }
 }
 
-await main();
+try {
+  const args = process.argv.slice(2);
+  if (args[0] === '--scripts') {
+    runNodeTestScripts(args.slice(1), runTests);
+  } else {
+    runTests(args);
+  }
+  if (args.includes('--force-exit')) process.exit(0);
+} catch (error) {
+  console.error(error instanceof Error ? error.message : error);
+  process.exitCode = 1;
+}

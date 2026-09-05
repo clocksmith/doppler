@@ -4,6 +4,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+
+import { isPlainObject } from '../src/formats/plain-object.js';
 import { TOOLING_COMMANDS, TOOLING_SURFACES } from '../src/tooling/command-api.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -13,10 +15,6 @@ const CLI_PATH = path.join(REPO_ROOT, 'src', 'cli', 'doppler-cli.js');
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 async function readJson(filePath) {

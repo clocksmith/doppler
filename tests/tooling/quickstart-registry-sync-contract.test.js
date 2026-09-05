@@ -1,5 +1,14 @@
 import assert from 'node:assert/strict';
-import { buildQuickstartRegistryPayload } from '../../tools/sync-quickstart-registry.js';
+import { buildQuickstartRegistryPayload as buildPayload } from '../../tools/sync-quickstart-registry.js';
+
+const revocations = {
+  $schema: 'schema/revocation-registry.schema.json',
+  schemaVersion: 1, source: 'doppler', updatedAtUtc: '2026-08-15T00:00:00.000Z',
+  trust: { distribution: 'bundled-package', signatureVerification: 'unavailable' },
+  revocations: [],
+};
+const buildQuickstartRegistryPayload = (catalog) => buildPayload(catalog, revocations);
+assert.throws(() => buildPayload({ models: [] }), /revocation/i);
 
 function quickstartModel(overrides = {}) {
   return {

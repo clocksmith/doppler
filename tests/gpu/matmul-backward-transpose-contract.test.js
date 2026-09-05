@@ -5,7 +5,7 @@ import { resolveMatmulBackwardDxVariant } from '../../src/gpu/kernels/backward/u
 import { resolveMatmulBackwardOptions } from '../../src/experimental/training/autograd.js';
 
 const [wrapper, shader, f16Shader, q4kShader] = await Promise.all([
-  readFile(new URL('../../src/gpu/kernels/backward/utils.js', import.meta.url), 'utf8'),
+  readFile(new URL('../../src/gpu/kernels/backward/matmul.js', import.meta.url), 'utf8'),
   readFile(new URL('../../src/gpu/kernels/backward/matmul_backward.wgsl', import.meta.url), 'utf8'),
   readFile(new URL('../../src/gpu/kernels/backward/matmul_backward_f16w.wgsl', import.meta.url), 'utf8'),
   readFile(new URL('../../src/gpu/kernels/backward/matmul_backward_q4k.wgsl', import.meta.url), 'utf8'),
@@ -13,9 +13,11 @@ const [wrapper, shader, f16Shader, q4kShader] = await Promise.all([
 
 assert.equal(
   (wrapper.match(/view\.setUint32\(16, transposeB \? 1 : 0, true\);/g) || []).length,
-  2,
-  'immediate and recorded matmul backward paths must encode transposeB identically'
+  1,
+  'one shared executor must encode transposeB for immediate and recorded paths'
 );
+assert.match(wrapper, /return executeMatmulBackwardDx\(null, dY, W, M, K, N, options\)/);
+assert.match(wrapper, /return executeMatmulBackwardDx\(recorder, dY, W, M, K, N, options\)/);
 assert.match(
   shader,
   /if \(u\.transpose_b == 0u\) \{[\s\S]*W\[col \* u\.N \+ wt_row\][\s\S]*\} else \{[\s\S]*W\[wt_row \* u\.K \+ col\]/,

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
@@ -28,6 +28,9 @@ if (!webgpuReady) {
   console.log('suite-artifact-dir-cleanup.test: skipped (no WebGPU runtime)');
 } else {
   const before = listGeneratedTempRoots(await readdir(tmpdir()));
+  await mkdir('reports/training/ul', { recursive: true });
+  // Do not resume another test's or developer's default checkpoint.
+  const artifactRoot = await mkdtemp('reports/training/ul/cleanup-test-');
   let runDir = null;
   let shouldSkip = false;
   try {
@@ -37,6 +40,7 @@ if (!webgpuReady) {
         trainingSchemaVersion: 1,
         trainingTests: ['ul-stage1'],
         trainingStage: 'stage1_joint',
+        ulArtifactDir: artifactRoot,
       });
     } catch (error) {
       if (isUnavailableNodeWebGPUError(error)) {
@@ -69,9 +73,7 @@ if (!webgpuReady) {
       }
     }
   } finally {
-    if (runDir) {
-      await rm(runDir, { recursive: true, force: true });
-    }
+    await rm(artifactRoot, { recursive: true, force: true });
   }
 }
 
