@@ -24,8 +24,8 @@ See also: [INDEX.md](INDEX.md)
 
 The mainline product/technical goals are defined in [goals.md](goals.md):
 
-1. ship an external Electron production release whose eligibility decision is
-   delegated to Doppler and relied upon by the customer's activation system;
+1. reproduce an open ESM-2 execution network with Poolday, with independent-machine
+   recovery, useful verified results, and measured benefit from admitted history;
 2. own the model artifact and runtime contract; and
 3. make correctness, performance, and support evidence-backed.
 

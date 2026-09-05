@@ -50,20 +50,23 @@ const matrix = await readJson(MATRIX_PATH);
     repoRoot: REPO_ROOT,
   });
   assert.equal(report.ok, true, report.errors.join('\n'));
-  assert.equal(report.goals.length, 3);
+  assert.equal(report.goals.length, 4);
   assert.deepEqual(report.goals.map((goal) => goal.id), [
+    'open-execution-network',
     'local-webgpu-product-surface',
     'model-artifact-runtime-contract',
     'correctness-performance-claims',
   ]);
   assert.equal(report.actions.length, matrix.blockers.length);
-  assert.deepEqual(report.actions.map((action) => action.priority), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-  assert.equal(report.actions[0].code, 'external-executable-model-adoption-missing');
-  assert.equal(report.actions[0].completionClass, 'application');
+  assert.deepEqual(report.actions.map((action) => action.priority), Array.from({ length: 14 }, (_, i) => i + 1));
+  assert.equal(report.actions[0].code, 'esm2-network-pack-execution-missing');
+  assert.equal(report.actions[0].completionClass, 'hardware');
   assert.equal(report.actions[0].statusCommand, 'npm run model-release:check');
-  assert.equal(report.goals[0].label, 'Earn external executable-model adoption and a lower-effort second release');
+  assert.equal(report.goals[0].label, 'Reproduce an open ESM-2 execution network');
+  assert.equal(report.goals[0].acceptanceScope, 'technical-network');
+  assert.equal(report.goals[1].acceptanceScope, 'standalone-commercial');
   assert.deepEqual(
-    matrix.goals[0].rows.map((row) => row.id),
+    matrix.goals[1].rows.map((row) => row.id),
     [
       'external-executable-model-adoption',
       'canonical-production-release-contract',
@@ -223,6 +226,23 @@ const matrix = await readJson(MATRIX_PATH);
     errors.includes('rdrr-manifest-runtime: supportSubsystemId missing.subsystem is not declared in support tiers'),
     errors.join('\n')
   );
+}
+
+{
+  const broken = clone(matrix);
+  broken.goals[0].acceptanceScope = 'supporting';
+  assert.ok((await validateFixture(broken)).some((error) => error.includes('acceptanceScope')));
+}
+{
+  const broken = clone(matrix);
+  broken.goals[0].blockers.push('paid-doppler-production-release-missing');
+  broken.goals[0].rows[0].blockers.push('paid-doppler-production-release-missing');
+  assert.ok((await validateFixture(broken)).includes('open-execution-network: unrelated launch blocker'));
+}
+for (const row of matrix.goals[0].rows) {
+  const broken = clone(matrix);
+  broken.goals[0].rows = broken.goals[0].rows.filter((item) => item.id !== row.id);
+  assert.ok((await validateFixture(broken)).includes(`open-execution-network: missing required row ${row.id}`));
 }
 
 console.log('goal-completion-matrix.test: ok');

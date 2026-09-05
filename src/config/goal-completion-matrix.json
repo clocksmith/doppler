@@ -1,8 +1,99 @@
 {
   "schemaVersion": 1,
   "source": "doppler",
-  "updatedAtUtc": "2026-08-24T00:00:00.000Z",
+  "updatedAtUtc": "2026-09-04T00:00:00.000Z",
   "goals": [
+    {
+      "id": "open-execution-network",
+      "label": "Reproduce an open ESM-2 execution network",
+      "acceptanceScope": "technical-network",
+      "status": "partial",
+      "claimAllowed": false,
+      "evidencePaths": [
+        "docs/goals.md",
+        "tools/policies/model-release-platform.json"
+      ],
+      "blockers": [
+        "esm2-network-pack-execution-missing",
+        "origin-independent-network-recovery-missing",
+        "admitted-history-scheduler-benefit-missing",
+        "independent-network-repeat-use-missing"
+      ],
+      "rows": [
+        {
+          "id": "esm2-public-pack-execution",
+          "label": "Real signed ESM-2 Pack executes locally and through explicit complete-job delegation",
+          "tier": "experimental",
+          "status": "blocked",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/goals.md",
+            "tools/policies/model-release-platform.json"
+          ],
+          "blockers": [
+            "esm2-network-pack-execution-missing"
+          ]
+        },
+        {
+          "id": "origin-independent-peer-recovery",
+          "label": "Independent machines reconstruct the exact Pack without origins and recover participant loss",
+          "tier": "experimental",
+          "status": "blocked",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/goals.md",
+            "tools/policies/model-release-platform.json"
+          ],
+          "blockers": [
+            "origin-independent-network-recovery-missing"
+          ]
+        },
+        {
+          "id": "admitted-history-scheduler-benefit",
+          "label": "Admitted history improves held-out assignments against frozen scheduling controls",
+          "tier": "experimental",
+          "status": "blocked",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/goals.md",
+            "tools/policies/model-release-platform.json"
+          ],
+          "blockers": [
+            "admitted-history-scheduler-benefit-missing"
+          ]
+        },
+        {
+          "id": "independent-free-adoption",
+          "label": "Independent participants voluntarily repeat useful execution; free adoption counts",
+          "tier": "experimental",
+          "status": "blocked",
+          "claimAllowed": false,
+          "supportSubsystemId": null,
+          "packageBin": null,
+          "packageExport": null,
+          "smokeCommand": null,
+          "evidencePaths": [
+            "docs/goals.md",
+            "tools/policies/model-release-platform.json"
+          ],
+          "blockers": [
+            "independent-network-repeat-use-missing"
+          ]
+        }
+      ]
+    },
     {
       "id": "local-webgpu-product-surface",
       "label": "Earn external executable-model adoption and a lower-effort second release",
@@ -246,7 +337,8 @@
             "three-unrelated-design-partners-missing"
           ]
         }
-      ]
+      ],
+      "acceptanceScope": "standalone-commercial"
     },
     {
       "id": "model-artifact-runtime-contract",
@@ -586,7 +678,8 @@
             "pack-first-surface-migration-incomplete"
           ]
         }
-      ]
+      ],
+      "acceptanceScope": "supporting"
     },
     {
       "id": "correctness-performance-claims",
@@ -929,13 +1022,66 @@
           ],
           "blockers": []
         }
-      ]
+      ],
+      "acceptanceScope": "supporting"
     }
   ],
   "blockers": [
     {
-      "code": "external-executable-model-adoption-missing",
+      "code": "esm2-network-pack-execution-missing",
       "priority": 1,
+      "owner": "doppler-poolday",
+      "completionClass": "hardware",
+      "statusCommand": "npm run model-release:check",
+      "description": "Real signed ESM-2 Pack executes locally and through explicit complete-job delegation",
+      "exitCriteria": "Retain actual signed ESM-2 Pack, weights, public openPack/encodeSequence, frozen sequence corpus and oracle-valid assignment-bound outputs on declared physical browsers. Private inputs remain local; redistribution and delegation are separately authorized.",
+      "evidencePaths": [
+        "docs/goals.md",
+        "tools/policies/model-release-platform.json"
+      ]
+    },
+    {
+      "code": "origin-independent-network-recovery-missing",
+      "priority": 2,
+      "owner": "doppler-poolday",
+      "completionClass": "hardware",
+      "statusCommand": "npm run model-release:check",
+      "description": "Independent machines reconstruct the exact Pack without origins and recover participant loss",
+      "exitCriteria": "A fresh receiver reconstructs the complete Pack from authorized peers on independent machines with origin and mirrors disabled; reject corruption, recover supplier loss, retain controller provenance and all transfer costs.",
+      "evidencePaths": [
+        "docs/goals.md",
+        "tools/policies/model-release-platform.json"
+      ]
+    },
+    {
+      "code": "admitted-history-scheduler-benefit-missing",
+      "priority": 3,
+      "owner": "doppler-poolday",
+      "completionClass": "application",
+      "statusCommand": "npm run model-release:check",
+      "description": "Admitted history improves held-out assignments against frozen scheduling controls",
+      "exitCriteria": "Within the same Pack and assignment lineage, history predates held-out jobs and beats both no-history and competent reliability schedulers on a predeclared meaningful outcome with uncertainty, identical oracle and resource budget, unchanged correctness, all-attempt costs, and revocation/staleness/duplicate/insufficient-history negatives.",
+      "evidencePaths": [
+        "docs/goals.md",
+        "tools/policies/model-release-platform.json"
+      ]
+    },
+    {
+      "code": "independent-network-repeat-use-missing",
+      "priority": 4,
+      "owner": "doppler-poolday",
+      "completionClass": "application",
+      "statusCommand": "npm run model-release:check",
+      "description": "Independent participants voluntarily repeat useful execution; free adoption counts",
+      "exitCriteria": "Independent requesters and operators voluntarily return for oracle-valid useful results through forkable protocols and exportable evidence. Record operator control and consent. No payment, Electron customer, Doe improvement, or agent-proposed Pack improvement is required.",
+      "evidencePaths": [
+        "docs/goals.md",
+        "tools/policies/model-release-platform.json"
+      ]
+    },
+    {
+      "code": "external-executable-model-adoption-missing",
+      "priority": 5,
       "owner": "doppler-product",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
@@ -948,7 +1094,7 @@
     },
     {
       "code": "post-promotion-monitoring-receipts-missing",
-      "priority": 9,
+      "priority": 13,
       "owner": "doppler-release",
       "completionClass": "human-promotion",
       "statusCommand": "npm run promotion:monitoring:check",
@@ -970,7 +1116,7 @@
     },
     {
       "code": "signed-live-revocation-authority-missing",
-      "priority": 4,
+      "priority": 8,
       "owner": "doppler-security",
       "completionClass": "production-authority",
       "statusCommand": "npm run revocations:authority:check",
@@ -998,7 +1144,7 @@
     },
     {
       "code": "provider-conformance-receipts-missing",
-      "priority": 7,
+      "priority": 11,
       "owner": "doppler-runtime",
       "completionClass": "hardware",
       "statusCommand": "npm run provider:conformance:check",
@@ -1020,7 +1166,7 @@
     },
     {
       "code": "runtime-ownership-decisions-missing",
-      "priority": 8,
+      "priority": 12,
       "owner": "doppler-product",
       "completionClass": "hardware",
       "statusCommand": "npm run runtime:ownership:check",
@@ -1045,7 +1191,7 @@
     },
     {
       "code": "pack-first-surface-migration-incomplete",
-      "priority": 10,
+      "priority": 14,
       "owner": "doppler-runtime",
       "completionClass": "repository",
       "statusCommand": "npm run model-release:check",
@@ -1066,7 +1212,7 @@
     },
     {
       "code": "paid-doppler-production-release-missing",
-      "priority": 2,
+      "priority": 6,
       "owner": "doppler-product",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
@@ -1084,7 +1230,7 @@
     },
     {
       "code": "customer-electron-fleet-receipts-missing",
-      "priority": 3,
+      "priority": 7,
       "owner": "doppler-release",
       "completionClass": "hardware",
       "statusCommand": "npm run model-release:check",
@@ -1102,7 +1248,7 @@
     },
     {
       "code": "customer-rollback-drill-missing",
-      "priority": 5,
+      "priority": 9,
       "owner": "doppler-release",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
@@ -1118,7 +1264,7 @@
     },
     {
       "code": "three-unrelated-design-partners-missing",
-      "priority": 6,
+      "priority": 10,
       "owner": "doppler-product",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",

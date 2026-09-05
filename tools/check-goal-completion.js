@@ -25,12 +25,23 @@ const NULLABLE_ROW_FIELDS = ['supportSubsystemId', 'packageBin', 'packageExport'
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const REQUIRED_GOAL_LABELS = new Map([
+  ['open-execution-network', 'Reproduce an open ESM-2 execution network'],
   ['local-webgpu-product-surface', 'Earn external executable-model adoption and a lower-effort second release'],
   ['model-artifact-runtime-contract', 'Own the model artifact and runtime contract'],
   ['correctness-performance-claims', 'Make correctness and performance evidence-backed'],
 ]);
+const NETWORK_BLOCKERS = new Map([
+  ['esm2-public-pack-execution', 'esm2-network-pack-execution-missing'],
+  ['origin-independent-peer-recovery', 'origin-independent-network-recovery-missing'],
+  ['admitted-history-scheduler-benefit', 'admitted-history-scheduler-benefit-missing'],
+  ['independent-free-adoption', 'independent-network-repeat-use-missing'],
+]);
 
 const REQUIRED_GOAL_ROWS = new Map([
+  ['open-execution-network', [
+    'esm2-public-pack-execution', 'origin-independent-peer-recovery',
+    'admitted-history-scheduler-benefit', 'independent-free-adoption',
+  ]],
   [
     'local-webgpu-product-surface',
     [
@@ -555,6 +566,9 @@ async function validateGoal(goal, context) {
   const { repoRoot, blockerByCode, usedBlockers, errors } = context;
   const goalId = validateIdentifier(goal?.id, 'goal.id', errors);
   if (!goalId) return;
+  const expectedScope = goalId === 'open-execution-network' ? 'technical-network'
+    : goalId === 'local-webgpu-product-surface' ? 'standalone-commercial' : 'supporting';
+  if (goal.acceptanceScope !== expectedScope) errors.push(`${goalId}: acceptanceScope must be ${expectedScope}`);
   validateRequiredString(goal?.label, `${goalId}: label`, errors);
   const expectedGoalLabel = REQUIRED_GOAL_LABELS.get(goalId);
   if (expectedGoalLabel && normalizeText(goal?.label) !== expectedGoalLabel) {
@@ -573,6 +587,15 @@ async function validateGoal(goal, context) {
   }
 
   const goalBlockers = validateStringArray(goal?.blockers, `${goalId}: blockers`, errors);
+  if (goalId === 'open-execution-network') {
+    const allowed = new Set(NETWORK_BLOCKERS.values());
+    if (goalBlockers.some((code) => !allowed.has(code))) errors.push('open-execution-network: unrelated launch blocker');
+    for (const row of goal.rows) {
+      if (row.blockers?.some((code) => code !== NETWORK_BLOCKERS.get(row.id))) {
+        errors.push(`${row.id}: network row must retain its own scoped evidence blocker`);
+      }
+    }
+  }
   validateBlockerRefs(goalBlockers, blockerByCode, usedBlockers, goalId, errors);
   if (status === 'complete' && goal?.claimAllowed !== true) {
     errors.push(`${goalId}: complete goals must be claimAllowed`);
@@ -662,10 +685,12 @@ function summarizeGoals(matrix) {
     const blockedRows = rows.filter((row) => row?.claimAllowed === false).length;
     return {
       id: goal.id,
+      acceptanceScope: goal.acceptanceScope,
       label: goal.label,
       status: goal.status,
       claimAllowed: goal.claimAllowed,
       rows: rows.length,
+      rowStates: rows.map((row) => ({ id: row.id, status: row.status, claimAllowed: row.claimAllowed, blockers: row.blockers })),
       claimableRows,
       blockedRows,
       completionPercent: rows.length > 0 ? Math.round((claimableRows / rows.length) * 100) : 0,

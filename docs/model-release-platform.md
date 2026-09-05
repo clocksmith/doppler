@@ -1,24 +1,29 @@
 # Doppler Production Release platform
 
-Doppler is an AI-native model release foundry for JavaScript and WebGPU. Its
-initial product contract is deliberately narrow:
+Doppler is an AI-native model release foundry for JavaScript and WebGPU. The
+immediate technical contract is an open ESM-2 execution network with Poolday,
+defined in [goals](goals.md) and the policy's `networkAcceptance`. Independent
+machines, origin-independent recovery, oracle-valid useful results, admitted
+history benefit against frozen schedulers, and voluntary repeat use are required.
+Free adoption counts. This document also preserves the separate standalone offer:
 
 - Entry product: **Doppler Production Release**.
 - Recurring product: **Doppler Release Operations**.
-- Initial ICP: **TypeScript/Electron desktop products on Windows and macOS**.
-- Primary win: an unrelated application voluntarily ships a Doppler executable
+- Standalone ICP: **TypeScript/Electron desktop products on Windows and macOS**.
+- Standalone win: an unrelated application voluntarily ships a Doppler executable
   model for a measured application improvement, retains it, and ships a second
   revision with less release effort. P2P is optional and never substitutes for adoption.
 - Release eligibility, rollback, revocation, and paid operations support that
-  executable-model adoption; they are not an alternative primary win condition.
+  standalone adoption; none is a network technical-completion gate.
 
 Doppler signs an `eligible` or `blocked` recommendation. The customer’s updater,
 deployment system, feature flag, or administrator retains authority to activate
 and roll back the release. Doppler tooling and its GitHub Action must never
 self-promote or deploy the customer application.
 
-Schema version 4 adds the primary adoption gate without changing historical
-commercial or fleet evidence. Payment and eligibility remain separately tracked.
+Schema version 5 separates network acceptance from retained standalone
+commercial and fleet evidence. `promotionSequence` is explicitly scoped to
+`standalone-commercial`; payment and acquisition do not determine technical completion.
 
 The validated contract is
 `tools/policies/model-release-platform.json`. `npm run model-release:check`
@@ -53,7 +58,7 @@ previous working Pack and rollback target, and revocation configuration.
 Doppler Release Operations repeats that process for upgrades, requalification,
 incidents, revocation, and support-fleet changes.
 
-The immediate reference episode is an Electron document-search application
+The retained standalone reference episode is an Electron document-search application
 upgrading to `qwen-3-reranker-0-6b-q4k-ehf16-af32`. It is a checked-in acceptance
 fixture, not evidence of external demand.
 
@@ -65,7 +70,7 @@ Reploid generation, Dream embedding retrieval, and Columbo reranking are:
 > mechanics.
 
 Their 3/3 qualification establishes neither external adoption nor commercial
-demand. Primary adoption requires a measured application improvement, voluntary
+demand. Standalone application adoption requires a measured improvement, voluntary
 maintainer acceptance, retained use, and a second revision with less release
 effort. The separate commercial proof requires one paid external Electron release whose
 customer activation system relies on Doppler’s eligibility decision, followed
@@ -100,7 +105,7 @@ external customer evidence.
 
 ## Pack-first production path
 
-The first production path is Electron reranking. It must validate the Pack,
+The implemented standalone production path is Electron reranking. It must validate the Pack,
 select a qualified TargetPlan for the exact device tuple, bind a SessionPlan,
 execute the application workload, and retain application and fleet evidence.
 The runtime now exposes this narrow path as a Pack-bound rerank session: the
@@ -119,8 +124,9 @@ and rejects a receipt that reports a different execution. A generic application
 smoke receipt cannot be wrapped into fleet evidence.
 Dynamic model loading remains an explicit intake/conversion compatibility
 surface; it cannot bypass production qualification. Generic OpenAI, generation,
-browser expansion, and unrelated embedding surfaces are not on the immediate
-gate unless the external Electron release requires them.
+browser expansion, and unrelated embedding surfaces retain their own support
+boundaries. ESM-2 network qualification is the immediate technical path and is
+not conditional on an external Electron release.
 
 Chromium/WebGPU correctness remains required because Electron executes WebGPU
 in its renderer. A hosted GitHub runner may orchestrate customer-operated
@@ -160,5 +166,7 @@ grants a narrower use. Shared learning is limited to sanitized failure
 signatures, minimized synthetic reproductions, public evidence, and
 customer-approved derived patterns.
 
-Executable-model adoption and lower-effort repeat releases are the operating objective. Acquisition interest
-is a possible consequence, not a substitute for completing the release path.
+Private inputs remain local by default. Redistribution and complete-job
+delegation require separate explicit authority. Protocols stay forkable and
+evidence exportable. Revenue and acquisition remain commercial hypotheses;
+neither is evidence for or a prerequisite of network technical acceptance.

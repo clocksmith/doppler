@@ -8,6 +8,7 @@ import { buildCommandSurfaceContractReport } from './check-command-surface-contr
 import { buildElectronDesignPartnerProspectsReport } from './check-electron-design-partner-prospects.js';
 import { buildGoalCompletionReport } from './check-goal-completion.js';
 import { buildModelArtifactContractReport } from './check-model-artifact-contract.js';
+import { buildModelReleasePlatformReport } from './check-model-release-platform.js';
 import { buildPolicySchemaRegistryReport } from './check-policy-schema-registry.js';
 import { buildProductIntegrationQualificationReport } from './check-product-integration-qualification.js';
 import { buildProductPortfolioCoherenceReport } from './check-product-portfolio-coherence.js';
@@ -38,23 +39,31 @@ function collectErrors(name, report) {
 }
 
 export function buildProductReadinessState(reports, contractValid) {
+  const networkGoal = reports.goals.goals.find((goal) => goal.id === 'open-execution-network');
   const externalGoal = reports.goals.goals.find((goal) => goal.id === 'local-webgpu-product-surface');
-  const localGoal = reports.goals.goals.find((goal) => goal.id === 'correctness-performance-claims');
+  const localExecution = networkGoal?.rowStates?.find((row) => row.id === 'esm2-public-pack-execution');
   const externalProductionProven = externalGoal?.claimAllowed === true;
+  const networkProven = networkGoal?.claimAllowed === true && networkGoal?.status === 'complete'
+    && networkGoal?.acceptanceScope === 'technical-network' && networkGoal?.blockers?.length === 0;
   return {
     contractValid,
     internalMechanicsProven: reports.productIntegrations.gateSatisfied === true
       && reports.providerConformance.gateSatisfied === true,
-    localHardwareProven: Boolean(localGoal && localGoal.claimableRows > 0),
+    localHardwareProven: localExecution?.claimAllowed === true
+      && ['covered', 'complete'].includes(localExecution.status) && localExecution.blockers?.length === 0,
     externalProductionProven,
-    productReady: contractValid && externalProductionProven,
-    blockers: externalGoal?.blockers || [],
+    technicalAcceptance: 'open-execution-network',
+    networkProven,
+    productReady: contractValid && networkProven,
+    blockers: networkGoal?.blockers || ['open-execution-network-evidence-missing'],
+    standaloneBlockers: externalGoal?.blockers || [],
   };
 }
 
 function buildSummary(reports) {
   const errors = [
     ...collectErrors('goals', reports.goals),
+    ...collectErrors('model release platform', reports.modelReleasePlatform),
     ...collectErrors('claim evidence', reports.claimEvidence),
     ...collectErrors('command surface', reports.commandSurface),
     ...collectErrors('Electron prospect pipeline', reports.electronProspects),
@@ -71,6 +80,7 @@ function buildSummary(reports) {
     ...collectErrors('subsystem support', reports.subsystemSupport),
   ];
   const contractValid = reports.goals.ok
+      && reports.modelReleasePlatform.ok
       && reports.claimEvidence.ok
       && reports.commandSurface.ok
       && reports.electronProspects.ok
@@ -92,8 +102,10 @@ function buildSummary(reports) {
     readiness: buildProductReadinessState(reports, contractValid),
     errors,
     goals: reports.goals.goals,
-    actions: reports.goals.actions,
+    actions: reports.goals.actions.filter((action) => action.goals.includes('open-execution-network')),
+    supportingActions: reports.goals.actions.filter((action) => !action.goals.includes('open-execution-network')),
     contracts: {
+      modelReleasePlatform: reports.modelReleasePlatform,
       claimEvidence: {
         ok: reports.claimEvidence.ok,
         claims: reports.claimEvidence.claimCount,
@@ -232,6 +244,7 @@ export function formatProductReadinessMarkdown(summary) {
     `- internal mechanics proven: ${summary.readiness.internalMechanicsProven ? 'yes' : 'no'}`,
     `- local hardware proven: ${summary.readiness.localHardwareProven ? 'yes' : 'no'}`,
     `- external production proven: ${summary.readiness.externalProductionProven ? 'yes' : 'no'}`,
+    `- open network proven: ${summary.readiness.networkProven ? 'yes' : 'no'}`,
     `- product ready: ${summary.readiness.productReady ? 'yes' : 'no'}`,
     '- blockers:',
     ...(
@@ -244,7 +257,7 @@ export function formatProductReadinessMarkdown(summary) {
     '',
   ];
   for (const goal of summary.goals) {
-    lines.push(`- ${goal.label}: ${goal.completionPercent}% (${goal.claimableRows}/${goal.rows} rows claimable, ${goal.status})`);
+    lines.push(`- [${goal.acceptanceScope}] ${goal.label}: ${goal.completionPercent}% (${goal.claimableRows}/${goal.rows} rows claimable, ${goal.status})`);
   }
   lines.push('', '## Action queue', '');
   for (const action of summary.actions) {
@@ -252,6 +265,10 @@ export function formatProductReadinessMarkdown(summary) {
       `- ${action.priority}. \`${action.code}\` — owner ${action.owner}; completion ${action.completionClass}; status \`${action.statusCommand}\``,
       `  Exit: ${action.exitCriteria}`
     );
+  }
+  lines.push('', '## Standalone and supporting work (not network launch gates)', '');
+  for (const action of summary.supportingActions) {
+    lines.push(`- \`${action.code}\`: ${action.description}`);
   }
   lines.push(
     '',
@@ -287,6 +304,7 @@ export async function buildProductReadinessReport({
 } = {}) {
   const reports = {
     goals: await buildGoalCompletionReport(),
+    modelReleasePlatform: await buildModelReleasePlatformReport(),
     claimEvidence: await buildClaimEvidenceContractReport(),
     commandSurface: await buildCommandSurfaceContractReport(),
     electronProspects: await buildElectronDesignPartnerProspectsReport(),

@@ -6,7 +6,7 @@ Parent: none
 
 ## Target
 
-Earn voluntary executable-model adoption by an unrelated JavaScript application through measured application improvement and a lower-effort second release.
+Deliver a reproducible open execution network with Poolday: verified useful execution across independent machines and admitted history improving later assignments.
 
 ## Authority
 
@@ -27,7 +27,8 @@ Earn voluntary executable-model adoption by an unrelated JavaScript application 
 - Supported behavior is stronger than available code and must remain explicitly scoped.
 - Artifact, tokenizer, graph, kernel, provider, and runtime-policy identity remain inspectable.
 - Unsupported or unresolved execution choices fail closed.
-- Release governance supports adoption; peer delivery remains optional.
+- Local execution remains usable independently; redistribution and complete-job delegation require explicit authority.
+- Free adoption counts. Revenue, acquisition, Electron customers, Doe, and agent-proposed Pack improvements do not gate network completion.
 
 ## Acceptance
 
