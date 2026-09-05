@@ -3,9 +3,17 @@ import assert from 'node:assert/strict';
 import {
   findNewModelFamilies,
   validateModelFamilyAuthorization,
+  isSelectedNetworkIntake,
 } from '../../tools/check-model-family-intake.js';
 
 assert.deepEqual(findNewModelFamilies(['gemma3', 'qwen3'], ['gemma3']), ['qwen3']);
+const network = { goalId: 'open-execution-network', firstModelId: 'esm2-t12-35m-ur50d-f32-af32' };
+const selected = { output: { modelBaseId: network.firstModelId } };
+assert.equal(isSelectedNetworkIntake([selected], network), true);
+assert.equal(isSelectedNetworkIntake([selected, { output: { modelBaseId: 'unrelated' } }], network), false);
+assert.equal(isSelectedNetworkIntake([{ output: { modelBaseId: 'unrelated' } }], network), false);
+assert.equal(isSelectedNetworkIntake([], network), false);
+assert.equal(isSelectedNetworkIntake([selected], {}), false);
 
 const authorization = {
   schema: 'doppler.model-family-authorization/v1',

@@ -6,6 +6,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { validateProductionRelease } from '../src/config/production-release.js';
 import { listDirectoriesAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
+import { buildModelReleasePlatformReport } from './check-model-release-platform.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const conversionRoot = path.join(repoRoot, 'src/config/conversion');
@@ -40,6 +41,13 @@ function isRepoRelativePath(value) {
 export function findNewModelFamilies(currentFamilies, baselineFamilies) {
   const baseline = new Set(baselineFamilies);
   return [...new Set(currentFamilies)].filter((family) => !baseline.has(family)).sort();
+}
+
+export function isSelectedNetworkIntake(configs, networkAcceptance) {
+  return networkAcceptance?.goalId === 'open-execution-network'
+    && typeof networkAcceptance.firstModelId === 'string'
+    && Array.isArray(configs) && configs.length === 1
+    && configs[0]?.output?.modelBaseId === networkAcceptance.firstModelId;
 }
 
 export function validateModelFamilyAuthorization(
@@ -105,6 +113,8 @@ async function readJson(filePath) {
 async function main() {
   const baseRef = resolvePolicyBaseRef(process.argv.slice(2));
   const matrix = await readJson(goalMatrixPath);
+  const platform = await buildModelReleasePlatformReport();
+  if (!platform.ok) throw new Error(platform.errors.join('\n'));
   const goal = matrix.goals?.find((entry) => entry.id === 'local-webgpu-product-surface');
   if (!goal) throw new Error('Goal matrix is missing local-webgpu-product-surface.');
   const currentFamilies = (await fs.readdir(conversionRoot, { withFileTypes: true }))
@@ -121,6 +131,13 @@ async function main() {
 
   if (goal.status !== 'complete') {
     for (const family of newFamilies) {
+      const familyPath = path.join(conversionRoot, family);
+      const files = (await fs.readdir(familyPath, { withFileTypes: true }));
+      const configs = await Promise.all(files.filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+        .map((entry) => readJson(path.join(familyPath, entry.name))));
+      // The selected network workload has repository-authorized product intent.
+      // It does not need an Electron customer; additional configs do not inherit it.
+      if (!files.some((entry) => entry.isDirectory()) && isSelectedNetworkIntake(configs, platform.networkAcceptance)) continue;
       const authorizationPath = path.join(authorizationRoot, `${family}.json`);
       let authorization;
       try {

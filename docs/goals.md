@@ -1,139 +1,84 @@
 # Doppler Goals
 
-This file is the durable product and technical contract for Doppler's mainline
-work. Generated matrices and receipts remain the source of truth for current
-support and claims; this file states what the repo is optimizing toward and the
-boundaries that must constrain that work.
-
 Doppler is an AI-native model release foundry and evidence-backed WebGPU runtime
-for JavaScript applications. The immediate product contract is:
+for JavaScript. The immediate win condition is a reproducible open execution
+network delivered with Poolday. Free adoption counts; payment does not determine
+technical completion.
 
-- Entry product: **Doppler Production Release**.
-- Recurring product: **Doppler Release Operations**.
-- Initial ICP: **TypeScript/Electron desktop products on Windows and macOS**.
-- Primary win: an unrelated application voluntarily ships a Doppler executable
-  model for a measured application improvement, retains it, and ships a second
-  revision with less release effort. P2P is optional and never substitutes for adoption.
-- Release eligibility, rollback, revocation, and paid operations support that
-  executable-model adoption; they are not an alternative primary win condition.
+Doppler owns model semantics, source lineage, signed immutable Packs, artifact
+integrity, qualified TargetPlan selection, and execution. Poolday owns participation,
+authorization, assignment, transport, comparison, requester acceptance, and
+admission of reusable evidence. The runtime never invents a plan or silently
+changes signed model behavior.
 
-Doppler determines and signs release eligibility. It does not activate or roll
-back the customer application. The customer’s updater, deployment system,
-feature flag, or administrator retains that authority.
+## Goal 1: Reproduce an open execution network
 
-Runtime ownership must be proven rather than presumed. Artifact governance,
-evaluation, application APIs, receipts, and requalification can also be built
-around an incumbent runtime. Doppler should own execution for a workload only
-when scoped evidence demonstrates durable value that an instrumented incumbent
-does not provide. Otherwise Doppler should qualify, wrap, or interoperate with
-the strongest eligible provider while applying the same identity and evidence
-standards.
+ESM-2 35M, `esm2-t12-35m-ur50d-f32-af32`, remains the first network demonstration.
+The connected capability is acquire, verify, execute locally, optionally
+redistribute authorized artifacts, and explicitly delegate complete jobs.
+Each selected execution peer runs the complete model. Downloading a Pack does
+not authorize redistribution or delegation.
 
-## Standalone product and commercial offer
+The demonstration uses actual signed Pack bytes, actual weights, and physical
+browser execution through public `openPack()` and `encodeSequence()`. A fixed
+vector, injected model program, local-tab identity, or successful contract test
+does not establish that proof. Freeze a public-sequence corpus, requested outputs,
+resource limits, and numerical correctness oracle before qualification.
 
-Doppler's independent category is the **AI-native model release foundry for
-JavaScript and WebGPU**. Its authoritative unit of value is a supported model release: a
-signed immutable Pack, one or more qualified TargetPlans, declared application
-and hardware evidence, known exclusions, and operational upgrade, rollback,
-requalification, and revocation procedures.
+One retained episode must connect:
 
-The first paid offer is **Doppler Production Release**. A customer provides one
-pinned model, one pinned Electron application revision, its acceptance tests,
-supported Windows/macOS device policy, previous release, rollout rules, and
-rollback target. Doppler returns a source-derived Pack, exact fleet evidence,
-typed exclusions, retained failures, and a signed `eligible` or `blocked`
-recommendation. **Doppler Release Operations** repeats that process for upgrades,
-requalification, incidents, revocation, and support-fleet changes.
+1. A fresh receiver reconstructs the exact Pack and complete artifact closure
+   from multiple authorized peers on independent machines, with origin and
+   alternate mirrors disabled.
+2. Corruption is rejected and participant loss is recovered without weakening
+   integrity or silently fetching the origin.
+3. Local execution and explicitly delegated complete jobs produce useful,
+   oracle-valid, assignment-bound results under the same frozen acceptance policy.
+4. Poolday retains outputs, disagreements, failures, review decisions, source
+   attribution, transfer and execution costs, and the Pack/assignment lineage.
+5. Admitted history changes a later held-out assignment and improves a predeclared
+   meaningful outcome against both no-history and competent frozen reliability
+   schedulers, with uncertainty reported and correctness unchanged.
+6. Independent requesters and operators voluntarily return. Free use qualifies;
+   protocol keys alone do not establish distinct machines or operator control.
 
-The primary promotion gate is external and repeatable: an unrelated maintainer
-accepts the unchanged application integration because its predeclared outcome
-improves against the strongest practical incumbent. Customer-operated devices,
-output parity, retained losses, one rejected candidate, recovery, continued use,
-and a subsequent model revision with measured lower release effort are required.
-Eligibility remains supporting release evidence. An internal Pack, benchmark,
-paid eligibility decision, or peer transfer alone cannot satisfy adoption.
+All comparison arms receive the same jobs, eligible capacity, oracle, resource
+budget, and controlled starting conditions. History precedes held-out jobs and
+policy tuning ends before evaluation. Charge all attempts, replication,
+verification, retries, failed transfers, relay traffic, and review. Report
+resource quantities before optional monetary conversion. Revoked or expired
+evidence loses influence; runtime changes require scoped requalification;
+duplicates cannot manufacture support; insufficient history stays uncertain.
 
-`tools/policies/model-release-platform.json` is the validated projection of
-this product contract. `npm run model-release:check` binds its Forge, ModelIR,
-Pack, provider, API, recovery, commercial, custody, and promotion obligations to
-the completion matrix. The check passes when the contract is coherent and gaps
-are honestly declared; it does not promote those gaps.
+Private inputs remain local by default. The initial delegated workload uses
+explicitly public protein sequences; no new private-input sharing permission is
+implied. Protocols remain forkable, evidence exportable, and redistribution and
+delegation separately opt-in.
 
-Doppler remains provider-neutral. Runtime selects a qualified plan already
-carried by the Pack and never invents one on the user's device. Doe is an
-optional target, not a dependency. A stronger eligible incumbent remains valid
-when it satisfies the application contract.
+Doppler and Poolday remain usable independently. Electron, Qwen, Bun, existing
+reference integrations, and provider qualification retain their own supported
+boundaries and evidence. They are not simultaneous network launch gates.
+Doe improvements and agent-proposed Pack improvements are separate later
+experiments and neither blocks this initial network. No scientific or biological
+claim follows from matching embeddings.
 
-## Immediate operating order: one independent customer proof
+## Retained standalone and commercial work
 
-Development serves one maintained external Electron document-search application
-using Qwen reranking. It must adopt the complete source-to-execution path for a
-measured application outcome and repeat with less release effort. Doppler stays
-provider-neutral; paid release operations support, but do not replace, adoption. The frozen comparison includes the customer's strongest
-incumbent, Doppler Runtime when eligible, and optional DoeRuntime only when the
-customer separately authorizes it. The winning qualified TargetPlan is the one
-that passes the application contract; product branding grants no preference.
+Doppler Production Release and Doppler Release Operations remain commercial
+hypotheses for TypeScript/Electron products on Windows and macOS. Existing
+Pack-first reranking, release tooling, application qualification, revocation,
+and customer-controlled rollback remain usable. The application retains
+activation authority; neither Doppler nor Poolday self-promotes a release.
 
-Completion requires all of the following as separate retained evidence:
+The Electron document-search reference uses
+`qwen-3-reranker-0-6b-q4k-ehf16-af32`. Its fleet, adoption, paid release, repeat
+upgrade, and design-partner evidence remain separately tracked, not erased or
+promoted. See [the standalone release contract](model-release-platform.md).
+Revenue and acquisition are commercial hypotheses outside technical acceptance.
 
-- voluntary external maintainer acceptance and application-owned outcome improvement;
-- frozen incumbent/output parity and raw application measurements;
-- retained use and a second revision with measured lower release effort;
-- customer-operated Windows and macOS fleet receipts;
-- a signed Pack eligibility decision used by the customer's promotion system;
-- preserved rejected candidates and their failure bundles;
-- an authorized revocation and atomic rollback drill; and
-- a subsequent model upgrade delegated to Doppler.
-
-The three remaining generic Pack-first compatibility migrations stay deferred unless
-the selected customer's workload reaches one. Glimmer, model count, and runtime
-superiority do not outrank this proof. The independent-product test is strict:
-Doppler's executable-model path must remain operable and independently chosen
-without Doe, Reploid, or peer delivery. The transport-neutral artifact-source
-contract accepts verified cache, HTTP, offline, or authorized peer bytes;
-Poolday owns discovery and assignment, not Doppler.
-
-The researched outreach pipeline is governed by
-`tools/policies/electron-design-partner-prospects.json` and documented in
-`docs/electron-design-partner-program.md`. Its five names are prospects only;
-they are not customers, authorized workloads, qualification evidence, or
-commercial proof.
-
-## Goal 1: Earn executable-model adoption in one external Electron application
-
-Product contract:
-
-- The initial release episode is an Electron document-search application
-  upgrading to `qwen-3-reranker-0-6b-q4k-ehf16-af32`.
-- The application revision, model revision, incumbent control, acceptance suite,
-  supported Windows/macOS device tuples, data-custody rules, previous Pack,
-  rollout rules, and rollback target are pinned before qualification.
-- `doppler release` emits the immutable Pack, signed release decision,
-  qualification receipts, typed exclusions, failure bundle, rollback target,
-  and revocation configuration. It never deploys or self-promotes.
-- Electron renderer execution remains subject to Chromium/WebGPU correctness.
-  Fleet qualification is performed by customer-operated Windows and macOS
-  agents; hosted CI only orchestrates their receipts.
-- Bun, new model families, biological workloads, generic browser expansion, and
-  unrelated benchmarks remain outside the gate unless the external release
-  requires them.
-- `npm run model-family:intake:check` enforces that boundary against the base
-  revision while this goal is incomplete; a new conversion family must bind a
-  customer-authorized external release contract.
-
-Technical contract:
-
-- One coherent JS/WGSL execution contract serves the Electron renderer, the
-  release CLI, and the Pack Runtime. Other surfaces remain explicit support or
-  compatibility contracts rather than simultaneous product priorities.
-- Command semantics stay aligned where a command is supported on multiple
-  surfaces; unsupported commands fail explicitly.
-- JavaScript orchestrates load, prefill, decode, KV cache, streaming, and
-  readback from resolved config.
-- WGSL kernels perform deterministic math only.
-- Unsupported environment or runtime capabilities never trigger an undeclared
-  fallback. An alternate lane is legal only when a policy explicitly authorizes
-  it, the caller may reject it, and the resolution is visible in the receipt.
+Provider neutrality and the runtime ownership comparison remain requirements
+for provider superiority claims. They do not require winning an unrelated
+portfolio comparison before the exact ESM-2 network can be demonstrated.
 
 ### Support ladder and lifecycle
 
@@ -154,95 +99,26 @@ and `retired`. Both are scoped to named surfaces and hardware classes. A
 product-supported Node lane does not imply browser support, and a runtime pass
 does not imply task quality.
 
-### Decisive product gate
-
-The first decisive product gate is one externally maintained Electron application
-that voluntarily chooses a Doppler executable model because a predeclared
-application outcome improves, retains it, and ships the second revision with
-less release effort. The release must preserve the previous Pack,
-retain a failed or rejected candidate, exercise customer-controlled rollback and
-revocation, and bind exact application, artifact, execution, and supported-device
-identity. Two additional unrelated customers are later commercial expansion,
-not substitutes for the first application's adoption evidence.
-
-The repository-side release toolchain is implemented: production-release/v1,
-the seven-element Pack binding, Pack-first reranking, `doppler release`, the
-Electron state/renderer adapter, and the reusable non-promoting GitHub check all
-have executable contract tests. That implementation does not close the decisive
-gate. Exact customer-operated Windows/macOS receipts, a promoted production
-revocation authority, customer activation/rollback evidence, the subsequent
-upgrade, adoption, and later unrelated paid customers remain external evidence classes
-and may not be synthesized from repository fixtures.
-
-Reploid generation, Dream embedding retrieval, and Columbo reranking are exactly:
-
-> Internally controlled reference integrations proving application-integration
-> mechanics.
-
-Their 3/3 qualification proves the mechanics and neither external adoption nor
-commercial demand.
-
-Static discovery may register a real application as a non-claimable candidate
-when its repository revision, Doppler call path, requested model, and known gaps
-are retained. Discovery does not satisfy any runtime or product evidence field.
-Candidate coverage is reported separately from qualified coverage so an empty
-registry cannot hide adoption work and available code cannot imply support.
-Qualification evidence is canonical-JSON-digest-bound. Owner confirmation and
-native Doppler identity have dedicated receipt contracts; every product outcome
-uses class-specific observations whose claimed pass is recomputed. Every outcome
-in one qualification binds the same application revision, harness revision, and
-environment fingerprint. Product support additionally requires a human
-promotion receipt bound to the canonical digest of the complete evaluation set;
-editing status fields alone cannot promote an integration. See
-`docs/product-integration-qualification.md`.
-
-The prospect registry is even earlier than static integration discovery. It
-records outreach order, proposed pilot inputs, provider neutrality, custody,
-and blockers without a pinned customer revision or Doppler call path. Run
-`npm run product:prospects:report` to inspect it. A prospect moves into an
-authorized release contract only through explicit application-owner authority.
 
 ## Completion matrix
 
-The current completion state is encoded in
-`src/config/goal-completion-matrix.json` and checked by `npm run goals:check`.
-Rows are claimable only when `claimAllowed` is true, evidence paths exist, and
-blockers are empty. Partial or experimental rows must name blocker codes, so
-README claims cannot outrun support matrices, release receipts, or package
-surface truth.
+`tools/policies/model-release-platform.json` and its strict schema encode the
+network contract, commercial separation, and required evidence.
+`npm run model-release:check` validates them against
+`src/config/goal-completion-matrix.json`. The matrix has one
+`technical-network` goal; retained `standalone-commercial` and `supporting`
+goals do not add network launch gates.
 
-The immediate matrix is ordered around the Electron production release, not a
-simultaneous generation, embedding, reranking, browser, Node, and Bun portfolio.
-The older three-workload portfolio contract remains reference and compatibility
-evidence while the first release path is built. A model, host, or benchmark gap
-becomes mainline only when the Electron release or an explicit customer support
-commitment requires it. Candidate and rejected lanes remain visible and
-non-claimable.
+`npm run product:readiness:report` reports network acceptance and its action
+queue separately from standalone and supporting work. Structural validity does
+not mean execution, independent adoption, or measured history benefit. Missing
+evidence remains blocked and non-claimable.
 
-Goal 1 therefore contains only the canonical product contract, the frozen
-Electron reference release, Pack-first Electron reranking, the release
-toolchain, internal reference-integration mechanics, customer-operated fleet
-qualification, production revocation plus customer rollback, the first paid
-release and upgrade, and the two subsequent unrelated design partners. Generic
-browser, Node, OpenAI-compatible, generation, embedding, and Bun surfaces remain
-governed by their support and compatibility contracts; they are not Goal 1 rows
-and cannot outrank the external Electron release merely because code exists.
-
-Every blocker is also an executable action record. It names a unique priority,
-an accountable owner, a status command, exact exit criteria, and the authority
-that must terminalize it:
-
-- `repository`: checked-in implementation or contract work can complete it;
-- `application`: a maintained external application must qualify it;
-- `hardware`: retained execution on the declared hardware and surface is required;
-- `production-authority`: deployed operations or trusted custody must qualify it;
-- `human-promotion`: an explicit promotion or retain/revoke decision is required.
-
-`npm run goals:report` and `npm run product:readiness:report` project these
-records into priority order. A passing status command means the governing
-policy is internally valid; only removal of the blocker after its exit evidence
-exists means the strategic gap is complete. Agents must not replace an external,
-hardware, operational, or human completion class with repository-only evidence.
+Every blocker names its priority, owner, status command, exact exit criteria,
+and completion authority: repository, application, hardware, production authority,
+or human promotion. A passing check validates the contract, not the external
+facts it requires. Existing support and claim checks remain enforced within
+their declared scopes.
 
 ## Goal 2: Own the model artifact and runtime contract
 
@@ -518,8 +394,8 @@ vulnerable predecessor.
 
 ## Product measures
 
-The north star is production model releases whose eligibility decision is
-delegated to Doppler and relied upon by the customer’s activation system.
+The north star is reproducible useful execution across independent machines,
+with admitted evidence improving later assignments and voluntary repeat use.
 Supporting measures are scoped product outcomes, not raw catalog size:
 
 - install-to-first-verified-output success;
@@ -529,7 +405,7 @@ Supporting measures are scoped product outcomes, not raw catalog size:
 - crash, OOM, device-loss, recovery, and peak-memory behavior;
 - held-out task-quality retention against the source model;
 - artifact reproducibility and evidence freshness;
-- paid external Electron releases and subsequent upgrades relying on Doppler;
+- voluntary repeat network use, including free adoption;
 - regression detection, revocation, and requalification completeness;
 - accepted improvement per measurement budget, with negative learning retained.
 
@@ -541,8 +417,9 @@ safe candidates were attempted.
 
 | Area | Goal |
 | --- | --- |
-| Doppler Production Release, release CLI, Electron adapter, fleet action | Goal 1 |
-| Electron renderer, JS orchestration, WGSL kernels, Pack execution | Goal 1 |
+| Open ESM-2 execution network, authorized custody, explicit complete-job delegation | Goal 1 |
+| Release CLI, Electron adapter, fleet action | Retained standalone work |
+| Browser execution, JS orchestration, WGSL kernels, Pack execution | Goals 1 and 2 |
 | RDRR, conversion, manifests, catalog, hosted model IDs | Goal 2 |
 | Runtime profiles, schema defaults, rule maps, kernel refs | Goal 2 |
 | Release receipts, model matrix, subsystem tiers | Goal 3 |

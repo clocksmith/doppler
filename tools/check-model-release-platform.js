@@ -8,13 +8,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'model-release-platform.json');
 const MATRIX_PATH = path.join(REPO_ROOT, 'src', 'config', 'goal-completion-matrix.json');
+const POLICY_SCHEMA = JSON.parse(await fs.readFile(new URL('../src/config/schema/model-release-platform.schema.json', import.meta.url), 'utf8'));
 
 const EXPECTED = Object.freeze({
   positioning: Object.freeze({
     entryProduct: 'Doppler Production Release',
     recurringProduct: 'Doppler Release Operations',
-    initialIcp: 'TypeScript/Electron desktop products on Windows and macOS',
-    northStar: 'Unrelated applications voluntarily ship Doppler executable models for a measured application improvement, retain them, and ship a second revision with less release effort.',
+    initialIcp: POLICY_SCHEMA.properties.positioning.properties.initialIcp.const,
+    northStar: POLICY_SCHEMA.properties.positioning.properties.northStar.const,
   }),
   forgeStages: ['inspect', 'normalize', 'analyze', 'lower', 'specialize', 'search', 'verify', 'qualify', 'package', 'sign'],
   runtimeSteps: ['validate', 'select', 'bind', 'allocate', 'execute', 'observe'],
@@ -24,6 +25,10 @@ const EXPECTED = Object.freeze({
   referenceIntegrations: ['reploid-generation', 'dream-embedding-retrieval', 'columbo-reranking'],
   recovery: ['content-hash-shard-resume', 'failed-upgrade-preserves-previous-pack', 'portable-state-snapshot-identity'],
   goalRows: [
+    ['open-execution-network', 'esm2-public-pack-execution'],
+    ['open-execution-network', 'origin-independent-peer-recovery'],
+    ['open-execution-network', 'admitted-history-scheduler-benefit'],
+    ['open-execution-network', 'independent-free-adoption'],
     ['local-webgpu-product-surface', 'canonical-production-release-contract'],
     ['local-webgpu-product-surface', 'electron-reference-release'],
     ['local-webgpu-product-surface', 'pack-first-electron-reranking'],
@@ -36,6 +41,17 @@ const EXPECTED = Object.freeze({
     ['model-artifact-runtime-contract', 'pack-first-compatibility-migration'],
   ],
 });
+
+function validateConstContract(value, schema, label, errors) {
+  for (const field of schema.required) {
+    if (JSON.stringify(value?.[field]) !== JSON.stringify(schema.properties[field].const)) {
+      errors.push(`${label}.${field} must match the acceptance schema`);
+    }
+  }
+  for (const field of Object.keys(value || {})) {
+    if (!schema.properties[field]) errors.push(`${label}.${field} is not allowed`);
+  }
+}
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -113,14 +129,14 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
   const errors = [];
   const pathRows = [];
   const blockerCodes = new Set((matrix?.blockers || []).map((row) => row.code));
-  exactArray(policy?.adoptionGate?.requiredEvidence, [
-    'unrelated-maintainer-acceptance', 'application-owned-outcome-improvement',
-    'parity-qualified-incumbent-comparison', 'customer-operated-devices',
-    'rejected-candidate-and-recovery', 'retained-use', 'second-revision-less-release-effort',
-  ], 'adoptionGate.requiredEvidence', errors);
-  if (policy?.adoptionGate?.primary !== true || policy?.adoptionGate?.p2pRequired !== false
-    || policy?.adoptionGate?.currentAssessment !== 'unestablished') {
-    errors.push('Adoption is primary, unestablished, and independent of P2P.');
+  validateConstContract(policy?.networkAcceptance, POLICY_SCHEMA.properties.networkAcceptance, 'networkAcceptance', errors);
+  validateConstContract(policy?.adoptionGate, POLICY_SCHEMA.properties.adoptionGate, 'adoptionGate', errors);
+  validateConstContract(policy?.standaloneAdoptionGate, POLICY_SCHEMA.properties.standaloneAdoptionGate, 'standaloneAdoptionGate', errors);
+  if (policy?.schemaVersion !== POLICY_SCHEMA.properties.schemaVersion.const) errors.push('policy.schemaVersion must match its schema');
+  if (policy?.promotionSequenceScope !== 'standalone-commercial'
+    || policy?.commercialOffer?.requiredForTechnicalAcceptance !== false
+    || policy?.acquisitionBoundary?.requiredForTechnicalAcceptance !== false) {
+    errors.push('Standalone promotion, revenue, and acquisition must remain outside network technical acceptance.');
   }
 
   if (policy?.id !== 'doppler-model-release-platform') errors.push('policy.id must be doppler-model-release-platform');
@@ -253,6 +269,8 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
     externalPromotionGates: Array.from(promotionIndex.values())
       .filter((row) => row.completionState === 'external-evidence-required')
       .map((row) => row.id),
+    promotionSequenceScope: policy?.promotionSequenceScope,
+    networkAcceptance: policy?.networkAcceptance,
   };
 }
 
