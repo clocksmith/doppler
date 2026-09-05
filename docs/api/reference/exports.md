@@ -15,6 +15,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `createDopplerRuntime`
   - `createFetchPackArtifactStore`
+  - `createForecastProgramFactory`
   - `DOPPLER_VERSION`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
@@ -36,6 +37,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `createDopplerRuntime`
   - `createFetchPackArtifactStore`
+  - `createForecastProgramFactory`
   - `DOPPLER_VERSION`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`

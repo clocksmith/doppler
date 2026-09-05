@@ -172,7 +172,11 @@ export function validateTargetPlan(plan) {
   if (!isObject(plan.phases)) {
     errors.push('phases must be an object.');
   } else {
-    for (const phase of ['prefill', 'decode']) {
+    const forecast = Object.hasOwn(plan.phases, 'forecast');
+    if (forecast && Object.keys(plan.phases).some((phase) => phase !== 'forecast')) {
+      errors.push('Forecast TargetPlans must declare only the forecast phase.');
+    }
+    for (const phase of forecast ? ['forecast'] : ['prefill', 'decode']) {
       if (!Array.isArray(plan.phases[phase]) || plan.phases[phase].length === 0) {
         errors.push(`phases.${phase} must be a non-empty command array.`);
       } else {
@@ -194,21 +198,36 @@ export function validateTargetPlan(plan) {
       requireString(record.evidenceArtifactId, `qualification[${index}].evidenceArtifactId`, errors);
       requireDigest(record.evidenceHash, `qualification[${index}].evidenceHash`, errors);
       if (record.transcriptHash !== undefined) requireDigest(record.transcriptHash, `qualification[${index}].transcriptHash`, errors);
-      if (record.operation === 'rerank') {
+      if (record.operation === 'forecast') {
+        if (!Object.hasOwn(plan.phases ?? {}, 'forecast')
+          || !Number.isInteger(record.forecastCases) || record.forecastCases < 1
+          || record.generatedTokens !== undefined || record.encodedSequences !== undefined
+          || record.rerankedDocuments !== undefined
+          || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
+          errors.push(`qualification[${index}] requires a forecast phase, forecastCases and transcriptHash without other operation counts.`);
+        }
+      } else if (Object.hasOwn(plan.phases ?? {}, 'forecast')) {
+        errors.push(`qualification[${index}] must qualify the forecast operation.`);
+      } else if (record.operation === 'rerank') {
         if (!Number.isInteger(record.rerankedDocuments) || record.rerankedDocuments < 1
           || record.generatedTokens !== undefined || record.encodedSequences !== undefined
+          || record.forecastCases !== undefined
           || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
           errors.push(`qualification[${index}] requires rerankedDocuments and transcriptHash without other operation counts.`);
         }
       } else if (record.operation === 'encodeSequence') {
         if (!Number.isInteger(record.encodedSequences) || record.encodedSequences < 1
+          || record.rerankedDocuments !== undefined || record.forecastCases !== undefined
           || record.generatedTokens !== undefined || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
-          errors.push(`qualification[${index}] requires encodedSequences and transcriptHash without generatedTokens.`);
+          errors.push(`qualification[${index}] requires encodedSequences and transcriptHash without other operation counts.`);
         }
       } else if (record.operation !== undefined && record.operation !== 'generate') {
         errors.push(`qualification[${index}].operation is unsupported.`);
       } else if (!Number.isInteger(record.generatedTokens) || record.generatedTokens < 1) {
         errors.push(`qualification[${index}].generatedTokens must be a positive integer.`);
+      } else if (record.encodedSequences !== undefined || record.rerankedDocuments !== undefined
+        || record.forecastCases !== undefined) {
+        errors.push(`qualification[${index}] requires generatedTokens without other operation counts.`);
       }
     }
   }

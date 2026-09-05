@@ -1,4 +1,4 @@
-
+import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
 function resolveGpuDevice(devicePort) {
   const device = typeof devicePort?.getDevice === 'function' ? devicePort.getDevice() : devicePort?.gpuDevice ?? devicePort;
   if (!device || typeof device.createCommandEncoder !== 'function') {
@@ -23,7 +23,12 @@ export function createCommandExecutor(devicePort, resourceBinder, program = null
   const pipelineTasks = new Map();
 
   async function resolvePipeline(command, module) {
-    const key = `${module.id}:${module.sourceHash}:${command.entry ?? module.entry}`;
+    const key = computeCanonicalSha256({
+      moduleId: module.id,
+      sourceHash: module.sourceHash,
+      entry: command.entry ?? module.entry,
+      constants: command.constants ?? {},
+    });
     if (!pipelineTasks.has(key)) {
       const shaderModule = device.createShaderModule({
         label: `doppler-pack:${module.id}`,

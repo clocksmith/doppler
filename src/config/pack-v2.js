@@ -203,7 +203,10 @@ function validateProgram(pack, artifacts, errors) {
     errors.push('program.modelIREvidenceArtifactId must reference source-truth evidence.');
   }
   for (const [field, role] of [['tokenizerArtifactIds', 'tokenizer'], ['weightArtifactIds', 'weight-shard']]) {
-    if (!Array.isArray(program[field]) || program[field].length === 0) {
+    const numericForecast = field === 'tokenizerArtifactIds'
+      && pack.modelIR?.schema === 'doppler.model-ir/v2'
+      && pack.modelIR.entryPoints?.every((entry) => entry.kind === 'forecast');
+    if (!Array.isArray(program[field]) || (!numericForecast && program[field].length === 0)) {
       errors.push(`program.${field} must be a non-empty array.`);
       continue;
     }
