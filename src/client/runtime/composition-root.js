@@ -10,6 +10,7 @@ import { createCommandExecutor } from './command-executor.js';
 import { createSessionController } from './session-controller.js';
 import { selectTargetPlan } from './target-selector.js';
 import { executePackRerank } from './pack-rerank.js';
+import { executePackForecast } from './pack-forecast.js';
 
 export const RUNTIME_CORE_VERSION = '2.0.0';
 
@@ -142,6 +143,18 @@ export function createDopplerRuntime(ports) {
           verification,
           observedInitialExecutionIdentity,
           units: { resourceBinder, commandExecutor, sessionController },
+
+          async forecast(request) {
+            if (closed) throw new Error('Pack runtime session is closed.');
+            await assertPlanUnchanged();
+            try {
+              return await executePackForecast({ identity: verification.identity,
+                release: verification.lifecycle?.release ?? pack.release,
+                targetPlan: selectedPlan, targetPlanDigest, program, request,
+                artifactReceipts: verification.artifactReceipts,
+                releaseEventDigest: verification.lifecycle?.event.digest ?? null });
+            } finally { await assertPlanUnchanged(); }
+          },
 
           async encodeSequence(sequence, sequenceOptions = {}) {
             if (closed) throw new Error('Pack runtime session is closed.');

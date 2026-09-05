@@ -62,4 +62,38 @@ const identityMismatch = structuredClone(planV2);
 identityMismatch.executionGraphHash = `sha256:${'b'.repeat(64)}`;
 assert.equal(validateTargetPlan(identityMismatch).ok, false);
 
+// Reranking and forecasting must coexist without borrowing another operation's evidence.
+const operationCounts = {
+  generate: 'generatedTokens', encodeSequence: 'encodedSequences',
+  rerank: 'rerankedDocuments', forecast: 'forecastCases',
+};
+for (const [operation, count] of Object.entries(operationCounts)) {
+  const candidate = structuredClone(plan);
+  candidate.qualification = [{
+    surface: 'test', status: 'passed', evidenceArtifactId: 'evidence', evidenceHash: digest,
+    operation, [count]: 1, transcriptHash: digest,
+  }];
+  if (operation === 'forecast') {
+    candidate.phases = { forecast: [{
+      kind: 'program-phase', phase: 'forecast', executionGraphHash: digest, declaredStepIds: ['forecast'],
+    }] };
+  }
+  assert.deepEqual(validateTargetPlan(candidate), { ok: true, errors: [] }, operation);
+  for (const otherCount of Object.values(operationCounts).filter((value) => value !== count)) {
+    const mixed = structuredClone(candidate);
+    mixed.qualification[0][otherCount] = 1;
+    assert.equal(validateTargetPlan(mixed).ok, false, `${operation} must reject ${otherCount}`);
+  }
+  if (operation !== 'generate') {
+    const missingTranscript = structuredClone(candidate);
+    delete missingTranscript.qualification[0].transcriptHash;
+    assert.equal(validateTargetPlan(missingTranscript).ok, false, `${operation} requires a transcript`);
+  }
+  const wrongPhases = structuredClone(candidate);
+  wrongPhases.phases = operation === 'forecast' ? plan.phases : {
+    forecast: [{ kind: 'program-phase', phase: 'forecast', executionGraphHash: digest, declaredStepIds: ['forecast'] }],
+  };
+  assert.equal(validateTargetPlan(wrongPhases).ok, false, `${operation} must match its phase contract`);
+}
+
 console.log('✔ target-plan.test.js passed');
