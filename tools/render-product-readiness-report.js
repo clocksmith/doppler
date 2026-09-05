@@ -101,15 +101,16 @@ function buildSummary(reports) {
       && reports.signedRevocationAuthority.ok
       && reports.promotionMonitoring.ok
       && reports.subsystemSupport.ok;
+  const readiness = buildProductReadinessState(reports, contractValid);
   return {
     // `ok` describes report-contract validity only. It must never be read as
     // product readiness: external authority is intentionally a separate gate.
     ok: contractValid,
-    readiness: buildProductReadinessState(reports, contractValid),
+    readiness,
     errors,
     goals: reports.goals.goals,
-    actions: reports.goals.actions.filter((action) => buildProductReadinessState(reports, contractValid).blockers.includes(action.code)),
-    supportingActions: reports.goals.actions.filter((action) => !buildProductReadinessState(reports, contractValid).blockers.includes(action.code)),
+    actions: reports.goals.actions.filter((action) => readiness.blockers.includes(action.code)),
+    supportingActions: reports.goals.actions.filter((action) => !readiness.blockers.includes(action.code)),
     contracts: {
       modelReleasePlatform: reports.modelReleasePlatform,
       claimEvidence: {
