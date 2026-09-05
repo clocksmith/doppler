@@ -13392,6 +13392,257 @@
     }
    }
   },
+  "instance_stats": {
+   "description": "Declared numeric forecasting operator: instance_stats",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "context",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 1,
+     "name": "mask",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "moments",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "f32": {
+     "wgsl": "instance_stats.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "patch_context": {
+   "description": "Declared numeric forecasting operator: patch_context",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "context",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 1,
+     "name": "mask",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "moments",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "patches",
+     "type": "storage"
+    },
+    {
+     "index": 4,
+     "name": "attention_mask",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "f32": {
+     "wgsl": "patch_context.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "append_embedding": {
+   "description": "Declared numeric forecasting operator: append_embedding",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 1,
+     "name": "embeddings",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "f32": {
+     "wgsl": "append_embedding.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "rmsnorm_serial": {
+   "description": "Declared numeric forecasting operator: rmsnorm_serial",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 1,
+     "name": "weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "f32": {
+     "wgsl": "rmsnorm_serial.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "attention_relative": {
+   "description": "Declared numeric forecasting operator: attention_relative",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "query",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 1,
+     "name": "key",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "value",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "bias",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "key_mask",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "f32": {
+     "wgsl": "attention_relative.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "forecast_output": {
+   "description": "Declared numeric forecasting operator: forecast_output",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "request",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "moments",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "quantile_indices",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "variants": {
+    "f32": {
+     "wgsl": "forecast_output.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "runtime_probe": {
    "description": "Minimal device feature and submission probes.",
    "baseBindings": [],

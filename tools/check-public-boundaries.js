@@ -12,12 +12,12 @@ import { assertPackageSourceClosure } from './package-source-closure.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
-  // Merged Pack operation adapters, integrated host, rerank qualification, and
-  // shader scope guards: 1732 entries, 2,066,713 packed bytes, 10,688,567 unpacked.
+  // Merged Pack operation adapters, host, rerank and forecast factories, and
+  // shader scope guards: 1744 entries, 2,073,126 packed bytes, 10,717,246 unpacked.
   // The converter entrypoint remains the only packaged repository tool.
-  maxEntryCount: 1732,
-  maxPackedSize: 2_070_000,
-  maxUnpackedSize: 10_690_000,
+  maxEntryCount: 1744,
+  maxPackedSize: 2_075_000,
+  maxUnpackedSize: 10_720_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -42,6 +42,7 @@ const FILE_RULES = [
       './version.js',
       './client/runtime/composition-root.js',
       './client/runtime/fetch-pack-artifact-store.js',
+      './client/runtime/pack-forecast-program.js',
     ]),
     forbidden: [
       'export * from',
@@ -64,6 +65,7 @@ const FILE_RULES = [
       './config/pack.js',
       './client/runtime/composition-root.js',
       './client/runtime/fetch-pack-artifact-store.js',
+      './client/runtime/pack-forecast-program.js',
       './client/runtime/pack-rerank.js',
     ]),
     forbidden: [

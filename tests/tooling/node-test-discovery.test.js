@@ -30,6 +30,88 @@ try {
   const listed = spawnSync(process.execPath, ['tools/run-node-tests.js', '--list', join(root, 'tests')], { encoding: 'utf8' });
   assert.equal(listed.status, 0, listed.stderr);
   assert.deepEqual(JSON.parse(listed.stdout), resolveTestFiles('all', ['tests'], { root }).map((file) => relative(process.cwd(), file)));
+
+  const failedAssertion = join(root, 'async-failure.test.js');
+  await writeFile(failedAssertion, `
+    const { test } = require('node:test');
+    test('asynchronous assertion must fail the launcher', async () => {
+      await new Promise(setImmediate);
+      throw new Error('async assertion failure');
+    });
+  `);
+  const failed = spawnSync(process.execPath, ['tools/run-node-tests.js', failedAssertion], {
+    encoding: 'utf8', env: { ...process.env, NODE_TEST_CONTEXT: 'child-v8' },
+  });
+  assert.equal(failed.status, 1, 'registered asynchronous tests must finish before success is reported');
+  assert.match(failed.stdout + failed.stderr, /async assertion failure/);
+
+  const passedAssertion = join(root, 'async-success.test.js');
+  await writeFile(passedAssertion, `
+    const { test } = require('node:test');
+    setInterval(() => {}, 1000);
+    test('asynchronous assertion completes before forced cleanup', async () => {
+      await new Promise(setImmediate);
+      console.log('async assertion completed');
+    });
+  `);
+  const passed = spawnSync(process.execPath, ['tools/run-node-tests.js', passedAssertion], {
+    encoding: 'utf8', timeout: 10000,
+  });
+  assert.equal(passed.status, 0, passed.stderr);
+  assert.match(passed.stdout, /async assertion completed/);
+
+  const plainRoot = join(root, 'plain');
+  await mkdir(plainRoot);
+  await writeFile(join(plainRoot, 'package.json'), '{"type":"module"}');
+  const plainCases = [];
+  for (const expectedStatus of [0, 1]) {
+    const file = join(plainRoot, `assertion-${expectedStatus}.test.js`);
+    const marker = `plain assertion ${expectedStatus} completed`;
+    await writeFile(file, `
+      import assert from 'node:assert/strict';
+      assert.ok(globalThis.GPUBufferUsage, 'runtime setup must precede module evaluation');
+      setInterval(() => {}, 1000);
+      await new Promise(setImmediate);
+      console.log('${marker}');
+      ${expectedStatus === 1 ? "throw new Error('plain assertion failure');" : ''}
+    `);
+    const result = spawnSync(process.execPath, ['tools/run-node-tests.js', file], {
+      encoding: 'utf8', timeout: 10000,
+      env: { ...process.env, NODE_TEST_CONTEXT: 'child-v8' },
+    });
+    assert.equal(result.status, expectedStatus, result.stderr || result.stdout);
+    assert.equal(result.stdout.split(marker).length - 1, 1, 'top-level assertions must execute exactly once');
+    plainCases.push([file, expectedStatus, marker]);
+  }
+
+  const mixedAssertion = join(plainRoot, 'mixed-assertion.test.js');
+  await writeFile(mixedAssertion, `
+    import { test } from 'node:test';
+    await test('registered test completes before module evaluation', () => {});
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    throw new Error('late top-level assertion failure');
+  `);
+  const mixed = spawnSync(process.execPath, ['tools/run-node-tests.js', mixedAssertion], {
+    encoding: 'utf8', timeout: 10000,
+    env: { ...process.env, NODE_TEST_CONTEXT: 'child-v8' },
+  });
+  assert.equal(mixed.status, 1, mixed.stderr || mixed.stdout);
+  assert.match(mixed.stdout + mixed.stderr, /late top-level assertion failure/);
+
+  for (const [file, expectedStatus, marker] of [
+    [failedAssertion, 1, 'async assertion failure'],
+    [passedAssertion, 0, 'async assertion completed'],
+    [mixedAssertion, 1, 'late top-level assertion failure'],
+    ...plainCases,
+  ]) {
+    const covered = spawnSync(process.execPath, ['tools/run-node-coverage.js', '--no-threshold', file], {
+      encoding: 'utf8', timeout: 10000,
+      env: { ...process.env, NODE_TEST_CONTEXT: 'child-v8' },
+    });
+    assert.equal(covered.status, expectedStatus, covered.stderr || covered.stdout);
+    assert.match(covered.stdout, /\[coverage\] all files/);
+    assert.ok((covered.stdout + covered.stderr).includes(marker));
+  }
 } finally {
   await rm(root, { recursive: true, force: true });
 }

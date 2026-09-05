@@ -33,7 +33,7 @@ function makeHandle(overrides = {}) {
     manifestHash: 'sha256:manifest',
     manifest: { modelId: 'fixture-model' },
     loaded: true,
-    supportsEmbedding: true,
+    supportsEmbedding: false,
     supportsSequence: false,
     activeLoRA: null,
     deviceInfo: { vendor: 'fixture' },
@@ -73,6 +73,7 @@ function makeHandle(overrides = {}) {
           fingerprint: {
             schema: 'doppler.comparison-fingerprint/v1',
             fullDigest: 'sha256:fingerprint',
+            executionPlanId: 'primary',
           },
           outputText: 'hello',
           generatedTokenIds: [1, 2],
@@ -116,11 +117,17 @@ test('stream emits semantic events instead of return-dependent unions', async ()
   assert.equal(events.at(-1).outputText, 'hello');
 });
 
-test('unsupported capabilities and observation policies fail closed', async () => {
-  const session = createScopedModelSession(makeHandle({
-    supportsSequence: true,
-  }));
-  assert.throws(() => session.require('generate'), /does not support/);
+test('specialized models reject generation and streaming capabilities', async () => {
+  for (const flags of [{ supportsEmbedding: true }, { supportsSequence: true }]) {
+    const session = createScopedModelSession(makeHandle(flags));
+    assert.throws(() => session.require('generate'), /does not support/);
+    assert.throws(() => session.require('stream'), /does not support/);
+    await assert.rejects(session.generate('prompt'), /does not support/);
+  }
+});
+
+test('unsupported observation policies fail closed on a generation session', async () => {
+  const session = createScopedModelSession(makeHandle());
   await assert.rejects(
     session.generate('prompt', { observe: 'mystery-mode' }),
     /Unsupported Doppler observation policy/

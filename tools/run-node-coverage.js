@@ -10,7 +10,7 @@ export { resolveTestFiles } from './lib/node-test-suites.js';
 
 const ROOT_DIR = process.cwd();
 const DEFAULT_POLICY_PATH = resolve(ROOT_DIR, 'tools/policies/test-coverage-policy.json');
-const NODE_TEST_SETUP_PATH = resolve(ROOT_DIR, 'tools/node-test-runtime-setup.js');
+const NODE_TEST_SETUP_PATH = resolve(ROOT_DIR, 'tools/node-test-file-bootstrap.js');
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -99,6 +99,7 @@ function parseCoverageSummary(outputText) {
 function runCoverage(testFiles, concurrency, timeoutMs) {
   const nodeArgs = [
     '--test',
+    '--test-force-exit',
     `--test-concurrency=${concurrency}`,
     '--experimental-test-coverage',
     '--import',
@@ -110,10 +111,13 @@ function runCoverage(testFiles, concurrency, timeoutMs) {
   const logPath = join(logDir, 'node-test-output.log');
   const fd = openSync(logPath, 'w');
 
+  const childEnv = { ...process.env };
+  delete childEnv.NODE_TEST_CONTEXT;
   const result = spawnSync(process.execPath, nodeArgs, {
     cwd: ROOT_DIR,
     stdio: ['ignore', fd, fd],
     timeout: timeoutMs,
+    env: childEnv,
   });
   closeSync(fd);
 
