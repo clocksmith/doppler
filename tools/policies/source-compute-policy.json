@@ -55,6 +55,16 @@
   ],
   "reviews": [
     {
+      "id": "src/converter/chronos-bolt-graph.js#lowerChronosBoltGraph",
+      "category": "artifact-construction",
+      "reason": "Forge emits constant uniform bytes, exact source offsets, memory slots and WGSL dispatches before signing; no runtime model arithmetic executes here."
+    },
+    {
+      "id": "src/inference/pipelines/forecast/pack-program.js#createForecastProgram",
+      "category": "host-input-preprocessing",
+      "reason": "The only host element writes encode caller observations as F32 with the manifest-declared left absence mask before GPU execution. Model normalization, patching, attention and output transforms remain declared WGSL dispatches; output readback is unmodified."
+    },
+    {
       "id": "src/gpu/weight-buffer.js#normalizeWeightMetadata",
       "category": "gpu-orchestration",
       "reason": "The symbol copies declared weight metadata fields into an immutable descriptor without reading or modifying tensor elements."

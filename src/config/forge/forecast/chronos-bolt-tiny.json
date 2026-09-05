@@ -1,0 +1,25 @@
+{
+  "schema": "doppler.chronos-lowering/v1",
+  "modelId": "chronos-bolt-tiny-f32-context512",
+  "repository": "amazon/chronos-bolt-tiny",
+  "revision": "a0e552de83495b5c28c14c71c374f3e33280b340",
+  "contextLength": 512,
+  "outputQuantiles": [0.1, 0.5, 0.9],
+  "instanceNormEpsilon": 0.00001,
+  "dtypeLane": "source-f32-reference",
+  "workgroupSize": 64,
+  "matmulTileSize": 16,
+  "kernels": {
+    "matmul": ["matmul", "f32"],
+    "bias": ["bias_add", "default"],
+    "relu": ["relu", "default"],
+    "residual": ["residual", "default"],
+    "gather": ["gather", "default"],
+    "stats": ["instance_stats", "f32"],
+    "patch": ["patch_context", "f32"],
+    "append": ["append_embedding", "f32"],
+    "norm": ["rmsnorm_serial", "f32"],
+    "attention": ["attention_relative", "f32"],
+    "output": ["forecast_output", "f32"]
+  }
+}

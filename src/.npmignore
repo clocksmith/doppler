@@ -33,8 +33,10 @@ client/runtime/verified-pack-artifact-store.d.ts
 config/dtype-transition-contract.d.ts
 config/evidence/token-cost-classifier-policy.json
 config/evidence/workflow-ownership-policy.json
+config/forecast-manifest.d.ts
 config/forge/conversion-postflight/glimmer-30b-text.json
 config/forge/conversion-preflight/glimmer-30b-text.json
+config/forge/forecast/chronos-bolt-tiny.json
 config/forge/lineage/qwen3.8-27b.json
 config/forge/lowering-vocabularies/heterogeneous-text-v2.json
 config/forge/lowering-vocabularies/hybrid-text-v1.json
@@ -160,6 +162,8 @@ config/transforms/execution-graph/dtype.d.ts
 config/transforms/execution-graph/fusion.d.ts
 config/transforms/execution-graph/validation.d.ts
 converter/artifact-identity.d.ts
+converter/chronos-bolt-graph.d.ts
+converter/chronos-bolt-graph.js
 converter/conversion-plan.d.ts
 converter/execution-candidate-forge.d.ts
 converter/execution-candidate-forge.js
@@ -396,6 +400,7 @@ gpu/kernels/types.js
 gpu/kernels/uniform-utils.d.ts
 gpu/kernels/utils.d.ts
 gpu/perf-guards.d.ts
+gpu/readback-buffer.d.ts
 gpu/readback-utils.d.ts
 gpu/readback-utils.js
 gpu/submit-probe.d.ts

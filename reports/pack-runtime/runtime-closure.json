@@ -1,8 +1,8 @@
 {
   "schema": "doppler.pack-runtime-closure/v1",
   "entrypoint": "src/pack-runtime.js",
-  "fileCount": 25,
-  "sourceBytes": 143442,
+  "fileCount": 39,
+  "sourceBytes": 206010,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -17,18 +17,23 @@
   "files": [
     {
       "path": "src/client/runtime/command-executor.js",
-      "sizeBytes": 5102,
-      "hash": "sha256:5c518b362ea7cdf49577be618f9fb3d8d17c7ce636d42b82dc0fd822e06c644f"
+      "sizeBytes": 5288,
+      "hash": "sha256:2d0bc95448888f9a7240b29b43e3de59d79ac4435d09e9835f46d3d8a07039fb"
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 11870,
-      "hash": "sha256:629d0405764a66b1bf8fc805118a6ab9ce4372255eda656d61f67fb1c9a015f6"
+      "sizeBytes": 12552,
+      "hash": "sha256:0e3f51c7b84d506b297ff33b0133d71d332870b2e642b336bc5b8a1890288f4f"
     },
     {
       "path": "src/client/runtime/fetch-pack-artifact-store.js",
       "sizeBytes": 1130,
       "hash": "sha256:f95991a5ee21cd4b7c0ce3c2ea5554a5bff6547ed632d1a9ba93aa56284fb571"
+    },
+    {
+      "path": "src/client/runtime/pack-forecast.js",
+      "sizeBytes": 2359,
+      "hash": "sha256:b645c3635c3708aae07c8eeeb4e8515e5698f7748f5fda629a52cbefde768e19"
     },
     {
       "path": "src/client/runtime/pack-rerank.js",
@@ -54,6 +59,11 @@
       "path": "src/client/runtime/verified-pack-artifact-store.js",
       "sizeBytes": 2147,
       "hash": "sha256:449b9fda99ffae095cc0960c9b2b3ccf98274230878f43df19981e3c04ab9971"
+    },
+    {
+      "path": "src/config/forecast-manifest.js",
+      "sizeBytes": 3671,
+      "hash": "sha256:643356dcf92cd7b8f4850a9cd4c0bb24c08fec7e6a827b663735c9398621915f"
     },
     {
       "path": "src/config/initial-execution-identity.js",
@@ -92,8 +102,8 @@
     },
     {
       "path": "src/config/pack-v2.js",
-      "sizeBytes": 19169,
-      "hash": "sha256:24bf659e18e236161ba451be60017d24691c2b15f3ced300ded1b65e64e970a1"
+      "sizeBytes": 19388,
+      "hash": "sha256:45ba874928eb3db423a7ae983aad8114ebc337175d8d64fd32d4c95a985962fd"
     },
     {
       "path": "src/config/pack-v3.js",
@@ -106,9 +116,59 @@
       "hash": "sha256:0d674a9c690c211fc215fc88cf6732bd8b756c7f4d53a964f8d4221eb68e79bf"
     },
     {
+      "path": "src/config/schema/debug.schema.js",
+      "sizeBytes": 4207,
+      "hash": "sha256:2e93df23cf8dbc54f3548cb38a5cba00bd1e96b3827de29ae409038f8992c59f"
+    },
+    {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 14957,
-      "hash": "sha256:80d7cbe1005fe35fea05139b4508c3fa8ba57cebdfb78e0cc932c5cdc542ac0f"
+      "sizeBytes": 16315,
+      "hash": "sha256:716c38114e98bd52164822a3b4aed8932fda5eb1424992e3c5267c5fbd18b15d"
+    },
+    {
+      "path": "src/debug/capture-policy.js",
+      "sizeBytes": 6411,
+      "hash": "sha256:eebe99b3bd281bd8b46d63f1ab952fc465a4225c4d9edb8d326ae849106b6025"
+    },
+    {
+      "path": "src/debug/config.js",
+      "sizeBytes": 8923,
+      "hash": "sha256:a0a763a5ecd9c90d479650e9dd31cd80721d36fedb139c2c12659b519d811d58"
+    },
+    {
+      "path": "src/debug/history.js",
+      "sizeBytes": 1966,
+      "hash": "sha256:357c5ffab86bc997474845710379603008f64a025572bebbff5212d7aba7422c"
+    },
+    {
+      "path": "src/debug/index.js",
+      "sizeBytes": 4238,
+      "hash": "sha256:b78b0ceab208e0edabfb08fa43d411ffefab258ecd268be3ede554d23c039136"
+    },
+    {
+      "path": "src/debug/log.js",
+      "sizeBytes": 3094,
+      "hash": "sha256:04cb62dfcbd14f06e6ea137bf3dfacf31df88d3b3d4b350cc437108309d84b87"
+    },
+    {
+      "path": "src/debug/signals.js",
+      "sizeBytes": 962,
+      "hash": "sha256:961bd8fbf9649b9cf1d1abfd5ea42fa8de5fd846c6fd8a195f4f8caa4815243e"
+    },
+    {
+      "path": "src/debug/stats.js",
+      "sizeBytes": 4162,
+      "hash": "sha256:9232b05830093f27b9ad129fccddc69db071ca1be6f2e2a9f2781ecf6276e7a5"
+    },
+    {
+      "path": "src/debug/tensor.js",
+      "sizeBytes": 9376,
+      "hash": "sha256:6c011dcf181139f7cc1fcd01026e7146b6d0eba2050339bf03906a432d3756e4"
+    },
+    {
+      "path": "src/debug/trace.js",
+      "sizeBytes": 4438,
+      "hash": "sha256:8eceacab851ed490b520533310f32e8d76aa4bf4fb2e7bf7bba375684758b9d3"
     },
     {
       "path": "src/errors/doppler-error.js",
@@ -131,9 +191,19 @@
       "hash": "sha256:2318fb1b8fd8930544459f330827ac71e14c06b14bc47c16dce7a7f9c14fd8d9"
     },
     {
+      "path": "src/gpu/readback-buffer.js",
+      "sizeBytes": 991,
+      "hash": "sha256:ad8f49babf1f5aadd7a1eacb72ebcb4d2d89f38ac1c9712d54d3eddc6f895eaa"
+    },
+    {
+      "path": "src/inference/pipelines/forecast/pack-program.js",
+      "sizeBytes": 5230,
+      "hash": "sha256:439dfbd16eba6affe2e6fa38905c1b3e1b84b236bc50acc81f715dd14b005de2"
+    },
+    {
       "path": "src/pack-runtime.js",
-      "sizeBytes": 1050,
-      "hash": "sha256:6025344c810739ff8fdbe494da3a81e3cb4df324e10997806712c3026bd86f5e"
+      "sizeBytes": 1145,
+      "hash": "sha256:b74d1a9b63718ecaa8d4fcf0e8472848d2a4bf6d717f0c804b27ad6c01abac1a"
     },
     {
       "path": "src/version.js",
