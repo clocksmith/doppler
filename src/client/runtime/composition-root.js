@@ -116,6 +116,7 @@ export function createDopplerRuntime(ports) {
         let closed = false;
 
         async function assertPlanUnchanged(observeProgram = true) {
+          if (observeProgram) resourceBinder.assertDeviceAvailable();
           const observed = hashTargetPlan(selectedPlan);
           if (observed !== targetPlanDigest) {
             throw new Error(`Pack Runtime mutated TargetPlan "${selectedPlan.targetId}" during execution.`);
@@ -174,6 +175,7 @@ export function createDopplerRuntime(ports) {
 
           resetGenerationState() {
             if (closed) throw new Error('Pack runtime session is closed.');
+            resourceBinder.assertDeviceAvailable();
             return program.reset?.();
           },
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 
 import { buildPolicySchemaRegistryReport } from '../../tools/check-policy-schema-registry.js';
 import { hashWgslSemanticEvidenceValue } from '../../src/tooling/wgsl-repair-semantic-gate.js';
@@ -81,9 +81,11 @@ assert.equal(reconciliation.resolution.prospectiveCampaignRequired, true);
 assert.equal(reconciliation.resolution.laterPolicyRole, 'development');
 for (const laterPolicy of reconciliation.laterPolicies) {
   assert.equal(laterPolicy.missingReferences.length > 0, true, laterPolicy.policyId);
-  for (const missingPath of laterPolicy.missingReferences) {
-    assert.equal(existsSync(missingPath), false, missingPath);
-  }
+    for (const missingPath of laterPolicy.missingReferences) {
+      const recordedPolicy = readJson(laterPolicy.path);
+      assert.ok(Object.values(recordedPolicy.admission).some((entry) => entry?.path === missingPath), missingPath);
+      // Absence was observed at reconciliation, not promised for all later checkouts.
+    }
 }
 
 const expectedRoleCounts = {

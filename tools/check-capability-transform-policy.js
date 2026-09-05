@@ -5,6 +5,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { isPlainObject } from '../src/formats/plain-object.js';
+
 import { TRANSFORMS } from '../src/config/transforms/execution-graph-transforms.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -45,10 +47,6 @@ const F16_TRANSFORMS = new Set([
   'useGemma431BTextF16Activations',
   'useGemma4Int4PleAf16Activations',
 ]);
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function formatRule(rule, index) {
   const kind = typeof rule?.kind === 'string' ? rule.kind : 'unknown-kind';

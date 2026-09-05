@@ -32,6 +32,34 @@ for (const binding of receipt.laterPolicies) {
 }
 
 const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-v3-reconcile-'));
-const regeneratedPath = path.join(temporaryRoot, 'receipt.json');
-const regenerated = await reconcileWgslWriterV3Campaign({ outputPath: regeneratedPath });
-assert.equal(regenerated.receipt.receiptHash, receipt.receiptHash);
+const repositoryRoot = process.cwd();
+try {
+  // Recreate the recorded inputs, not today's artifact availability. Existing
+  // policy hashes and receipt self-hash above still validate the retained bytes.
+  for (const file of [
+    'tools/policies/wgsl-writer-v3-campaign-policy.json',
+    receiptPath,
+    ...receipt.laterPolicies.map((policy) => policy.path),
+  ]) {
+    const destination = path.join(temporaryRoot, file);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.copyFile(path.join(repositoryRoot, file), destination);
+  }
+  for (const recorded of receipt.laterPolicies) {
+    const policy = JSON.parse(await fs.readFile(path.join(repositoryRoot, recorded.path), 'utf8'));
+    for (const binding of Object.values(policy.admission)) {
+      if (!binding?.path || recorded.missingReferences.includes(binding.path)) continue;
+      const source = await fs.readFile(path.join(repositoryRoot, binding.path));
+      assert.equal(createHash('sha256').update(source).digest('hex'), binding.sha256);
+      const destination = path.join(temporaryRoot, binding.path);
+      await fs.mkdir(path.dirname(destination), { recursive: true });
+      await fs.writeFile(destination, source);
+    }
+  }
+  process.chdir(temporaryRoot);
+  const regenerated = await reconcileWgslWriterV3Campaign({ outputPath: 'regenerated.json' });
+  assert.equal(regenerated.receipt.receiptHash, receipt.receiptHash);
+} finally {
+  process.chdir(repositoryRoot);
+  await fs.rm(temporaryRoot, { recursive: true, force: true });
+}

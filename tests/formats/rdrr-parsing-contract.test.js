@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { createRDRRManifestFixture } from '../helpers/rdrr-manifest-fixture.js';
 
 import { parseManifest } from '../../src/formats/rdrr/parsing.js';
 
@@ -10,12 +10,7 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-const canonicalManifest = JSON.parse(
-  readFileSync(
-    new URL('../../models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json', import.meta.url),
-    'utf8'
-  )
-);
+const canonicalManifest = createRDRRManifestFixture();
 
 {
   const missingSession = clone(canonicalManifest);

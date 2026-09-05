@@ -271,7 +271,9 @@ export interface ProgramBundle {
     captureHash: string;
   };
   artifacts: ProgramBundleArtifact[];
-  referenceTranscript: ProgramBundleReferenceTranscript;
+  referenceTranscript: ProgramBundleReferenceTranscript
+    | import('../sequence-reference.js').SequenceReferenceTranscript
+    | import('../rerank-reference.js').RerankReferenceTranscript;
 }
 
 export declare function validateProgramBundle(bundle: unknown): ProgramBundle;

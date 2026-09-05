@@ -12,6 +12,7 @@ export interface BoundSlot {
 }
 
 export interface ResourceBinder {
+  assertDeviceAvailable(): void;
   bindSlots(memoryLayout: TargetPlanMemoryLayout, dimensions: Record<string, number>): Map<string, BoundSlot>;
   writeSlot(slotId: string, data: ArrayBuffer | ArrayBufferView, offset?: number): void;
   getSlot(slotId: string): BoundSlot | undefined;

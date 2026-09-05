@@ -110,7 +110,7 @@
   "summary": {
     "catalogModelCount": 31,
     "sourceCheckpointCount": 23,
-    "conversionOnlyConfigCount": 10,
+    "conversionOnlyConfigCount": 11,
     "hfPublishedModelCount": 19,
     "verifiedModelCount": 26,
     "benchmarkSelectedSourceCount": 1,
@@ -4019,6 +4019,24 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish qwen-3-5-9b-q4k-ehaf16 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "qwen-3-reranker-0-6b-f16-true-logit-af32",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json",
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "f16",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "computePrecision": "f32",
+        "q4kLayout": null,
+        "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen-3-reranker-0-6b-f16-true-logit-af32 before claiming runtime support.",
       "nextCommand": null
     },
     {

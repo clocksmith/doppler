@@ -5,6 +5,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { isPlainObject } from '../src/formats/plain-object.js';
+
 import { computeCanonicalSha256 } from '../src/utils/canonical-hash.js';
 import {
   validateRuntimePromotionMonitoringPolicy,
@@ -31,10 +33,6 @@ const CAPTURE_SCHEMA = 'doppler.runtime-promotion-monitoring-capture/v1';
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function assertExactKeys(value, fields, label) {

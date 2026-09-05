@@ -1,3 +1,5 @@
+import { ERROR_CODES } from '../../errors/doppler-error.js';
+
 function cancellationError() {
   const error = new Error('Electron renderer Pack operation was cancelled.');
   error.name = 'AbortError';
@@ -26,7 +28,7 @@ function assertSamePack(actual, expected) {
 }
 
 function translateError(error) {
-  if (error?.code === 'GPU_DEVICE_LOST' || error?.name === 'GPUDeviceLostError') {
+  if (error?.code === ERROR_CODES.GPU_DEVICE_LOST || error?.code === 'GPU_DEVICE_LOST' || error?.name === 'GPUDeviceLostError') {
     return deviceLossError(error);
   }
   return error;

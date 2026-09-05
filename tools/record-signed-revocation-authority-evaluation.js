@@ -5,6 +5,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { isPlainObject } from '../src/formats/plain-object.js';
+
 import {
   validateSignedRevocationAuthorityQualification,
 } from './check-signed-revocation-authority-qualification.js';
@@ -36,10 +38,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function assertExactKeys(value, fields, label) {

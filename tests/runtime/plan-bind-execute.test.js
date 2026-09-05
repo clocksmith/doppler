@@ -11,7 +11,9 @@ const fixture = await createSignedPackFixture();
 const buffers = [];
 const writes = [];
 const events = [];
+let loseDevice;
 const gpuDevice = {
+  lost: new Promise((resolve) => { loseDevice = resolve; }),
   limits: { maxBufferSize: 1024 },
   createBuffer(descriptor) {
     const buffer = { descriptor, destroyed: false, destroy() { this.destroyed = true; } };
@@ -25,6 +27,7 @@ const gpuDevice = {
     },
   },
 };
+let activeDevice = gpuDevice;
 const program = {
   executionGraphHash: fixture.pack.program.executionGraphHash,
   tokenize() { return [1, 2, 3]; },
@@ -42,7 +45,7 @@ const program = {
 };
 const runtime = createDopplerRuntime({
   device: {
-    getDevice: () => gpuDevice,
+    getDevice: () => activeDevice,
     getProfile: () => ({ surface: 'test-webgpu', hasF16: false, hasSubgroups: false, maxBufferSize: 1024 }),
   },
   artifactStore: fixture.artifactStore,
@@ -80,5 +83,20 @@ assert.deepEqual(events.slice(0, 3), ['pack-validation-started', 'pack-validatio
 await session.close();
 assert.equal(buffers[0].destroyed, true);
 assert.equal(hashTargetPlan(session.selectedPlan), before);
+
+const lostSession = await runtime.openPack(fixture.pack);
+loseDevice({ reason: 'destroyed', message: 'test adapter removed' });
+await gpuDevice.lost;
+await assert.rejects(lostSession.rerank({ application: fixture.pack.release.application,
+  query: 'query', documents: ['document'] }), { code: 'DOPPLER_GPU_DEVICE_LOST' });
+await assert.rejects(lostSession.generateText({}), { code: 'DOPPLER_GPU_DEVICE_LOST' });
+assert.throws(() => lostSession.resetGenerationState(), { code: 'DOPPLER_GPU_DEVICE_LOST' });
+await lostSession.close();
+await lostSession.close();
+assert.equal(lostSession.closed, true, 'device loss must not prevent idempotent cleanup');
+activeDevice = { ...gpuDevice, lost: new Promise(() => {}) };
+const reopened = await runtime.openPack(fixture.pack);
+assert.doesNotThrow(() => reopened.resetGenerationState());
+await reopened.close();
 
 console.log('✔ plan-bind-execute.test.js passed');

@@ -5,6 +5,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { isPlainObject } from '../src/formats/plain-object.js';
+
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'subsystem-support-contract.json');
 const DEFAULT_PACKAGE_PATH = path.join(REPO_ROOT, 'package.json');
@@ -27,10 +29,6 @@ const SCOPES = new Set([
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function isRepoRelativePath(value) {

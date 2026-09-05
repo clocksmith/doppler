@@ -5,6 +5,7 @@ import { resolveSamplingConfig } from '../../inference/pipelines/text/sampling-c
 import { DOPPLER_VERSION } from '../../version.js';
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
 import { isNodeRuntime } from '../../storage/runtime-env.js';
+import { collectModelRerankScores } from './model-rerank.js';
 import {
   MODEL_INSPECTION_RECEIPT_SCHEMA,
   aggregateWordPerplexity,
@@ -520,49 +521,9 @@ export function createModelHandle(pipeline, resolved) {
   async function rerankWithEvidence(query, documents, options = {}) {
     assertExecutionMayStart(resolutionPolicy);
     const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
-    if (pipeline.manifest?.inference?.supportsRerank !== true) {
-      throw new Error('Loaded Doppler manifest does not declare rerank support.');
-    }
-    const normalizedQuery = String(query || '').trim();
-    if (!normalizedQuery) {
-      throw new Error('Doppler rerankWithEvidence requires a non-empty query.');
-    }
-    if (!Array.isArray(documents) || documents.length === 0) {
-      throw new Error('Doppler rerankWithEvidence requires a non-empty documents array.');
-    }
-    const normalizedDocuments = documents.map((document, index) => {
-      const text = String(document || '').trim();
-      if (!text) throw new Error(`Doppler rerank document ${index} must be non-empty.`);
-      return text;
-    });
-    const {
-      resolveRerankScoringConfig,
-      scoreRerankDocument,
-    } = await import('../../inference/rerank.js');
-    const scoringConfig = resolveRerankScoringConfig(pipeline);
-    const scores = [];
-    for (let index = 0; index < normalizedDocuments.length; index += 1) {
-      const scored = await scoreRerankDocument(
-        pipeline,
-        normalizedQuery,
-        normalizedDocuments[index],
-        scoringConfig,
-        { benchmark: options.benchmark === true }
-      );
-      scores.push({
-        index,
-        document: normalizedDocuments[index],
-        score: scored.score,
-        probability: scored.probability,
-        trueLogit: scored.trueLogit,
-        falseLogit: scored.falseLogit,
-        tokenCount: scored.tokenCount,
-        scoringPath: scored.scoringPath,
-      });
-    }
-    const ranking = [...scores]
-      .sort((left, right) => (right.score - left.score) || (left.index - right.index))
-      .map((entry, index) => ({ rank: index + 1, ...entry }));
+    const { normalizedQuery, normalizedDocuments, scores, ranking } = await collectModelRerankScores(
+      pipeline, query, documents, options
+    );
     const stats = pipeline.getStats?.() || null;
     const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
       ? pipeline.getKernelCapabilities()

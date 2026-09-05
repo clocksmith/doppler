@@ -2,6 +2,11 @@
   "schemaVersion": 1,
   "updated": "2026-07-04",
   "suite": "all",
+  "suites": {
+    "unit": { "roots": ["tests"], "excludeRoots": ["tests/kernels"] },
+    "gpu": { "roots": ["tests/kernels"], "excludeRoots": [] },
+    "all": { "roots": ["tests"], "excludeRoots": [] }
+  },
   "excludeTests": [
     "tests/config/training-freeze-enforcement.test.js",
     "tests/config/training-telemetry-alerts.test.js",

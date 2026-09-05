@@ -1,3 +1,21 @@
+import { createDopplerError, ERROR_CODES } from '../../errors/doppler-error.js';
+
+// One observer per physical device; closing sessions does not accumulate loss handlers.
+const deviceLossStates = new WeakMap();
+
+function observeDeviceLoss(device) {
+  if (deviceLossStates.has(device)) return deviceLossStates.get(device);
+  const state = { error: null };
+  deviceLossStates.set(device, state);
+  const lost = (info) => {
+    state.error = createDopplerError(ERROR_CODES.GPU_DEVICE_LOST,
+      `Pack session GPU device lost (${info?.reason ?? 'unknown'}): ${info?.message ?? 'no device message'}. Close this session and explicitly reopen on a new device.`);
+  };
+  if (device.lost && typeof device.lost.then === 'function') {
+    device.lost.then(lost, (error) => lost({ reason: 'loss-observation-failed', message: error?.message }));
+  }
+  return state;
+}
 
 function resolveGpuDevice(devicePort) {
   const device = typeof devicePort?.getDevice === 'function' ? devicePort.getDevice() : devicePort?.gpuDevice ?? devicePort;
@@ -48,7 +66,12 @@ function resolveUsage(slot) {
 
 export function createResourceBinder(devicePort, program = null) {
   const device = resolveGpuDevice(devicePort);
+  const loss = observeDeviceLoss(device);
   const boundSlots = new Map();
+
+  function assertDeviceAvailable() {
+    if (loss.error) throw loss.error;
+  }
 
   function destroyRecord(record) {
     if (record.owner === 'runtime') record.buffer?.destroy?.();
@@ -56,7 +79,10 @@ export function createResourceBinder(devicePort, program = null) {
   }
 
   return {
+    assertDeviceAvailable,
+
     bindSlots(memoryLayout, dynamicDimensions = {}) {
+      assertDeviceAvailable();
       if (!memoryLayout || !Array.isArray(memoryLayout.bufferSlots)) {
         throw new Error('bindSlots requires TargetPlan.memoryLayout.bufferSlots.');
       }
@@ -81,6 +107,7 @@ export function createResourceBinder(devicePort, program = null) {
     },
 
     writeSlot(slotId, data, offset = 0) {
+      assertDeviceAvailable();
       const record = boundSlots.get(slotId);
       if (!record?.buffer) throw new Error(`Runtime-owned GPU slot "${slotId}" is not bound.`);
       const view = ArrayBuffer.isView(data) ? data : new Uint8Array(data);

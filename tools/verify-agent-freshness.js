@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { REQUIRED_SKILL_ALIASES } from './verify-agent-parity.js';
 
 const root = process.cwd();
 const agentsPath = path.join(root, 'AGENTS.md');
@@ -15,11 +16,9 @@ const maxAgeDays = Number.parseInt(
 );
 const effectiveMaxAge = Number.isFinite(maxAgeDays) && maxAgeDays > 0 ? maxAgeDays : 0;
 
-export const REQUIRED_SKILL_SYMLINKS = Object.freeze([
-  ['.claude/skills', '../skills'],
-  ['.gemini/skills', '../skills'],
-  ['.codex/skills', '../skills'],
-]);
+export const REQUIRED_SKILL_SYMLINKS = Object.freeze(
+  REQUIRED_SKILL_ALIASES.map(({ path, target }) => [path, target])
+);
 
 function rel(p) {
   return path.relative(root, p);

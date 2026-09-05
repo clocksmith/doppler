@@ -17,3 +17,10 @@ export function createSequenceProgram(hostBridge, bundle, options = {}) {
   }
   return hostBridge.createSequenceProgram(bundle, options);
 }
+
+export function createRerankProgram(hostBridge, bundle, options = {}) {
+  if (!hostBridge || typeof hostBridge.createRerankProgram !== 'function') {
+    throw new Error('program bundle host: hostBridge.createRerankProgram(bundle, options) is required.');
+  }
+  return hostBridge.createRerankProgram(bundle, options);
+}

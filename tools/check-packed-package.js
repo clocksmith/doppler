@@ -74,13 +74,19 @@ async function writeTypeSmoke(consumerDir, packageJson) {
   const source = specifiers
     .map((specifier, index) => `type PackageExport${index} = typeof import(${JSON.stringify(specifier)});`)
     .join('\n') + `
-import { createDocumentSearchRenderer } from './renderer.js';
+import { createDocumentSearchRenderer, createDocumentSearchHostRenderer } from './renderer.js';
+import { openPack } from '${packageJson.name}/host';
+import type { DopplerPackOpenOptions } from '${packageJson.name}/host';
 import { registerDocumentSearchReleaseMain } from './main.js';
 import type { RuntimePorts, PackRerankRequest, DopplerRuntimeSession } from '${packageJson.name}';
 import type { ElectronReleaseStateCoordinator } from '${packageJson.name}/electron';
 declare const ports: RuntimePorts;
 declare const releaseState: ElectronReleaseStateCoordinator;
 declare const request: PackRerankRequest;
+declare const trustOptions: DopplerPackOpenOptions;
+const hostRenderer = createDocumentSearchHostRenderer(releaseState, trustOptions);
+hostRenderer.rerank(request).then(receipt => receipt.pack.semanticRoot);
+const hostSession: Promise<DopplerRuntimeSession> = openPack('https://application.example/pack.json', trustOptions);
 const renderer = createDocumentSearchRenderer(releaseState, ports);
 renderer.rerank(request).then(receipt => receipt.pack.semanticRoot);
 const session: Promise<DopplerRuntimeSession> = renderer.openCurrent();

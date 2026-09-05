@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import { REQUIRED_SKILL_SYMLINKS } from '../../tools/verify-agent-freshness.js';
 
 assert.deepEqual(REQUIRED_SKILL_SYMLINKS, [
+  ['.agents/skills', '../skills'],
   ['.claude/skills', '../skills'],
   ['.gemini/skills', '../skills'],
   ['.codex/skills', '../skills'],
@@ -12,6 +13,7 @@ assert.deepEqual(REQUIRED_SKILL_SYMLINKS, [
 {
   const policy = JSON.parse(fs.readFileSync('tools/policies/agent-parity-policy.json', 'utf8'));
   assert.deepEqual(policy.skillAliases, [
+    { path: '.agents/skills', target: '../skills' },
     { path: '.claude/skills', target: '../skills' },
     { path: '.gemini/skills', target: '../skills' },
     { path: '.codex/skills', target: '../skills' },

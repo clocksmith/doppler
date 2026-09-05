@@ -1,33 +1,16 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
-import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { resolveTestFiles } from './lib/node-test-suites.js';
+export { resolveTestFiles } from './lib/node-test-suites.js';
 
 const ROOT_DIR = process.cwd();
 const DEFAULT_POLICY_PATH = resolve(ROOT_DIR, 'tools/policies/test-coverage-policy.json');
 const NODE_TEST_SETUP_PATH = resolve(ROOT_DIR, 'tools/node-test-runtime-setup.js');
-
-const suites = {
-  unit: [
-    'tests/config',
-    'tests/converter',
-    'tests/integration',
-    'tests/inference',
-  ],
-  gpu: [
-    'tests/kernels',
-  ],
-  all: [
-    'tests/config',
-    'tests/converter',
-    'tests/integration',
-    'tests/inference',
-    'tests/kernels',
-  ],
-};
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -72,59 +55,6 @@ function parseArgs() {
   }
 
   return { directories, suite, enforceThreshold, policyPath };
-}
-
-function collectTestFiles(dir, files) {
-  const entries = readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    if (entry.name.startsWith('.')) continue;
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      collectTestFiles(fullPath, files);
-      continue;
-    }
-    if (entry.isFile() && entry.name.endsWith('.test.js') && !isPendingTestFile(entry.name)) {
-      files.push(fullPath);
-    }
-  }
-}
-
-function collectFilesFromRoot(pathValue, files) {
-  if (!existsSync(pathValue)) {
-    throw new Error(`Test path not found: ${pathValue}`);
-  }
-  const stats = statSync(pathValue);
-  if (stats.isFile()) {
-    if (!String(pathValue).endsWith('.test.js')) {
-      throw new Error(`Test file must end with .test.js: ${pathValue}`);
-    }
-    files.push(pathValue);
-    return;
-  }
-  collectTestFiles(pathValue, files);
-}
-
-function isPendingTestFile(name) {
-  return name.endsWith('.pending.test.js');
-}
-
-function listRootsFromSuite(suiteName, explicitDirs) {
-  if (explicitDirs.length > 0) {
-    return explicitDirs.map((dir) => resolve(ROOT_DIR, dir));
-  }
-  if (!Object.hasOwn(suites, suiteName)) {
-    throw new Error(`Unknown --suite "${suiteName}". Valid suites: ${Object.keys(suites).join(', ')}`);
-  }
-  return suites[suiteName].map((dir) => resolve(ROOT_DIR, dir));
-}
-
-export function resolveTestFiles(suiteName, directories) {
-  const roots = listRootsFromSuite(suiteName, directories);
-  const files = [];
-  for (const root of roots) {
-    collectFilesFromRoot(root, files);
-  }
-  return files.sort();
 }
 
 function loadPolicy(policyPath) {

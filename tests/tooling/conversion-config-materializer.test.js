@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { DEFAULT_KVCACHE_CONFIG } from '../../src/config/schema/index.js';
 
 import {
   inferConversionConfigModelId,
@@ -235,7 +236,8 @@ if (!fs.existsSync(embeddingManifestPath)) {
     kvDtype: 'f32',
     layout: 'contiguous',
     pageSize: 256,
-    tiering: { mode: 'off' },
+    tiering: { ...structuredClone(DEFAULT_KVCACHE_CONFIG.tiering), mode: 'off' },
+    quantization: { ...structuredClone(DEFAULT_KVCACHE_CONFIG.quantization), mode: 'none' },
   });
   assert.deepEqual(materialized.inference?.session?.decodeLoop, {
     batchSize: 4,

@@ -122,6 +122,13 @@ export async function runElectronPackContract({ fixture, trustedSigners, createR
   closeFailure = new Error('cleanup also failed');
   await assert.rejects(renderer.rerank(request), { code: 'DOPPLER_ELECTRON_DEVICE_LOST' });
   assert.equal(opened, closed, 'failure cleanup runs exactly once');
+  onRun = () => { throw Object.assign(new Error('physical device destroyed'), { code: 'DOPPLER_GPU_DEVICE_LOST' }); };
+  await assert.rejects(renderer.rerank(request), (error) => {
+    assert.equal(error.code, 'DOPPLER_ELECTRON_DEVICE_LOST');
+    assert.equal(error.cause.code, 'DOPPLER_GPU_DEVICE_LOST');
+    return true;
+  });
+  assert.equal(opened, closed, 'typed physical loss preserves cleanup and original cause');
   onRun = null;
   await assert.rejects(renderer.rerank(request), /cleanup also failed/);
   closeFailure = null;

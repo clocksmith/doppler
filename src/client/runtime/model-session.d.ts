@@ -126,6 +126,7 @@ export interface DopplerEmbeddingEvidence {
 }
 
 export interface DopplerRerankScore {
+  tokenIds: number[] | null;
   index: number;
   document: string;
   score: number;
