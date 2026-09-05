@@ -99,6 +99,14 @@ by byte hashes. It is an immutable experiment snapshot, not the current support
 registry. The archive and raw observations are retained locally; cloning this
 repository does not download them. The index states that availability explicitly.
 
+The [maintenance follow-up](../../reports/pack-runtime/reranker-maintenance-20260905.json)
+retains the audit repairs, expanded repository checks, and a newly installed
+runtime rerunning the same F16 Pack on the physical Electron host. Its separate
+local supplement contains package bytes and raw observations; reuse the preceding
+archive for model artifacts and source references. Neither snapshot replaces the
+other or establishes external adoption. The follow-up index binds both archives
+and records the unchanged rejected Q4K candidate.
+
 The passing candidate is F16 with the declared `true_logit` scoring contract.
 The original Q4K comparison remains rejected; its missing immutable source pin
 also prevents attributing the difference solely to quantization. No acceptance
