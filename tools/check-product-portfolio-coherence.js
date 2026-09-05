@@ -5,6 +5,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { isPlainObject } from '../src/formats/plain-object.js';
+
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_PATHS = Object.freeze({
   contract: path.join(REPO_ROOT, 'tools', 'policies', 'product-portfolio-coherence.json'),
@@ -85,10 +87,6 @@ const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function exactKeys(value, fields, label, errors) {

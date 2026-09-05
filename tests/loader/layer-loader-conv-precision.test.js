@@ -23,22 +23,29 @@ if (!webgpuReady) {
 
 await initDevice();
 
-const normalizedEmbedding = await embed([0], new Float32Array([3, 4]), {
-  hiddenSize: 2,
-  vocabSize: 1,
-  scaleEmbeddings: false,
-  embeddingScale: null,
-  embeddingNormalization: {
-    type: 'rmsnorm', withScale: false, eps: 1e-5, position: 'after-scale',
-  },
-  activationDtype: 'f32',
-  embeddingDtype: 'f32',
-});
-const normalizedValues = new Float32Array(await readBuffer(normalizedEmbedding.buffer, 8));
-const inverseRms = 1 / Math.sqrt(((3 * 3) + (4 * 4)) / 2 + 1e-5);
-assert.ok(Math.abs(normalizedValues[0] - (3 * inverseRms)) < 1e-5);
-assert.ok(Math.abs(normalizedValues[1] - (4 * inverseRms)) < 1e-5);
-releaseBuffer(normalizedEmbedding.buffer);
+const embeddingBuffer = acquireBuffer(8, undefined, 'conv_precision_embedding');
+uploadData(embeddingBuffer, new Float32Array([3, 4]));
+let normalizedEmbedding;
+try {
+  normalizedEmbedding = await embed([0], embeddingBuffer, {
+    hiddenSize: 2,
+    vocabSize: 1,
+    scaleEmbeddings: false,
+    embeddingScale: null,
+    embeddingNormalization: {
+      type: 'rmsnorm', withScale: false, eps: 1e-5, position: 'after-scale',
+    },
+    activationDtype: 'f32',
+    embeddingDtype: 'f32',
+  });
+  const normalizedValues = new Float32Array(await readBuffer(normalizedEmbedding.buffer, 8));
+  const inverseRms = 1 / Math.sqrt(((3 * 3) + (4 * 4)) / 2 + 1e-5);
+  assert.ok(Math.abs(normalizedValues[0] - (3 * inverseRms)) < 1e-5);
+  assert.ok(Math.abs(normalizedValues[1] - (4 * inverseRms)) < 1e-5);
+} finally {
+  if (normalizedEmbedding) releaseBuffer(normalizedEmbedding.buffer);
+  releaseBuffer(embeddingBuffer);
+}
 
 const separateAttentionGate = new Float32Array(16);
 const separateGateLayer = await loadLayer({

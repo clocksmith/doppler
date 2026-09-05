@@ -4,6 +4,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+
+import { isPlainObject } from '../src/formats/plain-object.js';
 import { validateRevocationRegistry, findResolutionRevocation } from '../src/config/revocation-policy.js';
 import { computeCanonicalSha256 } from '../src/utils/canonical-hash.js';
 import {
@@ -32,10 +34,6 @@ const SCOPE_FIELDS = Object.freeze([
 ]);
 const DIGEST_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function exactObject(value, fields, label, errors) {
   if (!isPlainObject(value)) {

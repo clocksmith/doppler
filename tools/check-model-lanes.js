@@ -4,6 +4,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+
+import { isPlainObject } from '../src/formats/plain-object.js';
 import { validateCatalogClassifications } from './lib/model-type-taxonomy.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -11,10 +13,6 @@ const DEFAULT_CATALOG_PATH = path.join(REPO_ROOT, 'models', 'catalog.json');
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function parseArgs(argv) {

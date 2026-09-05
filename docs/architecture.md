@@ -24,13 +24,17 @@ See also: [INDEX.md](INDEX.md)
 
 The mainline product/technical goals are defined in [goals.md](goals.md):
 
-1. reproduce an open ESM-2 execution network with Poolday, with independent-machine
-   recovery, useful verified results, and measured benefit from admitted history;
+1. earn standalone executable-model adoption through useful local execution and
+   a subsequent model release independently retained by an application;
 2. own the model artifact and runtime contract; and
 3. make correctness, performance, and support evidence-backed.
 
 Source-truth Forge automation and an uncreative Pack Runtime are the
 architecture used to deliver those goals, not a separate portfolio objective.
+
+The ESM-2/Poolday network remains a separately qualified optional experiment.
+It is not a prerequisite for standalone Doppler, nor may it inherit adoption
+or physical evidence from standalone execution.
 
 Architecture changes should map to one of those goals or stay clearly marked as
 experimental/internal in the subsystem support matrix.

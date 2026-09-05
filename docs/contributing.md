@@ -5,7 +5,7 @@
 - `AGENTS.md` is canonical for all repository-specific instructions.
 - `CLAUDE.md` and `GEMINI.md` are symlink aliases of `AGENTS.md`.
 - `skills/` is the canonical skills registry.
-- `.claude/skills` and `.gemini/skills` are the provider-facing aliases.
+- Provider-facing skill aliases are checked by `tools/policies/agent-parity-policy.json`.
 
 ## Repository workflow
 
@@ -30,22 +30,15 @@ npm run agents:verify
 
 `npm run ci:check` is the deterministic contract used by GitHub Actions. It combines a small explicit CPU smoke set, static kernel registry and digest validation, and the green chain below.
 
-`npm run check:green` remains the fast read-only contract subset:
+`npm run check:green` runs the read-only repository gates and Node tests. Use
+`npm run` or `npm pkg get scripts` to discover the current commands rather than
+maintaining a second list here. Suite selection, pending tests, and isolated
+execution are documented in the [testing runbook](testing-runbook.md).
 
-```
-agents:verify              # AGENTS.md / CLAUDE.md / GEMINI.md / skills parity
-public:boundaries:check    # src/index*, src/generation, etc. forbidden-import rules
-api:docs:check             # docs/api/reference/* reflects real public exports
-imports:check:browser      # browser import graph has no Node-only leaks
-pending:check              # *.pending.test.js files have owned policy entries
-exports:parity:check       # sibling .js / .d.ts export name sets agree
-```
-
-The automatic job omits optional GPU providers and does not install a browser,
-download model weights, read `models/local`, or run benchmark and GPU suites.
-GPU, browser, and model-download validation is explicit. Run the `Manual Runtime
-Validation` workflow for `node-kernels`, `browser-kernels`, `opfs-text`, or
-`opfs-embedding` when a change touches those surfaces.
+Automatic CI also installs Chromium for its declared browser contracts. That
+software-rendered lane is distinct from physical GPU and actual-model evidence.
+Use the separately declared runtime validation lanes when a change needs those
+observations; local model availability never becomes an unconditional CI input.
 
 ## Repo touch policy reminder
 

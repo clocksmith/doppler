@@ -6,15 +6,17 @@ function read(path) {
 }
 
 const agents = read('AGENTS.md');
+const protocol = read('docs/agents/debug-protocol.md');
 const skill = read('skills/doppler-debug/SKILL.md');
 const playbook = read('docs/debug-playbook.md');
 const template = read('docs/debug-investigation-template.md');
 
-assert.match(agents, /docs\/debug-playbook\.md/);
-assert.match(agents, /docs\/debug-investigation-template\.md/);
-assert.match(agents, /post input norm/);
-assert.match(agents, /successful process exit/);
-assert.match(agents, /F16 or source-precision control/);
+assert.match(agents, /docs\/agents\/debug-protocol\.md/);
+assert.match(protocol, /docs\/debug-playbook\.md/);
+assert.match(protocol, /docs\/debug-investigation-template\.md/);
+assert.match(protocol, /post input norm/);
+assert.match(protocol, /successful process exit/);
+assert.match(protocol, /F16 or source-precision control/);
 
 assert.match(skill, /docs\/debug-playbook\.md/);
 assert.match(skill, /docs\/debug-investigation-template\.md/);

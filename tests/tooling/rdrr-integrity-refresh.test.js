@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { createRDRRManifestFixture } from '../helpers/rdrr-manifest-fixture.js';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -10,12 +10,7 @@ import {
 } from '../../src/tooling/rdrr-integrity-refresh.js';
 import { runNodeCommand } from '../../src/tooling/node-command-runner.js';
 
-const canonicalManifest = JSON.parse(
-  readFileSync(
-    new URL('../../models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json', import.meta.url),
-    'utf8'
-  )
-);
+const canonicalManifest = createRDRRManifestFixture();
 const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'rdrr-integrity-refresh-'));
 
 try {

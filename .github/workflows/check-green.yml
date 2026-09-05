@@ -42,7 +42,7 @@ jobs:
       - name: Sync package source closure
         run: npm run package:closure:sync
 
-      - name: Run deterministic CPU contract
+      - name: Run repository acceptance checks
         run: npm run ci:check
 
       - name: Run browser WebGPU kernel contract
