@@ -19,6 +19,9 @@ import {
 } from '../src/gpu/device.js';
 import { destroyBufferPool } from '../src/memory/buffer-pool.js';
 import { sha256BytesHex } from '../src/utils/sha256.js';
+import { hashStableJson } from '../src/tooling/program-bundle/materialize.js';
+import { observeInitialExecutionIdentity } from '../src/config/initial-execution-identity.js';
+import { parseManifest } from '../src/formats/rdrr/parsing.js';
 import {
   getActiveLoRAForPipeline,
   loadLoRAAdapterForPipeline,
@@ -143,15 +146,21 @@ async function closeModelServer(server) {
 }
 
 async function readModelManifest(args) {
+  let bytes;
   if (args.modelDir) {
-    return JSON.parse(await readFile(resolve(args.modelDir, 'manifest.json'), 'utf8'));
+    bytes = await readFile(resolve(args.modelDir, 'manifest.json'));
+  } else {
+    const manifestUrl = `${args.modelUrl}/manifest.json`;
+    const response = await fetch(manifestUrl, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Failed to load hosted manifest (${response.status}) from ${manifestUrl}.`);
+    }
+    bytes = new Uint8Array(await response.arrayBuffer());
   }
-  const manifestUrl = `${args.modelUrl}/manifest.json`;
-  const response = await fetch(manifestUrl, { cache: 'no-store' });
-  if (!response.ok) {
-    throw new Error(`Failed to load hosted manifest (${response.status}) from ${manifestUrl}.`);
-  }
-  return response.json();
+  return {
+    manifest: parseManifest(new TextDecoder().decode(bytes)),
+    manifestHash: `sha256:${sha256BytesHex(bytes)}`,
+  };
 }
 
 function gitValue(args) {
@@ -248,7 +257,7 @@ async function qualifySequenceLoRA(pipeline, manifest, reference, baseResult) {
 export async function qualifySequenceModel(args) {
   const referenceBytes = await readFile(args.reference);
   const reference = validateSequenceReference(JSON.parse(referenceBytes.toString('utf8')));
-  const manifest = await readModelManifest(args);
+  const { manifest, manifestHash } = await readModelManifest(args);
   if (manifest.modelId !== reference.modelId) {
     throw new Error(`Reference modelId "${reference.modelId}" does not match manifest "${manifest.modelId}".`);
   }
@@ -274,6 +283,10 @@ export async function qualifySequenceModel(args) {
       },
     });
     pipeline = harness.pipeline;
+    if (hashStableJson(harness.manifest) !== hashStableJson(manifest)) {
+      throw new Error('Sequence qualification loaded a different manifest from its pinned input.');
+    }
+    const initialExecutionIdentity = observeInitialExecutionIdentity(pipeline.resolvedRuntimeSession);
     const includeLogits = reference.outputs?.logits !== false;
     const result = await encodeQualificationSequence(pipeline, reference, {
       diagnostics: args.diagnoseLayers.length > 0 || args.diagnoseOps.length > 0 ? {
@@ -298,6 +311,7 @@ export async function qualifySequenceModel(args) {
       generatedAt: new Date().toISOString(),
       model: {
         modelId: manifest.modelId,
+        manifestHash,
         artifactIdentity: manifest.artifactIdentity ?? null,
         quantization: manifest.quantization ?? null,
         architecture: manifest.architecture ?? null,
@@ -330,8 +344,13 @@ export async function qualifySequenceModel(args) {
         adapterInfo: device?.adapterInfo ?? null,
         sourceRevision: gitValue(['rev-parse', 'HEAD']),
         sourceDirty: Boolean(gitValue(['status', '--short'])),
+        executionGraphHash: hashStableJson(manifest.inference.execution),
+        initialExecutionIdentity,
       },
       result: {
+        options: { includeTokenEmbeddings: true, includeLogits },
+        embeddingDim: result.embeddingDim,
+        tokenCount: result.tokens.length,
         checks: evaluation.checks,
         outputDigests: evaluation.outputDigests,
         loraQualification,

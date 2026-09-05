@@ -52,7 +52,9 @@ export interface TargetPlanV1 {
     evidenceArtifactId: string;
     evidenceHash: `sha256:${string}`;
     transcriptHash?: `sha256:${string}`;
-    generatedTokens: number;
+    operation?: 'generate' | 'encodeSequence';
+    generatedTokens?: number;
+    encodedSequences?: number;
   }>;
 }
 
