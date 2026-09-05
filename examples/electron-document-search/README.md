@@ -97,3 +97,32 @@ SHA-256 against `receipt.json`; rerun `node electron-smoke.js` from the retained
 signed synthetic Pack, not the Qwen model. Its type check records the repository's
 TypeScript invocation separately from the runtime installation. Dirty source is
 declared, not represented as reproducible from the commit alone.
+
+## Physical component probe
+
+With the pinned Electron version installed, a working desktop display, and the
+actual Qwen artifacts available locally, run:
+
+```bash
+node tools/probe-electron-reranker.js \
+  tools/policies/electron-qwen-component-probe.json \
+  /absolute/path/to/retained-package-bundle \
+  /absolute/path/to/qwen-3-reranker-0-6b-q4k-ehf16-af32 \
+  /absolute/path/to/new-physical-observation
+```
+
+The checked-in policy selects Linux Electron and an AMD physical adapter. It
+pins inputs, the top-document acceptance rule, and warmup/sample counts. The
+probe rejects software adapters, hashes the real model artifacts, verifies the
+retained tarball hash, and serves the installed package on loopback. It retains
+the actual process arguments, raw reports, failures, and cleanup outcome.
+Electron/Playwright are probe-host tools; they are not included in the runtime
+tarball. The recorded launch arguments expose any host sandbox switches.
+
+The verify and benchmark commands each load the model. Warm samples describe
+inference after the benchmark's own load, not a warm application restart.
+Loopback HTTP does not establish internet installation performance or a cold OS
+cache. A passing component probe is not signed-Pack execution or an incumbent
+comparison. The synthetic Pack smoke and this physical component observation
+must not be combined into an unobserved end-to-end claim. That proof still needs
+the qualified Qwen Pack and a connected physical application episode.

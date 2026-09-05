@@ -410,7 +410,7 @@
       "reviewedLines": 811,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
-        "converter/forge-stages-components.js"
+        "converter/forge-qualification.js"
       ]
     },
     "experimental/browser/browser-converter.js": {
