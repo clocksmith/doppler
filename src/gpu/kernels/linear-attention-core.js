@@ -1,4 +1,5 @@
-import { getDevice, getDeviceEpoch } from '../device.js';
+import { getDevice } from '../device.js';
+import { getShaderScopeCacheKey } from './shader-source-scope.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
@@ -126,7 +127,7 @@ function normalizeInputDtype(dtype) {
 }
 
 async function ensurePipelines(device, inputDtype) {
-  const epoch = getDeviceEpoch();
+  const epoch = getShaderScopeCacheKey();
   if (epoch !== cachedEpoch) {
       pipelineCache.clear();
       convBindGroupLayout = null;

@@ -3,6 +3,7 @@ import { isBufferActive } from '../../../memory/buffer-pool.js';
 import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 import { log } from '../../../debug/index.js';
 import { runRoPEPrecompute } from '../../../gpu/kernels/rope-precompute.js';
+import { getShaderScopeCacheKey } from '../../../gpu/kernels/shader-source-scope.js';
 
 // ============================================================================
 // RoPE Initialization
@@ -133,7 +134,7 @@ function resolveFrequencyBaseDim(rotaryDim, frequencyBaseDim, label) {
 
 
 export async function initRoPEFrequencies(config, useGPU) {
-  const cacheKey = buildRoPECacheKey(config);
+  const cacheKey = `${getShaderScopeCacheKey()}:${buildRoPECacheKey(config)}`;
   const {
     headDim,
     localHeadDim,

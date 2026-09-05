@@ -1,5 +1,5 @@
 
-function requireGenerationOptions(options) {
+export function requireGenerationOptions(options) {
   const requiredNumbers = ['maxTokens', 'temperature', 'topP', 'topK', 'repetitionPenalty', 'repetitionPenaltyWindow'];
   for (const field of requiredNumbers) {
     if (!Number.isFinite(options[field])) throw new Error(`Pack generation requires explicit ${field}.`);

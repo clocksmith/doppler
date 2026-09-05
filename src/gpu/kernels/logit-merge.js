@@ -1,6 +1,7 @@
 
 
-import { getDevice, getDeviceEpoch } from '../device.js';
+import { getDevice } from '../device.js';
+import { getShaderScopeCacheKey } from './shader-source-scope.js';
 import { log } from '../../debug/index.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { getShaderModule } from './shader-cache.js';
@@ -33,9 +34,10 @@ export class LogitMergeKernel {
 
   
   async init() {
-    const deviceEpoch = getDeviceEpoch();
+    const deviceEpoch = getShaderScopeCacheKey();
     if (this.#initialized && this.#deviceEpoch === deviceEpoch) return;
 
+    this.#initialized = false;
     this.#device = getDevice();
     this.#pipelines.clear();
     this.#bindGroupLayout = null;

@@ -36,7 +36,7 @@ export async function qualifySequenceModelBrowser(config) {
     runtime: { surface: 'browser-webgpu', sourceRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(),
       sourceDirty: Boolean(execFileSync('git', ['status', '--short'], { cwd: ROOT, encoding: 'utf8' }).trim()),
       executionGraphHash: hashStableJson(manifest.inference.execution), browserExecutablePath: config.browserExecutablePath,
-      browserArgs: config.browserArgs },
+      browserArgs: config.browserArgs, requestedShaders: [] },
     stage: 'browser-launch', logs,
   };
   let server;
@@ -55,6 +55,10 @@ export async function qualifySequenceModelBrowser(config) {
     });
     const page = await context.newPage();
     page.setDefaultTimeout(config.timeoutMs);
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (url.pathname.endsWith('.wgsl')) report.runtime.requestedShaders.push(url.pathname);
+    });
     page.on('console', (message) => logs.push({ type: message.type(), text: message.text() }));
     page.on('pageerror', (error) => logs.push({ type: 'pageerror', text: error.message }));
     await page.goto(`${server.baseUrl}/qualification`);
@@ -67,7 +71,10 @@ export async function qualifySequenceModelBrowser(config) {
         const { observeInitialExecutionIdentity } = await import('/src/config/initial-execution-identity.js');
         const { getKernelCapabilities } = await import('/src/gpu/device.js');
         const adapter = await navigator.gpu?.requestAdapter();
-        if (!adapter || adapter.isFallbackAdapter === true) throw new Error('Physical WebGPU adapter required; fallback is not qualification.');
+        const isFallbackAdapter = adapter?.info?.isFallbackAdapter ?? adapter?.isFallbackAdapter;
+        if (isFallbackAdapter !== false || adapter?.isFallbackAdapter === true) {
+          throw new Error('Confirmed physical WebGPU adapter required; unknown or fallback is not qualification.');
+        }
         const model = await load({ url: `${location.origin}/__model` }, { runtimeConfig: { inference: { session: manifest.inference.session } } });
         try {
           const initialExecutionIdentity = observeInitialExecutionIdentity(model.advanced.getResolvedRuntimeSession());
@@ -75,7 +82,7 @@ export async function qualifySequenceModelBrowser(config) {
           const result = await model.encodeSequence(input.sequence, options);
           const capabilities = getKernelCapabilities();
           return { manifest: model.manifest, initialExecutionIdentity, options,
-            isFallbackAdapter: adapter.isFallbackAdapter ?? null, adapterInfo: capabilities.adapterInfo,
+            isFallbackAdapter, adapterInfo: capabilities.adapterInfo,
             capabilities: { hasF16: capabilities.hasF16, hasSubgroups: capabilities.hasSubgroups, maxBufferSize: capabilities.maxBufferSize },
             result: { tokens: Array.from(result.tokens), embeddingDim: result.embeddingDim, logits: result.logits,
               pooledEmbedding: Array.from(result.pooledEmbedding), tokenEmbeddings: Array.from(result.tokenEmbeddings), phase: result.phase } };

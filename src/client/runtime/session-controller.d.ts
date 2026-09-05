@@ -24,5 +24,7 @@ export interface SessionController {
   close(): Promise<void>;
 }
 
+export function requireGenerationOptions(options: Record<string, unknown>): void;
+
 export declare function samplePackLogits(logits: ArrayLike<number>, contextTokens: number[], options: GenerationRunOptions, tokenContract?: Record<string, unknown>): number;
 export declare function createSessionController(commandExecutor: CommandExecutor, resourceBinder: ResourceBinder, program: object): SessionController;

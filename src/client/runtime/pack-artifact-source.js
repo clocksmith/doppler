@@ -1,4 +1,5 @@
 import { createArtifactStorageContext } from '../../storage/artifact-storage-context.js';
+import { createShaderSourceScope, bindStorageShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
 
 export async function createPackArtifactSource(pack, artifactStore) {
   const manifestArtifact = pack.artifacts.find((artifact) => artifact.artifactId === pack.program.manifestArtifactId);
@@ -33,6 +34,17 @@ export async function createPackArtifactSource(pack, artifactStore) {
     async readText(path) { return new TextDecoder('utf-8', { fatal: true }).decode(await read(path)); },
     async readBinary(path) { return (await read(path)).buffer; },
   });
+  const sources = new Map();
+  for (const module of pack.wgslModules ?? []) {
+    const artifact = pack.artifacts.find((entry) => entry.artifactId === module.sourceArtifactId);
+    if (!artifact || artifact.role !== 'wgsl-source') throw new Error('Pack WGSL module has no source artifact.');
+    const source = new TextDecoder('utf-8', { fatal: true }).decode(await artifactStore.readArtifact(artifact));
+    if (sources.has(module.file) && sources.get(module.file) !== source) {
+      throw new Error(`Pack WGSL filename has conflicting sources: ${module.file}.`);
+    }
+    sources.set(module.file, source);
+  }
+  bindStorageShaderSourceScope(storageContext, createShaderSourceScope(sources));
   return {
     modelId: pack.modelId,
     manifest,

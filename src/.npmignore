@@ -390,6 +390,7 @@ gpu/kernels/rope-precompute.d.ts
 gpu/kernels/rule-matcher.d.ts
 gpu/kernels/rule-matcher.js
 gpu/kernels/rule-registry.d.ts
+gpu/kernels/shader-source-scope.d.ts
 gpu/kernels/turboquant-codebook.d.ts
 gpu/kernels/types.js
 gpu/kernels/uniform-utils.d.ts
@@ -455,6 +456,7 @@ inference/pipelines/index.d.ts
 inference/pipelines/index.js
 inference/pipelines/registry.d.ts
 inference/pipelines/rng.d.ts
+inference/pipelines/shader-scoped-pipeline.d.ts
 inference/pipelines/shared/clipped-linear.d.ts
 inference/pipelines/structured/tsv-grammar-mask.d.ts
 inference/pipelines/structured/tsv-grammar-mask.js

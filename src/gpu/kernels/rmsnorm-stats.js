@@ -1,4 +1,5 @@
-import { getDevice, getDeviceEpoch, getKernelCapabilities } from '../device.js';
+import { getDevice, getKernelCapabilities } from '../device.js';
+import { getShaderScopeCacheKey } from './shader-source-scope.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
@@ -13,7 +14,7 @@ let cachedEpoch = -1;
 const pipelineCache = new Map();
 
 async function getPipeline(device, useSubgroups) {
-  const epoch = getDeviceEpoch();
+  const epoch = getShaderScopeCacheKey();
   if (cachedEpoch !== epoch) {
     pipelineCache.clear();
     cachedEpoch = epoch;

@@ -160,6 +160,20 @@ try {
   const autoLayoutB = getPipelineBindGroupLayout(first, 0);
   assert.equal(autoLayoutB, autoLayoutA);
   assert.equal(device.pipelineBindGroupLayoutCount, 1);
+  const { createShaderSourceScope, runWithShaderSourceScope } = await import('../../src/gpu/kernels/shader-source-scope.js');
+  for (const source of ['verified A', 'verified B']) {
+    const scope = createShaderSourceScope(new Map([['scale.wgsl', source]]));
+    await runWithShaderSourceScope(scope, async () => {
+      const scoped = await getPipelineFast('scale', 'default');
+      assert.notEqual(scoped, noConstants);
+      assert.equal(scoped.descriptor.compute.module.descriptor.code, source);
+      assert.equal(getCachedPipeline('scale', 'default'), scoped);
+    });
+  }
+  await runWithShaderSourceScope(createShaderSourceScope(new Map()), async () => {
+    assert.throws(() => getCachedPipeline('scale', 'default'), /outside.*closure/);
+    await assert.rejects(getPipelineFast('scale', 'default'), /outside.*closure/);
+  });
 } finally {
   clearPipelineCaches();
   clearShaderCaches();

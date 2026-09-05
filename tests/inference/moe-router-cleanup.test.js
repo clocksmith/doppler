@@ -30,6 +30,7 @@ globalThis.GPUBuffer = FakeBuffer;
 const { MoERouter } = await import('../../src/inference/moe-router.js');
 const { InferencePipeline } = await import('../../src/inference/pipelines/text.js');
 const { setDevice } = await import('../../src/gpu/device.js');
+const { createShaderSourceScope, runWithShaderSourceScope } = await import('../../src/gpu/kernels/shader-source-scope.js');
 
 function createFakeDevice({ writeBufferThrowAt = null } = {}) {
   let writeBufferCount = 0;
@@ -89,6 +90,24 @@ function createFakeDevice({ writeBufferThrowAt = null } = {}) {
 
 function resetDevice(device = null) {
   setDevice(device, { platformConfig: null });
+}
+
+{
+  const device = createFakeDevice();
+  device.createShaderModule = (descriptor) => descriptor;
+  device.createComputePipeline = (descriptor) => descriptor;
+  resetDevice(device);
+  const router = new MoERouter({ numExperts: 2, topK: 1, hiddenSize: 2, normalizeWeights: true });
+  const first = await router._getBiasAddPipeline('f32', 'f32', device);
+  assert.equal(await router._getBiasAddPipeline('f32', 'f32', device), first);
+  await assert.rejects(
+    () => runWithShaderSourceScope(createShaderSourceScope(new Map()),
+      () => router._getBiasAddPipeline('f32', 'f32', device)),
+    /outside the verified Pack source closure/
+  );
+  assert.equal(await router._getBiasAddPipeline('f32', 'f32', device), first);
+  router.destroy();
+  resetDevice();
 }
 
 {

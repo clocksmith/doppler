@@ -3,6 +3,7 @@
 import { getDevice, getDeviceEpoch, getKernelCapabilities } from '../device.js';
 import { getKernelConfig } from './kernel-configs.js';
 import { getShaderModule } from './shader-cache.js';
+import { getScopedShaderSource } from './shader-source-scope.js';
 import { hasRequiredFeatures } from './feature-check.js';
 import { trace } from '../../debug/index.js';
 
@@ -134,7 +135,8 @@ function buildPipelineCacheKey(operation, variant, constants, bindGroupLayout, d
     : '';
   const layoutKey = bindGroupLayout ? `:${bindGroupLayout.label || 'layout'}` : '';
   const deviceKey = `dev:${getDeviceId(device)}`;
-  return `${deviceKey}:${operation}:${variant}${constants ? ':' + constantsKey : ''}${layoutKey}`;
+  const source = getScopedShaderSource(getKernelConfig(operation, variant).shaderFile);
+  return `${deviceKey}:${source?.digest ?? 'runtime'}:${operation}:${variant}${constants ? ':' + constantsKey : ''}${layoutKey}`;
 }
 
 function resolveConstants(operation, variant, constants) {

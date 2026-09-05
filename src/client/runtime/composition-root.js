@@ -10,6 +10,8 @@ import { createCommandExecutor } from './command-executor.js';
 import { createSessionController } from './session-controller.js';
 import { selectTargetPlan } from './target-selector.js';
 import { executePackRerank } from './pack-rerank.js';
+import { createPackOperationAdapters } from './pack-operation-adapters.js';
+import { createPackOperationExecutor } from './pack-operation-executor.js';
 
 export const RUNTIME_CORE_VERSION = '2.0.0';
 
@@ -124,7 +126,7 @@ export function createDopplerRuntime(ports) {
           }
         }
 
-        return {
+        const session = {
           modelId: pack.modelId,
           packId: pack.packId,
           semanticRoot: pack.semanticRoot,
@@ -227,6 +229,18 @@ export function createDopplerRuntime(ports) {
             emit(observer, { type: 'pack-session-closed', packId: pack.packId, targetPlanDigest });
           },
         };
+        const adapters = createPackOperationAdapters({ program,
+          generate: (request) => session.generate(request), rerank: (request) => session.rerank(request) });
+        return Object.assign(session, {
+          executeOperation: createPackOperationExecutor({ adapters,
+            identity: { pack: verification.identity, targetId: selectedPlan.targetId, targetPlanDigest,
+              artifactReceipts: verification.artifactReceipts, releaseEventDigest: verification.lifecycle?.event.digest ?? null },
+            async assertCurrent() {
+              if (closed) throw new Error('Pack runtime session is closed.');
+              await assertPlanUnchanged();
+            },
+          }),
+        });
       } catch (error) {
         try { await program?.close?.(); } finally { verifiedStore.close(); }
         throw error;
