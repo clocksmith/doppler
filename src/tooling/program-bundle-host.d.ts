@@ -16,3 +16,9 @@ export function createSequenceProgram(
   bundle: Record<string, unknown>,
   options?: Record<string, unknown>,
 ): unknown;
+
+export function createRerankProgram(
+  hostBridge: { createRerankProgram(bundle: Record<string, unknown>, options: Record<string, unknown>): unknown },
+  bundle: Record<string, unknown>,
+  options?: Record<string, unknown>,
+): unknown;

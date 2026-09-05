@@ -219,6 +219,11 @@
       "types": "./src/pack-runtime.d.ts",
       "import": "./src/pack-runtime.js"
     },
+    "./host": {
+      "types": "./src/client/pack-host.d.ts",
+      "browser": "./src/client/pack-host.browser.js",
+      "import": "./src/client/pack-host.js"
+    },
     "./pack": {
       "types": "./src/pack.d.ts",
       "import": "./src/pack.js"

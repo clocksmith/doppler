@@ -31,8 +31,8 @@ export interface PackRerankReceipt {
   target: { targetId: string; targetPlanDigest: `sha256:${string}` };
   lifecycle: {
     releaseVersion: string;
-    previousPackId: string;
-    previousSemanticRoot: `sha256:${string}`;
+    previousPackId: string | null;
+    previousSemanticRoot: `sha256:${string}` | null;
   };
   revocation: DopplerPackV2['release']['revocation'];
   evidence: DopplerRerankEvidence;

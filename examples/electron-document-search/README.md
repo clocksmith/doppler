@@ -1,6 +1,6 @@
 # Electron Pack integration
 
-This example composes the shipped `doppler-gpu` and `doppler-gpu/electron`
+This example composes the shipped `doppler-gpu/host` and `doppler-gpu/electron`
 exports. It is integration code, not a customer application, model-quality
 qualification, or evidence that a production release was adopted.
 
@@ -21,14 +21,11 @@ example does not replace those application boundaries.
 ## Renderer
 
 ```js
-import { createDocumentSearchRenderer } from './renderer.js';
+import { createDocumentSearchHostRenderer } from './renderer.js';
 
-const renderer = createDocumentSearchRenderer(window.dopplerRelease, {
-  device,
-  packSource,
-  artifactStore,
+const renderer = createDocumentSearchHostRenderer(window.dopplerRelease, {
   trustedSigners,
-  programFactory,
+  acceptedTargetPlanDigests,
 });
 
 const receipt = await renderer.rerank({
@@ -39,7 +36,17 @@ const receipt = await renderer.rerank({
 }, { signal: abortController.signal });
 ```
 
-The named dependencies are required application composition inputs:
+`doppler-gpu/host` composes the existing WebGPU provider, verified artifact store,
+and Doppler program adapter. It does not choose trusted publishers or accepted
+TargetPlans for the application. Browser bundles select the browser export;
+Node selects the native JavaScript host export. Bun remains experimental.
+URL artifacts use HTTP by default; an explicit `artifactStore` also works with
+a URL or a supplied Pack object. No Doe, Poolday, registry, or signing service is
+required. Model data still has to be acquired, and the host must supply WebGPU.
+
+For custom host composition, the existing
+`createDocumentSearchRenderer(releaseState, runtimePorts)` remains available.
+Its ports are explicit:
 
 - `device` exposes the chosen WebGPU device and its observed profile.
 - `packSource.fetchPack(path)` resolves the authorized immutable Pack reference.
@@ -126,3 +133,16 @@ cache. A passing component probe is not signed-Pack execution or an incumbent
 comparison. The synthetic Pack smoke and this physical component observation
 must not be combined into an unobserved end-to-end claim. That proof still needs
 the qualified Qwen Pack and a connected physical application episode.
+
+## Source-qualified Pack evaluation
+
+The repository tools `capture-reranker-source-reference.py`,
+`qualify-reranker-electron.js`, and `build-reranker-evaluation-pack.js` retain
+separate source-reference, model-qualification, build, and Pack-execution
+artifacts. See [the evaluation workflow](../../docs/integration/reranker-evaluation.md).
+The Python reference is build/evaluation tooling, not a runtime dependency.
+
+Rerank qualification binds the actual input tokens, yes/no logits, scoring
+policy, numerical tolerances, and exact ranking. A generation transcript or a
+passing top-document check alone cannot qualify it. An evaluation Pack is not a
+catalog promotion or evidence of external adoption.

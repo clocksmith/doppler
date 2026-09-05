@@ -52,7 +52,8 @@ export interface TargetPlanV1 {
     evidenceArtifactId: string;
     evidenceHash: `sha256:${string}`;
     transcriptHash?: `sha256:${string}`;
-    operation?: 'generate' | 'encodeSequence';
+    operation?: 'generate' | 'encodeSequence' | 'rerank';
+    rerankedDocuments?: number;
     generatedTokens?: number;
     encodedSequences?: number;
   }>;

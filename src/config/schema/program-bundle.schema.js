@@ -2,6 +2,7 @@ import { isExecutionV1Digest } from './execution-v1.schema.js';
 import { sha256Hex } from '../../formats/sha256.js';
 import { stableSortObject } from '../../formats/stable-sort-object.js';
 import { SEQUENCE_REFERENCE_TRANSCRIPT_SCHEMA_ID, assertSequenceReferenceTranscript } from '../sequence-reference.js';
+import { RERANK_REFERENCE_TRANSCRIPT_SCHEMA_ID, assertRerankReferenceTranscript } from '../rerank-reference.js';
 
 export const PROGRAM_BUNDLE_SCHEMA_VERSION = 1;
 export const PROGRAM_BUNDLE_SCHEMA_ID = 'doppler.program-bundle/v1';
@@ -335,6 +336,11 @@ function validateCaptureProfile(captureProfile) {
 
 function validateReferenceTranscript(referenceTranscript, expectedGraphHash) {
   assertPlainObject(referenceTranscript, 'referenceTranscript');
+  if (referenceTranscript.schema === RERANK_REFERENCE_TRANSCRIPT_SCHEMA_ID) {
+    assertRerankReferenceTranscript(referenceTranscript);
+    if (referenceTranscript.executionGraphHash !== expectedGraphHash) throw new Error('program bundle: rerank transcript executionGraphHash does not match.');
+    return;
+  }
   if (referenceTranscript.schema === SEQUENCE_REFERENCE_TRANSCRIPT_SCHEMA_ID) {
     assertSequenceReferenceTranscript(referenceTranscript);
     if (referenceTranscript.executionGraphHash !== expectedGraphHash) {

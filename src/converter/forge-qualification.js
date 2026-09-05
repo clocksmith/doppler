@@ -1,6 +1,7 @@
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 import { assertSequenceReferenceTranscript } from '../config/sequence-reference.js';
+import { assertRerankReferenceTranscript, assertRerankSourceIdentity } from '../config/rerank-reference.js';
 
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -15,6 +16,29 @@ export function buildQualificationRecords(lowered) {
   const referenceArtifact = normalized.artifacts.find((artifact) => artifact.role === 'reference-report');
   if (!referenceArtifact) throw new Error('Forge requires a packaged reference-report artifact.');
   const transcript = normalized.programBundle.referenceTranscript;
+  if (transcript?.operation === 'rerank') {
+    assertRerankReferenceTranscript(transcript);
+    assertRerankSourceIdentity(normalized.manifest?.artifactIdentity, transcript.reference);
+    if (normalized.manifest?.inference?.supportsRerank !== true
+      || hashStable(normalized.manifest.inference.rerank) !== hashStable(transcript.reference.scoringConfig)
+      || normalized.manifest.artifactIdentity?.sourceCheckpointId !== transcript.reference.source.checkpointId
+      || transcript.manifestHash !== normalized.manifestHash || transcript.modelId !== lowered.modelIR.modelId
+      || transcript.executionGraphHash !== normalized.programBundle.execution.graphHash) {
+      throw new Error('Forge rerank qualification does not match its declared scoring contract and exact program.');
+    }
+    const surfaces = normalized.programBundle.captureProfile?.surfaces;
+    if (!Array.isArray(surfaces) || surfaces.length !== 1 || surfaces[0] !== transcript.surface) {
+      throw new Error('Forge rerank capture surface must match the actual qualification report.');
+    }
+    return [{ surface: transcript.surface, status: 'passed', operation: 'rerank',
+      rerankedDocuments: transcript.reference.input.documents.length,
+      evidenceArtifactId: referenceArtifact.artifactId, evidenceHash: referenceArtifact.hash,
+      transcriptHash: hashStable(transcript),
+    }, ...normalized.qualificationEvidence.map(({ artifact, ...record }) => record)];
+  }
+  if (normalized.manifest?.inference?.supportsRerank === true) {
+    throw new Error('Forge requires rerank qualification for a reranker; generation evidence is insufficient.');
+  }
   if (transcript?.operation === 'encodeSequence') {
     assertSequenceReferenceTranscript(transcript);
     if (lowered.modelIR.outputTopology?.headType !== 'sequence-encoder'

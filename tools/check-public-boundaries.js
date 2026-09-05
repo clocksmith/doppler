@@ -12,11 +12,12 @@ import { assertPackageSourceClosure } from './package-source-closure.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
-  // Pack v3, signed release events, and the public Pack facade add checked closure.
-  // Measured package: 1710 entries, 2.052 MB packed, 10.616 MB unpacked.
-  maxEntryCount: 1720,
+  // Audited delta: integrated Pack host, rerank qualification/owner, F16 recipe,
+  // per-device loss guards, and source-revision binding: 1723 entries,
+  // 10,662,740 unpacked bytes. No repository tools enter this closure.
+  maxEntryCount: 1723,
   maxPackedSize: 2_060_000,
-  maxUnpackedSize: 10_650_000,
+  maxUnpackedSize: 10_663_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
