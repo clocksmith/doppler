@@ -6,7 +6,7 @@ Parent: none
 
 ## Target
 
-Deliver a reproducible open execution network with Poolday: verified useful execution across independent machines and admitted history improving later assignments.
+Make intelligence executable as portable JavaScript model programs: source-traceable compilation, immutable Packs, and dependable local inference that independent applications voluntarily retain.
 
 ## Authority
 
@@ -28,7 +28,8 @@ Deliver a reproducible open execution network with Poolday: verified useful exec
 - Artifact, tokenizer, graph, kernel, provider, and runtime-policy identity remain inspectable.
 - Unsupported or unresolved execution choices fail closed.
 - Local execution remains usable independently; redistribution and complete-job delegation require explicit authority.
-- Free adoption counts. Revenue, acquisition, Electron customers, Doe, and agent-proposed Pack improvements do not gate network completion.
+- Free retained adoption counts. Revenue, acquisition, Doe, Poolday, and Reploid do not gate standalone completion.
+- Optional network experiments retain separate artifact, execution, and history-improvement proof; standalone adoption cannot satisfy them.
 
 ## Acceptance
 

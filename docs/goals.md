@@ -1,9 +1,10 @@
 # Doppler Goals
 
 Doppler is an AI-native model release foundry and evidence-backed WebGPU runtime
-for JavaScript. The immediate win condition is a reproducible open execution
-network delivered with Poolday. Free adoption counts; payment does not determine
-technical completion.
+for JavaScript. The primary win condition is independent applications voluntarily
+retaining useful executable models because Doppler makes them easier to ship,
+faster, or more dependable. Free adoption counts; payment, Doe, Poolday, and
+Reploid are not prerequisites for technical completion.
 
 Doppler owns model semantics, source lineage, signed immutable Packs, artifact
 integrity, qualified TargetPlan selection, and execution. Poolday owns participation,
@@ -11,7 +12,24 @@ authorization, assignment, transport, comparison, requester acceptance, and
 admission of reusable evidence. The runtime never invents a plan or silently
 changes signed model behavior.
 
-## Goal 1: Reproduce an open execution network
+## Goal 1: Earn standalone executable-model adoption
+
+Start with the maintained Electron reranker application using
+`qwen-3-reranker-0-6b-q4k-ehf16-af32`. Preserve application logic and its frozen
+correctness oracle. An unrelated maintainer must install the distributable
+runtime and real Pack, execute on declared physical devices, voluntarily retain
+the result for a measured application improvement, and ship a second model
+revision with less release effort without weakening acceptance. Preserve the
+incumbent comparison, rejected candidates, recovery, and application-owned
+activation and rollback decisions. Free continued use satisfies adoption;
+payment alone does not. Internal tests and our own integrations are not adopters.
+
+Every capability remains useful with standard WebGPU and local files or ordinary
+hosting. Contributors can improve, test, measure, and distribute Doppler without
+another repository authorizing their work. Independently chosen trust policy and
+publishers remain explicit; retaining artifacts does not grant redistribution rights.
+
+## Optional experiment: Reproduce an open execution network
 
 ESM-2 35M, `esm2-t12-35m-ur50d-f32-af32`, remains the first network demonstration.
 The connected capability is acquire, verify, execute locally, optionally
@@ -106,11 +124,12 @@ does not imply task quality.
 network contract, commercial separation, and required evidence.
 `npm run model-release:check` validates them against
 `src/config/goal-completion-matrix.json`. The matrix has one
-`technical-network` goal; retained `standalone-commercial` and `supporting`
-goals do not add network launch gates.
+`technical-network` experiment and a `standalone` goal containing separately
+tracked technical and commercial rows. The primary technical gate selects the
+`external-executable-model-adoption` row, not commercial or network completion.
 
-`npm run product:readiness:report` reports network acceptance and its action
-queue separately from standalone and supporting work. Structural validity does
+`npm run product:readiness:report` reports standalone adoption and its action
+queue separately from network, commercial, and supporting work. Structural validity does
 not mean execution, independent adoption, or measured history benefit. Missing
 evidence remains blocked and non-claimable.
 
@@ -394,8 +413,8 @@ vulnerable predecessor.
 
 ## Product measures
 
-The north star is reproducible useful execution across independent machines,
-with admitted evidence improving later assignments and voluntary repeat use.
+The north star is useful local execution that independent applications retain
+and can maintain through subsequent model releases.
 Supporting measures are scoped product outcomes, not raw catalog size:
 
 - install-to-first-verified-output success;
@@ -405,7 +424,7 @@ Supporting measures are scoped product outcomes, not raw catalog size:
 - crash, OOM, device-loss, recovery, and peak-memory behavior;
 - held-out task-quality retention against the source model;
 - artifact reproducibility and evidence freshness;
-- voluntary repeat network use, including free adoption;
+- voluntary repeat standalone use, including free adoption;
 - regression detection, revocation, and requalification completeness;
 - accepted improvement per measurement budget, with negative learning retained.
 
@@ -417,8 +436,8 @@ safe candidates were attempted.
 
 | Area | Goal |
 | --- | --- |
-| Open ESM-2 execution network, authorized custody, explicit complete-job delegation | Goal 1 |
-| Release CLI, Electron adapter, fleet action | Retained standalone work |
+| Open ESM-2 execution network, authorized custody, explicit complete-job delegation | Optional network experiment |
+| Release CLI, Electron adapter, fleet action | Goal 1; commercial evidence separate |
 | Browser execution, JS orchestration, WGSL kernels, Pack execution | Goals 1 and 2 |
 | RDRR, conversion, manifests, catalog, hosted model IDs | Goal 2 |
 | Runtime profiles, schema defaults, rule maps, kernel refs | Goal 2 |

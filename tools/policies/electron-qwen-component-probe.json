@@ -1,0 +1,31 @@
+{
+  "evidenceClass": "internal-electron-component-baseline",
+  "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+  "sourceCheckpoint": "Qwen/Qwen3-Reranker-0.6B",
+  "electronVersion": "43.4.0",
+  "timeoutMs": 600000,
+  "launchArgs": ["--ozone-platform=x11", "--enable-unsafe-webgpu", "--enable-webgpu-developer-features", "--use-angle=vulkan", "--enable-features=Vulkan", "--disable-vulkan-surface"],
+  "requiredVendor": "amd",
+  "loadMode": "http",
+  "runtimeConfig": {
+    "shared": {"debug": {"logLevel": {"defaultLogLevel": "silent"}, "logOutput": {"stdout": false}, "trace": {"enabled": false}}},
+    "inference": {
+      "batching": {"maxTokens": 1024},
+      "sampling": {"temperature": 0},
+      "kvcache": {"maxSeqLen": 1024, "kvDtype": "f16"},
+      "session": {"kvcache": {"maxSeqLen": 1024, "kvDtype": "f16"}}
+    }
+  },
+  "query": "What API exposes GPU hardware for browser compute workloads?",
+  "documents": [
+    "WebGPU provides low-level access to graphics processors for compute workloads.",
+    "WebSocket provides full-duplex communication over TCP.",
+    "A cafe serves coffee and pastries."
+  ],
+  "relevanceJudgments": [3, 1, 0],
+  "acceptance": {"topDocumentIndex": 0, "requireFiniteScores": true},
+  "warmupRuns": 1,
+  "timedRuns": 5,
+  "incumbent": null,
+  "claimBoundary": "Physical Electron component observation using installed Doppler bytes. Not Pack execution, source parity, an incumbent comparison, application adoption, or fleet qualification. HTTP-local loading is not a cold operating-system cache."
+}

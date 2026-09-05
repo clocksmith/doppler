@@ -338,7 +338,7 @@
           ]
         }
       ],
-      "acceptanceScope": "standalone-commercial"
+      "acceptanceScope": "standalone"
     },
     {
       "id": "model-artifact-runtime-contract",
@@ -1081,12 +1081,12 @@
     },
     {
       "code": "external-executable-model-adoption-missing",
-      "priority": 5,
+      "priority": 1,
       "owner": "doppler-product",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
       "description": "External executable-model adoption and measured lower-effort repeat release remain unproved.",
-      "exitCriteria": "Retain unrelated maintainer acceptance, frozen application-owned outcome improvement with parity-qualified incumbent comparison, customer-operated devices, a rejected candidate and recovery, continued use, and a second model revision with measured lower release effort. Neither payment nor peer delivery satisfies this gate.",
+      "exitCriteria": "Retain unrelated maintainer acceptance, frozen application-owned outcome improvement with parity-qualified incumbent comparison, maintainer-operated devices, a rejected candidate and recovery, continued use, and a second model revision with measured lower release effort. Free adoption qualifies. Payment, Doe, Poolday, and Reploid are not prerequisites, and neither payment nor peer delivery satisfies this gate.",
       "evidencePaths": [
         "docs/goals.md",
         "tools/policies/model-release-platform.json"

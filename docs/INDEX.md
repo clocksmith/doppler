@@ -15,6 +15,9 @@ Primary documentation index.
 - [Architecture](architecture.md) - system model and boundaries.
 - [Model Release Platform](model-release-platform.md) - standalone product,
   Pack-first convergence, qualification offer, explicit gaps, and GTM gate.
+- [Executable-model Adoption Plan](executable-model-adoption-plan.md) -
+  standalone Doppler proof sequence from an external adopter contract through
+  retained application adoption, with no Poolday, Reploid, or Doe dependency.
 - [Archived package changelog through 0.4.15](status/archive/package-changelog-through-0.4.15.md) -
   complete retained release history moved outside the npm runtime-package budget.
 - [Heterogeneous ModelIR v2 and Source-Truth Forge](model-ir-v2-source-truth-forge.md) - provenance, component/block semantics, partial entry-point scope, and promotion contract.

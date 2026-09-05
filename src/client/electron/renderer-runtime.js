@@ -17,6 +17,21 @@ function deviceLossError(cause) {
   return error;
 }
 
+function assertSamePack(actual, expected) {
+  if (actual?.packId !== expected.packId || actual?.semanticRoot !== expected.semanticRoot) {
+    const error = new Error('Electron Pack session does not match the current authorized release.');
+    error.code = 'DOPPLER_ELECTRON_RELEASE_CHANGED';
+    throw error;
+  }
+}
+
+function translateError(error) {
+  if (error?.code === 'GPU_DEVICE_LOST' || error?.name === 'GPUDeviceLostError') {
+    return deviceLossError(error);
+  }
+  return error;
+}
+
 export function createElectronRendererRuntime(options) {
   if (typeof options?.releaseState?.resolveCurrent !== 'function') {
     throw new Error('Electron renderer runtime requires releaseState.resolveCurrent().');
@@ -29,26 +44,48 @@ export function createElectronRendererRuntime(options) {
     assertActive(openOptions.signal);
     const pack = await options.releaseState.resolveCurrent();
     assertActive(openOptions.signal);
-    return options.openPack(pack.path, openOptions);
+    let session;
+    try {
+      session = await options.openPack(pack.path, openOptions);
+      assertSamePack(session, pack);
+      assertActive(openOptions.signal);
+      assertSamePack(await options.releaseState.resolveCurrent(), pack);
+      assertActive(openOptions.signal);
+    } catch (error) {
+      try {
+        await session?.close();
+      } catch {
+        // Preserve the load, authorization, or cancellation failure.
+      }
+      throw translateError(error);
+    }
+    return session;
   }
 
-  async function rerank(query, documents, runOptions = {}) {
-    assertActive(runOptions.signal);
-    const session = await openCurrent(runOptions);
+  async function rerank(request, openOptions = {}) {
+    if (!request || typeof request !== 'object' || Array.isArray(request) || !request.application) {
+      throw new Error('Electron rerank requires a PackRerankRequest with an explicit application binding.');
+    }
+    const session = await openCurrent(openOptions);
+    let failed = false;
     try {
       if (typeof session.rerank !== 'function') {
         throw new Error('Electron current Pack does not expose the qualified reranking workload.');
       }
-      const result = await session.rerank(query, documents, runOptions);
-      assertActive(runOptions.signal);
+      const result = await session.rerank(request);
+      assertActive(openOptions.signal);
+      assertSamePack(await options.releaseState.resolveCurrent(), session);
+      assertActive(openOptions.signal);
       return result;
     } catch (error) {
-      if (error?.code === 'GPU_DEVICE_LOST' || error?.name === 'GPUDeviceLostError') {
-        throw deviceLossError(error);
-      }
-      throw error;
+      failed = true;
+      throw translateError(error);
     } finally {
-      await session.close?.();
+      try {
+        await session.close();
+      } catch (error) {
+        if (!failed) throw translateError(error);
+      }
     }
   }
 

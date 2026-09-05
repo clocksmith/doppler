@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createSignedPackFixture, TEST_PACK_AUTHORITY, TEST_PACK_PUBLIC_KEY } from '../tests/helpers/pack-v2-fixture.js';
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const commandLog = [];
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -15,6 +18,8 @@ function run(command, args, options = {}) {
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
   });
+  commandLog.push({ command, args, cwd: options.cwd ?? ROOT_DIR, status: result.status,
+    signal: result.signal, stdout: result.stdout, stderr: result.stderr, error: result.error?.message ?? null });
   if (result.status !== 0) {
     throw new Error(
       `${command} ${args.join(' ')} failed:\n${result.stderr || result.stdout || `exit code ${result.status ?? 1}`}`
@@ -68,7 +73,23 @@ async function writeTypeSmoke(consumerDir, packageJson) {
   const specifiers = collectExportSpecifiers(packageJson);
   const source = specifiers
     .map((specifier, index) => `type PackageExport${index} = typeof import(${JSON.stringify(specifier)});`)
-    .join('\n') + '\n';
+    .join('\n') + `
+import { createDocumentSearchRenderer } from './renderer.js';
+import { registerDocumentSearchReleaseMain } from './main.js';
+import type { RuntimePorts, PackRerankRequest, DopplerRuntimeSession } from '${packageJson.name}';
+import type { ElectronReleaseStateCoordinator } from '${packageJson.name}/electron';
+declare const ports: RuntimePorts;
+declare const releaseState: ElectronReleaseStateCoordinator;
+declare const request: PackRerankRequest;
+const renderer = createDocumentSearchRenderer(releaseState, ports);
+renderer.rerank(request).then(receipt => receipt.pack.semanticRoot);
+const session: Promise<DopplerRuntimeSession> = renderer.openCurrent();
+// @ts-expect-error Positional reranking cannot omit the application binding.
+renderer.rerank('query', ['document']);
+// @ts-expect-error Host ports must be explicit.
+createDocumentSearchRenderer(releaseState);
+type MainOptions = Parameters<typeof registerDocumentSearchReleaseMain>[0];
+`;
   await fs.writeFile(path.join(consumerDir, 'consumer.ts'), source, 'utf8');
   await fs.writeFile(
     path.join(consumerDir, 'tsconfig.json'),
@@ -89,6 +110,34 @@ async function writeTypeSmoke(consumerDir, packageJson) {
   const tscPath = path.join(ROOT_DIR, 'node_modules/typescript/bin/tsc');
   run(process.execPath, [tscPath, '-p', 'tsconfig.json'], { cwd: consumerDir });
   console.log(`package type smoke passed (${specifiers.length} public export declarations)`);
+}
+
+async function runElectronPackSmoke(consumerDir) {
+  for (const name of ['main', 'preload', 'renderer']) {
+    for (const extension of ['js', 'd.ts']) {
+      const filename = `${name}.${extension}`;
+      await fs.copyFile(
+        path.join(ROOT_DIR, 'examples/electron-document-search', filename),
+        path.join(consumerDir, filename),
+      );
+    }
+  }
+  await fs.copyFile(
+    path.join(ROOT_DIR, 'tests/helpers/electron-pack-contract.js'),
+    path.join(consumerDir, 'electron-pack-contract.js'),
+  );
+  await fs.copyFile(
+    path.join(ROOT_DIR, 'tests/fixtures/packed-electron-consumer.js'),
+    path.join(consumerDir, 'electron-smoke.js'),
+  );
+  const fixture = await createSignedPackFixture();
+  await fs.writeFile(path.join(consumerDir, 'pack-fixture.json'), JSON.stringify({
+    pack: fixture.pack,
+    trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+    artifacts: [...fixture.artifactBytes].map(([id, bytes]) => [id, [...bytes]]),
+  }));
+  const output = run(process.execPath, ['electron-smoke.js'], { cwd: consumerDir });
+  process.stdout.write(output);
 }
 
 async function assertInstalledFiles(consumerDir, packageJson) {
@@ -120,11 +169,38 @@ async function runCliSmokes(consumerDir, packageJson) {
   }
 }
 
+export function parsePackageSmokeArgs(argv) {
+  if (argv.length === 0) return { retain: null };
+  if (argv.length === 2 && argv[0] === '--retain' && argv[1] && !argv[1].startsWith('--')) {
+    return { retain: path.resolve(argv[1]) };
+  }
+  throw new Error('Usage: node tools/check-packed-package.js [--retain <new-bundle-directory>]');
+}
+
 async function main() {
+  const options = parsePackageSmokeArgs(process.argv.slice(2));
   const packageJson = JSON.parse(await fs.readFile(path.join(ROOT_DIR, 'package.json'), 'utf8'));
-  const tempRoot = await fs.mkdtemp(path.join(tmpdir(), 'doppler-package-smoke-'));
+  const tempRoot = options.retain ?? await fs.mkdtemp(path.join(tmpdir(), 'doppler-package-smoke-'));
+  if (options.retain) {
+    await fs.mkdir(path.dirname(tempRoot), { recursive: true });
+    await fs.mkdir(tempRoot); // Never overwrite an earlier evidence bundle.
+  }
   const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const receipt = {
+    evidenceClass: 'installed-package-test', passed: false,
+    physicalExecution: false, externalAdoption: false,
+    nodeVersion: process.version, platform: process.platform, arch: process.arch,
+    startedAtUtc: new Date().toISOString(), package: null, failure: null,
+  };
   try {
+    if (options.retain) {
+      const source = {
+        commit: run('git', ['rev-parse', 'HEAD']).trim(),
+        status: run('git', ['status', '--porcelain=v1']),
+        runnerSha256: createHash('sha256').update(await fs.readFile(fileURLToPath(import.meta.url))).digest('hex'),
+      };
+      await fs.writeFile(path.join(tempRoot, 'source-state.json'), JSON.stringify(source, null, 2));
+    }
     const packOutput = run(
       npmCommand,
       [
@@ -137,8 +213,16 @@ async function main() {
         path.join(tempRoot, 'npm-cache'),
       ]
     );
+    if (!packOutput.trim()) {
+      throw new Error('npm pack returned no JSON package metadata.');
+    }
     const packed = JSON.parse(packOutput)[0];
     const tarballPath = path.join(tempRoot, packed.filename);
+    receipt.package = {
+      filename: packed.filename, integrity: packed.integrity, sizeBytes: packed.size,
+      sha256: createHash('sha256').update(await fs.readFile(tarballPath)).digest('hex'),
+    };
+    if (options.retain) await fs.writeFile(path.join(tempRoot, 'npm-pack.json'), packOutput);
     const consumerDir = path.join(tempRoot, 'consumer');
     await fs.mkdir(consumerDir, { recursive: true });
     await fs.writeFile(
@@ -166,17 +250,31 @@ async function main() {
     await writeImportSmoke(consumerDir, packageJson);
     await runTrainingApiSmoke(consumerDir, packageJson);
     await runCliSmokes(consumerDir, packageJson);
+    await runElectronPackSmoke(consumerDir);
     await writeTypeSmoke(consumerDir, packageJson);
+    receipt.passed = true;
     console.log(
       `packed package smoke passed (${packed.entryCount} files, ${packed.size} bytes packed, `
       + `${packed.unpackedSize} bytes unpacked)`
     );
+  } catch (error) {
+    receipt.failure = { message: error.message, stack: error.stack };
+    throw error;
   } finally {
-    await fs.rm(tempRoot, { recursive: true, force: true });
+    if (options.retain) {
+      receipt.completedAtUtc = new Date().toISOString();
+      await fs.writeFile(path.join(tempRoot, 'commands.json'), JSON.stringify(commandLog, null, 2));
+      await fs.writeFile(path.join(tempRoot, 'receipt.json'), JSON.stringify(receipt, null, 2));
+      console.log(`Package evidence retained: ${tempRoot}`);
+    } else {
+      await fs.rm(tempRoot, { recursive: true, force: true });
+    }
   }
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exitCode = 1;
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.stack : String(error));
+    process.exitCode = 1;
+  });
+}

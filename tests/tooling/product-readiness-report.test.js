@@ -14,7 +14,9 @@ assert.equal(report.readiness.contractValid, true);
 assert.equal(report.readiness.internalMechanicsProven, false);
 assert.equal(report.readiness.productReady, false);
 assert.equal(report.readiness.externalProductionProven, false);
-assert.ok(report.readiness.blockers.includes('esm2-network-pack-execution-missing'));
+assert.ok(report.readiness.blockers.includes('external-executable-model-adoption-missing'));
+assert.equal(report.readiness.technicalAcceptance, 'standalone-executable-model-adoption');
+assert.equal(report.readiness.standaloneProven, false);
 assert.equal(report.readiness.networkProven, false);
 assert.equal(report.readiness.localHardwareProven, false);
 assert.equal(report.readiness.blockers.some((code) => code.includes('paid') || code.includes('customer')), false);
@@ -29,7 +31,7 @@ assert.match(markdown, /^- contract valid: yes$/mu);
 assert.match(markdown, /^- internal mechanics proven: no$/mu);
 assert.match(markdown, /^- external production proven: no$/mu);
 assert.match(markdown, /^- product ready: no$/mu);
-assert.match(markdown, /^  - `esm2-network-pack-execution-missing`$/mu);
+assert.match(markdown, /^  - `external-executable-model-adoption-missing`$/mu);
 assert.doesNotMatch(markdown, /^- status: ok$/mu);
 
 const invalidContractReadiness = buildProductReadinessState({
@@ -52,27 +54,38 @@ const invalidContractReadiness = buildProductReadinessState({
 assert.equal(invalidContractReadiness.externalProductionProven, true);
 assert.equal(invalidContractReadiness.productReady, false);
 assert.equal(invalidContractReadiness.localHardwareProven, false, 'generic claimable rows are not physical GPU evidence');
-// Pure projection fixture, not promoted network evidence. Unpaid standalone gaps
-// cannot block a valid network, and a successful paid release cannot replace it.
+// Pure projection fixtures, not promoted adoption evidence. A network success
+// cannot substitute for adoption, and missing commercial evidence cannot block it.
 const projection = {
   goals: { goals: [
     { id: 'open-execution-network', acceptanceScope: 'technical-network', status: 'complete', claimAllowed: true, blockers: [] },
-    { id: 'local-webgpu-product-surface', claimAllowed: false, blockers: ['paid-doppler-production-release-missing'] },
+    { id: 'local-webgpu-product-surface', acceptanceScope: 'standalone', claimAllowed: false,
+      blockers: ['paid-doppler-production-release-missing'], rowStates: [
+        { id: 'external-executable-model-adoption', status: 'partial', claimAllowed: false,
+          blockers: ['external-executable-model-adoption-missing'] },
+      ] },
   ] },
   productIntegrations: { gateSatisfied: false }, providerConformance: { gateSatisfied: false },
 };
-assert.equal(buildProductReadinessState(projection, true).productReady, true);
+assert.equal(buildProductReadinessState(projection, true).productReady, false);
 assert.equal(buildProductReadinessState(projection, false).productReady, false);
 projection.goals.goals[0].claimAllowed = false;
 projection.goals.goals[0].status = 'partial';
 projection.goals.goals[1].claimAllowed = true;
 assert.equal(buildProductReadinessState(projection, true).productReady, false);
-assert.equal(report.actions.length, 4);
-assert.equal(report.actions[0].code, 'esm2-network-pack-execution-missing');
-assert.equal(report.actions[0].owner, 'doppler-poolday');
-assert.equal(report.actions[0].completionClass, 'hardware');
-assert.equal(report.actions.at(-1).code, 'independent-network-repeat-use-missing');
-assert.equal(report.actions.at(-1).completionClass, 'application');
+projection.goals.goals[1].claimAllowed = false;
+const adoption = projection.goals.goals[1].rowStates[0];
+Object.assign(adoption, { status: 'covered', claimAllowed: true, blockers: [] });
+assert.equal(buildProductReadinessState(projection, true).productReady, true);
+assert.equal(buildProductReadinessState(projection, true).networkProven, false);
+assert.equal(buildProductReadinessState(projection, true).externalProductionProven, false);
+assert.equal(buildProductReadinessState(projection, false).productReady, false);
+adoption.blockers = ['external-executable-model-adoption-missing'];
+assert.equal(buildProductReadinessState(projection, true).productReady, false);
+assert.equal(report.actions.length, 1);
+assert.equal(report.actions[0].code, 'external-executable-model-adoption-missing');
+assert.equal(report.actions[0].owner, 'doppler-product');
+assert.equal(report.actions[0].completionClass, 'application');
 assert.equal(
   report.supportingActions.find((action) => action.code === 'signed-live-revocation-authority-missing')?.completionClass,
   'production-authority'

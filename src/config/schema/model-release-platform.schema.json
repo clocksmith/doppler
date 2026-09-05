@@ -35,7 +35,7 @@
     },
     "schemaVersion": {
       "type": "integer",
-      "const": 5
+      "const": 6
     },
     "contractVersion": {
       "type": "string",
@@ -73,11 +73,11 @@
         },
         "initialIcp": {
           "type": "string",
-          "const": "Independent JavaScript/browser execution-network participants"
+          "const": "Independent JavaScript and Electron application maintainers"
         },
         "northStar": {
           "type": "string",
-          "const": "A reproducible open execution network delivers useful verified results and improves later assignments through admitted evidence; free adoption counts."
+          "const": "Independent applications retain useful executable models and ship subsequent revisions with less effort; free adoption counts."
         },
         "promise": {
           "type": "string",
@@ -466,19 +466,23 @@
         },
         "requiredEvidence": {
           "const": [
-            "voluntary-independent-repeat-use",
-            "useful-oracle-valid-results",
-            "independent-machines-and-operator-provenance"
+            "unrelated-maintainer-acceptance",
+            "application-owned-outcome-improvement",
+            "parity-qualified-incumbent-comparison",
+            "customer-operated-devices",
+            "rejected-candidate-and-recovery",
+            "retained-use",
+            "second-revision-less-release-effort"
           ]
         },
         "p2pRequired": {
-          "const": true
+          "const": false
         },
         "paymentRequired": {
           "const": false
         },
         "goalId": {
-          "const": "open-execution-network"
+          "const": "local-webgpu-product-surface"
         }
       }
     },
@@ -573,7 +577,7 @@
       ],
       "properties": {
         "primary": {
-          "const": false
+          "const": true
         },
         "p2pRequired": {
           "const": false

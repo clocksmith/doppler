@@ -16,8 +16,14 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `createDopplerRuntime`
   - `createFetchPackArtifactStore`
   - `DOPPLER_VERSION`
+  - `DopplerRuntime`
+  - `DopplerRuntimeSession`
   - `openPack`
+  - `PackRerankApplicationBinding`
+  - `PackRerankReceipt`
+  - `PackRerankRequest`
   - `RUNTIME_CORE_VERSION`
+  - `RuntimePorts`
 
 ## `doppler-gpu/runtime`
 
@@ -31,8 +37,14 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `createDopplerRuntime`
   - `createFetchPackArtifactStore`
   - `DOPPLER_VERSION`
+  - `DopplerRuntime`
+  - `DopplerRuntimeSession`
   - `openPack`
+  - `PackRerankApplicationBinding`
+  - `PackRerankReceipt`
+  - `PackRerankRequest`
   - `RUNTIME_CORE_VERSION`
+  - `RuntimePorts`
 
 ## `doppler-gpu/pack`
 
