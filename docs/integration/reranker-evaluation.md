@@ -89,3 +89,29 @@ threshold. A changed candidate needs new qualification.
   performance require their own measurements.
 - Voluntary independent use and retention through another release remain
   external evidence; free use counts fully. None is inferred from these tools.
+
+## Retained engineering checkpoint
+
+The [2026-09-05 evidence index](../../reports/pack-runtime/reranker-electron-20260905.json)
+binds the clean installed package, physical Electron observation, source
+comparison, rejected candidates, fault observations, and local handoff archive
+by byte hashes. It is an immutable experiment snapshot, not the current support
+registry. The archive and raw observations are retained locally; cloning this
+repository does not download them. The index states that availability explicitly.
+
+The passing candidate is F16 with the declared `true_logit` scoring contract.
+The original Q4K comparison remains rejected; its missing immutable source pin
+also prevents attributing the difference solely to quantization. No acceptance
+tolerance was relaxed and no model catalog promotion was performed.
+
+To evaluate the retained archive without rebuilding Doppler, extract it into a
+separate directory, verify its hash and per-file manifest, and install its
+`doppler-gpu-0.5.1.tgz` with npm into the package bundle's `consumer/` directory.
+Retain `receipt.json` and `source-state.json` alongside the tarball. In a new
+Pack qualification config, point `modelDir` at the retained Pack's
+`distribution/artifacts/model/` directory, use the installed package as
+`packageRoot`, and select a new output directory. Review the supplied public
+signer and TargetPlan pins before using them; the archive grants no trust.
+The evaluator still requires the declared Electron/Playwright installation and
+a physical desktop. CPU reference reproduction additionally requires the
+recorded Python, Torch, and Transformers versions.
