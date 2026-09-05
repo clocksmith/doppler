@@ -134,9 +134,16 @@ function validateLifecycle(lifecycle, errors) {
   if (!requireObject(failedUpgrade, 'release.lifecycle.failedUpgrade', errors)) return;
   requireExactKeys(failedUpgrade, new Set(['preservePrevious', 'previousPackId', 'previousSemanticRoot']), 'release.lifecycle.failedUpgrade', errors);
   if (failedUpgrade.preservePrevious !== true) errors.push('release.lifecycle.failedUpgrade.preservePrevious must be true.');
+  if (lifecycle.supersedes === null) {
+    if (lifecycle.migration !== null) errors.push('Initial release.lifecycle.migration must be explicitly null.');
+    if (failedUpgrade.previousPackId !== null || failedUpgrade.previousSemanticRoot !== null) {
+      errors.push('Initial release.lifecycle.failedUpgrade predecessor fields must be explicitly null.');
+    }
+    return;
+  }
   requireString(failedUpgrade.previousPackId, 'release.lifecycle.failedUpgrade.previousPackId', errors);
   requireDigest(failedUpgrade.previousSemanticRoot, 'release.lifecycle.failedUpgrade.previousSemanticRoot', errors);
-  if (lifecycle.supersedes !== null
+  if (isObject(lifecycle.supersedes)
     && (failedUpgrade.previousPackId !== lifecycle.supersedes.packId
       || failedUpgrade.previousSemanticRoot !== lifecycle.supersedes.semanticRoot)) {
     errors.push('release.lifecycle.failedUpgrade must preserve the superseded Pack.');

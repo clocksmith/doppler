@@ -1,0 +1,786 @@
+{
+  "schema": "doppler.sequencePackQualification.v1",
+  "passed": true,
+  "generatedAt": "2026-09-05T13:50:25.864Z",
+  "config": {
+    "packPath": "/tmp/doppler-esm2-network-TmpY2l/pack/pack.json",
+    "referencePath": "tools/data/esm2-t12-35m-ur50d-sequence-reference.json",
+    "referenceDigest": "sha256:dbca1163755bed5e1eb2365d08a3d0f286fa7d5b6d8408281e7ba28f48948221",
+    "outputPath": "reports/sequence-packs/esm2-35m-node-2026-09-05/public-pack-qualification.json",
+    "expectedPack": {
+      "schema": "doppler.pack/v2",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068",
+      "semanticRoot": "sha256:91fa5233752590681d685bfea27cd7948ff78785b17c6b6960af5389fd748fd6",
+      "envelopeDigest": "sha256:a45640494a5598817f19dc63ee7b17d7a3fee3c40a3d49bb613ed343096c005e",
+      "artifactClosureDigest": "sha256:837c7a95351fa12c1c4642fd2f93b2507f14e6ed59723d19a59c7af6447dfd03"
+    },
+    "originPolicy": "disabled",
+    "openOptions": {
+      "trustedSigners": {
+        "doppler-pack-v0-development": {
+          "crv": "Ed25519",
+          "x": "FLU5-eSyW8ORkAf8HupzJn8juiJ2TrGSw2rgMNqGPfc",
+          "kty": "OKP"
+        }
+      },
+      "acceptedTargetPlanDigests": [
+        "sha256:7b94b0886a067b479252d1e7d7191cfa513e45c01b99c394b2c96e8ab676b24b"
+      ]
+    },
+    "sequenceOptions": {
+      "includeTokenEmbeddings": true,
+      "includeLogits": false,
+      "assignment": {
+        "id": "esm2-pack-first-public-execution",
+        "attempt": 1
+      }
+    }
+  },
+  "configDigest": "sha256:809717fdea35cd0774aaa62a148259bcd582e6a7f5440b792622b1d81c032283",
+  "source": {
+    "revision": "00a0db961c6155709f5a1c9f0dd80a8ab63257ce",
+    "dirty": true
+  },
+  "boundary": {
+    "publicAPI": "openPack.encodeSequence",
+    "modelImplementation": "doppler",
+    "originPolicy": "disabled",
+    "independentParticipants": false
+  },
+  "stage": "complete",
+  "observations": [
+    {
+      "type": "pack-validation-started",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068"
+    },
+    {
+      "type": "pack-validation-complete",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068",
+      "semanticRoot": "sha256:91fa5233752590681d685bfea27cd7948ff78785b17c6b6960af5389fd748fd6"
+    },
+    {
+      "type": "target-selected",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068",
+      "targetId": "webgpu-f32-f32-portable",
+      "targetPlanDigest": "sha256:7b94b0886a067b479252d1e7d7191cfa513e45c01b99c394b2c96e8ab676b24b"
+    },
+    {
+      "type": "initial-execution-identity-bound",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068",
+      "targetId": "webgpu-f32-f32-portable",
+      "identityDigest": "sha256:e131fb854779f4af4161018b25b766ee0fce4bd8d682a5050acac9cb5bad5a97"
+    },
+    {
+      "type": "pack-session-closed",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068",
+      "targetPlanDigest": "sha256:7b94b0886a067b479252d1e7d7191cfa513e45c01b99c394b2c96e8ab676b24b"
+    }
+  ],
+  "fetchAttempts": [],
+  "runtime": {
+    "device": {
+      "surface": "node-webgpu",
+      "hasF16": true,
+      "hasSubgroups": true,
+      "maxBufferSize": 4294967295,
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "intel-r-uhd-graphics-tgl-gt2-",
+        "description": "Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"
+      }
+    },
+    "initialExecutionIdentity": {
+      "schema": "doppler.initial-execution-identity/v2",
+      "executionGraphHash": "sha256:df20de85e469b93b6d42ee9e585bb505c91e0bc788be03386cd30eb986317a57",
+      "resolvedGraphHash": "sha256:a61e4876de694da32cbda4fadeab06b1ff6753454af1443a5e642281d6530f6a",
+      "kernelClosure": [
+        {
+          "moduleId": "attn_small",
+          "file": "attention_small.wgsl",
+          "entry": "main",
+          "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4"
+        },
+        {
+          "moduleId": "embed",
+          "file": "gather.wgsl",
+          "entry": "main",
+          "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+        },
+        {
+          "moduleId": "gelu",
+          "file": "gelu.wgsl",
+          "entry": "main",
+          "digest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34"
+        },
+        {
+          "moduleId": "layernorm",
+          "file": "layernorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c"
+        },
+        {
+          "moduleId": "residual",
+          "file": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        {
+          "moduleId": "rope",
+          "file": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+        },
+        {
+          "moduleId": "tiled",
+          "file": "matmul_f32.wgsl",
+          "entry": "main",
+          "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
+        }
+      ],
+      "kernelClosureHash": "sha256:70348b569eae4451be2c0d432d9aed21dda2637b3675f9032e12233d4dfca1c9",
+      "dtypeLane": {
+        "activation": "f32",
+        "output": "f32",
+        "kv": "f32",
+        "math": "f32",
+        "accumulation": "f32"
+      },
+      "fusionSet": [],
+      "fusionSetHash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "kvLayout": {
+        "kvDtype": "f32",
+        "layout": "contiguous",
+        "maxSeqLen": 1026,
+        "pageSize": 256,
+        "quantization": {
+          "bitWidth": 4,
+          "mode": "none",
+          "prodMode": false
+        },
+        "tiering": {
+          "coldDtype": "f16",
+          "coldPageSize": 256,
+          "compression": {
+            "bitWidth": 4,
+            "blockSize": 1,
+            "mode": "none",
+            "prodMode": false
+          },
+          "gating": {
+            "minAluBwRatio": 0,
+            "mode": "auto"
+          },
+          "hotWindow": 1024,
+          "mode": "off"
+        }
+      },
+      "kvLayoutHash": "sha256:16dc3788d4a6cb6e09f1e03c5f9a8f4184718eacf27d5a541fd8ae3a5b19aa10",
+      "memoryPolicy": {
+        "kvcache": {
+          "kvDtype": "f32",
+          "layout": "contiguous",
+          "maxSeqLen": 1026,
+          "pageSize": 256,
+          "quantization": {
+            "bitWidth": 4,
+            "mode": "none",
+            "prodMode": false
+          },
+          "tiering": {
+            "coldDtype": "f16",
+            "coldPageSize": 256,
+            "compression": {
+              "bitWidth": 4,
+              "blockSize": 1,
+              "mode": "none",
+              "prodMode": false
+            },
+            "gating": {
+              "minAluBwRatio": 0,
+              "mode": "auto"
+            },
+            "hotWindow": 1024,
+            "mode": "off"
+          }
+        },
+        "perLayerInputs": {
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "maxBytes": 134217728,
+            "maxTokens": 1024,
+            "mode": "prepared_tokens",
+            "outputDtype": "f32"
+          },
+          "materialization": "auto",
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "rowCache": {
+            "decodedDtype": "f32",
+            "maxBytes": 134217728,
+            "maxRows": 256,
+            "mode": "lru"
+          }
+        },
+        "largeWeights": null
+      },
+      "memoryPolicyHash": "sha256:d80a12e9bd91cf94a695c33b81cfca313945ceb4e10d0057e4761a32e2aff2f7",
+      "executionPlanDigest": "sha256:42741b3d5e65506d6cfe527f17f91cc45fc244978356dca14c57269c2fcb472f",
+      "runtimeEngine": {
+        "resolvedRuntimeSessionId": "sha256:a39f1a209a0e50673cd1e6433738e9f3fd38ce77c2436787b7023d2874ff5413",
+        "resolvedRuntimeSchema": "doppler.resolved-runtime-session/v1",
+        "kernelPath": {
+          "id": "esm2-t12-35m-ur50d-f32-af32-execution-inline",
+          "source": "execution-v1",
+          "hash": "sha256:3b79f985077d988875dfd0c6b02bcb250f98ee5a97e0c1cfdc67f3336bd69380",
+          "definition": {
+            "id": "esm2-t12-35m-ur50d-f32-af32-execution-inline",
+            "name": "Execution inline kernel path",
+            "description": "Generated from manifest.inference.execution",
+            "activationDtype": "f32",
+            "kvDtype": "f32",
+            "decode": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "layernorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.q_proj"
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.k_proj"
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.v_proj"
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_small.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f32"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.o_proj"
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "layernorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "up_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.up_proj"
+                },
+                {
+                  "op": "activation",
+                  "kernel": "gelu.wgsl",
+                  "entry": "main",
+                  "constants": {
+                    "HAS_GATE": false
+                  }
+                },
+                {
+                  "op": "down_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.down_proj"
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "prefill": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "layernorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.q_proj"
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.k_proj"
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.v_proj"
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_small.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f32"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.o_proj"
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "layernorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "up_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.up_proj"
+                },
+                {
+                  "op": "activation",
+                  "kernel": "gelu.wgsl",
+                  "entry": "main",
+                  "constants": {
+                    "HAS_GATE": false
+                  }
+                },
+                {
+                  "op": "down_proj",
+                  "kernel": "matmul_f32.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.down_proj"
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "preLayer": [
+              {
+                "op": "embed",
+                "kernel": "gather.wgsl",
+                "entry": "main",
+                "weights": "embed_tokens"
+              }
+            ],
+            "postLayer": [
+              {
+                "op": "final_norm",
+                "kernel": "layernorm.wgsl",
+                "entry": "main"
+              }
+            ]
+          }
+        },
+        "capabilityPolicy": {
+          "kind": "runtime-session-compatibility",
+          "dtypeEffect": "full-f32",
+          "reason": "Runtime KV cache resolved f32.",
+          "evidence": [
+            "tests/integration/execution-v1-capability-policy.test.js"
+          ]
+        },
+        "laneIntegrity": {
+          "declared": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "kvDtype": "f32"
+          },
+          "executed": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "kvDtype": "f32"
+          },
+          "status": "matches",
+          "transforms": [],
+          "policy": {
+            "kind": "runtime-session-compatibility",
+            "dtypeEffect": "full-f32",
+            "reason": "Runtime KV cache resolved f32.",
+            "evidence": [
+              "tests/integration/execution-v1-capability-policy.test.js"
+            ]
+          }
+        }
+      },
+      "runtimeEngineDigest": "sha256:a301b3c9e3422c78eee5c766041c7bb6534e1342fede743f71be15e86b73456c",
+      "programLoadPolicy": {
+        "schema": "doppler.pack-program-load-policy/v2",
+        "runtimeConfig": {
+          "inference": {
+            "session": {
+              "kvcache": {
+                "kvDtype": "f32",
+                "layout": "contiguous",
+                "maxSeqLen": 1026,
+                "pageSize": 256,
+                "quantization": {
+                  "bitWidth": 4,
+                  "mode": "none",
+                  "prodMode": false
+                },
+                "tiering": {
+                  "coldDtype": "f16",
+                  "coldPageSize": 256,
+                  "compression": {
+                    "bitWidth": 4,
+                    "blockSize": 1,
+                    "mode": "none",
+                    "prodMode": false
+                  },
+                  "gating": {
+                    "minAluBwRatio": 0,
+                    "mode": "auto"
+                  },
+                  "hotWindow": 1024,
+                  "mode": "off"
+                }
+              },
+              "speculation": {
+                "mode": "none",
+                "rollbackOnReject": true,
+                "threshold": null,
+                "tokens": 1,
+                "verify": "greedy"
+              },
+              "prefillChunkSubmitMode": "sync",
+              "prefillChunkLayers": 4,
+              "prefillTokenChunkSize": null,
+              "skipEmbeddingKVCacheWrites": true,
+              "useFlashPrefillAttention": false,
+              "useFusedGateUpGelu": false,
+              "useLargeBatchF16F32FusedGateUp": false,
+              "useTiledQ4KPrefill": false,
+              "retainQ4KMaterialization": false,
+              "useWideTileQ4KPrefill": false,
+              "useWideTileQ4KDecode": false,
+              "useSandwichRMSNormPairFusion": false,
+              "usePostFfnNextInputRMSNormPairFusion": false,
+              "usePostAttnNormFusedGateUp": false,
+              "fusedFfnQ4K": null,
+              "lmHeadArgmaxQ4K": null,
+              "attentionDecodeOnline": null,
+              "useLinearAttentionABProjectionFusion": false,
+              "useLinearAttentionQKVZProjectionFusion": false,
+              "useLinearAttentionFusedDecodeCore": false,
+              "useOrtFlashPrefillAttention": false,
+              "useWideTileResidualFusion": false,
+              "useFusedRmsnormWideTile": false,
+              "useFusedQKVSplitQKNorm": false,
+              "useFusedQKVSplitQKNormRoPE": false,
+              "useGreedyLmHeadArgmaxFusion": false,
+              "compute": {
+                "defaults": {
+                  "accumDtype": "f32",
+                  "activationDtype": "f32",
+                  "mathDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              "decodeLoop": {
+                "batchSize": 1,
+                "disableCommandBatching": false,
+                "readbackInterval": 1,
+                "readbackMode": "sequential",
+                "ringStaging": 1,
+                "ringStop": 1,
+                "ringTokens": 1,
+                "stopCheckMode": "per-token",
+                "submitLatencyThresholdMs": null
+              },
+              "perLayerInputs": {
+                "gpuUpload": {
+                  "mode": "per_step_slices",
+                  "stagingRows": 2
+                },
+                "hotCache": {
+                  "maxBytes": 134217728,
+                  "maxTokens": 1024,
+                  "mode": "prepared_tokens",
+                  "outputDtype": "f32"
+                },
+                "materialization": "auto",
+                "prefetch": {
+                  "mode": "next_token",
+                  "rowsAhead": 1
+                },
+                "rowCache": {
+                  "decodedDtype": "f32",
+                  "maxBytes": 134217728,
+                  "maxRows": 256,
+                  "mode": "lru"
+                }
+              }
+            },
+            "compute": {
+              "activationDtype": "f32"
+            },
+            "generation": {
+              "disableMultiTokenDecode": false
+            }
+          }
+        }
+      },
+      "programLoadPolicyHash": "sha256:039c7bf97dd7ca99879471a949388f18e42eef3e1f397cf65938373f9a8d83b6",
+      "digest": "sha256:e131fb854779f4af4161018b25b766ee0fce4bd8d682a5050acac9cb5bad5a97"
+    }
+  },
+  "result": {
+    "passed": true,
+    "checks": [
+      {
+        "id": "model.identity",
+        "passed": true,
+        "expectedModelId": "esm2-t12-35m-ur50d-f32-af32",
+        "actualModelId": "esm2-t12-35m-ur50d-f32-af32",
+        "expectedCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+        "actualCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8"
+      },
+      {
+        "id": "sequence.contract",
+        "passed": true,
+        "expectedAlphabet": "amino_acid",
+        "actualAlphabet": "amino_acid"
+      },
+      {
+        "id": "tokenizer.ids",
+        "passed": true,
+        "expectedCount": 26,
+        "actualCount": 26,
+        "mismatchCount": 0,
+        "mismatches": []
+      },
+      {
+        "id": "pooledEmbedding.finite",
+        "passed": true,
+        "valueCount": 480,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "tokenEmbeddings.finite",
+        "passed": true,
+        "valueCount": 12480,
+        "nonFiniteCount": 0
+      },
+      {
+        "id": "logits.not-requested",
+        "passed": true,
+        "actual": null
+      },
+      {
+        "id": "pooledEmbedding.parity",
+        "passed": true,
+        "sampleCount": 16,
+        "tolerance": 0.001,
+        "maxAbsoluteError": 0.000512970571081163,
+        "meanAbsoluteError": 0.00018339532278973249,
+        "failures": []
+      },
+      {
+        "id": "tokenEmbeddings.parity",
+        "passed": true,
+        "sampleCount": 40,
+        "tolerance": 0.001,
+        "maxAbsoluteError": 0.0008977349577942162,
+        "meanAbsoluteError": 0.00029206163859269086,
+        "failures": []
+      }
+    ],
+    "outputDigests": {
+      "pooledEmbedding": "sha256:9cbbde06771379ddf9bd6770ec7283938b547c174abde9266a5161bc82889c61",
+      "tokenEmbeddings": "sha256:fbe3e50222840ce8ac64496f3cffafc9307acabee7b3e94a82e64203c87829d4",
+      "logits": null
+    }
+  },
+  "executionReceipt": {
+    "schema": "doppler.pack-execution-receipt/v1",
+    "operation": "encodeSequence",
+    "pack": {
+      "schema": "doppler.pack/v2",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068",
+      "semanticRoot": "sha256:91fa5233752590681d685bfea27cd7948ff78785b17c6b6960af5389fd748fd6",
+      "envelopeDigest": "sha256:a45640494a5598817f19dc63ee7b17d7a3fee3c40a3d49bb613ed343096c005e",
+      "artifactClosureDigest": "sha256:837c7a95351fa12c1c4642fd2f93b2507f14e6ed59723d19a59c7af6447dfd03"
+    },
+    "targetId": "webgpu-f32-f32-portable",
+    "targetPlanDigest": "sha256:7b94b0886a067b479252d1e7d7191cfa513e45c01b99c394b2c96e8ab676b24b",
+    "artifactReceipts": [
+      {
+        "artifactId": "host-source:sequence-encoding-1ba4eabcb4016243.js:1ba4eabcb401",
+        "hash": "sha256:1ba4eabcb4016243d7a449197ab9870c282d3503490afb29055b87468839b17f",
+        "sizeBytes": 776
+      },
+      {
+        "artifactId": "manifest:manifest.json:5612aa20ee2d",
+        "hash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+        "sizeBytes": 81292
+      },
+      {
+        "artifactId": "reference-report:direct-qualification.json:17cc0e470cce",
+        "hash": "sha256:17cc0e470cce16706f3f1c96d9b0862c1d5a88ee3ebdebb6ad557a1c86b85cd3",
+        "sizeBytes": 27437
+      },
+      {
+        "artifactId": "tokenizer:tokenizer.json:f874eed68372",
+        "hash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
+        "sizeBytes": 1395
+      },
+      {
+        "artifactId": "weight-shard:shard_00000.bin:7d0c833bb71b",
+        "hash": "sha256:7d0c833bb71bc72c43e52dfecaf48e788f399b5460b33a67d1f0ab403ac64f12",
+        "sizeBytes": 67108864
+      },
+      {
+        "artifactId": "weight-shard:shard_00001.bin:42cfb7b67978",
+        "hash": "sha256:42cfb7b67978da82d478c4b351a69d863ae53e6f0f39cc5afa147e9a98470645",
+        "sizeBytes": 65968256
+      },
+      {
+        "artifactId": "wgsl-source:attn_small-fb03c1f9adfb7d11.wgsl:fb03c1f9adfb",
+        "hash": "sha256:fb03c1f9adfb7d118e87620814f2e5f75d53b65bd2856df91ef4e444f906ef3c",
+        "sizeBytes": 9651
+      },
+      {
+        "artifactId": "wgsl-source:embed-85b2d7fff9358bf4.wgsl:85b2d7fff935",
+        "hash": "sha256:85b2d7fff9358bf4087d9b3f0804803ba798111a3d728db9561b53789280032c",
+        "sizeBytes": 2289
+      },
+      {
+        "artifactId": "wgsl-source:gelu-e6fb22edd25c1e21.wgsl:e6fb22edd25c",
+        "hash": "sha256:e6fb22edd25c1e210e7dfc61e0b67d31832c1d9d3caf985e4c56f61dd7b57ac6",
+        "sizeBytes": 1885
+      },
+      {
+        "artifactId": "wgsl-source:layernorm-a0a78590a442e26c.wgsl:a0a78590a442",
+        "hash": "sha256:a0a78590a442e26ccec467d48609863c538a18506aaafd29a336f1f7216f6927",
+        "sizeBytes": 4022
+      },
+      {
+        "artifactId": "wgsl-source:residual-e5d606c42ae57cb7.wgsl:e5d606c42ae5",
+        "hash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+        "sizeBytes": 1712
+      },
+      {
+        "artifactId": "wgsl-source:rope-a4472c7134a08c77.wgsl:a4472c7134a0",
+        "hash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+        "sizeBytes": 12251
+      },
+      {
+        "artifactId": "wgsl-source:tiled-035020f650612fd6.wgsl:035020f65061",
+        "hash": "sha256:035020f650612fd6f8ac8322b86ec921c64a85ac802b7f4c0fd2dfd3a4c8a1f2",
+        "sizeBytes": 3395
+      },
+      {
+        "artifactId": "program-bundle:program-bundle.json:17846a65235b",
+        "hash": "sha256:17846a65235b986c4572c774993698d8505090297e53cab8947e7aa4d386150b",
+        "sizeBytes": 69335
+      }
+    ],
+    "releaseEventDigest": null,
+    "assignmentHash": "sha256:49bedc3054f2bea964030078d61c368e73a5bdf265bcf54304adc32f35d8d9f1",
+    "inputHash": "sha256:a448ab5be7aec2c8ae73ea026add5f1b323167813df675a6f85330536edc3263",
+    "outputHash": "sha256:a7fde6c19883c4ac887e4eed7b4540be07edc8f4020237da8c664975616f3b98",
+    "receiptDigest": "sha256:8d5e437d604e4d7cd8465f74ee06b3e642740301b36be557253d5b423f5cbd78"
+  },
+  "bindingChecks": [
+    {
+      "id": "pack.identity",
+      "passed": true
+    },
+    {
+      "id": "plan.accepted",
+      "passed": true
+    },
+    {
+      "id": "operation",
+      "passed": true
+    },
+    {
+      "id": "assignment",
+      "passed": true
+    },
+    {
+      "id": "input",
+      "passed": true
+    },
+    {
+      "id": "output",
+      "passed": true
+    },
+    {
+      "id": "receipt.integrity",
+      "passed": true
+    },
+    {
+      "id": "artifacts.complete",
+      "passed": true
+    },
+    {
+      "id": "origin.unused",
+      "passed": true
+    }
+  ]
+}

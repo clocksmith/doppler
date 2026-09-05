@@ -118,6 +118,9 @@ reports/**
 !reports/pack-runtime/
 !reports/pack-runtime/**/
 !reports/pack-runtime/**/*.json
+!reports/sequence-packs/
+!reports/sequence-packs/**/
+!reports/sequence-packs/**/*.json
 !reports/program-bundles/
 !reports/program-bundles/**/
 !reports/program-bundles/**/*.reference.json

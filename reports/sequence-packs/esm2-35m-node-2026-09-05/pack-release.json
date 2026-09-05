@@ -1,0 +1,49 @@
+{
+  "schema": "doppler.pack-release/v1",
+  "source": {
+    "repository": "https://huggingface.co/facebook/esm2_t12_35M_UR50D",
+    "revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+    "revisionDigest": "sha256:fc7a336d430a42f96baaf004e79ef13bde0898b3848d30e8fa862f5131492b20",
+    "provenanceDigest": "sha256:4e5a4edc3010bbcd7f5abd338be2f911a30c4cd3983415863133049eec161831",
+    "license": {
+      "spdxId": "MIT",
+      "name": "MIT License",
+      "sourceUrl": "https://raw.githubusercontent.com/facebookresearch/esm/2b369911bb5b4b0dda914521b9475cad1656b2ac/LICENSE",
+      "textDigest": "sha256:da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+    }
+  },
+  "application": {
+    "applicationId": "doppler-sequence-pack-qualification",
+    "applicationRevision": "00a0db961c6155709f5a1c9f0dd80a8ab63257ce-dirty",
+    "applicationRevisionDigest": "sha256:871d8c2bced0f5742cd35af8047e9c0eccf001b8fa4855e391b6f9ead549bab7",
+    "workload": { "id": "esm2-embedding-reference", "digest": "sha256:9d43e1ee8a9e585c88046a484ca0224474bd9d3364d285d922e15e4e13809479" },
+    "oracle": { "id": "esm2-sampled-embedding-parity", "digest": "sha256:dbca1163755bed5e1eb2365d08a3d0f286fa7d5b6d8408281e7ba28f48948221" }
+  },
+  "exclusions": {
+    "rejectionTypes": ["acceptance-failed", "application-gate-failed", "artifact-invalid", "evidence-expired", "migration-required", "revoked", "unsupported-device"],
+    "known": [{
+      "code": "unsupported-device",
+      "scope": "outside-the-observed-node-webgpu-configuration",
+      "reason": "Local qualification only. Browser, peer reconstruction, independent operation, full numerical equivalence, and biological correctness are not established.",
+      "evidenceDigest": "sha256:17cc0e470cce16706f3f1c96d9b0862c1d5a88ee3ebdebb6ad557a1c86b85cd3"
+    }]
+  },
+  "lifecycle": {
+    "releaseVersion": "0.1.0",
+    "supersedes": null,
+    "migration": null,
+    "failedUpgrade": { "preservePrevious": true, "previousPackId": null, "previousSemanticRoot": null }
+  },
+  "revocation": {
+    "authorityId": "doppler-pack-v0-development",
+    "policyDigest": "sha256:fa4c97df6df478f314a55d7a7d125c063760f3902e53632cf354aa25126137bc",
+    "offlineExpirySeconds": 86400,
+    "failClosedAfterExpiry": true
+  },
+  "stateSnapshot": {
+    "schema": "doppler.pack-state-snapshot/v1",
+    "format": "canonical-json",
+    "identityDigest": "sha256:41d4c4658f3818204f7d0e9db3c49d0cf89f48186745ac8ab3a2346dc25ee74e",
+    "portableAcrossTargetIds": ["webgpu-f32-f32-portable"]
+  }
+}

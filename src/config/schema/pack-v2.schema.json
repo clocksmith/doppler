@@ -221,11 +221,24 @@
               "required": ["preservePrevious", "previousPackId", "previousSemanticRoot"],
               "properties": {
                 "preservePrevious": { "const": true },
-                "previousPackId": { "type": "string", "minLength": 1 },
-                "previousSemanticRoot": { "$ref": "#/$defs/digest" }
+                "previousPackId": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }] },
+                "previousSemanticRoot": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/digest" }] }
               }
             }
-          }
+          },
+          "allOf": [{
+            "if": { "properties": { "supersedes": { "type": "null" } }, "required": ["supersedes"] },
+            "then": { "properties": {
+              "migration": { "type": "null" },
+              "failedUpgrade": { "properties": {
+                "previousPackId": { "type": "null" }, "previousSemanticRoot": { "type": "null" }
+              } }
+            } },
+            "else": { "properties": { "failedUpgrade": { "properties": {
+              "previousPackId": { "type": "string", "minLength": 1 },
+              "previousSemanticRoot": { "$ref": "#/$defs/digest" }
+            } } } }
+          }]
         },
         "revocation": {
           "type": "object",

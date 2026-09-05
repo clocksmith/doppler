@@ -162,6 +162,7 @@ converter/artifact-identity.d.ts
 converter/conversion-plan.d.ts
 converter/execution-candidate-forge.d.ts
 converter/execution-candidate-forge.js
+converter/forge-qualification.d.ts
 converter/forge-stages.d.ts
 converter/index.d.ts
 converter/index.js
@@ -776,6 +777,7 @@ tooling/pack.d.ts
 tooling/program-bundle-host.d.ts
 tooling/program-bundle-host.js
 tooling/program-bundle/materialize.d.ts
+tooling/program-bundle/sequence-reference.d.ts
 tooling/program-bundle/validation.d.ts
 tooling/program-bundle/wgsl-closure.d.ts
 tooling/reference-verify.d.ts
