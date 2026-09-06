@@ -24,6 +24,7 @@ An RDRR-LoRA adapter is a JSON manifest with optional inline tensors.
 - `version`, `description`
 - `checksum`, `checksumAlgorithm`
 - `weightsFormat`, `weightsPath`, `weightsSize`
+- `weightsLayout`
 - `tensors`
 - `metadata`
 
@@ -57,6 +58,17 @@ Module alias mapping:
 ```
 
 Doppler currently loads LoRA tensors as `f32`.
+
+Matrix layout is explicit in [layout policy](../src/config/lora-layouts.json).
+Native `input-major` exports store A as `[input, rank]` and B as
+`[rank, output]`. Standard PEFT stores A as `[rank, input]` and B as
+`[output, rank]`; raw imports must declare `weightsLayout: "peft"` in the
+manifest or load options. Signed `peft_safetensors` requests select that layout
+from their format and reject a conflicting manifest. WGSL reads the original
+matrix orientation; JavaScript does not transpose tensor data during inference.
+The loader retains the declared shapes, validates the rank axes, and binds
+PEFT layout into execution identity. Existing raw manifests without a layout
+retain the configured native layout and their prior execution identity.
 
 ## Export path
 

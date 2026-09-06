@@ -5,6 +5,7 @@ import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.
 import { runMatmul, recordMatmul } from '../../../gpu/kernel-selector.js';
 import { runResidualAdd, recordResidualAdd } from '../../../gpu/kernels/residual.js';
 import { runScale, recordScale } from '../../../gpu/kernels/scale.js';
+import { resolveLoRAWeightLayout } from '../../../config/lora-layouts.js';
 
 function getKnownElementCount(weight) {
   if (weight instanceof Float32Array || weight instanceof Uint16Array) {
@@ -31,6 +32,13 @@ export async function applyLoRA(input, baseOutput, lora, dims, getWeightBuffer, 
   }
   assertLoRAWeightElementCount('A', lora.a, rank * K);
   assertLoRAWeightElementCount('B', lora.b, N * rank);
+  const layout = resolveLoRAWeightLayout(lora.weightsLayout);
+  for (const [kind, projection, axis] of [['a', K, layout.aRankAxis], ['b', N, layout.bRankAxis]]) {
+    const shape = lora[`${kind}Shape`];
+    if (shape !== undefined && (shape[axis] !== rank || shape[1 - axis] !== projection)) {
+      throw new Error(`LoRA ${kind.toUpperCase()} declared shape conflicts with projection geometry.`);
+    }
+  }
 
   const aBuf = getWeightBuffer(lora.a, 'lora_a');
   const bBuf = getWeightBuffer(lora.b, 'lora_b');
@@ -46,12 +54,12 @@ export async function applyLoRA(input, baseOutput, lora, dims, getWeightBuffer, 
   let scaled = null;
   try {
     loraIntermediate = recorder
-      ? await recordMatmul(recorder, input, aBuf, M, rank, K, { transposeB: false, role: 'lora_a', kernelPath, outputDtype: intermediateDtype })
-      : await runMatmul(input, aBuf, M, rank, K, { transposeB: false, role: 'lora_a', kernelPath, outputDtype: intermediateDtype });
+      ? await recordMatmul(recorder, input, aBuf, M, rank, K, { transposeB: layout.transposeB, role: 'lora_a', kernelPath, outputDtype: intermediateDtype })
+      : await runMatmul(input, aBuf, M, rank, K, { transposeB: layout.transposeB, role: 'lora_a', kernelPath, outputDtype: intermediateDtype });
 
     loraOutput = recorder
-      ? await recordMatmul(recorder, loraIntermediate, bBuf, M, N, rank, { transposeB: false, role: 'lora_b', kernelPath, outputDtype })
-      : await runMatmul(loraIntermediate, bBuf, M, N, rank, { transposeB: false, role: 'lora_b', kernelPath, outputDtype });
+      ? await recordMatmul(recorder, loraIntermediate, bBuf, M, N, rank, { transposeB: layout.transposeB, role: 'lora_b', kernelPath, outputDtype })
+      : await runMatmul(loraIntermediate, bBuf, M, N, rank, { transposeB: layout.transposeB, role: 'lora_b', kernelPath, outputDtype });
 
     scaled = recorder
       ? await recordScale(recorder, loraOutput, lora.scale, { outputBuffer: null })

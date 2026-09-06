@@ -1,8 +1,9 @@
 import { CAPSULE_ADAPTER_POLICY, resolveCapsuleAdapterSet } from '../../config/capsule-adapters.js';
 import { hashCapsuleObservation, normalizeCapsuleObservation } from '../../config/capsule-operation.js';
 import { freezeCapsuleV2 } from '../../config/capsule-v2.js';
-import { sha256Hex } from '../../formats/sha256.js';
+import { sha256BytesHex } from '../../formats/sha256.js';
 import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
+import { resolveLoRAFormatLayout } from '../../config/lora-layouts.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(`Capsule adapter: ${message}`); };
 
@@ -41,10 +42,10 @@ export function createCapsuleAdapterExecution({ program, capsule, targetPlan }) 
         signal.throwIfAborted();
         assert(received instanceof Uint8Array && received.byteLength === entry.artifact.sizeBytes, 'adapter size mismatch');
         const bytes = Uint8Array.from(received);
-        assert(`sha256:${sha256Hex(bytes)}` === entry.artifact.hash, 'adapter artifact corruption');
+        assert(`sha256:${sha256BytesHex(bytes)}` === entry.artifact.hash, 'adapter artifact corruption');
         await program.reset?.();
         active = true; // A partially failed loader must also unload.
-        await program.loadAdapter(entry.manifest, { bytes, signal });
+        await program.loadAdapter(entry.manifest, { bytes, signal, weightsLayout: resolveLoRAFormatLayout(entry.format).name });
         signal.throwIfAborted();
         const runtimeIdentity = freezeCapsuleV2(normalizeCapsuleObservation(program.getActiveAdapterIdentity()));
         assert(runtimeIdentity?.schema === 'doppler.lora-execution-identity/v1'

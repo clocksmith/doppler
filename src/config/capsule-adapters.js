@@ -3,6 +3,7 @@ import { validateCapsuleAdapterExecution } from './capsule-adapter-policy.js';
 export { validateCapsuleAdapterExecution } from './capsule-adapter-policy.js';
 import { freezeCapsuleV2 } from './capsule-v2.js';
 import { normalizeCapsuleObservation } from './capsule-operation.js';
+import { resolveLoRAFormatLayout } from './lora-layouts.js';
 
 export const CAPSULE_ADAPTER_POLICY = freezeCapsuleV2(policy);
 const assert = (ok, message) => { if (!ok) throw new Error(`Capsule adapter: ${message}`); };
@@ -18,10 +19,12 @@ export function resolveCapsuleAdapterSet(input, { capsule, targetPlan, operation
   for (const entry of entries) {
     assert(entry.schema === 'doppler.capsule-adapter/v1' && hash(entry.identity), 'exact adapter identity required');
     assert(declared.formats.includes(entry.format), 'format outside declared execution policy');
+    const layout = resolveLoRAFormatLayout(entry.format);
     assert(entry.baseModel?.modelId === capsule.modelId && entry.baseModel.semanticRoot === capsule.semanticRoot
       && entry.baseModel.envelopeDigest === capsule.envelopeDigest && entry.baseModel.artifactClosureDigest === capsule.artifactClosureDigest,
     'exact base model mismatch');
     const manifest = entry.manifest, artifact = entry.artifact;
+    assert(manifest?.weightsLayout === undefined || manifest.weightsLayout === layout.name, 'manifest weight layout conflicts with adapter format');
     assert(manifest?.baseModel === capsule.modelId && manifest.id === artifact?.artifactId, 'manifest model or adapter mismatch');
     assert(artifact.role === 'lora-weights' && hash(artifact.hash) && Number.isSafeInteger(artifact.sizeBytes) && artifact.sizeBytes > 0,
       'exact adapter artifact required');

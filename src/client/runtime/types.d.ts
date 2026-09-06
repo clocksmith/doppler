@@ -16,6 +16,7 @@ export interface LoRAManifest {
   alpha?: number;
   targetModules?: string[];
   weightsFormat?: string;
+  weightsLayout?: import('../../config/lora-layouts.js').LoRAWeightLayoutName;
   weightsPath?: string;
   checksum?: string;
   checksumAlgorithm?: string;

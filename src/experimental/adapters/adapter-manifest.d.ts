@@ -94,6 +94,11 @@ export declare const ADAPTER_MANIFEST_SCHEMA: {
       readonly enum: readonly ['safetensors', 'npz', 'json', 'binary'];
       readonly default: 'safetensors';
     };
+    readonly weightsLayout: {
+      readonly type: 'string';
+      readonly description: 'Declared low-rank matrix storage orientation';
+      readonly enum: readonly string[];
+    };
     readonly weightsPath: {
       readonly type: 'string';
       readonly description: 'Path or URL to the weights file (relative to manifest)';
@@ -225,6 +230,7 @@ export interface AdapterManifest {
   checksumAlgorithm?: 'sha256' | 'blake3';
   /** Format of weight tensors */
   weightsFormat?: 'safetensors' | 'npz' | 'json' | 'binary';
+  weightsLayout?: import('../../config/lora-layouts.js').LoRAWeightLayoutName;
   /** Path or URL to weights file */
   weightsPath?: string;
   /** Size of weights file in bytes */
