@@ -28,6 +28,9 @@ Give browser, Node, and CLI adapters one normalized command contract and one evi
 - Request intent is the sole active command authority.
 - Browser and Node preserve shared semantics; unsupported capabilities fail closed.
 - Evidence capture stays distinct from numerical runtime policy.
+- Node provider selection and reversible global installation are owned here;
+  standard WebGPU execution must not require Doe's package or contract loader.
+  Explicit external provider contracts remain optional interoperability.
 
 ## Acceptance
 
