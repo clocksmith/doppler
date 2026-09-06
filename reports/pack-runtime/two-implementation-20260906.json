@@ -1,0 +1,299 @@
+{
+  "schema": "doppler.standalone-engineering-checkpoint/v1",
+  "generatedAtUtc": "2026-09-06T03:04:34.596Z",
+  "component": [
+    "doppler.runtime-source.config",
+    "doppler.repository-tooling",
+    "doppler.tests",
+    "doppler.docs"
+  ],
+  "intent": "preserved",
+  "goalComplete": false,
+  "source": {
+    "codeCommit": "c5f8fd9da3bc045b225e03ba5b2daf73243a2ccd",
+    "runtimePackageCommit": "06a9d80acd7d0b36ccf3da5619b85198f4fb7d74",
+    "qualifierCommit": "1d69dcaca688c9b9b45894a6df1492b0cc2bd211",
+    "qualifierStatus": "",
+    "model": "Qwen/Qwen3-Reranker-0.6B",
+    "sourceCheckpoint": "e61197ed45024b0ed8a2d74b80b4d909f1255473"
+  },
+  "changes": [
+    "Close F16 split-QKV and helper shader dependencies in Forge before signing; reject observed shader omissions.",
+    "Repair package inventory and toolchain-dependent compression bounds without changing executable acceptance.",
+    "Make CI contract coverage self-contained; retain optional historical replay with explicit missing-artifact skips.",
+    "Reject parent-directory Electron resolution, record the local binary digest, and preserve locked harness dependencies."
+  ],
+  "tests": {
+    "cleanCheckoutCommit": "6119f3bb84869ffa400bda6049a3afff819c0561",
+    "ciExitCode": 0,
+    "unitFiles": 762,
+    "log": {
+      "path": "reports/electron-adoption/clean-checkout-ci-20260906-01.log",
+      "sizeBytes": 395149,
+      "sha256": "a8487e0471fe919701223c97179c251f276fa629504152d3568fa739d8f0ea75"
+    },
+    "remote": {
+      "commit": "c5f8fd9da3bc045b225e03ba5b2daf73243a2ccd",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/34007772122",
+      "log": {
+        "path": "reports/electron-adoption/github-ci-c5f8fd9d-34007772122.log",
+        "sizeBytes": 984632,
+        "sha256": "766f8b7cade960fad4dfbbbe38d81f5d89f92541bac987883423da0c8a21dda4"
+      }
+    },
+    "historicalReplaysUnavailableInCleanCheckout": 5,
+    "missingHistoricalBytesAreNotPassingReplay": true,
+    "browser": {
+      "passed": 71,
+      "skipped": 15,
+      "failed": 0,
+      "provider": "SwiftShader",
+      "physicalHardwareEvidence": false,
+      "log": {
+        "path": "reports/electron-adoption/clean-checkout-browser-20260906-01.log",
+        "sizeBytes": 39805,
+        "sha256": "6465648a964de0caa7c204945f1296c8a67aa5b4a316550204f72c46593b5024"
+      }
+    },
+    "demo": {
+      "executionClass": "mocked-contract",
+      "physicalInference": false,
+      "log": {
+        "path": "reports/electron-adoption/clean-checkout-demo-20260906-01.log",
+        "sizeBytes": 532,
+        "sha256": "3c8d7b7233cde241e97ec8351442c317504c09e2a764bd864f1cd37f3444ce3f"
+      }
+    },
+    "hostGuardAndReleaseContracts": {
+      "files": 4,
+      "exitCode": 0,
+      "log": {
+        "path": "reports/electron-adoption/local-host-contracts-20260906-01.log",
+        "sizeBytes": 1644,
+        "sha256": "e8a9f4af42edd7eab1eae86c22409fbf82c08c05dac2b0c71d54e2cadc6c18ce"
+      }
+    }
+  },
+  "package": {
+    "receipt": {
+      "path": "reports/electron-adoption/20260906-clean-package-22/receipt.json",
+      "sizeBytes": 1772,
+      "sha256": "86676203b8b9b624d58583ef75804c06e9f122daa533a2457c95e8b121bf6030"
+    },
+    "filename": "doppler-gpu-0.5.1.tgz",
+    "integrity": "sha512-HOPGs5HxbnmRyVLSpyaMCEN5/fIzWSasrIdVe2Wiys2P1l0Su/ypDWAcDX3ulbsJwhQK5FPGutwq3AwGBE9T4Q==",
+    "sizeBytes": 2083928,
+    "sha256": "d27f48df2756764f7a0c7ec9b085ff5681f7262b78ca0102820fce4dba988337"
+  },
+  "physical": {
+    "evidenceClass": "internal-installed-electron-two-implementation-release-episode",
+    "passed": true,
+    "runtime": {
+      "surface": "browser-webgpu",
+      "host": "electron",
+      "electronVersion": "43.4.0",
+      "electronHost": {
+        "version": "43.4.0",
+        "packagePath": "/home/x/deco/doppler/reports/electron-adoption/20260906-local-host-validation-01/node_modules/electron/package.json",
+        "executablePath": "/home/x/deco/doppler/reports/electron-adoption/20260906-local-host-validation-01/node_modules/electron/dist/electron",
+        "executableSha256": "6853bb400e98582dcc104ca8b9e90f013cd2223575253731e0c429925981c733",
+        "resolution": "qualification-checkout-local"
+      },
+      "executionGraphHash": "sha256:b26f5863c2046c68324d7e94d5285a81be717c749ac215813d001fdda3033778",
+      "sourceRevision": "1d69dcaca688c9b9b45894a6df1492b0cc2bd211",
+      "adapterInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+      }
+    },
+    "sourceStatus": "",
+    "episode": {
+      "path": "reports/electron-adoption/20260906-local-host-validation-01/reports/electron-adoption/qwen-two-implementations-reproduction/episode.json",
+      "sizeBytes": 30070,
+      "sha256": "f44772e71f7badb2ad4282e2ba9f64ce27a5002297933befb9712977bc14850e"
+    },
+    "observations": [
+      {
+        "name": "initial-f16",
+        "expectedPass": true,
+        "observedPass": true,
+        "report": {
+          "path": "reports/electron-adoption/20260906-local-host-validation-01/reports/electron-adoption/qwen-two-implementations-reproduction/initial-f16/qualification.json",
+          "sizeBytes": 374024,
+          "sha256": "d1a9bb0b1a8fb96534015ee1116aeebe7d392d484c89c3c3750bfcc88466f967"
+        },
+        "sourceChecks": 16,
+        "selectedTargetPlanDigest": "sha256:25eec728093aabbfdce39029ec5d84876d9748d268ee3a1a80bde6eaaea5134b",
+        "noPackRequests": false
+      },
+      {
+        "name": "installed-q4k-still-f16",
+        "expectedPass": true,
+        "observedPass": true,
+        "report": {
+          "path": "reports/electron-adoption/20260906-local-host-validation-01/reports/electron-adoption/qwen-two-implementations-reproduction/installed-q4k-still-f16/qualification.json",
+          "sizeBytes": 372427,
+          "sha256": "f1eb4e9949de1cc5f97b7fac2c9bc9a34c01d3aaabafabb1e360b39b8176307d"
+        },
+        "sourceChecks": 16,
+        "selectedTargetPlanDigest": "sha256:25eec728093aabbfdce39029ec5d84876d9748d268ee3a1a80bde6eaaea5134b",
+        "noPackRequests": false
+      },
+      {
+        "name": "activated-q4k",
+        "expectedPass": true,
+        "observedPass": true,
+        "report": {
+          "path": "reports/electron-adoption/20260906-local-host-validation-01/reports/electron-adoption/qwen-two-implementations-reproduction/activated-q4k/qualification.json",
+          "sizeBytes": 380921,
+          "sha256": "1092955fe85385fc128a1496849dd66a9af14f67775826b86a83a150faf6ac56"
+        },
+        "sourceChecks": 16,
+        "selectedTargetPlanDigest": "sha256:a01505932b80f92faf7800d1104249685282f6af8de0d736d02ade6da4bb4dbb",
+        "noPackRequests": false
+      },
+      {
+        "name": "restart-q4k",
+        "expectedPass": true,
+        "observedPass": true,
+        "report": {
+          "path": "reports/electron-adoption/20260906-local-host-validation-01/reports/electron-adoption/qwen-two-implementations-reproduction/restart-q4k/qualification.json",
+          "sizeBytes": 378532,
+          "sha256": "09d22f4244c18ba50df544009fdab3e2d86507442ec459a83566af65d7c27be9"
+        },
+        "sourceChecks": 16,
+        "selectedTargetPlanDigest": "sha256:a01505932b80f92faf7800d1104249685282f6af8de0d736d02ade6da4bb4dbb",
+        "noPackRequests": false
+      },
+      {
+        "name": "rollback-f16",
+        "expectedPass": true,
+        "observedPass": true,
+        "report": {
+          "path": "reports/electron-adoption/20260906-local-host-validation-01/reports/electron-adoption/qwen-two-implementations-reproduction/rollback-f16/qualification.json",
+          "sizeBytes": 373350,
+          "sha256": "6d89b57ea935058c8e9d6fc1bb919a5bb8d84d195c48666bb4d4e239cf5ebda7"
+        },
+        "sourceChecks": 16,
+        "selectedTargetPlanDigest": "sha256:25eec728093aabbfdce39029ec5d84876d9748d268ee3a1a80bde6eaaea5134b",
+        "noPackRequests": false
+      },
+      {
+        "name": "rejected-activation",
+        "expectedPass": false,
+        "observedPass": false,
+        "report": {
+          "path": "reports/electron-adoption/20260906-local-host-validation-01/reports/electron-adoption/qwen-two-implementations-reproduction/rejected-activation/qualification.json",
+          "sizeBytes": 41324,
+          "sha256": "05727f09e9f59abb5d734226e0cdcb1aa787a3cf0da41c5df33f8d725554b1fc"
+        },
+        "sourceChecks": 0,
+        "selectedTargetPlanDigest": null,
+        "noPackRequests": true
+      },
+      {
+        "name": "rejected-upgrade-recovery-f16",
+        "expectedPass": true,
+        "observedPass": true,
+        "report": {
+          "path": "reports/electron-adoption/20260906-local-host-validation-01/reports/electron-adoption/qwen-two-implementations-reproduction/rejected-upgrade-recovery-f16/qualification.json",
+          "sizeBytes": 374131,
+          "sha256": "48ed5bf981b715397b1e9c952604ec3286e7090fd5a64161db3385bbb6cf709d"
+        },
+        "sourceChecks": 16,
+        "selectedTargetPlanDigest": "sha256:25eec728093aabbfdce39029ec5d84876d9748d268ee3a1a80bde6eaaea5134b",
+        "noPackRequests": false
+      }
+    ],
+    "positiveExecutions": 6,
+    "expectedRejections": 1,
+    "queries": 1,
+    "documents": 3,
+    "changedExecutableImplementation": true,
+    "changedSourceCheckpoint": false,
+    "changedModelFamily": false,
+    "independentMaintainer": false,
+    "incumbentComparison": false,
+    "measuredReleaseEffortImprovement": false,
+    "managedExpiringAuthorization": true,
+    "indefiniteOfflineUse": false,
+    "localHostDependencies": {
+      "path": "reports/electron-adoption/local-host-dependencies-20260906-01.json",
+      "sizeBytes": 132455,
+      "sha256": "ca591a4a61146c9c66dc6d2f998c69a020e28a0b15111aace18dccdbb2aac6ed"
+    },
+    "lockVerification": {
+      "path": "reports/electron-adoption/local-host-lock-verification-20260906-01.json",
+      "sizeBytes": 165,
+      "sha256": "44f04949e00dc07f05b7364f3cc129d7365a0bb55dd7dfcd0eec67d74fd235da"
+    }
+  },
+  "adverse": {
+    "missingSplitQkv": {
+      "path": "reports/electron-adoption/qwen-two-implementations-01/initial-f16/qualification.json",
+      "sizeBytes": 76886,
+      "sha256": "3ed7845d30367bec5739ae97550231fa1f2de1c9e1bd25a3c615d18e9996da2c"
+    },
+    "preSigningRejection": {
+      "path": "reports/electron-adoption/f16-observed-closure-preflight-20260906-01.log",
+      "sizeBytes": 103,
+      "sha256": "0262c90b50bf657bd8d4036d35d282d0ad84b65337406c148b7032439fa7b817"
+    },
+    "parentHostRejection": {
+      "path": "reports/electron-adoption/electron-parent-resolution-rejection-20260906-01.log",
+      "sizeBytes": 169,
+      "sha256": "9fda995db1e6672cd3fac47827c2288e580b3b92f2be5577f913db6cea38fc17"
+    },
+    "supersededArchive": {
+      "path": "reports/electron-adoption/20260906-two-implementation-handoff.tar",
+      "sizeBytes": 2150737920,
+      "sha256": "3a562521aec918a9a3c6fdb24b960a5b8c5217b8c7e5013d1e5c40e61afe90be"
+    },
+    "supersededArchiveLimitation": "Initial instructions omitted Electron installation and permitted parent-resolution; old README also misstated renderer sandbox configuration.",
+    "missingLocalArtifactsCI": {
+      "path": "reports/electron-adoption/github-ci-06a9d80a-34006166138.log",
+      "sizeBytes": 909800,
+      "sha256": "defd4a9d8a02c675231a8b6b2637d0e9f763080d63f03920273e83a4a06ba687"
+    },
+    "harnessDependencyAudit": "Two high-severity development findings retained; no audit fixes applied."
+  },
+  "handoff": {
+    "archive": {
+      "path": "reports/electron-adoption/20260906-two-implementation-handoff-v2.tar",
+      "sizeBytes": 2155560960,
+      "sha256": "bebbcfac4cc3b8c00abf1515d0826893fd8b51b848dccaf5fdcf0aacaf701f51"
+    },
+    "payloadFilesVerified": 186,
+    "extractionVerified": true,
+    "extracted": "/tmp/doppler-two-implementation-custody-FIvgDH",
+    "retention": "local; not downloaded by clone",
+    "privateKeysIncluded": false,
+    "validation": {
+      "verifiedFiles": 186,
+      "evidenceClass": "artifact-custody-only"
+    }
+  },
+  "reproductionInstructions": {
+    "path": "reports/electron-adoption/TWO-IMPLEMENTATION-HANDOFF-V2.md",
+    "sizeBytes": 5134,
+    "sha256": "d0bbe740a41b88274956290dfd0259f57ab8200b1c7a5561f4c6b74812457a1a"
+  },
+  "boundaries": {
+    "externalAdoption": false,
+    "paidUse": false,
+    "recurringRevenue": false,
+    "DoeRequiredForThisElectronEpisode": false,
+    "PooldayRequired": false,
+    "ReploidRequired": false
+  },
+  "remaining": [
+    "Unseen-document search evaluation and a credible complete-application incumbent comparison.",
+    "Actual source-pinned text-embedding Pack qualification and a physical candidate-optimization campaign.",
+    "A changed source-model revision with measured release-maintenance effort.",
+    "Explicit recipient-controlled retained-use policy; managed expiry still fails closed.",
+    "Independent maintainer installation, voluntary use and retention; no external adoption is inferred."
+  ]
+}
