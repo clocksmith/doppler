@@ -653,11 +653,6 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           let hitStop = false;
           let stopTokenId = null;
           for (const tokenId of batchResult.tokens) {
-            if (isStopToken(tokenId, stopTokenIds, eosToken)) {
-              hitStop = true;
-              stopTokenId = tokenId;
-              break;
-            }
             generatedIds.push(tokenId);
             tokensGenerated++;
             if (emitMode === 'token') {
@@ -673,6 +668,11 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
             if (batchTokens.length === executionPlan.batchSize) {
               if (options.onBatch) options.onBatch(batchTokens);
               batchTokens = [];
+            }
+            if (isStopToken(tokenId, stopTokenIds, eosToken)) {
+              hitStop = true;
+              stopTokenId = tokenId;
+              break;
             }
           }
           if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
