@@ -1,0 +1,153 @@
+{
+  "schema": "doppler.pack-http-checkpoint/v1",
+  "recordedAtUtc": "2026-09-06 18:38:26 UTC",
+  "goalComplete": false,
+  "component": "doppler.runtime-source.cli",
+  "intent": "preserved",
+  "boundaryEffects": [
+    "Optional application-owned Node HTTP transport",
+    "Explicit serving policy",
+    "Pack HTTP import isolation"
+  ],
+  "source": {
+    "implementationCommit": "b4fd808cd29d5dde083385666da38ffa8c65d0aa",
+    "finalCommit": "3714b27d845048dd445330c710d091b9243ac5a2",
+    "synchronization": "Workspace synchronization committed the implementation; this agent did not run commit or push."
+  },
+  "implemented": {
+    "api": "doppler-gpu/serve#createPackServeHandler",
+    "status": "experimental",
+    "executionOwner": "Existing Pack session.executeOperation() and operation-specific checked session methods",
+    "operations": [
+      "generate",
+      "embed",
+      "rerank",
+      "encodeSequence"
+    ],
+    "tests": [
+      "tests/integration/pack-serve.test.js",
+      "tests/tooling/pack-http-declarations.test.js",
+      "tests/fixtures/packed-embedding-consumer.js"
+    ],
+    "boundaries": [
+      "One application-opened, pinned, borrowed session; no model selection or implicit activation",
+      "Explicit bearer authentication and exact origin admission",
+      "Bounded UTF-8 JSON request, operation output, total streamed response and deadline",
+      "Single HTTP operation admission, backpressure, disconnect cancellation and drain-before-close",
+      "No delegated assignments; no Doe, Poolday or Reploid prerequisite",
+      "No compiler, inference, GPU, model-host, storage or legacy server imports in the Pack HTTP graph",
+      "Compatibility chat CLI remains unchanged; its migration is not complete"
+    ]
+  },
+  "acceptance": {
+    "command": "npm run check:green",
+    "exitCode": 0,
+    "testFilesPassed": 768,
+    "fullLog": {
+      "path": "/tmp/doppler-pack-http-green-20260906-02.log",
+      "bytes": 391389,
+      "sha256": "39caca34732ca761686c1492149cfcb068bb636095447eb779726ee596005e47"
+    },
+    "runtimeClosure": {
+      "files": 46,
+      "sourceBytes": 236690,
+      "unchanged": true
+    },
+    "architecture": {
+      "owners": 21,
+      "files": 2634,
+      "governedOversizeFiles": 0
+    },
+    "installedPackage": {
+      "path": "/tmp/doppler-pack-http-20260906-04/receipt.json",
+      "bytes": 1763,
+      "sha256": "c72271eb79ad4daa32ef70aee76368fb1d5252e412933c952abf97c7793a405a"
+    },
+    "installedPublicExportsAndDeclarations": 28,
+    "package": {
+      "files": 1764,
+      "packedBytes": 2093526,
+      "unpackedBytes": 10815683,
+      "sha256": "71afeebb0c9c0e50be5369887ad8c3c35df0622cdd2f9e7de1d8de266ec77347",
+      "testedBundle": "/tmp/doppler-pack-http-20260906-04",
+      "committedSourceRebuild": "/tmp/doppler-pack-http-final-6WZI79",
+      "rebuiltFromGitArchive": "3714b27d845048dd445330c710d091b9243ac5a2",
+      "identicalPackageBytes": true,
+      "published": false
+    },
+    "contractEvidence": "Four-operation real HTTP/direct event equality uses signed fixture Packs and synthetic devices/programs; installed text embedding parity is synthetic."
+  },
+  "physical": {
+    "evidenceClass": "internal-physical-installed-package",
+    "report": {
+      "path": "reports/electron-adoption/pack-http-20260906-physical-02.json",
+      "bytes": 178750,
+      "sha256": "3f5cc8644d38607ed068197adfd928c699d33cdfefc40ebd7415d4190528afcf"
+    },
+    "configuration": {
+      "path": "reports/electron-adoption/pack-http-20260906-02-config.json",
+      "bytes": 1046,
+      "sha256": "8f06b87eb7c260b2855589c175e3e66c3611b7bbfe580b3fd8b0aecec90bb42d"
+    },
+    "probe": {
+      "path": "tests/fixtures/physical-pack-http-consumer.js",
+      "bytes": 6102,
+      "sha256": "7875d77a272624665d040fed20888088883778ab2c22693ea2a01853eecf9b6c"
+    },
+    "command": "node /tmp/doppler-pack-http-20260906-04/consumer/physical-http.js /home/x/deco/doppler/reports/electron-adoption/pack-http-20260906-02-config.json /home/x/deco/doppler/reports/electron-adoption/pack-http-20260906-physical-02.json",
+    "hardware": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1",
+      "isFallbackAdapter": false
+    },
+    "provider": "webgpu 0.4.0 / Dawn Vulkan",
+    "model": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+    "sourceReferenceSha256": "81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a",
+    "targetPlanDigest": "sha256:cf53f16d8dd167accd67ed142bd0896a5d8941f086325efaa9d43535f962e3dd",
+    "directRuns": 1,
+    "httpRuns": 1,
+    "sourceChecksPerRun": 16,
+    "allSourceChecksPassed": true,
+    "scoreAndRankingParity": "exact",
+    "queryCount": 1,
+    "documentCount": 3,
+    "artifactFetchBlocked": true,
+    "attemptedArtifactFetches": 0,
+    "osNetworkSandboxClaim": false,
+    "cleanupPassed": true,
+    "externalAdoption": false,
+    "performanceAdvantageClaim": false,
+    "limits": "Pack v2, one AMD/Node tuple, retained Qwen weights and source oracle. This does not qualify other operations, hosts, held-out search quality, or another model release."
+  },
+  "retainedAdverseEvidence": [
+    {
+      "path": "/tmp/doppler-pack-http-package-20260906-01.log",
+      "sha256": "32706aaa56f1294e67a42ec05ec725a4ac8176b0dfeed6cded77640f83e6f3da",
+      "finding": "Installed public declaration depended on absent Node typings; structural boundary removes that transitive requirement."
+    },
+    {
+      "path": "/tmp/doppler-pack-http-boundaries-20260906.log",
+      "sha256": "5cd24a183f9d382c74a4cf503450570f2f27301d7b48ba5ca2fe8aebdb6b6c4e",
+      "finding": "Package budget rejected six new transport files; audited inventory and byte limits updated without expanding the Pack execution closure."
+    },
+    {
+      "sourceCommit": "b4fd808cd29d5dde083385666da38ffa8c65d0aa",
+      "finding": "Structural listener types did not compose with real Node typings; final commit includes a permanent compiler regression."
+    },
+    {
+      "sourceCommit": "b4fd808cd29d5dde083385666da38ffa8c65d0aa",
+      "finding": "UTF-8 decoding could replace invalid bytes; final transport rejects invalid UTF-8 with a connected HTTP regression."
+    }
+  ],
+  "custody": "Local package bundles, raw reports and retained model archive are not made public by this checkpoint. Reproduction requires the referenced permitted Pack artifacts and provider tarballs; no private signing key was used or included.",
+  "remaining": [
+    "Migrate compatibility CLI/HTTP conveniences onto the common release path",
+    "Upstream discovery and complete repeatable model onboarding",
+    "Physical candidate optimization with frozen controls and held-out inputs",
+    "Broader application quality, lifecycle, memory and host qualification",
+    "Independent developer installation, voluntary retention and a subsequent model release"
+  ]
+}
