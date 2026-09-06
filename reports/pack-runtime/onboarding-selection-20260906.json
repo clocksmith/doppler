@@ -1,0 +1,84 @@
+{
+  "schema": "doppler.onboarding-selection-checkpoint/v1",
+  "goalComplete": false,
+  "sourceCommit": "db46ef9b2115c8db89e68a606414c4f1f67d533b",
+  "components": [
+    { "component": "doppler.runtime-source.client", "intent": "preserved", "change": "Filter application-approved, operation-qualified plans before selection; snapshot policy before asynchronous host and core setup." },
+    { "component": "doppler.runtime-source.converter", "intent": "preserved", "change": "Reuse source-fact validation, lowerability auditing, and lineage materialization; retain semantic gaps and rejected candidates." },
+    { "component": "doppler.runtime-source.tooling", "intent": "changed", "change": "Existing source-truth Forge tool gains config-driven source-to-candidate preparation and immutable stage retention." },
+    { "component": "doppler.repository-tooling", "intent": "changed", "change": "New-family investigation uses maintainer-approved engineering scope instead of customer authorization; no publication authority is granted." }
+  ],
+  "acceptance": {
+    "command": "npm run check:green",
+    "exitCode": 0,
+    "testFilesPassed": 766,
+    "logPath": "/tmp/doppler-onboarding-green-20260906-final.log",
+    "logSha256": "d4b4ba135613b42e3b97614899ee5ad60a757d7d9353f057c8bc36a996b4b0e8",
+    "architecture": { "owners": 21, "files": 2627, "governedOversizeFiles": 0 },
+    "packRuntimeClosure": { "files": 46, "sourceBytes": 236690 },
+    "browser": { "command": "npm run test:gpu:browser", "exitCode": 0, "passed": 71, "failed": 0, "skipped": 15, "evidenceClass": "SwiftShader contract", "logPath": "/tmp/doppler-onboarding-browser-20260906.log" },
+    "demo": { "command": "npm run test:demo:contract", "exitCode": 0, "evidenceClass": "mocked UI journey and service-worker readiness", "networkDisconnectionTested": false, "logPath": "/tmp/doppler-onboarding-offline-20260906.log" }
+  },
+  "preparation": {
+    "evidenceClass": "retained source metadata and real Forge orchestration; no weights or GPU",
+    "config": "src/config/forge/onboarding/qwen3.8-27b.json",
+    "command": "node tools/forge-source-truth-model-ir-v2.js --config src/config/forge/onboarding/qwen3.8-27b.json --out /tmp/doppler-qwen38-onboarding-20260906-01",
+    "resultPath": "/tmp/doppler-qwen38-onboarding-20260906-01/onboarding-result.json",
+    "resultSha256": "f76f8e601149212cac4e2126e00330cdfb30d84e9926f15e6158a0ccc79f0652",
+    "status": "candidate-materialized",
+    "identicalResumePassed": true,
+    "newUpstreamModelDiscovered": false,
+    "newSourceModelQualified": false,
+    "unfamiliarArchitectureAutomaticallyImplemented": false
+  },
+  "package": {
+    "bundleDirectory": "/tmp/doppler-onboarding-package-20260906-clean-03",
+    "builtFromCleanCommit": "db46ef9b2115c8db89e68a606414c4f1f67d533b",
+    "filename": "doppler-gpu-0.5.1.tgz",
+    "sha256": "6f120358b5b05b66fe91c87ea9a0a8a210921b09a248d858a708adf33bca01dd",
+    "bytes": 2089629,
+    "unpackedBytes": 10802391,
+    "files": 1758,
+    "publicExportsAndDeclarationsPassed": 27,
+    "matchesPhysicalRunPackageBytes": true,
+    "compilerOnlyOnboardingFilesExcluded": true,
+    "published": false
+  },
+  "physical": {
+    "evidenceClass": "internal physical Electron signed-Pack reranking",
+    "reportPath": "reports/electron-adoption/target-selection-20260906-03/qualification.json",
+    "reportSha256": "4b1a36cb7d1f986fa9f58abf28745f74374541ef50af09cde98025ab2ad1828b",
+    "passed": true,
+    "host": "Electron 43.4.0 / Xwayland display :0 / browser-webgpu",
+    "device": "AMD Radeon 8060S Graphics (RADV STRIX_HALO), rdna-3, 0x1586",
+    "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+    "targetPlanDigest": "sha256:a01505932b80f92faf7800d1104249685282f6af8de0d736d02ade6da4bb4dbb",
+    "queryCount": 1,
+    "documentCount": 3,
+    "sourceChecksPassed": 16,
+    "adapterClosedSession": true,
+    "cleanupErrors": [],
+    "loadMs": 57273.10000014305,
+    "executionMs": 722.5999999046326,
+    "performanceComparison": false,
+    "multiPlanSelectionEvidence": "connected synthetic regression, not this single-plan physical run",
+    "applicationAuthority": "pinned internal evaluation resolver, not external adoption or production IPC",
+    "sourceState": "Physical run used a pre-commit tarball; clean db46ef9b rebuild independently reproduced its exact bytes."
+  },
+  "adverseEvidence": [
+    { "path": "reports/electron-adoption/target-selection-20260906-01/qualification.json", "sha256": "4803262f4fdcf7392e03f45e058288658b423603a0e4ff4134fb22f4954352b0", "class": "Electron launch failure before model loading: no X display", "resolution": "Retry on the existing Xwayland display, without changing model or oracle." },
+    { "path": "/tmp/doppler-onboarding-green-20260906.log", "class": "package unpacked-byte budget rejection", "resolution": "Audit unchanged package inventory and account for the intentional selection-code increase." },
+    { "path": "tests/tooling/model-onboarding.test.js", "class": "Glimmer semantic incompatibilities, changed inputs, rejected lineage, and corrupt retained outputs remain explicit regressions." }
+  ],
+  "externalAdoption": false,
+  "paidUse": false,
+  "remaining": [
+    "Read-only upstream discovery and once-per-revision intake",
+    "Actual related-model conversion and independent source-reference execution through the onboarding coordinator",
+    "Physical candidate search and held-out application-level incumbent comparisons",
+    "Common embedded, CLI, and served release consumption",
+    "Independent installation, contribution, and retained use through another model release"
+  ],
+  "custodyBoundary": "Local package and report paths are retained on this machine; they are not made publicly available by this checkpoint."
+}
