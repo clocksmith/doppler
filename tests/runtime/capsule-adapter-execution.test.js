@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { createCapsuleAdapterExecution } from '../../src/client/runtime/capsule-adapter-execution.js';
 import { createCapsuleOperationExecutor } from '../../src/client/runtime/capsule-operation-executor.js';
 import { hashCapsuleObservation } from '../../src/config/capsule-operation.js';
-import { sha256Hex } from '../../src/formats/sha256.js';
+import { createHash } from 'node:crypto';
 
 // Contract-only injected program: no model output or physical GPU claim.
-const hash = value => `sha256:${sha256Hex(value)}`;
+const hash = value => `sha256:${createHash('sha256').update(value).digest('hex')}`;
 const bytes = new Uint8Array([1, 2, 3, 4]);
 const capsule = { modelId: 'base', semanticRoot: hash('model'), envelopeDigest: hash('envelope'), artifactClosureDigest: hash('closure') };
 const targetPlan = { schema: 'doppler.target-plan/v2', qualification: [{ operation: 'generate' }],
@@ -29,6 +29,7 @@ const program = {
   async loadAdapter(_manifest, control) {
     loads++;
     assert.deepEqual(control.bytes, bytes);
+    assert.equal(control.weightsLayout, 'peft', 'the signed format must reach the actual loader');
     identity = { schema: 'doppler.lora-execution-identity/v1', id: 'adapter', digest: hash('tensors') };
     if (failLoad) throw new Error('load failure');
   },
@@ -52,6 +53,8 @@ assert.equal(unloads, 1);
 assert.equal(events.at(-1).receipt.adapterReceipts[0].identity, entry.identity);
 assert.equal(events.at(-1).receipt.adapterReceipts[0].sourceDigest, entry.artifact.hash);
 assert.equal(events.at(-1).receipt.requestHash, hashCapsuleObservation(request));
+await assert.rejects(collect(make()({ ...request, adapterSet: [{ ...entry,
+  manifest: { ...entry.manifest, weightsLayout: 'input-major' } }] }, control)), /weight layout conflicts/);
 await assert.rejects(collect(make({ ...targetPlan, adapterExecution: undefined })(request, control)), /explicitly declare/);
 await assert.rejects(collect(make()(request, { adapterArtifactStore: { async readArtifact() { return new Uint8Array([0, 0, 0, 0]); } } })), /corruption/);
 await assert.rejects(collect(make()({ ...request, adapterSet: [{ ...entry, baseModel: { ...capsule, semanticRoot: hash('other') } }] }, control)), /base model/);

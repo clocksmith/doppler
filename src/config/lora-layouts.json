@@ -1,0 +1,9 @@
+{
+  "schema": "doppler.lora-weight-layout-policy/v1",
+  "legacyLayout": "input-major",
+  "formats": { "peft_safetensors": "peft" },
+  "layouts": {
+    "input-major": { "transposeB": false, "aRankAxis": 1, "bRankAxis": 0, "identityLayout": null },
+    "peft": { "transposeB": true, "aRankAxis": 0, "bRankAxis": 1, "identityLayout": "peft" }
+  }
+}

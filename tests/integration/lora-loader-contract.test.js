@@ -200,6 +200,7 @@ await assert.rejects(
   ]);
   const adapter = await loadLoRAFromManifest(createManifest({
     tensors: undefined,
+    weightsLayout: 'peft',
     targetModules: ['in_proj_qkv', 'out_proj'],
     weightsPath: 'adapter.safetensors',
     checksum: sha256Hex(weights),
@@ -227,6 +228,7 @@ await assert.rejects(
   ]);
   const adapter = await loadLoRAFromManifest(createManifest({
     tensors: undefined,
+    weightsLayout: 'peft',
     weightsPath: 'adapter.safetensors',
     checksum: sha256Hex(weights),
   }), {
@@ -243,6 +245,7 @@ await assert.rejects(
 
   const unchecked = await loadLoRAWeights(createManifest({
     tensors: undefined,
+    weightsLayout: 'peft',
     weightsPath: 'adapter.safetensors',
     checksum: '0'.repeat(64),
   }), {
@@ -270,6 +273,7 @@ await assert.rejects(
   ]);
   const manifest = createManifest({
     tensors: undefined,
+    weightsLayout: 'peft',
     weightsPath: 'adapter.safetensors',
     checksum: sha256Hex(weights),
   });
