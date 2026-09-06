@@ -121,6 +121,7 @@
     }
   },
   "constitutionalDomains": {
+    "pack-http": ["cli/serve/pack-handler.js", "cli/serve/pack-http.js"],
     "pack": [
       "config/model-ir.js",
       "config/target-plan.js",
@@ -146,6 +147,15 @@
     ]
   },
   "constitutionalImportGraphs": [
+    {
+      "domain": "pack-http",
+      "entryPoints": ["cli/serve/pack-handler.js"],
+      "forbiddenPathPrefixes": [
+        "client/", "converter/", "gpu/", "inference/", "loader/", "memory/",
+        "storage/", "tooling/", "experimental/", "models/",
+        "cli/doppler-serve.js", "cli/serve/receipt.js"
+      ]
+    },
     {
       "domain": "runtime",
       "entryPoints": [

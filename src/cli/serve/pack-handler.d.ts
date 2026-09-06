@@ -3,14 +3,14 @@ import type { PackServePolicy } from '../../config/pack-serve.js';
 export type { PackServePolicy } from '../../config/pack-serve.js';
 /** Structural Node HTTP boundary; consumers of other exports need no Node typings. */
 export interface PackHttpEvents {
-  once(event: string, listener: (...args: never[]) => void): unknown;
-  off(event: string, listener: (...args: never[]) => void): unknown;
+  once(event: string, listener: (...args: unknown[]) => void): unknown;
+  off(event: string, listener: (...args: unknown[]) => void): unknown;
 }
 export interface PackHttpRequest extends PackHttpEvents {
   method?: string;
   url?: string;
   headers: Record<string, string | string[] | undefined>;
-  on(event: string, listener: (...args: never[]) => void): unknown;
+  on(event: string, listener: (...args: unknown[]) => void): unknown;
   pause(): unknown;
 }
 export interface PackHttpResponse extends PackHttpEvents {
