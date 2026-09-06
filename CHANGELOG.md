@@ -8,6 +8,27 @@ budget.
 
 ## [Unreleased]
 
+## [0.6.0] - Release candidate
+
+### Pack operations and application integration
+
+- Expose `openPack().executeOperation()` for generation, embeddings, reranking,
+  and sequence encoding with validated inputs, bounded output, cancellation,
+  and completion receipts binding the exact request and executed Pack.
+- Add signed embedding qualification against pinned CPU source vectors and
+  an explicit F16 Qwen embedding conversion recipe. Retain the rejected Q4
+  numerical result separately; it is not a qualified embedding configuration.
+- Return explicit null GPU timing fields when those measurements are unavailable,
+  keeping real reranking observations valid under the strict JSON contract.
+- Require application-owned persisted release checkpoints for Pack v3 history.
+  Qualification receipts and independent adoption retain separate authority.
+
+The physical Reploid document experiment and its exact local 0.5.2 candidate
+tarballs are retained at `clocksmith/reploid` revision `ca25da6`, under
+`docs/status/document-search-2026-09-06`. They do not qualify this 0.6.0 candidate
+until its own installation and execution checks pass. Publication and independent
+operator reproduction remain separate release evidence.
+
 ### Added
 
 - Added strict Doe provider-v1 acquisition with explicit ordered providers,
@@ -23,9 +44,9 @@ budget.
   as independent facts.
 - Doppler's Node WebGPU integration delegates to `doe-gpu/node-webgpu` instead
   of maintaining a second provider-signature resolver.
-- This contract slice requires the next Doe and Doppler package releases to be
-  minor releases; package versions remain unchanged until publish preflight is
-  complete.
+- This contract slice requires compatible minor releases of Doe and Doppler.
+  The Node provider contract needs its own published-provider verification;
+  browser qualification does not establish that dependency's availability.
 
 ## [0.4.15] - 2026-07-24
 

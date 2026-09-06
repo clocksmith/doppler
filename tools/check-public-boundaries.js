@@ -23,10 +23,14 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The embedding F16 recipe, generated reachability, and nullable evidence timings
   // bring this inventory to 1756 files, 2,083,847 packed / 10,780,482 unpacked bytes
   // on Node 22.22.1/npm 9.2.0. Retain the observed cross-npm compression allowance.
+  // The 0.6.0 release notes bring the unpacked inventory to 10,781,763 bytes;
+  // no additional runtime file is introduced by this release preparation.
+  // CI run 34010417074 packed the same inventory to 2,086,003 bytes with npm 10;
+  // compression variation retains a separate bound from the unpacked payload.
   // No repository tools or evaluation fixtures ship; Pack root remains isolated.
   maxEntryCount: 1756,
-  maxPackedSize: 2_086_000,
-  maxUnpackedSize: 10_781_000,
+  maxPackedSize: 2_086_500,
+  maxUnpackedSize: 10_782_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
