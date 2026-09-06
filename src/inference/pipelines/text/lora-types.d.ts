@@ -5,6 +5,7 @@
  */
 
 import type { MaybeGPUBuffer } from './buffer-types.js';
+import type { LoRAWeightLayoutName } from '../../../config/lora-layouts.js';
 
 export type LoRAModuleName =
   | 'q_proj'
@@ -22,6 +23,9 @@ export type LoRAModuleName =
   | 'out_proj';
 
 export interface LoRAModuleWeights {
+  weightsLayout?: LoRAWeightLayoutName;
+  aShape?: readonly [number, number];
+  bShape?: readonly [number, number];
   a: MaybeGPUBuffer;
   b: MaybeGPUBuffer;
   rank: number;

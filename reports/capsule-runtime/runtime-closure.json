@@ -1,8 +1,8 @@
 {
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
-  "fileCount": 57,
-  "sourceBytes": 573185,
+  "fileCount": 59,
+  "sourceBytes": 574815,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -27,8 +27,8 @@
     },
     {
       "path": "src/client/runtime/capsule-adapter-execution.js",
-      "sizeBytes": 3817,
-      "hash": "sha256:cd00739f3331ef8587634c44499e6076b3a34f3210554e9a440a66b0dc6d01d1"
+      "sizeBytes": 3958,
+      "hash": "sha256:248d62a140e3de4b0c9097db2e3b1084a49723089b4ff0203f0205d06412ddb7"
     },
     {
       "path": "src/client/runtime/capsule-embedding.js",
@@ -112,8 +112,8 @@
     },
     {
       "path": "src/config/capsule-adapters.js",
-      "sizeBytes": 2801,
-      "hash": "sha256:19626ab9c66b1b938ab656884cf377b51504cff1d6039282cdc3c1aa4197b3d4"
+      "sizeBytes": 3069,
+      "hash": "sha256:25fbc59ae2b23b21d7d712951c6e31ef90d9f1d8f99b54f7917f3cd6d1196c08"
     },
     {
       "path": "src/config/capsule-adapters.json",
@@ -194,6 +194,16 @@
       "path": "src/config/kernels/registry.json",
       "sizeBytes": 297736,
       "hash": "sha256:a1d3b0605c3ab7f2db907f6dc869deb2f470ff6f12a9864a995deeda12e36f60"
+    },
+    {
+      "path": "src/config/lora-layouts.js",
+      "sizeBytes": 875,
+      "hash": "sha256:9c7ec924435280d3749d6165ddb485916ccda23c9f26c4e90338f3c9ef116b29"
+    },
+    {
+      "path": "src/config/lora-layouts.json",
+      "sizeBytes": 346,
+      "hash": "sha256:6aa6b6ceb441576c5e1d58003e7df6ad079ae3348185c54f840f9650c64a6fb5"
     },
     {
       "path": "src/config/model-ir-v2.js",

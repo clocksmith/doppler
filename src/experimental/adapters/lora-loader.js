@@ -2,6 +2,7 @@ import { LORA_MODULE_ALIASES } from '../../inference/pipelines/text/lora.js';
 import { applyAdapterManifestDefaults, validateManifest } from './adapter-manifest.js';
 import { log } from '../../debug/index.js';
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
+import { resolveLoRAWeightLayout } from '../../config/lora-layouts.js';
 import {
   assertBundledResolutionNotRevoked,
   authorizeBundledAdapter,
@@ -18,6 +19,24 @@ const parseTensorName = (name) => {
   const kind = match[3].toLowerCase() === 'a' ? 'a' : 'b';
   return { layer, module, kind };
 };
+
+function resolveAdapterLayout(manifest, options) {
+  if (manifest.weightsLayout !== undefined && options.weightsLayout !== undefined
+    && manifest.weightsLayout !== options.weightsLayout) {
+    throw new Error('LoRA manifest weight layout conflicts with the requested format.');
+  }
+  return resolveLoRAWeightLayout(options.weightsLayout === undefined ? manifest.weightsLayout : options.weightsLayout);
+}
+
+function retainTensorShape(weights, kind, shape, layout) {
+  const axis = kind === 'a' ? layout.aRankAxis : layout.bRankAxis;
+  if (!Array.isArray(shape) || shape.length !== 2
+    || !shape.every(value => Number.isSafeInteger(value) && value > 0) || shape[axis] !== weights.rank) {
+    throw new Error(`LoRA ${kind.toUpperCase()} shape conflicts with ${layout.name} layout and rank ${weights.rank}.`);
+  }
+  weights[`${kind}Shape`] = Object.freeze([...shape]);
+  weights.weightsLayout = layout.name;
+}
 
 
 const decodeBase64ToFloat32 = (base64) => {
@@ -146,7 +165,7 @@ async function loadExternalWeights(manifest, options = {}) {
   const sourceDigest = options.skipVerify
     ? `sha256:${await computeSHA256(data)}`
     : await assertChecksum(data, manifest);
-  return loadLoRAFromSafetensors(asArrayBuffer(data), manifest, sourceDigest);
+  return loadLoRAFromSafetensors(asArrayBuffer(data), manifest, sourceDigest, options);
 }
 
 function assertCompleteAdapterLayers(adapter) {
@@ -205,6 +224,9 @@ async function buildAdapterExecutionIdentity(adapter, sourceDigest = null) {
         scale: weights.scale,
         a,
         b,
+        ...(resolveLoRAWeightLayout(weights.weightsLayout).identityLayout === null ? {} : {
+          weightsLayout: weights.weightsLayout, aShape: weights.aShape, bShape: weights.bShape,
+        }),
       });
     }
   }
@@ -359,6 +381,7 @@ export async function loadLoRAWeights(path, options = {}) {
 
 
 export async function loadLoRAFromManifest(manifest, options = {}) {
+  const layout = resolveAdapterLayout(manifest, options);
   const checksum = stripHashPrefix(manifest?.checksum);
   await assertBundledResolutionNotRevoked({
     adapterId: manifest?.id,
@@ -424,6 +447,7 @@ export async function loadLoRAFromManifest(manifest, options = {}) {
     } else {
       layer[parsed.module].b = data;
     }
+    retainTensorShape(layer[parsed.module], parsed.kind, tensor.shape, layout);
 
     adapter.layers.set(parsed.layer, layer);
 
@@ -448,7 +472,8 @@ export function applyDeltaWeights(baseWeight, loraA, loraB, scale) {
   return baseWeight;
 }
 
-export async function loadLoRAFromSafetensors(data, manifest, sourceDigest = null) {
+export async function loadLoRAFromSafetensors(data, manifest, sourceDigest = null, options = {}) {
+  const layout = resolveAdapterLayout(manifest, options);
   const buffer = asArrayBuffer(data);
   sourceDigest ??= `sha256:${await computeSHA256(buffer)}`;
   const view = new DataView(buffer);
@@ -526,6 +551,7 @@ export async function loadLoRAFromSafetensors(data, manifest, sourceDigest = nul
     } else {
       layer[parsed.module].b = floatData;
     }
+    retainTensorShape(layer[parsed.module], parsed.kind, shape, layout);
 
     adapter.layers.set(parsed.layer, layer);
   }

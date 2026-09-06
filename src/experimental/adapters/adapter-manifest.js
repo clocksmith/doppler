@@ -4,6 +4,8 @@ import {
   VALID_LORA_TARGET_MODULES,
   DEFAULT_ADAPTER_VALIDATION_CONFIG,
 } from '../../config/schema/index.js';
+import layoutPolicy from '../../config/lora-layouts.json' with { type: 'json' };
+import { resolveLoRAWeightLayout } from '../../config/lora-layouts.js';
 
 export const DEFAULT_ADAPTER_MANIFEST_DEFAULTS = {
   version: '1.0.0',
@@ -89,6 +91,11 @@ export const ADAPTER_MANIFEST_SCHEMA = {
       description: 'Format of the weight tensors',
       enum: ['safetensors', 'npz', 'json', 'binary'],
       default: DEFAULT_ADAPTER_MANIFEST_DEFAULTS.weightsFormat,
+    },
+    weightsLayout: {
+      type: 'string',
+      description: 'Declared low-rank matrix storage orientation',
+      enum: Object.keys(layoutPolicy.layouts),
     },
     weightsPath: {
       type: 'string',
@@ -207,6 +214,10 @@ export function validateManifest(manifest) {
   }
 
   // Optional fields validation
+  if (m.weightsLayout !== undefined) {
+    try { resolveLoRAWeightLayout(m.weightsLayout); }
+    catch (error) { errors.push({ field: 'weightsLayout', message: error.message, value: m.weightsLayout }); }
+  }
   if (m.version !== undefined && typeof m.version === 'string') {
     if (!/^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/.test(m.version)) {
       errors.push({ field: 'version', message: 'version must follow semantic versioning', value: m.version });

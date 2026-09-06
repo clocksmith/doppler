@@ -3,11 +3,12 @@ import type { TargetPlan } from '../../config/target-plan.js';
 import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import type { DopplerModelHandle } from './model-session.js';
 import type { CapsuleRerankRequest } from './capsule-rerank.js';
+import type { LoRAWeightLayoutName } from '../../config/lora-layouts.js';
 
 export interface CapsuleProgramAdapter {
   executionGraphHash: string;
   getActiveAdapterIdentity(): Readonly<Record<string, unknown>> | null;
-  loadAdapter(manifest: Record<string, unknown>, control: { bytes: Uint8Array; signal: AbortSignal }): Promise<void>;
+  loadAdapter(manifest: Record<string, unknown>, control: { bytes: Uint8Array; signal: AbortSignal; weightsLayout: LoRAWeightLayoutName }): Promise<void>;
   unloadAdapter(): Promise<void>;
   getInitialExecutionIdentity(): InitialExecutionIdentity;
   tokenize(prompt: unknown, options?: Record<string, unknown>): number[];

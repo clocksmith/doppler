@@ -27,6 +27,7 @@ export interface LoRATensorSpec {
  * @deprecated Use AdapterManifest from adapter-manifest.ts
  */
 export interface LoRAManifest {
+  weightsLayout?: import('../../config/lora-layouts.js').LoRAWeightLayoutName;
   name: string;
   version?: string;
   baseModel?: string;
@@ -40,6 +41,7 @@ export interface LoRAManifest {
  * Options for loading LoRA weights.
  */
 export interface LoRALoadOptions {
+  weightsLayout?: import('../../config/lora-layouts.js').LoRAWeightLayoutName;
   /** Function to read from OPFS storage */
   readOPFS?: (path: string) => Promise<ArrayBuffer>;
   /** Function to write to OPFS storage */
@@ -102,7 +104,8 @@ export declare function applyDeltaWeights(
 export declare function loadLoRAFromSafetensors(
   data: ArrayBuffer,
   manifest: AdapterManifest,
-  sourceDigest?: `sha256:${string}` | null
+  sourceDigest?: `sha256:${string}` | null,
+  options?: LoRALoadOptions
 ): Promise<LoRAAdapter>;
 
 export declare function finalizeLoRAAdapter(
