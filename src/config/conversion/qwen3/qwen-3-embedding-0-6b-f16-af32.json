@@ -1,0 +1,463 @@
+{
+  "modelType": "embedding",
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "qwen-3-embedding-0-6b-f16-af32",
+    "textOnly": true,
+    "fast": false
+  },
+  "quantization": {
+    "weights": "f16",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f32",
+    "q4kLayout": "row"
+  },
+  "manifest": {
+    "hashAlgorithm": "blake3",
+    "artifactIdentity": {
+      "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+      "weightPackId": "qwen-3-embedding-0-6b-f16-af32-weights-v1",
+      "manifestVariantId": "qwen-3-embedding-0-6b-f16-af32-manifest-v1",
+      "artifactCompleteness": "complete",
+      "sourceRepo": "Qwen/Qwen3-Embedding-0.6B",
+      "sourceRevision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3"
+    },
+    "eosTokenId": 151643
+  },
+  "inference": {
+    "attention": {
+      "queryPreAttnScalar": 128,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": null,
+      "queryKeyNorm": true,
+      "valueNorm": false,
+      "causal": true,
+      "attentionBias": false,
+      "attentionOutputGate": false
+    },
+    "normalization": {
+      "rmsNormEps": 0.000001,
+      "rmsNormWeightOffset": false,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": false,
+      "postFeedforwardNorm": false
+    },
+    "ffn": {
+      "activation": "silu",
+      "gatedActivation": true,
+      "branchMode": "dense",
+      "useDoubleWideMlp": false,
+      "swigluLimit": null
+    },
+    "rope": {
+      "ropeTheta": 1000000,
+      "ropeLocalTheta": null,
+      "mropeInterleaved": false,
+      "mropeSection": null,
+      "partialRotaryFactor": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "ropeLocalScalingType": null,
+      "ropeLocalScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null,
+      "ropeLocalYarnBetaFast": null,
+      "ropeLocalYarnBetaSlow": null,
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "tieWordEmbeddings": true,
+      "scaleEmbeddings": false,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": null,
+      "embeddingPostprocessor": {
+        "poolingMode": "last",
+        "includePrompt": true,
+        "projections": [],
+        "normalize": "l2"
+      },
+      "embeddingScale": null,
+      "logitInputScale": 1
+    },
+    "layerPattern": {
+      "type": "uniform",
+      "globalPattern": null,
+      "period": null,
+      "offset": null,
+      "layerTypes": null,
+      "residualBranchScale": 1
+    },
+    "chatTemplate": {
+      "type": null,
+      "enabled": false
+    }
+  },
+  "session": {
+    "compute": {
+      "defaults": {
+        "activationDtype": "f32",
+        "mathDtype": "f32",
+        "accumDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "kvcache": {
+      "kvDtype": "f16",
+      "layout": "contiguous",
+      "maxSeqLen": 8192,
+      "pageSize": 256,
+      "tiering": {
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
+      }
+    },
+    "decodeLoop": {
+      "batchSize": 4,
+      "stopCheckMode": "batch",
+      "readbackInterval": 1,
+      "readbackMode": "sequential",
+      "submitLatencyThresholdMs": null,
+      "ringTokens": 1,
+      "ringStop": 1,
+      "ringStaging": 1,
+      "disableCommandBatching": false
+    },
+    "perLayerInputs": {
+      "materialization": "auto",
+      "rowCache": {
+        "mode": "lru",
+        "maxRows": 256,
+        "maxBytes": 134217728,
+        "decodedDtype": "f32"
+      },
+      "prefetch": {
+        "mode": "next_token",
+        "rowsAhead": 1
+      },
+      "gpuUpload": {
+        "mode": "per_step_slices",
+        "stagingRows": 2
+      },
+      "hotCache": {
+        "mode": "prepared_tokens",
+        "maxTokens": 1024,
+        "maxBytes": 134217728,
+        "outputDtype": "f32"
+      }
+    },
+    "prefillChunkSubmitMode": "sync",
+    "useFlashPrefillAttention": false,
+    "useWideTileQ4KPrefill": false,
+    "retainQ4KMaterialization": false
+  },
+  "largeWeights": {
+    "gpuResidentOverrides": null
+  },
+  "execution": {
+    "inlineKernelPath": true,
+    "kernels": {
+      "embed": {
+        "kernel": "gather_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+      },
+      "rmsnorm": {
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+      },
+      "rope": {
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+      },
+      "attn_decode": {
+        "kernel": "attention_decode_online_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "attn_stream": {
+        "kernel": "attention_streaming_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "residual": {
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+      },
+      "silu": {
+        "kernel": "silu.wgsl",
+        "entry": "main",
+        "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+        "constants": {
+          "HAS_GATE": true
+        }
+      },
+      "rope_precompute": {
+        "kernel": "rope_precompute.wgsl",
+        "entry": "main",
+        "digest": "sha256:0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8"
+      },
+      "gather_f16_vec4": {
+        "kernel": "gather_f16_vec4.wgsl",
+        "entry": "gather_vec4",
+        "digest": "sha256:dc87e5e03cdbff74347ef8e42774570b1807d239ad64501a7e90ec8f600e912c"
+      },
+      "matmul_f16w_f32a_tiled": {
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "digest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c"
+      },
+      "rmsnorm_qk": {
+        "kernel": "rmsnorm_qk.wgsl",
+        "entry": "main",
+        "digest": "sha256:6347c59ffd5c2a766c68a482d3019677676c14c6462de42f79d4d8d9846bf105"
+      },
+      "rope_qk": {
+        "kernel": "rope_qk.wgsl",
+        "entry": "main",
+        "digest": "sha256:379186c35451a1bf08f3d157db52e48f4865c92caee230656fd55b7fa500351c"
+      },
+      "kv_cache_write_f32_to_f16": {
+        "kernel": "kv_cache_write_f32_to_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:d2e5459501320a767a33b12c6c088dda8527895e978338694463f2a4f286df8e"
+      },
+      "residual_vec4": {
+        "kernel": "residual_vec4.wgsl",
+        "entry": "add_vec4",
+        "digest": "sha256:99e8217beb9ebc661ae8da6dde06196c0746e884421fe803b1a8bcea22e753b1"
+      },
+      "embedding_pool_f32": {
+        "kernel": "embedding_pool_f32.wgsl",
+        "entry": "main",
+        "digest": "sha256:0e5769590d038ee8b9ebea1600114de9b5044d7f26cd323d54ab14f0536e9c10"
+      },
+      "l2_normalize": {
+        "kernel": "l2_normalize.wgsl",
+        "entry": "main",
+        "digest": "sha256:b8e6bf03c8250609c7f9125d2b9c9f07c08955e45355538a80a330c4010730fd"
+      },
+      "matmul_f16w_f32a": {
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+      },
+      "f16_decode_gemv": {
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+      },
+      "f16_prefill_tiled": {
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "digest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c"
+      },
+      "split_qkv": {
+        "kernel": "split_qkv.wgsl",
+        "entry": "main",
+        "digest": "sha256:57d1e55354e019598c7c39b98b9a48c99269a59506cca3a376fd690b96e15d54"
+      }
+    },
+    "preLayer": [
+      [
+        "embed",
+        "embed",
+        "embed_tokens"
+      ]
+    ],
+    "decode": [
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "f16_decode_gemv",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "f16_decode_gemv",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "f16_decode_gemv",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_decode"
+      ],
+      [
+        "o_proj",
+        "f16_decode_gemv",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "f16_decode_gemv",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "f16_decode_gemv",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "silu"
+      ],
+      [
+        "down_proj",
+        "f16_decode_gemv",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
+    ],
+    "prefill": [
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "f16_prefill_tiled",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "f16_prefill_tiled",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "f16_prefill_tiled",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_stream"
+      ],
+      [
+        "o_proj",
+        "f16_prefill_tiled",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "f16_prefill_tiled",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "f16_prefill_tiled",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "silu"
+      ],
+      [
+        "down_proj",
+        "f16_prefill_tiled",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
+    ],
+    "postLayer": [
+      [
+        "final_norm",
+        "rmsnorm"
+      ]
+    ],
+    "policies": {
+      "unsupportedPrecision": "error",
+      "dtypeTransition": "require_cast_step",
+      "unresolvedKernel": "error"
+    },
+    "mechanismKernels": [
+      "rope_precompute",
+      "gather_f16_vec4",
+      "rmsnorm_qk",
+      "rope_qk",
+      "kv_cache_write_f32_to_f16",
+      "residual_vec4",
+      "embedding_pool_f32",
+      "l2_normalize",
+      "split_qkv"
+    ]
+  }
+}

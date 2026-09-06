@@ -9,6 +9,7 @@ import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonica
 import { hashTargetPlan } from '../src/config/target-plan.js';
 import { getPackIdentity } from '../src/config/pack.js';
 import { evaluateRerankReference } from '../src/config/rerank-reference.js';
+import { evaluateEmbeddingReference } from '../src/config/embedding-reference.js';
 import kernelRegistry from '../src/config/kernels/registry.json' with { type: 'json' };
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -28,6 +29,15 @@ export function assertRerankerObservedShaderClosure(report, modules) {
 }
 
 export async function buildRerankerEvaluationPack(config) {
+  return buildOperationEvaluationPack(config, 'rerank');
+}
+
+export async function buildEmbeddingEvaluationPack(config) {
+  if (typeof config?.applicationId !== 'string' || !config.applicationId.trim()) throw new Error('Embedding Pack requires an explicit applicationId.');
+  return buildOperationEvaluationPack(config, 'embed');
+}
+
+async function buildOperationEvaluationPack(config, operation) {
   for (const field of ['qualificationPath', 'conversionConfigPath', 'licensePath', 'applicationPath', 'outputDir', 'authorityId']) {
     if (typeof config?.[field] !== 'string' || !config[field].trim()) throw new Error(`Evaluation Pack requires ${field}.`);
   }
@@ -36,9 +46,11 @@ export async function buildRerankerEvaluationPack(config) {
     throw new Error('Evaluation Pack requires an explicit fail-closed revocation policy.');
   }
   const report = JSON.parse(await fs.readFile(config.qualificationPath, 'utf8'));
-  if (report.schema !== 'doppler.rerankModelQualification.v1' || !report.passed
-    || !evaluateRerankReference(report.reference, report.observation).passed) {
-    throw new Error('Evaluation Pack requires passing rerank source qualification.');
+  const expectedSchema = operation === 'embed' ? 'doppler.embeddingModelQualification.v1' : 'doppler.rerankModelQualification.v1';
+  const evaluate = operation === 'embed' ? evaluateEmbeddingReference : evaluateRerankReference;
+  if (report.schema !== expectedSchema || !report.passed
+    || !evaluate(report.reference, report.observation).passed) {
+    throw new Error(`Evaluation Pack requires passing ${operation} source qualification.`);
   }
   const outputDir = path.resolve(config.outputDir);
   await fs.mkdir(path.dirname(outputDir), { recursive: true });
@@ -58,9 +70,9 @@ export async function buildRerankerEvaluationPack(config) {
   const targetId = `webgpu-${manifest.inference.session.compute.defaults.activationDtype}-${manifest.inference.session.kvcache.kvDtype}-${bundle.bundle.wgslModules.some((module) => module.metadata.requiresSubgroups) ? 'subgroups' : 'portable'}`;
   const applicationDigest = hashBytesSha256(await fs.readFile(config.applicationPath));
   const application = {
-    applicationId: 'doppler-electron-reranker-evaluation', applicationRevision: applicationDigest,
+    applicationId: operation === 'embed' ? config.applicationId : 'doppler-electron-reranker-evaluation', applicationRevision: applicationDigest,
     applicationRevisionDigest: applicationDigest,
-    workload: { id: 'frozen-document-reranking', digest: computeCanonicalSha256(report.reference.input) },
+    workload: { id: operation === 'embed' ? 'frozen-document-embedding' : 'frozen-document-reranking', digest: computeCanonicalSha256(report.reference.input) },
     oracle: { id: 'pinned-hf-source-comparison', digest: report.referenceDigest },
   };
   const revocation = { authorityId: config.authorityId,
@@ -74,14 +86,14 @@ export async function buildRerankerEvaluationPack(config) {
         textDigest: hashBytesSha256(await fs.readFile(config.licensePath)) } },
     application,
     exclusions: { rejectionTypes: ['acceptance-failed', 'application-gate-failed', 'artifact-invalid', 'evidence-expired', 'migration-required', 'revoked', 'unsupported-device'],
-      known: [{ code: 'unsupported-device', scope: 'outside-the-observed-electron-amd-tuple',
+      known: [{ code: 'unsupported-device', scope: operation === 'embed' ? 'outside-the-observed-chromium-amd-tuple' : 'outside-the-observed-electron-amd-tuple',
         reason: 'Internal physical evaluation only; other hosts, fleet support and adoption are unestablished.',
         evidenceDigest: hashBytesSha256(await fs.readFile(config.qualificationPath)) }] },
     lifecycle: { releaseVersion: '1.0.0', supersedes: null, migration: null,
       failedUpgrade: { preservePrevious: true, previousPackId: null, previousSemanticRoot: null } },
     revocation: { ...revocation, policyDigest: computeCanonicalSha256(revocation) },
     stateSnapshot: { schema: 'doppler.pack-state-snapshot/v1', format: 'canonical-json',
-      identityDigest: computeCanonicalSha256({ application, state: 'stateless-reranking' }), portableAcrossTargetIds: [targetId] },
+      identityDigest: computeCanonicalSha256({ application, state: operation === 'embed' ? 'stateless-embedding' : 'stateless-reranking' }), portableAcrossTargetIds: [targetId] },
   };
   await write('release.json', release);
   const forge = { repoRoot: ROOT, manifestPath, modelDir: path.dirname(manifestPath),
@@ -111,7 +123,8 @@ export async function buildRerankerEvaluationPack(config) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const config = JSON.parse(await fs.readFile(process.argv[2], 'utf8'));
   try {
-    console.log(JSON.stringify(await buildRerankerEvaluationPack(config)));
+    if (config.operation !== undefined && !['embed', 'rerank'].includes(config.operation)) throw new Error('Unsupported evaluation Pack operation.');
+    console.log(JSON.stringify(await (config.operation === 'embed' ? buildEmbeddingEvaluationPack(config) : buildRerankerEvaluationPack(config))));
   } catch (error) {
     if (error.code !== 'EEXIST') {
       await fs.writeFile(path.join(config.outputDir, 'build-failure.json'), JSON.stringify({

@@ -15,6 +15,8 @@ import {
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 import { createPackReleaseFixture } from '../helpers/pack-v2-fixture.js';
+import { createEmbeddingReferenceFixture } from '../helpers/embedding-reference-fixture.js';
+import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 
 const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-forge-test-'));
 const fixtureRoot = path.join(tmpRoot, 'fixture');
@@ -343,3 +345,39 @@ assert.equal(
 );
 
 console.log('✔ forge-model-pack.test.js: all tests passed');
+
+// Embeddings require their own qualification transcript, with no invented
+// generation tokens. Additional reports must bind the same frozen source.
+const embeddingFixture = createEmbeddingReferenceFixture();
+const embeddingManifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+embeddingManifest.modelType = 'embedding';
+embeddingManifest.artifactIdentity = { ...embeddingManifest.artifactIdentity,
+  sourceCheckpointId: embeddingFixture.reference.source.checkpointId,
+  sourceRepo: embeddingFixture.reference.source.repository,
+  sourceRevision: embeddingFixture.reference.source.revision };
+embeddingManifest.inference.output.embeddingPostprocessor = embeddingFixture.reference.embeddingContract.postprocessor;
+const embeddingManifestPath = path.join(modelDir, 'embedding-manifest.json');
+const embeddingManifestRaw = JSON.stringify(embeddingManifest);
+await fs.writeFile(embeddingManifestPath, embeddingManifestRaw);
+const embeddingReport = {
+  schema: 'doppler.embeddingModelQualification.v1', passed: true,
+  model: { modelId: embeddingManifest.modelId, manifestHash: 'sha256:' + createHash('sha256').update(embeddingManifestRaw).digest('hex'),
+    artifactIdentity: embeddingManifest.artifactIdentity },
+  runtime: { surface: 'browser-webgpu', executionGraphHash: writtenPack.program.executionGraphHash, adapterInfo: { vendor: 'synthetic' } },
+  reference: embeddingFixture.reference, referenceDigest: embeddingFixture.referenceDigest, observation: embeddingFixture.observation,
+};
+const embeddingReportPath = path.join(reportDir, 'embedding.json');
+await fs.writeFile(embeddingReportPath, JSON.stringify(embeddingReport));
+const embeddingOptions = { ...options, createdAtUtc: '2026-09-05T00:00:00.000Z', manifestPath: embeddingManifestPath, referenceReportPath: embeddingReportPath,
+  outputPath: path.join(tmpRoot, 'embedding', 'pack.json') };
+const embedded = await forgeModelPack(embeddingOptions);
+assert.equal(embedded.ok, true);
+await forgeModelPack({ ...embeddingOptions, outputPath: path.join(tmpRoot, 'embedding-extra', 'pack.json'),
+  qualificationReportPaths: [embeddingReportPath] });
+const other = structuredClone(embeddingReport);
+other.reference.tolerances.embeddingMaxAbs = 0.02;
+other.referenceDigest = computeCanonicalSha256(other.reference);
+const otherPath = path.join(reportDir, 'embedding-other.json');
+await fs.writeFile(otherPath, JSON.stringify(other));
+await assert.rejects(forgeModelPack({ ...embeddingOptions, qualificationReportPaths: [otherPath] }), /same model, source reference, and request/);
+console.log('forge-model-pack: embedding qualification passed (synthetic reference)');

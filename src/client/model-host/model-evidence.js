@@ -20,6 +20,14 @@ function cleanEvidenceString(value) {
   return text || null;
 }
 
+export function snapshotModelEvidenceStats(stats) {
+  if (!stats || typeof stats !== 'object') return null;
+  // Unmeasured timing is explicit in receipt JSON. Zero would claim a measured
+  // duration; non-finite measurements remain invalid and are never concealed.
+  return { ...stats, gpuTimePrefillMs: stats.gpuTimePrefillMs ?? null,
+    gpuTimeDecodeMs: stats.gpuTimeDecodeMs ?? null };
+}
+
 export function normalizeSha256Identity(value, label) {
   const normalized = cleanEvidenceString(value)?.toLowerCase() ?? '';
   const digest = normalized.startsWith('sha256:') ? normalized : `sha256:${normalized}`;
@@ -186,7 +194,7 @@ export async function buildGenerationEvidence({
     runtimeProfileHash,
     backendIdentity,
     backendIdentityHash,
-    stats: stats && typeof stats === 'object' ? stats : null,
+    stats: snapshotModelEvidenceStats(stats),
   };
 }
 
@@ -242,6 +250,6 @@ export async function buildEmbeddingEvidence({
     executionIdentity: identity.executionIdentity,
     backendIdentity,
     backendIdentityHash: await hashEvidenceValue(backendIdentity),
-    stats: stats && typeof stats === 'object' ? stats : null,
+    stats: snapshotModelEvidenceStats(stats),
   };
 }

@@ -1,7 +1,7 @@
 import {
   RERANK_EVIDENCE_SCHEMA, hashEvidenceValue, normalizeSha256Identity,
   buildGenerationBackendIdentity, buildResolutionIdentity,
-  buildGenerationEvidence, buildEmbeddingEvidence,
+  buildGenerationEvidence, buildEmbeddingEvidence, snapshotModelEvidenceStats,
 } from './model-evidence.js';
 import { getKernelCapabilities } from '../../gpu/device.js';
 import { formatChatMessages } from '../../inference/pipelines/text/chat-format.js';
@@ -313,7 +313,7 @@ export function createModelHandle(pipeline, resolved) {
       executionIdentity: identity.executionIdentity,
       backendIdentity,
       backendIdentityHash: hashEvidenceValue(backendIdentity),
-      stats: stats && typeof stats === 'object' ? stats : null,
+      stats: snapshotModelEvidenceStats(stats),
     };
   }
 

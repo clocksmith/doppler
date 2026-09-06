@@ -137,6 +137,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
@@ -183,7 +184,8 @@
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
        "glmocr/glm-ocr-f16-af32",
-       "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+       "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32"
       ],
       "ruleChains": ["matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
@@ -2219,6 +2221,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
@@ -2265,6 +2268,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
@@ -2336,6 +2340,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
@@ -3482,6 +3487,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
@@ -3865,6 +3871,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
       ],
@@ -4627,6 +4634,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
@@ -4832,6 +4840,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "esm/esm2-t12-35m-ur50d-f32-af32",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
       ],
@@ -4914,6 +4923,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
@@ -5900,6 +5910,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
@@ -5920,6 +5931,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
       ],
@@ -6411,6 +6423,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
@@ -6431,6 +6444,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "esm/esm2-t12-35m-ur50d-f32-af32",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
       ],
@@ -7564,6 +7578,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
       ],
@@ -8072,6 +8087,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "esm/esm2-t12-35m-ur50d-f32-af32",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32"
       ],
       "ruleChains": ["split-qkv.rules.json#variant"],
@@ -13076,7 +13092,7 @@
      "requires": [],
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32","qwen3/qwen-3-embedding-0-6b-f16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -13136,8 +13152,8 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-embedding-0-6b-f16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -13410,6 +13426,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "esm/esm2-t12-35m-ur50d-f32-af32",
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32"
       ],
