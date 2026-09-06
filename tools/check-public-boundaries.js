@@ -15,11 +15,13 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Host composition/evidence extraction and Forge candidate evaluation add five
   // reachable files; compatibility facades replace, not duplicate, implementation.
   // Public Electron signature verification adds its existing declaration to closure.
-  // Package-18 inventory: 1755 entries, 2,082,210 packed and 10,763,498 unpacked bytes.
+  // Package-19 inventory: 1755 entries, 2,082,234 packed and 10,765,058 unpacked bytes.
+  // The F16 reranker recipe adds 1,560 bytes of pinned helper-kernel declarations.
+  // Its generated registry references add 528 unpacked bytes (10,765,586 total).
   // No repository tools or evaluation fixtures ship; Pack root remains isolated.
   maxEntryCount: 1755,
   maxPackedSize: 2_083_000,
-  maxUnpackedSize: 10_764_000,
+  maxUnpackedSize: 10_766_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
