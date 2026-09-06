@@ -24,6 +24,19 @@ workflow, not an external adopter or a claim of general model equivalence.
    supplied Electron/Playwright installation and desktop display are probe
    dependencies, not files in the Doppler runtime package.
 
+Install the exact `electronVersion` declared by the evaluation policy in the
+qualification checkout, for example:
+
+```sh
+npm ci
+npm install --no-save --package-lock=false electron@43.4.0
+```
+
+The qualifier rejects Electron resolved from a parent checkout, mismatched
+versions, and executable overrides outside that local package. Its report
+retains the resolved package, executable path, and binary SHA-256. A clean source
+revision alone does not establish an isolated host installation.
+
 The qualification report compares all documents in input order and recomputes
 numerical and exact-rank checks. Neither changing a `passed` bit nor borrowing
 generation evidence makes a rejected candidate eligible. Three documents are

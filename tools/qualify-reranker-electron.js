@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -15,7 +17,33 @@ import { validateCaptureConfig } from '../src/debug/capture-policy.js';
 import ts from 'typescript';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const require = createRequire(import.meta.url);
+
+export async function resolvePinnedElectronHost(repoRoot, expectedVersion) {
+  const root = await fs.realpath(repoRoot);
+  const requireHost = createRequire(path.join(root, 'package.json'));
+  const installationHint = `Install the declared host here: npm install --no-save --package-lock=false electron@${expectedVersion}`;
+  let packagePath;
+  try {
+    packagePath = await fs.realpath(requireHost.resolve('electron/package.json'));
+  } catch (cause) {
+    throw new Error(`Pinned Electron is unavailable in the qualification checkout. ${installationHint}`, { cause });
+  }
+  const relativePackage = path.relative(path.join(root, 'node_modules'), packagePath);
+  if (relativePackage.startsWith('..') || path.isAbsolute(relativePackage)) {
+    throw new Error(`Qualification must not borrow Electron from a parent or neighboring checkout. ${installationHint}`);
+  }
+  const metadata = JSON.parse(await fs.readFile(packagePath, 'utf8'));
+  if (metadata.version !== expectedVersion) throw new Error(`Pinned Electron ${expectedVersion} required; found ${metadata.version}.`);
+  const executablePath = await fs.realpath(requireHost('electron'));
+  const relativeExecutable = path.relative(path.dirname(packagePath), executablePath);
+  if (!relativeExecutable || relativeExecutable.startsWith('..') || path.isAbsolute(relativeExecutable)) {
+    throw new Error('Electron executable must remain inside its qualified local package; external binary overrides are not admitted.');
+  }
+  const hash = createHash('sha256');
+  for await (const chunk of createReadStream(executablePath)) hash.update(chunk);
+  return { version: metadata.version, packagePath, executablePath, executableSha256: hash.digest('hex'),
+    resolution: 'qualification-checkout-local' };
+}
 
 export function compileElectronReleasePreload(source, channel) {
   if (typeof channel !== 'string' || !channel) throw new Error('Electron preload requires its installed channel import.');
@@ -110,7 +138,7 @@ export async function qualifyRerankerElectron(config) {
     applicationFiles = receipt.applicationFiles;
   }
   const policy = JSON.parse(await fs.readFile(config.policyPath, 'utf8'));
-  if (require('electron/package.json').version !== policy.electronVersion) throw new Error('Pinned Electron required.');
+  const electronHost = await resolvePinnedElectronHost(ROOT, policy.electronVersion);
   const reference = assertRerankReference(JSON.parse(await fs.readFile(config.referencePath, 'utf8')));
   if (diagnosticCapture && diagnosticCapture.documentIndex >= reference.input.documents.length) {
     throw new Error('diagnosticCapture.documentIndex exceeds the frozen reference documents.');
@@ -142,6 +170,7 @@ export async function qualifyRerankerElectron(config) {
     model: { modelId: manifest.modelId, manifestHash: hashBytesSha256(manifestBytes), artifactIdentity: manifest.artifactIdentity },
     reference, referenceDigest: computeCanonicalSha256(reference),
     runtime: { surface: 'browser-webgpu', host: 'electron', electronVersion: policy.electronVersion,
+      electronHost,
       executionGraphHash: hashStableJson(manifest.inference.execution),
       sourceRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim() },
     sourceStatus: execFileSync('git', ['status', '--porcelain=v1'], { cwd: ROOT, encoding: 'utf8' }),
@@ -215,7 +244,7 @@ export async function qualifyRerankerElectron(config) {
       report.boundary.applicationAuthorization = 'installed-main-coordinator-with-frame-and-action-policy';
       report.boundary.referenceIpc = true;
     }
-    application = await electron.launch({ executablePath: require('electron'), timeout: policy.timeoutMs,
+    application = await electron.launch({ executablePath: electronHost.executablePath, timeout: policy.timeoutMs,
       args: [...policy.launchArgs, `--doppler-probe-user-data=${path.resolve(config.outputDir, 'user-data')}`,
         ...(mainConfigPath ? [`--doppler-release-main=${mainConfigPath}`] : []),
         path.join(ROOT, 'tools/fixtures/electron-webgpu-main.js')] });

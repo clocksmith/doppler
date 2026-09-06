@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { qualifyRerankerElectron, compileElectronReleasePreload, resolveRerankerPackDistribution } from '../../tools/qualify-reranker-electron.js';
+import { qualifyRerankerElectron, compileElectronReleasePreload, resolveRerankerPackDistribution, resolvePinnedElectronHost } from '../../tools/qualify-reranker-electron.js';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
 import os from 'node:os';
@@ -27,6 +27,27 @@ assert.throws(() => compileElectronReleasePreload('export function other() {}', 
 assert.throws(() => compileElectronReleasePreload(preloadSource, undefined), /installed channel/);
 const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-pack-distribution-'));
 try {
+  const hostRoot = path.join(directory, 'host');
+  const childRoot = path.join(hostRoot, 'child');
+  const electronDir = path.join(hostRoot, 'node_modules/electron');
+  await fs.mkdir(childRoot, { recursive: true });
+  await assert.rejects(resolvePinnedElectronHost(hostRoot, '43.4.0'), /Pinned Electron is unavailable/);
+  await fs.mkdir(electronDir, { recursive: true });
+  await fs.writeFile(path.join(electronDir, 'package.json'), JSON.stringify({ name: 'electron', version: '43.4.0', main: 'index.js' }));
+  const binary = path.join(electronDir, 'test-binary');
+  await fs.writeFile(binary, 'synthetic executable identity; never launched');
+  await fs.writeFile(path.join(electronDir, 'index.js'), `module.exports = ${JSON.stringify(binary)};\n`);
+  const host = await resolvePinnedElectronHost(hostRoot, '43.4.0');
+  assert.equal(host.executablePath, binary);
+  assert.equal(host.resolution, 'qualification-checkout-local');
+  assert.match(host.executableSha256, /^[a-f0-9]{64}$/);
+  await assert.rejects(resolvePinnedElectronHost(hostRoot, '43.5.0'), /Pinned Electron 43.5.0 required/);
+  await assert.rejects(resolvePinnedElectronHost(childRoot, '43.4.0'), /must not borrow Electron/);
+  const outsideBinary = path.join(directory, 'external-binary');
+  await fs.writeFile(outsideBinary, 'outside package');
+  await fs.rm(binary);
+  await fs.symlink(outsideBinary, binary);
+  await assert.rejects(resolvePinnedElectronHost(hostRoot, '43.4.0'), /external binary overrides/);
   await fs.mkdir(path.join(directory, 'distribution'));
   await fs.mkdir(path.join(directory, 'distribution/version one'));
   const manifest = path.join(directory, 'distribution/version one/pack.json');
