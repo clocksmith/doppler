@@ -216,6 +216,31 @@ assert.equal(
 assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'recurrent_state'));
 assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'convolutional_state'));
 
+// Synthetic source closure only: proves Forge preserves declared adapter policy
+// through signing, not that these fixture shader bytes implement LoRA.
+const adapterModules = ['matmul_f16.wgsl', 'scale.wgsl', 'residual.wgsl'].map(file => ({
+  ...v2ProgramBundle.wgslModules[0], id: `adapter-${file}`, file,
+}));
+const adapterBundle = { ...v2ProgramBundle, wgslModules: [...v2ProgramBundle.wgslModules, ...adapterModules] };
+const adapterExecution = { schema: 'doppler.pack-adapter-execution/v1', maxAdapters: 1,
+  combination: 'single', formats: ['peft_safetensors'], operations: ['generate'],
+  kernelModules: adapterModules.map(module => module.id) };
+const adapterIdentity = createInitialExecutionIdentityV2({ ...initialExecutionIdentity,
+  kernelClosure: [...initialExecutionIdentity.kernelClosure,
+    ...adapterModules.map(module => ({ moduleId: module.id, file: module.file, entry: module.entry, digest: module.digest }))],
+});
+const adapterInput = { manifest: v2Manifest, manifestRaw: v2ManifestRaw, programBundle: adapterBundle,
+  programBundleRaw: JSON.stringify(adapterBundle), programBundlePath: '/tmp/adapter-bundle.json',
+  repoRoot: '/tmp', outputPath: '/tmp/adapter-model.pack.json', modelIR: modelIRV2,
+  modelIREvidence, initialExecutionIdentity: adapterIdentity, adapterExecution, release };
+const adapterResult = await runForgePipeline(adapterInput,
+  { authority: TEST_PACK_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_PACK_PUBLIC_KEY });
+assert.deepEqual(adapterResult.pack.targetPlans[0].adapterExecution, adapterExecution);
+assert.notEqual(adapterResult.pack.semanticRoot, v2Result.pack.semanticRoot);
+await assert.rejects(runForgePipeline({ ...adapterInput, adapterExecution: {
+  ...adapterExecution, kernelModules: [...adapterExecution.kernelModules, 'undeclared'],
+} }, { authority: TEST_PACK_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_PACK_PUBLIC_KEY }), /outside signed execution closure/);
+
 // Actual Forge stages with synthetic source/output evidence, not hardware proof.
 const rerankIR = structuredClone(modelIRV2);
 rerankIR.sourceIdentity.revision = '1'.repeat(40);

@@ -1,3 +1,4 @@
+import type { PackExecutionAdapter } from './pack-adapters.js';
 export const PACK_OPERATION_REQUEST_SCHEMA: 'doppler.pack-operation-request/v1';
 export const PACK_OPERATION_RECEIPT_SCHEMA: 'doppler.pack-operation-receipt/v1';
 export const PACK_OPERATION_EVENT_SCHEMA: 'doppler.pack-operation-event/v1';
@@ -7,6 +8,7 @@ export interface PackOperationRequest {
   operation: { name: PackOperationName; version: 1 };
   input: Record<string, unknown>;
   options: Record<string, unknown>;
+  adapterSet?: readonly PackExecutionAdapter[];
   assignment: Record<string, unknown> | null;
   limits: { maxInputBytes: number; maxOutputBytes: number; deadlineAt: number };
 }

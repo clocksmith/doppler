@@ -28,9 +28,13 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // CI run 34010417074 packed the same inventory to 2,086,003 bytes with npm 10;
   // compression variation retains a separate bound from the unpacked payload.
   // No repository tools or evaluation fixtures ship; Pack root remains isolated.
-  maxEntryCount: 1756,
-  maxPackedSize: 2_086_500,
-  maxUnpackedSize: 10_782_000,
+  // Request-bound adapter policy and session lifecycle add seven shipped assets.
+  maxEntryCount: 1763,
+  // Adapter inventory: 2,089,342 packed / 10,801,876 unpacked bytes (npm 9),
+  // plus the explicit legacy qualification declaration's public type.
+  // Preserve the observed cross-npm compression allowance above.
+  maxPackedSize: 2_092_000,
+  maxUnpackedSize: 10_802_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

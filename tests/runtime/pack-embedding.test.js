@@ -98,7 +98,8 @@ const test = await openFixture();
 const controller = new AbortController();
 test.duringEmbed = (text, options) => {
   assert.equal(text, test.request.text);
-  assert.equal(options.signal, controller.signal);
+  assert.equal(options.signal.aborted, false);
+  assert.equal(typeof options.signal.throwIfAborted, 'function');
 };
 const result = await test.session.embed({ ...test.request, options: { signal: controller.signal } });
 assert.deepEqual(result.embedding, [0, 0, 0, 1]);
@@ -146,6 +147,8 @@ for (const [request, message] of [
   [{ ...test.request, application: { ...test.request.application, extraAuthority: true } }, /application identity/],
   [{ ...test.request, sequence: 'MKT' }, /undeclared fields/],
   [{ ...test.request, options: { embeddingMode: 'mean' } }, /only signal/],
+  [{ ...test.request, options: null }, /as an object/],
+  [{ ...test.request, options: { signal: null } }, /AbortSignal/],
   [{ ...test.request, options: { signal: {} } }, /AbortSignal/],
 ]) await assert.rejects(test.session.embed(request), message);
 controller.abort(new Error('cancel before execution'));

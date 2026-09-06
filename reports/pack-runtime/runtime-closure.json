@@ -1,8 +1,8 @@
 {
   "schema": "doppler.pack-runtime-closure/v1",
   "entrypoint": "src/pack-runtime.js",
-  "fileCount": 45,
-  "sourceBytes": 228657,
+  "fileCount": 53,
+  "sourceBytes": 553953,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -22,13 +22,18 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 14892,
-      "hash": "sha256:7806c3bb0a085312b99b346e33a70407aebc95f9737c4e2532101aced964f560"
+      "sizeBytes": 17316,
+      "hash": "sha256:405408ee24c1bae130b7aeff0db72f0a62a047f42980b354a024d98173aedfd7"
     },
     {
       "path": "src/client/runtime/fetch-pack-artifact-store.js",
       "sizeBytes": 1130,
       "hash": "sha256:f95991a5ee21cd4b7c0ce3c2ea5554a5bff6547ed632d1a9ba93aa56284fb571"
+    },
+    {
+      "path": "src/client/runtime/pack-adapter-execution.js",
+      "sizeBytes": 3763,
+      "hash": "sha256:22a0688825755de2a602370e33a794010239e255c3fc54b2f6d1f46f01acb229"
     },
     {
       "path": "src/client/runtime/pack-embedding.js",
@@ -52,13 +57,18 @@
     },
     {
       "path": "src/client/runtime/pack-operation-executor.js",
-      "sizeBytes": 4515,
-      "hash": "sha256:badc7c1076e49cec35b85dfb359a3f349807ad431253194fb277c7a6d4a8cc49"
+      "sizeBytes": 5367,
+      "hash": "sha256:96004f44ad3d29487d10130876d43d883cb75f04ae7fb4352fafbc17016fe5b0"
     },
     {
       "path": "src/client/runtime/pack-rerank.js",
       "sizeBytes": 3763,
       "hash": "sha256:fccdd544c8dde4dd134d7290aa50bfbe68b498f43e41bc8f12dda897ef4315f9"
+    },
+    {
+      "path": "src/client/runtime/pack-session-execution.js",
+      "sizeBytes": 3183,
+      "hash": "sha256:115d44299b477a2ff3f06567370179cc0f505de7db460af7951a313b007ccc05"
     },
     {
       "path": "src/client/runtime/resource-binder.js",
@@ -96,6 +106,11 @@
       "hash": "sha256:766e0b5ad44b53cc9756806fdb22f50fde9eb914d7c54ca4cf0a329fbee24a5a"
     },
     {
+      "path": "src/config/kernels/registry.json",
+      "sizeBytes": 297736,
+      "hash": "sha256:a1d3b0605c3ab7f2db907f6dc869deb2f470ff6f12a9864a995deeda12e36f60"
+    },
+    {
       "path": "src/config/model-ir-v2.js",
       "sizeBytes": 11405,
       "hash": "sha256:fb31ca041f39dba1b017c33c21f1e9c6c344a400524a41e0c49614403c5c7f74"
@@ -106,9 +121,24 @@
       "hash": "sha256:f970113567f8dd296b28fc76d4711a7bc21d2c51185e1ed630d9e52ce6b23219"
     },
     {
+      "path": "src/config/pack-adapter-policy.js",
+      "sizeBytes": 2082,
+      "hash": "sha256:39427085212d4b57f6256fd3f900015501414c26b76017cd1ecc7cd4206c5d39"
+    },
+    {
+      "path": "src/config/pack-adapters.js",
+      "sizeBytes": 2732,
+      "hash": "sha256:bd6e74b279ceffb0b2a0350fc28a05d7dc09f9429076693c3450bf16b9eb242e"
+    },
+    {
+      "path": "src/config/pack-adapters.json",
+      "sizeBytes": 270,
+      "hash": "sha256:a7793646fd15ee7754f041e55e2b9f69bafb59aaa3301ee3df272f1aebe88337"
+    },
+    {
       "path": "src/config/pack-operation.js",
-      "sizeBytes": 3747,
-      "hash": "sha256:96a84ec353ebc8f2eb7208182de3ae5f92eef45c39bb9921128fda7ee2f8dd39"
+      "sizeBytes": 3761,
+      "hash": "sha256:14178df925e74aeb95fcaeada021d8735f4bc6999c6338668a43ed87e2cfdf7f"
     },
     {
       "path": "src/config/pack-operations.json",
@@ -151,14 +181,19 @@
       "hash": "sha256:0d674a9c690c211fc215fc88cf6732bd8b756c7f4d53a964f8d4221eb68e79bf"
     },
     {
+      "path": "src/config/revocation-policy.js",
+      "sizeBytes": 10764,
+      "hash": "sha256:66f1001c038b5f0fb1b064523d47879d2c23ea7d6b60df7a9bffaef293c9d091"
+    },
+    {
       "path": "src/config/schema/debug.schema.js",
       "sizeBytes": 4207,
       "hash": "sha256:2e93df23cf8dbc54f3548cb38a5cba00bd1e96b3827de29ae409038f8992c59f"
     },
     {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 17400,
-      "hash": "sha256:84d9b018323247587e3493a2eb7ca41e1bc188a9ce4d03528128bee9f5db6ff7"
+      "sizeBytes": 17718,
+      "hash": "sha256:deabd87408cf506d5e735132dbbfcb9f831d8fa9c951c0e2f04128bdb87db7f0"
     },
     {
       "path": "src/debug/capture-policy.js",
@@ -214,6 +249,11 @@
       "path": "src/formats/canonical-hash.js",
       "sizeBytes": 2489,
       "hash": "sha256:0034c8318465e897c78d01f2a15025ce86464e05799d4b1162327618251a9fda"
+    },
+    {
+      "path": "src/formats/load-json.js",
+      "sizeBytes": 1158,
+      "hash": "sha256:71761a83b6d7a0e89962592f6d3181f9524eb6784bafb1879dcd4316b936ed5f"
     },
     {
       "path": "src/formats/sha256.js",

@@ -35,7 +35,7 @@ export function assertPackOperationFields(value, fields, label) {
 
 export function snapshotPackOperationRequest(value) {
   const request = normalizePackObservation(value);
-  assertPackOperationFields(request, ['schema', 'operation', 'input', 'options', 'assignment', 'limits'], 'Pack operation request');
+  assertPackOperationFields(request, ['schema', 'operation', 'input', 'options', 'assignment', 'limits', 'adapterSet'], 'Pack operation request');
   if (request.schema !== PACK_OPERATION_REQUEST_SCHEMA) throw new Error('Unsupported Pack operation request schema.');
   assertPackOperationFields(request.operation, ['name', 'version'], 'Pack operation');
   const definition = PACK_OPERATIONS[request.operation.name];

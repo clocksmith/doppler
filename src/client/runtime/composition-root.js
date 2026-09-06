@@ -11,7 +11,9 @@ import { createSessionController } from './session-controller.js';
 import { selectTargetPlan } from './target-selector.js';
 import { executePackRerank } from './pack-rerank.js';
 import { createPackOperationAdapters } from './pack-operation-adapters.js';
+import { createPackAdapterExecution } from './pack-adapter-execution.js';
 import { createPackOperationExecutor } from './pack-operation-executor.js';
+import { createPackSessionExecution } from './pack-session-execution.js';
 import { executePackForecast } from './pack-forecast.js';
 import { executePackEmbedding } from './pack-embedding.js';
 
@@ -21,6 +23,15 @@ export const RUNTIME_CORE_VERSION = '2.0.0';
 
 function emit(observer, event) {
   observer?.observe?.(Object.freeze({ ...event }));
+}
+
+function withRequestSignal(request, signal) {
+  // Leave malformed requests intact for the operation owner's validation.
+  if (!request || typeof request !== 'object' || Array.isArray(request)) return request;
+  const options = request.options;
+  if (options !== undefined && (!options || typeof options !== 'object' || Array.isArray(options))) return request;
+  if (options?.signal === null) return request;
+  return { ...request, options: { ...options, signal } };
 }
 
 async function loadModuleSources(pack, artifactStore) {
@@ -117,6 +128,7 @@ export function createDopplerRuntime(ports) {
         const resourceBinder = createResourceBinder(device, program);
         const commandExecutor = createCommandExecutor(device, resourceBinder, program);
         const sessionController = createSessionController(commandExecutor, resourceBinder, program);
+        const execution = createPackSessionExecution();
         let closed = false;
 
         async function assertPlanUnchanged(observeProgram = true) {
@@ -252,32 +264,54 @@ export function createDopplerRuntime(ports) {
             }
           },
 
-          async close() {
-            if (closed) return;
+          close() {
             closed = true;
-            try {
-              await sessionController.close();
-            } finally {
-              commandExecutor.clearPipelineCache();
-              verifiedStore.close();
-              await assertPlanUnchanged(false);
-            }
-            emit(observer, { type: 'pack-session-closed', packId: pack.packId, targetPlanDigest });
+            return execution.close(async () => {
+              try {
+                await sessionController.close();
+              } finally {
+                commandExecutor.clearPipelineCache();
+                verifiedStore.close();
+                await assertPlanUnchanged(false);
+              }
+              emit(observer, { type: 'pack-session-closed', packId: pack.packId, targetPlanDigest });
+            });
           },
         };
+        // Internal adapters run under the caller's single execution lease.
+        const local = { ...session };
+        function requireBaseProgram() {
+          if (program.getActiveAdapterIdentity?.()) throw new Error('Pack adapter remains active; close and reopen the session.');
+        }
+        const runLocal = (task, signal) => execution.run(currentSignal => {
+          requireBaseProgram();
+          return task(currentSignal);
+        }, signal);
         const adapters = createPackOperationAdapters({ program,
-          generate: (request) => session.generate(request), rerank: (request) => session.rerank(request),
-          embed: (request) => session.embed(request),
-          encodeSequence: (sequence, options) => session.encodeSequence(sequence, options) });
-        return Object.assign(session, {
-          executeOperation: createPackOperationExecutor({ adapters,
+          generate: (request) => local.generate(request), rerank: (request) => local.rerank(request),
+          embed: (request) => local.embed(request),
+          encodeSequence: (sequence, options) => local.encodeSequence(sequence, options) });
+        const executeOperation = createPackOperationExecutor({ adapters,
+            prepareExecution: createPackAdapterExecution({ program, pack: { ...verification.identity, modelId: pack.modelId }, targetPlan: selectedPlan }),
             identity: { pack: verification.identity, targetId: selectedPlan.targetId, targetPlanDigest,
               artifactReceipts: verification.artifactReceipts, releaseEventDigest: verification.lifecycle?.event.digest ?? null },
             async assertCurrent() {
               if (closed) throw new Error('Pack runtime session is closed.');
               await assertPlanUnchanged();
             },
-          }),
+          });
+        return Object.assign(session, {
+          generate: (options = {}) => execution.stream(async function* (signal) {
+            requireBaseProgram();
+            yield* local.generate({ ...options, signal });
+          }, options.signal),
+          generateText: async (options = {}) => runLocal(signal => local.generateText({ ...options, signal }), options.signal),
+          forecast: async request => runLocal(signal => local.forecast({ ...request, signal }), request?.signal),
+          embed: async request => runLocal(signal => local.embed(withRequestSignal(request, signal)), request?.options?.signal),
+          rerank: async request => runLocal(signal => local.rerank(withRequestSignal(request, signal)), request?.options?.signal),
+          encodeSequence: async (sequence, options = {}) => runLocal(signal => local.encodeSequence(sequence, { ...options, signal }), options.signal),
+          resetGenerationState: () => runLocal(() => local.resetGenerationState()),
+          executeOperation: (request, control = {}) => execution.stream(signal => executeOperation(request, { ...control, signal }), control.signal),
         });
       } catch (error) {
         try { await program?.close?.(); } finally { verifiedStore.close(); }

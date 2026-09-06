@@ -29,6 +29,7 @@ client/runtime/model-session.js
 client/runtime/node-quickstart-cache.d.ts
 client/runtime/pack-artifact-source.d.ts
 client/runtime/pack-program-adapter.d.ts
+client/runtime/pack-session-execution.d.ts
 client/runtime/source-runtime.d.ts
 client/runtime/storage.d.ts
 client/runtime/verified-pack-artifact-store.d.ts
@@ -66,6 +67,7 @@ config/merge-helpers.js
 config/merge/execution-patches.d.ts
 config/merge/kernel-path-policy.d.ts
 config/merge/value-selection.d.ts
+config/pack-adapter-policy.d.ts
 config/pack-sequence-receipt.d.ts
 config/pack-v0-trusted-signers.d.ts
 config/pack-v0-trusted-signers.js
