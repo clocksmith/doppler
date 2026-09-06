@@ -231,9 +231,11 @@ async function main() {
     evidenceClass: 'installed-package-test', passed: false,
     physicalExecution: false, externalAdoption: false,
     nodeVersion: process.version, platform: process.platform, arch: process.arch,
+    npmVersion: null, zlibVersion: process.versions.zlib,
     startedAtUtc: new Date().toISOString(), package: null, failure: null,
   };
   try {
+    receipt.npmVersion = run(npmCommand, ['--version']).trim();
     if (options.retain) {
       const source = {
         commit: run('git', ['rev-parse', 'HEAD']).trim(),

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildWgslClosure } from '../../src/tooling/program-bundle/wgsl-closure.js';
 import { createShaderSourceScope, getScopedShaderSource, runWithShaderSourceScope } from '../../src/gpu/kernels/shader-source-scope.js';
+import { assertRerankerObservedShaderClosure } from '../../tools/build-reranker-evaluation-pack.js';
 
 const repoRoot = fileURLToPath(new URL('../../', import.meta.url));
 const recipe = JSON.parse(await fs.readFile(path.join(repoRoot,
@@ -19,10 +20,19 @@ const f16Recipe = JSON.parse(await fs.readFile(path.join(repoRoot,
   'src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json')));
 assert.deepEqual(f16Recipe.inference.rerank, recipe.inference.rerank, 'precision variants preserve the scoring contract');
 const f16Closure = await buildWgslClosure(f16Recipe.execution, [], { repoRoot });
-for (const file of required.slice(1)) {
+for (const file of [...required.slice(1), 'split_qkv.wgsl']) {
   assert(f16Closure.modules.some(module => module.file === file), `F16 Pack must seal ${file}`);
 }
 assert(!f16Closure.modules.some(module => module.file === required[0]), 'F16 closure must not borrow Q4K dequantization');
+const f16Requests = { requests: [...required.slice(1), 'split_qkv.wgsl', 'probe_shader_f16.wgsl', 'submit_probe.wgsl']
+  .map(file => `http://qualification.invalid/src/gpu/kernels/${file}`) };
+const observed = assertRerankerObservedShaderClosure(f16Requests, f16Closure.modules);
+assert(observed.modelShaders.includes('split_qkv.wgsl'));
+assert.deepEqual(observed.deviceProbes, ['probe_shader_f16.wgsl', 'submit_probe.wgsl']);
+assert.throws(() => assertRerankerObservedShaderClosure(f16Requests,
+  f16Closure.modules.filter(module => module.file !== 'split_qkv.wgsl')), /omits observed model shaders: split_qkv.wgsl/);
+assert.throws(() => assertRerankerObservedShaderClosure({}, f16Closure.modules), /requires observed shader requests/);
+assert.throws(() => assertRerankerObservedShaderClosure({ requests: [] }, f16Closure.modules), /requires observed model shader requests/);
 const closure = await buildWgslClosure(recipe.execution, [], { repoRoot });
 const sources = new Map(closure.modules.map(module => [module.file,
   closure.packageFiles.find(file => file.path === module.sourcePath).contents]));

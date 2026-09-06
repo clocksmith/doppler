@@ -9,8 +9,23 @@ import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonica
 import { hashTargetPlan } from '../src/config/target-plan.js';
 import { getPackIdentity } from '../src/config/pack.js';
 import { evaluateRerankReference } from '../src/config/rerank-reference.js';
+import kernelRegistry from '../src/config/kernels/registry.json' with { type: 'json' };
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+export function assertRerankerObservedShaderClosure(report, modules) {
+  if (!Array.isArray(report.requests)) throw new Error('Evaluation Pack requires observed shader requests.');
+  const probes = new Set(Object.values(kernelRegistry.operations.runtime_probe.variants).map(variant => variant.wgsl));
+  const requested = [...new Set(report.requests.map(request => path.posix.basename(decodeURIComponent(new URL(request).pathname)))
+    .filter(file => file.endsWith('.wgsl')))].sort();
+  const modelShaders = requested.filter(file => !probes.has(file));
+  if (!modelShaders.length) throw new Error('Evaluation Pack requires observed model shader requests.');
+  const declared = new Set(modules.map(module => module.file));
+  const missing = modelShaders.filter(file => !declared.has(file));
+  if (missing.length) throw new Error(`Evaluation Pack closure omits observed model shaders: ${missing.join(', ')}.`);
+  return { modelShaders, deviceProbes: requested.filter(file => probes.has(file)),
+    scope: 'Observed qualification path only; not all shapes or devices.' };
+}
 
 export async function buildRerankerEvaluationPack(config) {
   for (const field of ['qualificationPath', 'conversionConfigPath', 'licensePath', 'applicationPath', 'outputDir', 'authorityId']) {
@@ -39,6 +54,7 @@ export async function buildRerankerEvaluationPack(config) {
   const bundle = await writeProgramBundle({ repoRoot: ROOT, manifestPath, modelDir: path.dirname(manifestPath),
     conversionConfigPath: path.resolve(config.conversionConfigPath), referenceReportPath: path.resolve(config.qualificationPath),
     createdAtUtc: report.generatedAt, outputPath: path.join(outputDir, 'build/program-bundle.json') });
+  const observedShaderClosure = assertRerankerObservedShaderClosure(report, bundle.bundle.wgslModules);
   const targetId = `webgpu-${manifest.inference.session.compute.defaults.activationDtype}-${manifest.inference.session.kvcache.kvDtype}-${bundle.bundle.wgslModules.some((module) => module.metadata.requiresSubgroups) ? 'subgroups' : 'portable'}`;
   const applicationDigest = hashBytesSha256(await fs.readFile(config.applicationPath));
   const application = {
@@ -85,7 +101,7 @@ export async function buildRerankerEvaluationPack(config) {
   }
   await write('open-options.json', { trustedSigners: { [config.authorityId]: publicKey },
     acceptedTargetPlanDigests: pack.targetPlans.map(hashTargetPlan) });
-  await write('build-receipt.json', { result, packIdentity: getPackIdentity(pack), application,
+  await write('build-receipt.json', { result, packIdentity: getPackIdentity(pack), application, observedShaderClosure,
     modelLicense: { path: licensePath, digest: pack.release.source.license.textDigest,
       binding: 'release.source.license.textDigest', artifactInventoryMember: false },
     evidenceClass: 'internal-source-qualified-evaluation-pack', physicalPackExecution: false, externalAdoption: false });

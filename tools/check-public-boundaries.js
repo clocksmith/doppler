@@ -18,9 +18,11 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Package-19 inventory: 1755 entries, 2,082,234 packed and 10,765,058 unpacked bytes.
   // The F16 reranker recipe adds 1,560 bytes of pinned helper-kernel declarations.
   // Its generated registry references add 528 unpacked bytes (10,765,586 total).
+  // Identical file inventories pack to 2,082,249 bytes with Node 22.22.1/npm 9.2.0
+  // and 2,083,864 with CI's Node 22.23.2/npm 10.9.8; payload budgets stay fixed.
   // No repository tools or evaluation fixtures ship; Pack root remains isolated.
   maxEntryCount: 1755,
-  maxPackedSize: 2_083_000,
+  maxPackedSize: 2_085_000,
   maxUnpackedSize: 10_766_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([

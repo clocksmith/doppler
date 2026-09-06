@@ -70,7 +70,13 @@ implementations only through a new Forge candidate.
 The tool creates a closed Program Bundle, rerank-qualified TargetPlan with
 observed initial execution identity, signed Pack, application contract, explicit
 public-key trust configuration, and build receipt. It verifies current WGSL
-hashes and refuses stale pins. Without `modelIRReceiptPath`, it uses
+hashes and refuses stale pins. Before signing, every model shader requested by
+the qualification must occur in the declared bundle. Only the kernel registry's
+`runtime_probe` variants are classified separately as device probes. Missing
+request evidence or an undeclared observed shader rejects the build; the tool
+never adds kernels to a sealed Pack. This covers the observed execution path,
+not untested shapes or devices. The build receipt retains this inventory.
+Without `modelIRReceiptPath`, it uses
 manifest-derived ModelIR v1. Supplying that field packages the source-fact
 ModelIR v2 receipt and qualifies only its lowered rerank entry point against
 the operation's source comparison. Generation parity cannot qualify reranking.
