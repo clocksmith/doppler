@@ -2,6 +2,7 @@ import type { PipelineStats } from '../../inference/pipelines/text/types.js';
 import type { ResolvedDopplerResolutionPolicy } from '../runtime/resolution-policy.js';
 import type {
   DopplerEmbeddingEvidence,
+  DopplerEvidenceStats,
   DopplerGenerationBackendIdentity,
   DopplerGenerationConfigEvidence,
   DopplerGenerationEvidence,
@@ -11,6 +12,7 @@ import type {
 
 export const RERANK_EVIDENCE_SCHEMA: 'doppler_rerank_evidence/v1';
 export declare function hashEvidenceValue(value: unknown): `sha256:${string}`;
+export declare function snapshotModelEvidenceStats(stats: PipelineStats | null | undefined): DopplerEvidenceStats | null;
 export declare function normalizeSha256Identity(value: unknown, label: string): `sha256:${string}`;
 export declare function buildGenerationBackendIdentity(input?: {
   deviceInfo?: Record<string, unknown> | null;

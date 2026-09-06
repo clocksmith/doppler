@@ -16,6 +16,11 @@ import type {
 
 export type DopplerGenerateOptions = Omit<GenerateOptions, 'stopTokens'>;
 
+export type DopplerEvidenceStats = Omit<PipelineStats, 'gpuTimePrefillMs' | 'gpuTimeDecodeMs'> & {
+  gpuTimePrefillMs: number | null;
+  gpuTimeDecodeMs: number | null;
+};
+
 export interface DopplerGenerationConfigEvidence {
   maxTokens: number;
   temperature: number;
@@ -106,7 +111,7 @@ export interface DopplerGenerationEvidence {
   runtimeProfileHash: string;
   backendIdentity: DopplerGenerationBackendIdentity;
   backendIdentityHash: string;
-  stats: PipelineStats | null;
+  stats: DopplerEvidenceStats | null;
 }
 
 export interface DopplerEmbeddingEvidence {
@@ -122,7 +127,7 @@ export interface DopplerEmbeddingEvidence {
   executionIdentity: DopplerResolvedExecutionIdentity;
   backendIdentity: DopplerGenerationBackendIdentity;
   backendIdentityHash: `sha256:${string}`;
-  stats: PipelineStats | null;
+  stats: DopplerEvidenceStats | null;
 }
 
 export interface DopplerRerankScore {
@@ -149,7 +154,7 @@ export interface DopplerRerankEvidence {
   executionIdentity: DopplerResolvedExecutionIdentity;
   backendIdentity: DopplerGenerationBackendIdentity;
   backendIdentityHash: `sha256:${string}`;
-  stats: PipelineStats | null;
+  stats: DopplerEvidenceStats | null;
 }
 
 export interface DopplerChatResponse {

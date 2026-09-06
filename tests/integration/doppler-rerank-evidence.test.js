@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 
 import { createModelHandle } from '../../src/client/runtime/model-session.js';
 import { computeCanonicalSha256 } from '../../src/utils/canonical-hash.js';
+import { normalizePackObservation } from '../../src/config/pack-operation.js';
+import { snapshotModelEvidenceStats } from '../../src/client/model-host/model-evidence.js';
 
 const scoring = {
   format: 'qwen3_yes_no_logit',
@@ -49,7 +51,7 @@ const pipeline = {
     };
   },
   getStats() {
-    return { kernelPathId: 'rerank-fixture-path' };
+    return { kernelPathId: 'rerank-fixture-path', gpuTimePrefillMs: undefined, gpuTimeDecodeMs: undefined };
   },
   unload() {},
 };
@@ -68,6 +70,12 @@ const evidence = await handle.rerankWithEvidence('What runs compute shaders?', [
 
 assert.equal(evidence.schema, 'doppler_rerank_evidence/v1');
 assert.equal(evidence.scores.length, 2);
+assert.equal(evidence.stats.gpuTimePrefillMs, null);
+assert.equal(evidence.stats.gpuTimeDecodeMs, null);
+assert.doesNotThrow(() => normalizePackObservation(evidence));
+assert.equal(snapshotModelEvidenceStats({ gpuTimePrefillMs: 0, gpuTimeDecodeMs: 12 }).gpuTimeDecodeMs, 12);
+assert.equal(snapshotModelEvidenceStats({ gpuTimePrefillMs: 0 }).gpuTimePrefillMs, 0);
+assert.throws(() => normalizePackObservation(snapshotModelEvidenceStats({ gpuTimePrefillMs: NaN })), /finite/);
 assert.equal(evidence.ranking[0].index, 1);
 assert.equal(evidence.ranking[0].rank, 1);
 assert.ok(evidence.ranking[0].score > evidence.ranking[1].score);
