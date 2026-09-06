@@ -78,6 +78,7 @@ import { createDocumentSearchRenderer, createDocumentSearchHostRenderer } from '
 import { openPack } from '${packageJson.name}/host';
 import type { DopplerPackOpenOptions } from '${packageJson.name}/host';
 import { registerDocumentSearchReleaseMain } from './main.js';
+import { createDocumentSearchReleaseStore, createDocumentSearchCheckpointStore, prepareDocumentSearchReleaseOptions } from './release-storage.js';
 import type { RuntimePorts, PackRerankRequest, PackEmbeddingRequest, PackEmbeddingResult, DopplerRuntimeSession } from '${packageJson.name}';
 import type { ElectronReleaseStateCoordinator } from '${packageJson.name}/electron';
 declare const ports: RuntimePorts;
@@ -103,6 +104,12 @@ renderer.rerank('query', ['document']);
 // @ts-expect-error Host ports must be explicit.
 createDocumentSearchRenderer(releaseState);
 type MainOptions = Parameters<typeof registerDocumentSearchReleaseMain>[0];
+const stateStore: MainOptions['stateStore'] = createDocumentSearchReleaseStore('/private/application/releases.json');
+const checkpointStore = createDocumentSearchCheckpointStore('/private/application/checkpoint.json');
+declare const releaseOptions: Parameters<typeof prepareDocumentSearchReleaseOptions>[0];
+prepareDocumentSearchReleaseOptions({ ...releaseOptions, checkpointStore }).then(options => {
+  openPack('https://application.example/pack.json', { ...trustOptions, ...options });
+});
 `;
   await fs.writeFile(path.join(consumerDir, 'consumer.ts'), source, 'utf8');
   await fs.writeFile(
@@ -127,13 +134,16 @@ type MainOptions = Parameters<typeof registerDocumentSearchReleaseMain>[0];
 }
 
 async function runElectronPackSmoke(consumerDir) {
-  for (const name of ['main', 'preload', 'renderer']) {
+  const applicationFiles = {};
+  for (const name of ['main', 'preload', 'renderer', 'release-storage']) {
     for (const extension of ['js', 'd.ts']) {
       const filename = `${name}.${extension}`;
       await fs.copyFile(
         path.join(ROOT_DIR, 'examples/electron-document-search', filename),
         path.join(consumerDir, filename),
       );
+      const bytes = await fs.readFile(path.join(consumerDir, filename));
+      applicationFiles[filename] = { sha256: createHash('sha256').update(bytes).digest('hex'), sizeBytes: bytes.length };
     }
   }
   await fs.copyFile(
@@ -152,6 +162,7 @@ async function runElectronPackSmoke(consumerDir) {
   }));
   const output = run(process.execPath, ['electron-smoke.js'], { cwd: consumerDir });
   process.stdout.write(output);
+  return applicationFiles;
 }
 
 async function assertInstalledFiles(consumerDir, packageJson) {
@@ -280,7 +291,7 @@ async function main() {
     await writeImportSmoke(consumerDir, packageJson);
     await runTrainingApiSmoke(consumerDir, packageJson);
     await runCliSmokes(consumerDir, packageJson);
-    await runElectronPackSmoke(consumerDir);
+    receipt.applicationFiles = await runElectronPackSmoke(consumerDir);
     await runEmbeddingPackSmoke(consumerDir);
     await writeTypeSmoke(consumerDir, packageJson);
     receipt.passed = true;

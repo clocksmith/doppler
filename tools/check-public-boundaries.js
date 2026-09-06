@@ -14,11 +14,12 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Host composition/evidence extraction and Forge candidate evaluation add five
   // reachable files; compatibility facades replace, not duplicate, implementation.
-  // Audited inventory: 1754 entries, under 2,082,000 packed and 10,760,127 unpacked bytes.
+  // Public Electron signature verification adds its existing declaration to closure.
+  // Package-18 inventory: 1755 entries, 2,082,210 packed and 10,763,498 unpacked bytes.
   // No repository tools or evaluation fixtures ship; Pack root remains isolated.
-  maxEntryCount: 1754,
-  maxPackedSize: 2_082_000,
-  maxUnpackedSize: 10_761_000,
+  maxEntryCount: 1755,
+  maxPackedSize: 2_083_000,
+  maxUnpackedSize: 10_764_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

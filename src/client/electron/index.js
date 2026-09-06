@@ -5,6 +5,7 @@ export {
   validateElectronReleaseState,
 } from './release-state.js';
 export { createElectronRendererRuntime } from './renderer-runtime.js';
+export { verifyProductionReleaseEvidenceSignature } from '../../config/production-release-evidence.js';
 export {
   ELECTRON_RELEASE_IPC_CHANNEL,
   createElectronReleaseIpcHandler,

@@ -1,0 +1,366 @@
+{
+  "schema": "doppler.standalone-engineering-checkpoint/v1",
+  "generatedAtUtc": "2026-09-06T01:43:26.705Z",
+  "component": [
+    "doppler.runtime-source.client.electron",
+    "doppler.repository-tooling",
+    "doppler.tests",
+    "doppler.docs"
+  ],
+  "intent": "preserved",
+  "goalComplete": false,
+  "source": {
+    "baseline": "7a169c5f41725cf15b05f4cb80bc923e71ecd70a",
+    "patch": {
+      "path": "reports/electron-adoption/standalone-electron-authority-source-20260905.patch",
+      "sizeBytes": 61982,
+      "sha256": "8d2ea86ecc5de95de6103880ccfb4e74411275d8a7c8cee3ca1384bdc186b9f4"
+    },
+    "files": [
+      {
+        "path": "docs/api/reference/exports.md",
+        "sizeBytes": 20290,
+        "sha256": "4c3646b63463bf361eb7b07e0eb08d29cb8fac493844422870fc9b8e79ce050f"
+      },
+      {
+        "path": "docs/integration/reranker-evaluation.md",
+        "sizeBytes": 17034,
+        "sha256": "f0dccbac2b57e0289b34b3fc44c13dfa21a5b9302c08ed237307cd85d8177bb9"
+      },
+      {
+        "path": "docs/revocation.md",
+        "sizeBytes": 11140,
+        "sha256": "7d7a31b822887a16a17b16a05737ae68e3ca983421cd03ddd51c2fe3a46661ec"
+      },
+      {
+        "path": "examples/electron-document-search/README.md",
+        "sizeBytes": 10784,
+        "sha256": "fecf00f646b6a77d90f2672e25571eb7365f53526e26305451a267c1455afdb9"
+      },
+      {
+        "path": "examples/electron-document-search/main.d.ts",
+        "sizeBytes": 691,
+        "sha256": "d429ac8e964c90e31bba65d6dcd8a53b7309534b2ee7001a2ff37d25f3789620"
+      },
+      {
+        "path": "examples/electron-document-search/main.js",
+        "sizeBytes": 644,
+        "sha256": "d49bf5c36dac8d688cd7f8a2f18a4cd72e05f7b3bf3551fdd9d0da841ae4ccea"
+      },
+      {
+        "path": "examples/electron-document-search/release-storage.js",
+        "sizeBytes": 6528,
+        "sha256": "6d646e4347636451ee6a0f5cff8dc03dbab8477b8403a875180f06a0ff00e7fc"
+      },
+      {
+        "path": "reports/pack-runtime/runtime-closure.json",
+        "sizeBytes": 8215,
+        "sha256": "c6686ac6f4a27c100aedd4cb4043930dd11c9f1a2d031d1cc9f4fc7de1d3cae3"
+      },
+      {
+        "path": "src/.npmignore",
+        "sizeBytes": 35438,
+        "sha256": "729d53f4aa96c9bf6076fdaa463a07161277077e676df8affb4f70794131c7e7"
+      },
+      {
+        "path": "src/client/electron/CATSCAN.md",
+        "sizeBytes": 1836,
+        "sha256": "a891b5aba12553414652f058a97e25aec72b6007fa36b7ac646edd139650cdc9"
+      },
+      {
+        "path": "src/client/electron/index.d.ts",
+        "sizeBytes": 214,
+        "sha256": "069019bb57597607418bf5557bbf131e71cfcc2ebf546c2ae1338b0638111d6f"
+      },
+      {
+        "path": "src/client/electron/index.js",
+        "sizeBytes": 499,
+        "sha256": "4714424b15c254a5f15572b01d3a28d61af2b7a116ddafd55a985f2aaa81c275"
+      },
+      {
+        "path": "src/client/electron/ipc-contract.d.ts",
+        "sizeBytes": 568,
+        "sha256": "aafc14fe7b2f752e692a9ca7eb97ba4037c62b9519e446fa096e787149ddd595"
+      },
+      {
+        "path": "src/client/electron/ipc-contract.js",
+        "sizeBytes": 2589,
+        "sha256": "8687ac2682d537ec8e1a79984aaee693141413b186fe1f43493271401d078d3d"
+      },
+      {
+        "path": "src/client/electron/release-state.js",
+        "sizeBytes": 17640,
+        "sha256": "b1ce09bcac53f8e33b49b2e268a19622a595fb4f016010e9a85e29f63f24513c"
+      },
+      {
+        "path": "tests/client/electron-release-episode.test.js",
+        "sizeBytes": 8619,
+        "sha256": "6bb015172f4c054fd0073e1c6361fbc1d29a0a27e3b07ff25f8c93a36157bd5c"
+      },
+      {
+        "path": "tests/client/electron-release-storage.test.js",
+        "sizeBytes": 8418,
+        "sha256": "099caccf4cf9c5014506d1f1036242de3dd0573c88ad944aaff157641bf2107a"
+      },
+      {
+        "path": "tests/fixtures/packed-electron-consumer.js",
+        "sizeBytes": 2938,
+        "sha256": "9b2d7960993af116e320c72d36133d07d6b85777ac22eb5aa5bc09feaf941482"
+      },
+      {
+        "path": "tests/tooling/reranker-evaluation-preflight.test.js",
+        "sizeBytes": 4092,
+        "sha256": "9d54149262328d1526fb2143920a6e7d2d14d74cdfcdbd88c31afd2c284cf63c"
+      },
+      {
+        "path": "tools/check-packed-package.js",
+        "sizeBytes": 14367,
+        "sha256": "7918e3a86a06aca64e661a606b8b6ebc88116c0c770fecaf9ee610a3e5b27cd2"
+      },
+      {
+        "path": "tools/check-public-boundaries.js",
+        "sizeBytes": 16558,
+        "sha256": "f231a6a3a20c452ae777ae296d07c9179fd2f7b0e92d158242fd656c0d1654ef"
+      },
+      {
+        "path": "tools/fixtures/electron-webgpu-main.js",
+        "sizeBytes": 3415,
+        "sha256": "8d24bf44973313a54a8caf4b907434ee3c50028420acc0ace5edea3f08b7db06"
+      },
+      {
+        "path": "tools/qualify-reranker-electron.js",
+        "sizeBytes": 25385,
+        "sha256": "c7e2b94027d5dd63006dd04ba55ebe586f11daac67bdf70583ffd6ade8f2725b"
+      },
+      {
+        "path": "tests/client/electron-ipc-authority.test.js",
+        "sizeBytes": 2439,
+        "sha256": "8106e6dfad5d00a30e9d326810f8ea34ac7c9ff78b30c7b47c8b2bb3beba56df"
+      }
+    ],
+    "shippedFilesCompared": 1755,
+    "mismatches": [],
+    "changesAfterBaselinePushed": false
+  },
+  "changes": [
+    "Require actual application-owned IPC authorization before coordinator access.",
+    "Reverify retained revocation signatures under current trust and retain known denied roots across updates.",
+    "Expose the existing signature verifier through the public Electron export and repair package declaration closure.",
+    "Execute the installed main/preload/renderer path with real Qwen weights and durable application state."
+  ],
+  "tests": {
+    "commands": [
+      "npm run check:green",
+      "npm run test:ci",
+      "npm run kernels:check"
+    ],
+    "exitCode": 0,
+    "uniqueTestFiles": 762,
+    "log": {
+      "path": "reports/electron-adoption/standalone-ci-20260905-19.log",
+      "sizeBytes": 387047,
+      "sha256": "b738e56a91093f647393b6e74386dc50fe2c8c1656fb3182694ca4019d6ccb4c"
+    },
+    "prerequisites": {
+      "path": "reports/electron-adoption/electron-authority-ci-prerequisites-20260905-01.log",
+      "sizeBytes": 4404,
+      "sha256": "f04b952628d41f82d6e9276bd754642fbba62ebd28d790453b40573336a2a528"
+    },
+    "explicitSkips": [
+      "# browser opfs smoke capability skip contract ok",
+      "[node-tests] ok: tests/config/browser-opfs-smoke-capability-skip.test.js",
+      "# fused-ffn-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)",
+      "# fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)",
+      "# [NaN Regression] skipped: local fixture missing at /home/x/deco/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json",
+      "# gemma4-e2b-q4k-apple-retain-regression.test: skipped (vendor=amd not apple)",
+      "# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at /home/x/deco/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)",
+      "# qwen-linear-attention-regression.test: skipped (set DOPPLER_QWEN35_LINEAR_MODEL_DIR)",
+      "# translategemma-q4k-regression.test: skipped (legacy TranslateGemma Q4K is outside the current Gemma 4/Qwen 3.5 release focus)"
+    ]
+  },
+  "package": {
+    "receipt": {
+      "path": "reports/electron-adoption/20260905-standalone-package-18/receipt.json",
+      "sizeBytes": 1712,
+      "sha256": "4db3c782c92cae9c6eb1a87dbc1b9daf03f844f4b021379109e3fb30813accb3"
+    },
+    "tarball": {
+      "path": "reports/electron-adoption/20260905-standalone-package-18/doppler-gpu-0.5.1.tgz",
+      "sizeBytes": 2082210,
+      "sha256": "4f5db5d33bab5ef7c6feb47743dc308f564edd8e371c686b5deef437b0c15431"
+    },
+    "shippedFilesCompared": 1755
+  },
+  "physical": {
+    "evidenceClass": "internal-installed-electron-main-preload-reranker",
+    "observations": [
+      {
+        "name": "initial",
+        "report": {
+          "path": "reports/electron-adoption/qwen-q4k-coordinator-01/initial/qualification.json",
+          "sizeBytes": 384312,
+          "sha256": "e857a6414ecf7dd8b0103c9c562c3faf5421a31ae4716fc6817ea7c5cff11ebe"
+        },
+        "passed": true,
+        "stage": "complete",
+        "reason": null,
+        "sourceChecks": 16,
+        "stateBefore": 0,
+        "stateAfter": 3,
+        "noPackRequests": false
+      },
+      {
+        "name": "restart",
+        "report": {
+          "path": "reports/electron-adoption/qwen-q4k-coordinator-01/restart/qualification.json",
+          "sizeBytes": 381754,
+          "sha256": "f89ee3f1cbd90c4aa0c3527423254e4b7194b89aaedda699f9584f466c319e51"
+        },
+        "passed": true,
+        "stage": "complete",
+        "reason": null,
+        "sourceChecks": 16,
+        "stateBefore": 3,
+        "stateAfter": 3,
+        "noPackRequests": false
+      },
+      {
+        "name": "expired",
+        "report": {
+          "path": "reports/electron-adoption/qwen-q4k-coordinator-01/expired/qualification.json",
+          "sizeBytes": 71115,
+          "sha256": "4c7dd213e15d68ee8ec099f3e757b5e2f987a20b2397832335f9b6e83f99badf"
+        },
+        "passed": false,
+        "stage": "pack-execution",
+        "reason": "page.evaluate: Error: Error invoking remote method 'doppler:release:v1': Error: Electron release revocation state is expired; execution fails closed.",
+        "sourceChecks": 0,
+        "stateBefore": 3,
+        "stateAfter": 3,
+        "noPackRequests": true
+      },
+      {
+        "name": "revoke",
+        "report": {
+          "path": "reports/electron-adoption/qwen-q4k-coordinator-01/revoke/qualification.json",
+          "sizeBytes": 72457,
+          "sha256": "f9caf9e30825ed4ffef60250e182c06db229ffaf4ddfbbaae96bcbd9bfae6a03"
+        },
+        "passed": false,
+        "stage": "pack-execution",
+        "reason": "page.evaluate: Error: Error invoking remote method 'doppler:release:v1': Error: Electron release current Pack is revoked.",
+        "sourceChecks": 0,
+        "stateBefore": 3,
+        "stateAfter": 4,
+        "noPackRequests": true
+      },
+      {
+        "name": "restart-revoked",
+        "report": {
+          "path": "reports/electron-adoption/qwen-q4k-coordinator-01/restart-revoked/qualification.json",
+          "sizeBytes": 71225,
+          "sha256": "13301a69f5ded0fe3e3aeb10da913291bf2794386baa1b8bedb3172697729c68"
+        },
+        "passed": false,
+        "stage": "pack-execution",
+        "reason": "page.evaluate: Error: Error invoking remote method 'doppler:release:v1': Error: Electron release current Pack is revoked.",
+        "sourceChecks": 0,
+        "stateBefore": 4,
+        "stateAfter": 4,
+        "noPackRequests": true
+      },
+      {
+        "name": "stale-snapshot",
+        "report": {
+          "path": "reports/electron-adoption/qwen-q4k-coordinator-01/stale-snapshot/qualification.json",
+          "sizeBytes": 42048,
+          "sha256": "152cd6ffc8e5bca30815ec16b884e53738d58a82b1554aaafc6468442e1f32e8"
+        },
+        "passed": false,
+        "stage": "launch",
+        "reason": "Electron revocation snapshot must advance monotonically.",
+        "sourceChecks": 0,
+        "stateBefore": 4,
+        "stateAfter": 4,
+        "noPackRequests": true
+      },
+      {
+        "name": "erased-revocation",
+        "report": {
+          "path": "reports/electron-adoption/qwen-q4k-coordinator-01/erased-revocation/qualification.json",
+          "sizeBytes": 42189,
+          "sha256": "a71ee458a656d487ac7f61b4801d94f91f5c7065fb0fcd904680cc6114db6455"
+        },
+        "passed": false,
+        "stage": "launch",
+        "reason": "Electron revocation snapshot must retain all previously revoked Pack roots.",
+        "sourceChecks": 0,
+        "stateBefore": 4,
+        "stateAfter": 4,
+        "noPackRequests": true
+      },
+      {
+        "name": "changed-trust",
+        "report": {
+          "path": "reports/electron-adoption/qwen-q4k-coordinator-01/changed-trust/qualification.json",
+          "sizeBytes": 71168,
+          "sha256": "ddbf18f3d2b340530b0056bbc766e443ca3aa2e562628026bb2b24d504006b7d"
+        },
+        "passed": false,
+        "stage": "pack-execution",
+        "reason": "page.evaluate: Error: Error invoking remote method 'doppler:release:v1': Error: Untrusted release evidence authority \"local-reranker-source-evaluator-20260905-03\".",
+        "sourceChecks": 0,
+        "stateBefore": 4,
+        "stateAfter": 4,
+        "noPackRequests": true
+      }
+    ],
+    "queryCount": 1,
+    "documentCount": 3,
+    "newModelRelease": false,
+    "performanceClaim": false,
+    "productionDeployment": false,
+    "checkpointCallback": "controlled-probe-bridge",
+    "executionProvider": "browser-owned WebGPU, not Doe"
+  },
+  "adverse": {
+    "reproducedAuthorityDefects": "reports/electron-adoption/electron-authority-rejections-20260905-01.log",
+    "preloadCompilationDefect": "reports/electron-adoption/electron-authority-regressions-20260905-02.log",
+    "missingInstalledDeclaration": "reports/electron-adoption/standalone-package-17.log",
+    "expectedRejections": [
+      "expired",
+      "revoke",
+      "restart-revoked",
+      "stale-snapshot",
+      "erased-revocation",
+      "changed-trust"
+    ]
+  },
+  "handoff": {
+    "archive": {
+      "path": "reports/electron-adoption/20260905-electron-authority-handoff.tar",
+      "sizeBytes": 5416960,
+      "sha256": "ffa90dd7e62630e249e9866e9d684493a5ff27b69476791df45080107e669b59"
+    },
+    "payloadFilesVerified": 123,
+    "extractionVerified": true,
+    "extracted": "/tmp/doppler-electron-authority-check-wzp1mD",
+    "inventory": "reports/electron-adoption/20260905-electron-authority-handoff/files.json",
+    "retention": "local; not downloaded by clone"
+  },
+  "boundaries": {
+    "externalAdoption": false,
+    "paidUse": false,
+    "recurringRevenue": false,
+    "DoeRequired": false,
+    "PooldayRequired": false,
+    "ReploidRequired": false
+  },
+  "remaining": [
+    "Genuine second model/executable release with application-owned activation and rollback; lifecycle migration is not that proof.",
+    "Credible incumbent controls and full application measurements without weakening acceptance.",
+    "Physical source-pinned text-embedding Pack and controlled candidate-evaluation campaign.",
+    "Explicit recipient-controlled retained-use policy; current expiry remains fail-closed.",
+    "Independent maintainer use and retention are external decisions, not fixture or internal GPU evidence."
+  ]
+}

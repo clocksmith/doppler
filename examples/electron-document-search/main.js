@@ -13,7 +13,7 @@ export function registerDocumentSearchReleaseMain(options) {
   });
   options.ipcMain.handle(
     ELECTRON_RELEASE_IPC_CHANNEL,
-    createElectronReleaseIpcHandler(coordinator)
+    createElectronReleaseIpcHandler(coordinator, { authorizeRequest: options.authorizeRequest })
   );
   return coordinator;
 }

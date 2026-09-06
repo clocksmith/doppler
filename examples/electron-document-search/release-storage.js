@@ -28,6 +28,14 @@ function fileStore(filename, validate) {
   const lockPath = `${filename}.lock`;
   const directory = path.dirname(filename);
 
+  async function syncDirectory() {
+    const parent = await fs.open(directory, 'r');
+    let failed = false;
+    try { await parent.sync(); }
+    catch (error) { failed = true; throw error; }
+    finally { try { await parent.close(); } catch (error) { if (!failed) throw error; } }
+  }
+
   async function load() {
     let handle;
     try {
@@ -39,7 +47,12 @@ function fileStore(filename, validate) {
     let failed = false;
     try {
       if (!(await handle.stat()).isFile()) throw new Error('Release state must be a regular file.');
-      return validate(JSON.parse(await handle.readFile('utf8')));
+      const value = validate(JSON.parse(await handle.readFile('utf8')));
+      // A previous rename may be visible even if its durability barrier failed.
+      // Re-establish durability before treating an identical record as committed.
+      await handle.sync();
+      await syncDirectory();
+      return value;
     } catch (error) { failed = true; throw error; }
     finally { try { await handle.close(); } catch (error) { if (!failed) throw error; } }
   }
@@ -68,8 +81,7 @@ function fileStore(filename, validate) {
       finally { try { await output.close(); } catch (error) { if (!writeFailed) throw error; } }
       await fs.rename(temporary, filename);
       temporary = null;
-      const parent = await fs.open(directory, 'r');
-      try { await parent.sync(); } finally { await parent.close(); }
+      await syncDirectory();
       return true;
     } catch (error) {
       failed = true;

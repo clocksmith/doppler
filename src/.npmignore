@@ -72,7 +72,6 @@ config/pack-v0-trusted-signers.js
 config/param-categories.d.ts
 config/param-validator.d.ts
 config/platforms/loader.d.ts
-config/production-release-evidence.d.ts
 config/production-release.d.ts
 config/quantization-contract-check.d.ts
 config/quantization-contract-check.js

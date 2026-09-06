@@ -18,7 +18,20 @@ customer-authorization policy. A digest is a reference to authorization, not
 proof that an arbitrary renderer is authorized to activate a release. The
 example does not replace those application boundaries.
 
+`registerDocumentSearchReleaseMain` requires `authorizeRequest(event, request)`.
+Check the actual Electron sender/frame and origin, then the permitted action and
+any retained authorization record. Only explicit `true` admits a request. Do not
+use an unconditional callback in a real application. The public Electron export
+`verifyProductionReleaseEvidenceSignature` can verify decisions and snapshots
+against keys chosen by the application. Restored snapshots are checked again
+under current trust; newer snapshots cannot remove already revoked Pack roots.
+
 ### Durable local state
+
+Checkpoint reads also synchronize the record and its directory. A failed write
+can leave a visible renamed file; seeing identical bytes on retry is not proof
+that the durability barrier succeeded. Synchronization failures remain errors,
+and cleanup preserves the original failure.
 
 `release-storage.js` supplies main-process example stores for release state and
 Pack v3 checkpoints. Give each an absolute filename in an existing private
@@ -41,6 +54,12 @@ verified head before model creation. Preparing or downloading history does not
 activate a release; the application must still authorize its Pack and plans.
 Prepare again for every open. Concurrent updates require re-verification, not
 an implicit retry with weakened policy.
+
+This callback records successfully verified execution eligibility, not every
+observed rejection. Applications must separately retain revocation snapshots or
+blocked history and enforce that knowledge on later opens. Rejecting a supplied
+revocation once does not make an older eligible history safe to reuse later.
+The example is not a complete revocation synchronization service.
 
 A malformed record is an error, never an empty store. A retained crash lock
 blocks writes; an operator must establish that no writer survives before

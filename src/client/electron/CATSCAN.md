@@ -19,7 +19,7 @@ Bind an Electron renderer to an eligible immutable Pack while keeping durable up
 
 ## Contracts
 
-- Input: verified release decisions, verified revocation snapshots, customer activation digests, and Pack references.
+- Input: verified release decisions, verified revocation snapshots, application-owned IPC authorization, customer activation digests, and Pack references.
 - Output: durable current/previous/candidate state and renderer sessions opened only from a current usable Pack.
 
 ## Invariants
@@ -28,6 +28,8 @@ Bind an Electron renderer to an eligible immutable Pack while keeping durable up
 - Eligibility and explicit customer authorization are both required for activation.
 - Rejected upgrades preserve the current and previous Packs.
 - Expired or missing signed revocation state fails closed before a Pack is opened.
+- IPC requires application authorization of the actual sender and detached request; an authorization digest alone grants no access.
+- Persisted revocation signatures are reverified under current trust; signed updates retain previously denied Pack roots.
 
 ## Acceptance
 
