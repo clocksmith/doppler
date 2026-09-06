@@ -1,0 +1,110 @@
+{
+  "schema": "doppler.retained-local-v3-checkpoint/v1",
+  "recordedAtUtc": "2026-09-06T14:37:55.000Z",
+  "goalComplete": false,
+  "components": ["doppler.runtime-source.config", "doppler.runtime-source.client"],
+  "intentChange": "Explicit recipient-controlled retained local use, separate from managed freshness; authenticated denials advance durable checkpoints.",
+  "preservedBoundaries": [
+    "Pack v2 readability and immutable executable identity",
+    "Signature, artifact, application, qualified TargetPlan and initial execution identity checks",
+    "Known revocations, release-history continuity, persisted checkpoint and application activation authority",
+    "No delegation authority from retained local use",
+    "No Doe, Poolday or Reploid prerequisite"
+  ],
+  "source": {
+    "runtimeCommit": "c2fb9f12996b29689fd2139a6a5345549aa823cf",
+    "ciPackageBudgetCommit": "e3fdbd580b0aa3aa44165a3eee017925b0cab14a",
+    "packageBuiltFromCleanCheckout": true,
+    "packageSha256": "b9cfbf9500e22e87687e95d092d4fa11c368b8e6c22ecb91836a8b7a9dd18f54",
+    "packageBytes": 2088546,
+    "packageFiles": 1758,
+    "packageUnpackedBytes": 10798454,
+    "installedPublicExportsAndDeclarations": 27
+  },
+  "acceptance": {
+    "repositoryCommand": "npm run check:green",
+    "testFilesPassed": 765,
+    "runtimeClosureFiles": 46,
+    "runtimeClosureBytes": 234202,
+    "architectureOwners": 21,
+    "architectureFiles": 2619,
+    "ciRun": "https://github.com/clocksmith/doppler/actions/runs/34039207635",
+    "ciJobId": 101502762150,
+    "ciConclusion": "success",
+    "ciLogSha256": "6131a2ee31b30c9ff6ee6f4bb896b69b703dcc3536648dbdbb63dc6343d2c483",
+    "browserKernelEvidenceClass": "SwiftShader contract",
+    "offlinePwaEvidenceClass": "mocked-contract",
+    "physicalEvidenceSeparate": true
+  },
+  "physical": {
+    "evidenceClass": "internal-physical-installed-package",
+    "model": "Qwen/Qwen3-Reranker-0.6B",
+    "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+    "implementation": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "host": "Node 22.22.1 / Linux x64",
+    "provider": "webgpu 0.4.0 / Dawn Vulkan",
+    "device": "AMD Radeon 8060S / RDNA3 / RADV STRIX_HALO",
+    "driver": "Mesa 26.0.3-1ubuntu1",
+    "fallbackAdapter": false,
+    "doeInstalled": false,
+    "queryCount": 1,
+    "documentCount": 3,
+    "independentOperators": false,
+    "sourceModelRevisions": 1,
+    "semanticRoot": "sha256:3410ff056ff977176a5c1b71ef460ad76c8fc4e9fd7cbcf010d206dbe0428dc0",
+    "targetPlanDigest": "sha256:cf53f16d8dd167accd67ed142bd0896a5d8941f086325efaa9d43535f962e3dd",
+    "artifactClosureDigest": "sha256:b2ae1fe67a92de675f664aa7a308ac5e874b927a989d5640b5621c9b1c188cda",
+    "observation": {
+      "report": "reports/electron-adoption/retained-local-v3-physical-20260906-02/physical-report.json",
+      "reportSha256": "4c0e10d8794744b47a2359e599f8116e90f53f8bceb0c3c114e863961fa09e5c",
+      "envelopeDigest": "sha256:934393af7ebb164ae1f1e87ccf422eed974f639ddcb4fe31b64a55511fcc7d3b",
+      "runs": 2,
+      "sourceChecksPerRun": 16,
+      "allSourceChecksPassed": true
+    },
+    "isolatedReproduction": {
+      "directory": "/tmp/doppler-retained-v3-replay-pD32Wk",
+      "reportSha256": "233eae275769382f500520d3bf38134f44e03a2809c4025b0e2c543eba94ad92",
+      "envelopeDigest": "sha256:92da53d2ccfe10430c418a280a585a3c98aa9474437d226eff3cdcb0b73e13f3",
+      "installedFromLocalTarballsWithFreshCache": true,
+      "runs": 2,
+      "sourceChecksPerRun": 16,
+      "allSourceChecksPassed": true,
+      "separateProcessRejectedArchivedRevokedStream": true
+    },
+    "lifecycleChecks": [
+      "Acceptance recorded and checkpoint persisted while event eligible",
+      "Actual wall-clock expiry, not a fabricated verification clock",
+      "Expired managed opening rejected",
+      "Explicit retained-local opening and receipt binding passed",
+      "Aborted requests rejected without preventing later valid reranking",
+      "Signed diagnostic revocation persisted and old eligibility rejected",
+      "Pack, device and provider cleanup passed"
+    ],
+    "fetchBlocked": true,
+    "attemptedFetches": 0,
+    "osNetworkSandboxClaim": false,
+    "performanceAdvantageClaim": false
+  },
+  "adverseEvidence": [
+    { "path": "adverse/esm-resolution-probe/", "class": "probe-interface failure before model loading", "resolution": "Use the installed ESM host export from the isolated consumer." },
+    { "path": "adverse/ci-package-size.log", "class": "CI package budget rejection", "observedPackedBytes": 2090310, "previousLimitBytes": 2090000, "resolution": "Retained observed CI gzip variance; new limit 2092000, unchanged runtime payload." }
+  ],
+  "custody": {
+    "archive": "reports/electron-adoption/20260906-retained-local-v3-handoff.tar",
+    "sha256": "dd9575961273e406064ad01cfd714462fc7e8c635798a42f5f87813b8b5b1dd4",
+    "sizeBytes": 975964160,
+    "filesVerifiedAfterExtraction": 87,
+    "inventorySha256": "a7a2ea2ed6997cb5484d505821f010d3c16654368244e1d4db237dc31e83afb4",
+    "extractionDirectory": "/tmp/doppler-retained-v3-custody-DCJV7W",
+    "privateKeysIncluded": false,
+    "publication": "local retained archive; not available merely by cloning the repository",
+    "terminalTestState": "diagnostic v3 streams deliberately revoked; do not reset their checkpoints"
+  },
+  "remainingProof": [
+    "Broader held-out document quality and application-level incumbent comparisons",
+    "Measured reduction in Forge preparation and candidate-selection work on subsequent source-model revisions",
+    "Independent maintainer installation, voluntary retention and a subsequent model release",
+    "Separately qualified host, model and device claims beyond this exact reranking tuple"
+  ]
+}
