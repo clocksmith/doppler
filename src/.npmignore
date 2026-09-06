@@ -16,6 +16,7 @@ cli/doppler-quickstart.d.ts
 cli/doppler-serve.d.ts
 cli/output/manifest.d.ts
 cli/runtime-profiles.d.ts
+cli/serve/pack-http.d.ts
 cli/serve/receipt.d.ts
 client/doppler-api.browser.d.ts
 client/doppler-registry.d.ts

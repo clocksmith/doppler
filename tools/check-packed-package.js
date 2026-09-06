@@ -88,6 +88,9 @@ import { registerDocumentSearchReleaseMain } from './main.js';
 import { createDocumentSearchReleaseStore, createDocumentSearchCheckpointStore, prepareDocumentSearchReleaseOptions } from './release-storage.js';
 import type { RuntimePorts, PackRerankRequest, PackEmbeddingRequest, PackEmbeddingResult, DopplerRuntimeSession } from '${packageJson.name}';
 import type { ElectronReleaseStateCoordinator } from '${packageJson.name}/electron';
+import { createPackServeHandler } from '${packageJson.name}/serve';
+import type { PackServePolicy } from '${packageJson.name}/serve';
+declare const servingPolicy: PackServePolicy;
 declare const ports: RuntimePorts;
 declare const releaseState: ElectronReleaseStateCoordinator;
 declare const request: PackRerankRequest;
@@ -98,6 +101,12 @@ const hostSession: Promise<DopplerRuntimeSession> = openPack('https://applicatio
 const renderer = createDocumentSearchRenderer(releaseState, ports);
 renderer.rerank(request).then(receipt => receipt.pack.semanticRoot);
 const session: Promise<DopplerRuntimeSession> = renderer.openCurrent();
+session.then(value => {
+  const handler = createPackServeHandler({ session: value, policy: servingPolicy, token: 'application-secret' });
+  const drained: Promise<void> = handler.close();
+  // @ts-expect-error Serving requires explicit authentication.
+  createPackServeHandler({ session: value, policy: servingPolicy });
+});
 declare const embeddingRequest: PackEmbeddingRequest;
 const embedding: Promise<PackEmbeddingResult> = session.then(value => value.embed(embeddingRequest));
 session.then(value => {

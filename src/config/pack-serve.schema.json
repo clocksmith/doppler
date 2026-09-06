@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "maxRequestBytes", "maxResponseBytes", "maxOutputBytes", "maxDurationMs", "allowedOrigins"],
+  "properties": {
+    "schema": { "const": "doppler.pack-serve/v1" },
+    "maxRequestBytes": { "type": "integer", "minimum": 1 },
+    "maxResponseBytes": { "type": "integer", "minimum": 1 },
+    "maxOutputBytes": { "type": "integer", "minimum": 1 },
+    "maxDurationMs": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+    "allowedOrigins": { "type": "array", "uniqueItems": true, "items": { "type": "string" } }
+  }
+}

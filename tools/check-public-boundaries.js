@@ -30,9 +30,12 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Application-aware plan selection, including the host snapshot: unchanged
   // 1758-file closure, 2,089,629 packed / 10,802,391 unpacked bytes.
   // Repository onboarding modules stay excluded.
-  maxEntryCount: 1758,
-  maxPackedSize: 2_092_000,
-  maxUnpackedSize: 10_802_500,
+  // Pack HTTP transport adds six reachable files, not another model engine:
+  // 1764 entries, 2,093,537 packed / 10,815,644 unpacked on Node 22/npm 9.
+  // Preserve the observed cross-npm compression allowance; core closure stays 46 files.
+  maxEntryCount: 1764,
+  maxPackedSize: 2_096_000,
+  maxUnpackedSize: 10_815_700,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -64,6 +64,22 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DopplerRuntimeSession`
   - `openPack`
 
+## `doppler-gpu/serve`
+
+- Audience: Node application authors
+- Stability: experimental export
+- Manual guide: [docs/api/serve.md](../serve.md)
+- Types: [src/cli/serve/pack-handler.d.ts](../../../src/cli/serve/pack-handler.d.ts)
+- Implementation: [src/cli/serve/pack-handler.js](../../../src/cli/serve/pack-handler.js)
+- Notes: Optional bounded HTTP adapter over an already-open Pack session. No model loading or release selection.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.pack-http-adapter)
+- Exported symbols:
+  - `PackHttpEvents`
+  - `PackHttpRequest`
+  - `PackHttpResponse`
+  - `PackServeHandler`
+  - `PackServePolicy`
+
 ## `doppler-gpu/pack`
 
 - Audience: unspecified
